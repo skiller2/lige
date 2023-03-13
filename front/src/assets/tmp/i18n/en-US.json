@@ -120,6 +120,8 @@
   "app.login.message-invalid-verification-code": "Invalid verification code",
   "app.login.tab-login-credentials": "Credentials",
   "app.login.tab-login-mobile": "Mobile number",
+  "app.login.username-error-tip": "Please add valid username",
+  "app.login.password-error-tip": "Please add valid password",
   "app.login.remember-me": "Remember me",
   "app.login.forgot-password": "Forgot your password?",
   "app.login.sign-in-with": "Sign in with",
