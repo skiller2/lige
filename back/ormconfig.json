@@ -1,9 +1,9 @@
 {
    "type": "mssql",
-   "host": "192.168.1.104",
-   "username": "YT",
+   "host": "localhost",
+   "username": "",
    "password": "",
-   "database": "cofybcf",
+   "database": "db",
    "synchronize": false,
    "logging": "all",
    "maxQueryExecutionTime": 1000,   
