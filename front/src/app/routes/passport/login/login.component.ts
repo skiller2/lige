@@ -4,7 +4,7 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { StartupService } from '@core';
 import { ReuseTabService } from '@delon/abc/reuse-tab';
-import { ALLOW_ANONYMOUS, DA_SERVICE_TOKEN, ITokenService, SocialOpenType, SocialService } from '@delon/auth';
+import { ALLOW_ANONYMOUS, DA_SERVICE_TOKEN, ITokenModel, ITokenService, JWTTokenModel, SocialOpenType, SocialService } from '@delon/auth';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { environment } from '@env/environment';
 import { NzTabChangeEvent } from 'ng-zorro-antd/tabs';
@@ -35,8 +35,8 @@ export class UserLoginComponent implements OnDestroy {
   // #region fields
 
   form = this.fb.nonNullable.group({
-    userName: ['', [Validators.required, Validators.pattern(/^(admin|user)$/)]],
-    password: ['', [Validators.required, Validators.pattern(/^(ng\-alain\.com)$/)]],
+    userName: ['', [Validators.required, Validators.pattern(/^(.*)$/)]],
+    password: ['', [Validators.required, Validators.pattern(/^(.*)$/)]],
     mobile: ['', [Validators.required, Validators.pattern(/^1\d{10}$/)]],
     captcha: ['', [Validators.required]],
     remember: [true]
@@ -102,7 +102,7 @@ export class UserLoginComponent implements OnDestroy {
     this.cdr.detectChanges();
     this.http
       .post(
-        '/login/account',
+        'api/auth/login',
         {
           type: this.type,
           userName: this.form.value.userName,
@@ -119,27 +119,48 @@ export class UserLoginComponent implements OnDestroy {
           this.cdr.detectChanges();
         })
       )
-      .subscribe(res => {
-        if (res.msg !== 'ok') {
-          this.error = res.msg;
-          this.cdr.detectChanges();
-          return;
-        }
-        // 清空路由复用信息
-        this.reuseTabService.clear();
-        // 设置用户Token信息
-        // TODO: Mock expired value
-        res.user.expired = +new Date() + 1000 * 60 * 5;
-        this.tokenService.set(res.user);
-        // 重新获取 StartupService 内容，我们始终认为应用信息一般都会受当前用户授权范围而影响
-        this.startupSrv.load().subscribe(() => {
-          let url = this.tokenService.referrer!.url || '/';
-          if (url.includes('/passport')) {
-            url = '/';
+      .subscribe(
+        res => {
+          if (res.msg !== 'ok') {
+            this.error = res.msg;
+            this.cdr.detectChanges();
+            return;
           }
-          this.router.navigateByUrl(url);
-        });
-      });
+          // 清空路由复用信息
+          this.reuseTabService.clear();
+          // 设置用户Token信息
+          // TODO: Mock expired value
+          //res.user.expired = +new Date() + 1000 * 60 * 5;
+          //this.tokenService.set(res.user);
+
+          this.reuseTabService.clear();
+
+          const tokenTmp: ITokenModel = {
+            expired: 0,
+            token: res.data.token
+          };
+          this.tokenService.set(tokenTmp);
+          const tkndec: any = this.tokenService.get(JWTTokenModel);
+
+          const token: ITokenModel = {
+            expired: tkndec.exp,
+            token: res.data.token
+          };
+          this.tokenService.set(token);
+
+          // 重新获取 StartupService 内容，我们始终认为应用信息一般都会受当前用户授权范围而影响
+          this.startupSrv.load().subscribe(() => {
+            let url = this.tokenService.referrer!.url || '/';
+            if (url.includes('/passport')) {
+              url = '/';
+            }
+            this.router.navigateByUrl(url);
+          });
+        },
+        error => {
+          this.error = error.error.msg;
+        }
+      );
   }
 
   // #region social

@@ -70,8 +70,11 @@ export class DefaultInterceptor implements HttpInterceptor {
       return;
     }
 
-    const errortext = CODEMESSAGE[ev.status] || ev.statusText;
-    this.notification.error(`请求错误 ${ev.status}: ${ev.url}`, errortext);
+    let errortext = (ev as any).error.msg;
+    if (!errortext) errortext = CODEMESSAGE[ev.status] || ev.statusText;
+
+    this.notification.error(`Error`, errortext);
+    //    this.notification.error(`请求错误 ${ev.status}: ${ev.url}`, errortext);
   }
 
   /**
@@ -210,12 +213,12 @@ export class DefaultInterceptor implements HttpInterceptor {
       case 403:
       case 404:
       case 500:
-        // this.goTo(`/exception/${ev.status}?url=${req.urlWithParams}`);
+        this.goTo(`/exception/${ev.status}?url=${req.urlWithParams}`);
         break;
       default:
         if (ev instanceof HttpErrorResponse) {
           console.warn(
-            '未可知错误，大部分是由于后端不支持跨域CORS或无效配置引起，请参考 https://ng-alain.com/docs/server 解决跨域问题',
+            'Errores desconocidos, principalmente causados ​​por el backend que no admite CORS entre dominios o una configuración no válida',
             ev
           );
         }
@@ -255,8 +258,8 @@ export class DefaultInterceptor implements HttpInterceptor {
         }
         // 若一切都正常，则后续操作
         return of(ev);
-      })
-      // catchError((err: HttpErrorResponse) => this.handleData(err, newReq, next))
+      }),
+      catchError((err: HttpErrorResponse) => this.handleData(err, newReq, next))
     );
   }
 }
