@@ -112,7 +112,7 @@ export class UserLoginComponent implements OnDestroy {
     this.loading = true;
     this.cdr.detectChanges();
     this.http
-      .post('api/teac/login', {
+      .post('api/auth/login', {
         type: this.type,
         username: this.userName.value,
         password: this.password.value
