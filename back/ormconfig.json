@@ -1,0 +1,24 @@
+{
+   "type": "mssql",
+   "host": "192.168.1.104",
+   "username": "YT",
+   "password": "",
+   "database": "cofybcf",
+   "synchronize": false,
+   "logging": "all",
+   "maxQueryExecutionTime": 1000,   
+   "entities": [
+      "src/entities/**/*.ts"
+   ],
+   "migrations": [
+      "src/migration/**/*.ts"
+   ],
+   "subscribers": [
+      "src/subscriber/**/*.ts"
+   ],
+   "cli": {
+      "entitiesDir": "src/entity",
+      "migrationsDir": "src/migration",
+      "subscribersDir": "src/subscriber"
+   }
+}
