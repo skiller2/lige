@@ -110,11 +110,11 @@ export class AuthController extends BaseController {
 
   signin(res, req) {
     const con = getConnection();
+    const { userName, email, password } = req.body;
 
-    const { username, email, password } = req.body;
-
-    this.authUser(username, password)
+    this.authUser(userName, password)
       .then((user: any) => {
+        /*
         con
           .query("SELECT nombre,legajo FROM Usuarios WHERE nombre = @0", [
             user.username,
@@ -133,7 +133,7 @@ export class AuthController extends BaseController {
           .catch((err) => {
             this.errRes(err, res, "Error accediendo a base de datos", 409);
           });
-
+*/
         const token = jwt.sign(user, process.env.JWT_SECRET, {
           expiresIn: Number(process.env.JWT_EXPIRE_SECS),
         });
