@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { STColumn, STComponent } from '@delon/abc/st';
 import { SFSchema } from '@delon/form';
 import { ModalHelper, _HttpClient } from '@delon/theme';
-import { NzResizeEvent } from 'ng-zorro-antd/resizable';
 
 @Component({
   selector: 'app-ges-ccfarm',
@@ -63,7 +62,8 @@ export class GesCcfarmComponent implements OnInit {
 
   constructor(private http: _HttpClient, private modal: ModalHelper) {}
 
-  onResize({ width }: NzResizeEvent, col: string): void {
+  onResize(evt: any, col: string): void {
+    const width = evt.width;
     this.cols = this.cols.map((e: { title: string }) => (e.title === col ? { ...e, width: `${width}px` } : e));
   }
 

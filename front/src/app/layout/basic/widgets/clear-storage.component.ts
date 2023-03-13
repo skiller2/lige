@@ -6,10 +6,10 @@ import { NzModalService } from 'ng-zorro-antd/modal';
   selector: 'header-clear-storage',
   template: `
     <i nz-icon nzType="tool"></i>
-    Limpiar almacenamiento local
+    {{ 'menu.clear.local.storage' | i18n }}
   `,
   host: {
-    '[class.d-block]': 'true'
+    '[class.flex-1]': 'true'
   },
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -19,10 +19,10 @@ export class HeaderClearStorageComponent {
   @HostListener('click')
   _click(): void {
     this.modalSrv.confirm({
-      nzTitle: 'Está seguro que quiere limpiar los datos del navegador?',
+      nzTitle: 'Make sure clear all local storage?',
       nzOnOk: () => {
         localStorage.clear();
-        this.messageSrv.success('Limpieza finalizada!');
+        this.messageSrv.success('Clear Finished!');
       }
     });
   }
