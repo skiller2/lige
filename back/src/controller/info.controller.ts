@@ -12,7 +12,7 @@ export class InfoController extends BaseController {
 
     const data = {
       connected: false,
-      database: "cofybcf",
+      database: process.env.DB_DATABASE,
       sqltest: {},
       random: Math.floor(Math.random() * (100000000000 + 1)),
     };
@@ -25,7 +25,7 @@ export class InfoController extends BaseController {
         this.jsonRes(data, res);
         //throw new Error("Forzado");
       })
-      .catch((err) => {
+      .catch((err: Error) => {
         this.errRes(err, res, "Error accediendo a base de datos",409);
       });
   }
