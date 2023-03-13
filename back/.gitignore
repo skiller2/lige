@@ -1,5 +1,6 @@
 .env
 .idea/
+.env
 .vscode/
 node_modules/
 build/
