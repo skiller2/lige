@@ -1,9 +1,9 @@
 {
-  "name": "fabi",
-  "version": "0.0.0",
+  "name": "front",
+  "version": "1.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng s --proxy-config proxy.conf.json",
+    "start": "npx ng s --proxy-config proxy.conf.json",
     "build": "npm run ng-high-memory build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
@@ -15,7 +15,7 @@
     "color-less": "ng-alain-plugin-theme -t=colorLess",
     "theme": "ng-alain-plugin-theme -t=themeCss",
     "icon": "ng g ng-alain:plugin icon",
-    "prepare": "husky install",
+    "prepare": "cd .. && husky install front/.husky",
     "lint": "npm run lint:ts && npm run lint:style",
     "lint:ts": "ng lint --fix",
     "lint:style": "stylelint \"src/**/*.less\" --syntax less --fix"
@@ -30,18 +30,20 @@
     "@angular/platform-browser": "~15.2.2",
     "@angular/platform-browser-dynamic": "~15.2.2",
     "@angular/router": "~15.2.2",
-    "@delon/abc": "^12.2.3",
-    "@delon/acl": "^12.2.3",
-    "@delon/auth": "^12.2.3",
-    "@delon/cache": "^12.2.3",
-    "@delon/chart": "^12.2.3",
-    "@delon/form": "^12.2.3",
-    "@delon/mock": "^12.2.3",
-    "@delon/theme": "^12.2.3",
-    "@delon/util": "^12.2.3",
+    "@delon/abc": "^15.1.0",
+    "@delon/acl": "^15.1.0",
+    "@delon/auth": "^15.1.0",
+    "@delon/cache": "^15.1.0",
+    "@delon/chart": "^15.1.0",
+    "@delon/form": "^15.1.0",
+    "@delon/mock": "^15.1.0",
+    "@delon/theme": "^15.1.0",
+    "@delon/util": "^15.1.0",
     "ajv": "^8.6.2",
     "ajv-formats": "^2.1.1",
-    "ng-alain": "^12.3.0",
+    "ng": "^0.0.0",
+    "ng-alain": "^15.1.0",
+    "ng-zorro-antd": "^15.0.3",
     "rxjs": "~6.6.0",
     "screenfull": "^5.1.0",
     "tslib": "^2.3.0",
@@ -68,7 +70,7 @@
     "eslint-plugin-jsdoc": "~36.0.7",
     "eslint-plugin-prefer-arrow": "~1.2.3",
     "eslint-plugin-prettier": "^2.2.1",
-    "husky": "^6.0.0",
+    "husky": "^8.0.3",
     "jasmine-core": "~3.8.0",
     "karma": "~6.3.0",
     "karma-chrome-launcher": "~3.1.0",
@@ -76,12 +78,12 @@
     "karma-jasmine": "~4.0.0",
     "karma-jasmine-html-reporter": "~1.7.0",
     "lint-staged": "^11.1.2",
-    "ng-alain-plugin-theme": "^12.0.0",
+    "ng-alain-plugin-theme": "^15.0.1",
     "prettier": "^2.2.1",
     "source-map-explorer": "^2.5.2",
-    "stylelint": "^13.13.1",
+    "stylelint": "^15.2.0",
     "stylelint-config-prettier": "^8.0.2",
-    "stylelint-config-rational-order": "^0.1.2",
+    "stylelint-config-rational-order": "^0.0.4",
     "stylelint-config-standard": "^22.0.0",
     "stylelint-declaration-block-no-ignored-properties": "^2.4.0",
     "stylelint-order": "^4.1.0",
@@ -94,5 +96,16 @@
     "(src)/**/*.less": [
       "stylelint --syntax less --fix"
     ]
-  }
+  },
+  "description": "<p align=\"center\">   <a href=\"https://ng-alain.com\">     <img width=\"100\" src=\"https://ng-alain.com/assets/img/logo-color.svg\">   </a> </p>",
+  "main": ".eslintrc.js",
+  "author": "Alfredo",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/skiller2/lige/front"
+  },
+  "keywords": [
+    "front"
+  ]
 }
