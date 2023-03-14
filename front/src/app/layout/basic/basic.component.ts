@@ -7,11 +7,6 @@ import { environment } from '@env/environment';
   selector: 'layout-basic',
   template: `
     <layout-default [options]="options" [asideUser]="asideUserTpl" [content]="contentTpl" [customError]="null">
-      <layout-default-header-item direction="left">
-        <a layout-default-header-item-trigger href="//github.com/ng-alain/ng-alain" target="_blank">
-          <i nz-icon nzType="github"></i>
-        </a>
-      </layout-default-header-item>
       <layout-default-header-item direction="left" hidden="mobile">
         <a layout-default-header-item-trigger routerLink="/passport/lock">
           <i nz-icon nzType="lock"></i>
@@ -40,9 +35,9 @@ import { environment } from '@env/environment';
         </div>
         <nz-dropdown-menu #settingsMenu="nzDropdownMenu">
           <div nz-menu style="width: 200px;">
-            <div nz-menu-item>
+            <!-- div nz-menu-item>
               <header-rtl></header-rtl>
-            </div>
+            </div -->
             <div nz-menu-item>
               <header-fullscreen></header-fullscreen>
             </div>
@@ -84,8 +79,8 @@ import { environment } from '@env/environment';
 })
 export class LayoutBasicComponent {
   options: LayoutDefaultOptions = {
-    logoExpanded: `./assets/logo-full.svg`,
-    logoCollapsed: `./assets/logo.svg`
+    logoExpanded: `./assets/logo-lince-negro.png`,
+    logoCollapsed: `./assets/logo-lince-negro.png`
   };
   searchToggleStatus = false;
   showSettingDrawer = !environment.production;

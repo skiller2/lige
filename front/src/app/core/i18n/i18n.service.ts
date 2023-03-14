@@ -2,6 +2,7 @@
 import { Platform } from '@angular/cdk/platform';
 import { registerLocaleData } from '@angular/common';
 import ngEn from '@angular/common/locales/en';
+import ngEs from '@angular/common/locales/es';
 import ngZh from '@angular/common/locales/zh';
 import ngZhTw from '@angular/common/locales/zh-Hant';
 import { Injectable } from '@angular/core';
@@ -11,13 +12,14 @@ import {
   SettingsService,
   zh_CN as delonZhCn,
   zh_TW as delonZhTw,
+  es_ES as delonEsEs,
   _HttpClient,
   AlainI18nBaseService
 } from '@delon/theme';
 import { AlainConfigService } from '@delon/util/config';
-import { enUS as dfEn, zhCN as dfZhCn, zhTW as dfZhTw } from 'date-fns/locale';
+import { enUS as dfEn, zhCN as dfZhCn, zhTW as dfZhTw, ar as dfAR } from 'date-fns/locale';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
-import { en_US as zorroEnUS, NzI18nService, zh_CN as zorroZhCN, zh_TW as zorroZhTW } from 'ng-zorro-antd/i18n';
+import { en_US as zorroEnUS, NzI18nService, zh_CN as zorroZhCN, zh_TW as zorroZhTW, es_ES as zorroEsES } from 'ng-zorro-antd/i18n';
 import { Observable } from 'rxjs';
 
 interface LangConfigData {
@@ -29,8 +31,16 @@ interface LangConfigData {
   delon: NzSafeAny;
 }
 
-const DEFAULT = 'zh-CN';
+const DEFAULT = 'es-ES';
 const LANGS: { [key: string]: LangConfigData } = {
+  'es-ES': {
+    text: 'Español',
+    ng: ngEs,
+    zorro: zorroEsES,
+    date: dfAR,
+    delon: delonEsEs,
+    abbr: 'es'
+  },
   'zh-CN': {
     text: '简体中文',
     ng: ngZh,
