@@ -4,11 +4,13 @@
     "stylelint-config-rational-order",
     "stylelint-config-prettier"
   ],
+  "customSyntax": "postcss-less",
   "plugins": [
     "stylelint-order",
     "stylelint-declaration-block-no-ignored-properties"
   ],
   "rules": {
+    "function-no-unknown": null,
     "no-descending-specificity": null,
     "plugin/declaration-block-no-ignored-properties": true,
     "selector-type-no-unknown": [
@@ -28,7 +30,8 @@
           "ng-deep"
         ]
       }
-    ]
+    ],
+    "import-notation": "string"
   },
   "ignoreFiles": [
     "src/assets/**/*"

@@ -6,8 +6,7 @@ import { environment } from '@env/environment';
 @Component({
   selector: 'layout-basic',
   template: `
-    <layout-default [options]="options" [asideUser]="asideUserTpl" [content]="contentTpl">
-      <layout-default-header-item direction="left"> </layout-default-header-item>
+    <layout-default [options]="options" [content]="contentTpl" [customError]="null">
       <layout-default-header-item direction="left" hidden="mobile">
         <a layout-default-header-item-trigger routerLink="/passport/lock">
           <i nz-icon nzType="lock"></i>
@@ -19,19 +18,34 @@ import { environment } from '@env/environment';
         </div>
       </layout-default-header-item>
       <layout-default-header-item direction="middle">
-        <header-search class="alain-default__search" [toggleChange]="searchToggleStatus"></header-search>
+        <header-search class="alain-default__search" [(toggleChange)]="searchToggleStatus"></header-search>
+      </layout-default-header-item>
+      <layout-default-header-item direction="right">
+        <header-notify></header-notify>
+      </layout-default-header-item>
+      <layout-default-header-item direction="right" hidden="mobile">
+        <header-task></header-task>
+      </layout-default-header-item>
+      <layout-default-header-item direction="right" hidden="mobile">
+        <header-icon></header-icon>
       </layout-default-header-item>
       <layout-default-header-item direction="right" hidden="mobile">
         <div layout-default-header-item-trigger nz-dropdown [nzDropdownMenu]="settingsMenu" nzTrigger="click" nzPlacement="bottomRight">
           <i nz-icon nzType="setting"></i>
         </div>
         <nz-dropdown-menu #settingsMenu="nzDropdownMenu">
-          <div nz-menu>
+          <div nz-menu style="width: 200px;">
+            <!-- div nz-menu-item>
+              <header-rtl></header-rtl>
+            </div -->
             <div nz-menu-item>
               <header-fullscreen></header-fullscreen>
             </div>
             <div nz-menu-item>
               <header-clear-storage></header-clear-storage>
+            </div>
+            <div nz-menu-item>
+              <header-i18n></header-i18n>
             </div>
           </div>
         </nz-dropdown-menu>
@@ -49,8 +63,8 @@ import { environment } from '@env/environment';
         </div>
         <nz-dropdown-menu #userMenu="nzDropdownMenu">
           <ul nz-menu>
-            <li nz-menu-item routerLink="/pro/account/center">Account Center</li>
-            <li nz-menu-item routerLink="/pro/account/settings">Account Settings</li>
+            <li nz-menu-item routerLink="/pro/account/center">{{ 'menu.account.center' | i18n }}</li>
+            <li nz-menu-item routerLink="/pro/account/settings">{{ 'menu.account.settings' | i18n }}</li>
           </ul>
         </nz-dropdown-menu>
       </ng-template>
@@ -65,8 +79,8 @@ import { environment } from '@env/environment';
 })
 export class LayoutBasicComponent {
   options: LayoutDefaultOptions = {
-    logoExpanded: `./assets/logo-cofybcf-full.png`,
-    logoCollapsed: `./assets/logo-cofybcf-simple.png`
+    logoExpanded: `./assets/logo-lince-negro.png`,
+    logoCollapsed: `./assets/logo-lince-negro.png`
   };
   searchToggleStatus = false;
   showSettingDrawer = !environment.production;

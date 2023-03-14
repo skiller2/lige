@@ -1,4 +1,4 @@
-<h3>Register</h3>
+<h3>{{ 'app.register.register' | i18n }}</h3>
 <form nz-form [formGroup]="form" (ngSubmit)="submit()" role="form">
   <nz-alert *ngIf="error" [nzType]="'error'" [nzMessage]="error" [nzShowIcon]="true" class="mb-lg"></nz-alert>
   <nz-form-item>
@@ -7,13 +7,13 @@
         <input nz-input formControlName="mail" placeholder="Email" />
       </nz-input-group>
       <ng-template #mailErrorTip let-i>
-        <ng-container *ngIf="i.errors?.required">Please enter your email!</ng-container>
-        <ng-container *ngIf="i.errors?.email">The email address is in the wrong format!</ng-container>
+        <ng-container *ngIf="i.errors?.required">{{ 'validation.email.required' | i18n }}</ng-container>
+        <ng-container *ngIf="i.errors?.email">{{ 'validation.email.wrong-format' | i18n }}</ng-container>
       </ng-template>
     </nz-form-control>
   </nz-form-item>
   <nz-form-item>
-    <nz-form-control [nzErrorTip]="'Please enter your password!'">
+    <nz-form-control [nzErrorTip]="'validation.password.required' | i18n">
       <nz-input-group
         nzSize="large"
         nzAddonBeforeIcon="lock"
@@ -30,9 +30,9 @@
       <ng-template #pwdCdkTpl>
         <div style="padding: 4px 0">
           <ng-container [ngSwitch]="status">
-            <div *ngSwitchCase="'ok'" class="success">Strength: strong</div>
-            <div *ngSwitchCase="'pass'" class="warning">Strength: medium</div>
-            <div *ngSwitchDefault class="error">Strength: too short</div>
+            <div *ngSwitchCase="'ok'" class="success">{{ 'validation.password.strength.strong' | i18n }}</div>
+            <div *ngSwitchCase="'pass'" class="warning">{{ 'validation.password.strength.medium' | i18n }}</div>
+            <div *ngSwitchDefault class="error">{{ 'validation.password.strength.short' | i18n }}</div>
           </ng-container>
           <div class="progress-{{ status }}">
             <nz-progress
@@ -42,7 +42,7 @@
               [nzShowInfo]="false"
             ></nz-progress>
           </div>
-          <p class="mt-sm">Please enter at least 6 characters and don't use passwords that are easy to guess.</p>
+          <p class="mt-sm">{{ 'validation.password.strength.msg' | i18n }}</p>
         </div>
       </ng-template>
     </nz-form-control>
@@ -53,8 +53,8 @@
         <input nz-input type="password" formControlName="confirm" placeholder="Confirm Password" />
       </nz-input-group>
       <ng-template #confirmErrorTip let-i>
-        <ng-container *ngIf="i.errors?.required">Please confirm your password!</ng-container>
-        <ng-container *ngIf="i.errors?.matchControl">The passwords entered twice do not match!</ng-container>
+        <ng-container *ngIf="i.errors?.required">{{ 'validation.confirm-password.required' | i18n }}</ng-container>
+        <ng-container *ngIf="i.errors?.matchControl">{{ 'validation.password.twice' | i18n }}</ng-container>
       </ng-template>
     </nz-form-control>
   </nz-form-item>
@@ -70,13 +70,13 @@
         <input formControlName="mobile" nz-input placeholder="Phone number" />
       </nz-input-group>
       <ng-template #mobileErrorTip let-i>
-        <ng-container *ngIf="i.errors?.required">Please enter your phone number!</ng-container>
-        <ng-container *ngIf="i.errors?.pattern">Malformed phone number!</ng-container>
+        <ng-container *ngIf="i.errors?.required">{{ 'validation.phone-number.required' | i18n }}</ng-container>
+        <ng-container *ngIf="i.errors?.pattern">{{ 'validation.phone-number.wrong-format' | i18n }}</ng-container>
       </ng-template>
     </nz-form-control>
   </nz-form-item>
   <nz-form-item>
-    <nz-form-control [nzErrorTip]="'Please enter the verification code!'">
+    <nz-form-control [nzErrorTip]="'validation.verification-code.required' | i18n">
       <nz-row [nzGutter]="8">
         <nz-col [nzSpan]="16">
           <nz-input-group nzSize="large" nzAddonBeforeIcon="mail">
@@ -85,7 +85,7 @@
         </nz-col>
         <nz-col [nzSpan]="8">
           <button type="button" nz-button nzSize="large" (click)="getCaptcha()" [disabled]="count > 0" nzBlock [nzLoading]="loading">
-            {{ count ? count + 's' : ('Get code') }}
+            {{ count ? count + 's' : ('app.register.get-verification-code' | i18n) }}
           </button>
         </nz-col>
       </nz-row>
@@ -93,8 +93,8 @@
   </nz-form-item>
   <nz-form-item>
     <button nz-button nzType="primary" nzSize="large" type="submit" [nzLoading]="loading" class="submit">
-      Register
+      {{ 'app.register.register' | i18n }}
     </button>
-    <a class="login" routerLink="/passport/login">Already have an account?</a>
+    <a class="login" routerLink="/passport/login">{{ 'app.register.sign-in' | i18n }}</a>
   </nz-form-item>
 </form>

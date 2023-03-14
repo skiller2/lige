@@ -1,16 +1,14 @@
 import { NgModule, Type } from '@angular/core';
 import { SharedModule } from '@shared';
-import { GesRoutingModule } from './ges-routing.module';
-import { GesCcfarmComponent } from './ccfarm/ccfarm.component';
+import { NzResizableModule } from 'ng-zorro-antd/resizable';
 
-const COMPONENTS: Type<void>[] = [
-  GesCcfarmComponent];
+import { GesCcfarmComponent } from './ccfarm/ccfarm.component';
+import { GesRoutingModule } from './ges-routing.module';
+
+const COMPONENTS: Array<Type<void>> = [GesCcfarmComponent];
 
 @NgModule({
-  imports: [
-    SharedModule,
-    GesRoutingModule
-  ],
-  declarations: COMPONENTS,
+  imports: [SharedModule, GesRoutingModule, NzResizableModule],
+  declarations: COMPONENTS
 })
-export class GesModule { }
+export class GesModule {}

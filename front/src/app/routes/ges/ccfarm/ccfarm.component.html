@@ -9,34 +9,14 @@
 
 <page-header [action]="phActionTpl"></page-header>
 <nz-card class="small-margin">
-  <nz-table
-    class="small-margin"
-    #virtualTable
-    nzSize="small"
-    nzShowPagination
-    nzShowSizeChanger
-    [nzBordered]="true"
-    [nzData]="listOfData"
-    [nzVirtualForTrackBy]="trackByIndex"
-    [nzVirtualItemSize]="54"
-    [nzShowPagination]="true"
-    [nzScroll]="{ x: '1200px', y: '540px' }"
-    [nzFrontPagination]="false"
-
-  >
+  <nz-table class="small-margin" #virtualTable nzSize="small" nzShowPagination nzShowSizeChanger [nzBordered]="true"
+    [nzData]="listOfData" [nzVirtualForTrackBy]="trackByIndex" [nzVirtualItemSize]="54" [nzShowPagination]="true"
+    [nzScroll]="{ x: '1200px', y: '540px' }" [nzFrontPagination]="false">
     <thead>
       <tr>
         <ng-container *ngFor="let col of cols">
-          <th
-            *ngIf="col.width"
-            nz-resizable
-            nzPreview
-            nzBounds="window"
-            [nzWidth]="col.width"
-            [nzMaxWidth]="256"
-            [nzMinWidth]="60"
-            (nzResizeEnd)="onResize($event, col.title)"
-          >
+          <th *ngIf="col.width" nz-resizable nzPreview nzBounds="window" [nzWidth]="col.width" [nzMaxWidth]="256"
+            [nzMinWidth]="60" (nzResizeEnd)="onResize($event, col.title)">
             {{ col.title }}
             <nz-resize-handle nzDirection="right">
               <div class="resize-trigger"></div>
