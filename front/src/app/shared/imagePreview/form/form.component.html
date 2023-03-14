@@ -1,0 +1,11 @@
+<div>
+    <div for="file-upload" class="custom-file-upload">
+        <label for="file-upload">
+            Upload File
+        </label>
+        <input (change)="fileChange($event)" id="file-upload" type="file" accept="image/*"/>
+    </div>
+    <label *ngIf="($currentFileName | async) as name ">Name: {{name}} </label>
+    <br>    
+    <label *ngIf="($currentFileSize | async) as size ">Size: {{size}}KiB </label>
+</div>

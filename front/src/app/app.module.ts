@@ -86,6 +86,9 @@ import { RoutesModule } from './routes/routes.module';
 import { SharedModule } from './shared/shared.module';
 import { STWidgetModule } from './shared/st-widget/st-widget.module';
 import { Observable } from 'rxjs';
+import { ContentSelectorComponent } from './shared/imagePreview/content-selector/content-selector.component';
+import { FormComponent } from './shared/imagePreview/form/form.component';
+import { ImageCanvasComponent } from './shared/imagePreview/image-canvas/image-canvas.component';
 
 @NgModule({
   declarations: [AppComponent],

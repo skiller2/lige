@@ -13,12 +13,18 @@
       "text": "Principal",
       "i18n": "menu.main",
       "group": true,
-      "hideInBreadcrumb": true,
+      "hideInBreadcrumb": true, 
       "children": [
         {
           "text": "Escritorio",
           "icon": "anticon-dashboard",
           "link": "/dashboard"
+        },
+        {
+          "text": "Imagen Personal",
+          "i18n": "ges.imgpers",
+          "icon": "anticon-profile",
+          "link": "/ges/imgpers"
         },
         {
           "text": "Cuentas Farmacias",

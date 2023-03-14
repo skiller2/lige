@@ -1,0 +1,9 @@
+canvas {
+    max-width: 30vw;
+    max-height: 30vh;
+}
+app-content-selector {
+    width: fit-content;
+    height: fit-content;
+    position: relative;
+}
