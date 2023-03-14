@@ -11,6 +11,7 @@
   "menu": [
     {
       "text": "Principal",
+      "i18n": "menu.main",
       "group": true,
       "hideInBreadcrumb": true,
       "children": [
@@ -26,11 +27,13 @@
           "children": [
             {
               "text": "Listado",
-              "link": "/ges/ccfarm"
+              "link": "/ges/ccfarm",
+              "icon": "anticon-appstore"
             },
             {
               "text": "Detalle Farmacia",
-              "link": "/ges/ccfarm/detalle"
+              "link": "/ges/ccfarm/detalle",
+              "icon": "anticon-appstore"
             }
           ]
         },
@@ -40,7 +43,8 @@
           "children": [
             {
               "text": "Listado",
-              "link": "/ges/liquida"
+              "link": "/ges/liquida",
+              "icon": "anticon-info"
             },
             {
               "text": "Detalle liquidación",
