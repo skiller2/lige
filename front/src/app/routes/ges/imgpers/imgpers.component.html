@@ -1,6 +1,6 @@
 <ng-template #phActionTpl>
   <nz-button-group>
-    <button nz-button (click)="add()" nzType="primary" disabled>L</button>
+    <button nz-button nzType="primary" disabled>L</button>
     <button nz-button nzType="default" disabled>M</button>
     <button nz-button nzType="default">M</button>
     <button nz-button nzType="dashed" disabled>R</button>
@@ -10,5 +10,7 @@
 <page-header [action]="phActionTpl"></page-header>
 <nz-card class="small-margin">
   <app-image-content></app-image-content>
-  <button (click)="search()"></button>
+  <nz-select [(ngModel)]="selectedValue" nzAllowClear nzPlaceHolder="Choose" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
+    <nz-option *ngFor="let option of $optionsArray | async" [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
+  </nz-select>
 </nz-card>
