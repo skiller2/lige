@@ -17,7 +17,7 @@ export class PersonalController extends BaseController {
       )
       .then((records) => {
         console.log('registros',records);
-        if (records.length == 0) this.jsonRes(records[0], res);
+        if (records.length == 1) this.jsonRes(records[0], res);
       })
       .catch((err) => {
         this.errRes(err, res, "Error accediendo a la base de datos", 409);
