@@ -1,0 +1,11 @@
+div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+image-cropper {
+    max-width: 50vw;
+    max-height: 50vh;
+}

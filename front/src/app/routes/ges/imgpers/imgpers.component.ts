@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { STColumn, STComponent } from '@delon/abc/st';
 import { SFSchema } from '@delon/form';
 import { ModalHelper, _HttpClient } from '@delon/theme';
-import { ImageCanvasComponent } from 'src/app/shared/imagePreview/image-canvas/image-canvas.component';
 import { FormComponent } from 'src/app/shared/imagePreview/form/form.component';
 
 @Component({

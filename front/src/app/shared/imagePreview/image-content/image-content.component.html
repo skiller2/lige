@@ -1,0 +1,20 @@
+<app-form (eventEmitter)="fileChangeEvent($event)" ></app-form>
+
+<div>
+    <image-cropper
+        [imageChangedEvent]="imageChangedEvent"
+        [aspectRatio]="1"
+        [resizeToWidth]="91"
+        [resizeToHeight]="91"
+        [roundCropper]="false"
+        [alignImage]="'center'"
+        [style.display]="showCropper ? null : 'none'"
+        format="jpeg"
+        (imageCropped)="imageCropped($event)"
+        (imageLoaded)="imageLoaded()"
+        (cropperReady)="cropperReady($event)"
+        (loadImageFailed)="loadImageFailed()"
+    ></image-cropper>
+    <img [src]="croppedImage" [style.border]="croppedImage ? '1px solid black' : 'none'" />
+    <span *ngIf="$croppedImageFileSize | async as size">{{size | nzBytes}}</span>
+</div>

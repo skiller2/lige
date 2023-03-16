@@ -232,7 +232,7 @@
     symbol-observable "4.0.0"
     yargs "17.6.2"
 
-"@angular/common@^15.0.0", "@angular/common@^15.0.0 || ^16.0.0", "@angular/common@^15.0.1", "@angular/common@^15.1.0", "@angular/common@15.2.2":
+"@angular/common@^15.0.0", "@angular/common@^15.0.0 || ^16.0.0", "@angular/common@^15.0.1", "@angular/common@^15.1.0", "@angular/common@>=13.0.0", "@angular/common@15.2.2":
   version "15.2.2"
   resolved "https://registry.npmjs.org/@angular/common/-/common-15.2.2.tgz"
   integrity sha512-407yHyMR5CGFWjZPeiBNHa4UKwOTTMCNn7gmfi243AxIaPjIHwCDvIOx2w5OfrV+OUKSMIuqMRHLP4eUYkJDjA==
@@ -262,7 +262,7 @@
   dependencies:
     tslib "^2.3.0"
 
-"@angular/core@^15.0.0", "@angular/core@^15.0.0 || ^16.0.0", "@angular/core@^15.0.1", "@angular/core@^15.1.0", "@angular/core@15.2.2":
+"@angular/core@^15.0.0", "@angular/core@^15.0.0 || ^16.0.0", "@angular/core@^15.0.1", "@angular/core@^15.1.0", "@angular/core@>=13.0.0", "@angular/core@15.2.2":
   version "15.2.2"
   resolved "https://registry.npmjs.org/@angular/core/-/core-15.2.2.tgz"
   integrity sha512-Rn9LKeeryV0hVrOxlOPnQJdgUxbKdB8NByhptzB6XSzZ0ODx0ZN+iYVRLqu0Fu95zh5oSeYYU+2yT6+FIIX65w==
@@ -7919,6 +7919,13 @@ ngx-countdown@^15.0.0:
   version "15.0.0"
   resolved "https://registry.npmjs.org/ngx-countdown/-/ngx-countdown-15.0.0.tgz"
   integrity sha512-AUmdLyqho8zj1hxryW2Zh8xyrvHqtVEH4SYDZHfbeJ3UungSF8SFH4oQlaTTeNAIvuc7oiazuNhqWXKz/m3jnQ==
+  dependencies:
+    tslib "^2.3.0"
+
+ngx-image-cropper@^6.3.2:
+  version "6.3.2"
+  resolved "https://registry.npmjs.org/ngx-image-cropper/-/ngx-image-cropper-6.3.2.tgz"
+  integrity sha512-w24kxXyXxwLdnaZlaIG8KI71sdw4vp+O7uYLTaWmxAbFOKOv9o6ko2CmtC7u5B3jXD0OuOzQgJJSGkJZZbnNcA==
   dependencies:
     tslib "^2.3.0"
 

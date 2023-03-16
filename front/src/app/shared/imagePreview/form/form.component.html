@@ -1,11 +1,10 @@
 <div>
-    <div for="file-upload" class="custom-file-upload">
-        <label for="file-upload">
-            Upload File
-        </label>
-        <input (change)="fileChange($event)" id="file-upload" type="file" accept="image/*"/>
-    </div>
-    <label *ngIf="($currentFileName | async) as name ">Name: {{name}} </label>
-    <br>    
-    <label *ngIf="($currentFileSize | async) as size ">Size: {{size}}KiB </label>
+    <button nz-button onclick="upload.click();"> 
+        <span nz-icon nzType="upload"></span>
+        <span *ngIf="!($currentIsFile | async) ">Choose File</span>
+
+        <span *ngIf="($currentFileName | async) as name ">{{name}}</span>
+        <span *ngIf="($currentFileSize | async) as size ">{{size | nzBytes}} </span>
+    </button>
+    <input (change)="fileChange($event)" id="upload" type="file" accept="image/*"/>
 </div>

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ImageCanvasComponent } from './image-canvas.component';
+import { ImageContentComponent } from './image-content.component';
 
-describe('ImageCanvasComponent', () => {
-  let component: ImageCanvasComponent;
-  let fixture: ComponentFixture<ImageCanvasComponent>;
+describe('ImageContentComponent', () => {
+  let component: ImageContentComponent;
+  let fixture: ComponentFixture<ImageContentComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ImageCanvasComponent ]
+      declarations: [ ImageContentComponent ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ImageCanvasComponent);
+    fixture = TestBed.createComponent(ImageContentComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

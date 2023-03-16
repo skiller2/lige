@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { FileImageService } from '../file-image.service';
@@ -11,10 +11,15 @@ import { FileImageService } from '../file-image.service';
 export class FormComponent {
   constructor(private fileService: FileImageService) {}
 
-  $currentFileName: Observable<string | undefined> = this.fileService.$currentFile.pipe(map( file => file?.name))
-  $currentFileSize: Observable<number | undefined> = this.fileService.$currentFile.pipe(map( file => Math.round((file?.size)!/1024)))
+  @Output() eventEmitter = new EventEmitter<Event>()
+
+
+  $currentIsFile: Observable<boolean> = this.fileService.$currentFile.pipe(map( file => file.size > 0 ? true : false))
+  $currentFileName: Observable<string> = this.fileService.$currentFile.pipe(map( file => file.name))
+  $currentFileSize: Observable<number> = this.fileService.$currentFile.pipe(map( file => file.size))
   
   fileChange($event: Event) {
+    this.eventEmitter.emit($event)
     const file = ($event.target as HTMLInputElement).files?.item(0)
     if (file && file.type.startsWith("image/")) this.fileService.updateFile(file); else console.log("Error: File is not an image.")
 
