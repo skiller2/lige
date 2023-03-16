@@ -10,8 +10,8 @@ export class PersonalController extends BaseController {
     con
       .query(
         "SELECT persona.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo FROM Personal persona \
-          JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId \
-          JOIN DocumentoImagenFoto foto ON foto.PersonalId = persona.PersonalId \
+          JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = persona.PersonalCUITCUILUltNro \
+          LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = persona.PersonalId \
           WHERE persona.PersonalId = @0",
         [PersonalId]
       )
@@ -25,7 +25,7 @@ export class PersonalController extends BaseController {
 
     //    throw new Error("Method not implemented.");
   }
-  
+
   search(
     req: Request<{}, any, any, ParsedQs, Record<string, any>>,
     res: Response
