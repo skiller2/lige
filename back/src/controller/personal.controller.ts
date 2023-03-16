@@ -15,9 +15,10 @@ export class PersonalController extends BaseController {
           WHERE persona.PersonalId = @0",
         [PersonalId]
       )
-      .then((records) => {
-        console.log('registros',records);
+      .then((records: Array<any>) => {
+        records[0].image = process.env.IMAGE_FOTO_PATH.concat(records[0].DocumentoImagenFotoBlobNombreArchivo)
         if (records.length == 1) this.jsonRes(records[0], res);
+        else { throw new Error('Record not found')}
       })
       .catch((err) => {
         this.errRes(err, res, "Error accediendo a la base de datos", 409);

@@ -9,8 +9,8 @@
 
 <page-header [action]="phActionTpl"></page-header>
 <nz-card class="small-margin">
-  <app-image-content></app-image-content>
-  <nz-select [(ngModel)]="selectedValue" nzAllowClear nzPlaceHolder="Choose" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
+  <app-image-content [personalImage]="$personalImageDataPath | async"></app-image-content>
+  <nz-select [ngModel]="selectedPersonalId" (ngModelChange)="selectedValueChange($event)"  nzAllowClear nzPlaceHolder="Choose" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
     <nz-option *ngFor="let option of $optionsArray | async" [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
   </nz-select>
 </nz-card>

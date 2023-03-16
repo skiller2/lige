@@ -17,6 +17,8 @@ export class SearchService {
     $response: BehaviorSubject<SearchResponse> = new BehaviorSubject<SearchResponse>({ msg: "", data: []})
     $loading: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false)
 
+    $responsePersonal: BehaviorSubject<any> = new BehaviorSubject<any>({ msg: "", data: {}})
+
     constructor(private http: _HttpClient) {
 
     }
@@ -30,7 +32,7 @@ export class SearchService {
         )
             .subscribe((res) => {
                 if (res){
-                    console.log(res)
+                    // console.log(res)
                     this.$response.next(res)
                 }
                 else {
@@ -39,6 +41,19 @@ export class SearchService {
             })
     }
 
+    getByPersonalId(id: string){
+        if (id == "") return
+        this.http.get(`api/personal/${id}`)
+            .subscribe((res) => {
+                if (res){
+                    this.$responsePersonal.next(res.data)
+                }
+                else {
+                    this.$responsePersonal.next({msg: "", data: {}})
+                }
+            })
+    }
+    
 
 }
 

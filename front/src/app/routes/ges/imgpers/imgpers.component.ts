@@ -37,6 +37,11 @@ interface ResponseData {
       nz-select {
         width: 200px;
       }
+
+      img {
+        max-width: 10vw;
+        max-height: 10vh;
+      }
     `
   ]
 })
@@ -47,12 +52,17 @@ export class ImgPersComponent {
   constructor(private http: _HttpClient, private searchService: SearchService) { }
 
 
-  selectedValue: string = ''
+  selectedPersonalId: string = ''
   $optionsArray: Observable<Array<ResponseData>> = this.searchService.$response.pipe(
     map((res: SearchResponse) => res.data)
   )
 
+  $personalImageDataPath = this.searchService.$responsePersonal.pipe(map((data) => data.image))
 
+  selectedValueChange(event: string): void {
+    this.selectedPersonalId = event
+    this.searchService.getByPersonalId(event)
+  }
   search(value: string): void {
     this.searchService.search('Nombre', value)
   }
