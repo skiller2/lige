@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { STColumn, STComponent } from '@delon/abc/st';
 import { SFSchema } from '@delon/form';
 import { ModalHelper, _HttpClient } from '@delon/theme';
+import { finalize } from 'rxjs';
 import { FormComponent } from 'src/app/shared/imagePreview/form/form.component';
 
 @Component({
@@ -61,7 +62,10 @@ export class ImgPersComponent implements OnInit {
     }
   ];
 
-  constructor(private http: _HttpClient, private modal: ModalHelper) {}
+  buttonLoading: boolean = false
+
+
+  constructor(private http: _HttpClient, private modal: ModalHelper) { }
 
   onResize(evt: any, col: string): void {
     const width = evt.width;
@@ -134,5 +138,17 @@ export class ImgPersComponent implements OnInit {
     // this.modal
     //   .createStatic(FormEditComponent, { i: { id: 0 } })
     //   .subscribe(() => this.st.reload());
+  }
+
+  search(): void {
+    this.buttonLoading = true
+    this.http.post('api/personal/search', { fieldName: 'Nombre', value: 'pedro bet' }).pipe(
+      finalize(() => {
+        this.buttonLoading = false
+      })
+    )
+    .subscribe((res) => {
+      console.log(res)
+    })
   }
 }
