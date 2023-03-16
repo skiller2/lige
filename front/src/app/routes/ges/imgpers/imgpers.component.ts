@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { STColumn, STComponent } from '@delon/abc/st';
 import { SFSchema } from '@delon/form';
 import { ModalHelper, _HttpClient } from '@delon/theme';
-import { BehaviorSubject, finalize, map, Observable } from 'rxjs';
+import { BehaviorSubject, debounceTime, finalize, map, Observable, switchMap } from 'rxjs';
 import { FormComponent } from 'src/app/shared/imagePreview/form/form.component';
 import { SearchResponse, SearchService } from './search.service';
 
@@ -47,23 +47,42 @@ interface ResponseData {
 })
 
 
-export class ImgPersComponent {
+export class ImgPersComponent implements OnInit{
 
   constructor(private http: _HttpClient, private searchService: SearchService) { }
+  ngOnInit(): void {
+
+    this.$optionsArray.subscribe((option) => this.isOptionsLoading = false)
+
+  }
+  isOptionsLoading: boolean = false
 
 
   selectedPersonalId: string = ''
-  $optionsArray: Observable<Array<ResponseData>> = this.searchService.$response.pipe(
+  $searchChange = new BehaviorSubject('')
+  $optionsArray: Observable<Array<ResponseData>> = this.$searchChange
+  .pipe(debounceTime(500))
+  .pipe(
+    switchMap((value) => this.searchService.getPersonFromName('Nombre', value)),
+  )
+  .pipe(
+    finalize(() => this.isOptionsLoading = false),
     map((res: SearchResponse) => res.data)
   )
 
-  $personalImageDataPath = this.searchService.$responsePersonal.pipe(map((data) => data.image))
+  $personalImageDataPath!: Observable<any>
 
   selectedValueChange(event: string): void {
     this.selectedPersonalId = event
-    this.searchService.getByPersonalId(event)
+    this.searchService.getInfoFromPersonalId(event).pipe(map((data) => data.image)).subscribe((imageUrl) => {
+      fetch(imageUrl)
+        .then((res) => {
+          console.log(res)
+        })
+    })
   }
   search(value: string): void {
-    this.searchService.search('Nombre', value)
+    this.isOptionsLoading = true
+    if (value) this.$searchChange.next(value)
   }
 }

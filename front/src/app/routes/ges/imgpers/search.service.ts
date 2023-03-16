@@ -1,6 +1,7 @@
+import { HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
-import { BehaviorSubject, debounceTime, delay, finalize } from 'rxjs'
+import { BehaviorSubject, debounceTime, delay, finalize, map, Observable } from 'rxjs'
 
 export interface SearchResponse {
     msg: string,
@@ -14,44 +15,29 @@ export interface SearchResponse {
 
 
 export class SearchService {
-    $response: BehaviorSubject<SearchResponse> = new BehaviorSubject<SearchResponse>({ msg: "", data: []})
-    $loading: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false)
-
-    $responsePersonal: BehaviorSubject<any> = new BehaviorSubject<any>({ msg: "", data: {}})
+    httpOptions = {
+        headers: new HttpHeaders({ 
+          'Access-Control-Allow-Origin':'*',
+          'Authorization':'authkey',
+          'userid':'1'
+        })
+      };
 
     constructor(private http: _HttpClient) {
 
+          
     }
 
-    search(fieldName: string, values: string) {
-        this.$loading.next(true)
-        this.http.post('api/personal/search', { fieldName: fieldName, value: values }).pipe(
-            finalize(() => {
-                this.$loading.next(false)
-            })
-        )
-            .subscribe((res) => {
-                if (res){
-                    // console.log(res)
-                    this.$response.next(res)
-                }
-                else {
-                    this.$response.next({msg: "", data: []})
-                }
-            })
+    
+    getPersonFromName(fieldName: string, values: string): Observable<SearchResponse> {
+        return this.http.post('api/personal/search', { fieldName: fieldName, value: values }).pipe(map((res: SearchResponse) => res ? res : {msg: "", data:[]}))
     }
 
-    getByPersonalId(id: string){
-        if (id == "") return
-        this.http.get(`api/personal/${id}`)
-            .subscribe((res) => {
-                if (res){
-                    this.$responsePersonal.next(res.data)
-                }
-                else {
-                    this.$responsePersonal.next({msg: "", data: {}})
-                }
-            })
+    getInfoFromPersonalId(id: string): Observable<any>{
+        return this.http.get(`api/personal/${id}`)
+            .pipe(
+                map((res) => res ? res.data : {data: {}})
+            )
     }
     
 
