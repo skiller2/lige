@@ -14,10 +14,10 @@ export class AuthMiddleware {
   verifyToken = (req, res, next) => {
 //    const token = req.headers["x-access-token"];
     
-//    console.log('cabecera', req.headers.token,req.headers);
+    console.log('cabecera', req.headers.token,req.headers);
     const parsetoken = (req.headers.token) ? req.headers.token.split(" "):"";
     
-    const token = (parsetoken[1])? parsetoken[1]:"";
+    const token = (parsetoken[1])? parsetoken[1]:req.headers.token;
 
     if (!token) return res.status(403).json({ msg: "No token provided" });
 
