@@ -10,7 +10,7 @@ import { changeDpiDataUrl } from '../../utils/changeDpi.js'
 })
 export class ImageContentComponent {
 
-    @Input() personalImage: File = new File([], "image")
+    @Input() personalImage: Blob = new Blob()
 
     imageChangedEvent: any = '';
     croppedImage: any = '';
