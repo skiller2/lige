@@ -3,7 +3,6 @@
 <div>
     <image-cropper
         [imageChangedEvent]="imageChangedEvent"
-        [imageFile]="personalImage"
         [aspectRatio]="1"
         [resizeToWidth]="91"
         [resizeToHeight]="91"
@@ -19,3 +18,6 @@
     <img [src]="croppedImage" [style.border]="croppedImage ? '1px solid black' : 'none'" />
     <span *ngIf="$croppedImageFileSize | async as size">{{size | nzBytes}}</span>
 </div>
+
+
+<!-- [imageFile]="personalImage" -->

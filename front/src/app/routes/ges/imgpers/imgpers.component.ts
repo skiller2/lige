@@ -51,7 +51,7 @@ export class ImgPersComponent implements OnInit {
   }
   isOptionsLoading: boolean = false
   selectedPersonalId: string = ''
-  fileDummy: File = new File([], "")
+  blobDummy: Blob = new Blob()
 
   $searchChange = new BehaviorSubject('')
   $selectedValueChange = new BehaviorSubject('')
@@ -66,7 +66,7 @@ export class ImgPersComponent implements OnInit {
         )),
     )
 
-  $personalImageDataFile = this.$selectedValueChange
+  $personalImageDataBlob = this.$selectedValueChange
     .pipe(
       switchMap((value) => this.searchService.getInfoFromPersonalId(value)
         .pipe(
@@ -74,17 +74,6 @@ export class ImgPersComponent implements OnInit {
           catchError((err, caught) => caught)
         ))
     )
-    .pipe(
-      map((blob) => new File([blob], "image")),
-      tap((file) => console.log(file))
-    )
-  // .subscribe((imageUrl) => {
-  //   fetch(imageUrl)
-  //     .then((res) => {
-  //       console.log(res)
-  //     })
-  // }
-  // )
 
   selectedValueChange(event: string): void {
     this.$selectedValueChange.next(event)

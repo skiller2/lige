@@ -24,7 +24,8 @@ export class PersonalController extends BaseController {
           fetch(imageUrl)
             .then((imageUrlRes) => {
               console.log(imageUrlRes.blob()
-                .then((val) => { personaData.image = val; this.jsonRes(personaData, res); }))
+                .then((val) => { 
+                  personaData.image = val; this.jsonRes(personaData, res); }))
                  
             })
             .catch((reason) => {
