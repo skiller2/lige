@@ -2,7 +2,7 @@ export interface ResponseByID {
     PersonalId: number,
     PersonalCUITCUILCUIT: number,
     DocumentoImagenFotoBlobNombreArchivo: string,
-    image: string
+    image: Blob
 }
 
 export interface ResponseBySearch {

@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { STColumn, STComponent } from '@delon/abc/st';
 import { SFSchema } from '@delon/form';
 import { ModalHelper, _HttpClient } from '@delon/theme';
-import { BehaviorSubject, debounceTime, finalize, map, Observable, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, debounceTime, finalize, map, Observable, switchMap, tap } from 'rxjs';
 import { FormComponent } from 'src/app/shared/imagePreview/form/form.component';
 import { ResponseBySearch, Search } from 'src/app/shared/schemas/personal.schemas';
 import { ResponseJSON } from 'src/app/shared/schemas/ResponseJSON';
@@ -44,41 +44,53 @@ import { SearchService } from './search.service';
 })
 
 
-export class ImgPersComponent implements OnInit{
+export class ImgPersComponent implements OnInit {
 
   constructor(private http: _HttpClient, private searchService: SearchService) { }
   ngOnInit(): void {
-
-    this.$optionsArray.subscribe((option) => this.isOptionsLoading = false)
-
   }
   isOptionsLoading: boolean = false
-
-
   selectedPersonalId: string = ''
-  $searchChange = new BehaviorSubject('')
-  $optionsArray: Observable<Search[]> = this.$searchChange
-  .pipe(debounceTime(500))
-  .pipe(
-    switchMap((value) => this.searchService.getPersonFromName('Nombre', value)),
-  )
-  .pipe(
-    finalize(() => console.log('Chau')),
-  )
+  fileDummy: File = new File([], "")
 
-  $personalImageDataPath!: Observable<any>
+  $searchChange = new BehaviorSubject('')
+  $selectedValueChange = new BehaviorSubject('')
+
+  $optionsArray: Observable<Search[]> = this.$searchChange
+    .pipe(debounceTime(500))
+    .pipe(
+      switchMap((value) => this.searchService.getPersonFromName('Nombre', value)
+        .pipe(
+          finalize(() => this.isOptionsLoading = false),
+          catchError((err, caught) => caught)
+        )),
+    )
+
+  $personalImageDataFile = this.$selectedValueChange
+    .pipe(
+      switchMap((value) => this.searchService.getInfoFromPersonalId(value)
+        .pipe(
+          map((data) => data.image),
+          catchError((err, caught) => caught)
+        ))
+    )
+    .pipe(
+      map((blob) => new File([blob], "image")),
+      tap((file) => console.log(file))
+    )
+  // .subscribe((imageUrl) => {
+  //   fetch(imageUrl)
+  //     .then((res) => {
+  //       console.log(res)
+  //     })
+  // }
+  // )
 
   selectedValueChange(event: string): void {
-    this.selectedPersonalId = event
-    this.searchService.getInfoFromPersonalId(event).pipe(map((data) => data.image)).subscribe((imageUrl) => {
-      fetch(imageUrl)
-        .then((res) => {
-          console.log(res)
-        })
-    })
+    this.$selectedValueChange.next(event)
   }
+
   search(value: string): void {
-    this.isOptionsLoading = true
-    if (value) this.$searchChange.next(value)
+    if (value) this.isOptionsLoading = true; this.$searchChange.next(value)
   }
 }

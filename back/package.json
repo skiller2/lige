@@ -9,6 +9,7 @@
       "@types/ldapjs": "^2.2.2",
       "@types/morgan": "^1.9.3",
       "@types/node": "^8.10.66",
+      "@types/node-fetch": "^2.6.2",
       "nodemon": "^2.0.14",
       "ts-node": "3.3.0",
       "typescript": "3.3.3333"
@@ -24,6 +25,7 @@
       "ldapjs": "^2.3.1",
       "morgan": "^1.10.0",
       "mssql": "^4.0.4",
+      "node-fetch": "^2.6.9",
       "reflect-metadata": "^0.1.10",
       "typeorm": "0.2.38"
    },

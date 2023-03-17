@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { BaseController } from "./baseController";
 import { ParsedQs } from "qs";
 import { ResponseByID } from "../schemas/personal.schemas";
+import fetch from "node-fetch";
 
 export class PersonalController extends BaseController {
   getById(PersonalId: string, res: Response) {
@@ -17,9 +18,23 @@ export class PersonalController extends BaseController {
         [PersonalId]
       )
       .then((records: Array<ResponseByID>) => {
-        records[0].image = process.env.IMAGE_FOTO_PATH.concat(records[0].DocumentoImagenFotoBlobNombreArchivo)
-        if (records.length == 1) this.jsonRes(records[0], res);
-        else { throw new Error('Record not found')}
+        const personaData = records[0]
+        const imageUrl = process.env.IMAGE_FOTO_PATH.concat(records[0].DocumentoImagenFotoBlobNombreArchivo)
+        if (records.length == 1) {
+          fetch(imageUrl)
+            .then((imageUrlRes) => {
+              console.log(imageUrlRes.blob()
+                .then((val) => { personaData.image = val; this.jsonRes(personaData, res); }))
+                 
+            })
+            .catch((reason) => {
+              throw new Error('Image not found')
+            })
+        }
+        else { throw new Error('Record not found') }
+
+
+
       })
       .catch((err) => {
         this.errRes(err, res, "Error accediendo a la base de datos", 409);
@@ -45,7 +60,7 @@ export class PersonalController extends BaseController {
     connection
       .query((query += " 1=1"))
       .then((records) => {
-        this.jsonRes({recordsArray: records}, res);
+        this.jsonRes({ recordsArray: records }, res);
       })
       .catch((err) => {
         this.errRes(err, res, "Error accediendo a la base de datos", 409);
@@ -54,7 +69,7 @@ export class PersonalController extends BaseController {
   constructor() {
     super("");
   }
-  
+
   async execProcedure(someParam: number) {
     /*
         const result = await this.connection.query(
