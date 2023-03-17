@@ -42,7 +42,7 @@ export class PersonalController extends BaseController {
   }
 
   search(
-    req: Request<{}, any, any, ParsedQs, Record<string, any>>,
+    req: Request,
     res: Response
   ) {
     const connection = getConnection();
