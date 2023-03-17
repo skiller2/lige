@@ -4,12 +4,9 @@ import { SFSchema } from '@delon/form';
 import { ModalHelper, _HttpClient } from '@delon/theme';
 import { BehaviorSubject, debounceTime, finalize, map, Observable, switchMap } from 'rxjs';
 import { FormComponent } from 'src/app/shared/imagePreview/form/form.component';
-import { SearchResponse, SearchService } from './search.service';
-
-interface ResponseData {
-  PersonalId: number,
-  fullName: string
-}
+import { ResponseBySearch, Search } from 'src/app/shared/schemas/personal.schemas';
+import { ResponseJSON } from 'src/app/shared/schemas/ResponseJSON';
+import { SearchService } from './search.service';
 
 @Component({
   selector: 'app-ges-imgpers',
@@ -60,14 +57,13 @@ export class ImgPersComponent implements OnInit{
 
   selectedPersonalId: string = ''
   $searchChange = new BehaviorSubject('')
-  $optionsArray: Observable<Array<ResponseData>> = this.$searchChange
+  $optionsArray: Observable<Search[]> = this.$searchChange
   .pipe(debounceTime(500))
   .pipe(
     switchMap((value) => this.searchService.getPersonFromName('Nombre', value)),
   )
   .pipe(
-    finalize(() => this.isOptionsLoading = false),
-    map((res: SearchResponse) => res.data)
+    finalize(() => console.log('Chau')),
   )
 
   $personalImageDataPath!: Observable<any>

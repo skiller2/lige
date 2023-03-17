@@ -54,12 +54,12 @@ export class BaseController {
    * @param message custom response message to be provided to the client in a JSON body response ({error:'message'})
    * @param status custom status code, defaults to 500
    */
-  errRes(err: any, res: Response, message = "Sever Error", status = 500) {
+  errRes(err: any, res: Response, message = "error", status = 500) {
 
     if (process.env.DEBUG) {
       console.error(err);
     }
-    res.status(status).json({ msg: message });
+    res.status(status).json({ msg: message, data: [] });
   }
 
   getTable() {
