@@ -22,11 +22,11 @@ export class PersonalController extends BaseController {
         const imageUrl = process.env.IMAGE_FOTO_PATH.concat(records[0].DocumentoImagenFotoBlobNombreArchivo)
         if (records.length == 1) {
           fetch(imageUrl)
-            .then((imageUrlRes) => {
-              console.log(imageUrlRes.blob()
-                .then((val) => { 
-                  personaData.image = val; this.jsonRes(personaData, res); }))
-                 
+            .then((imageUrlRes) => imageUrlRes.buffer())
+            .then((buffer) => {
+              const bufferStr = buffer.toString('base64')
+              personaData.image = 'data:image/jpeg;base64, ' + bufferStr; 
+              this.jsonRes(personaData, res);
             })
             .catch((reason) => {
               throw new Error('Image not found')
