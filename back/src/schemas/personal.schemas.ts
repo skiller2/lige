@@ -1,10 +1,9 @@
-import { Blob } from 'node-fetch'
 
 export interface ResponseByID {
     PersonalId: number,
     PersonalCUITCUILCUIT: number,
     DocumentoImagenFotoBlobNombreArchivo: string,
-    image: Blob
+    image: string
 }
 
 export interface ResponseBySearch {

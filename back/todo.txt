@@ -1,1 +1,6 @@
-Validar que exista IMAGE_FOTO_PATH en el .env
+-- Validar que exista IMAGE_FOTO_PATH en el .env
+-- Arreglar Multiple Queries
+-- Arreglar Query Loop
+-- Arreglar Second get
+-- Arreglar No hay datos
+-- Añadir Save
