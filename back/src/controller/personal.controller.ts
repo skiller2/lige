@@ -18,6 +18,9 @@ export class PersonalController extends BaseController {
         [PersonalId]
       )
       .then((records: Array<ResponseByID>) => {
+        if (records.length == 0)
+          throw new Error('Person not found')
+
         const personaData = records[0]
         const imageUrl = process.env.IMAGE_FOTO_PATH.concat(records[0].DocumentoImagenFotoBlobNombreArchivo)
         if (records.length == 1) {
@@ -43,7 +46,7 @@ export class PersonalController extends BaseController {
   }
 
   search(
-    req: Request,
+    req: any,
     res: Response
   ) {
     const connection = getConnection();
