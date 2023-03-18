@@ -49,10 +49,10 @@ export class ImgPersComponent implements OnInit {
   constructor(private http: _HttpClient, private searchService: SearchService) { }
   ngOnInit(): void {
   }
-  isOptionsLoading: boolean = false
   selectedPersonalId: string = ''
   blobDummy: Blob = new Blob()
 
+  $isOptionsLoading = new BehaviorSubject<boolean>(false)
   $searchChange = new BehaviorSubject('')
   $selectedValueChange = new BehaviorSubject('')
 
@@ -61,8 +61,8 @@ export class ImgPersComponent implements OnInit {
     .pipe(
       switchMap((value) => this.searchService.getPersonFromName('Nombre', value)
         .pipe(
-          finalize(() => this.isOptionsLoading = false),
-          // catchError((err, caught) => err)
+          finalize(() => this.$isOptionsLoading.next(false)),
+          catchError((err, caught) => [])
         )),
     )
 
@@ -71,7 +71,7 @@ export class ImgPersComponent implements OnInit {
       switchMap((value) => this.searchService.getInfoFromPersonalId(value)
         .pipe(
           map((data) => data.image),
-          // catchError((err, caught) => caught)
+          catchError((err, caught) => "")
         ))
     )
 
@@ -80,6 +80,6 @@ export class ImgPersComponent implements OnInit {
   }
 
   search(value: string): void {
-    if (value) this.isOptionsLoading = true; this.$searchChange.next(value)
+    if (value) this.$isOptionsLoading.next(true); this.$searchChange.next(value)
   }
 }

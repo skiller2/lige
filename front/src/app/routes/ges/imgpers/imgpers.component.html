@@ -12,9 +12,9 @@
   <app-image-content [personalImage]="($personalImageDataBlob | async) || ''"></app-image-content>
   <nz-select [(ngModel)]="selectedPersonalId" (ngModelChange)="selectedValueChange($event)"  nzAllowClear nzPlaceHolder="Choose" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
     <ng-container *ngFor="let option of $optionsArray | async">
-      <nz-option *ngIf="!isOptionsLoading" [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
+      <nz-option *ngIf="($isOptionsLoading | async )== false" [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
     </ng-container>  
-    <nz-option *ngIf="isOptionsLoading" nzDisabled nzCustomContent>
+    <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
       <span nz-icon nzType="loading" class="loading-icon"></span>
       Loading Data...
     </nz-option>

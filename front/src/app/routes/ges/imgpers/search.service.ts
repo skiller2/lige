@@ -31,6 +31,7 @@ export class SearchService {
                         }
                     }
                 ),
+                finalize(() => console.log('pedro'))
             )
     }
 

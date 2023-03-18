@@ -18,32 +18,26 @@ export class PersonalController extends BaseController {
         [PersonalId]
       )
       .then((records: Array<ResponseByID>) => {
-        if (records.length == 0)
-          throw new Error('Person not found')
+        if (records.length != 1) throw new Error('Person not found')
 
         const personaData = records[0]
         const imageUrl = personaData.DocumentoImagenFotoBlobNombreArchivo ? process.env.IMAGE_FOTO_PATH.concat(personaData.DocumentoImagenFotoBlobNombreArchivo) : ""
-        if (records.length == 1) {
-          if (imageUrl != ""){
-            fetch(imageUrl)
+        if (imageUrl != "") {
+          fetch(imageUrl)
             .then((imageUrlRes) => imageUrlRes.buffer())
             .then((buffer) => {
               const bufferStr = buffer.toString('base64')
-              personaData.image = 'data:image/jpeg;base64, ' + bufferStr; 
+              personaData.image = 'data:image/jpeg;base64, ' + bufferStr;
+              this.jsonRes(personaData, res);
             })
             .catch((reason) => {
               throw new Error('Image not found')
             })
-          }
-          else {
-            personaData.image = ''; 
-          }
+        }
+        else {
+          personaData.image = '';
           this.jsonRes(personaData, res);
         }
-        else { throw new Error('Record not found') }
-
-
-
       })
       .catch((err) => {
         this.errRes(err, res, "Error accediendo a la base de datos", 409);
