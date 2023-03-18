@@ -55,24 +55,28 @@ export class ImgPersComponent implements OnInit {
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
   $searchChange = new BehaviorSubject('')
   $selectedValueChange = new BehaviorSubject('')
-
   $optionsArray: Observable<Search[]> = this.$searchChange
     .pipe(debounceTime(500))
     .pipe(
       switchMap((value) => this.searchService.getPersonFromName('Nombre', value)
         .pipe(
           finalize(() => this.$isOptionsLoading.next(false)),
-          catchError((err, caught) => [])
         )),
     )
 
-  $personalImageDataBlob = this.$selectedValueChange
+  $personalData = this.$selectedValueChange
     .pipe(
-      switchMap((value) => this.searchService.getInfoFromPersonalId(value)
-        .pipe(
-          map((data) => data.image),
-          catchError((err, caught) => "")
-        ))
+      switchMap((value) => this.searchService.getInfoFromPersonalId(value))
+    )
+
+  $personalImageDataBlob = this.$personalData
+    .pipe(
+      map((data) => data.image),
+    )
+
+  $SelectedCUIT = this.$personalData
+    .pipe(
+      map((data) => data.PersonalCUITCUILCUIT)
     )
 
   selectedValueChange(event: string): void {

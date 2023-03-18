@@ -9,7 +9,6 @@
 
 <page-header [action]="phActionTpl"></page-header>
 <nz-card class="small-margin">
-  <app-image-content [personalImage]="($personalImageDataBlob | async) || ''"></app-image-content>
   <nz-select [(ngModel)]="selectedPersonalId" (ngModelChange)="selectedValueChange($event)"  nzAllowClear nzPlaceHolder="Choose" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
     <ng-container *ngFor="let option of $optionsArray | async">
       <nz-option *ngIf="($isOptionsLoading | async )== false" [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
@@ -19,4 +18,16 @@
       Loading Data...
     </nz-option>
   </nz-select>
+  <app-image-content [personalImage]="($personalData | async) "></app-image-content>
+
+  <form nz-form>
+    <nz-form-item>
+      <nz-form-label [nzSpan]="5">Required</nz-form-label>
+      <nz-form-control nzHasFeedback [nzSpan]="12" nzErrorTip="Input is required">
+        <input nz-input [ngModel]="$SelectedCUIT | async" name="CUIT" readonly="">
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+
+  <input nz-input type="text" placeholder="" readonly="true">
 </nz-card>
