@@ -19,18 +19,23 @@ export class PersonalController extends BaseController {
       )
       .then((records: Array<ResponseByID>) => {
         const personaData = records[0]
-        const imageUrl = process.env.IMAGE_FOTO_PATH.concat(records[0].DocumentoImagenFotoBlobNombreArchivo)
+        const imageUrl = personaData.DocumentoImagenFotoBlobNombreArchivo ? process.env.IMAGE_FOTO_PATH.concat(personaData.DocumentoImagenFotoBlobNombreArchivo) : ""
         if (records.length == 1) {
-          fetch(imageUrl)
+          if (imageUrl != ""){
+            fetch(imageUrl)
             .then((imageUrlRes) => imageUrlRes.buffer())
             .then((buffer) => {
               const bufferStr = buffer.toString('base64')
               personaData.image = 'data:image/jpeg;base64, ' + bufferStr; 
-              this.jsonRes(personaData, res);
             })
             .catch((reason) => {
               throw new Error('Image not found')
             })
+          }
+          else {
+            personaData.image = ''; 
+          }
+          this.jsonRes(personaData, res);
         }
         else { throw new Error('Record not found') }
 

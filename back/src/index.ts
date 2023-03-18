@@ -13,7 +13,7 @@ import { makeRoutes } from "./routes/routes.module"
 require("dotenv").config();
 
 // Init App
-export const server = new Server(5, 500, process.env.SERVER_API_PORT)
+export const server = new Server(5, 2000, process.env.SERVER_API_PORT)
 
 // try {
 //   const connection = await server.init()

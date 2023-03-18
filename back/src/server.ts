@@ -21,6 +21,7 @@ export class Server {
     }
 
     private retriesLeft: number
+    private retriesCount: number = 1
     private timeOutDelay: number
     private port: string
 
@@ -39,8 +40,10 @@ export class Server {
                         clearInterval(interval)
                     })
                     .catch((err) => {
-                        if (this.retriesLeft > 0) { console.log(`Retrying to connect with ${this.retriesLeft} remaining.`); this.retriesLeft -= 1;}
-                        else { reject(err); clearInterval(interval) }
+                        console.log(`Retry ${this.retriesCount}.`)
+                        this.retriesCount++
+                        // if (this.retriesLeft > 0) { console.log(`Retrying to connect with ${this.retriesLeft} remaining.`); this.retriesLeft -= 1;}
+                        // else { reject(err); clearInterval(interval) }
                     })
 
             }, this.timeOutDelay)
