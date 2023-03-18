@@ -8,12 +8,23 @@ import {
   getConnectionOptions,
 } from "typeorm";
 import { Server } from "./server";
-import { makeRoutes } from "./routes/main.routes"
+import { makeRoutes } from "./routes/routes.module"
 
 require("dotenv").config();
 
 // Init App
-export const server = new Server()
+export const server = new Server(5, 2000, process.env.SERVER_API_PORT)
+
+// try {
+//   const connection = await server.init()
+//   console.info(`Success: connected to Database`, connection.options.database)
+//   server.lateInit()
+//   makeRoutes(server)
+// }
+// catch (error) {
+//   console.error(`Error: could not connect to Database`)
+//   process.exit()
+// }
 server.init()
   .then((connection: Connection) => {
     console.info(`Success: connected to Database`, connection.options.database)
@@ -22,7 +33,8 @@ server.init()
   })
   .catch((_) => {
     console.error(`Error: could not connect to Database`)
-  })
+    process.exit()
+})
 
 
 // app.listen(process.env.SERVER_API_PORT, () =>

@@ -1,4 +1,4 @@
-import { infoRouter } from '../routes/info.routes'
+import { infoRouter } from './info.routes'
 import { Server } from '../server'
 import { authRouter } from './auth.routes'
 import { liquidaRouter } from './liquida.routes'
