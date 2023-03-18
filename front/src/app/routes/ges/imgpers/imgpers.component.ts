@@ -62,7 +62,7 @@ export class ImgPersComponent implements OnInit {
       switchMap((value) => this.searchService.getPersonFromName('Nombre', value)
         .pipe(
           finalize(() => this.$isOptionsLoading.next(false)),
-          catchError((err, caught) => [])
+//          catchError((err, caught) => [])
         )),
     )
 
@@ -71,7 +71,7 @@ export class ImgPersComponent implements OnInit {
       switchMap((value) => this.searchService.getInfoFromPersonalId(value)
         .pipe(
           map((data) => data.image),
-          catchError((err, caught) => "")
+//          catchError((err, caught) => "")
         ))
     )
 
