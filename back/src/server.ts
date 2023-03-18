@@ -18,24 +18,32 @@ export class Server {
         database: process.env.DB_DATABASE,
         maxQueryExecutionTime: Number(process.env.DB_MAX_EXEC_TIME),
         logging: "all",
-
     }
 
-    constructor() { }
+    private retriesLeft: number
+    private timeOutDelay: number
+    private port: string
+
+    constructor(retries: number, timeOutDelay: number, port: string) { this.retriesLeft = retries; this.timeOutDelay = timeOutDelay; this.port = port  }
     public async init(): Promise<Connection> {
 
         return new Promise<Connection>((resolve, reject) => {
-            this.app.listen(process.env.SERVER_API_PORT, () => {
-                console.log(`Now listening on port ${process.env.SERVER_API_PORT}.`)
+            this.app.listen(this.port, () => {
+                console.log(`Now listening on port ${this.port}.`)
             })
 
-            createConnection(this.connectionOptions)
-                .then((connection) => {
-                    resolve(connection)
-                })
-                .catch((error: Error) => {
-                    reject()
-                })
+            const interval = setInterval(() => {
+                createConnection(this.connectionOptions)
+                    .then((connection) => {
+                        resolve(connection)
+                        clearInterval(interval)
+                    })
+                    .catch((err) => {
+                        if (this.retriesLeft > 0) { console.log(`Retrying to connect with ${this.retriesLeft} remaining.`); this.retriesLeft -= 1;}
+                        else { reject(err); clearInterval(interval) }
+                    })
+
+            }, this.timeOutDelay)
         }
         )
     }
