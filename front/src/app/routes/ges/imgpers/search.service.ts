@@ -23,15 +23,12 @@ export class SearchService {
             .pipe(
                 map(
                     (res: ResponseJSON<ResponseBySearch>) => {
-                        if (res.msg == "ok") {
+                        if (res.data.recordsArray)
                             return res.data.recordsArray
-                        }
-                        else {
-                            throw res.msg
-                        }
+                        else 
+                            return []
                     }
-                ),
-                finalize(() => console.log('pedro'))
+                )
             )
     }
 
@@ -44,14 +41,7 @@ export class SearchService {
         }).asObservable()
         else return this.http.get(`api/personal/${id}`)
             .pipe(
-                map((res: ResponseJSON<ResponseByID>) =>  {
-                    if (res.msg == "ok"){
-                        return res.data
-                    }
-                    else {
-                        throw res.msg
-                    }
-                })
+                map((res: ResponseJSON<ResponseByID>) => res.data)
             )
     }
 
