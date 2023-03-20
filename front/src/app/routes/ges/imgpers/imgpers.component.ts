@@ -4,7 +4,7 @@ import { SFSchema } from '@delon/form';
 import { ModalHelper, _HttpClient } from '@delon/theme';
 import { BehaviorSubject, catchError, debounceTime, finalize, map, Observable, switchMap, tap } from 'rxjs';
 import { FormComponent } from 'src/app/shared/imagePreview/form/form.component';
-import { ResponseBySearch, Search } from 'src/app/shared/schemas/personal.schemas';
+import { ResponseByID, ResponseBySearch, Search } from 'src/app/shared/schemas/personal.schemas';
 import { ResponseJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { SearchService } from './search.service';
 
@@ -53,6 +53,8 @@ export class ImgPersComponent implements OnInit {
   blobDummy: Blob = new Blob()
 
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
+  $iPersonalDataLoading = new BehaviorSubject<boolean>(false)
+
   $searchChange = new BehaviorSubject('')
   $selectedValueChange = new BehaviorSubject('')
   $optionsArray: Observable<Search[]> = this.$searchChange
@@ -66,24 +68,26 @@ export class ImgPersComponent implements OnInit {
 
   $personalData = this.$selectedValueChange
     .pipe(
-      switchMap((value) => this.searchService.getInfoFromPersonalId(value))
-    )
-
-  $personalImageDataBlob = this.$personalData
-    .pipe(
-      map((data) => data.image),
-    )
-
-  $SelectedCUIT = this.$personalData
-    .pipe(
-      map((data) => data.PersonalCUITCUILCUIT)
+      switchMap((value) => this.searchService.getInfoFromPersonalId(value)
+        .pipe(
+          finalize(() => this.$iPersonalDataLoading.next(false)),
+        )
+      ),
     )
 
   selectedValueChange(event: string): void {
+    console.log('Hola')
     this.$selectedValueChange.next(event)
+    this.$iPersonalDataLoading.next(true)
   }
 
   search(value: string): void {
     if (value) this.$isOptionsLoading.next(true); this.$searchChange.next(value)
   }
+
+  CUITToDni(cuit: string): string {
+    console.log(cuit.substring(2,10))
+    return cuit.substring(2,10)
+  }
+
 }

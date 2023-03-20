@@ -11,16 +11,18 @@ export class PersonalController extends BaseController {
 
     con
       .query(
-        "SELECT persona.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo FROM Personal persona \
-          JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = persona.PersonalCUITCUILUltNro \
+        `SELECT persona.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo FROM Personal persona \
+          LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = persona.PersonalCUITCUILUltNro \
           LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = persona.PersonalId \
-          WHERE persona.PersonalId = @0",
+          WHERE persona.PersonalId = @0`,
         [PersonalId]
       )
       .then((records: Array<ResponseByID>) => {
         if (records.length != 1) throw new Error('Person not found')
 
         const personaData = records[0]
+        personaData.NRO_EMPRESA = process.env.NRO_EMPRESA_PBA
+        personaData.PersonalCUITCUILCUIT = `${personaData.PersonalCUITCUILCUIT}`
         const imageUrl = personaData.DocumentoImagenFotoBlobNombreArchivo ? process.env.IMAGE_FOTO_PATH.concat(personaData.DocumentoImagenFotoBlobNombreArchivo) : ""
         if (imageUrl != "") {
           fetch(imageUrl)
@@ -34,7 +36,7 @@ export class PersonalController extends BaseController {
               throw new Error('Image not found')
             })
         }
-        else {
+        else {  
           personaData.image = '';
           this.jsonRes(personaData, res);
         }

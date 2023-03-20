@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { NzUploadFile } from 'ng-zorro-antd/upload/interface.js';
 import { base64ToFile, Dimensions, ImageCroppedEvent, ImageTransform, LoadedImage } from 'ngx-image-cropper';
 import { BehaviorSubject, map } from 'rxjs';
 import { changeDpiDataUrl } from '../../utils/changeDpi.js'
@@ -10,7 +11,21 @@ import { changeDpiDataUrl } from '../../utils/changeDpi.js'
 })
 export class ImageContentComponent {
 
+
     @Input() personalImage = ''
+    @Input() nombreDescarga: string = ''
+
+    constructor() {
+
+    }
+
+    dummyDownload: NzUploadFile = {
+        uid: '1',
+        name: 'xxx.png',
+        status: 'done',
+        response: 'Server Error 500', // custom error message to show
+        url: 'http://www.baidu.com/xxx.png'
+    }
 
     imageChangedEvent: any = '';
     croppedImage: any = '';
@@ -42,4 +57,11 @@ export class ImageContentComponent {
         console.log('Load failed');
     }
 
+
+    saveImage() {
+        const link = document.createElement('a')
+        link.setAttribute('download', this.nombreDescarga + '.jpg')
+        link.setAttribute('href', this.croppedImage)
+        link.click()
+    }
 }

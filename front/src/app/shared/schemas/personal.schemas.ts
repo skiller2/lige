@@ -1,8 +1,10 @@
+
 export interface ResponseByID {
     PersonalId: number,
-    PersonalCUITCUILCUIT: number,
+    PersonalCUITCUILCUIT: string,
     DocumentoImagenFotoBlobNombreArchivo: string,
-    image: string
+    image: string,
+    NRO_EMPRESA: string
 }
 
 export interface ResponseBySearch {

@@ -8,26 +8,45 @@
 </ng-template>
 
 <page-header [action]="phActionTpl"></page-header>
+
 <nz-card class="small-margin">
-  <nz-select [(ngModel)]="selectedPersonalId" (ngModelChange)="selectedValueChange($event)"  nzAllowClear nzPlaceHolder="Choose" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
-    <ng-container *ngFor="let option of $optionsArray | async">
-      <nz-option *ngIf="($isOptionsLoading | async )== false" [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
-    </ng-container>  
-    <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
-      <span nz-icon nzType="loading" class="loading-icon"></span>
-      Loading Data...
-    </nz-option>
-  </nz-select>
-  <app-image-content [personalImage]="($personalData | async) "></app-image-content>
 
-  <form nz-form>
-    <nz-form-item>
-      <nz-form-label [nzSpan]="5">Required</nz-form-label>
-      <nz-form-control nzHasFeedback [nzSpan]="12" nzErrorTip="Input is required">
-        <input nz-input [ngModel]="$SelectedCUIT | async" name="CUIT" readonly="">
-      </nz-form-control>
-    </nz-form-item>
-  </form>
+    <form nz-form *ngIf="$personalData | async as data">
 
-  <input nz-input type="text" placeholder="" readonly="true">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Persona</nz-form-label>
+        <nz-select [(ngModel)]="selectedPersonalId" [ngModelOptions]="{standalone: true}" (ngModelChange)="selectedValueChange($event)"  nzAllowClear nzPlaceHolder="Choose" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
+          <ng-container *ngFor="let option of $optionsArray | async">
+            <nz-option *ngIf="($isOptionsLoading | async )== false" [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
+          </ng-container>  
+          <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
+            <span nz-icon nzType="loading" class="loading-icon"></span>
+            Loading Data...
+          </nz-option>
+        </nz-select>
+      </nz-form-item>
+      
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">CUIT</nz-form-label>
+        <nz-form-control nzHasFeedback [nzSpan]="12">
+          <input nz-input [ngModel]="data.PersonalCUITCUILCUIT" name="CUIT" readonly="">
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Photo</nz-form-label>
+        <nz-form-control nzHasFeedback [nzSpan]="12">
+          <app-image-content [personalImage]="data.image" nombreDescarga="{{data.NRO_EMPRESA}}-{{CUITToDni(data.PersonalCUITCUILCUIT)}}"></app-image-content>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">NUMERO DE EMPRESA</nz-form-label>
+        <nz-form-control nzHasFeedback [nzSpan]="12">
+          <input nz-input [ngModel]="data.NRO_EMPRESA" name="NRO_EMPRESA" readonly="">
+        </nz-form-control>
+      </nz-form-item>
+
+    </form>
+
 </nz-card>
