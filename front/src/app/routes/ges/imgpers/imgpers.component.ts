@@ -60,10 +60,10 @@ export class ImgPersComponent implements OnInit {
   $optionsArray: Observable<Search[]> = this.$searchChange
     .pipe(debounceTime(500))
     .pipe(
-      switchMap((value) => this.searchService.getPersonFromName('Nombre', value)
-        .pipe(
-          finalize(() => this.$isOptionsLoading.next(false)),
-        )),
+      switchMap((value) => this.searchService.getPersonFromName('Nombre', value)),
+    )
+    .pipe(
+      tap(() => this.$isOptionsLoading.next(false))
     )
 
   $personalData = this.$selectedValueChange
@@ -81,7 +81,9 @@ export class ImgPersComponent implements OnInit {
   }
 
   search(value: string): void {
-    if (value) this.$isOptionsLoading.next(true); this.$searchChange.next(value)
+    if (value) {this.$isOptionsLoading.next(true); }
+    else {this.$isOptionsLoading.next(false)}
+    this.$searchChange.next(value)
   }
 
   CUITToDni(cuit: string): string {
