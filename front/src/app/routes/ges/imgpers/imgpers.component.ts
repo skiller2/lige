@@ -76,7 +76,6 @@ export class ImgPersComponent implements OnInit {
     )
 
   selectedValueChange(event: string): void {
-    console.log('Hola')
     this.$selectedValueChange.next(event)
     this.$iPersonalDataLoading.next(true)
   }
@@ -86,7 +85,6 @@ export class ImgPersComponent implements OnInit {
   }
 
   CUITToDni(cuit: string): string {
-    console.log(cuit.substring(2,10))
     return cuit.substring(2,10)
   }
 
