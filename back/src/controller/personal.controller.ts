@@ -11,7 +11,7 @@ export class PersonalController extends BaseController {
 
     con
       .query(
-        `SELECT persona.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo FROM Personal persona \
+        `SELECT persona.PersonalId, persona.PersonalNombre,persona.PersonalApellido, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo FROM Personal persona \
           LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = persona.PersonalCUITCUILUltNro \
           LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = persona.PersonalId \
           WHERE persona.PersonalId = @0`,
@@ -23,6 +23,7 @@ export class PersonalController extends BaseController {
         const personaData = records[0]
         personaData.NRO_EMPRESA = process.env.NRO_EMPRESA_PBA
         personaData.PersonalCUITCUILCUIT = `${personaData.PersonalCUITCUILCUIT}`
+        personaData.DNI = personaData.PersonalCUITCUILCUIT.substring(2, 10)
         const imageUrl = personaData.DocumentoImagenFotoBlobNombreArchivo ? process.env.IMAGE_FOTO_PATH.concat(personaData.DocumentoImagenFotoBlobNombreArchivo) : ""
         if (imageUrl != "") {
           fetch(imageUrl)
@@ -30,6 +31,7 @@ export class PersonalController extends BaseController {
             .then((buffer) => {
               const bufferStr = buffer.toString('base64')
               personaData.image = 'data:image/jpeg;base64, ' + bufferStr;
+    
               this.jsonRes(personaData, res);
             })
             .catch((reason) => {
