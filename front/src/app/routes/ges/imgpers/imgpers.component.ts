@@ -87,7 +87,6 @@ export class ImgPersComponent implements OnInit {
   }
 
   CUITToDni(cuit: string): string {
-    console.log(cuit.substring(2,10))
     return cuit.substring(2,10)
   }
 
