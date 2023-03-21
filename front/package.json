@@ -1,6 +1,7 @@
 {
   "name": "front",
   "version": "1.0.0",
+  "licence": "PROPRIETARY",
   "scripts": {
     "ng": "ng",
     "start": "ng s --proxy-config proxy.conf.json",

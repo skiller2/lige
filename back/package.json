@@ -2,6 +2,7 @@
    "name": "lince-backend",
    "version": "0.0.1",
    "description": "BackEndLince",
+   "licence": "PROPRIETARY",
    "devDependencies": {
       "@types/bcryptjs": "^2.4.2",
       "@types/express": "^4.17.13",
