@@ -19,14 +19,6 @@ export class ImageContentComponent {
 
     }
 
-    dummyDownload: NzUploadFile = {
-        uid: '1',
-        name: 'xxx.png',
-        status: 'done',
-        response: 'Server Error 500', // custom error message to show
-        url: 'http://www.baidu.com/xxx.png'
-    }
-
     imageChangedEvent: any = '';
     croppedImage: any = '';
     $croppedImageFile = new BehaviorSubject<Blob>(new Blob())

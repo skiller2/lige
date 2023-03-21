@@ -4,7 +4,6 @@
   "scripts": {
     "ng": "ng",
     "start": "ng s --proxy-config proxy.conf.json",
-    "php-back": "php -S 0.0.0.0:87 -t ../front/web/pub",
     "build": "npm run ng-high-memory build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",

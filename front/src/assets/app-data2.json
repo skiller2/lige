@@ -27,6 +27,23 @@
           "link": "/ges/imgpers"
         },
         {
+          "text": "Cuentas Farmacias",
+          "icon": "anticon-slack",
+          "shortcutRoot": true,
+          "children": [
+            {
+              "text": "Listado",
+              "link": "/ges/ccfarm",
+              "icon": "anticon-appstore"
+            },
+            {
+              "text": "Detalle Farmacia",
+              "link": "/ges/ccfarm/detalle",
+              "icon": "anticon-appstore"
+            }
+          ]
+        },
+        {
           "text": "Liquidaciones",
           "icon": "anticon-slack",
           "children": [
@@ -40,6 +57,13 @@
               "link": "/ges/liquida/detalle"
             }
           ]
+
+        },
+
+        {
+          "text": "Cuentas Colegiados",
+          "icon": "anticon-slack",
+          "link": "/cccolegiados"
         }
       ]
     }

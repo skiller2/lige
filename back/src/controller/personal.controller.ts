@@ -22,7 +22,7 @@ export class PersonalController extends BaseController {
 
         const personaData = records[0]
         personaData.NRO_EMPRESA = process.env.NRO_EMPRESA_PBA
-        personaData.PersonalCUITCUILCUIT = `${personaData.PersonalCUITCUILCUIT}`
+        personaData.PersonalCUITCUILCUIT = (personaData.PersonalCUITCUILCUIT) ? `${personaData.PersonalCUITCUILCUIT}` : "Sin registrar"
         personaData.DNI = personaData.PersonalCUITCUILCUIT.substring(2, 10)
         const imageUrl = personaData.DocumentoImagenFotoBlobNombreArchivo ? process.env.IMAGE_FOTO_PATH.concat(personaData.DocumentoImagenFotoBlobNombreArchivo) : ""
         if (imageUrl != "") {

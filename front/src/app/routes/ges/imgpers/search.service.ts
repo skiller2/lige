@@ -33,12 +33,18 @@ export class SearchService {
     }
 
     getInfoFromPersonalId(id: string): Observable<ResponseByID> {
-        const dummy = {
+        const dummy: ResponseByID = {
             PersonalId: 0,
+            PersonalApellido:'',
+            PersonalNombre:'',
             PersonalCUITCUILCUIT: '',
             DocumentoImagenFotoBlobNombreArchivo: "",
             image: '',
-            NRO_EMPRESA: ''
+            NRO_EMPRESA: '',
+            DNI: '',
+            Categoria: '',
+            FechaDesde: new Date(),
+            FechaHasta: new Date()
         }
         if (!id || id=="") return new BehaviorSubject<ResponseByID>(dummy).asObservable()
         else return this.http.get(`api/personal/${id}`)
