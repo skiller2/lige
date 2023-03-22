@@ -7,12 +7,13 @@ import { ImgPersComponent } from './imgpers/imgpers.component';
 import { GesRoutingModule } from './ges-routing.module';
 import { FormComponent } from 'src/app/shared/imagePreview/form/form.component';
 import { ImageContentComponent } from 'src/app/shared/imagePreview/image-content/image-content.component';
+import { ViewCredentialComponent} from 'src/app/shared/viewCredential/view-credential.component';
 import { ImageCropperModule } from 'ngx-image-cropper';
 
-const COMPONENTS: Array<Type<void>> = [GesCcfarmComponent, ImgPersComponent, FormComponent, ImageContentComponent];
+const COMPONENTS: Array<Type<void>> = [GesCcfarmComponent, ImgPersComponent, FormComponent, ImageContentComponent,ViewCredentialComponent];
 
 @NgModule({
-  imports: [SharedModule, GesRoutingModule, NzResizableModule, ImageCropperModule],
+imports: [SharedModule, GesRoutingModule, NzResizableModule, ImageCropperModule],
   declarations: COMPONENTS
 })
 export class GesModule {}

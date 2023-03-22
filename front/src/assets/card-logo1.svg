@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="60mm"
+   height="200mm"
+   viewBox="0 0 60 200"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   sodipodi:docname="card-logo1.svg">
+  <defs
+     id="defs2">
+    <pattern
+       y="0"
+       x="0"
+       height="6"
+       width="6"
+       patternUnits="userSpaceOnUse"
+       id="EMFhbasepattern" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="361.45385"
+     inkscape:cy="-62.332073"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:window-width="1375"
+     inkscape:window-height="860"
+     inkscape:window-x="49"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <text
+       id="text842"
+       y="13.566605"
+       x="4.3394513"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:19.29px;line-height:125%;font-family:'Bodoni MT';-inkscape-font-specification:'Bodoni MT Bold';text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.72281"
+       xml:space="preserve"
+       transform="scale(0.84087238,1.1892411)"><tspan
+         id="tspan840"
+         y="13.566605"
+         x="4.3394513"
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Bodoni MT';-inkscape-font-specification:'Bodoni MT Bold';stroke-width:0.72281"><tspan
+           id="tspan836"
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:19.29px;font-family:'Bodoni MT';-inkscape-font-specification:'Bodoni MT Bold';fill:#008000;stroke-width:0.72281"
+           dy="0"
+           dx="0">LINCE</tspan><tspan
+           id="tspan838"
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:19.29px;font-family:'Bodoni MT';-inkscape-font-specification:'Bodoni MT Bold';fill:#008000;stroke-width:0.72281"
+           dy="0"
+           dx="-0.57223982">   </tspan></tspan></text>
+    <text
+       id="text852"
+       y="27.102266"
+       x="-0.046519853"
+       style="font-style:normal;font-variant:normal;font-weight:700;font-size:10.6163px;line-height:125%;font-family:'Times New Roman';text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.72281"
+       xml:space="preserve"
+       transform="scale(0.84087238,1.1892411)"><tspan
+         id="tspan850"
+         y="27.102266"
+         x="-0.046519853"
+         sodipodi:role="line"
+         style="stroke-width:0.72281"><tspan
+           id="tspan846"
+           style="font-style:normal;font-variant:normal;font-weight:700;font-size:10.6163px;font-family:'Times New Roman';fill:#008000;fill-opacity:1;stroke-width:0.72281"
+           dy="0"
+           dx="0">SEGURIDAD</tspan><tspan
+           id="tspan848"
+           style="font-style:normal;font-variant:normal;font-weight:400;font-size:9.57724px;font-family:'Times New Roman';fill:#000000;stroke-width:0.72281"
+           dy="0"
+           dx="0"> </tspan></tspan></text>
+    <path
+       style="fill:none;stroke:#008000;stroke-width:0.765;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 3.7417762,19.243404 H 48.643056"
+       id="path872" />
+  </g>
+</svg>
