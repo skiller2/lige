@@ -22,13 +22,13 @@ export class AuthController extends BaseController {
         process.env.LDAP_PASSWORD,
         (err) => {
           if (err) return reject(err);
-
+          const samname = user.split('@')[0] 
           const opts: SearchOptions = {
             filter:
               "(&(objectClass=user)(|(mail=" +
               user +
               ")(sAMAccountName=" +
-              user +
+              samname +
               ")))",
             scope: "sub",
             paged: true,

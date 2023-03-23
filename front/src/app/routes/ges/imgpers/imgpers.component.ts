@@ -4,9 +4,10 @@ import { SFSchema } from '@delon/form';
 import { ModalHelper, _HttpClient } from '@delon/theme';
 import { BehaviorSubject, catchError, debounceTime, finalize, map, Observable, switchMap, tap } from 'rxjs';
 import { FormComponent } from 'src/app/shared/imagePreview/form/form.component';
-import { ResponseByID, ResponseBySearch, Search } from 'src/app/shared/schemas/personal.schemas';
+import { PersonaObj, ResponseBySearch, Search } from 'src/app/shared/schemas/personal.schemas';
 import { ResponseJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { SearchService } from './search.service';
+
 
 @Component({
   selector: 'app-ges-imgpers',
@@ -60,7 +61,11 @@ export class ImgPersComponent implements OnInit {
   $optionsArray: Observable<Search[]> = this.$searchChange
     .pipe(debounceTime(500))
     .pipe(
-      switchMap((value) => this.searchService.getPersonFromName('Nombre', value)),
+      switchMap((value) => {
+        const searchfield = (Number(value))? 'CUIT':'Nombre'
+          
+         return this.searchService.getPersonFromName(searchfield, value);
+      }),
     )
     .pipe(
       tap(() => this.$isOptionsLoading.next(false))
@@ -81,13 +86,13 @@ export class ImgPersComponent implements OnInit {
   }
 
   search(value: string): void {
-    if (value) {this.$isOptionsLoading.next(true); }
-    else {this.$isOptionsLoading.next(false)}
+    if (value) { this.$isOptionsLoading.next(true); }
+    else { this.$isOptionsLoading.next(false) }
     this.$searchChange.next(value)
   }
 
   CUITToDni(cuit: string): string {
-    return cuit.substring(2,10)
+    return cuit.substring(2, 10)
   }
 
 }

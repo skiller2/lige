@@ -2,7 +2,7 @@ import { getConnection, getManager, getRepository } from "typeorm";
 import { NextFunction, Request, Response } from "express";
 import { BaseController } from "./baseController";
 import { ParsedQs } from "qs";
-import { ResponseByID } from "../schemas/personal.schemas";
+import { PersonaObj } from "../schemas/personal.schemas";
 import fetch from "node-fetch";
 
 export class PersonalController extends BaseController {
@@ -11,19 +11,29 @@ export class PersonalController extends BaseController {
 
     con
       .query(
-        `SELECT persona.PersonalId, persona.PersonalNombre,persona.PersonalApellido, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo FROM Personal persona \
-          LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = persona.PersonalCUITCUILUltNro \
-          LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = persona.PersonalId \
-          WHERE persona.PersonalId = @0`,
+        `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
+        per.PersonalNombre, per.PersonalApellido
+        FROM Personal per
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = per.PersonalCUITCUILUltNro    
+        LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId
+        LEFT JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = per.PersonalId AND cat.PersonalCategoriaId = per.PersonalCategoriaUltNro
+        LEFT JOIN CategoriaPersonal categ ON categ.TipoAsociadoId = cat.PersonalCategoriaTipoAsociadoId AND categ.CategoriaPersonalId = cat.PersonalCategoriaCategoriaPersonalId
+        WHERE per.PersonalId = @0`,
         [PersonalId]
       )
-      .then((records: Array<ResponseByID>) => {
+      .then((records: Array<PersonaObj>) => {
         if (records.length != 1) throw new Error('Person not found')
+
+        let FechaHasta = new Date();
+        FechaHasta.setFullYear(FechaHasta.getFullYear() + 1);
+        
 
         const personaData = records[0]
         personaData.NRO_EMPRESA = process.env.NRO_EMPRESA_PBA
         personaData.PersonalCUITCUILCUIT = (personaData.PersonalCUITCUILCUIT) ? `${personaData.PersonalCUITCUILCUIT}` : "Sin registrar"
         personaData.DNI = personaData.PersonalCUITCUILCUIT.substring(2, 10)
+        personaData.FechaDesde = new Date()
+        personaData.FechaHasta = FechaHasta
         const imageUrl = personaData.DocumentoImagenFotoBlobNombreArchivo ? process.env.IMAGE_FOTO_PATH.concat(personaData.DocumentoImagenFotoBlobNombreArchivo) : ""
         if (imageUrl != "") {
           fetch(imageUrl)
@@ -55,14 +65,24 @@ export class PersonalController extends BaseController {
     const connection = getConnection();
     const { fieldName, value } = req.body;
 
-    const valueArray: Array<string> = value.split(" ");
 
     let query: string =
-      "SELECT persona.PersonalId, CONCAT(TRIM(persona.PersonalNombre) , ' ', TRIM(persona.PersonalApellido)) fullName FROM dbo.Personal persona WHERE";
-
-    valueArray.forEach((element, index) => {
-      query += `(persona.PersonalNombre LIKE '%${element}%' OR persona.PersonalApellido LIKE '%${element}%') AND `;
-    });
+    `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalNombre) , ' ', TRIM(per.PersonalApellido), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName FROM dbo.Personal per 
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
+      WHERE`
+    switch (fieldName) {
+      case 'Nombre':
+        const valueArray: Array<string> = value.split(" ");
+        valueArray.forEach((element, index) => {
+          query += `(per.PersonalNombre LIKE '%${element}%' OR per.PersonalApellido LIKE '%${element}%') AND `;
+        });
+        break;
+      case 'CUIT':
+          query += ` cuit.PersonalCUITCUILCUIT LIKE '%${value}%' AND `
+      default:
+        break;
+    }
+    
 
     connection
       .query((query += " 1=1"))

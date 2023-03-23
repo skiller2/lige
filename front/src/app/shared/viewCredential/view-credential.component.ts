@@ -1,55 +1,58 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, forwardRef, Inject, Input } from '@angular/core';
+import { Component, ElementRef, forwardRef, Inject, Input, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { WINDOW } from '@delon/util';
 import { BehaviorSubject, map } from 'rxjs';
-
 @Component({
     selector: 'app-view-credential',
     templateUrl: './view-credential.component.html',
-    styleUrls: ['./view-credential.component.css'],
+    styleUrls: ['./view-credential.component.css','../../../assets/credencial.css'],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
             useExisting: forwardRef(() => ViewCredentialComponent),
             multi: true
-        }
-    ]
+        }    ],
+    encapsulation: ViewEncapsulation.ShadowDom
 })
 export class ViewCredentialComponent implements ControlValueAccessor {
-    personal: any = ''
+    personal: any = {image:""}
+    @ViewChild('credcard', { static: false }) credIframe!:ElementRef<HTMLInputElement>;;
 
-    constructor(@Inject(DOCUMENT) private document: any,
-        @Inject(WINDOW) private window: any) {
-    }
+    constructor(@Inject(DOCUMENT) private document: any) {}
 
     writeValue(value: any) {
         if (value !== undefined) {
-            console.log(value)
             this.personal = value;
         }
     }
 
-    registerOnChange(fn: (_: any) => void) {
-        //        console.log('cambio', fn);
-        //        this.propagateChange = fn;
-    }
+    registerOnChange(fn: (_: any) => void) {}
 
     registerOnTouched() { }
 
     printCard() {
         const iframe = this.document.createElement("iframe");
         iframe.style.display = 'none';
-        this.document.body.appendChild(iframe);
-//        iframe.contentWindow.document.write(x);
-        iframe.contentWindow.document.write("HOLA" 
-            
-        );
 
-        setTimeout( () => {
-//            this.window.frames[0].print();
+        this.document.body.appendChild(iframe);
+
+        iframe.contentWindow.document.write(
+            "<!DOCTYPE html><html><head>"
+            + '<link rel="stylesheet" href="./assets/credencial.css" >'
+            + '<title>Credencial</title>'
+            + '</head>'
+            + '<body>'
+            + this.credIframe.nativeElement.innerHTML
+            + '</body></html>'
+        )
+        iframe.contentWindow.document.close()
+        console.log('doc',iframe.contentWindow)
+
+        setTimeout(() => {
+            iframe.focus();
             iframe.contentWindow.print();
-        }, 500);
+        }, 100);
 
     }
 

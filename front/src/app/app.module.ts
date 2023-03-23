@@ -101,6 +101,7 @@ import { Observable } from 'rxjs';
     RoutesModule,
     STWidgetModule,
     NzNotificationModule,
+    
     ...GLOBAL_THIRD_MODULES,
     ...FORM_MODULES
   ],

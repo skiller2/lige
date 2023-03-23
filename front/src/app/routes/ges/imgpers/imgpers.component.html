@@ -14,7 +14,7 @@
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Buscar Persona</nz-form-label>
-        <nz-select [(ngModel)]="selectedPersonalId" [ngModelOptions]="{standalone: true}" (ngModelChange)="selectedValueChange($event)"  nzAllowClear nzPlaceHolder="Choose" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
+        <nz-select [(ngModel)]="selectedPersonalId" [ngModelOptions]="{standalone: true}" (ngModelChange)="selectedValueChange($event)"  nzAllowClear nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
           <ng-container *ngFor="let option of $optionsArray | async">
             <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
           </ng-container>  
@@ -36,19 +36,19 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="5">CUIT</nz-form-label>
         <nz-form-control nzHasFeedback [nzSpan]="12">
-          <input nz-input [ngModel]="data.PersonalCUITCUILCUIT" name="CUIT" readonly="">
+          <input nz-input [ngModel]="(data.PersonalCUITCUILCUIT | CUIT) || 'N/D'" name="CUIT" readonly="">
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Photo</nz-form-label>
         <nz-form-control nzHasFeedback [nzSpan]="12">
-          <app-image-content [personalImage]="data.image" nombreDescarga="{{data.NRO_EMPRESA}}-{{data.DNI}}"></app-image-content>
+          <app-image-content [personalImage]="data.image" nombreDescarga="{{data.NRO_EMPRESA}}-{{data.DNI}}" [imageCroppedDpi]="72" [imageCroppedX]="91" [imageCroppedY]="91" ></app-image-content>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="5">Registro Empresa PBA</nz-form-label>
+        <nz-form-label [nzSpan]="5">Registro PBA</nz-form-label>
         <nz-form-control nzHasFeedback [nzSpan]="12">
           <input nz-input [ngModel]="data.NRO_EMPRESA" name="NRO_EMPRESA" readonly="">
         </nz-form-control>

@@ -1,5 +1,5 @@
 
-export interface ResponseByID {
+export interface PersonaObj {
     PersonalId: number,
     PersonalApellido:string,
     PersonalNombre:string,
@@ -8,7 +8,7 @@ export interface ResponseByID {
     image: string,
     NRO_EMPRESA: string,
     DNI: string,
-    Categoria: string,
+    CategoriaPersonalDescripcion: string,
     FechaDesde: Date,
     FechaHasta: Date
 }

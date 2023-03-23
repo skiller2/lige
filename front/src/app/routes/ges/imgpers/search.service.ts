@@ -2,7 +2,7 @@ import { HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { BehaviorSubject, debounceTime, delay, finalize, map, Observable } from 'rxjs'
-import { ResponseByID, ResponseBySearch, Search } from 'src/app/shared/schemas/personal.schemas';
+import { PersonaObj, ResponseBySearch, Search } from 'src/app/shared/schemas/personal.schemas';
 import { ResponseJSON } from 'src/app/shared/schemas/ResponseJSON';
 
 @Injectable({
@@ -32,8 +32,8 @@ export class SearchService {
             )
     }
 
-    getInfoFromPersonalId(id: string): Observable<ResponseByID> {
-        const dummy: ResponseByID = {
+    getInfoFromPersonalId(id: string): Observable<PersonaObj> {
+        const dummy: PersonaObj = {
             PersonalId: 0,
             PersonalApellido:'',
             PersonalNombre:'',
@@ -42,14 +42,14 @@ export class SearchService {
             image: '',
             NRO_EMPRESA: '',
             DNI: '',
-            Categoria: '',
+            CategoriaPersonalDescripcion: '',
             FechaDesde: new Date(),
             FechaHasta: new Date()
         }
-        if (!id || id=="") return new BehaviorSubject<ResponseByID>(dummy).asObservable()
+        if (!id || id=="") return new BehaviorSubject<PersonaObj>(dummy).asObservable()
         else return this.http.get(`api/personal/${id}`)
             .pipe(
-                map((res: ResponseJSON<ResponseByID>) => 
+                map((res: ResponseJSON<PersonaObj>) => 
                 res && res.data ? 
                 res.data :
                 dummy)

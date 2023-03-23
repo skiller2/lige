@@ -1,0 +1,94 @@
+.card-holder {
+    background-color: rgb(247, 247, 245);
+    width: 9cm;
+    height: 5.5cm;
+    border-radius: 5px;
+    border: solid 1px;
+    position: relative;
+}
+
+.card-foto-container {
+    height: 3.5cm;
+    width: 3.5cm;
+    margin: 0.2cm;
+    float: left;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-foto {
+    max-height: 100%;
+    max-width: 100%;
+    border-radius: 5px;
+}
+
+
+.card-logo {
+    height: 1.7cm;
+    margin: 0.2cm;
+/*    float: right; */
+}
+
+
+
+.card-data {
+    position: absolute;
+    top: 2.1cm;
+    left: 4cm;
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: column;
+}
+
+.card-data-text {
+    font-size: 0.35cm;
+    font-weight: normal;
+    line-height: 1.3;
+}
+
+.card-data-text-var {
+    font-weight: bold;
+}
+
+.card-firstname {
+    display: inline-block;
+}
+
+.card-lastname {
+    display: inline-block;
+
+}
+
+.card-category {
+    display: inline-block;
+
+}
+
+.card-card-cuit {
+    display: inline-block;
+
+}
+
+.card-timeend {
+    display: inline-block;
+
+}
+
+.card-footer {
+    font-size: 0.22cm;
+    position: absolute;
+    bottom: 0cm;
+    left: 0cm;
+    width: 100%;
+    text-align: center;
+}
+
+@media print {
+    /* invert the display (show/hide) properties of the main */
+    /* aplication component and the printing component       */
+    .card-holder {
+        background-color: transparent;
+    }
+
+  }

@@ -28,7 +28,7 @@
         },
         {
           "text": "Liquidaciones",
-          "icon": "anticon-slack",
+          "icon": "anticon-info",
           "children": [
             {
               "text": "Listado",

@@ -9,8 +9,9 @@ import { FormComponent } from 'src/app/shared/imagePreview/form/form.component';
 import { ImageContentComponent } from 'src/app/shared/imagePreview/image-content/image-content.component';
 import { ViewCredentialComponent} from 'src/app/shared/viewCredential/view-credential.component';
 import { ImageCropperModule } from 'ngx-image-cropper';
+import { CUITPipe } from 'src/app/shared/utils/cuit-pipe';
 
-const COMPONENTS: Array<Type<void>> = [GesCcfarmComponent, ImgPersComponent, FormComponent, ImageContentComponent,ViewCredentialComponent];
+const COMPONENTS: Array<Type<void>> = [GesCcfarmComponent, ImgPersComponent, FormComponent, ImageContentComponent,ViewCredentialComponent,CUITPipe];
 
 @NgModule({
 imports: [SharedModule, GesRoutingModule, NzResizableModule, ImageCropperModule],

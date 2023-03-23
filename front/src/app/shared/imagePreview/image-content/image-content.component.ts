@@ -10,9 +10,10 @@ import { changeDpiDataUrl } from '../../utils/changeDpi.js'
     styleUrls: ['./image-content.component.css']
 })
 export class ImageContentComponent {
-
-
     @Input() personalImage = ''
+    @Input() imageCroppedDpi:number = 72
+    @Input() imageCroppedX:number = 91
+    @Input() imageCroppedY:number = 91
     @Input() nombreDescarga: string = ''
 
     constructor() {
@@ -31,22 +32,22 @@ export class ImageContentComponent {
     }
 
     imageCropped(event: ImageCroppedEvent) {
-        this.croppedImage = changeDpiDataUrl(event.base64, 72);
+        this.croppedImage = changeDpiDataUrl(event.base64, this.imageCroppedDpi);
         this.$croppedImageFile.next(base64ToFile(event.base64!))
-        console.log(event, this.$croppedImageFile.value);
+//        console.log(event, this.$croppedImageFile.value);
     }
 
     imageLoaded() {
         this.showCropper = true;
-        console.log('Image loaded');
+//        console.log('Image loaded');
     }
 
     cropperReady(sourceImageDimensions: Dimensions) {
-        console.log('Cropper ready', sourceImageDimensions);
+//        console.log('Cropper ready', sourceImageDimensions);
     }
 
     loadImageFailed() {
-        console.log('Load failed');
+//        console.log('Load failed');
     }
 
 
