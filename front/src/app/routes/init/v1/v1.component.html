@@ -1,0 +1,42 @@
+<div class="alain-default__content-title">
+  <h1>
+    Escritorio General
+    <small>Bienvenido</small>
+  </h1>
+</div>
+<div nz-row nzGutter="16">
+  <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+    <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
+      <div nz-col nzSpan="12" class="p-md text-white">
+        <div class="h2 mt0">{{ horasTrabajadasTitle }}</div>
+        <p class="text-nowrap mb0">Horas trabajadas</p>
+      </div>
+      <div nz-col nzSpan="12">
+        <g2-mini-bar
+          *ngIf="horasTrabajadas"
+          height="35"
+          color="#fff"
+          borderWidth="3"
+          [padding]="[5, 30]"
+          [data]="horasTrabajadas"
+          yTooltipSuffix="hs"
+          (ready)="fixDark($event)"
+        ></g2-mini-bar>
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+
+<div nz-row nzGutter="16">
+  <div nz-col nzXs="24" nzMd="12">
+    <nz-card [nzBordered]="false" [nzTitle]="salesTitle">
+      <ng-template #salesTitle>
+        Horas trabajadas
+        <small class="text-sm font-weight-normal">Se calculan las horas totales ingresadas en la liquidación</small>
+      </ng-template>
+      <g2-bar *ngIf="horasTrabajadas" height="275" [data]="horasTrabajadas" ></g2-bar>
+    </nz-card>
+  </div>
+</div>

@@ -17,10 +17,15 @@ const routes: Routes = [
     canActivateChild: [SimpleGuard],
     data: {},
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: '', redirectTo: 'init', pathMatch: 'full' },
       {
         path: 'dashboard',
         loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule),
+        data: { preload: true }
+      },
+      {
+        path: 'init',
+        loadChildren: () => import('./init/init.module').then(m => m.InitModule),
         data: { preload: true }
       },
       {

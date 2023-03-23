@@ -7,11 +7,11 @@ import { _HttpClient } from '@delon/theme';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
 
 @Component({
-  selector: 'app-dashboard-v1',
+  selector: 'app-init-v1',
   templateUrl: './v1.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DashboardV1Component implements OnInit {
+export class InitV1Component implements OnInit {
   todoData = [
     {
       completed: true,
@@ -51,6 +51,8 @@ export class DashboardV1Component implements OnInit {
     }
   ];
 
+  horasTrabajadas = [{ x: '2023-02', y: 2 }];
+  horasTrabajadasTitle = "";
   webSite!: any[];
   salesData!: any[];
   offlineChartData!: any[];
@@ -77,11 +79,12 @@ export class DashboardV1Component implements OnInit {
   }
 
   ngOnInit(): void {
-    this.http.get('/chart').subscribe(res => {
-      console.log("a ver",res)
-      this.webSite = res.visitData.slice(0, 10);
-      this.salesData = res.salesData;
-      this.offlineChartData = res.offlineChartData;
+    this.http.get('/api/init/stats').subscribe(res => {
+      this.horasTrabajadas = res.data.horasTrabajadas;
+      this.horasTrabajadasTitle ="Año 2023"
+//      this.webSite = res.visitData.slice(0, 10);
+//      this.salesData = res.salesData;
+//      this.offlineChartData = res.offlineChartData;
       this.cdr.detectChanges();
     });
   }

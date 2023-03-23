@@ -18,7 +18,7 @@
         {
           "text": "Escritorio",
           "icon": "anticon-dashboard",
-          "link": "/dashboard"
+          "link": "/init"
         },
         {
           "text": "Imagen Personal",

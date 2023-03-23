@@ -30,7 +30,13 @@
 /*    float: right; */
 }
 
-
+.card-qr {
+    width: 1.6cm !important;
+    height: 1.6cm !important;
+    position: absolute;
+    left: 0.15cm;
+    bottom: 0.15cm;
+}
 
 .card-data {
     position: absolute;
@@ -42,9 +48,10 @@
 }
 
 .card-data-text {
-    font-size: 0.35cm;
+    font-size: 0.32cm;
     font-weight: normal;
-    line-height: 1.3;
+    line-height: 1.2;
+    width: 4.8cm;
 }
 
 .card-data-text-var {
@@ -78,7 +85,7 @@
 .card-footer {
     font-size: 0.22cm;
     position: absolute;
-    bottom: 0cm;
+    bottom: 0.15cm;
     left: 0cm;
     width: 100%;
     text-align: center;

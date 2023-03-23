@@ -8,7 +8,7 @@ const base = "";
 personalRouter.post(`${base}/search`, authMiddleware.verifyToken, (req, res) => {
     personalController.search(req, res)
 });
-personalRouter.get(`${base}/:id`,  (req, res) => {
-//personalRouter.get(`${base}/:id`, authMiddleware.verifyToken, (req, res) => {
+personalRouter.get(`${base}/:id`,  authMiddleware.verifyToken, (req, res) => {
+//personalRouter.get(`${base}/:id`,  (req, res) => {
     personalController.getById(req.params.id, res)
 })

@@ -10,11 +10,12 @@ import { ImageContentComponent } from 'src/app/shared/imagePreview/image-content
 import { ViewCredentialComponent} from 'src/app/shared/viewCredential/view-credential.component';
 import { ImageCropperModule } from 'ngx-image-cropper';
 import { CUITPipe } from 'src/app/shared/utils/cuit-pipe';
+import { QRModule } from '@delon/abc/qr';
 
 const COMPONENTS: Array<Type<void>> = [GesCcfarmComponent, ImgPersComponent, FormComponent, ImageContentComponent,ViewCredentialComponent,CUITPipe];
 
 @NgModule({
-imports: [SharedModule, GesRoutingModule, NzResizableModule, ImageCropperModule],
+imports: [SharedModule, GesRoutingModule, NzResizableModule, ImageCropperModule,QRModule],
   declarations: COMPONENTS
 })
 export class GesModule {}
