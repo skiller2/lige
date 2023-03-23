@@ -79,8 +79,8 @@ import { environment } from '@env/environment';
 })
 export class LayoutBasicComponent {
   options: LayoutDefaultOptions = {
-    logoExpanded: `./assets/logo-lince-negro.png`,
-    logoCollapsed: `./assets/logo-lince-negro.png`
+    logoExpanded: `./assets/logo-lince-full.svg`,
+    logoCollapsed: `./assets/logo-lince-simple.svg`
   };
   searchToggleStatus = false;
   showSettingDrawer = !environment.production;
