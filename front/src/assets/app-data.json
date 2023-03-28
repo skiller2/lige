@@ -27,6 +27,12 @@
           "link": "/ges/imgpers"
         },
         {
+          "text": "Credenciales",
+          "i18n": "ges.credpers",
+          "icon": "anticon-profile",
+          "link": "/ges/credpers"
+        },        
+        {
           "text": "Liquidaciones",
           "icon": "anticon-info",
           "children": [

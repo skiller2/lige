@@ -1,21 +1,21 @@
 import { waitForAsync, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ImgPersComponent } from './imgpers.component';
+import { CredPersComponent } from './credpers.component';
 
-describe('ImgPersComponent', () => {
-  let component: ImgPersComponent;
-  let fixture: ComponentFixture<ImgPersComponent>;
+describe('CredPersComponent', () => {
+  let component: CredPersComponent;
+  let fixture: ComponentFixture<CredPersComponent>;
 
   beforeEach(
     waitForAsync(() => {
       TestBed.configureTestingModule({
-        declarations: [ImgPersComponent]
+        declarations: [CredPersComponent]
       }).compileComponents();
     })
   );
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ImgPersComponent);
+    fixture = TestBed.createComponent(CredPersComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,8 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, ElementRef, forwardRef, Inject, Input, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { WINDOW } from '@delon/util';
-import { BehaviorSubject, map } from 'rxjs';
+import { PersonaObj } from '../schemas/personal.schemas';
 @Component({
     selector: 'app-view-credential',
     templateUrl: './view-credential.component.html',
@@ -13,16 +12,18 @@ import { BehaviorSubject, map } from 'rxjs';
             useExisting: forwardRef(() => ViewCredentialComponent),
             multi: true
         }    ],
-    encapsulation: ViewEncapsulation.ShadowDom
+//    encapsulation: ViewEncapsulation.ShadowDom
 })
 export class ViewCredentialComponent implements ControlValueAccessor {
-    personal: any = {image:""}
+    personal!: PersonaObj; 
     @ViewChild('credcard', { static: false }) credIframe!:ElementRef<HTMLInputElement>;;
+    @Input('showPrintBtn') showPrintBtn: boolean = true;
+    
 
     constructor(@Inject(DOCUMENT) private document: any) {}
 
     writeValue(value: any) {
-        if (value !== undefined) {
+        if (value != null) {
             this.personal = value;
         }
     }
@@ -47,7 +48,6 @@ export class ViewCredentialComponent implements ControlValueAccessor {
             + '</body></html>'
         )
         iframe.contentWindow.document.close()
-        console.log('doc',iframe.contentWindow)
 
         setTimeout(() => {
             iframe.focus();
