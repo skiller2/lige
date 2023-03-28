@@ -12,30 +12,30 @@
 <nz-card class="small-margin">
   <form nz-form *ngIf="$personalData | async as data">
 
-    <nz-form-item>
+    <nz-form-item >
       <nz-form-label [nzSpan]="5">Buscar Persona</nz-form-label>
-      <nz-select [(ngModel)]="selectedPersonalId" [ngModelOptions]="{standalone: true}"
+      <nz-form-control [nzSpan]="14">
+      <nz-select [(ngModel)]="selectedPersonalId" [ngModelOptions]="{standalone: true}" 
         (ngModelChange)="selectedValueChange($event)" nzAllowClear nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch
         nzServerSearch (nzOnSearch)="search($event)">
         <ng-container *ngFor="let option of $optionsArray | async">
-          <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.PersonalId"
+          <nz-option *ngIf="isOptionsLoading == false" [nzValue]="option.PersonalId"
             [nzLabel]="option.fullName"></nz-option>
         </ng-container>
-        <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
+        <nz-option *ngIf="isOptionsLoading" nzDisabled nzCustomContent>
           <span nz-icon nzType="loading" class="loading-icon"></span>
           Loading Data...
         </nz-option>
       </nz-select>
+      </nz-form-control>
     </nz-form-item>
   </form>
 
-  <div #credcards class="card-container ant-col ant-col-18">
+  <div #credcards class="card-container ant-col ant-col-20">
     <nz-card *ngFor="let credential of credentials; let i = index" class="card-inline-block ">
-      <div class="">
         <app-view-credential [ngModel]="credential" name="Cred" [showPrintBtn]="false"></app-view-credential>
         <button nz-button nzType="primary" [nzSize]="'small'" (click)="credentials.splice(i,1)">
           <span nz-icon nzType="delete" nzTheme="outline"></span>Elimina</button>
-      </div>
     </nz-card>
   </div>
   <button *ngIf="credentials.length > 0" nz-button nzType="primary" [nzSize]="'large'" (click)="printCards()">

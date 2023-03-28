@@ -60,6 +60,7 @@
     font-weight: normal;
     line-height: 1.2;
     width: 4.8cm;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 .card-data-text-var {
@@ -97,6 +98,10 @@
     left: 0cm;
     width: 100%;
     text-align: center;
+}
+
+.card-data-categoria {
+    display: none;
 }
 
 @media print {

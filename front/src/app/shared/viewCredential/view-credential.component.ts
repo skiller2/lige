@@ -5,30 +5,41 @@ import { PersonaObj } from '../schemas/personal.schemas';
 @Component({
     selector: 'app-view-credential',
     templateUrl: './view-credential.component.html',
-    styleUrls: ['./view-credential.component.css','../../../assets/credencial.css'],
+    styleUrls: ['./view-credential.component.css', '../../../assets/credencial.css'],
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
             useExisting: forwardRef(() => ViewCredentialComponent),
             multi: true
-        }    ],
-//    encapsulation: ViewEncapsulation.ShadowDom
+        }],
+    //    encapsulation: ViewEncapsulation.ShadowDom
 })
 export class ViewCredentialComponent implements ControlValueAccessor {
-    personal!: PersonaObj; 
-    @ViewChild('credcard', { static: false }) credIframe!:ElementRef<HTMLInputElement>;;
-    @Input('showPrintBtn') showPrintBtn: boolean = true;
-    
-
-    constructor(@Inject(DOCUMENT) private document: any) {}
-
-    writeValue(value: any) {
-        if (value != null) {
-            this.personal = value;
-        }
+    personal: PersonaObj = {
+        PersonalId: 0,
+        PersonalApellido: '',
+        PersonalNombre: '',
+        PersonalCUITCUILCUIT: '',
+        DocumentoImagenFotoBlobNombreArchivo: '',
+        image: '',
+        NRO_EMPRESA: '',
+        DNI: '',
+        CategoriaPersonalDescripcion: '',
+        FechaDesde: new Date(),
+        FechaHasta: new Date()
     }
 
-    registerOnChange(fn: (_: any) => void) {}
+    @ViewChild('credcard', { static: false }) credIframe!: ElementRef<HTMLInputElement>;;
+    @Input('showPrintBtn') showPrintBtn: boolean = true;
+
+
+    constructor(@Inject(DOCUMENT) private document: any) { }
+
+    writeValue(value: PersonaObj) {
+        this.personal = value;
+    }
+
+    registerOnChange(fn: (_: any) => void) { }
 
     registerOnTouched() { }
 
