@@ -5,6 +5,8 @@ import * as bcrypt from "bcryptjs";
 import * as ldap from "ldapjs";
 import { SearchOptions } from "ldapjs";
 import * as jwt from "jsonwebtoken";
+import assert = require("assert");
+import { REFUSED } from "dns";
 
 export class AuthController extends BaseController {
   constructor() {
@@ -14,65 +16,92 @@ export class AuthController extends BaseController {
   authUser(user: string, password: string) {
     return new Promise((resolve, reject) => {
       const client = ldap.createClient({
-        url: process.env.LDAP_URL,
-        reconnect: true,
+        url: [process.env.LDAP_URL],
+        reconnect: false,
+        connectTimeout: 5000,
+        timeout: 5000
       });
+      client.on('connectError', (err) => {
+        err.message = "Servicio de validación no disponible";
+        return reject(err);
+      })
+
+      client.on('connect', (res) => {
+      })
+
+
       client.bind(
         process.env.LDAP_USERNAME,
         process.env.LDAP_PASSWORD,
+
         (err) => {
-          if (err) return reject(err);
-          const samname = user.split('@')[0] 
-          const opts: SearchOptions = {
-            filter:
-              "(&(objectClass=user)(|(mail=" +
-              user +
-              ")(sAMAccountName=" +
-              samname +
-              ")))",
-            scope: "sub",
-            paged: true,
-            sizeLimit: 200,
-          };
-          let object: any = null;
-          client.search(process.env.LDAP_SEARCH, opts, (err, res) => {
-            if (err) return reject(err);
-            res.on("searchEntry", (entry) => {
-              object = entry.object;
-            });
+          assert.ifError(err);
+          //          if (err) return reject(err);
+        })
 
-            res.on("error", (err) => {
-              client.destroy();
-              reject(err);
-            });
-            res.on("end", (result) => {
-              if (!object) {
-                client.destroy();
-                return reject(`Invalid user on ldap user ${user}`);
-              }
+      const samname = user.split('@')[0]
 
-              client.bind(object.dn, password, (err) => {
-                if (err) {
-                  client.destroy();
-                  console.error("Invalid Login", err);
-                  if (err.code == 49)
-                    //NT_STATUS_LOGON_FAILURE
-                    err.message =
-                      "Las credenciales proporcionadas no son válidas";
-                  return reject(err);
-                }
+      const opts: SearchOptions = {
+        filter: `(&(objectClass=user)(|(mail=${user})(sAMAccountName=${samname})))`,
+        scope: "sub",
+        attributes: ['dn', 'sn', 'cn', 'mail', 'name', 'sAMAccountName'],
+        paged: false,
+        sizeLimit: 0,
+      };
 
-                client.destroy();
-                return resolve({
-                  email: object.mail,
-                  name: object.name,
-                  username: object.sAMAccountName,
-                });
-              });
+      client.search(process.env.LDAP_SEARCH, opts, (err, res) => {
+        assert.ifError(err);
+        let userEntry = null
+        res.on('searchEntry', (entry: ldap.SearchEntry) => {
+          userEntry = entry
+        });
+
+        res.on('error', (err) => {
+          console.error('client.search', 'error: ' + err.message);
+          err.message =
+            "Servicio de validación no disponible";
+
+        });
+
+        res.on('end', (result) => {
+          if (!userEntry) {
+            err = {
+              message:
+                "Las credenciales proporcionadas no son válidas"
+            }
+            return reject(err);
+
+          }
+
+          client.bind(userEntry.pojo.objectName, password, (err) => {
+            client.destroy();
+            if (err) {
+              if (err.code == 49)
+                //NT_STATUS_LOGON_FAILURE
+                err.message =
+                  "Las credenciales proporcionadas no son válidas";
+              return reject(err);
+              assert.ifError(err);
+            }
+
+            return resolve({
+              email: userEntry.pojo.mail,
+              name: userEntry.pojo.name,
+              username: userEntry.pojo.sAMAccountName,
             });
           });
-        }
-      );
+
+
+          /*
+          if (result.status == 0) {
+            const err: any = {
+              message: "Las credenciales proporcionadas no son válidas 2"
+            }
+            return reject(err);
+          }
+          */
+        });
+      })
     });
   }
 

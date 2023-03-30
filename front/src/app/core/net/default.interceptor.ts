@@ -211,6 +211,8 @@ export class DefaultInterceptor implements HttpInterceptor {
         }
         this.toLogin();
         break;
+      case 409:
+        break;
       case 403:
       case 404:
       case 500:

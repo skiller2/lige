@@ -21,6 +21,10 @@ import { LoadingService, LoadingType } from '@delon/abc/loading';
         display: block;
       }
 
+      .limit-card-columns{
+        max-width: 21cm;
+      }
+
     `
   ]
 })
@@ -77,17 +81,17 @@ export class CredPersComponent implements OnInit {
             if (persona != null && persona.PersonalId > 0) {
               if (this.credentials.findIndex(obj => obj.PersonalId === persona.PersonalId) == -1)
                 this.credentials.unshift(persona)
-                this.selectedPersonalId = ""
+              this.selectedPersonalId = ""
             }
           }
-      
+
           )
 
           )
           .pipe(
             finalize(() => { this.loadingSrv.close(); }),
           )
-    
+
       )
     )
 
@@ -108,9 +112,7 @@ export class CredPersComponent implements OnInit {
   printCards(): void {
     const e = this.renderer.createElement("iframe");
     this.renderer.setStyle(e, "display", "none")
-
     this.renderer.appendChild(this.document.body, e);
-
     e.contentWindow.document.write(
       `<!DOCTYPE html><html><head>
        <link rel="stylesheet" href="./assets/credencial.css" >

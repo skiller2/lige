@@ -8,7 +8,7 @@ import { ALLOW_ANONYMOUS, DA_SERVICE_TOKEN, ITokenModel, ITokenService, JWTToken
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { environment } from '@env/environment';
 import { NzTabChangeEvent } from 'ng-zorro-antd/tabs';
-import { finalize } from 'rxjs';
+import { catchError, finalize, Observable, of, take } from 'rxjs';
 
 @Component({
   selector: 'passport-login',
@@ -30,7 +30,7 @@ export class UserLoginComponent implements OnDestroy {
     private startupSrv: StartupService,
     private http: _HttpClient,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   // #region fields
 
@@ -110,10 +110,15 @@ export class UserLoginComponent implements OnDestroy {
         },
         null,
         {
-          context: new HttpContext().set(ALLOW_ANONYMOUS, true)
+          context: new HttpContext().set(ALLOW_ANONYMOUS, false)
         }
       )
       .pipe(
+        take(1),
+        catchError((err) => {
+          this.error = err.error.msg;
+          return of();
+        }),
         finalize(() => {
           this.loading = false;
           this.cdr.detectChanges();
@@ -121,11 +126,6 @@ export class UserLoginComponent implements OnDestroy {
       )
       .subscribe(
         res => {
-          if (res.msg !== 'ok') {
-            this.error = res.msg;
-            this.cdr.detectChanges();
-            return;
-          }
           // 清空路由复用信息
           this.reuseTabService.clear();
           // 设置用户Token信息
@@ -149,16 +149,15 @@ export class UserLoginComponent implements OnDestroy {
           this.tokenService.set(token);
 
           // 重新获取 StartupService 内容，我们始终认为应用信息一般都会受当前用户授权范围而影响
-          this.startupSrv.load().subscribe(() => {
+
+          this.startupSrv.load().subscribe((_res: any) => {
             let url = this.tokenService.referrer!.url || '/';
             if (url.includes('/passport')) {
               url = '/';
             }
-            this.router.navigateByUrl(url);
-          });
-        },
-        error => {
-          this.error = error.error.msg;
+            this.router.navigateByUrl(url).catch();
+          })
+
         }
       );
   }

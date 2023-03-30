@@ -36,6 +36,7 @@ export class ViewCredentialComponent implements ControlValueAccessor {
     constructor(@Inject(DOCUMENT) private document: any) { }
 
     writeValue(value: PersonaObj) {
+        if (value)
         this.personal = value;
     }
 
