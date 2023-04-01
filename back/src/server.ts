@@ -2,14 +2,14 @@ import * as express from 'express'
 import { Router } from 'express'
 import * as morgan from "morgan";
 import * as pkg from "../package.json";
-import { Connection, ConnectionOptions, createConnection, getConnectionOptions } from 'typeorm'
+import { DataSource } from 'typeorm'
 require("dotenv").config();
 
+import * as http from 'http'
+import * as  https from 'https'
 
-export class Server {
-
-    private app: express.Application = express()
-    private connectionOptions: ConnectionOptions = {
+export class DBServer {
+    public dataSource = new DataSource({
         type: "mssql",
         host: process.env.DB_HOST,
         port: Number(process.env.DB_PORT),
@@ -18,37 +18,56 @@ export class Server {
         database: process.env.DB_DATABASE,
         maxQueryExecutionTime: Number(process.env.DB_MAX_EXEC_TIME),
         logging: "all",
-    }
+        connectionTimeout: 10000, //ms
+        //entities: [Photo],
+//        synchronize: true,
 
-    private retriesLeft: number
+    })
+
     private retriesCount: number = 1
     private timeOutDelay: number
-    private port: string
 
-    constructor(retries: number, timeOutDelay: number, port: string) { this.retriesLeft = retries; this.timeOutDelay = timeOutDelay; this.port = port  }
-    public async init(): Promise<Connection> {
-
-        return new Promise<Connection>((resolve, reject) => {
-            this.app.listen(this.port, () => {
-                console.log(`Now listening on port ${this.port}.`)
-            })
+    constructor(retries: number, timeOutDelay: number) { this.timeOutDelay = timeOutDelay; }
+    public async init() {
+        return new Promise<{ res: string, ds: DataSource }>((resolve, reject) => {
 
             const interval = setInterval(() => {
-                createConnection(this.connectionOptions)
-                    .then((connection) => {
-                        resolve(connection)
-                        clearInterval(interval)
-                    })
-                    .catch((err) => {
-                        console.log(`Retry ${this.retriesCount}.`)
-                        this.retriesCount++
-                        // if (this.retriesLeft > 0) { console.log(`Retrying to connect with ${this.retriesLeft} remaining.`); this.retriesLeft -= 1;}
-                        // else { reject(err); clearInterval(interval) }
-                    })
+                this.dataSource.initialize().then(() => {
+                    clearInterval(interval)
+                    resolve({ res: `Success: connected to Database ${this.dataSource.options.database}`, ds: this.dataSource })
+                }).catch((err: any) => {
+                    console.error(`${err}, retry ${this.retriesCount} in ${this.timeOutDelay} ms.`)
+                    this.retriesCount++
+                })
 
             }, this.timeOutDelay)
-        }
-        )
+        })
+    }
+}
+
+export class WebServer {
+    private port: number
+    private app: express.Application
+
+    constructor(port: number) {
+        this.port = port
+        this.app = express()
+    }
+
+    public async init(): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            const server = http.createServer(this.app)
+            server.listen(this.port, () => {
+                resolve(`Listening on port ${this.port}`)
+
+            })
+
+            server.on('error', function (e) {
+                // Handle your error here
+                reject(e);
+            });
+
+        })
     }
 
     public lateInit() {
@@ -71,10 +90,8 @@ export class Server {
 
     public setRoute(apiPoint: string, route: Router): Router {
         this.app.use(apiPoint, route)
-
         return route
         // this.app.get()
     }
-
 
 }

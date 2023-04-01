@@ -1,10 +1,9 @@
 import { Response } from "express";
 import {
-  getConnection,
-  getRepository,
-  Repository,
-  SimpleConsoleLogger,
+  DataSource, getRepository,
 } from "typeorm";
+import { dbServer } from "..";
+import { DBServer } from "../server";
 //import { env } from '../environment/env';
 //import { IModel } from '../interfaces/IModel';
 //import { IPopulate } from '../interfaces/IPopulate';
@@ -36,7 +35,9 @@ export class BaseController {
   public useModReturnNew = { useFindAndModify: false, new: true };
   public repository = null;
   private entity = null;
+  public ds:DataSource
   constructor(entity: any) {
+    this.ds = dbServer.dataSource
     if (entity)
     this.entity = entity;
   }

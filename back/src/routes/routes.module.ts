@@ -1,12 +1,12 @@
 import { infoRouter } from './info.routes'
-import { Server } from '../server'
+import { WebServer } from '../server'
 import { authRouter } from './auth.routes'
 import { liquidaRouter } from './liquida.routes'
 import { personalRouter } from './personal.routes'
 import { usersRouter } from './users.routes'
 import { initRouter } from './init.routes'
 
-export function makeRoutes(server: Server) {
+export function makeRoutes(server: WebServer) {
     server.setRoute("/api/info", infoRouter)
     server.setRoute("/api/auth", authRouter)
     server.setRoute("/api/liquida", liquidaRouter)

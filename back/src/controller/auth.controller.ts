@@ -44,7 +44,7 @@ export class AuthController extends BaseController {
       const opts: SearchOptions = {
         filter: `(&(objectClass=user)(|(mail=${user})(sAMAccountName=${samname})))`,
         scope: "sub",
-        attributes: ['dn', 'sn', 'cn', 'mail', 'name', 'sAMAccountName'],
+//        attributes: ['dn', 'sn', 'cn', 'mail', 'name', 'sAMAccountName'],
         paged: false,
         sizeLimit: 0,
       };
@@ -83,11 +83,10 @@ export class AuthController extends BaseController {
               return reject(err);
               assert.ifError(err);
             }
-
             return resolve({
-              email: userEntry.pojo.mail,
-              name: userEntry.pojo.name,
-              username: userEntry.pojo.sAMAccountName,
+              email: userEntry.pojo.attributes.filter(f => f.type=="mail").map(m => m.values)[0],
+              name: userEntry.pojo.attributes.filter(f => f.type=="name").map(m => m.values)[0],
+              username: userEntry.pojo.attributes.filter(f => f.type=="sAMAccountName").map(m => m.values)[0],
             });
           });
 

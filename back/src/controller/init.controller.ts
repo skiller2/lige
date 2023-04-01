@@ -1,12 +1,11 @@
-import { getConnection, getManager, getRepository } from "typeorm";
+import { getConnection } from "typeorm";
 import { Request, Response } from "express";
 import { BaseController } from "./baseController";
 import { PersonaObj } from "../schemas/personal.schemas";
-import fetch from "node-fetch";
 
 export class InitController extends BaseController {
   getStats(req: Request, res: Response) {
-    const con = getConnection();
+    const con = this.ds;
 
     con
       .query(

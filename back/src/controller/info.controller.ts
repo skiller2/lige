@@ -8,7 +8,7 @@ export class InfoController extends BaseController {
   }
 
   dbstatus(res, req) {
-    const con = getConnection();
+    const con = this.ds;
 
     const data = {
       connected: false,
