@@ -3,6 +3,7 @@ import { InfoController } from './info.controller';
 import { PersonalController } from './personal.controller';
 import { InitController } from './init.controller';
 import { UsuariosController } from './usuarios.controller'
+import { dbServer } from '..';
 
 
 export const usuariosController = new UsuariosController();

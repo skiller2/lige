@@ -35,9 +35,9 @@ export class BaseController {
   public useModReturnNew = { useFindAndModify: false, new: true };
   public repository = null;
   private entity = null;
-  public ds:DataSource
+  public dataBaseServer: DBServer
+
   constructor(entity: any) {
-    this.ds = dbServer.dataSource
     if (entity)
     this.entity = entity;
   }

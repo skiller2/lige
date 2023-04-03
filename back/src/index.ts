@@ -5,11 +5,12 @@ import {
 } from "typeorm";
 import { DBServer, WebServer} from "./server";
 import { makeRoutes } from "./routes/routes.module"
+import { dataSource } from "./data-source";
 
 require("dotenv").config();
 
 // Init App
-export const dbServer = new DBServer(5, 2000)
+export const dbServer = new DBServer(5, 2000, dataSource)
 const webServer = new WebServer(Number(process.env.SERVER_API_PORT))
 
 dbServer.init()

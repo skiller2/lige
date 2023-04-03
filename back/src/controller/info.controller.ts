@@ -1,6 +1,8 @@
 import { getConnection, getManager, getRepository } from "typeorm";
 import { NextFunction, Request, Response } from "express";
 import { BaseController } from "./baseController";
+import { dataSource } from "../data-source";
+import { dbServer } from "..";
 
 export class InfoController extends BaseController {
   constructor() {
@@ -8,8 +10,8 @@ export class InfoController extends BaseController {
   }
 
   dbstatus(res, req) {
-    const con = this.ds;
-
+    const con = dbServer.dataSource;
+    console.log(con.isInitialized)
     const data = {
       connected: false,
       database: process.env.DB_DATABASE,

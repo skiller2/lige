@@ -2,11 +2,11 @@ import { getConnection } from "typeorm";
 import { Request, Response } from "express";
 import { BaseController } from "./baseController";
 import { PersonaObj } from "../schemas/personal.schemas";
+import { dataSource } from "../data-source";
 
 export class InitController extends BaseController {
   getStats(req: Request, res: Response) {
-    const con = this.ds;
-
+    const con = dataSource;
     con
       .query(
         `SELECT 

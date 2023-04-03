@@ -9,25 +9,11 @@ import * as http from 'http'
 import * as  https from 'https'
 
 export class DBServer {
-    public dataSource = new DataSource({
-        type: "mssql",
-        host: process.env.DB_HOST,
-        port: Number(process.env.DB_PORT),
-        username: process.env.DB_USER,
-        password: process.env.DB_PASS,
-        database: process.env.DB_DATABASE,
-        maxQueryExecutionTime: Number(process.env.DB_MAX_EXEC_TIME),
-        logging: "all",
-        connectionTimeout: 10000, //ms
-        //entities: [Photo],
-//        synchronize: true,
-
-    })
-
+    public dataSource: DataSource
     private retriesCount: number = 1
     private timeOutDelay: number
 
-    constructor(retries: number, timeOutDelay: number) { this.timeOutDelay = timeOutDelay; }
+    constructor(retries: number, timeOutDelay: number, dataSource: DataSource) { this.timeOutDelay = timeOutDelay; this.dataSource = dataSource;}
     public async init() {
         return new Promise<{ res: string, ds: DataSource }>((resolve, reject) => {
 
