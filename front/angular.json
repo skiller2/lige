@@ -29,7 +29,8 @@
             ],
             "assets": [
               "src/assets",
-              "src/favicon.ico"
+              "src/favicon.ico",
+              "src/manifest.webmanifest"
             ],
             "styles": [
               "src/styles.less"
@@ -46,7 +47,9 @@
               "includePaths": [
                 "node_modules/"
               ]
-            }
+            },
+            "serviceWorker": true,
+            "ngswConfigPath": "ngsw-config.json"
           },
           "configurations": {
             "production": {
@@ -114,7 +117,8 @@
             "scripts": [],
             "styles": [],
             "assets": [
-              "src/assets"
+              "src/assets",
+              "src/manifest.webmanifest"
             ]
           }
         },

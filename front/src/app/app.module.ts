@@ -2,7 +2,7 @@
 /* eslint-disable import/no-duplicates */
 import { HttpClientModule } from '@angular/common/http';
 import { default as ngLang } from '@angular/common/locales/zh';
-import { APP_INITIALIZER, LOCALE_ID, NgModule, Type } from '@angular/core';
+import { APP_INITIALIZER, LOCALE_ID, NgModule, Type, isDevMode } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { SimpleInterceptor } from '@delon/auth';
@@ -86,6 +86,7 @@ import { RoutesModule } from './routes/routes.module';
 import { SharedModule } from './shared/shared.module';
 import { STWidgetModule } from './shared/st-widget/st-widget.module';
 import { Observable } from 'rxjs';
+import { ServiceWorkerModule } from '@angular/service-worker';
 
 @NgModule({
   declarations: [AppComponent],
@@ -103,7 +104,13 @@ import { Observable } from 'rxjs';
     NzNotificationModule,
     
     ...GLOBAL_THIRD_MODULES,
-    ...FORM_MODULES
+    ...FORM_MODULES,
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      // Register the ServiceWorker as soon as the application is stable
+      // or after 30 seconds (whichever comes first).
+      registrationStrategy: 'registerWhenStable:30000'
+    })
   ],
   providers: [...LANG_PROVIDES, ...INTERCEPTOR_PROVIDES, ...I18NSERVICE_PROVIDES, ...APPINIT_PROVIDES],
   bootstrap: [AppComponent]
