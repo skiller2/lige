@@ -63,7 +63,6 @@ export class WebServer {
     public lateInit() {
 
         this.app.use(morgan('dev'));
-        this.app.use(express.json());
 
         this.app.set('pkg', pkg);
 
