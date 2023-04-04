@@ -1,17 +1,12 @@
-import { getConnection, getManager, getRepository } from "typeorm";
-import { NextFunction, Request, Response } from "express";
 import { BaseController } from "./baseController";
 import * as bcrypt from "bcryptjs";
 import * as ldap from "ldapjs";
 import { SearchOptions } from "ldapjs";
 import * as jwt from "jsonwebtoken";
 import assert = require("assert");
-import { REFUSED } from "dns";
+import { dataSource } from "../data-source";
 
 export class AuthController extends BaseController {
-  constructor() {
-    super("");
-  }
 
   authUser(user: string, password: string) {
     return new Promise((resolve, reject) => {
@@ -114,7 +109,6 @@ export class AuthController extends BaseController {
   }
 
   signup(res, req) {
-    const con = getConnection();
 
     const data = {
       connected: false,
@@ -123,7 +117,7 @@ export class AuthController extends BaseController {
       random: Math.floor(Math.random() * (100000000000 + 1)),
     };
 
-    con
+    dataSource
       .query("SELECT 1 + @0", [1])
       .then((records) => {
         data.sqltest = records;
@@ -137,7 +131,6 @@ export class AuthController extends BaseController {
   }
 
   signin(res, req) {
-    const con = getConnection();
     const { userName, email, password } = req.body;
 
     this.authUser(userName, password)

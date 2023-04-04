@@ -1,7 +1,5 @@
-import { getConnection } from "typeorm";
 import { Request, Response } from "express";
 import { BaseController } from "./baseController";
-import { PersonaObj } from "../schemas/personal.schemas";
 import { dataSource } from "../data-source";
 
 export class InitController extends BaseController {
@@ -116,7 +114,6 @@ export class InitController extends BaseController {
     req: any,
     res: Response
   ) {
-    const connection = getConnection();
     const { fieldName, value } = req.body;
 
 
@@ -138,7 +135,7 @@ export class InitController extends BaseController {
     }
     
 
-    connection
+    dataSource
       .query((query += " 1=1"))
       .then((records) => {
         this.jsonRes({ recordsArray: records }, res);
@@ -146,9 +143,6 @@ export class InitController extends BaseController {
       .catch((err) => {
         this.errRes(err, res, "Error accediendo a la base de datos", 409);
       });
-  }
-  constructor() {
-    super("");
   }
 
   async execProcedure(someParam: number) {
