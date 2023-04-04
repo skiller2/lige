@@ -131,6 +131,7 @@ export class AuthController extends BaseController {
   }
 
   signin(res, req) {
+    console.log(req)
     const { userName, email, password } = req.body;
 
     this.authUser(userName, password)

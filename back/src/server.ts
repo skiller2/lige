@@ -5,6 +5,8 @@ import * as pkg from "../package.json";
 import { DataSource } from 'typeorm'
 require("dotenv").config();
 
+
+
 import * as http from 'http'
 
 export class DBServer {
@@ -35,8 +37,11 @@ export class WebServer {
     private app: express.Application
 
     constructor(port: number) {
+
         this.port = port
         this.app = express()
+        this.app.use(express.json())
+
     }
 
     public async init(): Promise<string> {
