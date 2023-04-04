@@ -40,8 +40,8 @@ export class WebServer {
 
         this.port = port
         this.app = express()
-        this.app.use(express.json())
-
+        this.app.use(morgan('dev'));
+        this.app.use(express.json());
     }
 
     public async init(): Promise<string> {
@@ -62,7 +62,6 @@ export class WebServer {
 
     public lateInit() {
 
-        this.app.use(morgan('dev'));
 
         this.app.set('pkg', pkg);
 
