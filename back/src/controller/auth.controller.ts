@@ -5,6 +5,7 @@ import { SearchOptions } from "ldapjs";
 import * as jwt from "jsonwebtoken";
 import assert = require("assert");
 import { dataSource } from "../data-source";
+import { Request } from "express";
 
 export class AuthController extends BaseController {
 
@@ -108,30 +109,8 @@ export class AuthController extends BaseController {
     return bcrypt.compare(password, passwordReceived);
   }
 
-  signup(res, req) {
-
-    const data = {
-      connected: false,
-      database: "cofybcf",
-      sqltest: {},
-      random: Math.floor(Math.random() * (100000000000 + 1)),
-    };
-
-    dataSource
-      .query("SELECT 1 + @0", [1])
-      .then((records) => {
-        data.sqltest = records;
-        data.connected = true;
-        this.jsonRes(data, res);
-        //        throw new Error("Forzado");
-      })
-      .catch((err) => {
-        this.errRes(err, null, "Error accediendo a base de datos", 409);
-      });
-  }
-
-  signin(res, req) {
-    const { userName, email, password } = req.body;
+  signin(res, req: Request) {
+    const { userName, password } = req.body;
 
     this.authUser(userName, password)
       .then((user: any) => {
