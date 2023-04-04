@@ -6,7 +6,6 @@ import { DataSource } from 'typeorm'
 require("dotenv").config();
 
 import * as http from 'http'
-import * as  https from 'https'
 
 export class DBServer {
     public dataSource: DataSource

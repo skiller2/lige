@@ -1,17 +1,9 @@
-import { getConnection, getManager, getRepository } from "typeorm";
-import { NextFunction, Request, Response } from "express";
 import { BaseController } from "./baseController";
 import { dataSource } from "../data-source";
-import { dbServer } from "..";
 
 export class InfoController extends BaseController {
-  constructor() {
-    super("");
-  }
 
   dbstatus(res, req) {
-    const con = dbServer.dataSource;
-    console.log(con.isInitialized)
     const data = {
       connected: false,
       database: process.env.DB_DATABASE,
@@ -19,8 +11,8 @@ export class InfoController extends BaseController {
       random: Math.floor(Math.random() * (100000000000 + 1)),
     };
 
-   con
-      .query("SELECT 1 + @0", [1])
+   dataSource
+      .query("SELECT 1 + @0", [2])
       .then((records) => {
         data.sqltest = records;
         data.connected = true;

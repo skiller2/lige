@@ -1,15 +1,12 @@
-import { getConnection, getManager, getRepository } from "typeorm";
-import { NextFunction, Request, Response } from "express";
+import { Response } from "express";
 import { BaseController } from "./baseController";
-import { ParsedQs } from "qs";
 import { PersonaObj } from "../schemas/personal.schemas";
 import fetch from "node-fetch";
+import { dataSource } from "../data-source";
 
 export class PersonalController extends BaseController {
   getById(PersonalId: string, res: Response) {
-    const con = getConnection();
-
-    con
+    dataSource
       .query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
         per.PersonalNombre, per.PersonalApellido
@@ -62,7 +59,6 @@ export class PersonalController extends BaseController {
     req: any,
     res: Response
   ) {
-    const connection = getConnection();
     const { fieldName, value } = req.body;
 
 
@@ -84,7 +80,7 @@ export class PersonalController extends BaseController {
     }
     
 
-    connection
+    dataSource
       .query((query += " 1=1"))
       .then((records) => {
         this.jsonRes({ recordsArray: records }, res);
@@ -93,10 +89,6 @@ export class PersonalController extends BaseController {
         this.errRes(err, res, "Error accediendo a la base de datos", 409);
       });
   }
-  constructor() {
-    super("");
-  }
-
   async execProcedure(someParam: number) {
     /*
         const result = await this.connection.query(

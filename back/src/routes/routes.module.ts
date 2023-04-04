@@ -3,14 +3,12 @@ import { WebServer } from '../server'
 import { authRouter } from './auth.routes'
 import { liquidaRouter } from './liquida.routes'
 import { personalRouter } from './personal.routes'
-import { usersRouter } from './users.routes'
 import { initRouter } from './init.routes'
 
 export function makeRoutes(server: WebServer) {
     server.setRoute("/api/info", infoRouter)
     server.setRoute("/api/auth", authRouter)
     server.setRoute("/api/liquida", liquidaRouter)
-    server.setRoute("/api/usuarios", usersRouter)
     server.setRoute("/api/personal", personalRouter)
     server.setRoute("/api/init", initRouter)
 }
