@@ -151,5 +151,9 @@
   "validation.title.required": "Por favor, introduzca un título",
   "validation.date.required": "Seleccione la fecha de inicio y de finalización",
   "validation.goal.required": "Por favor, introduzca una descripción del objetivo",
-  "validation.standard.required": "Por favor, introduzca una métrica"
+  "validation.standard.required": "Por favor, introduzca una métrica",
+  "A new version of this app is available.": "Una nueva versión de la aplicación está disponible",
+  "Add this WEB app to home screen":"Agregar esta aplicación web a la pantalla de inicio",
+  "To install this WEB app on your device, tap the \"Menu\" button":"Para instalar esta aplicación web en su dispositivo, presione el botón \"Menu\"",
+  "and then \"Add to home screen\" button":"y luego el botón \"Agregar a la pantalla de inicio\""
 }
