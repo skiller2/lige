@@ -50,6 +50,16 @@ export class SearchService {
                 })
             )
     }
+    
+    getCategorias(): Observable<any> {
+        return this.http.get(`api/asistencia/categorias`)
+            .pipe(
+                map((res: ResponseJSON<any>) => {
+                    if (res)  return res.data
+                    throw 'Error'
+                })
+            )
+    }
 
 
     getInfoFromPersonalId(id: string): Observable<PersonaObj> {

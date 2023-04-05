@@ -44,6 +44,7 @@ export class ExcepcionAsistenciaComponent {
   selectedObjetivoId = ''
   selectedPersonalId = ''
   selectedMetodologiaId = ''
+  selectedCategoriaId = ''
 
   $isSucursalOptionsLoading = new BehaviorSubject(false)
   $isObjetivoOptionsLoading = new BehaviorSubject(false)
@@ -57,6 +58,7 @@ export class ExcepcionAsistenciaComponent {
   $searchPersonalChange = new BehaviorSubject('')
 
   $optionsSucursales = this.searchService.getSucursales()
+  $optionsCategoria = this.searchService.getCategorias()
   $optionsObjetivos = this.$searchObjetivoChange
     .pipe(debounceTime(500))
     .pipe(
