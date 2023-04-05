@@ -44,6 +44,7 @@ export class ExcepcionAsistenciaComponent {
   selectedObjetivoId = ''
   selectedPersonalId = ''
   selectedMetodologiaId = ''
+  selectedCategoriaId = ''
 
   $isSucursalOptionsLoading = new BehaviorSubject(false)
   $isObjetivoOptionsLoading = new BehaviorSubject(false)
@@ -57,12 +58,12 @@ export class ExcepcionAsistenciaComponent {
   $searchPersonalChange = new BehaviorSubject('')
 
   $optionsSucursales = this.searchService.getSucursales()
+  $optionsCategoria = this.searchService.getCategorias()
   $optionsObjetivos = this.$searchObjetivoChange.pipe(
     debounceTime(500),
     switchMap((event) => this.searchService.getObjetivos((Number(event.charAt(0)) ? 'Codigo' : 'Descripcion'), event, this.selectedSucursalId)),
     tap(() => this.$isObjetivoOptionsLoading.next(false))
   )
-
   $optionsPersonal = this.$searchPersonalChange.pipe(
     debounceTime(500),
     switchMap((values) => this.searchService.getPersonFromName((Number(values)) ? 'CUIT' : 'Nombre', values)),

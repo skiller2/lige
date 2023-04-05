@@ -7,3 +7,7 @@ export const asistenciaRouter = Router();
 asistenciaRouter.get('/metodologia', (req, res) => {
     asistenciaController.getMetodologia(req, res)
 })
+
+asistenciaRouter.get('/categorias', (req, res) => {
+    asistenciaController.getCategoria(req, res)
+})
