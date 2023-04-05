@@ -57,22 +57,17 @@ export class ExcepcionAsistenciaComponent {
   $searchPersonalChange = new BehaviorSubject('')
 
   $optionsSucursales = this.searchService.getSucursales()
-  $optionsObjetivos = this.$searchObjetivoChange
-    .pipe(debounceTime(500))
-    .pipe(
-      switchMap((event) => this.searchService.getObjetivos((Number(event.charAt(0)) ? 'Codigo' : 'Descripcion'), event, this.selectedSucursalId))
-    )
-    .pipe(
-      tap(() => this.$isObjetivoOptionsLoading.next(false))
-    )
+  $optionsObjetivos = this.$searchObjetivoChange.pipe(
+    debounceTime(500),
+    switchMap((event) => this.searchService.getObjetivos((Number(event.charAt(0)) ? 'Codigo' : 'Descripcion'), event, this.selectedSucursalId)),
+    tap(() => this.$isObjetivoOptionsLoading.next(false))
+  )
 
-  $optionsPersonal = this.$searchPersonalChange.pipe(debounceTime(500))
-    .pipe(
-      switchMap((values) => this.searchService.getPersonFromName((Number(values)) ? 'CUIT' : 'Nombre', values))
-    )
-    .pipe(
-      tap(() => this.$isPersonalOptionsLoading.next(false))
-    )
+  $optionsPersonal = this.$searchPersonalChange.pipe(
+    debounceTime(500),
+    switchMap((values) => this.searchService.getPersonFromName((Number(values)) ? 'CUIT' : 'Nombre', values)),
+    tap(() => this.$isPersonalOptionsLoading.next(false))
+  )
 
   $isSucursalDataLoading = new BehaviorSubject(false)
   $isObjetivoDataLoading = new BehaviorSubject(false)
