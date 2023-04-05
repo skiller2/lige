@@ -1,0 +1,80 @@
+<ng-template #phActionTpl>
+  <nz-button-group>
+    <button nz-button nzType="primary" disabled>L</button>
+    <button nz-button nzType="default" disabled>M</button>
+    <button nz-button nzType="default">M</button>
+    <button nz-button nzType="dashed" disabled>R</button>
+  </nz-button-group>
+</ng-template>
+
+<page-header [action]="phActionTpl"></page-header>
+
+<nz-card class="small-margin">
+
+
+  <form nz-form>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="5">Sucursal</nz-form-label>
+      <nz-select [(ngModel)]="selectedSucursalId" [ngModelOptions]="{standalone: true} "(ngModelChange)="selectedValueChange($event, Busqueda.Sucursal)" nzAllowClear nzPlaceHolder="Sucursal" nzShowSearch>
+        <ng-container *ngFor="let option of $optionsSucursales | async">
+          <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
+        </ng-container>
+      </nz-select>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
+      <nz-select [(ngModel)]="selectedObjetivoId" [ngModelOptions]="{standalone: true} "(ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" nzAllowClear nzPlaceHolder="Descripcion, Código" nzShowSearch nzServerSearch (nzOnSearch)="searchObjetivo($event)">
+        <ng-container *ngIf="($isObjetivoOptionsLoading | async) == false; else optionsLoading">
+          <ng-container *ngFor="let option of $optionsObjetivos | async">
+            <nz-option [nzValue]="option.ObjetivoId" nzLabel="{{option.ClienteId}}/{{option.ClienteElementoDependienteId | nzSafeNull: '0'}} {{option.ObjetivoDescripcion}}"></nz-option>
+          </ng-container>  
+        </ng-container>
+      </nz-select>
+    </nz-form-item>
+    
+    <nz-form-item>
+      <nz-form-label [nzSpan]="5">Persona</nz-form-label>
+      <nz-select [(ngModel)]="selectedPersonalId" [ngModelOptions]="{standalone: true}" (ngModelChange)="selectedValueChange($event, Busqueda.Personal)"  nzAllowClear nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch nzServerSearch (nzOnSearch)="searchPersonal($event)">
+        <ng-container *ngIf="($isPersonalOptionsLoading | async) == false; else optionsLoading">
+          <ng-container *ngFor="let option of $optionsPersonal | async">
+            <nz-option [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
+          </ng-container>  
+        </ng-container>
+      </nz-select>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="5">Metodologia</nz-form-label>
+      <nz-select [(ngModel)]="selectedMetodologiaId" [ngModelOptions]="{standalone: true} " nzAllowClear nzPlaceHolder="Metodologia" nzShowSearch>
+        <ng-container *ngFor="let option of $optionsMetodologia | async">
+          <nz-option [nzValue]="option.id" [nzLabel]="option.descripcion"></nz-option>
+        </ng-container>
+      </nz-select>
+      <nz-container [ngSwitch]="selectedMetodologiaId">
+        <ng-container *ngSwitchCase="'S'">
+            <nz-input-number [nzStep]="1"></nz-input-number>
+        </ng-container>
+        <ng-container *ngSwitchCase="'E'">
+          <nz-input-number [nzStep]="1"></nz-input-number>
+        </ng-container>
+        <ng-container *ngSwitchCase="'A'">
+          <nz-input-number [nzStep]="1"></nz-input-number>
+        </ng-container>
+        <ng-container *ngSwitchCase="'H'">
+          <nz-input-number [nzStep]="1"></nz-input-number>
+        </ng-container>
+  
+      </nz-container>
+    </nz-form-item>
+  </form>
+
+</nz-card>
+
+<ng-template #optionsLoading>
+  <nz-option nzDisabled nzCustomContent>
+    <span nz-icon nzType="loading" class="loading-icon"></span>
+    Loading Data...
+  </nz-option>
+</ng-template>

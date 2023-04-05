@@ -12,8 +12,9 @@ import { ImageCropperModule } from 'ngx-image-cropper';
 import { CUITPipe } from 'src/app/shared/utils/cuit-pipe';
 import { QRModule } from '@delon/abc/qr';
 import { CredPersComponent } from './credpers/credpers.component';
+import { ExcepcionAsistenciaComponent } from './asisexcept/asistenciaexcepcion.component';
 
-const COMPONENTS: Array<Type<void>> = [GesCcfarmComponent, ImgPersComponent,CredPersComponent, FormComponent, ImageContentComponent,ViewCredentialComponent,CUITPipe];
+const COMPONENTS: Array<Type<void>> = [ExcepcionAsistenciaComponent, GesCcfarmComponent, ImgPersComponent,CredPersComponent, FormComponent, ImageContentComponent,ViewCredentialComponent,CUITPipe];
 
 @NgModule({
 imports: [SharedModule, GesRoutingModule, NzResizableModule, ImageCropperModule,QRModule],

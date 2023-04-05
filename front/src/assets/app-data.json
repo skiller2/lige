@@ -21,16 +21,22 @@
           "link": "/init"
         },
         {
-          "text": "Imagen Personal",
+          "text": "Credencial Personal",
           "i18n": "ges.imgpers",
           "icon": "anticon-profile",
           "link": "/ges/imgpers"
         },
         {
-          "text": "Credenciales",
+          "text": "Lista de Credenciales",
           "i18n": "ges.credpers",
           "icon": "anticon-profile",
           "link": "/ges/credpers"
+        },        
+        {
+          "text": "Excepción Asistencia",
+          "i18n": "ges.asistenciaexcepcion",
+          "icon": "anticon-profile",
+          "link": "/ges/asistenciaexcepcion"
         },        
         {
           "text": "Liquidaciones",

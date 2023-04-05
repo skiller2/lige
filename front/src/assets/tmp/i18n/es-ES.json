@@ -12,8 +12,10 @@
   "menu.dashboard.workplace": "Espacio de trabajo",
   "menu.shortcut": "Atajo",
   "menu.widgets": "Complementos",
-  "ges.imgpers": "Imagen Personal",
-  "ges.credpers": "Credenciales",
+  "ges.imgpers": "Credencial Personal",
+  "ges.credpers": "Lista de Credenciales",
+  "ges.asistenciaexcepcion": "Excepción Asistencia",
+
   "menu.alain": "Alain",
   "menu.style": "Estilo",
   "menu.style.typography": "Tipografía",

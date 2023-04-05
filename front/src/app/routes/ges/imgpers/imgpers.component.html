@@ -13,8 +13,7 @@
     <form nz-form *ngIf="$personalData | async as data">
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="5">Buscar Persona</nz-form-label>
-        <nz-select [(ngModel)]="selectedPersonalId" [ngModelOptions]="{standalone: true}" (ngModelChange)="selectedValueChange($event)"  nzAllowClear nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
+        <nz-form-label [nzSpan]="5">Buscar Persona</nz-form-label><nz-select [(ngModel)]="selectedPersonalId" [ngModelOptions]="{standalone: true}" (ngModelChange)="selectedValueChange($event)"  nzAllowClear nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
           <ng-container *ngFor="let option of $optionsArray | async">
             <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
           </ng-container>  

@@ -14,12 +14,21 @@ import { ResponseJSON } from 'src/app/shared/schemas/ResponseJSON';
 export class SearchService {
     constructor(private http: _HttpClient) { }
 
+    getObjetivos(fieldName: string, value: string, sucursalId: string) {
+        if (!value || value=="") {return new BehaviorSubject<any>(
+            []
+        ).asObservable()}
+        return this.http.post('api/objetivos/search', {sucursalId: sucursalId, fieldName: fieldName, value: value})
+            .pipe(
+                map((res: ResponseJSON<any>) => res.data.objetivos)
+            )
+    }
 
     getPersonFromName(fieldName: string, values: string): Observable<Search[]> {
         if (!values || values=="") {return new BehaviorSubject<Search[]>(
             []
         ).asObservable()}
-        else return this.http.post('api/personal/search', { fieldName: fieldName, value: values })
+        return this.http.post('api/personal/search', { fieldName: fieldName, value: values })
             .pipe(
                 map(
                     (res: ResponseJSON<ResponseBySearch>) => {
@@ -31,6 +40,17 @@ export class SearchService {
                 )
             )
     }
+
+    getSucursales(): Observable<any> {
+        return this.http.get(`api/sucursales`)
+            .pipe(
+                map((res: ResponseJSON<any>) => {
+                    if (res)  return res.data
+                    throw 'Error'
+                })
+            )
+    }
+
 
     getInfoFromPersonalId(id: string): Observable<PersonaObj> {
         const dummy: PersonaObj = {
@@ -55,5 +75,13 @@ export class SearchService {
                 dummy)
             )
     }
+
+    getMetodologia() {
+        return this.http.get(`api/asistencia/metodologia`)
+            .pipe(
+                map((res: ResponseJSON<any>) => res.data)
+            )
+    }
+
 }
 

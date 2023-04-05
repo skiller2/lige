@@ -1,12 +1,8 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { STColumn, STComponent } from '@delon/abc/st';
-import { SFSchema } from '@delon/form';
-import { ModalHelper, _HttpClient } from '@delon/theme';
-import { BehaviorSubject, catchError, debounceTime, finalize, map, Observable, switchMap, tap } from 'rxjs';
-import { FormComponent } from 'src/app/shared/imagePreview/form/form.component';
-import { PersonaObj, ResponseBySearch, Search } from 'src/app/shared/schemas/personal.schemas';
-import { ResponseJSON } from 'src/app/shared/schemas/ResponseJSON';
-import { SearchService } from './search.service';
+import { Component, OnInit } from '@angular/core';
+import { _HttpClient } from '@delon/theme';
+import { BehaviorSubject, debounceTime, finalize, Observable, switchMap, tap } from 'rxjs';
+import { Search } from 'src/app/shared/schemas/personal.schemas';
+import { SearchService } from '../search.service';
 
 
 @Component({
@@ -47,7 +43,7 @@ import { SearchService } from './search.service';
 
 export class ImgPersComponent implements OnInit {
 
-  constructor(private http: _HttpClient, private searchService: SearchService) { }
+  constructor(private searchService: SearchService) { }
   ngOnInit(): void {
   }
   selectedPersonalId: string = ''
@@ -86,13 +82,9 @@ export class ImgPersComponent implements OnInit {
   }
 
   search(value: string): void {
-    if (value) { this.$isOptionsLoading.next(true); }
+    if (value) { this.$isOptionsLoading.next(true)}
     else { this.$isOptionsLoading.next(false) }
     this.$searchChange.next(value)
-  }
-
-  CUITToDni(cuit: string): string {
-    return cuit.substring(2, 10)
   }
 
 }
