@@ -38,7 +38,6 @@ export class ExcepcionAsistenciaComponent {
 
   constructor(private searchService: SearchService) { }
 
-  $optionsMetodologia = this.searchService.getMetodologia()
 
   selectedSucursalId = ''
   selectedObjetivoId = ''
@@ -57,6 +56,7 @@ export class ExcepcionAsistenciaComponent {
   $searchObjetivoChange = new BehaviorSubject('')
   $searchPersonalChange = new BehaviorSubject('')
 
+  $optionsMetodologia = this.searchService.getMetodologia()
   $optionsSucursales = this.searchService.getSucursales()
   $optionsCategoria = this.searchService.getCategorias()
   $optionsObjetivos = this.$searchObjetivoChange.pipe(

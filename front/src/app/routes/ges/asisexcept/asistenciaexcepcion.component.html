@@ -30,12 +30,10 @@
       <nz-select [(ngModel)]="selectedObjetivoId" [ngModelOptions]="{standalone: true} "
         (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" nzAllowClear
         nzPlaceHolder="Descripcion, Código" nzShowSearch nzServerSearch (nzOnSearch)="searchObjetivo($event)">
-        <ng-container *ngIf="($isObjetivoOptionsLoading | async) == false; else optionsLoading">
           <ng-container *ngFor="let option of $optionsObjetivos | async">
             <nz-option [nzValue]="option.ObjetivoId"
               nzLabel="{{option.ClienteId}}/{{option.ClienteElementoDependienteId | nzSafeNull: '0'}} {{option.ObjetivoDescripcion}}"></nz-option>
           </ng-container>
-        </ng-container>
       </nz-select>
     </nz-form-item>
 
@@ -44,11 +42,9 @@
       <nz-select [(ngModel)]="selectedPersonalId" [ngModelOptions]="{standalone: true}"
         (ngModelChange)="selectedValueChange($event, Busqueda.Personal)" nzAllowClear
         nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch nzServerSearch (nzOnSearch)="searchPersonal($event)">
-        <ng-container *ngIf="($isPersonalOptionsLoading | async) == false; else optionsLoading">
           <ng-container *ngFor="let option of $optionsPersonal | async">
             <nz-option [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
           </ng-container>
-        </ng-container>
       </nz-select>
     </nz-form-item>
 
