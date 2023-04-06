@@ -8,6 +8,8 @@ import { AlainThemeModule } from '@delon/theme';
 
 import { SHARED_DELON_MODULES } from './shared-delon.module';
 import { SHARED_ZORRO_MODULES } from './shared-zorro.module';
+import { PdfviewerComponent } from './pdfviewer/pdfviewer.component';
+import { UploadFileComponent } from './upload-file/upload-file.component';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';

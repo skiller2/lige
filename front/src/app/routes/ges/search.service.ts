@@ -16,18 +16,18 @@ export class SearchService {
 
     getObjetivos(fieldName: string, value: string, sucursalId: string) {
         if (!value || value=="") {return of([])}
-        return this.http.post('api/objetivos/search', {sucursalId: sucursalId, fieldName: fieldName, value: value})
+        return this.http.post<ResponseJSON<any>>('api/objetivos/search', {sucursalId: sucursalId, fieldName: fieldName, value: value})
             .pipe(
-                map((res: ResponseJSON<any>) => res.data.objetivos)
+                map((res) => res.data.objetivos)
             )
     }
 
     getPersonFromName(fieldName: string, values: string): Observable<Search[]> {
         if (!values || values=="") {return of([])}
-        return this.http.post('api/personal/search', { fieldName: fieldName, value: values })
+        return this.http.post<ResponseJSON<ResponseBySearch>>('api/personal/search', { fieldName: fieldName, value: values })
             .pipe(
                 map(
-                    (res: ResponseJSON<ResponseBySearch>) => {
+                    (res) => {
                         if (res.data.recordsArray)
                             return res.data.recordsArray
                         else 
@@ -38,9 +38,9 @@ export class SearchService {
     }
 
     getSucursales(): Observable<any> {
-        return this.http.get(`api/sucursales`)
+        return this.http.get<ResponseJSON<any>>(`api/sucursales`)
             .pipe(
-                map((res: ResponseJSON<any>) => {
+                map((res) => {
                     if (res)  return res.data
                     throw 'Error'
                 })
@@ -48,9 +48,9 @@ export class SearchService {
     }
     
     getCategorias(): Observable<any> {
-        return this.http.get(`api/asistencia/categorias`)
+        return this.http.get<ResponseJSON<any>>(`api/asistencia/categorias`)
             .pipe(
-                map((res: ResponseJSON<any>) => {
+                map((res) => {
                     if (res)  return res.data
                     throw 'Error'
                 })
@@ -83,9 +83,9 @@ export class SearchService {
     }
 
     getMetodologia() {
-        return this.http.get(`api/asistencia/metodologia`)
+        return this.http.get<ResponseJSON<any>>(`api/asistencia/metodologia`)
             .pipe(
-                map((res: ResponseJSON<any>) => res.data)
+                map((res) => res.data)
             )
     }
 

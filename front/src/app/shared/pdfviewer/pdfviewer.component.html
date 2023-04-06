@@ -1,0 +1,4 @@
+<button *ngIf="($currentDownloadablePDF | async)!.length > 0 " (click)="download()" nz-button nzType="primary" nzSize='default'>
+    <span nz-icon nzType="download"></span>
+    Download Converted File
+</button>

@@ -43,6 +43,11 @@
           "icon": "anticon-info",
           "children": [
             {
+              "text": "PDF",
+              "link": "/ges/pdfretiro",
+              "icon": "anticon-info"
+            },
+            {
               "text": "Listado",
               "link": "/ges/liquida",
               "icon": "anticon-info"

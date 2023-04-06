@@ -11,7 +11,7 @@ import { FileImageService } from '../file-image.service';
 export class FormComponent {
   constructor(private fileService: FileImageService) {}
 
-  @Output() eventEmitter = new EventEmitter<Event>()
+  @Output() fileChangeEvent = new EventEmitter<Event>()
 
 
   $currentIsFile: Observable<boolean> = this.fileService.$currentFile.pipe(map( file => file.size > 0 ? true : false))
@@ -19,7 +19,7 @@ export class FormComponent {
   $currentFileSize: Observable<number> = this.fileService.$currentFile.pipe(map( file => file.size))
   
   fileChange($event: Event) {
-    this.eventEmitter.emit($event)
+    this.fileChangeEvent.emit($event)
     const file = ($event.target as HTMLInputElement).files?.item(0)
     if (file && file.type.startsWith("image/")) this.fileService.updateFile(file); else console.log("Error: File is not an image.")
 
