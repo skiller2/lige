@@ -12,8 +12,10 @@ export class PdfRetiroComponent {
   constructor(private filesService: FilesService){}
 
   processedBuffer = new Uint8Array()
+  fileName!: string 
 
   async processFile(file: File) {
+    this.fileName = file.name
     const buffer = await this.filesService.getArrayBufferFromFile(file)
     this.processedBuffer = buffer
   }

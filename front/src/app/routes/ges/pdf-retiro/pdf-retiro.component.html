@@ -11,6 +11,5 @@
 
 <nz-card class="small-margin">
     <app-upload-file #upload accept="application/pdf" (fileOutput)="processFile($event)"></app-upload-file>
-    <app-pdfviewer [bufferPDF]="processedBuffer"></app-pdfviewer>
-
+    <app-pdfviewer [namePDF]="fileName" [bufferPDF]="processedBuffer"></app-pdfviewer>
 </nz-card>
