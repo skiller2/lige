@@ -118,3 +118,15 @@
         margin: 0;
     }
   }
+
+
+  .card-error {
+    color: red;
+    font-size: 1.2cm;
+    position: absolute;
+    bottom: 2cm;
+    left: 0cm;
+    width: 100%;
+    text-align: center;
+    transform: rotate(-30deg);
+  }

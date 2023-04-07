@@ -1,7 +1,7 @@
 <button *ngIf="($currentDownloadablePDF | async)!.length > 0" (click)="download()" nz-button nzType="primary"
     nzSize='default'>
     <span nz-icon nzType="download"></span>
-    {{ namePDF }} {{ ($currentDownloadablePDF | async)!.length | nzBytes}}
+    {{ namePDFDownload }} {{ ($currentDownloadablePDF | async)!.length | nzBytes}}
 </button>
 
 <ng-container *ngIf="$isProcessing | async">

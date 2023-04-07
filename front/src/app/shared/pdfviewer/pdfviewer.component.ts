@@ -13,7 +13,7 @@ export class PdfviewerComponent implements OnChanges {
 
   @Input() bufferPDF: Uint8Array = new Uint8Array()
   @Input() namePDF: string = 'file.pdf'
-
+  namePDFDownload: string = ''
   $currentDownloadablePDF = new BehaviorSubject<Uint8Array>(new Uint8Array())
   $isProcessing = new BehaviorSubject(false)
 
@@ -21,9 +21,11 @@ export class PdfviewerComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     this.createPDF(this.bufferPDF)
-    var ext = this.namePDF.substring(this.namePDF.lastIndexOf('.') + 1)
-    var name = this.namePDF.substring(0,this.namePDF.lastIndexOf('.'))
-    this.namePDF = `${name}_FIRMADO.${ext}`    
+    if (this.namePDF) {
+      var ext = this.namePDF.substring(this.namePDF.lastIndexOf('.') + 1)
+      var name = this.namePDF.substring(0, this.namePDF.lastIndexOf('.'))
+      this.namePDFDownload = `${name}_FIRMADO.${ext}`
+    }
   }
 
   async createPDF(bufferPDF: Uint8Array) {
@@ -65,7 +67,7 @@ export class PdfviewerComponent implements OnChanges {
     if (this.$currentDownloadablePDF.value) {
 
 
-      this.downloadService.downloadBlob(this.$currentDownloadablePDF.value, this.namePDF,  'pdf')
+      this.downloadService.downloadBlob(this.$currentDownloadablePDF.value, this.namePDFDownload,  'pdf')
     }
   }
 

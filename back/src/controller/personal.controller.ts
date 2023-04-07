@@ -27,8 +27,9 @@ export class PersonalController extends BaseController {
 
         const personaData = records[0]
         personaData.NRO_EMPRESA = process.env.NRO_EMPRESA_PBA
-        personaData.PersonalCUITCUILCUIT = (personaData.PersonalCUITCUILCUIT) ? `${personaData.PersonalCUITCUILCUIT}` : "Sin registrar"
-        personaData.DNI = personaData.PersonalCUITCUILCUIT.substring(2, 10)
+//        personaData.PersonalCUITCUILCUIT = (personaData.PersonalCUITCUILCUIT) ? `${personaData.PersonalCUITCUILCUIT}` : "Sin registrar"
+        personaData.PersonalCUITCUILCUIT = (personaData.PersonalCUITCUILCUIT != null) ? personaData.PersonalCUITCUILCUIT : ""
+        personaData.DNI = (personaData.PersonalCUITCUILCUIT.length!=null)? personaData.PersonalCUITCUILCUIT.substring(2, 10):""
         personaData.FechaDesde = new Date()
         personaData.FechaHasta = FechaHasta
         const imageUrl = personaData.DocumentoImagenFotoBlobNombreArchivo ? process.env.IMAGE_FOTO_PATH.concat(personaData.DocumentoImagenFotoBlobNombreArchivo) : ""

@@ -77,8 +77,10 @@ export class ImgPersComponent implements OnInit {
     )
 
   selectedValueChange(event: string): void {
-    this.$selectedValueChange.next(event)
-    this.$iPersonalDataLoading.next(true)
+    if (event) {
+      this.$selectedValueChange.next(event)
+      this.$iPersonalDataLoading.next(true)
+    }
   }
 
   search(value: string): void {

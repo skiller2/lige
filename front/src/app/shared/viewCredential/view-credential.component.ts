@@ -28,6 +28,7 @@ export class ViewCredentialComponent implements ControlValueAccessor {
         FechaDesde: new Date(),
         FechaHasta: new Date()
     }
+    faltantes: boolean = true
 
     @ViewChild('credcard', { static: false }) credIframe!: ElementRef<HTMLInputElement>;;
     @Input('showPrintBtn') showPrintBtn: boolean = true;
@@ -36,8 +37,12 @@ export class ViewCredentialComponent implements ControlValueAccessor {
     constructor(@Inject(DOCUMENT) private document: any) { }
 
     writeValue(value: PersonaObj) {
-        if (value)
-        this.personal = value;
+        if (value) {
+            this.personal = value;
+        }
+        this.faltantes = (this.personal.PersonalCUITCUILCUIT && this.personal.image)?false:true    
+        
+        
     }
 
     registerOnChange(fn: (_: any) => void) { }

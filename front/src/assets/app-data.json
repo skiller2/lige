@@ -40,21 +40,23 @@
         },        
         {
           "text": "Liquidaciones",
-          "icon": "anticon-info",
+          "icon": "anticon-profile",
           "children": [
             {
-              "text": "PDF",
+              "text": "Convertir PDF",
               "link": "/ges/pdfretiro",
-              "icon": "anticon-info"
+              "icon": "anticon-profile"
             },
             {
               "text": "Listado",
               "link": "/ges/liquida",
-              "icon": "anticon-info"
+              "icon": "anticon-profile"
             },
             {
               "text": "Detalle liquidación",
-              "link": "/ges/liquida/detalle"
+              "link": "/ges/liquida/detalle",
+              "icon": "anticon-profile"
+
             }
           ]
         }
