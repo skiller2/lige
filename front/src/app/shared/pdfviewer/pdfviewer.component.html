@@ -1,10 +1,10 @@
-    <button *ngIf="($currentDownloadablePDF | async)!.length > 0" (click)="download()" nz-button nzType="primary" nzSize='default'>
-        <span nz-icon nzType="download"></span>
-        Download Converted File
-    </button>
-
+<button *ngIf="($currentDownloadablePDF | async)!.length > 0" (click)="download()" nz-button nzType="primary"
+    nzSize='default'>
+    <span nz-icon nzType="download"></span>
+    {{ namePDF }} {{ ($currentDownloadablePDF | async)!.length | nzBytes}}
+</button>
 
 <ng-container *ngIf="$isProcessing | async">
-        <span nz-icon nzType="loading" class="loading-icon"></span>
-        Converting PDF...
+    <span nz-icon nzType="loading" class="loading-icon"></span>
+    Convirtiendo PDF...
 </ng-container>
