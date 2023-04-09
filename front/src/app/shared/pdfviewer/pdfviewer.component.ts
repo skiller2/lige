@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { CreateOptions, PDFDocument, PDFImage, PDFPage, PageSizes } from 'pdf-lib';
+import { PDFDocument, PDFPage, PageSizes } from 'pdf-lib';
 import { DownloadService } from 'src/app/services/download.service';
 import { grayscale, rgb } from 'pdf-lib'
 import { BehaviorSubject } from 'rxjs';
