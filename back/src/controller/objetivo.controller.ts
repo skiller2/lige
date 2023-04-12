@@ -8,8 +8,14 @@ export class ObjetivoController extends BaseController {
         req: any,
         res: Response
     ) {
+
         try {
             const { sucursalId, fieldName, value } = req.body;
+            if (sucursalId == '') {
+                this.jsonRes({ objetivos: [] }, res);
+                return;
+            }
+
             let query = `
         SELECT 
 sucdes.SucursalId, sucdes.SucursalDescripcion, 

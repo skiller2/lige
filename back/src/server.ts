@@ -1,7 +1,8 @@
-import * as express from 'express'
+import express from 'express';
 import { Router } from 'express'
 import * as morgan from "morgan";
 import * as pkg from "../package.json";
+
 import { DataSource } from 'typeorm'
 require("dotenv").config();
 
@@ -40,7 +41,7 @@ export class WebServer {
 
         this.port = port
         this.app = express()
-        this.app.use(morgan('dev'));
+//        this.app.use(morgan('dev'));
         this.app.use(express.json());
     }
 

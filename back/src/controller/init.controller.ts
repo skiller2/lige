@@ -96,7 +96,7 @@ export class InitController extends BaseController {
         [2023]
       )
       .then((records: Array<any>) => {
-        let horasTrabajadas=[]
+        let horasTrabajadas: { x: string; y: any; }[]=[]
         if (records.length ==0) throw new Error('Data not found')
         records.forEach(rec => { 
           horasTrabajadas.push({x: rec.ObjetivoAsistenciaAnoAno+'-'+rec.ObjetivoAsistenciaAnoMesMes, y:rec.totalhorascalc})

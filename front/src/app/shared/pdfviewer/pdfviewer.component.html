@@ -4,6 +4,8 @@
     {{ namePDFDownload }} {{ ($currentDownloadablePDF | async)!.length | nzBytes}}
 </button>
 
+<!-- iframe [src]="pdfDataUri" style="width: 100%; min-height: 100vw;"></iframe -->
+
 <ng-container *ngIf="$isProcessing | async">
     <span nz-icon nzType="loading" class="loading-icon"></span>
     Convirtiendo PDF...

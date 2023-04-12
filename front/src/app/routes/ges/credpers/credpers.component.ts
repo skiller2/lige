@@ -14,9 +14,12 @@ import { LoadingService, LoadingType } from '@delon/abc/loading';
   templateUrl: './credpers.component.html',
   styles: [
     `
-      .card-inline-block {
-        display: inline-block;
+      @media screen and (min-width: 350px) {
+        .card-inline-block {
+          display: inline-block;
+        }
       }
+
       .card-container {
         display: block;
       }

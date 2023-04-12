@@ -14,19 +14,6 @@ enum Busqueda {
   templateUrl: './asistenciaexcepcion.component.html',
   styles: [
     `
-      .card-inline-block {
-        display: inline-block;
-      }
-      .card-container {
-        display: block;
-      }
-
-      .limit-card-columns{
-        max-width: 21cm;
-      }
-      nz-select {
-        width: 200px;
-      }
     `
   ]
 })

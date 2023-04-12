@@ -3,7 +3,7 @@ import { dataSource } from "../data-source";
 
 export class InfoController extends BaseController {
 
-  dbstatus(res, req) {
+  dbstatus(res:any, req:any) {
     const data = {
       connected: false,
       database: process.env.DB_DATABASE,

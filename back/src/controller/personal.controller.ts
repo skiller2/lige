@@ -24,15 +24,15 @@ export class PersonalController extends BaseController {
         let FechaHasta = new Date();
         FechaHasta.setFullYear(FechaHasta.getFullYear() + 1);
         
-
         const personaData = records[0]
-        personaData.NRO_EMPRESA = process.env.NRO_EMPRESA_PBA
+        personaData.NRO_EMPRESA = (process.env.NRO_EMPRESA_PBA)? process.env.NRO_EMPRESA_PBA:""
 //        personaData.PersonalCUITCUILCUIT = (personaData.PersonalCUITCUILCUIT) ? `${personaData.PersonalCUITCUILCUIT}` : "Sin registrar"
         personaData.PersonalCUITCUILCUIT = (personaData.PersonalCUITCUILCUIT != null) ? personaData.PersonalCUITCUILCUIT : ""
         personaData.DNI = (personaData.PersonalCUITCUILCUIT.length!=null)? personaData.PersonalCUITCUILCUIT.substring(2, 10):""
         personaData.FechaDesde = new Date()
         personaData.FechaHasta = FechaHasta
-        const imageUrl = personaData.DocumentoImagenFotoBlobNombreArchivo ? process.env.IMAGE_FOTO_PATH.concat(personaData.DocumentoImagenFotoBlobNombreArchivo) : ""
+        const imageFotoPath = (process.env.IMAGE_FOTO_PATH)?process.env.IMAGE_FOTO_PATH:""
+        const imageUrl = personaData.DocumentoImagenFotoBlobNombreArchivo ? imageFotoPath.concat(personaData.DocumentoImagenFotoBlobNombreArchivo) : ""
         if (imageUrl != "") {
           fetch(imageUrl)
             .then((imageUrlRes) => imageUrlRes.buffer())

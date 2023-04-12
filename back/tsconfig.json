@@ -1,16 +1,30 @@
 {
+   "ts-node": {
+      // This can be omitted when using ts-patch
+      //"files": true
+    },
    "compilerOptions": {
-      "lib": [
-         "es5",
-         "es6"
-      ],
-      "target": "es5",
-      "module": "commonjs",
-      "moduleResolution": "node",
-      "resolveJsonModule": true,
-      "outDir": "./build",
-      "emitDecoratorMetadata": true,
-      "experimentalDecorators": true,
-      "sourceMap": true
+     // Visit https://aka.ms/tsconfig.json to read more about this file
+ 
+     "lib": ["es2021"],
+     "module": "commonjs",
+     "target": "es2021",
+     "moduleResolution": "node",
+     "sourceMap": true,
+     "outDir": "./dist",
+ 
+     "strict": false,
+     "esModuleInterop": true,
+//     "skipLibCheck": true,
+     "forceConsistentCasingInFileNames": true,
+
+     "resolveJsonModule": true,
+
+     "emitDecoratorMetadata": true,
+     "experimentalDecorators": true,
+     "allowJs": true,
+     "declaration": true,
+//     "emitDeclarationOnly": true,
+      "typeRoots": ["./src/types", "./node_modules/@types"]
    }
-}
+ }

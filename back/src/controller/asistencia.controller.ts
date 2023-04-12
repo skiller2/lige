@@ -6,7 +6,7 @@ import { dataSource } from "../data-source";
 export class AsistenciaController extends BaseController {
 
 
-    async getMetodologia(
+    async getCategoria(
         req: any,
         res: Response
     ) {
@@ -26,7 +26,7 @@ export class AsistenciaController extends BaseController {
         }
     }
 
-    async getCategoria(
+    async getMetodologia(
         req: any,
         res: Response
     ) {

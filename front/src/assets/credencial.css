@@ -130,3 +130,11 @@
     text-align: center;
     transform: rotate(-30deg);
   }
+
+  @media screen and (max-width: 350px) {
+    /* … */
+    .card-holder {
+        transform: scale(0.7);
+        transform-origin: left;
+    }
+  }
