@@ -2,7 +2,7 @@ import { BaseController } from "./baseController";
 import * as bcrypt from "bcryptjs";
 //import * from "ldapjs";
 import { SearchOptions,createClient,SearchEntry } from "ldapjs";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import assert = require("assert");
 import { dataSource } from "../data-source";
 import { Request } from "express";
@@ -141,7 +141,7 @@ export class AuthController extends BaseController {
         const token = jwt.sign(user, jwtsecret, {
           expiresIn: Number(process.env.JWT_EXPIRE_SECS),
         });
-
+console.log('jwt',jwt)
         const tokenDecoded: any = jwt.decode(token);
         this.jsonRes({ token: token }, res);
       })

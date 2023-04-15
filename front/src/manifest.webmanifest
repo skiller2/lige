@@ -5,7 +5,13 @@
   "background_color": "#fafafa",
   "display": "standalone",
   "scope": "./",
-  "start_url": "./",
+  "start_url": "http://localhost:4200/",
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "http://localhost:4200/manifest.webmanifest"
+    }
+  ],
   "icons": [
     {
       "src": "assets/icons/icon-lince-72x72.png",

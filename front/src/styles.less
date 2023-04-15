@@ -6,3 +6,13 @@
 
 @import './styles/theme';
 @import './styles/index';
+
+@media screen and (max-width: @mobile-max) {
+    .ant-form-item {
+      margin-bottom: 0;
+    }
+
+    .ant-form-item .ant-form-item-label {
+      padding: 4px 0 0;
+    }
+}

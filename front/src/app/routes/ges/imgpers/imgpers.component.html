@@ -13,7 +13,10 @@
     <form nz-form *ngIf="$personalData | async as data">
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="5">Buscar Persona</nz-form-label><nz-select [(ngModel)]="selectedPersonalId" [ngModelOptions]="{standalone: true}" (ngModelChange)="selectedValueChange($event)"  nzAllowClear nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
+        <nz-form-label [nzSpan]="5">Buscar Persona</nz-form-label>
+        <nz-form-control nzHasFeedback [nzSpan]="12">
+
+        <nz-select [(ngModel)]="selectedPersonalId" [ngModelOptions]="{standalone: true}" (ngModelChange)="selectedValueChange($event)"  nzAllowClear nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
           <ng-container *ngFor="let option of $optionsArray | async">
             <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
           </ng-container>  
@@ -22,10 +25,15 @@
             Loading Data...
           </nz-option>
         </nz-select>
+        </nz-form-control>
       </nz-form-item>
       
 
       <nz-form-item>
+        <ng-container *ngIf="$iPersonalDataLoading | async">
+          <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
+        </ng-container>
+
         <nz-form-label [nzSpan]="5">Credencial</nz-form-label>
         <nz-form-control nzHasFeedback [nzSpan]="12">
           <app-view-credential [ngModel]="data" name="Personal"></app-view-credential>
@@ -40,7 +48,7 @@
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="5">Photo</nz-form-label>
+        <nz-form-label [nzSpan]="5">Foto</nz-form-label>
         <nz-form-control nzHasFeedback [nzSpan]="12">
           <app-image-content [personalImage]="data.image" nombreDescarga="{{data.NRO_EMPRESA}}-{{data.DNI}}" [imageCroppedDpi]="72" [imageCroppedX]="91" [imageCroppedY]="91" ></app-image-content>
         </nz-form-control>
