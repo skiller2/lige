@@ -9,10 +9,10 @@ import { filter, interval, map } from 'rxjs';
 import { Platform } from '@angular/cdk/platform';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 
-
 @Component({
   selector: 'app-root',
   template: `
+
    <ng-template #tplpwa>
     <div class="w-100 position-absolute top-0" *ngIf="modalVersion">
       <div class="alert alert-secondary m-2">
@@ -20,8 +20,6 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
         {{ 'A new version of this app is available.' | i18n }} <a href="" (click)="updateVersion()" >{{ 'Update now' | i18n}}</a>
       </div>
     </div>
-
-<p>{{  modalPwaPlatform }}</p>
 
 <div class="" *ngIf="modalPwaPlatform === 'ANDROID' || modalPwaPlatform === 'IOS'">
     <!-- Android -->
@@ -112,15 +110,19 @@ export class AppComponent implements OnInit {
       })
     
     
-      console.log("getInstalledRelatedApps", listOfInstalledApps)
+//      console.log("getInstalledRelatedApps", listOfInstalledApps)
       //      const relatedApps = await navigator.
     }
 
-    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {  //No es necesario instalarla
-      console.log('display-mode is standalone');
+    
+    if (!('serviceWorker' in navigator)){
+      return;
+    }    
+
+
+    if (window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && (navigator as any).standalone === true)) {
       return;
     }
-
 
     if (this.platform.ANDROID) {
       this.modalPwaPlatform = 'ANDROID';
@@ -139,8 +141,9 @@ export class AppComponent implements OnInit {
       this.modalPwaPlatform = 'IOS';
     }
 
-    if (this.modalPwaPlatform)
-      this.notification.template(this.tplpwa, { nzDuration: 10000, nzPauseOnHover: true })
+    if (this.modalPwaPlatform) {
+//      this.notification.template(this.tplpwa, { nzDuration: 10000, nzPauseOnHover: true })
+    }
 
   }
 
@@ -191,4 +194,7 @@ export class AppComponent implements OnInit {
     this.loadModalPwa();
 
   }
+
+
+  
 }
