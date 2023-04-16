@@ -52,15 +52,16 @@ export class PdfviewerComponent implements OnChanges {
       }
       const pageRatio = currentPage.getWidth() / currentPage.getHeight()
       
-      //embPage.scale(1 / pageRatio)
+      const embPageSize = embPage.scale(1)
 //      currentPage.drawPage(embPage, { x: (currentPage.getWidth() - embPage.width) / 2, y: currentPage.getHeight() / 2 * ((index+1) % 2) })
+      const posy = ((index) % 2 == 0) ?   0 +20 : currentPage.getHeight() / 2 * -1 +20
+      
+      currentPage.drawPage(embPage, { x: (currentPage.getWidth() - embPageSize.width) / 2, y: posy, width:embPageSize.width, height:embPageSize.height })
 
-      currentPage.drawPage(embPage, { x: (currentPage.getWidth() - embPage.width) / 2, y: ((index) % 2 == 1) ? 0 : currentPage.getHeight() / 2 })
-      const curY= currentPage.getY()
-      currentPage.drawImage(embededImage, { x: 210, y: 90 + currentPage.getHeight()/2 * ((index) % 2), width: scaleImage.width, height: scaleImage.height })
-      currentPage.drawText("Ayala Ramirez Arnaldo Ramón\n Asociado Nro 1879\n",{
+      currentPage.drawImage(embededImage, { x: 210, y: (((index) % 2 == 0) ? currentPage.getHeight() / 2: 0)  + 90, width: scaleImage.width, height: scaleImage.height })
+      currentPage.drawText("Ayala Ramirez Arnaldo Ramón\n     Asociado Nro 1879\n",{
         x: 190,
-        y: 77 + currentPage.getHeight()/2 * ((index) % 2),
+        y: (((index) % 2 == 0) ? currentPage.getHeight()/2 : 0) + 70,
         size: 6,
         color: rgb(0, 0, 0),
         lineHeight: 6,
