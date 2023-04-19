@@ -4,10 +4,10 @@ import { objetivoController } from "../controller/controller.module";
 
 export const objetivoRouter = Router();
 
-objetivoRouter.post('/search', (req, res) => {
+objetivoRouter.post('/search', authMiddleware.verifyToken, (req, res) => {
     objetivoController.search(req, res)
 })
 
-objetivoRouter.post('/:anio/:mes/:objetivoId/i', (req, res) => {
-    objetivoController.getById(req.params.objetivoId,req.params.anio,req.params.mes, res)
+objetivoRouter.get('/:anio/:mes/:objetivoId', authMiddleware.verifyToken, (req, res) => {
+    objetivoController.getById(Number(req.params.objetivoId), Number(req.params.anio), Number(req.params.mes), res)
 })

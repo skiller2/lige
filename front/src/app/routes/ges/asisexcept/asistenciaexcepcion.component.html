@@ -34,7 +34,7 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Sucursal</nz-form-label>
       <nz-form-control>
-        <nz-select nzSpan="19"  name="SucursalId" [(ngModel)]="selectedSucursalId"
+        <nz-select nzSpan="19" name="SucursalId" [(ngModel)]="selectedSucursalId"
           (ngModelChange)="selectedValueChange($event, Busqueda.Sucursal)" nzAllowClear nzPlaceHolder="Sucursal"
           nzShowSearch>
           <ng-container *ngFor="let option of $optionsSucursales | async">
@@ -47,9 +47,9 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
       <nz-form-control>
-        <nz-select name="ObjetivoId" ngModel
-          (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" nzAllowClear
-          nzPlaceHolder="Descripcion, Código" nzShowSearch nzServerSearch (nzOnSearch)="searchObjetivo($event)">
+        <nz-select name="ObjetivoId" ngModel (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)"
+          nzAllowClear nzPlaceHolder="Descripcion, Código" nzShowSearch nzServerSearch
+          (nzOnSearch)="searchObjetivo($event)">
           <ng-container *ngFor="let option of $optionsObjetivos | async">
             <nz-option [nzValue]="option.ObjetivoId"
               nzLabel="{{option.ClienteId}}/{{option.ClienteElementoDependienteId | nzSafeNull: '0'}} {{option.ObjetivoDescripcion}}"></nz-option>
@@ -57,6 +57,18 @@
         </nz-select>
       </nz-form-control>
     </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
+      <nz-form-control>
+        <ng-container *ngFor="let responsable of $objetivoResponsables | async">
+          <p >Responsable {{ responsable.ApellidoNombreJerarquico }} desde {{ responsable.ObjetivoPersonalJerarquicoDesde | date}} hasta {{ responsable.ObjetivoPersonalJerarquicoHasta | date}} </p>
+        </ng-container>
+      </nz-form-control>
+    </nz-form-item>
+
+
+
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Listado</nz-form-label>
       <nz-form-control>
@@ -98,9 +110,9 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Persona</nz-form-label>
       <nz-form-control>
-        <nz-select name="PersonaId" ngModel
-          (ngModelChange)="selectedValueChange($event, Busqueda.Personal)" nzAllowClear
-          nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch nzServerSearch (nzOnSearch)="searchPersonal($event)">
+        <nz-select name="PersonaId" ngModel (ngModelChange)="selectedValueChange($event, Busqueda.Personal)"
+          nzAllowClear nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch nzServerSearch
+          (nzOnSearch)="searchPersonal($event)">
           <ng-container *ngFor="let option of $optionsPersonal | async">
             <nz-option [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
           </ng-container>
@@ -111,8 +123,8 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Metodologia</nz-form-label>
       <nz-form-control>
-        <nz-select name="metodologia" [(ngModel)]="selectedMetodologiaId"  nzAllowClear 
-          nzPlaceHolder="Metodologia" nzShowSearch>
+        <nz-select name="metodologia" [(ngModel)]="selectedMetodologiaId" nzAllowClear nzPlaceHolder="Metodologia"
+          nzShowSearch>
           <ng-container *ngFor="let option of $optionsMetodologia | async">
             <nz-option [nzValue]="option.id" [nzLabel]="option.descripcion"></nz-option>
           </ng-container>
@@ -124,18 +136,18 @@
       <nz-form-item *ngSwitchCase="'S'">
         <nz-form-label [nzSpan]="5">Monto fijo</nz-form-label>
         <nz-form-control>
-          <nz-input-number name="SumaFija" ngModel  [nzStep]="0"></nz-input-number>
+          <nz-input-number name="SumaFija" ngModel [nzStep]="0"></nz-input-number>
         </nz-form-control>
       </nz-form-item>
       <nz-form-item *ngSwitchCase="'E'">
         <nz-form-label [nzSpan]="5">Equivalencia Categoria</nz-form-label>
         <nz-form-control>
-          <nz-select name="Equivalencia" ngModel   nzAllowClear
-            nzPlaceHolder="Categoria" nzShowSearch>
+          <nz-select name="Equivalencia" ngModel nzAllowClear nzPlaceHolder="Categoria" nzShowSearch>
             <ng-container *ngFor="let option of $optionsCategoria | async">
               <ng-container *ngIf="option.ValorLiquidacionSucursalId == selectedSucursalId">
-              <nz-option [nzValue]="{CategoriaPersonalId:option.CategoriaPersonalId,TipoAsociadoId:option.TipoAsociadoId}"
-                [nzLabel]="option.CategoriaPersonalDescripcion + ' ' + option.ValorLiquidacionHoraNormal"></nz-option>
+                <nz-option
+                  [nzValue]="{CategoriaPersonalId:option.CategoriaPersonalId,TipoAsociadoId:option.TipoAsociadoId}"
+                  [nzLabel]="option.CategoriaPersonalDescripcion + ' ' + option.ValorLiquidacionHoraNormal"></nz-option>
               </ng-container>
 
             </ng-container>
@@ -145,7 +157,7 @@
       <nz-form-item *ngSwitchCase="'A'">
         <nz-form-label [nzSpan]="5">Monto Adicional por hora </nz-form-label>
         <nz-form-control>
-          <nz-input-number name="AdicionalHora" ngModel  [nzStep]="1"></nz-input-number>
+          <nz-input-number name="AdicionalHora" ngModel [nzStep]="1"></nz-input-number>
         </nz-form-control>
       </nz-form-item>
       <nz-form-item *ngSwitchCase="'H'">

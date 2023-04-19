@@ -1,6 +1,6 @@
 import { Component, Injector, OnInit, ViewChild } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
-import { BehaviorSubject, Subject, catchError, debounceTime, switchMap, takeUntil, tap } from 'rxjs';
+import { BehaviorSubject, Subject, catchError, debounceTime, of, switchMap, takeUntil, tap } from 'rxjs';
 import { SearchService } from '../search.service';
 import { NgForm } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
@@ -50,11 +50,25 @@ export class ExcepcionAsistenciaComponent {
   $optionsMetodologia = this.searchService.getMetodologia()
   $optionsSucursales = this.searchService.getSucursales()
   $optionsCategoria = this.searchService.getCategorias()
+
+
+
+
+  
+  $objetivoResponsables = this.$selectedObjetivoIdChange.pipe(
+    debounceTime(50),
+
+    switchMap((objetivoId) => { console.log('busqueda', objetivoId); if (!objetivoId) return []; else return this.searchService.getObjetivo(Number(objetivoId), this.asistenciaexcepcion.controls['anio'].value, this.asistenciaexcepcion.controls['mes'].value) }),
+//    tap(() => this.$isObjetivoOptionsLoading.next(false))
+  )
+
+
   $listaExcepciones = this.$selectedObjetivoIdChange.pipe(
-    debounceTime(500),
+    debounceTime(50),
     switchMap((objetivoId) => this.searchService.getExcepxObjetivo(Number(objetivoId), this.asistenciaexcepcion.controls['anio'].value, this.asistenciaexcepcion.controls['mes'].value)),
     tap(() => this.$isObjetivoOptionsLoading.next(false))
   )
+
 
   $optionsObjetivos = this.$searchObjetivoChange.pipe(
     debounceTime(500),
@@ -95,6 +109,7 @@ export class ExcepcionAsistenciaComponent {
         this.$isSucursalDataLoading.next(true)
         return
       case (Busqueda.Objetivo):
+        console.log('selectedValueChange',event)
         this.$selectedObjetivoIdChange.next(event)
         this.$isObjetivoDataLoading.next(true)
         return

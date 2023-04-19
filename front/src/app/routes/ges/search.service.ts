@@ -24,9 +24,9 @@ export class SearchService {
 
     getObjetivo(objetivoId: number, anio: number, mes: number) {
         if (!objetivoId) {return of([])}
-        return this.http.get<ResponseJSON<any>>(`api/objetivo/${anio}/${mes}/${objetivoId}`)
+        return this.http.get<ResponseJSON<any>>(`api/objetivos/${anio}/${mes}/${objetivoId}`)
             .pipe(
-                map((res) => res.data.objetivo)
+                map((res) => res.data)
             )
     }
 
@@ -94,7 +94,6 @@ export class SearchService {
     }
 
     getExcepxObjetivo(objetivoId: number, anio: number, mes: number): Observable<any> {
-        console.log('getExcepxObjetivo')
         if (!objetivoId) return of([])
         
          return this.http.get(`api/asistencia/exceporobj/${anio}/${mes}/${objetivoId}`)

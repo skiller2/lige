@@ -5,6 +5,9 @@ import { dataSource } from "../data-source";
 export class ObjetivoController extends BaseController {
 
     getById(objetivoId: number, anio: number, mes: number, res: Response) {
+        let fechaHasta = new Date(anio, mes, 1)
+        fechaHasta.setDate(fechaHasta.getDate() - 1)
+
         dataSource
             .query(
                 `SELECT suc.ObjetivoSucursalSucursalId, 
@@ -16,15 +19,17 @@ export class ObjetivoController extends BaseController {
             perjer.PersonalId,
             CONCAT(perjer.PersonalApellido, ', ' ,perjer.PersonalNombre ) AS ApellidoNombreJerarquico,
             -- obj.ObjetivoSucursalUltNro,
-            
+            opj.ObjetivoPersonalJerarquicoDesde,
+            opj.ObjetivoPersonalJerarquicoHasta,
+
             1
             
             FROM Objetivo obj 
             LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
-            LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  >= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') <= @0 AND opj.ObjetivoPersonalJerarquicoComo = 'J'
+            LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  <= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @0 AND opj.ObjetivoPersonalJerarquicoComo = 'J'
             LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
-            WHERE obj.ObjetivoId=@0`,
-                [objetivoId]
+            WHERE obj.ObjetivoId=@1`,
+                [fechaHasta, objetivoId]
             )
             .then((records: Array<any>) => {
                 if (records.length != 1) throw new Error('Objetivo not found')
