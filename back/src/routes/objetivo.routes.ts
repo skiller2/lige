@@ -7,3 +7,7 @@ export const objetivoRouter = Router();
 objetivoRouter.post('/search', (req, res) => {
     objetivoController.search(req, res)
 })
+
+objetivoRouter.post('/:anio/:mes/:objetivoId/i', (req, res) => {
+    objetivoController.getById(req.params.objetivoId,req.params.anio,req.params.mes, res)
+})
