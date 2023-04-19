@@ -21,18 +21,18 @@ export class ObjetivoController extends BaseController {
             -- obj.ObjetivoSucursalUltNro,
             opj.ObjetivoPersonalJerarquicoDesde,
             opj.ObjetivoPersonalJerarquicoHasta,
-
+            opj.ObjetivoPersonalJerarquicoComo,
             1
             
             FROM Objetivo obj 
             LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
-            LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  <= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @0 AND opj.ObjetivoPersonalJerarquicoComo = 'J'
+            LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  <= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @0
             LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
             WHERE obj.ObjetivoId=@1`,
                 [fechaHasta, objetivoId]
             )
             .then((records: Array<any>) => {
-                if (records.length != 1) throw new Error('Objetivo not found')
+//                if (records.length != 1) throw new Error('Objetivo not found')
                 this.jsonRes(records, res);
             })
             .catch((err) => {

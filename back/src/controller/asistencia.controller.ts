@@ -111,17 +111,33 @@ export class AsistenciaController extends BaseController {
             await queryRunner.connect()
             await queryRunner.startTransaction()
             //Traigo el Art14 para analizarlo            
-            result = await queryRunner.query(
+            let resultAutoriz = await queryRunner.query(
                 `SELECT art.PersonalArt14Id, art.Personalid, art.PersonalArt14ObjetivoId, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, 
                 art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde, art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta,
                 1
                 
                 FROM PersonalArt14 art
                 WHERE art.Personalid = @0 AND art.PersonalArt14ObjetivoId=@1 AND art.PersonalArt14FormaArt14 = @2
+                AND art.PersonalArt14Autorizado = 'S'
                 AND art.PersonalArt14AutorizadoDesde <= @3 AND (art.PersonalArt14AutorizadoHasta >= @3 OR art.PersonalArt14AutorizadoHasta is null)`,
                 [PersonaId, ObjetivoId, metodologia, fechaDesde]
             )
-            result.forEach(row => {
+
+            let resultNoAutoriz = await dataSource.query(
+                `SELECT art.PersonalArt14Id, art.Personalid, art.PersonalArt14ObjetivoId, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, 
+                art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde, art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta,
+                
+                1
+                
+                FROM PersonalArt14 art
+                WHERE art.Personalid = @0 AND art.PersonalArt14ObjetivoId=@1 AND art.PersonalArt14FormaArt14 = @2
+                AND art.PersonalArt14Autorizado is null
+                AND art.PersonalArt14Desde <= @3 AND (art.PersonalArt14Hasta >= @3 OR art.PersonalArt14Hasta is null)`,
+                [PersonaId, ObjetivoId, metodologia, fechaDesde]
+            )
+
+
+            resultAutoriz.forEach(row => {
                 let hasta: Date = new Date(fechaDesde)
                 hasta.setDate(fechaDesde.getDate() - 1)
 
@@ -134,17 +150,7 @@ export class AsistenciaController extends BaseController {
                 )
             })
 
-            result = await dataSource.query(
-                `SELECT art.PersonalArt14Id, art.Personalid, art.PersonalArt14ObjetivoId, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, 
-                art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde, art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta,
-                1
-                
-                FROM PersonalArt14 art
-                WHERE art.Personalid = @0 AND art.PersonalArt14ObjetivoId=@1 AND art.PersonalArt14FormaArt14 = @2
-                AND art.PersonalArt14Desde <= @3 AND (art.PersonalArt14Hasta >= @3 OR art.PersonalArt14Hasta is null)`,
-                [PersonaId, ObjetivoId, metodologia, fechaDesde]
-            )
-            result.forEach(row => {
+            resultNoAutoriz.forEach(row => {
                 console.log('borro el registro', row)
 
                 queryRunner.query(
@@ -166,6 +172,11 @@ export class AsistenciaController extends BaseController {
                     PersonalArt14UltNro = row['PersonalArt14UltNro']
             }
             PersonalArt14UltNro++
+            if (Equivalencia.TipoAsociadoId = "NULL")
+                Equivalencia.TipoAsociadoId = null
+            
+            if (Equivalencia.CategoriaPersonalId = "NULL")
+            Equivalencia.CategoriaPersonalId = null
 
             result = await queryRunner.query(
                 `INSERT INTO PersonalArt14(PersonalArt14Id, PersonalArt14FormaArt14, PersonalArt14SumaFija, PersonalArt14AdicionalHora, PersonalArt14Horas, PersonalArt14Porcentaje, PersonalArt14Desde, 
@@ -174,8 +185,8 @@ export class AsistenciaController extends BaseController {
                     VALUES(@0, @1, 
                     @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21)
                 `, [PersonalArt14UltNro, metodologia, SumaFija, AdicionalHora, Horas, null, fechaDesde,
-                null, 'N', null, null, null, null, null, null, PersonaId,
-                Equivalencia.TipoAsociadoId, Equivalencia.CategoriaPersonalId, null, ObjetivoId, null, null])
+                null, null, null, null, null, null, null, null, PersonaId,
+                Equivalencia.TipoAsociadoId, Equivalencia.CategoriaPersonalId, 1, ObjetivoId, null, null])
 
 
 
@@ -185,7 +196,7 @@ export class AsistenciaController extends BaseController {
                 `, [PersonaId, PersonalArt14UltNro])
 
 
-            await queryRunner.rollbackTransaction()
+            await queryRunner.commitTransaction()
 
             this.jsonRes([], res)
         }
@@ -223,7 +234,7 @@ export class AsistenciaController extends BaseController {
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
                 WHERE obj.ObjetivoId = @0 
                 -- AND (art.PersonalArt14AutorizadoDesde <= @1 OR art.PersonalArt14AutorizadoDesde IS NULL) AND (art.PersonalArt14Desde <= @1 OR art.PersonalArt14Desde IS NULL) 
-                AND ((art.PersonalArt14AutorizadoDesde <= @1  AND (art.PersonalArt14AutorizadoHasta >= @1 OR art.PersonalArt14AutorizadoHasta is null)) OR (art.PersonalArt14Autorizado='N' AND (art.PersonalArt14Desde <= @1  AND (art.PersonalArt14Hasta >= @1 OR art.PersonalArt14Hasta is null))) )
+                AND ((art.PersonalArt14AutorizadoDesde <= @1  AND (art.PersonalArt14AutorizadoHasta >= @1 OR art.PersonalArt14AutorizadoHasta is null)) OR (art.PersonalArt14Autorizado is null AND (art.PersonalArt14Desde <= @1  AND (art.PersonalArt14Hasta >= @1 OR art.PersonalArt14Hasta is null))) )
 
 
                 `, [objetivoId, desde]

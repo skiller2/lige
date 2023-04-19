@@ -62,7 +62,7 @@
       <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
       <nz-form-control>
         <ng-container *ngFor="let responsable of $objetivoResponsables | async">
-          <p >Responsable {{ responsable.ApellidoNombreJerarquico }} desde {{ responsable.ObjetivoPersonalJerarquicoDesde | date}} hasta {{ responsable.ObjetivoPersonalJerarquicoHasta | date}} </p>
+          <p >({{responsable.ObjetivoPersonalJerarquicoComo}}) {{ responsable.ApellidoNombreJerarquico }} desde {{ responsable.ObjetivoPersonalJerarquicoDesde | date}} <span *ngIf="responsable.ObjetivoPersonalJerarquicoHasta">hasta</span> {{ responsable.ObjetivoPersonalJerarquicoHasta | date}} </p>
         </ng-container>
       </nz-form-control>
     </nz-form-item>

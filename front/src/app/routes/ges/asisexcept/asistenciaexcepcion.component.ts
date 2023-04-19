@@ -144,7 +144,7 @@ export class ExcepcionAsistenciaComponent {
   saveexception() {
     this.searchService.setAsistenciaExcepcion(this.asistenciaexcepcion.value)
       .pipe(
-        switchMap(() => this.searchService.getExcepxObjetivo(this.asistenciaexcepcion.controls['ObjetivoId'].value, this.asistenciaexcepcion.controls['anio'].value, this.asistenciaexcepcion.controls['mes'].value)),
+        switchMap(() => this.$listaExcepciones = this.searchService.getExcepxObjetivo(this.asistenciaexcepcion.controls['ObjetivoId'].value, this.asistenciaexcepcion.controls['anio'].value, this.asistenciaexcepcion.controls['mes'].value)),
         //      tap(() => this.$isObjetivoOptionsLoading.next(false))
         takeUntil(this.destroy$)
       )

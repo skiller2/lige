@@ -14,10 +14,10 @@ import { NzNotificationModule } from 'ng-zorro-antd/notification';
 // #region default language
 // 参考：https://ng-alain.com/docs/i18n
 import { I18NService } from '@core';
-import { zhCN as dateLang } from 'date-fns/locale';
+import { zhCN, es as dateLang } from 'date-fns/locale';
 
 const LANG = {
-  abbr: 'zh',
+  abbr: 'es',
   ng: ngLang,
   zorro: zorroLang,
   date: dateLang,
