@@ -4,6 +4,38 @@ import { dataSource } from "../data-source";
 
 export class ObjetivoController extends BaseController {
 
+    getById(objetivoId: number, anio: number, mes: number, res: Response) {
+        dataSource
+            .query(
+                `SELECT suc.ObjetivoSucursalSucursalId, 
+            obj.ObjetivoId, 
+            obj.ClienteId,
+            obj.ClienteElementoDependienteId,
+            obj.ObjetivoDescripcion,
+            
+            perjer.PersonalId,
+            CONCAT(perjer.PersonalApellido, ', ' ,perjer.PersonalNombre ) AS ApellidoNombreJerarquico,
+            -- obj.ObjetivoSucursalUltNro,
+            
+            1
+            
+            FROM Objetivo obj 
+            LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
+            LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  >= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') <= @0 AND opj.ObjetivoPersonalJerarquicoComo = 'J'
+            LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
+            WHERE obj.ObjetivoId=@0`,
+                [objetivoId]
+            )
+            .then((records: Array<any>) => {
+                if (records.length != 1) throw new Error('Objetivo not found')
+                this.jsonRes(records, res);
+            })
+            .catch((err) => {
+                this.errRes(err, res, "Error accediendo a la base de datos", 409);
+            });
+    }
+
+
     async search(
         req: any,
         res: Response

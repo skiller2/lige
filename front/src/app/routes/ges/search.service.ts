@@ -22,6 +22,16 @@ export class SearchService {
             )
     }
 
+    getObjetivo(objetivoId: number, anio: number, mes: number) {
+        if (!objetivoId) {return of([])}
+        return this.http.get<ResponseJSON<any>>(`api/objetivo/${anio}/${mes}/${objetivoId}`)
+            .pipe(
+                map((res) => res.data.objetivo)
+            )
+    }
+
+
+
     getPersonFromName(fieldName: string, values: string): Observable<Search[]> {
         if (!values || values=="") {return of([])}
         return this.http.post<ResponseJSON<ResponseBySearch>>('api/personal/search', { fieldName: fieldName, value: values })
@@ -80,6 +90,20 @@ export class SearchService {
                 res.data :
                 dummy)
             )
+
+    }
+
+    getExcepxObjetivo(objetivoId: number, anio: number, mes: number): Observable<any> {
+        console.log('getExcepxObjetivo')
+        if (!objetivoId) return of([])
+        
+         return this.http.get(`api/asistencia/exceporobj/${anio}/${mes}/${objetivoId}`)
+            .pipe(
+                map((res: ResponseJSON<PersonaObj>) => 
+                res && res.data ? 
+                res.data :
+                [])
+            )
     }
 
     getMetodologia() {
@@ -89,5 +113,12 @@ export class SearchService {
             )
     }
 
+    setAsistenciaExcepcion(params: any) { 
+        return this.http.post<ResponseJSON<any>>(`api/asistencia/excepcion`,params)
+            .pipe(
+                map((res) => res.data)
+            )
+
+    }
 }
 

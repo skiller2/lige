@@ -51,7 +51,8 @@ export class PdfviewerComponent implements OnChanges {
         currentPage = newPdf.addPage(PageSizes.A4)
       }
       const pageRatio = currentPage.getWidth() / currentPage.getHeight()
-      
+
+
       const embPageSize = embPage.scale(1)
 //      currentPage.drawPage(embPage, { x: (currentPage.getWidth() - embPage.width) / 2, y: currentPage.getHeight() / 2 * ((index+1) % 2) })
       const posy = ((index) % 2 == 0) ?   0 +20 : currentPage.getHeight() / 2 * -1 +20
