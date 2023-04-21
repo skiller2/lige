@@ -10,14 +10,16 @@ export class ObjetivoController extends BaseController {
 
         dataSource
             .query(
-                `SELECT suc.ObjetivoSucursalSucursalId, 
+                `SELECT suc.ObjetivoSucursalSucursalId,
+                 
             obj.ObjetivoId, 
             obj.ClienteId,
             obj.ClienteElementoDependienteId,
             obj.ObjetivoDescripcion,
             
             perjer.PersonalId,
-            CONCAT(perjer.PersonalApellido, ', ' ,perjer.PersonalNombre ) AS ApellidoNombreJerarquico,
+            CONCAT(TRIM(perjer.PersonalApellido), ', ' ,TRIM(perjer.PersonalNombre) ) AS ApellidoNombreJerarquico,
+            cuit.PersonalCUITCUILCUIT,
             -- obj.ObjetivoSucursalUltNro,
             opj.ObjetivoPersonalJerarquicoDesde,
             opj.ObjetivoPersonalJerarquicoHasta,
@@ -28,6 +30,8 @@ export class ObjetivoController extends BaseController {
             LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
             LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  <= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @0
             LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
+            LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = perjer.PersonalCUITCUILUltNro
+
             WHERE obj.ObjetivoId=@1`,
                 [fechaHasta, objetivoId]
             )

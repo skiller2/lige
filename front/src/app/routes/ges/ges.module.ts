@@ -13,14 +13,17 @@ import { CUITPipe } from 'src/app/shared/utils/cuit-pipe';
 import { QRModule } from '@delon/abc/qr';
 import { CredPersComponent } from './credpers/credpers.component';
 import { ExcepcionAsistenciaComponent } from './asisexcept/asistenciaexcepcion.component';
+import { AsistenciaComponent } from './asistencia/asistencia.component';
 import { PdfRetiroComponent } from './pdf-retiro/pdf-retiro.component';
 import { PdfviewerComponent } from 'src/app/shared/pdfviewer/pdfviewer.component';
 import { UploadFileComponent } from 'src/app/shared/upload-file/upload-file.component';
+import { CurrencyPipeModule } from '@delon/util';
+import { AppFilterPipe } from 'src/app/shared/utils/filter-type';
 
-const COMPONENTS: Array<Type<void>> = [PdfviewerComponent, UploadFileComponent, ExcepcionAsistenciaComponent, GesCcfarmComponent, ImgPersComponent, CredPersComponent, FormComponent, ImageContentComponent,ViewCredentialComponent,CUITPipe, PdfRetiroComponent];
+const COMPONENTS: Array<Type<void>> = [PdfviewerComponent, UploadFileComponent, ExcepcionAsistenciaComponent, AsistenciaComponent, GesCcfarmComponent, ImgPersComponent, CredPersComponent, FormComponent, ImageContentComponent,ViewCredentialComponent,CUITPipe, AppFilterPipe, PdfRetiroComponent];
 
 @NgModule({
-imports: [SharedModule, GesRoutingModule, NzResizableModule, ImageCropperModule, QRModule],
+imports: [SharedModule, GesRoutingModule, NzResizableModule, ImageCropperModule, QRModule,CurrencyPipeModule],
   declarations: COMPONENTS
 })
 export class GesModule {}

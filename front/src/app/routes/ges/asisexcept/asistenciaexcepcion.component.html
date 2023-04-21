@@ -8,12 +8,10 @@
 </ng-template>
 
 <page-header [action]="phActionTpl"></page-header>
-
 <nz-card class="small-margin">
 
 
   <form nz-form #asistenciaexcepcion="ngForm">
-
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
       <nz-form-control>
@@ -62,12 +60,14 @@
       <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
       <nz-form-control>
         <ng-container *ngFor="let responsable of $objetivoResponsables | async">
-          <p >({{responsable.ObjetivoPersonalJerarquicoComo}}) {{ responsable.ApellidoNombreJerarquico }} desde {{ responsable.ObjetivoPersonalJerarquicoDesde | date}} <span *ngIf="responsable.ObjetivoPersonalJerarquicoHasta">hasta</span> {{ responsable.ObjetivoPersonalJerarquicoHasta | date}} </p>
+          <p title="{{ responsable.PersonalId }}">({{responsable.ObjetivoPersonalJerarquicoComo}})
+            {{responsable.PersonalCUITCUILCUIT}} {{ responsable.ApellidoNombreJerarquico }} desde {{
+            responsable.ObjetivoPersonalJerarquicoDesde | date}} <span
+              *ngIf="responsable.ObjetivoPersonalJerarquicoHasta">hasta</span> {{
+            responsable.ObjetivoPersonalJerarquicoHasta | date}} </p>
         </ng-container>
       </nz-form-control>
     </nz-form-item>
-
-
 
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Listado</nz-form-label>
@@ -75,26 +75,26 @@
         <nz-table #excep [nzData]="$listaExcepciones | async" nzSize="small">
           <thead>
             <tr>
-              <th>CUIT</th>
-              <th>Apellido y Nombre</th>
-              <th>Autorizado</th>
+              <th>Persona</th>
               <th>Detalle</th>
-              <th>Desde</th>
-              <th>Hasta</th>
+              <th>Vigencia</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let data of excep.data">
-              <td>{{data.PersonalCUITCUILCUIT}}</td>
-              <td>{{data.ApellidoNombre}}</td>
-              <td>{{data.PersonalArt14Autorizado}}</td>
-              <td *ngIf="data.PersonalArt14FormaArt14=='S'">Suma fija {{data.PersonalArt14SumaFija}}</td>
-              <td *ngIf="data.PersonalArt14FormaArt14=='H'">Horas {{data.PersonalArt14Horas}}</td>
-              <td *ngIf="data.PersonalArt14FormaArt14=='E'">Equivalencia {{data.CategoriaPersonalDescripcion}}</td>
-              <td *ngIf="data.PersonalArt14FormaArt14=='A'">Adicional Hora {{data.PersonalArt14AdicionalHora}}</td>
-              <td>{{data.Desde | date}}</td>
-              <td>{{data.Hasta | date}}</td>
+            <ng-container *ngIf="$optionsMetodologia | async; let optionsMetodologia">
 
+            <tr *ngFor="let data of excep.data" ngClass="{row-apro:data.PersonalArt14Autorizado=='S',row-pend:data.PersonalArt14Autorizado==''}">
+              <td nz-row title="{{ data.PersonalId }}"><span nz-col>{{data.ApellidoNombre}}</span><span nz-col> {{data.PersonalCUITCUILCUIT}}</span> </td>
+              <td >
+                <span>{{ (optionsMetodologia | appFilter:data.PersonalArt14FormaArt14:['descripcion','etiqueta']
+                  )[0].etiqueta }} </span>
+
+                <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | currency:'$' }}</span>
+                <span *ngIf="data.PersonalArt14FormaArt14=='H'">{{data.PersonalArt14Horas}}</span>
+                <span *ngIf="data.PersonalArt14FormaArt14=='E'">{{data.CategoriaPersonalDescripcion}}</span>
+                <span *ngIf="data.PersonalArt14FormaArt14=='A'">{{data.PersonalArt14AdicionalHora | currency:'$'}}</span>
+              </td>
+              <td>{{data.Desde | date}} <BR>{{data.Hasta | date}}</td>
 
               <!-- td>
             <a>Action 一 {{data.name}}</a>
@@ -102,6 +102,7 @@
             <a>Delete</a>
           </td -->
             </tr>
+          </ng-container>
           </tbody>
         </nz-table>
       </nz-form-control>
@@ -132,15 +133,18 @@
       </nz-form-control>
     </nz-form-item>
 
-    <ng-container [ngSwitch]="selectedMetodologiaId">
+    <ng-container [ngSwitch]="selectedMetodologiaId" *ngIf="$optionsMetodologia | async; let optionsMetodologia">
       <nz-form-item *ngSwitchCase="'S'">
-        <nz-form-label [nzSpan]="5">Monto fijo</nz-form-label>
+        <nz-form-label [nzSpan]="5">                <span>{{ (optionsMetodologia | appFilter:selectedMetodologiaId:['descripcion','etiqueta']
+          )[0].etiqueta }} </span>
+</nz-form-label>
         <nz-form-control>
           <nz-input-number name="SumaFija" ngModel [nzStep]="0"></nz-input-number>
         </nz-form-control>
       </nz-form-item>
       <nz-form-item *ngSwitchCase="'E'">
-        <nz-form-label [nzSpan]="5">Equivalencia Categoria</nz-form-label>
+        <nz-form-label [nzSpan]="5"><span>{{ (optionsMetodologia | appFilter:selectedMetodologiaId:['descripcion','etiqueta']
+          )[0].etiqueta }} </span></nz-form-label>
         <nz-form-control>
           <nz-select name="Equivalencia" ngModel nzAllowClear nzPlaceHolder="Categoria" nzShowSearch>
             <ng-container *ngFor="let option of $optionsCategoria | async">
@@ -155,13 +159,15 @@
         </nz-form-control>
       </nz-form-item>
       <nz-form-item *ngSwitchCase="'A'">
-        <nz-form-label [nzSpan]="5">Monto Adicional por hora </nz-form-label>
+        <nz-form-label [nzSpan]="5"><span>{{ (optionsMetodologia | appFilter:selectedMetodologiaId:['descripcion','etiqueta']
+          )[0].etiqueta }} </span></nz-form-label>
         <nz-form-control>
           <nz-input-number name="AdicionalHora" ngModel [nzStep]="1"></nz-input-number>
         </nz-form-control>
       </nz-form-item>
       <nz-form-item *ngSwitchCase="'H'">
-        <nz-form-label [nzSpan]="5">Horas adicionales</nz-form-label>
+        <nz-form-label [nzSpan]="5"><span>{{ (optionsMetodologia | appFilter:selectedMetodologiaId:['descripcion','etiqueta']
+          )[0].etiqueta }} </span></nz-form-label>
         <nz-form-control>
           <nz-input-number name="Horas" ngModel [nzStep]="1"></nz-input-number>
         </nz-form-control>

@@ -7,8 +7,13 @@ export const asistenciaRouter = Router();
 asistenciaRouter.get('/metodologia', (req, res) => {
     asistenciaController.getMetodologia(req, res)
 })
+
 asistenciaRouter.get('/exceporobj/:anio/:mes/:objetivoId', (req, res) => {
     asistenciaController.getExcepAsistenciaPorObjetivo(req, res)
+})
+
+asistenciaRouter.get('/listaporobj/:anio/:mes/:objetivoId', (req, res) => {
+    asistenciaController.getAsistenciaPorObjetivo(req, res)
 })
 
 asistenciaRouter.get('/categorias', (req, res) => {

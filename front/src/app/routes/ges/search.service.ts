@@ -105,6 +105,18 @@ export class SearchService {
             )
     }
 
+    getAsistenciaObjetivo(objetivoId: number, anio: number, mes: number): Observable<any> {
+        if (!objetivoId) return of([])
+        
+         return this.http.get(`api/asistencia/listaporobj/${anio}/${mes}/${objetivoId}`)
+            .pipe(
+                map((res: ResponseJSON<PersonaObj>) => 
+                res && res.data ? 
+                res.data :
+                [])
+            )
+    }
+
     getMetodologia() {
         return this.http.get<ResponseJSON<any>>(`api/asistencia/metodologia`)
             .pipe(

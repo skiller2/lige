@@ -28,7 +28,7 @@ export class PersonalController extends BaseController {
         personaData.NRO_EMPRESA = (process.env.NRO_EMPRESA_PBA)? process.env.NRO_EMPRESA_PBA:""
 //        personaData.PersonalCUITCUILCUIT = (personaData.PersonalCUITCUILCUIT) ? `${personaData.PersonalCUITCUILCUIT}` : "Sin registrar"
         personaData.PersonalCUITCUILCUIT = (personaData.PersonalCUITCUILCUIT != null) ? personaData.PersonalCUITCUILCUIT : ""
-        personaData.DNI = (personaData.PersonalCUITCUILCUIT.length!=null)? personaData.PersonalCUITCUILCUIT.substring(2, 10):""
+        personaData.DNI = (String(personaData.PersonalCUITCUILCUIT).length>10)? String(personaData.PersonalCUITCUILCUIT).substring(2, 10):""
         personaData.FechaDesde = new Date()
         personaData.FechaHasta = FechaHasta
         const imageFotoPath = (process.env.IMAGE_FOTO_PATH)?process.env.IMAGE_FOTO_PATH:""

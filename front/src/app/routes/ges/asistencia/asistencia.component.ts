@@ -8,29 +8,24 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 enum Busqueda {
   Sucursal,
   Objetivo,
-  Personal
+  Personal,
+  Anio,
+  Mes
 }
 
 @Component({
-  selector: 'app-ges-asistenciaexcepcion',
-  templateUrl: './asistenciaexcepcion.component.html',
+  selector: 'app-ges-asistencia',
+  templateUrl: './asistencia.component.html',
   styles: [
     `
-    .row-apro {
-      background-color: green
-    }
-    .row-pend {
-      background-color: yellow
-    }
     `
   ]
 })
 
 
-export class ExcepcionAsistenciaComponent {
+export class AsistenciaComponent {
 
-  @ViewChild('asistenciaexcepcion', { static: true }) asistenciaexcepcion: NgForm = new NgForm([], []);
-
+  @ViewChild('asistencia', { static: true }) asistencia: NgForm = new NgForm([], []);
   public get Busqueda() { return Busqueda }
 
   constructor(private searchService: SearchService, private injector: Injector, private settingService: SettingsService    ) { }
@@ -65,23 +60,30 @@ export class ExcepcionAsistenciaComponent {
   $objetivoResponsables = this.$selectedObjetivoIdChange.pipe(
     debounceTime(50),
 
-    switchMap((objetivoId) => { console.log('busqueda', objetivoId); if (!objetivoId) return []; else return this.searchService.getObjetivo(Number(objetivoId), this.asistenciaexcepcion.controls['anio'].value, this.asistenciaexcepcion.controls['mes'].value) }),
+    switchMap((objetivoId) => { console.log('busqueda', objetivoId); if (!objetivoId) return []; else return this.searchService.getObjetivo(Number(objetivoId), this.asistencia.controls['anio'].value, this.asistencia.controls['mes'].value) }),
 //    tap(() => this.$isObjetivoOptionsLoading.next(false))
   )
 
 
+  $listaAsistencia = this.$selectedObjetivoIdChange.pipe(
+    debounceTime(50),
+    switchMap((objetivoId) => this.searchService.getAsistenciaObjetivo(Number(objetivoId), this.asistencia.controls['anio'].value, this.asistencia.controls['mes'].value)),
+    tap(() => this.$isObjetivoOptionsLoading.next(false))
+  )
+
   $listaExcepciones = this.$selectedObjetivoIdChange.pipe(
     debounceTime(50),
-    switchMap((objetivoId) => this.searchService.getExcepxObjetivo(Number(objetivoId), this.asistenciaexcepcion.controls['anio'].value, this.asistenciaexcepcion.controls['mes'].value)),
+    switchMap((objetivoId) => this.searchService.getExcepxObjetivo(Number(objetivoId), this.asistencia.controls['anio'].value, this.asistencia.controls['mes'].value)),
     tap(() => this.$isObjetivoOptionsLoading.next(false))
   )
 
 
   $optionsObjetivos = this.$searchObjetivoChange.pipe(
     debounceTime(500),
-    switchMap((event) => this.searchService.getObjetivos((Number(event.charAt(0)) ? 'Codigo' : 'Descripcion'), event, this.asistenciaexcepcion.controls['SucursalId'].value)),
+    switchMap((event) => this.searchService.getObjetivos((Number(event.charAt(0)) ? 'Codigo' : 'Descripcion'), event, this.asistencia.controls['SucursalId'].value)),
     tap(() => this.$isObjetivoOptionsLoading.next(false))
   )
+
   $optionsPersonal = this.$searchPersonalChange.pipe(
     debounceTime(500),
     switchMap((values) => this.searchService.getPersonFromName((Number(values)) ? 'CUIT' : 'Nombre', values)),
@@ -96,10 +98,10 @@ export class ExcepcionAsistenciaComponent {
   ngAfterViewInit(): void {
     const now = new Date();    //date
     setTimeout(() => {
-      this.asistenciaexcepcion.controls['anio'].setValue(now.getFullYear());
-      this.asistenciaexcepcion.controls['mes'].setValue(now.getMonth() + 1);
+      this.asistencia.controls['anio'].setValue(now.getFullYear());
+      this.asistencia.controls['mes'].setValue(now.getMonth() + 1);
       if (localStorage.getItem('SucursalId')) {
-        this.asistenciaexcepcion.controls['SucursalId'].setValue(Number(localStorage.getItem('SucursalId')))
+        this.asistencia.controls['SucursalId'].setValue(Number(localStorage.getItem('SucursalId')))
       }
       //this.asistenciaexcepcion.valueChanges
 
@@ -115,20 +117,25 @@ export class ExcepcionAsistenciaComponent {
 
   selectedValueChange(event: string, busqueda: Busqueda): void {
 
-    //   this.asistenciaexcepcion.controls['anio'].setValue(2023);
-    //    this.asistenciaexcepcion.controls['mes'].setValue(3);
 
 
     switch (busqueda) {
       case (Busqueda.Sucursal):
-        localStorage.setItem('SucursalId', this.asistenciaexcepcion.controls['SucursalId'].value)
+        localStorage.setItem('SucursalId', this.asistencia.controls['SucursalId'].value)
 
         this.$selectedSucursalIdChange.next(event)
         this.$isSucursalDataLoading.next(true)
         return
       case (Busqueda.Objetivo):
-        console.log('selectedValueChange',event)
         this.$selectedObjetivoIdChange.next(event)
+        this.$isObjetivoDataLoading.next(true)
+        return
+      case (Busqueda.Anio):
+        this.$selectedObjetivoIdChange.next(this.asistencia.controls['ObjetivoId'].value)
+        this.$isObjetivoDataLoading.next(true)
+        return
+      case (Busqueda.Mes):
+        this.$selectedObjetivoIdChange.next(this.asistencia.controls['ObjetivoId'].value)
         this.$isObjetivoDataLoading.next(true)
         return
       case (Busqueda.Personal):
@@ -159,30 +166,6 @@ export class ExcepcionAsistenciaComponent {
   }
 
 
-  saveexception() {
-    this.searchService.setAsistenciaExcepcion(this.asistenciaexcepcion.value)
-      .pipe(
-        switchMap(() => this.$listaExcepciones = this.searchService.getExcepxObjetivo(this.asistenciaexcepcion.controls['ObjetivoId'].value, this.asistenciaexcepcion.controls['anio'].value, this.asistenciaexcepcion.controls['mes'].value)),
-        //      tap(() => this.$isObjetivoOptionsLoading.next(false))
-        takeUntil(this.destroy$)
-      )
-      .subscribe({
-        next: (data) => console.log('data', data),
-        error: (err) => {
-          console.log('error', err)
-        },
-        complete: () => {
-          console.log('complete')
-
-          this.asistenciaexcepcion.controls['PersonaId'].setValue('');
-          this.asistenciaexcepcion.controls['metodologia'].setValue('');
-
-          this.notification.success('Grabación', 'Existosa')
-
-        }
-      })
-
-  }
   ngOnDestroy(): void {
     this.destroy$.next('');
     this.destroy$.complete();

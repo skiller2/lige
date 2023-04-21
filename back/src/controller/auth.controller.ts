@@ -82,10 +82,12 @@ export class AuthController extends BaseController {
               return reject(err);
               assert.ifError(err);
             }
+            
             return resolve({
               email: userEntry.pojo.attributes.filter((f: { type: string; }) => f.type=="mail").map((m: any[]) => m.values)[0],
               name: userEntry.pojo.attributes.filter((f: { type: string; }) => f.type=="name").map((m: any[]) => m.values)[0],
               username: userEntry.pojo.attributes.filter((f: { type: string; }) => f.type=="sAMAccountName").map((m: any[]) => m.values)[0],
+              description: userEntry.pojo.attributes.filter((f: { type: string; }) => f.type=="description").map((m: any[]) => m.values)[0],
             });
           });
 
