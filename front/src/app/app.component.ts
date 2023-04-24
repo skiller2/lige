@@ -1,4 +1,4 @@
-import { Component, ElementRef, NgZone, OnInit, Renderer2 } from '@angular/core';
+import { Component, ElementRef, NgZone, OnInit, Renderer2, TemplateRef, ViewChild } from '@angular/core';
 import { NavigationEnd, NavigationError, RouteConfigLoadStart, Router } from '@angular/router';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { TitleService, VERSION as VERSION_ALAIN } from '@delon/theme';
@@ -7,26 +7,24 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { VERSION as VERSION_ZORRO } from 'ng-zorro-antd/version';
 import { filter, interval, map } from 'rxjs';
 import { Platform } from '@angular/cdk/platform';
-
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 @Component({
   selector: 'app-root',
   template: `
-<div class="w-100 position-absolute top-0" *ngIf="modalVersion">
-  <div class="alert alert-secondary m-2">
-    <button type="button" class="btn-close position-absolute top-0 end-0 m-1" aria-label="Close" (click)="closeVersion()"></button>
-    {{ 'A new version of this app is available.' | i18n }} <a href="" (click)="updateVersion()" >{{ 'Update now' | i18n}}</a>
-  </div>
-</div>
 
-
-<div class="w-100 position-absolute bottom-0" *ngIf="modalPwaPlatform === 'ANDROID' || modalPwaPlatform === 'IOS'">
-  <div class="alert alert-secondary m-2">
-    <button type="button" class="btn-close position-absolute top-0 end-0 m-1" aria-label="Close" (click)="closePwa()"></button>
-    <!-- Android -->
-    <div *ngIf="modalPwaPlatform === 'ANDROID'" (click)="addToHomeScreen()" >
-      {{ 'Add this WEB app to home screen' | i18n }} 
+   <ng-template #tplpwa>
+    <div class="w-100 position-absolute top-0" *ngIf="modalVersion">
+      <div class="alert alert-secondary m-2">
+      <button nz-button nzType="primary"  (click)="closeVersion()"></button>
+        {{ 'A new version of this app is available.' | i18n }} <a href="" (click)="updateVersion()" >{{ 'Update now' | i18n}}</a>
+      </div>
     </div>
+
+<div class="" *ngIf="modalPwaPlatform === 'ANDROID' || modalPwaPlatform === 'IOS'">
+    <!-- Android -->
+    <button *ngIf="modalPwaPlatform === 'ANDROID'" nz-button nzType="primary" (click)="addToHomeScreen()">{{ 'Add this WEB app to home screen' | i18n }}</button>
+
     <!-- iOS with Safari -->
     <div *ngIf="modalPwaPlatform === 'IOS'" >
       {{ 'To install this WEB app on your device, tap the "Menu" button' | i18n }}
@@ -35,8 +33,7 @@ import { Platform } from '@angular/cdk/platform';
       <i class="bi bi-plus-square"></i>
     </div>
   </div>
-</div>
-
+</ng-template>
 <router-outlet></router-outlet> 
 
 
@@ -48,6 +45,8 @@ export class AppComponent implements OnInit {
   modalVersion: boolean;
   modalPwaEvent: any;
   modalPwaPlatform: string | undefined;
+  @ViewChild('tplpwa', { static: true })
+  tplpwa!: TemplateRef<{}>;
 
   constructor(
     el: ElementRef,
@@ -57,7 +56,8 @@ export class AppComponent implements OnInit {
     private modalSrv: NzModalService,
     private swUpdate: SwUpdate,
     private platform: Platform,
-    private ngZone: NgZone    
+    private ngZone: NgZone,
+    private notification: NzNotificationService
   ) {
     this.isOnline = false;
     this.modalVersion = false;
@@ -91,34 +91,67 @@ export class AppComponent implements OnInit {
     this.modalVersion = false;
   }
 
-  private loadModalPwa(): void {
+  private async loadModalPwa(): Promise<void> {
+    if ("getInstalledRelatedApps" in navigator) {
+      
+      // then... you can call navigator.getInstalledRelatedApps()
+      const fun:any = navigator['getInstalledRelatedApps'];
+      
+      const listOfInstalledApps = await fun.call(navigator).then((relatedApps: any) => {
+        console.log('relatedApps',relatedApps)
+        
+        relatedApps.forEach((app: any) => {
+          console.log('platform:', app.platform);
+          console.log('url:', app.url);
+          console.log('id:', app.id);
+          // This field is provided by the UA.
+          console.log('version:', app.version);
+        });
+      })
+    
+    
+//      console.log("getInstalledRelatedApps", listOfInstalledApps)
+      //      const relatedApps = await navigator.
+    }
+
+    
+    if (!('serviceWorker' in navigator)){
+      return;
+    }    
+
+
+    if (window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && (navigator as any).standalone === true)) {
+      return;
+    }
+
     if (this.platform.ANDROID) {
+      this.modalPwaPlatform = 'ANDROID';
+       //No es muy compatible
       window.addEventListener('beforeinstallprompt', (event: any) => {
         event.preventDefault();
         this.modalPwaEvent = event;
         this.modalPwaPlatform = 'ANDROID';
       });
+      
     }
 
-    if (this.platform.IOS && this.platform.SAFARI) {
-      const isInStandaloneMode = ('standalone' in window.navigator) && ((<any>window.navigator)['standalone']);
-      if (!isInStandaloneMode) {
-        this.modalPwaPlatform = 'IOS';
-      }
+
+
+    if (this.platform.IOS) {
+      this.modalPwaPlatform = 'IOS';
     }
+
+    if (this.modalPwaPlatform) {
+//      this.notification.template(this.tplpwa, { nzDuration: 10000, nzPauseOnHover: true })
+    }
+
   }
 
   public addToHomeScreen(): void {
     this.modalPwaEvent.prompt();
-    this.modalPwaPlatform = undefined;
-  }
-
-  public closePwa(): void {
-    this.modalPwaPlatform = undefined;
   }
 
   ngOnInit(): void {
-    console.log('Platform', this.platform)
     this.updateOnlineStatus();
 
     window.addEventListener('online', this.updateOnlineStatus.bind(this));
@@ -143,11 +176,11 @@ export class AppComponent implements OnInit {
       }
       if (configLoad && ev instanceof NavigationError) {
         this.modalSrv.confirm({
-          nzTitle: `提醒`,
-          nzContent: environment.production ? `应用可能已发布新版本，请点击刷新才能生效。` : `无法加载路由：${ev.url}`,
+          nzTitle: `Recordar`,
+          nzContent: environment.production ? `Es posible que se haya lanzado una nueva versión de la aplicación, haga clic en Actualizar para que surta efecto.` : `No se puede cargar la ruta：${ev.url}`,
           nzCancelDisabled: false,
-          nzOkText: '刷新',
-          nzCancelText: '忽略',
+          nzOkText: 'OK',
+          nzCancelText: 'Cancel',
           nzOnOk: () => location.reload()
         });
       }
@@ -161,4 +194,7 @@ export class AppComponent implements OnInit {
     this.loadModalPwa();
 
   }
+
+
+  
 }

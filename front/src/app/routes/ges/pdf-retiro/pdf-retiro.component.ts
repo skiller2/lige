@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FilesService } from 'src/app/services/files.service';
-import { PdfviewerComponent } from 'src/app/shared/pdfviewer/pdfviewer.component';
+//import { PdfviewerComponent } from 'src/app/shared/pdfviewer/pdfviewer.component';
 
 @Component({
   selector: 'app-pdf-retiro',

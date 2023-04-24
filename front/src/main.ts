@@ -1,4 +1,4 @@
-import { enableProdMode, ViewEncapsulation } from '@angular/core';
+import { DEFAULT_CURRENCY_CODE, enableProdMode, ViewEncapsulation } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { preloaderFinished } from '@delon/theme';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
@@ -15,7 +15,8 @@ if (environment.production) {
 platformBrowserDynamic()
   .bootstrapModule(AppModule, {
     defaultEncapsulation: ViewEncapsulation.Emulated,
-    preserveWhitespaces: false
+    preserveWhitespaces: false,
+    providers:[{provide: DEFAULT_CURRENCY_CODE, useValue: '$' }]
   })
   .then(res => {
     const win = window as NzSafeAny;

@@ -25,5 +25,6 @@ webServer.init()
     webServer.lateInit()
   }).catch((err) => {
     console.error(err)
+
     process.exit()
   })

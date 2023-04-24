@@ -11,4 +11,7 @@ export const dataSource = new DataSource({
     logging: "all",
     connectionTimeout: 10000, //ms
     //entities: [Photo],
+    extra: {
+        trustServerCertificate: true
+    }
 })

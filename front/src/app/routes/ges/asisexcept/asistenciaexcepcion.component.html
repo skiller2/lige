@@ -8,81 +8,178 @@
 </ng-template>
 
 <page-header [action]="phActionTpl"></page-header>
-
 <nz-card class="small-margin">
 
 
-  <form nz-form>
+  <form nz-form #asistenciaexcepcion="ngForm">
+    <nz-form-item>
+      <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
+      <nz-form-control>
+        <nz-input-group>
+          <div nz-row [nzGutter]="8">
+            <div nz-col nzSpan="10">
+              <input type="number" nz-input name="anio" ngModel />
+            </div>
+            <div nz-col nzSpan="4">
+              <input type="number" nz-input name="mes" ngModel />
+            </div>
+          </div>
+        </nz-input-group>
+      </nz-form-control>
+    </nz-form-item>
+
 
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Sucursal</nz-form-label>
-      <nz-select [(ngModel)]="selectedSucursalId" [ngModelOptions]="{standalone: true} "
-        (ngModelChange)="selectedValueChange($event, Busqueda.Sucursal)" nzAllowClear nzPlaceHolder="Sucursal"
-        nzShowSearch>
-        <ng-container *ngFor="let option of $optionsSucursales | async">
-          <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
-        </ng-container>
-      </nz-select>
+      <nz-form-control>
+        <nz-select nzSpan="19" name="SucursalId" [(ngModel)]="selectedSucursalId"
+          (ngModelChange)="selectedValueChange($event, Busqueda.Sucursal)" nzAllowClear nzPlaceHolder="Sucursal"
+          nzShowSearch>
+          <ng-container *ngFor="let option of $optionsSucursales | async">
+            <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
+          </ng-container>
+        </nz-select>
+      </nz-form-control>
     </nz-form-item>
 
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
-      <nz-select [(ngModel)]="selectedObjetivoId" [ngModelOptions]="{standalone: true} "
-        (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" nzAllowClear
-        nzPlaceHolder="Descripcion, Código" nzShowSearch nzServerSearch (nzOnSearch)="searchObjetivo($event)">
+      <nz-form-control>
+        <nz-select name="ObjetivoId" ngModel (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)"
+          nzAllowClear nzPlaceHolder="Descripcion, Código" nzShowSearch nzServerSearch
+          (nzOnSearch)="searchObjetivo($event)">
           <ng-container *ngFor="let option of $optionsObjetivos | async">
             <nz-option [nzValue]="option.ObjetivoId"
               nzLabel="{{option.ClienteId}}/{{option.ClienteElementoDependienteId | nzSafeNull: '0'}} {{option.ObjetivoDescripcion}}"></nz-option>
           </ng-container>
-      </nz-select>
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
+      <nz-form-control>
+        <ng-container *ngFor="let responsable of $objetivoResponsables | async">
+          <p title="{{ responsable.PersonalId }}">({{responsable.ObjetivoPersonalJerarquicoComo}})
+            {{responsable.PersonalCUITCUILCUIT}} {{ responsable.ApellidoNombreJerarquico }} desde {{
+            responsable.ObjetivoPersonalJerarquicoDesde | date}} <span
+              *ngIf="responsable.ObjetivoPersonalJerarquicoHasta">hasta</span> {{
+            responsable.ObjetivoPersonalJerarquicoHasta | date}} </p>
+        </ng-container>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="5">Listado</nz-form-label>
+      <nz-form-control>
+        <nz-table #excep [nzData]="$listaExcepciones | async" nzSize="small">
+          <thead>
+            <tr>
+              <th>Persona</th>
+              <th>Detalle</th>
+              <th>Vigencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngIf="$optionsMetodologia | async; let optionsMetodologia">
+
+            <tr *ngFor="let data of excep.data" ngClass="{row-apro:data.PersonalArt14Autorizado=='S',row-pend:data.PersonalArt14Autorizado==''}">
+              <td nz-row title="{{ data.PersonalId }}"><span nz-col>{{data.ApellidoNombre}}</span><span nz-col> {{data.PersonalCUITCUILCUIT}}</span> </td>
+              <td >
+                <span>{{ (optionsMetodologia | appFilter:data.PersonalArt14FormaArt14:['descripcion','etiqueta']
+                  )[0].etiqueta }} </span>
+
+                <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | currency:'$' }}</span>
+                <span *ngIf="data.PersonalArt14FormaArt14=='H'">{{data.PersonalArt14Horas}}</span>
+                <span *ngIf="data.PersonalArt14FormaArt14=='E'">{{data.CategoriaPersonalDescripcion}}</span>
+                <span *ngIf="data.PersonalArt14FormaArt14=='A'">{{data.PersonalArt14AdicionalHora | currency:'$'}}</span>
+              </td>
+              <td>{{data.Desde | date}} <BR>{{data.Hasta | date}}</td>
+
+              <!-- td>
+            <a>Action 一 {{data.name}}</a>
+            <nz-divider nzType="vertical"></nz-divider>
+            <a>Delete</a>
+          </td -->
+            </tr>
+          </ng-container>
+          </tbody>
+        </nz-table>
+      </nz-form-control>
     </nz-form-item>
 
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Persona</nz-form-label>
-      <nz-select [(ngModel)]="selectedPersonalId" [ngModelOptions]="{standalone: true}"
-        (ngModelChange)="selectedValueChange($event, Busqueda.Personal)" nzAllowClear
-        nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch nzServerSearch (nzOnSearch)="searchPersonal($event)">
+      <nz-form-control>
+        <nz-select name="PersonaId" ngModel (ngModelChange)="selectedValueChange($event, Busqueda.Personal)"
+          nzAllowClear nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch nzServerSearch
+          (nzOnSearch)="searchPersonal($event)">
           <ng-container *ngFor="let option of $optionsPersonal | async">
             <nz-option [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
           </ng-container>
-      </nz-select>
+        </nz-select>
+      </nz-form-control>
     </nz-form-item>
 
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Metodologia</nz-form-label>
-      <nz-select [(ngModel)]="selectedMetodologiaId" [ngModelOptions]="{standalone: true} " nzAllowClear
-        nzPlaceHolder="Metodologia" nzShowSearch>
-        <ng-container *ngFor="let option of $optionsMetodologia | async">
-          <nz-option [nzValue]="option.id" [nzLabel]="option.descripcion"></nz-option>
-        </ng-container>
-      </nz-select>
-      <nz-container [ngSwitch]="selectedMetodologiaId">
-        <ng-container *ngSwitchCase="'S'">
-          <nz-input-number [nzStep]="1"></nz-input-number>
-        </ng-container>
-        <ng-container *ngSwitchCase="'E'">
-
-        </ng-container>
-        <ng-container *ngSwitchCase="'A'">
-          <nz-input-number [nzStep]="1"></nz-input-number>
-        </ng-container>
-        <ng-container *ngSwitchCase="'H'">
-          <nz-input-number [nzStep]="1"></nz-input-number>
-        </ng-container>
-
-      </nz-container>
+      <nz-form-control>
+        <nz-select name="metodologia" [(ngModel)]="selectedMetodologiaId" nzAllowClear nzPlaceHolder="Metodologia"
+          nzShowSearch>
+          <ng-container *ngFor="let option of $optionsMetodologia | async">
+            <nz-option [nzValue]="option.id" [nzLabel]="option.descripcion"></nz-option>
+          </ng-container>
+        </nz-select>
+      </nz-form-control>
     </nz-form-item>
 
-    <nz-form-item>
-      <nz-form-label [nzSpan]="5">Categoria</nz-form-label>
-      <nz-select [(ngModel)]="selectedCategoriaId" [ngModelOptions]="{standalone: true} " nzAllowClear
-        nzPlaceHolder="Categoria" nzShowSearch>
-        <ng-container *ngFor="let option of $optionsCategoria | async">
-          <nz-option [nzValue]="option.CategoriaPersonalId" [nzLabel]="option.CategoriaPersonalDescripcion"></nz-option>
-        </ng-container>
-      </nz-select>
-    </nz-form-item>
+    <ng-container [ngSwitch]="selectedMetodologiaId" *ngIf="$optionsMetodologia | async; let optionsMetodologia">
+      <nz-form-item *ngSwitchCase="'S'">
+        <nz-form-label [nzSpan]="5">                <span>{{ (optionsMetodologia | appFilter:selectedMetodologiaId:['descripcion','etiqueta']
+          )[0].etiqueta }} </span>
+</nz-form-label>
+        <nz-form-control>
+          <nz-input-number name="SumaFija" ngModel [nzStep]="0"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item *ngSwitchCase="'E'">
+        <nz-form-label [nzSpan]="5"><span>{{ (optionsMetodologia | appFilter:selectedMetodologiaId:['descripcion','etiqueta']
+          )[0].etiqueta }} </span></nz-form-label>
+        <nz-form-control>
+          <nz-select name="Equivalencia" ngModel nzAllowClear nzPlaceHolder="Categoria" nzShowSearch>
+            <ng-container *ngFor="let option of $optionsCategoria | async">
+              <ng-container *ngIf="option.ValorLiquidacionSucursalId == selectedSucursalId">
+                <nz-option
+                  [nzValue]="{CategoriaPersonalId:option.CategoriaPersonalId,TipoAsociadoId:option.TipoAsociadoId}"
+                  [nzLabel]="option.CategoriaPersonalDescripcion + ' ' + option.ValorLiquidacionHoraNormal"></nz-option>
+              </ng-container>
 
+            </ng-container>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item *ngSwitchCase="'A'">
+        <nz-form-label [nzSpan]="5"><span>{{ (optionsMetodologia | appFilter:selectedMetodologiaId:['descripcion','etiqueta']
+          )[0].etiqueta }} </span></nz-form-label>
+        <nz-form-control>
+          <nz-input-number name="AdicionalHora" ngModel [nzStep]="1"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item *ngSwitchCase="'H'">
+        <nz-form-label [nzSpan]="5"><span>{{ (optionsMetodologia | appFilter:selectedMetodologiaId:['descripcion','etiqueta']
+          )[0].etiqueta }} </span></nz-form-label>
+        <nz-form-control>
+          <nz-input-number name="Horas" ngModel [nzStep]="1"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+    </ng-container>
+
+    <nz-form-item nz-row>
+      <nz-form-control [nzSpan]="14" [nzOffset]="5">
+        <button nz-button nzType="primary" [nzSize]="'default'" (click)="saveexception()">
+          <span nz-icon nzType="save" nzTheme="outline"></span>Graba</button>
+      </nz-form-control>
+    </nz-form-item>
   </form>
 
 </nz-card>

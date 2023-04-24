@@ -4,12 +4,59 @@ import { dataSource } from "../data-source";
 
 export class ObjetivoController extends BaseController {
 
+    getById(objetivoId: number, anio: number, mes: number, res: Response) {
+        let fechaHasta = new Date(anio, mes, 1)
+        fechaHasta.setDate(fechaHasta.getDate() - 1)
+
+        dataSource
+            .query(
+                `SELECT suc.ObjetivoSucursalSucursalId,
+                 
+            obj.ObjetivoId, 
+            obj.ClienteId,
+            obj.ClienteElementoDependienteId,
+            obj.ObjetivoDescripcion,
+            
+            perjer.PersonalId,
+            CONCAT(TRIM(perjer.PersonalApellido), ', ' ,TRIM(perjer.PersonalNombre) ) AS ApellidoNombreJerarquico,
+            cuit.PersonalCUITCUILCUIT,
+            -- obj.ObjetivoSucursalUltNro,
+            opj.ObjetivoPersonalJerarquicoDesde,
+            opj.ObjetivoPersonalJerarquicoHasta,
+            opj.ObjetivoPersonalJerarquicoComo,
+            1
+            
+            FROM Objetivo obj 
+            LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
+            LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  <= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @0
+            LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
+            LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = perjer.PersonalCUITCUILUltNro
+
+            WHERE obj.ObjetivoId=@1`,
+                [fechaHasta, objetivoId]
+            )
+            .then((records: Array<any>) => {
+//                if (records.length != 1) throw new Error('Objetivo not found')
+                this.jsonRes(records, res);
+            })
+            .catch((err) => {
+                this.errRes(err, res, "Error accediendo a la base de datos", 409);
+            });
+    }
+
+
     async search(
         req: any,
         res: Response
     ) {
+
         try {
             const { sucursalId, fieldName, value } = req.body;
+            if (sucursalId == '') {
+                this.jsonRes({ objetivos: [] }, res);
+                return;
+            }
+
             let query = `
         SELECT 
 sucdes.SucursalId, sucdes.SucursalDescripcion, 

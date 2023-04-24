@@ -10,13 +10,14 @@ import { DELON_LOCALE, zh_CN as delonLang, ALAIN_I18N_TOKEN } from '@delon/theme
 import { NZ_DATE_LOCALE, NZ_I18N, zh_CN as zorroLang } from 'ng-zorro-antd/i18n';
 import { NzNotificationModule } from 'ng-zorro-antd/notification';
 
+
 // #region default language
 // 参考：https://ng-alain.com/docs/i18n
 import { I18NService } from '@core';
-import { zhCN as dateLang } from 'date-fns/locale';
+import { zhCN, es as dateLang } from 'date-fns/locale';
 
 const LANG = {
-  abbr: 'zh',
+  abbr: 'es',
   ng: ngLang,
   zorro: zorroLang,
   date: dateLang,
@@ -87,6 +88,7 @@ import { SharedModule } from './shared/shared.module';
 import { STWidgetModule } from './shared/st-widget/st-widget.module';
 import { Observable } from 'rxjs';
 import { ServiceWorkerModule } from '@angular/service-worker';
+
 
 @NgModule({
   declarations: [AppComponent],

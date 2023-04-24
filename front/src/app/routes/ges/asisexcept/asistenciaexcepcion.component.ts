@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { _HttpClient } from '@delon/theme';
-import { BehaviorSubject, catchError, debounceTime, switchMap, tap } from 'rxjs';
+import { Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { SettingsService, _HttpClient } from '@delon/theme';
+import { BehaviorSubject, Subject, catchError, debounceTime, of, switchMap, takeUntil, tap } from 'rxjs';
 import { SearchService } from '../search.service';
+import { NgForm } from '@angular/forms';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 enum Busqueda {
   Sucursal,
@@ -14,19 +16,12 @@ enum Busqueda {
   templateUrl: './asistenciaexcepcion.component.html',
   styles: [
     `
-      .card-inline-block {
-        display: inline-block;
-      }
-      .card-container {
-        display: block;
-      }
-
-      .limit-card-columns{
-        max-width: 21cm;
-      }
-      nz-select {
-        width: 200px;
-      }
+    .row-apro {
+      background-color: green
+    }
+    .row-pend {
+      background-color: yellow
+    }
     `
   ]
 })
@@ -34,10 +29,13 @@ enum Busqueda {
 
 export class ExcepcionAsistenciaComponent {
 
+  @ViewChild('asistenciaexcepcion', { static: true }) asistenciaexcepcion: NgForm = new NgForm([], []);
+
   public get Busqueda() { return Busqueda }
 
-  constructor(private searchService: SearchService) { }
+  constructor(private searchService: SearchService, private injector: Injector, private settingService: SettingsService    ) { }
 
+  private destroy$ = new Subject();
 
   selectedSucursalId = ''
   selectedObjetivoId = ''
@@ -59,9 +57,29 @@ export class ExcepcionAsistenciaComponent {
   $optionsMetodologia = this.searchService.getMetodologia()
   $optionsSucursales = this.searchService.getSucursales()
   $optionsCategoria = this.searchService.getCategorias()
+
+
+
+
+  
+  $objetivoResponsables = this.$selectedObjetivoIdChange.pipe(
+    debounceTime(50),
+
+    switchMap((objetivoId) => { console.log('busqueda', objetivoId); if (!objetivoId) return []; else return this.searchService.getObjetivo(Number(objetivoId), this.asistenciaexcepcion.controls['anio'].value, this.asistenciaexcepcion.controls['mes'].value) }),
+//    tap(() => this.$isObjetivoOptionsLoading.next(false))
+  )
+
+
+  $listaExcepciones = this.$selectedObjetivoIdChange.pipe(
+    debounceTime(50),
+    switchMap((objetivoId) => this.searchService.getExcepxObjetivo(Number(objetivoId), this.asistenciaexcepcion.controls['anio'].value, this.asistenciaexcepcion.controls['mes'].value)),
+    tap(() => this.$isObjetivoOptionsLoading.next(false))
+  )
+
+
   $optionsObjetivos = this.$searchObjetivoChange.pipe(
     debounceTime(500),
-    switchMap((event) => this.searchService.getObjetivos((Number(event.charAt(0)) ? 'Codigo' : 'Descripcion'), event, this.selectedSucursalId)),
+    switchMap((event) => this.searchService.getObjetivos((Number(event.charAt(0)) ? 'Codigo' : 'Descripcion'), event, this.asistenciaexcepcion.controls['SucursalId'].value)),
     tap(() => this.$isObjetivoOptionsLoading.next(false))
   )
   $optionsPersonal = this.$searchPersonalChange.pipe(
@@ -74,13 +92,42 @@ export class ExcepcionAsistenciaComponent {
   $isObjetivoDataLoading = new BehaviorSubject(false)
   $isPersonalDataLoading = new BehaviorSubject(false)
 
+
+  ngAfterViewInit(): void {
+    const now = new Date();    //date
+    setTimeout(() => {
+      this.asistenciaexcepcion.controls['anio'].setValue(now.getFullYear());
+      this.asistenciaexcepcion.controls['mes'].setValue(now.getMonth() + 1);
+      if (localStorage.getItem('SucursalId')) {
+        this.asistenciaexcepcion.controls['SucursalId'].setValue(Number(localStorage.getItem('SucursalId')))
+      }
+      //this.asistenciaexcepcion.valueChanges
+
+    }, 1)
+
+      
+
+
+    console.log('dame', this.settingService.getUser())
+
+
+  }
+
   selectedValueChange(event: string, busqueda: Busqueda): void {
+
+    //   this.asistenciaexcepcion.controls['anio'].setValue(2023);
+    //    this.asistenciaexcepcion.controls['mes'].setValue(3);
+
+
     switch (busqueda) {
       case (Busqueda.Sucursal):
+        localStorage.setItem('SucursalId', this.asistenciaexcepcion.controls['SucursalId'].value)
+
         this.$selectedSucursalIdChange.next(event)
         this.$isSucursalDataLoading.next(true)
         return
       case (Busqueda.Objetivo):
+        console.log('selectedValueChange',event)
         this.$selectedObjetivoIdChange.next(event)
         this.$isObjetivoDataLoading.next(true)
         return
@@ -88,6 +135,10 @@ export class ExcepcionAsistenciaComponent {
         this.$selectedPersonalIdChange.next(event)
         this.$isPersonalDataLoading.next(true)
         return
+    }
+
+    if (this.$selectedSucursalIdChange.getValue() && this.$selectedObjetivoIdChange.getValue()) {
+      console.log('hola')
     }
   }
 
@@ -103,4 +154,37 @@ export class ExcepcionAsistenciaComponent {
     this.$searchPersonalChange.next(event)
   }
 
+  private get notification(): NzNotificationService {
+    return this.injector.get(NzNotificationService);
+  }
+
+
+  saveexception() {
+    this.searchService.setAsistenciaExcepcion(this.asistenciaexcepcion.value)
+      .pipe(
+        switchMap(() => this.$listaExcepciones = this.searchService.getExcepxObjetivo(this.asistenciaexcepcion.controls['ObjetivoId'].value, this.asistenciaexcepcion.controls['anio'].value, this.asistenciaexcepcion.controls['mes'].value)),
+        //      tap(() => this.$isObjetivoOptionsLoading.next(false))
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (data) => console.log('data', data),
+        error: (err) => {
+          console.log('error', err)
+        },
+        complete: () => {
+          console.log('complete')
+
+          this.asistenciaexcepcion.controls['PersonaId'].setValue('');
+          this.asistenciaexcepcion.controls['metodologia'].setValue('');
+
+          this.notification.success('Grabación', 'Existosa')
+
+        }
+      })
+
+  }
+  ngOnDestroy(): void {
+    this.destroy$.next('');
+    this.destroy$.complete();
+  }
 }
