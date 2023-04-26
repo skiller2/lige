@@ -10,6 +10,7 @@ import { SHARED_DELON_MODULES } from './shared-delon.module';
 import { SHARED_ZORRO_MODULES } from './shared-zorro.module';
 import { PdfviewerComponent } from './pdfviewer/pdfviewer.component';
 import { UploadFileComponent } from './upload-file/upload-file.component';
+import { PersonalSearchComponent } from './personal-search/personal-search.component';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';
@@ -18,7 +19,7 @@ const THIRDMODULES: Array<Type<any>> = [];
 // #endregion
 
 // #region your componets & directives
-const COMPONENTS: Array<Type<any>> = [];
+const COMPONENTS: Array<Type<any>> = [PersonalSearchComponent];
 const DIRECTIVES: Array<Type<any>> = [];
 // #endregion
 

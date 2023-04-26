@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { BehaviorSubject, debounceTime, finalize, Observable, switchMap, tap } from 'rxjs';
 import { Search } from 'src/app/shared/schemas/personal.schemas';
-import { SearchService } from '../search.service';
+import { SearchService } from '../../../services/search.service';
 
 
 @Component({

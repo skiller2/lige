@@ -1,0 +1,15 @@
+<ng-template #phActionTpl>
+    <nz-button-group>
+        <button nz-button nzType="primary" disabled>L</button>
+        <button nz-button nzType="default" disabled>M</button>
+        <button nz-button nzType="default">M</button>
+        <button nz-button nzType="dashed" disabled>R</button>
+    </nz-button-group>
+</ng-template>
+
+<page-header [action]="phActionTpl"></page-header>
+
+<nz-card class="small-margin">
+    <app-personal-search ></app-personal-search>
+
+</nz-card>

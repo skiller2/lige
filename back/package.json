@@ -31,10 +31,9 @@
    },
    "scripts": {
       "start1": "ts-node src/index.ts",
-      "start2": "nodemon src/index.ts",
+      "dev": "nodemon src/index.ts",
       "build": "npx tsc",
       "build2": "rimraf dist && tsc",
-      "start": "node dist/index.js",
-      "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\""
+      "start": "node dist/index.js"
    }
 }

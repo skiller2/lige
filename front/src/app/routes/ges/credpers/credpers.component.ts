@@ -4,7 +4,7 @@ import { _HttpClient } from '@delon/theme';
 import { BehaviorSubject, catchError, debounceTime, finalize, map, Observable, switchMap, tap } from 'rxjs';
 import { FormComponent } from 'src/app/shared/imagePreview/form/form.component';
 import { PersonaObj, Search } from 'src/app/shared/schemas/personal.schemas';
-import { SearchService } from '../search.service';
+import { SearchService } from '../../../services/search.service';
 import { LoadingService, LoadingType } from '@delon/abc/loading';
 
 

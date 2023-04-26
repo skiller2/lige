@@ -19,8 +19,9 @@ import { PdfviewerComponent } from 'src/app/shared/pdfviewer/pdfviewer.component
 import { UploadFileComponent } from 'src/app/shared/upload-file/upload-file.component';
 import { CurrencyPipeModule } from '@delon/util';
 import { AppFilterPipe } from 'src/app/shared/utils/filter-type';
+import { AdelantoComponent } from './adelanto/adelanto.component';
 
-const COMPONENTS: Array<Type<void>> = [PdfviewerComponent, UploadFileComponent, ExcepcionAsistenciaComponent, AsistenciaComponent, GesCcfarmComponent, ImgPersComponent, CredPersComponent, FormComponent, ImageContentComponent,ViewCredentialComponent,CUITPipe, AppFilterPipe, PdfRetiroComponent];
+const COMPONENTS: Array<Type<void>> = [PdfviewerComponent, UploadFileComponent, ExcepcionAsistenciaComponent, AsistenciaComponent, GesCcfarmComponent, ImgPersComponent, CredPersComponent, FormComponent, ImageContentComponent,ViewCredentialComponent,CUITPipe, AppFilterPipe, PdfRetiroComponent, AdelantoComponent];
 
 @NgModule({
 imports: [SharedModule, GesRoutingModule, NzResizableModule, ImageCropperModule, QRModule,CurrencyPipeModule],

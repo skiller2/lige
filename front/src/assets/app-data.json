@@ -54,13 +54,18 @@
               "icon": "anticon-profile"
             },
             {
-              "text": "Detalle liquidación",
+              "text": "Detalle Liquidación",
               "link": "/ges/liquida/detalle",
               "icon": "anticon-profile"
             },
             {
               "text": "Detalle Asistencia",
               "link": "/ges/asistencia",
+              "icon": "anticon-profile"
+            },
+            {
+              "text": "Adelanto",
+              "link": "/ges/adelanto",
               "icon": "anticon-profile"
             }
 
