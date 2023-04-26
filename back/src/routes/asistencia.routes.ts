@@ -8,17 +8,22 @@ asistenciaRouter.get('/metodologia', (req, res) => {
     asistenciaController.getMetodologia(req, res)
 })
 
-asistenciaRouter.get('/exceporobj/:anio/:mes/:objetivoId', (req, res) => {
+asistenciaRouter.get('/exceporobj/:anio/:mes/:objetivoId', authMiddleware.verifyToken, (req, res) => {
     asistenciaController.getExcepAsistenciaPorObjetivo(req, res)
 })
 
-asistenciaRouter.get('/listaporobj/:anio/:mes/:objetivoId', (req, res) => {
+asistenciaRouter.get('/listaporobj/:anio/:mes/:objetivoId', authMiddleware.verifyToken, (req, res) => {
     asistenciaController.getAsistenciaPorObjetivo(req, res)
 })
 
-asistenciaRouter.get('/categorias', (req, res) => {
+asistenciaRouter.get('/categorias', authMiddleware.verifyToken, (req, res) => {
     asistenciaController.getCategoria(req, res)
 })
-asistenciaRouter.post('/excepcion', (req, res) => {
+
+asistenciaRouter.post('/excepcion', authMiddleware.verifyToken, (req, res) => {
     asistenciaController.setExcepcion(req, res)
+})
+
+asistenciaRouter.delete('/excepcion/:anio/:mes/:ObjetivoId/:PersonaId/:metodologia',authMiddleware.verifyToken, (req, res) => {
+    asistenciaController.deleteExcepcion( req, res)
 })

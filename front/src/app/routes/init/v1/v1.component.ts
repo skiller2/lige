@@ -51,8 +51,24 @@ export class InitV1Component implements OnInit {
     }
   ];
 
-  horasTrabajadas = [{ x: '2023-02', y: 2 }];
-  horasTrabajadasTitle = "";
+  horasTrabajadas = [{ x: '2023-02', y: 2 }]
+  horasTrabajadasTitle = ""
+  
+  objetivosActivos = []
+  objetivosActivosTitle = ""
+
+  clientesActivos = []
+  clientesActivosTitle = ""
+
+
+  objetivosSinAsistencia = []
+  objetivosSinAsistenciaTitle = ""
+  objetivosSinAsistenciaTotal = 0
+
+  objetivosSinAsistenciaCur = []
+  objetivosSinAsistenciaTitleCur = ""
+  objetivosSinAsistenciaTotalCur = 0
+  
   webSite!: any[];
   salesData!: any[];
   offlineChartData!: any[];
@@ -87,6 +103,57 @@ export class InitV1Component implements OnInit {
 //      this.offlineChartData = res.offlineChartData;
       this.cdr.detectChanges();
     });
+
+    this.http.get('/api/init/stats/objetivosactivos').subscribe(res => {
+      this.objetivosActivos = res.data.objetivosActivos;
+      this.objetivosActivosTitle ="Objetivos"
+//      this.webSite = res.visitData.slice(0, 10);
+//      this.salesData = res.salesData;
+//      this.offlineChartData = res.offlineChartData;
+      this.cdr.detectChanges();
+    });
+
+    this.http.get('/api/init/stats/clientesactivos').subscribe(res => {
+      this.clientesActivos = res.data.clientesActivos;
+      this.clientesActivosTitle ="Clientes"
+//      this.webSite = res.visitData.slice(0, 10);
+//      this.salesData = res.salesData;
+//      this.offlineChartData = res.offlineChartData;
+      this.cdr.detectChanges();
+    });
+
+
+    const stmactual = new Date()
+    const mes = stmactual.getMonth()    
+    const anio = stmactual.getFullYear()    
+    this.http.get(`/api/init/stats/objetivossinasistencia/${anio}/${mes}`).subscribe(res => {
+      this.objetivosSinAsistencia = res.data.objetivosSinAsistencia;
+      this.objetivosSinAsistenciaTotal = res.data.objetivosSinAsistenciaTotal;
+      this.objetivosSinAsistenciaTitle =`${anio}/${mes} Objetivos sin asistencia `
+//      this.webSite = res.visitData.slice(0, 10);
+//      this.salesData = res.salesData;
+//      this.offlineChartData = res.offlineChartData;
+      this.cdr.detectChanges();
+    });
+
+    const stmactualcur = new Date()
+    const mescur = stmactualcur.getMonth()+1    
+    const aniocur = stmactualcur.getFullYear()    
+    this.http.get(`/api/init/stats/objetivossinasistencia/${aniocur}/${mescur}`).subscribe(res => {
+      this.objetivosSinAsistenciaCur = res.data.objetivosSinAsistencia;
+      this.objetivosSinAsistenciaTotalCur = res.data.objetivosSinAsistenciaTotal;
+      this.objetivosSinAsistenciaTitleCur =`${aniocur}/${mescur} Objetivos sin asistencia `
+//      this.webSite = res.visitData.slice(0, 10);
+//      this.salesData = res.salesData;
+//      this.offlineChartData = res.offlineChartData;
+      this.cdr.detectChanges();
+    });
+
+    
+
+
+
+
   }
 
   private genOnboarding(): void {

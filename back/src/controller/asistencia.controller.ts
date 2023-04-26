@@ -1,10 +1,10 @@
 import { Response } from "express";
 import { BaseController } from "./baseController";
 import { dataSource } from "../data-source";
+import { ObjetivoController } from "./objetivo.controller";
 
 
 export class AsistenciaController extends BaseController {
-
 
     async getCategoria(
         req: any,
@@ -12,11 +12,14 @@ export class AsistenciaController extends BaseController {
     ) {
         try {
             const result = await dataSource.query(
-                `SELECT val.ValorLiquidacionSucursalId, tip.TipoAsociadoDescripcion, tip.TipoAsociadoId, cat.CategoriaPersonalId, cat.CategoriaPersonalDescripcion, val.ValorLiquidacionHoraNormal
+                `SELECT val.ValorLiquidacionSucursalId, tip.TipoAsociadoId, tip.TipoAsociadoDescripcion, cat.CategoriaPersonalId, cat.CategoriaPersonalDescripcion, val.ValorLiquidacionHoraNormal
                 FROM CategoriaPersonal cat
                 JOIN TipoAsociado tip ON tip.TipoAsociadoId = cat.TipoAsociadoId
                 JOIN ValorLiquidacion val ON val.ValorLiquidacionTipoAsociadoId = tip.TipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId=cat.CategoriaPersonalId
-                WHERE GETDATE() BETWEEN val.ValorLiquidacionDesde AND COALESCE(val.ValorLiquidacionHasta, '9999-12-31')
+                WHERE GETDATE() BETWEEN val.ValorLiquidacionDesde AND COALESCE(val.ValorLiquidacionHasta, '9999-12-31') 
+                AND val.ValorLiquidacionHoraNormal > 0
+                AND ISNULL(cat.CategoriaPersonalInactivo,0) <> 1
+                AND tip.TipoAsociadoId = 3
                 `
             )
             this.jsonRes(result, res)
@@ -33,6 +36,7 @@ export class AsistenciaController extends BaseController {
 
         try {
             let { SucursalId, anio, mes, ObjetivoId, PersonaId, metodologia, Equivalencia, SumaFija, AdicionalHora, Horas } = req.body;
+            const persona_cuit = req.persona_cuit
             const fechaDesde = new Date(anio, mes - 1, 1)
             let fechaHasta = new Date(anio, mes, 1)
             fechaHasta.setDate(fechaHasta.getDate() - 1)
@@ -87,8 +91,18 @@ export class AsistenciaController extends BaseController {
 
                     break;
             }
+            await queryRunner.connect()
+            await queryRunner.startTransaction()
 
-            let result = await dataSource.query(
+            if (persona_cuit != "") {
+                const auth = await this.hasAuthObjetivo(anio, mes, persona_cuit, ObjetivoId, queryRunner)
+                if (!auth)
+                    throw `No tiene permisos para realizar operación`
+            }
+
+
+
+            let result = await queryRunner.query(
                 `SELECT percat.PersonalCategoriaTipoAsociadoId,percat.PersonalCategoriaCategoriaPersonalId, cat.CategoriaPersonalDescripcion, percat.PersonalCategoriaDesde, percat.PersonalCategoriaHasta
                 FROM Personal per
                 JOIN PersonalCategoria percat ON percat.PersonalCategoriaPersonalId = per.PersonalId
@@ -108,8 +122,6 @@ export class AsistenciaController extends BaseController {
                 }
             }
 
-            await queryRunner.connect()
-            await queryRunner.startTransaction()
             //Traigo el Art14 para analizarlo            
 
 
@@ -129,7 +141,7 @@ export class AsistenciaController extends BaseController {
                 [PersonaId, ObjetivoId, metodologia, fechaDesde]
             )
 
-            let resultNoAutoriz = await dataSource.query(
+            let resultNoAutoriz = await queryRunner.query(
                 `SELECT art.PersonalArt14Id, art.Personalid, art.PersonalArt14ObjetivoId, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, 
                 art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde, art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta,
                 
@@ -143,8 +155,8 @@ export class AsistenciaController extends BaseController {
                 [PersonaId, ObjetivoId, metodologia, fechaDesde]
             )
 
-
-            resultAutoriz.forEach(row => {
+            for (row of resultAutoriz) {
+                //            resultAutoriz.forEach(row => {
                 //Actualizo la fecha de los registros autorizados para finalizarlos.
                 const PersonalArt14FormaArt14 = row['PersonalArt14FormaArt14']
                 const PersonalArt14CategoriaId = row['PersonalArt14CategoriaId']
@@ -169,7 +181,7 @@ export class AsistenciaController extends BaseController {
                 switch (metodologia) {
                     case 'A':
                         if (PersonalArt14FormaArt14 == 'E') {
-                            queryRunner.query(
+                            await queryRunner.query(
                                 `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2
                             WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
                                 [row['PersonalArt14Id'], PersonaId, hasta]
@@ -179,7 +191,7 @@ export class AsistenciaController extends BaseController {
                         break;
                     case 'E':
                         if (PersonalArt14FormaArt14 == 'A') {
-                            queryRunner.query(
+                            await queryRunner.query(
                                 `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2
                                 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
                                 [row['PersonalArt14Id'], PersonaId, hasta]
@@ -192,16 +204,17 @@ export class AsistenciaController extends BaseController {
                         break;
                 }
                 if (PersonalArt14FormaArt14 == metodologia) {
-                    queryRunner.query(
+                    await queryRunner.query(
                         `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2
                     WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
                         [row['PersonalArt14Id'], PersonaId, hasta]
                     )
                 }
 
-            })
+            }
 
-            resultNoAutoriz.forEach(row => {
+            //resultNoAutoriz.forEach(row => {
+            for (row of resultNoAutoriz) {
                 const PersonalArt14FormaArt14 = row['PersonalArt14FormaArt14']
                 const PersonalArt14CategoriaId = row['PersonalArt14CategoriaId']
                 const PersonalArt14TipoAsociadoId = row['PersonalArt14TipoAsociadoId']
@@ -223,7 +236,7 @@ export class AsistenciaController extends BaseController {
                 switch (metodologia) {
                     case 'A':
                         if (PersonalArt14FormaArt14 == 'E') {
-                            queryRunner.query(
+                            await queryRunner.query(
                                 `DELETE FROM PersonalArt14 
                                 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
                                 [row['PersonalArt14Id'], PersonaId]
@@ -232,7 +245,7 @@ export class AsistenciaController extends BaseController {
                         break;
                     case 'E':
                         if (PersonalArt14FormaArt14 == 'A') {
-                            queryRunner.query(
+                            await queryRunner.query(
                                 `DELETE FROM PersonalArt14 
                                 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
                                 [row['PersonalArt14Id'], PersonaId]
@@ -245,14 +258,14 @@ export class AsistenciaController extends BaseController {
                 }
                 if (PersonalArt14FormaArt14 == metodologia) {
 
-                    queryRunner.query(
+                    await queryRunner.query(
                         `DELETE FROM PersonalArt14 
                     WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
                         [row['PersonalArt14Id'], PersonaId]
                     )
                 }
 
-            })
+            }
 
             result = await queryRunner.query(
                 `SELECT per.Personalid, per.PersonalArt14UltNro
@@ -302,6 +315,102 @@ export class AsistenciaController extends BaseController {
             await queryRunner.release()
         }
     }
+
+
+
+    async deleteExcepcion(
+        req: any,
+        res: Response
+    ) {
+        const anio: number = req.params.anio
+        const mes: number = req.params.mes
+        const ObjetivoId: number = req.params.ObjetivoId
+        const PersonaId: number = req.params.PersonaId
+        const metodologia: string = req.params.metodologia
+        const persona_cuit = req.persona_cuit
+
+        const queryRunner = dataSource.createQueryRunner()
+        try {
+            const fechaDesde = new Date(anio, mes - 1, 1)
+
+            await queryRunner.connect()
+            await queryRunner.startTransaction()
+
+            if (persona_cuit != "") {
+                const auth = await this.hasAuthObjetivo(anio, mes, persona_cuit, ObjetivoId, queryRunner)
+                if (!auth)
+                    throw `No tiene permisos para realizar operación`
+            }
+
+            //Traigo el Art14 para analizarlo
+            let resultAutoriz = await queryRunner.query(
+                `SELECT art.PersonalArt14Id, art.Personalid, art.PersonalArt14ObjetivoId, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, 
+                art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde, art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta,
+                1
+                
+                FROM PersonalArt14 art
+                WHERE art.Personalid = @0 AND art.PersonalArt14ObjetivoId=@1 
+                AND art.PersonalArt14FormaArt14 = @2
+                AND art.PersonalArt14Autorizado = 'S'
+                AND art.PersonalArt14AutorizadoDesde <= @3 AND (art.PersonalArt14AutorizadoHasta >= @3 OR art.PersonalArt14AutorizadoHasta is null)`,
+                [PersonaId, ObjetivoId, metodologia, fechaDesde]
+            )
+
+            let resultNoAutoriz = await queryRunner.query(
+                `SELECT art.PersonalArt14Id, art.Personalid, art.PersonalArt14ObjetivoId, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, 
+                art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde, art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta,
+                
+                1
+                
+                FROM PersonalArt14 art
+                WHERE art.Personalid = @0 AND art.PersonalArt14ObjetivoId=@1
+                AND art.PersonalArt14FormaArt14 = @2 
+                AND art.PersonalArt14Autorizado is null
+                AND art.PersonalArt14Desde <= @3 AND (art.PersonalArt14Hasta >= @3 OR art.PersonalArt14Hasta is null)`,
+                [PersonaId, ObjetivoId, metodologia, fechaDesde]
+            )
+
+            let hasta: Date = new Date(fechaDesde)
+            hasta.setDate(fechaDesde.getDate() - 1)
+            let recupdate = 0
+            let recdelete = 0
+            for (const row of resultAutoriz) {
+                recupdate++
+                await queryRunner.query(
+                    `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
+                    [row['PersonalArt14Id'], PersonaId, hasta]
+                )
+            }
+
+            for (const row of resultNoAutoriz) {
+                recdelete++
+                await queryRunner.query(
+                    `DELETE FROM PersonalArt14 
+                                  WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
+                    [row['PersonalArt14Id'], PersonaId]
+                )
+            }
+
+            if (recdelete + recupdate == 0)
+                throw "No se localizaron registros para finalizar para la persona y metodología indicados"
+
+            //throw "Todo bien"
+            await queryRunner.commitTransaction()
+            this.jsonRes([], res)
+        }
+        catch (err) {
+            let def = 'Error accediendo a la base de datos'
+            if (typeof def === 'string')
+                def = err
+            await queryRunner.rollbackTransaction()
+            this.errRes(err, res, def, 409)
+        }
+        finally {
+            // you need to release query runner which is manually created:
+            await queryRunner.release()
+        }
+    }
+
 
     async getExcepAsistenciaPorObjetivo(
         req: any,
@@ -526,10 +635,10 @@ export class AsistenciaController extends BaseController {
         res: Response
     ) {
         const recordSet = new Array()
-        recordSet.push({ id: 'S', descripcion: 'Monto fijo a sumar',etiqueta:'Imp. Adicional' })
-        recordSet.push({ id: 'E', descripcion: 'Equivalencia de categoría', etiqueta:'Equivalencia' })
-        recordSet.push({ id: 'A', descripcion: 'Monto adicional por hora', etiqueta:'Imp. Adicional Hora' })
-        recordSet.push({ id: 'H', descripcion: 'Horas adicionales mensuales', etiqueta:'Horas adicionales'})
+        recordSet.push({ id: 'S', descripcion: 'Monto fijo a sumar', etiqueta: 'Imp. Adicional' })
+        recordSet.push({ id: 'E', descripcion: 'Equivalencia de categoría', etiqueta: 'Equivalencia' })
+        recordSet.push({ id: 'A', descripcion: 'Monto adicional por hora', etiqueta: 'Imp. Adicional Hora' })
+        recordSet.push({ id: 'H', descripcion: 'Horas adicionales mensuales', etiqueta: 'Horas adicionales' })
 
         this.jsonRes(recordSet, res)
     }

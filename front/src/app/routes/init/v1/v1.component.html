@@ -25,7 +25,93 @@
       </div>
     </div>
   </div>
-  
+
+
+  <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+    <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
+      <div nz-col nzSpan="12" class="p-md text-white">
+        <div class="h2 mt0">{{ objetivosActivosTitle }}</div>
+        <p class="text-nowrap mb0">Objetivos Activos</p>
+      </div>
+      <div nz-col nzSpan="12">
+        <g2-mini-bar
+          *ngIf="objetivosActivos"
+          height="35"
+          color="#fff"
+          borderWidth="3"
+          [padding]="[5, 30]"
+          [data]="objetivosActivos"
+          yTooltipSuffix=""
+          (ready)="fixDark($event)"
+        ></g2-mini-bar>
+      </div>
+    </div>
+  </div>
+
+  <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+    <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
+      <div nz-col nzSpan="12" class="p-md text-white">
+        <div class="h2 mt0">{{ clientesActivosTitle }}</div>
+        <p class="text-nowrap mb0">Clientes Activos</p>
+      </div>
+      <div nz-col nzSpan="12">
+        <g2-mini-bar
+          *ngIf="clientesActivos"
+          height="35"
+          color="#fff"
+          borderWidth="3"
+          [padding]="[5, 30]"
+          [data]="clientesActivos"
+          yTooltipSuffix=""
+          (ready)="fixDark($event)"
+        ></g2-mini-bar>
+      </div>
+    </div>
+  </div>
+
+
+
+  <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md ant-btn-primary " *ngIf="objetivosSinAsistenciaTotal>0">
+    <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
+      <div nz-col nzSpan="12" class="p-md text-white">
+        <div class="h2 mt0 " >{{ objetivosSinAsistenciaTotal }}</div>
+        <p class="text-nowrap mb0">{{ objetivosSinAsistenciaTitle }}</p>
+      </div>
+      <div nz-col nzSpan="12">
+        <g2-mini-bar
+          *ngIf="objetivosSinAsistenciaTotal>0"
+          height="35"
+          color="#fff"
+          borderWidth="3"
+          [padding]="[5, 30]"
+          [data]="objetivosSinAsistencia"
+          yTooltipSuffix=""
+          (ready)="fixDark($event)"
+        ></g2-mini-bar>
+      </div>
+    </div>
+  </div>
+
+  <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+    <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
+      <div nz-col nzSpan="12" class="p-md text-white ant-btn-primary ant-btn-dangerous">
+        <div class="h2 mt0">{{ objetivosSinAsistenciaTotalCur }}</div>
+        <p class="text-nowrap mb0">{{ objetivosSinAsistenciaTitleCur }}</p>
+      </div>
+      <div nz-col nzSpan="12">
+        <g2-mini-bar
+          *ngIf="objetivosSinAsistenciaCur"
+          height="35"
+          color="#fff"
+          borderWidth="3"
+          [padding]="[5, 30]"
+          [data]="objetivosSinAsistenciaCur"
+          yTooltipSuffix=""
+          (ready)="fixDark($event)"
+        ></g2-mini-bar>
+      </div>
+    </div>
+  </div>
 </div>
 
 
@@ -39,4 +125,28 @@
       <g2-bar *ngIf="horasTrabajadas" height="275" [data]="horasTrabajadas" ></g2-bar>
     </nz-card>
   </div>
+
+
+  <div nz-col nzXs="24" nzMd="12">
+    <nz-card [nzBordered]="false" [nzTitle]="objetivosTitle">
+      <ng-template #objetivosTitle>
+        Objetivos Activos
+        <small class="text-sm font-weight-normal">Objetivos con contrato vigente</small>
+      </ng-template>
+      <g2-bar *ngIf="objetivosActivos" height="275" [data]="objetivosActivos" ></g2-bar>
+    </nz-card>
+  </div>
+
+  <div nz-col nzXs="24" nzMd="12">
+    <nz-card [nzBordered]="false" [nzTitle]="clientesTitle">
+      <ng-template #clientesTitle>
+        Clientes Activos
+        <small class="text-sm font-weight-normal">Clientes con contrato vigente</small>
+      </ng-template>
+      <g2-bar *ngIf="clientesActivos" height="275" [data]="clientesActivos" ></g2-bar>
+    </nz-card>
+  </div>
 </div>
+
+
+

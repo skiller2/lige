@@ -3,6 +3,189 @@ import { BaseController } from "./baseController";
 import { dataSource } from "../data-source";
 
 export class InitController extends BaseController {
+  getObjetivosSinAsistencia(req: Request, res: Response) {
+    const con = dataSource;
+    const stmactual = new Date()
+    const anio = req.params.anio
+    const mes = req.params.mes
+    con
+      .query(
+        `SELECT DISTINCT suc.ObjetivoSucursalSucursalId, 
+        sucdes.SucursalDescripcion,
+        COUNT(obj.ObjetivoId) totalobjetivos,
+        -- obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId, obj.ObjetivoDescripcion,
+        
+        -- CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)) as codObjetivo, 
+        
+        -- obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes,
+        
+        -- perjer.PersonalNombre AS NombreCoordinadorZona, perjer.PersonalApellido AS ApellidoCoordinadorZona,
+        
+        
+        -- eledepcon.ClienteElementoDependienteContratoFechaDesde,  eledepcon.ClienteElementoDependienteContratoFechaHasta, eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,
+        -- clicon.ClienteContratoFechaDesde, clicon.ClienteContratoFechaHasta, clicon.ClienteContratoFechaFinalizacion,
+        
+        
+        1
+        
+        FROM Objetivo obj 
+        
+        LEFT JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoId = obj.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @0
+        LEFT JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoId  = obja.ObjetivoAsistenciaAnoId AND  objm.ObjetivoId = obja.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @1
+        LEFT JOIN ObjetivoAsistenciaAnoMesPersonalDias objd ON objd.ObjetivoId = obj.ObjetivoId AND objd.ObjetivoAsistenciaAnoMesId = objm.ObjetivoAsistenciaAnoMesId AND objd.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId
+        
+        
+        LEFT JOIN Personal persona ON persona.PersonalId = objd.ObjetivoAsistenciaMesPersonalId
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = persona.PersonalCUITCUILUltNro
+        
+        
+        LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
+        LEFT JOIN Sucursal sucdes ON sucdes.SucursalId = suc.ObjetivoSucursalSucursalId
+        
+        
+        LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(@0,@1,'28')  BETWEEN opj.ObjetivoPersonalJerarquicoDesde  AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') AND opj.ObjetivoPersonalJerarquicoComo = 'J'
+        LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
+        
+        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+        LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledepcon.ClienteElementoDependienteContratoId = eledep.ClienteElementoDependienteContratoUltNro
+        
+        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
+        LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = obj.ClienteId AND clicon.ClienteContratoId = cli.ClienteContratoUltNro AND obj.ClienteElementoDependienteId IS NULL
+        
+        WHERE 
+        --	obja.ObjetivoAsistenciaAnoAno = 2023 AND objm.ObjetivoAsistenciaAnoMesMes = 3 AND 
+        objd.ObjetivoId IS NULL AND	 
+               ( (clicon.ClienteContratoFechaDesde <= DATETIMEFROMPARTS ( @0, @1, 28, 0, 0, 0, 0 )  
+         AND ISNULL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= DATETIMEFROMPARTS ( @0, @1, 1, 0, 0, 0, 0 ) AND ISNULL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= DATETIMEFROMPARTS ( @0, @1, 1, 0, 0, 0, 0 ) ) OR (
+                eledepcon.ClienteElementoDependienteContratoFechaDesde <= DATETIMEFROMPARTS ( @0, @1, 28, 0, 0, 0, 0 ) AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= DATETIMEFROMPARTS ( @0, @1, 1, 0, 0, 0, 0 ) AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= DATETIMEFROMPARTS ( @0, @1, 1, 0, 0, 0, 0 )) 
+        --		  OR ClienteContratoFechaDesde IS NULL AND clicon.ClienteContratoFechaHasta IS NULL AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NULL AND eledepcon.ClienteElementoDependienteContratoFechaHasta IS NULL)        
+                
+              
+              
+              )
+              
+        GROUP BY suc.ObjetivoSucursalSucursalId, sucdes.SucursalDescripcion
+        `,
+        [anio,mes]
+      )
+      .then((records: Array<any>) => {
+        let objetivosSinAsistencia: { x: string; y: any; }[] = []
+        let objetivosSinAsistenciaTotal = 0
+//        if (records.length ==0) throw new Error('Data not found')
+        records.forEach(rec => { 
+          objetivosSinAsistencia.push({ x: rec.SucursalDescripcion, y: rec.totalobjetivos })
+          objetivosSinAsistenciaTotal += rec.totalobjetivos
+        })
+
+        this.jsonRes({ objetivosSinAsistencia: objetivosSinAsistencia, objetivosSinAsistenciaTotal:objetivosSinAsistenciaTotal },res);
+      
+      })
+      .catch((err) => {
+        this.errRes(err, res, "Error accediendo a la base de datos", 409);
+      });
+  }
+
+
+  getObjetivosActivos(req: Request, res: Response) {
+    const con = dataSource;
+    const stmactual = new Date()
+    con
+      .query(
+        `SELECT 
+        suc.ObjetivoSucursalSucursalId, TRIM(sucdes.SucursalDescripcion) AS SucursalDescripcion,  
+        COUNT(obj.ObjetivoId) as totalobjetivos,
+        -- obj.ObjetivoId,  obj.ClienteId, obj.ClienteElementoDependienteId, obj.ObjetivoDescripcion,
+        
+        -- eledepcon.ClienteElementoDependienteContratoFechaDesde, eledepcon.ClienteElementoDependienteContratoFechaHasta, eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,
+        -- clicon.ClienteContratoFechaDesde, clicon.ClienteContratoFechaHasta, clicon.ClienteContratoFechaFinalizacion,
+        
+        1
+        
+        
+        From Objetivo obj
+        LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
+        LEFT JOIN Sucursal sucdes ON sucdes.SucursalId=  suc.ObjetivoSucursalSucursalId
+        
+        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+        LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledepcon.ClienteElementoDependienteContratoId = eledep.ClienteElementoDependienteContratoUltNro
+        
+        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
+        LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = obj.ClienteId AND clicon.ClienteContratoId = cli.ClienteContratoUltNro AND obj.ClienteElementoDependienteId IS NULL
+        
+        WHERE 
+
+        (clicon.ClienteContratoFechaDesde <= @0 AND ISNULL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNULL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= @0 ) OR (
+          eledepcon.ClienteElementoDependienteContratoFechaDesde <= @0 AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0  AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0)
+        GROUP BY ObjetivoSucursalSucursalId, sucdes.SucursalDescripcion
+        `,
+        [stmactual]
+      )
+      .then((records: Array<any>) => {
+        let objetivosActivos: { x: string; y: any; }[]=[]
+        if (records.length ==0) throw new Error('Data not found')
+        records.forEach(rec => { 
+          objetivosActivos.push({x: rec.SucursalDescripcion, y:rec.totalobjetivos})
+        })
+
+        this.jsonRes({ objetivosActivos: objetivosActivos },res);
+      
+      })
+      .catch((err) => {
+        this.errRes(err, res, "Error accediendo a la base de datos", 409);
+      });
+  }
+
+
+  getClientesActivos(req: Request, res: Response) {
+    const con = dataSource;
+    const stmactual = new Date()
+    con
+      .query(
+        `SELECT
+        suc.ObjetivoSucursalSucursalId, TRIM(sucdes.SucursalDescripcion) AS SucursalDescripcion,  
+        COUNT (DISTINCT obj.ClienteId) as totalclientes,
+        -- obj.ObjetivoId,  obj.ClienteId, obj.ClienteElementoDependienteId, obj.ObjetivoDescripcion,
+        
+        -- eledepcon.ClienteElementoDependienteContratoFechaDesde, eledepcon.ClienteElementoDependienteContratoFechaHasta, eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,
+        -- clicon.ClienteContratoFechaDesde, clicon.ClienteContratoFechaHasta, clicon.ClienteContratoFechaFinalizacion,
+        
+        1
+        
+        
+        From Objetivo obj
+        LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
+        LEFT JOIN Sucursal sucdes ON sucdes.SucursalId=  suc.ObjetivoSucursalSucursalId
+        
+        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+        LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledepcon.ClienteElementoDependienteContratoId = eledep.ClienteElementoDependienteContratoUltNro
+        
+        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+        LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = obj.ClienteId AND clicon.ClienteContratoId = cli.ClienteContratoUltNro AND obj.ClienteElementoDependienteId IS NULL
+        
+        WHERE 
+
+        (clicon.ClienteContratoFechaDesde <= @0 AND ISNULL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNULL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= @0 ) OR (
+          eledepcon.ClienteElementoDependienteContratoFechaDesde <= @0 AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0  AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0)
+          GROUP BY ObjetivoSucursalSucursalId, sucdes.SucursalDescripcion
+        `,
+        [stmactual]
+      )
+      .then((records: Array<any>) => {
+        let clientesActivos: { x: string; y: any; }[]=[]
+        if (records.length ==0) throw new Error('Data not found')
+        records.forEach(rec => { 
+          clientesActivos.push({x: rec.SucursalDescripcion, y:rec.totalclientes})
+        })
+
+        this.jsonRes({ clientesActivos: clientesActivos },res);
+      
+      })
+      .catch((err) => {
+        this.errRes(err, res, "Error accediendo a la base de datos", 409);
+      });
+  }
+
+
   getStats(req: Request, res: Response) {
     const con = dataSource;
     con

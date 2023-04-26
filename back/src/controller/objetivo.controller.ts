@@ -4,7 +4,7 @@ import { dataSource } from "../data-source";
 
 export class ObjetivoController extends BaseController {
 
-    getById(objetivoId: number, anio: number, mes: number, res: Response) {
+    async getById(objetivoId: number, anio: number, mes: number, res: Response) {
         let fechaHasta = new Date(anio, mes, 1)
         fechaHasta.setDate(fechaHasta.getDate() - 1)
 

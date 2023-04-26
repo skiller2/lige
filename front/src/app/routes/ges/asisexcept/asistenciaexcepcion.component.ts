@@ -14,16 +14,7 @@ enum Busqueda {
 @Component({
   selector: 'app-ges-asistenciaexcepcion',
   templateUrl: './asistenciaexcepcion.component.html',
-  styles: [
-    `
-    .row-apro {
-      background-color: green
-    }
-    .row-pend {
-      background-color: yellow
-    }
-    `
-  ]
+  styleUrls: ['./asistenciaexcepcion.component.less']
 })
 
 
@@ -183,6 +174,32 @@ export class ExcepcionAsistenciaComponent {
       })
 
   }
+
+  endexception() {
+    this.searchService.deleteAsistenciaExcepcion(this.asistenciaexcepcion.value)
+      .pipe(
+        switchMap(() => this.$listaExcepciones = this.searchService.getExcepxObjetivo(this.asistenciaexcepcion.controls['ObjetivoId'].value, this.asistenciaexcepcion.controls['anio'].value, this.asistenciaexcepcion.controls['mes'].value)),
+        //      tap(() => this.$isObjetivoOptionsLoading.next(false))
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (data) => console.log('data', data),
+        error: (err) => {
+          console.log('error', err)
+        },
+        complete: () => {
+          console.log('complete')
+
+          this.asistenciaexcepcion.controls['PersonaId'].setValue('');
+          this.asistenciaexcepcion.controls['metodologia'].setValue('');
+
+          this.notification.success('Finalización', 'Existosa')
+
+        }
+      })
+
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next('');
     this.destroy$.complete();
