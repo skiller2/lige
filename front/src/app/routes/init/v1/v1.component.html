@@ -30,7 +30,7 @@
   <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
     <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
       <div nz-col nzSpan="12" class="p-md text-white">
-        <div class="h2 mt0">{{ objetivosActivosTitle }}</div>
+        <div class="h2 mt0">{{ objetivosActivosTotal }}</div>
         <p class="text-nowrap mb0">Objetivos Activos</p>
       </div>
       <div nz-col nzSpan="12">
@@ -51,7 +51,7 @@
   <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
     <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
       <div nz-col nzSpan="12" class="p-md text-white">
-        <div class="h2 mt0">{{ clientesActivosTitle }}</div>
+        <div class="h2 mt0">{{ clientesActivosTotal }}</div>
         <p class="text-nowrap mb0">Clientes Activos</p>
       </div>
       <div nz-col nzSpan="12">
@@ -71,8 +71,8 @@
 
 
 
-  <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md ant-btn-primary " *ngIf="objetivosSinAsistenciaTotal>0">
-    <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
+  <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md" *ngIf="objetivosSinAsistenciaTotal>0">
+    <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
       <div nz-col nzSpan="12" class="p-md text-white">
         <div class="h2 mt0 " >{{ objetivosSinAsistenciaTotal }}</div>
         <p class="text-nowrap mb0">{{ objetivosSinAsistenciaTitle }}</p>
@@ -93,8 +93,8 @@
   </div>
 
   <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
-    <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
-      <div nz-col nzSpan="12" class="p-md text-white ant-btn-primary ant-btn-dangerous">
+    <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
+      <div nz-col nzSpan="12" class="p-md text-white ">
         <div class="h2 mt0">{{ objetivosSinAsistenciaTotalCur }}</div>
         <p class="text-nowrap mb0">{{ objetivosSinAsistenciaTitleCur }}</p>
       </div>
