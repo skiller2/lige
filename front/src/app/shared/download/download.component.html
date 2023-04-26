@@ -1,0 +1,10 @@
+<button *ngIf="currentDownloadableFile.length > 0"(click)="download()" nz-button nzType="primary" nzSize='default'>
+    <span nz-icon nzType="download"></span>
+    {{completedText}}
+</button>
+
+
+<ng-container *ngIf="!currentDownloadableFile">
+    <span nz-icon nzType="loading" class="loading-icon"></span>
+    {{loadingText}}
+</ng-container>
