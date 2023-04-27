@@ -1,15 +1,62 @@
-<ng-template #phActionTpl>
-    <nz-button-group>
-        <button nz-button nzType="primary" disabled>L</button>
-        <button nz-button nzType="default" disabled>M</button>
-        <button nz-button nzType="default">M</button>
-        <button nz-button nzType="dashed" disabled>R</button>
-    </nz-button-group>
-</ng-template>
-
-<page-header [action]="phActionTpl"></page-header>
-
 <nz-card class="small-margin">
-    <app-personal-search ></app-personal-search>
+    <form nz-form #adelanto="ngForm">
+        <!-- <app-periodo-anio name="Año" ngModel/> -->
+        <!-- <app-periodo-mes name="Mes" ngModel/> -->
+        <nz-form-item>
+            <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
+            <nz-form-control>
+                <nz-input-group>
+                    <div nz-row [nzGutter]="8">
+                        <div nz-col nzSpan="10">
+                            <input type="number" [ngModel]="anio" (ngModelChange)="formChanged($event)" nz-input name="anio"/>
+                        </div>
+                        <div nz-col nzSpan="4">
+                            <input type="number" [ngModel]="mes" (ngModelChange)="formChanged($event)" nz-input name="mes"/>
+                        </div>
+                    </div>
+                </nz-input-group>
+            </nz-form-control>
+        </nz-form-item>
+        <app-personal-search name="PersonalId" (ngModelChange)="formChanged($event)" ngModel/>
+        <nz-form-item>
+            <nz-form-label [nzSpan]="5">Importe</nz-form-label>
+            <nz-form-control>
+                <input type="number" [placeholder]="'Monto'" nz-input name="monto"/>
+            </nz-form-control>
+        </nz-form-item>
+        <button nz-col nz-button nzType="primary" [nzSize]="'default'" (click)="SaveForm()">
+            <span nz-icon nzType="save" nzTheme="outline"></span>Graba
+        </button>
 
+        <nz-form-item>
+            <nz-form-label [nzSpan]="5">
+                Lista de Adelantos
+            </nz-form-label>
+            <nz-form-control>
+              <nz-table #tableAdelantos [nzData]="(listaAdelantos$ | async) || []" nzSize="small" [nzPageSize]="100000000"
+                [nzShowPagination]="false">
+                <thead>
+                  <tr>
+                    <th>Monto</th>
+                    <th>Fecha de Solicitud</th>
+                    <th>Fecha de Aprobación</th>
+                    <th>Estado</th>
+                    <th>Aplica El</th>
+
+                  </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let data of this.tableAdelantos.data">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+
+                </tbody>
+              </nz-table>
+            </nz-form-control>
+          </nz-form-item>
+    </form>
+    {{this.adelanto.value | json}}
 </nz-card>

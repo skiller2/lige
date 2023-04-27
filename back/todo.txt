@@ -1,6 +1,10 @@
 -- Validar que exista IMAGE_FOTO_PATH en el .env
--- Arreglar Multiple Queries
 -- Arreglar Query Loop
 -- Arreglar Second get
 -- Arreglar No hay datos
 -- Añadir Save
+--Cambiar la estructura de los controllers y sus rutas
+
+--Grabar Button
+--Año y Mes Button con sus NgModel
+--separar search service y el resto de la Api

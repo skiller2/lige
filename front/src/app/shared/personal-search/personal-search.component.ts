@@ -1,17 +1,45 @@
-import { Component, Output } from '@angular/core';
+import { Component, Output, forwardRef } from '@angular/core';
 import { BehaviorSubject, Observable, debounceTime, switchMap, tap } from 'rxjs';
 import { Search } from '../schemas/personal.schemas';
 import { SearchService } from 'src/app/services/search.service';
+import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 
 @Component({
   selector: 'app-personal-search',
   templateUrl: './personal-search.component.html',
-  styleUrls: ['./personal-search.component.less']
+  styleUrls: ['./personal-search.component.less'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => PersonalSearchComponent),
+      multi: true
+    }],
 })
-export class PersonalSearchComponent {
+export class PersonalSearchComponent implements ControlValueAccessor {
   constructor(private searchService: SearchService) { }
+  _selectedPersonalId: string = ''
 
-  @Output() selectedPersonalId: string = ''
+  get selectedPersonalId() {
+    return this._selectedPersonalId;
+  }
+
+  set selectedPersonalId(val) {
+    this._selectedPersonalId = val;
+    this.propagateChange(this._selectedPersonalId);
+  }
+  
+  writeValue(value: any) {
+    if (value !== undefined) {
+      this.selectedPersonalId = value;
+    }
+  }
+  propagateChange = (_: any) => {};
+
+  registerOnChange(fn: any) {
+    this.propagateChange = fn;
+  }
+
+  registerOnTouched() {}
   $selectedValueChange = new BehaviorSubject('')
   $iPersonalDataLoading = new BehaviorSubject<boolean>(false)
 
@@ -32,6 +60,7 @@ export class PersonalSearchComponent {
     )
 
   selectedValueChange(event: string): void {
+    this.selectedPersonalId = event
     if (event) {
       this.$selectedValueChange.next(event)
       this.$iPersonalDataLoading.next(true)

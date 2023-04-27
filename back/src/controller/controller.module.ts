@@ -5,6 +5,7 @@ import { InitController } from './init.controller';
 import { SucursalController } from './sucursal.controller';
 import { ObjetivoController } from './objetivo.controller';
 import { AsistenciaController } from './asistencia.controller';
+import { AdelantosController } from '../adelantos/adelantos.controller';
 
 
 export const infoController = new InfoController();
@@ -14,3 +15,4 @@ export const initController = new InitController()
 export const sucursalController = new SucursalController()
 export const objetivoController = new ObjetivoController()
 export const asistenciaController = new AsistenciaController()
+export const adelantosController = new AdelantosController()

@@ -1,8 +1,8 @@
 <nz-form-item>
-    <nz-form-label [nzSpan]="5">Buscar Persona</nz-form-label>
+    <nz-form-label [nzSpan]="5">Persona</nz-form-label>
     <nz-form-control nzHasFeedback [nzSpan]="12">
 
-    <nz-select [(ngModel)]="selectedPersonalId" [ngModelOptions]="{standalone: true}" (ngModelChange)="selectedValueChange($event)"  nzAllowClear nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
+    <nz-select [ngModel]="_selectedPersonalId" [ngModelOptions]="{standalone: true}" (ngModelChange)="selectedValueChange($event)"  nzAllowClear nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
       <ng-container *ngFor="let option of $optionsArray | async">
         <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
       </ng-container>  

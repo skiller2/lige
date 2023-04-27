@@ -1,0 +1,12 @@
+import { Router } from "express";
+import { authMiddleware } from "../middlewares/middleware.module";
+import { adelantosController } from "../controller/controller.module";
+
+export const adelantosRouter = Router();
+
+adelantosRouter.get('/:PersonalId/:anio/:mes',authMiddleware.verifyToken, (req, res) => {
+    adelantosController.getByPersonalId(req.params.PersonalId, req.params.anio, req.params.mes, res)
+})
+adelantosRouter.post('',authMiddleware.verifyToken, (req, res) => {
+    adelantosController.setAdelanto(req, res)
+})

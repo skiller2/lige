@@ -32,8 +32,10 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzPipesModule } from 'ng-zorro-antd/pipes';
 import { NzImageModule } from 'ng-zorro-antd/image';
+import { NzCalendarModule } from 'ng-zorro-antd/calendar';
 
 export const SHARED_ZORRO_MODULES = [
+  NzCalendarModule,
   NzImageModule,
   NzPipesModule,
   NzButtonModule,
