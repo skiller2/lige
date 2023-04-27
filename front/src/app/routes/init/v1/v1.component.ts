@@ -2,7 +2,7 @@ import { Platform } from '@angular/cdk/platform';
 import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnInit, Renderer2 } from '@angular/core';
 import type { Chart } from '@antv/g2';
-import { OnboardingService } from '@delon/abc/onboarding';
+import { OnboardingConfig, OnboardingService } from '@delon/abc/onboarding';
 import { _HttpClient } from '@delon/theme';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
 
@@ -56,9 +56,11 @@ export class InitV1Component implements OnInit {
   
   objetivosActivos = []
   objetivosActivosTitle = ""
+  objetivosActivosTotal = 0
 
   clientesActivos = []
   clientesActivosTitle = ""
+  clientesActivosTotal = 0
 
 
   objetivosSinAsistencia = []
@@ -95,7 +97,7 @@ export class InitV1Component implements OnInit {
   }
 
   ngOnInit(): void {
-    this.http.get('/api/init/stats').subscribe(res => {
+    this.http.get('/api/init/stats').subscribe((res: { data: { horasTrabajadas: { x: string; y: number; }[]; }; }) => {
       this.horasTrabajadas = res.data.horasTrabajadas;
       this.horasTrabajadasTitle ="Año 2023"
 //      this.webSite = res.visitData.slice(0, 10);
@@ -104,8 +106,10 @@ export class InitV1Component implements OnInit {
       this.cdr.detectChanges();
     });
 
-    this.http.get('/api/init/stats/objetivosactivos').subscribe(res => {
+    this.http.get('/api/init/stats/objetivosactivos').subscribe((res: { data: { objetivosActivos: never[]; objetivosActivosTotal: number; }; }) => {
       this.objetivosActivos = res.data.objetivosActivos;
+      this.objetivosActivosTotal = res.data.objetivosActivosTotal;
+
       this.objetivosActivosTitle ="Objetivos"
 //      this.webSite = res.visitData.slice(0, 10);
 //      this.salesData = res.salesData;
@@ -113,8 +117,9 @@ export class InitV1Component implements OnInit {
       this.cdr.detectChanges();
     });
 
-    this.http.get('/api/init/stats/clientesactivos').subscribe(res => {
+    this.http.get('/api/init/stats/clientesactivos').subscribe((res: { data: { clientesActivos: never[]; clientesActivosTotal: number; }; }) => {
       this.clientesActivos = res.data.clientesActivos;
+      this.clientesActivosTotal = res.data.clientesActivosTotal;
       this.clientesActivosTitle ="Clientes"
 //      this.webSite = res.visitData.slice(0, 10);
 //      this.salesData = res.salesData;
@@ -126,7 +131,7 @@ export class InitV1Component implements OnInit {
     const stmactual = new Date()
     const mes = stmactual.getMonth()    
     const anio = stmactual.getFullYear()    
-    this.http.get(`/api/init/stats/objetivossinasistencia/${anio}/${mes}`).subscribe(res => {
+    this.http.get(`/api/init/stats/objetivossinasistencia/${anio}/${mes}`).subscribe((res: { data: { objetivosSinAsistencia: never[]; objetivosSinAsistenciaTotal: number; }; }) => {
       this.objetivosSinAsistencia = res.data.objetivosSinAsistencia;
       this.objetivosSinAsistenciaTotal = res.data.objetivosSinAsistenciaTotal;
       this.objetivosSinAsistenciaTitle =`${anio}/${mes} Objetivos sin asistencia `
@@ -139,7 +144,7 @@ export class InitV1Component implements OnInit {
     const stmactualcur = new Date()
     const mescur = stmactualcur.getMonth()+1    
     const aniocur = stmactualcur.getFullYear()    
-    this.http.get(`/api/init/stats/objetivossinasistencia/${aniocur}/${mescur}`).subscribe(res => {
+    this.http.get(`/api/init/stats/objetivossinasistencia/${aniocur}/${mescur}`).subscribe((res: { data: { objetivosSinAsistencia: never[]; objetivosSinAsistenciaTotal: number; }; }) => {
       this.objetivosSinAsistenciaCur = res.data.objetivosSinAsistencia;
       this.objetivosSinAsistenciaTotalCur = res.data.objetivosSinAsistenciaTotal;
       this.objetivosSinAsistenciaTitleCur =`${aniocur}/${mescur} Objetivos sin asistencia `
@@ -161,7 +166,7 @@ export class InitV1Component implements OnInit {
     if (!this.platform.isBrowser || localStorage.getItem(KEY) === '1') {
       return;
     }
-    this.http.get(`./assets/tmp/on-boarding.json`).subscribe(res => {
+    this.http.get(`./assets/tmp/on-boarding.json`).subscribe((res: OnboardingConfig) => {
       this.obSrv.start(res);
       localStorage.setItem(KEY, '1');
     });

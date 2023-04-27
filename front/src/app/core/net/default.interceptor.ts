@@ -212,11 +212,11 @@ export class DefaultInterceptor implements HttpInterceptor {
         this.toLogin();
         break;
       case 409:
-        break;
+//        break;
       case 403:
       case 404:
       case 500:
-        this.goTo(`/exception/${ev.status}?url=${req.urlWithParams}`);
+//        this.goTo(`/exception/${ev.status}?url=${req.urlWithParams}`);
         break;
       default:
         if (ev instanceof HttpErrorResponse) {
