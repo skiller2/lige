@@ -57,20 +57,17 @@ export class SearchService {
     getSucursales(): Observable<any> {
         return this.http.get<ResponseJSON<any>>(`api/sucursales`)
             .pipe(
-                map((res) => {
-                    if (res) return res.data
-                    throw 'Error'
-                })
+                map((res) => res.data),
+                catchError((err, caught) => { console.log('Something went wrong!'); return of([]) }),
+
             )
     }
 
     getCategorias(): Observable<any> {
         return this.http.get<ResponseJSON<any>>(`api/asistencia/categorias`)
             .pipe(
-                map((res) => {
-                    if (res) return res.data
-                    throw 'Error'
-                })
+                map((res) => res.data),
+                catchError((err, caught) => { console.log('Something went wrong!'); return of([]) }),
             )
     }
 
@@ -90,25 +87,21 @@ export class SearchService {
             FechaHasta: new Date()
         }
         if (!id || id == "") return new BehaviorSubject<PersonaObj>(dummy).asObservable()
-        else return this.http.get(`api/personal/${id}`)
+        else return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/${id}`)
             .pipe(
-                map((res: ResponseJSON<PersonaObj>) =>
-                    res && res.data ?
-                        res.data :
-                        dummy)
+                map((res) => res.data),
+                catchError((err, caught) => { console.log('Something went wrong!'); return of(dummy) }),
             )
+
 
     }
 
     getExcepxObjetivo(objetivoId: number, anio: number, mes: number): Observable<any> {
         if (!objetivoId) return of([])
 
-        return this.http.get(`api/asistencia/exceporobj/${anio}/${mes}/${objetivoId}`)
+        return this.http.get<ResponseJSON<PersonaObj>>(`api/asistencia/exceporobj/${anio}/${mes}/${objetivoId}`)
             .pipe(
-                map((res: ResponseJSON<PersonaObj>) =>
-                    res && res.data ?
-                        res.data :
-                        []),
+                map((res) => res.data),
                 catchError((err, caught) => { console.log('Something went wrong!'); return of([]) }),
 
             )
@@ -131,7 +124,8 @@ export class SearchService {
     getMetodologia() {
         return this.http.get<ResponseJSON<any>>(`api/asistencia/metodologia`)
             .pipe(
-                map((res) => res.data)
+                map((res) => res.data),
+                catchError((err, caught) => { console.log('Something went wrong!'); return of([]) }),
             )
     }
 
