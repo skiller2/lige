@@ -21,7 +21,7 @@
         <nz-form-item>
             <nz-form-label [nzSpan]="5">Importe</nz-form-label>
             <nz-form-control>
-                <input type="number" [placeholder]="'Monto'" nz-input name="monto"/>
+                <input type="number" [placeholder]="'Monto'" nz-input name="monto" ngModel/>
             </nz-form-control>
         </nz-form-item>
         <button nz-col nz-button nzType="primary" [nzSize]="'default'" (click)="SaveForm()">
@@ -47,10 +47,10 @@
                 </thead>
                 <tbody>
                     <tr *ngFor="let data of this.tableAdelantos.data">
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                        <td>{{data.PersonalAdelantoMonto}}</td>
+                        <td>{{data.PersonalAdelantoFechaSolicitud}}</td>
+                        <td>{{data.PersonalAdelantoFechaDeAprobacion}}</td>
+                        <td>{{data.PersonalAdelantoAplicaEl}}</td>
                     </tr>
 
                 </tbody>

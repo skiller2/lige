@@ -17,15 +17,15 @@ import { environment } from '@env/environment';
           <i nz-icon nzType="search"></i>
         </div>
       </layout-default-header-item>
-      <layout-default-header-item direction="middle">
+      <!-- <layout-default-header-item direction="middle">
         <header-search class="alain-default__search" [(toggleChange)]="searchToggleStatus"></header-search>
-      </layout-default-header-item>
+      </layout-default-header-item> -->
       <layout-default-header-item direction="right">
         <header-notify></header-notify>
       </layout-default-header-item>
-      <layout-default-header-item direction="right" hidden="mobile">
+      <!-- <layout-default-header-item direction="right" hidden="mobile">
         <header-task></header-task>
-      </layout-default-header-item>
+      </layout-default-header-item> -->
       <layout-default-header-item direction="right" hidden="mobile">
         <header-icon></header-icon>
       </layout-default-header-item>
@@ -73,7 +73,7 @@ import { environment } from '@env/environment';
       </ng-template>
     </layout-default>
 
-    <setting-drawer *ngIf="showSettingDrawer"></setting-drawer>
+    <!-- <setting-drawer *ngIf="showSettingDrawer"></setting-drawer> -->
     <theme-btn></theme-btn>
   `
 })
