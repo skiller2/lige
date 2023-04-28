@@ -7,6 +7,7 @@ import { initRouter } from './init.routes'
 import { sucursalRouter } from './sucursal.routes'
 import { objetivoRouter } from './objetivo.routes'
 import { asistenciaRouter } from './asistencia.routes'
+import { adelantosRouter } from '../adelantos/adelantos.routes'
 
 export function makeRoutes(server: WebServer) {
     server.setRoute("/api/info", infoRouter)
@@ -17,4 +18,5 @@ export function makeRoutes(server: WebServer) {
     server.setRoute("/api/sucursales", sucursalRouter)
     server.setRoute("/api/objetivos", objetivoRouter)
     server.setRoute("/api/asistencia", asistenciaRouter)
+    server.setRoute("/api/adelantos", adelantosRouter)
 }

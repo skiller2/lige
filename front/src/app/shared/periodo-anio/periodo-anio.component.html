@@ -1,0 +1,20 @@
+<nz-form-item>
+    <nz-form-label [nzSpan]="5">Año</nz-form-label>
+    <nz-form-control>
+        <!-- <nz-calendar
+        [nzFullscreen]="false"
+        (nzSelectChange)="onValueChange($event)"
+        (nzPanelChange)="onPanelChange($event)"
+      ></nz-calendar> -->
+        <nz-input-group>
+            <div nz-row [nzGutter]="8">
+                <div nz-col nzSpan="10">
+                    <input type="number" nz-input name="anio" ngModel />
+                </div>
+                <div nz-col nzSpan="4">
+                    <input type="number" nz-input name="mes" ngModel />
+                </div>
+            </div>
+        </nz-input-group>
+    </nz-form-control>
+</nz-form-item>
