@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { BaseController } from "../controller/baseController";
 import { dataSource } from "../data-source";
+import { QueryFailedError } from "typeorm";
 
 export class AdelantosController extends BaseController {
   async getByPersonalId(
@@ -79,10 +80,10 @@ export class AdelantosController extends BaseController {
       this.jsonRes([], res);
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      if (typeof error == "string") {
+      if (typeof error === "string") {
         this.errRes(error, res, error, 409);
       } else {
-        this.errRes(error, res, "Error accediendo a la base de datos", 409);
+        this.errRes(error, res, "Error al grabar", 409);
       }
     } finally {
       await queryRunner.release();

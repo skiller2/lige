@@ -72,12 +72,14 @@ export class AdelantoComponent {
       .addAdelanto(this.adelanto.value)
       .pipe(
         catchError((err, caught) => {
-          this.notification.error('Grabacion', err);
           return of(err);
         }),
         tap(msg => {
           if (msg == 'ok') {
             this.notification.success('Grabación', 'Existosa');
+          } else if (msg instanceof Error) {
+            console.log(msg);
+            this.notification.error('Grabación', msg.message);
           }
         }),
         finalize(() => {
