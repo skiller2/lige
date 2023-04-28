@@ -1,7 +1,7 @@
 import { Component, Injector, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { BehaviorSubject, Subject, debounceTime, switchMap, takeUntil, tap } from 'rxjs';
+import { BehaviorSubject, Subject, catchError, debounceTime, finalize, of, switchMap, takeUntil, tap } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
 
@@ -11,13 +11,16 @@ import { SearchService } from 'src/app/services/search.service';
   styleUrls: ['./adelanto.component.less']
 })
 export class AdelantoComponent {
-  constructor(private searchService: SearchService, private injector: Injector, private apiService: ApiService){}
+  constructor(private searchService: SearchService, private injector: Injector, private apiService: ApiService) { }
   @ViewChild('adelanto', { static: true }) adelanto!: NgForm
 
-  private destroy$ = new Subject();
+  private get notification(): NzNotificationService {
+    return this.injector.get(NzNotificationService);
+  }
 
-  anio = new Date().getFullYear()  
-  mes = new Date().getMonth() + 1  
+
+  anio = new Date().getFullYear()
+  mes = new Date().getMonth() + 1
 
 
   formChange$ = new BehaviorSubject('')
@@ -32,43 +35,27 @@ export class AdelantoComponent {
     this.formChange$.next('')
   }
 
-  resetForm(){
+  resetForm() {
     this.adelanto.resetForm({
       anio: new Date().getFullYear(),
       mes: new Date().getMonth() + 1,
       PersonalId: ''
     })
   }
-  loadForm(){
-    
-  }
-  SaveForm(){
-    // this.searchService.setAsistenciaExcepcion(this.adelanto.value)
-    // .pipe(
-    //   // switchMap(() => this.$listaExcepciones = this.searchService.getExcepxObjetivo(this.asistenciaexcepcion.controls['ObjetivoId'].value, this.asistenciaexcepcion.controls['anio'].value, this.asistenciaexcepcion.controls['mes'].value)),
-    //   //      tap(() => this.$isObjetivoOptionsLoading.next(false))
-    //   takeUntil(this.destroy$)
-    // )
-    // .subscribe({
-    //   next: (data) => console.log('data', data),
-    //   error: (err) => {
-    //     console.log('error', err)
-    //   },
-    //   complete: () => {
-    //     console.log('complete')
-
-    //     this.adelanto.controls['PersonaId'].setValue('');
-    //     this.adelanto.controls['monto'].setValue('');
-
-    //     this.notification.success('Grabación', 'Existosa')
-
-    //   }
-    // }
-    // )
+  loadForm() {
 
   }
-  ngOnDestroy(): void {
-    this.destroy$.next('');
-    this.destroy$.complete();
+  SaveForm() {
+    this.apiService.addAdelanto(this.adelanto.value)
+      .pipe(
+        catchError((err, caught) => {this.notification.error('Grabacion', err);return of(err)}),
+        tap((msg) => {
+          if (msg == 'ok') {this.notification.success('Grabación', 'Existosa')}
+        }),
+        finalize(
+          () => {this.formChange$.next('')}
+        )
+      )
+      .subscribe()
   }
 }

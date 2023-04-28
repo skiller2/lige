@@ -8,5 +8,5 @@ adelantosRouter.get('/:PersonalId/:anio/:mes',authMiddleware.verifyToken, (req, 
     adelantosController.getByPersonalId(req.params.PersonalId, req.params.anio, req.params.mes, res)
 })
 adelantosRouter.post('',authMiddleware.verifyToken, (req, res) => {
-    adelantosController.setAdelanto(req.body.personalId, req.body.monto, req.ip, res)
+    adelantosController.setAdelanto(req.body.PersonalId, req.body.monto, req.ip, res)
 })

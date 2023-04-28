@@ -47,9 +47,9 @@
                 </thead>
                 <tbody>
                     <tr *ngFor="let data of this.tableAdelantos.data">
-                        <td>{{data.PersonalAdelantoMonto}}</td>
-                        <td>{{data.PersonalAdelantoFechaSolicitud}}</td>
-                        <td>{{data.PersonalAdelantoFechaDeAprobacion}}</td>
+                        <td>{{data.PersonalAdelantoMonto | currency:'$'}}</td>
+                        <td>{{data.PersonalAdelantoFechaSolicitud | date}}</td>
+                        <td>{{data.PersonalAdelantoFechaDeAprobacion | date}}</td>
                         <td>{{data.PersonalAdelantoAplicaEl}}</td>
                     </tr>
 
@@ -58,5 +58,5 @@
             </nz-form-control>
           </nz-form-item>
     </form>
-    {{this.adelanto.value | json}}
+    <!-- {{this.adelanto.value | json}} -->
 </nz-card>
