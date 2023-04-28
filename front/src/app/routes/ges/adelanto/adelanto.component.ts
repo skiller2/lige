@@ -39,6 +39,9 @@ export class AdelantoComponent {
   tableLoading$ = new BehaviorSubject(false);
 
   listaAdelantos$ = this.formChange$.pipe(
+    tap(() => {
+      this.tableLoading$.next(true);
+    }),
     debounceTime(500),
     switchMap(() =>
       this.apiService.getAdelantos(
@@ -53,7 +56,6 @@ export class AdelantoComponent {
   );
 
   formChanged(event: any) {
-    this.tableLoading$.next(true);
     this.formChange$.next('');
   }
 
