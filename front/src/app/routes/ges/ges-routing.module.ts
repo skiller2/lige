@@ -10,7 +10,16 @@ import { AsistenciaComponent } from './asistencia/asistencia.component';
 import { AdelantoComponent } from './adelanto/adelanto.component';
 
 const routes: Routes = [{ path: 'pdfretiro', component: PdfRetiroComponent },
-  { path: 'asistenciaexcepcion', component: ExcepcionAsistenciaComponent },
+//  { path: 'asistenciaexcepcion', component: ExcepcionAsistenciaComponent },
+  {
+    path: 'asistenciaexcepcion',
+    children: [
+      { path: ':SucursalId/:ObjetivoId', component: ExcepcionAsistenciaComponent },
+      { path: '', component: ExcepcionAsistenciaComponent }
+    ]
+  
+    //component: ExcepcionAsistenciaComponent
+  },
   { path: 'asistencia', component: AsistenciaComponent },
   { path: 'ccfarm', component: GesCcfarmComponent },
   { path: 'imgpers', component: ImgPersComponent },

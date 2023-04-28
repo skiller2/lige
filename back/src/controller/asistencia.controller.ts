@@ -97,7 +97,7 @@ export class AsistenciaController extends BaseController {
             if (persona_cuit != "") {
                 const auth = await this.hasAuthObjetivo(anio, mes, persona_cuit, ObjetivoId, queryRunner)
                 if (!auth)
-                    throw `No tiene permisos para realizar operación`
+                    throw `No tiene permisos para realizar operación CUIT ${persona_cuit}`
             }
 
 
@@ -424,6 +424,13 @@ export class AsistenciaController extends BaseController {
 
             //            const { objetivoId } = req.body;
 
+            if (req.persona_cuit != "") {
+                const auth = await this.hasAuthObjetivo(anio, mes, req.persona_cuit, objetivoId, dataSource)
+                if (!auth)
+                    throw `No tiene permisos para realizar la consulta al objetivo`
+            }
+
+
             const result = await dataSource.query(
                 `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion,
                 IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde) AS Desde,
@@ -444,7 +451,11 @@ export class AsistenciaController extends BaseController {
             this.jsonRes(result, res)
         }
         catch (err) {
-            this.errRes(err, res, "Error accediendo a la base de datos", 409)
+            let def = 'Error accediendo a la base de datos'
+            if (typeof def === 'string')
+                def = err
+//            await queryRunner.rollbackTransaction()
+            this.errRes(err, res, def, 409)
         }
     }
     async getAsistenciaPorObjetivo(
@@ -456,6 +467,14 @@ export class AsistenciaController extends BaseController {
             const anio = req.params.anio;
             const mes = req.params.mes;
             var desde = new Date(anio, mes - 1, 1);
+
+
+            if (req.persona_cuit != "") {
+                const auth = await this.hasAuthObjetivo(anio, mes, req.persona_cuit, objetivoId, dataSource)
+                if (!auth)
+                    throw `No tiene permisos para realizar la consulta al objetivo`
+            }
+
 
             //            const { objetivoId } = req.body;
 
@@ -626,7 +645,11 @@ export class AsistenciaController extends BaseController {
             this.jsonRes(result, res)
         }
         catch (err) {
-            this.errRes(err, res, "Error accediendo a la base de datos", 409)
+            let def = 'Error accediendo a la base de datos'
+            if (typeof def === 'string')
+                def = err
+            //await queryRunner.rollbackTransaction()
+            this.errRes(err, res, def, 409)
         }
     }
 

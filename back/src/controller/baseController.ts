@@ -8,7 +8,7 @@ export class BaseController {
    * @param res the response object that will be used to send http response
    */
   jsonRes(recordset: any, res: Response) {
-    res.status(200).json({ msg:"ok", data:recordset });
+    res.status(200).json({ msg: "ok", data: recordset });
   }
   /**
    * @param err error object of any type genereated by the system
@@ -52,17 +52,16 @@ export class BaseController {
     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = perjer.PersonalCUITCUILUltNro
 
     WHERE obj.ObjetivoId=@1`,
-        [fechaHastaAuth, ObjetivoId])
+      [fechaHastaAuth, ObjetivoId])
 
-
-    resultAuth.forEach(row => {
-        if (row.PersonalCUITCUILCUIT == persona_cuit) {
-            return true
-        }
-    })
+    for (let row of resultAuth) {
+      if (row.PersonalCUITCUILCUIT == persona_cuit) {
+        return true
+      }
+    }
 
     return false
-}
+  }
 
 
 }
