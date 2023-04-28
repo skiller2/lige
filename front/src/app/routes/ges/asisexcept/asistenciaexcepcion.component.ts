@@ -2,8 +2,9 @@ import { Component, Injector, OnInit, ViewChild } from '@angular/core';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { BehaviorSubject, Subject, catchError, debounceTime, of, switchMap, takeUntil, tap } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
-import { NgForm } from '@angular/forms';
+import { FormGroup, NgForm } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { ActivatedRoute, Router } from '@angular/router';
 
 enum Busqueda {
   Sucursal,
@@ -24,7 +25,7 @@ export class ExcepcionAsistenciaComponent {
 
   public get Busqueda() { return Busqueda }
 
-  constructor(private searchService: SearchService, private injector: Injector, private settingService: SettingsService    ) { }
+  constructor(private searchService: SearchService, private injector: Injector, private settingService: SettingsService, private _route: ActivatedRoute, private _router: Router   ) { }
 
   private destroy$ = new Subject();
 
@@ -87,20 +88,20 @@ export class ExcepcionAsistenciaComponent {
   ngAfterViewInit(): void {
     const now = new Date();    //date
     setTimeout(() => {
-      this.asistenciaexcepcion.controls['anio'].setValue(now.getFullYear());
-      this.asistenciaexcepcion.controls['mes'].setValue(now.getMonth() + 1);
-      if (localStorage.getItem('SucursalId')) {
-        this.asistenciaexcepcion.controls['SucursalId'].setValue(Number(localStorage.getItem('SucursalId')))
+      this.asistenciaexcepcion.form.get('anio')?.setValue(now.getFullYear());
+      this.asistenciaexcepcion.form.get('mes')?.setValue(now.getMonth() + 1);
+
+      const routeParams = this._route.snapshot.paramMap;
+
+      if (routeParams.get('ObjetivoId') != '') {
+        this.asistenciaexcepcion.form.get('SucursalId')?.setValue(Number(routeParams.get('SucursalId')))
+        this.asistenciaexcepcion.form.get('ObjetivoId')?.setValue(Number(routeParams.get('ObjetivoId')))
+      } 
+      else if (localStorage.getItem('SucursalId')) {
+        this.asistenciaexcepcion.form.get('SucursalId')?.setValue(Number(localStorage.getItem('SucursalId')))
       }
-      //this.asistenciaexcepcion.valueChanges
 
     }, 1)
-
-      
-
-
-    console.log('dame', this.settingService.getUser())
-
 
   }
 
@@ -116,11 +117,27 @@ export class ExcepcionAsistenciaComponent {
 
         this.$selectedSucursalIdChange.next(event)
         this.$isSucursalDataLoading.next(true)
+
         return
       case (Busqueda.Objetivo):
-        console.log('selectedValueChange',event)
         this.$selectedObjetivoIdChange.next(event)
         this.$isObjetivoDataLoading.next(true)
+
+        console.log('this.r', this._route)
+        if (this.asistenciaexcepcion.controls['ObjetivoId'].value>0)
+          this._router.navigate(['/ges/asistenciaexcepcion',this.asistenciaexcepcion.controls['SucursalId'].value,this.asistenciaexcepcion.controls['ObjetivoId'].value], {
+          relativeTo: this._route,
+//          queryParams: {
+//            ObjetivoId: this.asistenciaexcepcion.controls['ObjetivoId'].value,
+//            SucursalId:this.asistenciaexcepcion.controls['SucursalId'].value
+//            
+//          },
+//          queryParamsHandling: 'merge',
+          skipLocationChange: false
+
+        })
+
+
         return
       case (Busqueda.Personal):
         this.$selectedPersonalIdChange.next(event)
