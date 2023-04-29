@@ -3,9 +3,11 @@ import { NgForm } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import {
   BehaviorSubject,
+  Observable,
   Subject,
   catchError,
   debounceTime,
+  defer,
   finalize,
   of,
   switchMap,
@@ -39,20 +41,19 @@ export class AdelantoComponent {
   tableLoading$ = new BehaviorSubject(false);
 
   listaAdelantos$ = this.formChange$.pipe(
-    tap(() => {
-      this.tableLoading$.next(true);
-    }),
     debounceTime(500),
     switchMap(() =>
-      this.apiService.getAdelantos(
-        this.adelanto.controls['anio'].value,
-        this.adelanto.controls['mes'].value,
-        this.adelanto.controls['PersonalId'].value
-      )
-    ),
-    tap(() => {
-      this.tableLoading$.next(false);
-    })
+      this.apiService
+        .getAdelantos(
+          this.adelanto.controls['anio'].value,
+          this.adelanto.controls['mes'].value,
+          this.adelanto.controls['PersonalId'].value
+        )
+        .pipe(
+          doOnSubscribe(() => this.tableLoading$.next(true)),
+          tap({ complete: () => this.tableLoading$.next(false) })
+        )
+    )
   );
 
   formChanged(event: any) {
@@ -68,24 +69,37 @@ export class AdelantoComponent {
   }
   loadForm() {}
   SaveForm() {
+    const global = this;
     this.apiService
       .addAdelanto(this.adelanto.value)
       .pipe(
-        catchError((err, caught) => {
-          return of(err);
-        }),
-        tap(msg => {
-          if (msg == 'ok') {
-            this.notification.success('Grabación', 'Existosa');
-          } else if (msg instanceof Error) {
+        tap({
+          next(msg: string) {
             console.log(msg);
-            this.notification.error('Grabación', msg.message);
-          }
-        }),
-        finalize(() => {
-          this.formChanged('');
+            if (msg == 'ok') {
+              global.notification.success('Grabación', 'Existosa');
+            }
+          },
+          error(e: Error) {
+            global.notification.error('Grabación', e.message);
+          },
+          complete() {
+            global.formChanged('');
+          },
         })
       )
       .subscribe();
   }
+}
+
+export function doOnSubscribe<T>(
+  onSubscribe: () => void
+): (source: Observable<T>) => Observable<T> {
+  return function inner(source: Observable<T>): Observable<T> {
+    return defer(() => {
+      onSubscribe();
+
+      return source;
+    });
+  };
 }
