@@ -67,7 +67,8 @@ export class AdelantoComponent {
       PersonalId: '',
     });
   }
-  loadForm() {}
+  loadForm() { }
+  
   SaveForm() {
     const global = this;
     this.apiService
@@ -90,6 +91,29 @@ export class AdelantoComponent {
       )
       .subscribe();
   }
+
+  DeleteForm() {
+    this.apiService
+      .delAdelanto(this.adelanto.value)
+      .pipe(
+        catchError((err, caught) => {
+          return of(err);
+        }),
+        tap(msg => {
+          if (msg == 'ok') {
+            this.notification.success('Eliminación', 'Existosa');
+          } else if (msg instanceof Error) {
+            console.log(msg);
+            this.notification.error('Eliminación', msg.message);
+          }
+        }),
+        finalize(() => {
+          this.formChanged('');
+        })
+      )
+      .subscribe();
+  }
+
 }
 
 export function doOnSubscribe<T>(

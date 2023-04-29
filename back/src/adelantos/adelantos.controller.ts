@@ -23,6 +23,36 @@ export class AdelantosController extends BaseController {
     }
   }
 
+  async delAdelanto(personalId: string, monto: number, ip, res: Response) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      if (!personalId) throw new Error("Falta cargar la persona");
+
+      const adelantoExistente = await queryRunner.query(
+        `DELETE From PersonalAdelanto 
+                WHERE (PersonalAdelantoAprobado IS NULL)
+                AND PersonalId = @0`,
+        [personalId]
+      );
+
+      await queryRunner.commitTransaction();
+      this.jsonRes([], res);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      if (typeof error === "string") {
+        this.errRes(error, res, error, 409);
+      } else {
+        this.errRes(error, res, "Error al grabar", 409);
+      }
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+
   async setAdelanto(personalId: string, monto: number, ip, res: Response) {
     const queryRunner = dataSource.createQueryRunner();
     try {

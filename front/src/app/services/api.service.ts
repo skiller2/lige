@@ -35,4 +35,14 @@ export class ApiService {
       .post<ResponseJSON<any>>(`api/adelantos`, adelanto)
       .pipe(map(res => res.msg));
   }
+
+  delAdelanto(adelanto: { PersonalId: string; monto: number }) {
+    if (!adelanto.PersonalId) {
+      return throwError(() => new Error('Falta especificar la persona!'));
+    }
+    return this.http
+      .delete<ResponseJSON<any>>(`api/adelantos/${adelanto.PersonalId}`, adelanto)
+      .pipe(map(res => res.msg));
+  }
+
 }

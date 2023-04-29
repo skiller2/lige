@@ -13,7 +13,7 @@ describe('CredPersComponent', () => {
       }).compileComponents();
     })
   );
-
+    
   beforeEach(() => {
     fixture = TestBed.createComponent(ExcepcionAsistenciaComponent);
     component = fixture.componentInstance;
