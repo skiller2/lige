@@ -8,6 +8,7 @@ import {
   catchError,
   debounceTime,
   defer,
+  delay,
   finalize,
   of,
   switchMap,
@@ -39,6 +40,8 @@ export class AdelantoComponent {
 
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
+  saveLoading$ = new BehaviorSubject(false);
+  deleteLoading$ = new BehaviorSubject(false);
 
   listaAdelantos$ = this.formChange$.pipe(
     debounceTime(500),
@@ -60,33 +63,17 @@ export class AdelantoComponent {
     this.formChange$.next('');
   }
 
-  resetForm() {
-    this.adelanto.resetForm({
-      anio: new Date().getFullYear(),
-      mes: new Date().getMonth() + 1,
-      PersonalId: '',
-    });
-  }
-  loadForm() { }
-  
   SaveForm() {
-    const global = this;
     this.apiService
       .addAdelanto(this.adelanto.value)
       .pipe(
+        doOnSubscribe(() => this.saveLoading$.next(true)),
         tap({
-          next(msg: string) {
-            console.log(msg);
-            if (msg == 'ok') {
-              global.notification.success('Grabación', 'Existosa');
-            }
+          complete: () => {
+            this.formChanged('');
+            this.adelanto.form.get('monto')?.setValue(null);
           },
-          error(e: Error) {
-            global.notification.error('Grabación', e.message);
-          },
-          complete() {
-            global.formChanged('');
-          },
+          finalize: () => this.saveLoading$.next(false),
         })
       )
       .subscribe();
@@ -96,24 +83,15 @@ export class AdelantoComponent {
     this.apiService
       .delAdelanto(this.adelanto.value)
       .pipe(
-        catchError((err, caught) => {
-          return of(err);
-        }),
-        tap(msg => {
-          if (msg == 'ok') {
-            this.notification.success('Eliminación', 'Existosa');
-          } else if (msg instanceof Error) {
-            console.log(msg);
-            this.notification.error('Eliminación', msg.message);
-          }
-        }),
-        finalize(() => {
-          this.formChanged('');
+        doOnSubscribe(() => this.deleteLoading$.next(true)),
+
+        tap({
+          complete: () => this.formChanged(''),
+          finalize: () => this.deleteLoading$.next(false),
         })
       )
       .subscribe();
   }
-
 }
 
 export function doOnSubscribe<T>(

@@ -1,14 +1,13 @@
 import { Response } from "express";
 
 export class BaseController {
-
   /**
    * Sends the document as JSON in the body of response, and sets status to 200
    * @param recordset the Database recordset to be returned to the client as JSON
    * @param res the response object that will be used to send http response
    */
-  jsonRes(recordset: any, res: Response) {
-    res.status(200).json({ msg: "ok", data: recordset });
+  jsonRes(recordset: any, res: Response, msg = "ok") {
+    res.status(200).json({ msg: msg, data: recordset });
   }
   /**
    * @param err error object of any type genereated by the system
@@ -16,8 +15,12 @@ export class BaseController {
    * @param message custom response message to be provided to the client in a JSON body response ({error:'message'})
    * @param status custom status code, defaults to 500
    */
-  errRes(err: any, res: Response, message = "error", status = 500) {
-
+  errRes(
+    err: any,
+    res: Response,
+    message = "No se pudo a la base de datos.",
+    status = 500
+  ) {
     if (process.env.DEBUG) {
       console.error(err);
     }
@@ -25,11 +28,12 @@ export class BaseController {
   }
 
   async hasAuthObjetivo(anio, mes, persona_cuit, ObjetivoId, queryRunner) {
-    let fechaHastaAuth = new Date(anio, mes, 1)
-    fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1)
+    let fechaHastaAuth = new Date(anio, mes, 1);
+    fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1);
 
-    let autorizado = false
-    let resultAuth = await queryRunner.query(`SELECT suc.ObjetivoSucursalSucursalId,
+    let autorizado = false;
+    let resultAuth = await queryRunner.query(
+      `SELECT suc.ObjetivoSucursalSucursalId,
          
     obj.ObjetivoId, 
     obj.ClienteId,
@@ -52,16 +56,15 @@ export class BaseController {
     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = perjer.PersonalCUITCUILUltNro
 
     WHERE obj.ObjetivoId=@1`,
-      [fechaHastaAuth, ObjetivoId])
+      [fechaHastaAuth, ObjetivoId]
+    );
 
     for (let row of resultAuth) {
       if (row.PersonalCUITCUILCUIT == persona_cuit) {
-        return true
+        return true;
       }
     }
 
-    return false
+    return false;
   }
-
-
 }

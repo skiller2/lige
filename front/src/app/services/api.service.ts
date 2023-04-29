@@ -1,14 +1,19 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { ResponseJSON } from '../shared/schemas/ResponseJSON';
-import { catchError, map, of, throwError } from 'rxjs';
+import { catchError, map, of, tap, throwError } from 'rxjs';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { error } from 'pdf-lib';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiService {
-  constructor(private http: _HttpClient) {}
+  constructor(private http: _HttpClient, private injector: Injector) {}
 
+  private get notification(): NzNotificationService {
+    return this.injector.get(NzNotificationService);
+  }
   getAdelantos(year: number, month: number, personalID: string) {
     if (!personalID || !month || !year) {
       return of([]);
@@ -25,24 +30,21 @@ export class ApiService {
   }
 
   addAdelanto(adelanto: { PersonalId: string; monto: number }) {
-    if (!adelanto.PersonalId) {
-      return throwError(() => new Error('Falta especificar la persona!'));
-    }
-    if (!adelanto.monto) {
-      return throwError(() => new Error('Falta especificar el monto!'));
-    }
     return this.http
       .post<ResponseJSON<any>>(`api/adelantos`, adelanto)
-      .pipe(map(res => res.msg));
+      .pipe(tap(res => this.response(res)));
   }
 
   delAdelanto(adelanto: { PersonalId: string; monto: number }) {
-    if (!adelanto.PersonalId) {
-      return throwError(() => new Error('Falta especificar la persona!'));
-    }
     return this.http
-      .delete<ResponseJSON<any>>(`api/adelantos/${adelanto.PersonalId}`, adelanto)
-      .pipe(map(res => res.msg));
+      .delete<ResponseJSON<any>>(
+        `api/adelantos/${adelanto.PersonalId}`,
+        adelanto
+      )
+      .pipe(tap(res => this.response(res)));
   }
 
+  response(res: ResponseJSON<any>) {
+    this.notification.success('Respuesta', res.msg);
+  }
 }
