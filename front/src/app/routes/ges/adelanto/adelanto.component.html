@@ -42,20 +42,32 @@
           ngModel />
       </nz-form-control>
     </nz-form-item>
-    <button
-      nz-col
-      nz-button
-      nzType="primary"
-      [nzSize]="'default'"
-      (click)="SaveForm()">
-      <span nz-icon nzType="save" nzTheme="outline"></span>Graba
-    </button>
 
-    <button nz-col nzDanger nz-button nzType="primary" [nzSize]="'default'" (click)="DeleteForm()"
-    >
-    <span nz-icon nzType="delete" nzTheme="outline"></span>Elimina</button>
-
-
+    <nz-form-item>
+      <nz-input-group>
+        <button
+          nz-col
+          nz-button
+          nzType="primary"
+          [nzLoading]="this.saveLoading$ | async"
+          [disabled]="this.saveLoading$ | async"
+          [nzSize]="'default'"
+          (click)="SaveForm()">
+          <span nz-icon nzType="save" nzTheme="outline"></span>Grabar
+        </button>
+        <button
+          nz-col
+          nzDanger
+          nz-button
+          nzType="primary"
+          [nzLoading]="this.deleteLoading$ | async"
+          [disabled]="this.deleteLoading$ | async"
+          [nzSize]="'default'"
+          (click)="DeleteForm()">
+          <span nz-icon nzType="delete" nzTheme="outline"></span>Eliminar
+        </button>
+      </nz-input-group>
+    </nz-form-item>
 
     <nz-form-item>
       <nz-form-label [nzSpan]="5"> Lista de Adelantos </nz-form-label>

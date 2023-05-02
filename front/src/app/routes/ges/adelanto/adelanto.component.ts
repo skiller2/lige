@@ -3,9 +3,12 @@ import { NgForm } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import {
   BehaviorSubject,
+  Observable,
   Subject,
   catchError,
   debounceTime,
+  defer,
+  delay,
   finalize,
   of,
   switchMap,
@@ -37,54 +40,40 @@ export class AdelantoComponent {
 
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
+  saveLoading$ = new BehaviorSubject(false);
+  deleteLoading$ = new BehaviorSubject(false);
 
   listaAdelantos$ = this.formChange$.pipe(
-    tap(() => {
-      this.tableLoading$.next(true);
-    }),
     debounceTime(500),
     switchMap(() =>
-      this.apiService.getAdelantos(
-        this.adelanto.controls['anio'].value,
-        this.adelanto.controls['mes'].value,
-        this.adelanto.controls['PersonalId'].value
-      )
-    ),
-    tap(() => {
-      this.tableLoading$.next(false);
-    })
+      this.apiService
+        .getAdelantos(
+          this.adelanto.controls['anio'].value,
+          this.adelanto.controls['mes'].value,
+          this.adelanto.controls['PersonalId'].value
+        )
+        .pipe(
+          doOnSubscribe(() => this.tableLoading$.next(true)),
+          tap({ complete: () => this.tableLoading$.next(false) })
+        )
+    )
   );
 
   formChanged(event: any) {
     this.formChange$.next('');
   }
 
-  resetForm() {
-    this.adelanto.resetForm({
-      anio: new Date().getFullYear(),
-      mes: new Date().getMonth() + 1,
-      PersonalId: '',
-    });
-  }
-  loadForm() { }
-  
   SaveForm() {
     this.apiService
       .addAdelanto(this.adelanto.value)
       .pipe(
-        catchError((err, caught) => {
-          return of(err);
-        }),
-        tap(msg => {
-          if (msg == 'ok') {
-            this.notification.success('Grabación', 'Existosa');
-          } else if (msg instanceof Error) {
-            console.log(msg);
-            this.notification.error('Grabación', msg.message);
-          }
-        }),
-        finalize(() => {
-          this.formChanged('');
+        doOnSubscribe(() => this.saveLoading$.next(true)),
+        tap({
+          complete: () => {
+            this.formChanged('');
+            this.adelanto.form.get('monto')?.setValue(null);
+          },
+          finalize: () => this.saveLoading$.next(false),
         })
       )
       .subscribe();
@@ -94,22 +83,25 @@ export class AdelantoComponent {
     this.apiService
       .delAdelanto(this.adelanto.value)
       .pipe(
-        catchError((err, caught) => {
-          return of(err);
-        }),
-        tap(msg => {
-          if (msg == 'ok') {
-            this.notification.success('Eliminación', 'Existosa');
-          } else if (msg instanceof Error) {
-            console.log(msg);
-            this.notification.error('Eliminación', msg.message);
-          }
-        }),
-        finalize(() => {
-          this.formChanged('');
+        doOnSubscribe(() => this.deleteLoading$.next(true)),
+
+        tap({
+          complete: () => this.formChanged(''),
+          finalize: () => this.deleteLoading$.next(false),
         })
       )
       .subscribe();
   }
+}
 
+export function doOnSubscribe<T>(
+  onSubscribe: () => void
+): (source: Observable<T>) => Observable<T> {
+  return function inner(source: Observable<T>): Observable<T> {
+    return defer(() => {
+      onSubscribe();
+
+      return source;
+    });
+  };
 }
