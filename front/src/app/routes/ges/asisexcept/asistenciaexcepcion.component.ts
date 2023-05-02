@@ -71,7 +71,6 @@ export class ExcepcionAsistenciaComponent {
     debounceTime(50),
 
     switchMap(objetivoId => {
-      console.log('busqueda', objetivoId);
       if (!objetivoId) return [];
       else
         return this.searchService.getObjetivo(
@@ -160,12 +159,15 @@ export class ExcepcionAsistenciaComponent {
           'anio',
           this.asistenciaexcepcion.controls['anio'].value
         );
+        this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value);
+
         break;
       case Busqueda.Mes:
         localStorage.setItem(
           'mes',
           this.asistenciaexcepcion.controls['mes'].value
-        );        
+        );
+        this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value);
           break;
   
 
@@ -231,12 +233,7 @@ export class ExcepcionAsistenciaComponent {
       .setAsistenciaExcepcion(this.asistenciaexcepcion.value)
       .pipe(
         switchMap(
-          () =>
-            (this.$listaExcepciones = this.searchService.getExcepxObjetivo(
-              this.asistenciaexcepcion.controls['ObjetivoId'].value,
-              this.asistenciaexcepcion.controls['anio'].value,
-              this.asistenciaexcepcion.controls['mes'].value
-            ))
+          async () => (this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value))
         ),
         //      tap(() => this.$isObjetivoOptionsLoading.next(false))
         takeUntil(this.destroy$)
@@ -262,12 +259,7 @@ export class ExcepcionAsistenciaComponent {
       .deleteAsistenciaExcepcion(this.asistenciaexcepcion.value)
       .pipe(
         switchMap(
-          () =>
-            (this.$listaExcepciones = this.searchService.getExcepxObjetivo(
-              this.asistenciaexcepcion.controls['ObjetivoId'].value,
-              this.asistenciaexcepcion.controls['anio'].value,
-              this.asistenciaexcepcion.controls['mes'].value
-            ))
+          async () => (this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value))
         ),
         //      tap(() => this.$isObjetivoOptionsLoading.next(false))
         takeUntil(this.destroy$)
