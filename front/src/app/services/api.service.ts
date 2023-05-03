@@ -28,6 +28,22 @@ export class ApiService {
         })
       );
   }
+  
+  getPersonaResponsables(year: number, month: number, personalID: string) {
+    console.log('viendo', year,month,personalID)
+    if (!personalID || !month || !year) {
+      return of([]);
+    }
+    return this.http
+      .get<ResponseJSON<any[]>>(`api/personal/responsables/${personalID}/${year}/${month}`)
+      .pipe(
+        map(res => res.data),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
 
   addAdelanto(adelanto: { PersonalId: string; monto: number }) {
     return this.http

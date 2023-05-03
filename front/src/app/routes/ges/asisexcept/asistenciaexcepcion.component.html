@@ -125,6 +125,18 @@
         </nz-select>
       </nz-form-control>
     </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
+      <nz-form-control>
+        <ng-container *ngFor="let responsable of $personaResponsables | async">
+          <p title="{{ responsable.PersonalCategoriaPersonalId }}">
+            {{responsable.CUITJ}} {{ responsable.ApellidoNombreJ }} desde {{
+            responsable.OperacionesPersonalAsignarAJerarquicoDesde | date}} <span
+              *ngIf="responsable.OperacionesPersonalAsignarAJerarquicoHasta"> hasta </span> {{
+                responsable.OperacionesPersonalAsignarAJerarquicoHasta | date}} </p>
+        </ng-container>
+      </nz-form-control>
+    </nz-form-item>
 
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Metodologia</nz-form-label>

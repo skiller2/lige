@@ -51,6 +51,23 @@ export class AdelantoComponent {
     }, 1);
   }
 
+  $personaResponsables = this.formChange$.pipe(
+    debounceTime(500),
+    switchMap(() =>
+      this.apiService
+        .getPersonaResponsables(
+          this.adelanto.controls['anio'].value,
+          this.adelanto.controls['mes'].value,
+          this.adelanto.controls['PersonalId'].value
+        )
+        .pipe(
+//          doOnSubscribe(() => this.tableLoading$.next(true)),
+//          tap({ complete: () => this.tableLoading$.next(false) })
+        )
+    )
+  );
+
+
   listaAdelantos$ = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() =>

@@ -14,6 +14,7 @@ import { SearchService } from '../../../services/search.service';
 import { FormGroup, NgForm } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ApiService } from 'src/app/services/api.service';
 
 enum Busqueda {
   Sucursal,
@@ -41,7 +42,8 @@ export class ExcepcionAsistenciaComponent {
     private injector: Injector,
     private settingService: SettingsService,
     private _route: ActivatedRoute,
-    private _router: Router
+    private _router: Router,
+    private apiService : ApiService
   ) {}
 
   private destroy$ = new Subject();
@@ -66,6 +68,25 @@ export class ExcepcionAsistenciaComponent {
   $optionsMetodologia = this.searchService.getMetodologia();
   $optionsSucursales = this.searchService.getSucursales();
   $optionsCategoria = this.searchService.getCategorias();
+
+
+  $personaResponsables = this.$selectedPersonalIdChange.pipe(
+    debounceTime(50),
+    switchMap((event) =>
+      this.apiService
+        .getPersonaResponsables(
+          this.asistenciaexcepcion.form.get('anio')?.value,
+          this.asistenciaexcepcion.form.get('mes')?.value,
+          event,
+        )
+        .pipe(
+//          doOnSubscribe(() => this.tableLoading$.next(true)),
+//          tap({ complete: () => this.tableLoading$.next(false) })
+        )
+    )
+  );
+
+
 
   $objetivoResponsables = this.$selectedObjetivoIdChange.pipe(
     debounceTime(50),
@@ -134,7 +155,7 @@ export class ExcepcionAsistenciaComponent {
 
       const routeParams = this._route.snapshot.paramMap;
 
-      if (routeParams.get('ObjetivoId') != '') {
+      if (routeParams.get('ObjetivoId') != null) {
         this.asistenciaexcepcion.form
           .get('SucursalId')
           ?.setValue(Number(routeParams.get('SucursalId')));

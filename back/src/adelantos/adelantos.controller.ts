@@ -11,13 +11,14 @@ export class AdelantosController extends BaseController {
     res: Response
   ) {
     try {
-      const result = await dataSource.query(
+      const adelantos = await dataSource.query(
         `SELECT * From PersonalAdelanto ade 
-                WHERE ((ade.PersonalAdelantoAprobado IN ('S') OR ade.PersonalAdelantoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1)) OR ade.PersonalAdelantoAprobado IS NULL)
+                WHERE ((ade.PersonalAdelantoAprobado IN (NULL) OR ade.PersonalAdelantoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1)) OR ade.PersonalAdelantoAprobado IS NULL)
                 AND ade.PersonalId = @0`,
-        [personalId, Año, Mes]
-      );
-      this.jsonRes(result, res);
+        [personalId, Año, Mes])
+
+
+      this.jsonRes(adelantos, res);
     } catch (err) {
       this.errRes(err, res, "Error accediendo a la base de datos", 409);
     }
