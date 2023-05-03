@@ -1,11 +1,11 @@
 import { Platform } from '@angular/cdk/platform';
 import { DOCUMENT } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnInit, Renderer2 } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, Inject, OnInit, Renderer2 } from '@angular/core';
 import type { Chart } from '@antv/g2';
 import { OnboardingConfig, OnboardingService } from '@delon/abc/onboarding';
 import { _HttpClient } from '@delon/theme';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
-import { Observable, share } from 'rxjs';
+import { BehaviorSubject, Observable, debounceTime, share, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-init-v1',
@@ -13,17 +13,55 @@ import { Observable, share } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InitV1Component implements OnInit {
+
+  @HostListener('document:visibilitychange', ['$event'])
+  visibilitychange() {
+      if (document.hidden){
+//            console.log("Page is hidden");
+      } else {
+        this.triggerVisibilityChange$.next(1)
+
+      }
+  }
+
+  triggerVisibilityChange$ = new BehaviorSubject(0)
   
+  adelantosPendientes$ = this.triggerVisibilityChange$.pipe(
+    debounceTime(500),
+    switchMap(() => this.http.get('/api/init/stats/adelantospendientes')),
+  )  
+  excepcionesPendientes$ = this.triggerVisibilityChange$.pipe(
+    debounceTime(500),
+    switchMap(() => this.http.get('/api/init/stats/excepcionespendientes')),
+  )  
+
+  clientesActivos$ = this.triggerVisibilityChange$.pipe(
+    debounceTime(500),
+    switchMap(() => this.http.get('/api/init/stats/clientesactivos')),
+    share()
+  )
+
+  objetivosActivos$ = this.triggerVisibilityChange$.pipe(
+    debounceTime(500),
+    switchMap(() => this.http.get('/api/init/stats/objetivosactivos')),
+    share()
+  )
+
+  horasTrabajadas$ = this.triggerVisibilityChange$.pipe(
+    debounceTime(500),
+    switchMap(() => this.statshorastrabajadas()),
+  )
   
-  adelantosPendientes$ = this.http.get('/api/init/stats/adelantospendientes')  
-  excepcionesPendientes$ = this.http.get('/api/init/stats/excepcionespendientes')  
-  clientesActivos$ = this.http.get('/api/init/stats/clientesactivos').pipe(share())
-  objetivosActivos$ = this.http.get('/api/init/stats/objetivosactivos').pipe(share())
-  horasTrabajadas$ = this.statshorastrabajadas()
-  objetivosSinAsistencia$= this.statssinAsistencia()
-  objetivosSinAsistenciaCur$ = this.statssinAsistenciaCur()
-  
-  
+  objetivosSinAsistencia$= this.triggerVisibilityChange$.pipe(
+    debounceTime(500),
+    switchMap(() => this.statssinAsistencia()),
+  )
+
+  objetivosSinAsistenciaCur$ = this.triggerVisibilityChange$.pipe(
+    debounceTime(500),
+    switchMap(() => this.statssinAsistenciaCur()),
+  )
+    
   webSite!: any[];
   salesData!: any[];
   offlineChartData!: any[];
@@ -49,6 +87,8 @@ export class InitV1Component implements OnInit {
     });
   }
 
+  
+
   statshorastrabajadas(): Observable<any> {
     const stmactual = new Date()
     const anio = stmactual.getFullYear()
@@ -73,6 +113,7 @@ export class InitV1Component implements OnInit {
 
 
   ngOnInit(): void {
+    this.triggerVisibilityChange$.next(1)
   }
 
   private genOnboarding(): void {

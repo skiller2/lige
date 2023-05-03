@@ -1,4 +1,4 @@
-import { Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, Injector, OnInit, ViewChild } from '@angular/core';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import {
   BehaviorSubject,
@@ -167,6 +167,8 @@ export class ExcepcionAsistenciaComponent {
           .get('SucursalId')
           ?.setValue(Number(localStorage.getItem('SucursalId')));
       }
+
+      console.log('ngAfterViewInit') 
     }, 1);
   }
 
@@ -206,7 +208,8 @@ export class ExcepcionAsistenciaComponent {
         this.$selectedObjetivoIdChange.next(event);
         this.$isObjetivoDataLoading.next(true);
 
-        if (this.asistenciaexcepcion.controls['ObjetivoId'].value > 0)
+        if (this.asistenciaexcepcion.controls['ObjetivoId'].value > 0) {
+          /*
           this._router.navigate(
             [
               '/ges/asistenciaexcepcion',
@@ -221,10 +224,13 @@ export class ExcepcionAsistenciaComponent {
               //
               //          },
               //          queryParamsHandling: 'merge',
-              skipLocationChange: false,
+              //skipLocationChange: false,
+              //replaceUrl: false,
+              
             }
           );
-
+          */
+        }
         return;
       case Busqueda.Personal:
         this.$selectedPersonalIdChange.next(event);
