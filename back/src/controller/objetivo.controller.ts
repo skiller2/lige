@@ -80,20 +80,25 @@ LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId 
 LEFT JOIN ClienteElementoDependienteDomicilio dom ON dom.ClienteId = clidep.ClienteId AND dom.ClienteElementoDependienteId  = clidep.ClienteElementoDependienteId
 LEFT JOIN Sucursal sucdes ON sucdes.SucursalId = suc.ObjetivoSucursalSucursalId
 
-WHERE sucdes.SucursalId = @0`
+WHERE sucdes.SucursalId = @0 AND `
             switch (fieldName) {
                 case 'Descripcion':
-                    query = `${query} AND obj.ObjetivoDescripcion LIKE @1`
+                    const valueArray: Array<string> = value.split(/[\s,.-]+/);
+                    valueArray.forEach((element, index) => {
+                      query += ` obj.ObjetivoDescripcion LIKE '%${element}%' AND `;
+                    });
+                                
+                    query += ` 1=1 `
                     break;
                 case 'Codigo':
-                    query = `${query} AND CONCAT(obj.ClienteId, '/', ISNULL(clidep.ClienteElementoDependienteId, 0)) LIKE @1`
+                    query = `${query} CONCAT(obj.ClienteId, '/', ISNULL(clidep.ClienteElementoDependienteId, 0)) LIKE '%${value}%'`
                     break;
                 default:
                     break;
             }
 
 
-            const result = await dataSource.query(query, [sucursalId, `%${value}%`])
+            const result = await dataSource.query(query, [sucursalId])
             this.jsonRes({ objetivos: result }, res);
         }
         catch (err) {

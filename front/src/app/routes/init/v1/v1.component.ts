@@ -16,24 +16,33 @@ export class InitV1Component implements OnInit {
 
   @HostListener('document:visibilitychange', ['$event'])
   visibilitychange() {
-      if (document.hidden){
-//            console.log("Page is hidden");
-      } else {
-        this.triggerVisibilityChange$.next(1)
+    if (document.hidden) {
+      //            console.log("Page is hidden");
+    } else {
+      this.triggerVisibilityChange$.next(1)
 
-      }
+    }
   }
 
+
+  @HostListener('window:focus', ['$event'])
+  onfocus() {
+    this.triggerVisibilityChange$.next(1)
+
+  }
+
+
+
   triggerVisibilityChange$ = new BehaviorSubject(0)
-  
+
   adelantosPendientes$ = this.triggerVisibilityChange$.pipe(
     debounceTime(500),
     switchMap(() => this.http.get('/api/init/stats/adelantospendientes')),
-  )  
+  )
   excepcionesPendientes$ = this.triggerVisibilityChange$.pipe(
     debounceTime(500),
     switchMap(() => this.http.get('/api/init/stats/excepcionespendientes')),
-  )  
+  )
 
   clientesActivos$ = this.triggerVisibilityChange$.pipe(
     debounceTime(500),
@@ -51,8 +60,8 @@ export class InitV1Component implements OnInit {
     debounceTime(500),
     switchMap(() => this.statshorastrabajadas()),
   )
-  
-  objetivosSinAsistencia$= this.triggerVisibilityChange$.pipe(
+
+  objetivosSinAsistencia$ = this.triggerVisibilityChange$.pipe(
     debounceTime(500),
     switchMap(() => this.statssinAsistencia()),
   )
@@ -61,7 +70,7 @@ export class InitV1Component implements OnInit {
     debounceTime(500),
     switchMap(() => this.statssinAsistenciaCur()),
   )
-    
+
   webSite!: any[];
   salesData!: any[];
   offlineChartData!: any[];
@@ -87,33 +96,34 @@ export class InitV1Component implements OnInit {
     });
   }
 
-  
+
 
   statshorastrabajadas(): Observable<any> {
     const stmactual = new Date()
     const anio = stmactual.getFullYear()
-    return this.http.get(`/api/init/stats/horastrabajadas/${anio}`) 
+    return this.http.get(`/api/init/stats/horastrabajadas/${anio}`)
   }
 
   statssinAsistencia(): Observable<any> {
     const stmactual = new Date()
-    const mes = stmactual.getMonth()    
-    const anio = stmactual.getFullYear()    
+    const mes = stmactual.getMonth()
+    const anio = stmactual.getFullYear()
 
-    return this.http.get(`/api/init/stats/objetivossinasistencia/${anio}/${mes}`) 
+    return this.http.get(`/api/init/stats/objetivossinasistencia/${anio}/${mes}`)
   }
 
   statssinAsistenciaCur(): Observable<any> {
     const stmactual = new Date()
-    const mes = stmactual.getMonth()+1    
-    const anio = stmactual.getFullYear()    
-    return this.http.get(`/api/init/stats/objetivossinasistencia/${anio}/${mes}`) 
+    const mes = stmactual.getMonth() + 1
+    const anio = stmactual.getFullYear()
+    return this.http.get(`/api/init/stats/objetivossinasistencia/${anio}/${mes}`)
   }
-
-
 
   ngOnInit(): void {
     this.triggerVisibilityChange$.next(1)
+
+    //https://github.com/Hopding/pdf-lib/issues/296   para pdf 
+
   }
 
   private genOnboarding(): void {
