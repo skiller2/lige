@@ -18,10 +18,10 @@
         <nz-input-group>
           <div nz-row [nzGutter]="8">
             <div nz-col nzSpan="10">
-              <input type="number" nz-input name="anio" ngModel />
+              <input type="number" nz-input name="anio" ngModel (ngModelChange)="selectedValueChange($event, Busqueda.Anio)" />
             </div>
             <div nz-col nzSpan="4">
-              <input type="number" nz-input name="mes" ngModel />
+              <input type="number" nz-input name="mes" ngModel (ngModelChange)="selectedValueChange($event, Busqueda.Mes)"  />
             </div>
           </div>
         </nz-input-group>

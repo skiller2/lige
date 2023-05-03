@@ -19,6 +19,8 @@ enum Busqueda {
   Sucursal,
   Objetivo,
   Personal,
+  Anio,
+  Mes
 }
 
 @Component({
@@ -69,7 +71,6 @@ export class ExcepcionAsistenciaComponent {
     debounceTime(50),
 
     switchMap(objetivoId => {
-      console.log('busqueda', objetivoId);
       if (!objetivoId) return [];
       else
         return this.searchService.getObjetivo(
@@ -91,6 +92,7 @@ export class ExcepcionAsistenciaComponent {
       )
     ),
     tap(() => this.$isObjetivoOptionsLoading.next(false))
+
   );
 
   $optionsObjetivos = this.$searchObjetivoChange.pipe(
@@ -102,8 +104,10 @@ export class ExcepcionAsistenciaComponent {
         this.asistenciaexcepcion.controls['SucursalId'].value
       )
     ),
-    tap(() => this.$isObjetivoOptionsLoading.next(false))
-  );
+    tap(() => this.$isObjetivoOptionsLoading.next(false)),
+    catchError(() => { return of([]) })
+  )
+
   $optionsPersonal = this.$searchPersonalChange.pipe(
     debounceTime(500),
     switchMap(values =>
@@ -122,8 +126,11 @@ export class ExcepcionAsistenciaComponent {
   ngAfterViewInit(): void {
     const now = new Date(); //date
     setTimeout(() => {
-      this.asistenciaexcepcion.form.get('anio')?.setValue(now.getFullYear());
-      this.asistenciaexcepcion.form.get('mes')?.setValue(now.getMonth() + 1);
+      const anio = (Number(localStorage.getItem('anio'))>0)? localStorage.getItem('anio') : now.getFullYear()
+      const mes = (Number(localStorage.getItem('mes'))>0)? localStorage.getItem('mes') : now.getMonth()+1
+
+      this.asistenciaexcepcion.form.get('anio')?.setValue(Number(anio));
+      this.asistenciaexcepcion.form.get('mes')?.setValue(Number(mes));
 
       const routeParams = this._route.snapshot.paramMap;
 
@@ -147,6 +154,23 @@ export class ExcepcionAsistenciaComponent {
     //    this.asistenciaexcepcion.controls['mes'].setValue(3);
 
     switch (busqueda) {
+      case Busqueda.Anio:
+        localStorage.setItem(
+          'anio',
+          this.asistenciaexcepcion.controls['anio'].value
+        );
+        this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value);
+
+        break;
+      case Busqueda.Mes:
+        localStorage.setItem(
+          'mes',
+          this.asistenciaexcepcion.controls['mes'].value
+        );
+        this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value);
+          break;
+  
+
       case Busqueda.Sucursal:
         localStorage.setItem(
           'SucursalId',
@@ -161,7 +185,6 @@ export class ExcepcionAsistenciaComponent {
         this.$selectedObjetivoIdChange.next(event);
         this.$isObjetivoDataLoading.next(true);
 
-        console.log('this.r', this._route);
         if (this.asistenciaexcepcion.controls['ObjetivoId'].value > 0)
           this._router.navigate(
             [
@@ -210,12 +233,7 @@ export class ExcepcionAsistenciaComponent {
       .setAsistenciaExcepcion(this.asistenciaexcepcion.value)
       .pipe(
         switchMap(
-          () =>
-            (this.$listaExcepciones = this.searchService.getExcepxObjetivo(
-              this.asistenciaexcepcion.controls['ObjetivoId'].value,
-              this.asistenciaexcepcion.controls['anio'].value,
-              this.asistenciaexcepcion.controls['mes'].value
-            ))
+          async () => (this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value))
         ),
         //      tap(() => this.$isObjetivoOptionsLoading.next(false))
         takeUntil(this.destroy$)
@@ -241,12 +259,7 @@ export class ExcepcionAsistenciaComponent {
       .deleteAsistenciaExcepcion(this.asistenciaexcepcion.value)
       .pipe(
         switchMap(
-          () =>
-            (this.$listaExcepciones = this.searchService.getExcepxObjetivo(
-              this.asistenciaexcepcion.controls['ObjetivoId'].value,
-              this.asistenciaexcepcion.controls['anio'].value,
-              this.asistenciaexcepcion.controls['mes'].value
-            ))
+          async () => (this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value))
         ),
         //      tap(() => this.$isObjetivoOptionsLoading.next(false))
         takeUntil(this.destroy$)

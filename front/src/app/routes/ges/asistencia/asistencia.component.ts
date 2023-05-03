@@ -98,8 +98,15 @@ export class AsistenciaComponent {
   ngAfterViewInit(): void {
     const now = new Date();    //date
     setTimeout(() => {
-      this.asistencia.controls['anio'].setValue(now.getFullYear());
-      this.asistencia.controls['mes'].setValue(now.getMonth() + 1);
+  
+  
+  
+      const anio = (Number(localStorage.getItem('anio'))>0)? localStorage.getItem('anio') : now.getFullYear()
+      const mes = (Number(localStorage.getItem('mes'))>0)? localStorage.getItem('mes') : now.getMonth()+1
+
+      this.asistencia.form.get('anio')?.setValue(Number(anio));
+      this.asistencia.form.get('mes')?.setValue(Number(mes));
+
       if (localStorage.getItem('SucursalId')) {
         this.asistencia.controls['SucursalId'].setValue(Number(localStorage.getItem('SucursalId')))
       }

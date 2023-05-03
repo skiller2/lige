@@ -7,7 +7,7 @@ export class BaseController {
    * @param res the response object that will be used to send http response
    */
   jsonRes(recordset: any, res: Response, msg = "ok") {
-    res.status(200).json({ msg: msg, data: recordset });
+    res.status(200).json({ msg: msg, data: recordset,stamp: new Date() });
   }
   /**
    * @param err error object of any type genereated by the system
@@ -24,8 +24,48 @@ export class BaseController {
     if (process.env.DEBUG) {
       console.error(err);
     }
-    res.status(status).json({ msg: message, data: [] });
+    res.status(status).json({ msg: message, data: [], stamp: new Date() });
   }
+
+  async hasAuthPersona(anio, mes, persona_cuit, queryRunner) {
+    let fechaHastaAuth = new Date(anio, mes, 1)
+    fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1)
+
+    let autorizado = false
+    let resultAuth = await queryRunner.query(`SELECT suc.ObjetivoSucursalSucursalId,
+         
+    obj.ObjetivoId, 
+    obj.ClienteId,
+    obj.ClienteElementoDependienteId,
+    obj.ObjetivoDescripcion,
+    
+    perjer.PersonalId,
+    CONCAT(TRIM(perjer.PersonalApellido), ', ' ,TRIM(perjer.PersonalNombre) ) AS ApellidoNombreJerarquico,
+    cuit.PersonalCUITCUILCUIT,
+    -- obj.ObjetivoSucursalUltNro,
+    opj.ObjetivoPersonalJerarquicoDesde,
+    opj.ObjetivoPersonalJerarquicoHasta,
+    opj.ObjetivoPersonalJerarquicoComo,
+    1
+    
+    FROM Objetivo obj 
+    LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
+    LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  <= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @0
+    LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
+    LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = perjer.PersonalCUITCUILUltNro
+
+    WHERE obj.ObjetivoId=@1`,
+      [fechaHastaAuth])
+
+    for (let row of resultAuth) {
+      if (row.PersonalCUITCUILCUIT == persona_cuit) {
+        return true
+      }
+    }
+
+    return false
+  }
+
 
   async hasAuthObjetivo(anio, mes, persona_cuit, ObjetivoId, queryRunner) {
     let fechaHastaAuth = new Date(anio, mes, 1);

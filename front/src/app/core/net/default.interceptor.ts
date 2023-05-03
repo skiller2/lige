@@ -240,7 +240,7 @@ export class DefaultInterceptor implements HttpInterceptor {
     if (!headers?.has('Accept-Language') && lang) {
       res['Accept-Language'] = lang;
     }
-
+    res['ngsw-bypass'] = '1';
     return res;
   }
 

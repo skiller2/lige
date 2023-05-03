@@ -5,7 +5,6 @@ import { dataSource } from "../data-source";
 export class InitController extends BaseController {
   getObjetivosSinAsistencia(req: Request, res: Response) {
     const con = dataSource;
-    const stmactual = new Date()
     const anio = req.params.anio
     const mes = req.params.mes
     con
@@ -128,13 +127,76 @@ export class InitController extends BaseController {
           total += rec.CantidadObjetivos
         })
 
-        this.jsonRes({ objetivosSinAsistencia: data, objetivosSinAsistenciaTotal:total },res);
+        this.jsonRes({ objetivosSinAsistencia: data, objetivosSinAsistenciaTotal:total, anio:anio, mes:mes },res);
       
       })
       .catch((err) => {
         this.errRes(err, res, "Error accediendo a la base de datos", 409);
       });
   }
+
+  getAdelantosPendientes(req: Request, res: Response) {
+    const con = dataSource;
+    const stmactual = new Date()
+    con
+      .query(
+        `SELECT COUNT(ade.PersonalAdelantoId) as totalpersonas, SUM(ade.PersonalAdelantoMonto) as totalimporte FROM PersonalAdelanto ade WHERE ade.PersonalAdelantoAprobado IS null
+        `,
+        [stmactual]
+      )
+      .then((records: Array<any>) => {
+        let data: { x: string; y: any; }[]=[]
+        let total=0
+  //      if (records.length ==0) throw new Error('Data not found')
+        records.forEach(rec => {
+          
+          data.push({ x: rec.totalpersonas, y: rec.PersonalAdelantoMonto })
+          total += rec.totalpersonas
+        })
+
+        this.jsonRes({ adelantos: data, adelantosTotal: total },res);
+      
+      })
+      .catch((err) => {
+        this.errRes(err, res, "Error accediendo a la base de datos", 409);
+      });
+  }
+
+  getExcepcionesPendientes(req: Request, res: Response) {
+    const con = dataSource;
+    const stmactual = new Date()
+    con
+      .query(
+        `SELECT suc.SucursalId, suc.SucursalDescripcion, COUNT(art14.PersonalId) AS totalpersonas 
+        FROM PersonalArt14 art14 
+        JOIN Objetivo obj ON obj.ObjetivoId = art14.PersonalArt14ObjetivoId
+        LEFT JOIN ObjetivoSucursal sucobj ON sucobj.ObjetivoId = obj.ObjetivoId AND sucobj.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
+        LEFT JOIN Sucursal suc ON suc.SucursalId = sucobj.ObjetivoSucursalSucursalId
+        
+        WHERE art14.PersonalArt14Autorizado IS NULL
+        GROUP BY suc.SucursalId, suc.SucursalDescripcion
+        
+        `,
+        [stmactual]
+      )
+      .then((records: Array<any>) => {
+        let data: { x: string; y: any; }[]=[]
+        let total=0
+  //      if (records.length ==0) throw new Error('Data not found')
+        records.forEach(rec => {
+          
+          data.push({ x: rec.SucursalDescripcion, y: rec.totalpersonas })
+          total += rec.totalpersonas
+        })
+
+        this.jsonRes({ Excepciones: data, excepcionesTotal: total },res);
+      
+      })
+      .catch((err) => {
+        this.errRes(err, res, "Error accediendo a la base de datos", 409);
+      });
+  }
+
 
 
   getObjetivosActivos(req: Request, res: Response) {
@@ -250,8 +312,10 @@ GROUP BY suc.ObjetivoSucursalSucursalId, SucursalDescripcion
   }
 
 
-  getStats(req: Request, res: Response) {
+  getHorasTrabajadas(req: Request, res: Response) {
     const con = dataSource;
+    const anio = req.params.anio
+
     con
       .query(
         `SELECT 
@@ -340,7 +404,7 @@ GROUP BY suc.ObjetivoSucursalSucursalId, SucursalDescripcion
         
         WHERE obja.ObjetivoAsistenciaAnoAno = @0   -- AND cuit.PersonalCUITCUILCUIT = '20241355471'
         GROUP BY obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes`,
-        [2023]
+        [anio]
       )
       .then((records: Array<any>) => {
         let horasTrabajadas: { x: string; y: any; }[]=[]
@@ -349,7 +413,7 @@ GROUP BY suc.ObjetivoSucursalSucursalId, SucursalDescripcion
           horasTrabajadas.push({x: rec.ObjetivoAsistenciaAnoAno+'-'+rec.ObjetivoAsistenciaAnoMesMes, y:rec.totalhorascalc})
         })
 
-        this.jsonRes({ horasTrabajadas: horasTrabajadas },res);
+        this.jsonRes({ horasTrabajadas: horasTrabajadas, anio:anio },res);
       
       })
       .catch((err) => {
