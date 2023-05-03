@@ -7,7 +7,7 @@ export class BaseController {
    * @param res the response object that will be used to send http response
    */
   jsonRes(recordset: any, res: Response, msg = "ok") {
-    res.status(200).json({ msg: msg, data: recordset });
+    res.status(200).json({ msg: msg, data: recordset,stamp: new Date() });
   }
   /**
    * @param err error object of any type genereated by the system
@@ -24,7 +24,7 @@ export class BaseController {
     if (process.env.DEBUG) {
       console.error(err);
     }
-    res.status(status).json({ msg: message, data: [] });
+    res.status(status).json({ msg: message, data: [], stamp: new Date() });
   }
 
   async hasAuthPersona(anio, mes, persona_cuit, queryRunner) {

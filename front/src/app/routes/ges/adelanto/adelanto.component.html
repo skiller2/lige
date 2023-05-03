@@ -1,5 +1,5 @@
 <nz-card class="small-margin">
-  <form nz-form #adelanto="ngForm">
+  <form nz-form #adelanto="ngForm" class="">
     <!-- <app-periodo-anio name="Año" ngModel/> -->
     <!-- <app-periodo-mes name="Mes" ngModel/> -->
     <nz-form-item>
@@ -10,7 +10,7 @@
             <div nz-col nzSpan="10">
               <input
                 type="number"
-                [ngModel]="anio"
+                ngModel
                 (ngModelChange)="formChanged($event)"
                 nz-input
                 name="anio" />
@@ -18,7 +18,7 @@
             <div nz-col nzSpan="4">
               <input
                 type="number"
-                [ngModel]="mes"
+                ngModel
                 (ngModelChange)="formChanged($event)"
                 nz-input
                 name="mes" />
@@ -69,10 +69,11 @@
       </nz-input-group>
     </nz-form-item>
 
-    <nz-form-item>
+    <nz-form-item class="app-table">
       <nz-form-label [nzSpan]="5"> Lista de Adelantos </nz-form-label>
-      <nz-form-control>
+      <nz-form-control >
         <nz-table
+        class="app-table"
           #tableAdelantos
           [nzData]="(listaAdelantos$ | async) || []"
           nzSize="small"
