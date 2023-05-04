@@ -67,6 +67,11 @@
               "text": "Adelanto",
               "link": "/ges/adelanto",
               "icon": "anticon-profile"
+            },
+            {
+              "text": "Impuesto Afip",
+              "link": "/ges/impuesto_afip",
+              "icon": "anticon-profile"
             }
 
           ]

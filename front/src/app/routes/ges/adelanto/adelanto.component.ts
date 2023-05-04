@@ -22,7 +22,6 @@ import { SearchService } from 'src/app/services/search.service';
   selector: 'app-adelanto',
   templateUrl: './adelanto.component.html',
   styleUrls: ['./adelanto.component.less'],
-  
 })
 export class AdelantoComponent {
   constructor(
@@ -44,8 +43,14 @@ export class AdelantoComponent {
   ngAfterViewInit(): void {
     const now = new Date(); //date
     setTimeout(() => {
-      const anio = (Number(localStorage.getItem('anio'))>0)? localStorage.getItem('anio') : now.getFullYear()
-      const mes = (Number(localStorage.getItem('mes'))>0)? localStorage.getItem('mes') : now.getMonth()+1
+      const anio =
+        Number(localStorage.getItem('anio')) > 0
+          ? localStorage.getItem('anio')
+          : now.getFullYear();
+      const mes =
+        Number(localStorage.getItem('mes')) > 0
+          ? localStorage.getItem('mes')
+          : now.getMonth() + 1;
       this.adelanto.form.get('anio')?.setValue(Number(anio));
       this.adelanto.form.get('mes')?.setValue(Number(mes));
     }, 1);
@@ -85,8 +90,15 @@ export class AdelantoComponent {
   );
 
   formChanged(event: any) {
-    if (this.adelanto.controls['anio'].value && this.adelanto.controls['mes'].value) {
-      localStorage.setItem('anio', String(this.adelanto.controls['anio'].value));
+    if (
+      this.adelanto.controls['anio'].value &&
+      this.adelanto.controls['mes'].value
+    ) {
+      // console.log((this.adelanto.form.get('periodo') as any).controls);
+      localStorage.setItem(
+        'anio',
+        String(this.adelanto.controls['anio'].value)
+      );
       localStorage.setItem('mes', String(this.adelanto.controls['mes'].value));
     }
     this.formChange$.next('');

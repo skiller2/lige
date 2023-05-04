@@ -1,0 +1,25 @@
+<nz-form-item ngModelGroup="periodo" #periodo="ngModelGroup">
+  <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
+  <nz-form-control>
+    <nz-input-group>
+      <div nz-row [nzGutter]="8">
+        <div nz-col nzSpan="10">
+          <input
+            type="number"
+            ngModel
+            (ngModelChange)="formChanged($event)"
+            nz-input
+            name="anio" />
+        </div>
+        <div nz-col nzSpan="4">
+          <input
+            type="number"
+            ngModel
+            (ngModelChange)="formChanged($event)"
+            nz-input
+            name="mes" />
+        </div>
+      </div>
+    </nz-input-group>
+  </nz-form-control>
+</nz-form-item>

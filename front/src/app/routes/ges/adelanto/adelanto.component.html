@@ -1,7 +1,9 @@
+<page-header />
 <nz-card class="small-margin">
   <form nz-form #adelanto="ngForm" class="">
     <!-- <app-periodo-anio name="Año" ngModel/> -->
     <!-- <app-periodo-mes name="Mes" ngModel/> -->
+    <!-- <app-periodo-select (formChangedEvent)="formChanged($event)" /> -->
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
       <nz-form-control>
@@ -84,9 +86,9 @@
 
     <nz-form-item class="app-table">
       <nz-form-label [nzSpan]="5"> Lista de Adelantos </nz-form-label>
-      <nz-form-control >
+      <nz-form-control>
         <nz-table
-        class="app-table"
+          class="app-table"
           #tableAdelantos
           [nzData]="(listaAdelantos$ | async) || []"
           nzSize="small"
@@ -116,5 +118,5 @@
       </nz-form-control>
     </nz-form-item>
   </form>
-  <!-- {{this.adelanto.value | json}} -->
+  <!-- {{ this.adelanto.value | json }} -->
 </nz-card>

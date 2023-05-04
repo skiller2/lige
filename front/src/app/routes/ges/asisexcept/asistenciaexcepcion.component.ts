@@ -21,7 +21,7 @@ enum Busqueda {
   Objetivo,
   Personal,
   Anio,
-  Mes
+  Mes,
 }
 
 @Component({
@@ -113,7 +113,6 @@ export class ExcepcionAsistenciaComponent {
       )
     ),
     tap(() => this.$isObjetivoOptionsLoading.next(false))
-
   );
 
   $optionsObjetivos = this.$searchObjetivoChange.pipe(
@@ -126,8 +125,10 @@ export class ExcepcionAsistenciaComponent {
       )
     ),
     tap(() => this.$isObjetivoOptionsLoading.next(false)),
-    catchError(() => { return of([]) })
-  )
+    catchError(() => {
+      return of([]);
+    })
+  );
 
   $optionsPersonal = this.$searchPersonalChange.pipe(
     debounceTime(500),
@@ -147,8 +148,14 @@ export class ExcepcionAsistenciaComponent {
   ngAfterViewInit(): void {
     const now = new Date(); //date
     setTimeout(() => {
-      const anio = (Number(localStorage.getItem('anio'))>0)? localStorage.getItem('anio') : now.getFullYear()
-      const mes = (Number(localStorage.getItem('mes'))>0)? localStorage.getItem('mes') : now.getMonth()+1
+      const anio =
+        Number(localStorage.getItem('anio')) > 0
+          ? localStorage.getItem('anio')
+          : now.getFullYear();
+      const mes =
+        Number(localStorage.getItem('mes')) > 0
+          ? localStorage.getItem('mes')
+          : now.getMonth() + 1;
 
       this.asistenciaexcepcion.form.get('anio')?.setValue(Number(anio));
       this.asistenciaexcepcion.form.get('mes')?.setValue(Number(mes));
@@ -182,7 +189,9 @@ export class ExcepcionAsistenciaComponent {
           'anio',
           this.asistenciaexcepcion.controls['anio'].value
         );
-        this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value);
+        this.$selectedObjetivoIdChange.next(
+          this.asistenciaexcepcion.controls['ObjetivoId'].value
+        );
 
         break;
       case Busqueda.Mes:
@@ -190,9 +199,10 @@ export class ExcepcionAsistenciaComponent {
           'mes',
           this.asistenciaexcepcion.controls['mes'].value
         );
-        this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value);
-          break;
-  
+        this.$selectedObjetivoIdChange.next(
+          this.asistenciaexcepcion.controls['ObjetivoId'].value
+        );
+        break;
 
       case Busqueda.Sucursal:
         localStorage.setItem(
@@ -259,8 +269,10 @@ export class ExcepcionAsistenciaComponent {
     this.searchService
       .setAsistenciaExcepcion(this.asistenciaexcepcion.value)
       .pipe(
-        switchMap(
-          async () => (this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value))
+        switchMap(async () =>
+          this.$selectedObjetivoIdChange.next(
+            this.asistenciaexcepcion.controls['ObjetivoId'].value
+          )
         ),
         //      tap(() => this.$isObjetivoOptionsLoading.next(false))
         takeUntil(this.destroy$)
@@ -285,8 +297,10 @@ export class ExcepcionAsistenciaComponent {
     this.searchService
       .deleteAsistenciaExcepcion(this.asistenciaexcepcion.value)
       .pipe(
-        switchMap(
-          async () => (this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value))
+        tap(() =>
+          this.$selectedObjetivoIdChange.next(
+            this.asistenciaexcepcion.controls['ObjetivoId'].value
+          )
         ),
         //      tap(() => this.$isObjetivoOptionsLoading.next(false))
         takeUntil(this.destroy$)

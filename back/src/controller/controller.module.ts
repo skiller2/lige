@@ -1,18 +1,19 @@
-import { AuthController } from './auth.controller';
-import { InfoController } from './info.controller';
-import { PersonalController } from './personal.controller';
-import { InitController } from './init.controller';
-import { SucursalController } from './sucursal.controller';
-import { ObjetivoController } from './objetivo.controller';
-import { AsistenciaController } from './asistencia.controller';
-import { AdelantosController } from '../adelantos/adelantos.controller';
-
+import { AuthController } from "./auth.controller";
+import { InfoController } from "./info.controller";
+import { PersonalController } from "./personal.controller";
+import { InitController } from "./init.controller";
+import { SucursalController } from "./sucursal.controller";
+import { ObjetivoController } from "./objetivo.controller";
+import { AsistenciaController } from "./asistencia.controller";
+import { AdelantosController } from "../adelantos/adelantos.controller";
+import { ImpuestosAfipController } from "../impuestos-afip/impuestos-afip.controller";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
-export const personalController = new PersonalController()
-export const initController = new InitController()
-export const sucursalController = new SucursalController()
-export const objetivoController = new ObjetivoController()
-export const asistenciaController = new AsistenciaController()
-export const adelantosController = new AdelantosController()
+export const personalController = new PersonalController();
+export const initController = new InitController();
+export const sucursalController = new SucursalController();
+export const objetivoController = new ObjetivoController();
+export const asistenciaController = new AsistenciaController();
+export const adelantosController = new AdelantosController();
+export const impuestosAfipController = new ImpuestosAfipController();
