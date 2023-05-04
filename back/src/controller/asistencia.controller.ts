@@ -665,7 +665,7 @@ export class AsistenciaController extends BaseController {
         recordSet.push({ id: 'S', descripcion: 'Monto fijo a sumar', etiqueta: 'Imp. Adicional' })
         recordSet.push({ id: 'E', descripcion: 'Equivalencia de categoría', etiqueta: 'Equivalencia' })
         recordSet.push({ id: 'A', descripcion: 'Monto adicional por hora', etiqueta: 'Imp. Adicional Hora' })
-        recordSet.push({ id: 'H', descripcion: 'Horas adicionales mensuales', etiqueta: 'Horas adicionales' })
+        recordSet.push({ id: 'H', descripcion: 'Se suman a las cargadas', etiqueta: 'Horas adicionales' })
 
         this.jsonRes(recordSet, res)
     }

@@ -36,7 +36,7 @@ export class ObjetivoController extends BaseController {
                 [fechaHasta, objetivoId]
             )
             .then((records: Array<any>) => {
-//                if (records.length != 1) throw new Error('Objetivo not found')
+                //                if (records.length != 1) throw new Error('Objetivo not found')
                 this.jsonRes(records, res);
             })
             .catch((err) => {
@@ -85,9 +85,10 @@ WHERE sucdes.SucursalId = @0 AND `
                 case 'Descripcion':
                     const valueArray: Array<string> = value.split(/[\s,.-]+/);
                     valueArray.forEach((element, index) => {
-                      query += ` obj.ObjetivoDescripcion LIKE '%${element}%' AND `;
+                        if (element.length > 1)
+                            query += ` obj.ObjetivoDescripcion LIKE '%${element}%' AND `;
                     });
-                                
+
                     query += ` 1=1 `
                     break;
                 case 'Codigo':
