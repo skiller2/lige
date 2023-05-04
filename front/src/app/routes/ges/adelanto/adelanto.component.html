@@ -33,6 +33,19 @@
       name="PersonalId"
       (ngModelChange)="formChanged($event)"
       ngModel />
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
+        <nz-form-control>
+          <ng-container *ngFor="let responsable of $personaResponsables | async">
+            <p title="{{ responsable.PersonalCategoriaPersonalId }}">
+              {{responsable.CUITJ}} {{ responsable.ApellidoNombreJ }} desde {{
+              responsable.OperacionesPersonalAsignarAJerarquicoDesde | date}} <span
+                *ngIf="responsable.OperacionesPersonalAsignarAJerarquicoHasta"> hasta </span> {{
+              responsable.OperacionesPersonalAsignarAJerarquicoHasta | date}} </p>
+          </ng-container>
+        </nz-form-control>
+      </nz-form-item>
+  
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Importe</nz-form-label>
       <nz-form-control>
@@ -81,6 +94,7 @@
           nzSize="small"
           [nzPageSize]="100000000"
           [nzShowPagination]="false"
+          [nzScroll]="{ x: '500px' }"
           [nzLoading]="tableLoading$ | async">
           <thead>
             <tr>
@@ -96,6 +110,7 @@
               <td>{{ data.PersonalAdelantoMonto | currency : '$' }}</td>
               <td>{{ data.PersonalAdelantoFechaSolicitud | date }}</td>
               <td>{{ data.PersonalAdelantoFechaDeAprobacion | date }}</td>
+              <td>{{ data.PersonalAdelantoAprobado }}</td>
               <td>{{ data.PersonalAdelantoAplicaEl }}</td>
             </tr>
           </tbody>

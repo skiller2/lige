@@ -79,7 +79,9 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Art14</nz-form-label>
       <nz-form-control>
-        <nz-table #excep [nzData]="$listaExcepciones | async" nzSize="small" [nzPageSize]="100000000">
+        <nz-table #excep [nzData]="$listaExcepciones | async" nzSize="small" [nzPageSize]="100000000"
+        [nzShowPagination]="false"
+        [nzScroll]="{ x: '600px' }">
           <thead>
             <tr>
               <th>CUIT</th>
@@ -119,7 +121,9 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Asistencia</nz-form-label>
       <nz-form-control>
-        <nz-table #asist [nzData]="$listaAsistencia | async" nzSize="small" [nzPageSize]="100000000">
+        <nz-table #asist [nzData]="$listaAsistencia | async" nzSize="small" [nzPageSize]="100000000"
+        [nzShowPagination]="false"
+        [nzScroll]="{ x: '500px' }">
           <thead>
             <tr>
               <th>CUIT</th>

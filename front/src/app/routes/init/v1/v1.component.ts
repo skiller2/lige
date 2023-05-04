@@ -12,7 +12,13 @@ import type { Chart } from '@antv/g2';
 import { OnboardingConfig, OnboardingService } from '@delon/abc/onboarding';
 import { _HttpClient } from '@delon/theme';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
-import { Observable, share } from 'rxjs';
+import {
+  BehaviorSubject,
+  Observable,
+  debounceTime,
+  share,
+  switchMap,
+} from 'rxjs';
 
 @Component({
   selector: 'app-init-v1',

@@ -12,3 +12,6 @@ personalRouter.get(`${base}/:id`,  authMiddleware.verifyToken, (req, res) => {
 //personalRouter.get(`${base}/:id`,  (req, res) => {
     personalController.getById(req.params.id, res)
 })
+personalRouter.get(`${base}/responsables/:personalId/:anio/:mes`,  authMiddleware.verifyToken, (req, res) => {
+    personalController.getPersonalResponsables(req, res)
+})

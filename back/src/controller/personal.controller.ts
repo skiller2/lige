@@ -1,10 +1,53 @@
 import { Response } from "express";
 import { BaseController } from "./baseController";
 import { PersonaObj } from "../schemas/personal.schemas";
-import fetch from "node-fetch";
+import fetch, { Request } from "node-fetch";
 import { dataSource } from "../data-source";
 
 export class PersonalController extends BaseController {
+  async getPersonalResponsables(
+    req: any,
+    res: Response
+  ) {
+
+    const personalId= req.params.personalId
+    const anio= req.params.anio
+    const mes= req.params.mes
+
+    try {
+        const responsables = await dataSource.query(
+          `
+        SELECT perrel.*, 
+        perrel.OperacionesPersonalAAsignarPersonalId,
+        cuit2.PersonalCUITCUILCUIT as CUIT,
+        CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre, 
+        perrel.PersonalCategoriaPersonalId,
+        cuit.PersonalCUITCUILCUIT as CUITJ,
+        CONCAT(TRIM(perjer.PersonalApellido), ', ',TRIM(perjer.PersonalNombre)) ApellidoNombreJ, 
+        
+        1
+        FroM OperacionesPersonalAsignarAJerarquico perrel 
+        LEFT JOIN Personal perjer ON perjer.PersonalId = perrel.PersonalCategoriaPersonalId
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = perjer.PersonalCUITCUILUltNro
+        
+        LEFT JOIN Personal per ON per.PersonalId = perrel.OperacionesPersonalAAsignarPersonalId
+        LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
+        
+        
+        
+        WHERE DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
+        AND perrel.OperacionesPersonalAAsignarPersonalId=@0
+        `,
+        
+        [personalId, anio, mes]
+
+      );
+      this.jsonRes(responsables, res);
+    } catch (err) {
+      this.errRes(err, res, "Error accediendo a la base de datos", 409);
+    }
+  }
+
   getById(PersonalId: string, res: Response) {
     dataSource
       .query(
@@ -69,7 +112,7 @@ export class PersonalController extends BaseController {
       WHERE`
     switch (fieldName) {
       case 'Nombre':
-        const valueArray: Array<string> = value.split(" ");
+        const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
           query += `(per.PersonalNombre LIKE '%${element}%' OR per.PersonalApellido LIKE '%${element}%') AND `;
         });
