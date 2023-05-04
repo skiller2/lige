@@ -8,6 +8,7 @@
       "@types/express": "^4.17.17",
       "@types/jsonwebtoken": "^9.0.1",
       "@types/morgan": "^1.9.3",
+      "@types/multer": "^1.4.7",
       "@types/node": "^18.15.11",
       "@types/node-fetch": "^2.6.2",
       "nodemon": "^2.0.22",
@@ -25,6 +26,7 @@
       "ldapjs": "^3.0.2",
       "morgan": "^1.10.0",
       "mssql": "^9.1.1",
+      "multer": "^1.4.5-lts.1",
       "node-fetch": "^2.6.9",
       "reflect-metadata": "^0.1.10",
       "typeorm": "^0.3.14"

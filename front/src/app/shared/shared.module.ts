@@ -11,8 +11,7 @@ import { SHARED_ZORRO_MODULES } from './shared-zorro.module';
 import { PdfviewerComponent } from './pdfviewer/pdfviewer.component';
 import { UploadFileComponent } from './upload-file/upload-file.component';
 import { PersonalSearchComponent } from './personal-search/personal-search.component';
-import { PeriodoItemComponent } from './periodo-item/periodo-item.component';
-import { PeriodoAnioComponent } from './periodo-anio/periodo-anio.component';
+import { PeriodoSelectComponent } from './periodo-select/periodo-select.component';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';
@@ -21,7 +20,10 @@ const THIRDMODULES: Array<Type<any>> = [];
 // #endregion
 
 // #region your componets & directives
-const COMPONENTS: Array<Type<any>> = [PersonalSearchComponent, PeriodoItemComponent, PeriodoAnioComponent];
+const COMPONENTS: Array<Type<any>> = [
+  PersonalSearchComponent,
+  PeriodoSelectComponent,
+];
 const DIRECTIVES: Array<Type<any>> = [];
 // #endregion
 
@@ -37,7 +39,7 @@ const DIRECTIVES: Array<Type<any>> = [];
     ...SHARED_DELON_MODULES,
     ...SHARED_ZORRO_MODULES,
     // third libs
-    ...THIRDMODULES
+    ...THIRDMODULES,
   ],
   declarations: [
     // your components
@@ -58,7 +60,7 @@ const DIRECTIVES: Array<Type<any>> = [];
     ...THIRDMODULES,
     // your components
     ...COMPONENTS,
-    ...DIRECTIVES
-  ]
+    ...DIRECTIVES,
+  ],
 })
 export class SharedModule {}

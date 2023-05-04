@@ -1,0 +1,19 @@
+<page-header />
+<nz-card>
+  <form nz-form #impuestoForm="ngForm">
+    <app-periodo-select />
+    <nz-upload
+      nzType="drag"
+      [nzMultiple]="true"
+      (nzChange)="handleChange($event)"
+      [nzAction]="url"
+      nzName="pdf"
+      [(nzFileList)]="files"
+      nzAccept="application/pdf">
+      <p class="ant-upload-drag-icon">
+        <span nz-icon nzType="inbox"></span>
+      </p>
+      <p class="ant-upload-text">Clickeá or arrastrá un archivo/s para subir</p>
+    </nz-upload>
+  </form>
+</nz-card>

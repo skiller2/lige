@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PeriodoItemComponent } from './periodo-item.component';
+import { ImpuestoAfipComponent } from './impuesto-afip.component';
 
-describe('PeriodoItemComponent', () => {
-  let component: PeriodoItemComponent;
-  let fixture: ComponentFixture<PeriodoItemComponent>;
+describe('ImpuestoAfipComponent', () => {
+  let component: ImpuestoAfipComponent;
+  let fixture: ComponentFixture<ImpuestoAfipComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PeriodoItemComponent ]
+      declarations: [ ImpuestoAfipComponent ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(PeriodoItemComponent);
+    fixture = TestBed.createComponent(ImpuestoAfipComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

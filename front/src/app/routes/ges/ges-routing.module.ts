@@ -8,16 +8,21 @@ import { ExcepcionAsistenciaComponent } from './asisexcept/asistenciaexcepcion.c
 import { PdfRetiroComponent } from './pdf-retiro/pdf-retiro.component';
 import { AsistenciaComponent } from './asistencia/asistencia.component';
 import { AdelantoComponent } from './adelanto/adelanto.component';
+import { ImpuestoAfipComponent } from './impuesto-afip/impuesto-afip.component';
 
-const routes: Routes = [{ path: 'pdfretiro', component: PdfRetiroComponent },
-//  { path: 'asistenciaexcepcion', component: ExcepcionAsistenciaComponent },
+const routes: Routes = [
+  { path: 'pdfretiro', component: PdfRetiroComponent },
+  //  { path: 'asistenciaexcepcion', component: ExcepcionAsistenciaComponent },
   {
     path: 'asistenciaexcepcion',
     children: [
-      { path: ':SucursalId/:ObjetivoId', component: ExcepcionAsistenciaComponent },
-      { path: '', component: ExcepcionAsistenciaComponent }
-    ]
-  
+      {
+        path: ':SucursalId/:ObjetivoId',
+        component: ExcepcionAsistenciaComponent,
+      },
+      { path: '', component: ExcepcionAsistenciaComponent },
+    ],
+
     //component: ExcepcionAsistenciaComponent
   },
   { path: 'asistencia', component: AsistenciaComponent },
@@ -25,10 +30,11 @@ const routes: Routes = [{ path: 'pdfretiro', component: PdfRetiroComponent },
   { path: 'imgpers', component: ImgPersComponent },
   { path: 'credpers', component: CredPersComponent },
   { path: 'adelanto', component: AdelantoComponent },
+  { path: 'impuesto_afip', component: ImpuestoAfipComponent },
 ];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class GesRoutingModule { }
+export class GesRoutingModule {}
