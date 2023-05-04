@@ -291,7 +291,7 @@ export class AsistenciaController extends BaseController {
                     VALUES(@0, @1, 
                     @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21)
                 `, [PersonalArt14UltNro, metodologia, SumaFija, AdicionalHora, Horas, null, fechaDesde,
-                null, null, null, null, null, null, null, null, PersonaId,
+                fechaHasta, null, null, null, null, null, null, null, PersonaId,
                 Equivalencia.TipoAsociadoId, Equivalencia.CategoriaPersonalId, 1, ObjetivoId, null, null])
 
             result = await queryRunner.query(
