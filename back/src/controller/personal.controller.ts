@@ -105,7 +105,7 @@ export class PersonalController extends BaseController {
   ) {
     const { fieldName, value } = req.body;
 
-
+    let buscar = false
     let query: string =
       `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName FROM dbo.Personal per 
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
@@ -114,16 +114,26 @@ export class PersonalController extends BaseController {
       case 'Nombre':
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
-          if (element.length > 1)
-            query += `(per.PersonalNombre LIKE '%${element}%' OR per.PersonalApellido LIKE '%${element}%') AND `;
+          if (element.trim().length > 1) {
+            query += `(per.PersonalNombre LIKE '%${element.trim()}%' OR per.PersonalApellido LIKE '%${element.trim()}%') AND `
+            buscar = true
+          }
         });
         break;
       case 'CUIT':
-        query += ` cuit.PersonalCUITCUILCUIT LIKE '%${value}%' AND `
+        if (value.trim().length > 1) {
+          query += ` cuit.PersonalCUITCUILCUIT LIKE '%${value.trim()}%' AND `
+          buscar = true
+        }
+
       default:
         break;
     }
 
+    if (buscar == false) { 
+      this.jsonRes({ recordsArray: [] }, res);
+      return
+    }
 
     dataSource
       .query((query += " 1=1"))

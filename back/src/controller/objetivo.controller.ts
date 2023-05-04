@@ -56,7 +56,7 @@ export class ObjetivoController extends BaseController {
                 this.jsonRes({ objetivos: [] }, res);
                 return;
             }
-
+let buscar=false
             let query = `
         SELECT 
 sucdes.SucursalId, sucdes.SucursalDescripcion, 
@@ -85,22 +85,27 @@ WHERE sucdes.SucursalId = @0 AND `
                 case 'Descripcion':
                     const valueArray: Array<string> = value.split(/[\s,.-]+/);
                     valueArray.forEach((element, index) => {
-                        if (element.length > 1)
-                            query += ` obj.ObjetivoDescripcion LIKE '%${element}%' AND `;
+                        if (element.trim().length > 1) {
+                            query += ` obj.ObjetivoDescripcion LIKE '%${element.trim()}%' AND `
+                            buscar = true;
+                        }
                     });
 
                     query += ` 1=1 `
                     break;
                 case 'Codigo':
+                    buscar = true
                     query = `${query} CONCAT(obj.ClienteId, '/', ISNULL(clidep.ClienteElementoDependienteId, 0)) LIKE '%${value}%'`
                     break;
                 default:
                     break;
             }
 
-
-            const result = await dataSource.query(query, [sucursalId])
-            this.jsonRes({ objetivos: result }, res);
+            if (buscar) {
+                const result = await dataSource.query(query, [sucursalId])
+                this.jsonRes({ objetivos: result }, res)
+            } else
+                this.jsonRes({ objetivos: [] }, res)
         }
         catch (err) {
             this.errRes(err, res, "Error accediendo a la base de datos", 409);
