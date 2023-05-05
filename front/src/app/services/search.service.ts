@@ -107,6 +107,32 @@ export class SearchService {
             )
     }
 
+    getExcepxPersona(personalId: number, anio: number, mes: number): Observable<any> {
+        if (!personalId) return of([])
+
+        return this.http.get<ResponseJSON<PersonaObj>>(`api/asistencia/exceporper/${anio}/${mes}/${personalId}`)
+            .pipe(
+                map((res) => res.data),
+                catchError((err, caught) => { console.log('Something went wrong!'); return of([]) }),
+
+            )
+    }
+
+    getAsistenciaPersona(personalId: number, anio: number, mes: number): Observable<any> {
+        if (!personalId) return of([])
+
+        return this.http.get(`api/asistencia/listaporper/${anio}/${mes}/${personalId}`)
+            .pipe(
+                map((res: ResponseJSON<PersonaObj>) =>
+                    res && res.data ?
+                        res.data :
+                        []),
+                catchError((err, caught) => { console.log('Something went wrong!'); return of([]) }),
+
+            )
+    }
+
+
     getAsistenciaObjetivo(objetivoId: number, anio: number, mes: number): Observable<any> {
         if (!objetivoId) return of([])
 
