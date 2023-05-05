@@ -10,13 +10,13 @@ export class PersonalController extends BaseController {
     res: Response
   ) {
 
-    const personalId= req.params.personalId
-    const anio= req.params.anio
-    const mes= req.params.mes
+    const personalId = req.params.personalId
+    const anio = req.params.anio
+    const mes = req.params.mes
 
     try {
-        const responsables = await dataSource.query(
-          `
+      const responsables = await dataSource.query(
+        `
         SELECT perrel.*, 
         perrel.OperacionesPersonalAAsignarPersonalId,
         cuit2.PersonalCUITCUILCUIT as CUIT,
@@ -38,7 +38,7 @@ export class PersonalController extends BaseController {
         WHERE DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
         AND perrel.OperacionesPersonalAAsignarPersonalId=@0
         `,
-        
+
         [personalId, anio, mes]
 
       );
@@ -66,15 +66,15 @@ export class PersonalController extends BaseController {
 
         let FechaHasta = new Date();
         FechaHasta.setFullYear(FechaHasta.getFullYear() + 1);
-        
+
         const personaData = records[0]
-        personaData.NRO_EMPRESA = (process.env.NRO_EMPRESA_PBA)? process.env.NRO_EMPRESA_PBA:""
-//        personaData.PersonalCUITCUILCUIT = (personaData.PersonalCUITCUILCUIT) ? `${personaData.PersonalCUITCUILCUIT}` : "Sin registrar"
+        personaData.NRO_EMPRESA = (process.env.NRO_EMPRESA_PBA) ? process.env.NRO_EMPRESA_PBA : ""
+        //        personaData.PersonalCUITCUILCUIT = (personaData.PersonalCUITCUILCUIT) ? `${personaData.PersonalCUITCUILCUIT}` : "Sin registrar"
         personaData.PersonalCUITCUILCUIT = (personaData.PersonalCUITCUILCUIT != null) ? personaData.PersonalCUITCUILCUIT : ""
-        personaData.DNI = (String(personaData.PersonalCUITCUILCUIT).length>10)? String(personaData.PersonalCUITCUILCUIT).substring(2, 10):""
+        personaData.DNI = (String(personaData.PersonalCUITCUILCUIT).length > 10) ? String(personaData.PersonalCUITCUILCUIT).substring(2, 10) : ""
         personaData.FechaDesde = new Date()
         personaData.FechaHasta = FechaHasta
-        const imageFotoPath = (process.env.IMAGE_FOTO_PATH)?process.env.IMAGE_FOTO_PATH:""
+        const imageFotoPath = (process.env.IMAGE_FOTO_PATH) ? process.env.IMAGE_FOTO_PATH : ""
         const imageUrl = personaData.DocumentoImagenFotoBlobNombreArchivo ? imageFotoPath.concat(personaData.DocumentoImagenFotoBlobNombreArchivo) : ""
         if (imageUrl != "") {
           fetch(imageUrl)
@@ -82,14 +82,14 @@ export class PersonalController extends BaseController {
             .then((buffer) => {
               const bufferStr = buffer.toString('base64')
               personaData.image = 'data:image/jpeg;base64, ' + bufferStr;
-    
+
               this.jsonRes(personaData, res);
             })
             .catch((reason) => {
               throw new Error('Image not found')
             })
         }
-        else {  
+        else {
           personaData.image = '';
           this.jsonRes(personaData, res);
         }
@@ -105,24 +105,35 @@ export class PersonalController extends BaseController {
   ) {
     const { fieldName, value } = req.body;
 
-
+    let buscar = false
     let query: string =
-    `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName FROM dbo.Personal per 
+      `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName FROM dbo.Personal per 
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
       WHERE`
     switch (fieldName) {
       case 'Nombre':
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
-          query += `(per.PersonalNombre LIKE '%${element}%' OR per.PersonalApellido LIKE '%${element}%') AND `;
+          if (element.trim().length > 1) {
+            query += `(per.PersonalNombre LIKE '%${element.trim()}%' OR per.PersonalApellido LIKE '%${element.trim()}%') AND `
+            buscar = true
+          }
         });
         break;
       case 'CUIT':
-          query += ` cuit.PersonalCUITCUILCUIT LIKE '%${value}%' AND `
+        if (value.trim().length > 1) {
+          query += ` cuit.PersonalCUITCUILCUIT LIKE '%${value.trim()}%' AND `
+          buscar = true
+        }
+
       default:
         break;
     }
-    
+
+    if (buscar == false) { 
+      this.jsonRes({ recordsArray: [] }, res);
+      return
+    }
 
     dataSource
       .query((query += " 1=1"))

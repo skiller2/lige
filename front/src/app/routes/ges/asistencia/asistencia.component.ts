@@ -4,6 +4,7 @@ import { BehaviorSubject, Subject, catchError, debounceTime, of, switchMap, take
 import { SearchService } from '../../../services/search.service';
 import { NgForm } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { ApiService } from 'src/app/services/api.service';
 
 enum Busqueda {
   Sucursal,
@@ -26,9 +27,11 @@ enum Busqueda {
 export class AsistenciaComponent {
 
   @ViewChild('asistencia', { static: true }) asistencia: NgForm = new NgForm([], []);
+  @ViewChild('asistenciaObj', { static: true }) asistenciaObj: NgForm = new NgForm([], []);
+  @ViewChild('asistenciaPer', { static: true }) asistenciaPer: NgForm = new NgForm([], []);
   public get Busqueda() { return Busqueda }
 
-  constructor(private searchService: SearchService, private injector: Injector, private settingService: SettingsService    ) { }
+  constructor(private searchService: SearchService, private injector: Injector, private settingService: SettingsService, private apiService: ApiService) { }
 
   private destroy$ = new Subject();
 
@@ -56,12 +59,12 @@ export class AsistenciaComponent {
 
 
 
-  
+
   $objetivoResponsables = this.$selectedObjetivoIdChange.pipe(
     debounceTime(50),
 
     switchMap((objetivoId) => { console.log('busqueda', objetivoId); if (!objetivoId) return []; else return this.searchService.getObjetivo(Number(objetivoId), this.asistencia.controls['anio'].value, this.asistencia.controls['mes'].value) }),
-//    tap(() => this.$isObjetivoOptionsLoading.next(false))
+    //    tap(() => this.$isObjetivoOptionsLoading.next(false))
   )
 
 
@@ -90,6 +93,40 @@ export class AsistenciaComponent {
     tap(() => this.$isPersonalOptionsLoading.next(false))
   )
 
+  $listaAsistenciaPer = this.$selectedPersonalIdChange.pipe(
+    debounceTime(500),
+    switchMap((PersonalId) =>
+    this.searchService.getAsistenciaPersona(Number(PersonalId), this.asistencia.controls['anio'].value, this.asistencia.controls['mes'].value)
+        .pipe(
+        //          doOnSubscribe(() => this.tableLoading$.next(true)),
+        //          tap({ complete: () => this.tableLoading$.next(false) })
+      )
+    )
+  );
+
+  $personaResponsables = this.$selectedPersonalIdChange.pipe(
+    debounceTime(500),
+    switchMap(() =>
+      this.apiService
+        .getPersonaResponsables(
+          this.asistencia.controls['anio'].value,
+          this.asistencia.controls['mes'].value,
+          this.asistenciaPer.controls['PersonalId'].value
+        )
+        .pipe(
+        //          doOnSubscribe(() => this.tableLoading$.next(true)),
+        //          tap({ complete: () => this.tableLoading$.next(false) })
+      )
+    )
+  );
+
+  $listaExcepcionesPer = this.$selectedPersonalIdChange.pipe(
+    debounceTime(500),
+    switchMap((PersonalId) => this.searchService.getExcepxPersona(Number(PersonalId), this.asistencia.controls['anio'].value, this.asistencia.controls['mes'].value)),
+  );
+
+
+
   $isSucursalDataLoading = new BehaviorSubject(false)
   $isObjetivoDataLoading = new BehaviorSubject(false)
   $isPersonalDataLoading = new BehaviorSubject(false)
@@ -98,11 +135,9 @@ export class AsistenciaComponent {
   ngAfterViewInit(): void {
     const now = new Date();    //date
     setTimeout(() => {
-  
-  
-  
-      const anio = (Number(localStorage.getItem('anio'))>0)? localStorage.getItem('anio') : now.getFullYear()
-      const mes = (Number(localStorage.getItem('mes'))>0)? localStorage.getItem('mes') : now.getMonth()+1
+
+      const anio = (Number(localStorage.getItem('anio')) > 0) ? localStorage.getItem('anio') : now.getFullYear()
+      const mes = (Number(localStorage.getItem('mes')) > 0) ? localStorage.getItem('mes') : now.getMonth() + 1
 
       this.asistencia.form.get('anio')?.setValue(Number(anio));
       this.asistencia.form.get('mes')?.setValue(Number(mes));
@@ -114,7 +149,7 @@ export class AsistenciaComponent {
 
     }, 1)
 
-      
+
 
 
     console.log('dame', this.settingService.getUser())
@@ -124,12 +159,9 @@ export class AsistenciaComponent {
 
   selectedValueChange(event: string, busqueda: Busqueda): void {
 
-
-
     switch (busqueda) {
       case (Busqueda.Sucursal):
         localStorage.setItem('SucursalId', this.asistencia.controls['SucursalId'].value)
-
         this.$selectedSucursalIdChange.next(event)
         this.$isSucursalDataLoading.next(true)
         return
@@ -138,11 +170,24 @@ export class AsistenciaComponent {
         this.$isObjetivoDataLoading.next(true)
         return
       case (Busqueda.Anio):
-        this.$selectedObjetivoIdChange.next(this.asistencia.controls['ObjetivoId'].value)
+        localStorage.setItem(
+          'anio',
+          this.asistencia.controls['anio'].value
+        );
+
+        this.$selectedObjetivoIdChange.next(this.asistenciaObj.controls['ObjetivoId'].value)
+        this.$selectedPersonalIdChange.next(this.asistenciaPer.controls['PersonalId'].value)
         this.$isObjetivoDataLoading.next(true)
         return
       case (Busqueda.Mes):
-        this.$selectedObjetivoIdChange.next(this.asistencia.controls['ObjetivoId'].value)
+        localStorage.setItem(
+          'mes',
+          this.asistencia.controls['mes'].value
+        );
+
+        this.$selectedObjetivoIdChange.next(this.asistenciaObj.controls['ObjetivoId'].value)
+        this.$selectedPersonalIdChange.next(this.asistenciaPer.controls['PersonalId'].value)
+
         this.$isObjetivoDataLoading.next(true)
         return
       case (Busqueda.Personal):

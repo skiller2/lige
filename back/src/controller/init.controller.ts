@@ -230,9 +230,12 @@ export class InitController extends BaseController {
         
         WHERE 
 
-        (clicon.ClienteContratoFechaDesde <= @0 AND ISNULL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= @0) OR (
-        eledepcon.ClienteElementoDependienteContratoFechaDesde <= @0 AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0)
-        
+        ( 
+          (clicon.ClienteContratoFechaDesde <= @0  AND ISNULL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNULL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= @0 ) 
+          OR 
+          (eledepcon.ClienteElementoDependienteContratoFechaDesde <= @0 AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0) 
+          )
+
 GROUP BY suc.ObjetivoSucursalSucursalId, SucursalDescripcion
         `,
         [stmactual]
@@ -287,8 +290,11 @@ GROUP BY suc.ObjetivoSucursalSucursalId, SucursalDescripcion
         
         WHERE 
 
-        (clicon.ClienteContratoFechaDesde <= @0 AND ISNULL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= @0) OR (
-        eledepcon.ClienteElementoDependienteContratoFechaDesde <= @0 AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0)
+        ( 
+          (clicon.ClienteContratoFechaDesde <= @0  AND ISNULL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNULL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= @0 ) 
+          OR 
+          (eledepcon.ClienteElementoDependienteContratoFechaDesde <= @0 AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0) 
+          )
         
 GROUP BY suc.ObjetivoSucursalSucursalId, SucursalDescripcion
         `,

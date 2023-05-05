@@ -46,7 +46,7 @@ const fileFilter = (
 };
 
 const upload = multer({ storage: storage, fileFilter: fileFilter });
-// const upload = multer({ dest: "uploads/" });
+
 export const impuestosAfipRouter = Router();
 
 impuestosAfipRouter.post(
@@ -54,7 +54,6 @@ impuestosAfipRouter.post(
   authMiddleware.verifyToken,
   upload.single("pdf"),
   (req, res) => {
-    console.log(req);
-    impuestosAfipController.handlePDFUpload(req.file, res);
+    impuestosAfipController.handlePDFUpload(req, res);
   }
 );

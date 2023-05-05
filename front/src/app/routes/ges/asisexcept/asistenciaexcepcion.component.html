@@ -144,7 +144,7 @@
         <nz-select name="metodologia" [(ngModel)]="selectedMetodologiaId" nzAllowClear nzPlaceHolder="Metodologia"
           nzShowSearch>
           <ng-container *ngFor="let option of $optionsMetodologia | async">
-            <nz-option [nzValue]="option.id" [nzLabel]="option.descripcion"></nz-option>
+            <nz-option [nzValue]="option.id" [nzLabel]="option.etiqueta + ' (' + option.descripcion + ')'"></nz-option>
           </ng-container>
         </nz-select>
       </nz-form-control>

@@ -2,7 +2,6 @@ import express, { Request } from "express";
 import { Router } from "express";
 import * as morgan from "morgan";
 import * as pkg from "../package.json";
-import multer from "multer";
 import { DataSource } from "typeorm";
 import { existsSync, mkdir, mkdirSync } from "node:fs";
 
