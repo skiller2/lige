@@ -7,8 +7,14 @@ import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
   styleUrls: ['./impuesto-afip.component.less'],
 })
 export class ImpuestoAfipComponent {
+  selectedDate = null;
   url = '/api/impuestos_afip';
   files: NzUploadFile[] = [];
+
+  onChange(result: Date): void {
+    console.log('onChange: ', result);
+  }
+
   handleChange({ file, fileList }: NzUploadChangeParam): void {
     const status = file.status;
     if (status !== 'uploading') {

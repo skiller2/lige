@@ -1,7 +1,12 @@
 <page-header />
 <nz-card>
   <form nz-form #impuestoForm="ngForm">
-    <app-periodo-select />
+    <nz-date-picker
+      nzMode="month"
+      name="periodo"
+      ngModel
+      (ngModelChange)="onChange($event)"></nz-date-picker>
+    <!-- <app-periodo-select /> -->
     <nz-upload
       nzType="drag"
       [nzMultiple]="true"
