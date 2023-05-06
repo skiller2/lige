@@ -14,6 +14,7 @@ import {
   PDFRef,
 } from "pdf-lib";
 import fs from "fs";
+import { TextItem } from "pdfjs-dist/types/src/display/api";
 
 export class ImpuestosAfipController extends BaseController {
   async handlePDFUpload(req: Request, res: Response) {
@@ -36,7 +37,7 @@ export class ImpuestosAfipController extends BaseController {
       console.log(textContent);
 
       textContent.items.forEach((item, index) => {
-        const str = item.str;
+        const str = (item as TextItem).str;
         if (str.startsWith("$")) console.log("Importe:", item, index);
         if (str.startsWith("CC")) console.log("Medio de pago:", item, index);
       });

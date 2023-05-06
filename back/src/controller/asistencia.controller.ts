@@ -292,7 +292,7 @@ export class AsistenciaController extends BaseController {
                     @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21)
                 `, [PersonalArt14UltNro, metodologia, SumaFija, AdicionalHora, Horas, null, fechaDesde,
                 fechaHasta, null, null, null, null, null, null, null, PersonaId,
-                Equivalencia.TipoAsociadoId, Equivalencia.CategoriaPersonalId, 1, ObjetivoId, null, null])
+                Equivalencia.TipoAsociadoId, Equivalencia.CategoriaPersonalId, null, ObjetivoId, null, null])
 
             result = await queryRunner.query(
                 `UPDATE Personal SET PersonalArt14UltNro=@1  WHERE PersonalId = @0
