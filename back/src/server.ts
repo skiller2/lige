@@ -8,6 +8,14 @@ import { existsSync, mkdir, mkdirSync } from "node:fs";
 require("dotenv").config();
 
 import * as http from "http";
+import { randomBytes } from "node:crypto";
+
+export const tmpName = (dir: string) => {
+  while (true) {
+    const name = randomBytes(8).toString("hex") + ".tmp";
+    if (!existsSync(`${dir}/${name}`)) return name;
+  }
+};
 
 export class DBServer {
   public dataSource: DataSource;

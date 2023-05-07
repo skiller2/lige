@@ -8,18 +8,26 @@ import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 })
 export class ImpuestoAfipComponent {
   selectedDate = null;
+  selectedPeriodo = {
+    anio: '',
+    mes: '',
+  };
   url = '/api/impuestos_afip';
   files: NzUploadFile[] = [];
 
   onChange(result: Date): void {
-    console.log('onChange: ', result);
+    this.files = [];
+    this.selectedPeriodo = {
+      anio: String(result.getFullYear()),
+      mes: String(result.getMonth() + 1).padStart(2, '0'),
+    };
   }
 
   handleChange({ file, fileList }: NzUploadChangeParam): void {
-    const status = file.status;
-    if (status !== 'uploading') {
-      console.log(file, fileList);
-    }
+    // const status = file.status;
+    // if (status !== 'uploading') {
+    //   console.log(file, fileList);
+    // }
     // if (status === 'done') {
     //   this.msg.success(`${file.name} file uploaded successfully.`);
     // } else if (status === 'error') {

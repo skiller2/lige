@@ -3,11 +3,13 @@ import { authMiddleware } from "../middlewares/middleware.module";
 import { impuestosAfipController } from "../controller/controller.module";
 import multer, { FileFilterCallback } from "multer";
 import { existsSync, mkdirSync } from "fs";
+import { randomBytes } from "crypto";
+import { tmpName } from "../server";
 
 type DestinationCallback = (error: Error | null, destination: string) => void;
 type FileNameCallback = (error: Error | null, filename: string) => void;
 
-const dir = "./uploads/impuestos_afip/";
+const dir = "./uploads/temp/";
 if (!existsSync(dir)) {
   mkdirSync(dir, { recursive: true });
 }
@@ -25,7 +27,7 @@ const storage = multer.diskStorage({
     file: Express.Multer.File,
     callback: DestinationCallback
   ) => {
-    const fileName = `${file.originalname}`;
+    const fileName = tmpName(dir);
     callback(null, fileName);
   },
 });
@@ -35,27 +37,57 @@ const fileFilter = (
   file: Express.Multer.File,
   callback: FileFilterCallback
 ): void => {
-  if (
-    file.mimetype === "application/pdf"
-    // true
-  ) {
-    callback(null, true);
-  } else {
+  if (file.mimetype !== "application/pdf") {
     callback(null, false);
+    return;
   }
+  if (request.body.anio == "") {
+    callback(new Error("No se especificó un año."));
+    return;
+  }
+  if (request.body.mes == "") {
+    callback(new Error("No se especificó un mes."));
+    return;
+  }
+  callback(null, true);
 };
 
-const upload = multer({ storage: storage, fileFilter: fileFilter });
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 10 * 1000 * 1000 },
+}).single("pdf");
 
 export const impuestosAfipRouter = Router();
 
-impuestosAfipRouter.post(
-  "",
-  authMiddleware.verifyToken,
-  upload.single("pdf"),
-  (req, res) => {
-    console.log(req.body.pepe);
-    // console.log(req.file);
-    impuestosAfipController.handlePDFUpload(req, res);
-  }
-);
+impuestosAfipRouter.post("", authMiddleware.verifyToken, (req, res) => {
+  upload(req, res, (err) => {
+    // FILE SIZE ERROR
+    if (err instanceof multer.MulterError) {
+      return res.status(409).json({
+        msg: "Max file size 10MB allowed!",
+        data: [],
+        stamp: new Date(),
+      });
+    }
+
+    // INVALID FILE TYPE, message will return from fileFilter callback
+    else if (err) {
+      return res
+        .status(409)
+        .json({ msg: err.message, data: [], stamp: new Date() });
+    }
+
+    // FILE NOT SELECTED
+    else if (!req.file) {
+      return res
+        .status(409)
+        .json({ msg: "File is required!", data: [], stamp: new Date() });
+    }
+
+    // SUCCESS
+    else {
+      impuestosAfipController.handlePDFUpload(req, res);
+    }
+  });
+});
