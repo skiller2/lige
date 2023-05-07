@@ -22,25 +22,36 @@ export class ImpuestosAfipController extends BaseController {
     try {
       if (!file) throw new Error("File not recieved/did not pass filter.");
 
-      console.log(file);
       const loadingTask = getDocument(file.path);
 
       const document = await loadingTask.promise;
-      console.log("Document Loaded");
-      console.log("Number of pages", document.numPages);
 
-      const metadata = await document.getMetadata();
-      console.log(metadata);
+      // const metadata = await document.getMetadata();
+      // console.log(metadata);
 
       const page = await document.getPage(1);
       const textContent = await page.getTextContent();
-      console.log(textContent);
 
-      textContent.items.forEach((item, index) => {
-        const str = (item as TextItem).str;
-        if (str.startsWith("$")) console.log("Importe:", item, index);
-        if (str.startsWith("CC")) console.log("Medio de pago:", item, index);
-      });
+      const periodoRegex = /^PERIODO FISCAL ([0-9]{4})\/([0-9]{2})/;
+      const periodoFind = textContent.items.find((item) =>
+        periodoRegex.test(item.str)
+      );
+      const [_, periodoAño, periodoMes] = periodoFind.str.match(periodoRegex);
+      console.log(periodoAño, periodoMes);
+      // textContent.items.forEach((item, index) => {
+      //   const str = item.str;
+      //   const periodoArray = str.match(
+      //     /^PERIODO FISCAL ([0-9]{4})\/([0-9]{2})/
+      //   );
+      //   console.log(str);
+      //   console.log(periodoArray);
+      //   const importeArray = str.match(/^$ ([0-9]{4}),([0-9]{2})/);
+      //   // if (periodoArray.length == 3)
+      //   // console.log("Periodo", periodoArray[1], periodoArray[2]);
+      //   // if (str.startsWith("$")) console.log("Importe:", item, index);
+      //   // if (str.startsWith("CC")) console.log("Medio de pago:", item, index);
+      // });
+>>>>>>> Stashed changes
 
       this.jsonRes([], res, "PDF Recieved!");
     } catch (err) {

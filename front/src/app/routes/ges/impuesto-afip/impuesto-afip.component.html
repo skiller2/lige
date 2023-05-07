@@ -10,6 +10,7 @@
     <nz-upload
       nzType="drag"
       [nzMultiple]="true"
+      [nzData]="{ periodo: 'date' }"
       (nzChange)="handleChange($event)"
       [nzAction]="url"
       nzName="pdf"

@@ -54,6 +54,8 @@ impuestosAfipRouter.post(
   authMiddleware.verifyToken,
   upload.single("pdf"),
   (req, res) => {
+    console.log(req.body.pepe);
+    // console.log(req.file);
     impuestosAfipController.handlePDFUpload(req, res);
   }
 );
