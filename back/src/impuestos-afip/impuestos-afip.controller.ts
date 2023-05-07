@@ -11,7 +11,7 @@ const importeMontoRegex =
   /^\$[\s*](([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))?$/;
 
 export class ImpuestosAfipController extends BaseController {
-  directory = "./uploads/monotributo";
+  directory = process.env.PATH_MONOTRIBUTO;
   constructor() {
     super();
     if (!existsSync(this.directory)) {
@@ -105,7 +105,7 @@ export class ImpuestosAfipController extends BaseController {
         `SELECT * FROM PersonalOtroDescuento des WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = @1 AND des.PersonalOtroDescuentoAnoAplica = @2 AND des.PersonalOtroDescuentoMesesAplica = @3`,
         [
           personalID,
-          Number(process.env.OtroDescuentoId),
+          Number(process.env.OTRO_DESCUENTO_ID),
           periodoAnio,
           periodoMes,
         ]
