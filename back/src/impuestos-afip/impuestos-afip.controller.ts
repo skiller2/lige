@@ -160,9 +160,9 @@ export class ImpuestosAfipController extends BaseController {
     regex: RegExp,
     err = new Error("Could not find content.")
   ) {
-    const result = textContent.items.find((item) => regex.test(item.str));
+    const result = textContent.items.find((item) => regex.test((item as TextItem).str));
     if (!result) throw err;
-    return result.str.match(regex);
+    return (result as TextItem).str.match(regex);
   }
   // async handlePDFUpload(req: any, res: Response) {
   //   try {
