@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
+import { NgForm } from '@angular/forms';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 
 @Component({
@@ -7,21 +8,44 @@ import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
   styleUrls: ['./impuesto-afip.component.less'],
 })
 export class ImpuestoAfipComponent {
+
+  @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm = new NgForm([], []);
+
   selectedDate = null;
-  selectedPeriodo = {
-    anio: '',
-    mes: '',
-  };
+  anio = 0;
+  mes = 0;
   url = '/api/impuestos_afip';
   files: NzUploadFile[] = [];
 
-  onChange(result: Date): void {
-    this.files = [];
-    this.selectedPeriodo = {
-      anio: String(result.getFullYear()),
-      mes: String(result.getMonth() + 1).padStart(2, '0'),
-    };
+
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      const now = new Date(); //date
+      const anio =
+        Number(localStorage.getItem('anio')) > 0
+          ? localStorage.getItem('anio')
+          : now.getFullYear();
+      
+      const mes =
+        Number(localStorage.getItem('mes')) > 0
+          ? localStorage.getItem('mes')
+          : now.getMonth() + 1;
+      
+      this.impuestoForm.form.get('periodo')?.setValue(new Date(Number(anio),Number(mes)-1,1))
+
+    }, 1);
   }
+
+
+  onChange(result: Date): void {
+    this.anio = result.getFullYear()
+    this.mes = result.getMonth() + 1
+  
+
+    this.files = [];
+  }
+
+
 
   handleChange({ file, fileList }: NzUploadChangeParam): void {
     // const status = file.status;

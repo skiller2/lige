@@ -18,7 +18,7 @@ export class BaseController {
   errRes(
     err: any,
     res: Response,
-    message = "No se pudo a la base de datos.",
+    message = "No se pudo conectar a la base de datos.",
     status = 500
   ) {
     if (process.env.DEBUG) {

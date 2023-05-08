@@ -72,12 +72,15 @@ export class ImpuestosAfipController extends BaseController {
         periodoRegex,
         new Error("No se pudo encontrar el periodo.")
       );
+
+
+
       const periodoIsValid =
-        periodoAnio == anioRequest && periodoMes == mesRequest;
+        Number(periodoAnio) == anioRequest && Number(periodoMes) == mesRequest;
 
       if (!periodoIsValid)
         throw new Error(
-          `El periodo especificado ${anioRequest}-${mesRequest} no coincide con el contenido en el documento ${periodoAnio}-${periodoMes}.`
+          `El periodo especificado ${anioRequest}-${mesRequest} no coincide con el contenido en el documento ${periodoAnio}-${Number(periodoMes)}.`
         );
 
       const [, importeMontoTemp] = this.getByRegex(
@@ -149,7 +152,7 @@ export class ImpuestosAfipController extends BaseController {
       this.jsonRes([], res, "PDF Recibido!");
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      this.errRes(err, res, "Algo salió mal!", 400);
+      this.errRes(err, res, err.message, 409);
     } finally {
       await queryRunner.release();
       unlinkSync(file.path);
