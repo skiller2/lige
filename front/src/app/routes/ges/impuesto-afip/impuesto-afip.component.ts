@@ -25,22 +25,35 @@ export class ImpuestoAfipComponent {
         Number(localStorage.getItem('anio')) > 0
           ? localStorage.getItem('anio')
           : now.getFullYear();
-      
+
       const mes =
         Number(localStorage.getItem('mes')) > 0
           ? localStorage.getItem('mes')
           : now.getMonth() + 1;
-      
-      this.impuestoForm.form.get('periodo')?.setValue(new Date(Number(anio),Number(mes)-1,1))
+
+      this.impuestoForm.form.get('periodo')?.setValue(new Date(Number(anio), Number(mes) - 1, 1))
 
     }, 1);
   }
 
-
   onChange(result: Date): void {
-    this.anio = result.getFullYear()
-    this.mes = result.getMonth() + 1
-  
+    if (result) {
+      this.anio = result.getFullYear()
+      this.mes = result.getMonth() + 1
+
+      localStorage.setItem(
+        'mes',
+        String(this.mes)
+      );
+      localStorage.setItem(
+        'anio',
+        String(this.anio)
+      );
+
+    } else {
+      this.anio = 0
+      this.mes = 0
+    }
 
     this.files = [];
   }

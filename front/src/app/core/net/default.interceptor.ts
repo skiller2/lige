@@ -8,6 +8,7 @@ import {
   HttpResponseBase
 } from '@angular/common/http';
 import { Injectable, Injector } from '@angular/core';
+import { ControlContainer } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DA_SERVICE_TOKEN, ITokenService } from '@delon/auth';
 import { ALAIN_I18N_TOKEN, IGNORE_BASE_URL, _HttpClient, CUSTOM_ERROR, RAW_BODY } from '@delon/theme';
@@ -70,12 +71,21 @@ export class DefaultInterceptor implements HttpInterceptor {
       return;
     }
 
-    let errortext = (ev as any).error.msg;
-    if (!errortext) errortext = CODEMESSAGE[ev.status] || ev.statusText;
 
-    this.notification.error(`Error`, errortext);
+//    let errortext = (ev as any).error.msg;
+//    if (!errortext) errortext = CODEMESSAGE[ev.status] || ev.statusText;
+
+//    this.notification.error(`Error`, errortext);
     //    this.notification.error(`请求错误 ${ev.status}: ${ev.url}`, errortext);
   }
+
+  private handleDataError(err: HttpErrorResponse, req: HttpRequest<any>, next: HttpHandler): Observable<any> {
+    let errortext = err.error.msg;
+    if (!errortext) errortext = CODEMESSAGE[err.status] || err.statusText;
+    this.notification.error(`Error`, errortext);
+    return throwError(() => err);
+  }
+
 
   /**
    * 刷新 Token 请求
@@ -151,7 +161,6 @@ export class DefaultInterceptor implements HttpInterceptor {
       .pipe(
         filter(() => !this.refreshToking),
         switchMap(res => {
-          console.log(res);
           this.refreshToking = true;
           return this.refreshTokenRequest();
         })
@@ -254,6 +263,7 @@ export class DefaultInterceptor implements HttpInterceptor {
 
     const newReq = req.clone({ url, setHeaders: this.getAdditionalHeaders(req.headers) });
     return next.handle(newReq).pipe(
+
       mergeMap(ev => {
         // 允许统一对请求错误处理
         if (ev instanceof HttpResponseBase) {
@@ -262,7 +272,7 @@ export class DefaultInterceptor implements HttpInterceptor {
         // 若一切都正常，则后续操作
         return of(ev);
       }),
-      catchError((err: HttpErrorResponse) => this.handleData(err, newReq, next))
+      catchError((err: HttpErrorResponse) => this.handleDataError(err, newReq, next))
     );
   }
 }
