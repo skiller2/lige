@@ -1,6 +1,5 @@
-import express, { Request,Express, json, Application } from "express";
+import express, {json, Application } from "express";
 import { Router } from "express";
-import * as morgan from "morgan";
 import * as pkg from "../package.json";
 import { DataSource } from "typeorm";
 import { existsSync, mkdir, mkdirSync } from "node:fs";
@@ -57,7 +56,6 @@ export class WebServer {
   constructor(port: number) {
     this.port = port;
     this.app =  express();
-    //        this.app.use(morgan('dev'));
     this.app.use(json());
   }
 
