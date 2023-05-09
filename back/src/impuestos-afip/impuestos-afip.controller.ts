@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { getDocument } from "pdfjs-dist/legacy/build/pdf";
 import { BaseController } from "../controller/baseController";
-import fs, { copyFileSync, existsSync, mkdirSync, unlinkSync } from "fs";
+import { copyFileSync, existsSync, mkdirSync, unlinkSync } from "fs";
 import { TextContent, TextItem } from "pdfjs-dist/types/src/display/api";
+import { getDocument } from "pdfjs-dist";
 import { dataSource } from "../data-source";
 
 const cuitRegex = /^\d{11}$/;

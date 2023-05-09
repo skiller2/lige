@@ -80,8 +80,7 @@ export class DefaultInterceptor implements HttpInterceptor {
   }
 
   private handleDataError(err: HttpErrorResponse, req: HttpRequest<any>, next: HttpHandler): Observable<any> {
-    let errortext = err.error.msg;
-    if (!errortext) errortext = CODEMESSAGE[err.status] || err.statusText;
+    const errortext = (err.error?.msg) ? err.error.msg: CODEMESSAGE[err.status] || err.statusText;
     this.notification.error(`Error`, errortext);
     return throwError(() => err);
   }

@@ -17,6 +17,7 @@
       "typescript": "^5.0.4"
    },
    "dependencies": {
+      "@types/pdfjs-dist": "^2.10.378",
       "bcryptjs": "^2.4.3",
       "body-parser": "^1.18.1",
       "dotenv": "^8.6.0",
@@ -29,8 +30,9 @@
       "multer": "^1.4.5-lts.1",
       "node-fetch": "^2.6.9",
       "pdf-lib": "^1.17.1",
-      "pdfjs-dist": "^3.5.141",
+      "pdfjs-dist": "^3.6.172",
       "reflect-metadata": "^0.1.10",
+      "remove": "^0.1.5",
       "typeorm": "^0.3.14"
    },
    "scripts": {

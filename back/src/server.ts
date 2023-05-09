@@ -1,4 +1,4 @@
-import express, { Request } from "express";
+import express, { Request,Express, json, Application } from "express";
 import { Router } from "express";
 import * as morgan from "morgan";
 import * as pkg from "../package.json";
@@ -52,13 +52,13 @@ export class DBServer {
 export class WebServer {
   public upload;
   private port: number;
-  private app: express.Application;
+  private app: Application 
 
   constructor(port: number) {
     this.port = port;
-    this.app = express();
+    this.app =  express();
     //        this.app.use(morgan('dev'));
-    this.app.use(express.json());
+    this.app.use(json());
   }
 
   public async init(): Promise<string> {
