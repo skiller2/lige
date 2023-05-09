@@ -15,6 +15,7 @@ import { NzNotificationModule } from 'ng-zorro-antd/notification';
 // 参考：https://ng-alain.com/docs/i18n
 import { I18NService } from '@core';
 import { zhCN, es as dateLang } from 'date-fns/locale';
+import es from '@angular/common/locales/es';
 
 const LANG = {
   abbr: 'es',
@@ -25,7 +26,8 @@ const LANG = {
 };
 // register angular
 import { registerLocaleData } from '@angular/common';
-registerLocaleData(LANG.ng, LANG.abbr);
+//registerLocaleData(LANG.ng, LANG.abbr);
+registerLocaleData(es);
 const LANG_PROVIDES = [
   { provide: LOCALE_ID, useValue: LANG.abbr },
   { provide: NZ_I18N, useValue: LANG.zorro },
