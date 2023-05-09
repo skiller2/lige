@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
-import { ResponseJSON } from '../shared/schemas/ResponseJSON';
+import { DescuentoJSON, ResponseJSON } from '../shared/schemas/ResponseJSON';
 import { Observable, catchError, defer, map, of, tap, throwError } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { error } from 'pdf-lib';
@@ -51,7 +51,9 @@ export class ApiService {
       return of([]);
     }
     return this.http
-      .get<ResponseJSON<any[]>>(`/api/impuestos_afip/${year}/${month}`)
+      .get<ResponseJSON<DescuentoJSON[]>>(
+        `/api/impuestos_afip/${year}/${month}`
+      )
       .pipe(
         map(res => res.data),
         catchError(() => of([]))

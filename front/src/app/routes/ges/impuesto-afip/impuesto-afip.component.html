@@ -2,11 +2,11 @@
 <nz-card>
   <form nz-form #impuestoForm="ngForm">
     <nz-date-picker
-    
       nzMode="month"
       name="periodo"
       ngModel
       (ngModelChange)="onChange($event)" />
+
     <nz-tabset nzCentered>
       <nz-tab nzTitle="Cargar Comprobantes">
         <nz-upload
@@ -27,38 +27,48 @@
         </nz-upload>
       </nz-tab>
       <nz-tab nzTitle="Buscar">
-        <nz-form-item class="app-table">
-          <nz-form-label [nzSpan]="5"> Lista de Descuentos </nz-form-label>
-          <nz-form-control>
-            <nz-table
-              class="app-table"
-              #tablaDescuentos
-              [nzData]="(listaDescuentos$ | async) || []"
-              nzSize="small"
-              [nzPageSize]="100000000"
-              [nzShowPagination]="false"
-              [nzScroll]="{ x: '500px' }"
-              [nzLoading]="tableLoading$ | async">
-              <thead>
-                <tr>
-                  <th
-                    *ngFor="let column of listOfColumns"
-                    [nzSortFn]="column.sortFn"
-                    [nzFilterFn]="column.filterFn">
-                    {{ column.name }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let data of tablaDescuentos.data">
-                  <td>{{ data.ApellidoNombre }}</td>
-                  <td>{{ data.monto | currency : '$' }}</td>
-                  <td>{{ data.CUIT }}</td>
-                </tr>
-              </tbody>
-            </nz-table>
-          </nz-form-control>
-        </nz-form-item>
+        <app-personal-search
+          (ngModelChange)="formChanged($event)"
+          [(ngModel)]="selectedPersonalId"
+          [ngModelOptions]="{ standalone: true }" />
+        <nz-table
+          class="app-table"
+          #tablaDescuentos
+          [nzData]="(listaDescuentos$ | async) || []"
+          nzSize="small"
+          [nzPageSize]="100000000"
+          [nzShowPagination]="false"
+          [nzScroll]="{ x: '500px' }"
+          [nzLoading]="tableLoading$ | async">
+          <thead>
+            <tr>
+              <th
+                *ngFor="let column of listOfColumns"
+                [(nzSortOrder)]="column.sortOrder"
+                [nzSortFn]="column.sortFn"
+                [nzFilters]="column.listOfFilter"
+                [nzFilterFn]="column.filterFn">
+                {{ column.name }}
+              </th>
+              <!-- <th>CUIT</th>
+              <th>Apellido, Nombre</th>
+              <th>Estado</th>
+              <th>Monto</th>
+              <th>CUIT (J)</th>
+              <th>Apellido, Nombre (J)</th> -->
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let data of tablaDescuentos.data">
+              <td>{{ data.CUIT }}</td>
+              <td>{{ data.ApellidoNombre }}</td>
+              <td>{{ data.PersonalEstado }}</td>
+              <td>{{ data.monto | currency : '$' }}</td>
+              <td>{{ data.CUITJ }}</td>
+              <td>{{ data.ApellidoNombreJ }}</td>
+            </tr>
+          </tbody>
+        </nz-table>
       </nz-tab>
     </nz-tabset>
   </form>

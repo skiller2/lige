@@ -7,7 +7,14 @@ import {
   NzTableFilterFn,
 } from 'ng-zorro-antd/table';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
-import { BehaviorSubject, debounceTime, switchMap, tap } from 'rxjs';
+import {
+  BehaviorSubject,
+  debounceTime,
+  filter,
+  map,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 
@@ -27,14 +34,33 @@ export class ImpuestoAfipComponent {
   url = '/api/impuestos_afip';
   files: NzUploadFile[] = [];
 
+  selectedPersonalId = null;
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
+
+  options = {
+    CUIT: {
+      searchValue: '',
+      visible: false,
+    },
+    Nombre: {
+      searchValue: '',
+      visible: false,
+    },
+  };
 
   listaDescuentos$ = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() =>
       this.apiService.getDescuentoByPeriodo(this.anio, this.mes).pipe(
-        tap(value => console.log(value)),
+        map(items => {
+          if (this.selectedPersonalId == null) return items;
+          return items.filter(
+            item =>
+              item.PersonalId == parseInt(this.selectedPersonalId!) ||
+              item.PersonalIdJ == parseInt(this.selectedPersonalId!)
+          );
+        }),
         doOnSubscribe(() => this.tableLoading$.next(true)),
         tap({ complete: () => this.tableLoading$.next(false) })
       )
@@ -42,10 +68,29 @@ export class ImpuestoAfipComponent {
   );
   listOfColumns: ColumnItem[] = [
     {
+      name: 'CUIT',
+      sortOrder: null,
+      sortDirections: ['ascend', 'descend', null],
+      sortFn: (a: DescuentoJSON, b: DescuentoJSON) => a.CUIT - b.CUIT,
+      filterMultiple: false,
+      listOfFilter: [],
+      filterFn: (CUIT: number, item: DescuentoJSON) => item.CUIT === CUIT,
+    },
+    {
       name: 'Apellido, Nombre',
       sortOrder: null,
       sortFn: (a: DescuentoJSON, b: DescuentoJSON) =>
         a.ApellidoNombre.localeCompare(b.ApellidoNombre),
+      sortDirections: ['ascend', 'descend', null],
+      filterMultiple: true,
+      listOfFilter: [],
+      filterFn: null,
+    },
+    {
+      name: 'Estado',
+      sortOrder: null,
+      sortFn: (a: DescuentoJSON, b: DescuentoJSON) =>
+        a.PersonalEstado.localeCompare(b.PersonalEstado),
       sortDirections: ['ascend', 'descend', null],
       filterMultiple: true,
       listOfFilter: [],
@@ -61,13 +106,23 @@ export class ImpuestoAfipComponent {
       filterMultiple: true,
     },
     {
-      name: 'CUIT',
+      name: 'CUIT (J)',
       sortOrder: null,
       sortDirections: ['ascend', 'descend', null],
       sortFn: (a: DescuentoJSON, b: DescuentoJSON) => a.CUIT - b.CUIT,
       filterMultiple: false,
       listOfFilter: [],
       filterFn: (CUIT: number, item: DescuentoJSON) => item.CUIT === CUIT,
+    },
+    {
+      name: 'Apellido, Nombre (J)',
+      sortOrder: null,
+      sortFn: (a: DescuentoJSON, b: DescuentoJSON) =>
+        a.ApellidoNombre.localeCompare(b.ApellidoNombre),
+      sortDirections: ['ascend', 'descend', null],
+      filterMultiple: true,
+      listOfFilter: [],
+      filterFn: null,
     },
   ];
 
@@ -116,6 +171,11 @@ export class ImpuestoAfipComponent {
     // } else if (status === 'error') {
     //   this.msg.error(`${file.name} file upload failed.`);
     // }
+  }
+
+  formChanged(event: string) {
+    this.formChange$.next('');
+    console.log(event);
   }
 }
 

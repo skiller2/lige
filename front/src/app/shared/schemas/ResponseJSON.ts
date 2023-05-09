@@ -12,4 +12,5 @@ export interface DescuentoJSON {
   PersonalIdJ: number;
   CUITJ: number;
   ApellidoNombreJ: string;
+  PersonalEstado: string;
 }

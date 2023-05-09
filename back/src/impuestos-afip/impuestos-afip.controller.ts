@@ -22,6 +22,7 @@ export class ImpuestosAfipController extends BaseController {
     const anio = req.params.anio;
     const mes = req.params.mes;
 
+    const descuentoId = process.env.OTRO_DESCUENTO_ID;
     try {
       const result = await dataSource.query(
         `SELECT DISTINCT
@@ -46,7 +47,7 @@ export class ImpuestosAfipController extends BaseController {
        AND DATEFROMPARTS(@1,@2,28) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
   
      `,
-        [, anio, mes, descuentoID]
+        [, anio, mes, descuentoId]
       );
       this.jsonRes(result, res);
     } catch (error) {
