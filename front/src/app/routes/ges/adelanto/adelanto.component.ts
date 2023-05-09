@@ -1,21 +1,8 @@
 import { Component, Injector, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import {
-  BehaviorSubject,
-  Observable,
-  Subject,
-  catchError,
-  debounceTime,
-  defer,
-  delay,
-  finalize,
-  of,
-  switchMap,
-  takeUntil,
-  tap,
-} from 'rxjs';
-import { ApiService } from 'src/app/services/api.service';
+import { BehaviorSubject, debounceTime, switchMap, tap } from 'rxjs';
+import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
 
 @Component({
@@ -65,13 +52,12 @@ export class AdelantoComponent {
           this.adelanto.controls['mes'].value,
           this.adelanto.controls['PersonalId'].value
         )
-        .pipe(
-//          doOnSubscribe(() => this.tableLoading$.next(true)),
-//          tap({ complete: () => this.tableLoading$.next(false) })
-        )
+        .pipe
+        //          doOnSubscribe(() => this.tableLoading$.next(true)),
+        //          tap({ complete: () => this.tableLoading$.next(false) })
+        ()
     )
   );
-
 
   listaAdelantos$ = this.formChange$.pipe(
     debounceTime(500),
@@ -133,16 +119,4 @@ export class AdelantoComponent {
       )
       .subscribe();
   }
-}
-
-export function doOnSubscribe<T>(
-  onSubscribe: () => void
-): (source: Observable<T>) => Observable<T> {
-  return function inner(source: Observable<T>): Observable<T> {
-    return defer(() => {
-      onSubscribe();
-
-      return source;
-    });
-  };
 }

@@ -8,7 +8,7 @@ export const dataSource = new DataSource({
   password: process.env.DB_PASS,
   database: process.env.DB_DATABASE,
   maxQueryExecutionTime: Number(process.env.DB_MAX_EXEC_TIME),
-  logging: process.env.DEBUG ? "all" : false,
+  logging: process.env.DEBUG === "true" ? true : false,
   connectionTimeout: 10000, //ms
   //entities: [Photo],
   extra: {

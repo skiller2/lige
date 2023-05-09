@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { ResponseJSON } from '../shared/schemas/ResponseJSON';
-import { catchError, map, of, tap, throwError } from 'rxjs';
+import { Observable, catchError, defer, map, of, tap, throwError } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { error } from 'pdf-lib';
 
@@ -28,20 +28,33 @@ export class ApiService {
         })
       );
   }
-  
+
   getPersonaResponsables(year: number, month: number, personalID: string) {
-    console.log('viendo', year,month,personalID)
     if (!personalID || !month || !year) {
       return of([]);
     }
     return this.http
-      .get<ResponseJSON<any[]>>(`api/personal/responsables/${personalID}/${year}/${month}`)
+      .get<ResponseJSON<any[]>>(
+        `api/personal/responsables/${personalID}/${year}/${month}`
+      )
       .pipe(
         map(res => res.data),
         catchError((err, caught) => {
           console.log('Something went wrong!');
           return of([]);
         })
+      );
+  }
+
+  getDescuentoByPeriodo(year: number, month: number) {
+    if (!month || !year) {
+      return of([]);
+    }
+    return this.http
+      .get<ResponseJSON<any[]>>(`/api/impuestos_afip/${year}/${month}`)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
       );
   }
 
@@ -63,4 +76,16 @@ export class ApiService {
   response(res: ResponseJSON<any>) {
     this.notification.success('Respuesta', res.msg);
   }
+}
+
+export function doOnSubscribe<T>(
+  onSubscribe: () => void
+): (source: Observable<T>) => Observable<T> {
+  return function inner(source: Observable<T>): Observable<T> {
+    return defer(() => {
+      onSubscribe();
+
+      return source;
+    });
+  };
 }

@@ -1,6 +1,15 @@
 import { Component, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
+import {
+  NzTableSortOrder,
+  NzTableSortFn,
+  NzTableFilterList,
+  NzTableFilterFn,
+} from 'ng-zorro-antd/table';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
+import { BehaviorSubject, debounceTime, switchMap, tap } from 'rxjs';
+import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
+import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 
 @Component({
   selector: 'app-impuesto-afip',
@@ -8,15 +17,59 @@ import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
   styleUrls: ['./impuesto-afip.component.less'],
 })
 export class ImpuestoAfipComponent {
+  @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm =
+    new NgForm([], []);
 
-  @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm = new NgForm([], []);
-
+  constructor(private apiService: ApiService) {}
   selectedDate = null;
   anio = 0;
   mes = 0;
   url = '/api/impuestos_afip';
   files: NzUploadFile[] = [];
 
+  formChange$ = new BehaviorSubject('');
+  tableLoading$ = new BehaviorSubject(false);
+
+  listaDescuentos$ = this.formChange$.pipe(
+    debounceTime(500),
+    switchMap(() =>
+      this.apiService.getDescuentoByPeriodo(this.anio, this.mes).pipe(
+        tap(value => console.log(value)),
+        doOnSubscribe(() => this.tableLoading$.next(true)),
+        tap({ complete: () => this.tableLoading$.next(false) })
+      )
+    )
+  );
+  listOfColumns: ColumnItem[] = [
+    {
+      name: 'Apellido, Nombre',
+      sortOrder: null,
+      sortFn: (a: DescuentoJSON, b: DescuentoJSON) =>
+        a.ApellidoNombre.localeCompare(b.ApellidoNombre),
+      sortDirections: ['ascend', 'descend', null],
+      filterMultiple: true,
+      listOfFilter: [],
+      filterFn: null,
+    },
+    {
+      name: 'Monto',
+      sortOrder: 'descend',
+      sortFn: (a: DescuentoJSON, b: DescuentoJSON) => a.monto - b.monto,
+      sortDirections: ['descend', null],
+      listOfFilter: [],
+      filterFn: null,
+      filterMultiple: true,
+    },
+    {
+      name: 'CUIT',
+      sortOrder: null,
+      sortDirections: ['ascend', 'descend', null],
+      sortFn: (a: DescuentoJSON, b: DescuentoJSON) => a.CUIT - b.CUIT,
+      filterMultiple: false,
+      listOfFilter: [],
+      filterFn: (CUIT: number, item: DescuentoJSON) => item.CUIT === CUIT,
+    },
+  ];
 
   ngAfterViewInit(): void {
     setTimeout(() => {
@@ -31,34 +84,27 @@ export class ImpuestoAfipComponent {
           ? localStorage.getItem('mes')
           : now.getMonth() + 1;
 
-      this.impuestoForm.form.get('periodo')?.setValue(new Date(Number(anio), Number(mes) - 1, 1))
-
+      this.impuestoForm.form
+        .get('periodo')
+        ?.setValue(new Date(Number(anio), Number(mes) - 1, 1));
     }, 1);
   }
 
   onChange(result: Date): void {
     if (result) {
-      this.anio = result.getFullYear()
-      this.mes = result.getMonth() + 1
+      this.anio = result.getFullYear();
+      this.mes = result.getMonth() + 1;
 
-      localStorage.setItem(
-        'mes',
-        String(this.mes)
-      );
-      localStorage.setItem(
-        'anio',
-        String(this.anio)
-      );
-
+      localStorage.setItem('mes', String(this.mes));
+      localStorage.setItem('anio', String(this.anio));
     } else {
-      this.anio = 0
-      this.mes = 0
+      this.anio = 0;
+      this.mes = 0;
     }
 
+    this.formChange$.next('');
     this.files = [];
   }
-
-
 
   handleChange({ file, fileList }: NzUploadChangeParam): void {
     // const status = file.status;
@@ -71,4 +117,14 @@ export class ImpuestoAfipComponent {
     //   this.msg.error(`${file.name} file upload failed.`);
     // }
   }
+}
+
+interface ColumnItem {
+  name: string;
+  sortOrder: NzTableSortOrder | null;
+  sortFn: NzTableSortFn<any> | null;
+  listOfFilter: NzTableFilterList;
+  filterFn: NzTableFilterFn<any> | null;
+  filterMultiple: boolean;
+  sortDirections: NzTableSortOrder[];
 }

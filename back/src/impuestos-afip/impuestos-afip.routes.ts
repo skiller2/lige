@@ -3,7 +3,6 @@ import { authMiddleware } from "../middlewares/middleware.module";
 import { impuestosAfipController } from "../controller/controller.module";
 import multer, { FileFilterCallback } from "multer";
 import { existsSync, mkdirSync } from "fs";
-import { randomBytes } from "crypto";
 import { tmpName } from "../server";
 
 type DestinationCallback = (error: Error | null, destination: string) => void;
@@ -91,3 +90,11 @@ impuestosAfipRouter.post("", authMiddleware.verifyToken, (req, res) => {
     }
   });
 });
+
+impuestosAfipRouter.get(
+  "/:anio/:mes",
+  authMiddleware.verifyToken,
+  (req, res) => {
+    impuestosAfipController.getDescuentoByPeriodo(req, res);
+  }
+);

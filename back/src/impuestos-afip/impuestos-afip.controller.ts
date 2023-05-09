@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { BaseController } from "../controller/baseController";
 import { copyFileSync, existsSync, mkdirSync, unlinkSync } from "fs";
 import { TextContent, TextItem } from "pdfjs-dist/types/src/display/api";
-import { getDocument } from "pdfjs-dist";
+import { getDocument } from "pdfjs-dist/legacy/build/pdf";
 import { dataSource } from "../data-source";
 
 const cuitRegex = /^\d{11}$/;
@@ -21,6 +21,9 @@ export class ImpuestosAfipController extends BaseController {
   async getDescuentoByPeriodo(req: Request, res: Response) {
     const anio = req.params.anio;
     const mes = req.params.mes;
+
+    if (!anio) throw new Error("Faltó especificar el año!");
+    if (!mes) throw new Error("Faltó especificar el mes!");
 
     try {
       const result = await dataSource.query(
@@ -73,14 +76,14 @@ export class ImpuestosAfipController extends BaseController {
         new Error("No se pudo encontrar el periodo.")
       );
 
-
-
       const periodoIsValid =
         Number(periodoAnio) == anioRequest && Number(periodoMes) == mesRequest;
 
       if (!periodoIsValid)
         throw new Error(
-          `El periodo especificado ${anioRequest}-${mesRequest} no coincide con el contenido en el documento ${periodoAnio}-${Number(periodoMes)}.`
+          `El periodo especificado ${anioRequest}-${mesRequest} no coincide con el contenido en el documento ${periodoAnio}-${Number(
+            periodoMes
+          )}.`
         );
 
       const [, importeMontoTemp] = this.getByRegex(
@@ -163,7 +166,9 @@ export class ImpuestosAfipController extends BaseController {
     regex: RegExp,
     err = new Error("Could not find content.")
   ) {
-    const result = textContent.items.find((item) => regex.test((item as TextItem).str));
+    const result = textContent.items.find((item) =>
+      regex.test((item as TextItem).str)
+    );
     if (!result) throw err;
     return (result as TextItem).str.match(regex);
   }
