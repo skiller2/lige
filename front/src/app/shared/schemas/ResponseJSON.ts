@@ -6,11 +6,14 @@ export interface ResponseJSON<T> {
 
 export interface DescuentoJSON {
   PersonalId: number;
-  monto: number;
   CUIT: number;
   ApellidoNombre: string;
+  PersonalEstado: string;
   PersonalIdJ: number;
   CUITJ: number;
   ApellidoNombreJ: string;
-  PersonalEstado: string;
+  monto: null | number;
+  PersonalOtroDescuentoAnoAplica: null | number;
+  PersonalOtroDescuentoMesesAplica: null | number;
+  PersonalOtroDescuentoDescuentoId: null | number;
 }

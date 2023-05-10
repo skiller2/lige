@@ -1,11 +1,7 @@
 <page-header />
 <nz-card>
   <form nz-form #impuestoForm="ngForm">
-    <nz-date-picker
-      nzMode="month"
-      name="periodo"
-      ngModel
-      (ngModelChange)="onChange($event)" />
+    <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
 
     <nz-tabset nzCentered>
       <nz-tab nzTitle="Cargar Comprobantes">
@@ -21,9 +17,7 @@
           <p class="ant-upload-drag-icon">
             <span nz-icon nzType="inbox"></span>
           </p>
-          <p class="ant-upload-text">
-            Clickeá or arrastrá un archivo/s para subir
-          </p>
+          <p class="ant-upload-text">Clickeá or arrastrá un archivo/s para subir</p>
         </nz-upload>
       </nz-tab>
       <nz-tab nzTitle="Buscar">
@@ -36,9 +30,6 @@
           #tablaDescuentos
           [nzData]="(listaDescuentos$ | async) || []"
           nzSize="small"
-          [nzPageSize]="100000000"
-          [nzShowPagination]="false"
-          [nzScroll]="{ x: '500px' }"
           [nzLoading]="tableLoading$ | async">
           <thead>
             <tr>
@@ -50,6 +41,7 @@
                 [nzFilterFn]="column.filterFn">
                 {{ column.name }}
               </th>
+              <th></th>
               <!-- <th>CUIT</th>
               <th>Apellido, Nombre</th>
               <th>Estado</th>
@@ -61,7 +53,14 @@
           <tbody>
             <tr *ngFor="let data of tablaDescuentos.data">
               <td>{{ data.CUIT }}</td>
-              <td>{{ data.ApellidoNombre }}</td>
+              <td>
+                {{ data.ApellidoNombre }}
+                <a
+                  *ngIf="data.PersonalOtroDescuentoDescuentoId"
+                  href="api/impuestos_afip/{{ anio }}/{{ mes }}/{{ data.CUIT }}/{{ data.PersonalId }}">
+                  <span nz-icon nzType="download"></span>
+                </a>
+              </td>
               <td>{{ data.PersonalEstado }}</td>
               <td>{{ data.monto | currency : '$' }}</td>
               <td>{{ data.CUITJ }}</td>
