@@ -121,8 +121,7 @@ export class ImpuestosAfipController extends BaseController {
           periodoMes,
         ]
       );
-
-      if (alreadyExists)
+      if (alreadyExists.length>0)
         throw new Error(
           `Ya existe un descuento para el periodo ${periodoAnio}-${periodoMes} y el CUIT ${CUIT}`
         );

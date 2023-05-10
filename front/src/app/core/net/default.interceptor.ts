@@ -80,8 +80,19 @@ export class DefaultInterceptor implements HttpInterceptor {
   }
 
   private handleDataError(err: HttpErrorResponse, req: HttpRequest<any>, next: HttpHandler): Observable<any> {
-    const errortext = (err.error?.msg) ? err.error.msg: CODEMESSAGE[err.status] || err.statusText;
-    this.notification.error(`Error`, errortext);
+    switch (err.status) {
+      case 401:
+        if (this.refreshTokenEnabled && this.refreshTokenType === 're-request') {
+          return this.tryRefreshToken(err, req, next);
+        }
+        this.toLogin();
+        break;
+      default:
+        const errortext = (err.error?.msg) ? err.error.msg : CODEMESSAGE[err.status] || err.statusText;
+        this.notification.error(`Error`, errortext);
+        break;
+    }
+    
     return throwError(() => err);
   }
 
