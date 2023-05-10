@@ -149,11 +149,10 @@ export class ImpuestoAfipComponent {
 
   formChanged(event: string) {
     this.formChange$.next('');
-    console.log(event);
   }
-  // downloadComprobante(cuit: number, personalId: number) {
-  //   this.apiService.downloadComprobante(cuit, personalId, this.anio, this.mes).subscribe();
-  // }
+  downloadComprobante(cuit: number, personalId: number) {
+    this.apiService.downloadComprobante(cuit, personalId, this.anio, this.mes).pipe().subscribe();
+  }
 }
 
 interface ColumnItem {
