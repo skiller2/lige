@@ -5,7 +5,7 @@ import {
   HttpHeaders,
   HttpInterceptor,
   HttpRequest,
-  HttpResponseBase
+  HttpResponseBase,
 } from '@angular/common/http';
 import { Injectable, Injector } from '@angular/core';
 import { ControlContainer } from '@angular/forms';
@@ -17,7 +17,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BehaviorSubject, Observable, of, throwError, catchError, filter, mergeMap, switchMap, take } from 'rxjs';
 
 const CODEMESSAGE: { [key: number]: string } = {
-  200: 'Respuesta OK。',
+  200: 'Respuesta OK',
   201: 'Se modificó correctamente。',
   202: 'Ingresando tarea asincrónica。',
   204: 'Se eliminó exitosamente。',
@@ -31,7 +31,7 @@ const CODEMESSAGE: { [key: number]: string } = {
   500: 'Ocurrió un error en el servidor, verifique el servidor。',
   502: 'Error de puerta de enlace。',
   503: 'El servicio no está disponible, el servidor está sobrecargado o mantenido temporalmente。',
-  504: 'Tiempo de espera de puerta de enlace。'
+  504: 'Tiempo de espera de puerta de enlace。',
 };
 
 /**
@@ -71,20 +71,18 @@ export class DefaultInterceptor implements HttpInterceptor {
       return;
     }
 
+    //    let errortext = (ev as any).error.msg;
+    //    if (!errortext) errortext = CODEMESSAGE[ev.status] || ev.statusText;
 
-//    let errortext = (ev as any).error.msg;
-//    if (!errortext) errortext = CODEMESSAGE[ev.status] || ev.statusText;
-
-//    this.notification.error(`Error`, errortext);
+    //    this.notification.error(`Error`, errortext);
     //    this.notification.error(`请求错误 ${ev.status}: ${ev.url}`, errortext);
   }
 
   private handleDataError(err: HttpErrorResponse, req: HttpRequest<any>, next: HttpHandler): Observable<any> {
-    const errortext = (err.error?.msg) ? err.error.msg: CODEMESSAGE[err.status] || err.statusText;
+    const errortext = err.error?.msg ? err.error.msg : CODEMESSAGE[err.status] || err.statusText;
     this.notification.error(`Error`, errortext);
     return throwError(() => err);
   }
-
 
   /**
    * 刷新 Token 请求
@@ -143,8 +141,8 @@ export class DefaultInterceptor implements HttpInterceptor {
     const token = this.tokenSrv.get()?.token;
     return req.clone({
       setHeaders: {
-        token: `Bearer ${token}`
-      }
+        token: `Bearer ${token}`,
+      },
     });
   }
 
@@ -171,14 +169,14 @@ export class DefaultInterceptor implements HttpInterceptor {
           this.refreshToking = false;
           this.tokenSrv.set(res);
         },
-        error: () => this.toLogin()
+        error: () => this.toLogin(),
       });
   }
 
   // #endregion
 
   private toLogin(): void {
-//    this.notification.error(`未登录或登录已过期，请重新登录。`, ``);
+    //    this.notification.error(`未登录或登录已过期，请重新登录。`, ``);
     this.notification.error(`Requiere volver a autenticarse。`, ``);
     this.goTo(this.tokenSrv.login_url!);
   }
@@ -220,11 +218,11 @@ export class DefaultInterceptor implements HttpInterceptor {
         this.toLogin();
         break;
       case 409:
-//        break;
+      //        break;
       case 403:
       case 404:
       case 500:
-//        this.goTo(`/exception/${ev.status}?url=${req.urlWithParams}`);
+        //        this.goTo(`/exception/${ev.status}?url=${req.urlWithParams}`);
         break;
       default:
         if (ev instanceof HttpErrorResponse) {
@@ -262,7 +260,6 @@ export class DefaultInterceptor implements HttpInterceptor {
 
     const newReq = req.clone({ url, setHeaders: this.getAdditionalHeaders(req.headers) });
     return next.handle(newReq).pipe(
-
       mergeMap(ev => {
         // 允许统一对请求错误处理
         if (ev instanceof HttpResponseBase) {

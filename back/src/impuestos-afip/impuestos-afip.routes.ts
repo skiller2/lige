@@ -98,3 +98,13 @@ impuestosAfipRouter.get(
     impuestosAfipController.getDescuentoByPeriodo(req, res);
   }
 );
+
+impuestosAfipRouter.get("/:anio/:mes/:CUIT/:PersonalId", (req, res) => {
+  impuestosAfipController.downloadComprobante(
+    req.params.anio,
+    req.params.mes,
+    req.params.CUIT,
+    req.params.PersonalId,
+    res
+  );
+});

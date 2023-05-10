@@ -18,71 +18,58 @@ export class ApiService {
     if (!personalID || !month || !year) {
       return of([]);
     }
-    return this.http
-      .get<ResponseJSON<any[]>>(`api/adelantos/${personalID}/${year}/${month}`)
-      .pipe(
-        map(res => res.data),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
+    return this.http.get<ResponseJSON<any[]>>(`api/adelantos/${personalID}/${year}/${month}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
   }
 
   getPersonaResponsables(year: number, month: number, personalID: string) {
     if (!personalID || !month || !year) {
       return of([]);
     }
-    return this.http
-      .get<ResponseJSON<any[]>>(
-        `api/personal/responsables/${personalID}/${year}/${month}`
-      )
-      .pipe(
-        map(res => res.data),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
+    return this.http.get<ResponseJSON<any[]>>(`api/personal/responsables/${personalID}/${year}/${month}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
   }
 
   getDescuentoByPeriodo(year: number, month: number) {
     if (!month || !year) {
       return of([]);
     }
-    return this.http
-      .get<ResponseJSON<DescuentoJSON[]>>(
-        `/api/impuestos_afip/${year}/${month}`
-      )
-      .pipe(
-        map(res => res.data),
-        catchError(() => of([]))
-      );
+    return this.http.get<ResponseJSON<DescuentoJSON[]>>(`/api/impuestos_afip/${year}/${month}`).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
   }
 
   addAdelanto(adelanto: { PersonalId: string; monto: number }) {
-    return this.http
-      .post<ResponseJSON<any>>(`api/adelantos`, adelanto)
-      .pipe(tap(res => this.response(res)));
+    return this.http.post<ResponseJSON<any>>(`api/adelantos`, adelanto).pipe(tap(res => this.response(res)));
   }
 
   delAdelanto(adelanto: { PersonalId: string; monto: number }) {
     return this.http
-      .delete<ResponseJSON<any>>(
-        `api/adelantos/${adelanto.PersonalId}`,
-        adelanto
-      )
+      .delete<ResponseJSON<any>>(`api/adelantos/${adelanto.PersonalId}`, adelanto)
       .pipe(tap(res => this.response(res)));
   }
+
+  // downloadComprobante(cuit: number, personalId: number, year: number, month: number) {
+  //   return this.http.get(`api/impuestos_afip/${year}/${month}/${cuit}/${personalId}`);
+  // }
 
   response(res: ResponseJSON<any>) {
     this.notification.success('Respuesta', res.msg);
   }
 }
 
-export function doOnSubscribe<T>(
-  onSubscribe: () => void
-): (source: Observable<T>) => Observable<T> {
+export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {
   return function inner(source: Observable<T>): Observable<T> {
     return defer(() => {
       onSubscribe();
