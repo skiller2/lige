@@ -2,9 +2,9 @@ import { Component, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } from 'ng-zorro-antd/table';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
-import { BehaviorSubject, debounceTime, filter, map, switchMap, tap, throttleTime } from 'rxjs';
+import { BehaviorSubject, Observable, debounceTime, filter, map, switchMap, tap, throttleTime } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
-import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
+import { DescuentoJSON, ResponseDescuentos } from 'src/app/shared/schemas/ResponseJSON';
 
 @Component({
   selector: 'app-impuesto-afip',
@@ -41,10 +41,14 @@ export class ImpuestoAfipComponent {
     switchMap(() =>
       this.apiService.getDescuentoByPeriodo(this.anio, this.mes).pipe(
         map(items => {
-          if (this.selectedPersonalId == null) return items;
-          return items.filter(
-            item => item.PersonalId == parseInt(this.selectedPersonalId!) || item.PersonalIdJ == parseInt(this.selectedPersonalId!)
-          );
+          if (items) if (this.selectedPersonalId == null) return items;
+          return {
+            Registros: items.Registros.filter(
+              item =>
+                item.PersonalId == parseInt(this.selectedPersonalId!) || item.PersonalIdJ == parseInt(this.selectedPersonalId!)
+            ),
+            RegistrosConComprobantes: items.RegistrosConComprobantes,
+          };
         }),
         doOnSubscribe(() => this.tableLoading$.next(true)),
         tap({ complete: () => this.tableLoading$.next(false) })

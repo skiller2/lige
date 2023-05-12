@@ -1,76 +1,72 @@
 <page-header />
 <nz-card>
   <form nz-form #impuestoForm="ngForm">
-    <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
+    <ng-container *ngIf="{ lista: (listaDescuentos$ | async) } as context">
+      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
 
-    <nz-tabset nzCentered>
-      <nz-tab nzTitle="Cargar Comprobantes">
-        <nz-upload
-          nzType="drag"
-          [nzMultiple]="true"
-          [nzData]="{ anio: anio, mes: mes }"
-          (nzChange)="handleChange($event)"
-          [nzAction]="url"
-          nzName="pdf"
-          [(nzFileList)]="files"
-          nzAccept="application/pdf">
-          <p class="ant-upload-drag-icon">
-            <span nz-icon nzType="inbox"></span>
-          </p>
-          <p class="ant-upload-text">Clickeá or arrastrá un archivo/s para subir</p>
-        </nz-upload>
-      </nz-tab>
-      <nz-tab nzTitle="Buscar">
-        <app-personal-search
-          (ngModelChange)="formChanged($event)"
-          [(ngModel)]="selectedPersonalId"
-          [ngModelOptions]="{ standalone: true }" />
-        <nz-table
-          class="app-table"
-          #tablaDescuentos
-          [nzData]="(listaDescuentos$ | async) || []"
-          nzSize="small"
-          [nzLoading]="tableLoading$ | async">
-          <thead>
-            <tr>
-              <th
-                *ngFor="let column of listOfColumns"
-                [(nzSortOrder)]="column.sortOrder"
-                [nzSortFn]="column.sortFn"
-                [nzFilters]="column.listOfFilter"
-                [nzFilterFn]="column.filterFn">
-                {{ column.name }}
-              </th>
-              <th></th>
-              <!-- <th>CUIT</th>
-              <th>Apellido, Nombre</th>
-              <th>Estado</th>
-              <th>Monto</th>
-              <th>CUIT (J)</th>
-              <th>Apellido, Nombre (J)</th> -->
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let data of tablaDescuentos.data">
-              <td>{{ data.CUIT }}</td>
-              <td>
-                {{ data.ApellidoNombre }}
-                <button nz-button *ngIf="data.PersonalOtroDescuentoDescuentoId" (click)="downloadComprobante(data)">
-                  <span nz-icon nzType="download"></span>
-                </button>
-                <!-- <a
+      <nz-tabset nzCentered>
+        <nz-tab nzTitle="Cargar Comprobantes">
+          <nz-upload
+            nzType="drag"
+            [nzMultiple]="true"
+            [nzData]="{ anio: anio, mes: mes }"
+            (nzChange)="handleChange($event)"
+            [nzAction]="url"
+            nzName="pdf"
+            [(nzFileList)]="files"
+            nzAccept="application/pdf">
+            <p class="ant-upload-drag-icon">
+              <span nz-icon nzType="inbox"></span>
+            </p>
+            <p class="ant-upload-text">Clickeá or arrastrá un archivo/s para subir</p>
+          </nz-upload>
+        </nz-tab>
+        <nz-tab nzTitle="Buscar">
+          <app-personal-search
+            (ngModelChange)="formChanged($event)"
+            [(ngModel)]="selectedPersonalId"
+            [ngModelOptions]="{ standalone: true }" />
+          <nz-table
+            class="app-table"
+            #tablaDescuentos
+            [nzData]="context.lista?.Registros || []"
+            nzSize="small"
+            [nzLoading]="tableLoading$ | async">
+            <thead>
+              <tr>
+                <th
+                  *ngFor="let column of listOfColumns"
+                  [(nzSortOrder)]="column.sortOrder"
+                  [nzSortFn]="column.sortFn"
+                  [nzFilters]="column.listOfFilter"
+                  [nzFilterFn]="column.filterFn">
+                  {{ column.name }}
+                </th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let data of tablaDescuentos.data">
+                <td>{{ data.CUIT }}</td>
+                <td>
+                  {{ data.ApellidoNombre }}
+                  <button nz-button *ngIf="data.PersonalOtroDescuentoDescuentoId" (click)="downloadComprobante(data)">
+                    <span nz-icon nzType="download"></span>
+                  </button>
+                  <!-- <a
                   *ngIf="data.PersonalOtroDescuentoDescuentoId"
                   href="api/impuestos_afip/{{ anio }}/{{ mes }}/{{ data.CUIT }}/{{ data.PersonalId }}">
                 </a> -->
-              </td>
-              <td>{{ data.PersonalEstado }}</td>
-              <td>{{ data.monto | currency : '$' }}</td>
-              <td>{{ data.CUITJ }}</td>
-              <td>{{ data.ApellidoNombreJ }}</td>
-            </tr>
-          </tbody>
-        </nz-table>
-      </nz-tab>
-    </nz-tabset>
+                </td>
+                <td>{{ data.PersonalEstado }}</td>
+                <td>{{ data.monto | currency : '$' }}</td>
+                <td>{{ data.CUITJ }}</td>
+                <td>{{ data.ApellidoNombreJ }}</td>
+              </tr>
+            </tbody>
+          </nz-table>
+        </nz-tab>
+      </nz-tabset>
+    </ng-container>
   </form>
 </nz-card>
