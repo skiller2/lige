@@ -18,3 +18,8 @@ export interface DescuentoJSON {
   PersonalOtroDescuentoDescuentoId: null | number;
   clicked?: boolean;
 }
+
+export interface ResponseDescuentos {
+  RegistrosConComprobantes: number;
+  Registros: DescuentoJSON[];
+}

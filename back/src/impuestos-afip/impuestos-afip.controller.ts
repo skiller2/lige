@@ -63,7 +63,7 @@ export class ImpuestosAfipController extends BaseController {
             item.PersonalOtroDescuentoDescuentoId == null ? total + 1 : total,
           0
         );
-      this.jsonRes([...result, { Comprobantes: count }], res);
+      this.jsonRes({ RegistrosConComprobantes: count, Registros: result }, res);
     } catch (error) {
       this.errRes(error, res);
     }
@@ -204,7 +204,8 @@ export class ImpuestosAfipController extends BaseController {
         "0"
       )}-${cuit}-${personalId}.pdf`;
 
-      if (!existsSync(downloadPath)) throw new Error(`El archivo no existe (${downloadPath}).`);
+      if (!existsSync(downloadPath))
+        throw new Error(`El archivo no existe (${downloadPath}).`);
       res.status(200).download(downloadPath, (error) => {
         console.log(error);
       });

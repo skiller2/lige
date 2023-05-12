@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
-import { DescuentoJSON, ResponseJSON } from '../shared/schemas/ResponseJSON';
+import { DescuentoJSON, ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON';
 import { Observable, catchError, debounceTime, defer, map, of, tap, throwError } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { error } from 'pdf-lib';
@@ -41,13 +41,14 @@ export class ApiService {
     );
   }
 
-  getDescuentoByPeriodo(year: number, month: number) {
+  getDescuentoByPeriodo(year: number, month: number): Observable<ResponseDescuentos> {
+    const emptyResponse: ResponseDescuentos = { RegistrosConComprobantes: 0, Registros: [] };
     if (!month || !year) {
-      return of([]);
+      return of(emptyResponse);
     }
-    return this.http.get<ResponseJSON<DescuentoJSON[]>>(`/api/impuestos_afip/${year}/${month}`).pipe(
+    return this.http.get<ResponseJSON<ResponseDescuentos>>(`/api/impuestos_afip/${year}/${month}`).pipe(
       map(res => res.data),
-      catchError(() => of([]))
+      catchError(() => of(emptyResponse))
     );
   }
 
