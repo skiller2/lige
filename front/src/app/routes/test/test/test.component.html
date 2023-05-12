@@ -1,0 +1,42 @@
+<page-header />
+<nz-card>
+  <nz-select nzMode="multiple" nzAllowClear  [nzShowSearch]="false" [nzDropdownRender]="renderTemplate" [(ngModel)]="queryField" nzPlaceHolder="custom search query" [nzNotFoundContent]="undefined"
+  class="w-100">
+    <nz-option *ngFor="let item of listOfItem" [nzLabel]="item" [nzValue]="item" [nzHide]="true"></nz-option>
+  </nz-select>
+  <ng-template #renderTemplate>
+    <div nz-row>
+      <nz-select #fieldSelect nz-col nzSpan="8">  
+        <nz-option *ngFor="let item of listOfFields" [nzLabel]="item" [nzValue]="item"></nz-option>
+      </nz-select>
+      <input type="text" nz-input #inputElement nz-col nzSpan="8"/>
+      <button (click)="addItem(fieldSelect,inputElement)" nz-col>add</button>
+    </div>
+  </ng-template>
+
+</nz-card>
+
+
+<nz-card>
+
+  <nz-tag
+  *ngFor="let tag of tags; let i = index"
+  [nzMode]="i === 0 ? 'default' : 'closeable'"
+  (nzOnClose)="handleClose(tag)"
+>
+  {{ sliceTagName(tag) }}
+</nz-tag>
+<nz-tag *ngIf="!inputVisible" class="editable-tag" nzNoAnimation (click)="showInput()">
+  <span nz-icon nzType="plus"></span>
+  Agrega filtro
+</nz-tag>
+
+<div *ngIf="inputVisible" nz-row>
+  <nz-select #fieldSelect nz-col nzSpan="8" nzSize="small">  
+    <nz-option *ngFor="let item of listOfFields" [nzLabel]="item" [nzValue]="item"></nz-option>
+  </nz-select>
+  <input type="text" nz-input #inputElement nz-col nzSpan="8" nzSize="small"/>
+  <button (click)="handleInputConfirm2(fieldSelect,inputElement)" nz-col>add</button>
+</div>
+
+</nz-card>

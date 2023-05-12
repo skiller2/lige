@@ -36,8 +36,9 @@ const routes: Routes = [
       { path: 'delon', loadChildren: () => import('./delon/delon.module').then(m => m.DelonModule) },
       { path: 'extras', loadChildren: () => import('./extras/extras.module').then(m => m.ExtrasModule) },
       { path: 'pro', loadChildren: () => import('./pro/pro.module').then(m => m.ProModule) },
-   { path: 'sys', loadChildren: () => import('./sys/sys.module').then(m => m.SysModule) },
-      { path: 'ges', loadChildren: () => import('./ges/ges.module').then(m => m.GesModule) }
+      { path: 'sys', loadChildren: () => import('./sys/sys.module').then(m => m.SysModule) },
+      { path: 'ges', loadChildren: () => import('./ges/ges.module').then(m => m.GesModule) },
+      { path: 'test', loadChildren: () => import('./test/test.module').then(m => m.TestModule) },
 
 
     ]
@@ -67,4 +68,4 @@ const routes: Routes = [
   ],
   exports: [RouterModule]
 })
-export class RouteRoutingModule {}
+export class RouteRoutingModule { }
