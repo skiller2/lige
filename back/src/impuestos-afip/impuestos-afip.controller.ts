@@ -24,7 +24,7 @@ export class ImpuestosAfipController extends BaseController {
 
     const descuentoId = process.env.OTRO_DESCUENTO_ID;
     try {
-      const result = await dataSource.query(
+      const result: [] = await dataSource.query(
         `SELECT DISTINCT
         perrel.OperacionesPersonalAAsignarPersonalId PersonalId,
         
@@ -32,9 +32,8 @@ export class ImpuestosAfipController extends BaseController {
         per.PersonalEstado, 
         perrel.PersonalCategoriaPersonalId PersonalIdJ,
         cuit.PersonalCUITCUILCUIT AS CUITJ, CONCAT(TRIM(perjer.PersonalApellido), ', ', TRIM(perjer.PersonalNombre)) ApellidoNombreJ,
-        des.PersonalOtroDescuentoImporteVariable monto, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, des.PersonalOtroDescuentoDescuentoId,
-         
-      1   
+        des.PersonalOtroDescuentoImporteVariable monto, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, des.PersonalOtroDescuentoDescuentoId
+
        FROM PersonalImpuestoAFIP imp
        
         JOIN Personal per ON per.PersonalId = imp.PersonalId
@@ -49,7 +48,14 @@ export class ImpuestosAfipController extends BaseController {
      `,
         [, anio, mes, descuentoId]
       );
-      this.jsonRes(result, res);
+      const count =
+        result.length -
+        result.reduce(
+          (total, item: any) =>
+            item.PersonalOtroDescuentoDescuentoId == null ? total + 1 : total,
+          0
+        );
+      this.jsonRes([...result, { Comprobantes: count }], res);
     } catch (error) {
       this.errRes(error, res);
     }
@@ -121,7 +127,7 @@ export class ImpuestosAfipController extends BaseController {
           periodoMes,
         ]
       );
-      if (alreadyExists.length>0)
+      if (alreadyExists.length > 0)
         throw new Error(
           `Ya existe un descuento para el periodo ${periodoAnio}-${periodoMes} y el CUIT ${CUIT}`
         );
