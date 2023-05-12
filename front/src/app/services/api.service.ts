@@ -1,15 +1,16 @@
 import { Injectable, Injector } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { DescuentoJSON, ResponseJSON } from '../shared/schemas/ResponseJSON';
-import { Observable, catchError, defer, map, of, tap, throwError } from 'rxjs';
+import { Observable, catchError, debounceTime, defer, map, of, tap, throwError } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { error } from 'pdf-lib';
+import { DownloadService } from './download.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiService {
-  constructor(private http: _HttpClient, private injector: Injector) {}
+  constructor(private http: _HttpClient, private injector: Injector, private downloadService: DownloadService) {}
 
   private get notification(): NzNotificationService {
     return this.injector.get(NzNotificationService);
@@ -60,9 +61,22 @@ export class ApiService {
       .pipe(tap(res => this.response(res)));
   }
 
-  // downloadComprobante(cuit: number, personalId: number, year: number, month: number) {
-  //   return this.http.get(`api/impuestos_afip/${year}/${month}/${cuit}/${personalId}`);
-  // }
+  downloadComprobante(cuit: number, personalId: number, year: number, month: number) {
+    return this.http
+      .get<Blob>(
+        `api/impuestos_afip/${year}/${month}/${cuit}/${personalId}`,
+        {},
+        { observe: 'response', responseType: 'blob' as 'json' }
+      )
+      .pipe(
+        tap({
+          next: resp => {
+            const filename = resp.headers.get('content-disposition')!.split(';')[1].split('filename')[1].split('=')[1].trim() || '';
+            this.downloadService.downloadBlob(resp.body!, filename, 'application/pdf');
+          },
+        })
+      );
+  }
 
   response(res: ResponseJSON<any>) {
     this.notification.success('Respuesta', res.msg);

@@ -99,12 +99,16 @@ impuestosAfipRouter.get(
   }
 );
 
-impuestosAfipRouter.get("/:anio/:mes/:CUIT/:PersonalId", (req, res) => {
-  impuestosAfipController.downloadComprobante(
-    req.params.anio,
-    req.params.mes,
-    req.params.CUIT,
-    req.params.PersonalId,
-    res
-  );
-});
+impuestosAfipRouter.get(
+  "/:anio/:mes/:CUIT/:PersonalId",
+  authMiddleware.verifyToken,
+  (req, res) => {
+    impuestosAfipController.downloadComprobante(
+      req.params.anio,
+      req.params.mes,
+      req.params.CUIT,
+      req.params.PersonalId,
+      res
+    );
+  }
+);

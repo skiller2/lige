@@ -2,7 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } from 'ng-zorro-antd/table';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
-import { BehaviorSubject, debounceTime, filter, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, filter, map, switchMap, tap, throttleTime } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 
@@ -107,7 +107,11 @@ export class ImpuestoAfipComponent {
       filterFn: null,
     },
   ];
-
+  downloadAction$ = new BehaviorSubject<null | DescuentoJSON>(null);
+  downloadComprobante(data: DescuentoJSON) {
+    this.downloadAction$.next(data);
+    // this.apiService.downloadComprobante(data.CUIT, data.PersonalId, this.anio, this.mes).subscribe();
+  }
   ngAfterViewInit(): void {
     setTimeout(() => {
       const now = new Date(); //date
@@ -117,6 +121,11 @@ export class ImpuestoAfipComponent {
 
       this.impuestoForm.form.get('periodo')?.setValue(new Date(Number(anio), Number(mes) - 1, 1));
     }, 1);
+    this.downloadAction$.pipe(throttleTime(3000)).subscribe(data => {
+      if (data) {
+        this.apiService.downloadComprobante(data.CUIT, data.PersonalId, this.anio, this.mes).subscribe();
+      }
+    });
   }
 
   onChange(result: Date): void {
@@ -149,11 +158,11 @@ export class ImpuestoAfipComponent {
 
   formChanged(event: string) {
     this.formChange$.next('');
-    console.log(event);
   }
-  // downloadComprobante(cuit: number, personalId: number) {
-  //   this.apiService.downloadComprobante(cuit, personalId, this.anio, this.mes).subscribe();
-  // }
+
+  ngOnDestroy() {
+    this.downloadAction$.unsubscribe();
+  }
 }
 
 interface ColumnItem {

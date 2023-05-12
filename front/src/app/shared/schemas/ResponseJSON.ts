@@ -16,4 +16,5 @@ export interface DescuentoJSON {
   PersonalOtroDescuentoAnoAplica: null | number;
   PersonalOtroDescuentoMesesAplica: null | number;
   PersonalOtroDescuentoDescuentoId: null | number;
+  clicked?: boolean;
 }

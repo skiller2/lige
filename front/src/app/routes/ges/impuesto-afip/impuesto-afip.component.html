@@ -55,11 +55,13 @@
               <td>{{ data.CUIT }}</td>
               <td>
                 {{ data.ApellidoNombre }}
-                <a
+                <button nz-button *ngIf="data.PersonalOtroDescuentoDescuentoId" (click)="downloadComprobante(data)">
+                  <span nz-icon nzType="download"></span>
+                </button>
+                <!-- <a
                   *ngIf="data.PersonalOtroDescuentoDescuentoId"
                   href="api/impuestos_afip/{{ anio }}/{{ mes }}/{{ data.CUIT }}/{{ data.PersonalId }}">
-                  <span nz-icon nzType="download"></span>
-                </a>
+                </a> -->
               </td>
               <td>{{ data.PersonalEstado }}</td>
               <td>{{ data.monto | currency : '$' }}</td>
