@@ -189,14 +189,13 @@ export class ImpuestosAfipController extends BaseController {
         2,
         "0"
       )}-${cuit}-${personalId}.pdf`;
-      console.log(downloadPath);
 
-      if (!existsSync(downloadPath)) throw new Error("El archivo no existe.");
+      if (!existsSync(downloadPath)) throw new Error(`El archivo no existe (${downloadPath}).`);
       res.status(200).download(downloadPath, (error) => {
         console.log(error);
       });
     } catch (error) {
-      this.errRes(error, res, "Algo salió mal.", 409);
+      this.errRes(error, res, "Algo salió mal.", 404);
     }
   }
 }
