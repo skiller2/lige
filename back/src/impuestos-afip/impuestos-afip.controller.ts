@@ -26,24 +26,32 @@ export class ImpuestosAfipController extends BaseController {
     try {
       const result: [] = await dataSource.query(
         `SELECT DISTINCT
-        perrel.OperacionesPersonalAAsignarPersonalId PersonalId,
+        per.PersonalId PersonalId,
         
         cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
         per.PersonalEstado, 
         perrel.PersonalCategoriaPersonalId PersonalIdJ,
         cuit.PersonalCUITCUILCUIT AS CUITJ, CONCAT(TRIM(perjer.PersonalApellido), ', ', TRIM(perjer.PersonalNombre)) ApellidoNombreJ,
-        des.PersonalOtroDescuentoImporteVariable monto, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, des.PersonalOtroDescuentoDescuentoId
-
+        des.PersonalOtroDescuentoImporteVariable monto, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, des.PersonalOtroDescuentoDescuentoId,
+      excep.PersonalExencionCUIT,
+      1   
        FROM PersonalImpuestoAFIP imp
        
         JOIN Personal per ON per.PersonalId = imp.PersonalId
        LEFT JOIN PersonalOtroDescuento des ON des.PersonalId = imp.PersonalId AND des.PersonalOtroDescuentoDescuentoId=@3 AND des.PersonalOtroDescuentoAnoAplica = @1 AND des.PersonalOtroDescuentoMesesAplica = @2
-       LEFT JOIN OperacionesPersonalAsignarAJerarquico perrel ON perrel.OperacionesPersonalAAsignarPersonalId = imp.PersonalId
+       LEFT JOIN OperacionesPersonalAsignarAJerarquico perrel ON perrel.OperacionesPersonalAAsignarPersonalId = imp.PersonalId AND DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
        LEFT JOIN Personal perjer ON perjer.PersonalId = perrel.PersonalCategoriaPersonalId
        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = perjer.PersonalCUITCUILUltNro
        LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
-       WHERE DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
-       AND DATEFROMPARTS(@1,@2,28) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
+       LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')
+       
+       
+       WHERE 
+		 1=1
+      
+		 AND DATEFROMPARTS(@1,@2,28) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
+       AND excep.PersonalExencionCUIT =1
+
   
      `,
         [, anio, mes, descuentoId]
