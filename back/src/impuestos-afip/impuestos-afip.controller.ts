@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
 import { BaseController } from "../controller/baseController";
-import { copyFileSync, existsSync, mkdirSync, unlinkSync } from "fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "fs";
 import { TextContent, TextItem } from "pdfjs-dist/types/src/display/api";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf";
 import { dataSource } from "../data-source";
+import { PDFDocument, PDFPage, PageSizes, rgb } from "pdf-lib";
+
+import { tmpName } from "../server";
 
 const cuitRegex = /^\d{11}$/;
 const periodoRegex = /^PERIODO FISCAL ([0-9]{4})\/([0-9]{2})/;
@@ -50,7 +53,7 @@ export class ImpuestosAfipController extends BaseController {
 		 1=1
       
 		 AND DATEFROMPARTS(@1,@2,28) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
-       AND excep.PersonalExencionCUIT =1
+       -- AND excep.PersonalExencionCUIT =1
 
   
      `,
@@ -120,11 +123,13 @@ export class ImpuestosAfipController extends BaseController {
       );
 
       const [personalIDQuery] = await queryRunner.query(
-        "SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro OtroDescuentoId FROM PersonalCUITCUIL cuit JOIN Personal per ON per.PersonalId = cuit.PersonalId WHERE cuit.PersonalCUITCUILCUIT = @0",
+        "SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro OtroDescuentoId, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre FROM PersonalCUITCUIL cuit JOIN Personal per ON per.PersonalId = cuit.PersonalId WHERE cuit.PersonalCUITCUILCUIT = @0",
         [CUIT]
       );
       const personalID = personalIDQuery.PersonalId;
       if (!personalID) throw new Error(`No se pudo encontrar el CUIT ${CUIT}`);
+
+      const ApellidoNombre = personalIDQuery.ApellidoNombre;
 
       const alreadyExists = await queryRunner.query(
         `SELECT * FROM PersonalOtroDescuento des WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = @1 AND des.PersonalOtroDescuentoAnoAplica = @2 AND des.PersonalOtroDescuentoMesesAplica = @3`,
@@ -139,6 +144,7 @@ export class ImpuestosAfipController extends BaseController {
         throw new Error(
           `Ya existe un descuento para el periodo ${periodoAnio}-${periodoMes} y el CUIT ${CUIT}`
         );
+      
       mkdirSync(`${this.directory}/${periodoAnio}`, { recursive: true });
       const newFilePath = `${this.directory}/${periodoAnio}/${periodoAnio}-${periodoMes}-${CUIT}-${personalID}.pdf`;
       if (existsSync(newFilePath)) throw new Error("El documento ya existe.");
@@ -149,7 +155,7 @@ export class ImpuestosAfipController extends BaseController {
         [
           personalIDQuery.OtroDescuentoId + 1,
           personalID,
-          Number(process.env.OtroDescuentoId),
+          Number(process.env.OTRO_DESCUENTO_ID),
           periodoAnio,
           periodoMes,
           periodoMes,
@@ -179,6 +185,7 @@ export class ImpuestosAfipController extends BaseController {
       unlinkSync(file.path);
     }
   }
+
   getByRegex(
     textContent: TextContent,
     regex: RegExp,
@@ -191,26 +198,109 @@ export class ImpuestosAfipController extends BaseController {
     return (result as TextItem).str.match(regex);
   }
 
-  downloadComprobante(
+  async downloadComprobante(
     year: string,
     month: string,
     cuit: string,
     personalId: string,
     res: Response
   ) {
-    try {
-      const downloadPath = `${this.directory}/${year}/${year}-${month.padStart(
-        2,
-        "0"
-      )}-${cuit}-${personalId}.pdf`;
 
+    const queryRunner = dataSource.createQueryRunner();
+
+    const dirtmp = `${process.env.PATH_MONOTRIBUTO}/temp`;
+    const filename = `${year}-${month.padStart(2,"0")}-${cuit}-${personalId}.pdf`
+    const downloadPath = `${this.directory}/${year}/${filename}`;
+    const tmpfilename = `${dirtmp}/${tmpName(dirtmp)}`
+    try {
       if (!existsSync(downloadPath))
         throw new Error(`El archivo no existe (${downloadPath}).`);
-      res.status(200).download(downloadPath, (error) => {
-        console.log(error);
-      });
+
+      const uint8Array = readFileSync(downloadPath)
+
+
+      const [personalQuery] = await queryRunner.query(
+        `SELECT DISTINCT
+        per.PersonalId PersonalId,
+        
+        cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
+        per.PersonalEstado, 
+        perrel.PersonalCategoriaPersonalId PersonalIdJ,
+        cuit.PersonalCUITCUILCUIT AS CUITJ, CONCAT(TRIM(perjer.PersonalApellido), ', ', TRIM(perjer.PersonalNombre)) ApellidoNombreJ,
+      1   
+       
+        FROM Personal per
+       LEFT JOIN OperacionesPersonalAsignarAJerarquico perrel ON perrel.OperacionesPersonalAAsignarPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
+       LEFT JOIN Personal perjer ON perjer.PersonalId = perrel.PersonalCategoriaPersonalId
+       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = perjer.PersonalCUITCUILUltNro
+       LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
+       
+       
+       WHERE per.PersonalId = @0
+		 `,
+        [personalId,year,month]
+      );
+      const personalID = personalQuery.PersonalId;
+      if (!personalID) throw new Error(`No se pudo encontrar la persona ${personalId}`);
+      const ApellidoNombre = personalQuery.ApellidoNombre;
+      const ApellidoNombreJ = personalQuery.ApellidoNombreJ;
+
+
+      const buffer = await this.alterPDF(uint8Array, ApellidoNombre, ApellidoNombreJ);
+      writeFileSync(tmpfilename, buffer)
+
+      res.download(tmpfilename,filename, (msg) => {
+        unlinkSync(tmpfilename)
+      })
+
     } catch (error) {
       this.errRes(error, res, "Algo salió mal.", 404);
     }
   }
+
+
+  async alterPDF(bufferPDF: Uint8Array, ApellidoNombre:string,ApellidoNombreJ:string) {
+    if (bufferPDF.length == 0) return
+    const originPDF = await PDFDocument.load(bufferPDF)
+    const originPDFPages = originPDF.getPages()
+    if (originPDFPages.length == 0) return
+
+    const newPdf = await PDFDocument.create()
+
+    const embededPages = await newPdf.embedPages(originPDFPages)
+    //    const image = await fetch('assets/pdf/firma_recibo.png').then(res => res.arrayBuffer())
+    //    const embededImage = await newPdf.embedPng(image)
+    //    const scaleImage = embededImage.scale(1/20)
+
+    let currentPage: PDFPage;
+    embededPages.forEach((embPage, index) => {
+      if (index % 2 == 0) {
+        currentPage = newPdf.addPage(PageSizes.A4)
+      }
+      const pageRatio = currentPage.getWidth() / currentPage.getHeight()
+
+
+      const embPageSize = embPage.scale(1)
+      //      currentPage.drawPage(embPage, { x: (currentPage.getWidth() - embPage.width) / 2, y: currentPage.getHeight() / 2 * ((index+1) % 2) })
+      const posy = ((index) % 2 == 0) ? 0 + 20 : currentPage.getHeight() / 2 * -1 + 20
+
+      currentPage.drawPage(embPage, { x: (currentPage.getWidth() - embPageSize.width) / 2, y: posy, width: embPageSize.width, height: embPageSize.height })
+
+      //      currentPage.drawImage(embededImage, { x: 210, y: (((index) % 2 == 0) ? currentPage.getHeight() / 2: 0)  + 90, width: scaleImage.width, height: scaleImage.height })
+      currentPage.drawText(`${ApellidoNombre}\n\nResponsable: ${ApellidoNombreJ}`, {
+        x: 80,
+        y: (((index) % 2 == 0) ? currentPage.getHeight() / 2 : 0) + 70,
+        size: 8,
+        color: rgb(0, 0, 0),
+        lineHeight: 6,
+        //opacity: 0.75,
+      })
+    })
+
+    return newPdf.save()
+  }
+
+
 }
+
+

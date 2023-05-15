@@ -35,7 +35,7 @@ export class TestComponent {
     }
   }
 
-  tags = ['Unremovable'];
+  tags = ['1=1'];
   inputVisible = false;
   inputValue = '';
   @ViewChild('inputElement', { static: false }) inputElement?: ElementRef;

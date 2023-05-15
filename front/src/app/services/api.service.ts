@@ -73,6 +73,7 @@ export class ApiService {
         tap({
           next: resp => {
             const filename = resp.headers.get('content-disposition')!.split(';')[1].split('filename')[1].split('=')[1].trim() || '';
+            console.log("nombre",filename)
             this.downloadService.downloadBlob(resp.body!, filename, 'application/pdf');
           },
         })

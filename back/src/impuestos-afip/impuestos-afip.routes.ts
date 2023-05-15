@@ -8,9 +8,9 @@ import { tmpName } from "../server";
 type DestinationCallback = (error: Error | null, destination: string) => void;
 type FileNameCallback = (error: Error | null, filename: string) => void;
 
-const dir = "./uploads/temp/";
-if (!existsSync(dir)) {
-  mkdirSync(dir, { recursive: true });
+const dirtmp = `${process.env.PATH_MONOTRIBUTO}/temp`;
+if (!existsSync(dirtmp)) {
+  mkdirSync(dirtmp, { recursive: true });
 }
 const storage = multer.diskStorage({
   destination: (
@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
     file: Express.Multer.File,
     callback: DestinationCallback
   ) => {
-    callback(null, dir);
+    callback(null, dirtmp);
   },
 
   filename: (
@@ -26,7 +26,7 @@ const storage = multer.diskStorage({
     file: Express.Multer.File,
     callback: DestinationCallback
   ) => {
-    const fileName = tmpName(dir);
+    const fileName = tmpName(dirtmp);
     callback(null, fileName);
   },
 });

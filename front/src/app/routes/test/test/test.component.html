@@ -32,10 +32,10 @@
 </nz-tag>
 
 <div *ngIf="inputVisible" nz-row>
-  <nz-select #fieldSelect nz-col nzSpan="8" nzSize="small">  
+  <nz-select #fieldSelect nz-col nzSpan="4" nzSize="small">  
     <nz-option *ngFor="let item of listOfFields" [nzLabel]="item" [nzValue]="item"></nz-option>
   </nz-select>
-  <input type="text" nz-input #inputElement nz-col nzSpan="8" nzSize="small"/>
+  <input type="text" nz-input #inputElement nz-col nzSpan="4" nzSize="small"/>
   <button (click)="handleInputConfirm2(fieldSelect,inputElement)" nz-col>add</button>
 </div>
 
