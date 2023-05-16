@@ -12,19 +12,31 @@ import { PdfviewerComponent } from './pdfviewer/pdfviewer.component';
 import { UploadFileComponent } from './upload-file/upload-file.component';
 import { PersonalSearchComponent } from './personal-search/personal-search.component';
 import { PeriodoSelectComponent } from './periodo-select/periodo-select.component';
+import { CUITPipe } from './utils/cuit-pipe';
+import { ImageContentComponent } from './imagePreview/image-content/image-content.component';
+import { FormComponent } from './imagePreview/form/form.component';
+import { ImageCropperModule } from 'ngx-image-cropper';
+import { QRModule } from '@delon/abc/qr';
+import { ViewCredentialComponent } from './viewCredential/view-credential.component';
+import { AppFilterPipe } from './utils/filter-type';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';
 
-const THIRDMODULES: Array<Type<any>> = [];
+const THIRDMODULES: Array<Type<any>> = [ImageCropperModule, QRModule];
 // #endregion
 
 // #region your componets & directives
 const COMPONENTS: Array<Type<any>> = [
   PersonalSearchComponent,
+  PdfviewerComponent,
+  UploadFileComponent,
+  ViewCredentialComponent,
+  ImageContentComponent,
+  FormComponent,
   PeriodoSelectComponent,
 ];
-const DIRECTIVES: Array<Type<any>> = [];
+const DIRECTIVES: Array<Type<any>> = [CUITPipe, AppFilterPipe];
 // #endregion
 
 @NgModule({

@@ -24,13 +24,13 @@
           "text": "Credencial Personal",
           "i18n": "ges.imgpers",
           "icon": "anticon-profile",
-          "link": "/ges/imgpers"
+          "link": "/ges/credencial_personal"
         },
         {
           "text": "Lista de Credenciales",
           "i18n": "ges.credpers",
           "icon": "anticon-profile",
-          "link": "/ges/credpers"
+          "link": "/ges/credencial_lista"
         },        
         {
           "text": "Liquidaciones",
@@ -40,12 +40,12 @@
               "text": "Excepción Asistencia (Art.14)",
               "i18n": "ges.asistenciaexcepcion",
               "icon": "anticon-profile",
-              "link": "/ges/asistenciaexcepcion"
+              "link": "/ges/asistencia_excepcion"
             },        
     
             {
               "text": "Convertir PDF",
-              "link": "/ges/pdfretiro",
+              "link": "/ges/pdf_retiro",
               "icon": "anticon-profile"
             },
             {
@@ -60,7 +60,7 @@
             },
             {
               "text": "Detalle Asistencia",
-              "link": "/ges/asistencia",
+              "link": "/ges/detalle_asistencia",
               "icon": "anticon-profile"
             },
             {

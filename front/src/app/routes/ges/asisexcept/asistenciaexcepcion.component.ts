@@ -1,20 +1,12 @@
 import { Component, HostListener, Injector, OnInit, ViewChild } from '@angular/core';
 import { SettingsService, _HttpClient } from '@delon/theme';
-import {
-  BehaviorSubject,
-  Subject,
-  catchError,
-  debounceTime,
-  of,
-  switchMap,
-  takeUntil,
-  tap,
-} from 'rxjs';
+import { BehaviorSubject, Subject, catchError, debounceTime, of, switchMap, takeUntil, tap } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { FormGroup, NgForm } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from 'src/app/services/api.service';
+import { SharedModule } from '@shared';
 
 enum Busqueda {
   Sucursal,
@@ -28,6 +20,8 @@ enum Busqueda {
   selector: 'app-ges-asistenciaexcepcion',
   templateUrl: './asistenciaexcepcion.component.html',
   styleUrls: ['./asistenciaexcepcion.component.less'],
+  standalone: true,
+  imports: [SharedModule],
 })
 export class ExcepcionAsistenciaComponent {
   @ViewChild('asistenciaexcepcion', { static: true })
@@ -43,7 +37,7 @@ export class ExcepcionAsistenciaComponent {
     private settingService: SettingsService,
     private _route: ActivatedRoute,
     private _router: Router,
-    private apiService : ApiService
+    private apiService: ApiService
   ) {}
 
   private destroy$ = new Subject();
@@ -69,24 +63,21 @@ export class ExcepcionAsistenciaComponent {
   $optionsSucursales = this.searchService.getSucursales();
   $optionsCategoria = this.searchService.getCategorias();
 
-
   $personaResponsables = this.$selectedPersonalIdChange.pipe(
     debounceTime(50),
-    switchMap((event) =>
+    switchMap(event =>
       this.apiService
         .getPersonaResponsables(
           this.asistenciaexcepcion.form.get('anio')?.value,
           this.asistenciaexcepcion.form.get('mes')?.value,
-          event,
+          event
         )
-        .pipe(
-//          doOnSubscribe(() => this.tableLoading$.next(true)),
-//          tap({ complete: () => this.tableLoading$.next(false) })
-        )
+        .pipe
+        //          doOnSubscribe(() => this.tableLoading$.next(true)),
+        //          tap({ complete: () => this.tableLoading$.next(false) })
+        ()
     )
   );
-
-
 
   $objetivoResponsables = this.$selectedObjetivoIdChange.pipe(
     debounceTime(50),
@@ -132,12 +123,7 @@ export class ExcepcionAsistenciaComponent {
 
   $optionsPersonal = this.$searchPersonalChange.pipe(
     debounceTime(500),
-    switchMap(values =>
-      this.searchService.getPersonFromName(
-        Number(values) ? 'CUIT' : 'Nombre',
-        values
-      )
-    ),
+    switchMap(values => this.searchService.getPersonFromName(Number(values) ? 'CUIT' : 'Nombre', values)),
     tap(() => this.$isPersonalOptionsLoading.next(false))
   );
 
@@ -148,14 +134,8 @@ export class ExcepcionAsistenciaComponent {
   ngAfterViewInit(): void {
     const now = new Date(); //date
     setTimeout(() => {
-      const anio =
-        Number(localStorage.getItem('anio')) > 0
-          ? localStorage.getItem('anio')
-          : now.getFullYear();
-      const mes =
-        Number(localStorage.getItem('mes')) > 0
-          ? localStorage.getItem('mes')
-          : now.getMonth() + 1;
+      const anio = Number(localStorage.getItem('anio')) > 0 ? localStorage.getItem('anio') : now.getFullYear();
+      const mes = Number(localStorage.getItem('mes')) > 0 ? localStorage.getItem('mes') : now.getMonth() + 1;
 
       this.asistenciaexcepcion.form.get('anio')?.setValue(Number(anio));
       this.asistenciaexcepcion.form.get('mes')?.setValue(Number(mes));
@@ -163,19 +143,13 @@ export class ExcepcionAsistenciaComponent {
       const routeParams = this._route.snapshot.paramMap;
 
       if (routeParams.get('ObjetivoId') != null) {
-        this.asistenciaexcepcion.form
-          .get('SucursalId')
-          ?.setValue(Number(routeParams.get('SucursalId')));
-        this.asistenciaexcepcion.form
-          .get('ObjetivoId')
-          ?.setValue(Number(routeParams.get('ObjetivoId')));
+        this.asistenciaexcepcion.form.get('SucursalId')?.setValue(Number(routeParams.get('SucursalId')));
+        this.asistenciaexcepcion.form.get('ObjetivoId')?.setValue(Number(routeParams.get('ObjetivoId')));
       } else if (localStorage.getItem('SucursalId')) {
-        this.asistenciaexcepcion.form
-          .get('SucursalId')
-          ?.setValue(Number(localStorage.getItem('SucursalId')));
+        this.asistenciaexcepcion.form.get('SucursalId')?.setValue(Number(localStorage.getItem('SucursalId')));
       }
 
-      console.log('ngAfterViewInit') 
+      console.log('ngAfterViewInit');
     }, 1);
   }
 
@@ -185,30 +159,17 @@ export class ExcepcionAsistenciaComponent {
 
     switch (busqueda) {
       case Busqueda.Anio:
-        localStorage.setItem(
-          'anio',
-          this.asistenciaexcepcion.controls['anio'].value
-        );
-        this.$selectedObjetivoIdChange.next(
-          this.asistenciaexcepcion.controls['ObjetivoId'].value
-        );
+        localStorage.setItem('anio', this.asistenciaexcepcion.controls['anio'].value);
+        this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value);
 
         break;
       case Busqueda.Mes:
-        localStorage.setItem(
-          'mes',
-          this.asistenciaexcepcion.controls['mes'].value
-        );
-        this.$selectedObjetivoIdChange.next(
-          this.asistenciaexcepcion.controls['ObjetivoId'].value
-        );
+        localStorage.setItem('mes', this.asistenciaexcepcion.controls['mes'].value);
+        this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value);
         break;
 
       case Busqueda.Sucursal:
-        localStorage.setItem(
-          'SucursalId',
-          this.asistenciaexcepcion.controls['SucursalId'].value
-        );
+        localStorage.setItem('SucursalId', this.asistenciaexcepcion.controls['SucursalId'].value);
 
         this.$selectedSucursalIdChange.next(event);
         this.$isSucursalDataLoading.next(true);
@@ -269,11 +230,7 @@ export class ExcepcionAsistenciaComponent {
     this.searchService
       .setAsistenciaExcepcion(this.asistenciaexcepcion.value)
       .pipe(
-        switchMap(async () =>
-          this.$selectedObjetivoIdChange.next(
-            this.asistenciaexcepcion.controls['ObjetivoId'].value
-          )
-        ),
+        switchMap(async () => this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value)),
         //      tap(() => this.$isObjetivoOptionsLoading.next(false))
         takeUntil(this.destroy$)
       )
@@ -297,11 +254,7 @@ export class ExcepcionAsistenciaComponent {
     this.searchService
       .deleteAsistenciaExcepcion(this.asistenciaexcepcion.value)
       .pipe(
-        tap(() =>
-          this.$selectedObjetivoIdChange.next(
-            this.asistenciaexcepcion.controls['ObjetivoId'].value
-          )
-        ),
+        tap(() => this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value)),
         //      tap(() => this.$isObjetivoOptionsLoading.next(false))
         takeUntil(this.destroy$)
       )

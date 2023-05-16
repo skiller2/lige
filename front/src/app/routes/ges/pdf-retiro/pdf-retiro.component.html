@@ -1,15 +1,15 @@
 <ng-template #phActionTpl>
-    <nz-button-group>
-        <button nz-button nzType="primary" disabled>L</button>
-        <button nz-button nzType="default" disabled>M</button>
-        <button nz-button nzType="default">M</button>
-        <button nz-button nzType="dashed" disabled>R</button>
-    </nz-button-group>
+  <nz-button-group>
+    <button nz-button nzType="primary" disabled>L</button>
+    <button nz-button nzType="default" disabled>M</button>
+    <button nz-button nzType="default">M</button>
+    <button nz-button nzType="dashed" disabled>R</button>
+  </nz-button-group>
 </ng-template>
 
 <page-header [action]="phActionTpl"></page-header>
 
 <nz-card class="small-margin">
-    <app-upload-file #upload accept="application/pdf" (fileOutput)="processFile($event)"></app-upload-file>
-    <app-pdfviewer [namePDF]="fileName" [bufferPDF]="processedBuffer"></app-pdfviewer>
+  <app-upload-file #upload accept="application/pdf" (fileOutput)="processFile($event)"></app-upload-file>
+  <app-pdfviewer [namePDF]="fileName" [bufferPDF]="processedBuffer"></app-pdfviewer>
 </nz-card>

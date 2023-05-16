@@ -1,5 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
+import { SharedModule } from '@shared';
 import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } from 'ng-zorro-antd/table';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, Observable, debounceTime, filter, map, switchMap, tap, throttleTime } from 'rxjs';
@@ -9,6 +10,8 @@ import { DescuentoJSON, ResponseDescuentos } from 'src/app/shared/schemas/Respon
 @Component({
   selector: 'app-impuesto-afip',
   templateUrl: './impuesto-afip.component.html',
+  standalone: true,
+  imports: [SharedModule],
   styleUrls: ['./impuesto-afip.component.less'],
 })
 export class ImpuestoAfipComponent {
