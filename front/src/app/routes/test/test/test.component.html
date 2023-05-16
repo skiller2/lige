@@ -13,7 +13,7 @@
       <button (click)="addItem(fieldSelect,inputElement)" nz-col>add</button>
     </div>
   </ng-template>
-
+<p>Hola prueba {{ 4044.30 | currency }}</p>
 </nz-card>
 
 
@@ -38,5 +38,15 @@
   <input type="text" nz-input #inputElement nz-col nzSpan="4" nzSize="small"/>
   <button (click)="handleInputConfirm2(fieldSelect,inputElement)" nz-col>add</button>
 </div>
+
+<nz-date-picker  name="periodo0"  />
+
+
+<nz-date-picker nzMode="month" name="periodo1"  />
+
+
+</nz-card>
+<nz-card>
+
 
 </nz-card>
