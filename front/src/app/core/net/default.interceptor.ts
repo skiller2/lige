@@ -17,21 +17,21 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BehaviorSubject, Observable, of, throwError, catchError, filter, mergeMap, switchMap, take } from 'rxjs';
 
 const CODEMESSAGE: { [key: number]: string } = {
-  200: 'Respuesta OK',
-  201: 'Se modificó correctamente。',
-  202: 'Ingresando tarea asincrónica。',
-  204: 'Se eliminó exitosamente。',
-  400: 'Error en la solicitud，no se realizaron modificaciones。',
-  401: 'El usuario no tiene permiso (token, nombre de usuario, contraseña incorrecta)。',
-  403: 'El usuario está autorizado, pero el acceso está prohibido。',
-  404: 'La solicitud enviada es para un registro que no existe。',
-  406: 'El formato solicitado no está disponible。',
-  410: 'El recurso solicitado se elimina de forma permanente y ya no estará disponible。',
-  422: 'Al crear un objeto, se produjo un error de validación.。',
-  500: 'Ocurrió un error en el servidor, verifique el servidor。',
-  502: 'Error de puerta de enlace。',
-  503: 'El servicio no está disponible, el servidor está sobrecargado o mantenido temporalmente。',
-  504: 'Tiempo de espera de puerta de enlace。',
+  200: 'Respuesta OK.',
+  201: 'Se modificó correctamente.',
+  202: 'Ingresando tarea asincrónica.',
+  204: 'Se eliminó exitosamente.',
+  400: 'Error en la solicitud, no se realizaron modificaciones.',
+  401: 'El usuario no tiene permiso (token, nombre de usuario, contraseña incorrecta).',
+  403: 'El usuario está autorizado, pero el acceso está prohibido.',
+  404: 'La solicitud enviada es para un registro que no existe.',
+  406: 'El formato solicitado no está disponible.',
+  410: 'El recurso solicitado se elimina de forma permanente y ya no estará disponible.',
+  422: 'Al crear un objeto, se produjo un error de validación.',
+  500: 'Ocurrió un error en el servidor, verifique el servidor.',
+  502: 'Error de puerta de enlace.',
+  503: 'El servicio no está disponible, el servidor está sobrecargado o mantenido temporalmente.',
+  504: 'Tiempo de espera de puerta de enlace.',
 };
 
 /**
@@ -87,11 +87,11 @@ export class DefaultInterceptor implements HttpInterceptor {
         this.toLogin();
         break;
       default:
-        const errortext = (err.error?.msg) ? err.error.msg : CODEMESSAGE[err.status] || err.statusText;
+        const errortext = err.error?.msg ? err.error.msg : CODEMESSAGE[err.status] || err.statusText;
         this.notification.error(`Error`, errortext);
         break;
     }
-    
+
     return throwError(() => err);
   }
 
