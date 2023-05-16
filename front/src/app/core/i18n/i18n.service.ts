@@ -5,7 +5,7 @@ import ngEn from '@angular/common/locales/en';
 import ngEs from '@angular/common/locales/es';
 import ngZh from '@angular/common/locales/zh';
 import ngZhTw from '@angular/common/locales/zh-Hant';
-import { Injectable } from '@angular/core';
+import { Injectable} from '@angular/core';
 import {
   DelonLocaleService,
   en_US as delonEnUS,
@@ -17,10 +17,12 @@ import {
   AlainI18nBaseService
 } from '@delon/theme';
 import { AlainConfigService } from '@delon/util/config';
-import { enUS as dfEn, zhCN as dfZhCn, zhTW as dfZhTw, ar as dfAR } from 'date-fns/locale';
+import { enUS as dfEn, zhCN as dfZhCn, zhTW as dfZhTw, es as dfES } from 'date-fns/locale';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
-import { en_US as zorroEnUS, NzI18nService, zh_CN as zorroZhCN, zh_TW as zorroZhTW, es_ES as zorroEsES } from 'ng-zorro-antd/i18n';
+import { en_US as zorroEnUS, NzI18nService, zh_CN as zorroZhCN, zh_TW as zorroZhTW, es_ES as zorroEsES, NZ_DATE_LOCALE } from 'ng-zorro-antd/i18n';
 import { Observable } from 'rxjs';
+
+
 
 interface LangConfigData {
   abbr: string;
@@ -37,7 +39,7 @@ const LANGS: { [key: string]: LangConfigData } = {
     text: 'Español',
     ng: ngEs,
     zorro: zorroEsES,
-    date: dfAR,
+    date: dfES,
     delon: delonEsEs,
     abbr: 'es'
   },
@@ -111,13 +113,17 @@ export class I18NService extends AlainI18nBaseService {
     this._data = this.flatData(data, []);
 
     const item = LANGS[lang];
-    registerLocaleData(item.ng);
+
+    registerLocaleData(item.ng, item.abbr);
     this.nzI18nService.setLocale(item.zorro);
     this.nzI18nService.setDateLocale(item.date);
     this.delonLocaleService.setLocale(item.delon);
+
     this._currentLang = lang;
 
     this._change$.next(lang);
+
+
   }
 
   getLangs(): Array<{ code: string; text: string; abbr: string }> {
