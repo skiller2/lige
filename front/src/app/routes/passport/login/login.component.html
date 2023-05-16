@@ -5,14 +5,14 @@
       <nz-form-item>
         <nz-form-control [nzErrorTip]="'app.login.username-error-tip' | i18n">
           <nz-input-group nzSize="large" nzPrefixIcon="user">
-            <input nz-input formControlName="userName" placeholder="usuario o correo" />
+            <input nz-input formControlName="userName" [placeholder]="'app.login.username-placeholder' | i18n" />
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
         <nz-form-control [nzErrorTip]="'app.login.password-error-tip' | i18n">
           <nz-input-group nzSize="large" nzPrefixIcon="lock">
-            <input nz-input type="password" formControlName="password" placeholder="password" />
+            <input nz-input type="password" formControlName="password" [placeholder]="'app.login.password-placeholder' | i18n" />
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -42,7 +42,14 @@
               </nz-input-group>
             </nz-col>
             <nz-col [nzSpan]="8">
-              <button type="button" nz-button nzSize="large" (click)="getCaptcha()" [disabled]="count >= 0" nzBlock [nzLoading]="loading">
+              <button
+                type="button"
+                nz-button
+                nzSize="large"
+                (click)="getCaptcha()"
+                [disabled]="count >= 0"
+                nzBlock
+                [nzLoading]="loading">
                 {{ count ? count + 's' : ('app.register.get-verification-code' | i18n) }}
               </button>
             </nz-col>
