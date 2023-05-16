@@ -2,7 +2,7 @@
 /* eslint-disable import/no-duplicates */
 import { HttpClientModule } from '@angular/common/http';
 import { default as ngLang } from '@angular/common/locales/zh';
-import { APP_INITIALIZER, LOCALE_ID, NgModule, Type, isDevMode } from '@angular/core';
+import { APP_INITIALIZER, DEFAULT_CURRENCY_CODE, LOCALE_ID, NgModule, Type, isDevMode } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { SimpleInterceptor } from '@delon/auth';
@@ -14,25 +14,39 @@ import { NzNotificationModule } from 'ng-zorro-antd/notification';
 // #region default language
 // 参考：https://ng-alain.com/docs/i18n
 import { I18NService } from '@core';
-import { zhCN, es as dateLang } from 'date-fns/locale';
-import es from '@angular/common/locales/es';
+import { zhCN as dateLang } from 'date-fns/locale';
+
+import { es as dateLangES } from 'date-fns/locale';
+import { es_ES as zorroLangES } from 'ng-zorro-antd/i18n';
+import { default as ngLangES } from '@angular/common/locales/es-AR';
+import { es_ES as delonLangES } from '@delon/theme';
 
 const LANG = {
-  abbr: 'es',
+  abbr: 'es-AR',
+  ng: ngLangES,
+  zorro: zorroLangES,
+  date: dateLangES,
+  delon: delonLangES
+};
+
+const LANGX = {
+  abbr: 'zh',
   ng: ngLang,
   zorro: zorroLang,
   date: dateLang,
   delon: delonLang
 };
+
 // register angular
 import { registerLocaleData } from '@angular/common';
-//registerLocaleData(LANG.ng, LANG.abbr);
-registerLocaleData(es);
+registerLocaleData(LANG.ng, LANG.abbr);
+//registerLocaleData(LANGX.ng, LANGX.abbr);
 const LANG_PROVIDES = [
   { provide: LOCALE_ID, useValue: LANG.abbr },
   { provide: NZ_I18N, useValue: LANG.zorro },
   { provide: NZ_DATE_LOCALE, useValue: LANG.date },
-  { provide: DELON_LOCALE, useValue: LANG.delon }
+  { provide: DELON_LOCALE, useValue: LANG.delon },
+  { provide: DEFAULT_CURRENCY_CODE, useValue: 'ARS' }
 ];
 // #endregion
 

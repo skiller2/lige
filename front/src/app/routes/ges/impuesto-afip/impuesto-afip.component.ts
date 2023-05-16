@@ -133,6 +133,8 @@ export class ImpuestoAfipComponent {
         this.apiService.downloadComprobante(data.CUIT, data.PersonalId, this.anio, this.mes).subscribe();
       }
     });
+
+
   }
 
   onChange(result: Date): void {

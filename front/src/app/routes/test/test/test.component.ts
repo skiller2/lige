@@ -7,6 +7,10 @@ import { BehaviorSubject, debounceTime, filter, map, switchMap, tap, throttleTim
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 
+/** config ng-zorro-antd i18n **/
+
+
+
 @Component({
   selector: 'test',
   templateUrl: './test.component.html',
@@ -16,8 +20,19 @@ import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 
 export class TestComponent {
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService
+  ) {
+  }
   ngAfterViewInit(): void {
+
+
+
+
+  }
+
+  ngOnInit(): void { 
+
+
   }
 
   listOfFields = ['Apellido','Nombre']
