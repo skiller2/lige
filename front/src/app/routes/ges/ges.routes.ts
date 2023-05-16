@@ -29,4 +29,8 @@ export const GesRoutes: Routes = [
     path: 'asistencia_excepcion',
     loadComponent: () => import('./asisexcept/asistenciaexcepcion.component').then(c => c.ExcepcionAsistenciaComponent),
   },
+  {
+    path: 'asistencia_excepcion/:SucursalId/:ObjetivoId',
+    loadComponent: () => import('./asisexcept/asistenciaexcepcion.component').then(c => c.ExcepcionAsistenciaComponent),
+  },
 ];
