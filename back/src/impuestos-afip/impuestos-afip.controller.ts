@@ -38,7 +38,10 @@ export class ImpuestosAfipController extends BaseController {
     anio: string;
     mes: string;
     descuentoId: string;
+    personalIdRel: string;
   }) {
+    const extrafilter = (options.personalIdRel ) ? "AND perrel.PersonalCategoriaPersonalId = @4" : ""
+
     return dataSource.query(
       `SELECT DISTINCT
       per.PersonalId PersonalId,
@@ -67,14 +70,16 @@ export class ImpuestosAfipController extends BaseController {
    AND DATEFROMPARTS(@1,@2,28) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
      AND excep.PersonalExencionCUIT IS NULL
 
-     AND per.PersonalEstado NOT IN ('BAJA','BAJAT','POSTULANTEP','POSTULANTEA','POSTULANTE') 
+     AND per.PersonalEstado NOT IN ('BAJA','BAJAT','POSTULANTEP','POSTULANTEA','POSTULANTE')
+     ${extrafilter} 
    `,
-      [, options.anio, options.mes, options.descuentoId]
+      [, options.anio, options.mes, options.descuentoId, options.personalIdRel]
     );
   }
   async handleGetDescuentos(req: Request, res: Response) {
     const anio = req.params.anio;
     const mes = req.params.mes;
+    const personalIdRel = req.params.personalIdRel;
     const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
     try {
@@ -82,6 +87,7 @@ export class ImpuestosAfipController extends BaseController {
         anio,
         mes,
         descuentoId,
+        personalIdRel
       });
       const sincomprobante = result.reduce(
         (total, item: any) =>
@@ -230,6 +236,7 @@ export class ImpuestosAfipController extends BaseController {
   async downloadComprobantesByPeriodo(
     year: string,
     month: string,
+    personalIdRel:string,
     res: Response
   ) {
     try {
@@ -241,6 +248,7 @@ export class ImpuestosAfipController extends BaseController {
         anio: year,
         mes: formattedMonth,
         descuentoId,
+        personalIdRel
       });
 
       const files = descuentos.map((descuento, index) => {
@@ -387,7 +395,7 @@ export class ImpuestosAfipController extends BaseController {
     const newPdf = await PDFDocument.create();
 
     let currentPage: PDFPage;
-//    currentPage = newPdf.addPage(PageSizes.A4);
+    //    currentPage = newPdf.addPage(PageSizes.A4);
 
     /*
     originPDFPages.forEach((embPage, index) => { 
@@ -395,7 +403,7 @@ export class ImpuestosAfipController extends BaseController {
       console.log('hoja:',x, y, width, height)
     })
     */
-    const embededPages = await newPdf.embedPages(originPDFPages, [{ top:790, bottom: 410, left: 53, right: 307 }]);
+    const embededPages = await newPdf.embedPages(originPDFPages, [{ top: 790, bottom: 410, left: 53, right: 307 }]);
     //    const image = await fetch('assets/pdf/firma_recibo.png').then(res => res.arrayBuffer())
     //    const embededImage = await newPdf.embedPng(image)
     //    const scaleImage = embededImage.scale(1/20)
@@ -409,12 +417,12 @@ export class ImpuestosAfipController extends BaseController {
 
       currentPage = newPdf.addPage([embPageSize.width + margin, embPageSize.height + margin]);
       const pageRatio = currentPage.getWidth() / currentPage.getHeight();
-      
-      //      currentPage.drawPage(embPage, { x: (currentPage.getWidth() - embPage.width) / 2, y: currentPage.getHeight() / 2 * ((index+1) % 2) })
-//      const posy =
-//        index % 2 == 0 ? 0 + 20 : (currentPage.getHeight() / 2) * -1 + 20;
 
-      
+      //      currentPage.drawPage(embPage, { x: (currentPage.getWidth() - embPage.width) / 2, y: currentPage.getHeight() / 2 * ((index+1) % 2) })
+      //      const posy =
+      //        index % 2 == 0 ? 0 + 20 : (currentPage.getHeight() / 2) * -1 + 20;
+
+
       currentPage.drawPage(embPage, {
         x: (currentPage.getWidth() - embPageSize.width) / 2,
         y: (currentPage.getHeight() - embPageSize.height) / 2,

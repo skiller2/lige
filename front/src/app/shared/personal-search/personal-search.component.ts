@@ -1,4 +1,4 @@
-import { Component, Output, forwardRef } from '@angular/core';
+import { Component, Input, Output, forwardRef } from '@angular/core';
 import { BehaviorSubject, Observable, debounceTime, switchMap, tap } from 'rxjs';
 import { Search } from '../schemas/personal.schemas';
 import { SearchService } from 'src/app/services/search.service';
@@ -16,6 +16,7 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
     }],
 })
 export class PersonalSearchComponent implements ControlValueAccessor {
+  @Input() label: string | undefined 
   constructor(private searchService: SearchService) { }
   _selectedPersonalId: string = ''
 
