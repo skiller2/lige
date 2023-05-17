@@ -13,12 +13,21 @@ import {
 import { TextContent, TextItem } from "pdfjs-dist/types/src/display/api";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf";
 import { dataSource } from "../data-source";
-import { FileEmbedder, PDFDocument, PDFPage, PageSizes, rgb } from "pdf-lib";
+import {
+  FileEmbedder,
+  PDFDocument,
+  PDFPage,
+  PDFPageDrawPageOptions,
+  PageSizes,
+  degrees,
+  rgb,
+} from "pdf-lib";
 
 import { tmpName } from "../server";
 import path from "path";
 import { DescuentoJSON } from "src/schemas/ResponseJSON";
 import { readFile } from "fs/promises";
+import { BoundingBox } from "pdf-lib/cjs/types/fontkit";
 
 const cuitRegex = /^\d{11}$/;
 const periodoRegex = /^PERIODO FISCAL ([0-9]{4})\/([0-9]{2})/;
@@ -175,7 +184,7 @@ export class ImpuestosAfipController extends BaseController {
           periodoMes,
         ]
       );
-      if (alreadyExists.length > 0)
+      if (alreadyExists.length > 5)
         throw new Error(
           `Ya existe un descuento para el periodo ${periodoAnio}-${periodoMes} y el CUIT ${CUIT}`
         );
@@ -251,14 +260,16 @@ export class ImpuestosAfipController extends BaseController {
         personalIdRel
       });
 
-      const files = descuentos.map((descuento, index) => {
-        return {
-          name: `${year}-${formattedMonth}-${descuento.CUIT}-${descuento.PersonalId}.pdf`,
-          hasComprobante: descuento.PersonalOtroDescuentoDescuentoId
-            ? true
-            : false,
-        };
-      });
+      const files = descuentos
+        .filter(
+          (descuento) => descuento.PersonalOtroDescuentoDescuentoId !== null
+        )
+
+        .map((descuento, index) => {
+          return {
+            name: `${year}-${formattedMonth}-${descuento.CUIT}-${descuento.PersonalId}.pdf`,
+          };
+        });
 
       const responsePDFBuffer = await this.PDFmergeFromFiles(files, filesPath);
 
@@ -279,7 +290,6 @@ export class ImpuestosAfipController extends BaseController {
   async PDFmergeFromFiles(
     files: {
       name: string;
-      hasComprobante: boolean;
     }[],
     filesPath: string
   ) {
@@ -287,32 +297,84 @@ export class ImpuestosAfipController extends BaseController {
     let currentFileBuffer: Buffer;
     let currentFilePDF: PDFDocument;
     let currentFilePDFPage: PDFPage;
+    let lastPage: PDFPage;
+    // let positionFromIndex: PDFPageDrawPageOptions;
 
-    for (const file of files) {
+    for (const [index, file] of files.entries()) {
+      const locationIndex = index % 4;
       currentFileBuffer = null;
       currentFilePDF = null;
       currentFilePDFPage = null;
 
-      if (!file.hasComprobante) continue;
+      if (locationIndex === 0) lastPage = newDocument.addPage(PageSizes.A4);
 
-      const newPage = newDocument.addPage();
       const filePath = path.join(filesPath, file.name);
       const fileExists = existsSync(filePath);
+
+      const pageWidth = lastPage.getWidth();
+      const pageHeight = lastPage.getHeight();
+      // switch (locationIndex) {
+      //   case 0:
+      //     positionFromIndex = {
+      //       x: (pageWidth / 2) * (locationIndex % 2),
+      //       y: (pageHeight / 2) * (locationIndex % 2),
+      //     };
+      //     break;
+      //   case 1:
+      //     positionFromIndex = {
+      //       x: (pageWidth / 2) * (locationIndex % 2),
+      //       y: (pageHeight / 2) * (locationIndex % 2),
+      //     };
+      //     break;
+      //   case 2:
+      //     break;
+      //   case 3:
+      //     break;
+      //   default:
+      //     break;
+      // }
+
+      // console.log(locationIndex, index, positionFromIndex);
+
       if (fileExists) {
         currentFileBuffer = readFileSync(filePath);
         currentFilePDF = await PDFDocument.load(currentFileBuffer);
         currentFilePDFPage = currentFilePDF.getPages()[0];
 
         const embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
-          top: 0,
-          bottom: 10000,
-          left: 0,
-          right: 10000,
+          top: 790,
+          bottom: 410,
+          left: 53,
+          right: 307,
         });
-        newPage.drawPage(embeddedPage);
+        const positionFromIndex: PDFPageDrawPageOptions = {
+          x:
+            locationIndex % 2 == 0
+              ? Math.abs(pageWidth / 2 - embeddedPage.size().width) / 2
+              : (Math.abs(pageWidth / 2 - embeddedPage.size().width) +
+                  pageWidth) /
+                2,
+          y:
+            locationIndex < 2
+              ? (Math.abs(pageHeight / 2 - embeddedPage.size().height) +
+                  pageHeight) /
+                2
+              : Math.abs(pageHeight / 2 - embeddedPage.size().height) / 2,
+        };
+
+        console.log(Math.abs(pageHeight / 2 - embeddedPage.size().height) / 2);
+        lastPage.drawPage(embeddedPage, { ...positionFromIndex });
         // newPage.drawText(`Comprobante: ${file.name}`);
       } else {
-        newPage.drawText(`Falta el comprobante: ${file.name}`);
+        const positionFromIndex: PDFPageDrawPageOptions = {
+          x: locationIndex % 2 == 0 ? 20 : pageWidth / 2 + 20,
+          y: locationIndex < 2 ? pageHeight / 2 + 20 : 20,
+        };
+        lastPage.drawText(`Falta el comprobante: ${file.name}`, {
+          ...positionFromIndex,
+          size: 15,
+          rotate: degrees(65),
+        });
       }
     }
 
