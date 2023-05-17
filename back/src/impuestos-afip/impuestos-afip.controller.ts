@@ -83,13 +83,11 @@ export class ImpuestosAfipController extends BaseController {
         mes,
         descuentoId,
       });
-      const count =
-        result.length -
-        result.reduce(
-          (total, item: any) =>
-            item.PersonalOtroDescuentoDescuentoId == null ? total + 1 : total,
-          0
-        );
+      const sincomprobante = result.reduce(
+        (total, item: any) =>
+          item.PersonalOtroDescuentoDescuentoId == null ? total + 1 : total,
+        0
+      );
       this.jsonRes(
         {
           RegistrosConComprobantes: result.length - sincomprobante,
@@ -282,6 +280,8 @@ export class ImpuestosAfipController extends BaseController {
     let currentFilePDF: PDFDocument;
     let currentFilePDFPage: PDFPage;
 
+    for (const file in files) {
+    }
     files.forEach(async (file) => {
       // currentFileBuffer = null;
       // currentFilePDF = null;
@@ -364,14 +364,6 @@ export class ImpuestosAfipController extends BaseController {
         ApellidoNombreJ
       );
       writeFileSync(tmpfilename, buffer);
-
-      const buffer = await this.alterPDF(
-        uint8Array,
-        ApellidoNombre,
-        ApellidoNombreJ
-      );
-      writeFileSync(tmpfilename, buffer);
-
       res.download(tmpfilename, filename, (msg) => {
         unlinkSync(tmpfilename);
       });
