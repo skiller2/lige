@@ -1,42 +1,60 @@
 <page-header />
 <nz-card>
   <form nz-form #impuestoForm="ngForm">
-  <ng-container *ngIf="{ lista: (listaDescuentos$ | async) } as context">
-        <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
+    <ng-container *ngIf="{ lista: (listaDescuentos$ | async) } as context">
+      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
       <nz-tabset nzCentered>
         <nz-tab nzTitle="Cargar Comprobantes">
-          
-          <div *ngIf="(context.lista?.RegistrosSinComprobantes)&&1" nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
-
+          <div *ngIf="context.lista?.RegistrosSinComprobantes && 1" nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
             <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
-              <div nz-col nzSpan="24" class="p-md text-white ">
+              <div nz-col nzSpan="24" class="p-md text-white">
                 <div class="h2 mt0">Pendientes: {{ context.lista?.RegistrosSinComprobantes }}</div>
-                <p class="text-nowrap mb0">Cargados: {{ context.lista?.RegistrosConComprobantes }} </p>
+                <p class="text-nowrap mb0">Cargados: {{ context.lista?.RegistrosConComprobantes }}</p>
               </div>
             </div>
           </div>
 
-
-          <nz-upload nzType="drag" [nzMultiple]="true" [nzData]="{ anio: anio, mes: mes }"
-            (nzChange)="handleChange($event)" [nzAction]="url" nzName="pdf" [(nzFileList)]="files"
-            nzAccept="application/pdf" class="d-block">
+          <nz-upload
+            class="d-block"
+            nzType="drag"
+            [nzMultiple]="true"
+            [nzData]="{ anio: anio, mes: mes }"
+            (nzChange)="handleChange($event)"
+            [nzAction]="url"
+            nzName="pdf"
+            [(nzFileList)]="files"
+            nzAccept="application/pdf">
             <p class="ant-upload-drag-icon">
               <span nz-icon nzType="inbox"></span>
             </p>
             <p class="ant-upload-text">Clickeá or arrastrá archivos para cargar</p>
           </nz-upload>
-
-
         </nz-tab>
         <nz-tab nzTitle="Listado de Personal (con monotributo habilitado)">
-          <app-personal-search (ngModelChange)="formChanged($event)" [(ngModel)]="selectedPersonalId"  label="Persona Responsable"
+          <button nz-button (click)="downloadMultipleAction$.next('')">
+            <span nz-icon nzType="download"></span>
+          </button>
+          <app-personal-search
+            (ngModelChange)="formChanged($event)"
+            [(ngModel)]="selectedPersonalId"
+            label="Persona Responsable"
             [ngModelOptions]="{ standalone: true }" />
-          <nz-table class="app-table" #tablaDescuentos [nzData]="context.lista?.Registros || []" nzSize="small"
-            [nzLoading]="tableLoading$ | async" [nzPageSize]="100000000" [nzShowPagination]="false">
+          <nz-table
+            class="app-table"
+            #tablaDescuentos
+            [nzData]="context.lista?.Registros || []"
+            nzSize="small"
+            [nzLoading]="tableLoading$ | async"
+            [nzPageSize]="100000000"
+            [nzShowPagination]="false">
             <thead>
               <tr>
-                <th *ngFor="let column of listOfColumns" [(nzSortOrder)]="column.sortOrder" [nzSortFn]="column.sortFn"
-                  [nzFilters]="column.listOfFilter" [nzFilterFn]="column.filterFn">
+                <th
+                  *ngFor="let column of listOfColumns"
+                  [(nzSortOrder)]="column.sortOrder"
+                  [nzSortFn]="column.sortFn"
+                  [nzFilters]="column.listOfFilter"
+                  [nzFilterFn]="column.filterFn">
                   {{ column.name }}
                 </th>
                 <th></th>

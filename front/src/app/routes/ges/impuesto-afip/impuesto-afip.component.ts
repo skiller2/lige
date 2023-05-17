@@ -1,6 +1,7 @@
 import { Component, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SharedModule } from '@shared';
+import { NzResizableModule } from 'ng-zorro-antd/resizable';
 import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } from 'ng-zorro-antd/table';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, Observable, debounceTime, filter, map, switchMap, tap, throttleTime } from 'rxjs';
@@ -11,7 +12,7 @@ import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
   selector: 'app-impuesto-afip',
   templateUrl: './impuesto-afip.component.html',
   standalone: true,
-  imports: [SharedModule],
+  imports: [SharedModule, NzResizableModule],
   styleUrls: ['./impuesto-afip.component.less'],
 })
 export class ImpuestoAfipComponent {
@@ -42,14 +43,11 @@ export class ImpuestoAfipComponent {
   listaDescuentos$ = this.formChange$.pipe(
     debounceTime(2000),
     switchMap(() =>
-      this.apiService.getDescuentoByPeriodo(this.anio, this.mes, this.selectedPersonalId||0).pipe(
+      this.apiService.getDescuentoByPeriodo(this.anio, this.mes, this.selectedPersonalId || 0).pipe(
         map(items => {
           if (items) if (this.selectedPersonalId == null) return items;
           return {
-            Registros: items.Registros.filter(
-              item =>
-                item.PersonalIdJ == parseInt(this.selectedPersonalId!)
-            ),
+            Registros: items.Registros.filter(item => item.PersonalIdJ == parseInt(this.selectedPersonalId!)),
             RegistrosConComprobantes: items.RegistrosConComprobantes,
             RegistrosSinComprobantes: items.RegistrosSinComprobantes,
           };
@@ -116,6 +114,7 @@ export class ImpuestoAfipComponent {
     },
   ];
   downloadAction$ = new BehaviorSubject<null | DescuentoJSON>(null);
+  downloadMultipleAction$ = new BehaviorSubject('');
 
   ngAfterViewInit(): void {
     setTimeout(() => {
@@ -126,14 +125,15 @@ export class ImpuestoAfipComponent {
       this.impuestoForm.form.get('periodo')?.setValue(new Date(Number(anio), Number(mes) - 1, 1));
     }, 1);
 
-    this.downloadAction$.pipe(
-      throttleTime(3000)
-    ).subscribe(data => {
+    this.downloadAction$.pipe(throttleTime(3000)).subscribe(data => {
       if (data) {
-         this.apiService.downloadComprobante(data.CUIT, data.PersonalId, this.anio, this.mes).subscribe()
+        this.apiService.downloadComprobante(data.CUIT, data.PersonalId, this.anio, this.mes).subscribe();
       }
     });
 
+    this.downloadMultipleAction$.pipe(throttleTime(3000)).subscribe(() => {
+      if (this.anio && this.mes) this.apiService.downloadMultipleComprobantes(this.anio, this.mes).subscribe();
+    });
   }
 
   onChange(result: Date): void {
@@ -153,17 +153,16 @@ export class ImpuestoAfipComponent {
   }
 
   handleChange({ file, fileList }: NzUploadChangeParam): void {
-    const status = file.status;
-    if (status !== 'uploading') {
-      console.log(file, fileList);
-    }
-     if (status === 'done') {
-        this.formChange$.next('');
-
-//       this.msg.success(`${file.name} file uploaded successfully.`);
-     } else if (status === 'error') {
-    //   this.msg.error(`${file.name} file upload failed.`);
-    }
+    // const status = file.status;
+    // if (status !== 'uploading') {
+    //   console.log(file, fileList);
+    // }
+    // if (status === 'done') {
+    //   this.formChange$.next('');
+    //   //       this.msg.success(`${file.name} file uploaded successfully.`);
+    // } else if (status === 'error') {
+    //   //   this.msg.error(`${file.name} file upload failed.`);
+    // }
   }
 
   formChanged(_event: string) {
@@ -171,6 +170,7 @@ export class ImpuestoAfipComponent {
   }
 
   ngOnDestroy() {
+    this.downloadMultipleAction$.unsubscribe;
     this.downloadAction$.unsubscribe();
   }
 }

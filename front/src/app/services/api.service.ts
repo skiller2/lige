@@ -41,12 +41,12 @@ export class ApiService {
     );
   }
 
-  getDescuentoByPeriodo(year: number, month: number, personaIdRel:number): Observable<ResponseDescuentos> {
+  getDescuentoByPeriodo(year: number, month: number, personaIdRel: number): Observable<ResponseDescuentos> {
     const emptyResponse: ResponseDescuentos = { RegistrosConComprobantes: 0, RegistrosSinComprobantes: 0, Registros: [] };
     if (!month || !year) {
       return of(emptyResponse);
     }
-    const path = `/api/impuestos_afip/${year}/${month}`+ ((personaIdRel>0)? `/${personaIdRel}`:``)
+    const path = `/api/impuestos_afip/${year}/${month}` + (personaIdRel > 0 ? `/${personaIdRel}` : ``);
     return this.http.get<ResponseJSON<ResponseDescuentos>>(path).pipe(
       map(res => res.data),
       catchError(() => of(emptyResponse))
@@ -63,6 +63,25 @@ export class ApiService {
       .pipe(tap(res => this.response(res)));
   }
 
+  downloadMultipleComprobantes(year: number, month: number) {
+    return this.http
+      .get<Blob>(`api/impuestos_afip/download/${year}/${month}`, {}, { observe: 'response', responseType: 'blob' as 'json' })
+      .pipe(
+        tap({
+          next: resp => {
+            const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            const contentDisposition: string = resp.headers.get('content-disposition') || '';
+            const matches = filenameRegex.exec(contentDisposition);
+            let filename: string = '';
+            if (matches != null && matches[1]) {
+              filename = matches[1].replace(/['"]/g, '');
+            }
+
+            this.downloadService.downloadBlob(resp.body!, filename, 'application/pdf');
+          },
+        })
+      );
+  }
   downloadComprobante(cuit: number, personalId: number, year: number, month: number) {
     return this.http
       .get<Blob>(
@@ -73,15 +92,15 @@ export class ApiService {
       .pipe(
         tap({
           next: resp => {
-            const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
-            const contentDisposition:string = resp.headers.get('content-disposition')||''
-            const matches = filenameRegex.exec(contentDisposition)
-            let filename: string=""
-            if (matches != null && matches[1]) { 
+            const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            const contentDisposition: string = resp.headers.get('content-disposition') || '';
+            const matches = filenameRegex.exec(contentDisposition);
+            let filename: string = '';
+            if (matches != null && matches[1]) {
               filename = matches[1].replace(/['"]/g, '');
             }
 
-            this.downloadService.downloadBlob(resp.body!, filename, 'application/pdf')
+            this.downloadService.downloadBlob(resp.body!, filename, 'application/pdf');
           },
         })
       );
