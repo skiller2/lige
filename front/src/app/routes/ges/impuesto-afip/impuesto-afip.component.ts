@@ -116,10 +116,7 @@ export class ImpuestoAfipComponent {
     },
   ];
   downloadAction$ = new BehaviorSubject<null | DescuentoJSON>(null);
-  downloadComprobante(data: DescuentoJSON) {
-    this.downloadAction$.next(data);
-    // this.apiService.downloadComprobante(data.CUIT, data.PersonalId, this.anio, this.mes).subscribe();
-  }
+
   ngAfterViewInit(): void {
     setTimeout(() => {
       const now = new Date(); //date
