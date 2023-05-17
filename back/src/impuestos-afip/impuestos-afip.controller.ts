@@ -90,7 +90,14 @@ export class ImpuestosAfipController extends BaseController {
             item.PersonalOtroDescuentoDescuentoId == null ? total + 1 : total,
           0
         );
-      this.jsonRes({ RegistrosConComprobantes: count, Registros: result }, res);
+      this.jsonRes(
+        {
+          RegistrosConComprobantes: result.length - sincomprobante,
+          RegistrosSinComprobantes: sincomprobante,
+          Registros: result,
+        },
+        res
+      );
     } catch (error) {
       this.errRes(error, res);
     }
@@ -171,7 +178,7 @@ export class ImpuestosAfipController extends BaseController {
 
       mkdirSync(`${this.directory}/${periodoAnio}`, { recursive: true });
       const newFilePath = `${this.directory}/${periodoAnio}/${periodoAnio}-${periodoMes}-${CUIT}-${personalID}.pdf`;
-      if (existsSync(newFilePath)) throw new Error("El documento ya existe.");
+      //      if (existsSync(newFilePath)) throw new Error("El documento ya existe.");
       const now = new Date();
       await queryRunner.query(
         `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas, PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion)
@@ -350,6 +357,13 @@ export class ImpuestosAfipController extends BaseController {
         throw new Error(`No se pudo encontrar la persona ${personalId}`);
       const ApellidoNombre = personalQuery.ApellidoNombre;
       const ApellidoNombreJ = personalQuery.ApellidoNombreJ;
+
+      const buffer = await this.alterPDF(
+        uint8Array,
+        ApellidoNombre,
+        ApellidoNombreJ
+      );
+      writeFileSync(tmpfilename, buffer);
 
       const buffer = await this.alterPDF(
         uint8Array,

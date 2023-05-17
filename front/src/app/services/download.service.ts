@@ -9,7 +9,9 @@ export class DownloadService {
 
   private downloadURL(data: string, fileName: string) {
     const a = document.createElement('a')
+//    a.textContent = "Descarga"
     a.href = data
+//    a.href = "http://localhost:4200/api/impuestos_afip/2023/3/20423130416/17226"
     a.download = fileName
     document.body.appendChild(a)
     a.style.display = 'none'

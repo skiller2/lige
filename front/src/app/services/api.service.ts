@@ -42,7 +42,7 @@ export class ApiService {
   }
 
   getDescuentoByPeriodo(year: number, month: number): Observable<ResponseDescuentos> {
-    const emptyResponse: ResponseDescuentos = { RegistrosConComprobantes: 0, Registros: [] };
+    const emptyResponse: ResponseDescuentos = { RegistrosConComprobantes: 0, RegistrosSinComprobantes: 0, Registros: [] };
     if (!month || !year) {
       return of(emptyResponse);
     }
@@ -72,9 +72,15 @@ export class ApiService {
       .pipe(
         tap({
           next: resp => {
-            const filename = resp.headers.get('content-disposition')!.split(';')[1].split('filename')[1].split('=')[1].trim() || '';
-            console.log("nombre",filename)
-            this.downloadService.downloadBlob(resp.body!, filename, 'application/pdf');
+            const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+            const contentDisposition:string = resp.headers.get('content-disposition')||''
+            const matches = filenameRegex.exec(contentDisposition)
+            let filename: string=""
+            if (matches != null && matches[1]) { 
+              filename = matches[1].replace(/['"]/g, '');
+            }
+
+            this.downloadService.downloadBlob(resp.body!, filename, 'application/pdf')
           },
         })
       );
