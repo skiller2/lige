@@ -95,7 +95,7 @@ impuestosAfipRouter.get(
   "/:anio/:mes",
   authMiddleware.verifyToken,
   (req, res) => {
-    impuestosAfipController.getDescuentoByPeriodo(req, res);
+    impuestosAfipController.handleGetDescuentos(req, res);
   }
 );
 
@@ -112,3 +112,11 @@ impuestosAfipRouter.get(
     );
   }
 );
+
+impuestosAfipRouter.get("/download/:anio/:mes", (req, res) => {
+  impuestosAfipController.downloadComprobantesByPeriodo(
+    req.params.anio,
+    req.params.mes,
+    res
+  );
+});
