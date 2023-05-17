@@ -384,26 +384,38 @@ export class ImpuestosAfipController extends BaseController {
 
     const newPdf = await PDFDocument.create();
 
-    const embededPages = await newPdf.embedPages(originPDFPages);
+    let currentPage: PDFPage;
+//    currentPage = newPdf.addPage(PageSizes.A4);
+
+    /*
+    originPDFPages.forEach((embPage, index) => { 
+      const { x, y, width, height } = embPage.getTrimBox();
+      console.log('hoja:',x, y, width, height)
+    })
+    */
+    const embededPages = await newPdf.embedPages(originPDFPages, [{ top:790, bottom: 410, left: 53, right: 307 }]);
     //    const image = await fetch('assets/pdf/firma_recibo.png').then(res => res.arrayBuffer())
     //    const embededImage = await newPdf.embedPng(image)
     //    const scaleImage = embededImage.scale(1/20)
 
-    let currentPage: PDFPage;
+
+
     embededPages.forEach((embPage, index) => {
-      if (index % 2 == 0) {
-        currentPage = newPdf.addPage(PageSizes.A4);
-      }
-      const pageRatio = currentPage.getWidth() / currentPage.getHeight();
 
       const embPageSize = embPage.scale(1);
-      //      currentPage.drawPage(embPage, { x: (currentPage.getWidth() - embPage.width) / 2, y: currentPage.getHeight() / 2 * ((index+1) % 2) })
-      const posy =
-        index % 2 == 0 ? 0 + 20 : (currentPage.getHeight() / 2) * -1 + 20;
+      const margin = 20
 
+      currentPage = newPdf.addPage([embPageSize.width + margin, embPageSize.height + margin]);
+      const pageRatio = currentPage.getWidth() / currentPage.getHeight();
+      
+      //      currentPage.drawPage(embPage, { x: (currentPage.getWidth() - embPage.width) / 2, y: currentPage.getHeight() / 2 * ((index+1) % 2) })
+//      const posy =
+//        index % 2 == 0 ? 0 + 20 : (currentPage.getHeight() / 2) * -1 + 20;
+
+      
       currentPage.drawPage(embPage, {
         x: (currentPage.getWidth() - embPageSize.width) / 2,
-        y: posy,
+        y: (currentPage.getHeight() - embPageSize.height) / 2,
         width: embPageSize.width,
         height: embPageSize.height,
       });
@@ -412,9 +424,9 @@ export class ImpuestosAfipController extends BaseController {
       currentPage.drawText(
         `${ApellidoNombre}\n\nResponsable: ${ApellidoNombreJ}`,
         {
-          x: 80,
-          y: (index % 2 == 0 ? currentPage.getHeight() / 2 : 0) + 70,
-          size: 8,
+          x: 33,
+          y: 70,
+          size: 10,
           color: rgb(0, 0, 0),
           lineHeight: 6,
           //opacity: 0.75,
