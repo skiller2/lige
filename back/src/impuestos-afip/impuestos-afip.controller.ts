@@ -268,6 +268,8 @@ export class ImpuestosAfipController extends BaseController {
         .map((descuento, index) => {
           return {
             name: `${year}-${formattedMonth}-${descuento.CUIT}-${descuento.PersonalId}.pdf`,
+            apellidoNombre: descuento.ApellidoNombre,
+            apellidoNombreJ: descuento.ApellidoNombreJ,
           };
         });
 
@@ -290,6 +292,8 @@ export class ImpuestosAfipController extends BaseController {
   async PDFmergeFromFiles(
     files: {
       name: string;
+      apellidoNombre: string;
+      apellidoNombreJ: string;
     }[],
     filesPath: string
   ) {
@@ -363,7 +367,24 @@ export class ImpuestosAfipController extends BaseController {
         };
 
         console.log(Math.abs(pageHeight / 2 - embeddedPage.size().height) / 2);
+
+
+  
+
         lastPage.drawPage(embeddedPage, { ...positionFromIndex });
+
+        lastPage.drawText(
+          `${file.apellidoNombre}\n\nResponsable: ${file.apellidoNombreJ}`,
+          {
+            x: positionFromIndex.x+22,
+            y: positionFromIndex.y+60,
+            size: 10,
+            color: rgb(0, 0, 0),
+            lineHeight: 6,
+            //opacity: 0.75,
+          }
+        );
+
         // newPage.drawText(`Comprobante: ${file.name}`);
       } else {
         const positionFromIndex: PDFPageDrawPageOptions = {
