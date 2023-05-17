@@ -47,7 +47,10 @@ export class ImpuestosAfipController extends BaseController {
     anio: string;
     mes: string;
     descuentoId: string;
+    personalIdRel: string;
   }) {
+    const extrafilter = (options.personalIdRel ) ? "AND perrel.PersonalCategoriaPersonalId = @4" : ""
+
     return dataSource.query(
       `SELECT DISTINCT
       per.PersonalId PersonalId,
@@ -76,14 +79,16 @@ export class ImpuestosAfipController extends BaseController {
    AND DATEFROMPARTS(@1,@2,28) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
      AND excep.PersonalExencionCUIT IS NULL
 
-     AND per.PersonalEstado NOT IN ('BAJA','BAJAT','POSTULANTEP','POSTULANTEA','POSTULANTE') 
+     AND per.PersonalEstado NOT IN ('BAJA','BAJAT','POSTULANTEP','POSTULANTEA','POSTULANTE')
+     ${extrafilter} 
    `,
-      [, options.anio, options.mes, options.descuentoId]
+      [, options.anio, options.mes, options.descuentoId, options.personalIdRel]
     );
   }
   async handleGetDescuentos(req: Request, res: Response) {
     const anio = req.params.anio;
     const mes = req.params.mes;
+    const personalIdRel = req.params.personalIdRel;
     const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
     try {
@@ -91,6 +96,7 @@ export class ImpuestosAfipController extends BaseController {
         anio,
         mes,
         descuentoId,
+        personalIdRel
       });
       const sincomprobante = result.reduce(
         (total, item: any) =>
@@ -239,6 +245,7 @@ export class ImpuestosAfipController extends BaseController {
   async downloadComprobantesByPeriodo(
     year: string,
     month: string,
+    personalIdRel:string,
     res: Response
   ) {
     try {
@@ -250,6 +257,7 @@ export class ImpuestosAfipController extends BaseController {
         anio: year,
         mes: formattedMonth,
         descuentoId,
+        personalIdRel
       });
 
       const files = descuentos
@@ -448,26 +456,38 @@ export class ImpuestosAfipController extends BaseController {
 
     const newPdf = await PDFDocument.create();
 
-    const embededPages = await newPdf.embedPages(originPDFPages);
+    let currentPage: PDFPage;
+    //    currentPage = newPdf.addPage(PageSizes.A4);
+
+    /*
+    originPDFPages.forEach((embPage, index) => { 
+      const { x, y, width, height } = embPage.getTrimBox();
+      console.log('hoja:',x, y, width, height)
+    })
+    */
+    const embededPages = await newPdf.embedPages(originPDFPages, [{ top: 790, bottom: 410, left: 53, right: 307 }]);
     //    const image = await fetch('assets/pdf/firma_recibo.png').then(res => res.arrayBuffer())
     //    const embededImage = await newPdf.embedPng(image)
     //    const scaleImage = embededImage.scale(1/20)
 
-    let currentPage: PDFPage;
+
+
     embededPages.forEach((embPage, index) => {
-      if (index % 2 == 0) {
-        currentPage = newPdf.addPage(PageSizes.A4);
-      }
-      const pageRatio = currentPage.getWidth() / currentPage.getHeight();
 
       const embPageSize = embPage.scale(1);
+      const margin = 20
+
+      currentPage = newPdf.addPage([embPageSize.width + margin, embPageSize.height + margin]);
+      const pageRatio = currentPage.getWidth() / currentPage.getHeight();
+
       //      currentPage.drawPage(embPage, { x: (currentPage.getWidth() - embPage.width) / 2, y: currentPage.getHeight() / 2 * ((index+1) % 2) })
-      const posy =
-        index % 2 == 0 ? 0 + 20 : (currentPage.getHeight() / 2) * -1 + 20;
+      //      const posy =
+      //        index % 2 == 0 ? 0 + 20 : (currentPage.getHeight() / 2) * -1 + 20;
+
 
       currentPage.drawPage(embPage, {
         x: (currentPage.getWidth() - embPageSize.width) / 2,
-        y: posy,
+        y: (currentPage.getHeight() - embPageSize.height) / 2,
         width: embPageSize.width,
         height: embPageSize.height,
       });
@@ -476,9 +496,9 @@ export class ImpuestosAfipController extends BaseController {
       currentPage.drawText(
         `${ApellidoNombre}\n\nResponsable: ${ApellidoNombreJ}`,
         {
-          x: 80,
-          y: (index % 2 == 0 ? currentPage.getHeight() / 2 : 0) + 70,
-          size: 8,
+          x: 33,
+          y: 70,
+          size: 10,
           color: rgb(0, 0, 0),
           lineHeight: 6,
           //opacity: 0.75,

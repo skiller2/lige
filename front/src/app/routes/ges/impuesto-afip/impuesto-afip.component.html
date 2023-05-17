@@ -29,7 +29,7 @@
 
         </nz-tab>
         <nz-tab nzTitle="Listado de Personal (con monotributo habilitado)">
-          <app-personal-search (ngModelChange)="formChanged($event)" [(ngModel)]="selectedPersonalId"
+          <app-personal-search (ngModelChange)="formChanged($event)" [(ngModel)]="selectedPersonalId"  label="Persona Responsable"
             [ngModelOptions]="{ standalone: true }" />
           <nz-table class="app-table" #tablaDescuentos [nzData]="context.lista?.Registros || []" nzSize="small"
             [nzLoading]="tableLoading$ | async" [nzPageSize]="100000000" [nzShowPagination]="false">

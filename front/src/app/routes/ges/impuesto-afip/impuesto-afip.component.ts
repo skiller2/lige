@@ -42,7 +42,7 @@ export class ImpuestoAfipComponent {
   listaDescuentos$ = this.formChange$.pipe(
     debounceTime(2000),
     switchMap(() =>
-      this.apiService.getDescuentoByPeriodo(this.anio, this.mes).pipe(
+      this.apiService.getDescuentoByPeriodo(this.anio, this.mes, this.selectedPersonalId||0).pipe(
         map(items => {
           if (items) if (this.selectedPersonalId == null) return items;
           return {
