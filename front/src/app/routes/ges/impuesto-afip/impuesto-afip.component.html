@@ -19,7 +19,7 @@
 
           <nz-upload nzType="drag" [nzMultiple]="true" [nzData]="{ anio: anio, mes: mes }"
             (nzChange)="handleChange($event)" [nzAction]="url" nzName="pdf" [(nzFileList)]="files"
-            nzAccept="application/pdf">
+            nzAccept="application/pdf" class="d-block">
             <p class="ant-upload-drag-icon">
               <span nz-icon nzType="inbox"></span>
             </p>
