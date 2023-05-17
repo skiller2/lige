@@ -132,7 +132,7 @@ export class ImpuestoAfipComponent {
     });
 
     this.downloadMultipleAction$.pipe(throttleTime(3000)).subscribe(() => {
-      this.apiService.downloadMultipleComprobantes(this.anio, this.mes);
+      if (this.anio && this.mes) this.apiService.downloadMultipleComprobantes(this.anio, this.mes).subscribe();
     });
   }
 
