@@ -91,6 +91,17 @@ impuestosAfipRouter.post("", authMiddleware.verifyToken, (req, res) => {
   });
 });
 
+
+impuestosAfipRouter.get("/download/:anio/:mes/:personalIdRel?", (req, res) => {
+  impuestosAfipController.downloadComprobantesByPeriodo(
+    req.params.anio,
+    req.params.mes,
+    req.params.personalIdRel,
+    res
+  );
+});
+
+
 impuestosAfipRouter.get(
   "/:anio/:mes/:personalIdRel?",
   authMiddleware.verifyToken,
@@ -113,11 +124,3 @@ impuestosAfipRouter.get(
   }
 );
 
-impuestosAfipRouter.get("/download/:anio/:mes/:personalIdRel?", (req, res) => {
-  impuestosAfipController.downloadComprobantesByPeriodo(
-    req.params.anio,
-    req.params.mes,
-    req.params.personalIdRel,
-    res
-  );
-});
