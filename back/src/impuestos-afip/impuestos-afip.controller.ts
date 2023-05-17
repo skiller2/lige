@@ -280,14 +280,12 @@ export class ImpuestosAfipController extends BaseController {
     let currentFilePDF: PDFDocument;
     let currentFilePDFPage: PDFPage;
 
-    for (const file in files) {
-    }
-    files.forEach(async (file) => {
-      // currentFileBuffer = null;
-      // currentFilePDF = null;
-      // currentFilePDFPage = null;
+    for (const file of files) {
+      currentFileBuffer = null;
+      currentFilePDF = null;
+      currentFilePDFPage = null;
 
-      if (!file.hasComprobante) return;
+      if (!file.hasComprobante) continue;
 
       const newPage = newDocument.addPage();
       const filePath = path.join(filesPath, file.name);
@@ -295,18 +293,22 @@ export class ImpuestosAfipController extends BaseController {
       if (fileExists) {
         currentFileBuffer = readFileSync(filePath);
         currentFilePDF = await PDFDocument.load(currentFileBuffer);
-        // currentFilePDFPage = currentFilePDF.getPages()[0];
+        currentFilePDFPage = currentFilePDF.getPages()[0];
 
-        // const embeddedPage = await newDocument.embedPage(currentFilePDFPage);
-        // const embeddedPageDims = embeddedPage.scale(1);
-        // newPage.drawPage(embeddedPage);
-        newPage.drawText(`Comprobante: ${file.name}`);
+        const embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
+          top: 0,
+          bottom: 10000,
+          left: 0,
+          right: 10000,
+        });
+        newPage.drawPage(embeddedPage);
+        // newPage.drawText(`Comprobante: ${file.name}`);
       } else {
         newPage.drawText(`Falta el comprobante: ${file.name}`);
       }
-    });
+    }
 
-    return await newDocument.save();
+    return newDocument.save();
   }
 
   async downloadComprobante(
