@@ -45,7 +45,7 @@ export class ImpuestosAfipController extends BaseController {
     return dataSource.query(
       `SELECT DISTINCT
       per.PersonalId PersonalId,
-      
+      des.PersonalOtroDescuentoId,
       cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
       per.PersonalEstado, 
       perrel.PersonalCategoriaPersonalId PersonalIdJ,
