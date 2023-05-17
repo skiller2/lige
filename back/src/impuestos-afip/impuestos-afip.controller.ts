@@ -61,14 +61,13 @@ export class ImpuestosAfipController extends BaseController {
      `,
         [, anio, mes, descuentoId]
       );
-      const count =
-        result.length -
-        result.reduce(
+
+        const sincomprobante=result.reduce(
           (total, item: any) =>
             item.PersonalOtroDescuentoDescuentoId == null ? total + 1 : total,
           0
         );
-      this.jsonRes({ RegistrosConComprobantes: count, Registros: result }, res);
+      this.jsonRes({ RegistrosConComprobantes:result.length-sincomprobante, RegistrosSinComprobantes: sincomprobante, Registros: result }, res);
     } catch (error) {
       this.errRes(error, res);
     }
@@ -142,14 +141,12 @@ export class ImpuestosAfipController extends BaseController {
           periodoMes,
         ]
       );
-      if (alreadyExists.length > 0)
-        throw new Error(
-          `Ya existe un descuento para el periodo ${periodoAnio}-${periodoMes} y el CUIT ${CUIT}`
-        );
+//      if (alreadyExists.length > 0)
+//        throw new Error(`Ya existe un descuento para el periodo ${periodoAnio}-${periodoMes} y el CUIT ${CUIT}`);
       
       mkdirSync(`${this.directory}/${periodoAnio}`, { recursive: true });
       const newFilePath = `${this.directory}/${periodoAnio}/${periodoAnio}-${periodoMes}-${CUIT}-${personalID}.pdf`;
-      if (existsSync(newFilePath)) throw new Error("El documento ya existe.");
+//      if (existsSync(newFilePath)) throw new Error("El documento ya existe.");
       const now = new Date();
       await queryRunner.query(
         `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas, PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion)
@@ -207,7 +204,6 @@ export class ImpuestosAfipController extends BaseController {
     personalId: string,
     res: Response
   ) {
-
     const queryRunner = dataSource.createQueryRunner();
 
     const dirtmp = `${process.env.PATH_MONOTRIBUTO}/temp`;
@@ -251,7 +247,7 @@ export class ImpuestosAfipController extends BaseController {
       const buffer = await this.alterPDF(uint8Array, ApellidoNombre, ApellidoNombreJ);
       writeFileSync(tmpfilename, buffer)
 
-      res.download(tmpfilename,filename, (msg) => {
+      res.setHeader('Content-Type', 'application/pdf').download(tmpfilename,filename, (msg) => {
         unlinkSync(tmpfilename)
       })
 

@@ -5,7 +5,7 @@ import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } f
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, Observable, debounceTime, filter, map, switchMap, tap, throttleTime } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
-import { DescuentoJSON, ResponseDescuentos } from 'src/app/shared/schemas/ResponseJSON';
+import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 
 @Component({
   selector: 'app-impuesto-afip',
@@ -40,7 +40,7 @@ export class ImpuestoAfipComponent {
   };
 
   listaDescuentos$ = this.formChange$.pipe(
-    debounceTime(500),
+    debounceTime(2000),
     switchMap(() =>
       this.apiService.getDescuentoByPeriodo(this.anio, this.mes).pipe(
         map(items => {
@@ -48,9 +48,10 @@ export class ImpuestoAfipComponent {
           return {
             Registros: items.Registros.filter(
               item =>
-                item.PersonalId == parseInt(this.selectedPersonalId!) || item.PersonalIdJ == parseInt(this.selectedPersonalId!)
+                item.PersonalIdJ == parseInt(this.selectedPersonalId!)
             ),
             RegistrosConComprobantes: items.RegistrosConComprobantes,
+            RegistrosSinComprobantes: items.RegistrosSinComprobantes,
           };
         }),
         doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -125,15 +126,16 @@ export class ImpuestoAfipComponent {
       const anio = Number(localStorage.getItem('anio')) > 0 ? localStorage.getItem('anio') : now.getFullYear();
 
       const mes = Number(localStorage.getItem('mes')) > 0 ? localStorage.getItem('mes') : now.getMonth() + 1;
-
       this.impuestoForm.form.get('periodo')?.setValue(new Date(Number(anio), Number(mes) - 1, 1));
     }, 1);
-    this.downloadAction$.pipe(throttleTime(3000)).subscribe(data => {
+
+    this.downloadAction$.pipe(
+      throttleTime(3000)
+    ).subscribe(data => {
       if (data) {
-        this.apiService.downloadComprobante(data.CUIT, data.PersonalId, this.anio, this.mes).subscribe();
+         this.apiService.downloadComprobante(data.CUIT, data.PersonalId, this.anio, this.mes).subscribe()
       }
     });
-
 
   }
 
@@ -154,18 +156,20 @@ export class ImpuestoAfipComponent {
   }
 
   handleChange({ file, fileList }: NzUploadChangeParam): void {
-    // const status = file.status;
-    // if (status !== 'uploading') {
-    //   console.log(file, fileList);
-    // }
-    // if (status === 'done') {
-    //   this.msg.success(`${file.name} file uploaded successfully.`);
-    // } else if (status === 'error') {
+    const status = file.status;
+    if (status !== 'uploading') {
+      console.log(file, fileList);
+    }
+     if (status === 'done') {
+        this.formChange$.next('');
+
+//       this.msg.success(`${file.name} file uploaded successfully.`);
+     } else if (status === 'error') {
     //   this.msg.error(`${file.name} file upload failed.`);
-    // }
+    }
   }
 
-  formChanged(event: string) {
+  formChanged(_event: string) {
     this.formChange$.next('');
   }
 

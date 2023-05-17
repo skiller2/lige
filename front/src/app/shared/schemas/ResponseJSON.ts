@@ -21,5 +21,6 @@ export interface DescuentoJSON {
 
 export interface ResponseDescuentos {
   RegistrosConComprobantes: number;
+  RegistrosSinComprobantes: number;
   Registros: DescuentoJSON[];
 }
