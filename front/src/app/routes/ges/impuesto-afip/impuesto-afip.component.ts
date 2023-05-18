@@ -7,6 +7,7 @@ import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, Observable, debounceTime, filter, map, switchMap, tap, throttleTime } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
+import { STColumn, STComponent, STData } from '@delon/abc/st';
 
 @Component({
   selector: 'app-impuesto-afip',
@@ -132,7 +133,7 @@ export class ImpuestoAfipComponent {
     });
 
     this.downloadMultipleAction$.pipe(throttleTime(3000)).subscribe(() => {
-      if (this.anio && this.mes) this.apiService.downloadMultipleComprobantes(this.anio, this.mes).subscribe();
+      if (this.anio && this.mes) this.apiService.downloadMultipleComprobantes(this.anio, this.mes, Number(this.selectedPersonalId)).subscribe();
     });
   }
 
