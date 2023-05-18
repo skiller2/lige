@@ -175,11 +175,16 @@
       </nz-tab>
       <nz-tab nzTitle="Por persona">
         <form nz-form #asistenciaPer="ngForm">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Persona</nz-form-label>
+          <nz-form-control nzHasFeedback >
+    
               <app-personal-search
               name="PersonalId"
               (ngModelChange)="selectedValueChange($event, Busqueda.Personal)"
               ngModel />
-  
+          </nz-form-control>
+        </nz-form-item>
           <nz-form-item>
             <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
             <nz-form-control>

@@ -49,7 +49,7 @@ export class ImpuestosAfipController extends BaseController {
     descuentoId: string;
     personalIdRel: string;
   }) {
-    const extrafilter = (options.personalIdRel ) ? "AND perrel.PersonalCategoriaPersonalId = @4" : ""
+    const extrafilter = (options.personalIdRel && options.personalIdRel!="0") ? "AND perrel.PersonalCategoriaPersonalId = @4" : ""
 
     return dataSource.query(
       `SELECT DISTINCT
@@ -184,14 +184,14 @@ export class ImpuestosAfipController extends BaseController {
           periodoMes,
         ]
       );
-      if (alreadyExists.length > 5)
+      if (alreadyExists.length > 0)
         throw new Error(
           `Ya existe un descuento para el periodo ${periodoAnio}-${periodoMes} y el CUIT ${CUIT}`
         );
 
       mkdirSync(`${this.directory}/${periodoAnio}`, { recursive: true });
       const newFilePath = `${this.directory}/${periodoAnio}/${periodoAnio}-${periodoMes}-${CUIT}-${personalID}.pdf`;
-      //      if (existsSync(newFilePath)) throw new Error("El documento ya existe.");
+      if (existsSync(newFilePath)) throw new Error("El documento ya existe.");
       const now = new Date();
       await queryRunner.query(
         `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas, PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion)
@@ -245,7 +245,7 @@ export class ImpuestosAfipController extends BaseController {
   async downloadComprobantesByPeriodo(
     year: string,
     month: string,
-    personalIdRel:string,
+    personalIdRel: string,
     res: Response
   ) {
     try {
@@ -302,7 +302,6 @@ export class ImpuestosAfipController extends BaseController {
     let currentFilePDF: PDFDocument;
     let currentFilePDFPage: PDFPage;
     let lastPage: PDFPage;
-    // let positionFromIndex: PDFPageDrawPageOptions;
 
     for (const [index, file] of files.entries()) {
       const locationIndex = index % 4;
@@ -317,28 +316,6 @@ export class ImpuestosAfipController extends BaseController {
 
       const pageWidth = lastPage.getWidth();
       const pageHeight = lastPage.getHeight();
-      // switch (locationIndex) {
-      //   case 0:
-      //     positionFromIndex = {
-      //       x: (pageWidth / 2) * (locationIndex % 2),
-      //       y: (pageHeight / 2) * (locationIndex % 2),
-      //     };
-      //     break;
-      //   case 1:
-      //     positionFromIndex = {
-      //       x: (pageWidth / 2) * (locationIndex % 2),
-      //       y: (pageHeight / 2) * (locationIndex % 2),
-      //     };
-      //     break;
-      //   case 2:
-      //     break;
-      //   case 3:
-      //     break;
-      //   default:
-      //     break;
-      // }
-
-      // console.log(locationIndex, index, positionFromIndex);
 
       if (fileExists) {
         currentFileBuffer = readFileSync(filePath);
@@ -351,39 +328,37 @@ export class ImpuestosAfipController extends BaseController {
           left: 53,
           right: 307,
         });
+
         const positionFromIndex: PDFPageDrawPageOptions = {
           x:
             locationIndex % 2 == 0
               ? Math.abs(pageWidth / 2 - embeddedPage.size().width) / 2
               : (Math.abs(pageWidth / 2 - embeddedPage.size().width) +
-                  pageWidth) /
-                2,
+                pageWidth) /
+              2,
           y:
             locationIndex < 2
               ? (Math.abs(pageHeight / 2 - embeddedPage.size().height) +
-                  pageHeight) /
-                2
+                pageHeight) /
+              2
               : Math.abs(pageHeight / 2 - embeddedPage.size().height) / 2,
         };
 
-        console.log(Math.abs(pageHeight / 2 - embeddedPage.size().height) / 2);
-
-
-  
 
         lastPage.drawPage(embeddedPage, { ...positionFromIndex });
 
         lastPage.drawText(
           `${file.apellidoNombre}\n\nResponsable: ${file.apellidoNombreJ}`,
           {
-            x: positionFromIndex.x+22,
-            y: positionFromIndex.y+60,
+            x: positionFromIndex.x + 22,
+            y: positionFromIndex.y + 60,
             size: 10,
             color: rgb(0, 0, 0),
             lineHeight: 6,
             //opacity: 0.75,
           }
         );
+
 
         // newPage.drawText(`Comprobante: ${file.name}`);
       } else {
@@ -397,6 +372,10 @@ export class ImpuestosAfipController extends BaseController {
           rotate: degrees(65),
         });
       }
+
+
+
+
     }
 
     return newDocument.save();

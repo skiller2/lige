@@ -16,7 +16,6 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
     }],
 })
 export class PersonalSearchComponent implements ControlValueAccessor {
-  @Input() label: string | undefined 
   constructor(private searchService: SearchService) { }
   _selectedPersonalId: string = ''
 

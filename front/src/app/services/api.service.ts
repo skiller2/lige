@@ -63,9 +63,9 @@ export class ApiService {
       .pipe(tap(res => this.response(res)));
   }
 
-  downloadMultipleComprobantes(year: number, month: number) {
+  downloadMultipleComprobantes(year: number, month: number, personalIdRel:number) {
     return this.http
-      .get<Blob>(`api/impuestos_afip/download/${year}/${month}`, {}, { observe: 'response', responseType: 'blob' as 'json' })
+      .get<Blob>(`api/impuestos_afip/download/${year}/${month}/${personalIdRel}`, {}, { observe: 'response', responseType: 'blob' as 'json' })
       .pipe(
         tap({
           next: resp => {

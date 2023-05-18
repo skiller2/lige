@@ -29,10 +29,17 @@
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSpan]="5">Persona</nz-form-label>
+      <nz-form-control nzHasFeedback>
+
     <app-personal-search
       name="PersonalId"
       (ngModelChange)="formChanged($event)"
       ngModel />
+    </nz-form-control>
+
+    </nz-form-item>
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
         <nz-form-control>

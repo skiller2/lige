@@ -1,25 +1,12 @@
-<nz-form-item>
-  <nz-form-label [nzSpan]="5">{{label}}</nz-form-label>
-  <nz-form-control nzHasFeedback [nzSpan]="12">
-    <nz-select
-      [ngModel]="_selectedPersonalId"
-      [ngModelOptions]="{ standalone: true }"
-      (ngModelChange)="selectedValueChange($event)"
-      nzAllowClear
-      nzPlaceHolder="Apellido, Nombre, CUIT"
-      nzShowSearch
-      nzServerSearch
-      (nzOnSearch)="search($event)">
-      <ng-container *ngFor="let option of $optionsArray | async">
-        <nz-option
-          *ngIf="($isOptionsLoading | async) == false"
-          [nzValue]="option.PersonalId"
-          [nzLabel]="option.fullName"></nz-option>
-      </ng-container>
-      <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
-        <span nz-icon nzType="loading" class="loading-icon"></span>
-        Loading Data...
-      </nz-option>
-    </nz-select>
-  </nz-form-control>
-</nz-form-item>
+<nz-select [ngModel]="_selectedPersonalId" [ngModelOptions]="{ standalone: true }" style="width: 100%;"
+  (ngModelChange)="selectedValueChange($event)" nzAllowClear nzPlaceHolder="Apellido, Nombre, CUIT" nzShowSearch
+  nzServerSearch (nzOnSearch)="search($event)">
+  <ng-container *ngFor="let option of $optionsArray | async">
+    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.PersonalId"
+      [nzLabel]="option.fullName"></nz-option>
+  </ng-container>
+  <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
+    <span nz-icon nzType="loading" class="loading-icon"></span>
+    Loading Data...
+  </nz-option>
+</nz-select>
