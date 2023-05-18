@@ -30,6 +30,31 @@ export class ImpuestoAfipComponent {
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
 
+
+  columns: STColumn[] = [
+    { title: 'CUIT', index: 'CUIT', type: 'number', resizable: true },
+    {
+      title: 'Apellido, Nombre',
+      type: '',
+      width: 60,
+      index: 'ApellidoNombre',
+      exported: false,
+    },
+    { title: '邮箱', index: 'email' },
+    { title: '电话', index: 'phone' },
+    {
+      title: '数字',
+      index: 'price',
+      type: 'number',
+      sort: {
+        compare: (a, b) => a.price - b.price,
+      },
+    },
+    { title: '货币', index: 'price', type: 'currency' },
+    { title: '注册时间', type: 'date', index: 'registered' },
+  ];
+
+
   options = {
     CUIT: {
       searchValue: '',
