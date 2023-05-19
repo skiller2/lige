@@ -43,16 +43,17 @@
             </div>
           </div>
 <!--  Se rompe leyendo [data]
-          <button nz-button (click)="st.export()">Export</button>
+-->
+  <button nz-button (click)="st.export()">Export</button>
           <button nz-button (click)="st.export(true)">Export Filtered Data</button>
           <button nz-button
             (click)="st.export(context.lista?.Registros || [], { filename: 'via-data.xlsx', sheetname: 'user' })">Export
             via data</button>
 
-          <st #st [data]="'/api/impuestos_afip/list'"  [req]="{params:filters,method:'POST',allInBody:true}" 
-          [columns]="columns$|async"  class="mt-sm"
+          <st #st [data]="'/api/impuestos_afip/list'" [res]="{reName:{total:'data.total',list:'data.list'}}" [req]="{params:filters,method:'POST',allInBody:true}" 
+          [columns]="columns2"  class="mt-sm"
             [widthMode]="{ type: 'strict' }" resizable></st>
--->
+
           <nz-table class="app-table" #tablaDescuentos [nzData]="context.lista?.Registros || []" nzSize="small"
             [nzLoading]="tableLoading$ | async" [nzPageSize]="100000000" [nzShowPagination]="false">
 

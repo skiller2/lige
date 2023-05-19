@@ -108,7 +108,7 @@ export class ImpuestosAfipController extends BaseController {
       { title: 'Sit Revista', type: '', index: 'PersonalEstado', exported: true },
       { title: 'Importe', type: 'currency', index: 'monto', exported: true },
       { title: 'CUIT Responsable', type: 'number', index: 'CUITJ', exported: true },
-      { title: 'Apellido Nombre Responsable', type: 'number', index: 'ApellidoNombreJ', exported: true },
+      { title: 'Apellido Nombre Responsable', type: 'string', index: 'ApellidoNombreJ', exported: true },
       { title: 'ID Descuento', type: 'number', index: 'PersonalOtroDescuentoId', exported: true },
     ]
       , res);
@@ -129,7 +129,7 @@ export class ImpuestosAfipController extends BaseController {
         personalIdRel
       });
 
-      this.jsonResDirect(
+      this.jsonRes(
         {
           total: result.length,
           list: result,

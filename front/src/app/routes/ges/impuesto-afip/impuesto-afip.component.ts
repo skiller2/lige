@@ -33,6 +33,16 @@ export class ImpuestoAfipComponent {
 
   columns$ = this.apiService.get('/api/impuestos_afip/cols')
 
+  columns2: STColumn[]=[
+    { title: 'CUIT', index: 'CUIT', type: 'number', resizable: true,  },
+    { title: 'Apellido Nombre', type: '', index: 'ApellidoNombre', exported: true },
+    { title: 'Sit Revista', type: '', index: 'PersonalEstado', exported: true },
+    { title: 'Importe', type: 'currency', index: 'monto', exported: true },
+    { title: 'CUIT Responsable', type: 'number', index: 'CUITJ', exported: true },
+    { title: 'Apellido Nombre Responsable', type: '', index: 'ApellidoNombreJ', exported: true },
+    { title: 'ID Descuento', type: 'number', index: 'PersonalOtroDescuentoId', exported: true },
+  ]
+
 
   filters = {anio:'2023', mes:'3'}
 
