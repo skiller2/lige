@@ -9,6 +9,10 @@ export class BaseController {
   jsonRes(recordset: any, res: Response, msg = "ok") {
     res.status(200).json({ msg: msg, data: recordset,stamp: new Date() });
   }
+
+  jsonResDirect(data: any, res: Response, msg = "ok") {
+    res.status(200).json(data);
+  }
   /**
    * @param err error object of any type genereated by the system
    * @param res response object to be used to to send

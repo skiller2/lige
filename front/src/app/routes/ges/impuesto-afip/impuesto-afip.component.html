@@ -31,19 +31,28 @@
                 [ngModelOptions]="{ standalone: true }" />
             </div>
             <div nz-col [nzSpan]="9" style="text-align: center;">
+
+              <button nz-button down-file class="mr-sm"
+                http-url="api/impuestos_afip/download/{{anio}}/{{mes}}/{{selectedPersonalId}}">
+                <span nz-icon nzType="download">Descarga masiva de comprobantes</span>
+              </button>
+
               <button nz-button (click)="downloadMultipleAction$.next('')">
                 <span nz-icon nzType="download">Descarga masiva de comprobantes</span>
               </button>
             </div>
           </div>
-
+<!--  Se rompe leyendo [data]
           <button nz-button (click)="st.export()">Export</button>
           <button nz-button (click)="st.export(true)">Export Filtered Data</button>
-          <button nz-button (click)="st.export(context.lista?.Registros || [], { filename: 'via-data.xlsx', sheetname: 'user' })">Export via data</button>
-      
-          <st #st [data]="context.lista?.Registros || []" [columns]="columns" class="mt-sm"  [widthMode]="{ type: 'strict' }"
-          resizable ></st>
-          
+          <button nz-button
+            (click)="st.export(context.lista?.Registros || [], { filename: 'via-data.xlsx', sheetname: 'user' })">Export
+            via data</button>
+
+          <st #st [data]="'/api/impuestos_afip/list'"  [req]="{params:filters,method:'POST',allInBody:true}" 
+          [columns]="columns$|async"  class="mt-sm"
+            [widthMode]="{ type: 'strict' }" resizable></st>
+-->
           <nz-table class="app-table" #tablaDescuentos [nzData]="context.lista?.Registros || []" nzSize="small"
             [nzLoading]="tableLoading$ | async" [nzPageSize]="100000000" [nzShowPagination]="false">
 

@@ -8,18 +8,19 @@ import { BehaviorSubject, Observable, debounceTime, filter, map, switchMap, tap,
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { STColumn, STComponent, STData } from '@delon/abc/st';
+import { DownFileModule } from '@delon/abc/down-file';
 
 @Component({
   selector: 'app-impuesto-afip',
   templateUrl: './impuesto-afip.component.html',
   standalone: true,
-  imports: [SharedModule, NzResizableModule],
+  imports: [SharedModule, NzResizableModule,DownFileModule],
   styleUrls: ['./impuesto-afip.component.less'],
 })
 export class ImpuestoAfipComponent {
   @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm = new NgForm([], []);
 
-  constructor(private apiService: ApiService) {}
+  constructor(public apiService: ApiService) {}
   selectedDate = null;
   anio = 0;
   mes = 0;
@@ -30,30 +31,18 @@ export class ImpuestoAfipComponent {
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
 
+  columns$ = this.apiService.get('/api/impuestos_afip/cols')
 
-  columns: STColumn[] = [
-    { title: 'CUIT', index: 'CUIT', type: 'number', resizable: true },
-    {
-      title: 'Apellido, Nombre',
-      type: '',
-      width: 60,
-      index: 'ApellidoNombre',
-      exported: false,
-    },
-    { title: '邮箱', index: 'email' },
-    { title: '电话', index: 'phone' },
-    {
-      title: '数字',
-      index: 'price',
-      type: 'number',
-      sort: {
-        compare: (a, b) => a.price - b.price,
-      },
-    },
-    { title: '货币', index: 'price', type: 'currency' },
-    { title: '注册时间', type: 'date', index: 'registered' },
-  ];
 
+  filters = {anio:'2023', mes:'3'}
+
+  data: STData[] = Array(100)
+    .fill({})
+    .map((_, idx) => ({
+      id: idx + 1,
+      price: ~~(Math.random() * 100),
+      age: ~~(Math.random() * 100) > 50 ? '女' : '男',
+    }));
 
   options = {
     CUIT: {
@@ -169,6 +158,8 @@ export class ImpuestoAfipComponent {
 
       localStorage.setItem('mes', String(this.mes));
       localStorage.setItem('anio', String(this.anio));
+
+
     } else {
       this.anio = 0;
       this.mes = 0;
@@ -199,7 +190,15 @@ export class ImpuestoAfipComponent {
     this.downloadMultipleAction$.unsubscribe;
     this.downloadAction$.unsubscribe();
   }
+
+  getColumns(url:string):any{ 
+    return this.apiService.get(url)
+  }
+  
+
 }
+
+
 
 interface ColumnItem {
   name: string;
@@ -210,3 +209,4 @@ interface ColumnItem {
   filterMultiple: boolean;
   sortDirections: NzTableSortOrder[];
 }
+

@@ -15,6 +15,18 @@ export class ApiService {
   private get notification(): NzNotificationService {
     return this.injector.get(NzNotificationService);
   }
+
+  get(url: string)  {
+    return this.http.get<any>(url).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+
   getAdelantos(year: number, month: number, personalID: string) {
     if (!personalID || !month || !year) {
       return of([]);
