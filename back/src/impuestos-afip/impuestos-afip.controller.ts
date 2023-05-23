@@ -49,7 +49,7 @@ export class ImpuestosAfipController extends BaseController {
     descuentoId: string;
     personalIdRel: string;
   }) {
-    const extrafilter = (options.personalIdRel && options.personalIdRel!="0") ? "AND perrel.PersonalCategoriaPersonalId = @4" : ""
+    const extrafilter = (options.personalIdRel && options.personalIdRel != "0") ? "AND perrel.PersonalCategoriaPersonalId = @4" : ""
 
     return dataSource.query(
       `SELECT DISTINCT
@@ -85,6 +85,62 @@ export class ImpuestosAfipController extends BaseController {
       [, options.anio, options.mes, options.descuentoId, options.personalIdRel]
     );
   }
+
+  async getDescuentosGridCols(req: Request, res: Response) {
+    /*
+      PersonalId: number;
+  CUIT: number;
+  ApellidoNombre: string;
+  PersonalEstado: string;
+
+  PersonalIdJ: number;
+  CUITJ: number;
+  ApellidoNombreJ: string;
+  monto: null | number;
+  PersonalOtroDescuentoAnoAplica: null | number;
+  PersonalOtroDescuentoMesesAplica: null | number;
+  PersonalOtroDescuentoDescuentoId: null | number;
+
+    */
+    this.jsonRes([
+      { title: 'CUIT', index: 'CUIT', type: 'number', resizable: true, sort: { compare: (a, b) => a.price - b.price, } },
+      { title: 'Apellido Nombre', type: '', index: 'ApellidoNombre', exported: true },
+      { title: 'Sit Revista', type: '', index: 'PersonalEstado', exported: true },
+      { title: 'Importe', type: 'currency', index: 'monto', exported: true },
+      { title: 'CUIT Responsable', type: 'number', index: 'CUITJ', exported: true },
+      { title: 'Apellido Nombre Responsable', type: 'string', index: 'ApellidoNombreJ', exported: true },
+      { title: 'ID Descuento', type: 'number', index: 'PersonalOtroDescuentoId', exported: true },
+    ]
+      , res);
+
+  }
+
+  async getDescuentosGridList(req: Request, res: Response) {
+    const anio = String(req.body.anio);
+    const mes = String(req.body.mes);
+    const personalIdRel = (req.body.personalIdRel)?req.body.personalIdRel:'';
+    const descuentoId = process.env.OTRO_DESCUENTO_ID;
+
+    try {
+      const result = await this.getDescuentosByPeriodo({
+        anio,
+        mes,
+        descuentoId,
+        personalIdRel
+      });
+
+      this.jsonRes(
+        {
+          total: result.length,
+          list: result,
+        },
+        res
+      );
+    } catch (error) {
+      this.errRes(error, res);
+    }
+  }
+
   async handleGetDescuentos(req: Request, res: Response) {
     const anio = req.params.anio;
     const mes = req.params.mes;

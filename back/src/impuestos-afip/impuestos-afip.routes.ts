@@ -122,3 +122,20 @@ impuestosAfipRouter.get(
     );
   }
 );
+
+
+impuestosAfipRouter.get(
+  "/cols",
+  authMiddleware.verifyToken,
+  (req, res) => {
+    impuestosAfipController.getDescuentosGridCols(req, res);
+  }
+);
+
+impuestosAfipRouter.post(
+  "/list",
+  authMiddleware.verifyToken,
+  (req, res) => {
+    impuestosAfipController.getDescuentosGridList(req, res);
+  }
+);
