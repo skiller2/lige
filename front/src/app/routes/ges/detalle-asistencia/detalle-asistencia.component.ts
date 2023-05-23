@@ -13,7 +13,7 @@ import {
 import { SearchService } from '../../../services/search.service';
 import { NgForm } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { SharedModule } from '@shared';
 import { CurrencyPipeModule } from '@delon/util';
 import { NzResizableModule } from 'ng-zorro-antd/resizable';
@@ -56,12 +56,10 @@ export class DetalleAsistenciaComponent {
   selectedPeriod = { year: 0, month: 0 };
 
   selectedSucursalId = '';
-  selectedObjetivoId = '';
   selectedMetodologiaId = '';
   selectedCategoriaId = '';
 
   $isSucursalOptionsLoading = new BehaviorSubject(false);
-  $isObjetivoOptionsLoading = new BehaviorSubject(false);
 
   $selectedSucursalIdChange = new BehaviorSubject('');
   $selectedObjetivoIdChange = new BehaviorSubject('');
@@ -73,19 +71,24 @@ export class DetalleAsistenciaComponent {
   $optionsSucursales = this.searchService.getSucursales();
   $optionsCategoria = this.searchService.getCategorias();
 
+  objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
   $objetivoResponsables = this.$selectedObjetivoIdChange.pipe(
     debounceTime(50),
-
     switchMap(objetivoId => {
       if (!objetivoId) return [];
-      else
-        return this.searchService.getObjetivo(
+      return this.searchService
+        .getObjetivo(
           Number(objetivoId),
           this.selectedPeriod.year,
           this.selectedPeriod.month
+        )
+        .pipe(
+          doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
+          tap({
+            complete: () => this.objetivoResponsablesLoading$.next(false),
+          })
         );
     })
-    //    tap(() => this.$isObjetivoOptionsLoading.next(false))
   );
 
   $listaAsistencia = this.$selectedObjetivoIdChange.pipe(
@@ -96,8 +99,7 @@ export class DetalleAsistenciaComponent {
         this.selectedPeriod.year,
         this.selectedPeriod.month
       )
-    ),
-    tap(() => this.$isObjetivoOptionsLoading.next(false))
+    )
   );
 
   $listaExcepciones = this.$selectedObjetivoIdChange.pipe(
@@ -108,8 +110,7 @@ export class DetalleAsistenciaComponent {
         this.selectedPeriod.year,
         this.selectedPeriod.month
       )
-    ),
-    tap(() => this.$isObjetivoOptionsLoading.next(false))
+    )
   );
 
   $optionsObjetivos = this.$searchObjetivoChange.pipe(
@@ -120,8 +121,7 @@ export class DetalleAsistenciaComponent {
         event,
         this.asistencia.controls['SucursalId'].value
       )
-    ),
-    tap(() => this.$isObjetivoOptionsLoading.next(false))
+    )
   );
 
   $listaAsistenciaPer = this.$selectedPersonalIdChange.pipe(
@@ -201,6 +201,7 @@ export class DetalleAsistenciaComponent {
           'SucursalId',
           this.asistencia.controls['SucursalId'].value
         );
+        this.selectedSucursalId = event;
         this.$selectedSucursalIdChange.next(event);
         this.$isSucursalDataLoading.next(true);
         return;
@@ -218,13 +219,18 @@ export class DetalleAsistenciaComponent {
 
   searchObjetivo(event: string) {
     if (!event) return;
-    this.$isObjetivoOptionsLoading.next(true);
     this.$searchObjetivoChange.next(event);
   }
 
   buscarPorPersona(PersonalId: string) {
+    console.log(PersonalId);
     this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
     this.selectedTabIndex = 1;
+  }
+
+  buscarPorObjetivo(ObjetivoId: string) {
+    this.asistenciaObj.controls['ObjetivoId'].setValue(ObjetivoId);
+    this.selectedTabIndex = 0;
   }
 
   dateChange(result: Date): void {

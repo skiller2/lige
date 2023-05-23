@@ -25,7 +25,7 @@ import { SearchService } from 'src/app/services/search.service';
 export class ObjetivoSearchComponent {
   constructor(private searchService: SearchService) {}
 
-  @Input() sucursalId: number = 0;
+  @Input() sucursalId: string = '0';
 
   _selectedObjetivoId = '';
   get selectedObjetivoId() {
@@ -61,7 +61,7 @@ export class ObjetivoSearchComponent {
         .getObjetivos(
           Number(value.charAt(0)) ? 'Codigo' : 'Descripcion',
           value,
-          this.sucursalId.toString()
+          this.sucursalId
         )
         .pipe(
           doOnSubscribe(() => this.$isOptionsLoading.next(true)),
