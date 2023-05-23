@@ -40,19 +40,20 @@ export class AdelantoComponent {
     }, 1);
   }
 
+  personaResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
   $personaResponsables = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() =>
       this.apiService
         .getPersonaResponsables(
-          this.adelanto.controls['anio'].value,
-          this.adelanto.controls['mes'].value,
-          this.adelanto.controls['PersonalId'].value
+          this.selectedPeriod.year,
+          this.selectedPeriod.month,
+          this.adelanto.form.get('PersonalId')?.value
         )
-        .pipe
-        //          doOnSubscribe(() => this.tableLoading$.next(true)),
-        //          tap({ complete: () => this.tableLoading$.next(false) })
-        ()
+        .pipe(
+          doOnSubscribe(() => this.personaResponsablesLoading$.next(true)),
+          tap({ complete: () => this.personaResponsablesLoading$.next(false) })
+        )
     )
   );
 
@@ -61,9 +62,9 @@ export class AdelantoComponent {
     switchMap(() =>
       this.apiService
         .getAdelantos(
-          this.adelanto.controls['anio'].value,
-          this.adelanto.controls['mes'].value,
-          this.adelanto.controls['PersonalId'].value
+          this.selectedPeriod.year,
+          this.selectedPeriod.month,
+          this.adelanto.form.get('PersonalId')?.value
         )
         .pipe(
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -79,7 +80,11 @@ export class AdelantoComponent {
     localStorage.setItem('anio', String(this.selectedPeriod.year));
     localStorage.setItem('mes', String(this.selectedPeriod.month));
 
-    this.formChange$.next('');
+    this.formChange('');
+  }
+
+  formChange(event: string) {
+    this.formChange$.next(event);
   }
 
   SaveForm() {
@@ -89,7 +94,7 @@ export class AdelantoComponent {
         doOnSubscribe(() => this.saveLoading$.next(true)),
         tap({
           complete: () => {
-            this.formChange$.next('');
+            this.formChange('');
             this.adelanto.form.get('monto')?.setValue(null);
           },
           finalize: () => this.saveLoading$.next(false),
@@ -105,7 +110,7 @@ export class AdelantoComponent {
         doOnSubscribe(() => this.deleteLoading$.next(true)),
 
         tap({
-          complete: () => this.formChange$.next(''),
+          complete: () => this.formChange(''),
           finalize: () => this.deleteLoading$.next(false),
         })
       )

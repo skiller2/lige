@@ -1,10 +1,6 @@
 <page-header />
 <nz-card class="small-margin">
   <form nz-form #adelanto="ngForm" class="">
-    <!-- <app-periodo-anio name="Año" ngModel/> -->
-    <!-- <app-periodo-mes name="Mes" ngModel/> -->
-    <!-- <app-periodo-select (formChangedEvent)="formChanged($event)" /> -->
-
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
       <nz-form-control>
@@ -20,23 +16,37 @@
       <nz-form-control nzHasFeedback>
         <app-personal-search
           name="PersonalId"
-          (ngModelChange)="this.formChange$.next($event)"
+          (ngModelChange)="this.formChange($event)"
           ngModel />
       </nz-form-control>
     </nz-form-item>
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
       <nz-form-control>
-        <ng-container *ngFor="let responsable of $personaResponsables | async">
-          <p title="{{ responsable.PersonalCategoriaPersonalId }}">
-            {{ responsable.CUITJ }} {{ responsable.ApellidoNombreJ }} desde
-            {{ responsable.OperacionesPersonalAsignarAJerarquicoDesde | date }}
-            <span
-              *ngIf="responsable.OperacionesPersonalAsignarAJerarquicoHasta">
-              hasta
-            </span>
-            {{ responsable.OperacionesPersonalAsignarAJerarquicoHasta | date }}
-          </p>
+        <ng-container
+          *ngIf="{
+            loading: personaResponsablesLoading$ | async
+          } as responsablesContext">
+          <ng-container *ngIf="responsablesContext.loading">
+            <span nz-icon nzType="loading" class="loading-icon"></span>
+            Cargando
+          </ng-container>
+          <ng-container
+            *ngFor="let responsable of $personaResponsables | async">
+            <p title="{{ responsable.PersonalCategoriaPersonalId }}">
+              {{ responsable.CUITJ }} {{ responsable.ApellidoNombreJ }} desde
+              {{
+                responsable.OperacionesPersonalAsignarAJerarquicoDesde | date
+              }}
+              <span
+                *ngIf="responsable.OperacionesPersonalAsignarAJerarquicoHasta">
+                hasta
+              </span>
+              {{
+                responsable.OperacionesPersonalAsignarAJerarquicoHasta | date
+              }}
+            </p>
+          </ng-container>
         </ng-container>
       </nz-form-control>
     </nz-form-item>
