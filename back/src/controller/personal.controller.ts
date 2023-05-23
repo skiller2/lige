@@ -5,14 +5,28 @@ import fetch, { Request } from "node-fetch";
 import { dataSource } from "../data-source";
 
 export class PersonalController extends BaseController {
-  async getPersonalResponsables(
-    req: any,
-    res: Response
-  ) {
+  async getNameFromId(PersonalId, res: Response) {
+    try {
+      const result = await dataSource.query(
+        `SELECT per.PersonalId personalId, cuit.PersonalCUITCUILCUIT cuit,
+      per.PersonalNombre nombre, per.PersonalApellido apellido
+      FROM Personal per
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = per.PersonalCUITCUILUltNro    
+      WHERE per.PersonalId = @0`,
+        [PersonalId]
+      );
 
-    const personalId = req.params.personalId
-    const anio = req.params.anio
-    const mes = req.params.mes
+      const info = result[0];
+      this.jsonRes(info, res);
+    } catch (err) {
+      this.errRes(err, res, "Error accediendo a la base de datos", 409);
+    }
+  }
+
+  async getPersonalResponsables(req: any, res: Response) {
+    const personalId = req.params.personalId;
+    const anio = req.params.anio;
+    const mes = req.params.mes;
 
     try {
       const responsables = await dataSource.query(
@@ -40,7 +54,6 @@ export class PersonalController extends BaseController {
         `,
 
         [personalId, anio, mes]
-
       );
       this.jsonRes(responsables, res);
     } catch (err) {
@@ -62,35 +75,48 @@ export class PersonalController extends BaseController {
         [PersonalId]
       )
       .then((records: Array<PersonaObj>) => {
-        if (records.length != 1) throw new Error('Person not found')
+        if (records.length != 1) throw new Error("Person not found");
 
         let FechaHasta = new Date();
         FechaHasta.setFullYear(FechaHasta.getFullYear() + 1);
 
-        const personaData = records[0]
-        personaData.NRO_EMPRESA = (process.env.NRO_EMPRESA_PBA) ? process.env.NRO_EMPRESA_PBA : ""
+        const personaData = records[0];
+        personaData.NRO_EMPRESA = process.env.NRO_EMPRESA_PBA
+          ? process.env.NRO_EMPRESA_PBA
+          : "";
         //        personaData.PersonalCUITCUILCUIT = (personaData.PersonalCUITCUILCUIT) ? `${personaData.PersonalCUITCUILCUIT}` : "Sin registrar"
-        personaData.PersonalCUITCUILCUIT = (personaData.PersonalCUITCUILCUIT != null) ? personaData.PersonalCUITCUILCUIT : ""
-        personaData.DNI = (String(personaData.PersonalCUITCUILCUIT).length > 10) ? String(personaData.PersonalCUITCUILCUIT).substring(2, 10) : ""
-        personaData.FechaDesde = new Date()
-        personaData.FechaHasta = FechaHasta
-        const imageFotoPath = (process.env.IMAGE_FOTO_PATH) ? process.env.IMAGE_FOTO_PATH : ""
-        const imageUrl = personaData.DocumentoImagenFotoBlobNombreArchivo ? imageFotoPath.concat(personaData.DocumentoImagenFotoBlobNombreArchivo) : ""
+        personaData.PersonalCUITCUILCUIT =
+          personaData.PersonalCUITCUILCUIT != null
+            ? personaData.PersonalCUITCUILCUIT
+            : "";
+        personaData.DNI =
+          String(personaData.PersonalCUITCUILCUIT).length > 10
+            ? String(personaData.PersonalCUITCUILCUIT).substring(2, 10)
+            : "";
+        personaData.FechaDesde = new Date();
+        personaData.FechaHasta = FechaHasta;
+        const imageFotoPath = process.env.IMAGE_FOTO_PATH
+          ? process.env.IMAGE_FOTO_PATH
+          : "";
+        const imageUrl = personaData.DocumentoImagenFotoBlobNombreArchivo
+          ? imageFotoPath.concat(
+              personaData.DocumentoImagenFotoBlobNombreArchivo
+            )
+          : "";
         if (imageUrl != "") {
           fetch(imageUrl)
             .then((imageUrlRes) => imageUrlRes.buffer())
             .then((buffer) => {
-              const bufferStr = buffer.toString('base64')
-              personaData.image = 'data:image/jpeg;base64, ' + bufferStr;
+              const bufferStr = buffer.toString("base64");
+              personaData.image = "data:image/jpeg;base64, " + bufferStr;
 
               this.jsonRes(personaData, res);
             })
             .catch((reason) => {
-              throw new Error('Image not found')
-            })
-        }
-        else {
-          personaData.image = '';
+              throw new Error("Image not found");
+            });
+        } else {
+          personaData.image = "";
           this.jsonRes(personaData, res);
         }
       })
@@ -99,40 +125,36 @@ export class PersonalController extends BaseController {
       });
   }
 
-  search(
-    req: any,
-    res: Response
-  ) {
+  search(req: any, res: Response) {
     const { fieldName, value } = req.body;
 
-    let buscar = false
-    let query: string =
-      `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName FROM dbo.Personal per 
+    let buscar = false;
+    let query: string = `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName FROM dbo.Personal per 
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
-      WHERE`
+      WHERE`;
     switch (fieldName) {
-      case 'Nombre':
+      case "Nombre":
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
           if (element.trim().length > 1) {
-            query += `(per.PersonalNombre LIKE '%${element.trim()}%' OR per.PersonalApellido LIKE '%${element.trim()}%') AND `
-            buscar = true
+            query += `(per.PersonalNombre LIKE '%${element.trim()}%' OR per.PersonalApellido LIKE '%${element.trim()}%') AND `;
+            buscar = true;
           }
         });
         break;
-      case 'CUIT':
+      case "CUIT":
         if (value.trim().length > 1) {
-          query += ` cuit.PersonalCUITCUILCUIT LIKE '%${value.trim()}%' AND `
-          buscar = true
+          query += ` cuit.PersonalCUITCUILCUIT LIKE '%${value.trim()}%' AND `;
+          buscar = true;
         }
 
       default:
         break;
     }
 
-    if (buscar == false) { 
+    if (buscar == false) {
       this.jsonRes({ recordsArray: [] }, res);
-      return
+      return;
     }
 
     dataSource

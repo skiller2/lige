@@ -33,29 +33,17 @@
     </nz-form-item>
   </form>
 
-  <nz-tabset nzCentered>
+  <nz-tabset nzCentered [(nzSelectedIndex)]="selectedTabIndex">
     <nz-tab nzTitle="Por objetivo">
       <form nz-form #asistenciaObj="ngForm">
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
           <nz-form-control>
-            <nz-select
+            <app-objetivo-search
+              [sucursalId]="asistencia.controls['SucursalId'].value"
               name="ObjetivoId"
-              ngModel
               (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)"
-              nzAllowClear
-              nzPlaceHolder="Descripcion, Código"
-              nzShowSearch
-              nzServerSearch
-              (nzOnSearch)="searchObjetivo($event)">
-              <ng-container *ngFor="let option of $optionsObjetivos | async">
-                <nz-option
-                  [nzValue]="option.ObjetivoId"
-                  nzLabel="{{ option.ClienteId }}/{{
-                    option.ClienteElementoDependienteId | nzSafeNull : '0'
-                  }} {{ option.ObjetivoDescripcion }}" />
-              </ng-container>
-            </nz-select>
+              ngModel />
           </nz-form-control>
         </nz-form-item>
 
@@ -74,6 +62,7 @@
                 >
                 {{ responsable.ObjetivoPersonalJerarquicoHasta | date }}
               </p>
+              <a (click)="buscarPorPersona(responsable.PersonalId)">Persona</a>
             </ng-container>
           </nz-form-control>
         </nz-form-item>
@@ -96,6 +85,7 @@
                   <th>Detalle</th>
                   <th>Desde</th>
                   <th>Hasta</th>
+                  <th>Buscar</th>
                 </tr>
               </thead>
               <tbody>
@@ -119,6 +109,10 @@
                   </td>
                   <td>{{ data.Desde | date }}</td>
                   <td>{{ data.Hasta | date }}</td>
+
+                  <td>
+                    <a (click)="buscarPorPersona(data.PersonalId)">Persona</a>
+                  </td>
 
                   <!-- td>
               <a>Action 一 {{data.name}}</a>

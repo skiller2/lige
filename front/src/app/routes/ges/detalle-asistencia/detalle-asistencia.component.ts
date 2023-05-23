@@ -50,25 +50,24 @@ export class DetalleAsistenciaComponent {
 
   private destroy$ = new Subject();
 
+  selectedTabIndex = 0;
+
   selectedDate = null;
   selectedPeriod = { year: 0, month: 0 };
 
   selectedSucursalId = '';
   selectedObjetivoId = '';
-  selectedPersonalId = '';
   selectedMetodologiaId = '';
   selectedCategoriaId = '';
 
   $isSucursalOptionsLoading = new BehaviorSubject(false);
   $isObjetivoOptionsLoading = new BehaviorSubject(false);
-  $isPersonalOptionsLoading = new BehaviorSubject(false);
 
   $selectedSucursalIdChange = new BehaviorSubject('');
   $selectedObjetivoIdChange = new BehaviorSubject('');
   $selectedPersonalIdChange = new BehaviorSubject('');
 
   $searchObjetivoChange = new BehaviorSubject('');
-  $searchPersonalChange = new BehaviorSubject('');
 
   $optionsMetodologia = this.searchService.getMetodologia();
   $optionsSucursales = this.searchService.getSucursales();
@@ -123,17 +122,6 @@ export class DetalleAsistenciaComponent {
       )
     ),
     tap(() => this.$isObjetivoOptionsLoading.next(false))
-  );
-
-  $optionsPersonal = this.$searchPersonalChange.pipe(
-    debounceTime(500),
-    switchMap(values =>
-      this.searchService.getPersonFromName(
-        Number(values) ? 'CUIT' : 'Nombre',
-        values
-      )
-    ),
-    tap(() => this.$isPersonalOptionsLoading.next(false))
   );
 
   $listaAsistenciaPer = this.$selectedPersonalIdChange.pipe(
@@ -217,6 +205,7 @@ export class DetalleAsistenciaComponent {
         this.$isSucursalDataLoading.next(true);
         return;
       case Busqueda.Objetivo:
+        console.log(event);
         this.$selectedObjetivoIdChange.next(event);
         this.$isObjetivoDataLoading.next(true);
         return;
@@ -233,10 +222,9 @@ export class DetalleAsistenciaComponent {
     this.$searchObjetivoChange.next(event);
   }
 
-  searchPersonal(event: string) {
-    if (!event) return;
-    this.$isPersonalOptionsLoading.next(true);
-    this.$searchPersonalChange.next(event);
+  buscarPorPersona(PersonalId: string) {
+    this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
+    this.selectedTabIndex = 1;
   }
 
   dateChange(result: Date): void {
