@@ -3,8 +3,6 @@
   <form nz-form #impuestoForm="ngForm">
     <ng-container *ngIf="{ lista: (listaDescuentos$ | async) } as context">
       <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
-      <nz-tabset nzCentered>
-        <nz-tab nzTitle="Cargar Comprobantes">
           <div *ngIf="context.lista?.RegistrosSinComprobantes && 1" nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
             <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
               <div nz-col nzSpan="24" class="p-md text-white">
@@ -22,8 +20,6 @@
             </p>
             <p class="ant-upload-text">Clickeá or arrastrá archivos para cargar</p>
           </nz-upload>
-        </nz-tab>
-        <nz-tab nzTitle="Monotributo">
           <div nz-row nzJustify="space-around">
             <div nz-col [nzSpan]="13" style="text-align: center;">
               <label>Persona Responsable:</label>
@@ -44,16 +40,24 @@
           </div>
 <!--  Se rompe leyendo [data]
 -->
-  <button nz-button (click)="st.export()">Export</button>
-          <button nz-button (click)="st.export(true)">Export Filtered Data</button>
-          <button nz-button
-            (click)="st.export(context.lista?.Registros || [], { filename: 'via-data.xlsx', sheetname: 'user' })">Export
-            via data</button>
+<button nz-button (click)="st.export()">Export</button>
+<button nz-button (click)="st.export(true)">Export Filtered Data</button>
+<button nz-button
+  (click)="st.export(context.lista?.Registros || [], { filename: 'via-data.xlsx', sheetname: 'user' })">Export
+  via data</button>
+<!--
+<st #st [data]="'/api/impuestos_afip/list'" [res]="{reName:{total:'data.total',list:'data.list'}}" [req]="{params:filters,method:'POST',allInBody:true}" 
+[columns]="columns2"  class="mt-sm"
+  [widthMode]="{ type: 'strict' }" resizable></st>
 
-          <st #st [data]="'/api/impuestos_afip/list'" [res]="{reName:{total:'data.total',list:'data.list'}}" [req]="{params:filters,method:'POST',allInBody:true}" 
-          [columns]="columns2"  class="mt-sm"
-            [widthMode]="{ type: 'strict' }" resizable></st>
+-->
+<st #st [data]="context.lista?.Registros || []"  
+[columns]="columns2"  class="mt-sm"
+  [widthMode]="{ type: 'strict' }" resizable  virtualScroll="true" [scroll]="{ x: '1300px', y: '240px' }"></st>
 
+
+
+<!--
           <nz-table class="app-table" #tablaDescuentos [nzData]="context.lista?.Registros || []" nzSize="small"
             [nzLoading]="tableLoading$ | async" [nzPageSize]="100000000" [nzShowPagination]="false">
 
@@ -76,10 +80,10 @@
                   <button nz-button *ngIf="data.PersonalOtroDescuentoDescuentoId" (click)="downloadAction$.next(data)">
                     <span nz-icon nzType="download"></span>
                   </button>
-                  <!-- <a
+                   <a
                   *ngIf="data.PersonalOtroDescuentoDescuentoId"
                   href="api/impuestos_afip/{{ anio }}/{{ mes }}/{{ data.CUIT }}/{{ data.PersonalId }}">
-                </a> -->
+                </a> 
                 </td>
                 <td>{{ data.PersonalEstado }}</td>
                 <td>{{ data.monto | currency }}</td>
@@ -88,8 +92,7 @@
               </tr>
             </tbody>
           </nz-table>
-        </nz-tab>
-      </nz-tabset>
+        -->
     </ng-container>
   </form>
 </nz-card>
