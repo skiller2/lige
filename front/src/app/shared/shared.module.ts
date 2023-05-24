@@ -19,6 +19,7 @@ import { ImageCropperModule } from 'ngx-image-cropper';
 import { QRModule } from '@delon/abc/qr';
 import { ViewCredentialComponent } from './viewCredential/view-credential.component';
 import { AppFilterPipe } from './utils/filter-type';
+import { ObjetivoSearchComponent } from './objetivo-search/objetivo-search.component';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';
@@ -29,6 +30,7 @@ const THIRDMODULES: Array<Type<any>> = [ImageCropperModule, QRModule];
 // #region your componets & directives
 const COMPONENTS: Array<Type<any>> = [
   PersonalSearchComponent,
+  ObjetivoSearchComponent,
   PdfviewerComponent,
   UploadFileComponent,
   ViewCredentialComponent,

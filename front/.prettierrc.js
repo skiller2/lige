@@ -20,5 +20,5 @@ module.exports = {
   arrowParens: 'avoid',
   trailingComma: 'es5',
   bracketSameLine: true,
-  printWidth: 132,
+  printWidth: 80,
 };

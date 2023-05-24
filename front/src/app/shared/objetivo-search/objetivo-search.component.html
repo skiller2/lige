@@ -1,18 +1,19 @@
 <nz-select
-  [(ngModel)]="selectedPersonalId"
+  [(ngModel)]="selectedObjetivoId"
   [ngModelOptions]="{ standalone: true }"
   style="width: 100%"
   (ngModelChange)="modelChange($event)"
   nzAllowClear
-  nzPlaceHolder="Apellido, Nombre, CUIT"
+  nzPlaceHolder="Descripcion, Código"
   nzShowSearch
   nzServerSearch
   (nzOnSearch)="search($event)">
   <ng-container *ngFor="let option of $optionsArray | async">
     <nz-option
-      *ngIf="($isOptionsLoading | async) == false"
-      [nzValue]="option.PersonalId"
-      [nzLabel]="option.fullName" />
+      [nzValue]="option.ObjetivoId"
+      nzLabel="{{ option.ClienteId }}/{{
+        option.ClienteElementoDependienteId | nzSafeNull : '0'
+      }} {{ option.ObjetivoDescripcion }}" />
   </ng-container>
   <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
     <span nz-icon nzType="loading" class="loading-icon"></span>
@@ -20,7 +21,9 @@
   </nz-option>
   <nz-option
     *ngIf="selectedInfoChange$ | async as info"
-    [nzValue]="info.personalId"
-    nzLabel="{{ info.apellido + info.nombre + ' | ' + info.cuit }}"
+    [nzValue]="info.objetivoId"
+    nzLabel="{{ info.clienteId }}/{{
+      info.elementoDependienteId | nzSafeNull : '0'
+    }} {{ info.descripcion }}"
     nzHide />
 </nz-select>

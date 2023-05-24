@@ -14,12 +14,10 @@ import { SearchService } from 'src/app/services/search.service';
   imports: [SharedModule],
 })
 export class AdelantoComponent {
-  constructor(private searchService: SearchService, private injector: Injector, private apiService: ApiService) {}
+  constructor(private apiService: ApiService) {}
   @ViewChild('adelanto', { static: true }) adelanto!: NgForm;
 
-  private get notification(): NzNotificationService {
-    return this.injector.get(NzNotificationService);
-  }
+  selectedPeriod = { year: 0, month: 0 };
 
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
@@ -29,26 +27,33 @@ export class AdelantoComponent {
   ngAfterViewInit(): void {
     const now = new Date(); //date
     setTimeout(() => {
-      const anio = Number(localStorage.getItem('anio')) > 0 ? localStorage.getItem('anio') : now.getFullYear();
-      const mes = Number(localStorage.getItem('mes')) > 0 ? localStorage.getItem('mes') : now.getMonth() + 1;
-      this.adelanto.form.get('anio')?.setValue(Number(anio));
-      this.adelanto.form.get('mes')?.setValue(Number(mes));
+      const anio =
+        Number(localStorage.getItem('anio')) > 0
+          ? Number(localStorage.getItem('anio'))
+          : now.getFullYear();
+      const mes =
+        Number(localStorage.getItem('mes')) > 0
+          ? Number(localStorage.getItem('mes'))
+          : now.getMonth() + 1;
+
+      this.adelanto.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
     }, 1);
   }
 
+  personaResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
   $personaResponsables = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() =>
       this.apiService
         .getPersonaResponsables(
-          this.adelanto.controls['anio'].value,
-          this.adelanto.controls['mes'].value,
-          this.adelanto.controls['PersonalId'].value
+          this.selectedPeriod.year,
+          this.selectedPeriod.month,
+          this.adelanto.form.get('PersonalId')?.value
         )
-        .pipe
-        //          doOnSubscribe(() => this.tableLoading$.next(true)),
-        //          tap({ complete: () => this.tableLoading$.next(false) })
-        ()
+        .pipe(
+          doOnSubscribe(() => this.personaResponsablesLoading$.next(true)),
+          tap({ complete: () => this.personaResponsablesLoading$.next(false) })
+        )
     )
   );
 
@@ -57,9 +62,9 @@ export class AdelantoComponent {
     switchMap(() =>
       this.apiService
         .getAdelantos(
-          this.adelanto.controls['anio'].value,
-          this.adelanto.controls['mes'].value,
-          this.adelanto.controls['PersonalId'].value
+          this.selectedPeriod.year,
+          this.selectedPeriod.month,
+          this.adelanto.form.get('PersonalId')?.value
         )
         .pipe(
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -68,13 +73,18 @@ export class AdelantoComponent {
     )
   );
 
-  formChanged(event: any) {
-    if (this.adelanto.controls['anio'].value && this.adelanto.controls['mes'].value) {
-      // console.log((this.adelanto.form.get('periodo') as any).controls);
-      localStorage.setItem('anio', String(this.adelanto.controls['anio'].value));
-      localStorage.setItem('mes', String(this.adelanto.controls['mes'].value));
-    }
-    this.formChange$.next('');
+  dateChange(result: Date): void {
+    this.selectedPeriod.year = result.getFullYear();
+    this.selectedPeriod.month = result.getMonth() + 1;
+
+    localStorage.setItem('anio', String(this.selectedPeriod.year));
+    localStorage.setItem('mes', String(this.selectedPeriod.month));
+
+    this.formChange('');
+  }
+
+  formChange(event: string) {
+    this.formChange$.next(event);
   }
 
   SaveForm() {
@@ -84,7 +94,7 @@ export class AdelantoComponent {
         doOnSubscribe(() => this.saveLoading$.next(true)),
         tap({
           complete: () => {
-            this.formChanged('');
+            this.formChange('');
             this.adelanto.form.get('monto')?.setValue(null);
           },
           finalize: () => this.saveLoading$.next(false),
@@ -100,7 +110,7 @@ export class AdelantoComponent {
         doOnSubscribe(() => this.deleteLoading$.next(true)),
 
         tap({
-          complete: () => this.formChanged(''),
+          complete: () => this.formChange(''),
           finalize: () => this.deleteLoading$.next(false),
         })
       )

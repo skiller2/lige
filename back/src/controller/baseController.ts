@@ -7,7 +7,7 @@ export class BaseController {
    * @param res the response object that will be used to send http response
    */
   jsonRes(recordset: any, res: Response, msg = "ok") {
-    res.status(200).json({ msg: msg, data: recordset,stamp: new Date() });
+    res.status(200).json({ msg: msg, data: recordset, stamp: new Date() });
   }
 
   jsonResDirect(data: any, res: Response, msg = "ok") {
@@ -32,11 +32,12 @@ export class BaseController {
   }
 
   async hasAuthPersona(anio, mes, persona_cuit, queryRunner) {
-    let fechaHastaAuth = new Date(anio, mes, 1)
-    fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1)
+    let fechaHastaAuth = new Date(anio, mes, 1);
+    fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1);
 
-    let autorizado = false
-    let resultAuth = await queryRunner.query(`SELECT suc.ObjetivoSucursalSucursalId,
+    let autorizado = false;
+    let resultAuth = await queryRunner.query(
+      `SELECT suc.ObjetivoSucursalSucursalId,
          
     obj.ObjetivoId, 
     obj.ClienteId,
@@ -59,17 +60,17 @@ export class BaseController {
     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = perjer.PersonalCUITCUILUltNro
 
     WHERE obj.ObjetivoId=@1`,
-      [fechaHastaAuth])
+      [fechaHastaAuth]
+    );
 
     for (let row of resultAuth) {
       if (row.PersonalCUITCUILCUIT == persona_cuit) {
-        return true
+        return true;
       }
     }
 
-    return false
+    return false;
   }
-
 
   async hasAuthObjetivo(anio, mes, persona_cuit, ObjetivoId, queryRunner) {
     let fechaHastaAuth = new Date(anio, mes, 1);
