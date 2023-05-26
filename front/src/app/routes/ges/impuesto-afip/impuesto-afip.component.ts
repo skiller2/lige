@@ -8,17 +8,17 @@ import { BehaviorSubject, Observable, debounceTime, filter, map, switchMap, tap,
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { STColumn, STComponent, STData } from '@delon/abc/st';
-import { DownFileModule } from '@delon/abc/down-file';
 
 @Component({
   selector: 'app-impuesto-afip',
   templateUrl: './impuesto-afip.component.html',
   standalone: true,
-  imports: [SharedModule, NzResizableModule,DownFileModule],
+  imports: [SharedModule, NzResizableModule],
   styleUrls: ['./impuesto-afip.component.less'],
 })
 export class ImpuestoAfipComponent {
-  @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm = new NgForm([], []);
+  @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm = new NgForm([], [])
+  @ViewChild('st') st: STComponent | undefined
 
   constructor(public apiService: ApiService) {}
   selectedDate = null;
@@ -26,7 +26,7 @@ export class ImpuestoAfipComponent {
   mes = 0;
   url = '/api/impuestos_afip';
   files: NzUploadFile[] = [];
-
+  selectedTabIndex = 0
   selectedPersonalId = null;
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
@@ -139,7 +139,6 @@ export class ImpuestoAfipComponent {
     },
   ];
   downloadAction$ = new BehaviorSubject<null | DescuentoJSON>(null);
-  downloadMultipleAction$ = new BehaviorSubject('');
 
   ngAfterViewInit(): void {
     setTimeout(() => {
@@ -156,9 +155,9 @@ export class ImpuestoAfipComponent {
       }
     });
 
-    this.downloadMultipleAction$.pipe(throttleTime(3000)).subscribe(() => {
-      if (this.anio && this.mes) this.apiService.downloadMultipleComprobantes(this.anio, this.mes, Number(this.selectedPersonalId)).subscribe();
-    });
+
+
+//    this.st?.scroll()
   }
 
   onChange(result: Date): void {
@@ -197,8 +196,8 @@ export class ImpuestoAfipComponent {
   }
 
   ngOnDestroy() {
-    this.downloadMultipleAction$.unsubscribe;
     this.downloadAction$.unsubscribe();
+
   }
 
   getColumns(url:string):any{ 
@@ -206,8 +205,14 @@ export class ImpuestoAfipComponent {
   }
   
 
-}
+  fncFile(rep: any): string {
+    console.log('fncFile',rep)
 
+    return 'pepe.pdf'
+  }
+
+
+}
 
 
 interface ColumnItem {
@@ -219,4 +224,5 @@ interface ColumnItem {
   filterMultiple: boolean;
   sortDirections: NzTableSortOrder[];
 }
+
 

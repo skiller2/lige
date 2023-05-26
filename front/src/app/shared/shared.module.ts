@@ -20,6 +20,7 @@ import { QRModule } from '@delon/abc/qr';
 import { ViewCredentialComponent } from './viewCredential/view-credential.component';
 import { AppFilterPipe } from './utils/filter-type';
 import { ObjetivoSearchComponent } from './objetivo-search/objetivo-search.component';
+import { AppDownFileDirective } from './down-file/down-file.directive';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';
@@ -38,7 +39,7 @@ const COMPONENTS: Array<Type<any>> = [
   FormComponent,
   PeriodoSelectComponent,
 ];
-const DIRECTIVES: Array<Type<any>> = [CUITPipe, AppFilterPipe];
+const DIRECTIVES: Array<Type<any>> = [CUITPipe, AppFilterPipe,AppDownFileDirective];
 // #endregion
 
 @NgModule({
