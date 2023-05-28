@@ -1,4 +1,15 @@
-<page-header />
+<ng-template #phActionTpl>
+  <nz-button-group>
+    <button nz-button nzType="default" (click)="selectedTabIndex=0" >Carga</button>
+    <button nz-button nzType="default" (click)="selectedTabIndex=1">Consulta</button>
+    <button nz-button nzType="default" app-down-file httpUrl="api/impuestos_afip/download/{{anio}}/{{mes}}/{{selectedPersonalId}}">
+ <span nz-icon nzType="download">Comprobantes</span></button>
+    <button nz-button nzType="dashed" (click)="st!.export(true,{
+      filename: 'via-data.xlsx', sheetname: 'monotributo'})" >XLS</button>
+  </nz-button-group>
+</ng-template>
+
+<page-header  [action]="phActionTpl"></page-header>
 <nz-card>
   <form nz-form #impuestoForm="ngForm">
     <ng-container *ngIf="{ lista: (listaDescuentos$ | async) } as context">
@@ -7,8 +18,9 @@
         name="periodo"
         ngModel
         (ngModelChange)="onChange($event)" />
-      <nz-tabset nzCentered>
-        <nz-tab nzTitle="Cargar Comprobantes">
+      <nz-tabset nzCentered [(nzSelectedIndex)]="selectedTabIndex" 	
+      >
+        <nz-tab>
           <div
             *ngIf="context.lista?.RegistrosSinComprobantes && 1"
             nz-col
@@ -49,63 +61,7 @@
               Clickeá or arrastrá archivos para cargar
             </p>
           </nz-upload>
-        </nz-tab>
-        <nz-tab nzTitle="Monotributo">
-          <div nz-row nzJustify="space-around">
-            <div nz-col [nzSpan]="13" style="text-align: center">
-              <label>Persona Responsable:</label>
-              <app-personal-search
-                (ngModelChange)="formChanged($event)"
-                [(ngModel)]="selectedPersonalId"
-                [ngModelOptions]="{ standalone: true }" />
-            </div>
-            <div nz-col [nzSpan]="9" style="text-align: center">
-              <button
-                nz-button
-                down-file
-                class="mr-sm"
-                http-url="api/impuestos_afip/download/{{ anio }}/{{ mes }}/{{
-                  selectedPersonalId
-                }}">
-                <span nz-icon nzType="download"
-                  >Descarga masiva de comprobantes</span
-                >
-              </button>
-
-              <button nz-button (click)="downloadMultipleAction$.next('')">
-                <span nz-icon nzType="download"
-                  >Descarga masiva de comprobantes</span
-                >
-              </button>
-            </div>
-          </div>
-          <!--  Se rompe leyendo [data]
--->
-          <button nz-button (click)="st.export()">Export</button>
-          <button nz-button (click)="st.export(true)">
-            Export Filtered Data
-          </button>
-          <button
-            nz-button
-            (click)="
-              st.export(context.lista?.Registros || [], {
-                filename: 'via-data.xlsx',
-                sheetname: 'user'
-              })
-            ">
-            Export via data
-          </button>
-
-          <st
-            #st
-            [data]="'/api/impuestos_afip/list'"
-            [res]="{ reName: { total: 'data.total', list: 'data.list' } }"
-            [req]="{ params: filters, method: 'POST', allInBody: true }"
-            [columns]="columns2"
-            class="mt-sm"
-            [widthMode]="{ type: 'strict' }"
-            resizable></st>
-
+        
           <!-- <nz-table
             class="app-table"
             #tablaDescuentos
@@ -147,6 +103,34 @@
             </tbody>
           </nz-table> -->
         </nz-tab>
+      <nz-tab  [nzForceRender]="false">
+        <ng-template nz-tab>
+
+        <div nz-row nzJustify="space-around">
+          <div nz-col [nzSpan]="13" style="text-align: center">
+            <label>Persona Responsable:</label>
+            <app-personal-search
+              (ngModelChange)="formChanged($event)"
+              [(ngModel)]="selectedPersonalId"
+              [ngModelOptions]="{ standalone: true }" />
+          </div>
+        </div>
+
+        <st
+          #st
+          [data]="'/api/impuestos_afip/list'"
+          [res]="{ reName: { total: 'data.total', list: 'data.list' } }"
+          [req]="{ params: filters, method: 'POST', allInBody: true }"
+          [columns]="columns2"
+          class="mt-sm"
+          [widthMode]="{ type: 'strict' }"
+          virtualScroll
+          [scroll]="{  y: '70vh' }"
+          resizable
+          [page]="{show:false}"
+          ></st>
+          </ng-template>
+      </nz-tab>
       </nz-tabset>
     </ng-container>
   </form>
