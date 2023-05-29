@@ -9,6 +9,7 @@ import {
 } from 'rxjs';
 import { doOnSubscribe } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
+import { ObjetivoInfo } from '../schemas/ResponseJSON';
 
 @Component({
   selector: 'app-objetivo-search',
@@ -25,13 +26,13 @@ import { SearchService } from 'src/app/services/search.service';
 export class ObjetivoSearchComponent {
   constructor(private searchService: SearchService) {}
 
-  @Input() sucursalId: string = '0';
+  @Input() sucursalId: string | null = null;
 
-  _selectedObjetivoId = '';
-  get selectedObjetivoId() {
+  private _selectedObjetivoId = '';
+
+  public get selectedObjetivoId() {
     return this._selectedObjetivoId;
   }
-
   public set selectedObjetivoId(v: string) {
     this._selectedObjetivoId = v;
     this.selectedValueChange(v);
@@ -44,30 +45,43 @@ export class ObjetivoSearchComponent {
     }
   }
   propagateChange = (_: any) => {};
-
   registerOnChange(fn: any) {
     this.propagateChange = fn;
   }
-
   registerOnTouched() {}
-  selectedInfoChange$ = new BehaviorSubject<any>(null);
+
+  selectedInfoChange$ = new BehaviorSubject<ObjetivoInfo | null>(null);
 
   $searchChange = new BehaviorSubject('');
-  $isOptionsLoading = new BehaviorSubject<boolean>(false);
+  $isOptionsLoading = new BehaviorSubject(false);
   $optionsArray = this.$searchChange.pipe(
     debounceTime(500),
-    switchMap(value =>
-      this.searchService
+    switchMap(value => {
+      if (this.sucursalId) {
+        return this.searchService
+          .getObjetivos(
+            Number(value.charAt(0)) ? 'Codigo' : 'Descripcion',
+            value,
+            this.sucursalId
+          )
+          .pipe(
+            doOnSubscribe(() => this.$isOptionsLoading.next(true)),
+            tap({ complete: () => this.$isOptionsLoading.next(false) })
+          );
+      }
+
+      //Should return all Objetivos, missing API call
+      return this.searchService
         .getObjetivos(
           Number(value.charAt(0)) ? 'Codigo' : 'Descripcion',
           value,
-          this.sucursalId
+          '0'
         )
         .pipe(
           doOnSubscribe(() => this.$isOptionsLoading.next(true)),
           tap({ complete: () => this.$isOptionsLoading.next(false) })
-        )
-    )
+        );
+    })
   );
 
   modelChange(event: string) {
