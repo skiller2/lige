@@ -1,8 +1,4 @@
-<ng-template #phActionTpl>
-</ng-template>
-
-
-<nz-card>
+<nz-card class="small-margin">
   <form nz-form #impuestoForm="ngForm">
     <ng-container *ngIf="{ lista: (listaDescuentos$ | async) } as context">
       <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
