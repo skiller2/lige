@@ -8,3 +8,40 @@
   padding: 0;
 }
 */
+
+//@alain-default-header-hg: auto;
+
+.ant-breadcrumb-separator {
+  margin: 0;
+}
+
+.alain-default__title nz-breadcrumb {
+  font-size: 19px;
+
+}
+
+
+.alain-default__title {
+  top: 35px;
+  z-index: 500;
+  text-align: center;
+  position: fixed;
+  width: 100%;  
+}
+
+  @media screen and (max-width: @mobile-max) {
+
+    .alain-default__title {
+      top: 45px;
+    }
+
+    .alain-default__title nz-breadcrumb {
+      font-size: 12px;
+    }
+    
+
+  }
+
+  .hide-ant-tabs-nav > nz-tabs-nav {
+    display: none !important;
+  }

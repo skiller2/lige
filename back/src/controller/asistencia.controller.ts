@@ -103,7 +103,7 @@ export class AsistenciaController extends BaseController {
           anio,
           mes,
           persona_cuit,
-          ObjetivoId,
+          Number(ObjetivoId),
           queryRunner
         );
         if (!auth)
@@ -370,7 +370,7 @@ export class AsistenciaController extends BaseController {
           anio,
           mes,
           persona_cuit,
-          ObjetivoId,
+          Number(ObjetivoId),
           queryRunner
         );
         if (!auth) throw `No tiene permisos para realizar operación`;
@@ -456,7 +456,7 @@ export class AsistenciaController extends BaseController {
           anio,
           mes,
           req.persona_cuit,
-          objetivoId,
+          Number(objetivoId),
           dataSource
         );
         if (!auth)
@@ -743,7 +743,7 @@ export class AsistenciaController extends BaseController {
           anio,
           mes,
           req.persona_cuit,
-          objetivoId,
+          Number(objetivoId),
           dataSource
         );
         if (!auth)

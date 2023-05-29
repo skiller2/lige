@@ -8,12 +8,13 @@ import { BehaviorSubject, Observable, debounceTime, filter, map, switchMap, tap,
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { STColumn, STComponent, STData } from '@delon/abc/st';
+import { NzAffixModule } from 'ng-zorro-antd/affix';
 
 @Component({
   selector: 'app-impuesto-afip',
   templateUrl: './impuesto-afip.component.html',
   standalone: true,
-  imports: [SharedModule, NzResizableModule],
+  imports: [SharedModule, NzResizableModule,NzAffixModule],
   styleUrls: ['./impuesto-afip.component.less'],
 })
 export class ImpuestoAfipComponent {
@@ -36,7 +37,7 @@ export class ImpuestoAfipComponent {
   columns2: STColumn[]=[
     { title: 'CUIT', index: 'CUIT', type: 'number', resizable: true,  },
     { title: 'Apellido Nombre', type: '', index: 'ApellidoNombre', exported: true },
-    { title: 'Sit Revista', type: '', index: 'PersonalEstado', exported: true },
+    { title: 'Sit Revista', type: '', index: 'SituacionRevistaDescripcion', exported: true },
     { title: 'Importe', type: 'currency', index: 'monto', exported: true },
     { title: 'CUIT Responsable', type: 'number', index: 'CUITJ', exported: true },
     { title: 'Apellido Nombre Responsable', type: '', index: 'ApellidoNombreJ', exported: true },

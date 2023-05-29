@@ -1,38 +1,42 @@
 <ng-template #phActionTpl>
-  <nz-button-group>
-    <button nz-button nzType="default" (click)="selectedTabIndex=0" >Carga</button>
-    <button nz-button nzType="default" (click)="selectedTabIndex=1">Consulta</button>
-    <button nz-button nzType="default" app-down-file httpUrl="api/impuestos_afip/download/{{anio}}/{{mes}}/{{selectedPersonalId}}">
- <span nz-icon nzType="download">Comprobantes</span></button>
-    <button nz-button nzType="dashed" (click)="st!.export(true,{
-      filename: 'via-data.xlsx', sheetname: 'monotributo'})" >XLS</button>
-  </nz-button-group>
 </ng-template>
 
-<page-header  [action]="phActionTpl"></page-header>
+
 <nz-card>
   <form nz-form #impuestoForm="ngForm">
     <ng-container *ngIf="{ lista: (listaDescuentos$ | async) } as context">
-      <nz-date-picker
-        nzMode="month"
-        name="periodo"
-        ngModel
-        (ngModelChange)="onChange($event)" />
-      <nz-tabset nzCentered [(nzSelectedIndex)]="selectedTabIndex" 	
-      >
+      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
+
+      <ul nz-menu nzMode="horizontal">
+        <li nz-menu-item nzSelected (click)="selectedTabIndex=0">
+          <span nz-icon nzType=""></span>
+          Carga
+        </li>
+        <li nz-menu-item nzSelected (click)="selectedTabIndex=1">
+          <span nz-icon nzType=""></span>
+          Listado
+        </li>
+
+      </ul>
+
+      <content>
+        <nz-button-group>
+          <button nz-button nzType="default" (click)="selectedTabIndex=0">Carga</button>
+          <button nz-button nzType="default" (click)="selectedTabIndex=1">Listado</button>
+        </nz-button-group>
+        <nz-button-group *ngIf="selectedTabIndex==1">
+          <button nz-button nzType="default" app-down-file
+            httpUrl="api/impuestos_afip/download/{{anio}}/{{mes}}/{{selectedPersonalId}}">
+            <span nz-icon nzType="download">Comprobantes</span></button>
+          <button nz-button nzType="dashed" (click)="st!.export(true,{
+          filename: 'via-data.xlsx', sheetname: 'monotributo'})">XLS</button>
+        </nz-button-group>
+      </content>
+
+      <nz-tabset nzCentered [(nzSelectedIndex)]="selectedTabIndex" class="hide-ant-tabs-nav">
         <nz-tab>
-          <div
-            *ngIf="context.lista?.RegistrosSinComprobantes && 1"
-            nz-col
-            nzXs="24"
-            nzSm="12"
-            nzMd="6"
-            class="mb-md">
-            <div
-              nz-row
-              nzType="flex"
-              nzAlign="middle"
-              class="ant-btn-danger rounded-md">
+          <div *ngIf="context.lista?.RegistrosSinComprobantes && 1" nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+            <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
               <div nz-col nzSpan="24" class="p-md text-white">
                 <div class="h2 mt0">
                   Pendientes: {{ context.lista?.RegistrosSinComprobantes }}
@@ -44,15 +48,8 @@
             </div>
           </div>
 
-          <nz-upload
-            class="d-block"
-            nzType="drag"
-            [nzMultiple]="true"
-            [nzData]="{ anio: anio, mes: mes }"
-            (nzChange)="handleChange($event)"
-            [nzAction]="url"
-            nzName="pdf"
-            [(nzFileList)]="files"
+          <nz-upload class="d-block" nzType="drag" [nzMultiple]="true" [nzData]="{ anio: anio, mes: mes }"
+            (nzChange)="handleChange($event)" [nzAction]="url" nzName="pdf" [(nzFileList)]="files"
             nzAccept="application/pdf">
             <p class="ant-upload-drag-icon">
               <span nz-icon nzType="inbox"></span>
@@ -61,7 +58,7 @@
               Clickeá or arrastrá archivos para cargar
             </p>
           </nz-upload>
-        
+
           <!-- <nz-table
             class="app-table"
             #tablaDescuentos
@@ -103,34 +100,23 @@
             </tbody>
           </nz-table> -->
         </nz-tab>
-      <nz-tab  [nzForceRender]="false">
-        <ng-template nz-tab>
+        <nz-tab [nzForceRender]="false">
+          <ng-template nz-tab>
 
-        <div nz-row nzJustify="space-around">
-          <div nz-col [nzSpan]="13" style="text-align: center">
-            <label>Persona Responsable:</label>
-            <app-personal-search
-              (ngModelChange)="formChanged($event)"
-              [(ngModel)]="selectedPersonalId"
-              [ngModelOptions]="{ standalone: true }" />
-          </div>
-        </div>
+            <div nz-row nzJustify="space-around">
+              <div nz-col [nzSpan]="13" style="text-align: center">
+                <label>Persona Responsable:</label>
+                <app-personal-search (ngModelChange)="formChanged($event)" [(ngModel)]="selectedPersonalId"
+                  [ngModelOptions]="{ standalone: true }" />
+              </div>
+            </div>
 
-        <st
-          #st
-          [data]="'/api/impuestos_afip/list'"
-          [res]="{ reName: { total: 'data.total', list: 'data.list' } }"
-          [req]="{ params: filters, method: 'POST', allInBody: true }"
-          [columns]="columns2"
-          class="mt-sm"
-          [widthMode]="{ type: 'strict' }"
-          virtualScroll
-          [scroll]="{  y: '70vh' }"
-          resizable
-          [page]="{show:false}"
-          ></st>
+            <st #st [data]="'/api/impuestos_afip/list'" [res]="{ reName: { total: 'data.total', list: 'data.list' } }"
+              [req]="{ params: filters, method: 'POST', allInBody: true }" [columns]="columns2" class="mt-sm"
+              [widthMode]="{ type: 'strict' }" virtualScroll [scroll]="{  y: '70vh' }" resizable [page]="{show:false}">
+            </st>
           </ng-template>
-      </nz-tab>
+        </nz-tab>
       </nz-tabset>
     </ng-container>
   </form>

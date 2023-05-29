@@ -36,6 +36,7 @@ import { LayoutBlankComponent } from './blank/blank.component';
 const COMPONENTS = [LayoutBasicComponent, LayoutBlankComponent];
 
 const HEADERCOMPONENTS = [
+  HeaderTitleComponent,
   HeaderSearchComponent,
   HeaderNotifyComponent,
   HeaderTaskComponent,
@@ -49,6 +50,8 @@ const HEADERCOMPONENTS = [
 
 // passport
 import { LayoutPassportComponent } from './passport/passport.component';
+import { HeaderTitleComponent } from './basic/widgets/title.component';
+import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
 const PASSPORT = [LayoutPassportComponent];
 
 @NgModule({
@@ -72,7 +75,8 @@ const PASSPORT = [LayoutPassportComponent];
     NzBadgeModule,
     NzAvatarModule,
     NzIconModule,
-    NzCardModule
+    NzCardModule,
+    NzBreadCrumbModule
   ],
   declarations: [...COMPONENTS, ...HEADERCOMPONENTS, ...PASSPORT],
   exports: [...COMPONENTS, ...PASSPORT]

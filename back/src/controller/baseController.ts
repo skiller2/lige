@@ -1,4 +1,5 @@
 import { Response } from "express";
+import { DataSource, QueryRunner } from "typeorm";
 
 export class BaseController {
   /**
@@ -72,11 +73,10 @@ export class BaseController {
     return false;
   }
 
-  async hasAuthObjetivo(anio, mes, persona_cuit, ObjetivoId, queryRunner) {
+  async hasAuthObjetivo(anio: number, mes: number, persona_cuit: any, ObjetivoId: number, queryRunner: DataSource | QueryRunner) {
     let fechaHastaAuth = new Date(anio, mes, 1);
     fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1);
-
-    let autorizado = false;
+    
     let resultAuth = await queryRunner.query(
       `SELECT suc.ObjetivoSucursalSucursalId,
          

@@ -56,7 +56,7 @@ export class ImpuestosAfipController extends BaseController {
       per.PersonalId PersonalId,
       des.PersonalOtroDescuentoId,
       cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
-      per.PersonalEstado,
+
       perrel.PersonalCategoriaPersonalId PersonalIdJ, perrel.OperacionesPersonalAsignarAJerarquicoDesde, perrel.OperacionesPersonalAsignarAJerarquicoHasta,
       cuit.PersonalCUITCUILCUIT AS CUITJ, CONCAT(TRIM(perjer.PersonalApellido), ', ', TRIM(perjer.PersonalNombre)) ApellidoNombreJ,
       des.PersonalOtroDescuentoImporteVariable monto, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, des.PersonalOtroDescuentoDescuentoId,
@@ -106,7 +106,7 @@ export class ImpuestosAfipController extends BaseController {
     this.jsonRes([
       { title: 'CUIT', index: 'CUIT', type: 'number', resizable: true, sort: { compare: (a, b) => a.price - b.price, } },
       { title: 'Apellido Nombre', type: '', index: 'ApellidoNombre', exported: true },
-      { title: 'Sit Revista', type: '', index: 'PersonalEstado', exported: true },
+      { title: 'Sit Revista', type: '', index: 'SituacionRevistaDescripcion', exported: true },
       { title: 'Importe', type: 'currency', index: 'monto', exported: true },
       { title: 'CUIT Responsable', type: 'number', index: 'CUITJ', exported: true },
       { title: 'Apellido Nombre Responsable', type: 'string', index: 'ApellidoNombreJ', exported: true },

@@ -16,8 +16,9 @@ export class AuthController extends BaseController {
         reconnect: false,
         connectTimeout: 5000,
         timeout: 5000,
-      });
-      client.on("connectError", (err: any) => {
+      },);
+      client.on("error", (err: any) => {
+        console.log('error',err)
         err.message = "Servicio de validación no disponible";
         return reject(err);
       });
@@ -36,8 +37,8 @@ export class AuthController extends BaseController {
         passowrd,
 
         (err: any) => {
-          assert.ifError(err);
-          //          if (err) return reject(err);
+          //assert.ifError(err);
+                    if (err) return reject(err);
         }
       );
 
