@@ -1,33 +1,26 @@
 <nz-card class="small-margin">
   <form nz-form #impuestoForm="ngForm">
     <ng-container *ngIf="{ lista: (listaDescuentos$ | async) } as context">
-      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
-
       <ul nz-menu nzMode="horizontal">
         <li nz-menu-item nzSelected (click)="selectedTabIndex=0">
           <span nz-icon nzType=""></span>
           Carga
         </li>
-        <li nz-menu-item nzSelected (click)="selectedTabIndex=1">
+        <li nz-menu-item (click)="selectedTabIndex=1">
           <span nz-icon nzType=""></span>
           Listado
         </li>
-
+        <li nz-submenu nzTitle="Acciones" *ngIf="selectedTabIndex==1">
+          <ul>
+            <li nz-menu-item app-down-file
+            httpUrl="api/impuestos_afip/download/{{anio}}/{{mes}}/{{selectedPersonalId}}"><span nz-icon nzType="download"></span>Comprobantes</li>
+            <li nz-menu-item (click)="st!.export(true,{
+              filename: 'via-data.xlsx', sheetname: 'monotributo'})"><span nz-icon nzType="download"></span>XLS</li>
+          </ul>
+        </li>
       </ul>
 
-      <content>
-        <nz-button-group>
-          <button nz-button nzType="default" (click)="selectedTabIndex=0">Carga</button>
-          <button nz-button nzType="default" (click)="selectedTabIndex=1">Listado</button>
-        </nz-button-group>
-        <nz-button-group *ngIf="selectedTabIndex==1">
-          <button nz-button nzType="default" app-down-file
-            httpUrl="api/impuestos_afip/download/{{anio}}/{{mes}}/{{selectedPersonalId}}">
-            <span nz-icon nzType="download">Comprobantes</span></button>
-          <button nz-button nzType="dashed" (click)="st!.export(true,{
-          filename: 'via-data.xlsx', sheetname: 'monotributo'})">XLS</button>
-        </nz-button-group>
-      </content>
+      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
 
       <nz-tabset nzCentered [(nzSelectedIndex)]="selectedTabIndex" class="hide-ant-tabs-nav">
         <nz-tab>
