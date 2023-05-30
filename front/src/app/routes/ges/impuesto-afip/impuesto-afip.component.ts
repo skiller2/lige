@@ -45,7 +45,6 @@ export class ImpuestoAfipComponent {
   ]
 
 
-  filters = {anio:'2023', mes:'3'}
 
   data: STData[] = Array(100)
     .fill({})
@@ -145,7 +144,6 @@ export class ImpuestoAfipComponent {
     setTimeout(() => {
       const now = new Date(); //date
       const anio = Number(localStorage.getItem('anio')) > 0 ? localStorage.getItem('anio') : now.getFullYear();
-
       const mes = Number(localStorage.getItem('mes')) > 0 ? localStorage.getItem('mes') : now.getMonth() + 1;
       this.impuestoForm.form.get('periodo')?.setValue(new Date(Number(anio), Number(mes) - 1, 1));
     }, 1);
@@ -155,8 +153,6 @@ export class ImpuestoAfipComponent {
         this.apiService.downloadComprobante(data.CUIT, data.PersonalId, this.anio, this.mes).subscribe();
       }
     });
-
-
 
 //    this.st?.scroll()
   }

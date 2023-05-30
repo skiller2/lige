@@ -10,6 +10,17 @@ import { DownloadService } from './download.service';
   providedIn: 'root',
 })
 export class ApiService {
+  getPersonaMonotributo(year: number, month: number, personalId: number) {
+    if (personalId == 0) return of([])
+
+    return this.http.get<ResponseJSON<any[]>>(`api/personal/monotributo/${personalId}/${year}/${month}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
   constructor(private http: _HttpClient, private injector: Injector, private downloadService: DownloadService) {}
 
   private get notification(): NzNotificationService {

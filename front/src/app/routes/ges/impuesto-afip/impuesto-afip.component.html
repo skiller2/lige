@@ -101,7 +101,7 @@
             </div>
 
             <st #st [data]="'/api/impuestos_afip/list'" [res]="{ reName: { total: 'data.total', list: 'data.list' } }"
-              [req]="{ params: filters, method: 'POST', allInBody: true }" [columns]="columns2" class="mt-sm"
+              [req]="{ params: {anio, mes}, method: 'POST', allInBody: true }" [columns]="columns2" class="mt-sm"
               [widthMode]="{ type: 'strict' }" virtualScroll [scroll]="{  y: '70vh' }" resizable [page]="{show:false}">
             </st>
           </ng-template>
