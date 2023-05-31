@@ -117,7 +117,7 @@ export class AsistenciaController extends BaseController {
                 JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = percat.PersonalCategoriaTipoAsociadoId AND  cat.CategoriaPersonalId = percat.PersonalCategoriaCategoriaPersonalId
                 WHERE per.PersonalId = @0 AND percat.PersonalCategoriaDesde <= @1 AND (percat.PersonalCategoriaHasta >= @1 OR percat.PersonalCategoriaHasta IS NULL)
                 `,
-        [PersonaId, fechaDesde]
+        [Number(PersonaId), fechaDesde]
       );
 
       let row: any;

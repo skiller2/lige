@@ -101,8 +101,16 @@
             </div>
 
             <st #st [data]="'/api/impuestos_afip/list'" [res]="{ reName: { total: 'data.total', list: 'data.list' } }"
-              [req]="{ params: {anio, mes}, method: 'POST', allInBody: true }" [columns]="columns2" class="mt-sm"
-              [widthMode]="{ type: 'strict' }" virtualScroll [scroll]="{  y: '70vh' }" resizable [page]="{show:false}">
+              [req]="{ lazyLoad:true, params: {anio, mes, personalIdRel:selectedPersonalId}, method: 'POST', allInBody: true }" [columns]="columns2" class="mt-sm"
+              [widthMode]="{ type: 'strict' }" virtualScroll [scroll]="{  y: stsizey }" resizable [page]="{show:false}"
+              
+              >
+
+              <ng-template st-row="cusImporte" let-item >
+                <span nz-tooltip [nzTooltipTitle]="">{{ item.monto | currency }}</span>
+                <a *ngIf="item.monto>0" app-down-file title="Comprobante {{item.PersonalOtroDescuentoMesesAplica}}/{{item.PersonalOtroDescuentoAnoAplica}}" httpUrl="api/impuestos_afip/{{item.PersonalOtroDescuentoAnoAplica}}/{{item.PersonalOtroDescuentoMesesAplica}}/0/{{item.PersonalId}}"><span class="pl-xs" nz-icon nzType="download"></span></a>
+              </ng-template>
+
             </st>
           </ng-template>
         </nz-tab>

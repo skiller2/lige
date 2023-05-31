@@ -86,30 +86,7 @@ export class ApiService {
       .pipe(tap(res => this.response(res)));
   }
 
-  downloadComprobante(cuit: number, personalId: number, year: number, month: number) {
-    return this.http
-      .get<Blob>(
-        `api/impuestos_afip/${year}/${month}/${cuit}/${personalId}`,
-        {},
-        { observe: 'response', responseType: 'blob' as 'json' }
-      )
-      .pipe(
-        tap({
-          next: resp => {
-            const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-            const contentDisposition: string = resp.headers.get('content-disposition') || '';
-            const matches = filenameRegex.exec(contentDisposition);
-            let filename: string = '';
-            if (matches != null && matches[1]) {
-              filename = matches[1].replace(/['"]/g, '');
-            }
-
-            this.downloadService.downloadBlob(resp.body!, filename, 'application/pdf');
-          },
-        })
-      );
-  }
-
+  
   response(res: ResponseJSON<any>) {
     this.notification.success('Respuesta', res.msg);
   }
