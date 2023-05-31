@@ -35,12 +35,12 @@ export class ImpuestoAfipComponent {
   columns$ = this.apiService.get('/api/impuestos_afip/cols')
 
   columns2: STColumn[] = [
-    { title: 'CUIT', index: 'CUIT', type: 'number', resizable: true, },
-    { title: 'Apellido Nombre', type: '', index: 'ApellidoNombre', exported: true },
-    { title: 'Sit Revista', type: '', index: 'SituacionRevistaDescripcion', exported: true },
-    { title: 'Importe', type: 'currency', index: 'monto', exported: true, render: 'cusImporte' },
-    { title: 'CUIT Responsable', type: 'number', index: 'CUITJ', exported: true },
-    { title: 'Apellido Nombre Responsable', type: '', index: 'ApellidoNombreJ', exported: true },
+    { title: 'CUIT', index: 'CUIT', type: 'number',  exported: true, sort:true, filter:{type:'keyword'},resizable: true },
+    { title: 'Apellido Nombre', type: '', index: 'ApellidoNombre', exported: true, sort:true, filter:{type:'keyword'}, resizable: true },
+    { title: 'Sit Revista', type: '', index: 'SituacionRevistaDescripcion', resizable: true, exported: true, sort:true },
+    { title: 'Importe', type: 'currency', index: 'monto', resizable: true, exported: true, render: 'cusImporte', sort:true },
+    { title: 'CUIT Responsable', type: 'number', index: 'CUITJ', resizable: true, exported: true  , sort:true},
+    { title: 'Apellido Nombre Responsable', type: '', index: 'ApellidoNombreJ', resizable: true, exported: true , sort:true},
 //    { title: 'ID Descuento', type: 'number', index: 'PersonalOtroDescuentoId', exported: false, },
   ]
 

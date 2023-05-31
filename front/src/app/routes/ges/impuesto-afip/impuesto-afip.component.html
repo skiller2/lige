@@ -1,4 +1,4 @@
-<nz-card class="small-margin">
+<nz-card class="small-margin" >
   <form nz-form #impuestoForm="ngForm">
     <ng-container *ngIf="{ lista: (listaDescuentos$ | async) } as context">
       <ul nz-menu nzMode="horizontal">
@@ -89,8 +89,8 @@
             </tbody>
           </nz-table> -->
         </nz-tab>
-        <nz-tab [nzForceRender]="false">
-          <ng-template nz-tab>
+        <nz-tab [nzForceRender]="false" >
+          <ng-template nz-tab >
 
             <div nz-row nzJustify="space-around">
               <div nz-col [nzSpan]="13" style="text-align: center">
@@ -102,8 +102,8 @@
 
             <st #st [data]="'/api/impuestos_afip/list'" [res]="{ reName: { total: 'data.total', list: 'data.list' } }"
               [req]="{ lazyLoad:true, params: {anio, mes, personalIdRel:selectedPersonalId}, method: 'POST', allInBody: true }" [columns]="columns2" class="mt-sm"
-              [widthMode]="{ type: 'strict' }" virtualScroll [scroll]="{  y: stsizey }" resizable [page]="{show:false}"
-              
+               virtualScroll [scroll]="{  y: 'calc(100vh - 310px)' }" resizable [page]="{show:false}"
+               [widthMode]="{ type: 'strict' }"
               >
 
               <ng-template st-row="cusImporte" let-item >
