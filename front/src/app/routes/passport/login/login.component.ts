@@ -1,10 +1,25 @@
 import { HttpContext } from '@angular/common/http';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnDestroy, Optional } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  OnDestroy,
+  Optional,
+} from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { StartupService } from '@core';
 import { ReuseTabService } from '@delon/abc/reuse-tab';
-import { ALLOW_ANONYMOUS, DA_SERVICE_TOKEN, ITokenModel, ITokenService, JWTTokenModel, SocialOpenType, SocialService } from '@delon/auth';
+import {
+  ALLOW_ANONYMOUS,
+  DA_SERVICE_TOKEN,
+  ITokenModel,
+  ITokenService,
+  JWTTokenModel,
+  SocialOpenType,
+  SocialService,
+} from '@delon/auth';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { environment } from '@env/environment';
 import { NzTabChangeEvent } from 'ng-zorro-antd/tabs';
@@ -15,7 +30,7 @@ import { catchError, finalize, Observable, of, take } from 'rxjs';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.less'],
   providers: [SocialService],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserLoginComponent implements OnDestroy {
   constructor(
@@ -30,7 +45,7 @@ export class UserLoginComponent implements OnDestroy {
     private startupSrv: StartupService,
     private http: _HttpClient,
     private cdr: ChangeDetectorRef
-  ) { }
+  ) {}
 
   // #region fields
 
@@ -39,12 +54,13 @@ export class UserLoginComponent implements OnDestroy {
     password: ['', [Validators.required, Validators.pattern(/^(.*)$/)]],
     mobile: ['', [Validators.required, Validators.pattern(/^1\d{10}$/)]],
     captcha: ['', [Validators.required]],
-    remember: [true]
+    remember: [true],
   });
   error = '';
   type = 0;
   loading = false;
 
+  passwordVisible: boolean = false;
   // #region get captcha
 
   count = 0;
@@ -106,16 +122,16 @@ export class UserLoginComponent implements OnDestroy {
         {
           type: this.type,
           userName: this.form.value.userName,
-          password: this.form.value.password
+          password: this.form.value.password,
         },
         null,
         {
-          context: new HttpContext().set(ALLOW_ANONYMOUS, false)
+          context: new HttpContext().set(ALLOW_ANONYMOUS, false),
         }
       )
       .pipe(
         take(1),
-        catchError((err) => {
+        catchError(err => {
           this.error = err.error.msg;
           return of();
         }),
@@ -124,42 +140,39 @@ export class UserLoginComponent implements OnDestroy {
           this.cdr.detectChanges();
         })
       )
-      .subscribe(
-        res => {
-          // 清空路由复用信息
-          this.reuseTabService.clear();
-          // 设置用户Token信息
-          // TODO: Mock expired value
-          //res.user.expired = +new Date() + 1000 * 60 * 5;
-          //this.tokenService.set(res.user);
+      .subscribe(res => {
+        // 清空路由复用信息
+        this.reuseTabService.clear();
+        // 设置用户Token信息
+        // TODO: Mock expired value
+        //res.user.expired = +new Date() + 1000 * 60 * 5;
+        //this.tokenService.set(res.user);
 
-          this.reuseTabService.clear();
+        this.reuseTabService.clear();
 
-          const tokenTmp: ITokenModel = {
-            expired: 0,
-            token: res.data.token
-          };
-          this.tokenService.set(tokenTmp);
-          const tkndec: any = this.tokenService.get(JWTTokenModel);
+        const tokenTmp: ITokenModel = {
+          expired: 0,
+          token: res.data.token,
+        };
+        this.tokenService.set(tokenTmp);
+        const tkndec: any = this.tokenService.get(JWTTokenModel);
 
-          const token: ITokenModel = {
-            expired: tkndec.exp,
-            token: res.data.token
-          };
-          this.tokenService.set(token);
+        const token: ITokenModel = {
+          expired: tkndec.exp,
+          token: res.data.token,
+        };
+        this.tokenService.set(token);
 
-          // 重新获取 StartupService 内容，我们始终认为应用信息一般都会受当前用户授权范围而影响
+        // 重新获取 StartupService 内容，我们始终认为应用信息一般都会受当前用户授权范围而影响
 
-          this.startupSrv.load().subscribe((_res: any) => {
-            let url = this.tokenService.referrer!.url || '/';
-            if (url.includes('/passport')) {
-              url = '/';
-            }
-            this.router.navigateByUrl(url).catch();
-          })
-
-        }
-      );
+        this.startupSrv.load().subscribe((_res: any) => {
+          let url = this.tokenService.referrer!.url || '/';
+          if (url.includes('/passport')) {
+            url = '/';
+          }
+          this.router.navigateByUrl(url).catch();
+        });
+      });
   }
 
   // #region social
@@ -174,7 +187,9 @@ export class UserLoginComponent implements OnDestroy {
     }
     switch (type) {
       case 'auth0':
-        url = `//cipchk.auth0.com/login?client=8gcNydIDzGBYxzqV0Vm1CX_RXH-wsWo5&redirect_uri=${decodeURIComponent(callback)}`;
+        url = `//cipchk.auth0.com/login?client=8gcNydIDzGBYxzqV0Vm1CX_RXH-wsWo5&redirect_uri=${decodeURIComponent(
+          callback
+        )}`;
         break;
       case 'github':
         url = `//github.com/login/oauth/authorize?client_id=9d6baae4b04a23fcafa2&response_type=code&redirect_uri=${decodeURIComponent(
@@ -182,13 +197,15 @@ export class UserLoginComponent implements OnDestroy {
         )}`;
         break;
       case 'weibo':
-        url = `https://api.weibo.com/oauth2/authorize?client_id=1239507802&response_type=code&redirect_uri=${decodeURIComponent(callback)}`;
+        url = `https://api.weibo.com/oauth2/authorize?client_id=1239507802&response_type=code&redirect_uri=${decodeURIComponent(
+          callback
+        )}`;
         break;
     }
     if (openType === 'window') {
       this.socialService
         .login(url, '/', {
-          type: 'window'
+          type: 'window',
         })
         .subscribe(res => {
           if (res) {
@@ -198,7 +215,7 @@ export class UserLoginComponent implements OnDestroy {
         });
     } else {
       this.socialService.login(url, '/', {
-        type: 'href'
+        type: 'href',
       });
     }
   }
