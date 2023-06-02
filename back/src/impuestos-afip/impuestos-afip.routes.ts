@@ -86,7 +86,38 @@ impuestosAfipRouter.post("", authMiddleware.verifyToken, (req, res) => {
 
     // SUCCESS
     else {
-      impuestosAfipController.handlePDFUpload(req, res);
+      impuestosAfipController.handlePDFUpload(req, res, false);
+    }
+  });
+});
+impuestosAfipRouter.post("forzado", authMiddleware.verifyToken, (req, res) => {
+  upload(req, res, (err) => {
+    // FILE SIZE ERROR
+    if (err instanceof multer.MulterError) {
+      return res.status(409).json({
+        msg: "Max file size 10MB allowed!",
+        data: [],
+        stamp: new Date(),
+      });
+    }
+
+    // INVALID FILE TYPE, message will return from fileFilter callback
+    else if (err) {
+      return res
+        .status(409)
+        .json({ msg: err.message, data: [], stamp: new Date() });
+    }
+
+    // FILE NOT SELECTED
+    else if (!req.file) {
+      return res
+        .status(409)
+        .json({ msg: "File is required!", data: [], stamp: new Date() });
+    }
+
+    // SUCCESS
+    else {
+      impuestosAfipController.handlePDFUpload(req, res, true);
     }
   });
 });
@@ -123,19 +154,10 @@ impuestosAfipRouter.get(
   }
 );
 
+impuestosAfipRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
+  impuestosAfipController.getDescuentosGridCols(req, res);
+});
 
-impuestosAfipRouter.get(
-  "/cols",
-  authMiddleware.verifyToken,
-  (req, res) => {
-    impuestosAfipController.getDescuentosGridCols(req, res);
-  }
-);
-
-impuestosAfipRouter.post(
-  "/list",
-  authMiddleware.verifyToken,
-  (req, res) => {
-    impuestosAfipController.getDescuentosGridList(req, res);
-  }
-);
+impuestosAfipRouter.post("/list", authMiddleware.verifyToken, (req, res) => {
+  impuestosAfipController.getDescuentosGridList(req, res);
+});
