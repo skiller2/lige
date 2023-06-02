@@ -120,6 +120,7 @@ export class AsistenciaController extends BaseController {
         [Number(PersonaId), fechaDesde]
       );
 
+      
       let row: any;
       if ((row = result[0])) {
         if (metodologia == "E") {

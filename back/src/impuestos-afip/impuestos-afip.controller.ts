@@ -10,7 +10,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from "fs";
-import { TextContent, TextItem } from "pdfjs-dist/types/src/display/api";
+import { TextContent, TextItem, TextMarkedContent, TextStyle } from "pdfjs-dist/types/src/display/api";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf";
 import { dataSource } from "../data-source";
 import {
@@ -29,10 +29,10 @@ import { DescuentoJSON } from "src/schemas/ResponseJSON";
 import { readFile } from "fs/promises";
 import { BoundingBox } from "pdf-lib/cjs/types/fontkit";
 
-const cuitRegex = /^\d{11}$/;
-const periodoRegex = /^PERIODO FISCAL ([0-9]{4})\/([0-9]{2})/;
+const cuitRegex = [/:\d{2}\n(\d{11})$/m,/CUIT\/CUIL\/CDI\n(\d{11})/m]
+const periodoRegex = [/PERIODO FISCAL (\d*)\/(\d*)/m,/^Fecha Retención\/Percepción\n\d{2}\/(\d{2})\/(\d{4})$/m]
 const importeMontoRegex =
-  /^\$[\s*](([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))?$/;
+  [/^\$[\s*](([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))?$/m,/Monto de la Retenci.n\/Percepci.n\n(\d*.\d{2})/m]
 
 export class ImpuestosAfipController extends BaseController {
   directory = process.env.PATH_MONOTRIBUTO;
@@ -192,15 +192,46 @@ export class ImpuestosAfipController extends BaseController {
 
       const page = await document.getPage(1);
       const textContent = await page.getTextContent();
-      // console.log(textContent);
-      const [, periodoAnio, periodoMes] = this.getByRegex(
-        textContent,
-        periodoRegex,
-        new Error("No se pudo encontrar el periodo.")
+
+
+      const textContentItems:(TextItem | TextMarkedContent)[] = textContent.items.filter(function(value:any, index, arr){ 
+        return value.str.trim() != '';
+      });
+
+
+      let textdocument=""
+
+      textContent.items.forEach((item: TextItem) => {
+        if (item.str.trim()!="")
+          textdocument += item.str.trim() + '\n'
+
+      })
+
+      let [, periodoAnio, periodoMes] = this.getByRegexText(textdocument, periodoRegex, new Error("No se pudo encontrar el periodo."))
+
+      const [,CUIT] = this.getByRegexText(textdocument,
+        cuitRegex,
+        new Error("No se pudo encontrar el CUIT.")
       );
 
-      const periodoIsValid =
-        Number(periodoAnio) == anioRequest && Number(periodoMes) == mesRequest;
+
+      const [, importeMontoTemp] = this.getByRegexText(textdocument,
+        importeMontoRegex,
+        new Error("No se pudo encontrar el monto.")
+      );
+      const importeMonto = parseFloat(importeMontoTemp.replace(",", "."));
+
+      let periodoIsValid =
+        Number(periodoAnio) == anioRequest && Number(periodoMes) == mesRequest
+      
+      if (!periodoIsValid) { 
+        const tmp = periodoAnio
+        periodoAnio = periodoMes
+        periodoMes =  tmp
+      }
+
+      periodoIsValid = Number(periodoAnio) == anioRequest && Number(periodoMes) == mesRequest
+          
 
       if (!periodoIsValid)
         throw new Error(
@@ -209,24 +240,15 @@ export class ImpuestosAfipController extends BaseController {
           )}.`
         );
 
-      const [, importeMontoTemp] = this.getByRegex(
-        textContent,
-        importeMontoRegex,
-        new Error("No se pudo encontrar el monto.")
-      );
 
-      const importeMonto = parseFloat(importeMontoTemp.replace(",", "."));
 
-      const [CUIT] = this.getByRegex(
-        textContent,
-        cuitRegex,
-        new Error("No se pudo encontrar el CUIT.")
-      );
+
 
       const [personalIDQuery] = await queryRunner.query(
         "SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro OtroDescuentoId, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre FROM PersonalCUITCUIL cuit JOIN Personal per ON per.PersonalId = cuit.PersonalId WHERE cuit.PersonalCUITCUILCUIT = @0",
         [CUIT]
       );
+
       const personalID = personalIDQuery.PersonalId;
       if (!personalID) throw new Error(`No se pudo encontrar el CUIT ${CUIT}`);
 
@@ -287,12 +309,29 @@ export class ImpuestosAfipController extends BaseController {
     }
   }
 
+  getByRegexText(txt: string, regexExp: RegExp[],
+    err = new Error("Could not find content.")
+  ): RegExpMatchArray { 
+
+    let result: RegExpMatchArray
+
+    for (const re of regexExp) { 
+      result = txt.match(re)
+      console.log('res',result,re)
+      if (result) break
+    }
+
+    if (!result) throw err;
+    return result;
+  }
+
+
   getByRegex(
-    textContent: TextContent,
+    textContentItems: (TextItem | TextMarkedContent)[],
     regex: RegExp,
     err = new Error("Could not find content.")
   ): RegExpMatchArray {
-    const result = textContent.items.find((item) =>
+    const result = textContentItems.find((item) =>
       regex.test((item as TextItem).str)
     );
     if (!result) throw err;
