@@ -146,11 +146,13 @@ export class ImpuestoAfipComponent {
   ngOnInit() {
     this.resizeObservable$ = fromEvent(window, 'resize')
     this.resizeSubscription$ = this.resizeObservable$.pipe(debounceTime(500)).subscribe(evt => {
-      console.log('window.innerHeight', window.innerHeight)
-      const height= window.innerHeight-200
+//      console.log('window.innerHeight', window.innerHeight)
+// /      const height= window.innerHeight-200
 //      this.st!.scroll = { y: "${height}px" }
 //      this.st?.reset()  //Recarga la grilla
-      this.stsizey = "${height}px"
+
+//  this.st?._columns.
+//      this.stsizey = "${height}px"
     })
 }
 
