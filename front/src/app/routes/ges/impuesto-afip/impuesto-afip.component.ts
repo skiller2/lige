@@ -153,6 +153,7 @@ export class ImpuestoAfipComponent {
 
 //  this.st?._columns.
 //      this.stsizey = "${height}px"
+//      this.st?.resetColumns({})
     })
 }
 
