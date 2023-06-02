@@ -24,6 +24,17 @@ personalRouter.get(
   }
 );
 
+
+personalRouter.get(
+  `${base}/monotributo/:personalId/:anio/:mes`,
+  authMiddleware.verifyToken,
+  (req, res) => {
+    personalController.getPersonalMonotributo(req, res);
+  }
+);
+
+
 personalRouter.get(`${base}/name/:personalId`, (req, res) => {
   personalController.getNameFromId(req.params.personalId, res);
 });
+

@@ -80,7 +80,8 @@ export class ImpuestosAfipController extends BaseController {
    AND DATEFROMPARTS(@1,@2,28) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
      AND excep.PersonalExencionCUIT IS NULL
 
-	AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7) 
+	AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
+
      ${extrafilter} 
    `,
       [, options.anio, options.mes, options.descuentoId, options.personalIdRel]
@@ -129,7 +130,6 @@ export class ImpuestosAfipController extends BaseController {
         descuentoId,
         personalIdRel
       });
-
       this.jsonRes(
         {
           total: result.length,
@@ -448,18 +448,8 @@ export class ImpuestosAfipController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
 
     const dirtmp = `${process.env.PATH_MONOTRIBUTO}/temp`;
-    const filename = `${year}-${month.padStart(
-      2,
-      "0"
-    )}-${cuit}-${personalId}.pdf`;
-    const downloadPath = `${this.directory}/${year}/${filename}`;
     const tmpfilename = `${dirtmp}/${tmpName(dirtmp)}`;
     try {
-      if (!existsSync(downloadPath))
-        throw new Error(`El archivo no existe (${downloadPath}).`);
-
-      const uint8Array = readFileSync(downloadPath);
-
       const [personalQuery] = await queryRunner.query(
         `SELECT DISTINCT
         per.PersonalId PersonalId,
@@ -482,6 +472,19 @@ export class ImpuestosAfipController extends BaseController {
         [personalId, year, month]
       );
       const personalID = personalQuery.PersonalId;
+      const cuit = personalQuery.CUIT;
+
+      const filename = `${year}-${month.padStart(
+        2,
+        "0"
+      )}-${cuit}-${personalId}.pdf`;
+      const downloadPath = `${this.directory}/${year}/${filename}`;
+  
+      if (!existsSync(downloadPath))
+        throw new Error(`El archivo no existe (${downloadPath}).`);
+
+      const uint8Array = readFileSync(downloadPath);
+
       if (!personalID)
         throw new Error(`No se pudo encontrar la persona ${personalId}`);
       const ApellidoNombre = personalQuery.ApellidoNombre;

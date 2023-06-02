@@ -1,10 +1,36 @@
-import { Response } from "express";
 import { BaseController } from "./baseController";
 import { PersonaObj } from "../schemas/personal.schemas";
 import fetch, { Request } from "node-fetch";
 import { dataSource } from "../data-source";
+import {  Response } from "express-serve-static-core";
+import { ParsedQs } from "qs";
 
 export class PersonalController extends BaseController {
+  async getPersonalMonotributo(req: any, res: Response) {
+    const personalId = req.params.personalId;
+    const anio = req.params.anio;
+    const mes = req.params.mes;
+    try {
+      const result = await dataSource.query(
+        `SELECT des.PersonalId,des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoAnoAplica FROM PersonalOtroDescuento des WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = @1 AND des.PersonalOtroDescuentoAnoAplica = @2 AND des.PersonalOtroDescuentoMesesAplica = @3`,
+        [
+          personalId,
+          Number(process.env.OTRO_DESCUENTO_ID),
+          anio,
+          mes,
+        ]
+      )
+
+      this.jsonRes(result, res);
+    } catch (err) {
+      this.errRes(err, res, "Error accediendo a la base de datos", 409)
+    }
+
+
+
+
+  }
+  
   async getNameFromId(PersonalId, res: Response) {
     try {
       const result = await dataSource.query(
@@ -147,7 +173,13 @@ export class PersonalController extends BaseController {
           query += ` cuit.PersonalCUITCUILCUIT LIKE '%${value.trim()}%' AND `;
           buscar = true;
         }
-
+        break;
+      case "PersonalId":
+        if (value > 0) {
+          query += ` per.PersonalId = '${value}' AND `;
+          buscar = true;
+        }
+        break;
       default:
         break;
     }

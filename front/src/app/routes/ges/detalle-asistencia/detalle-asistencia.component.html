@@ -219,6 +219,15 @@
           </nz-form-control>
         </nz-form-item>
         <nz-form-item>
+          <nz-form-label [nzSpan]="5">Monotributo</nz-form-label>
+          <nz-form-control>
+            <nz-list nzBordered nzSize="small">
+              <nz-list-item *ngFor="let monotributo of $personaMonotributo | async">
+                <a app-down-file httpUrl="api/impuestos_afip/{{monotributo.PersonalOtroDescuentoAnoAplica}}/{{monotributo.PersonalOtroDescuentoMesesAplica}}/0/{{monotributo.PersonalId}}"><span nz-icon nzType="download"></span>Comprobante {{monotributo.PersonalOtroDescuentoMesesAplica}}/{{monotributo.PersonalOtroDescuentoAnoAplica}}</a></nz-list-item>
+              </nz-list>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
           <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
           <nz-form-control>
             <ng-container

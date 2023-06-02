@@ -10,6 +10,17 @@ import { DownloadService } from './download.service';
   providedIn: 'root',
 })
 export class ApiService {
+  getPersonaMonotributo(year: number, month: number, personalId: number) {
+    if (personalId == 0) return of([])
+
+    return this.http.get<ResponseJSON<any[]>>(`api/personal/monotributo/${personalId}/${year}/${month}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
   constructor(private http: _HttpClient, private injector: Injector, private downloadService: DownloadService) {}
 
   private get notification(): NzNotificationService {
@@ -75,30 +86,7 @@ export class ApiService {
       .pipe(tap(res => this.response(res)));
   }
 
-  downloadComprobante(cuit: number, personalId: number, year: number, month: number) {
-    return this.http
-      .get<Blob>(
-        `api/impuestos_afip/${year}/${month}/${cuit}/${personalId}`,
-        {},
-        { observe: 'response', responseType: 'blob' as 'json' }
-      )
-      .pipe(
-        tap({
-          next: resp => {
-            const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-            const contentDisposition: string = resp.headers.get('content-disposition') || '';
-            const matches = filenameRegex.exec(contentDisposition);
-            let filename: string = '';
-            if (matches != null && matches[1]) {
-              filename = matches[1].replace(/['"]/g, '');
-            }
-
-            this.downloadService.downloadBlob(resp.body!, filename, 'application/pdf');
-          },
-        })
-      );
-  }
-
+  
   response(res: ResponseJSON<any>) {
     this.notification.success('Respuesta', res.msg);
   }

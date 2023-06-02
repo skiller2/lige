@@ -4,7 +4,7 @@ import { SharedModule } from '@shared';
 import { NzResizableModule } from 'ng-zorro-antd/resizable';
 import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } from 'ng-zorro-antd/table';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
-import { BehaviorSubject, Observable, debounceTime, filter, map, switchMap, tap, throttleTime } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, debounceTime, filter, fromEvent, map, of, switchMap, tap, throttleTime } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { STColumn, STComponent, STData } from '@delon/abc/st';
@@ -14,14 +14,14 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
   selector: 'app-impuesto-afip',
   templateUrl: './impuesto-afip.component.html',
   standalone: true,
-  imports: [SharedModule, NzResizableModule,NzAffixModule],
+  imports: [SharedModule, NzResizableModule, NzAffixModule],
   styleUrls: ['./impuesto-afip.component.less'],
 })
 export class ImpuestoAfipComponent {
   @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm = new NgForm([], [])
-  @ViewChild('st') st: STComponent | undefined
+  @ViewChild('st', { static: false }) st: STComponent | undefined
 
-  constructor(public apiService: ApiService) {}
+  constructor(public apiService: ApiService) { }
   selectedDate = null;
   anio = 0;
   mes = 0;
@@ -29,23 +29,22 @@ export class ImpuestoAfipComponent {
   files: NzUploadFile[] = [];
   selectedTabIndex = 0
   selectedPersonalId = null;
-  formChange$ = new BehaviorSubject('');
-  tableLoading$ = new BehaviorSubject(false);
-
+  formChange$ = new BehaviorSubject('')
+  tableLoading$ = new BehaviorSubject(false)
+  stsizey = "100px"
   columns$ = this.apiService.get('/api/impuestos_afip/cols')
 
-  columns2: STColumn[]=[
-    { title: 'CUIT', index: 'CUIT', type: 'number', resizable: true,  },
-    { title: 'Apellido Nombre', type: '', index: 'ApellidoNombre', exported: true },
-    { title: 'Sit Revista', type: '', index: 'SituacionRevistaDescripcion', exported: true },
-    { title: 'Importe', type: 'currency', index: 'monto', exported: true },
-    { title: 'CUIT Responsable', type: 'number', index: 'CUITJ', exported: true },
-    { title: 'Apellido Nombre Responsable', type: '', index: 'ApellidoNombreJ', exported: true },
-    { title: 'ID Descuento', type: 'number', index: 'PersonalOtroDescuentoId', exported: true },
+  columns2: STColumn[] = [
+    { title: 'CUIT', index: 'CUIT', type: 'number',  exported: true, sort:true, filter:{type:'keyword'},resizable: true },
+    { title: 'Apellido Nombre', type: '', index: 'ApellidoNombre', exported: true, sort:true, filter:{type:'keyword'}, resizable: true },
+    { title: 'Sit Revista', type: '', index: 'SituacionRevistaDescripcion', resizable: true, exported: true, sort:true },
+    { title: 'Importe', type: 'currency', index: 'monto', resizable: true, exported: true, render: 'cusImporte', sort:true },
+    { title: 'CUIT Responsable', type: 'number', index: 'CUITJ', resizable: true, exported: true  , sort:true},
+    { title: 'Apellido Nombre Responsable', type: '', index: 'ApellidoNombreJ', resizable: true, exported: true , sort:true},
+//    { title: 'ID Descuento', type: 'number', index: 'PersonalOtroDescuentoId', exported: false, },
   ]
 
 
-  filters = {anio:'2023', mes:'3'}
 
   data: STData[] = Array(100)
     .fill({})
@@ -67,9 +66,10 @@ export class ImpuestoAfipComponent {
   };
 
   listaDescuentos$ = this.formChange$.pipe(
-    debounceTime(2000),
-    switchMap(() =>
-      this.apiService.getDescuentoByPeriodo(this.anio, this.mes, this.selectedPersonalId || 0).pipe(
+    debounceTime(1000),
+    switchMap(() => {
+      this.st?.reload()
+      return this.apiService.getDescuentoByPeriodo(this.anio, this.mes, this.selectedPersonalId || 0).pipe(
         map(items => {
           if (items) if (this.selectedPersonalId == null) return items;
           return {
@@ -81,7 +81,7 @@ export class ImpuestoAfipComponent {
         doOnSubscribe(() => this.tableLoading$.next(true)),
         tap({ complete: () => this.tableLoading$.next(false) })
       )
-    )
+    })
   );
   listOfColumns: ColumnItem[] = [
     {
@@ -139,23 +139,28 @@ export class ImpuestoAfipComponent {
       filterFn: null,
     },
   ];
-  downloadAction$ = new BehaviorSubject<null | DescuentoJSON>(null);
+
+  resizeObservable$: Observable<Event> | undefined
+  resizeSubscription$: Subscription | undefined
+
+  ngOnInit() {
+    this.resizeObservable$ = fromEvent(window, 'resize')
+    this.resizeSubscription$ = this.resizeObservable$.pipe(debounceTime(500)).subscribe(evt => {
+      console.log('window.innerHeight', window.innerHeight)
+      const height= window.innerHeight-200
+//      this.st!.scroll = { y: "${height}px" }
+//      this.st?.reset()  //Recarga la grilla
+      this.stsizey = "${height}px"
+    })
+}
 
   ngAfterViewInit(): void {
     setTimeout(() => {
       const now = new Date(); //date
       const anio = Number(localStorage.getItem('anio')) > 0 ? localStorage.getItem('anio') : now.getFullYear();
-
       const mes = Number(localStorage.getItem('mes')) > 0 ? localStorage.getItem('mes') : now.getMonth() + 1;
       this.impuestoForm.form.get('periodo')?.setValue(new Date(Number(anio), Number(mes) - 1, 1));
     }, 1);
-
-    this.downloadAction$.pipe(throttleTime(3000)).subscribe(data => {
-      if (data) {
-        this.apiService.downloadComprobante(data.CUIT, data.PersonalId, this.anio, this.mes).subscribe();
-      }
-    });
-
 
 
 //    this.st?.scroll()
@@ -193,11 +198,11 @@ export class ImpuestoAfipComponent {
   }
 
   formChanged(_event: string) {
-    this.formChange$.next('');
+    this.formChange$.next('')
   }
 
   ngOnDestroy() {
-    this.downloadAction$.unsubscribe();
+    this.resizeSubscription$!.unsubscribe()
 
   }
 

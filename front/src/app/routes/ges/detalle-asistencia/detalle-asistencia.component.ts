@@ -140,6 +140,24 @@ export class DetalleAsistenciaComponent {
     )
   );
 
+
+  $personaMonotributo = this.$selectedPersonalIdChange.pipe(
+    debounceTime(500),
+    switchMap(() =>
+      this.apiService
+        .getPersonaMonotributo(
+          this.selectedPeriod.year,
+          this.selectedPeriod.month,
+          Number(this.asistenciaPer.controls['PersonalId'].value)
+        )
+        .pipe
+        //          doOnSubscribe(() => this.tableLoading$.next(true)),
+        //          tap({ complete: () => this.tableLoading$.next(false) })
+        ()
+    )
+  );
+
+
   $personaResponsables = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
     switchMap(() =>

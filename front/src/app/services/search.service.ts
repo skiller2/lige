@@ -249,10 +249,4 @@ export class SearchService {
       )
       .pipe(map(res => res.data));
   }
-
-  getNameFromPersonalId(personalId: string) {
-    return this.http
-      .get<ResponseJSON<ResponseNameFromId>>(`api/personal/name/${personalId}`)
-      .pipe(map(res => res.data));
-  }
 }
