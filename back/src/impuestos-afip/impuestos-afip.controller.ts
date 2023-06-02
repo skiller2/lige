@@ -206,7 +206,6 @@ export class ImpuestosAfipController extends BaseController {
           textdocument += item.str.trim() + '\n'
 
       })
-      console.log(textdocument);
 
       let [, periodoAnio, periodoMes] = this.getByRegexText(textdocument, periodoRegex, new Error("No se pudo encontrar el periodo."))
 
