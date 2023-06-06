@@ -29,10 +29,10 @@ import { DescuentoJSON } from "src/schemas/ResponseJSON";
 import { readFile } from "fs/promises";
 import { BoundingBox } from "pdf-lib/cjs/types/fontkit";
 
-const cuitRegex = [/:\d{2}\n(\d{11})$/m,/CUIT\/CUIL\/CDI\n(\d{11})/m]
-const periodoRegex = [/PERIODO FISCAL (\d*)\/(\d*)/m,/^Fecha Retención\/Percepción\n\d{2}\/(\d{2})\/(\d{4})$/m]
+const cuitRegex = [/:\d{2}\n(\d{11})$/m,/CUIT\/CUIL\/CDI\n(\d{11})/m,/^CUIT: (\d{11})$/m]
+const periodoRegex = [/PERIODO FISCAL (\d*)\/(\d*)/m,/^Fecha Retención\/Percepción\n\d{2}\/(\d{2})\/(\d{4})$/m,/PERIODO: (\d{2})\/(\d{4})$/m]
 const importeMontoRegex =
-  [/^\$[\s*](([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))?$/m,/Monto de la Retenci.n\/Percepci.n\n(\d*.\d{2})/m]
+  [/^\$[\s*](([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))?$/m,/Monto de la Retenci.n\/Percepci.n\n(\d*.\d{2})/m,/^IMPORTE: \$(([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))$/m]
 
 export class ImpuestosAfipController extends BaseController {
   directory = process.env.PATH_MONOTRIBUTO;
@@ -61,7 +61,7 @@ export class ImpuestosAfipController extends BaseController {
       cuit.PersonalCUITCUILCUIT AS CUITJ, CONCAT(TRIM(perjer.PersonalApellido), ', ', TRIM(perjer.PersonalNombre)) ApellidoNombreJ,
       des.PersonalOtroDescuentoImporteVariable monto, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, des.PersonalOtroDescuentoDescuentoId,
     excep.PersonalExencionCUIT, 
-	 sitrev.PersonalSituacionRevistaMotivo, sit.SituacionRevistaId, sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
+-- 	 sitrev.PersonalSituacionRevistaMotivo, sit.SituacionRevistaId, sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
     1
      FROM PersonalImpuestoAFIP imp
 
@@ -72,7 +72,7 @@ export class ImpuestosAfipController extends BaseController {
      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = perjer.PersonalCUITCUILUltNro
      LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
      LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
-     LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) >  sitrev.PersonalSituacionRevistaDesde AND  DATEFROMPARTS(@1,@2,28) < ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')
+     LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) >  sitrev.PersonalSituacionRevistaDesde AND  DATEFROMPARTS(@1,@2,1) < ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')
      LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
      WHERE
    1=1
@@ -80,7 +80,8 @@ export class ImpuestosAfipController extends BaseController {
    AND DATEFROMPARTS(@1,@2,28) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
      AND excep.PersonalExencionCUIT IS NULL
 
-	AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
+	-- AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
+  AND sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26)
 
      ${extrafilter} 
    `,
@@ -191,13 +192,8 @@ export class ImpuestosAfipController extends BaseController {
       // console.log(metadata);
 
       const page = await document.getPage(1);
-      const textContent = await page.getTextContent();
-
-
-      const textContentItems:(TextItem | TextMarkedContent)[] = textContent.items.filter(function(value:any, index, arr){ 
-        return value.str.trim() != '';
-      });
-
+      const textContent = await page.getTextContent()
+      const textAnotations = await page.getAnnotations()
 
       let textdocument=""
 
@@ -207,6 +203,13 @@ export class ImpuestosAfipController extends BaseController {
 
       })
 
+      textAnotations.forEach((anot) => {
+        if (anot.contentsObj && anot.contentsObj.str && anot.contentsObj.str.trim() != "")
+          textdocument += anot.contentsObj.str.trim() + '\n'
+       
+      })
+
+
       let [, periodoAnio, periodoMes] = this.getByRegexText(textdocument, periodoRegex, new Error("No se pudo encontrar el periodo."))
 
       const [,CUIT] = this.getByRegexText(textdocument,
@@ -215,11 +218,20 @@ export class ImpuestosAfipController extends BaseController {
       );
 
 
-      const [, importeMontoTemp] = this.getByRegexText(textdocument,
+      let [, importeMontoTemp] = this.getByRegexText(textdocument,
         importeMontoRegex,
         new Error("No se pudo encontrar el monto.")
       );
+
+
+
+      if (importeMontoTemp.substring(importeMontoTemp.length - 3, importeMontoTemp.length - 2) == ",") { 
+        importeMontoTemp=importeMontoTemp.replace(".", "")
+      }
+
       const importeMonto = parseFloat(importeMontoTemp.replace(",", "."));
+
+      //      throw new Error(`El  ${periodoAnio}-${periodoMes} ${CUIT}  monto: ${importeMonto}.`)
 
       let periodoIsValid =
         Number(periodoAnio) == anioRequest && Number(periodoMes) == mesRequest

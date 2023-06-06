@@ -27,7 +27,7 @@ export class ImpuestoAfipComponent {
   mes = 0;
   url = '/api/impuestos_afip';
   files: NzUploadFile[] = [];
-  selectedTabIndex = 0
+  selectedTabIndex = 1
   selectedPersonalId = null;
   formChange$ = new BehaviorSubject('')
   tableLoading$ = new BehaviorSubject(false)
@@ -35,9 +35,9 @@ export class ImpuestoAfipComponent {
   columns$ = this.apiService.get('/api/impuestos_afip/cols')
 
   columns2: STColumn[] = [
-    { title: 'CUIT', index: 'CUIT', type: 'number',  exported: true, sort:true, filter:{type:'keyword'},resizable: true },
-    { title: 'Apellido Nombre', type: '', index: 'ApellidoNombre', exported: true, sort:true, filter:{type:'keyword'}, resizable: true },
-    { title: 'Sit Revista', type: '', index: 'SituacionRevistaDescripcion', resizable: true, exported: true, sort:true },
+    { title: 'CUIT', index: 'CUIT', type: 'number',  resizable: true, sort:true, exported: true,  },
+    { title: 'Apellido Nombre', type: '', index: 'ApellidoNombre', exported: true, sort:true, resizable: true },
+    { title: 'Sit Revista', type: '', index: 'SituacionRevistaDescripcion', exported: true, sort:true, resizable: true },
     { title: 'Importe', type: 'currency', index: 'monto', resizable: true, exported: true, render: 'cusImporte', sort:true },
     { title: 'CUIT Responsable', type: 'number', index: 'CUITJ', resizable: true, exported: true  , sort:true},
     { title: 'Apellido Nombre Responsable', type: '', index: 'ApellidoNombreJ', resizable: true, exported: true , sort:true},

@@ -120,15 +120,14 @@ export class AsistenciaController extends BaseController {
         [Number(PersonaId), fechaDesde]
       );
 
-      
       let row: any;
       if ((row = result[0])) {
         if (metodologia == "E") {
           if (
             Equivalencia.CategoriaPersonalId ==
-              row["PersonalCategoriaCategoriaPersonalId"] &&
+            row["PersonalCategoriaCategoriaPersonalId"] &&
             Equivalencia.TipoAsociadoId ==
-              row["PersonalCategoriaTipoAsociadoId"]
+            row["PersonalCategoriaTipoAsociadoId"]
           ) {
             this.errRes(
               1,
@@ -139,6 +138,12 @@ export class AsistenciaController extends BaseController {
             return;
           }
         }
+
+        Equivalencia.CategoriaPersonalId =
+          row["PersonalCategoriaCategoriaPersonalId"]
+        Equivalencia.TipoAsociadoId =
+          row["PersonalCategoriaTipoAsociadoId"]
+
       }
 
       //Traigo el Art14 para analizarlo
