@@ -23,7 +23,14 @@ import {
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { environment } from '@env/environment';
 import { NzTabChangeEvent } from 'ng-zorro-antd/tabs';
-import { catchError, finalize, Observable, of, take } from 'rxjs';
+import {
+  BehaviorSubject,
+  catchError,
+  finalize,
+  Observable,
+  of,
+  take,
+} from 'rxjs';
 
 @Component({
   selector: 'passport-login',
@@ -60,7 +67,8 @@ export class UserLoginComponent implements OnDestroy {
   type = 0;
   loading = false;
 
-  passwordVisible: boolean = false;
+  passwordVisible$ = new BehaviorSubject(false);
+  passwordType$ = new BehaviorSubject<'password' | 'text'>('password');
   // #region get captcha
 
   count = 0;
@@ -70,6 +78,16 @@ export class UserLoginComponent implements OnDestroy {
 
   switch({ index }: NzTabChangeEvent): void {
     this.type = index!;
+  }
+
+  showLogin() {
+    if (this.form.controls.password.value == '') return;
+    this.passwordType$.next('text');
+    this.passwordVisible$.next(true);
+    setTimeout(() => {
+      this.passwordType$.next('password');
+      this.passwordVisible$.next(false);
+    }, 2000);
   }
 
   getCaptcha(): void {

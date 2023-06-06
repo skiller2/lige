@@ -10,7 +10,12 @@ import {
   unlinkSync,
   writeFileSync,
 } from "fs";
-import { TextContent, TextItem, TextMarkedContent, TextStyle } from "pdfjs-dist/types/src/display/api";
+import {
+  TextContent,
+  TextItem,
+  TextMarkedContent,
+  TextStyle,
+} from "pdfjs-dist/types/src/display/api";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf";
 import { dataSource } from "../data-source";
 import {
@@ -49,7 +54,10 @@ export class ImpuestosAfipController extends BaseController {
     descuentoId: string;
     personalIdRel: string;
   }) {
-    const extrafilter = (options.personalIdRel && options.personalIdRel != "0") ? "AND perrel.PersonalCategoriaPersonalId = @4" : ""
+    const extrafilter =
+      options.personalIdRel && options.personalIdRel != "0"
+        ? "AND perrel.PersonalCategoriaPersonalId = @4"
+        : "";
 
     return dataSource.query(
       `SELECT DISTINCT
@@ -105,23 +113,55 @@ export class ImpuestosAfipController extends BaseController {
   PersonalOtroDescuentoDescuentoId: null | number;
 
     */
-    this.jsonRes([
-      { title: 'CUIT', index: 'CUIT', type: 'number', resizable: true, sort: { compare: (a, b) => a.price - b.price, } },
-      { title: 'Apellido Nombre', type: '', index: 'ApellidoNombre', exported: true },
-      { title: 'Sit Revista', type: '', index: 'SituacionRevistaDescripcion', exported: true },
-      { title: 'Importe', type: 'currency', index: 'monto', exported: true },
-      { title: 'CUIT Responsable', type: 'number', index: 'CUITJ', exported: true },
-      { title: 'Apellido Nombre Responsable', type: 'string', index: 'ApellidoNombreJ', exported: true },
-      { title: 'ID Descuento', type: 'number', index: 'PersonalOtroDescuentoId', exported: true },
-    ]
-      , res);
-
+    this.jsonRes(
+      [
+        {
+          title: "CUIT",
+          index: "CUIT",
+          type: "number",
+          resizable: true,
+          sort: { compare: (a, b) => a.price - b.price },
+        },
+        {
+          title: "Apellido Nombre",
+          type: "",
+          index: "ApellidoNombre",
+          exported: true,
+        },
+        {
+          title: "Sit Revista",
+          type: "",
+          index: "SituacionRevistaDescripcion",
+          exported: true,
+        },
+        { title: "Importe", type: "currency", index: "monto", exported: true },
+        {
+          title: "CUIT Responsable",
+          type: "number",
+          index: "CUITJ",
+          exported: true,
+        },
+        {
+          title: "Apellido Nombre Responsable",
+          type: "string",
+          index: "ApellidoNombreJ",
+          exported: true,
+        },
+        {
+          title: "ID Descuento",
+          type: "number",
+          index: "PersonalOtroDescuentoId",
+          exported: true,
+        },
+      ],
+      res
+    );
   }
 
   async getDescuentosGridList(req: Request, res: Response) {
     const anio = String(req.body.anio);
     const mes = String(req.body.mes);
-    const personalIdRel = (req.body.personalIdRel)?req.body.personalIdRel:'';
+    const personalIdRel = req.body.personalIdRel ? req.body.personalIdRel : "";
     const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
     try {
@@ -129,7 +169,7 @@ export class ImpuestosAfipController extends BaseController {
         anio,
         mes,
         descuentoId,
-        personalIdRel
+        personalIdRel,
       });
       this.jsonRes(
         {
@@ -154,7 +194,7 @@ export class ImpuestosAfipController extends BaseController {
         anio,
         mes,
         descuentoId,
-        personalIdRel
+        personalIdRel,
       });
       const sincomprobante = result.reduce(
         (total, item: any) =>
@@ -173,88 +213,95 @@ export class ImpuestosAfipController extends BaseController {
       this.errRes(error, res);
     }
   }
-  async handlePDFUpload(req: Request, res: Response) {
+  async handlePDFUpload(req: Request, res: Response, forzado: boolean) {
     const file = req.file;
     const anioRequest = req.body.anio;
     const mesRequest = req.body.mes;
     const queryRunner = dataSource.createQueryRunner();
+
     try {
+      if (!anioRequest) throw new Error("Faltó indicar el anio.");
+      if (!anioRequest) throw new Error("Faltó indicar el mes.");
+
       await queryRunner.connect();
       await queryRunner.startTransaction();
+
+      let CUIT: string;
+      let importeMonto: number;
+
+      if (forzado) {
+        const importeRequest = req.body.monto;
+        const cuitRequest = req.body.monto;
+
+        if (!importeRequest) throw new Error("Faltó indicar el importe.");
+        importeMonto = importeRequest;
+
+        if (!cuitRequest) throw new Error("Faltó indicar el cuit.");
+        CUIT = cuitRequest;
+      } else {
+        const loadingTask = getDocument(file.path);
+        const document = await loadingTask.promise;
+
+        // const metadata = await document.getMetadata();
+        // console.log(metadata);
+
+        const page = await document.getPage(1);
+        const textContent = await page.getTextContent();
+
+        const textContentItems: (TextItem | TextMarkedContent)[] =
+          textContent.items.filter(function (value: any, index, arr) {
+            return value.str.trim() != "";
+          });
+
+        let textdocument = "";
+
+        textContent.items.forEach((item: TextItem) => {
+          if (item.str.trim() != "") textdocument += item.str.trim() + "\n";
+        });
+
+        let [, periodoAnio, periodoMes] = this.getByRegexText(
+          textdocument,
+          periodoRegex,
+          new Error("No se pudo encontrar el periodo.")
+        );
+
+        [, CUIT] = this.getByRegexText(
+          textdocument,
+          cuitRegex,
+          new Error("No se pudo encontrar el CUIT.")
+        );
+
+        const [, importeMontoTemp] = this.getByRegexText(
+          textdocument,
+          importeMontoRegex,
+          new Error("No se pudo encontrar el monto.")
+        );
+        importeMonto = parseFloat(importeMontoTemp.replace(",", "."));
+
+        let periodoIsValid =
+          Number(periodoAnio) == anioRequest &&
+          Number(periodoMes) == mesRequest;
+
+        if (!periodoIsValid) {
+          const tmp = periodoAnio;
+          periodoAnio = periodoMes;
+          periodoMes = tmp;
+        }
+
+        periodoIsValid =
+          Number(periodoAnio) == anioRequest &&
+          Number(periodoMes) == mesRequest;
+
+        if (!periodoIsValid)
+          throw new Error(
+            `El periodo especificado ${anioRequest}-${mesRequest} no coincide con el contenido en el documento ${periodoAnio}-${Number(
+              periodoMes
+            )}.`
+          );
+      }
       // if (!file) throw new Error("File not recieved/did not pass filter.");
       // if (!anioRequest) throw new Error("No se especificó un año.");
       // if (!mesRequest) throw new Error("No se especificó un mes.");
-
-      const loadingTask = getDocument(file.path);
-      const document = await loadingTask.promise;
-
-      // const metadata = await document.getMetadata();
-      // console.log(metadata);
-
-      const page = await document.getPage(1);
-      const textContent = await page.getTextContent()
-      const textAnotations = await page.getAnnotations()
-
-      let textdocument=""
-
-      textContent.items.forEach((item: TextItem) => {
-        if (item.str.trim()!="")
-          textdocument += item.str.trim() + '\n'
-
-      })
-
-      textAnotations.forEach((anot) => {
-        if (anot.contentsObj && anot.contentsObj.str && anot.contentsObj.str.trim() != "")
-          textdocument += anot.contentsObj.str.trim() + '\n'
-       
-      })
-
-
-      let [, periodoAnio, periodoMes] = this.getByRegexText(textdocument, periodoRegex, new Error("No se pudo encontrar el periodo."))
-
-      const [,CUIT] = this.getByRegexText(textdocument,
-        cuitRegex,
-        new Error("No se pudo encontrar el CUIT.")
-      );
-
-
-      let [, importeMontoTemp] = this.getByRegexText(textdocument,
-        importeMontoRegex,
-        new Error("No se pudo encontrar el monto.")
-      );
-
-
-
-      if (importeMontoTemp.substring(importeMontoTemp.length - 3, importeMontoTemp.length - 2) == ",") { 
-        importeMontoTemp=importeMontoTemp.replace(".", "")
-      }
-
-      const importeMonto = parseFloat(importeMontoTemp.replace(",", "."));
-
-      //      throw new Error(`El  ${periodoAnio}-${periodoMes} ${CUIT}  monto: ${importeMonto}.`)
-
-      let periodoIsValid =
-        Number(periodoAnio) == anioRequest && Number(periodoMes) == mesRequest
-      
-      if (!periodoIsValid) { 
-        const tmp = periodoAnio
-        periodoAnio = periodoMes
-        periodoMes =  tmp
-      }
-
-      periodoIsValid = Number(periodoAnio) == anioRequest && Number(periodoMes) == mesRequest
-          
-
-      if (!periodoIsValid)
-        throw new Error(
-          `El periodo especificado ${anioRequest}-${mesRequest} no coincide con el contenido en el documento ${periodoAnio}-${Number(
-            periodoMes
-          )}.`
-        );
-
-
-
-
 
       const [personalIDQuery] = await queryRunner.query(
         "SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro OtroDescuentoId, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre FROM PersonalCUITCUIL cuit JOIN Personal per ON per.PersonalId = cuit.PersonalId WHERE cuit.PersonalCUITCUILCUIT = @0",
@@ -271,17 +318,17 @@ export class ImpuestosAfipController extends BaseController {
         [
           personalID,
           Number(process.env.OTRO_DESCUENTO_ID),
-          periodoAnio,
-          periodoMes,
+          anioRequest,
+          mesRequest,
         ]
       );
       if (alreadyExists.length > 0)
         throw new Error(
-          `Ya existe un descuento para el periodo ${periodoAnio}-${periodoMes} y el CUIT ${CUIT}`
+          `Ya existe un descuento para el periodo ${anioRequest}-${mesRequest} y el CUIT ${CUIT}`
         );
 
-      mkdirSync(`${this.directory}/${periodoAnio}`, { recursive: true });
-      const newFilePath = `${this.directory}/${periodoAnio}/${periodoAnio}-${periodoMes}-${CUIT}-${personalID}.pdf`;
+      mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
+      const newFilePath = `${this.directory}/${anioRequest}/${anioRequest}-${mesRequest}-${CUIT}-${personalID}.pdf`;
       if (existsSync(newFilePath)) throw new Error("El documento ya existe.");
       const now = new Date();
       await queryRunner.query(
@@ -291,9 +338,9 @@ export class ImpuestosAfipController extends BaseController {
           personalIDQuery.OtroDescuentoId + 1,
           personalID,
           Number(process.env.OTRO_DESCUENTO_ID),
-          periodoAnio,
-          periodoMes,
-          periodoMes,
+          anioRequest,
+          mesRequest,
+          mesRequest,
           1,
           1,
           importeMonto,
@@ -321,22 +368,22 @@ export class ImpuestosAfipController extends BaseController {
     }
   }
 
-  getByRegexText(txt: string, regexExp: RegExp[],
+  getByRegexText(
+    txt: string,
+    regexExp: RegExp[],
     err = new Error("Could not find content.")
-  ): RegExpMatchArray { 
+  ): RegExpMatchArray {
+    let result: RegExpMatchArray;
 
-    let result: RegExpMatchArray
-
-    for (const re of regexExp) { 
-      result = txt.match(re)
-      console.log('res',result,re)
-      if (result) break
+    for (const re of regexExp) {
+      result = txt.match(re);
+      console.log("res", result, re);
+      if (result) break;
     }
 
     if (!result) throw err;
     return result;
   }
-
 
   getByRegex(
     textContentItems: (TextItem | TextMarkedContent)[],
@@ -365,7 +412,7 @@ export class ImpuestosAfipController extends BaseController {
         anio: year,
         mes: formattedMonth,
         descuentoId,
-        personalIdRel
+        personalIdRel,
       });
 
       const files = descuentos
@@ -442,16 +489,15 @@ export class ImpuestosAfipController extends BaseController {
             locationIndex % 2 == 0
               ? Math.abs(pageWidth / 2 - embeddedPage.size().width) / 2
               : (Math.abs(pageWidth / 2 - embeddedPage.size().width) +
-                pageWidth) /
-              2,
+                  pageWidth) /
+                2,
           y:
             locationIndex < 2
               ? (Math.abs(pageHeight / 2 - embeddedPage.size().height) +
-                pageHeight) /
-              2
+                  pageHeight) /
+                2
               : Math.abs(pageHeight / 2 - embeddedPage.size().height) / 2,
         };
-
 
         lastPage.drawPage(embeddedPage, { ...positionFromIndex });
 
@@ -467,7 +513,6 @@ export class ImpuestosAfipController extends BaseController {
           }
         );
 
-
         // newPage.drawText(`Comprobante: ${file.name}`);
       } else {
         const positionFromIndex: PDFPageDrawPageOptions = {
@@ -480,10 +525,6 @@ export class ImpuestosAfipController extends BaseController {
           rotate: degrees(65),
         });
       }
-
-
-
-
     }
 
     return newDocument.save();
@@ -530,7 +571,7 @@ export class ImpuestosAfipController extends BaseController {
         "0"
       )}-${cuit}-${personalId}.pdf`;
       const downloadPath = `${this.directory}/${year}/${filename}`;
-  
+
       if (!existsSync(downloadPath))
         throw new Error(`El archivo no existe (${downloadPath}).`);
 
@@ -576,25 +617,26 @@ export class ImpuestosAfipController extends BaseController {
       console.log('hoja:',x, y, width, height)
     })
     */
-    const embededPages = await newPdf.embedPages(originPDFPages, [{ top: 790, bottom: 410, left: 53, right: 307 }]);
+    const embededPages = await newPdf.embedPages(originPDFPages, [
+      { top: 790, bottom: 410, left: 53, right: 307 },
+    ]);
     //    const image = await fetch('assets/pdf/firma_recibo.png').then(res => res.arrayBuffer())
     //    const embededImage = await newPdf.embedPng(image)
     //    const scaleImage = embededImage.scale(1/20)
 
-
-
     embededPages.forEach((embPage, index) => {
-
       const embPageSize = embPage.scale(1);
-      const margin = 20
+      const margin = 20;
 
-      currentPage = newPdf.addPage([embPageSize.width + margin, embPageSize.height + margin]);
+      currentPage = newPdf.addPage([
+        embPageSize.width + margin,
+        embPageSize.height + margin,
+      ]);
       const pageRatio = currentPage.getWidth() / currentPage.getHeight();
 
       //      currentPage.drawPage(embPage, { x: (currentPage.getWidth() - embPage.width) / 2, y: currentPage.getHeight() / 2 * ((index+1) % 2) })
       //      const posy =
       //        index % 2 == 0 ? 0 + 20 : (currentPage.getHeight() / 2) * -1 + 20;
-
 
       currentPage.drawPage(embPage, {
         x: (currentPage.getWidth() - embPageSize.width) / 2,

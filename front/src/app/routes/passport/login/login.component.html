@@ -25,15 +25,16 @@
             nzPrefixIcon="lock">
             <input
               nz-input
-              [type]="passwordVisible ? 'text' : 'password'"
+              [type]="passwordType$ | async"
               formControlName="password"
               [placeholder]="'app.login.password-placeholder' | i18n" />
           </nz-input-group>
           <ng-template #suffixTemplate>
             <span
               nz-icon
-              [nzType]="passwordVisible ? 'eye-invisible' : 'eye'"
-              (click)="passwordVisible = !passwordVisible"></span>
+              [nzType]="'eye'"
+              [hidden]="passwordVisible$ | async"
+              (click)="showLogin()"></span>
           </ng-template>
         </nz-form-control>
       </nz-form-item>
