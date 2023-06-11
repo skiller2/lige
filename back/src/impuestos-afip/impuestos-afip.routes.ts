@@ -123,7 +123,6 @@ impuestosAfipRouter.post("forzado", authMiddleware.verifyToken, (req, res) => {
 });
 
 impuestosAfipRouter.get("/download/:anio/:mes/:personalIdRel?", (req, res) => {
-  console.log("Ping");
   impuestosAfipController.downloadComprobantesByPeriodo(
     req.params.anio,
     req.params.mes,

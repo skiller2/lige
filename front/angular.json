@@ -147,7 +147,7 @@
     }
   },
   "cli": {
-    "packageManager": "yarn",
+    "packageManager": "npm",
     "schematicCollections": [
       "@schematics/angular",
       "ng-alain"

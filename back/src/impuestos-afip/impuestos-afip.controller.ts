@@ -21,6 +21,7 @@ import { dataSource } from "../data-source";
 import {
   FileEmbedder,
   PDFDocument,
+  PDFEmbeddedPage,
   PDFPage,
   PDFPageDrawPageOptions,
   PageSizes,
@@ -34,15 +35,10 @@ import { DescuentoJSON } from "src/schemas/ResponseJSON";
 import { readFile } from "fs/promises";
 import { BoundingBox } from "pdf-lib/cjs/types/fontkit";
 
-const cuitRegex = [/:\d{2}\n(\d{11})$/m, /CUIT\/CUIL\/CDI\n(\d{11})/m];
-const periodoRegex = [
-  /PERIODO FISCAL (\d*)\/(\d*)/m,
-  /^Fecha Retención\/Percepción\n\d{2}\/(\d{2})\/(\d{4})$/m,
-];
-const importeMontoRegex = [
-  /^\$[\s*](([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))?$/m,
-  /Monto de la Retenci.n\/Percepci.n\n(\d*.\d{2})/m,
-];
+const cuitRegex = [/:\d{2}\n(\d{11})$/m, /CUIT\/CUIL\/CDI\n(\d{11})/m, /^CUIT: (\d{11})$/m]
+const periodoRegex = [/PERIODO FISCAL (\d*)\/(\d*)/m, /^Fecha Retención\/Percepción\n\d{2}\/(\d{2})\/(\d{4})$/m, /PERIODO: (\d{2})\/(\d{4})$/m]
+const importeMontoRegex =
+  [/^\$[\s*](([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))?$/m, /Monto de la Retenci.n\/Percepci.n\n(\d*.\d{2})/m, /^IMPORTE: \$(([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))$/m]
 
 export class ImpuestosAfipController extends BaseController {
   directory = process.env.PATH_MONOTRIBUTO;
@@ -74,7 +70,7 @@ export class ImpuestosAfipController extends BaseController {
       cuit.PersonalCUITCUILCUIT AS CUITJ, CONCAT(TRIM(perjer.PersonalApellido), ', ', TRIM(perjer.PersonalNombre)) ApellidoNombreJ,
       des.PersonalOtroDescuentoImporteVariable monto, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, des.PersonalOtroDescuentoDescuentoId,
     excep.PersonalExencionCUIT, 
-	 sitrev.PersonalSituacionRevistaMotivo, sit.SituacionRevistaId, sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
+-- 	 sitrev.PersonalSituacionRevistaMotivo, sit.SituacionRevistaId, sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
     1
      FROM PersonalImpuestoAFIP imp
 
@@ -85,7 +81,7 @@ export class ImpuestosAfipController extends BaseController {
      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = perjer.PersonalCUITCUILUltNro
      LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
      LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
-     LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) >  sitrev.PersonalSituacionRevistaDesde AND  DATEFROMPARTS(@1,@2,28) < ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')
+     LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) >  sitrev.PersonalSituacionRevistaDesde AND  DATEFROMPARTS(@1,@2,1) < ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')
      LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
      WHERE
    1=1
@@ -93,7 +89,8 @@ export class ImpuestosAfipController extends BaseController {
    AND DATEFROMPARTS(@1,@2,28) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
      AND excep.PersonalExencionCUIT IS NULL
 
-	AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
+	-- AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
+  AND sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26)
 
      ${extrafilter} 
    `,
@@ -481,26 +478,45 @@ export class ImpuestosAfipController extends BaseController {
         currentFilePDF = await PDFDocument.load(currentFileBuffer);
         currentFilePDFPage = currentFilePDF.getPages()[0];
 
-        const embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
-          top: 790,
-          bottom: 410,
-          left: 53,
-          right: 307,
-        });
+        let embeddedPage:PDFEmbeddedPage = null
+        if (currentFilePDFPage.getWidth() == 595.276 && currentFilePDFPage.getHeight() == 841.89) {
+          embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
+            top: 790,
+            bottom: 410,
+            left: 53,
+            right: 307,
+          });
+
+        } else if (currentFilePDFPage.getWidth() == 598 && currentFilePDFPage.getHeight() == 845) {
+          embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
+            top: 808,
+            bottom: 385,
+            left: 37,
+            right: 560,
+          });
+        } else {
+          embeddedPage = await newDocument.embedPage(currentFilePDFPage)
+        }
+    
+        const imgWidthScale = ((pageWidth / 2) - 20) / embeddedPage.width
+        const imgHeightScale = ((pageHeight / 2) - 20) / embeddedPage.height
+        const scalePage= embeddedPage.scale(Math.min(imgWidthScale, imgHeightScale))
 
         const positionFromIndex: PDFPageDrawPageOptions = {
           x:
             locationIndex % 2 == 0
-              ? Math.abs(pageWidth / 2 - embeddedPage.size().width) / 2
-              : (Math.abs(pageWidth / 2 - embeddedPage.size().width) +
-                  pageWidth) /
-                2,
+              ? Math.abs(pageWidth / 2 - scalePage.width) / 2
+              : (Math.abs(pageWidth / 2 - scalePage.width) +
+                pageWidth) /
+              2,
           y:
             locationIndex < 2
-              ? (Math.abs(pageHeight / 2 - embeddedPage.size().height) +
-                  pageHeight) /
-                2
-              : Math.abs(pageHeight / 2 - embeddedPage.size().height) / 2,
+              ? (Math.abs(pageHeight / 2 - scalePage.height) +
+                pageHeight) /
+              2
+              : Math.abs(pageHeight / 2 - scalePage.height) / 2,
+          width:scalePage.width,
+          height:scalePage.height,
         };
 
         lastPage.drawPage(embeddedPage, { ...positionFromIndex });
@@ -613,6 +629,10 @@ export class ImpuestosAfipController extends BaseController {
     const newPdf = await PDFDocument.create();
 
     let currentPage: PDFPage;
+
+    const page0 = originPDFPages[0]
+
+
     //    currentPage = newPdf.addPage(PageSizes.A4);
 
     /*
@@ -621,18 +641,32 @@ export class ImpuestosAfipController extends BaseController {
       console.log('hoja:',x, y, width, height)
     })
     */
-    const embededPages = await newPdf.embedPages(originPDFPages, [
-      { top: 790, bottom: 410, left: 53, right: 307 },
-    ]);
+    let embededPages = null
+    if (page0.getWidth() == 595.276 && page0.getHeight() == 841.89) {
+      embededPages = await newPdf.embedPages(originPDFPages, [
+        { top: 790, bottom: 410, left: 53, right: 307 },
+      ]);
+    } else if (page0.getWidth() == 598 && page0.getHeight() == 845) {
+      embededPages = await newPdf.embedPages(originPDFPages, [
+        { top: 808, bottom: 385, left: 37, right: 560 },
+      ]);
+
+    } else {
+      embededPages = await newPdf.embedPages(originPDFPages);
+
+    }
+
     //    const image = await fetch('assets/pdf/firma_recibo.png').then(res => res.arrayBuffer())
     //    const embededImage = await newPdf.embedPng(image)
     //    const scaleImage = embededImage.scale(1/20)
 
     embededPages.forEach((embPage, index) => {
+
+      
       const embPageSize = embPage.scale(1);
       const margin = 20;
 
-      currentPage = newPdf.addPage([
+     currentPage = newPdf.addPage([
         embPageSize.width + margin,
         embPageSize.height + margin,
       ]);
