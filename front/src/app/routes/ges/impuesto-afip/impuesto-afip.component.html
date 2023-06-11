@@ -68,12 +68,45 @@
             </div>
           </div>
 
-          <nz-upload
-            nzAccept="application/pdf"
-            [nzAction]="url_forzado"
-            (nzChange)="handleChange($event)"
-            [nzData]="{ anio: anio, mes: mes, cuit: '', monto: 0 }"
-            nzName="pdf" />
+          <!-- <app-personal-search #searchForzado /> -->
+
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">Forzado</nz-form-label>
+            <nz-form-control>
+              <ng-container>
+                <input
+                  #montoForzado
+                  type="number"
+                  [placeholder]="'Monto'"
+                  nz-input
+                  name="monto"
+                  ngModel />
+                <input
+                  #cuitForzado
+                  type="number"
+                  [placeholder]="'CUIT'"
+                  nz-input
+                  name="cuitForzado"
+                  ngModel />
+
+                <nz-upload
+                  nzAccept="application/pdf"
+                  [nzAction]="url_forzado"
+                  [nzData]="{
+                    anio: anio,
+                    mes: mes,
+                    cuit: cuitForzado.value,
+                    monto: montoForzado.valueAsNumber
+                  }"
+                  nzName="pdf">
+                  <button nz-button>
+                    <span nz-icon nzType="upload"></span>
+                    Subir Comprobante (Forzado)
+                  </button>
+                </nz-upload>
+              </ng-container>
+            </nz-form-control>
+          </nz-form-item>
           <nz-upload
             class="d-block"
             nzType="drag"

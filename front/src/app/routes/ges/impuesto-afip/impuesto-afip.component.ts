@@ -45,7 +45,9 @@ export class ImpuestoAfipComponent {
   mes = 0;
   url = '/api/impuestos_afip';
   url_forzado = '/api/impuestos_afip/forzado';
+
   files: NzUploadFile[] = [];
+
   selectedTabIndex = 0;
   selectedPersonalId = null;
   formChange$ = new BehaviorSubject('');

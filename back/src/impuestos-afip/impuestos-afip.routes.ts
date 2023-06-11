@@ -90,7 +90,7 @@ impuestosAfipRouter.post("", authMiddleware.verifyToken, (req, res) => {
     }
   });
 });
-impuestosAfipRouter.post("forzado", authMiddleware.verifyToken, (req, res) => {
+impuestosAfipRouter.post("/forzado", authMiddleware.verifyToken, (req, res) => {
   upload(req, res, (err) => {
     // FILE SIZE ERROR
     if (err instanceof multer.MulterError) {

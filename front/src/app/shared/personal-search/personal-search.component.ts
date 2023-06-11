@@ -25,9 +25,11 @@ import { doOnSubscribe } from 'src/app/services/api.service';
   ],
 })
 export class PersonalSearchComponent implements ControlValueAccessor {
-  constructor(private searchService: SearchService) { }
+  constructor(private searchService: SearchService) {}
 
   _selectedPersonalId = '';
+  _selectedCuit = new BehaviorSubject('Falta');
+
   get selectedPersonalId() {
     return this._selectedPersonalId;
   }
@@ -43,13 +45,13 @@ export class PersonalSearchComponent implements ControlValueAccessor {
       this.selectedPersonalId = value;
     }
   }
-  propagateChange = (_: any) => { };
+  propagateChange = (_: any) => {};
 
   registerOnChange(fn: any) {
     this.propagateChange = fn;
   }
 
-  registerOnTouched() { }
+  registerOnTouched() {}
   selectedInfoChange$ = new BehaviorSubject<Search[] | null>(null);
 
   $searchChange = new BehaviorSubject('');
@@ -71,10 +73,11 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
   selectedValueChange(event: string): void {
     if (!event) return;
-    this.searchService.getPersonFromName('PersonalId', event).subscribe(info => {
-      this.selectedInfoChange$.next(info);
-    });
-
+    this.searchService
+      .getPersonFromName('PersonalId', event)
+      .subscribe(info => {
+        this.selectedInfoChange$.next(info);
+      });
   }
 
   search(value: string): void {
