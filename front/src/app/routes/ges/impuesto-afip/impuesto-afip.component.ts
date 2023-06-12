@@ -1,10 +1,27 @@
 import { ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SharedModule } from '@shared';
-import { NzResizableModule, NzResizeHandleMouseDownEvent } from 'ng-zorro-antd/resizable';
-import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } from 'ng-zorro-antd/table';
+import { NzResizableModule } from 'ng-zorro-antd/resizable';
+import {
+  NzTableSortOrder,
+  NzTableSortFn,
+  NzTableFilterList,
+  NzTableFilterFn,
+} from 'ng-zorro-antd/table';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
-import { BehaviorSubject, Observable, Subscription, debounceTime, filter, fromEvent, map, of, switchMap, tap, throttleTime } from 'rxjs';
+import {
+  BehaviorSubject,
+  Observable,
+  Subscription,
+  debounceTime,
+  filter,
+  fromEvent,
+  map,
+  of,
+  switchMap,
+  tap,
+  throttleTime,
+} from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { STColumn, STComponent, STData } from '@delon/abc/st';
@@ -18,34 +35,80 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
   styleUrls: ['./impuesto-afip.component.less'],
 })
 export class ImpuestoAfipComponent {
-  @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm = new NgForm([], [])
-  @ViewChild('st', { static: false }) st: STComponent | undefined
-  @ViewChild('st', { static: false }) stel: ElementRef | undefined
+  @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm =
+    new NgForm([], []);
+  @ViewChild('st', { static: false }) st: STComponent | undefined;
 
-  constructor(public apiService: ApiService, private cdr: ChangeDetectorRef) { }
+  constructor(public apiService: ApiService) {}
   selectedDate = null;
   anio = 0;
   mes = 0;
   url = '/api/impuestos_afip';
+  url_forzado = '/api/impuestos_afip/forzado';
+
   files: NzUploadFile[] = [];
-  selectedTabIndex = 1
+
+  selectedTabIndex = 0;
   selectedPersonalId = null;
-  formChange$ = new BehaviorSubject('')
-  tableLoading$ = new BehaviorSubject(false)
-  stsizey = "100px"
-  columns$ = this.apiService.get('/api/impuestos_afip/cols')
+  formChange$ = new BehaviorSubject('');
+  tableLoading$ = new BehaviorSubject(false);
+  stsizey = '100px';
+  columns$ = this.apiService.get('/api/impuestos_afip/cols');
 
   columns2: STColumn[] = [
-    { title: 'CUIT', index: 'CUIT', type: '',  resizable: true, sort:true, exported: true  },
-    { title: 'Apellido Nombre', type: '', index: 'ApellidoNombre', exported: true, sort:true, resizable: true },
-    { title: 'Sit Revista', type: '', index: 'SituacionRevistaDescripcion', exported: true, sort:true, resizable: true },
-    { title: 'Importe', type: 'currency', index: 'monto', resizable: true, exported: true, render: 'cusImporte', sort:true },
-    { title: 'CUIT Responsable', type: 'number', index: 'CUITJ', resizable: true, exported: true  , sort:true},
-    { title: 'Apellido Nombre Responsable', type: '', index: 'ApellidoNombreJ', resizable: true, exported: true , sort:true},
-//    { title: 'ID Descuento', type: 'number', index: 'PersonalOtroDescuentoId', exported: false, },
-  ]
-
-
+    {
+      title: 'CUIT',
+      index: 'CUIT',
+      type: 'number',
+      exported: true,
+      sort: true,
+      filter: { type: 'keyword' },
+      resizable: true,
+    },
+    {
+      title: 'Apellido Nombre',
+      type: '',
+      index: 'ApellidoNombre',
+      exported: true,
+      sort: true,
+      filter: { type: 'keyword' },
+      resizable: true,
+    },
+    {
+      title: 'Sit Revista',
+      type: '',
+      index: 'SituacionRevistaDescripcion',
+      resizable: true,
+      exported: true,
+      sort: true,
+    },
+    {
+      title: 'Importe',
+      type: 'currency',
+      index: 'monto',
+      resizable: true,
+      exported: true,
+      render: 'cusImporte',
+      sort: true,
+    },
+    {
+      title: 'CUIT Responsable',
+      type: 'number',
+      index: 'CUITJ',
+      resizable: true,
+      exported: true,
+      sort: true,
+    },
+    {
+      title: 'Apellido Nombre Responsable',
+      type: '',
+      index: 'ApellidoNombreJ',
+      resizable: true,
+      exported: true,
+      sort: true,
+    },
+    //    { title: 'ID Descuento', type: 'number', index: 'PersonalOtroDescuentoId', exported: false, },
+  ];
 
   data: STData[] = Array(100)
     .fill({})
@@ -69,19 +132,27 @@ export class ImpuestoAfipComponent {
   listaDescuentos$ = this.formChange$.pipe(
     debounceTime(1000),
     switchMap(() => {
-      this.st?.reload()
-      return this.apiService.getDescuentoByPeriodo(this.anio, this.mes, this.selectedPersonalId || 0).pipe(
-        map(items => {
-          if (items) if (this.selectedPersonalId == null) return items;
-          return {
-            Registros: items.Registros.filter(item => item.PersonalIdJ == parseInt(this.selectedPersonalId!)),
-            RegistrosConComprobantes: items.RegistrosConComprobantes,
-            RegistrosSinComprobantes: items.RegistrosSinComprobantes,
-          };
-        }),
-        doOnSubscribe(() => this.tableLoading$.next(true)),
-        tap({ complete: () => this.tableLoading$.next(false) })
-      )
+      this.st?.reload();
+      return this.apiService
+        .getDescuentoByPeriodo(
+          this.anio,
+          this.mes,
+          this.selectedPersonalId || 0
+        )
+        .pipe(
+          map(items => {
+            if (items) if (this.selectedPersonalId == null) return items;
+            return {
+              Registros: items.Registros.filter(
+                item => item.PersonalIdJ == parseInt(this.selectedPersonalId!)
+              ),
+              RegistrosConComprobantes: items.RegistrosConComprobantes,
+              RegistrosSinComprobantes: items.RegistrosSinComprobantes,
+            };
+          }),
+          doOnSubscribe(() => this.tableLoading$.next(true)),
+          tap({ complete: () => this.tableLoading$.next(false) })
+        );
     })
   );
   listOfColumns: ColumnItem[] = [
@@ -97,7 +168,8 @@ export class ImpuestoAfipComponent {
     {
       name: 'Apellido, Nombre',
       sortOrder: null,
-      sortFn: (a: DescuentoJSON, b: DescuentoJSON) => a.ApellidoNombre.localeCompare(b.ApellidoNombre),
+      sortFn: (a: DescuentoJSON, b: DescuentoJSON) =>
+        a.ApellidoNombre.localeCompare(b.ApellidoNombre),
       sortDirections: ['ascend', 'descend', null],
       filterMultiple: true,
       listOfFilter: [],
@@ -106,7 +178,8 @@ export class ImpuestoAfipComponent {
     {
       name: 'Estado',
       sortOrder: null,
-      sortFn: (a: DescuentoJSON, b: DescuentoJSON) => a.PersonalEstado.localeCompare(b.PersonalEstado),
+      sortFn: (a: DescuentoJSON, b: DescuentoJSON) =>
+        a.PersonalEstado.localeCompare(b.PersonalEstado),
       sortDirections: ['ascend', 'descend', null],
       filterMultiple: true,
       listOfFilter: [],
@@ -133,7 +206,8 @@ export class ImpuestoAfipComponent {
     {
       name: 'Apellido, Nombre (J)',
       sortOrder: null,
-      sortFn: (a: DescuentoJSON, b: DescuentoJSON) => a.ApellidoNombre.localeCompare(b.ApellidoNombre),
+      sortFn: (a: DescuentoJSON, b: DescuentoJSON) =>
+        a.ApellidoNombre.localeCompare(b.ApellidoNombre),
       sortDirections: ['ascend', 'descend', null],
       filterMultiple: true,
       listOfFilter: [],
@@ -141,22 +215,14 @@ export class ImpuestoAfipComponent {
     },
   ];
 
-  resizeObservable$: Observable<Event> | undefined
-  resizeSubscription$: Subscription | undefined
+  resizeObservable$: Observable<Event> | undefined;
+  resizeSubscription$: Subscription | undefined;
 
   ngOnInit() {
-    this.resizeObservable$ = fromEvent(window, 'resize')
-    this.resizeSubscription$ = this.resizeObservable$.pipe(debounceTime(500)).subscribe(evt => {
-//      console.log('window.innerHeight', window.innerHeight)
-// /      const height= window.innerHeight-200
-//      this.st!.scroll = { y: "${height}px" }
-//      this.st?.reset()  //Recarga la grilla
-
-//  this.st?._columns.
-//      this.stsizey = "${height}px"
-//      this.st?.resetColumns({})
-
-      
+    this.resizeObservable$ = fromEvent(window, 'resize');
+    this.resizeSubscription$ = this.resizeObservable$
+      .pipe(debounceTime(500))
+      .subscribe(evt => {
         //      console.log('window.innerHeight', window.innerHeight)
         // /      const height= window.innerHeight-200
         //      this.st!.scroll = { y: "${height}px" }
@@ -164,63 +230,26 @@ export class ImpuestoAfipComponent {
         //  this.st?._columns.
         //      this.stsizey = "${height}px"
         //      this.st?.resetColumns({})
-        //      console.log('window.innerHeight', window.innerHeight)
-        // /      const height= window.innerHeight-200
-        //      this.st!.scroll = { y: "${height}px" }
-        //      this.st?.reset()  //Recarga la grilla
-        //  this.st?._columns.
-        //      this.stsizey = "${height}px"
-        //      this.st?.resetColumns({})
-        //      console.log('window.innerHeight', window.innerHeight)
-        // /      const height= window.innerHeight-200
-        //      this.st!.scroll = { y: "${height}px" }
-        //      this.st?.reset()  //Recarga la grilla
-        //  this.st?._columns.
-        //      this.stsizey = "${height}px"
-        //      this.st?.resetColumns({})
-        //      console.log('window.innerHeight', window.innerHeight)
-        // /      const height= window.innerHeight-200
-        //      this.st!.scroll = { y: "${height}px" }
-        //      this.st?.reset()  //Recarga la grilla
-        //  this.st?._columns.
-        //      this.stsizey = "${height}px"
-        //      this.st?.resetColumns({})
-        //      console.log('window.innerHeight', window.innerHeight)
-        // /      const height= window.innerHeight-200
-        //      this.st!.scroll = { y: "${height}px" }
-        //      this.st?.reset()  //Recarga la grilla
-        //  this.st?._columns.
-        //      this.stsizey = "${height}px"
-        //      this.st?.resetColumns({})
-        //      console.log('window.innerHeight', window.innerHeight)
-        // /      const height= window.innerHeight-200
-        //      this.st!.scroll = { y: "${height}px" }
-        //      this.st?.reset()  //Recarga la grilla
-        //  this.st?._columns.
-        //      this.stsizey = "${height}px"
-        //      this.st?.resetColumns({})
-      console.log('resize')
-
-      console.log('width',this.stel)
-//      console.log('width',new ElementRef(this.st).nativeElement.width)
-
-//      this.st?.colResize({ width: 500 }, this.st?._columns[0]);
-//      this.st?.cd()
-      console.log('config',this.st)
-      
-    })
-}
+      });
+  }
 
   ngAfterViewInit(): void {
     setTimeout(() => {
       const now = new Date(); //date
-      const anio = Number(localStorage.getItem('anio')) > 0 ? localStorage.getItem('anio') : now.getFullYear();
-      const mes = Number(localStorage.getItem('mes')) > 0 ? localStorage.getItem('mes') : now.getMonth() + 1;
-      this.impuestoForm.form.get('periodo')?.setValue(new Date(Number(anio), Number(mes) - 1, 1));
+      const anio =
+        Number(localStorage.getItem('anio')) > 0
+          ? localStorage.getItem('anio')
+          : now.getFullYear();
+      const mes =
+        Number(localStorage.getItem('mes')) > 0
+          ? localStorage.getItem('mes')
+          : now.getMonth() + 1;
+      this.impuestoForm.form
+        .get('periodo')
+        ?.setValue(new Date(Number(anio), Number(mes) - 1, 1));
     }, 1);
 
-
-//    this.st?.scroll()
+    //    this.st?.scroll()
   }
 
   onChangeSt(event: any): void {
@@ -236,8 +265,6 @@ export class ImpuestoAfipComponent {
 
       localStorage.setItem('mes', String(this.mes));
       localStorage.setItem('anio', String(this.anio));
-
-
     } else {
       this.anio = 0;
       this.mes = 0;
@@ -261,28 +288,23 @@ export class ImpuestoAfipComponent {
   }
 
   formChanged(_event: string) {
-    this.formChange$.next('')
+    this.formChange$.next('');
   }
 
   ngOnDestroy() {
-    this.resizeSubscription$!.unsubscribe()
-
+    this.resizeSubscription$!.unsubscribe();
   }
 
-  getColumns(url:string):any{ 
-    return this.apiService.get(url)
+  getColumns(url: string): any {
+    return this.apiService.get(url);
   }
-  
 
   fncFile(rep: any): string {
-    console.log('fncFile',rep)
+    console.log('fncFile', rep);
 
-    return 'pepe.pdf'
+    return 'pepe.pdf';
   }
-
-
 }
-
 
 interface ColumnItem {
   name: string;
@@ -293,5 +315,3 @@ interface ColumnItem {
   filterMultiple: boolean;
   sortDirections: NzTableSortOrder[];
 }
-
-

@@ -29,6 +29,15 @@ import {
 export class SearchService {
   constructor(private http: _HttpClient) {}
 
+  getCUITfromPersonalId(personalId: string): Observable<null | number> {
+    return this.http
+      .get<ResponseJSON<ResponseNameFromId>>(`api/personal/${personalId}`)
+      .pipe(
+        map(res => res.data.cuit),
+        catchError(() => of(null))
+      );
+  }
+
   ObjetivoInfoFromId(objetivoId: string): Observable<ObjetivoInfo> {
     return this.http
       .get<ResponseJSON<ObjetivoInfo>>(`api/objetivos/name/${objetivoId}`)

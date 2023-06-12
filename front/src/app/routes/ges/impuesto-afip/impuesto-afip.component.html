@@ -1,31 +1,62 @@
-<nz-card class="small-margin" >
+<nz-card class="small-margin">
   <form nz-form #impuestoForm="ngForm">
     <ng-container *ngIf="{ lista: (listaDescuentos$ | async) } as context">
       <ul nz-menu nzMode="horizontal">
-        <li nz-menu-item nzSelected (click)="selectedTabIndex=0">
+        <li nz-menu-item nzSelected (click)="selectedTabIndex = 0">
           <span nz-icon nzType=""></span>
           Carga
         </li>
-        <li nz-menu-item (click)="selectedTabIndex=1">
+        <li nz-menu-item (click)="selectedTabIndex = 1">
           <span nz-icon nzType=""></span>
           Listado
         </li>
-        <li nz-submenu nzTitle="Acciones" *ngIf="selectedTabIndex==1">
+        <li nz-submenu nzTitle="Acciones" *ngIf="selectedTabIndex == 1">
           <ul>
-            <li nz-menu-item app-down-file
-            httpUrl="api/impuestos_afip/download/{{anio}}/{{mes}}/{{selectedPersonalId}}"><span nz-icon nzType="download"></span>Comprobantes</li>
-            <li nz-menu-item (click)="st!.export(true,{
-              filename: 'via-data.xlsx', sheetname: 'monotributo'})"><span nz-icon nzType="download"></span>XLS</li>
+            <li
+              nz-menu-item
+              app-down-file
+              httpUrl="api/impuestos_afip/download/{{ anio }}/{{ mes }}/{{
+                selectedPersonalId
+              }}">
+              <span nz-icon nzType="download"></span>Comprobantes
+            </li>
+            <li
+              nz-menu-item
+              (click)="
+                st!.export(true, {
+                  filename: 'via-data.xlsx',
+                  sheetname: 'monotributo'
+                })
+              ">
+              <span nz-icon nzType="download"></span>XLS
+            </li>
           </ul>
         </li>
       </ul>
 
-      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
+      <nz-date-picker
+        nzMode="month"
+        name="periodo"
+        ngModel
+        (ngModelChange)="onChange($event)" />
 
-      <nz-tabset nzCentered [(nzSelectedIndex)]="selectedTabIndex" class="hide-ant-tabs-nav">
+      <nz-tabset
+        nzCentered
+        [(nzSelectedIndex)]="selectedTabIndex"
+        class="hide-ant-tabs-nav">
         <nz-tab>
-          <div *ngIf="context.lista?.RegistrosSinComprobantes && 1" nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
-            <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
+          <div
+            *ngIf="context.lista?.RegistrosSinComprobantes && 1"
+            nz-col
+            nzXs="24"
+            nzSm="12"
+            nzMd="6"
+            class="mb-md">
+            <div
+              nz-row
+              nzType="flex"
+              nzAlign="middle"
+              class="ant-btn-danger rounded-md">
               <div nz-col nzSpan="24" class="p-md text-white">
                 <div class="h2 mt0">
                   Pendientes: {{ context.lista?.RegistrosSinComprobantes }}
@@ -37,8 +68,54 @@
             </div>
           </div>
 
-          <nz-upload class="d-block" nzType="drag" [nzMultiple]="true" [nzData]="{ anio: anio, mes: mes }"
-            (nzChange)="handleChange($event)" [nzAction]="url" nzName="pdf" [(nzFileList)]="files"
+          <!-- <app-personal-search #searchForzado /> -->
+
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">Forzado</nz-form-label>
+            <nz-form-control>
+              <ng-container>
+                <input
+                  #montoForzado
+                  type="number"
+                  [placeholder]="'Monto'"
+                  nz-input
+                  name="monto"
+                  ngModel />
+                <input
+                  #cuitForzado
+                  type="number"
+                  [placeholder]="'CUIT'"
+                  nz-input
+                  name="cuitForzado"
+                  ngModel />
+
+                <nz-upload
+                  nzAccept="application/pdf"
+                  [nzAction]="url_forzado"
+                  [nzData]="{
+                    anio: anio,
+                    mes: mes,
+                    cuit: cuitForzado.value,
+                    monto: montoForzado.valueAsNumber
+                  }"
+                  nzName="pdf">
+                  <button nz-button>
+                    <span nz-icon nzType="upload"></span>
+                    Subir Comprobante (Forzado)
+                  </button>
+                </nz-upload>
+              </ng-container>
+            </nz-form-control>
+          </nz-form-item>
+          <nz-upload
+            class="d-block"
+            nzType="drag"
+            [nzMultiple]="true"
+            [nzData]="{ anio: anio, mes: mes }"
+            (nzChange)="handleChange($event)"
+            [nzAction]="url"
+            nzName="pdf"
+            [(nzFileList)]="files"
             nzAccept="application/pdf">
             <p class="ant-upload-drag-icon">
               <span nz-icon nzType="inbox"></span>
@@ -89,28 +166,53 @@
             </tbody>
           </nz-table> -->
         </nz-tab>
-        <nz-tab [nzForceRender]="false" >
-          <ng-template nz-tab >
-
+        <nz-tab [nzForceRender]="false">
+          <ng-template nz-tab>
             <div nz-row nzJustify="space-around">
               <div nz-col [nzSpan]="13" style="text-align: center">
                 <label>Persona Responsable:</label>
-                <app-personal-search (ngModelChange)="formChanged($event)" [(ngModel)]="selectedPersonalId"
+                <app-personal-search
+                  (ngModelChange)="formChanged($event)"
+                  [(ngModel)]="selectedPersonalId"
                   [ngModelOptions]="{ standalone: true }" />
               </div>
             </div>
 
-            <st #st [data]="'/api/impuestos_afip/list'" [res]="{ reName: { total: 'data.total', list: 'data.list' } }"
-              [req]="{ lazyLoad:true, params: {anio, mes, personalIdRel:selectedPersonalId}, method: 'POST', allInBody: true }" [columns]="columns2" class="mt-sm"
-               virtualScroll [scroll]="{  y: 'calc(100vh - 340px)' }" [page]="{show:false}"
-               [widthMode]="{ type: 'strict' }" (change)="onChangeSt($event)"
-              >
-
-              <ng-template st-row="cusImporte" let-item >
-                <span nz-tooltip [nzTooltipTitle]="">{{ item.monto | currency }}</span>
-                <a *ngIf="item.monto>0" app-down-file title="Comprobante {{item.PersonalOtroDescuentoMesesAplica}}/{{item.PersonalOtroDescuentoAnoAplica}}" httpUrl="api/impuestos_afip/{{item.PersonalOtroDescuentoAnoAplica}}/{{item.PersonalOtroDescuentoMesesAplica}}/0/{{item.PersonalId}}"><span class="pl-xs" nz-icon nzType="download"></span></a>
+            <st
+              #st
+              [data]="'/api/impuestos_afip/list'"
+              [res]="{ reName: { total: 'data.total', list: 'data.list' } }"
+              [req]="{
+                lazyLoad: true,
+                params: { anio, mes, personalIdRel: selectedPersonalId },
+                method: 'POST',
+                allInBody: true
+              }"
+              [columns]="columns2"
+              class="mt-sm"
+              virtualScroll
+              [scroll]="{ y: 'calc(100vh - 310px)' }"
+              resizable
+              [page]="{ show: false }"
+              [widthMode]="{ type: 'strict' }">
+              <ng-template st-row="cusImporte" let-item>
+                <span nz-tooltip [nzTooltipTitle]="">{{
+                  item.monto | currency
+                }}</span>
+                <a
+                  *ngIf="item.monto > 0"
+                  app-down-file
+                  title="Comprobante {{
+                    item.PersonalOtroDescuentoMesesAplica
+                  }}/{{ item.PersonalOtroDescuentoAnoAplica }}"
+                  httpUrl="api/impuestos_afip/{{
+                    item.PersonalOtroDescuentoAnoAplica
+                  }}/{{ item.PersonalOtroDescuentoMesesAplica }}/0/{{
+                    item.PersonalId
+                  }}"
+                  ><span class="pl-xs" nz-icon nzType="download"></span
+                ></a>
               </ng-template>
-
             </st>
           </ng-template>
         </nz-tab>

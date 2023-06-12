@@ -11,10 +11,26 @@ import { Injectable, Injector } from '@angular/core';
 import { ControlContainer } from '@angular/forms';
 import { Router } from '@angular/router';
 import { DA_SERVICE_TOKEN, ITokenService } from '@delon/auth';
-import { ALAIN_I18N_TOKEN, IGNORE_BASE_URL, _HttpClient, CUSTOM_ERROR, RAW_BODY } from '@delon/theme';
+import {
+  ALAIN_I18N_TOKEN,
+  IGNORE_BASE_URL,
+  _HttpClient,
+  CUSTOM_ERROR,
+  RAW_BODY,
+} from '@delon/theme';
 import { environment } from '@env/environment';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { BehaviorSubject, Observable, of, throwError, catchError, filter, mergeMap, switchMap, take } from 'rxjs';
+import {
+  BehaviorSubject,
+  Observable,
+  of,
+  throwError,
+  catchError,
+  filter,
+  mergeMap,
+  switchMap,
+  take,
+} from 'rxjs';
 
 const CODEMESSAGE: { [key: number]: string } = {
   200: 'Respuesta OK.',
@@ -40,7 +56,8 @@ const CODEMESSAGE: { [key: number]: string } = {
 @Injectable()
 export class DefaultInterceptor implements HttpInterceptor {
   private refreshTokenEnabled = environment.api.refreshTokenEnabled;
-  private refreshTokenType: 're-request' | 'auth-refresh' = environment.api.refreshTokenType;
+  private refreshTokenType: 're-request' | 'auth-refresh' =
+    environment.api.refreshTokenType;
   private refreshToking = false;
   private refreshToken$: BehaviorSubject<any> = new BehaviorSubject<any>(null);
 
@@ -78,16 +95,25 @@ export class DefaultInterceptor implements HttpInterceptor {
     //    this.notification.error(`请求错误 ${ev.status}: ${ev.url}`, errortext);
   }
 
-  private handleDataError(err: HttpErrorResponse, req: HttpRequest<any>, next: HttpHandler): Observable<any> {
+  private handleDataError(
+    err: HttpErrorResponse,
+    req: HttpRequest<any>,
+    next: HttpHandler
+  ): Observable<any> {
     switch (err.status) {
       case 401:
-        if (this.refreshTokenEnabled && this.refreshTokenType === 're-request') {
+        if (
+          this.refreshTokenEnabled &&
+          this.refreshTokenType === 're-request'
+        ) {
           return this.tryRefreshToken(err, req, next);
         }
         this.toLogin();
         break;
       default:
-        const errortext = err.error?.msg ? err.error.msg : CODEMESSAGE[err.status] || err.statusText;
+        const errortext = err.error?.msg
+          ? err.error.msg
+          : CODEMESSAGE[err.status] || err.statusText;
         this.notification.error(`Error`, errortext);
         break;
     }
@@ -106,7 +132,11 @@ export class DefaultInterceptor implements HttpInterceptor {
 
   // #region 刷新Token方式一：使用 401 重新刷新 Token
 
-  private tryRefreshToken(ev: HttpResponseBase, req: HttpRequest<any>, next: HttpHandler): Observable<any> {
+  private tryRefreshToken(
+    ev: HttpResponseBase,
+    req: HttpRequest<any>,
+    next: HttpHandler
+  ): Observable<any> {
     // 1、若请求为刷新Token请求，表示来自刷新Token可以直接跳转登录页
     if ([`/api/auth/refresh`].some(url => req.url.includes(url))) {
       this.toLogin();
@@ -187,12 +217,15 @@ export class DefaultInterceptor implements HttpInterceptor {
   // #endregion
 
   private toLogin(): void {
-    //    this.notification.error(`未登录或登录已过期，请重新登录。`, ``);
-    this.notification.error(`Requiere volver a autenticarse。`, ``);
+    this.notification.error(`Requiere volver a autenticarse.`, ``);
     this.goTo(this.tokenSrv.login_url!);
   }
 
-  private handleData(ev: HttpResponseBase, req: HttpRequest<any>, next: HttpHandler): Observable<any> {
+  private handleData(
+    ev: HttpResponseBase,
+    req: HttpRequest<any>,
+    next: HttpHandler
+  ): Observable<any> {
     this.checkStatus(ev);
     // 业务处理：一些通用操作
     switch (ev.status) {
@@ -223,7 +256,10 @@ export class DefaultInterceptor implements HttpInterceptor {
         // }
         break;
       case 401:
-        if (this.refreshTokenEnabled && this.refreshTokenType === 're-request') {
+        if (
+          this.refreshTokenEnabled &&
+          this.refreshTokenType === 're-request'
+        ) {
           return this.tryRefreshToken(ev, req, next);
         }
         this.toLogin();
@@ -251,7 +287,9 @@ export class DefaultInterceptor implements HttpInterceptor {
     }
   }
 
-  private getAdditionalHeaders(headers?: HttpHeaders): { [name: string]: string } {
+  private getAdditionalHeaders(headers?: HttpHeaders): {
+    [name: string]: string;
+  } {
     const res: { [name: string]: string } = {};
     const lang = this.injector.get(ALAIN_I18N_TOKEN).currentLang;
     if (!headers?.has('Accept-Language') && lang) {
@@ -261,15 +299,27 @@ export class DefaultInterceptor implements HttpInterceptor {
     return res;
   }
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  intercept(
+    req: HttpRequest<any>,
+    next: HttpHandler
+  ): Observable<HttpEvent<any>> {
     // 统一加上服务端前缀
     let url = req.url;
-    if (!req.context.get(IGNORE_BASE_URL) && !url.startsWith('https://') && !url.startsWith('http://')) {
+    if (
+      !req.context.get(IGNORE_BASE_URL) &&
+      !url.startsWith('https://') &&
+      !url.startsWith('http://')
+    ) {
       const { baseUrl } = environment.api;
-      url = baseUrl + (baseUrl.endsWith('/') && url.startsWith('/') ? url.substring(1) : url);
+      url =
+        baseUrl +
+        (baseUrl.endsWith('/') && url.startsWith('/') ? url.substring(1) : url);
     }
 
-    const newReq = req.clone({ url, setHeaders: this.getAdditionalHeaders(req.headers) });
+    const newReq = req.clone({
+      url,
+      setHeaders: this.getAdditionalHeaders(req.headers),
+    });
     return next.handle(newReq).pipe(
       mergeMap(ev => {
         // 允许统一对请求错误处理
@@ -279,7 +329,9 @@ export class DefaultInterceptor implements HttpInterceptor {
         // 若一切都正常，则后续操作
         return of(ev);
       }),
-      catchError((err: HttpErrorResponse) => this.handleDataError(err, newReq, next))
+      catchError((err: HttpErrorResponse) =>
+        this.handleDataError(err, newReq, next)
+      )
     );
   }
 }

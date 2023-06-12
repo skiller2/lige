@@ -2,7 +2,7 @@ import { BaseController } from "./baseController";
 import { PersonaObj } from "../schemas/personal.schemas";
 import fetch, { Request } from "node-fetch";
 import { dataSource } from "../data-source";
-import {  Response } from "express-serve-static-core";
+import { Response } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 
 export class PersonalController extends BaseController {
@@ -13,24 +13,15 @@ export class PersonalController extends BaseController {
     try {
       const result = await dataSource.query(
         `SELECT des.PersonalId,des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoAnoAplica FROM PersonalOtroDescuento des WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = @1 AND des.PersonalOtroDescuentoAnoAplica = @2 AND des.PersonalOtroDescuentoMesesAplica = @3`,
-        [
-          personalId,
-          Number(process.env.OTRO_DESCUENTO_ID),
-          anio,
-          mes,
-        ]
-      )
+        [personalId, Number(process.env.OTRO_DESCUENTO_ID), anio, mes]
+      );
 
       this.jsonRes(result, res);
     } catch (err) {
-      this.errRes(err, res, "Error accediendo a la base de datos", 409)
+      this.errRes(err, res, "Error accediendo a la base de datos", 409);
     }
-
-
-
-
   }
-  
+
   async getNameFromId(PersonalId, res: Response) {
     try {
       const result = await dataSource.query(

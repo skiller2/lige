@@ -140,7 +140,6 @@ export class DetalleAsistenciaComponent {
     )
   );
 
-
   $personaMonotributo = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
     switchMap(() =>
@@ -156,7 +155,6 @@ export class DetalleAsistenciaComponent {
         ()
     )
   );
-
 
   $personaResponsables = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
@@ -241,7 +239,6 @@ export class DetalleAsistenciaComponent {
   }
 
   buscarPorPersona(PersonalId: string) {
-    console.log(PersonalId);
     this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
     this.selectedTabIndex = 1;
   }

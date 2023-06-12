@@ -1,25 +1,17 @@
 import { Request, Response } from "express";
 import { BaseController } from "../controller/baseController";
 import {
-  Dirent,
   copyFileSync,
   existsSync,
   mkdirSync,
   readFileSync,
-  readdirSync,
   unlinkSync,
   writeFileSync,
 } from "fs";
-import {
-  TextContent,
-  TextItem,
-  TextMarkedContent,
-  TextStyle,
-} from "pdfjs-dist/types/src/display/api";
+import { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf";
 import { dataSource } from "../data-source";
 import {
-  FileEmbedder,
   PDFDocument,
   PDFEmbeddedPage,
   PDFPage,
@@ -32,13 +24,22 @@ import {
 import { tmpName } from "../server";
 import path from "path";
 import { DescuentoJSON } from "src/schemas/ResponseJSON";
-import { readFile } from "fs/promises";
-import { BoundingBox } from "pdf-lib/cjs/types/fontkit";
 
-const cuitRegex = [/:\d{2}\n(\d{11})$/m, /CUIT\/CUIL\/CDI\n(\d{11})/m, /^CUIT: (\d{11})$/m]
-const periodoRegex = [/PERIODO FISCAL (\d*)\/(\d*)/m, /^Fecha Retención\/Percepción\n\d{2}\/(\d{2})\/(\d{4})$/m, /PERIODO: (\d{2})\/(\d{4})$/m]
-const importeMontoRegex =
-  [/^\$[\s*](([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))?$/m, /Monto de la Retenci.n\/Percepci.n\n(\d*.\d{2})/m, /^IMPORTE: \$(([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))$/m]
+const cuitRegex = [
+  /:\d{2}\n(\d{11})$/m,
+  /CUIT\/CUIL\/CDI\n(\d{11})/m,
+  /^CUIT: (\d{11})$/m,
+];
+const periodoRegex = [
+  /PERIODO FISCAL (\d*)\/(\d*)/m,
+  /^Fecha Retención\/Percepción\n\d{2}\/(\d{2})\/(\d{4})$/m,
+  /PERIODO: (\d{2})\/(\d{4})$/m,
+];
+const importeMontoRegex = [
+  /^\$[\s*](([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))?$/m,
+  /Monto de la Retenci.n\/Percepci.n\n(\d*.\d{2})/m,
+  /^IMPORTE: \$(([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))$/m,
+];
 
 export class ImpuestosAfipController extends BaseController {
   directory = process.env.PATH_MONOTRIBUTO;
@@ -216,8 +217,8 @@ export class ImpuestosAfipController extends BaseController {
   }
   async handlePDFUpload(req: Request, res: Response, forzado: boolean) {
     const file = req.file;
-    const anioRequest = req.body.anio;
-    const mesRequest = req.body.mes;
+    const anioRequest: number = req.body.anio;
+    const mesRequest: number = req.body.mes;
     const queryRunner = dataSource.createQueryRunner();
 
     try {
@@ -232,7 +233,7 @@ export class ImpuestosAfipController extends BaseController {
 
       if (forzado) {
         const importeRequest = req.body.monto;
-        const cuitRequest = req.body.monto;
+        const cuitRequest = req.body.cuit;
 
         if (!importeRequest) throw new Error("Faltó indicar el importe.");
         importeMonto = importeRequest;
@@ -308,9 +309,12 @@ export class ImpuestosAfipController extends BaseController {
         "SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro OtroDescuentoId, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre FROM PersonalCUITCUIL cuit JOIN Personal per ON per.PersonalId = cuit.PersonalId WHERE cuit.PersonalCUITCUILCUIT = @0",
         [CUIT]
       );
+      console.log(CUIT, personalIDQuery);
+
+      if (!personalIDQuery.PersonalId)
+        throw new Error(`No se pudo encontrar el CUIT ${CUIT}`);
 
       const personalID = personalIDQuery.PersonalId;
-      if (!personalID) throw new Error(`No se pudo encontrar el CUIT ${CUIT}`);
 
       const ApellidoNombre = personalIDQuery.ApellidoNombre;
 
@@ -329,7 +333,11 @@ export class ImpuestosAfipController extends BaseController {
         );
 
       mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
-      const newFilePath = `${this.directory}/${anioRequest}/${anioRequest}-${mesRequest}-${CUIT}-${personalID}.pdf`;
+      const newFilePath = `${
+        this.directory
+      }/${anioRequest}/${anioRequest}-${mesRequest
+        .toString()
+        .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
       if (existsSync(newFilePath)) throw new Error("El documento ya existe.");
       const now = new Date();
       await queryRunner.query(
@@ -362,7 +370,7 @@ export class ImpuestosAfipController extends BaseController {
       this.jsonRes([], res, "PDF Recibido!");
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      this.errRes(err, res, err.message, 409);
+      this.errRes(err, res, "Algo salió mal!", 409);
     } finally {
       await queryRunner.release();
       unlinkSync(file.path);
@@ -478,16 +486,21 @@ export class ImpuestosAfipController extends BaseController {
         currentFilePDF = await PDFDocument.load(currentFileBuffer);
         currentFilePDFPage = currentFilePDF.getPages()[0];
 
-        let embeddedPage:PDFEmbeddedPage = null
-        if (currentFilePDFPage.getWidth() == 595.276 && currentFilePDFPage.getHeight() == 841.89) {
+        let embeddedPage: PDFEmbeddedPage = null;
+        if (
+          currentFilePDFPage.getWidth() == 595.276 &&
+          currentFilePDFPage.getHeight() == 841.89
+        ) {
           embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
             top: 790,
             bottom: 410,
             left: 53,
             right: 307,
           });
-
-        } else if (currentFilePDFPage.getWidth() == 598 && currentFilePDFPage.getHeight() == 845) {
+        } else if (
+          currentFilePDFPage.getWidth() == 598 &&
+          currentFilePDFPage.getHeight() == 845
+        ) {
           embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
             top: 808,
             bottom: 385,
@@ -495,28 +508,26 @@ export class ImpuestosAfipController extends BaseController {
             right: 560,
           });
         } else {
-          embeddedPage = await newDocument.embedPage(currentFilePDFPage)
+          embeddedPage = await newDocument.embedPage(currentFilePDFPage);
         }
-    
-        const imgWidthScale = ((pageWidth / 2) - 20) / embeddedPage.width
-        const imgHeightScale = ((pageHeight / 2) - 20) / embeddedPage.height
-        const scalePage= embeddedPage.scale(Math.min(imgWidthScale, imgHeightScale))
+
+        const imgWidthScale = (pageWidth / 2 - 20) / embeddedPage.width;
+        const imgHeightScale = (pageHeight / 2 - 20) / embeddedPage.height;
+        const scalePage = embeddedPage.scale(
+          Math.min(imgWidthScale, imgHeightScale)
+        );
 
         const positionFromIndex: PDFPageDrawPageOptions = {
           x:
             locationIndex % 2 == 0
               ? Math.abs(pageWidth / 2 - scalePage.width) / 2
-              : (Math.abs(pageWidth / 2 - scalePage.width) +
-                pageWidth) /
-              2,
+              : (Math.abs(pageWidth / 2 - scalePage.width) + pageWidth) / 2,
           y:
             locationIndex < 2
-              ? (Math.abs(pageHeight / 2 - scalePage.height) +
-                pageHeight) /
-              2
+              ? (Math.abs(pageHeight / 2 - scalePage.height) + pageHeight) / 2
               : Math.abs(pageHeight / 2 - scalePage.height) / 2,
-          width:scalePage.width,
-          height:scalePage.height,
+          width: scalePage.width,
+          height: scalePage.height,
         };
 
         lastPage.drawPage(embeddedPage, { ...positionFromIndex });
@@ -630,8 +641,7 @@ export class ImpuestosAfipController extends BaseController {
 
     let currentPage: PDFPage;
 
-    const page0 = originPDFPages[0]
-
+    const page0 = originPDFPages[0];
 
     //    currentPage = newPdf.addPage(PageSizes.A4);
 
@@ -641,7 +651,7 @@ export class ImpuestosAfipController extends BaseController {
       console.log('hoja:',x, y, width, height)
     })
     */
-    let embededPages = null
+    let embededPages = null;
     if (page0.getWidth() == 595.276 && page0.getHeight() == 841.89) {
       embededPages = await newPdf.embedPages(originPDFPages, [
         { top: 790, bottom: 410, left: 53, right: 307 },
@@ -650,10 +660,8 @@ export class ImpuestosAfipController extends BaseController {
       embededPages = await newPdf.embedPages(originPDFPages, [
         { top: 808, bottom: 385, left: 37, right: 560 },
       ]);
-
     } else {
       embededPages = await newPdf.embedPages(originPDFPages);
-
     }
 
     //    const image = await fetch('assets/pdf/firma_recibo.png').then(res => res.arrayBuffer())
@@ -661,12 +669,10 @@ export class ImpuestosAfipController extends BaseController {
     //    const scaleImage = embededImage.scale(1/20)
 
     embededPages.forEach((embPage, index) => {
-
-      
       const embPageSize = embPage.scale(1);
       const margin = 20;
 
-     currentPage = newPdf.addPage([
+      currentPage = newPdf.addPage([
         embPageSize.width + margin,
         embPageSize.height + margin,
       ]);
