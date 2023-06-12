@@ -1,7 +1,7 @@
-import { Component, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SharedModule } from '@shared';
-import { NzResizableModule } from 'ng-zorro-antd/resizable';
+import { NzResizableModule, NzResizeHandleMouseDownEvent } from 'ng-zorro-antd/resizable';
 import { NzTableSortOrder, NzTableSortFn, NzTableFilterList, NzTableFilterFn } from 'ng-zorro-antd/table';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, Observable, Subscription, debounceTime, filter, fromEvent, map, of, switchMap, tap, throttleTime } from 'rxjs';
@@ -20,8 +20,9 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 export class ImpuestoAfipComponent {
   @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm = new NgForm([], [])
   @ViewChild('st', { static: false }) st: STComponent | undefined
+  @ViewChild('st', { static: false }) stel: ElementRef | undefined
 
-  constructor(public apiService: ApiService) { }
+  constructor(public apiService: ApiService, private cdr: ChangeDetectorRef) { }
   selectedDate = null;
   anio = 0;
   mes = 0;
@@ -35,7 +36,7 @@ export class ImpuestoAfipComponent {
   columns$ = this.apiService.get('/api/impuestos_afip/cols')
 
   columns2: STColumn[] = [
-    { title: 'CUIT', index: 'CUIT', type: 'number',  resizable: true, sort:true, exported: true,  },
+    { title: 'CUIT', index: 'CUIT', type: '',  resizable: true, sort:true, exported: true  },
     { title: 'Apellido Nombre', type: '', index: 'ApellidoNombre', exported: true, sort:true, resizable: true },
     { title: 'Sit Revista', type: '', index: 'SituacionRevistaDescripcion', exported: true, sort:true, resizable: true },
     { title: 'Importe', type: 'currency', index: 'monto', resizable: true, exported: true, render: 'cusImporte', sort:true },
@@ -154,6 +155,59 @@ export class ImpuestoAfipComponent {
 //  this.st?._columns.
 //      this.stsizey = "${height}px"
 //      this.st?.resetColumns({})
+
+      
+        //      console.log('window.innerHeight', window.innerHeight)
+        // /      const height= window.innerHeight-200
+        //      this.st!.scroll = { y: "${height}px" }
+        //      this.st?.reset()  //Recarga la grilla
+        //  this.st?._columns.
+        //      this.stsizey = "${height}px"
+        //      this.st?.resetColumns({})
+        //      console.log('window.innerHeight', window.innerHeight)
+        // /      const height= window.innerHeight-200
+        //      this.st!.scroll = { y: "${height}px" }
+        //      this.st?.reset()  //Recarga la grilla
+        //  this.st?._columns.
+        //      this.stsizey = "${height}px"
+        //      this.st?.resetColumns({})
+        //      console.log('window.innerHeight', window.innerHeight)
+        // /      const height= window.innerHeight-200
+        //      this.st!.scroll = { y: "${height}px" }
+        //      this.st?.reset()  //Recarga la grilla
+        //  this.st?._columns.
+        //      this.stsizey = "${height}px"
+        //      this.st?.resetColumns({})
+        //      console.log('window.innerHeight', window.innerHeight)
+        // /      const height= window.innerHeight-200
+        //      this.st!.scroll = { y: "${height}px" }
+        //      this.st?.reset()  //Recarga la grilla
+        //  this.st?._columns.
+        //      this.stsizey = "${height}px"
+        //      this.st?.resetColumns({})
+        //      console.log('window.innerHeight', window.innerHeight)
+        // /      const height= window.innerHeight-200
+        //      this.st!.scroll = { y: "${height}px" }
+        //      this.st?.reset()  //Recarga la grilla
+        //  this.st?._columns.
+        //      this.stsizey = "${height}px"
+        //      this.st?.resetColumns({})
+        //      console.log('window.innerHeight', window.innerHeight)
+        // /      const height= window.innerHeight-200
+        //      this.st!.scroll = { y: "${height}px" }
+        //      this.st?.reset()  //Recarga la grilla
+        //  this.st?._columns.
+        //      this.stsizey = "${height}px"
+        //      this.st?.resetColumns({})
+      console.log('resize')
+
+      console.log('width',this.stel)
+//      console.log('width',new ElementRef(this.st).nativeElement.width)
+
+//      this.st?.colResize({ width: 500 }, this.st?._columns[0]);
+//      this.st?.cd()
+      console.log('config',this.st)
+      
     })
 }
 
@@ -169,7 +223,13 @@ export class ImpuestoAfipComponent {
 //    this.st?.scroll()
   }
 
-  onChange(result: Date): void {
+  onChangeSt(event: any): void {
+    console.log('changeSt',event)
+  
+  }
+
+
+    onChange(result: Date): void {
     if (result) {
       this.anio = result.getFullYear();
       this.mes = result.getMonth() + 1;

@@ -103,7 +103,7 @@
             <st #st [data]="'/api/impuestos_afip/list'" [res]="{ reName: { total: 'data.total', list: 'data.list' } }"
               [req]="{ lazyLoad:true, params: {anio, mes, personalIdRel:selectedPersonalId}, method: 'POST', allInBody: true }" [columns]="columns2" class="mt-sm"
                virtualScroll [scroll]="{  y: 'calc(100vh - 340px)' }" [page]="{show:false}"
-               [widthMode]="{ type: 'strict' }"
+               [widthMode]="{ type: 'strict' }" (change)="onChangeSt($event)"
               >
 
               <ng-template st-row="cusImporte" let-item >
