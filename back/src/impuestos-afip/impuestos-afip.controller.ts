@@ -24,6 +24,23 @@ import {
 import { tmpName } from "../server";
 import path from "path";
 import { DescuentoJSON } from "src/schemas/ResponseJSON";
+import { Filtro, Options } from "src/schemas/filtro";
+
+function isFiltro(filtro: any): filtro is Filtro {
+  if (!filtro) return false;
+  return (
+    "index" in filtro &&
+    "operador" in filtro &&
+    "condition" in filtro &&
+    "valor" in filtro
+  );
+}
+
+function isOptions(options: any): options is Options {
+  if (!options) return false;
+
+  return "filtros" in options && "sort" in options;
+}
 
 const cuitRegex = [
   /:\d{2}\n(\d{11})$/m,
@@ -41,6 +58,96 @@ const importeMontoRegex = [
   /^IMPORTE: \$(([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))$/m,
 ];
 
+const listaColumnas = [
+  {
+    title: "CUIT",
+    index: "CUIT",
+    fieldName: "cuit2.PersonalCUITCUILCUIT",
+    type: "number",
+    resizable: true,
+    sort: { compare: (a, b) => a.price - b.price },
+  },
+  {
+    title: "Apellido Nombre",
+    type: "",
+    index: "ApellidoNombre",
+    fieldName: "ApellidoNombre",
+    exported: true,
+  },
+  {
+    title: "Sit Revista",
+    type: "",
+    index: "SituacionRevistaDescripcion",
+    fieldName: "sit.SituacionRevistaDescripcion",
+    exported: true,
+  },
+  {
+    title: "Importe",
+    type: "currency",
+    index: "monto",
+    fieldName: "des.PersonalOtroDescuentoImporteVariable",
+    exported: true,
+  },
+  {
+    title: "CUIT Responsable",
+    type: "number",
+    index: "CUITJ",
+    fieldName: "cuit.PersonalCUITCUILCUIT",
+    exported: true,
+  },
+  {
+    title: "Apellido Nombre Responsable",
+    type: "string",
+    index: "ApellidoNombreJ",
+    fieldName: "ApellidoNombreJ",
+    exported: true,
+  },
+  {
+    title: "ID Descuento",
+    type: "number",
+    index: "PersonalOtroDescuentoId",
+    exported: true,
+  },
+];
+
+const listaColumna = (index: string) => {
+  return listaColumnas.find((columna) => columna.index === index);
+};
+
+const filtrosToSql = (filtros: Filtro[]): string => {
+  if (filtros.length === 0) return "1=1";
+
+  let returnedString = "";
+  filtros.forEach((filtro, index) => {
+    let filterString = "";
+
+    const condition = index === 0 ? "" : `${filtro.condition} `;
+    const fieldName = listaColumna(filtro.index).fieldName;
+
+    switch (filtro.operador) {
+      case "FIND":
+        if (fieldName === "ApellidoNombre")
+          filterString = `${condition} (per.PersonalNombre LIKE '%${filtro.valor}%' OR per.PersonalApellido LIKE '%${filtro.valor}%')`;
+        if (fieldName === "ApellidoNombreJ")
+          filterString = `${condition} (perjer.PersonalNombre LIKE '%${filtro.valor}%' OR perjer.PersonalApellido LIKE '%${filtro.valor}%')`;
+        break;
+      case "LIKE":
+        filterString = `${condition} ${fieldName} LIKE '%${filtro.valor}%'`;
+        break;
+      case ">":
+      case "<":
+        const valor = parseInt(filtro.valor);
+        filterString = `${condition} ${fieldName} ${filtro.operador} ${valor}`;
+        break;
+      default:
+        break;
+    }
+    returnedString += filterString;
+  });
+
+  return returnedString;
+};
+
 export class ImpuestosAfipController extends BaseController {
   directory = process.env.PATH_MONOTRIBUTO;
   constructor() {
@@ -48,6 +155,54 @@ export class ImpuestosAfipController extends BaseController {
     if (!existsSync(this.directory)) {
       mkdirSync(this.directory, { recursive: true });
     }
+  }
+
+  DescuentosByPeriodo(params: {
+    anio: string;
+    mes: string;
+    descuentoId: string;
+    options: Options;
+  }) {
+    const filtros = isFiltro(params.options.filtros)
+      ? params.options.filtros
+      : [];
+    const filterSql = filtrosToSql(filtros);
+
+    return dataSource.query(
+      `SELECT DISTINCT
+      per.PersonalId PersonalId,
+      des.PersonalOtroDescuentoId,
+      cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
+
+      perrel.PersonalCategoriaPersonalId PersonalIdJ, perrel.OperacionesPersonalAsignarAJerarquicoDesde, perrel.OperacionesPersonalAsignarAJerarquicoHasta,
+      cuit.PersonalCUITCUILCUIT AS CUITJ, CONCAT(TRIM(perjer.PersonalApellido), ', ', TRIM(perjer.PersonalNombre)) ApellidoNombreJ,
+      des.PersonalOtroDescuentoImporteVariable monto, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, des.PersonalOtroDescuentoDescuentoId,
+    excep.PersonalExencionCUIT, 
+-- 	 sitrev.PersonalSituacionRevistaMotivo, sit.SituacionRevistaId, sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
+    1
+     FROM PersonalImpuestoAFIP imp
+
+      JOIN Personal per ON per.PersonalId = imp.PersonalId
+     LEFT JOIN PersonalOtroDescuento des ON des.PersonalId = imp.PersonalId AND des.PersonalOtroDescuentoDescuentoId=@3 AND des.PersonalOtroDescuentoAnoAplica = @1 AND des.PersonalOtroDescuentoMesesAplica = @2
+     LEFT JOIN OperacionesPersonalAsignarAJerarquico perrel ON perrel.OperacionesPersonalAAsignarPersonalId = imp.PersonalId AND DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
+     LEFT JOIN Personal perjer ON perjer.PersonalId = perrel.PersonalCategoriaPersonalId
+     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = perjer.PersonalCUITCUILUltNro
+     LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
+     LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
+     LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) >  sitrev.PersonalSituacionRevistaDesde AND  DATEFROMPARTS(@1,@2,1) < ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')
+     LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+     WHERE
+   1=1
+
+   AND DATEFROMPARTS(@1,@2,28) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
+     AND excep.PersonalExencionCUIT IS NULL
+
+	-- AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
+  AND sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26)
+    AND (${filterSql})
+   `,
+      [, params.anio, params.mes, params.descuentoId]
+    );
   }
 
   getDescuentosByPeriodo(options: {
@@ -100,83 +255,39 @@ export class ImpuestosAfipController extends BaseController {
   }
 
   async getDescuentosGridCols(req: Request, res: Response) {
-    /*
-      PersonalId: number;
-  CUIT: number;
-  ApellidoNombre: string;
-  PersonalEstado: string;
-
-  PersonalIdJ: number;
-  CUITJ: number;
-  ApellidoNombreJ: string;
-  monto: null | number;
-  PersonalOtroDescuentoAnoAplica: null | number;
-  PersonalOtroDescuentoMesesAplica: null | number;
-  PersonalOtroDescuentoDescuentoId: null | number;
-
-    */
-    this.jsonRes(
-      [
-        {
-          title: "CUIT",
-          index: "CUIT",
-          type: "number",
-          resizable: true,
-          sort: { compare: (a, b) => a.price - b.price },
-        },
-        {
-          title: "Apellido Nombre",
-          type: "",
-          index: "ApellidoNombre",
-          exported: true,
-        },
-        {
-          title: "Sit Revista",
-          type: "",
-          index: "SituacionRevistaDescripcion",
-          exported: true,
-        },
-        { title: "Importe", type: "currency", index: "monto", exported: true },
-        {
-          title: "CUIT Responsable",
-          type: "number",
-          index: "CUITJ",
-          exported: true,
-        },
-        {
-          title: "Apellido Nombre Responsable",
-          type: "string",
-          index: "ApellidoNombreJ",
-          exported: true,
-        },
-        {
-          title: "ID Descuento",
-          type: "number",
-          index: "PersonalOtroDescuentoId",
-          exported: true,
-        },
-      ],
-      res
-    );
+    this.jsonRes(listaColumnas, res);
   }
 
   async getDescuentosGridList(req: Request, res: Response) {
     const anio = String(req.body.anio);
     const mes = String(req.body.mes);
-    const personalIdRel = req.body.personalIdRel ? req.body.personalIdRel : "";
+    const options: Options = isOptions(req.body.options)
+      ? req.body.options
+      : { filtros: [], sort: null };
+
+    console.log(options);
+
     const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
     try {
-      const result = await this.getDescuentosByPeriodo({
+      // const listaDescuentos = await this.getDescuentosByPeriodo({
+      //   anio,
+      //   mes,
+      //   descuentoId,
+      //   personalIdRel,
+      // });
+
+      const listaDescuentos = await this.DescuentosByPeriodo({
         anio,
         mes,
         descuentoId,
-        personalIdRel,
+        options,
       });
+
       this.jsonRes(
         {
-          total: result.length,
-          list: result,
+          total: listaDescuentos.length,
+          list: listaDescuentos,
         },
         res
       );
@@ -309,7 +420,6 @@ export class ImpuestosAfipController extends BaseController {
         "SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro OtroDescuentoId, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre FROM PersonalCUITCUIL cuit JOIN Personal per ON per.PersonalId = cuit.PersonalId WHERE cuit.PersonalCUITCUILCUIT = @0",
         [CUIT]
       );
-      console.log(CUIT, personalIDQuery);
 
       if (!personalIDQuery.PersonalId)
         throw new Error(`No se pudo encontrar el CUIT ${CUIT}`);
@@ -338,6 +448,7 @@ export class ImpuestosAfipController extends BaseController {
       }/${anioRequest}/${anioRequest}-${mesRequest
         .toString()
         .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
+
       if (existsSync(newFilePath)) throw new Error("El documento ya existe.");
       const now = new Date();
       await queryRunner.query(

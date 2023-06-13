@@ -33,8 +33,10 @@ import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzPipesModule } from 'ng-zorro-antd/pipes';
 import { NzImageModule } from 'ng-zorro-antd/image';
 import { NzCalendarModule } from 'ng-zorro-antd/calendar';
+import { NzSpaceModule } from 'ng-zorro-antd/space';
 
 export const SHARED_ZORRO_MODULES = [
+  NzSpaceModule,
   NzCalendarModule,
   NzImageModule,
   NzPipesModule,
@@ -69,5 +71,5 @@ export const SHARED_ZORRO_MODULES = [
   NzDividerModule,
   NzProgressModule,
   NzPopconfirmModule,
-  NzUploadModule
+  NzUploadModule,
 ];
