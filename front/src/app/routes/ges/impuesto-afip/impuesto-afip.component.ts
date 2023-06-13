@@ -113,7 +113,6 @@ export class ImpuestoAfipComponent {
       exported: true,
       sort: true,
     },
-    //    { title: 'ID Descuento', type: 'number', index: 'PersonalOtroDescuentoId', exported: false, },
   ];
 
   options = {
@@ -130,7 +129,7 @@ export class ImpuestoAfipComponent {
   listOptions = {
     filtros: [
       { index: 'monto', condition: 'OR', operador: '>', valor: '4000' },
-      { index: 'aa', condition: 'OR', operador: 'FIND', valor: 'a' },
+      { index: 'monto', condition: 'AND', operador: '<', valor: '5000' },
     ],
     sort: null,
   };

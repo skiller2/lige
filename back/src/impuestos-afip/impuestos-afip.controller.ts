@@ -42,6 +42,9 @@ function isOptions(options: any): options is Options {
   return "filtros" in options && "sort" in options;
 }
 
+const isCondition = (condition: any): boolean =>
+  condition === "AND" || condition === "OR";
+
 const cuitRegex = [
   /:\d{2}\n(\d{11})$/m,
   /CUIT\/CUIL\/CDI\n(\d{11})/m,
@@ -125,9 +128,11 @@ const filtrosToSql = (filtros: Filtro[]): string => {
     const fieldName = columna ? columna.fieldName : null;
     if (!fieldName) return;
 
-    let filterString = "";
+    if (!isCondition(filtro.condition)) return;
 
-    const condition = index === 0 ? "" : `${filtro.condition} `;
+    let filterString;
+
+    const condition = index === 0 ? "" : `${filtro.condition}`;
 
     switch (filtro.operador) {
       case "FIND":
@@ -151,7 +156,7 @@ const filtrosToSql = (filtros: Filtro[]): string => {
       default:
         break;
     }
-    returnedString += filterString;
+    returnedString += " " + filterString;
   });
   console.log(returnedString);
 
