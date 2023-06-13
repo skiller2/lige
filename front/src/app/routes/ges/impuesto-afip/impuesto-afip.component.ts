@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SharedModule } from '@shared';
 import { NzResizableModule } from 'ng-zorro-antd/resizable';
@@ -252,7 +252,13 @@ export class ImpuestoAfipComponent {
     //    this.st?.scroll()
   }
 
-  onChange(result: Date): void {
+  onChangeSt(event: any): void {
+    console.log('changeSt',event)
+  
+  }
+
+
+    onChange(result: Date): void {
     if (result) {
       this.anio = result.getFullYear();
       this.mes = result.getMonth() + 1;
