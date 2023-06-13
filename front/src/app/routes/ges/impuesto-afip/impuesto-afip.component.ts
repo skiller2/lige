@@ -31,6 +31,7 @@ import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { STColumn, STComponent, STData } from '@delon/abc/st';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
+import { Options } from 'src/app/shared/schemas/filtro';
 
 @Component({
   selector: 'app-impuesto-afip',
@@ -126,7 +127,13 @@ export class ImpuestoAfipComponent {
     },
   };
 
-  listOptions = {};
+  listOptions = {
+    filtros: [
+      { index: 'monto', condition: 'OR', operador: '>', valor: '4000' },
+      { index: 'aa', condition: 'OR', operador: 'FIND', valor: 'a' },
+    ],
+    sort: null,
+  };
 
   listaDescuentos$ = this.formChange$.pipe(
     debounceTime(1000),

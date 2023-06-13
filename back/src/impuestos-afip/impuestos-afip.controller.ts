@@ -119,10 +119,15 @@ const filtrosToSql = (filtros: Filtro[]): string => {
 
   let returnedString = "";
   filtros.forEach((filtro, index) => {
+    if (!isFiltro(filtro)) return;
+
+    const columna = listaColumna(filtro.index);
+    const fieldName = columna ? columna.fieldName : null;
+    if (!fieldName) return;
+
     let filterString = "";
 
     const condition = index === 0 ? "" : `${filtro.condition} `;
-    const fieldName = listaColumna(filtro.index).fieldName;
 
     switch (filtro.operador) {
       case "FIND":
@@ -134,9 +139,13 @@ const filtrosToSql = (filtros: Filtro[]): string => {
       case "LIKE":
         filterString = `${condition} ${fieldName} LIKE '%${filtro.valor}%'`;
         break;
+      case "=":
+        filterString = `${condition} ${fieldName} = ${filtro.valor}`;
+        break;
       case ">":
       case "<":
-        const valor = parseInt(filtro.valor);
+        const valor = parseFloat(filtro.valor);
+        if (isNaN(valor)) return;
         filterString = `${condition} ${fieldName} ${filtro.operador} ${valor}`;
         break;
       default:
@@ -144,6 +153,7 @@ const filtrosToSql = (filtros: Filtro[]): string => {
     }
     returnedString += filterString;
   });
+  console.log(returnedString);
 
   return returnedString;
 };
@@ -163,9 +173,7 @@ export class ImpuestosAfipController extends BaseController {
     descuentoId: string;
     options: Options;
   }) {
-    const filtros = isFiltro(params.options.filtros)
-      ? params.options.filtros
-      : [];
+    const filtros = params.options.filtros;
     const filterSql = filtrosToSql(filtros);
 
     return dataSource.query(
@@ -355,9 +363,6 @@ export class ImpuestosAfipController extends BaseController {
         const loadingTask = getDocument(file.path);
         const document = await loadingTask.promise;
 
-        // const metadata = await document.getMetadata();
-        // console.log(metadata);
-
         const page = await document.getPage(1);
         const textContent = await page.getTextContent();
 
@@ -497,7 +502,6 @@ export class ImpuestosAfipController extends BaseController {
 
     for (const re of regexExp) {
       result = txt.match(re);
-      console.log("res", result, re);
       if (result) break;
     }
 
@@ -754,14 +758,6 @@ export class ImpuestosAfipController extends BaseController {
 
     const page0 = originPDFPages[0];
 
-    //    currentPage = newPdf.addPage(PageSizes.A4);
-
-    /*
-    originPDFPages.forEach((embPage, index) => { 
-      const { x, y, width, height } = embPage.getTrimBox();
-      console.log('hoja:',x, y, width, height)
-    })
-    */
     let embededPages = null;
     if (page0.getWidth() == 595.276 && page0.getHeight() == 841.89) {
       embededPages = await newPdf.embedPages(originPDFPages, [
