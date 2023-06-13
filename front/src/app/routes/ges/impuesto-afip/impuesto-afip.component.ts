@@ -1,4 +1,9 @@
-import { ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  ViewChild,
+} from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SharedModule } from '@shared';
 import { NzResizableModule } from 'ng-zorro-antd/resizable';
@@ -110,14 +115,6 @@ export class ImpuestoAfipComponent {
     //    { title: 'ID Descuento', type: 'number', index: 'PersonalOtroDescuentoId', exported: false, },
   ];
 
-  data: STData[] = Array(100)
-    .fill({})
-    .map((_, idx) => ({
-      id: idx + 1,
-      price: ~~(Math.random() * 100),
-      age: ~~(Math.random() * 100) > 50 ? '女' : '男',
-    }));
-
   options = {
     CUIT: {
       searchValue: '',
@@ -128,6 +125,8 @@ export class ImpuestoAfipComponent {
       visible: false,
     },
   };
+
+  listOptions = {};
 
   listaDescuentos$ = this.formChange$.pipe(
     debounceTime(1000),
@@ -253,12 +252,10 @@ export class ImpuestoAfipComponent {
   }
 
   onChangeSt(event: any): void {
-    console.log('changeSt',event)
-  
+    console.log('changeSt', event);
   }
 
-
-    onChange(result: Date): void {
+  onChange(result: Date): void {
     if (result) {
       this.anio = result.getFullYear();
       this.mes = result.getMonth() + 1;
