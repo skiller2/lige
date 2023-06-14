@@ -140,13 +140,15 @@ export class ImpuestoAfipComponent {
     filtros: [],
     sort: null,
   };
+
+  toggle = false;
+
   listOptionsChange(options: any) {
     this.listOptions = options;
-    console.log(this.listOptions);
   }
 
   searchList() {
-    console.log(this.listOptions);
+    this.toggle = !this.toggle;
     this.st?.reload();
   }
 

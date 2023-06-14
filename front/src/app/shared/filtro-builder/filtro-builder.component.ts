@@ -27,9 +27,18 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   providers: [CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR],
 })
 export class FiltroBuilderComponent implements ControlValueAccessor {
-  @Input() fieldsToSelect = ['ApellidoNombre', 'Nombre'];
+  @Input() fieldsToSelect = [
+    'Apellido',
+    'Nombre',
+    'CUIT',
+    'SituacionRevistaDescripcion',
+    'monto',
+    'CUITJ',
+    'ApellidoJ',
+    'NombreJ',
+  ];
   @Input() conditionsToSelect = ['AND', 'OR'];
-  @Input() operatorsToSelect = ['LIKE', '>', '<', 'FIND'];
+  @Input() operatorsToSelect = ['LIKE', '>', '<'];
 
   @Output() optionsChange = new EventEmitter<Options>();
 

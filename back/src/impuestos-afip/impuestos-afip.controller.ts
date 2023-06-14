@@ -27,7 +27,14 @@ import { DescuentoJSON } from "src/schemas/ResponseJSON";
 import { Filtro, Options } from "src/schemas/filtro";
 
 function isFiltro(filtro: any): filtro is Filtro {
-  if (!filtro) return false;
+  if (
+    !filtro ||
+    !filtro.index ||
+    !filtro.operador ||
+    !filtro.condition ||
+    !filtro.valor
+  )
+    return false;
   return (
     "index" in filtro &&
     "operador" in filtro &&
@@ -62,6 +69,10 @@ const importeMontoRegex = [
 ];
 
 const listaColumnas = [
+  { index: "Apellido", fieldName: "per.PersonalApellido" },
+  { index: "Nombre", fieldName: "per.PersonalNombre" },
+  { index: "ApellidoJ", fieldName: "perjer.PersonalNombre" },
+  { index: "NombreJ", fieldName: "perjer.PersonalNombre" },
   {
     title: "CUIT",
     index: "CUIT",
