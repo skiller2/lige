@@ -1,0 +1,54 @@
+<nz-card>
+  <nz-tag
+    *ngFor="let tag of tags; let i = index"
+    [nzMode]="'closeable'"
+    (nzOnClose)="closeTag(i)">
+    {{ tag }}
+  </nz-tag>
+  <nz-tag
+    *ngIf="!isFiltroBuilder"
+    class="editable-tag"
+    nzNoAnimation
+    (click)="handleTagInteraction()">
+    <span nz-icon nzType="plus"></span>
+    Añadir Filtro
+  </nz-tag>
+  <ng-container *ngIf="isFiltroBuilder">
+    <nz-select
+      [nzPlaceHolder]="'Index'"
+      [(ngModel)]="selections.field"
+      #fieldSelector>
+      <nz-option
+        *ngFor="let field of fieldsToSelect"
+        [nzLabel]="field"
+        [nzValue]="field"></nz-option>
+    </nz-select>
+    <nz-select
+      [nzPlaceHolder]="'Condición'"
+      [(ngModel)]="selections.condition"
+      #conditionSelector>
+      <nz-option
+        *ngFor="let condition of conditionsToSelect"
+        [nzLabel]="condition"
+        [nzValue]="condition"></nz-option>
+    </nz-select>
+    <nz-select
+      [nzPlaceHolder]="'Operador'"
+      [(ngModel)]="selections.operator"
+      #operatorSelector>
+      <nz-option
+        *ngFor="let operator of operatorsToSelect"
+        [nzLabel]="operator"
+        [nzValue]="operator"></nz-option>
+    </nz-select>
+    <input
+      placeholder="Valor"
+      #inputElement
+      nz-input
+      type="text"
+      [(ngModel)]="inputValue"
+      style="width: 78px"
+      (blur)="handleInputConfirm()"
+      (keydown.enter)="handleInputConfirm()" />
+  </ng-container>
+</nz-card>

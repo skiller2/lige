@@ -1,13 +1,13 @@
 export interface Filtro {
   index: string;
-  operador: "FIND" | "LIKE" | "<" | ">" | "=";
-  condition: "OR" | "AND";
+  operador: string;
+  condition: string;
   valor: string;
 }
 
 export interface Sort {
   index: string;
-  operador: "ASC" | "DES";
+  operador: string;
 }
 
 export interface Options {

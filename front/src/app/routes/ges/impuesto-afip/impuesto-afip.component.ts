@@ -32,12 +32,18 @@ import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { STColumn, STComponent, STData } from '@delon/abc/st';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { Options } from 'src/app/shared/schemas/filtro';
+import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 
 @Component({
   selector: 'app-impuesto-afip',
   templateUrl: './impuesto-afip.component.html',
   standalone: true,
-  imports: [SharedModule, NzResizableModule, NzAffixModule],
+  imports: [
+    SharedModule,
+    NzResizableModule,
+    NzAffixModule,
+    FiltroBuilderComponent,
+  ],
   styleUrls: ['./impuesto-afip.component.less'],
 })
 export class ImpuestoAfipComponent {
@@ -47,6 +53,10 @@ export class ImpuestoAfipComponent {
 
   constructor(public apiService: ApiService) {}
   selectedDate = null;
+  selectedPeriodo = {
+    year: 0,
+    month: 0,
+  };
   anio = 0;
   mes = 0;
   url = '/api/impuestos_afip';
@@ -127,12 +137,18 @@ export class ImpuestoAfipComponent {
   };
 
   listOptions = {
-    filtros: [
-      { index: 'monto', condition: 'OR', operador: '>', valor: '4000' },
-      { index: 'monto', condition: 'AND', operador: '<', valor: '5000' },
-    ],
+    filtros: [],
     sort: null,
   };
+  listOptionsChange(options: any) {
+    this.listOptions = options;
+    console.log(this.listOptions);
+  }
+
+  searchList() {
+    console.log(this.listOptions);
+    this.st?.reload();
+  }
 
   listaDescuentos$ = this.formChange$.pipe(
     debounceTime(1000),

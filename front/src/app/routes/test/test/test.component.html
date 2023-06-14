@@ -68,4 +68,11 @@
 
   <nz-date-picker nzMode="month" name="periodo1" />
 </nz-card>
-<nz-card> </nz-card>
+
+<shared-filtro-builder [ngModel]="selectedOptions" />
+
+<nz-card>
+  <div *ngFor="let option of selectedOptions.filtros">
+    {{ option | json }}
+  </div>
+</nz-card>

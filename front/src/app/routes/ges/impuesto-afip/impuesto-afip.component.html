@@ -168,7 +168,7 @@
         </nz-tab>
         <nz-tab [nzForceRender]="false">
           <ng-template nz-tab>
-            <div nz-row nzJustify="space-around">
+            <!-- <div nz-row nzJustify="space-around">
               <div nz-col [nzSpan]="13" style="text-align: center">
                 <label>Persona Responsable:</label>
                 <app-personal-search
@@ -176,8 +176,12 @@
                   [(ngModel)]="selectedPersonalId"
                   [ngModelOptions]="{ standalone: true }" />
               </div>
-            </div>
+            </div> -->
 
+            <shared-filtro-builder
+              (optionsChange)="listOptionsChange($event)" />
+
+            <button nz-button (click)="searchList()">Buscar</button>
             <st
               #st
               [data]="'/api/impuestos_afip/list'"
