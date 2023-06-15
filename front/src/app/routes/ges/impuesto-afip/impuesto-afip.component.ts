@@ -51,7 +51,7 @@ export class ImpuestoAfipComponent {
     new NgForm([], []);
   @ViewChild('st', { static: false }) st: STComponent | undefined;
 
-  constructor(public apiService: ApiService) {}
+  constructor(public apiService: ApiService,private cdr: ChangeDetectorRef) {}
   selectedDate = null;
   selectedPeriodo = {
     year: 0,
@@ -71,59 +71,6 @@ export class ImpuestoAfipComponent {
   stsizey = '100px';
   columns$ = this.apiService.get('/api/impuestos_afip/cols');
 
-  columns2: STColumn[] = [
-    {
-      title: 'CUIT',
-      index: 'CUIT',
-      type: 'number',
-      exported: true,
-      sort: true,
-      filter: { type: 'keyword' },
-      resizable: true,
-    },
-    {
-      title: 'Apellido Nombre',
-      type: '',
-      index: 'ApellidoNombre',
-      exported: true,
-      sort: true,
-      filter: { type: 'keyword' },
-      resizable: true,
-    },
-    {
-      title: 'Sit Revista',
-      type: '',
-      index: 'SituacionRevistaDescripcion',
-      resizable: true,
-      exported: true,
-      sort: true,
-    },
-    {
-      title: 'Importe',
-      type: 'currency',
-      index: 'monto',
-      resizable: true,
-      exported: true,
-      render: 'cusImporte',
-      sort: true,
-    },
-    {
-      title: 'CUIT Responsable',
-      type: 'number',
-      index: 'CUITJ',
-      resizable: true,
-      exported: true,
-      sort: true,
-    },
-    {
-      title: 'Apellido Nombre Responsable',
-      type: '',
-      index: 'ApellidoNombreJ',
-      resizable: true,
-      exported: true,
-      sort: true,
-    },
-  ];
 
   options = {
     CUIT: {
@@ -144,11 +91,16 @@ export class ImpuestoAfipComponent {
   toggle = false;
 
   listOptionsChange(options: any) {
+
     this.listOptions = options;
+    console.log('listOptionsChange', options)
+    this.cdr.detectChanges();
+
   }
 
   searchList() {
     this.toggle = !this.toggle;
+    this.cdr.detectChanges();
     this.st?.reload();
   }
 

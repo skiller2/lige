@@ -27,16 +27,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   providers: [CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR],
 })
 export class FiltroBuilderComponent implements ControlValueAccessor {
-  @Input() fieldsToSelect = [
-    'Apellido',
-    'Nombre',
-    'CUIT',
-    'SituacionRevistaDescripcion',
-    'monto',
-    'CUITJ',
-    'ApellidoJ',
-    'NombreJ',
-  ];
+  @Input() fieldsToSelect: Array<any> = []
   @Input() conditionsToSelect = ['AND', 'OR'];
   @Input() operatorsToSelect = ['LIKE', '>', '<'];
 
@@ -122,8 +113,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   removeFiltro(indexToRemove: number) {
-    this.options.filtros.splice(indexToRemove, 1);
-    this.optionsChange.emit(this.options);
+    this.options.filtros.splice(indexToRemove, 1)
+    this.optionsChange.emit(this.options)
   }
 
   resetSelections() {

@@ -98,17 +98,15 @@ export class AsistenciaController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (persona_cuit != "") {
         const auth = await this.hasAuthObjetivo(
           anio,
           mes,
-          persona_cuit,
+          req,
           Number(ObjetivoId),
           queryRunner
         );
-        if (!auth)
-          throw `No tiene permisos para realizar operación CUIT ${persona_cuit}`;
-      }
+//        if (!auth)
+//          throw `No tiene permisos para realizar operación CUIT ${persona_cuit}`;
 
       let result = await queryRunner.query(
         `SELECT percat.PersonalCategoriaTipoAsociadoId,percat.PersonalCategoriaCategoriaPersonalId, cat.CategoriaPersonalDescripcion, percat.PersonalCategoriaDesde, percat.PersonalCategoriaHasta
@@ -371,16 +369,14 @@ export class AsistenciaController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (persona_cuit != "") {
         const auth = await this.hasAuthObjetivo(
           anio,
           mes,
-          persona_cuit,
+          req,
           Number(ObjetivoId),
           queryRunner
         );
-        if (!auth) throw `No tiene permisos para realizar operación`;
-      }
+//        if (!auth) throw `No tiene permisos para realizar operación`;
 
       //Traigo el Art14 para analizarlo
       let resultAutoriz = await queryRunner.query(
@@ -457,20 +453,19 @@ export class AsistenciaController extends BaseController {
 
       //            const { objetivoId } = req.body;
 
-      if (req.persona_cuit != "") {
         const auth = await this.hasAuthObjetivo(
           anio,
           mes,
-          req.persona_cuit,
+          req,
           Number(objetivoId),
           dataSource
         );
-        if (!auth)
-          throw `No tiene permisos para realizar la consulta al objetivo`;
-      }
+//        if (!auth)
+//          throw `No tiene permisos para realizar la consulta al objetivo`;
 
       const result = await dataSource.query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion,
+                suc.ObjetivoSucursalSucursalId, 
                 IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde) AS Desde,
                 IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta
                 
@@ -479,6 +474,8 @@ export class AsistenciaController extends BaseController {
                 JOIN Objetivo obj ON obj.ObjetivoId = art.PersonalArt14ObjetivoId
                 LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = art.PersonalArt14TipoAsociadoId  AND cat.CategoriaPersonalId = art.PersonalArt14CategoriaId
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
+                LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
+
                 WHERE obj.ObjetivoId = @0 
                 -- AND (art.PersonalArt14AutorizadoDesde <= @1 OR art.PersonalArt14AutorizadoDesde IS NULL) AND (art.PersonalArt14Desde <= @1 OR art.PersonalArt14Desde IS NULL) 
                 AND ((art.PersonalArt14AutorizadoDesde <= @1  AND (art.PersonalArt14AutorizadoHasta >= @1 OR art.PersonalArt14AutorizadoHasta is null)) OR (art.PersonalArt14Autorizado is null AND (art.PersonalArt14Desde <= @1  AND (art.PersonalArt14Hasta >= @1 OR art.PersonalArt14Hasta is null))) )
@@ -487,6 +484,7 @@ export class AsistenciaController extends BaseController {
                 `,
         [objetivoId, desde]
       );
+
       this.jsonRes(result, res);
     } catch (err) {
       let def = "Error accediendo a la base de datos";
@@ -505,7 +503,7 @@ export class AsistenciaController extends BaseController {
       //            const { objetivoId } = req.body;
       /*
             if (req.persona_cuit != "") {
-                const auth = await this.hasAuthObjetivo(anio, mes, req.persona_cuit, objetivoId, dataSource)
+                const auth = await this.hasAuthObjetivo(anio, mes, req, objetivoId, dataSource)
                 if (!auth)
                     throw `No tiene permisos para realizar la consulta al objetivo`
             }
@@ -550,7 +548,7 @@ export class AsistenciaController extends BaseController {
 
       /*
             if (req.persona_cuit != "") {
-                const auth = await this.hasAuthObjetivo(anio, mes, req.persona_cuit, objetivoId, dataSource)
+                const auth = await this.hasAuthObjetivo(anio, mes, req, objetivoId, dataSource)
                 if (!auth)
                     throw `No tiene permisos para realizar la consulta al objetivo`
             }
@@ -744,17 +742,15 @@ export class AsistenciaController extends BaseController {
       const mes = req.params.mes;
       var desde = new Date(anio, mes - 1, 1);
 
-      if (req.persona_cuit != "") {
         const auth = await this.hasAuthObjetivo(
           anio,
           mes,
-          req.persona_cuit,
+          req,
           Number(objetivoId),
           dataSource
         );
-        if (!auth)
-          throw `No tiene permisos para realizar la consulta al objetivo`;
-      }
+//        if (!auth)
+//          throw `No tiene permisos para realizar la consulta al objetivo`;
 
       //            const { objetivoId } = req.body;
 

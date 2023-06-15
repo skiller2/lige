@@ -73,10 +73,13 @@ export class BaseController {
     return false;
   }
 
-  async hasAuthObjetivo(anio: number, mes: number, persona_cuit: any, ObjetivoId: number, queryRunner: DataSource | QueryRunner) {
+  async hasAuthObjetivo(anio: number, mes: number, req: any, ObjetivoId: number, queryRunner: DataSource | QueryRunner) {
     let fechaHastaAuth = new Date(anio, mes, 1);
     fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1);
-    
+    let authSucursal = false
+
+    if (req.persona_cuit == "") return
+
     let resultAuth = await queryRunner.query(
       `SELECT suc.ObjetivoSucursalSucursalId,
          
@@ -103,13 +106,46 @@ export class BaseController {
     WHERE obj.ObjetivoId=@1`,
       [fechaHastaAuth, ObjetivoId]
     );
+    const SucursalId = (resultAuth.length > 0) ? resultAuth[0].ObjetivoSucursalSucursalId : 0
+
+
+
+
+    req.groups.forEach(group => {
+      switch (SucursalId) {
+        case 0: //Sin sucursal
+          authSucursal = true;
+          break;
+        case 1:  //Central
+          if (group.indexOf("CENTRAL")!=-1)
+            authSucursal = true;
+          break;
+        case 2: //Formosa
+          if (group.indexOf("FORMOSA")!=-1)
+            authSucursal = true;
+          break;
+        case 3: //MDQ
+          if (group.indexOf("MDQ")!=-1)
+            authSucursal = true;
+          break;
+
+        default:
+          break;
+      }
+
+    })
+
+    authSucursal = true;
+    if (!authSucursal)
+      throw `No tiene permisos para realizar operación en la sucursal ${SucursalId}`;
 
     for (let row of resultAuth) {
-      if (row.PersonalCUITCUILCUIT == persona_cuit) {
+      if (row.PersonalCUITCUILCUIT == req.persona_cuit) {
         return true;
       }
     }
 
+    throw `No tiene permisos para realizar operación identificado con CUIT ${req.persona_cuit}`;
     return false;
   }
 }

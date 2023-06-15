@@ -25,7 +25,9 @@ export class AuthMiddleware {
       if (err) return this.catchError(err,res);
 
       req.decoded_token = decoded;
-      req.persona_cuit = (decoded.description!=undefined) ? decoded.description[0] :"";
+      req.persona_cuit = (decoded.description != undefined) ? decoded.description[0] : "";
+
+      req.groups = decoded.groups
       next();
     });
   };

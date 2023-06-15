@@ -67,7 +67,7 @@ export class AuthController extends BaseController {
         res.on("end", (result: any) => {
           if (!userEntry) {
             const err = {
-              message: "Las credenciales proporcionadas no son válidas",
+              message: "2. Las credenciales proporcionadas no son válidas",
             };
             return reject(err);
           }
@@ -77,7 +77,7 @@ export class AuthController extends BaseController {
             if (err) {
               if (err.code == 49)
                 //NT_STATUS_LOGON_FAILURE
-                err.message = "Las credenciales proporcionadas no son válidas";
+                err.message = "1. Las credenciales proporcionadas no son válidas";
               return reject(err);
               assert.ifError(err);
             }
@@ -95,13 +95,16 @@ export class AuthController extends BaseController {
               description: userEntry.pojo.attributes
                 .filter((f: { type: string }) => f.type == "description")
                 .map((m: any[]) => m.values)[0],
+              groups: userEntry.pojo.attributes
+                .filter((f: { type: string }) => f.type == "memberOf")
+                .map((m: any[]) => m.values),
             });
           });
 
           /*
           if (result.status == 0) {
             const err: any = {
-              message: "Las credenciales proporcionadas no son válidas 2"
+              message: "Las credenciales proporcionadas no son válidas"
             }
             return reject(err);
           }

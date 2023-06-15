@@ -69,10 +69,10 @@ const importeMontoRegex = [
 ];
 
 const listaColumnas = [
-  { index: "Apellido", fieldName: "per.PersonalApellido" },
-  { index: "Nombre", fieldName: "per.PersonalNombre" },
-  { index: "ApellidoJ", fieldName: "perjer.PersonalNombre" },
-  { index: "NombreJ", fieldName: "perjer.PersonalNombre" },
+  { index: "Apellido", title: "Apellido", fieldName: "per.PersonalApellido",className:"hide" },
+  { index: "Nombre", title: "Nombre", fieldName: "per.PersonalNombre",className:"hide" },
+  { index: "ApellidoJ", title: "ApellidoJ", fieldName: "perjer.PersonalNombre",className:"hide" },
+  { index: "NombreJ", title: "NombreJ", fieldName: "perjer.PersonalNombre",className:"hide" },
   {
     title: "CUIT",
     index: "CUIT",

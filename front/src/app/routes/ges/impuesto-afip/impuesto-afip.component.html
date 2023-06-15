@@ -178,7 +178,7 @@
               </div>
             </div> -->
 
-            <shared-filtro-builder
+            <shared-filtro-builder [fieldsToSelect]="columns$ | async"
               (optionsChange)="listOptionsChange($event)" />
 
             <button nz-button (click)="searchList()">Buscar</button>
@@ -192,7 +192,7 @@
                 method: 'POST',
                 allInBody: true
               }"
-              [columns]="columns2"
+              [columns]="columns$ | async"
               class="mt-sm"
               virtualScroll
               [scroll]="{ y: 'calc(100vh - 310px)' }"

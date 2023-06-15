@@ -30,8 +30,8 @@
       #fieldSelector>
       <nz-option
         *ngFor="let field of fieldsToSelect"
-        [nzLabel]="field"
-        [nzValue]="field"></nz-option>
+        [nzLabel]="field.title"
+        [nzValue]="field.index"></nz-option>
     </nz-select>
 
     <nz-select
