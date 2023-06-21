@@ -26,8 +26,15 @@ import path from "path";
 import { DescuentoJSON } from "src/schemas/ResponseJSON";
 import { Filtro, Options } from "src/schemas/filtro";
 import { listaColumnas } from "./comprobantes-utils/lista";
-import { filtrosToSql, isOptions } from "./filtros-utils/filtros";
-import { getPeriodoFromRequest } from "./impuestos-afip.utils";
+import {
+  filtrosToSql,
+  getOptionsFromRequest,
+  isOptions,
+} from "./filtros-utils/filtros";
+import {
+  SendFileToDownload,
+  getPeriodoFromRequest,
+} from "./impuestos-afip.utils";
 import { getFiltroFromRequest } from "./download-informe-utils/informe-filtro";
 
 const cuitRegex = [
@@ -61,6 +68,42 @@ export class ImpuestosAfipController extends BaseController {
       const filtro = getFiltroFromRequest(req);
 
       const filesPath = path.join(this.directory, String(periodo.year));
+    } catch (error) {
+      this.errRes(error, res, "Algo salió mal!", 409);
+    }
+  }
+
+  async handleDownloadComprobantesByFiltro(req: Request, res: Response) {
+    const descuentoId = process.env.OTRO_DESCUENTO_ID;
+    try {
+      const periodo = getPeriodoFromRequest(req);
+      const options = getOptionsFromRequest(req);
+
+      const formattedMonth = String(periodo.month).padStart(2, "0");
+      const filesPath = path.join(this.directory, String(periodo.year));
+
+      const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
+        anio: String(periodo.year),
+        mes: String(periodo.month),
+        descuentoId: descuentoId,
+        options,
+      });
+      const files = descuentos
+        .filter(
+          (descuento) => descuento.PersonalOtroDescuentoDescuentoId !== null
+        )
+        .map((descuento, index) => {
+          return {
+            name: `${periodo.year}-${formattedMonth}-${descuento.CUIT}-${descuento.PersonalId}.pdf`,
+            apellidoNombre: descuento.ApellidoNombre,
+            apellidoNombreJ: descuento.ApellidoNombreJ,
+          };
+        });
+
+      const responsePDFBuffer = await this.PDFmergeFromFiles(files, filesPath);
+      const filename = `${periodo.year}-${formattedMonth}-filtrado.pdf`;
+
+      SendFileToDownload(res, filename, responsePDFBuffer);
     } catch (error) {
       this.errRes(error, res, "Algo salió mal!", 409);
     }
@@ -227,7 +270,15 @@ export class ImpuestosAfipController extends BaseController {
     }
   }
 
-  async insertPDF(queryRunner, CUIT, anioRequest, mesRequest, importeMonto, file, pagenum) {
+  async insertPDF(
+    queryRunner,
+    CUIT,
+    anioRequest,
+    mesRequest,
+    importeMonto,
+    file,
+    pagenum
+  ) {
     const [personalIDQuery] = await queryRunner.query(
       "SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro OtroDescuentoId, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre FROM PersonalCUITCUIL cuit JOIN Personal per ON per.PersonalId = cuit.PersonalId WHERE cuit.PersonalCUITCUILCUIT = @0",
       [CUIT]
@@ -255,10 +306,11 @@ export class ImpuestosAfipController extends BaseController {
       );
 
     mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
-    const newFilePath = `${this.directory
-      }/${anioRequest}/${anioRequest}-${mesRequest
-        .toString()
-        .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
+    const newFilePath = `${
+      this.directory
+    }/${anioRequest}/${anioRequest}-${mesRequest
+      .toString()
+      .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
 
     if (existsSync(newFilePath)) throw new Error("El documento ya existe.");
     const now = new Date();
@@ -289,23 +341,19 @@ export class ImpuestosAfipController extends BaseController {
     if (pagenum == null) {
       copyFileSync(file.path, newFilePath);
     } else {
-
       const currentFileBuffer = readFileSync(file.path);
 
-      const pdfDoc = await PDFDocument.create()
-      const srcDoc = await PDFDocument.load(currentFileBuffer)
+      const pdfDoc = await PDFDocument.create();
+      const srcDoc = await PDFDocument.load(currentFileBuffer);
 
-
-
-      const copiedPages = await pdfDoc.copyPages(srcDoc, [pagenum - 1])
+      const copiedPages = await pdfDoc.copyPages(srcDoc, [pagenum - 1]);
       const [copiedPage] = copiedPages;
 
-      pdfDoc.addPage(copiedPage)
-      const buffer = await pdfDoc.save()
+      pdfDoc.addPage(copiedPage);
+      const buffer = await pdfDoc.save();
       writeFileSync(newFilePath, buffer);
     }
   }
-
 
   async handlePDFUpload(req: Request, res: Response, forzado: boolean) {
     const file = req.file;
@@ -334,13 +382,21 @@ export class ImpuestosAfipController extends BaseController {
         CUIT = cuitRequest;
 
         //Call to writefile
-        await this.insertPDF(queryRunner, CUIT, anioRequest, mesRequest, importeMonto, file, null)
+        await this.insertPDF(
+          queryRunner,
+          CUIT,
+          anioRequest,
+          mesRequest,
+          importeMonto,
+          file,
+          null
+        );
       } else {
         const loadingTask = getDocument(file.path);
 
         const document = await loadingTask.promise;
 
-        let errList: Array<any> = []
+        let errList: Array<any> = [];
         for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
           //        for (let pagenum = 1; pagenum <= 1; pagenum++) {
 
@@ -400,19 +456,26 @@ export class ImpuestosAfipController extends BaseController {
             );
 
           try {
-            await this.insertPDF(queryRunner, CUIT, anioRequest, mesRequest, importeMonto, file, pagenum)
+            await this.insertPDF(
+              queryRunner,
+              CUIT,
+              anioRequest,
+              mesRequest,
+              importeMonto,
+              file,
+              pagenum
+            );
           } catch (err: any) {
-            errList.push(err)
+            errList.push(err);
           }
-
         }
-        let errTxt = ''
+        let errTxt = "";
         if (errList.length > 0) {
-          errList.forEach(err => {
-            errTxt += err.message + '\n'
+          errList.forEach((err) => {
+            errTxt += err.message + "\n";
           });
 
-          throw new Error(errTxt)
+          throw new Error(errTxt);
         }
       }
       // if (!file) throw new Error("File not recieved/did not pass filter.");

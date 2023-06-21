@@ -139,6 +139,8 @@ impuestosAfipRouter.get(
   }
 );
 
+impuestosAfipRouter.post("/download_comprobantes/", authMiddleware.verifyToken);
+
 impuestosAfipRouter.get(
   "/:anio/:mes/:CUIT/:PersonalId",
   authMiddleware.verifyToken,
