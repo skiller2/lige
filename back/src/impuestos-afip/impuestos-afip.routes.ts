@@ -160,3 +160,9 @@ impuestosAfipRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
 impuestosAfipRouter.post("/list", authMiddleware.verifyToken, (req, res) => {
   impuestosAfipController.getDescuentosGridList(req, res);
 });
+
+impuestosAfipRouter.post(
+  "/download_filtro/",
+  authMiddleware.verifyToken,
+  impuestosAfipController.handleDownloadInformeByFiltro
+);

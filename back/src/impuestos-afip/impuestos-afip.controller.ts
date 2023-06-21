@@ -25,32 +25,10 @@ import { tmpName } from "../server";
 import path from "path";
 import { DescuentoJSON } from "src/schemas/ResponseJSON";
 import { Filtro, Options } from "src/schemas/filtro";
-
-function isFiltro(filtro: any): filtro is Filtro {
-  if (
-    !filtro ||
-    !filtro.index ||
-    !filtro.operador ||
-    !filtro.condition ||
-    !filtro.valor
-  )
-    return false;
-  return (
-    "index" in filtro &&
-    "operador" in filtro &&
-    "condition" in filtro &&
-    "valor" in filtro
-  );
-}
-
-function isOptions(options: any): options is Options {
-  if (!options) return false;
-
-  return "filtros" in options && "sort" in options;
-}
-
-const isCondition = (condition: any): boolean =>
-  condition === "AND" || condition === "OR";
+import { listaColumnas } from "./comprobantes-utils/lista";
+import { filtrosToSql, isOptions } from "./filtros-utils/filtros";
+import { getPeriodoFromRequest } from "./impuestos-afip.utils";
+import { getFiltroFromRequest } from "./download-informe-utils/informe-filtro";
 
 const cuitRegex = [
   /:\d{2}\n(\d{11})$/m,
@@ -68,112 +46,23 @@ const importeMontoRegex = [
   /^IMPORTE: \$(([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))$/m,
 ];
 
-const listaColumnas = [
-  {
-    title: "CUIT",
-    index: "CUIT",
-    fieldName: "cuit2.PersonalCUITCUILCUIT",
-    type: "number",
-    exported: true,
-  },
-  {
-    title: "Apellido Nombre",
-    type: "",
-    index: "ApellidoNombre",
-    fieldName: "ApellidoNombre",
-    exported: true,
-  },
-  {
-    title: "Sit Revista",
-    type: "",
-    index: "SituacionRevistaDescripcion",
-    fieldName: "sit.SituacionRevistaDescripcion",
-    exported: true,
-  },
-  {
-    title: "Importe",
-    type: "currency",
-    index: "monto",
-    fieldName: "des.PersonalOtroDescuentoImporteVariable",
-    exported: true,
-  },
-  {
-    title: "CUIT Responsable",
-    type: "number",
-    index: "CUITJ",
-    fieldName: "cuit.PersonalCUITCUILCUIT",
-    exported: true,
-  },
-  {
-    title: "Apellido Nombre Responsable",
-    type: "string",
-    index: "ApellidoNombreJ",
-    fieldName: "ApellidoNombreJ",
-    exported: true,
-  },
-  {
-    title: "ID Descuento",
-    type: "number",
-    index: "PersonalOtroDescuentoId",
-    exported: true,
-  },
-];
-
-const listaColumna = (index: string) => {
-  return listaColumnas.find((columna) => columna.index === index);
-};
-
-const filtrosToSql = (filtros: Filtro[]): string => {
-  if (filtros.length === 0) return "1=1";
-
-  let returnedString = "";
-  filtros.forEach((filtro, index) => {
-    if (!isFiltro(filtro)) return;
-
-    const columna = listaColumna(filtro.index);
-    const fieldName = columna ? columna.fieldName : null;
-    if (!fieldName) return;
-
-    if (!isCondition(filtro.condition)) return;
-
-    let filterString;
-
-    const condition = index === 0 ? "" : `${filtro.condition}`;
-
-    switch (filtro.operador) {
-      case "LIKE":
-        if (fieldName === "ApellidoNombre")
-          filterString = `${condition} (per.PersonalNombre LIKE '%${filtro.valor}%' OR per.PersonalApellido LIKE '%${filtro.valor}%')`;
-        else if (fieldName === "ApellidoNombreJ")
-          filterString = `${condition} (perjer.PersonalNombre LIKE '%${filtro.valor}%' OR perjer.PersonalApellido LIKE '%${filtro.valor}%')`;
-        else
-          filterString = `${condition} ${fieldName} LIKE '%${filtro.valor}%'`;
-        break;
-      case "=":
-        filterString = `${condition} ${fieldName} = ${filtro.valor}`;
-        break;
-      case ">":
-      case "<":
-        const valor = parseFloat(filtro.valor);
-        if (isNaN(valor)) return;
-        filterString = `${condition} ${fieldName} ${filtro.operador} ${valor}`;
-        break;
-      default:
-        break;
-    }
-    returnedString += " " + filterString;
-  });
-  console.log(returnedString);
-
-  return returnedString;
-};
-
 export class ImpuestosAfipController extends BaseController {
   directory = process.env.PATH_MONOTRIBUTO;
   constructor() {
     super();
     if (!existsSync(this.directory)) {
       mkdirSync(this.directory, { recursive: true });
+    }
+  }
+
+  async handleDownloadInformeByFiltro(req: Request, res: Response) {
+    try {
+      const periodo = getPeriodoFromRequest(req);
+      const filtro = getFiltroFromRequest(req);
+
+      const filesPath = path.join(this.directory, String(periodo.year));
+    } catch (error) {
+      this.errRes(error, res, "Algo salió mal!", 409);
     }
   }
 
@@ -288,13 +177,6 @@ export class ImpuestosAfipController extends BaseController {
     const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
     try {
-      // const listaDescuentos = await this.getDescuentosByPeriodo({
-      //   anio,
-      //   mes,
-      //   descuentoId,
-      //   personalIdRel,
-      // });
-
       const listaDescuentos = await this.DescuentosByPeriodo({
         anio,
         mes,
@@ -543,18 +425,23 @@ export class ImpuestosAfipController extends BaseController {
       const filesPath = path.join(this.directory, year);
 
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
-      const descuentos: DescuentoJSON[] = await this.getDescuentosByPeriodo({
+      const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
         anio: year,
-        mes: formattedMonth,
-        descuentoId,
-        personalIdRel,
+        mes: month,
+        descuentoId: descuentoId,
+        options: { filtros: [], sort: null },
       });
+      // const descuentos: DescuentoJSON[] = await this.getDescuentosByPeriodo({
+      //   anio: year,
+      //   mes: formattedMonth,
+      //   descuentoId,
+      //   personalIdRel,
+      // });
 
       const files = descuentos
         .filter(
           (descuento) => descuento.PersonalOtroDescuentoDescuentoId !== null
         )
-
         .map((descuento, index) => {
           return {
             name: `${year}-${formattedMonth}-${descuento.CUIT}-${descuento.PersonalId}.pdf`,

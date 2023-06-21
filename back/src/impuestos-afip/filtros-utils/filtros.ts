@@ -1,6 +1,6 @@
 import { Options } from "body-parser";
 import { Filtro } from "src/schemas/filtro";
-import { listaColumna } from "../impuestos-afip.controller";
+import { findColumnByIndex, listaColumnas } from "../comprobantes-utils/lista";
 
 const isFiltro = (filtro: any): filtro is Filtro => {
   if (
@@ -35,7 +35,7 @@ const filtrosToSql = (filtros: Filtro[]): string => {
   filtros.forEach((filtro, index) => {
     if (!isFiltro(filtro)) return;
 
-    const columna = listaColumna(filtro.index);
+    const columna = findColumnByIndex(filtro.index, listaColumnas);
     const fieldName = columna ? columna.fieldName : null;
     if (!fieldName) return;
 
@@ -46,14 +46,13 @@ const filtrosToSql = (filtros: Filtro[]): string => {
     const condition = index === 0 ? "" : `${filtro.condition}`;
 
     switch (filtro.operador) {
-      case "FIND":
+      case "LIKE":
         if (fieldName === "ApellidoNombre")
           filterString = `${condition} (per.PersonalNombre LIKE '%${filtro.valor}%' OR per.PersonalApellido LIKE '%${filtro.valor}%')`;
-        if (fieldName === "ApellidoNombreJ")
+        else if (fieldName === "ApellidoNombreJ")
           filterString = `${condition} (perjer.PersonalNombre LIKE '%${filtro.valor}%' OR perjer.PersonalApellido LIKE '%${filtro.valor}%')`;
-        break;
-      case "LIKE":
-        filterString = `${condition} ${fieldName} LIKE '%${filtro.valor}%'`;
+        else
+          filterString = `${condition} ${fieldName} LIKE '%${filtro.valor}%'`;
         break;
       case "=":
         filterString = `${condition} ${fieldName} = ${filtro.valor}`;

@@ -92,7 +92,7 @@ export class ImpuestoAfipComponent {
   listOptionsChange(options: any) {
     this.listOptions = options;
     console.log('listOptionsChange', options);
-    this.cdr.detectChanges();
+    this.searchList();
   }
 
   searchList() {
