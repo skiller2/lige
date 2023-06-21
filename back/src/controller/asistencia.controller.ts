@@ -135,13 +135,13 @@ export class AsistenciaController extends BaseController {
             );
             return;
           }
-        }
+        } else {
 
         Equivalencia.CategoriaPersonalId =
           row["PersonalCategoriaCategoriaPersonalId"]
         Equivalencia.TipoAsociadoId =
           row["PersonalCategoriaTipoAsociadoId"]
-
+        }
       }
 
       //Traigo el Art14 para analizarlo

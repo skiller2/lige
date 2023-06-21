@@ -378,6 +378,7 @@ export class ImpuestosAfipController extends BaseController {
       } else {
         const loadingTask = getDocument(file.path);
         const document = await loadingTask.promise;
+        document.numPages
 
         const page = await document.getPage(1);
         const textContent = await page.getTextContent();
@@ -502,7 +503,7 @@ export class ImpuestosAfipController extends BaseController {
       this.jsonRes([], res, "PDF Recibido!");
     } catch (err) {
       await queryRunner.rollbackTransaction();
-      this.errRes(err, res, "Algo salió mal!", 409);
+      this.errRes(err, res, err.message, 409);
     } finally {
       await queryRunner.release();
       unlinkSync(file.path);
@@ -580,7 +581,7 @@ export class ImpuestosAfipController extends BaseController {
         unlinkSync(tmpfilename);
       });
     } catch (error) {
-      this.errRes(error, res, "Algo salió mal!", 409);
+      this.errRes(error, res, "Algo salió mal 2!", 409);
     }
   }
 
@@ -754,7 +755,7 @@ export class ImpuestosAfipController extends BaseController {
         unlinkSync(tmpfilename);
       });
     } catch (error) {
-      this.errRes(error, res, "Algo salió mal.", 404);
+      this.errRes(error, res, "Algo salió mal 3!", 404);
     }
   }
 

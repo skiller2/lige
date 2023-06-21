@@ -102,6 +102,8 @@
           [nzLoading]="tableLoading$ | async">
           <thead>
             <tr>
+              <th>CUIT</th>
+              <th>Apellido Nombre</th>
               <th>Monto</th>
               <th>Fecha de Solicitud</th>
               <th>Fecha de Aprobación</th>
@@ -111,6 +113,8 @@
           </thead>
           <tbody>
             <tr *ngFor="let data of this.tableAdelantos.data">
+              <td>{{ data.PersonalCUITCUILCUIT }}</td>
+              <td>{{ data.ApellidoNombre }}</td>
               <td>{{ data.PersonalAdelantoMonto | currency : '$' }}</td>
               <td>{{ data.PersonalAdelantoFechaSolicitud | date }}</td>
               <td>{{ data.PersonalAdelantoFechaDeAprobacion | date }}</td>
