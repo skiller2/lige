@@ -43,7 +43,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   isFiltroBuilder = false;
 
   selections = {
-    field: null,
+    index: null,
     condition: 'AND',
     operator: null,
   };
@@ -53,7 +53,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   //
 
   addTag() {
-    const tagToAdd = `${this.selections.field} | ${this.selections.operator} | ${this.inputValue}`;
+    const tagToAdd = `${this.selections.index} | ${this.selections.operator} | ${this.inputValue}`;
     this.tags.push(tagToAdd);
   }
 
@@ -68,7 +68,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   verifySelections(): boolean {
     if (
-      this.selections.field &&
+      this.selections.index &&
       this.selections.condition &&
       this.selections.operator
     )
@@ -119,7 +119,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   resetSelections() {
     this.selections = {
-      field: null,
+      index: null,
       condition: 'AND',
       operator: null,
     };

@@ -69,17 +69,12 @@ const importeMontoRegex = [
 ];
 
 const listaColumnas = [
-  { index: "Apellido", title: "Apellido", fieldName: "per.PersonalApellido",className:"hide" },
-  { index: "Nombre", title: "Nombre", fieldName: "per.PersonalNombre",className:"hide" },
-  { index: "ApellidoJ", title: "ApellidoJ", fieldName: "perjer.PersonalNombre",className:"hide" },
-  { index: "NombreJ", title: "NombreJ", fieldName: "perjer.PersonalNombre",className:"hide" },
   {
     title: "CUIT",
     index: "CUIT",
     fieldName: "cuit2.PersonalCUITCUILCUIT",
     type: "number",
-    resizable: true,
-    sort: { compare: (a, b) => a.price - b.price },
+    exported: true,
   },
   {
     title: "Apellido Nombre",
@@ -146,14 +141,13 @@ const filtrosToSql = (filtros: Filtro[]): string => {
     const condition = index === 0 ? "" : `${filtro.condition}`;
 
     switch (filtro.operador) {
-      case "FIND":
+      case "LIKE":
         if (fieldName === "ApellidoNombre")
           filterString = `${condition} (per.PersonalNombre LIKE '%${filtro.valor}%' OR per.PersonalApellido LIKE '%${filtro.valor}%')`;
-        if (fieldName === "ApellidoNombreJ")
+        else if (fieldName === "ApellidoNombreJ")
           filterString = `${condition} (perjer.PersonalNombre LIKE '%${filtro.valor}%' OR perjer.PersonalApellido LIKE '%${filtro.valor}%')`;
-        break;
-      case "LIKE":
-        filterString = `${condition} ${fieldName} LIKE '%${filtro.valor}%'`;
+        else
+          filterString = `${condition} ${fieldName} LIKE '%${filtro.valor}%'`;
         break;
       case "=":
         filterString = `${condition} ${fieldName} = ${filtro.valor}`;
@@ -378,7 +372,7 @@ export class ImpuestosAfipController extends BaseController {
       } else {
         const loadingTask = getDocument(file.path);
         const document = await loadingTask.promise;
-        document.numPages
+        document.numPages;
 
         const page = await document.getPage(1);
         const textContent = await page.getTextContent();
