@@ -1,6 +1,6 @@
-import { Options } from "body-parser";
-import { Filtro } from "src/schemas/filtro";
+import { Filtro, Options } from "src/schemas/filtro";
 import { findColumnByIndex, listaColumnas } from "../comprobantes-utils/lista";
+import { Request } from "express";
 
 const isFiltro = (filtro: any): filtro is Filtro => {
   if (
@@ -73,4 +73,17 @@ const filtrosToSql = (filtros: Filtro[]): string => {
   return returnedString;
 };
 
-export { filtrosToSql, isCondition, isFiltro, isOptions };
+const getOptionsFromRequest = (req: Request): Options => {
+  const _options = req.body.options;
+  if (!isOptions(_options)) throw new Error("Bad Input. Options");
+  if (!isFiltro(_options.filtros)) throw new Error("Bad Input. Filtros");
+  return _options;
+};
+
+export {
+  getOptionsFromRequest,
+  filtrosToSql,
+  isCondition,
+  isFiltro,
+  isOptions,
+};
