@@ -412,7 +412,7 @@ export class ImpuestosAfipController extends BaseController {
             errTxt += err.message + '\n'
           });
 
-          throw new Error(errTxt)
+          //throw new Error(errTxt)
         }
       }
       // if (!file) throw new Error("File not recieved/did not pass filter.");
