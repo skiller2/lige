@@ -54,7 +54,7 @@ const fileFilter = (
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 10 * 1000 * 1000 },
+  limits: { fileSize: 100 * 1000 * 1000 },
 }).single("pdf");
 
 export const impuestosAfipRouter = Router();
@@ -64,7 +64,7 @@ impuestosAfipRouter.post("", authMiddleware.verifyToken, (req, res) => {
     // FILE SIZE ERROR
     if (err instanceof multer.MulterError) {
       return res.status(409).json({
-        msg: "Max file size 10MB allowed!",
+        msg: "Max file size 100MB allowed!",
         data: [],
         stamp: new Date(),
       });
@@ -95,7 +95,7 @@ impuestosAfipRouter.post("/forzado", authMiddleware.verifyToken, (req, res) => {
     // FILE SIZE ERROR
     if (err instanceof multer.MulterError) {
       return res.status(409).json({
-        msg: "Max file size 10MB allowed!",
+        msg: "Max file size 100MB allowed!",
         data: [],
         stamp: new Date(),
       });
