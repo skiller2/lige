@@ -226,6 +226,87 @@ export class ImpuestosAfipController extends BaseController {
       this.errRes(error, res);
     }
   }
+
+  async insertPDF(queryRunner, CUIT, anioRequest, mesRequest, importeMonto, file, pagenum) {
+    const [personalIDQuery] = await queryRunner.query(
+      "SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro OtroDescuentoId, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre FROM PersonalCUITCUIL cuit JOIN Personal per ON per.PersonalId = cuit.PersonalId WHERE cuit.PersonalCUITCUILCUIT = @0",
+      [CUIT]
+    );
+
+    if (!personalIDQuery.PersonalId)
+      throw new Error(`No se pudo encontrar el CUIT ${CUIT}`);
+
+    const personalID = personalIDQuery.PersonalId;
+
+    const ApellidoNombre = personalIDQuery.ApellidoNombre;
+
+    const alreadyExists = await queryRunner.query(
+      `SELECT * FROM PersonalOtroDescuento des WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = @1 AND des.PersonalOtroDescuentoAnoAplica = @2 AND des.PersonalOtroDescuentoMesesAplica = @3`,
+      [
+        personalID,
+        Number(process.env.OTRO_DESCUENTO_ID),
+        anioRequest,
+        mesRequest,
+      ]
+    );
+    if (alreadyExists.length > 0)
+      throw new Error(
+        `Ya existe un descuento para el periodo ${anioRequest}-${mesRequest} y el CUIT ${CUIT}`
+      );
+
+    mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
+    const newFilePath = `${this.directory
+      }/${anioRequest}/${anioRequest}-${mesRequest
+        .toString()
+        .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
+
+    if (existsSync(newFilePath)) throw new Error("El documento ya existe.");
+    const now = new Date();
+    await queryRunner.query(
+      `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas, PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion)
+      VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13)`,
+      [
+        personalIDQuery.OtroDescuentoId + 1,
+        personalID,
+        Number(process.env.OTRO_DESCUENTO_ID),
+        anioRequest,
+        mesRequest,
+        mesRequest,
+        1,
+        1,
+        importeMonto,
+        now,
+        0,
+        0,
+        null,
+        "",
+      ]
+    );
+    await queryRunner.query(
+      `UPDATE Personal SET PersonalOtroDescuentoUltNro = @0 WHERE PersonalId = @1`,
+      [personalIDQuery.OtroDescuentoId + 1, personalID]
+    );
+    if (pagenum == null) {
+      copyFileSync(file.path, newFilePath);
+    } else {
+
+      const currentFileBuffer = readFileSync(file.path);
+
+      const pdfDoc = await PDFDocument.create()
+      const srcDoc = await PDFDocument.load(currentFileBuffer)
+
+
+
+      const copiedPages = await pdfDoc.copyPages(srcDoc, [pagenum - 1])
+      const [copiedPage] = copiedPages;
+
+      pdfDoc.addPage(copiedPage)
+      const buffer = await pdfDoc.save()
+      writeFileSync(newFilePath, buffer);
+    }
+  }
+
+
   async handlePDFUpload(req: Request, res: Response, forzado: boolean) {
     const file = req.file;
     const anioRequest: number = req.body.anio;
@@ -251,129 +332,93 @@ export class ImpuestosAfipController extends BaseController {
 
         if (!cuitRequest) throw new Error("Faltó indicar el cuit.");
         CUIT = cuitRequest;
+
+        //Call to writefile
+        await this.insertPDF(queryRunner, CUIT, anioRequest, mesRequest, importeMonto, file, null)
       } else {
         const loadingTask = getDocument(file.path);
+
         const document = await loadingTask.promise;
-        document.numPages;
 
-        const page = await document.getPage(1);
-        const textContent = await page.getTextContent();
+        let errList: Array<any> = []
+        for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
+          //        for (let pagenum = 1; pagenum <= 1; pagenum++) {
 
-        const textContentItems: (TextItem | TextMarkedContent)[] =
-          textContent.items.filter(function (value: any, index, arr) {
-            return value.str.trim() != "";
+          const page = await document.getPage(pagenum);
+
+          const textContent = await page.getTextContent();
+
+          const textContentItems: (TextItem | TextMarkedContent)[] =
+            textContent.items.filter(function (value: any, index, arr) {
+              return value.str.trim() != "";
+            });
+
+          let textdocument = "";
+
+          textContent.items.forEach((item: TextItem) => {
+            if (item.str.trim() != "") textdocument += item.str.trim() + "\n";
           });
 
-        let textdocument = "";
-
-        textContent.items.forEach((item: TextItem) => {
-          if (item.str.trim() != "") textdocument += item.str.trim() + "\n";
-        });
-
-        let [, periodoAnio, periodoMes] = this.getByRegexText(
-          textdocument,
-          periodoRegex,
-          new Error("No se pudo encontrar el periodo.")
-        );
-
-        [, CUIT] = this.getByRegexText(
-          textdocument,
-          cuitRegex,
-          new Error("No se pudo encontrar el CUIT.")
-        );
-
-        const [, importeMontoTemp] = this.getByRegexText(
-          textdocument,
-          importeMontoRegex,
-          new Error("No se pudo encontrar el monto.")
-        );
-        importeMonto = parseFloat(importeMontoTemp.replace(",", "."));
-
-        let periodoIsValid =
-          Number(periodoAnio) == anioRequest &&
-          Number(periodoMes) == mesRequest;
-
-        if (!periodoIsValid) {
-          const tmp = periodoAnio;
-          periodoAnio = periodoMes;
-          periodoMes = tmp;
-        }
-
-        periodoIsValid =
-          Number(periodoAnio) == anioRequest &&
-          Number(periodoMes) == mesRequest;
-
-        if (!periodoIsValid)
-          throw new Error(
-            `El periodo especificado ${anioRequest}-${mesRequest} no coincide con el contenido en el documento ${periodoAnio}-${Number(
-              periodoMes
-            )}.`
+          let [, periodoAnio, periodoMes] = this.getByRegexText(
+            textdocument,
+            periodoRegex,
+            new Error("No se pudo encontrar el periodo.")
           );
+
+          [, CUIT] = this.getByRegexText(
+            textdocument,
+            cuitRegex,
+            new Error("No se pudo encontrar el CUIT.")
+          );
+
+          const [, importeMontoTemp] = this.getByRegexText(
+            textdocument,
+            importeMontoRegex,
+            new Error("No se pudo encontrar el monto.")
+          );
+          importeMonto = parseFloat(importeMontoTemp.replace(",", "."));
+
+          let periodoIsValid =
+            Number(periodoAnio) == anioRequest &&
+            Number(periodoMes) == mesRequest;
+
+          if (!periodoIsValid) {
+            const tmp = periodoAnio;
+            periodoAnio = periodoMes;
+            periodoMes = tmp;
+          }
+
+          periodoIsValid =
+            Number(periodoAnio) == anioRequest &&
+            Number(periodoMes) == mesRequest;
+
+          if (!periodoIsValid)
+            throw new Error(
+              `El periodo especificado ${anioRequest}-${mesRequest} no coincide con el contenido en el documento ${periodoAnio}-${Number(
+                periodoMes
+              )}.`
+            );
+
+          try {
+            await this.insertPDF(queryRunner, CUIT, anioRequest, mesRequest, importeMonto, file, pagenum)
+          } catch (err: any) {
+            errList.push(err)
+          }
+
+        }
+        let errTxt = ''
+        if (errList.length > 0) {
+          errList.forEach(err => {
+            errTxt += err.message + '\n'
+          });
+
+          throw new Error(errTxt)
+        }
       }
       // if (!file) throw new Error("File not recieved/did not pass filter.");
       // if (!anioRequest) throw new Error("No se especificó un año.");
       // if (!mesRequest) throw new Error("No se especificó un mes.");
 
-      const [personalIDQuery] = await queryRunner.query(
-        "SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro OtroDescuentoId, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre FROM PersonalCUITCUIL cuit JOIN Personal per ON per.PersonalId = cuit.PersonalId WHERE cuit.PersonalCUITCUILCUIT = @0",
-        [CUIT]
-      );
-
-      if (!personalIDQuery.PersonalId)
-        throw new Error(`No se pudo encontrar el CUIT ${CUIT}`);
-
-      const personalID = personalIDQuery.PersonalId;
-
-      const ApellidoNombre = personalIDQuery.ApellidoNombre;
-
-      const alreadyExists = await queryRunner.query(
-        `SELECT * FROM PersonalOtroDescuento des WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = @1 AND des.PersonalOtroDescuentoAnoAplica = @2 AND des.PersonalOtroDescuentoMesesAplica = @3`,
-        [
-          personalID,
-          Number(process.env.OTRO_DESCUENTO_ID),
-          anioRequest,
-          mesRequest,
-        ]
-      );
-      if (alreadyExists.length > 0)
-        throw new Error(
-          `Ya existe un descuento para el periodo ${anioRequest}-${mesRequest} y el CUIT ${CUIT}`
-        );
-
-      mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
-      const newFilePath = `${
-        this.directory
-      }/${anioRequest}/${anioRequest}-${mesRequest
-        .toString()
-        .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
-
-      if (existsSync(newFilePath)) throw new Error("El documento ya existe.");
-      const now = new Date();
-      await queryRunner.query(
-        `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas, PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion)
-        VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13)`,
-        [
-          personalIDQuery.OtroDescuentoId + 1,
-          personalID,
-          Number(process.env.OTRO_DESCUENTO_ID),
-          anioRequest,
-          mesRequest,
-          mesRequest,
-          1,
-          1,
-          importeMonto,
-          now,
-          0,
-          0,
-          null,
-          "",
-        ]
-      );
-      await queryRunner.query(
-        `UPDATE Personal SET PersonalOtroDescuentoUltNro = @0 WHERE PersonalId = @1`,
-        [personalIDQuery.OtroDescuentoId + 1, personalID]
-      );
-      copyFileSync(file.path, newFilePath);
       await queryRunner.commitTransaction();
 
       this.jsonRes([], res, "PDF Recibido!");
