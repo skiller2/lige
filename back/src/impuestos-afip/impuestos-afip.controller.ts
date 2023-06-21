@@ -411,17 +411,17 @@ export class ImpuestosAfipController extends BaseController {
     if (pagenum == null) {
       copyFileSync(file.path, newFilePath);
     } else {
-         
+
       const currentFileBuffer = readFileSync(file.path);
 
       const pdfDoc = await PDFDocument.create()
       const srcDoc = await PDFDocument.load(currentFileBuffer)
-      
 
 
-      const copiedPages = await pdfDoc.copyPages(srcDoc, [pagenum-1])
+
+      const copiedPages = await pdfDoc.copyPages(srcDoc, [pagenum - 1])
       const [copiedPage] = copiedPages;
-      
+
       pdfDoc.addPage(copiedPage)
       const buffer = await pdfDoc.save()
       writeFileSync(newFilePath, buffer);
@@ -462,9 +462,9 @@ export class ImpuestosAfipController extends BaseController {
 
         const document = await loadingTask.promise;
 
-        let errList:Array<any>=[] 
+        let errList: Array<any> = []
         for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
-//        for (let pagenum = 1; pagenum <= 1; pagenum++) {
+          //        for (let pagenum = 1; pagenum <= 1; pagenum++) {
 
           const page = await document.getPage(pagenum);
 
@@ -520,22 +520,22 @@ export class ImpuestosAfipController extends BaseController {
                 periodoMes
               )}.`
             );
-          
+
           try {
             await this.insertPDF(queryRunner, CUIT, anioRequest, mesRequest, importeMonto, file, pagenum)
-          } catch (err:any) { 
+          } catch (err: any) {
             errList.push(err)
           }
 
         }
-        let errTxt=''
+        let errTxt = ''
         if (errList.length > 0) {
           errList.forEach(err => {
-            errTxt += err.message + '\n' 
+            errTxt += err.message + '\n'
           });
 
           throw new Error(errTxt)
-        }        
+        }
       }
       // if (!file) throw new Error("File not recieved/did not pass filter.");
       // if (!anioRequest) throw new Error("No se especificó un año.");
