@@ -27,7 +27,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   providers: [CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR],
 })
 export class FiltroBuilderComponent implements ControlValueAccessor {
-  @Input() fieldsToSelect: Array<any> = []
+  @Input() fieldsToSelect: Array<any> = [];
   @Input() conditionsToSelect = ['AND', 'OR'];
   @Input() operatorsToSelect = ['LIKE', '>', '<'];
 
@@ -43,8 +43,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   isFiltroBuilder = false;
 
   selections = {
-    field: null,
-    condition: null,
+    index: null,
+    condition: 'AND',
     operator: null,
   };
 
@@ -53,7 +53,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   //
 
   addTag() {
-    const tagToAdd = `${this.selections.field} | ${this.selections.condition} | ${this.selections.operator} | ${this.inputValue}`;
+    const tagToAdd = `${this.selections.index} | ${this.selections.operator} | ${this.inputValue}`;
     this.tags.push(tagToAdd);
   }
 
@@ -68,7 +68,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   verifySelections(): boolean {
     if (
-      this.selections.field &&
+      this.selections.index &&
       this.selections.condition &&
       this.selections.operator
     )
@@ -113,14 +113,14 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   removeFiltro(indexToRemove: number) {
-    this.options.filtros.splice(indexToRemove, 1)
-    this.optionsChange.emit(this.options)
+    this.options.filtros.splice(indexToRemove, 1);
+    this.optionsChange.emit(this.options);
   }
 
   resetSelections() {
     this.selections = {
-      field: null,
-      condition: null,
+      index: null,
+      condition: 'AND',
       operator: null,
     };
   }

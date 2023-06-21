@@ -51,7 +51,7 @@ export class ImpuestoAfipComponent {
     new NgForm([], []);
   @ViewChild('st', { static: false }) st: STComponent | undefined;
 
-  constructor(public apiService: ApiService,private cdr: ChangeDetectorRef) {}
+  constructor(public apiService: ApiService, private cdr: ChangeDetectorRef) {}
   selectedDate = null;
   selectedPeriodo = {
     year: 0,
@@ -70,7 +70,6 @@ export class ImpuestoAfipComponent {
   tableLoading$ = new BehaviorSubject(false);
   stsizey = '100px';
   columns$ = this.apiService.get('/api/impuestos_afip/cols');
-
 
   options = {
     CUIT: {
@@ -91,11 +90,9 @@ export class ImpuestoAfipComponent {
   toggle = false;
 
   listOptionsChange(options: any) {
-
     this.listOptions = options;
-    console.log('listOptionsChange', options)
+    console.log('listOptionsChange', options);
     this.cdr.detectChanges();
-
   }
 
   searchList() {
@@ -130,65 +127,6 @@ export class ImpuestoAfipComponent {
         );
     })
   );
-  listOfColumns: ColumnItem[] = [
-    {
-      name: 'CUIT',
-      sortOrder: null,
-      sortDirections: ['ascend', 'descend', null],
-      sortFn: (a: DescuentoJSON, b: DescuentoJSON) => a.CUIT - b.CUIT,
-      filterMultiple: false,
-      listOfFilter: [],
-      filterFn: (CUIT: number, item: DescuentoJSON) => item.CUIT === CUIT,
-    },
-    {
-      name: 'Apellido, Nombre',
-      sortOrder: null,
-      sortFn: (a: DescuentoJSON, b: DescuentoJSON) =>
-        a.ApellidoNombre.localeCompare(b.ApellidoNombre),
-      sortDirections: ['ascend', 'descend', null],
-      filterMultiple: true,
-      listOfFilter: [],
-      filterFn: null,
-    },
-    {
-      name: 'Estado',
-      sortOrder: null,
-      sortFn: (a: DescuentoJSON, b: DescuentoJSON) =>
-        a.PersonalEstado.localeCompare(b.PersonalEstado),
-      sortDirections: ['ascend', 'descend', null],
-      filterMultiple: true,
-      listOfFilter: [],
-      filterFn: null,
-    },
-    {
-      name: 'Monto',
-      sortOrder: 'descend',
-      sortFn: (a: DescuentoJSON, b: DescuentoJSON) => a.monto! - b.monto!,
-      sortDirections: ['descend', null],
-      listOfFilter: [],
-      filterFn: null,
-      filterMultiple: true,
-    },
-    {
-      name: 'CUIT (J)',
-      sortOrder: null,
-      sortDirections: ['ascend', 'descend', null],
-      sortFn: (a: DescuentoJSON, b: DescuentoJSON) => a.CUIT - b.CUIT,
-      filterMultiple: false,
-      listOfFilter: [],
-      filterFn: (CUIT: number, item: DescuentoJSON) => item.CUIT === CUIT,
-    },
-    {
-      name: 'Apellido, Nombre (J)',
-      sortOrder: null,
-      sortFn: (a: DescuentoJSON, b: DescuentoJSON) =>
-        a.ApellidoNombre.localeCompare(b.ApellidoNombre),
-      sortDirections: ['ascend', 'descend', null],
-      filterMultiple: true,
-      listOfFilter: [],
-      filterFn: null,
-    },
-  ];
 
   resizeObservable$: Observable<Event> | undefined;
   resizeSubscription$: Subscription | undefined;

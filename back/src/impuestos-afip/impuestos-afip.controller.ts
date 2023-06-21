@@ -78,8 +78,7 @@ const listaColumnas = [
     index: "CUIT",
     fieldName: "cuit2.PersonalCUITCUILCUIT",
     type: "number",
-    resizable: true,
-    sort: { compare: (a, b) => a.price - b.price },
+    exported: true,
   },
   {
     title: "Apellido Nombre",
@@ -146,14 +145,13 @@ const filtrosToSql = (filtros: Filtro[]): string => {
     const condition = index === 0 ? "" : `${filtro.condition}`;
 
     switch (filtro.operador) {
-      case "FIND":
+      case "LIKE":
         if (fieldName === "ApellidoNombre")
           filterString = `${condition} (per.PersonalNombre LIKE '%${filtro.valor}%' OR per.PersonalApellido LIKE '%${filtro.valor}%')`;
-        if (fieldName === "ApellidoNombreJ")
+        else if (fieldName === "ApellidoNombreJ")
           filterString = `${condition} (perjer.PersonalNombre LIKE '%${filtro.valor}%' OR perjer.PersonalApellido LIKE '%${filtro.valor}%')`;
-        break;
-      case "LIKE":
-        filterString = `${condition} ${fieldName} LIKE '%${filtro.valor}%'`;
+        else
+          filterString = `${condition} ${fieldName} LIKE '%${filtro.valor}%'`;
         break;
       case "=":
         filterString = `${condition} ${fieldName} = ${filtro.valor}`;
