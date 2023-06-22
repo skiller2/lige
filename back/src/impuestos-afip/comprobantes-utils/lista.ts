@@ -1,64 +1,62 @@
-interface Column {
-  title: string;
-  index: string;
-  fieldName: string;
-  type: string;
-  exported: boolean;
-}
-const listaColumnas: Column[] = [
+const listaColumnas: any[] = [
   {
-    title: "CUIT",
-    index: "CUIT",
+    id: "CUIT",
+    name: "CUIT",
+    field: "CUIT",
     fieldName: "cuit2.PersonalCUITCUILCUIT",
     type: "number",
-    exported: true,
+    sortable: true,
   },
   {
-    title: "Apellido Nombre",
-    type: "",
-    index: "ApellidoNombre",
-    fieldName: "ApellidoNombre",
-    exported: true,
-  },
-  {
-    title: "Sit Revista",
-    type: "",
-    index: "SituacionRevistaDescripcion",
-    fieldName: "sit.SituacionRevistaDescripcion",
-    exported: true,
-  },
-  {
-    title: "Importe",
-    type: "currency",
-    index: "monto",
-    fieldName: "des.PersonalOtroDescuentoImporteVariable",
-    exported: true,
-  },
-  {
-    title: "CUIT Responsable",
-    type: "number",
-    index: "CUITJ",
-    fieldName: "cuit.PersonalCUITCUILCUIT",
-    exported: true,
-  },
-  {
-    title: "Apellido Nombre Responsable",
+    name: "Apellido Nombre",
     type: "string",
-    index: "ApellidoNombreJ",
-    fieldName: "ApellidoNombreJ",
-    exported: true,
+    id: "ApellidoNombre",
+    field: "ApellidoNombre",
+    fieldName: "ApellidoNombre",
+    sortable: true,
   },
   {
-    title: "ID Descuento",
-    fieldName: "descuento",
+    name: "Sit Revista",
+    type: "string",
+    id: "SituacionRevistaDescripcion",
+    field: "SituacionRevistaDescripcion",
+    fieldName: "sit.SituacionRevistaDescripcion",
+    sortable: true,
+  },
+  {
+    name: "Importe",
+    type: "currency",
+    id: "monto",
+    field: "monto",
+    fieldName: "des.PersonalOtroDescuentoImporteVariable",
+    sortable: true,
+  },
+  {
+    name: "CUIT Responsable",
     type: "number",
-    index: "PersonalOtroDescuentoId",
-    exported: true,
+    id: "CUITJ",
+    field: "CUITJ",
+    fieldName: "cuit.PersonalCUITCUILCUIT",
+    sortable: true,
+  },
+  {
+    name: "Apellido Nombre Responsable",
+    type: "string",
+    id: "ApellidoNombreJ",
+    field: "ApellidoNombreJ",
+    sortable: true,
+  },
+  {
+    name: "ID Descuento",
+    field: "descuento",
+    type: "number",
+    id: "PersonalOtroDescuentoId",
+    sortable: true,
   },
 ];
 
-const findColumnByIndex = (index: string, list: Column[]) => {
-  return list.find((columna) => columna.index === index);
+const findColumnByIndex = (field: string, list: any[]) => {
+  return list.find((columna) => columna.field === field);
 };
 
 export { listaColumnas, findColumnByIndex };
