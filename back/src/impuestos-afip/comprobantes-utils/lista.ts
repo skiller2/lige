@@ -30,6 +30,9 @@ const listaColumnas: any[] = [
     field: "monto",
     fieldName: "des.PersonalOtroDescuentoImporteVariable",
     sortable: true,
+    formatter: (row, cell, value) => value >0 ? `<a app-down-file title="Comprobante {{ row.PersonalOtroDescuentoMesesAplica }}/{{ row.PersonalOtroDescuentoAnoAplica }}"
+    httpUrl="api/impuestos_afip/{{row.PersonalOtroDescuentoAnoAplica}}/{{ row.PersonalOtroDescuentoMesesAplica }}/0/{{row.PersonalId}}"
+             ><span class="pl-xs" nz-icon nzType="download"></span></a>`: ``,
   },
   {
     name: "CUIT Responsable",
