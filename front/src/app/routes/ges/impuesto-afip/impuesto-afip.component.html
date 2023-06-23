@@ -20,14 +20,7 @@
               httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
               <span nz-icon nzType="download"></span>Comprobantes
             </li>
-            <li
-              nz-menu-item
-              (click)="
-                st!.export(true, {
-                  filename: 'via-data.xlsx',
-                  sheetname: 'monotributo'
-                })
-              ">
+            <li nz-menu-item (click)="exportGrid()">
               <span nz-icon nzType="download"></span>XLS
             </li>
           </ul>
@@ -168,15 +161,15 @@
         </nz-tab>
         <nz-tab [nzForceRender]="false">
           <ng-template nz-tab>
-            <!-- <div nz-row nzJustify="space-around">
+            <div nz-row nzJustify="space-around">
               <div nz-col [nzSpan]="13" style="text-align: center">
-                <label>Persona Responsable:</label>
+                <label>Persona Responsable</label>
                 <app-personal-search
                   (ngModelChange)="formChanged($event)"
                   [(ngModel)]="selectedPersonalId"
                   [ngModelOptions]="{ standalone: true }" />
               </div>
-            </div> -->
+            </div>
 
             <shared-filtro-builder
               [fieldsToSelect]="columns$ | async"
@@ -219,6 +212,26 @@
                 ></a>
               </ng-template>
             </st>
+            -->
+            <shared-filtro-builder
+              [fieldsToSelect]="columns$ | async"
+              (optionsChange)="listOptionsChange($event)" />
+
+            <ng-template #defaultTmpl></ng-template>
+
+            <ng-container
+              *ngIf="columns$ | async as colsdefs; else defaultTmpl">
+              <div class="gridContainer container-fluid">
+                <angular-slickgrid
+                  gridId="grid22"
+                  class="gridContainer"
+                  [columnDefinitions]="colsdefs"
+                  [gridOptions]="gridOptions"
+                  [dataset]="(gridData$ | async) || []"
+                  (onAngularGridCreated)="angularGridReady($event)">
+                </angular-slickgrid>
+              </div>
+            </ng-container>
           </ng-template>
         </nz-tab>
       </nz-tabset>

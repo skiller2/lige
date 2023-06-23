@@ -104,6 +104,7 @@ import { SharedModule } from './shared/shared.module';
 import { STWidgetModule } from './shared/st-widget/st-widget.module';
 import { Observable } from 'rxjs';
 import { ServiceWorkerModule } from '@angular/service-worker';
+import { AngularSlickgridModule } from 'angular-slickgrid';
 
 
 @NgModule({
@@ -120,6 +121,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
     RoutesModule,
     STWidgetModule,
     NzNotificationModule,
+    AngularSlickgridModule.forRoot(),
     
     ...GLOBAL_THIRD_MODULES,
     ...FORM_MODULES,

@@ -119,7 +119,8 @@ export class ImpuestosAfipController extends BaseController {
     const filterSql = filtrosToSql(filtros);
 
     return dataSource.query(
-      `SELECT DISTINCT
+      `SELECT DISTINCT 
+      CONCAT(per.PersonalId,'-',des.PersonalOtroDescuentoId) id,
       per.PersonalId PersonalId,
       des.PersonalOtroDescuentoId,
       cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
@@ -306,11 +307,10 @@ export class ImpuestosAfipController extends BaseController {
       );
 
     mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
-    const newFilePath = `${
-      this.directory
-    }/${anioRequest}/${anioRequest}-${mesRequest
-      .toString()
-      .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
+    const newFilePath = `${this.directory
+      }/${anioRequest}/${anioRequest}-${mesRequest
+        .toString()
+        .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
 
     if (existsSync(newFilePath)) throw new Error("El documento ya existe.");
     const now = new Date();
@@ -475,7 +475,7 @@ export class ImpuestosAfipController extends BaseController {
             errTxt += err.message + "\n";
           });
 
-          throw new Error(errTxt);
+          //throw new Error(errTxt)
         }
       }
       // if (!file) throw new Error("File not recieved/did not pass filter.");
@@ -533,11 +533,17 @@ export class ImpuestosAfipController extends BaseController {
       const filesPath = path.join(this.directory, year);
 
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
+
+      let filtros: Filtro[] = []
+      
+      if (personalIdRel != '') 
+        filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: personalIdRel })
+
       const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
         anio: year,
         mes: month,
         descuentoId: descuentoId,
-        options: { filtros: [], sort: null },
+        options: { filtros:filtros, sort: null },
       });
       // const descuentos: DescuentoJSON[] = await this.getDescuentosByPeriodo({
       //   anio: year,
@@ -608,10 +614,13 @@ export class ImpuestosAfipController extends BaseController {
         currentFilePDFPage = currentFilePDF.getPages()[0];
 
         let embeddedPage: PDFEmbeddedPage = null;
+        let origenComprobante = "";
+
         if (
           currentFilePDFPage.getWidth() == 595.276 &&
           currentFilePDFPage.getHeight() == 841.89
         ) {
+          origenComprobante = "PAGO"
           embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
             top: 790,
             bottom: 410,
@@ -622,6 +631,7 @@ export class ImpuestosAfipController extends BaseController {
           currentFilePDFPage.getWidth() == 598 &&
           currentFilePDFPage.getHeight() == 845
         ) {
+          origenComprobante = "AFIP"
           embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
             top: 808,
             bottom: 385,
@@ -653,17 +663,77 @@ export class ImpuestosAfipController extends BaseController {
 
         lastPage.drawPage(embeddedPage, { ...positionFromIndex });
 
-        lastPage.drawText(
-          `${file.apellidoNombre}\n\nResponsable: ${file.apellidoNombreJ}`,
-          {
-            x: positionFromIndex.x + 22,
-            y: positionFromIndex.y + 60,
-            size: 10,
-            color: rgb(0, 0, 0),
-            lineHeight: 6,
-            //opacity: 0.75,
-          }
-        );
+
+        switch (origenComprobante) {
+          case "AFIP":
+            lastPage.drawText(
+              `Responsable: ${file.apellidoNombreJ}`,
+              {
+                x: positionFromIndex.x + 22,
+                y: positionFromIndex.y + 25,
+                size: 5,
+                color: rgb(0, 0, 0),
+                lineHeight: 6,
+                //opacity: 0.75,
+              }
+            );
+
+            lastPage.drawText(
+              `COMPROBANTE DE PAGO`,
+              {
+                x: positionFromIndex.x + 125,
+                y: positionFromIndex.y + 215,
+                size: 8,
+                color: rgb(0, 0, 0),
+                lineHeight: 6,
+                //opacity: 0.75,
+              }
+            );
+
+
+            lastPage.drawText(
+              `352-CONTRIBUCIONES OBRA SOCIAL`,
+              {
+                x: positionFromIndex.x + 123,
+                y: positionFromIndex.y + 95,
+                size: 4.5,
+                color: rgb(0, 0, 0),
+                lineHeight: 6,
+                //opacity: 0.75,
+              }
+            );
+
+            break
+          case "PAGO":
+            lastPage.drawText(
+              `${file.apellidoNombre}\n\nResponsable: ${file.apellidoNombreJ}`,
+              {
+                x: positionFromIndex.x + 22,
+                y: positionFromIndex.y + 60,
+                size: 10,
+                color: rgb(0, 0, 0),
+                lineHeight: 6,
+                //opacity: 0.75,
+              }
+            );
+
+            break
+          default:
+            lastPage.drawText(
+              `${file.apellidoNombre}\n\nResponsable: ${file.apellidoNombreJ}`,
+              {
+                x: positionFromIndex.x + 22,
+                y: positionFromIndex.y + 60,
+                size: 10,
+                color: rgb(0, 0, 0),
+                lineHeight: 6,
+                //opacity: 0.75,
+              }
+            );
+
+            break
+        }
+
 
         // newPage.drawText(`Comprobante: ${file.name}`);
       } else {
@@ -765,11 +835,15 @@ export class ImpuestosAfipController extends BaseController {
     const page0 = originPDFPages[0];
 
     let embededPages = null;
+    let origenComprobante = "";
+
     if (page0.getWidth() == 595.276 && page0.getHeight() == 841.89) {
+      origenComprobante = "PAGO"
       embededPages = await newPdf.embedPages(originPDFPages, [
         { top: 790, bottom: 410, left: 53, right: 307 },
       ]);
-    } else if (page0.getWidth() == 598 && page0.getHeight() == 845) {
+    } else if (page0.getWidth() == 598 && page0.getHeight() == 845) {  //Comprobante AFIP
+      origenComprobante = "AFIP"
       embededPages = await newPdf.embedPages(originPDFPages, [
         { top: 808, bottom: 385, left: 37, right: 560 },
       ]);
@@ -803,17 +877,72 @@ export class ImpuestosAfipController extends BaseController {
       });
 
       //      currentPage.drawImage(embededImage, { x: 210, y: (((index) % 2 == 0) ? currentPage.getHeight() / 2: 0)  + 90, width: scaleImage.width, height: scaleImage.height })
-      currentPage.drawText(
-        `${ApellidoNombre}\n\nResponsable: ${ApellidoNombreJ}`,
-        {
-          x: 33,
-          y: 70,
-          size: 10,
-          color: rgb(0, 0, 0),
-          lineHeight: 6,
-          //opacity: 0.75,
-        }
-      );
+
+      switch (origenComprobante) {
+        case "AFIP":
+          currentPage.drawText(
+            `352-CONTRIBUCIONES OBRA SOCIAL`,
+            {
+              x: 241,
+              y: 187,
+              size: 9,
+              color: rgb(0, 0, 0),
+              lineHeight: 6,
+              //opacity: 0.75,
+            }
+          );
+
+          currentPage.drawText(
+            `COMPROBANTE DE PAGO`,
+            {
+              x: 256,
+              y: 418,
+              size: 16,
+              color: rgb(0, 0, 0),
+              lineHeight: 6,
+              //opacity: 0.75,
+            }
+          );
+          currentPage.drawText(
+            `Responsable: ${ApellidoNombreJ}`,
+            {
+              x: 33,
+              y: 59,
+              size: 10,
+              color: rgb(0, 0, 0),
+              lineHeight: 6,
+              //opacity: 0.75,
+            }
+          );
+          break;
+        case "PAGO":
+          currentPage.drawText(
+            `${ApellidoNombre}\n\nResponsable: ${ApellidoNombreJ}`,
+            {
+              x: 33,
+              y: 70,
+              size: 10,
+              color: rgb(0, 0, 0),
+              lineHeight: 6,
+              //opacity: 0.75,
+            }
+          );
+          break;
+        default:
+          currentPage.drawText(
+            `${ApellidoNombre}\n\nResponsable: ${ApellidoNombreJ}`,
+            {
+              x: 33,
+              y: 70,
+              size: 10,
+              color: rgb(0, 0, 0),
+              lineHeight: 6,
+              //opacity: 0.75,
+            }
+          );
+
+          break;
+      }
     });
 
     return newPdf.save();

@@ -21,11 +21,12 @@ import { ViewCredentialComponent } from './viewCredential/view-credential.compon
 import { AppFilterPipe } from './utils/filter-type';
 import { ObjetivoSearchComponent } from './objetivo-search/objetivo-search.component';
 import { AppDownFileDirective } from './down-file/down-file.directive';
+import { AngularSlickgridModule } from 'angular-slickgrid';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';
 
-const THIRDMODULES: Array<Type<any>> = [ImageCropperModule, QRModule];
+const THIRDMODULES: Array<Type<any>> = [ImageCropperModule, QRModule,AngularSlickgridModule,];
 // #endregion
 
 // #region your componets & directives
@@ -51,6 +52,8 @@ const DIRECTIVES: Array<Type<any>> = [CUITPipe, AppFilterPipe,AppDownFileDirecti
     AlainThemeModule.forChild(),
     DelonACLModule,
     DelonFormModule,
+    AngularSlickgridModule,
+
     ...SHARED_DELON_MODULES,
     ...SHARED_ZORRO_MODULES,
     // third libs
@@ -69,6 +72,7 @@ const DIRECTIVES: Array<Type<any>> = [CUITPipe, AppFilterPipe,AppDownFileDirecti
     AlainThemeModule,
     DelonACLModule,
     DelonFormModule,
+    
     ...SHARED_DELON_MODULES,
     ...SHARED_ZORRO_MODULES,
     // third libs

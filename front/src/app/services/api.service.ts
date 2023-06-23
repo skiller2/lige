@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { DescuentoJSON, ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON';
-import { Observable, catchError, debounceTime, defer, map, of, tap, throwError } from 'rxjs';
+import { Observable, catchError, debounceTime, defer, filter, map, of, tap, throwError } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { error } from 'pdf-lib';
 import { DownloadService } from './download.service';
@@ -62,6 +62,16 @@ export class ApiService {
         return of([]);
       })
     );
+  }
+
+  getDescuentosMonotributo(filters: any) { 
+    const parameter = filters
+    
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/list',parameter).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+
   }
 
   getDescuentoByPeriodo(year: number, month: number, personaIdRel: number): Observable<ResponseDescuentos> {
