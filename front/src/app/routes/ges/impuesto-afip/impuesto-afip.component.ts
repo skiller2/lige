@@ -29,11 +29,27 @@ import { Column, FileType, AngularGridInstance, AngularSlickgridComponent, Angul
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { OPTIONS } from '@delon/theme';
 import { JsonPipe } from '@angular/common';
+import { DownloadService } from 'src/app/services/download.service';
 
 type listOptionsT = {
   filtros: any[],
   sort: any,
 
+}
+
+@Component({
+  standalone: true,
+  imports: [
+    SharedModule,
+  ],
+  template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
+    httpUrl="api/impuestos_afip/{{anio}}/{{mes}}/0/{{item.PersonalId}}"
+           ><span class="pl-xs" nz-icon nzType="download"></span></a>`
+})
+export class CustomDescargaComprobanteComponent {
+  item: any;
+  anio: any
+  mes: any
 }
 
 
@@ -66,14 +82,17 @@ export class ImpuestoAfipComponent {
   filesChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
 
-  descargaComprobanteFormatter: Formatter<any> = (_row: number, _cell: number, value: any,columnDef:any, dataContext:any) => {
-    return `<span style="margin-left: 5px">
-        <button class="btn btn-xs btn-default" *ngIf="${value}">
-          ${value}
-        </button>
-      </span>`;
-  };
-  
+
+  renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
+    if (colDef.params.component && dataContext.monto >0) {
+      const componentOutput = this.angularUtilService.createAngularComponent(colDef.params.component);
+      Object.assign(componentOutput.componentRef.instance, { item: dataContext, anio:this.anio,mes:this.mes });
+      
+     setTimeout(() => cellNode.append(componentOutput.domElement)
+      );
+    }
+  }
+
 
 
   columns$ = this.apiService.get('/api/impuestos_afip/cols').pipe(map((cols) => {
@@ -84,7 +103,14 @@ export class ImpuestoAfipComponent {
       field: "monto",
       fieldName: "des.PersonalOtroDescuentoImporteVariable",
       sortable: true,
-      formatter:this.descargaComprobanteFormatter
+//      formatter: () => '...',
+      asyncPostRender: this.renderAngularComponent.bind(this),
+      params: {
+        component: CustomDescargaComprobanteComponent,
+        angularUtilService: this.angularUtilService,
+        //complexFieldLabel: 'assignee.name' // for the exportCustomFormatter
+      },
+//      formatter:this.descargaComprobanteFormatter
 //      formatter: (row:any, cell:any, value:any, columnDef:any, dataContext:any) => value >0 ? `<a app-down-file title="Comprobante ${this.anio}/${this.mes}"
 //      httpUrl="api/impuestos_afip/${this.anio}/${this.mes}/0/${dataContext.PersonalId}"
 //               ><span class="pl-xs" nz-icon nzType="download"></span></a> ${value}`: ``,
@@ -297,7 +323,6 @@ export class ImpuestoAfipComponent {
     this.gridObj = angularGrid.detail.slickGrid;
 
   }
-
 
   exportGrid() { 
     this.excelExportService.exportToExcel({
