@@ -120,47 +120,6 @@
               Clickeá or arrastrá archivos para cargar
             </p>
           </nz-upload>
-
-          <!-- <nz-table
-            class="app-table"
-            #tablaDescuentos
-            [nzData]="context.lista?.Registros || []"
-            nzSize="small"
-            [nzLoading]="tableLoading$ | async"
-            [nzPageSize]="100000000"
-            [nzShowPagination]="false">
-            <thead>
-              <tr>
-                <th
-                  *ngFor="let column of listOfColumns"
-                  [(nzSortOrder)]="column.sortOrder"
-                  [nzSortFn]="column.sortFn"
-                  [nzFilters]="column.listOfFilter"
-                  [nzFilterFn]="column.filterFn">
-                  {{ column.name }}
-                </th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let data of tablaDescuentos.data">
-                <td>{{ data.CUIT }}</td>
-                <td>
-                  {{ data.ApellidoNombre }}
-                  <button
-                    nz-button
-                    *ngIf="data.PersonalOtroDescuentoDescuentoId"
-                    (click)="downloadAction$.next(data)">
-                    <span nz-icon nzType="download"></span>
-                  </button>
-                </td>
-                <td>{{ data.PersonalEstado }}</td>
-                <td>{{ data.monto | currency }}</td>
-                <td>{{ data.CUITJ }}</td>
-                <td>{{ data.ApellidoNombreJ }}</td>
-              </tr>
-            </tbody>
-          </nz-table> -->
         </nz-tab>
         <nz-tab [nzForceRender]="false">
           <ng-template nz-tab>
@@ -174,11 +133,7 @@
               </div>
             </div>
 
-            <shared-filtro-builder
-              [fieldsToSelect]="columns$ | async"
-              (optionsChange)="listOptionsChange($event)" />
-
-            <!-- <button nz-button (click)="searchList()">Buscar</button> -->
+            <!--
             <st
               #st
               [data]="'/api/impuestos_afip/list'"
@@ -215,7 +170,7 @@
                 ></a>
               </ng-template>
             </st>
-            -->
+-->
             <shared-filtro-builder
               [fieldsToSelect]="columns$ | async"
               (optionsChange)="listOptionsChange($event)" />
