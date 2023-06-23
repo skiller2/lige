@@ -19,10 +19,19 @@
               nz-menu-item
               app-down-file
               [httpMethod]="'POST'"
-              [httpBody]="{anio, mes, options: listOptions}"
+              [httpBody]="{anio, mes, options: listOptions, cantxpag:4}"
               httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
-              <span nz-icon nzType="download"></span>Comprobantes
+              <span nz-icon nzType="download"></span>Comp 4 x pág
             </li>
+            <li
+              nz-menu-item
+              app-down-file
+              [httpMethod]="'POST'"
+              [httpBody]="{anio, mes, options: listOptions, cantxpag:1}"
+              httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
+              <span nz-icon nzType="download"></span>Comp 1 x pág
+            </li>
+
             <li nz-menu-item (click)="exportGrid()">
               <span nz-icon nzType="download"></span>XLS
             </li>

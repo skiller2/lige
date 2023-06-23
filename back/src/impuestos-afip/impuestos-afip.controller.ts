@@ -78,6 +78,7 @@ export class ImpuestosAfipController extends BaseController {
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
       const periodo = getPeriodoFromRequest(req);
       const options = getOptionsFromRequest(req);
+      const cantxpag = req.body.cantxpag
 
       const formattedMonth = String(periodo.month).padStart(2, "0");
       const filesPath = path.join(this.directory, String(periodo.year));
@@ -100,7 +101,7 @@ export class ImpuestosAfipController extends BaseController {
           };
         });
 
-      const responsePDFBuffer = await this.PDFmergeFromFiles(files, filesPath);
+      const responsePDFBuffer = await this.PDFmergeFromFiles(files, filesPath, cantxpag);
       const filename = `${periodo.year}-${formattedMonth}-filtrado.pdf`;
 
       SendFileToDownload(res, filename, responsePDFBuffer);
@@ -564,7 +565,7 @@ export class ImpuestosAfipController extends BaseController {
           };
         });
 
-      const responsePDFBuffer = await this.PDFmergeFromFiles(files, filesPath);
+      const responsePDFBuffer = await this.PDFmergeFromFiles(files, filesPath, 4);
 
       const dirtmp = `${process.env.PATH_MONOTRIBUTO}/temp`;
       const tmpfilename = `${dirtmp}/${tmpName(dirtmp)}`;
@@ -586,7 +587,8 @@ export class ImpuestosAfipController extends BaseController {
       apellidoNombre: string;
       apellidoNombreJ: string;
     }[],
-    filesPath: string
+    filesPath: string,
+    cantxpag: number
   ) {
     const newDocument = await PDFDocument.create();
     let currentFileBuffer: Buffer;
@@ -595,7 +597,7 @@ export class ImpuestosAfipController extends BaseController {
     let lastPage: PDFPage;
 
     for (const [index, file] of files.entries()) {
-      const locationIndex = index % 4;
+      const locationIndex = (cantxpag==4)?index % 4 :0
       currentFileBuffer = null;
       currentFilePDF = null;
       currentFilePDFPage = null;

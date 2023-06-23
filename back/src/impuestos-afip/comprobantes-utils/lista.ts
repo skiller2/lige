@@ -48,6 +48,7 @@ const listaColumnas: any[] = [
     type: "string",
     id: "ApellidoNombreJ",
     field: "ApellidoNombreJ",
+    fieldName: "ApellidoNombreJ",
     sortable: true,
   },
   {

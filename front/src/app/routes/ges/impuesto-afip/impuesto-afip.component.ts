@@ -167,14 +167,9 @@ export class ImpuestoAfipComponent {
     debounceTime(500),
     switchMap(() => {
       const periodo = this.impuestoForm.form.get('periodo')?.value
-
-      let options = structuredClone(this.listOptions)
-      if (Number(this.selectedPersonalId)>0)
-        options.filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: this.selectedPersonalId })
-      
       return this.apiService
         .getDescuentosMonotributo(
-          { anio: periodo.getFullYear(), mes: periodo.getMonth()+1, options, toggle: this.toggle }
+          { anio: periodo.getFullYear(), mes: periodo.getMonth()+1, options:this.listOptions, toggle: this.toggle }
         )
         .pipe(
           map(data => {
@@ -197,7 +192,7 @@ export class ImpuestoAfipComponent {
         )
         .pipe(
           map(items => {
-            if (items) if (this.selectedPersonalId == null) return items;
+//            if (items) if (this.selectedPersonalId == null) return items;
             return {
               RegistrosConComprobantes: items.RegistrosConComprobantes,
               RegistrosSinComprobantes: items.RegistrosSinComprobantes,
@@ -274,6 +269,14 @@ export class ImpuestoAfipComponent {
   }
 
   formChanged(_event: any) {
+    this.listOptions.filtros=this.listOptions.filtros.filter((fil: any) => {
+      return (fil.index!='PersonalIdJ')? true : false
+    })
+
+    if (Number(this.selectedPersonalId)>0)
+      this.listOptions.filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: this.selectedPersonalId })
+
+
     this.formChange$.next('');
   }
 
