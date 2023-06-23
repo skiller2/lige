@@ -75,46 +75,6 @@
             </p>
           </nz-upload>
 
-          <!-- <nz-table
-            class="app-table"
-            #tablaDescuentos
-            [nzData]="context.lista?.Registros || []"
-            nzSize="small"
-            [nzLoading]="tableLoading$ | async"
-            [nzPageSize]="100000000"
-            [nzShowPagination]="false">
-            <thead>
-              <tr>
-                <th
-                  *ngFor="let column of listOfColumns"
-                  [(nzSortOrder)]="column.sortOrder"
-                  [nzSortFn]="column.sortFn"
-                  [nzFilters]="column.listOfFilter"
-                  [nzFilterFn]="column.filterFn">
-                  {{ column.name }}
-                </th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let data of tablaDescuentos.data">
-                <td>{{ data.CUIT }}</td>
-                <td>
-                  {{ data.ApellidoNombre }}
-                  <button
-                    nz-button
-                    *ngIf="data.PersonalOtroDescuentoDescuentoId"
-                    (click)="downloadAction$.next(data)">
-                    <span nz-icon nzType="download"></span>
-                  </button>
-                </td>
-                <td>{{ data.PersonalEstado }}</td>
-                <td>{{ data.monto | currency }}</td>
-                <td>{{ data.CUITJ }}</td>
-                <td>{{ data.ApellidoNombreJ }}</td>
-              </tr>
-            </tbody>
-          </nz-table> -->
         </nz-tab>
         <nz-tab [nzForceRender]="false">
           <ng-template nz-tab>
@@ -128,44 +88,6 @@
               </div>
             </div>
 
-            <!--
-            <st
-              #st
-              [data]="'/api/impuestos_afip/list'"
-              [res]="{ reName: { total: 'data.total', list: 'data.list' } }"
-              [req]="{
-                lazyLoad: true,
-                params: { anio, mes, options: listOptions, toggle },
-                method: 'POST',
-                allInBody: true
-              }"
-              [columns]="columns$ | async"
-              class="mt-sm"
-              virtualScroll
-              [scroll]="{ y: 'calc(100vh - 310px)' }"
-              resizable
-              [page]="{ show: false }"
-              [widthMode]="{ type: 'strict' }">
-              <ng-template st-row="cusImporte" let-item>
-                <span nz-tooltip [nzTooltipTitle]="">{{
-                  item.monto | currency
-                }}</span>
-                <a
-                  *ngIf="item.monto > 0"
-                  app-down-file
-                  title="Comprobante {{
-                    item.PersonalOtroDescuentoMesesAplica
-                  }}/{{ item.PersonalOtroDescuentoAnoAplica }}"
-                  httpUrl="api/impuestos_afip/{{
-                    item.PersonalOtroDescuentoAnoAplica
-                  }}/{{ item.PersonalOtroDescuentoMesesAplica }}/0/{{
-                    item.PersonalId
-                  }}"
-                  ><span class="pl-xs" nz-icon nzType="download"></span
-                ></a>
-              </ng-template>
-            </st>
--->
             <shared-filtro-builder [fieldsToSelect]="(columns$ | async)" (optionsChange)="listOptionsChange($event)" />
 
             <ng-template #defaultTmpl></ng-template>
