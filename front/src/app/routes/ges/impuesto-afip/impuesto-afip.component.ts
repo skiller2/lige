@@ -25,9 +25,10 @@ import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { Options } from 'src/app/shared/schemas/filtro';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
-import { FileType, AngularGridInstance, AngularSlickgridComponent, AngularSlickgridModule, AngularUtilService, ContainerService, Formatters } from 'angular-slickgrid';
+import { Column, FileType, AngularGridInstance, AngularSlickgridComponent, AngularSlickgridModule, AngularUtilService, ContainerService, Formatters, Formatter } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { OPTIONS } from '@delon/theme';
+import { JsonPipe } from '@angular/common';
 
 type listOptionsT = {
   filtros: any[],
@@ -64,7 +65,42 @@ export class ImpuestoAfipComponent {
   formChange$ = new BehaviorSubject('');
   filesChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
-  columns$ = this.apiService.get('/api/impuestos_afip/cols');
+
+  descargaComprobanteFormatter: Formatter<any> = (_row: number, _cell: number, value: any,columnDef:any, dataContext:any) => {
+    return `<span style="margin-left: 5px">
+        <button class="btn btn-xs btn-default" *ngIf="${value}">
+          ${value}
+        </button>
+      </span>`;
+  };
+  
+
+
+  columns$ = this.apiService.get('/api/impuestos_afip/cols').pipe(map((cols) => {
+    const colmonto = {
+      name: "Importe",
+      type: "currency",
+      id: "monto",
+      field: "monto",
+      fieldName: "des.PersonalOtroDescuentoImporteVariable",
+      sortable: true,
+      formatter:this.descargaComprobanteFormatter
+//      formatter: (row:any, cell:any, value:any, columnDef:any, dataContext:any) => value >0 ? `<a app-down-file title="Comprobante ${this.anio}/${this.mes}"
+//      httpUrl="api/impuestos_afip/${this.anio}/${this.mes}/0/${dataContext.PersonalId}"
+//               ><span class="pl-xs" nz-icon nzType="download"></span></a> ${value}`: ``,
+    }
+
+    let mapped = cols.filter((col: any) => {
+        return !col.hidden
+    }); 
+
+    mapped = mapped.map((col: any) => {
+      if (col.id == 'monto')
+        col=colmonto
+      return col
+    }); 
+    return mapped
+  }));
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   gridObj: any;
@@ -72,7 +108,7 @@ export class ImpuestoAfipComponent {
     asyncEditorLoading: false,
     autoEdit: false,
     autoCommitEdit: false,
-
+//    presets: { columns: [{ columnId: '', width: 0 }]},
     autoResize: {
       container: '.gridContainer',
         rightPadding: 1,    // defaults to 0
@@ -101,7 +137,17 @@ export class ImpuestoAfipComponent {
     asyncPostRenderDelay: 0,    // also make sure to remove any delay to render it
     params: {
       angularUtilService: this.angularUtilService // provide the service to all at once (Editor, Filter, AsyncPostRender)
-    }
+    },
+
+    showCustomFooter: true, // display some metrics in the bottom custom footer
+    customFooterOptions: {
+      // optionally display some text on the left footer container
+      leftFooterText: '',
+      hideTotalItemCount: false,
+      hideLastUpdateTimestamp: false
+    
+    },
+
   };
 
 
@@ -235,9 +281,6 @@ export class ImpuestoAfipComponent {
     this.resizeSubscription$!.unsubscribe();
   }
 
-  getColumns(url: string): any {
-    return this.apiService.get(url);
-  }
 
   fncFile(rep: any): string {
     console.log('fncFile', rep);
@@ -249,6 +292,7 @@ export class ImpuestoAfipComponent {
 //  angularGridReady(angularGrid: AngularGridInstance) {
     this.angularGrid = angularGrid.detail;
     this.gridObj = angularGrid.detail.slickGrid;
+
   }
 
 

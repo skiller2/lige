@@ -16,21 +16,13 @@ const listaColumnas: any[] = [
     sortable: true,
   },
   {
-    name: "PersonalIdJ",
-    type: "string",
-    id: "PersonalIdJ",
-    field: "PersonalIdJ",
-    fieldName: "perrel.PersonalCategoriaPersonalId",
-    sortable: false,
-    visible:false
-  },
-  {
     name: "Sit Revista",
     type: "string",
     id: "SituacionRevistaDescripcion",
     field: "SituacionRevistaDescripcion",
     fieldName: "sit.SituacionRevistaDescripcion",
     sortable: true,
+    hidden: true
   },
   {
     name: "Importe",
@@ -64,7 +56,18 @@ const listaColumnas: any[] = [
     type: "number",
     id: "PersonalOtroDescuentoId",
     sortable: true,
+    hidden: true
   },
+  {
+    name: "PersonalIdJ",
+    type: "string",
+    id: "PersonalIdJ",
+    field: "PersonalIdJ",
+    fieldName: "perrel.PersonalCategoriaPersonalId",
+    sortable: false,
+    hidden: true
+  },
+
 ];
 
 const findColumnByIndex = (field: string, list: any[]) => {
