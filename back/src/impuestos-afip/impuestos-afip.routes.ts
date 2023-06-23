@@ -139,7 +139,13 @@ impuestosAfipRouter.get(
   }
 );
 
-impuestosAfipRouter.post("/download_comprobantes/", authMiddleware.verifyToken);
+impuestosAfipRouter.post(
+  "/download/comprobantes_filtrados/",
+  authMiddleware.verifyToken,
+  (req, res) => {
+    impuestosAfipController.handleDownloadComprobantesByFiltro(req, res);
+  }
+);
 
 impuestosAfipRouter.get(
   "/:anio/:mes/:CUIT/:PersonalId",
@@ -164,7 +170,9 @@ impuestosAfipRouter.post("/list", authMiddleware.verifyToken, (req, res) => {
 });
 
 impuestosAfipRouter.post(
-  "/download_filtro/",
+  "/download/informe",
   authMiddleware.verifyToken,
-  impuestosAfipController.handleDownloadInformeByFiltro
+  (req, res) => {
+    impuestosAfipController.handleDownloadInformeByFiltro(req, res);
+  }
 );

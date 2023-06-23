@@ -2,6 +2,14 @@ import { Filtro, Options } from "src/schemas/filtro";
 import { findColumnByIndex, listaColumnas } from "../comprobantes-utils/lista";
 import { Request } from "express";
 
+const getFiltrosFromOptions = (options: Options) => {
+  const filtrosToReturn = [];
+  options.filtros.forEach((filtro) => {
+    if (!isFiltro(filtro)) return;
+    filtrosToReturn.push(filtro);
+  });
+  return filtrosToReturn;
+};
 const isFiltro = (filtro: any): filtro is Filtro => {
   if (
     !filtro ||
@@ -76,7 +84,7 @@ const filtrosToSql = (filtros: Filtro[]): string => {
 const getOptionsFromRequest = (req: Request): Options => {
   const _options = req.body.options;
   if (!isOptions(_options)) throw new Error("Bad Input. Options");
-  if (!isFiltro(_options.filtros)) throw new Error("Bad Input. Filtros");
+  _options.filtros = getFiltrosFromOptions(_options);
   return _options;
 };
 

@@ -15,9 +15,9 @@
             <li
               nz-menu-item
               app-down-file
-              httpUrl="api/impuestos_afip/download/{{ anio }}/{{ mes }}/{{
-                selectedPersonalId
-              }}">
+              [httpMethod]="'POST'"
+              [httpBody]="{anio, mes, options: listOptions}"
+              httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
               <span nz-icon nzType="download"></span>Comprobantes
             </li>
             <li
@@ -178,7 +178,8 @@
               </div>
             </div> -->
 
-            <shared-filtro-builder [fieldsToSelect]="columns$ | async"
+            <shared-filtro-builder
+              [fieldsToSelect]="columns$ | async"
               (optionsChange)="listOptionsChange($event)" />
 
             <button nz-button (click)="searchList()">Buscar</button>

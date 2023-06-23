@@ -74,8 +74,8 @@ export class ImpuestosAfipController extends BaseController {
   }
 
   async handleDownloadComprobantesByFiltro(req: Request, res: Response) {
-    const descuentoId = process.env.OTRO_DESCUENTO_ID;
     try {
+      const descuentoId = process.env.OTRO_DESCUENTO_ID;
       const periodo = getPeriodoFromRequest(req);
       const options = getOptionsFromRequest(req);
 
