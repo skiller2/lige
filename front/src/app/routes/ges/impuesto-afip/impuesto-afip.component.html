@@ -12,6 +12,9 @@
         </li>
         <li nz-submenu nzTitle="Acciones" *ngIf="selectedTabIndex == 1">
           <ul>
+            <!-- <li nz-menu-item app-down-file httpUrl="api/impuestos_afip/download/{{ anio }}/{{ mes }}/{{
+              selectedPersonalId
+            }}"> -->
             <li
               nz-menu-item
               app-down-file
@@ -175,7 +178,7 @@
               [fieldsToSelect]="columns$ | async"
               (optionsChange)="listOptionsChange($event)" />
 
-            <button nz-button (click)="searchList()">Buscar</button>
+            <!-- <button nz-button (click)="searchList()">Buscar</button> -->
             <st
               #st
               [data]="'/api/impuestos_afip/list'"
