@@ -16,6 +16,15 @@ const listaColumnas: any[] = [
     sortable: true,
   },
   {
+    name: "PersonalIdJ",
+    type: "string",
+    id: "PersonalIdJ",
+    field: "PersonalIdJ",
+    fieldName: "perrel.PersonalCategoriaPersonalId",
+    sortable: false,
+    visible:false
+  },
+  {
     name: "Sit Revista",
     type: "string",
     id: "SituacionRevistaDescripcion",

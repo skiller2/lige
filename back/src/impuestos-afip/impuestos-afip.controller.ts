@@ -533,11 +533,17 @@ export class ImpuestosAfipController extends BaseController {
       const filesPath = path.join(this.directory, year);
 
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
+
+      let filtros: Filtro[] = []
+      
+      if (personalIdRel != '') 
+        filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: personalIdRel })
+
       const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
         anio: year,
         mes: month,
         descuentoId: descuentoId,
-        options: { filtros: [], sort: null },
+        options: { filtros:filtros, sort: null },
       });
       // const descuentos: DescuentoJSON[] = await this.getDescuentosByPeriodo({
       //   anio: year,

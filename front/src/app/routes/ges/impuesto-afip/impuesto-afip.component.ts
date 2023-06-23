@@ -27,6 +27,14 @@ import { Options } from 'src/app/shared/schemas/filtro';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { FileType, AngularGridInstance, AngularSlickgridComponent, AngularSlickgridModule, AngularUtilService, ContainerService, Formatters } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import { OPTIONS } from '@delon/theme';
+
+type listOptionsT = {
+  filtros: any[],
+  sort: any,
+
+}
+
 
 @Component({
   selector: 'app-impuesto-afip',
@@ -54,6 +62,7 @@ export class ImpuestoAfipComponent {
   selectedTabIndex = 0;
   selectedPersonalId = null;
   formChange$ = new BehaviorSubject('');
+  filesChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
   columns$ = this.apiService.get('/api/impuestos_afip/cols');
   excelExportService = new ExcelExportService()
@@ -95,8 +104,9 @@ export class ImpuestoAfipComponent {
     }
   };
 
-  listOptions = {
-    filtros: [],
+
+  listOptions:listOptionsT = {
+    filtros:  [],
     sort: null,
   };
 
@@ -108,12 +118,17 @@ export class ImpuestoAfipComponent {
   }
 
   gridData$ = this.formChange$.pipe(
-    debounceTime(1000),
+    debounceTime(500),
     switchMap(() => {
       const periodo = this.impuestoForm.form.get('periodo')?.value
+
+      let options = structuredClone(this.listOptions)
+      if (Number(this.selectedPersonalId)>0)
+        options.filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: this.selectedPersonalId })
+      
       return this.apiService
         .getDescuentosMonotributo(
-          { anio: periodo.getFullYear(), mes: periodo.getMonth()+1, options: this.listOptions, toggle: this.toggle }
+          { anio: periodo.getFullYear(), mes: periodo.getMonth()+1, options, toggle: this.toggle }
         )
         .pipe(
           map(data => {
@@ -125,7 +140,7 @@ export class ImpuestoAfipComponent {
     })
   );
 
-  listaDescuentos$ = this.formChange$.pipe(
+  listaDescuentos$ = this.filesChange$.pipe(
     debounceTime(1000),
     switchMap(() => {
       return this.apiService
@@ -142,8 +157,8 @@ export class ImpuestoAfipComponent {
               RegistrosSinComprobantes: items.RegistrosSinComprobantes,
             };
           }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
+          //doOnSubscribe(() => this.tableLoading$.next(true)),
+          //tap({ complete: () => this.tableLoading$.next(false) })
         );
     })
   );
@@ -173,6 +188,8 @@ export class ImpuestoAfipComponent {
       this.impuestoForm.form
         .get('periodo')
         ?.setValue(new Date(Number(anio), Number(mes) - 1, 1));
+      
+      this.filesChange$.next('')
     }, 1);
   }
 
@@ -183,6 +200,7 @@ export class ImpuestoAfipComponent {
 
       localStorage.setItem('mes', String(this.mes));
       localStorage.setItem('anio', String(this.anio));
+      this.filesChange$.next('')
     } else {
       this.anio = 0;
       this.mes = 0;
@@ -203,9 +221,13 @@ export class ImpuestoAfipComponent {
     // } else if (status === 'error') {
     //   //   this.msg.error(`${file.name} file upload failed.`);
     // }
+
+    if (file.status === 'done') { 
+      this.filesChange$.next('');
+    }
   }
 
-  formChanged(_event: string) {
+  formChanged(_event: any) {
     this.formChange$.next('');
   }
 
