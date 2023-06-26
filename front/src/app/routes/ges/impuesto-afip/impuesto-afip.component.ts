@@ -25,16 +25,12 @@ import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { Options } from 'src/app/shared/schemas/filtro';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
-import { Column, FileType, AngularGridInstance, AngularSlickgridComponent, AngularSlickgridModule, AngularUtilService, ContainerService, Formatters, Formatter } from 'angular-slickgrid';
+import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { OPTIONS } from '@delon/theme';
-import { JsonPipe } from '@angular/common';
-import { DownloadService } from 'src/app/services/download.service';
 
 type listOptionsT = {
   filtros: any[],
   sort: any,
-
 }
 
 @Component({
@@ -85,23 +81,22 @@ export class ImpuestoAfipComponent {
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && dataContext.monto >0) {
-      const componentOutput = this.angularUtilService.createAngularComponent(colDef.params.component);
-      Object.assign(componentOutput.componentRef.instance, { item: dataContext, anio:this.anio,mes:this.mes });
-      
-     setTimeout(() => cellNode.append(componentOutput.domElement)
-      );
+      const componentOutput = this.angularUtilService.createAngularComponent(colDef.params.component)
+      Object.assign(componentOutput.componentRef.instance, { item: dataContext, anio:this.anio,mes:this.mes })
+      cellNode.append(componentOutput.domElement)
+     //setTimeout(() => cellNode.append(componentOutput.domElement))
     }
   }
 
 
 
   columns$ = this.apiService.get('/api/impuestos_afip/cols').pipe(map((cols) => {
-    const colmonto = {
+    const colmonto:Column = {
       name: "Importe",
-      type: "currency",
+      type: "float",
       id: "monto",
       field: "monto",
-      fieldName: "des.PersonalOtroDescuentoImporteVariable",
+//      fieldName: "des.PersonalOtroDescuentoImporteVariable",
       sortable: true,
 //      formatter: () => '...',
       asyncPostRender: this.renderAngularComponent.bind(this),
@@ -110,10 +105,7 @@ export class ImpuestoAfipComponent {
         angularUtilService: this.angularUtilService,
         //complexFieldLabel: 'assignee.name' // for the exportCustomFormatter
       },
-//      formatter:this.descargaComprobanteFormatter
-//      formatter: (row:any, cell:any, value:any, columnDef:any, dataContext:any) => value >0 ? `<a app-down-file title="Comprobante ${this.anio}/${this.mes}"
-//      httpUrl="api/impuestos_afip/${this.anio}/${this.mes}/0/${dataContext.PersonalId}"
-//               ><span class="pl-xs" nz-icon nzType="download"></span></a> ${value}`: ``,
+
     }
 
     let mapped = cols.filter((col: any) => {
@@ -129,7 +121,7 @@ export class ImpuestoAfipComponent {
   }));
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
-  gridObj: any;
+  gridObj!: SlickGrid;
   gridOptions = {
     asyncEditorLoading: false,
     autoEdit: false,
@@ -144,7 +136,7 @@ export class ImpuestoAfipComponent {
         //sidePadding: 10,
         //bottomPadding: 10        
     },
-
+    rowHeight: undefined,
 //    headerRowHeight: 45,
 //    rowHeight: 45, // increase row height so that the ng-select fits in the cell
 //    autoHeight: true,    
@@ -158,7 +150,7 @@ export class ImpuestoAfipComponent {
     registerExternalResources: [this.excelExportService],
 
     enableFiltering: true,
-    autoFitColumnsOnFirstLoad: true,
+//    autoFitColumnsOnFirstLoad: true,
     enableAsyncPostRender: true, // for the Angular PostRenderer, don't forget to enable it
     asyncPostRenderDelay: 0,    // also make sure to remove any delay to render it
     params: {
@@ -218,7 +210,6 @@ export class ImpuestoAfipComponent {
         )
         .pipe(
           map(items => {
-//            if (items) if (this.selectedPersonalId == null) return items;
             return {
               RegistrosConComprobantes: items.RegistrosConComprobantes,
               RegistrosSinComprobantes: items.RegistrosSinComprobantes,
@@ -317,11 +308,12 @@ export class ImpuestoAfipComponent {
     return 'pepe.pdf';
   }
 
+  //angularGridReady(angularGrid: any) {
   angularGridReady(angularGrid: any) {
-//  angularGridReady(angularGrid: AngularGridInstance) {
-    this.angularGrid = angularGrid.detail;
+    
+    this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
-
+    this.gridObj.autosizeColumns();
   }
 
   exportGrid() { 

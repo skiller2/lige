@@ -14,6 +14,9 @@ const listaColumnas: any[] = [
     field: "ApellidoNombre",
     fieldName: "ApellidoNombre",
     sortable: true,
+    customTooltip: {
+      useRegularTooltip: true, // note regular tooltip will try to find a "title" attribute in the cell formatter (it won't work without a cell formatter)
+    },    
   },
   {
     name: "Sit Revista",
@@ -31,9 +34,6 @@ const listaColumnas: any[] = [
     field: "monto",
     fieldName: "des.PersonalOtroDescuentoImporteVariable",
     sortable: true,
-    formatter: (row, cell, value) => value >0 ? `<a app-down-file title="Comprobante {{ row.PersonalOtroDescuentoMesesAplica }}/{{ row.PersonalOtroDescuentoAnoAplica }}"
-    httpUrl="api/impuestos_afip/{{row.PersonalOtroDescuentoAnoAplica}}/{{ row.PersonalOtroDescuentoMesesAplica }}/0/{{row.PersonalId}}"
-             ><span class="pl-xs" nz-icon nzType="download"></span></a>`: ``,
   },
   {
     name: "CUIT Responsable",
@@ -68,7 +68,14 @@ const listaColumnas: any[] = [
     sortable: false,
     hidden: true
   },
-
+  {
+    name: "ClienteId",
+    type: "string",
+    id: "ClienteId",
+    field: "ClienteId",
+    fieldName: "cli.ClienteId",
+    hidden: true
+  },
 ];
 
 const findColumnByIndex = (field: string, list: any[]) => {

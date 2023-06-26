@@ -143,21 +143,14 @@
               [fieldsToSelect]="columns$ | async"
               (optionsChange)="listOptionsChange($event)" />
 
-            <ng-template #defaultTmpl></ng-template>
-
-            <ng-container
-              *ngIf="columns$ | async as colsdefs; else defaultTmpl">
               <div class="gridContainer container-fluid">
-                <angular-slickgrid
-                  gridId="grid22"
-                  class="gridContainer"
-                  [columnDefinitions]="colsdefs"
+                <angular-slickgrid gridId="grid22" class=""
+                  [columnDefinitions]="(columns$ | async) || []" 
                   [gridOptions]="gridOptions"
                   [dataset]="(gridData$ | async) || []"
                   (onAngularGridCreated)="angularGridReady($event)">
                 </angular-slickgrid>
               </div>
-            </ng-container>
           </ng-template>
         </nz-tab>
       </nz-tabset>
