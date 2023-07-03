@@ -1,0 +1,67 @@
+<nz-card class="small-margin">
+  <form nz-form #cambiocatForm="ngForm">
+    <ng-container >
+      <ul nz-menu nzMode="horizontal">
+        <li nz-menu-item nzSelected (click)="selectedTabIndex = 0">
+          <span nz-icon nzType=""></span>
+          Cambios Pendientes
+        </li>
+        <li nz-menu-item (click)="selectedTabIndex = 1">
+          <span nz-icon nzType=""></span>
+          Categorías
+        </li>
+        <li nz-submenu nzTitle="Acciones" *ngIf="selectedTabIndex == 0">
+          <ul>
+            <li nz-menu-item (click)="exportGrid()">
+              <span nz-icon nzType="download"></span>XLS
+            </li>
+            <li nz-menu-item (click)="setCambiarCategorias()">
+              <span nz-icon nzType="download"></span>Procesa Cambios
+            </li>            
+          </ul>
+        </li>
+      </ul>
+
+      <nz-date-picker
+        name="fecProcesoCambio"
+        ngModel
+        nzMode="date"
+        (ngModelChange)="onChange($event)" />
+
+      <nz-tabset
+        nzCentered
+        [(nzSelectedIndex)]="selectedTabIndex"
+        class="hide-ant-tabs-nav">
+        <nz-tab [nzForceRender]="false">
+          <ng-template nz-tab>
+            <div nz-row nzJustify="space-around">
+              <div nz-col [nzSpan]="13" style="text-align: center">
+                <label>Persona Responsable</label>
+                <app-personal-search
+                  (ngModelChange)="formChanged($event)"
+                  [(ngModel)]="selectedPersonalId"
+                  [ngModelOptions]="{ standalone: true }" />
+              </div>
+            </div>
+
+            <shared-filtro-builder
+              [fieldsToSelect]="columns$ | async"
+              (optionsChange)="listOptionsChange($event)" />
+
+              <div class="gridContainer container-fluid">
+                <angular-slickgrid gridId="grid22" class=""
+                  [columnDefinitions]="(columns$ | async) || []" 
+                  [gridOptions]="gridOptions"
+                  [dataset]="(gridData$ | async) || []"
+                  (onAngularGridCreated)="angularGridReady($event)">
+                </angular-slickgrid>
+              </div>
+          </ng-template>
+        </nz-tab>
+        <nz-tab>
+        </nz-tab>
+
+      </nz-tabset>
+    </ng-container>
+  </form>
+</nz-card>

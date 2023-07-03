@@ -8,7 +8,8 @@ export class BaseController {
    * @param res the response object that will be used to send http response
    */
   jsonRes(recordset: any, res: Response, msg = "ok") {
-    res.status(200).json({ msg: msg, data: recordset, stamp: new Date() });
+    const stopTime = performance.now()
+    res.status(200).json({ msg: msg, data: recordset, stamp: new Date(), ms: stopTime-res.locals.startTime});
   }
 
   jsonResDirect(data: any, res: Response, msg = "ok") {
@@ -26,10 +27,11 @@ export class BaseController {
     message = "No se pudo conectar a la base de datos.",
     status = 500
   ) {
+    const stopTime = performance.now()
     if (process.env.DEBUG) {
       console.error(err);
     }
-    res.status(status).json({ msg: message, data: [], stamp: new Date() });
+    res.status(status).json({ msg: message, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
   }
 
   async hasAuthPersona(anio, mes, persona_cuit, queryRunner) {
@@ -38,7 +40,7 @@ export class BaseController {
 
     let autorizado = false;
     let resultAuth = await queryRunner.query(
-      `SELECT suc.ObjetivoSucursalSucursalId,
+      `SELECT suc.SucursalId,
          
     obj.ObjetivoId, 
     obj.ClienteId,
@@ -48,17 +50,20 @@ export class BaseController {
     perjer.PersonalId,
     CONCAT(TRIM(perjer.PersonalApellido), ', ' ,TRIM(perjer.PersonalNombre) ) AS ApellidoNombreJerarquico,
     cuit.PersonalCUITCUILCUIT,
-    -- obj.ObjetivoSucursalUltNro,
     opj.ObjetivoPersonalJerarquicoDesde,
     opj.ObjetivoPersonalJerarquicoHasta,
     opj.ObjetivoPersonalJerarquicoComo,
     1
     
     FROM Objetivo obj 
-    LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
     LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  <= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @0
     LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = perjer.PersonalCUITCUILUltNro
+
+    LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+    LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+    
+    LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
 
     WHERE obj.ObjetivoId=@1`,
       [fechaHastaAuth]
@@ -73,6 +78,17 @@ export class BaseController {
     return false;
   }
 
+  hasInGroup(req: any, group: string) {
+    if (!req?.groups)
+      return true
+    for (const rowgroup of req?.groups[0]) { 
+        if (rowgroup.toLowerCase().indexOf(group.toLowerCase()) != -1)
+          return true
+    }
+
+    throw new Error(`No tiene permisos para realizar operación, no se vinculó en el grupo ${group}`)
+  }
+
   async hasAuthObjetivo(anio: number, mes: number, req: any, ObjetivoId: number, queryRunner: DataSource | QueryRunner) {
     let fechaHastaAuth = new Date(anio, mes, 1);
     fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1);
@@ -81,7 +97,7 @@ export class BaseController {
     if (req.persona_cuit == "") return
 
     let resultAuth = await queryRunner.query(
-      `SELECT suc.ObjetivoSucursalSucursalId,
+      `SELECT suc.SucursalId,
          
     obj.ObjetivoId, 
     obj.ClienteId,
@@ -91,22 +107,25 @@ export class BaseController {
     perjer.PersonalId,
     CONCAT(TRIM(perjer.PersonalApellido), ', ' ,TRIM(perjer.PersonalNombre) ) AS ApellidoNombreJerarquico,
     cuit.PersonalCUITCUILCUIT,
-    -- obj.ObjetivoSucursalUltNro,
     opj.ObjetivoPersonalJerarquicoDesde,
     opj.ObjetivoPersonalJerarquicoHasta,
     opj.ObjetivoPersonalJerarquicoComo,
     1
     
     FROM Objetivo obj 
-    LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
     LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  <= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @0
     LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = perjer.PersonalCUITCUILUltNro
 
+    LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+    LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+    LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+    
+
     WHERE obj.ObjetivoId=@1`,
       [fechaHastaAuth, ObjetivoId]
     );
-    const SucursalId = (resultAuth.length > 0) ? resultAuth[0].ObjetivoSucursalSucursalId : 0
+    const SucursalId = (resultAuth.length > 0) ? resultAuth[0].SucursalId : 0
 
 
 

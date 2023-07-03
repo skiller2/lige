@@ -75,16 +75,19 @@ export class AdelantosController extends BaseController {
         (
           await queryRunner.query(
             `
-            SELECT MAX(ade.PersonalAdelantoId) as max FROM PersonalAdelanto ade WHERE ade.PersonalId = @0`,
+            SELECT per.PersonalAdelantoUltNro as max FROM Personal per WHERE per.PersonalId = @0`,
             [personalId]
           )
         )[0].max + 1;
+      
       const adelantoExistente = await queryRunner.query(
         `DELETE From PersonalAdelanto 
                 WHERE (PersonalAdelantoAprobado IS NULL)
                 AND PersonalId = @0`,
         [personalId]
       );
+
+
       const result = await queryRunner.query(
         `INSERT INTO PersonalAdelanto(
                     PersonalAdelantoId, PersonalId, PersonalAdelantoMonto, PersonalAdelantoFechaSolicitud, PersonalAdelantoAprobado, PersonalAdelantoFechaAprobacion, PersonalAdelantoCantidadCuotas, PersonalAdelantoAplicaEl, PersonalAdelantoLiquidoFinanzas, PersonalAdelantoUltimaLiquidacion, PersonalAdelantoCuotaUltNro, PersonalAdelantoMontoAutorizado, PersonalAdelantoJerarquicoId, PersonalAdelantoPuesto, PersonalAdelantoUsuarioId, PersonalAdelantoDia, PersonalAdelantoTiempo)
@@ -111,6 +114,15 @@ export class AdelantosController extends BaseController {
           null,
         ]
       );
+
+      const resultAdelanto = await queryRunner.query(
+        `UPDATE Personal SET PersonalAdelantoUltNro=@1 WHERE PersonalId=@0 `,
+        [
+          personalId,
+          adelantoId,
+        ]
+        );
+   
 
       await queryRunner.commitTransaction();
       this.jsonRes([], res, "Adelanto añadido.");

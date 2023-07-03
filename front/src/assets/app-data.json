@@ -70,7 +70,13 @@
             }
 
           ]
+        },
+        {
+          "text": "Cambio Categoría",
+          "link": "/ges/cambio_categoria",
+          "icon": "anticon-profile"
         }
+
       ]
     }
   ],

@@ -1,8 +1,30 @@
 import { Request, Response } from "express";
 import { BaseController } from "./baseController";
 import { dataSource } from "../data-source";
+import { CategoriasController } from "../categorias-cambio/categorias-cambio.controller";
 
 export class InitController extends BaseController {
+  getCategoriasPendientes(req: Request, res: Response) {
+    CategoriasController.listCambiosPendCategoria({}).then((records: Array<any>) => {
+      let data: { x: string; y: any; }[] = []
+      let total = 0
+
+//        if (records.length ==0) throw new Error('Data not found')
+      records.forEach(rec => { 
+//        data.push({ x: rec.SucursalDescripcion, y: rec.CantidadObjetivos })
+//        total += rec.CantidadObjetivos
+        total++
+      })
+
+      this.jsonRes({ data, total },res);
+    
+    })
+    .catch((err) => {
+      this.errRes(err, res, "Error accediendo a la base de datos", 409);
+    });
+  }
+
+  
   getObjetivosSinAsistencia(req: Request, res: Response) {
     const con = dataSource;
     const anio = req.params.anio
@@ -10,25 +32,9 @@ export class InitController extends BaseController {
     con
       .query(
         `
-        SELECT DISTINCT suc.ObjetivoSucursalSucursalId, 
-        sucdes.SucursalDescripcion,
-        -- obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId, obj.ObjetivoDescripcion,
-        
-        -- CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)) as codObjetivo, 
-        
-        --obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes,
-        -- CONCAT(TRIM(perjer.PersonalApellido),', ',TRIM(perjer.PersonalNombre)) AS ApellidoNombreJ,
+        SELECT DISTINCT suc.SucursalId, suc.SucursalDescripcion,
         
         COUNT(DISTINCT obj.ObjetivoId) AS CantidadObjetivos,
-        -- SUM(CAST (objasissub.totalminutoscalc AS FLOAT)/60) AS AsistenciaHoras,
-        
-        -- eledepcon.ClienteElementoDependienteContratoFechaDesde,  eledepcon.ClienteElementoDependienteContratoFechaHasta, eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,
-        -- clicon.ClienteContratoFechaDesde, clicon.ClienteContratoFechaHasta, clicon.ClienteContratoFechaFinalizacion,
-        
-        -- objm.ObjetivoAsistenciaAnoMesHasta,
-        
-        
-        
         
         1
         
@@ -89,8 +95,6 @@ export class InitController extends BaseController {
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = persona.PersonalCUITCUILUltNro
         
         
-        LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
-        LEFT JOIN Sucursal sucdes ON sucdes.SucursalId = suc.ObjetivoSucursalSucursalId
         
         
         LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(@0,@1,'28')  BETWEEN opj.ObjetivoPersonalJerarquicoDesde  AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') AND opj.ObjetivoPersonalJerarquicoComo = 'J'
@@ -102,6 +106,8 @@ export class InitController extends BaseController {
         LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
         LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = obj.ClienteId AND clicon.ClienteContratoId = cli.ClienteContratoUltNro AND obj.ClienteElementoDependienteId IS NULL 
         
+        LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+
         WHERE 
         --	obja.ObjetivoAsistenciaAnoAno = 2023 AND objm.ObjetivoAsistenciaAnoMesMes = 3 AND 
         (objd.ObjetivoId IS NULL OR objm.ObjetivoAsistenciaAnoMesHasta IS NULL) AND
@@ -114,7 +120,7 @@ export class InitController extends BaseController {
               
               )
               
-        GROUP BY suc.ObjetivoSucursalSucursalId, sucdes.SucursalDescripcion
+        GROUP BY suc.SucursalId, suc.SucursalDescripcion
         `,
         [anio,mes]
       )
@@ -170,9 +176,15 @@ export class InitController extends BaseController {
         `SELECT suc.SucursalId, suc.SucursalDescripcion, COUNT(art14.PersonalId) AS totalpersonas 
         FROM PersonalArt14 art14 
         JOIN Objetivo obj ON obj.ObjetivoId = art14.PersonalArt14ObjetivoId
-        LEFT JOIN ObjetivoSucursal sucobj ON sucobj.ObjetivoId = obj.ObjetivoId AND sucobj.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
-        LEFT JOIN Sucursal suc ON suc.SucursalId = sucobj.ObjetivoSucursalSucursalId
+
+        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+        LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
         
+        LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = clidep.ClienteId AND domdep.ClienteElementoDependienteId  = clidep.ClienteElementoDependienteId
+        LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL
+        
+        LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+
         WHERE art14.PersonalArt14Autorizado IS NULL
         GROUP BY suc.SucursalId, suc.SucursalDescripcion
         
@@ -205,7 +217,7 @@ export class InitController extends BaseController {
     con
       .query(
         `SELECT
-        suc.ObjetivoSucursalSucursalId, TRIM(sucdes.SucursalDescripcion) SucursalDescripcion,  
+        suc.SucursalId, TRIM(suc.SucursalDescripcion) SucursalDescripcion,  
         COUNT (obj.ObjetivoId) CantidadObjetivos, COUNT(DISTINCT obj.ClienteId) CantidadClientes,
         
 --        obj.ObjetivoId,  obj.ClienteId, obj.ClienteElementoDependienteId, obj.ObjetivoDescripcion,
@@ -219,15 +231,16 @@ export class InitController extends BaseController {
         
         
         From Objetivo obj
-        LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
-        LEFT JOIN Sucursal sucdes ON sucdes.SucursalId=  suc.ObjetivoSucursalSucursalId
         
         LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
         LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledepcon.ClienteElementoDependienteContratoId = eledep.ClienteElementoDependienteContratoUltNro
         
         LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
         LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = obj.ClienteId AND clicon.ClienteContratoId = cli.ClienteContratoUltNro AND obj.ClienteElementoDependienteId IS NULL
+
+        LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
         
+
         WHERE 
 
         ( 
@@ -236,7 +249,7 @@ export class InitController extends BaseController {
           (eledepcon.ClienteElementoDependienteContratoFechaDesde <= @0 AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0) 
           )
 
-GROUP BY suc.ObjetivoSucursalSucursalId, SucursalDescripcion
+GROUP BY suc.SucursalId, suc.SucursalDescripcion
         `,
         [stmactual]
       )
@@ -265,7 +278,7 @@ GROUP BY suc.ObjetivoSucursalSucursalId, SucursalDescripcion
     con
       .query(
         `SELECT
-        suc.ObjetivoSucursalSucursalId, TRIM(sucdes.SucursalDescripcion) SucursalDescripcion,  
+        suc.SucursalId, TRIM(suc.SucursalDescripcion) SucursalDescripcion,  
         COUNT (obj.ObjetivoId) CantidadObjetivos, COUNT(DISTINCT obj.ClienteId) CantidadClientes,
         
 --        obj.ObjetivoId,  obj.ClienteId, obj.ClienteElementoDependienteId, obj.ObjetivoDescripcion,
@@ -279,15 +292,15 @@ GROUP BY suc.ObjetivoSucursalSucursalId, SucursalDescripcion
         
         
         From Objetivo obj
-        LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
-        LEFT JOIN Sucursal sucdes ON sucdes.SucursalId=  suc.ObjetivoSucursalSucursalId
         
         LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
         LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledepcon.ClienteElementoDependienteContratoId = eledep.ClienteElementoDependienteContratoUltNro
         
         LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
         LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = obj.ClienteId AND clicon.ClienteContratoId = cli.ClienteContratoUltNro AND obj.ClienteElementoDependienteId IS NULL
-        
+
+        LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+
         WHERE 
 
         ( 
@@ -296,7 +309,7 @@ GROUP BY suc.ObjetivoSucursalSucursalId, SucursalDescripcion
           (eledepcon.ClienteElementoDependienteContratoFechaDesde <= @0 AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0) 
           )
         
-GROUP BY suc.ObjetivoSucursalSucursalId, SucursalDescripcion
+GROUP BY suc.SucursalId, suc.SucursalDescripcion
         `,
         [stmactual]
       )
@@ -345,8 +358,6 @@ GROUP BY suc.ObjetivoSucursalSucursalId, SucursalDescripcion
         
         -- objd.ObjetivoAsistenciaTipoAsociadoId,
         -- objd.ObjetivoAsistenciaCategoriaPersonalId,
-        -- suc.ObjetivoSucursalSucursalId,
-        -- obj.ObjetivoSucursalUltNro,
         
         SUM ((ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
         ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias2Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias2Gral),2) AS INT),0)+
@@ -396,11 +407,11 @@ GROUP BY suc.ObjetivoSucursalSucursalId, SucursalDescripcion
         JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = persona.PersonalCUITCUILUltNro
         JOIN CategoriaPersonal cat ON cat.CategoriaPersonalId = objd.ObjetivoAsistenciaCategoriaPersonalId AND cat.TipoAsociadoId=objd.ObjetivoAsistenciaTipoAsociadoId
         
-        
-        LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
-        
-        
-        LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = ISNULL(suc.ObjetivoSucursalSucursalId,1) AND val.ValorLiquidacionTipoAsociadoId = objd.ObjetivoAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = objd.ObjetivoAsistenciaCategoriaPersonalId 
+        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+        LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+        LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+
+        LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = suc.SucursalId AND val.ValorLiquidacionTipoAsociadoId = objd.ObjetivoAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = objd.ObjetivoAsistenciaCategoriaPersonalId 
         AND  DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') BETWEEN 
           val.ValorLiquidacionDesde and COALESCE (val.ValorLiquidacionHasta, '9999-01-01')
         

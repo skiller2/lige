@@ -2,6 +2,7 @@ export interface ResponseJSON<T> {
   msg: string;
   data: T;
   stamp: Date;
+  ms: number
 }
 
 export interface DescuentoJSON {

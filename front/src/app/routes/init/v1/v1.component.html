@@ -17,6 +17,19 @@
     </div>
   </ng-container>
 
+  <ng-container *ngIf="cambioCategoriaPendientes$ | async as cambioCategoriaPendientes">
+    <div *ngIf="cambioCategoriaPendientes.data.total >0" nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+      <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
+        <div nz-col nzSpan="12" class="p-md text-white ">
+          <div class="h2 mt0">{{ cambioCategoriaPendientes.data.total }}</div>
+          <a href="#/ges/cambio_categoria"><p class="text-nowrap mb0">Cambios Categorias pendientes</p></a>
+        </div>
+
+      </div>
+    </div>
+  </ng-container>
+
+
   <ng-container *ngIf="excepcionesPendientes$ | async as excepcionesPendientes">
     <div *ngIf="excepcionesPendientes.data.excepcionesTotal>0" nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">

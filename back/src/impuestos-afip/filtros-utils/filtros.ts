@@ -1,4 +1,4 @@
-import { Filtro, Options } from "src/schemas/filtro";
+import { Filtro, Options } from "../../schemas/filtro";
 import { findColumnByIndex, listaColumnas } from "../comprobantes-utils/lista";
 import { Request } from "express";
 
@@ -37,7 +37,7 @@ const isCondition = (condition: any): boolean =>
   condition === "AND" || condition === "OR";
 
 const filtrosToSql = (filtros: Filtro[]): string => {
-  if (filtros.length === 0) return "1=1";
+  if (filtros?.length === (0 || undefined)) return "1=1";
 
   let returnedString = "";
   filtros.forEach((filtro, index) => {

@@ -9,6 +9,7 @@ import { objetivoRouter } from "./objetivo.routes";
 import { asistenciaRouter } from "./asistencia.routes";
 import { adelantosRouter } from "../adelantos/adelantos.routes";
 import { impuestosAfipRouter } from "../impuestos-afip/impuestos-afip.routes";
+import { categoriasRouter } from "../categorias-cambio/categorias-cambio.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -21,4 +22,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/asistencia", asistenciaRouter);
   server.setRoute("/api/adelantos", adelantosRouter);
   server.setRoute("/api/impuestos_afip", impuestosAfipRouter);
+  server.setRoute("/api/categorias", categoriasRouter);
 }

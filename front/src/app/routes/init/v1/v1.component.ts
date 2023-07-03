@@ -36,6 +36,10 @@ export class InitV1Component implements OnInit {
   objetivosActivos$ = this.http
     .get('/api/init/stats/objetivosactivos')
     .pipe(share());
+  cambioCategoriaPendientes$ = this.http
+    .get('/api/init/stats/cambioscategoria')
+    .pipe(share());
+
   horasTrabajadas$ = this.statshorastrabajadas();
   objetivosSinAsistencia$ = this.statssinAsistencia();
   objetivosSinAsistenciaCur$ = this.statssinAsistenciaCur();
@@ -94,7 +98,7 @@ export class InitV1Component implements OnInit {
     );
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   private genOnboarding(): void {
     const KEY = 'on-boarding';

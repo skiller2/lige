@@ -1,15 +1,23 @@
-import { Injectable, Injector } from '@angular/core';
+import { Inject, Injectable, Injector, LOCALE_ID } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { DescuentoJSON, ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON';
 import { Observable, catchError, debounceTime, defer, filter, map, of, tap, throwError } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { error } from 'pdf-lib';
 import { DownloadService } from './download.service';
+import { formatNumber } from '@angular/common';
+
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiService {
+  constructor(private http: _HttpClient, private injector: Injector, @Inject(LOCALE_ID) public locale: string) { }
+
+  private get notification(): NzNotificationService {
+    return this.injector.get(NzNotificationService);
+  }
+
   getPersonaMonotributo(year: number, month: number, personalId: number) {
     if (personalId == 0) return of([])
 
@@ -21,13 +29,9 @@ export class ApiService {
       })
     );
   }
-  constructor(private http: _HttpClient, private injector: Injector, private downloadService: DownloadService) {}
 
-  private get notification(): NzNotificationService {
-    return this.injector.get(NzNotificationService);
-  }
 
-  get(url: string)  {
+  get(url: string) {
     return this.http.get<any>(url).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -64,13 +68,31 @@ export class ApiService {
     );
   }
 
-  getDescuentosMonotributo(filters: any) { 
+  getDescuentosMonotributo(filters: any) {
     const parameter = filters
-    
-    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/list',parameter).pipe(
+
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/list', parameter).pipe(
       map(res => res.data),
       catchError(() => of([]))
     );
+
+  }
+  getPersonalCategoriaPendiente(filters: any) {
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>('/api/categorias/list', parameter).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+
+  }
+
+  setCambiarCategorias(filters: any) {
+    const parameter = filters
+    this.notification.success('Respuesta', `Inicio cambio de categoría`);
+
+    return this.http.post<ResponseJSON<any>>('/api/categorias/cambiarCategorias', parameter).pipe(
+      tap(res => this.response(res)),
+    )
 
   }
 
@@ -96,9 +118,11 @@ export class ApiService {
       .pipe(tap(res => this.response(res)));
   }
 
-  
   response(res: ResponseJSON<any>) {
-    this.notification.success('Respuesta', res.msg);
+    let tiempoConsido = ''
+    if (res.ms)
+      tiempoConsido = `<BR> Tiempo consumidio ${formatNumber(Number(res.ms)/1000, this.locale, '1.2-2')} segundos`
+    this.notification.success('Respuesta', `${res.msg} ${tiempoConsido}`);
   }
 }
 

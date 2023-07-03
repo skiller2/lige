@@ -23,7 +23,7 @@ export class ObjetivoController extends BaseController {
 
     dataSource
       .query(
-        `SELECT suc.ObjetivoSucursalSucursalId,
+        `SELECT suc.SucursalId,
                  
             obj.ObjetivoId, 
             obj.ClienteId,
@@ -33,17 +33,25 @@ export class ObjetivoController extends BaseController {
             perjer.PersonalId,
             CONCAT(TRIM(perjer.PersonalApellido), ', ' ,TRIM(perjer.PersonalNombre) ) AS ApellidoNombreJerarquico,
             cuit.PersonalCUITCUILCUIT,
-            -- obj.ObjetivoSucursalUltNro,
             opj.ObjetivoPersonalJerarquicoDesde,
             opj.ObjetivoPersonalJerarquicoHasta,
             opj.ObjetivoPersonalJerarquicoComo,
             1
             
             FROM Objetivo obj 
-            LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
             LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  <= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @0
             LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
             LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = perjer.PersonalCUITCUILUltNro
+
+            LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+            LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+            
+
+            LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = clidep.ClienteId AND domdep.ClienteElementoDependienteId  = clidep.ClienteElementoDependienteId
+            LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL
+            
+            LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+            
 
             WHERE obj.ObjetivoId=@1`,
         [fechaHasta, objetivoId]
@@ -66,29 +74,37 @@ export class ObjetivoController extends BaseController {
       }
       let buscar = false;
       let query = `
-        SELECT 
-sucdes.SucursalId, sucdes.SucursalDescripcion, 
+      SELECT 
+      suc.SucursalId, suc.SucursalDescripcion, 
+      
+      perjer.PersonalId, perjer.PersonalApellido, perjer.PersonalNombre, 
+      
+      obj.ObjetivoDescripcion, 
+      obj.ObjetivoId, 
+      
+      obj.ClienteId,
+      clidep.ClienteElementoDependienteId,
+      
+      domdep.ClienteElementoDependienteDomicilioDomCalle, domdep.ClienteElementoDependienteDomicilioDomNro,
+      domcli.ClienteDomicilioDomCalle, domcli.ClienteDomicilioDomNro,
+      
+      1
+      FROM Objetivo obj
+      LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND GETDATE() BETWEEN 
+       opj.ObjetivoPersonalJerarquicoDesde AND COALESCE (opj.ObjetivoPersonalJerarquicoHasta, '9999-01-01') AND  opj.ObjetivoPersonalJerarquicoComo = 'J'
+      LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
+      
+      LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+      LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+      
+      LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = clidep.ClienteId AND domdep.ClienteElementoDependienteId  = clidep.ClienteElementoDependienteId
+      LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL
+      
+      LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+      
+      
 
-perjer.PersonalId, perjer.PersonalApellido, perjer.PersonalNombre, 
-
-obj.ObjetivoDescripcion, 
-obj.ObjetivoId, 
-
-obj.ClienteId,
-clidep.ClienteElementoDependienteId,
-
-dom.ClienteElementoDependienteDomicilioDomCalle, dom.ClienteElementoDependienteDomicilioDomNro,
-1
-FROM Objetivo obj
-LEFT JOIN ObjetivoSucursal suc ON suc.ObjetivoId = obj.ObjetivoId AND suc.ObjetivoSucursalId = obj.ObjetivoSucursalUltNro
-LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND GETDATE() BETWEEN 
- opj.ObjetivoPersonalJerarquicoDesde AND COALESCE (opj.ObjetivoPersonalJerarquicoHasta, '9999-01-01') AND  opj.ObjetivoPersonalJerarquicoComo = 'J'
-LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
-LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-LEFT JOIN ClienteElementoDependienteDomicilio dom ON dom.ClienteId = clidep.ClienteId AND dom.ClienteElementoDependienteId  = clidep.ClienteElementoDependienteId
-LEFT JOIN Sucursal sucdes ON sucdes.SucursalId = suc.ObjetivoSucursalSucursalId
-
-WHERE sucdes.SucursalId = @0 AND `;
+WHERE suc.SucursalId = @0 AND `;
       switch (fieldName) {
         case "Descripcion":
           const valueArray: Array<string> = value.split(/[\s,.-]+/);

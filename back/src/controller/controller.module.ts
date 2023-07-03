@@ -7,6 +7,7 @@ import { ObjetivoController } from "./objetivo.controller";
 import { AsistenciaController } from "./asistencia.controller";
 import { AdelantosController } from "../adelantos/adelantos.controller";
 import { ImpuestosAfipController } from "../impuestos-afip/impuestos-afip.controller";
+import { CategoriasController } from "../categorias-cambio/categorias-cambio.controller";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -17,3 +18,4 @@ export const objetivoController = new ObjetivoController();
 export const asistenciaController = new AsistenciaController();
 export const adelantosController = new AdelantosController();
 export const impuestosAfipController = new ImpuestosAfipController();
+export const categoriasController = new CategoriasController();
