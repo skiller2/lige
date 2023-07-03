@@ -77,7 +77,8 @@ const filtrosToSql = (filtros: Filtro[]): string => {
     returnedString += " " + filterString;
   });
   console.log(returnedString);
-
+  if (returnedString.trim() == "")
+    returnedString="1=1"
   return returnedString;
 };
 
