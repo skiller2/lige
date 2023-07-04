@@ -23,8 +23,8 @@ import {
 
 import { tmpName } from "../server";
 import path from "path";
-import { DescuentoJSON } from "src/schemas/ResponseJSON";
-import { Filtro, Options } from "src/schemas/filtro";
+import { DescuentoJSON } from "../schemas/ResponseJSON";
+import { Filtro, Options } from "../schemas/filtro";
 import { listaColumnas } from "./comprobantes-utils/lista";
 import {
   filtrosToSql,
@@ -54,7 +54,7 @@ const importeMontoRegex = [
 ];
 
 export class ImpuestosAfipController extends BaseController {
-  directory = process.env.PATH_MONOTRIBUTO;
+  directory = process.env.PATH_MONOTRIBUTO || "tmp";
   constructor() {
     super();
     if (!existsSync(this.directory)) {

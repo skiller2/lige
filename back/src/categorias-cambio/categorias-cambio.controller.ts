@@ -170,12 +170,7 @@ export class CategoriasController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (req)
-      this.hasInGroup(req, 'Administrativo')
-
-
       const pendientes = await CategoriasController.listCambiosPendCategoria(options)
-
 
       for (const persona of pendientes) {
 
@@ -240,15 +235,11 @@ export class CategoriasController extends BaseController {
 
       await queryRunner.rollbackTransaction();
       //      await queryRunner.commitTransaction();
-      this.jsonRes([], res, `Se procesaron ${pendientes.length} ascensos `);
+      return `Se procesaron ${pendientes.length} ascensos `
     } catch (error) {
       console.log('error', error)
       await queryRunner.rollbackTransaction();
-      if (error instanceof Error) {
-        this.errRes(error, res, error.message, 409);
-      } else {
-        this.errRes(error, res, "No se pudo procesar, reintente", 409);
-      }
+      throw new Error(`Error procesando ascensos`)
     } finally {
       await queryRunner.release();
     }

@@ -1,6 +1,6 @@
 import express, {json, Application } from "express";
 import { Router } from "express";
-import * as pkg from "../package.json";
+import { version,author,name,description } from "./version.json";
 import { DataSource } from "typeorm";
 import { existsSync, mkdir, mkdirSync } from "node:fs";
 
@@ -59,6 +59,13 @@ export class WebServer {
     this.port = port;
     this.app =  express();
     this.app.use(json());
+    /*
+    * Agrega starTime a todas las peticiones de la api 
+    */
+    this.app.use("*", function (req, res, next) {
+      res.locals.startTime = performance.now()
+      next()
+    });
   }
 
   public async init(): Promise<string> {
@@ -76,7 +83,7 @@ export class WebServer {
   }
 
   public lateInit() {
-    this.app.set("pkg", pkg);
+    this.app.set("pkg", {version,author,name,description});
 
     this.app.get("/", (req, res) => {
       res.json({

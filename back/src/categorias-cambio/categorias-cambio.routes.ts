@@ -12,7 +12,13 @@ categoriasRouter.post('/list',authMiddleware.verifyToken, (req, res) => {
     categoriasController.getCambiosPendCategoria(req, res)
 })
 
-categoriasRouter.post('/cambiarCategorias', authMiddleware.verifyToken, (req, res) => {
-    res.locals.startTime = performance.now()
-    categoriasController.procesaCambios(req, res)
+categoriasRouter.post('/cambiarCategorias', [authMiddleware.verifyToken,authMiddleware.hasGroup('Administrativo')], async (req, res) => {
+    try {
+        const resultado = await categoriasController.procesaCambios(req, res)
+        const stopTime = performance.now()
+        res.status(200).json({ msg: resultado, data: [], stamp: new Date(), ms: stopTime-res.locals.startTime});
+    } catch (error) {
+        const stopTime = performance.now()
+        res.status(409).json({ msg: error.message, data: [], stamp: new Date(), ms: stopTime-res.locals.startTime});
+    }
 })

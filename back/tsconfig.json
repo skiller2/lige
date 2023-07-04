@@ -8,9 +8,11 @@
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": "./",
+    "rootDir": "./src",
     "outDir": "./dist",
     "sourceMap": true,
-    "declaration": true,
+//    "declaration": true,
+//    "declarationDir": "dist",
     "downlevelIteration": true,
     "experimentalDecorators": true,
       "esModuleInterop":true,
@@ -19,13 +21,14 @@
     "importHelpers": true,
     "target": "es2021",
     "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "strict":false,
     "emitDecoratorMetadata":true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
 
     "typeRoots": [
-      "./src/types",
+//      "./src/types",
       "node_modules/@types"
       
     ],
@@ -37,5 +40,8 @@
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,
     "strictInjectionParameters": true
-  }
+  },
+ // "references": [      // this is how we declare a dependency from
+//    { "path": "../" }  // this project to the one at the root dir`
+//  ]
 }

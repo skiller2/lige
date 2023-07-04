@@ -13,15 +13,15 @@ const webServer = new WebServer(Number(process.env.SERVER_API_PORT))
 const categoriasController = new CategoriasController()
 
 
-scheduleJob('*/1 * * * *', function (fireDate) {
-//  categoriasController.procesaCambios()
-//  console.log('This job was supposed to run at ' + fireDate + ', but actually ran at ' + new Date());
+scheduleJob('*/1 * * * *', async function (fireDate) {
+//  const ret = await categoriasController.procesaCambios(null,null)
+//  console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
 
-scheduleJob('1 0 * * *', function (fireDate) {
-
-//  console.log('This job was supposed to run at ' + fireDate + ', but actually ran at ' + new Date());
+scheduleJob('1 0 * * *', async function (fireDate) {
+  const ret = await categoriasController.procesaCambios(null,null)
+  console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
 

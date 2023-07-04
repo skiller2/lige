@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { BaseController } from "./baseController";
 import { dataSource } from "../data-source";
-import { ObjetivoInfo } from "src/schemas/ResponseJSON";
+import { ObjetivoInfo } from "../schemas/ResponseJSON";
 
 export class ObjetivoController extends BaseController {
   async ObjetivoInfoFromId(objetivoId: string, res) {
@@ -23,7 +23,7 @@ export class ObjetivoController extends BaseController {
 
     dataSource
       .query(
-        `SELECT suc.SucursalId,
+        `SELECT DISTINCT suc.SucursalId,
                  
             obj.ObjetivoId, 
             obj.ClienteId,
@@ -98,7 +98,7 @@ export class ObjetivoController extends BaseController {
       LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
       
       LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = clidep.ClienteId AND domdep.ClienteElementoDependienteId  = clidep.ClienteElementoDependienteId
-      LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL
+      LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL AND domcli.ClienteDomicilioActual = 0
       
       LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
       

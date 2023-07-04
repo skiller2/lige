@@ -38,9 +38,10 @@
       "typeorm": "^0.3.14"
    },
    "scripts": {
+      "start1": "npx ts-node ./src/index.ts",
       "dev": "npx nodemon ./src/index.ts",
       "build": "npx tsc",
-      "build2": "ncc -m build ./src/index.ts",
-      "start": "npm run dev"
+      "build2": "rimraf dist && tsc",
+      "start": "node ./dist/src/index.js"
    }
 }

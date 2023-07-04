@@ -6,37 +6,37 @@ export const initRouter = Router();
 const base = "";
 
 initRouter.get(`${base}/stats/horastrabajadas/:anio`, authMiddleware.verifyToken, (req, res) => {
-    res.locals.startTime = performance.now()
+
     initController.getHorasTrabajadas(req, res);
 })
 
 initRouter.get(`${base}/stats/adelantospendientes`, authMiddleware.verifyToken, (req, res) => {
-    res.locals.startTime = performance.now()
+
     initController.getAdelantosPendientes(req, res);
 })
 
 initRouter.get(`${base}/stats/excepcionespendientes`, authMiddleware.verifyToken, (req, res) => {
-    res.locals.startTime = performance.now()
+
     initController.getExcepcionesPendientes(req, res);
 })
 
 
 initRouter.get(`${base}/stats/objetivosactivos`, authMiddleware.verifyToken, (req, res) => {
-    res.locals.startTime = performance.now()
+
     initController.getObjetivosActivos(req, res);
 })
 
 initRouter.get(`${base}/stats/objetivossinasistencia/:anio/:mes`, authMiddleware.verifyToken, (req, res) => {
-    res.locals.startTime = performance.now()
+
     initController.getObjetivosSinAsistencia(req, res);
 })
 
 initRouter.get(`${base}/stats/clientesactivos`, authMiddleware.verifyToken, (req, res) => {
-    res.locals.startTime = performance.now()
+
     initController.getClientesActivos(req, res);
 })
 
 initRouter.get(`${base}/stats/cambioscategoria`, authMiddleware.verifyToken, (req, res) => {
-    res.locals.startTime = performance.now()
+
     initController.getCategoriasPendientes(req, res);
 })

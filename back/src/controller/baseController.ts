@@ -31,7 +31,7 @@ export class BaseController {
     if (process.env.DEBUG) {
       console.error(err);
     }
-    res.status(status).json({ msg: message, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
+    res.status(status).json({ msg: message, data: [], stamp: new Date(), ms: stopTime-res.locals.startTime});
   }
 
   async hasAuthPersona(anio, mes, persona_cuit, queryRunner) {
@@ -76,17 +76,6 @@ export class BaseController {
     }
 
     return false;
-  }
-
-  hasInGroup(req: any, group: string) {
-    if (!req?.groups)
-      return true
-    for (const rowgroup of req?.groups[0]) { 
-        if (rowgroup.toLowerCase().indexOf(group.toLowerCase()) != -1)
-          return true
-    }
-
-    throw new Error(`No tiene permisos para realizar operación, no se vinculó en el grupo ${group}`)
   }
 
   async hasAuthObjetivo(anio: number, mes: number, req: any, ObjetivoId: number, queryRunner: DataSource | QueryRunner) {
