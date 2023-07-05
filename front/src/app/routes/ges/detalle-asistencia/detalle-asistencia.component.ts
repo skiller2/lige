@@ -113,6 +113,19 @@ export class DetalleAsistenciaComponent {
     )
   );
 
+  $listaDescuentosObj = this.$selectedObjetivoIdChange.pipe(
+    debounceTime(50),
+    switchMap(objetivoId =>
+      this.searchService.getDescuentosObjetivo(
+        Number(objetivoId),
+        this.selectedPeriod.year,
+        this.selectedPeriod.month
+      )
+    )
+  );
+
+
+
   $optionsObjetivos = this.$searchObjetivoChange.pipe(
     debounceTime(500),
     switchMap(event =>
@@ -129,6 +142,22 @@ export class DetalleAsistenciaComponent {
     switchMap(PersonalId =>
       this.searchService
         .getAsistenciaPersona(
+          Number(PersonalId),
+          this.selectedPeriod.year,
+          this.selectedPeriod.month
+        )
+        .pipe
+        //          doOnSubscribe(() => this.tableLoading$.next(true)),
+        //          tap({ complete: () => this.tableLoading$.next(false) })
+        ()
+    )
+  );
+
+  $listaDescuentosPer = this.$selectedPersonalIdChange.pipe(
+    debounceTime(500),
+    switchMap(PersonalId =>
+      this.searchService
+        .getDescuentosPersona(
           Number(PersonalId),
           this.selectedPeriod.year,
           this.selectedPeriod.month

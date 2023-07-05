@@ -195,6 +195,27 @@ export class SearchService {
       );
   }
 
+  getDescuentosPersona(
+    personalId: number,
+    anio: number,
+    mes: number
+  ): Observable<any> {
+    if (!personalId) return of([]);
+
+    return this.http
+      .get(`api/asistencia/descuentosxper/${anio}/${mes}/${personalId}`)
+      .pipe(
+        map((res: ResponseJSON<any>) =>
+          res && res.data ? res.data : []
+        ),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
+
   getAsistenciaPersona(
     personalId: number,
     anio: number,
@@ -214,6 +235,27 @@ export class SearchService {
         })
       );
   }
+
+  getDescuentosObjetivo(
+    objetivoId: number,
+    anio: number,
+    mes: number
+  ): Observable<any> {
+    if (!objetivoId) return of([]);
+
+    return this.http
+      .get(`api/asistencia/descuentosxobj/${anio}/${mes}/${objetivoId}`)
+      .pipe(
+        map((res: ResponseJSON<any>) =>
+          res && res.data ? res.data : []
+        ),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
 
   getAsistenciaObjetivo(
     objetivoId: number,

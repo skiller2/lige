@@ -20,6 +20,14 @@ asistenciaRouter.get('/exceporper/:anio/:mes/:personalId', authMiddleware.verify
     asistenciaController.getExcepAsistenciaPorPersona(req, res)
 })
 
+asistenciaRouter.get('/descuentosxper/:anio/:mes/:personalId', authMiddleware.verifyToken, (req, res) => {
+    asistenciaController.getDescuentosPorPersona(req, res)
+})
+
+asistenciaRouter.get('/descuentosxobj/:anio/:mes/:objetivoId', authMiddleware.verifyToken, (req, res) => {
+    asistenciaController.getDescuentosPorObjetivo(req, res)
+})
+
 asistenciaRouter.get('/listaporper/:anio/:mes/:personalId', authMiddleware.verifyToken, (req, res) => {
     asistenciaController.getAsistenciaPorPersona(req, res)
 })

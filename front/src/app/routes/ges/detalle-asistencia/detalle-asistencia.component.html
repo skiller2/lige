@@ -2,30 +2,18 @@
   <form nz-form #asistencia="ngForm">
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
-      <nz-date-picker
-        nzMode="month"
-        name="periodo"
-        ngModel
-        (ngModelChange)="dateChange($event)"
+      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)"
         [nzAllowClear]="false" />
     </nz-form-item>
 
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Sucursal</nz-form-label>
       <nz-form-control>
-        <nz-select
-          #sucursal="ngModel"
-          nzSpan="19"
-          name="SucursalId"
-          [(ngModel)]="selectedSucursalId"
-          (ngModelChange)="selectedValueChange($event, Busqueda.Sucursal)"
-          nzAllowClear
-          nzPlaceHolder="Sucursal"
+        <nz-select #sucursal="ngModel" nzSpan="19" name="SucursalId" [(ngModel)]="selectedSucursalId"
+          (ngModelChange)="selectedValueChange($event, Busqueda.Sucursal)" nzAllowClear nzPlaceHolder="Sucursal"
           nzShowSearch>
           <ng-container *ngFor="let option of $optionsSucursales | async">
-            <nz-option
-              [nzValue]="option.SucursalId"
-              [nzLabel]="option.SucursalDescripcion"></nz-option>
+            <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
           </ng-container>
         </nz-select>
       </nz-form-control>
@@ -38,38 +26,30 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
           <nz-form-control>
-            <app-objetivo-search
-              [sucursalId]="selectedSucursalId"
-              name="ObjetivoId"
-              (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)"
-              ngModel />
+            <app-objetivo-search [sucursalId]="selectedSucursalId" name="ObjetivoId"
+              (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" ngModel />
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
           <nz-form-control>
-            <ng-container
-              *ngIf="{
+            <ng-container *ngIf="{
                 loading: objetivoResponsablesLoading$ | async
               } as responsablesContext">
               <ng-container *ngIf="responsablesContext.loading">
                 <span nz-icon nzType="loading" class="loading-icon"></span>
                 Cargando
               </ng-container>
-              <ng-container
-                *ngFor="let responsable of $objetivoResponsables | async">
+              <ng-container *ngFor="let responsable of $objetivoResponsables | async">
                 <p title="{{ responsable.PersonalId }}">
                   ({{ responsable.ObjetivoPersonalJerarquicoComo }})
                   {{ responsable.PersonalCUITCUILCUIT }}
-                  <a
-                    (click)="buscarPorPersona(responsable.PersonalId)"
+                  <a (click)="buscarPorPersona(responsable.PersonalId)"
                     [textContent]="responsable.ApellidoNombreJerarquico"></a>
                   desde
                   {{ responsable.ObjetivoPersonalJerarquicoDesde | date }}
-                  <span *ngIf="responsable.ObjetivoPersonalJerarquicoHasta"
-                    >hasta</span
-                  >
+                  <span *ngIf="responsable.ObjetivoPersonalJerarquicoHasta">hasta</span>
                   {{ responsable.ObjetivoPersonalJerarquicoHasta | date }}
                 </p>
               </ng-container>
@@ -80,13 +60,8 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Art14</nz-form-label>
           <nz-form-control>
-            <nz-table
-              #excep
-              [nzData]="$listaExcepciones | async"
-              nzSize="small"
-              [nzPageSize]="100000000"
-              [nzShowPagination]="false"
-              [nzScroll]="{ x: '600px' }">
+            <nz-table #excep [nzData]="$listaExcepciones | async" nzSize="small" [nzPageSize]="100000000"
+              [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
               <thead>
                 <tr>
                   <th>CUIT</th>
@@ -103,9 +78,7 @@
                     {{ data.PersonalCUITCUILCUIT }}
                   </td>
                   <td>
-                    <a
-                      (click)="buscarPorPersona(data.PersonalId)"
-                      [textContent]="data.ApellidoNombre"></a>
+                    <a (click)="buscarPorPersona(data.PersonalId)" [textContent]="data.ApellidoNombre"></a>
                   </td>
                   <td>{{ data.PersonalArt14Autorizado }}</td>
                   <td *ngIf="data.PersonalArt14FormaArt14 == 'S'">
@@ -139,13 +112,8 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Asistencia</nz-form-label>
           <nz-form-control>
-            <nz-table
-              #asist
-              [nzData]="$listaAsistencia | async"
-              nzSize="small"
-              [nzPageSize]="100000000"
-              [nzShowPagination]="false"
-              [nzScroll]="{ x: '500px' }">
+            <nz-table #asist [nzData]="$listaAsistencia | async" nzSize="small" [nzPageSize]="100000000"
+              [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
               <thead>
                 <tr>
                   <th>CUIT</th>
@@ -164,36 +132,27 @@
                     {{ data.PersonalCUITCUILCUIT }}
                   </td>
                   <td>
-                    <a
-                      (click)="buscarPorPersona(data.PersonalId)"
-                      [textContent]="data.PersonaDes"></a>
+                    <a (click)="buscarPorPersona(data.PersonalId)" [textContent]="data.PersonaDes"></a>
                   </td>
                   <td>{{ data.PersonalEstado }}</td>
                   <td>{{ data.CategoriaPersonalDescripcion }}</td>
                   <td>{{ data.totalhorascalc }}</td>
                   <td>
                     <span *ngIf="data.ValorHoraArt14Categoria < 1">{{
-                      data.ValorHoraNorm | price
-                    }}</span>
+                      data.ValorHoraNorm | currency
+                      }}</span>
                   </td>
 
                   <td>
-                    <span *ngIf="data.PersonalArt14SumaFija"
-                      >Suma fija {{ data.PersonalArt14SumaFija | price }}</span
-                    >
-                    <span *ngIf="data.PersonalArt14Horas"
-                      >Horas {{ data.PersonalArt14Horas }}</span
-                    >
-                    <span *ngIf="data.art14CategoriaDescripcion"
-                      >Equivalencia {{ data.art14CategoriaDescripcion }}
-                      {{ data.ValorHoraArt14Categoria | price }}
+                    <span *ngIf="data.PersonalArt14SumaFija">Suma fija {{ data.PersonalArt14SumaFija | currency }}</span>
+                    <span *ngIf="data.PersonalArt14Horas">Horas {{ data.PersonalArt14Horas }}</span>
+                    <span *ngIf="data.art14CategoriaDescripcion">Equivalencia {{ data.art14CategoriaDescripcion }}
+                      {{ data.ValorHoraArt14Categoria | currency }}
                     </span>
-                    <span *ngIf="data.PersonalArt14AdicionalHora"
-                      >Adicional Hora
-                      {{ data.PersonalArt14AdicionalHora | price }}</span
-                    >
+                    <span *ngIf="data.PersonalArt14AdicionalHora">Adicional Hora
+                      {{ data.PersonalArt14AdicionalHora | currency }}</span>
                   </td>
-                  <td>{{ data.totalminutoscalcimporteconart14 | price }}</td>
+                  <td>{{ data.totalminutoscalcimporteconart14 | currency }}</td>
 
                   <!-- td>
               <a>Action 一 {{data.name}}</a>
@@ -205,6 +164,40 @@
             </nz-table>
           </nz-form-control>
         </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Descuentos</nz-form-label>
+          <nz-form-control>
+            <nz-table #descObj [nzData]="$listaDescuentosObj | async" nzSize="small" [nzPageSize]="100000000"
+              [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+              <thead>
+                <tr>
+                  <th>CUIT</th>
+                  <th>Apellido y Nombre</th>
+                  <th>Tipo Movimiento</th>
+                  <th>Detalle</th>
+                  <th>Cuota</th>
+                  <th>Importe</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let data of descObj.data" class="">
+                  <td>{{ data.PersonalCUITCUILCUIT }}</td>
+                  <td>
+                    <a (click)="buscarPorPersona(data.PersonalId)" [textContent]="data.ApellidoNombre"></a>
+                  </td>
+                  <td>{{ data.tipomov }}</td>
+                  <td>{{ data.desmovimiento }}</td>
+                  <td>
+                    <div *ngIf="data.importetotal>0">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
+                      | currency }}</div>
+                  </td>
+                  <td>{{ data.importe | currency }}</td>
+                </tr>
+              </tbody>
+            </nz-table>
+          </nz-form-control>
+        </nz-form-item>
+
       </form>
     </nz-tab>
     <nz-tab nzTitle="Por persona">
@@ -212,9 +205,7 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Persona</nz-form-label>
           <nz-form-control nzHasFeedback>
-            <app-personal-search
-              name="PersonalId"
-              (ngModelChange)="selectedValueChange($event, Busqueda.Personal)"
+            <app-personal-search name="PersonalId" (ngModelChange)="selectedValueChange($event, Busqueda.Personal)"
               ngModel />
           </nz-form-control>
         </nz-form-item>
@@ -223,28 +214,29 @@
           <nz-form-control>
             <nz-list nzBordered nzSize="small">
               <nz-list-item *ngFor="let monotributo of $personaMonotributo | async">
-                <a app-down-file httpUrl="api/impuestos_afip/{{monotributo.PersonalOtroDescuentoAnoAplica}}/{{monotributo.PersonalOtroDescuentoMesesAplica}}/0/{{monotributo.PersonalId}}"><span nz-icon nzType="download"></span>Comprobante {{monotributo.PersonalOtroDescuentoMesesAplica}}/{{monotributo.PersonalOtroDescuentoAnoAplica}}</a></nz-list-item>
-              </nz-list>
+                <a app-down-file
+                  httpUrl="api/impuestos_afip/{{monotributo.PersonalOtroDescuentoAnoAplica}}/{{monotributo.PersonalOtroDescuentoMesesAplica}}/0/{{monotributo.PersonalId}}"><span
+                    nz-icon nzType="download"></span>Comprobante
+                  {{monotributo.PersonalOtroDescuentoMesesAplica}}/{{monotributo.PersonalOtroDescuentoAnoAplica}}</a></nz-list-item>
+            </nz-list>
           </nz-form-control>
         </nz-form-item>
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
           <nz-form-control>
-            <ng-container
-              *ngFor="let responsable of $personaResponsables | async">
+            <ng-container *ngFor="let responsable of $personaResponsables | async">
               <p title="{{ responsable.PersonalCategoriaPersonalId }}">
                 {{ responsable.CUITJ }} {{ responsable.ApellidoNombreJ }} desde
                 {{
-                  responsable.OperacionesPersonalAsignarAJerarquicoDesde | date
+                responsable.OperacionesPersonalAsignarAJerarquicoDesde | date
                 }}
-                <span
-                  *ngIf="
+                <span *ngIf="
                     responsable.OperacionesPersonalAsignarAJerarquicoHasta
                   ">
                   hasta
                 </span>
                 {{
-                  responsable.OperacionesPersonalAsignarAJerarquicoHasta | date
+                responsable.OperacionesPersonalAsignarAJerarquicoHasta | date
                 }}
               </p>
             </ng-container>
@@ -254,13 +246,8 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Art14</nz-form-label>
           <nz-form-control>
-            <nz-table
-              #excepPer
-              [nzData]="$listaExcepcionesPer | async"
-              nzSize="small"
-              [nzPageSize]="100000000"
-              [nzShowPagination]="false"
-              [nzScroll]="{ x: '600px' }">
+            <nz-table #excepPer [nzData]="$listaExcepcionesPer | async" nzSize="small" [nzPageSize]="100000000"
+              [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
               <thead>
                 <tr>
                   <th>Código</th>
@@ -277,9 +264,7 @@
                     {{ data.ObjetivoCodigo }}
                   </td>
                   <td>
-                    <a
-                      (click)="buscarPorObjetivo(data.ObjetivoId)"
-                      [textContent]="data.ObjetivoDescripcion">
+                    <a (click)="buscarPorObjetivo(data.ObjetivoId)" [textContent]="data.ObjetivoDescripcion">
                     </a>
                   </td>
                   <td>{{ data.PersonalArt14Autorizado }}</td>
@@ -312,13 +297,8 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Asistencia</nz-form-label>
           <nz-form-control>
-            <nz-table
-              #asistPer
-              [nzData]="$listaAsistenciaPer | async"
-              nzSize="small"
-              [nzPageSize]="100000000"
-              [nzShowPagination]="false"
-              [nzScroll]="{ x: '500px' }">
+            <nz-table #asistPer [nzData]="$listaAsistenciaPer | async" nzSize="small" [nzPageSize]="100000000"
+              [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
               <thead>
                 <tr>
                   <th>Código</th>
@@ -336,36 +316,27 @@
                     {{ data.ObjetivoCodigo }}
                   </td>
                   <td>
-                    <a
-                      (click)="buscarPorObjetivo(data.ObjetivoId)"
-                      [textContent]="data.ObjetivoDescripcion">
+                    <a (click)="buscarPorObjetivo(data.ObjetivoId)" [textContent]="data.ObjetivoDescripcion">
                     </a>
                   </td>
                   <td>{{ data.CategoriaPersonalDescripcion }}</td>
                   <td>{{ data.totalhorascalc }}</td>
                   <td>
                     <span *ngIf="data.ValorHoraArt14Categoria < 1">{{
-                      data.ValorHoraNorm | price
-                    }}</span>
+                      data.ValorHoraNorm | currency
+                      }}</span>
                   </td>
 
                   <td>
-                    <span *ngIf="data.PersonalArt14SumaFija"
-                      >Suma fija {{ data.PersonalArt14SumaFija | price }}</span
-                    >
-                    <span *ngIf="data.PersonalArt14Horas"
-                      >Horas {{ data.PersonalArt14Horas }}</span
-                    >
-                    <span *ngIf="data.art14CategoriaDescripcion"
-                      >Equivalencia {{ data.art14CategoriaDescripcion }}
-                      {{ data.ValorHoraArt14Categoria | price }}
+                    <span *ngIf="data.PersonalArt14SumaFija">Suma fija {{ data.PersonalArt14SumaFija | currency }}</span>
+                    <span *ngIf="data.PersonalArt14Horas">Horas {{ data.PersonalArt14Horas }}</span>
+                    <span *ngIf="data.art14CategoriaDescripcion">Equivalencia {{ data.art14CategoriaDescripcion }}
+                      {{ data.ValorHoraArt14Categoria | currency }}
                     </span>
-                    <span *ngIf="data.PersonalArt14AdicionalHora"
-                      >Adicional Hora
-                      {{ data.PersonalArt14AdicionalHora | price }}</span
-                    >
+                    <span *ngIf="data.PersonalArt14AdicionalHora">Adicional Hora
+                      {{ data.PersonalArt14AdicionalHora | currency }}</span>
                   </td>
-                  <td>{{ data.totalminutoscalcimporteconart14 | price }}</td>
+                  <td>{{ data.totalminutoscalcimporteconart14 | currency }}</td>
 
                   <!-- td>
               <a>Action 一 {{data.name}}</a>
@@ -377,6 +348,34 @@
             </nz-table>
           </nz-form-control>
         </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Descuentos</nz-form-label>
+          <nz-form-control>
+            <nz-table #descPer [nzData]="$listaDescuentosPer | async" nzSize="small" [nzPageSize]="100000000"
+              [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+              <thead>
+                <tr>
+                  <th>Tipo Movimiento</th>
+                  <th>Detalle</th>
+                  <th>Cuota</th>
+                  <th>Importe</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let data of descPer.data" class="">
+                  <td>{{ data.tipomov }}</td>
+                  <td>{{ data.desmovimiento }}</td>
+                  <td>
+                    <div *ngIf="data.importetotal>0">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
+                      | currency }}</div>
+                  </td>
+                  <td>{{ data.importe | currency }}</td>
+                </tr>
+              </tbody>
+            </nz-table>
+          </nz-form-control>
+        </nz-form-item>
+
       </form>
     </nz-tab>
   </nz-tabset>
