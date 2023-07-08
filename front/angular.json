@@ -153,7 +153,8 @@
     "schematicCollections": [
       "@schematics/angular",
       "ng-alain"
-    ]
+    ],
+    "analytics": "f6d55bf4-8c8c-4281-9bd3-f2100bfd923e"
   },
   "schematics": {
     "@angular-eslint/schematics:application": {

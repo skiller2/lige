@@ -9,6 +9,12 @@ import { CommonModule } from '@angular/common';
 import { Filtro, Options } from '../schemas/filtro';
 import { SharedModule } from '../shared.module';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { BehaviorSubject } from 'rxjs';
+
+type listOptionsT = {
+  filtros: any[],
+  sort: any,
+}
 
 const noop = () => {};
 
@@ -32,7 +38,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   @Input() operatorsToSelect = ['LIKE', '>', '<'];
 
   @Output() optionsChange = new EventEmitter<Options>();
-
+  formChange$ = new BehaviorSubject('');
+  selectedPersonalId = "";
   tags: string[] = [];
   private _options: Options = {
     filtros: [],
@@ -43,9 +50,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   isFiltroBuilder = false;
 
   selections = {
-    field: null,
+    field: '',
     condition: 'AND',
-    operator: null,
+    operator: '',
   };
 
   //
@@ -53,8 +60,21 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   //
 
   addTag() {
-    const tagToAdd = `${this.selections.field} | ${this.selections.operator} | ${this.inputValue}`;
-    this.tags.push(tagToAdd);
+    
+    if(this.selections.field == "ApellidoNombreJ" || this.selections.field == "CUITJ"){
+      let inputValueSearch: HTMLElement = document.getElementById("inpurForPersonalSearch") as HTMLElement;
+      inputValueSearch?.outerText;
+
+      const tagToAdd = `${this.selections.field} | ${this.selections.operator} | ${inputValueSearch?.outerText}`;
+      this.tags.push(tagToAdd);
+
+    }else{
+
+      const tagToAdd = `${this.selections.field} | ${this.selections.operator} | ${this.inputValue}`;
+      this.tags.push(tagToAdd);
+
+    }
+    
   }
 
   closeTag(indexToRemove: number) {
@@ -67,6 +87,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   verifySelections(): boolean {
+    this.selections.operator = (this.selections.field != "ApellidoNombreJ" && this.selections.field != "CUITJ") 
+    ? this.selections.operator 
+    : "=";
     if (
       this.selections.field &&
       this.selections.condition &&
@@ -77,20 +100,31 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   handleInputConfirm() {
-    if (
-      this.verifySelections() &&
-      this.inputValue &&
-      this.tags.indexOf(this.inputValue) === -1
-    ) {
+    debugger;
+    // if ( this.verifySelections() && this.inputValue && this.tags.indexOf(this.inputValue) === -1 ) {
+      if ( this.verifySelections() ) {
       this.addTag();
-      const appendedFilter = this.appendFiltro(
-        this.selections as any,
-        this.inputValue
-      );
+      if(this.selections.field == "ApellidoNombreJ" || this.selections.field == "CUITJ"){
+        this.selections.condition = "AND";
+        this.selections.field = "PersonalIdJ";
+        const appendedFilter = this.appendFiltro(
+          this.selections,
+          this.selectedPersonalId
+        );
+
+      }else{
+        const appendedFilter = this.appendFiltro(
+          this.selections as any,
+          this.inputValue
+        );
+      }
+      
     }
     this.resetSelections();
     this.inputValue = '';
     this.isFiltroBuilder = false;
+    let inputSearch: HTMLElement = document.getElementsByTagName("nz-select-clear")[0] as HTMLElement;
+    inputSearch.click()
   }
 
   //
@@ -119,9 +153,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   resetSelections() {
     this.selections = {
-      field: null,
+      field: '',
       condition: 'AND',
-      operator: null,
+      operator: '',
     };
   }
 
@@ -167,5 +201,24 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   //From ControlValueAccessor interface
   registerOnTouched(fn: any) {
     this.onTouchedCallback = fn;
+  }
+
+  //
+
+  listOptions:listOptionsT = {
+    filtros:  [],
+    sort: null,
+  };
+
+
+  listOptionsChange(options: any) {
+    this.listOptions = options;
+    this.formChange$.next('');
+
+  }
+
+  inputSearchview = false;
+  onOptionChange() {
+    this.inputSearchview = (this.selections.field != "ApellidoNombreJ" && this.selections.field != "CUITJ") ? false : true;
   }
 }

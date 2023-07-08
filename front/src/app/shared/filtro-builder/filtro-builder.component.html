@@ -27,14 +27,14 @@
     <nz-select
       [nzPlaceHolder]="'Columna'"
       [(ngModel)]="selections.field"
+      (ngModelChange)="onOptionChange()"
       #fieldSelector>
       <nz-option
         *ngFor="let field of fieldsToSelect"
         [nzLabel]="field.name"
         [nzValue]="field.field"></nz-option>
     </nz-select>
-
-    <nz-select
+    <nz-select *ngIf ="inputSearchview == false"
       [nzPlaceHolder]="'Operador'"
       [(ngModel)]="selections.operator"
       #operatorSelector>
@@ -43,14 +43,21 @@
         [nzLabel]="operator"
         [nzValue]="operator"></nz-option>
     </nz-select>
-    <input
+     <input  *ngIf ="inputSearchview == false"
       placeholder="Valor"
       #inputElement
       nz-input
       type="text"
       [(ngModel)]="inputValue"
       style="width: 78px"
-      (keydown.enter)="handleInputConfirm()" />
+      (keydown.enter)="handleInputConfirm()" /> 
+
+      <div nz-col [nzSpan]="5" id="inpurForPersonalSearch" style="text-align: center; display:inline-block;width: 22%;" *ngIf ="inputSearchview" >
+        <app-personal-search
+          [(ngModel)]="selectedPersonalId"
+          [ngModelOptions]="{ standalone: true }"
+          (keydown.enter)="handleInputConfirm()" />
+      </div>
     <button nz-button (click)="handleInputConfirm()">+</button>
   </ng-container>
 </nz-card>

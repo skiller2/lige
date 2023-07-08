@@ -285,17 +285,17 @@ export class ImpuestoAfipComponent {
     }
   }
 
-  formChanged(_event: any) {
-    this.listOptions.filtros=this.listOptions.filtros.filter((fil: any) => {
-      return (fil.index!='PersonalIdJ')? true : false
-    })
+  // formChanged(_event: any) {
+  //   this.listOptions.filtros=this.listOptions.filtros.filter((fil: any) => {
+  //     return (fil.index!='PersonalIdJ')? true : false
+  //   })
 
-    if (Number(this.selectedPersonalId)>0)
-      this.listOptions.filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: this.selectedPersonalId })
+  //   if (Number(this.selectedPersonalId)>0)
+  //     this.listOptions.filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: this.selectedPersonalId })
 
 
-    this.formChange$.next('');
-  }
+  //   this.formChange$.next('');
+  // }
 
   ngOnDestroy() {
     this.resizeSubscription$!.unsubscribe();
