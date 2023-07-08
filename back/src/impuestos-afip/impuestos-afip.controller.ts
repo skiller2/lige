@@ -217,7 +217,7 @@ export class ImpuestosAfipController extends BaseController {
       ? req.body.options
       : { filtros: [], sort: null };
 
-    console.log(options);
+//    console.log(options);
 
     const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
@@ -487,7 +487,8 @@ export class ImpuestosAfipController extends BaseController {
 
       this.jsonRes([], res, "PDF Recibido!");
     } catch (err) {
-      await queryRunner.rollbackTransaction();
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
       this.errRes(err, res, err.message, 409);
     } finally {
       await queryRunner.release();

@@ -187,16 +187,20 @@ export class CategoriasController extends BaseController {
         )
 
 
-
+        
 
         if (catactual.length == 0) continue
         const PersonalCategoriaUltNro = catactual[0].max + 1;
+
+
+        console.log('resultado', PersonalCategoriaUltNro, catactual[0].max)
+        
         const TipoJornadaId = catactual[0].TipoJornadaId
         const SucursalId = catactual[0].SucursalId
         const SucursalAreaId = catactual[0].SucursalAreaId
 
         await queryRunner.query(
-          `UPDATE Personal SET PersonalAdelantoUltNro=@1 WHERE PersonalId=@0 `,
+          `UPDATE Personal SET PersonalCategoriaUltNro=@1 WHERE PersonalId=@0 `,
           [
             persona.PersonalId,
             PersonalCategoriaUltNro,
@@ -205,7 +209,7 @@ export class CategoriasController extends BaseController {
 
         await queryRunner.query(
           `
-          UPDATE PersonalCategoria SET PersonalCategoriaHasta =@0 WHERE PersonalCategoriaTipoAsociadoId=@1 AND PersonalCategoriaPersonalId=@2 AND PersonalCategoriaHasta >= @3 AND  PersonalCategoriaDesde <= @3 `,
+          UPDATE PersonalCategoria SET PersonalCategoriaHasta =@0 WHERE PersonalCategoriaTipoAsociadoId=@1 AND PersonalCategoriaPersonalId=@2 AND ISNULL(PersonalCategoriaHasta,'9999-12-31') >= @3 AND  PersonalCategoriaDesde <= @3 `,
           [
             fechaAyer,
             persona.TipoAsociadoIdCambio,
@@ -233,12 +237,12 @@ export class CategoriasController extends BaseController {
 
       }
 
-      await queryRunner.rollbackTransaction();
-      //      await queryRunner.commitTransaction();
+      await queryRunner.commitTransaction();
       return `Se procesaron ${pendientes.length} ascensos `
     } catch (error) {
       console.log('error', error)
-      await queryRunner.rollbackTransaction();
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
       throw new Error(`Error procesando ascensos`)
     } finally {
       await queryRunner.release();

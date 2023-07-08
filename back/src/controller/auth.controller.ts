@@ -180,7 +180,8 @@ export class AuthController extends BaseController {
     } catch (err) {
 //      let def = { message: "Error accediendo a la base de datos" };
 //      if (typeof def === "string") def = err;
-//      await queryRunner.rollbackTransaction();
+   //     if (queryRunner.isTransactionActive)
+   //      await queryRunner.rollbackTransaction();
       this.errRes(err, res, err.message, 409);
     } finally {
       // you need to release query runner which is manually created:
