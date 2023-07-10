@@ -16,7 +16,7 @@ type listOptionsT = {
   sort: any,
 }
 
-const noop = () => {};
+const noop = () => { };
 
 export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   provide: NG_VALUE_ACCESSOR,
@@ -60,21 +60,18 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   //
 
   addTag() {
-    
-    if(this.selections.field == "ApellidoNombreJ" || this.selections.field == "CUITJ"){
+    if (this.selections.field == "ApellidoNombreObjJ") {
       let inputValueSearch: HTMLElement = document.getElementById("inpurForPersonalSearch") as HTMLElement;
-      inputValueSearch?.outerText;
+      this.inputValue = inputValueSearch?.outerText
 
-      const tagToAdd = `${this.selections.field} | ${this.selections.operator} | ${inputValueSearch?.outerText}`;
-      this.tags.push(tagToAdd);
-
-    }else{
-
-      const tagToAdd = `${this.selections.field} | ${this.selections.operator} | ${this.inputValue}`;
-      this.tags.push(tagToAdd);
-
+    } else if (this.selections.field == "ApellidoNombreJ" ) {
+      let inputValueSearch: HTMLElement = document.getElementById("inpurForPersonalSearch") as HTMLElement;
+      this.inputValue = inputValueSearch?.outerText
     }
-    
+
+    const tagToAdd = `${this.selections.field} | ${this.selections.operator} | ${this.inputValue}`;
+    this.tags.push(tagToAdd);
+
   }
 
   closeTag(indexToRemove: number) {
@@ -87,9 +84,12 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   verifySelections(): boolean {
-    this.selections.operator = (this.selections.field != "ApellidoNombreJ" && this.selections.field != "CUITJ") 
-    ? this.selections.operator 
-    : "=";
+//    if (this.selections.searchComponent == 'inpurForPersonalSearch')
+
+
+    this.selections.operator = (this.selections.field != "ApellidoNombreJ" && this.selections.field != "ApellidoNombreObjJ")
+      ? this.selections.operator
+      : "=";
     if (
       this.selections.field &&
       this.selections.condition &&
@@ -102,23 +102,18 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   handleInputConfirm() {
     debugger;
     // if ( this.verifySelections() && this.inputValue && this.tags.indexOf(this.inputValue) === -1 ) {
-      if ( this.verifySelections() ) {
+    if (this.verifySelections()) {
       this.addTag();
-      if(this.selections.field == "ApellidoNombreJ" || this.selections.field == "CUITJ"){
-        this.selections.condition = "AND";
-        this.selections.field = "PersonalIdJ";
-        const appendedFilter = this.appendFiltro(
-          this.selections,
-          this.selectedPersonalId
-        );
 
-      }else{
-        const appendedFilter = this.appendFiltro(
-          this.selections as any,
-          this.inputValue
-        );
+      //Si son buscadores especiales le asigno el selectedPersonalId 
+      if (this.selections.field == "ApellidoNombreJ" || this.selections.field == "ApellidoNombreObjJ") {
+//        this.selections.condition = "AND";
+        this.inputValue = this.selectedPersonalId
       }
-      
+      const appendedFilter = this.appendFiltro(
+        this.selections as any,
+        this.inputValue
+      );
     }
     this.resetSelections();
     this.inputValue = '';
@@ -205,8 +200,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   //
 
-  listOptions:listOptionsT = {
-    filtros:  [],
+  listOptions: listOptionsT = {
+    filtros: [],
     sort: null,
   };
 
@@ -219,6 +214,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   inputSearchview = false;
   onOptionChange() {
-    this.inputSearchview = (this.selections.field != "ApellidoNombreJ" && this.selections.field != "CUITJ") ? false : true;
+    this.inputSearchview = (this.selections.field != "ApellidoNombreJ" && this.selections.field != "ApellidoNombreObjJ") ? false : true;
   }
 }

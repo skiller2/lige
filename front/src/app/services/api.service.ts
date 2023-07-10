@@ -77,9 +77,18 @@ export class ApiService {
     );
 
   }
+  
   getPersonalCategoriaPendiente(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/categorias/list', parameter).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+
+  }
+  getObjetivosPendAsis(filters: any) {
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>('/api/objetivos-pendasis/list', parameter).pipe(
       map(res => res.data),
       catchError(() => of([]))
     );

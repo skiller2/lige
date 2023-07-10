@@ -117,7 +117,7 @@ export class ImpuestosAfipController extends BaseController {
     options: Options;
   }) {
     const filtros = params.options.filtros;
-    const filterSql = filtrosToSql(filtros);
+    const filterSql = filtrosToSql(filtros,listaColumnas);
 
     return dataSource.query(
       `SELECT DISTINCT 

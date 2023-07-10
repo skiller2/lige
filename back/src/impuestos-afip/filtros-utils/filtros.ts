@@ -1,5 +1,5 @@
 import { Filtro, Options } from "../../schemas/filtro";
-import { findColumnByIndex, listaColumnas } from "../comprobantes-utils/lista";
+import { findColumnByIndex } from "../comprobantes-utils/lista";
 import { Request } from "express";
 
 const getFiltrosFromOptions = (options: Options) => {
@@ -34,17 +34,26 @@ const isOptions = (options: any): options is Options => {
 };
 
 const isCondition = (condition: any): boolean =>
-  condition === "AND" || condition === "OR";
+  condition == "AND" || condition == "OR";
 
-const filtrosToSql = (filtros: Filtro[]): string => {
+
+/**
+ * 
+ * @param filtros Objeto de Filtros entregado por el Front
+ * @param cols Listado de campos para extraer el fieldname
+ * @returns string con el filtro en formato SQL 
+ */
+
+const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
   if (filtros?.length === (0 || undefined)) return "1=1";
 
   let returnedString = "";
   filtros.forEach((filtro, index) => {
     if (!isFiltro(filtro)) return;
 
-    const columna = findColumnByIndex(filtro.index, listaColumnas);
+    const columna = findColumnByIndex(filtro.index, cols);
     const fieldName = columna ? columna.fieldName : null;
+
     if (!fieldName) return;
 
     if (!isCondition(filtro.condition)) return;
@@ -76,7 +85,6 @@ const filtrosToSql = (filtros: Filtro[]): string => {
     }
     returnedString += " " + filterString;
   });
-  console.log(returnedString);
   if (returnedString.trim() == "")
     returnedString="1=1"
   return returnedString;

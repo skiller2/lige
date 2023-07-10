@@ -2,6 +2,10 @@ import { Routes } from '@angular/router';
 
 export const GesRoutes: Routes = [
   {
+    path: 'objetivos_pendasis',
+    loadComponent: () => import('./objetivos-pendasis/objetivos-pendasis.component').then(c => c.ObjetivosPendAsisComponent),
+  },
+  {
     path: 'detalle_asistencia',
     loadComponent: () => import('./detalle-asistencia/detalle-asistencia.component').then(c => c.DetalleAsistenciaComponent),
   },

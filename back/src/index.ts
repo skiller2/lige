@@ -20,8 +20,12 @@ scheduleJob('*/1 * * * *', async function (fireDate) {
 
 
 scheduleJob('1 0 * * *', async function (fireDate) {
-  const ret = await categoriasController.procesaCambios(null,null)
-  console.log(`job run at ${fireDate}, response: ${ret}`);
+  try {
+    const ret = await categoriasController.procesaCambios(null, null)
+    console.log(`job run at ${fireDate}, response: ${ret}`);
+  } catch (err) {
+    console.log(`job run at ${fireDate}, response: ${err.message}`);
+  }
 });
 
 

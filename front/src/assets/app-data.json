@@ -21,6 +21,26 @@
           "link": "/init"
         },
         {
+          "text": "Utilidades",
+          "icon": "anticon-profile",
+          "children": [
+
+        {
+          "text": "Convertir PDF Retiros",
+          "link": "/ges/pdf_retiro",
+          "icon": "anticon-profile"
+        }
+      ]},
+      {
+        "text": "Personal",
+        "icon": "anticon-profile",
+        "children": [
+          {
+            "text": "Cambio Categoría",
+            "link": "/ges/cambio_categoria",
+            "icon": "anticon-profile"
+          },  
+        {
           "text": "Credencial Personal",
           "i18n": "ges.imgpers",
           "icon": "anticon-profile",
@@ -31,7 +51,7 @@
           "i18n": "ges.credpers",
           "icon": "anticon-profile",
           "link": "/ges/credencial_lista"
-        },        
+        }]},        
         {
           "text": "Liquidaciones",
           "icon": "anticon-profile",
@@ -41,17 +61,6 @@
               "i18n": "ges.asistenciaexcepcion",
               "icon": "anticon-profile",
               "link": "/ges/asistencia_excepcion"
-            },        
-    
-            {
-              "text": "Convertir PDF",
-              "link": "/ges/pdf_retiro",
-              "icon": "anticon-profile"
-            },
-            {
-              "text": "Listado",
-              "link": "/ges/liquida",
-              "icon": "anticon-profile"
             },
             {
               "text": "Detalle Asistencia",
@@ -59,24 +68,22 @@
               "icon": "anticon-profile"
             },
             {
-              "text": "Adelanto",
-              "link": "/ges/adelanto",
-              "icon": "anticon-profile"
-            },
-            {
-              "text": "Impuesto Afip",
-              "link": "/ges/impuesto_afip",
+              "text": "Objetivos Pendientes Asitencia",
+              "link": "/ges/objetivos_pendasis",
               "icon": "anticon-profile"
             }
-
           ]
         },
         {
-          "text": "Cambio Categoría",
-          "link": "/ges/cambio_categoria",
+          "text": "Adelanto",
+          "link": "/ges/adelanto",
+          "icon": "anticon-profile"
+        },
+        {
+          "text": "Impuesto Afip",
+          "link": "/ges/impuesto_afip",
           "icon": "anticon-profile"
         }
-
       ]
     }
   ],

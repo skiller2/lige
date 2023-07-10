@@ -10,6 +10,7 @@ import { asistenciaRouter } from "./asistencia.routes";
 import { adelantosRouter } from "../adelantos/adelantos.routes";
 import { impuestosAfipRouter } from "../impuestos-afip/impuestos-afip.routes";
 import { categoriasRouter } from "../categorias-cambio/categorias-cambio.routes";
+import { objetivosPendasisRouter } from "../objetivos-pendasis/objetivos-pendasis.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -23,4 +24,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/adelantos", adelantosRouter);
   server.setRoute("/api/impuestos_afip", impuestosAfipRouter);
   server.setRoute("/api/categorias", categoriasRouter);
+  server.setRoute("/api/objetivos-pendasis", objetivosPendasisRouter);
 }
