@@ -60,16 +60,16 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   //
 
   addTag() {
-    if (this.selections.field == "ApellidoNombreObjJ") {
+    
+    const fieldObj:any = this.fieldsToSelect.filter(x => x.field === this.selections.field)[0];
+
+    if (fieldObj?.searchComponent == 'inpurForPersonalSearch') { 
       let inputValueSearch: HTMLElement = document.getElementById("inpurForPersonalSearch") as HTMLElement;
       this.inputValue = inputValueSearch?.outerText
 
-    } else if (this.selections.field == "ApellidoNombreJ" ) {
-      let inputValueSearch: HTMLElement = document.getElementById("inpurForPersonalSearch") as HTMLElement;
-      this.inputValue = inputValueSearch?.outerText
     }
 
-    const tagToAdd = `${this.selections.field} | ${this.selections.operator} | ${this.inputValue}`;
+    const tagToAdd = `${fieldObj.name} ${this.selections.operator} ${this.inputValue}`;
     this.tags.push(tagToAdd);
 
   }
@@ -84,7 +84,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   verifySelections(): boolean {
-//    if (this.selections.searchComponent == 'inpurForPersonalSearch')
+    //    if (this.selections.searchComponent == 'inpurForPersonalSearch')
 
 
     this.selections.operator = (this.selections.field != "ApellidoNombreJ" && this.selections.field != "ApellidoNombreObjJ")
@@ -107,7 +107,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
       //Si son buscadores especiales le asigno el selectedPersonalId 
       if (this.selections.field == "ApellidoNombreJ" || this.selections.field == "ApellidoNombreObjJ") {
-//        this.selections.condition = "AND";
+        //        this.selections.condition = "AND";
         this.inputValue = this.selectedPersonalId
       }
       const appendedFilter = this.appendFiltro(
@@ -214,6 +214,10 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   inputSearchview = false;
   onOptionChange() {
-    this.inputSearchview = (this.selections.field != "ApellidoNombreJ" && this.selections.field != "ApellidoNombreObjJ") ? false : true;
+    const fieldObj:any = this.fieldsToSelect.filter(x => x.field === this.selections.field)[0];
+
+    if (fieldObj?.searchComponent == 'inpurForPersonalSearch') { 
+      this.inputSearchview = true  
+    } 
   }
 }

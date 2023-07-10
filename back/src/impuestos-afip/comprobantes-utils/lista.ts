@@ -49,6 +49,7 @@ const listaColumnas: any[] = [
     id: "ApellidoNombreJ",
     field: "ApellidoNombreJ",
     fieldName: "perrel.PersonalCategoriaPersonalId",
+    searchComponent:"inpurForPersonalSearch",
     sortable: true,
   },
   {
