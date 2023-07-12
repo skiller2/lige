@@ -5,7 +5,6 @@ import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-u
 import { Request, Response } from "express";
 import { ParsedQs } from "qs";
 
-
 const columnasGrilla: any[] = [
   {
     id: "SucursalDescripcion",
@@ -26,7 +25,8 @@ const columnasGrilla: any[] = [
     customTooltip: {
       useRegularTooltip: true, // note regular tooltip will try to find a "title" attribute in the cell formatter (it won't work without a cell formatter)
     },
-    hidden:true
+    hidden: true,
+    searchHidden:true
   },
   {
     name: "Identificación Objetivo",
@@ -77,7 +77,7 @@ const columnasGrilla: any[] = [
     id: "ContratoFechaDesde",
     field: "ContratoFechaDesde",
     fieldName: "ContratoFechaDesde",
-    sortable: false,
+    sortable: true,
     hidden: false
   },
   {
@@ -86,7 +86,7 @@ const columnasGrilla: any[] = [
     id: "ContratoFechaHasta",
     field: "ContratoFechaHasta",
     fieldName: "ContratoFechaHasta",
-    sortable: false,
+    sortable: true,
     hidden: false
   },
   
@@ -104,9 +104,9 @@ export class ObjetivosPendasisController extends BaseController {
     const filtros = options.filtros;
     const filterSql = filtrosToSql(filtros,columnasGrilla);
 
-    console.log('filterSql',filterSql)
-    const anio = 2023
-    const mes = 7
+    const anio:number = filtros.filter((x: { index: string; }) => x.index === "anio")[0]?.valor;
+    const mes:number = filtros.filter((x: { index: string; }) => x.index === "mes")[0]?.valor;
+
     return dataSource.query(
       `SELECT DISTINCT suc.SucursalId, 
       suc.SucursalDescripcion,

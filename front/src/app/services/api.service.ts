@@ -6,6 +6,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { error } from 'pdf-lib';
 import { DownloadService } from './download.service';
 import { formatNumber } from '@angular/common';
+import { Formatters } from '@slickgrid-universal/common';
 
 
 @Injectable({
@@ -34,6 +35,24 @@ export class ApiService {
   get(url: string) {
     return this.http.get<any>(url).pipe(
       map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getCols(url: string) {
+    return this.http.get<any>(url).pipe(
+      map((res) => {
+        const mapped = res.data.map((col: any) => {
+          if (col.type == 'date')
+            col.formatter = Formatters.dateEuro
+          return col
+        });
+        console.log('columnas', res.data)
+        return res.data
+      }),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -77,7 +96,7 @@ export class ApiService {
     );
 
   }
-  
+
   getPersonalCategoriaPendiente(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/categorias/list', parameter).pipe(
@@ -130,7 +149,7 @@ export class ApiService {
   response(res: ResponseJSON<any>) {
     let tiempoConsido = ''
     if (res.ms)
-      tiempoConsido = `<BR> Tiempo consumidio ${formatNumber(Number(res.ms)/1000, this.locale, '1.2-2')} segundos`
+      tiempoConsido = `<BR> Tiempo consumidio ${formatNumber(Number(res.ms) / 1000, this.locale, '1.2-2')} segundos`
     this.notification.success('Respuesta', `${res.msg} ${tiempoConsido}`);
   }
 }

@@ -21,6 +21,7 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { formatDate } from '@angular/common';
+import { SearchService } from 'src/app/services/search.service';
 
 type listOptionsT = {
   filtros: any[],
@@ -59,41 +60,20 @@ export class CustomDescargaComprobanteComponent {
 export class ObjetivosPendAsisComponent {
   @ViewChild('objpendForm', { static: true }) objpendForm: NgForm =
     new NgForm([], []);
-  constructor(public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string) { }
+  constructor(public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService:SearchService) { }
   anio = 0
   mes = 0
   selectedTabIndex = 0;
+  SucursalId = 0
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
+  $optionsSucursales = this.searchService.getSucursales();
 
-  columns$ = this.apiService.get('/api/objetivos-pendasis/cols').pipe(map((cols) => {
-    /*
-    const colmonto:Column = {
-      name: "Importe",
-      type: "float",
-      id: "monto",
-      field: "monto",
-//      fieldName: "des.PersonalOtroDescuentoImporteVariable",
-      sortable: true,
-//      formatter: () => '...',
-      asyncPostRender: this.renderAngularComponent.bind(this),
-      params: {
-        component: CustomDescargaComprobanteComponent,
-        angularUtilService: this.angularUtilService,
-        //complexFieldLabel: 'assignee.name' // for the exportCustomFormatter
-      },
-    }
-*/
-
-    let mapped = cols.filter((col: any) => {
+  columns$ = this.apiService.getCols('/api/objetivos-pendasis/cols').pipe(map((cols) => {
+    const mapped = cols.filter((col: any) => {
       return !col.hidden
     });
 
-    mapped = mapped.map((col: any) => {
-      //      if (col.id == 'monto')
-      //        col=colmonto
-      return col
-    });
     return mapped
   }));
   excelExportService = new ExcelExportService()

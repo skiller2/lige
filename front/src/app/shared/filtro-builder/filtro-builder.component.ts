@@ -16,6 +16,7 @@ type listOptionsT = {
   sort: any,
 }
 
+
 const noop = () => { };
 
 export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
@@ -46,6 +47,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     sort: null,
   };
 
+
   inputValue = '';
   isFiltroBuilder = false;
 
@@ -55,6 +57,12 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     operator: '',
   };
 
+
+
+  constructor() {
+  }
+
+  
   //
   // Tags
   //
@@ -220,4 +228,10 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       this.inputSearchview = true  
     } 
   }
+
+  filterFields(field:any) {
+    return !field.searchHidden
+  }
+
 }
+

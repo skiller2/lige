@@ -90,7 +90,7 @@ export class ImpuestoAfipComponent {
 
 
 
-  columns$ = this.apiService.get('/api/impuestos_afip/cols').pipe(map((cols) => {
+  columns$ = this.apiService.getCols('/api/impuestos_afip/cols').pipe(map((cols) => {
     const colmonto:Column = {
       name: "Importe",
       type: "float",
