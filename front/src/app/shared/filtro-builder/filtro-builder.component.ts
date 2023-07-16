@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { Filtro, Options } from '../schemas/filtro';
 import { SharedModule } from '../shared.module';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { SearchService } from '../../services/search.service';
 import { BehaviorSubject } from 'rxjs';
 
 type listOptionsT = {
@@ -40,7 +41,12 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   @Output() optionsChange = new EventEmitter<Options>();
   formChange$ = new BehaviorSubject('');
+  selectedSucursalId = '';
+  selectedSucursalDescription = "";
+  $selectedSucursalIdChange = new BehaviorSubject('');
   selectedPersonalId = "";
+  inputSucursalview = false;
+  $optionsSucursales = this.searchService.getSucursales();
   tags: string[] = [];
   private _options: Options = {
     filtros: [],
@@ -57,12 +63,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     operator: '',
   };
 
-
-
-  constructor() {
-  }
-
-  
+  constructor(
+    private searchService: SearchService
+  ) {}
   //
   // Tags
   //
@@ -71,10 +74,15 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     
     const fieldObj:any = this.fieldsToSelect.filter(x => x.field === this.selections.field)[0];
 
-    if (fieldObj?.searchComponent == 'inpurForPersonalSearch') { 
+    if (fieldObj?.id == 'ApellidoNombreJ' || fieldObj?.id == 'CUITJ') { 
       let inputValueSearch: HTMLElement = document.getElementById("inpurForPersonalSearch") as HTMLElement;
       this.inputValue = inputValueSearch?.outerText
 
+    }
+    if (fieldObj?.searchComponent == 'Sucursal') { 
+      let inputValueSearch: HTMLElement = document.getElementById("sucursalName") as HTMLElement;
+      let inputValueSearchDescription: HTMLElement = document.getElementById("sucursalDescription") as HTMLElement;
+      this.inputValue = inputValueSearch?.outerText + "-" + inputValueSearchDescription?.outerText
     }
 
     const tagToAdd = `${fieldObj.name} ${this.selections.operator} ${this.inputValue}`;
@@ -89,13 +97,16 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   handleTagInteraction() {
     this.isFiltroBuilder = true;
+     if(!(this.fieldsToSelect.some(value => value.name == "Sucursal")))
+        this.fieldsToSelect.push({ name: 'Sucursal', field: 'Sucursal' });
+
   }
 
   verifySelections(): boolean {
     //    if (this.selections.searchComponent == 'inpurForPersonalSearch')
 
 
-    this.selections.operator = (this.selections.field != "ApellidoNombreJ" && this.selections.field != "ApellidoNombreObjJ")
+    this.selections.operator = (this.selections.field != "ApellidoNombreJ" && this.selections.field != "CUITJ")
       ? this.selections.operator
       : "=";
     if (
@@ -118,6 +129,10 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         //        this.selections.condition = "AND";
         this.inputValue = this.selectedPersonalId
       }
+      if ( this.selections.field == "CUITJ") {
+        //        this.selections.condition = "AND";
+        this.inputValue = this.inputValue.split(":")[1];
+      }
       const appendedFilter = this.appendFiltro(
         this.selections as any,
         this.inputValue
@@ -125,6 +140,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
     this.resetSelections();
     this.inputValue = '';
+    this.selectedSucursalId = '';
+    this.selectedSucursalDescription = "";
     this.isFiltroBuilder = false;
     let inputSearch: HTMLElement = document.getElementsByTagName("nz-select-clear")[0] as HTMLElement;
     inputSearch.click()
@@ -224,13 +241,34 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   onOptionChange() {
     const fieldObj:any = this.fieldsToSelect.filter(x => x.field === this.selections.field)[0];
 
-    if (fieldObj?.searchComponent == 'inpurForPersonalSearch') { 
-      this.inputSearchview = true  
+    if ( fieldObj?.id == 'CUITJ' || fieldObj?.id == 'ApellidoNombreJ' ) { 
+      this.inputSearchview = true ;
+      this.inputSucursalview = false;
+    } else if (fieldObj?.field == 'Sucursal') { 
+      this.inputSucursalview = true;
+      this.inputSearchview = false;
+    }else {
+      this.inputSucursalview = false;
+      this.inputSearchview = false;
     } 
+
+  
   }
 
   filterFields(field:any) {
     return !field.searchHidden
+  }
+
+  selectedValueSucursal(event: string) {
+    
+    this.selectedSucursalId = event;
+     
+  }
+
+  selectedValueCodigoDescripcion(event: string) {
+    
+    this.selectedSucursalDescription = event;
+     
   }
 
 }

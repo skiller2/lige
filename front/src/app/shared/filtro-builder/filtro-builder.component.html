@@ -34,7 +34,7 @@
         [nzLabel]="field.name"
         [nzValue]="field.field"></nz-option>
     </nz-select>
-    <nz-select *ngIf ="inputSearchview == false"
+    <nz-select *ngIf ="inputSearchview == false && inputSucursalview == false"
       [nzPlaceHolder]="'Operador'"
       [(ngModel)]="selections.operator"
       #operatorSelector>
@@ -43,7 +43,7 @@
         [nzLabel]="operator"
         [nzValue]="operator"></nz-option>
     </nz-select>
-     <input  *ngIf ="inputSearchview == false"
+     <input  *ngIf ="inputSearchview == false && inputSucursalview == false"
       placeholder="Valor"
       #inputElement
       nz-input
@@ -58,6 +58,20 @@
           [ngModelOptions]="{ standalone: true }"
           (keydown.enter)="handleInputConfirm()" />
       </div>
+      <nz-form-control id="sucursalName" [nzSpan]="4" *ngIf ="inputSucursalview" style="display:inline-block;width: 12%;">
+        <nz-select #sucursal="ngModel"  nzSpan="5"  name="SucursalId" [(ngModel)]="selectedSucursalId"
+          nzAllowClear nzPlaceHolder="Sucursal"
+          nzShowSearch (ngModelChange)="selectedValueSucursal($event)" >
+          <ng-container *ngFor="let option of $optionsSucursales | async">
+            <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
+          </ng-container>
+        </nz-select>
+      </nz-form-control>
+  
+        <nz-form-control id="sucursalDescription" *ngIf ="inputSucursalview" style="display:inline-block;width: 22%;">
+        <app-objetivo-search  [sucursalId]="selectedSucursalId" name="ObjetivoId"
+           ngModel (ngModelChange)="selectedValueCodigoDescripcion($event)" />
+          </nz-form-control>
     <button nz-button (click)="handleInputConfirm()">+</button>
   </ng-container>
 </nz-card>
