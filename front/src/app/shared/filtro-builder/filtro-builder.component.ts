@@ -90,18 +90,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         break;
     }
 
-    /*
-        if (fieldObj?.searchComponent == "inpurForPersonalSearchs") {
-          let inputValueSearch: HTMLElement = document.getElementById("inpurForPersonalSearch") as HTMLElement;
-          this.inputValue = inputValueSearch?.outerText
-        }
-    
-        if (fieldObj?.searchComponent == 'Sucursal') {
-          let inputValueSearch: HTMLElement = document.getElementById("sucursalName") as HTMLElement;
-          let inputValueSearchDescription: HTMLElement = document.getElementById("sucursalDescription") as HTMLElement;
-          this.inputValue = inputValueSearch?.outerText + "-" + inputValueSearchDescription?.outerText
-        }
-    */
     const tagToAdd = `${fieldObj.name} ${this.selections.operator} ${this.inputValue}`;
     this.tags.push(tagToAdd);
 
@@ -114,9 +102,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   handleTagInteraction() {
     this.isFiltroBuilder = true;
-    if (!(this.fieldsToSelect.some(value => value.name == "Sucursal")))
-      this.fieldsToSelect.push({ name: 'Sucursal', field: 'Sucursal' });
-
   }
 
   verifySelections(): boolean {

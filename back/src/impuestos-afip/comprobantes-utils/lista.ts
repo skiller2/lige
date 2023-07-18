@@ -77,6 +77,17 @@ const listaColumnas: any[] = [
     fieldName: "cli.ClienteId",
     hidden: true
   },
+  {
+    name: "Sucursal",
+    type: "string",
+    id: "Sucursal",
+    field: "Sucursal",
+    fieldName: "suc.SucursalId",
+    searchComponent:"Sucursal",
+    sortable: true,
+    hidden: true
+  },
+
 ];
 
 const findColumnByIndex = (field: string, list: any[]) => {
