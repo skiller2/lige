@@ -9,7 +9,7 @@ import {
   writeFileSync,
 } from "fs";
 import { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
-import { getDocument } from "pdfjs-dist/legacy/build/pdf";
+import { getDocument, GlobalWorkerOptions} from "pdfjs-dist/legacy/build/pdf";
 import { dataSource } from "../data-source";
 import {
   PDFDocument,
@@ -36,6 +36,9 @@ import {
   getPeriodoFromRequest,
 } from "./impuestos-afip.utils";
 import { getFiltroFromRequest } from "./download-informe-utils/informe-filtro";
+
+GlobalWorkerOptions.workerSrc = `./pdf.worker.js`;
+
 
 const cuitRegex = [
   /:\d{2}\n(\d{11})$/m,

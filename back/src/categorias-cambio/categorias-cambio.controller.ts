@@ -105,7 +105,7 @@ export class CategoriasController extends BaseController {
     options: any
   ) {
     const filtros = options.filtros;
-    const filterSql = filtrosToSql(filtros);
+    const filterSql = filtrosToSql(filtros,columnasGrilla);
     const fecha = options.extra?.fecProcesoCambio || new Date()
 
     return dataSource.query(

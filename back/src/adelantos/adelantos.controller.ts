@@ -73,13 +73,13 @@ export class AdelantosController extends BaseController {
       //Hay ya un adelanto sin aprob
       // Si hay, lo reemplazas
       const adelantoId =
-        (
+        Number((
           await queryRunner.query(
             `
             SELECT per.PersonalAdelantoUltNro as max FROM Personal per WHERE per.PersonalId = @0`,
             [personalId]
           )
-        )[0].max + 1;
+        )[0].max) + 1;
       
       const adelantoExistente = await queryRunner.query(
         `DELETE From PersonalAdelanto 
@@ -88,6 +88,9 @@ export class AdelantosController extends BaseController {
         [personalId]
       );
 
+      const now = new Date()
+      let today = now
+      today.setHours(0,0,0,0)
 
       const result = await queryRunner.query(
         `INSERT INTO PersonalAdelanto(
@@ -99,10 +102,10 @@ export class AdelantosController extends BaseController {
           adelantoId,
           personalId,
           monto,
-          new Date(),
+          today,
           null,
           null,
-          1,
+          0,  //cuota
           null,
           null,
           "",
@@ -111,8 +114,8 @@ export class AdelantosController extends BaseController {
           null,
           ip,
           null,
-          null,
-          null,
+          today,
+          now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds(),
         ]
       );
 

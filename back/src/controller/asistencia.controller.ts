@@ -531,7 +531,7 @@ export class AsistenciaController extends BaseController {
       UNION
              
       SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
-      @1 AS anio, @2 AS mes, 'Efecto' AS tipomov, efe.EfectoDescripcion AS desmovimiento, cuo.PersonalDescuentoCuotaImporte AS importe, des.PersonalDescuentoCuotasPagas AS cuotanro, des.PersonalDescuentoCuotas AS cantcuotas, des.PersonalDescuentoImporte  AS importetotal
+      @1 AS anio, @2 AS mes, 'Efecto' AS tipomov, efe.EfectoDescripcion AS desmovimiento, cuo.PersonalDescuentoCuotaImporte AS importe, des.PersonalDescuentoCuotasPagas AS cuotanro, des.PersonalDescuentoCuotas AS cantcuotas, des.PersonalDescuentoImporte - (des.PersonalDescuentoImporte * des.PersonalDescuentoPorcentajeDescuento /100)   AS importetotal
       FROM PersonalDescuento des 
       JOIN PersonalDescuentoCuota cuo ON cuo.PersonalDescuentoId = des.PersonalDescuentoId AND cuo.PersonalDescuentoPersonalId = des.PersonalDescuentoPersonalId
       JOIN Efecto efe ON efe.EfectoId = des.PersonalDescuentoEfectoId
@@ -559,8 +559,8 @@ export class AsistenciaController extends BaseController {
       SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       -- pre.PrepagaDescripcion, pla.PrepagaPlanDescripcion, dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL,  dis.PersonalPrepagaDescuentoDiscriminadoGravado, dis.PersonalPrepagaDescuentoDiscriminadoExento, dis.PersonalPrepagaDescuentoDiscriminadoTipo,
       
-      @1 AS anio, @2 AS mes, 'Prepaga' AS tipomov, CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL) AS desmovimiento, IIF(dis.PersonalPrepagaDescuentoDiscriminadoTipo='C',dis.PersonalPrepagaDescuentoDiscriminadoExento*-1,dis.PersonalPrepagaDescuentoDiscriminadoExento) AS importe,  1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
-      
+      @1 AS anio, @2 AS mes, 'Prepaga' AS tipomov, CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento, IIF(dis.PersonalPrepagaDescuentoDiscriminadoTipo='C',(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)*-1,(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)) AS importe,  1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
+
       FROM PersonalPrepagaDescuento des
       JOIN Prepaga pre ON pre.PrepagaId = des.PrepagaId
       JOIN PrepagaPlan pla ON pla.PrepagaPlanId = des.PrepagaPlanId AND pla.PrepagaId = des.PrepagaId
@@ -588,9 +588,9 @@ export class AsistenciaController extends BaseController {
       LEFT JOIN TelefoniaFacturarA fac ON fac.TelefoniaId = tel.TelefoniaId AND DATEFROMPARTS(@1,@2,28) > fac.TelefoniaFacturarADesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(fac.TelefoniaFacturarAHasta,'9999-12-31') 
       
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = tel.TelefoniaObjetivoId
-      LEFT JOIN ClienteCoordinadorCuenta coo ON coo.ClienteId = obj.ClienteId AND coo.ClienteCoordinadorCuentaInactivo = 0 AND coo.ClienteCoordinadorCuentaPrincipal = 1
-      
-      LEFT JOIN Personal per ON per.PersonalId = ISNULL(ISNULL(ISNULL(fac.TelefoniaFacturarAPersonalId,tel.TelefoniaPersonalId),coo.ClienteCoordinadorPersonalId),fac.TelefoniaFacturarACoordinador) AND ISNULL(fac.TelefoniaFacturarACooperativa,0) =0
+      LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(@1,@2,'01')  BETWEEN coo.ObjetivoPersonalJerarquicoDesde  AND ISNULL(coo.ObjetivoPersonalJerarquicoHasta,'9999-12-31') AND coo.ObjetivoPersonalJerarquicoComo = 'C' and coo.ObjetivoPersonalJerarquicoDescuentos = 1
+
+      LEFT JOIN Personal per ON per.PersonalId = ISNULL(coo.ObjetivoPersonalJerarquicoPersonalId,fac.TelefoniaFacturarAPersonalId)
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
       LEFT JOIN OperacionesPersonalAsignarAJerarquico perrel ON perrel.OperacionesPersonalAAsignarPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
       
