@@ -1,5 +1,20 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
+
+@Pipe({ name: 'colsFilter' })
+
+
+export class ColsFilterPipe implements PipeTransform {
+  transform(items: any[]): any {
+
+    const cols= (items||[]).filter((col: any) => {
+      return !col.hidden
+    });
+    return cols
+  }
+}
+
+
 @Pipe({ name: 'appFilter' })
 
 
@@ -24,8 +39,11 @@ export class AppFilterPipe implements PipeTransform {
     function checkInside(item: any, term: string) {
 
       if (typeof item === "string" && item.toString().toLowerCase().includes(toCompare)) {
+        console.log('compara',item, toCompare)
+
         return true;
       }
+
 
       for (let property in item) {
         if (item[property] === null || item[property] == undefined || excludes.includes(property)) {

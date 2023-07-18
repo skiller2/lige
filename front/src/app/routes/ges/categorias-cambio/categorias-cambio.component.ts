@@ -97,12 +97,7 @@ export class CategoriasCambioComponent {
       },
     }
 */
-
-    let mapped = cols.filter((col: any) => {
-      return !col.hidden
-    });
-
-    mapped = mapped.map((col: any) => {
+    let mapped = cols.map((col: any) => {
       //      if (col.id == 'monto')
       //        col=colmonto
       return col

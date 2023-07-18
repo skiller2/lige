@@ -35,11 +35,16 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   providers: [CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR],
 })
 export class FiltroBuilderComponent implements ControlValueAccessor {
-  @Input() fieldsToSelect: Array<any> = [];
+ 
+  @Input() set fieldsToSelect(value: any[]) {
+    this._fieldsToSelect = value;
+}
+
   @Input() conditionsToSelect = ['AND', 'OR'];
   @Input() operatorsToSelect = ['LIKE', '>', '<'];
 
   @Output() optionsChange = new EventEmitter<Options>();
+  _fieldsToSelect: Array<any>=[]
   formChange$ = new BehaviorSubject('');
   selectedSucursalId = '';
   selectedSucursalDescription = "";
@@ -69,10 +74,12 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   //
   // Tags
   //
+  ngOnInit():void { 
+  }
 
   addTag() {
 
-    const fieldObj: any = this.fieldsToSelect.filter(x => x.field === this.selections.field)[0];
+    const fieldObj: any = this._fieldsToSelect.filter(x => x.field === this.selections.field)[0];
     let inputValueSearch: HTMLElement
 
     switch (fieldObj?.searchComponent) {
@@ -105,7 +112,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   verifySelections(): boolean {
-    const fieldObj: any = this.fieldsToSelect.filter(x => x.field === this.selections.field)[0];
+    const fieldObj: any = this._fieldsToSelect.filter(x => x.field === this.selections.field)[0];
 
     this.selections.operator = (fieldObj?.searchComponent) ? "=" : this.selections.operator
 
@@ -119,7 +126,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   handleInputConfirm() {
-    const fieldObj: any = this.fieldsToSelect.filter(x => x.field === this.selections.field)[0];
+    const fieldObj: any = this._fieldsToSelect.filter(x => x.field === this.selections.field)[0];
     debugger;
     // if ( this.verifySelections() && this.inputValue && this.tags.indexOf(this.inputValue) === -1 ) {
     if (this.verifySelections()) {
@@ -242,7 +249,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   inputSearchview = false;
   onOptionChange() {
-    const fieldObj: any = this.fieldsToSelect.filter(x => x.field === this.selections.field)[0];
+    const fieldObj: any = this._fieldsToSelect.filter(x => x.field === this.selections.field)[0];
 
     this.inputSucursalview = false;
     this.inputSearchview = false;

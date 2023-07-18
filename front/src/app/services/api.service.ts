@@ -50,7 +50,6 @@ export class ApiService {
             col.formatter = Formatters.dateEuro
           return col
         });
-        console.log('columnas', res.data)
         return res.data
       }),
       catchError((err, caught) => {

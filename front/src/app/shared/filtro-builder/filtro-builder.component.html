@@ -29,15 +29,18 @@
       [(ngModel)]="selections.field"
       (ngModelChange)="onOptionChange()"
       #fieldSelector>
-      <nz-option
-        *ngFor="let field of fieldsToSelect"
+      <ng-container *ngFor="let field of _fieldsToSelect">
+        <nz-option
+        *ngIf="field.searchHidden!=true"
         [nzLabel]="field.name"
         [nzValue]="field.field"></nz-option>
+      </ng-container>
     </nz-select>
     <nz-select *ngIf ="inputSearchview == false && inputSucursalview == false"
       [nzPlaceHolder]="'Operador'"
       [(ngModel)]="selections.operator"
       #operatorSelector>
+      
       <nz-option
         *ngFor="let operator of operatorsToSelect"
         [nzLabel]="operator"

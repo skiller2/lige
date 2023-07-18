@@ -70,11 +70,7 @@ export class ObjetivosPendAsisComponent {
   $optionsSucursales = this.searchService.getSucursales();
 
   columns$ = this.apiService.getCols('/api/objetivos-pendasis/cols').pipe(map((cols) => {
-    const mapped = cols.filter((col: any) => {
-      return !col.hidden
-    });
-
-    return mapped
+    return cols
   }));
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;

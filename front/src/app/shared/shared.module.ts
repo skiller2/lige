@@ -18,7 +18,7 @@ import { FormComponent } from './imagePreview/form/form.component';
 import { ImageCropperModule } from 'ngx-image-cropper';
 import { QRModule } from '@delon/abc/qr';
 import { ViewCredentialComponent } from './viewCredential/view-credential.component';
-import { AppFilterPipe } from './utils/filter-type';
+import { AppFilterPipe,ColsFilterPipe } from './utils/filter-type';
 import { ObjetivoSearchComponent } from './objetivo-search/objetivo-search.component';
 import { AppDownFileDirective } from './down-file/down-file.directive';
 import { AngularSlickgridModule } from 'angular-slickgrid';
@@ -40,7 +40,7 @@ const COMPONENTS: Array<Type<any>> = [
   FormComponent,
   PeriodoSelectComponent,
 ];
-const DIRECTIVES: Array<Type<any>> = [CUITPipe, AppFilterPipe,AppDownFileDirective];
+const DIRECTIVES: Array<Type<any>> = [CUITPipe, AppFilterPipe,AppDownFileDirective,ColsFilterPipe];
 // #endregion
 
 @NgModule({
