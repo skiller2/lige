@@ -61,9 +61,10 @@ export class ApiService {
 
 
   getAdelantos(year: number, month: number, personalID: string) {
-    if (!personalID || !month || !year) {
+    if (!month && !year) {
       return of([]);
     }
+    if (personalID == "") personalID = "0"
     return this.http.get<ResponseJSON<any[]>>(`api/adelantos/${personalID}/${year}/${month}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {

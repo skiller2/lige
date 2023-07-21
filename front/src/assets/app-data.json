@@ -81,7 +81,7 @@
         },
         {
           "text": "Impuesto Afip",
-          "link": "/ges/impuesto_afip",
+          "link": "/ges/impuesto_afip/listado",
           "icon": "anticon-profile"
         }
       ]

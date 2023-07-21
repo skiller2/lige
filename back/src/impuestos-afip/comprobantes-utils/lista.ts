@@ -6,6 +6,7 @@ const listaColumnas: any[] = [
     fieldName: "cuit2.PersonalCUITCUILCUIT",
     type: "number",
     sortable: true,
+    searchHidden: false
   },
   {
     name: "Apellido Nombre",
@@ -16,7 +17,9 @@ const listaColumnas: any[] = [
     sortable: true,
     customTooltip: {
       useRegularTooltip: true, // note regular tooltip will try to find a "title" attribute in the cell formatter (it won't work without a cell formatter)
-    },    
+    },
+    searchHidden: false,
+    hidden: false,
   },
   {
     name: "Sit Revista",
@@ -25,7 +28,8 @@ const listaColumnas: any[] = [
     field: "SituacionRevistaDescripcion",
     fieldName: "sit.SituacionRevistaDescripcion",
     sortable: true,
-    hidden: true
+    hidden: true,
+    searchHidden: false
   },
   {
     name: "Importe",
@@ -34,6 +38,8 @@ const listaColumnas: any[] = [
     field: "monto",
     fieldName: "des.PersonalOtroDescuentoImporteVariable",
     sortable: true,
+    searchHidden: false,
+    hidden: false,
   },
   {
     name: "CUIT Responsable",
@@ -42,6 +48,8 @@ const listaColumnas: any[] = [
     field: "CUITJ",
     fieldName: "cuit.PersonalCUITCUILCUIT",
     sortable: true,
+    searchHidden: false,
+    hidden: false,
   },
   {
     name: "Apellido Nombre Responsable",
@@ -51,6 +59,18 @@ const listaColumnas: any[] = [
     fieldName: "perrel.PersonalCategoriaPersonalId",
     searchComponent:"inpurForPersonalSearch",
     sortable: true,
+    searchHidden: false
+  },
+  {
+    name: "Apellido Nombre Responsable Objetivo",
+    type: "string",
+    id: "ApellidoNombreRO",
+    field: "ApellidoNombreRO",
+    fieldName: "opj.ObjetivoPersonalJerarquicoPersonalId",
+    searchComponent:"inpurForPersonalSearch",
+    sortable: true,
+    searchHidden: false,
+    hidden:true
   },
   {
     name: "ID Descuento",
@@ -58,7 +78,8 @@ const listaColumnas: any[] = [
     type: "number",
     id: "PersonalOtroDescuentoId",
     sortable: true,
-    hidden: true
+    hidden: true,
+    searchHidden: false
   },
   {
     name: "PersonalIdJ",
@@ -67,7 +88,8 @@ const listaColumnas: any[] = [
     field: "PersonalIdJ",
     fieldName: "perrel.PersonalCategoriaPersonalId",
     sortable: false,
-    hidden: true
+    hidden: true,
+    searchHidden: false
   },
   {
     name: "ClienteId",
@@ -75,7 +97,8 @@ const listaColumnas: any[] = [
     id: "ClienteId",
     field: "ClienteId",
     fieldName: "cli.ClienteId",
-    hidden: true
+    hidden: true,
+    searchHidden: false
   },
   {
     name: "Sucursal",
@@ -85,7 +108,8 @@ const listaColumnas: any[] = [
     fieldName: "suc.SucursalId",
     searchComponent:"Sucursal",
     sortable: true,
-    hidden: true
+    hidden: true,
+    searchHidden: false
   },
 
 ];

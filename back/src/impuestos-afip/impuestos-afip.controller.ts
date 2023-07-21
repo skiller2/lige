@@ -113,14 +113,65 @@ export class ImpuestosAfipController extends BaseController {
     }
   }
 
-  DescuentosByPeriodo(params: {
+  async DescuentosByPeriodo(params: {
     anio: string;
     mes: string;
     descuentoId: string;
     options: Options;
   }) {
     const filtros = params.options.filtros;
-    const filterSql = filtrosToSql(filtros,listaColumnas);
+    console.log('filtros', filtros)
+    
+/*
+  Separar filtros en 2 arreglos basándose en el fieldName.  Si fieldName corresponde a consulta1 debería ir a filtrosConsulta1 caso contrario ir a filtrosConsulta2     
+    filtrosConsulta1[]
+    filtrosConsulta2[]
+*/
+    let filterSql = filtrosToSql(filtros,listaColumnas);
+    console.log('filterSql', filterSql)
+
+    if (false) {
+      const personalIdArr = await dataSource.query(`SELECT 
+    suc.SucursalId, 
+    obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, 
+    persona.PersonalId, cuit.PersonalCUITCUILCUIT, persona.PersonalApellido, persona.PersonalNombre, 
+    
+    perjer.PersonalNombre AS NombreResponsableObjetivo, perjer.PersonalApellido AS ApellidoResponsableObjetivo,
+    
+    obj.ClienteId,
+    obj.ClienteElementoDependienteId, obj.ObjetivoDescripcion,
+    cli.ClienteDenominacion, cli.ClienteNombreFantasia, cli.ClienteApellidoNombre,
+    
+    1
+    
+    FROM ObjetivoAsistenciaAnoMesPersonalDias objd
+    JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoMesId = objd.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objd.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objd.ObjetivoId
+    JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objm.ObjetivoId
+    JOIN Objetivo obj ON obj.ObjetivoId = obja.ObjetivoId
+    JOIN Personal persona ON persona.PersonalId = objd.ObjetivoAsistenciaMesPersonalId
+    JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = persona.PersonalCUITCUILUltNro
+    
+    LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+    LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledepcon.ClienteElementoDependienteContratoId = eledep.ClienteElementoDependienteContratoUltNro
+    
+    LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
+    LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = obj.ClienteId AND clicon.ClienteContratoId = cli.ClienteContratoUltNro AND obj.ClienteElementoDependienteId IS NULL
+    
+    LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+    
+    LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01')  BETWEEN opj.ObjetivoPersonalJerarquicoDesde  AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') AND opj.ObjetivoPersonalJerarquicoComo = 'J'
+    LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
+    
+    WHERE obja.ObjetivoAsistenciaAnoAno = @0 AND objm.ObjetivoAsistenciaAnoMesMes = @1 AND ${filterSql}`,[params.anio,params.mes] )
+      let listPersonalId = ''
+    
+      personalIdArr.forEach(row => {
+        listPersonalId += row.PersonalId + ','
+      });
+
+      listPersonalId += '0'
+      filterSql += `AND per.PersonalId IN (${listPersonalId})`
+    }
 
     return dataSource.query(
       `SELECT DISTINCT 

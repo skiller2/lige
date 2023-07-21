@@ -27,6 +27,7 @@ import { Options } from 'src/app/shared/schemas/filtro';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import { Router } from '@angular/router';
 
 type listOptionsT = {
   filtros: any[],
@@ -64,7 +65,7 @@ export class CustomDescargaComprobanteComponent {
 export class ImpuestoAfipComponent {
   @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm =
     new NgForm([], []);
-  constructor(public apiService: ApiService, private cdr: ChangeDetectorRef, private angularUtilService: AngularUtilService) { }
+  constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService) { }
   url = '/api/impuestos_afip';
   url_forzado = '/api/impuestos_afip/forzado';
   toggle = false;
@@ -72,7 +73,6 @@ export class ImpuestoAfipComponent {
   files: NzUploadFile[] = [];
   anio = 0
   mes = 0
-  selectedTabIndex = 0;
   selectedPersonalId = null;
   formChange$ = new BehaviorSubject('');
   filesChange$ = new BehaviorSubject('');

@@ -13,6 +13,18 @@ export class AdelantosController extends BaseController {
   ) {
 
     try {
+      const responsables = await dataSource.query(
+        `SELECT DISTINCT pjer.ObjetivoPersonalJerarquicoPersonalId as PersonalId, 1
+        FroM ObjetivoPersonalJerarquico pje 
+        JOIN ObjetivoPersonalJerarquico pjer ON pjer.ObjetivoId = pje.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > pjer.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(pjer.ObjetivoPersonalJerarquicoHasta, '9999-12-31')
+        WHERE pje.ObjetivoPersonalJerarquicoPersonalId = @0`,
+        [req.PersonalId,Año, Mes])
+
+      let PersonalIdList="" 
+      responsables.forEach((row: any) => { 
+        PersonalIdList+=`${row.PersonalId},`
+      })
+      PersonalIdList+=`0`
 
       const adelantos = await dataSource.query(
         `SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, ade.* 
@@ -21,8 +33,8 @@ export class AdelantosController extends BaseController {
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
         LEFT JOIN OperacionesPersonalAsignarAJerarquico perrel ON perrel.OperacionesPersonalAAsignarPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
            WHERE ((ade.PersonalAdelantoAprobado IN (NULL) OR ade.PersonalAdelantoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1)) OR ade.PersonalAdelantoAprobado IS NULL)
-                AND (ade.PersonalId = @0 or perrel.PersonalCategoriaPersonalId = @3)`,
-        [personalId, Año, Mes, req.PersonalId])
+                AND (ade.PersonalId = @0 or perrel.PersonalCategoriaPersonalId IN(${PersonalIdList}))`,
+        [personalId, Año, Mes])
 
       this.jsonRes(adelantos, res);
     } catch (err) {
@@ -72,14 +84,6 @@ export class AdelantosController extends BaseController {
       // Max Val
       //Hay ya un adelanto sin aprob
       // Si hay, lo reemplazas
-      const adelantoId =
-        Number((
-          await queryRunner.query(
-            `
-            SELECT per.PersonalAdelantoUltNro as max FROM Personal per WHERE per.PersonalId = @0`,
-            [personalId]
-          )
-        )[0].max) + 1;
       
       const adelantoExistente = await queryRunner.query(
         `DELETE From PersonalAdelanto 
@@ -88,45 +92,58 @@ export class AdelantosController extends BaseController {
         [personalId]
       );
 
-      const now = new Date()
-      let today = now
-      today.setHours(0,0,0,0)
+      if (monto > 0) {
 
-      const result = await queryRunner.query(
-        `INSERT INTO PersonalAdelanto(
+        const adelantoId =
+          Number((
+            await queryRunner.query(
+              `
+            SELECT per.PersonalAdelantoUltNro as max FROM Personal per WHERE per.PersonalId = @0`,
+              [personalId]
+            )
+          )[0].max) + 1;
+
+
+        const now = new Date()
+        let today = now
+        today.setHours(0, 0, 0, 0)
+
+        const result = await queryRunner.query(
+          `INSERT INTO PersonalAdelanto(
                     PersonalAdelantoId, PersonalId, PersonalAdelantoMonto, PersonalAdelantoFechaSolicitud, PersonalAdelantoAprobado, PersonalAdelantoFechaAprobacion, PersonalAdelantoCantidadCuotas, PersonalAdelantoAplicaEl, PersonalAdelantoLiquidoFinanzas, PersonalAdelantoUltimaLiquidacion, PersonalAdelantoCuotaUltNro, PersonalAdelantoMontoAutorizado, PersonalAdelantoJerarquicoId, PersonalAdelantoPuesto, PersonalAdelantoUsuarioId, PersonalAdelantoDia, PersonalAdelantoTiempo)
                     VALUES(
                     @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16)
                 `,
-        [
-          adelantoId,
-          personalId,
-          monto,
-          today,
-          null,
-          null,
-          0,  //cuota
-          null,
-          null,
-          "",
-          null,
-          0,
-          null,
-          ip,
-          null,
-          today,
-          now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds(),
-        ]
-      );
+          [
+            adelantoId,
+            personalId,
+            monto,
+            today,
+            null,
+            null,
+            0,  //cuota
+            null,
+            null,
+            "",
+            null,
+            0,
+            null,
+            ip,
+            null,
+            today,
+            now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds(),
+          ]
+        );
 
-      const resultAdelanto = await queryRunner.query(
-        `UPDATE Personal SET PersonalAdelantoUltNro=@1 WHERE PersonalId=@0 `,
-        [
-          personalId,
-          adelantoId,
-        ]
+        const resultAdelanto = await queryRunner.query(
+          `UPDATE Personal SET PersonalAdelantoUltNro=@1 WHERE PersonalId=@0 `,
+          [
+            personalId,
+            adelantoId,
+          ]
         );
    
+      }
 
       await queryRunner.commitTransaction();
       this.jsonRes([], res, "Adelanto añadido.");

@@ -18,6 +18,10 @@ export const GesRoutes: Routes = [
     loadComponent: () => import('./impuesto-afip/impuesto-afip.component').then(c => c.ImpuestoAfipComponent),
   },
   {
+    path: 'impuesto_afip/:tab',
+    loadComponent: () => import('./impuesto-afip/impuesto-afip.component').then(c => c.ImpuestoAfipComponent),
+  },
+  {
     path: 'credencial_personal',
     loadComponent: () => import('./credencial-personal/credencial-personal.component').then(c => c.CredencialPersonalComponent),
   },

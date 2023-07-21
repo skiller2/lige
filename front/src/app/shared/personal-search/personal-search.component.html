@@ -1,4 +1,5 @@
 <nz-select
+  [nzDropdownMatchSelectWidth]="false"
   [(ngModel)]="selectedPersonalId"
   [ngModelOptions]="{ standalone: true }"
   style="width: 100%"
@@ -7,6 +8,7 @@
   nzPlaceHolder="Apellido, Nombre, CUIT"
   nzShowSearch
   nzServerSearch
+  
   (nzOnSearch)="search($event)">
   <ng-container *ngFor="let option of $optionsArray | async">
     <nz-option

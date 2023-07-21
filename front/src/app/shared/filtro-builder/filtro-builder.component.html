@@ -25,6 +25,7 @@
     </nz-select> -->
 
     <nz-select
+      [nzDropdownMatchSelectWidth]="false"
       [nzPlaceHolder]="'Columna'"
       [(ngModel)]="selections.field"
       (ngModelChange)="onOptionChange()"
