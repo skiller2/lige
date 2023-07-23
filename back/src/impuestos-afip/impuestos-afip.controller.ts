@@ -119,18 +119,35 @@ export class ImpuestosAfipController extends BaseController {
     descuentoId: string;
     options: Options;
   }) {
-    const filtros = params.options.filtros;
-    console.log('filtros', filtros)
-    
-/*
-  Separar filtros en 2 arreglos basándose en el fieldName.  Si fieldName corresponde a consulta1 debería ir a filtrosConsulta1 caso contrario ir a filtrosConsulta2     
-    filtrosConsulta1[]
-    filtrosConsulta2[]
-*/
-    let filterSql = filtrosToSql(filtros,listaColumnas);
-    console.log('filterSql', filterSql)
 
-    if (false) {
+    const filtros = params.options.filtros;
+
+    let filtrosConsulta1 = [], filtrosConsulta2 = [];
+    let filter1IsActive = false;
+    params.options.filtros.forEach(element => {
+      switch (element.index) {
+        case "Sucursal":
+          filtrosConsulta1.push(element);
+          filter1IsActive = true;
+          break;
+          case "ApellidoNombreRO":
+          filtrosConsulta1.push(element);
+          filter1IsActive = true;
+          break;
+        default:
+          filtrosConsulta2.push(element)
+          break;
+      }
+    });
+    
+    /*
+      Separar filtros en 2 arreglos basándose en el fieldName.  Si fieldName corresponde a consulta1 debería ir a filtrosConsulta1 caso contrario ir a filtrosConsulta2     
+    */
+    let filterSql1 = filtrosToSql(filtrosConsulta1,listaColumnas);
+    let filterSql2 = filtrosToSql(filtrosConsulta2,listaColumnas);
+    
+
+    if (filter1IsActive) {
       const personalIdArr = await dataSource.query(`SELECT 
     suc.SucursalId, 
     obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, 
@@ -162,7 +179,7 @@ export class ImpuestosAfipController extends BaseController {
     LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01')  BETWEEN opj.ObjetivoPersonalJerarquicoDesde  AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') AND opj.ObjetivoPersonalJerarquicoComo = 'J'
     LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
     
-    WHERE obja.ObjetivoAsistenciaAnoAno = @0 AND objm.ObjetivoAsistenciaAnoMesMes = @1 AND ${filterSql}`,[params.anio,params.mes] )
+    WHERE obja.ObjetivoAsistenciaAnoAno = @0 AND objm.ObjetivoAsistenciaAnoMesMes = @1 AND ${filterSql1}`,[params.anio,params.mes] )
       let listPersonalId = ''
     
       personalIdArr.forEach(row => {
@@ -170,7 +187,7 @@ export class ImpuestosAfipController extends BaseController {
       });
 
       listPersonalId += '0'
-      filterSql += `AND per.PersonalId IN (${listPersonalId})`
+      filterSql2 += `AND per.PersonalId IN (${listPersonalId})`
     }
 
     return dataSource.query(
@@ -205,7 +222,7 @@ export class ImpuestosAfipController extends BaseController {
 
 	-- AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
   AND sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26)
-    AND (${filterSql})
+    AND (${filterSql2})
    `,
       [, params.anio, params.mes, params.descuentoId]
     );
