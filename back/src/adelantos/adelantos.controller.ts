@@ -80,11 +80,7 @@ export class AdelantosController extends BaseController {
 
       if (!personalId) throw new Error("Falta cargar la persona.");
       if (!monto) throw new Error("Falta cargar el monto.");
-
-      // Max Val
-      //Hay ya un adelanto sin aprob
-      // Si hay, lo reemplazas
-      
+     
       const adelantoExistente = await queryRunner.query(
         `DELETE From PersonalAdelanto 
                 WHERE (PersonalAdelantoAprobado IS NULL)

@@ -117,8 +117,10 @@
               <td>{{ data.ApellidoNombre }}</td>
               <td>{{ data.PersonalAdelantoMonto | currency : '$' }}</td>
               <td>{{ data.PersonalAdelantoFechaSolicitud | date }}</td>
-              <td>{{ data.PersonalAdelantoFechaDeAprobacion | date }}</td>
-              <td>{{ data.PersonalAdelantoAprobado }}</td>
+              <td>{{ data.PersonalAdelantoFechaAprobacion | date }}</td>
+              <td *ngIf="data.PersonalAdelantoAprobado=='S'; then aprobado else pendiente"></td> 
+                <ng-template #aprobado>Aprobado</ng-template>
+                <ng-template #pendiente>Pendiente</ng-template>
               <td>{{ data.PersonalAdelantoAplicaEl }}</td>
             </tr>
           </tbody>
