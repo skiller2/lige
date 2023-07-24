@@ -72,10 +72,7 @@
         </nz-select>
       </nz-form-control>
   
-        <nz-form-control id="sucursalDescription" *ngIf ="inputSucursalview" style="display:inline-block;width: 22%;">
-        <app-objetivo-search  [sucursalId]="selectedSucursalId" name="ObjetivoId"
-           ngModel (ngModelChange)="selectedValueCodigoDescripcion($event)" />
-          </nz-form-control>
+      
     <button nz-button (click)="handleInputConfirm()">+</button>
   </ng-container>
 </nz-card>

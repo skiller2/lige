@@ -47,7 +47,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   _fieldsToSelect: Array<any>=[]
   formChange$ = new BehaviorSubject('');
   selectedSucursalId = '';
-  selectedSucursalDescription = "";
   $selectedSucursalIdChange = new BehaviorSubject('');
   selectedPersonalId = "";
   inputSucursalview = false;
@@ -127,7 +126,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   handleInputConfirm() {
     const fieldObj: any = this._fieldsToSelect.filter(x => x.field === this.selections.field)[0];
-    debugger;
     // if ( this.verifySelections() && this.inputValue && this.tags.indexOf(this.inputValue) === -1 ) {
     if (this.verifySelections()) {
       this.addTag();
@@ -151,7 +149,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     this.resetSelections();
     this.inputValue = '';
     this.selectedSucursalId = '';
-    this.selectedSucursalDescription = "";
     this.isFiltroBuilder = false;
     let inputSearch: HTMLElement = document.getElementsByTagName("nz-select-clear")[0] as HTMLElement;
     inputSearch.click()
@@ -277,11 +274,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   }
 
-  selectedValueCodigoDescripcion(event: string) {
-
-    this.selectedSucursalDescription = event;
-
-  }
 
 }
 
