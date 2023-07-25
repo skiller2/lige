@@ -1,15 +1,13 @@
-import express, {json, Application } from "express";
-import { Router } from "express";
+import express, {json, Application,Router } from "express";
 import { version,author,name,description } from "./version.json";
 import { DataSource } from "typeorm";
 import { existsSync, mkdir, mkdirSync } from "node:fs";
-
-
+import { randomBytes } from "node:crypto";
+import { createServer } from "http";
 
 require("dotenv").config();
 
-import * as http from "http";
-import { randomBytes } from "node:crypto";
+
 
 export const tmpName = (dir: string) => {
   while (true) {
@@ -70,7 +68,7 @@ export class WebServer {
 
   public async init(): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-      const server = http.createServer(this.app);
+      const server = createServer(this.app);
       server.listen(this.port, () => {
         resolve(`Listening on port ${this.port}`);
       });

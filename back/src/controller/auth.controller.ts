@@ -1,11 +1,11 @@
-import { BaseController } from "./baseController";
-import { hash,compare, getSalt} from "bcryptjs";
-//import * from "ldapjs";
-import { SearchOptions, createClient, SearchEntry } from "ldapjs";
-import jwt from "jsonwebtoken";
-import assert = require("assert");
+import { hash, compare, getSalt } from "bcryptjs";
+import { SearchOptions, createClient, SearchEntry } from "ldapjs/lib";
+import { sign, decode } from "jsonwebtoken";
 import { dataSource } from "../data-source";
 import { Request } from "express";
+import { ifError } from "assert";
+
+import { BaseController } from "./baseController";
 
 export class AuthController extends BaseController {
   authUser(user: string, password: string) {
@@ -37,7 +37,7 @@ export class AuthController extends BaseController {
         passowrd,
 
         (err: any) => {
-          //assert.ifError(err);
+          //ifError(err);
           if (err) return reject(err);
         }
       );
@@ -53,7 +53,9 @@ export class AuthController extends BaseController {
       };
       const ldapsearch = process.env.LDAP_SEARCH ? process.env.LDAP_SEARCH : "";
       client.search(ldapsearch, opts, (err: any, res: any) => {
-        assert.ifError(err);
+        ifError(err);
+
+
         let userEntry: SearchEntry | null = null;
         res.on("searchEntry", (entry: SearchEntry) => {
           userEntry = entry;
@@ -79,7 +81,7 @@ export class AuthController extends BaseController {
                 //NT_STATUS_LOGON_FAILURE
                 err.message = "1. Las credenciales proporcionadas no son válidas";
               return reject(err);
-              assert.ifError(err);
+              ifError(err);
             }
 
             return resolve({
@@ -126,12 +128,12 @@ export class AuthController extends BaseController {
   async signin(res: any, req: Request) {
     const { userName, password } = req.body;
     const queryRunner = dataSource.createQueryRunner();
-    
+
     try {
       let user: any = await this.authUser(userName, password)
       await queryRunner.connect();
 
-      const persona_cuit = (user.description !== undefined && user.description.length>0) ? user.description[0] : 0
+      const persona_cuit = (user.description !== undefined && user.description.length > 0) ? user.description[0] : 0
 
       let result = await queryRunner.query(
         `SELECT per.PersonalId
@@ -141,7 +143,7 @@ export class AuthController extends BaseController {
         persona_cuit,
       ])
       const row = result[0]
-      user.PersonalId = (row)? row['PersonalId'] : 0
+      user.PersonalId = (row) ? row['PersonalId'] : 0
       /*    
         this.authUser(userName, password)
           .then(async (user: any) => {
@@ -167,21 +169,21 @@ export class AuthController extends BaseController {
             this.errRes(err, res, "Error accediendo a base de datos", 409);
           });
     */
-      
-      
-      console.log('payload',user)
+
+
+      console.log('payload', user)
       const jwtsecret = process.env.JWT_SECRET ? process.env.JWT_SECRET : "";
-      const token = jwt.sign(user, jwtsecret, {
+      const token = sign(user, jwtsecret, {
         expiresIn: Number(process.env.JWT_EXPIRE_SECS),
       });
       //console.log("jwt", jwt);
-      //const tokenDecoded: any = jwt.decode(token);
+      //const tokenDecoded: any = decode(token);
       this.jsonRes({ token: token }, res);
     } catch (err) {
-//      let def = { message: "Error accediendo a la base de datos" };
-//      if (typeof def === "string") def = err;
-   //     if (queryRunner.isTransactionActive)
-   //      await queryRunner.rollbackTransaction();
+      //      let def = { message: "Error accediendo a la base de datos" };
+      //      if (typeof def === "string") def = err;
+      //     if (queryRunner.isTransactionActive)
+      //      await queryRunner.rollbackTransaction();
       this.errRes(err, res, err.message, 409);
     } finally {
       // you need to release query runner which is manually created:
@@ -197,7 +199,7 @@ export class AuthController extends BaseController {
     delete req.decoded_token.iat;
     delete req.decoded_token.exp;
     const jwtsecret = process.env.JWT_SECRET ? process.env.JWT_SECRET : "";
-    const token = jwt.sign(req.decoded_token, jwtsecret, {
+    const token = sign(req.decoded_token, jwtsecret, {
       expiresIn: Number(process.env.JWT_EXPIRE_SECS) * 1000,
     });
     this.jsonRes({ token: token }, res);

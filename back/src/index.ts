@@ -3,7 +3,6 @@ import { makeRoutes } from "./routes/routes.module"
 import { dataSource } from "./data-source";
 import { scheduleJob } from "node-schedule"
 import { CategoriasController } from "./categorias-cambio/categorias-cambio.controller";
-import { Response } from "express";
 
 require("dotenv").config();
 
