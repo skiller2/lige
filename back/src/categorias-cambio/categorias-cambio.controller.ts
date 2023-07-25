@@ -162,9 +162,12 @@ export class CategoriasController extends BaseController {
     const options = {}
 
     const queryRunner = dataSource.createQueryRunner();
-    const fechaActual = new Date()
+    let fechaActual = new Date()
+    fechaActual.setHours(0, 0, 0, 0)
+
     let fechaAyer = new Date()
     fechaAyer.setDate(fechaAyer.getDate() - 1);
+    fechaAyer.setHours(0, 0, 0, 0)
 
     try {
       await queryRunner.connect();
