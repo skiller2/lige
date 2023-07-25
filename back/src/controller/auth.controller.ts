@@ -1,5 +1,5 @@
 import { BaseController } from "./baseController";
-import * as bcrypt from "bcryptjs";
+import { hash,compare, getSalt} from "bcryptjs";
 //import * from "ldapjs";
 import { SearchOptions, createClient, SearchEntry } from "ldapjs";
 import jwt from "jsonwebtoken";
@@ -115,12 +115,12 @@ export class AuthController extends BaseController {
   }
 
   encryptPassword(password: string) {
-    const salt = bcrypt.getSalt("10");
-    return bcrypt.hash(password, salt);
+    const salt = getSalt("10");
+    return hash(password, salt);
   }
 
   comparePassword(password: string, passwordReceived: string) {
-    return bcrypt.compare(password, passwordReceived);
+    return compare(password, passwordReceived);
   }
 
   async signin(res: any, req: Request) {
@@ -136,7 +136,7 @@ export class AuthController extends BaseController {
       let result = await queryRunner.query(
         `SELECT per.PersonalId
       FROM Personal per
-      JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
+      JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       WHERE cuit.PersonalCUITCUILCUIT = @0`, [
         persona_cuit,
       ])
@@ -152,7 +152,7 @@ export class AuthController extends BaseController {
             let result = await queryRunner.query(
               `SELECT per.PersonalId
               FROM Personal per ON per.PersonalId = ade.PersonalId
-              JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = per.PersonalCUITCUILUltNro
+              JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
               WHERE cuit.PersonalCUITCUILCUIT = @0`, [
               user.persona_cuit,
             ])

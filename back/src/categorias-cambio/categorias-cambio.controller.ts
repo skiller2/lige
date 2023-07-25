@@ -196,7 +196,6 @@ export class CategoriasController extends BaseController {
         const PersonalCategoriaUltNro = catactual[0].max + 1;
 
 
-        console.log('resultado', PersonalCategoriaUltNro, catactual[0].max)
         
         const TipoJornadaId = catactual[0].TipoJornadaId
         const SucursalId = catactual[0].SucursalId

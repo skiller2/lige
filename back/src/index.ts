@@ -29,6 +29,16 @@ scheduleJob('1 0 * * *', async function (fireDate) {
 });
 
 
+
+let fechaActual = new Date()
+fechaActual.setHours(0, 0, 0, 0)
+
+let fechaAyer = new Date()
+fechaAyer.setDate(fechaAyer.getDate() - 1);
+fechaAyer.setHours(0, 0, 0, 0)
+console.log('actual',fechaActual,'ayer',fechaAyer)
+
+
 dbServer.init()
   .then((res) => {
     console.info(`${res.res}`)
