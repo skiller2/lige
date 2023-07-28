@@ -10,6 +10,10 @@ export const GesRoutes: Routes = [
     loadComponent: () => import('./detalle-asistencia/detalle-asistencia.component').then(c => c.DetalleAsistenciaComponent),
   },
   {
+    path: 'detalle_asistencia/:tab',
+    loadComponent: () => import('./detalle-asistencia/detalle-asistencia.component').then(c => c.DetalleAsistenciaComponent),
+  },  
+  {
     path: 'pdf_retiro',
     loadComponent: () => import('./pdf-retiro/pdf-retiro.component').then(c => c.PdfRetiroComponent),
   },

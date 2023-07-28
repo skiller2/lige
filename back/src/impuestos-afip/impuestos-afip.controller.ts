@@ -143,9 +143,12 @@ export class ImpuestosAfipController extends BaseController {
     /*
       Separar filtros en 2 arreglos basándose en el fieldName.  Si fieldName corresponde a consulta1 debería ir a filtrosConsulta1 caso contrario ir a filtrosConsulta2     
     */
-    let filterSql1 = filtrosToSql(filtrosConsulta1,listaColumnas);
+
+    let filterSql1 = filtrosToSql(filtrosConsulta1, listaColumnas);
     let filterSql2 = filtrosToSql(filtrosConsulta2,listaColumnas);
-    
+
+    console.log('con1',filtrosConsulta1,filterSql1)
+    console.log('con2',filtrosConsulta2,filterSql2)
 
     if (filter1IsActive) {
       const personalIdArr = await dataSource.query(`SELECT 

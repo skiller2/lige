@@ -20,8 +20,10 @@
     </nz-form-item>
   </form>
 
-  <nz-tabset nzCentered [(nzSelectedIndex)]="selectedTabIndex">
-    <nz-tab nzTitle="Por objetivo">
+  <nz-tabset nzLinkRouter nzCentered>
+    <nz-tab>
+      <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/objetivo">Objetivo</a>
+
       <form nz-form #asistenciaObj="ngForm">
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
@@ -200,8 +202,9 @@
 
       </form>
     </nz-tab>
-    <nz-tab nzTitle="Por persona">
-      <form nz-form #asistenciaPer="ngForm">
+    <nz-tab>
+      <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/persona">Persona</a>
+      <form nz-form #asistenciaPer="ngForm" >
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Persona</nz-form-label>
           <nz-form-control nzHasFeedback>
@@ -209,6 +212,13 @@
               ngModel />
           </nz-form-control>
         </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Retiro</nz-form-label>
+          <nz-form-control>
+            <span>{{ listaAsistenciaPerTotal - listaDescuentosPerTotal | currency }} </span> <span> ({{ listaAsistenciaPerTotal | currency }} - {{ listaDescuentosPerTotal | currency }})</span>
+          </nz-form-control>
+        </nz-form-item>
+
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Monotributo</nz-form-label>
           <nz-form-control>
@@ -296,8 +306,8 @@
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Asistencia</nz-form-label>
-          <nz-form-control>
-            <nz-table #asistPer [nzData]="$listaAsistenciaPer | async" nzSize="small" [nzPageSize]="100000000"
+          <nz-form-control *ngIf="$listaAsistenciaPer | async as listaAsistenciaPer ">
+            <nz-table #asistPer [nzData]="listaAsistenciaPer.asistencia" nzSize="small" [nzPageSize]="100000000"
               [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
               <thead>
                 <tr>
@@ -350,8 +360,8 @@
         </nz-form-item>
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Descuentos</nz-form-label>
-          <nz-form-control>
-            <nz-table #descPer [nzData]="$listaDescuentosPer | async" nzSize="small" [nzPageSize]="100000000"
+          <nz-form-control *ngIf="$listaDescuentosPer | async as listaDescuentosPer "> 
+            <nz-table #descPer [nzData]="listaDescuentosPer.descuentos" nzSize="small" [nzPageSize]="100000000"
               [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
               <thead>
                 <tr>
@@ -379,6 +389,8 @@
       </form>
     </nz-tab>
   </nz-tabset>
+
+
 </nz-card>
 
 <ng-template #optionsLoading>

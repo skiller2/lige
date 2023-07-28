@@ -1,10 +1,13 @@
-import { Component, Injector, OnInit, ViewChild } from '@angular/core';
+import {
+  Component, Injector, ViewChild
+} from '@angular/core';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import {
   BehaviorSubject,
   Subject,
   catchError,
   debounceTime,
+  filter,
   of,
   switchMap,
   takeUntil,
@@ -17,6 +20,7 @@ import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { SharedModule } from '@shared';
 import { CurrencyPipeModule } from '@delon/util';
 import { NzResizableModule } from 'ng-zorro-antd/resizable';
+import { NavigationEnd, Router } from '@angular/router';
 
 enum Busqueda {
   Sucursal,
@@ -45,7 +49,8 @@ export class DetalleAsistenciaComponent {
 
   constructor(
     private searchService: SearchService,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private router: Router
   ) {}
 
   private destroy$ = new Subject();
@@ -58,6 +63,8 @@ export class DetalleAsistenciaComponent {
   selectedSucursalId = '';
   selectedMetodologiaId = '';
   selectedCategoriaId = '';
+  listaDescuentosPerTotal = 0
+  listaAsistenciaPerTotal = 0
 
   $isSucursalOptionsLoading = new BehaviorSubject(false);
 
@@ -149,7 +156,10 @@ export class DetalleAsistenciaComponent {
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
         //          tap({ complete: () => this.tableLoading$.next(false) })
-        ()
+        (
+          (tap(data => { this.listaAsistenciaPerTotal = data.total}))
+
+        )
     )
   );
 
@@ -164,10 +174,10 @@ export class DetalleAsistenciaComponent {
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
-        //          tap({ complete: () => this.tableLoading$.next(false) })
-        ()
-    )
-  );
+        (tap(data => { this.listaDescuentosPerTotal = data.total})   
+        
+    
+  )))
 
   $personaMonotributo = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
@@ -269,12 +279,34 @@ export class DetalleAsistenciaComponent {
 
   buscarPorPersona(PersonalId: string) {
     this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
-    this.selectedTabIndex = 1;
+//    this.router.navigate(['/ges/detalle_asistencia/persona', { state: { PersonalId } }])
+    this.router.navigateByUrl('/ges/detalle_asistencia/persona', { state: { PersonalId } });
+
   }
 
   buscarPorObjetivo(ObjetivoId: string) {
     this.asistenciaObj.controls['ObjetivoId'].setValue(ObjetivoId);
-    this.selectedTabIndex = 0;
+//    this.router.navigate(['/ges/detalle_asistencia/objetivo', { state: { ObjetivoId } }]);
+    this.router.navigateByUrl('/ges/detalle_asistencia/objetivo', { state: { ObjetivoId } });
+
+  }
+
+
+
+  ngOnInit(): void { 
+/*
+    this.router.events.subscribe((val) => {
+      // see also 
+      console.log(val) 
+    });
+  
+    
+    this.router.routerState.
+    this.router.events.pipe(filter((event: any) => event instanceof NavigationEnd)).subscribe((event: NavigationEnd) => {
+      //Do something with the NavigationEnd event object.
+      console.log(event) 
+    });
+*/
   }
 
   dateChange(result: Date): void {

@@ -16,17 +16,15 @@ const columnasGrilla: any[] = [
     hidden: false
   },
   {
-    name: "SucursalId",
+    name: "Sucursal",
     type: "number",
     id: "SucursalId",
     field: "SucursalId",
     fieldName: "suc.SucursalId",
-    sortable: true,
-    customTooltip: {
-      useRegularTooltip: true, // note regular tooltip will try to find a "title" attribute in the cell formatter (it won't work without a cell formatter)
-    },
+    searchComponent:"Sucursal",
+
     hidden: true,
-    searchHidden:true
+    searchHidden:false
   },
   {
     name: "Identificación Objetivo",

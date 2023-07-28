@@ -58,6 +58,7 @@ const listaColumnas: any[] = [
     field: "ApellidoNombreJ",
     fieldName: "perrel.PersonalCategoriaPersonalId",
     searchComponent:"inpurForPersonalSearch",
+    searchType:"number",
     sortable: true,
     searchHidden: false
   },
@@ -81,6 +82,7 @@ const listaColumnas: any[] = [
     hidden: true,
     searchHidden: false
   },
+  /*
   {
     name: "PersonalIdJ",
     type: "string",
@@ -91,6 +93,7 @@ const listaColumnas: any[] = [
     hidden: true,
     searchHidden: false
   },
+  */
   {
     name: "ClienteId",
     type: "string",

@@ -15,8 +15,8 @@ const isFiltro = (filtro: any): filtro is Filtro => {
     !filtro ||
     !filtro.index ||
     !filtro.operador ||
-    !filtro.condition ||
-    !filtro.valor
+    !filtro.condition //||
+  //  !filtro.valor
   )
     return false;
   return (
@@ -53,7 +53,7 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
 
     const columna = findColumnByIndex(filtro.index, cols);
     const fieldName = columna ? columna.fieldName : null;
-
+    const type = String((columna?.searchType) ? columna.searchType : ((columna?.type) ? columna.type:'string')).toLowerCase(); 
     if (!fieldName) return;
 
     if (!isCondition(filtro.condition)) return;
@@ -72,7 +72,14 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
           filterString = `${condition} ${fieldName} LIKE '%${filtro.valor}%'`;
         break;
       case "=":
-        filterString = `${condition} ${fieldName} = ${filtro.valor}`;
+        if (type == 'number') {
+          if (filtro.valor == '' || filtro.valor == null || filtro.valor == 'null')
+            filterString = `${condition} ${fieldName} IS NULL`;
+          else
+            filterString = `${condition} ${fieldName} = ${filtro.valor}`;
+        } else
+          filterString = `${condition} ${fieldName} = '${filtro.valor}'`;
+
         break;
       case ">":
       case "<":

@@ -506,7 +506,7 @@ export class AsistenciaController extends BaseController {
     const listPersonaId=personalId.join(',')
     return dataSource.query(
       `             
-      SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, 0 as ObjetivoId,per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, 'Adelanto' AS tipomov, '' AS desmovimiento, ade.PersonalAdelantoMontoAutorizado AS importe, 1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
       FROM PersonalAdelanto ade 
               JOIN Personal per ON per.PersonalId = ade.PersonalId
@@ -517,7 +517,7 @@ export class AsistenciaController extends BaseController {
       
       UNION
              
-      SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, 0 as ObjetivoId, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov, '' AS desmovimiento, des.PersonalOtroDescuentoImporteVariable AS importe, 1 AS cuotanro, des.PersonalOtroDescuentoCantidadCuotas  AS cantcuotas, 0 AS importetotal
       
       FROM PersonalOtroDescuento des 
@@ -530,7 +530,7 @@ export class AsistenciaController extends BaseController {
       
       UNION
              
-      SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, 0 as ObjetivoId, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, 'Efecto' AS tipomov, efe.EfectoDescripcion AS desmovimiento, cuo.PersonalDescuentoCuotaImporte AS importe, des.PersonalDescuentoCuotasPagas AS cuotanro, des.PersonalDescuentoCuotas AS cantcuotas, des.PersonalDescuentoImporte - (des.PersonalDescuentoImporte * des.PersonalDescuentoPorcentajeDescuento /100)   AS importetotal
       FROM PersonalDescuento des 
       JOIN PersonalDescuentoCuota cuo ON cuo.PersonalDescuentoId = des.PersonalDescuentoId AND cuo.PersonalDescuentoPersonalId = des.PersonalDescuentoPersonalId
@@ -543,7 +543,7 @@ export class AsistenciaController extends BaseController {
       
       UNION
       
-      SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, 0 as ObjetivoId, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, 'Ayuda Asistencial' AS tipomov, '' AS desmovimiento, cuo.PersonalPrestamoCuotaImporte AS importe, cuo.PersonalPrestamoCuotaCuota AS cuotanro, des.PersonalPrestamoCantidadCuotas AS cantcuotas, des.PersonalPrestamoMonto importetotal
       
       FROM PersonalPrestamo des 
@@ -556,7 +556,7 @@ export class AsistenciaController extends BaseController {
       
       UNION
       
-      SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, 0 as ObjetivoId, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       -- pre.PrepagaDescripcion, pla.PrepagaPlanDescripcion, dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL,  dis.PersonalPrepagaDescuentoDiscriminadoGravado, dis.PersonalPrepagaDescuentoDiscriminadoExento, dis.PersonalPrepagaDescuentoDiscriminadoTipo,
       
       @1 AS anio, @2 AS mes, 'Prepaga' AS tipomov, CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento, IIF(dis.PersonalPrepagaDescuentoDiscriminadoTipo='C',(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)*-1,(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)) AS importe,  1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
@@ -574,25 +574,27 @@ export class AsistenciaController extends BaseController {
 
       UNION
 
-      SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, obj.ObjetivoId, per.PersonalId, 
+      cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       anio.ConsumoTelefoniaAnoAno, mes.ConsumoTelefoniaAnoMesMes, 'Telefonía' AS tipomov, 
-      CONCAT(TRIM(tel.TelefoniaNro), IIF(tel.TelefoniaObjetivoId>0,CONCAT(' Objetivo Cod: ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)),'')) AS desmovimiento, 
-      con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte+ (con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte * imp.ImpuestoInternoTelefoniaImpuesto / 100 ) AS importe, 1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
+      CONCAT(TRIM(tel.TelefoniaNro), IIF(tel.TelefoniaObjetivoId>0,CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',obj.ObjetivoDescripcion),'')) AS desmovimiento, 
+       con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte+ (con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte * imp.ImpuestoInternoTelefoniaImpuesto / 100 ) AS importe, 1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
       --, fac.TelefoniaFacturarACoordinador, coo.ClienteCoordinadorPersonalId
+      -- , con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte, con.ConsumoTelefoniaAnoMesTelefonoConsumoImporteInformativo, imp.ImpuestoInternoTelefoniaImpuesto, fac.TelefoniaFacturarACooperativa
       FROM ConsumoTelefoniaAno anio
       JOIN ConsumoTelefoniaAnoMes mes ON mes.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId
       JOIN ConsumoTelefoniaAnoMesTelefonoAsignado asi ON asi.ConsumoTelefoniaAnoMesId=mes.ConsumoTelefoniaAnoMesId AND asi.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId
       JOIN ConsumoTelefoniaAnoMesTelefonoConsumo con ON con.ConsumoTelefoniaAnoMesId = mes.ConsumoTelefoniaAnoMesId AND con.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId AND con.ConsumoTelefoniaAnoMesTelefonoAsignadoId= asi.ConsumoTelefoniaAnoMesTelefonoAsignadoId
       JOIN ImpuestoInternoTelefonia imp ON DATEFROMPARTS(@1,@2,28) > imp.ImpuestoInternoTelefoniaDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.ImpuestoInternoTelefoniaHasta ,'9999-12-31') 
-      LEFT JOIN Telefonia tel ON tel.TelefoniaId = asi.TelefoniaId
-      LEFT JOIN TelefoniaFacturarA fac ON fac.TelefoniaId = tel.TelefoniaId AND DATEFROMPARTS(@1,@2,28) > fac.TelefoniaFacturarADesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(fac.TelefoniaFacturarAHasta,'9999-12-31') 
+      JOIN Telefonia tel ON tel.TelefoniaId = asi.TelefoniaId
+      -- LEFT JOIN TelefoniaFacturarA fac ON fac.TelefoniaId = tel.TelefoniaId AND DATEFROMPARTS(@1,@2,28) > fac.TelefoniaFacturarADesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(fac.TelefoniaFacturarAHasta,'9999-12-31') 
       
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = tel.TelefoniaObjetivoId
-      LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(@1,@2,'01')  BETWEEN coo.ObjetivoPersonalJerarquicoDesde  AND ISNULL(coo.ObjetivoPersonalJerarquicoHasta,'9999-12-31') AND coo.ObjetivoPersonalJerarquicoComo = 'C' and coo.ObjetivoPersonalJerarquicoDescuentos = 1
-
-      LEFT JOIN Personal per ON per.PersonalId = ISNULL(coo.ObjetivoPersonalJerarquicoPersonalId,fac.TelefoniaFacturarAPersonalId)
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+      LEFT JOIN ObjetivoPersonalJerarquico objjer ON objjer.ObjetivoId = obj.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > objjer.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(objjer.ObjetivoPersonalJerarquicoHasta ,'9999-12-31') AND objjer.ObjetivoPersonalJerarquicoDescuentos = 1
+      
+      LEFT JOIN Personal per ON per.PersonalId = ISNULL(tel.TelefoniaPersonalId,objjer.ObjetivoPersonalJerarquicoPersonalId)
       LEFT JOIN OperacionesPersonalAsignarAJerarquico perrel ON perrel.OperacionesPersonalAAsignarPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       
       WHERE anio.ConsumoTelefoniaAnoAno = @1 AND mes.ConsumoTelefoniaAnoMesMes = @2 AND per.PersonalId IN (${listPersonaId})
       
@@ -613,7 +615,10 @@ export class AsistenciaController extends BaseController {
       const mes = req.params.mes;
 
       const result = await this.getDescuentos(anio, mes, [personalId])
-      this.jsonRes(result, res);
+
+      const total = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
+
+      this.jsonRes({ descuentos: result, total }, res);
     } catch (err) {
       let def = "Error accediendo a la base de datos";
       if (typeof def === "string") def = err;
@@ -859,7 +864,11 @@ export class AsistenciaController extends BaseController {
                 `,
         [personalId, anio, mes]
       );
-      this.jsonRes(result, res);
+
+      const total = result.map(row => row.totalminutoscalcimporteconart14).reduce((prev, curr) => prev + curr, 0)
+
+
+      this.jsonRes({ asistencia: result, total }, res);
     } catch (err) {
       let def = "Error accediendo a la base de datos";
       if (typeof def === "string") def = err;

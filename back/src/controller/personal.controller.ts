@@ -55,7 +55,7 @@ export class PersonalController extends BaseController {
         perrel.PersonalCategoriaPersonalId,
         cuit.PersonalCUITCUILCUIT as CUITJ,
         CONCAT(TRIM(perjer.PersonalApellido), ', ',TRIM(perjer.PersonalNombre)) ApellidoNombreJ, 
-        pjer.ObjetivoPersonalJerarquicoComo,
+        -- pjer.ObjetivoPersonalJerarquicoComo,
         
         1
         FroM OperacionesPersonalAsignarAJerarquico perrel 
