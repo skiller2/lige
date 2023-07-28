@@ -54,44 +54,40 @@ export class AsistenciaController extends BaseController {
       if (AdicionalHora == undefined) AdicionalHora = null;
       if (Horas == undefined) Horas = null;
 
+      if (Number(PersonaId) == 0) { 
+        this.errRes(1, res, "Debe seleccionar una persona", 409);
+        return;
+      }
+
+      if (Number(ObjetivoId) == 0) 
+        throw new Error("Debe seleccionar un objetivo")
+      
+
+
       switch (metodologia) {
         case "E":
-          if (!Equivalencia.TipoAsociadoId) {
-            this.errRes(1, res, "Debe seleccionar una categoria", 409);
-            return;
-          }
+          if (!Equivalencia.TipoAsociadoId) 
+            throw new Error("Debe seleccionar una categoria");
+          
           break;
         case "S":
-          if (!SumaFija) {
-            this.errRes(1, res, "Debe ingresar una monto", 409);
-            return;
-          }
+          if (!SumaFija)
+            throw new Error("Debe ingresar una monto");
 
           break;
         case "H":
-          if (!Horas) {
-            this.errRes(1, res, "Debe ingresar horas adicionales", 409);
-            return;
-          }
+          if (!Horas) 
+            throw new Error("Debe ingresar horas adicionales");
 
           break;
         case "A":
-          if (!AdicionalHora) {
-            this.errRes(
-              1,
-              res,
-              "Debe ingresar una monto adicional por hora",
-              409
-            );
-            return;
-          }
+          if (!AdicionalHora)
+            throw new Error("Debe ingresar una monto adicional por hora");
 
           break;
 
         default:
-          this.errRes(1, res, "Debe seleccionar metodología", 409);
-          return;
-
+          throw new Error("Debe seleccionar metodología");
           break;
       }
       await queryRunner.connect();
@@ -105,7 +101,7 @@ export class AsistenciaController extends BaseController {
           queryRunner
         );
 //        if (!auth)
-//          throw `No tiene permisos para realizar operación CUIT ${persona_cuit}`;
+//          throw new Error( `No tiene permisos para realizar operación CUIT ${persona_cuit}`);
 
       let result = await queryRunner.query(
         `SELECT percat.PersonalCategoriaTipoAsociadoId,percat.PersonalCategoriaCategoriaPersonalId, cat.CategoriaPersonalDescripcion, percat.PersonalCategoriaDesde, percat.PersonalCategoriaHasta
@@ -190,7 +186,7 @@ export class AsistenciaController extends BaseController {
           PersonalArt14AdicionalHora == AdicionalHora &&
           PersonalArt14Horas == Horas
         ) {
-          throw "Ya se encuentra cargada la información";
+          throw new Error("Ya se encuentra cargada la información")
         }
 
         let hasta: Date = new Date(fechaDesde);
@@ -245,7 +241,7 @@ export class AsistenciaController extends BaseController {
           PersonalArt14AdicionalHora == AdicionalHora &&
           PersonalArt14Horas == Horas
         ) {
-          throw "Ya se encuentra cargada la información";
+          throw new Error("Ya se encuentra cargada la información");
         }
 
         //Borro los registros que no están autorizados.
@@ -343,11 +339,9 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes([], res);
     } catch (err) {
-      let def = "Error accediendo a la base de datos";
-      if (typeof def === "string") def = err;
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
-      this.errRes(err, res, def, 409);
+      this.errRes(err, res, err.message, 409);
     } finally {
       // you need to release query runner which is manually created:
       await queryRunner.release();
@@ -376,7 +370,7 @@ export class AsistenciaController extends BaseController {
           Number(ObjetivoId),
           queryRunner
         );
-//        if (!auth) throw `No tiene permisos para realizar operación`;
+//        if (!auth) throw new Error(`No tiene permisos para realizar operación`);
 
       //Traigo el Art14 para analizarlo
       let resultAutoriz = await queryRunner.query(
@@ -428,17 +422,14 @@ export class AsistenciaController extends BaseController {
       }
 
       if (recdelete + recupdate == 0)
-        throw "No se localizaron registros para finalizar para la persona y metodología indicados";
+      throw new Error("No se localizaron registros para finalizar para la persona y metodología indicados");
 
-      //throw "Todo bien"
       await queryRunner.commitTransaction();
       this.jsonRes([], res);
     } catch (err) {
-      let def = "Error accediendo a la base de datos";
-      if (typeof def === "string") def = err;
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
-      this.errRes(err, res, def, 409);
+      this.errRes(err, res, err.message, 409);
     } finally {
       // you need to release query runner which is manually created:
       await queryRunner.release();
@@ -462,7 +453,7 @@ export class AsistenciaController extends BaseController {
           dataSource
         );
 //        if (!auth)
-//          throw `No tiene permisos para realizar la consulta al objetivo`;
+//          throw new Error(`No tiene permisos para realizar la consulta al objetivo`);
 
       const result = await dataSource.query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion,
@@ -495,10 +486,9 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes(result, res);
     } catch (err) {
-      let def = "Error accediendo a la base de datos";
-      if (typeof def === "string") def = err;
+      // if (queryRunner.isTransactionActive)
       //            await queryRunner.rollbackTransaction()
-      this.errRes(err, res, def, 409);
+      this.errRes(err, res, err.message, 409);
     }
   }
   
@@ -620,9 +610,7 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes({ descuentos: result, total }, res);
     } catch (err) {
-      let def = "Error accediendo a la base de datos";
-      if (typeof def === "string") def = err;
-      this.errRes(err, res, def, 409);
+      this.errRes(err, res, err.message, 409);
     }
   }
 
@@ -639,7 +627,7 @@ export class AsistenciaController extends BaseController {
             if (req.persona_cuit != "") {
                 const auth = await this.hasAuthObjetivo(anio, mes, req, objetivoId, dataSource)
                 if (!auth)
-                    throw `No tiene permisos para realizar la consulta al objetivo`
+                    throw new Error(`No tiene permisos para realizar la consulta al objetivo`)
             }
 */
 
@@ -666,10 +654,9 @@ export class AsistenciaController extends BaseController {
       );
       this.jsonRes(result, res);
     } catch (err) {
-      let def = "Error accediendo a la base de datos";
-      if (typeof def === "string") def = err;
+      // if (queryRunner.isTransactionActive)
       //            await queryRunner.rollbackTransaction()
-      this.errRes(err, res, def, 409);
+      this.errRes(err, res, err.message, 409);
     }
   }
 
@@ -684,7 +671,7 @@ export class AsistenciaController extends BaseController {
             if (req.persona_cuit != "") {
                 const auth = await this.hasAuthObjetivo(anio, mes, req, objetivoId, dataSource)
                 if (!auth)
-                    throw `No tiene permisos para realizar la consulta al objetivo`
+                    throw new Error(`No tiene permisos para realizar la consulta al objetivo`)
             }
 */
 
@@ -870,10 +857,9 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes({ asistencia: result, total }, res);
     } catch (err) {
-      let def = "Error accediendo a la base de datos";
-      if (typeof def === "string") def = err;
+      // if (queryRunner.isTransactionActive)
       //await queryRunner.rollbackTransaction()
-      this.errRes(err, res, def, 409);
+      this.errRes(err, res, err.message, 409);
     }
   }
 
@@ -947,10 +933,9 @@ export class AsistenciaController extends BaseController {
 
 
     } catch (err) {
-      let def = "Error accediendo a la base de datos";
-      if (typeof def === "string") def = err;
+      // if (queryRunner.isTransactionActive)
       //await queryRunner.rollbackTransaction()
-      this.errRes(err, res, def, 409);
+      this.errRes(err, res, err.message, 409);
     }
   }
 
@@ -969,7 +954,7 @@ export class AsistenciaController extends BaseController {
           dataSource
         );
 //        if (!auth)
-//          throw `No tiene permisos para realizar la consulta al objetivo`;
+//          throw new Error(`No tiene permisos para realizar la consulta al objetivo`);
 
       //            const { objetivoId } = req.body;
 
@@ -1141,10 +1126,9 @@ export class AsistenciaController extends BaseController {
       );
       this.jsonRes(result, res);
     } catch (err) {
-      let def = "Error accediendo a la base de datos";
-      if (typeof def === "string") def = err;
+      // if (queryRunner.isTransactionActive)
       //await queryRunner.rollbackTransaction()
-      this.errRes(err, res, def, 409);
+      this.errRes(err, res, err.message, 409);
     }
   }
 
