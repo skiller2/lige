@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import { BaseController } from "../controller/baseController";
+import { NextFunction, Request, Response } from "express";
+import { BaseController, ClientException } from "../controller/baseController";
 import {
   copyFileSync,
   existsSync,
@@ -65,18 +65,18 @@ export class ImpuestosAfipController extends BaseController {
     }
   }
 
-  async handleDownloadInformeByFiltro(req: Request, res: Response) {
+  async handleDownloadInformeByFiltro(req: Request, res: Response, next:NextFunction) {
     try {
       const periodo = getPeriodoFromRequest(req);
       const filtro = getFiltroFromRequest(req);
 
       const filesPath = path.join(this.directory, String(periodo.year));
     } catch (error) {
-      this.errRes(error, res, "Algo salió mal!", 409);
+      next(error)
     }
   }
 
-  async handleDownloadComprobantesByFiltro(req: Request, res: Response) {
+  async handleDownloadComprobantesByFiltro(req: Request, res: Response, next:NextFunction) {
     try {
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
       const periodo = getPeriodoFromRequest(req);
@@ -109,7 +109,7 @@ export class ImpuestosAfipController extends BaseController {
 
       SendFileToDownload(res, filename, responsePDFBuffer);
     } catch (error) {
-      this.errRes(error, res, "Algo salió mal!", 409);
+      next(error)
     }
   }
 
@@ -285,7 +285,7 @@ export class ImpuestosAfipController extends BaseController {
     this.jsonRes(listaColumnas, res);
   }
 
-  async getDescuentosGridList(req: Request, res: Response) {
+  async getDescuentosGridList(req: Request, res: Response, next:NextFunction) {
     const anio = String(req.body.anio);
     const mes = String(req.body.mes);
     const options: Options = isOptions(req.body.options)
@@ -312,11 +312,11 @@ export class ImpuestosAfipController extends BaseController {
         res
       );
     } catch (error) {
-      this.errRes(error, res);
+      next(error)
     }
   }
 
-  async handleGetDescuentos(req: Request, res: Response) {
+  async handleGetDescuentos(req: Request, res: Response, next:NextFunction) {
     const anio = req.params.anio;
     const mes = req.params.mes;
     const personalIdRel = req.params.personalIdRel;
@@ -343,7 +343,7 @@ export class ImpuestosAfipController extends BaseController {
         res
       );
     } catch (error) {
-      this.errRes(error, res);
+      next(error)
     }
   }
 
@@ -362,7 +362,7 @@ export class ImpuestosAfipController extends BaseController {
     );
 
     if (!personalIDQuery.PersonalId)
-      throw new Error(`No se pudo encontrar el CUIT ${CUIT}`);
+      throw new ClientException(`No se pudo encontrar el CUIT ${CUIT}`);
 
     const personalID = personalIDQuery.PersonalId;
 
@@ -378,7 +378,7 @@ export class ImpuestosAfipController extends BaseController {
       ]
     );
     if (alreadyExists.length > 0)
-      throw new Error(
+      throw new ClientException(
         `Ya existe un descuento para el periodo ${anioRequest}-${mesRequest} y el CUIT ${CUIT}`
       );
 
@@ -388,7 +388,7 @@ export class ImpuestosAfipController extends BaseController {
         .toString()
         .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
 
-    if (existsSync(newFilePath)) throw new Error("El documento ya existe.");
+    if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
     const now = new Date();
     await queryRunner.query(
       `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas, PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion)
@@ -431,15 +431,15 @@ export class ImpuestosAfipController extends BaseController {
     }
   }
 
-  async handlePDFUpload(req: Request, res: Response, forzado: boolean) {
+  async handlePDFUpload(req: Request, res: Response, next:NextFunction, forzado: boolean) {
     const file = req.file;
     const anioRequest: number = req.body.anio;
     const mesRequest: number = req.body.mes;
     const queryRunner = dataSource.createQueryRunner();
 
     try {
-      if (!anioRequest) throw new Error("Faltó indicar el anio.");
-      if (!anioRequest) throw new Error("Faltó indicar el mes.");
+      if (!anioRequest) throw new ClientException("Faltó indicar el anio.");
+      if (!anioRequest) throw new ClientException("Faltó indicar el mes.");
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -451,10 +451,10 @@ export class ImpuestosAfipController extends BaseController {
         const importeRequest = req.body.monto;
         const cuitRequest = req.body.cuit;
 
-        if (!importeRequest) throw new Error("Faltó indicar el importe.");
+        if (!importeRequest) throw new ClientException("Faltó indicar el importe.");
         importeMonto = importeRequest;
 
-        if (!cuitRequest) throw new Error("Faltó indicar el cuit.");
+        if (!cuitRequest) throw new ClientException("Faltó indicar el cuit.");
         CUIT = cuitRequest;
 
         //Call to writefile
@@ -525,7 +525,7 @@ export class ImpuestosAfipController extends BaseController {
             Number(periodoMes) == mesRequest;
 
           if (!periodoIsValid)
-            throw new Error(
+            throw new ClientException(
               `El periodo especificado ${anioRequest}-${mesRequest} no coincide con el contenido en el documento ${periodoAnio}-${Number(
                 periodoMes
               )}.`
@@ -551,20 +551,20 @@ export class ImpuestosAfipController extends BaseController {
             errTxt += err.message + "\n";
           });
 
-          //throw new Error(errTxt)
+          //throw new ClientException(errTxt)
         }
       }
-      // if (!file) throw new Error("File not recieved/did not pass filter.");
-      // if (!anioRequest) throw new Error("No se especificó un año.");
-      // if (!mesRequest) throw new Error("No se especificó un mes.");
+      // if (!file) throw new ClientException("File not recieved/did not pass filter.");
+      // if (!anioRequest) throw new ClientException("No se especificó un año.");
+      // if (!mesRequest) throw new ClientException("No se especificó un mes.");
 
       await queryRunner.commitTransaction();
 
       this.jsonRes([], res, "PDF Recibido!");
-    } catch (err) {
+    } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
-      this.errRes(err, res, err.message, 409);
+        next(error)
     } finally {
       await queryRunner.release();
       unlinkSync(file.path);
@@ -603,7 +603,8 @@ export class ImpuestosAfipController extends BaseController {
     year: string,
     month: string,
     personalIdRel: string,
-    res: Response
+    res: Response,
+    next:NextFunction
   ) {
     try {
       const formattedMonth = month.padStart(2, "0");
@@ -653,7 +654,7 @@ export class ImpuestosAfipController extends BaseController {
         unlinkSync(tmpfilename);
       });
     } catch (error) {
-      this.errRes(error, res, "Algo salió mal 2!", 409);
+      next(error)
     }
   }
 
@@ -835,7 +836,8 @@ export class ImpuestosAfipController extends BaseController {
     month: string,
     cuit: string,
     personalId: string,
-    res: Response
+    res: Response,
+    next: NextFunction
   ) {
     const queryRunner = dataSource.createQueryRunner();
 
@@ -873,12 +875,12 @@ export class ImpuestosAfipController extends BaseController {
       const downloadPath = `${this.directory}/${year}/${filename}`;
 
       if (!existsSync(downloadPath))
-        throw new Error(`El archivo no existe (${downloadPath}).`);
+        throw new ClientException(`El archivo no existe (${downloadPath}).`);
 
       const uint8Array = readFileSync(downloadPath);
 
       if (!personalID)
-        throw new Error(`No se pudo encontrar la persona ${personalId}`);
+        throw new ClientException(`No se pudo encontrar la persona ${personalId}`);
       const ApellidoNombre = personalQuery.ApellidoNombre;
       const ApellidoNombreJ = personalQuery.ApellidoNombreJ;
 
@@ -892,7 +894,7 @@ export class ImpuestosAfipController extends BaseController {
         unlinkSync(tmpfilename);
       });
     } catch (error) {
-      this.errRes(error, res, "Algo salió mal 3!", 404);
+      next(error)
     }
   }
 

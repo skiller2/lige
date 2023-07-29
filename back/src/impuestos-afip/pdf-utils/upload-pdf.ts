@@ -1,4 +1,5 @@
 import { Request } from "express";
+import { ClientException } from "../../controller/baseController";
 
 interface Params {
   file: Express.Multer.File;
@@ -22,8 +23,8 @@ const getParams = (request: Request): Params => {
  * @throws {Error}
  */
 const checkDateRequest = (year, month) => {
-  if (!year) throw new Error("Faltó indicar el anio.");
-  if (!month) throw new Error("Faltó indicar el mes.");
+  if (!year) throw new ClientException("Faltó indicar el anio.");
+  if (!month) throw new ClientException("Faltó indicar el mes.");
 };
 
 export { getParams, checkDateRequest };

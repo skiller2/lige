@@ -1,9 +1,10 @@
-import express, {json, Application,Router } from "express";
-import { version,author,name,description } from "./version.json";
-import { DataSource } from "typeorm";
+import express, { json, Application, Router, NextFunction, Request, Response } from "express";
+import { version, author, name, description } from "./version.json";
+import { DataSource, QueryFailedError } from "typeorm";
 import { existsSync, mkdir, mkdirSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { createServer } from "http";
+import { ClientException } from "./controller/baseController";
 
 require("dotenv").config();
 
@@ -37,9 +38,9 @@ export class DBServer {
               ds: this.dataSource,
             });
           })
-          .catch((err: any) => {
+          .catch((error) => {
             console.error(
-              `${err}, retry ${this.retriesCount} in ${this.timeOutDelay} ms.`
+              `${error.message}, retry ${this.retriesCount} in ${this.timeOutDelay} ms.`
             );
             this.retriesCount++;
           });
@@ -48,15 +49,43 @@ export class DBServer {
   }
 }
 
+const errorResponder = (
+  error: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction) => {
+  res.locals.stopTime = performance.now()
+
+  let message = "Error interno, avise al administrador del sistema"
+  let status = 500
+
+  if (process.env.DEBUG) {
+    console.error(error);
+  }
+
+  if (error instanceof ClientException) {
+    message = error.message
+    status = 409
+  } else if (error instanceof QueryFailedError) {
+    if (error.message.indexOf('Violation')) {
+      message = 'El registro ya existe'
+      status = 409
+    }
+  }
+
+  res.status(status).json({ msg: message, data: [], stamp: new Date(), ms: res.locals.stopTime - res.locals.startTime });
+}
+
 export class WebServer {
   public upload;
   private port: number;
-  private app: Application 
+  private app: Application
 
   constructor(port: number) {
     this.port = port;
-    this.app =  express();
+    this.app = express();
     this.app.use(json());
+
     /*
     * Agrega starTime a todas las peticiones de la api 
     */
@@ -81,7 +110,16 @@ export class WebServer {
   }
 
   public lateInit() {
-    this.app.set("pkg", {version,author,name,description});
+/*
+    this.app.use("*",function (req:Request, res:Response, next:NextFunction) {
+      console.log('pasa por aca')
+      res.locals.stopTime = performance.now()
+      res.json({ hola: 'hola' })
+      res.end()
+    });
+*/
+    this.app.use(errorResponder)
+    this.app.set("pkg", { version, author, name, description });
 
     this.app.get("/", (req, res) => {
       res.json({

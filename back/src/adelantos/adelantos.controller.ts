@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import { BaseController } from "../controller/baseController";
+import { NextFunction, Request, Response } from "express";
+import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { QueryFailedError } from "typeorm";
 
@@ -9,7 +9,8 @@ export class AdelantosController extends BaseController {
     Año: string,
     Mes: string,
     req: any,
-    res: Response
+    res: Response,
+    next:NextFunction
   ) {
 
     try {
@@ -38,18 +39,18 @@ export class AdelantosController extends BaseController {
         [personalId, Año, Mes])
 
       this.jsonRes(adelantos, res);
-    } catch (err) {
-      this.errRes(err, res, "Error accediendo a la base de datos", 409);
+    } catch (error) {
+      next(error)
     }
   }
 
-  async delAdelanto(personalId: string, monto: number, ip, res: Response) {
+  async delAdelanto(personalId: string, monto: number, ip, res: Response,next:NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (!personalId) throw new Error("Falta cargar la persona.");
+      if (!personalId) throw new ClientException("Falta cargar la persona");
 
       await queryRunner.query(
         `DELETE From PersonalAdelanto 
@@ -63,24 +64,20 @@ export class AdelantosController extends BaseController {
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
-      if (error instanceof Error) {
-        this.errRes(error, res, error.message, 409);
-      } else {
-        this.errRes(error, res, "No se pudo borrar.", 409);
-      }
+      next(error)
     } finally {
       await queryRunner.release();
     }
   }
 
-  async setAdelanto(personalId: string, monto: number, ip, res: Response) {
+  async setAdelanto(personalId: string, monto: number, ip, res: Response, next:NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (!personalId) throw new Error("Falta cargar la persona.");
-      if (!monto) throw new Error("Falta cargar el monto.");
+      if (!personalId) throw new ClientException("Falta cargar la persona.");
+      if (!monto) throw new ClientException("Falta cargar el monto.");
      
       const adelantoExistente = await queryRunner.query(
         `DELETE From PersonalAdelanto 
@@ -147,13 +144,10 @@ export class AdelantosController extends BaseController {
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
-      if (error instanceof Error) {
-        this.errRes(error, res, error.message, 409);
-      } else {
-        this.errRes(error, res, "Error al grabar.", 409);
-      }
+      next(error)
     } finally {
       await queryRunner.release();
     }
   }
 }
+

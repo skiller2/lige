@@ -5,38 +5,30 @@ import { authMiddleware } from "../middlewares/middleware.module";
 export const initRouter = Router();
 const base = "";
 
-initRouter.get(`${base}/stats/horastrabajadas/:anio`, authMiddleware.verifyToken, (req, res) => {
-
-    initController.getHorasTrabajadas(req, res);
+initRouter.get(`${base}/stats/horastrabajadas/:anio`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getHorasTrabajadas(req, res, next)
 })
 
-initRouter.get(`${base}/stats/adelantospendientes`, authMiddleware.verifyToken, (req, res) => {
-
-    initController.getAdelantosPendientes(req, res);
+initRouter.get(`${base}/stats/adelantospendientes`, authMiddleware.verifyToken, (req, res, next) => {
+    initController.getAdelantosPendientes(req, res, next)
 })
 
-initRouter.get(`${base}/stats/excepcionespendientes`, authMiddleware.verifyToken, (req, res) => {
-
-    initController.getExcepcionesPendientes(req, res);
+initRouter.get(`${base}/stats/excepcionespendientes`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getExcepcionesPendientes(req, res, next)
 })
 
-
-initRouter.get(`${base}/stats/objetivosactivos`, authMiddleware.verifyToken, (req, res) => {
-
-    initController.getObjetivosActivos(req, res);
+initRouter.get(`${base}/stats/objetivosactivos`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getObjetivosActivos(req, res, next)
 })
 
-initRouter.get(`${base}/stats/objetivossinasistencia/:anio/:mes`, authMiddleware.verifyToken, (req, res) => {
-
-    initController.getObjetivosSinAsistencia(req, res);
+initRouter.get(`${base}/stats/objetivossinasistencia/:anio/:mes`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getObjetivosSinAsistencia(req, res, next)
 })
 
-initRouter.get(`${base}/stats/clientesactivos`, authMiddleware.verifyToken, (req, res) => {
-
-    initController.getClientesActivos(req, res);
+initRouter.get(`${base}/stats/clientesactivos`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getClientesActivos(req, res, next)
 })
 
-initRouter.get(`${base}/stats/cambioscategoria`, authMiddleware.verifyToken, (req, res) => {
-
-    initController.getCategoriasPendientes(req, res);
+initRouter.get(`${base}/stats/cambioscategoria`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getCategoriasPendientes(req, res, next)
 })

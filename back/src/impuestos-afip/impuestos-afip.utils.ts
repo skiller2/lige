@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { unlinkSync, writeFileSync } from "fs";
 import { tmpName } from "../server";
+import { ClientException } from "../controller/baseController";
 
 interface Periodo {
   year: number;
@@ -14,8 +15,8 @@ const getPeriodoFromRequest = (req: Request): Periodo => {
     year: req.body.anio,
     month: req.body.mes,
   };
-  if (!periodo.year) throw new Error("Faltó indicar el anio.");
-  if (!periodo.month) throw new Error("Faltó indicar el mes.");
+  if (!periodo.year) throw new ClientException("Faltó indicar el año");
+  if (!periodo.month) throw new ClientException("Faltó indicar el mes");
   return periodo;
 };
 

@@ -2,9 +2,10 @@ import { Response } from "express";
 import { BaseController } from "./baseController";
 import { dataSource } from "../data-source";
 import { ObjetivoInfo } from "../schemas/ResponseJSON";
+import { NextFunction } from "express-serve-static-core";
 
 export class ObjetivoController extends BaseController {
-  async ObjetivoInfoFromId(objetivoId: string, res) {
+  async ObjetivoInfoFromId(objetivoId: string, res,next:NextFunction) {
     try {
       const result: ObjetivoInfo[] = await dataSource.query(
         `SELECT obj.ObjetivoId objetivoId, obj.ClienteId clienteId, obj.ClienteElementoDependienteId elementoDependienteId, obj.ObjetivoDescripcion descripcion FROM Objetivo obj WHERE obj.ObjetivoId = @0`,
@@ -12,12 +13,12 @@ export class ObjetivoController extends BaseController {
       );
       const info = result[0];
       this.jsonRes(info, res);
-    } catch (err) {
-      this.errRes(err, res, "Error accediendo a la base de datos", 409);
+    } catch (error) {
+      next(error)
     }
   }
 
-  async getById(objetivoId: number, anio: number, mes: number, res: Response) {
+  async getById(objetivoId: number, anio: number, mes: number, res: Response,next:NextFunction) {
     let fechaHasta = new Date(anio, mes, 1);
     fechaHasta.setDate(fechaHasta.getDate() - 1);
 
@@ -57,15 +58,15 @@ export class ObjetivoController extends BaseController {
         [fechaHasta, objetivoId]
       )
       .then((records: Array<any>) => {
-        //                if (records.length != 1) throw new Error('Objetivo not found')
+        //                if (records.length != 1) throw new ClientException('Objetivo not found')
         this.jsonRes(records, res);
       })
-      .catch((err) => {
-        this.errRes(err, res, "Error accediendo a la base de datos", 409);
+      .catch((error) => {
+        next(error);
       });
   }
 
-  async search(req: any, res: Response) {
+  async search(req: any, res: Response,next:NextFunction) {
     try {
       const { sucursalId, fieldName, value } = req.body;
       if (sucursalId == "") {
@@ -129,8 +130,8 @@ WHERE suc.SucursalId = @0 AND `;
         const result = await dataSource.query(query, [sucursalId]);
         this.jsonRes({ objetivos: result }, res);
       } else this.jsonRes({ objetivos: [] }, res);
-    } catch (err) {
-      this.errRes(err, res, "Error accediendo a la base de datos", 409);
+    } catch (error) {
+      next(error);
     }
   }
 }

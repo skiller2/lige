@@ -13,17 +13,17 @@ const categoriasController = new CategoriasController()
 
 
 scheduleJob('*/1 * * * *', async function (fireDate) {
-//  const ret = await categoriasController.procesaCambios(null,null)
-//  console.log(`job run at ${fireDate}, response: ${ret}`);
+  //  const ret = await categoriasController.procesaCambios(null,null)
+  //  console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
 
 scheduleJob('1 0 * * *', async function (fireDate) {
   try {
-    const ret = await categoriasController.procesaCambios(null, null)
+    const ret = await categoriasController.procesaCambios(null, null, null)
     console.log(`job run at ${fireDate}, response: ${ret}`);
-  } catch (err) {
-    console.log(`job run at ${fireDate}, response: ${err.message}`);
+  } catch (error) {
+    console.log(`job run at ${fireDate}, response: ${error.message}`);
   }
 });
 
@@ -35,15 +35,15 @@ fechaActual.setHours(0, 0, 0, 0)
 let fechaAyer = new Date()
 fechaAyer.setDate(fechaAyer.getDate() - 1);
 fechaAyer.setHours(0, 0, 0, 0)
-console.log('actual',fechaActual,'ayer',fechaAyer)
+console.log('actual', fechaActual, 'ayer', fechaAyer)
 
 
 dbServer.init()
   .then((res) => {
     console.info(`${res.res}`)
   })
-  .catch((err) => {
-    console.error(`${err}`)
+  .catch((error) => {
+    console.error(error)
     //    process.exit()
   })
 
@@ -53,8 +53,8 @@ webServer.init()
     console.info(res)
     makeRoutes(webServer)
     webServer.lateInit()
-  }).catch((err) => {
-    console.error(err)
+  }).catch((error) => {
+    console.error(error)
 
     process.exit()
   })

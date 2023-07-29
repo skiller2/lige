@@ -1,3 +1,4 @@
+import { ClientException } from "../../controller/baseController";
 import { Filtro, Options } from "../../schemas/filtro";
 import { findColumnByIndex } from "../comprobantes-utils/lista";
 import { Request } from "express";
@@ -99,7 +100,7 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
 
 const getOptionsFromRequest = (req: Request): Options => {
   const _options = req.body.options;
-  if (!isOptions(_options)) throw new Error("Bad Input. Options");
+  if (!isOptions(_options)) throw new ClientException("Bad Input. Options");
   _options.filtros = getFiltrosFromOptions(_options);
   return _options;
 };

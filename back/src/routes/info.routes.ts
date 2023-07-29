@@ -6,6 +6,6 @@ export const infoRouter = Router();
 const base = "";
 
 //router.get(`${base}/dbstatus`, authMiddleware.verifyToken, (req, res) => {
-infoRouter.get(`${base}/dbstatus`,  (req, res) => {
-  infoController.dbstatus(res, req);
-});
+infoRouter.get(`${base}/dbstatus`, (req, res, next) => {
+  infoController.dbstatus(req, res, next)
+})

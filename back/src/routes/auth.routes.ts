@@ -16,10 +16,17 @@ const loginLimiter = rateLimit({
 	legacyHeaders: false, 
 })
 
+authRouter.post(`${base}/signin`, (req, res, next) => {
+	authController.signin(req, res, next)
+})
+	
+authRouter.post(`${base}/login`, loginLimiter, (req, res, next) => {
+	authController.signin(req, res, next)
+})
 
-authRouter.post(`${base}/signin`, (req, res) => { authController.signin(res,req)})
-authRouter.post(`${base}/login`, loginLimiter,(req, res) => { authController.signin(res,req)})
-authRouter.get(`${base}/refresh`, authMiddleware.verifyToken,(req, res) => { authController.refreshToken(res, req)})
-authRouter.post(`${base}/refresh`, authMiddleware.verifyToken,(req, res) => { authController.refreshToken(res, req)})
-
-
+authRouter.get(`${base}/refresh`, authMiddleware.verifyToken, (req, res, next) => {
+	authController.refreshToken(req, res, next)
+})
+authRouter.post(`${base}/refresh`, authMiddleware.verifyToken, (req, res, next) => {
+	authController.refreshToken(req, res, next)
+})

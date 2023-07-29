@@ -1,15 +1,15 @@
-import { Request, Response } from "express";
-import { BaseController } from "./baseController";
+import { Request, Response,NextFunction } from "express";
+import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
 import { CategoriasController } from "../categorias-cambio/categorias-cambio.controller";
 
 export class InitController extends BaseController {
-  getCategoriasPendientes(req: Request, res: Response) {
+  getCategoriasPendientes(req: Request, res: Response,next:NextFunction) {
     CategoriasController.listCambiosPendCategoria({}).then((records: Array<any>) => {
       let data: { x: string; y: any; }[] = []
       let total = 0
 
-//        if (records.length ==0) throw new Error('Data not found')
+//        if (records.length ==0) throw new ClientException('Data not found')
       records.forEach(rec => { 
 //        data.push({ x: rec.SucursalDescripcion, y: rec.CantidadObjetivos })
 //        total += rec.CantidadObjetivos
@@ -19,13 +19,13 @@ export class InitController extends BaseController {
       this.jsonRes({ data, total },res);
     
     })
-    .catch((err) => {
-      this.errRes(err, res, "Error accediendo a la base de datos", 409);
+    .catch((error) => {
+      next(error);
     });
   }
 
   
-  getObjetivosSinAsistencia(req: Request, res: Response) {
+  getObjetivosSinAsistencia(req: Request, res: Response,next:NextFunction) {
     const con = dataSource;
     const anio = req.params.anio
     const mes = req.params.mes
@@ -127,7 +127,7 @@ export class InitController extends BaseController {
       .then((records: Array<any>) => {
         let data: { x: string; y: any; }[] = []
         let total = 0
-//        if (records.length ==0) throw new Error('Data not found')
+//        if (records.length ==0) throw new ClientException('Data not found')
         records.forEach(rec => { 
           data.push({ x: rec.SucursalDescripcion, y: rec.CantidadObjetivos })
           total += rec.CantidadObjetivos
@@ -136,12 +136,12 @@ export class InitController extends BaseController {
         this.jsonRes({ objetivosSinAsistencia: data, objetivosSinAsistenciaTotal:total, anio:anio, mes:mes },res);
       
       })
-      .catch((err) => {
-        this.errRes(err, res, "Error accediendo a la base de datos", 409);
+      .catch((error) => {
+        next(error);
       });
   }
 
-  getAdelantosPendientes(req: Request, res: Response) {
+  getAdelantosPendientes(req: Request, res: Response,next:NextFunction) {
     const con = dataSource;
     const stmactual = new Date()
     con
@@ -153,7 +153,7 @@ export class InitController extends BaseController {
       .then((records: Array<any>) => {
         let data: { x: string; y: any; }[]=[]
         let total=0
-  //      if (records.length ==0) throw new Error('Data not found')
+  //      if (records.length ==0) throw new ClientException('Data not found')
         records.forEach(rec => {
           
           data.push({ x: rec.totalpersonas, y: rec.PersonalAdelantoMonto })
@@ -163,12 +163,12 @@ export class InitController extends BaseController {
         this.jsonRes({ adelantos: data, adelantosTotal: total },res);
       
       })
-      .catch((err) => {
-        this.errRes(err, res, "Error accediendo a la base de datos", 409);
+      .catch((error) => {
+        next(error);
       });
   }
 
-  getExcepcionesPendientes(req: Request, res: Response) {
+  getExcepcionesPendientes(req: Request, res: Response,next:NextFunction) {
     const con = dataSource;
     const stmactual = new Date()
     con
@@ -194,7 +194,7 @@ export class InitController extends BaseController {
       .then((records: Array<any>) => {
         let data: { x: string; y: any; }[]=[]
         let total=0
-  //      if (records.length ==0) throw new Error('Data not found')
+  //      if (records.length ==0) throw new ClientException('Data not found')
         records.forEach(rec => {
           
           data.push({ x: rec.SucursalDescripcion, y: rec.totalpersonas })
@@ -204,14 +204,14 @@ export class InitController extends BaseController {
         this.jsonRes({ Excepciones: data, excepcionesTotal: total },res);
       
       })
-      .catch((err) => {
-        this.errRes(err, res, "Error accediendo a la base de datos", 409);
+      .catch((error) => {
+        next(error);
       });
   }
 
 
 
-  getObjetivosActivos(req: Request, res: Response) {
+  getObjetivosActivos(req: Request, res: Response,next:NextFunction) {
     const con = dataSource;
     const stmactual = new Date()
     con
@@ -256,7 +256,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       .then((records: Array<any>) => {
         let data: { x: string; y: any; }[]=[]
         let total=0
-  //      if (records.length ==0) throw new Error('Data not found')
+  //      if (records.length ==0) throw new ClientException('Data not found')
         records.forEach(rec => {
           
           data.push({ x: rec.SucursalDescripcion, y: rec.CantidadObjetivos })
@@ -266,13 +266,13 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         this.jsonRes({ objetivosActivos: data, objetivosActivosTotal: total },res);
       
       })
-      .catch((err) => {
-        this.errRes(err, res, "Error accediendo a la base de datos", 409);
+      .catch((error) => {
+        next(error);
       });
   }
 
 
-  getClientesActivos(req: Request, res: Response) {
+  getClientesActivos(req: Request, res: Response,next:NextFunction) {
     const con = dataSource;
     const stmactual = new Date()
     con
@@ -315,7 +315,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       )
       .then((records: Array<any>) => {
         let data: { x: string; y: any; }[]=[]
-        //if (records.length ==0) throw new Error('Data not found')
+        //if (records.length ==0) throw new ClientException('Data not found')
         let total=0
         records.forEach(rec => { 
           data.push({ x: rec.SucursalDescripcion, y: rec.CantidadClientes })
@@ -325,13 +325,13 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         this.jsonRes({ clientesActivos: data, clientesActivosTotal:total },res);
       
       })
-      .catch((err) => {
-        this.errRes(err, res, "Error accediendo a la base de datos", 409);
+      .catch((error) => {
+        next(error);
       });
   }
 
 
-  getHorasTrabajadas(req: Request, res: Response) {
+  getHorasTrabajadas(req: Request, res: Response,next:NextFunction) {
     const con = dataSource;
     const anio = req.params.anio
 
@@ -426,7 +426,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       )
       .then((records: Array<any>) => {
         let horasTrabajadas: { x: string; y: any; }[]=[]
-        if (records.length ==0) throw new Error('Data not found')
+        if (records.length ==0) throw new ClientException('Data not found')
         records.forEach(rec => { 
           horasTrabajadas.push({x: rec.ObjetivoAsistenciaAnoAno+'-'+rec.ObjetivoAsistenciaAnoMesMes, y:rec.totalhorascalc})
         })
@@ -434,14 +434,15 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         this.jsonRes({ horasTrabajadas: horasTrabajadas, anio:anio },res);
       
       })
-      .catch((err) => {
-        this.errRes(err, res, "Error accediendo a la base de datos", 409);
+      .catch((error) => {
+        next(error);
       });
   }
 
   search(
     req: any,
-    res: Response
+    res: Response,
+    next: NextFunction
   ) {
     const { fieldName, value } = req.body;
 
@@ -470,8 +471,8 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       .then((records) => {
         this.jsonRes({ recordsArray: records }, res);
       })
-      .catch((err) => {
-        this.errRes(err, res, "Error accediendo a la base de datos", 409);
+      .catch((error) => {
+        next(error);
       });
   }
 

@@ -4,6 +4,6 @@ import { sucursalController } from "../controller/controller.module";
 
 export const sucursalRouter = Router();
 
-sucursalRouter.get('/', authMiddleware.verifyToken, (req, res) => {
-    sucursalController.getAllSucursales(res, req)
+sucursalRouter.get('/', authMiddleware.verifyToken, (req, res,next ) => {
+    sucursalController.getAllSucursales(res, req, next)
 })

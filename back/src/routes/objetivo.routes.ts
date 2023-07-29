@@ -4,19 +4,18 @@ import { objetivoController } from "../controller/controller.module";
 
 export const objetivoRouter = Router();
 
-objetivoRouter.post("/search", authMiddleware.verifyToken, (req, res) => {
-  objetivoController.search(req, res);
-});
+objetivoRouter.post("/search", authMiddleware.verifyToken, objetivoController.search);
 
 objetivoRouter.get(
   "/:anio/:mes/:objetivoId",
   authMiddleware.verifyToken,
-  (req, res) => {
+  (req, res, next) => {
     objetivoController.getById(
       Number(req.params.objetivoId),
       Number(req.params.anio),
       Number(req.params.mes),
-      res
+      res,
+      next
     );
   }
 );
@@ -24,7 +23,7 @@ objetivoRouter.get(
 objetivoRouter.get(
   "/name/:objetivoId",
   authMiddleware.verifyToken,
-  (req, res) => {
-    objetivoController.ObjetivoInfoFromId(req.params.objetivoId, res);
+  (req, res, next) => {
+    objetivoController.ObjetivoInfoFromId(req.params.objetivoId, res, next);
   }
 );

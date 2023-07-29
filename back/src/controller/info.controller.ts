@@ -1,9 +1,10 @@
 import { BaseController } from "./baseController";
 import { dataSource } from "../data-source";
+import { Request, Response, NextFunction } from "express";
 
 export class InfoController extends BaseController {
 
-  dbstatus(res:any, req:any) {
+  dbstatus(req: Request, res: Response, next: NextFunction) {
     const data = {
       connected: false,
       database: process.env.DB_DATABASE,
@@ -11,16 +12,16 @@ export class InfoController extends BaseController {
       random: Math.floor(Math.random() * (100000000000 + 1)),
     };
 
-   dataSource
+    dataSource
       .query("SELECT 1 + @0", [2])
       .then((records) => {
         data.sqltest = records;
         data.connected = true;
+
         this.jsonRes(data, res);
-        //throw new Error("Forzado");
       })
-      .catch((err: Error) => {
-        this.errRes(err, res, "Error accediendo a base de datos",409);
+      .catch(error => {
+        next(error)
       });
   }
 

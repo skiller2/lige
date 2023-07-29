@@ -1,5 +1,9 @@
-import { Response } from "express";
+import { NextFunction, Response } from "express";
 import { DataSource, QueryRunner } from "typeorm";
+
+export class ClientException extends Error {
+}
+
 
 export class BaseController {
   /**
@@ -8,32 +12,14 @@ export class BaseController {
    * @param res the response object that will be used to send http response
    */
   jsonRes(recordset: any, res: Response, msg = "ok") {
-    const stopTime = performance.now()
-    res.status(200).json({ msg: msg, data: recordset, stamp: new Date(), ms: stopTime-res.locals.startTime});
+    res.locals.stopTime = performance.now()
+    res.status(200).json({ msg: msg, data: recordset, stamp: new Date(), ms: res.locals.stopTime-res.locals.startTime});
   }
 
   jsonResDirect(data: any, res: Response, msg = "ok") {
     res.status(200).json(data);
   }
-  /**
-   * @param err error object of any type genereated by the system
-   * @param res response object to be used to to send
-   * @param message custom response message to be provided to the client in a JSON body response ({error:'message'})
-   * @param status custom status code, defaults to 500
-   */
-  errRes(
-    err: any,
-    res: Response,
-    message = "No se pudo conectar a la base de datos.",
-    status = 500
-  ) {
-    const stopTime = performance.now()
-    if (process.env.DEBUG) {
-      console.error(err);
-    }
-    res.status(status).json({ msg: message, data: [], stamp: new Date(), ms: stopTime-res.locals.startTime});
-  }
-
+  
   async hasAuthPersona(anio, mes, persona_cuit, queryRunner) {
     let fechaHastaAuth = new Date(anio, mes, 1);
     fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1);
@@ -146,7 +132,7 @@ export class BaseController {
 
     authSucursal = true;
     if (!authSucursal)
-      throw `No tiene permisos para realizar operación en la sucursal ${SucursalId}`;
+      throw new ClientException(`No tiene permisos para realizar operación en la sucursal ${SucursalId}`)
 
     for (let row of resultAuth) {
       if (row.PersonalCUITCUILCUIT == req.persona_cuit) {
@@ -154,7 +140,7 @@ export class BaseController {
       }
     }
 
-    throw `No tiene permisos para realizar operación identificado con CUIT ${req.persona_cuit}`;
+    throw new ClientException(`No tiene permisos para realizar operación identificado con CUIT ${req.persona_cuit}`)
     return false;
   }
 }

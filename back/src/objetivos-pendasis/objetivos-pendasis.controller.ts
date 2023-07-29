@@ -1,8 +1,8 @@
-import { BaseController } from "../controller/baseController";
+import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { QueryFailedError } from "typeorm";
 import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-utils/filtros";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { ParsedQs } from "qs";
 
 const columnasGrilla: any[] = [
@@ -220,14 +220,15 @@ export class ObjetivosPendasisController extends BaseController {
 
   async getObjetivosPendAsis(
     req: any,
-    res: Response
+    res: Response,
+    next:NextFunction
   ) {
     const options = getOptionsFromRequest(req);
     try {
       const pendCambioCategoria = await ObjetivosPendasisController.listObjetivosPendAsis(options)
       this.jsonRes({ list: pendCambioCategoria }, res);
-    } catch (err) {
-      this.errRes(err, res, "Error accediendo a la base de datos", 409);
+    } catch (error) {
+      next(error)
     }
   }
 
@@ -313,10 +314,9 @@ export class ObjetivosPendasisController extends BaseController {
       await queryRunner.commitTransaction();
       return `Se procesaron ${pendientes.length} ascensos `
     } catch (error) {
-      console.log('error', error)
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
-      throw new Error(`Error procesando ascensos`)
+      throw error
     } finally {
       await queryRunner.release();
     }

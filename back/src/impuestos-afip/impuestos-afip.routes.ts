@@ -60,7 +60,7 @@ const upload = multer({
 
 export const impuestosAfipRouter = Router();
 
-impuestosAfipRouter.post("", authMiddleware.verifyToken, (req, res) => {
+impuestosAfipRouter.post("", authMiddleware.verifyToken, (req, res, next) => {
   upload(req, res, (err) => {
     // FILE SIZE ERROR
     if (err instanceof multer.MulterError) {
@@ -87,11 +87,11 @@ impuestosAfipRouter.post("", authMiddleware.verifyToken, (req, res) => {
 
     // SUCCESS
     else {
-      impuestosAfipController.handlePDFUpload(req, res, false);
+      impuestosAfipController.handlePDFUpload(req, res, next, false);
     }
   });
 });
-impuestosAfipRouter.post("/forzado", authMiddleware.verifyToken, (req, res) => {
+impuestosAfipRouter.post("/forzado", authMiddleware.verifyToken, (req, res, next) => {
   upload(req, res, (err) => {
     // FILE SIZE ERROR
     if (err instanceof multer.MulterError) {
@@ -118,46 +118,48 @@ impuestosAfipRouter.post("/forzado", authMiddleware.verifyToken, (req, res) => {
 
     // SUCCESS
     else {
-      impuestosAfipController.handlePDFUpload(req, res, true);
+      impuestosAfipController.handlePDFUpload(req, res, next, true);
     }
   });
 });
 
-impuestosAfipRouter.get("/download/:anio/:mes/:personalIdRel?", (req, res) => {
+impuestosAfipRouter.get("/download/:anio/:mes/:personalIdRel?", (req, res,next) => {
   impuestosAfipController.downloadComprobantesByPeriodo(
     req.params.anio,
     req.params.mes,
     req.params.personalIdRel,
-    res
+    res,
+    next
   );
 });
 
 impuestosAfipRouter.get(
   "/:anio/:mes/:personalIdRel?",
   authMiddleware.verifyToken,
-  (req, res) => {
-    impuestosAfipController.handleGetDescuentos(req, res);
+  (req, res, next) => {
+    impuestosAfipController.handleGetDescuentos(req, res,next);
   }
 );
 
 impuestosAfipRouter.post(
   "/download/comprobantes_filtrados/",
   authMiddleware.verifyToken,
-  (req, res) => {
-    impuestosAfipController.handleDownloadComprobantesByFiltro(req, res);
+  (req, res, next) => {
+    impuestosAfipController.handleDownloadComprobantesByFiltro(req, res,next);
   }
 );
 
 impuestosAfipRouter.get(
   "/:anio/:mes/:CUIT/:PersonalId",
   authMiddleware.verifyToken,
-  (req, res) => {
+  (req, res, next) => {
     impuestosAfipController.downloadComprobante(
       req.params.anio,
       req.params.mes,
       req.params.CUIT,
       req.params.PersonalId,
-      res
+      res,
+      next
     );
   }
 );
@@ -166,14 +168,14 @@ impuestosAfipRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
   impuestosAfipController.getDescuentosGridCols(req, res);
 });
 
-impuestosAfipRouter.post("/list", authMiddleware.verifyToken, (req, res) => {
-  impuestosAfipController.getDescuentosGridList(req, res);
+impuestosAfipRouter.post("/list", authMiddleware.verifyToken, (req, res, next) => {
+  impuestosAfipController.getDescuentosGridList(req, res, next);
 });
 
 impuestosAfipRouter.post(
   "/download/informe",
   authMiddleware.verifyToken,
-  (req, res) => {
-    impuestosAfipController.handleDownloadInformeByFiltro(req, res);
+  (req, res, next) => {
+    impuestosAfipController.handleDownloadInformeByFiltro(req, res, next);
   }
 );

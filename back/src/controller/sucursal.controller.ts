@@ -1,12 +1,12 @@
 import { BaseController } from "./baseController";
 import { dataSource } from "../data-source";
-import { Response } from "express";
+import { NextFunction, Response } from "express";
 import { Request } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 
 export class SucursalController extends BaseController {
 
-  async getAllSucursales(res: Response, req: Request) {
+  async getAllSucursales(res: Response, req: Request, next:NextFunction) {
     try {
       const result = await dataSource.query(
         'SELECT SucursalId, SucursalDescripcion FROM Sucursal '
@@ -17,8 +17,8 @@ export class SucursalController extends BaseController {
 
       this.jsonRes(result, res)
     }
-    catch (err) {
-      this.errRes(err, res, "Error accediendo a la base de datos", 409)
+    catch (error) {
+      next(error)
     }
     /*
         const result = await this.connection.query(

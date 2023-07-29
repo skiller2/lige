@@ -1,9 +1,9 @@
-import { Response } from "express";
-import { BaseController } from "./baseController";
+import { NextFunction, Response } from "express";
+import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
 
 export class AsistenciaController extends BaseController {
-  async getCategoria(req: any, res: Response) {
+  async getCategoria(req: any, res: Response, next:NextFunction) {
     try {
       const result = await dataSource.query(
         `SELECT val.ValorLiquidacionSucursalId, tip.TipoAsociadoId, tip.TipoAsociadoDescripcion, cat.CategoriaPersonalId, cat.CategoriaPersonalDescripcion, val.ValorLiquidacionHoraNormal
@@ -17,11 +17,11 @@ export class AsistenciaController extends BaseController {
                 `
       );
       this.jsonRes(result, res);
-    } catch (err) {
-      this.errRes(err, res, "Error accediendo a la base de datos", 409);
+    } catch (error) {
+      next(error)
     }
   }
-  async setExcepcion(req: any, res: Response) {
+  async setExcepcion(req: any, res: Response, next:NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
 
     try {
@@ -54,40 +54,36 @@ export class AsistenciaController extends BaseController {
       if (AdicionalHora == undefined) AdicionalHora = null;
       if (Horas == undefined) Horas = null;
 
-      if (Number(PersonaId) == 0) { 
-        this.errRes(1, res, "Debe seleccionar una persona", 409);
-        return;
-      }
+      if (Number(PersonaId) == 0) 
+        throw new ClientException("Debe seleccionar una persona")
 
       if (Number(ObjetivoId) == 0) 
-        throw new Error("Debe seleccionar un objetivo")
-      
-
+        throw new ClientException("Debe seleccionar un objetivo")
 
       switch (metodologia) {
         case "E":
           if (!Equivalencia.TipoAsociadoId) 
-            throw new Error("Debe seleccionar una categoria");
+            throw new ClientException("Debe seleccionar una categoria");
           
           break;
         case "S":
           if (!SumaFija)
-            throw new Error("Debe ingresar una monto");
+            throw new ClientException("Debe ingresar una monto");
 
           break;
         case "H":
           if (!Horas) 
-            throw new Error("Debe ingresar horas adicionales");
+            throw new ClientException("Debe ingresar horas adicionales");
 
           break;
         case "A":
           if (!AdicionalHora)
-            throw new Error("Debe ingresar una monto adicional por hora");
+            throw new ClientException("Debe ingresar una monto adicional por hora");
 
           break;
 
         default:
-          throw new Error("Debe seleccionar metodología");
+          throw new ClientException("Debe seleccionar metodología");
           break;
       }
       await queryRunner.connect();
@@ -101,7 +97,7 @@ export class AsistenciaController extends BaseController {
           queryRunner
         );
 //        if (!auth)
-//          throw new Error( `No tiene permisos para realizar operación CUIT ${persona_cuit}`);
+//          throw new ClientException( `No tiene permisos para realizar operación CUIT ${persona_cuit}`);
 
       let result = await queryRunner.query(
         `SELECT percat.PersonalCategoriaTipoAsociadoId,percat.PersonalCategoriaCategoriaPersonalId, cat.CategoriaPersonalDescripcion, percat.PersonalCategoriaDesde, percat.PersonalCategoriaHasta
@@ -122,13 +118,7 @@ export class AsistenciaController extends BaseController {
             Equivalencia.TipoAsociadoId ==
             row["PersonalCategoriaTipoAsociadoId"]
           ) {
-            this.errRes(
-              1,
-              res,
-              "Categoría de equivalencia, debe ser distinta a la vigente de la persona",
-              409
-            );
-            return;
+            throw new ClientException("Categoría de equivalencia, debe ser distinta a la vigente de la persona")
           }
         } else {
 
@@ -186,7 +176,7 @@ export class AsistenciaController extends BaseController {
           PersonalArt14AdicionalHora == AdicionalHora &&
           PersonalArt14Horas == Horas
         ) {
-          throw new Error("Ya se encuentra cargada la información")
+          throw new ClientException("Ya se encuentra cargada la información")
         }
 
         let hasta: Date = new Date(fechaDesde);
@@ -241,7 +231,7 @@ export class AsistenciaController extends BaseController {
           PersonalArt14AdicionalHora == AdicionalHora &&
           PersonalArt14Horas == Horas
         ) {
-          throw new Error("Ya se encuentra cargada la información");
+          throw new ClientException("Ya se encuentra cargada la información");
         }
 
         //Borro los registros que no están autorizados.
@@ -338,17 +328,17 @@ export class AsistenciaController extends BaseController {
       await queryRunner.commitTransaction();
 
       this.jsonRes([], res);
-    } catch (err) {
+    } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
-      this.errRes(err, res, err.message, 409);
+      next(error)
     } finally {
       // you need to release query runner which is manually created:
       await queryRunner.release();
     }
   }
 
-  async deleteExcepcion(req: any, res: Response) {
+  async deleteExcepcion(req: any, res: Response, next:NextFunction) {
     const anio: number = req.params.anio;
     const mes: number = req.params.mes;
     const ObjetivoId: number = req.params.ObjetivoId;
@@ -370,7 +360,7 @@ export class AsistenciaController extends BaseController {
           Number(ObjetivoId),
           queryRunner
         );
-//        if (!auth) throw new Error(`No tiene permisos para realizar operación`);
+//        if (!auth) throw new ClientException(`No tiene permisos para realizar operación`);
 
       //Traigo el Art14 para analizarlo
       let resultAutoriz = await queryRunner.query(
@@ -422,21 +412,21 @@ export class AsistenciaController extends BaseController {
       }
 
       if (recdelete + recupdate == 0)
-      throw new Error("No se localizaron registros para finalizar para la persona y metodología indicados");
+      throw new ClientException("No se localizaron registros para finalizar para la persona y metodología indicados");
 
       await queryRunner.commitTransaction();
       this.jsonRes([], res);
-    } catch (err) {
+    } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
-      this.errRes(err, res, err.message, 409);
+      next(error)
     } finally {
       // you need to release query runner which is manually created:
       await queryRunner.release();
     }
   }
 
-  async getExcepAsistenciaPorObjetivo(req: any, res: Response) {
+  async getExcepAsistenciaPorObjetivo(req: any, res: Response, next:NextFunction) {
     try {
       const objetivoId = req.params.objetivoId;
       const anio = req.params.anio;
@@ -453,7 +443,7 @@ export class AsistenciaController extends BaseController {
           dataSource
         );
 //        if (!auth)
-//          throw new Error(`No tiene permisos para realizar la consulta al objetivo`);
+//          throw new ClientException(`No tiene permisos para realizar la consulta al objetivo`);
 
       const result = await dataSource.query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion,
@@ -485,10 +475,10 @@ export class AsistenciaController extends BaseController {
       );
 
       this.jsonRes(result, res);
-    } catch (err) {
+    } catch (error) {
       // if (queryRunner.isTransactionActive)
       //            await queryRunner.rollbackTransaction()
-      this.errRes(err, res, err.message, 409);
+      next(error)
     }
   }
   
@@ -598,7 +588,7 @@ export class AsistenciaController extends BaseController {
 
   }
 
-  async getDescuentosPorPersona(req: any, res: Response) {
+  async getDescuentosPorPersona(req: any, res: Response, next:NextFunction) {
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
@@ -609,13 +599,13 @@ export class AsistenciaController extends BaseController {
       const total = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
 
       this.jsonRes({ descuentos: result, total }, res);
-    } catch (err) {
-      this.errRes(err, res, err.message, 409);
+    } catch (error) {
+      next(error)
     }
   }
 
 
-  async getExcepAsistenciaPorPersona(req: any, res: Response) {
+  async getExcepAsistenciaPorPersona(req: any, res: Response, next:NextFunction) {
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
@@ -627,7 +617,7 @@ export class AsistenciaController extends BaseController {
             if (req.persona_cuit != "") {
                 const auth = await this.hasAuthObjetivo(anio, mes, req, objetivoId, dataSource)
                 if (!auth)
-                    throw new Error(`No tiene permisos para realizar la consulta al objetivo`)
+                    throw new ClientException(`No tiene permisos para realizar la consulta al objetivo`)
             }
 */
 
@@ -653,14 +643,14 @@ export class AsistenciaController extends BaseController {
         [personalId, desde]
       );
       this.jsonRes(result, res);
-    } catch (err) {
+    } catch (error) {
       // if (queryRunner.isTransactionActive)
       //            await queryRunner.rollbackTransaction()
-      this.errRes(err, res, err.message, 409);
+      next(error)
     }
   }
 
-  async getAsistenciaPorPersona(req: any, res: Response) {
+  async getAsistenciaPorPersona(req: any, res: Response, next:NextFunction) {
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
@@ -671,7 +661,7 @@ export class AsistenciaController extends BaseController {
             if (req.persona_cuit != "") {
                 const auth = await this.hasAuthObjetivo(anio, mes, req, objetivoId, dataSource)
                 if (!auth)
-                    throw new Error(`No tiene permisos para realizar la consulta al objetivo`)
+                    throw new ClientException(`No tiene permisos para realizar la consulta al objetivo`)
             }
 */
 
@@ -856,14 +846,14 @@ export class AsistenciaController extends BaseController {
 
 
       this.jsonRes({ asistencia: result, total }, res);
-    } catch (err) {
+    } catch (error) {
       // if (queryRunner.isTransactionActive)
       //await queryRunner.rollbackTransaction()
-      this.errRes(err, res, err.message, 409);
+      next(error)
     }
   }
 
-  async getDescuentosPorObjetivo(req: any, res: Response) {
+  async getDescuentosPorObjetivo(req: any, res: Response, next:NextFunction) {
     try {
       const objetivoId = req.params.objetivoId;
       const anio = req.params.anio;
@@ -932,14 +922,14 @@ export class AsistenciaController extends BaseController {
       this.jsonRes(result, res);
 
 
-    } catch (err) {
+    } catch (error) {
       // if (queryRunner.isTransactionActive)
       //await queryRunner.rollbackTransaction()
-      this.errRes(err, res, err.message, 409);
+      next(error)
     }
   }
 
-  async getAsistenciaPorObjetivo(req: any, res: Response) {
+  async getAsistenciaPorObjetivo(req: any, res: Response, next:NextFunction) {
     try {
       const objetivoId = req.params.objetivoId;
       const anio = req.params.anio;
@@ -954,7 +944,7 @@ export class AsistenciaController extends BaseController {
           dataSource
         );
 //        if (!auth)
-//          throw new Error(`No tiene permisos para realizar la consulta al objetivo`);
+//          throw new ClientException(`No tiene permisos para realizar la consulta al objetivo`);
 
       //            const { objetivoId } = req.body;
 
@@ -1125,14 +1115,14 @@ export class AsistenciaController extends BaseController {
         [objetivoId, anio, mes]
       );
       this.jsonRes(result, res);
-    } catch (err) {
+    } catch (error) {
       // if (queryRunner.isTransactionActive)
       //await queryRunner.rollbackTransaction()
-      this.errRes(err, res, err.message, 409);
+      next(error)
     }
   }
 
-  async getMetodologia(req: any, res: Response) {
+  async getMetodologia(req: any, res: Response, next:NextFunction) {
     const recordSet = new Array();
     recordSet.push({
       id: "S",

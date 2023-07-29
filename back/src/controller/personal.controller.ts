@@ -1,12 +1,13 @@
-import { BaseController } from "./baseController";
+import { BaseController, ClientException } from "./baseController";
 import { PersonaObj } from "../schemas/personal.schemas";
 import fetch, { Request } from "node-fetch";
 import { dataSource } from "../data-source";
 import { Response } from "express-serve-static-core";
 import { ParsedQs } from "qs";
+import { NextFunction } from "express";
 
 export class PersonalController extends BaseController {
-  async getPersonalMonotributo(req: any, res: Response) {
+  async getPersonalMonotributo(req: any, res: Response, next:NextFunction) {
     const personalId = req.params.personalId;
     const anio = req.params.anio;
     const mes = req.params.mes;
@@ -17,12 +18,12 @@ export class PersonalController extends BaseController {
       );
 
       this.jsonRes(result, res);
-    } catch (err) {
-      this.errRes(err, res, "Error accediendo a la base de datos", 409);
+    } catch (error) {
+      next(error)
     }
   }
 
-  async getNameFromId(PersonalId, res: Response) {
+  async getNameFromId(PersonalId, res: Response, next:NextFunction) {
     try {
       const result = await dataSource.query(
         `SELECT per.PersonalId personalId, cuit.PersonalCUITCUILCUIT cuit,
@@ -35,12 +36,12 @@ export class PersonalController extends BaseController {
 
       const info = result[0];
       this.jsonRes(info, res);
-    } catch (err) {
-      this.errRes(err, res, "Error accediendo a la base de datos", 409);
+    } catch (error) {
+      next(error)
     }
   }
 
-  async getPersonalResponsables(req: any, res: Response) {
+  async getPersonalResponsables(req: any, res: Response, next:NextFunction) {
     const personalId = req.params.personalId;
     const anio = req.params.anio;
     const mes = req.params.mes;
@@ -78,12 +79,12 @@ export class PersonalController extends BaseController {
         [personalId, anio, mes]
       );
       this.jsonRes(responsables, res);
-    } catch (err) {
-      this.errRes(err, res, "Error accediendo a la base de datos", 409);
+    } catch (error) {
+      next(error)
     }
   }
 
-  getById(PersonalId: string, res: Response) {
+  getById(PersonalId: string, res: Response, next:NextFunction) {
     dataSource
       .query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
@@ -97,7 +98,7 @@ export class PersonalController extends BaseController {
         [PersonalId]
       )
       .then((records: Array<PersonaObj>) => {
-        if (records.length != 1) throw new Error("Person not found");
+        if (records.length != 1) throw new ClientException("Person not found");
 
         let FechaHasta = new Date();
         FechaHasta.setFullYear(FechaHasta.getFullYear() + 1);
@@ -135,19 +136,19 @@ export class PersonalController extends BaseController {
               this.jsonRes(personaData, res);
             })
             .catch((reason) => {
-              throw new Error("Image not found");
+              throw new ClientException("Image not found");
             });
         } else {
           personaData.image = "";
           this.jsonRes(personaData, res);
         }
       })
-      .catch((err) => {
-        this.errRes(err, res, "Error accediendo a la base de datos", 409);
+      .catch((error) => {
+        next(error)
       });
   }
 
-  search(req: any, res: Response) {
+  search(req: any, res: Response, next:NextFunction) {
     const { fieldName, value } = req.body;
 
     let buscar = false;
@@ -190,8 +191,8 @@ export class PersonalController extends BaseController {
       .then((records) => {
         this.jsonRes({ recordsArray: records }, res);
       })
-      .catch((err) => {
-        this.errRes(err, res, "Error accediendo a la base de datos", 409);
+      .catch((error) => {
+        next(error)
       });
   }
   async execProcedure(someParam: number) {
