@@ -109,6 +109,27 @@ export class SearchService {
       );
   }
 
+  getClientFromName(fieldName: string, values: string): Observable<Search[]> {
+    if (!values || values == '') {
+      return of([]);
+    }
+    return this.http
+      .post<ResponseJSON<ResponseBySearch>>('api/cliente/search', {
+        fieldName: fieldName,
+        value: values,
+      })
+      .pipe(
+        map(res => {
+          if (res.data.recordsArray) return res.data.recordsArray;
+          else return [];
+        }),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
   getSucursales(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/sucursales`).pipe(
       map(res => res.data),

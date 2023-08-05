@@ -60,13 +60,13 @@
 
       <div nz-col [nzSpan]="5" id="inpurForPersonalSearch" style="text-align: center; display:inline-block;width: 22%;" *ngIf ="inputSearchview" >
         <app-personal-search
-          [(ngModel)]="selectedPersonalId"
+          [(ngModel)]="selectedPersonalId" 
           [ngModelOptions]="{ standalone: true }"
           (keydown.enter)="handleInputConfirm()" />
       </div>
-      <div nz-col [nzSpan]="5" id="Cliente" style="text-align: center; display:inline-block;width: 22%;" *ngIf ="inputClientView" >
-        <app-personal-search
-          [(ngModel)]="selectedClienteId"
+      <div nz-col [nzSpan]="5" id="inpurForClientSearch" style="text-align: center; display:inline-block;width: 22%;" *ngIf ="inputClientView" >
+        <app-cliente-search
+          [(ngModel)]="selectedClienteId "
           [ngModelOptions]="{ standalone: true }"
           (keydown.enter)="handleInputConfirm()" />
       </div>
