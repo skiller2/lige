@@ -1,6 +1,7 @@
 import { AuthController } from "./auth.controller";
 import { InfoController } from "./info.controller";
 import { PersonalController } from "./personal.controller";
+import { ClienteController } from "./cliente.controller";
 import { InitController } from "./init.controller";
 import { SucursalController } from "./sucursal.controller";
 import { ObjetivoController } from "./objetivo.controller";
@@ -13,6 +14,7 @@ import { ObjetivosPendasisController } from "../objetivos-pendasis/objetivos-pen
 export const infoController = new InfoController();
 export const authController = new AuthController();
 export const personalController = new PersonalController();
+export const clienteController = new ClienteController();
 export const initController = new InitController();
 export const sucursalController = new SucursalController();
 export const objetivoController = new ObjetivoController();

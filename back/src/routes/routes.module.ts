@@ -3,6 +3,7 @@ import { WebServer } from "../server";
 import { authRouter } from "./auth.routes";
 import { liquidaRouter } from "./liquida.routes";
 import { personalRouter } from "./personal.routes";
+import { clienteRouter } from "./cliente.routes";
 import { initRouter } from "./init.routes";
 import { sucursalRouter } from "./sucursal.routes";
 import { objetivoRouter } from "./objetivo.routes";
@@ -17,6 +18,7 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/auth", authRouter);
   server.setRoute("/api/liquida", liquidaRouter);
   server.setRoute("/api/personal", personalRouter);
+  server.setRoute("/api/cliente", clienteRouter);
   server.setRoute("/api/init", initRouter);
   server.setRoute("/api/sucursales", sucursalRouter);
   server.setRoute("/api/objetivos", objetivoRouter);

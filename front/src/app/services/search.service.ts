@@ -16,6 +16,7 @@ import {
   ResponseBySearch,
   Search,
 } from 'src/app/shared/schemas/personal.schemas';
+import { ResponseBySearchCliente,SearchClient } from 'src/app/shared/schemas/cliente.schemas';
 import {
   Objetivo,
   ObjetivoInfo,
@@ -109,12 +110,12 @@ export class SearchService {
       );
   }
 
-  getClientFromName(fieldName: string, values: string): Observable<Search[]> {
+  getClientFromName(fieldName: string, values: string): Observable<SearchClient[]> {
     if (!values || values == '') {
       return of([]);
     }
     return this.http
-      .post<ResponseJSON<ResponseBySearch>>('api/cliente/search', {
+      .post<ResponseJSON<ResponseBySearchCliente>>('api/cliente/search', {
         fieldName: fieldName,
         value: values,
       })

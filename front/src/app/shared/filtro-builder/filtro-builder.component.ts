@@ -82,10 +82,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     const fieldObj: any = this._fieldsToSelect.filter(x => x.field === this.selections.field)[0];
     let inputValueSearch: HTMLElement
-
     switch (fieldObj?.searchComponent) {
+     
       case 'inpurForPersonalSearch':
-        debugger
         inputValueSearch = document.getElementById("inpurForPersonalSearch") as HTMLElement;
         this.inputValue = this.selectedPersonalId == "" ? "Vacio" : inputValueSearch?.outerText
         // this.inputValue =  inputValueSearch?.outerText == "" ? "vacio" :  inputValueSearch?.outerText
@@ -94,6 +93,11 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         inputValueSearch = document.getElementById("sucursalName") as HTMLElement;
         let inputValueSearchDescription: HTMLElement = document.getElementById("sucursalDescription") as HTMLElement;
         this.inputValue = inputValueSearch?.outerText 
+        break;
+      case 'inpurForClientSearch':
+        inputValueSearch = document.getElementById("inpurForClientSearch") as HTMLElement;
+        this.inputValue = this.selectedClienteId == "" ? "Vacio" : inputValueSearch?.outerText
+        // this.inputValue =  inputValueSearch?.outerText == "" ? "vacio" :  inputValueSearch?.outerText
         break;
 
       default:
@@ -133,10 +137,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     // if ( this.verifySelections() && this.inputValue && this.tags.indexOf(this.inputValue) === -1 ) {
     if (this.verifySelections()) {
       this.addTag();
-      debugger;
       switch (fieldObj?.searchComponent) {
         case 'inpurForPersonalSearch':
-          debugger
            this.inputValue = this.selectedPersonalId;
            this.inputSearchview = false;
           // this.inputValue = this.selectedPersonalId == null ? "0" : this.selectedPersonalId
@@ -145,6 +147,11 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
           this.inputValue = this.selectedSucursalId
           this.inputSucursalview = false;
           break;
+        case 'inpurForClientSearch':
+          debugger
+          this.inputValue = this.selectedClienteId
+          this.inputClientView = false;
+          break; 
         default:
           break;
       }

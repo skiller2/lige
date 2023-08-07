@@ -6,7 +6,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
-import { Search } from '../schemas/cliente.schemas';
+import { SearchClient } from '../schemas/cliente.schemas';
 import { SearchService } from 'src/app/services/search.service';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 import { ResponseNameFromId } from '../schemas/ResponseJSON';
@@ -53,20 +53,20 @@ export class ClienteSearchComponent implements ControlValueAccessor {
   }
 
   registerOnTouched() {}
-  selectedInfoChange$ = new BehaviorSubject<Search[] | null>(null);
+  selectedInfoChange$ = new BehaviorSubject<SearchClient[] | null>(null);
 
   $searchChange = new BehaviorSubject('');
   $isOptionsLoading = new BehaviorSubject<boolean>(false);
-  $optionsArray: Observable<Search[]> = this.$searchChange.pipe(
+  $optionsArray: Observable<SearchClient[]> = this.$searchChange.pipe(
     debounceTime(500),
-    switchMap(value =>
-      this.searchService
-        .getPersonFromName(Number(value) ? 'CUIT' : 'Nombre', value)
+     switchMap(value =>
+       this.searchService
+        .getClientFromName(Number(value) ? 'ClienteId' : 'ClienteApellidoNombre', value)
         .pipe(
           doOnSubscribe(() => this.$isOptionsLoading.next(true)),
           tap({ complete: () => this.$isOptionsLoading.next(false) })
         )
-    )
+     )
   );
 
   modelChange(event: string) {
@@ -75,7 +75,7 @@ export class ClienteSearchComponent implements ControlValueAccessor {
   selectedValueChange(event: string): void {
     if (!event) return;
     this.searchService
-      .getClientFromName('PersonalId', event)
+      .getClientFromName('ClienteId', event)
       .subscribe(info => {
         this.selectedInfoChange$.next(info);
       });
