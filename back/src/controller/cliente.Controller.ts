@@ -16,7 +16,8 @@ export class ClienteController extends BaseController {
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
           if (element.trim().length > 1) {
-            query += `(ClienteApellidoNombre LIKE '%${element.trim()}%') AND `;
+//            query += `(ClienteApellidoNombre LIKE '%${element.trim()}%') AND `;
+            query += `(CONCAT(CLienteDenominacion, ClienteNombreFantasia, ClienteApellidoNombre) LIKE '%${element.trim()}%') AND `;
             buscar = true;
           }
         });

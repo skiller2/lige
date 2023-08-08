@@ -111,11 +111,9 @@ export class AuthController extends BaseController {
       await con.unbind();
 
 
-      throw new ClientException("Fin",'locura')
+//      throw new ClientException("Fin",'locura')
 
-      return {
-        dn, groups, sAMAccountName, email, name, description
-      }
+      return {dn, groups, sAMAccountName, email, name, description}
 
     } catch (err) {
       if (err instanceof InvalidCredentialsError) {
