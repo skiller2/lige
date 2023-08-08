@@ -206,6 +206,7 @@ export class ImpuestoAfipComponent {
         )
         .pipe(
           map(items => {
+            debugger
             return {
               RegistrosConComprobantes: items.RegistrosConComprobantes,
               RegistrosSinComprobantes: items.RegistrosSinComprobantes,

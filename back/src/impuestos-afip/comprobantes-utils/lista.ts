@@ -95,13 +95,14 @@ const listaColumnas: any[] = [
   },
   */
   {
-    name: "ClienteId",
+    name: "Cliente",
     type: "string",
     id: "ClienteId",
     field: "ClienteId",
-    fieldName: "cli.ClienteId",
+    searchComponent:"inpurForClientSearch",
+    fieldName: "obj.ClienteId",
     hidden: true,
-    searchHidden: false
+    searchHidden: false 
   },
   {
     name: "Sucursal",

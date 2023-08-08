@@ -46,6 +46,7 @@ const isCondition = (condition: any): boolean =>
  */
 
 const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
+  debugger
   if (filtros?.length === (0 || undefined)) return "1=1";
 
   let returnedString = "";

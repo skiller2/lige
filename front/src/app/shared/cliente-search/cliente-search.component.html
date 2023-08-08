@@ -1,0 +1,29 @@
+<nz-select
+  [nzDropdownMatchSelectWidth]="false"
+  [(ngModel)]="selectedClientId"
+  [ngModelOptions]="{ standalone: true }"
+  style="width: 100%"
+  (ngModelChange)="modelChange($event)"
+  nzAllowClear
+  nzPlaceHolder="Nombre Cliente"
+  nzShowSearch
+  nzServerSearch
+  
+  (nzOnSearch)="search($event)">
+  <ng-container *ngFor="let option of $optionsArray | async">
+    <nz-option
+      *ngIf="($isOptionsLoading | async) == false"
+      [nzValue]="option.ClienteId"
+      [nzLabel]="option.ClienteApellidoNombre" />
+  </ng-container>
+  <ng-container *ngFor="let option of selectedInfoChange$ | async">
+    <nz-option
+      *ngIf="($isOptionsLoading | async) == false"
+      [nzValue]="option.ClienteId"
+      [nzLabel]="option.ClienteApellidoNombre" />
+  </ng-container>
+  <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
+    <span nz-icon nzType="loading" class="loading-icon"></span>
+    Loading Data...
+  </nz-option>
+</nz-select> 

@@ -49,7 +49,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   selectedSucursalId = '';
   $selectedSucursalIdChange = new BehaviorSubject('');
   selectedPersonalId = "";
+  selectedClienteId = "";
   inputSucursalview = false;
+  inputClientView = false;
   $optionsSucursales = this.searchService.getSucursales();
   tags: string[] = [];
   private _options: Options = {
@@ -80,16 +82,22 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     const fieldObj: any = this._fieldsToSelect.filter(x => x.field === this.selections.field)[0];
     let inputValueSearch: HTMLElement
-
     switch (fieldObj?.searchComponent) {
+     
       case 'inpurForPersonalSearch':
         inputValueSearch = document.getElementById("inpurForPersonalSearch") as HTMLElement;
-        this.inputValue = inputValueSearch?.outerText
+        this.inputValue = this.selectedPersonalId == "" ? "Vacio" : inputValueSearch?.outerText
+        // this.inputValue =  inputValueSearch?.outerText == "" ? "vacio" :  inputValueSearch?.outerText
         break;
       case 'Sucursal':
         inputValueSearch = document.getElementById("sucursalName") as HTMLElement;
         let inputValueSearchDescription: HTMLElement = document.getElementById("sucursalDescription") as HTMLElement;
-        this.inputValue = inputValueSearch?.outerText + "-" + inputValueSearchDescription?.outerText
+        this.inputValue = inputValueSearch?.outerText 
+        break;
+      case 'inpurForClientSearch':
+        inputValueSearch = document.getElementById("inpurForClientSearch") as HTMLElement;
+        this.inputValue = this.selectedClienteId == "" ? "Vacio" : inputValueSearch?.outerText
+        // this.inputValue =  inputValueSearch?.outerText == "" ? "vacio" :  inputValueSearch?.outerText
         break;
 
       default:
@@ -129,14 +137,21 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     // if ( this.verifySelections() && this.inputValue && this.tags.indexOf(this.inputValue) === -1 ) {
     if (this.verifySelections()) {
       this.addTag();
-
       switch (fieldObj?.searchComponent) {
         case 'inpurForPersonalSearch':
-          this.inputValue = this.selectedPersonalId
+           this.inputValue = this.selectedPersonalId;
+           this.inputSearchview = false;
+          // this.inputValue = this.selectedPersonalId == null ? "0" : this.selectedPersonalId
           break;
         case 'Sucursal':
           this.inputValue = this.selectedSucursalId
+          this.inputSucursalview = false;
           break;
+        case 'inpurForClientSearch':
+          debugger
+          this.inputValue = this.selectedClienteId
+          this.inputClientView = false;
+          break; 
         default:
           break;
       }
@@ -250,12 +265,20 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     this.inputSucursalview = false;
     this.inputSearchview = false;
+    this.inputClientView = false;
+    debugger
     switch (fieldObj?.searchComponent) {
       case 'inpurForPersonalSearch':
+        this.selectedPersonalId = "";
         this.inputSearchview = true
         break;
       case 'Sucursal':
         this.inputSucursalview = true
+        this.selectedSucursalId = "";
+        break;
+      case 'inpurForClientSearch':
+        this.inputClientView = true;
+        this.selectedClienteId = "";
         break;
 
       default:

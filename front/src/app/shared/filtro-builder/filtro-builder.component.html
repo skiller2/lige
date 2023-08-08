@@ -23,7 +23,7 @@
         [nzLabel]="condition"
         [nzValue]="condition"></nz-option>
     </nz-select> -->
-
+    
     <nz-select
       [nzDropdownMatchSelectWidth]="false"
       [nzPlaceHolder]="'Columna'"
@@ -34,10 +34,12 @@
         <nz-option
         *ngIf="field.searchHidden!=true"
         [nzLabel]="field.name"
-        [nzValue]="field.field"></nz-option>
+        [nzValue]="field.field">
+       </nz-option>
+        
       </ng-container>
     </nz-select>
-    <nz-select *ngIf ="inputSearchview == false && inputSucursalview == false"
+    <nz-select *ngIf ="inputSearchview == false && inputSucursalview == false && inputClientView == false && selections.field != '' "
       [nzPlaceHolder]="'Operador'"
       [(ngModel)]="selections.operator"
       #operatorSelector>
@@ -47,7 +49,7 @@
         [nzLabel]="operator"
         [nzValue]="operator"></nz-option>
     </nz-select>
-     <input  *ngIf ="inputSearchview == false && inputSucursalview == false"
+     <input  *ngIf ="inputSearchview == false && inputSucursalview == false && inputClientView == false && selections.field != ''"
       placeholder="Valor"
       #inputElement
       nz-input
@@ -58,7 +60,13 @@
 
       <div nz-col [nzSpan]="5" id="inpurForPersonalSearch" style="text-align: center; display:inline-block;width: 22%;" *ngIf ="inputSearchview" >
         <app-personal-search
-          [(ngModel)]="selectedPersonalId"
+          [(ngModel)]="selectedPersonalId" 
+          [ngModelOptions]="{ standalone: true }"
+          (keydown.enter)="handleInputConfirm()" />
+      </div>
+      <div nz-col [nzSpan]="5" id="inpurForClientSearch" style="text-align: center; display:inline-block;width: 22%;" *ngIf ="inputClientView" >
+        <app-cliente-search
+          [(ngModel)]="selectedClienteId "
           [ngModelOptions]="{ standalone: true }"
           (keydown.enter)="handleInputConfirm()" />
       </div>

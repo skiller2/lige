@@ -121,7 +121,7 @@ export class ImpuestosAfipController extends BaseController {
   }) {
 
     const filtros = params.options.filtros;
-
+    console.log("IMPRIMO FILTROS",filtros)
     let filtrosConsulta1 = [], filtrosConsulta2 = [];
     let filter1IsActive = false;
     params.options.filtros.forEach(element => {
@@ -139,6 +139,10 @@ export class ImpuestosAfipController extends BaseController {
           filter1IsActive = true;
           break;
         
+          case "ClienteId":
+          filtrosConsulta1.push(element);
+          filter1IsActive = true;
+          break;
         default:
           filtrosConsulta2.push(element)
           break;

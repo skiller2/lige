@@ -11,6 +11,7 @@ import { SHARED_ZORRO_MODULES } from './shared-zorro.module';
 import { PdfviewerComponent } from './pdfviewer/pdfviewer.component';
 import { UploadFileComponent } from './upload-file/upload-file.component';
 import { PersonalSearchComponent } from './personal-search/personal-search.component';
+import { ClienteSearchComponent } from './cliente-search/cliente-search.component';
 import { PeriodoSelectComponent } from './periodo-select/periodo-select.component';
 import { CUITPipe } from './utils/cuit-pipe';
 import { ImageContentComponent } from './imagePreview/image-content/image-content.component';
@@ -32,6 +33,7 @@ const THIRDMODULES: Array<Type<any>> = [ImageCropperModule, QRModule,AngularSlic
 // #region your componets & directives
 const COMPONENTS: Array<Type<any>> = [
   PersonalSearchComponent,
+  ClienteSearchComponent,
   ObjetivoSearchComponent,
   PdfviewerComponent,
   UploadFileComponent,
