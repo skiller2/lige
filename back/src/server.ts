@@ -67,7 +67,7 @@ const errorResponder = (
     message = error.message
     status = 409
   } else if (error instanceof QueryFailedError) {
-    if (error.message.indexOf('Violation')) {
+    if (error.message.indexOf('Violation') > 0) {
       message = 'El registro ya existe'
       status = 409
     }

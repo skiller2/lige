@@ -134,6 +134,11 @@ export class ImpuestosAfipController extends BaseController {
           filtrosConsulta1.push(element);
           filter1IsActive = true;
           break;
+          case "ClienteId":
+          filtrosConsulta1.push(element);
+          filter1IsActive = true;
+          break;
+        
         default:
           filtrosConsulta2.push(element)
           break;
@@ -147,9 +152,7 @@ export class ImpuestosAfipController extends BaseController {
     let filterSql1 = filtrosToSql(filtrosConsulta1, listaColumnas);
     let filterSql2 = filtrosToSql(filtrosConsulta2,listaColumnas);
 
-    console.log('con1',filtrosConsulta1,filterSql1)
-    console.log('con2',filtrosConsulta2,filterSql2)
-
+    
     if (filter1IsActive) {
       const personalIdArr = await dataSource.query(`SELECT 
     suc.SucursalId, 

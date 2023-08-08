@@ -483,7 +483,8 @@ export class AsistenciaController extends BaseController {
   }
   
   async getDescuentos(anio: number, mes: number, personalId: number[]) { 
-    const listPersonaId=personalId.join(',')
+    const listPersonaId = (personalId.length==0)? '0': personalId.join(',')
+    
     return dataSource.query(
       `             
       SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, 0 as ObjetivoId,per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 

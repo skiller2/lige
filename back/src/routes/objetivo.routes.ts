@@ -4,7 +4,9 @@ import { objetivoController } from "../controller/controller.module";
 
 export const objetivoRouter = Router();
 
-objetivoRouter.post("/search", authMiddleware.verifyToken, objetivoController.search);
+objetivoRouter.post("/search", authMiddleware.verifyToken,(req, res, next) => {
+  objetivoController.search(req, res, next)
+});
 
 objetivoRouter.get(
   "/:anio/:mes/:objetivoId",

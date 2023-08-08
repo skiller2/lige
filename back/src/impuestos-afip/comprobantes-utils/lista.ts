@@ -42,7 +42,7 @@ const listaColumnas: any[] = [
     hidden: false,
   },
   {
-    name: "CUIT Responsable",
+    name: "CUIT Responsable Persona",
     type: "number",
     id: "CUITJ",
     field: "CUITJ",
@@ -52,7 +52,7 @@ const listaColumnas: any[] = [
     hidden: false,
   },
   {
-    name: "Apellido Nombre Responsable",
+    name: "Responsable Persona",
     type: "string",
     id: "ApellidoNombreJ",
     field: "ApellidoNombreJ",
@@ -63,7 +63,7 @@ const listaColumnas: any[] = [
     searchHidden: false
   },
   {
-    name: "Apellido Nombre Responsable Objetivo",
+    name: "Responsable Objetivo",
     type: "string",
     id: "ApellidoNombreRO",
     field: "ApellidoNombreRO",

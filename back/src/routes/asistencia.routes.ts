@@ -5,26 +5,26 @@ import { asistenciaController } from "../controller/controller.module";
 export const asistenciaRouter = Router();
 
 
-asistenciaRouter.get('/metodologia', asistenciaController.getMetodologia)
+asistenciaRouter.get('/metodologia', (req, res, next) => { asistenciaController.getMetodologia(req, res, next) } )
 
-asistenciaRouter.get('/exceporobj/:anio/:mes/:objetivoId', authMiddleware.verifyToken, asistenciaController.getExcepAsistenciaPorObjetivo)
+asistenciaRouter.get('/exceporobj/:anio/:mes/:objetivoId', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.getExcepAsistenciaPorObjetivo(req, res, next) })
 
-asistenciaRouter.get('/listaporobj/:anio/:mes/:objetivoId', authMiddleware.verifyToken, asistenciaController.getAsistenciaPorObjetivo)
+asistenciaRouter.get('/listaporobj/:anio/:mes/:objetivoId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getAsistenciaPorObjetivo(req, res, next) })
 
-asistenciaRouter.get('/exceporper/:anio/:mes/:personalId', authMiddleware.verifyToken, asistenciaController.getExcepAsistenciaPorPersona)
+asistenciaRouter.get('/exceporper/:anio/:mes/:personalId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getExcepAsistenciaPorPersona(req, res, next) })
 
-asistenciaRouter.get('/descuentosxper/:anio/:mes/:personalId', authMiddleware.verifyToken, asistenciaController.getDescuentosPorPersona)
+asistenciaRouter.get('/descuentosxper/:anio/:mes/:personalId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getDescuentosPorPersona(req, res, next) })
 
-asistenciaRouter.get('/descuentosxobj/:anio/:mes/:objetivoId', authMiddleware.verifyToken, asistenciaController.getDescuentosPorObjetivo)
+asistenciaRouter.get('/descuentosxobj/:anio/:mes/:objetivoId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getDescuentosPorObjetivo(req, res, next) })
 
-asistenciaRouter.get('/listaporper/:anio/:mes/:personalId', authMiddleware.verifyToken, asistenciaController.getAsistenciaPorPersona)
-
-
-asistenciaRouter.get('/categorias', authMiddleware.verifyToken, asistenciaController.getCategoria)
-
-asistenciaRouter.post('/excepcion', authMiddleware.verifyToken, asistenciaController.setExcepcion)
-
-asistenciaRouter.post('/excepcion', authMiddleware.verifyToken, asistenciaController.setExcepcion)
+asistenciaRouter.get('/listaporper/:anio/:mes/:personalId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getAsistenciaPorPersona(req, res, next) })
 
 
-asistenciaRouter.delete('/excepcion/:anio/:mes/:ObjetivoId/:PersonaId/:metodologia', authMiddleware.verifyToken, asistenciaController.deleteExcepcion)
+asistenciaRouter.get('/categorias', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getCategoria(req, res, next) })
+
+asistenciaRouter.post('/excepcion', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.setExcepcion(req, res, next) })
+
+asistenciaRouter.post('/excepcion', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.setExcepcion(req, res, next) })
+
+
+asistenciaRouter.delete('/excepcion/:anio/:mes/:ObjetivoId/:PersonaId/:metodologia', (req, res, next) => { authMiddleware.verifyToken, asistenciaController.deleteExcepcion(req, res, next) })

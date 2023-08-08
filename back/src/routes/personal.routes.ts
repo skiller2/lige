@@ -12,10 +12,15 @@ personalRouter.post(
     personalController.search(req, res, next);
   }
 );
+
+
+
 personalRouter.get(`${base}/:id`, authMiddleware.verifyToken, (req, res, next) => {
   //personalRouter.get(`${base}/:id`,  (req, res) => {
   personalController.getById(req.params.id, res, next);
 });
+
+
 personalRouter.get(
   `${base}/responsables/:personalId/:anio/:mes`,
   authMiddleware.verifyToken,
@@ -23,7 +28,6 @@ personalRouter.get(
     personalController.getPersonalResponsables(req, res, next);
   }
 );
-
 
 personalRouter.get(
   `${base}/monotributo/:personalId/:anio/:mes`,
