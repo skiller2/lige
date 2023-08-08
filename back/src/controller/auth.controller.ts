@@ -110,19 +110,39 @@ export class AuthController extends BaseController {
 
       await con.unbind();
 
-
-//      throw new ClientException("Fin",'locura')
-
-      return {dn, groups, sAMAccountName, email, name, description}
+      return { dn, groups, sAMAccountName, email, name, description }
 
     } catch (err) {
       if (err instanceof InvalidCredentialsError) {
         const extended = err.message.match(/AcceptSecurityContext (.*), data (.*),/)
 
-        if (extended[2] == '52e')
-          throw new ClientException("Las credenciales ingresadas no son válidas",err.message)
-        if (extended[2] == '773')
-          throw new ClientException("Debe actualizar la contraseña",err.message)
+        /*
+            525	user not found
+            52e	invalid credentials
+            530	not permitted to logon at this time
+            531	not permitted to logon at this workstation
+            532	password expired
+            533
+            534	account disabled
+            The user has not been granted the requested logon type at this machine
+            701	account expired
+            773	user must reset password
+            775	user account locked
+         */
+        switch (extended[2]) {
+          case '532':
+            throw new ClientException("Contraseña vencida, debe actualizar", err.message)
+            break;
+          case '52e':
+            throw new ClientException("Las credenciales ingresadas no son válidas", err.message)
+            break;
+          case '773':
+            throw new ClientException("Requiere cambio de contraseña", err.message)
+            break;
+
+          default:
+            break;
+        }
       }
       throw err
     }
@@ -130,208 +150,208 @@ export class AuthController extends BaseController {
 
 
 
-/*
-  authUserjs(user: string, password: string) {
-    return new Promise((resolve, reject) => {
-      const url = process.env.LDAP_URL ? process.env.LDAP_URL : "";
-      const client = createClient({
-        url: [url],
-        reconnect: false,
-        connectTimeout: 5000,
-        timeout: 5000,
-        //
-        tlsOptions: { rejectUnauthorized: false }
-      },);
-      client.on("error", (err: any) => {
-        console.log('error', err)
-        err.message = "Servicio de validación no disponible";
-        return reject(err);
-      });
- 
-      client.on("connect", (res: any) => { });
- 
-      const username = process.env.LDAP_USERNAME
-        ? process.env.LDAP_USERNAME
-        : "";
-      const passowrd = process.env.LDAP_PASSWORD
-        ? process.env.LDAP_PASSWORD
-        : "";
- 
-      client.bind(
-        username,
-        passowrd,
- 
-        (err: any) => {
-          //ifError(err);
-          if (err) return reject(err);
-        }
-      );
- 
-      const samname = user.split("@")[0];
- 
-      const opts: SearchOptions = {
-        filter: `(&(objectClass=user)(|(mail=${user})(sAMAccountName=${samname})))`,
-        scope: "sub",
-        //        attributes: ['dn', 'sn', 'cn', 'mail', 'name', 'sAMAccountName'],
-        paged: false,
-        sizeLimit: 0,
-      };
-      const ldapsearch = process.env.LDAP_SEARCH ? process.env.LDAP_SEARCH : "";
-      client.search(ldapsearch, opts, (err: any, res: any) => {
-        ifError(err);
- 
- 
-        let userEntry: SearchEntry | null = null;
-        res.on("searchEntry", (entry: SearchEntry) => {
-          userEntry = entry;
-        });
- 
-        res.on("error", (err: any) => {
-          console.error("client.search", "error: " + err.message);
+  /*
+    authUserjs(user: string, password: string) {
+      return new Promise((resolve, reject) => {
+        const url = process.env.LDAP_URL ? process.env.LDAP_URL : "";
+        const client = createClient({
+          url: [url],
+          reconnect: false,
+          connectTimeout: 5000,
+          timeout: 5000,
+          //
+          tlsOptions: { rejectUnauthorized: false }
+        },);
+        client.on("error", (err: any) => {
+          console.log('error', err)
           err.message = "Servicio de validación no disponible";
+          return reject(err);
         });
- 
-        res.on("end", (result: any) => {
-//      console.log('res', result)
-          if (!userEntry)
-            return reject(new ClientException("Las credenciales ingresadas no son válidas"));
-    
-          const control = new Control({type: '1.3.6.1.4.1.42.2.27.8.5.1', criticality:false})
-//          client.bind(userEntry.pojo.objectName, password, (err: any) => {
-          
-client.on('connectTimeout', () => {console.log('Errorrrrrrrr')})
-      client.on('connectError', () => {console.log('Errorrrrrrrr')})
-      client.on('connectRefused', () => {console.log('Errorrrrrrrr')})          
-      client.on('error', (err) => {console.log('Errorrrrrrrr',err)})          
-          client.bind(samname + '@finanzas', password, control, (err: any, res: any) => {
- 
- 
-            console.log('loque', err,res)
-    
-//            client.destroy();
-            if (err) {
-              if (err.code == 49) { //NT_STATUS_LOGON_FAILURE
-                return reject(new ClientException(`Las credenciales ingresadas no son válidas para el usuario ${samname}.`));
-              }
-              return reject(new ClientException("Las credenciales ingresadas no son válidas.."));
-            }
- 
-            return resolve({
-              email: userEntry.pojo.attributes
-                .filter((f: { type: string }) => f.type == "mail")
-                .map((m: any[]) => m.values)[0],
-              name: userEntry.pojo.attributes
-                .filter((f: { type: string }) => f.type == "name")
-                .map((m: any[]) => m.values)[0],
-              username: userEntry.pojo.attributes
-                .filter((f: { type: string }) => f.type == "sAMAccountName")
-                .map((m: any[]) => m.values)[0],
-              description: userEntry.pojo.attributes
-                .filter((f: { type: string }) => f.type == "description")
-                .map((m: any[]) => m.values)[0],
-              groups: userEntry.pojo.attributes
-                .filter((f: { type: string }) => f.type == "memberOf")
-                .map((m: any[]) => m.values),
-            });
+   
+        client.on("connect", (res: any) => { });
+   
+        const username = process.env.LDAP_USERNAME
+          ? process.env.LDAP_USERNAME
+          : "";
+        const passowrd = process.env.LDAP_PASSWORD
+          ? process.env.LDAP_PASSWORD
+          : "";
+   
+        client.bind(
+          username,
+          passowrd,
+   
+          (err: any) => {
+            //ifError(err);
+            if (err) return reject(err);
+          }
+        );
+   
+        const samname = user.split("@")[0];
+   
+        const opts: SearchOptions = {
+          filter: `(&(objectClass=user)(|(mail=${user})(sAMAccountName=${samname})))`,
+          scope: "sub",
+          //        attributes: ['dn', 'sn', 'cn', 'mail', 'name', 'sAMAccountName'],
+          paged: false,
+          sizeLimit: 0,
+        };
+        const ldapsearch = process.env.LDAP_SEARCH ? process.env.LDAP_SEARCH : "";
+        client.search(ldapsearch, opts, (err: any, res: any) => {
+          ifError(err);
+   
+   
+          let userEntry: SearchEntry | null = null;
+          res.on("searchEntry", (entry: SearchEntry) => {
+            userEntry = entry;
           });
- 
-          
-          //if (result.status == 0) {
-          //  const err: any = {
-          //    message: "Las credenciales proporcionadas no son válidas"
-          //  }
-          //  return reject(err);
-          // }
-          
+   
+          res.on("error", (err: any) => {
+            console.error("client.search", "error: " + err.message);
+            err.message = "Servicio de validación no disponible";
+          });
+   
+          res.on("end", (result: any) => {
+  //      console.log('res', result)
+            if (!userEntry)
+              return reject(new ClientException("Las credenciales ingresadas no son válidas"));
+      
+            const control = new Control({type: '1.3.6.1.4.1.42.2.27.8.5.1', criticality:false})
+  //          client.bind(userEntry.pojo.objectName, password, (err: any) => {
+            
+  client.on('connectTimeout', () => {console.log('Errorrrrrrrr')})
+        client.on('connectError', () => {console.log('Errorrrrrrrr')})
+        client.on('connectRefused', () => {console.log('Errorrrrrrrr')})          
+        client.on('error', (err) => {console.log('Errorrrrrrrr',err)})          
+            client.bind(samname + '@finanzas', password, control, (err: any, res: any) => {
+   
+   
+              console.log('loque', err,res)
+      
+  //            client.destroy();
+              if (err) {
+                if (err.code == 49) { //NT_STATUS_LOGON_FAILURE
+                  return reject(new ClientException(`Las credenciales ingresadas no son válidas para el usuario ${samname}.`));
+                }
+                return reject(new ClientException("Las credenciales ingresadas no son válidas.."));
+              }
+   
+              return resolve({
+                email: userEntry.pojo.attributes
+                  .filter((f: { type: string }) => f.type == "mail")
+                  .map((m: any[]) => m.values)[0],
+                name: userEntry.pojo.attributes
+                  .filter((f: { type: string }) => f.type == "name")
+                  .map((m: any[]) => m.values)[0],
+                username: userEntry.pojo.attributes
+                  .filter((f: { type: string }) => f.type == "sAMAccountName")
+                  .map((m: any[]) => m.values)[0],
+                description: userEntry.pojo.attributes
+                  .filter((f: { type: string }) => f.type == "description")
+                  .map((m: any[]) => m.values)[0],
+                groups: userEntry.pojo.attributes
+                  .filter((f: { type: string }) => f.type == "memberOf")
+                  .map((m: any[]) => m.values),
+              });
+            });
+   
+            
+            //if (result.status == 0) {
+            //  const err: any = {
+            //    message: "Las credenciales proporcionadas no son válidas"
+            //  }
+            //  return reject(err);
+            // }
+            
+          });
         });
       });
-    });
+    }
+  */
+
+  encryptPassword(password: string) {
+    const salt = getSalt("10");
+    return hash(password, salt);
   }
-*/
 
-encryptPassword(password: string) {
-  const salt = getSalt("10");
-  return hash(password, salt);
-}
-
-comparePassword(password: string, passwordReceived: string) {
-  return compare(password, passwordReceived);
-}
+  comparePassword(password: string, passwordReceived: string) {
+    return compare(password, passwordReceived);
+  }
 
   async signin(req: Request, res: any, next: NextFunction) {
-  const { userName, password } = req.body;
-  const queryRunner = dataSource.createQueryRunner();
+    const { userName, password } = req.body;
+    const queryRunner = dataSource.createQueryRunner();
 
-  try {
-    let user: any = await this.authUser(userName, password)
-    await queryRunner.connect();
+    try {
+      let user: any = await this.authUser(userName, password)
+      await queryRunner.connect();
 
-    const persona_cuit = (user.description !== undefined && user.description.length > 0) ? user.description[0] : 0
+      const persona_cuit = (user.description !== undefined && user.description.length > 0) ? user.description[0] : 0
 
-    let result = await queryRunner.query(
-      `SELECT per.PersonalId
+      let result = await queryRunner.query(
+        `SELECT per.PersonalId
       FROM Personal per
       JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       WHERE cuit.PersonalCUITCUILCUIT = @0`, [
-      persona_cuit,
-    ])
-    const row = result[0]
-    user.PersonalId = (row) ? row['PersonalId'] : 0
-    /*    
-      this.authUser(userName, password)
-        .then(async (user: any) => {
-          console.log('user', user)
-          const queryRunner = dataSource.createQueryRunner();
-          await queryRunner.connect();
-  
-          let result = await queryRunner.query(
-            `SELECT per.PersonalId
-            FROM Personal per ON per.PersonalId = ade.PersonalId
-            JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-            WHERE cuit.PersonalCUITCUILCUIT = @0`, [
-            user.persona_cuit,
-          ])
-          user.PersonaId=0
-          let row:any
-          if ((row = result[0])) { 
-            user.PersonaId = row['PersonalId']
-          }
-  
-        })
-        .catch((error) => {
-          next(error)
-        });
-  */
+        persona_cuit,
+      ])
+      const row = result[0]
+      user.PersonalId = (row) ? row['PersonalId'] : 0
+      /*    
+        this.authUser(userName, password)
+          .then(async (user: any) => {
+            console.log('user', user)
+            const queryRunner = dataSource.createQueryRunner();
+            await queryRunner.connect();
+    
+            let result = await queryRunner.query(
+              `SELECT per.PersonalId
+              FROM Personal per ON per.PersonalId = ade.PersonalId
+              JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+              WHERE cuit.PersonalCUITCUILCUIT = @0`, [
+              user.persona_cuit,
+            ])
+            user.PersonaId=0
+            let row:any
+            if ((row = result[0])) { 
+              user.PersonaId = row['PersonalId']
+            }
+    
+          })
+          .catch((error) => {
+            next(error)
+          });
+    */
 
 
-    const jwtsecret = process.env.JWT_SECRET ? process.env.JWT_SECRET : "";
-    const token = sign(user, jwtsecret, {
-      expiresIn: Number(process.env.JWT_EXPIRE_SECS),
-    });
-    //console.log("jwt", jwt);
-    //const tokenDecoded: any = decode(token);
-    this.jsonRes({ token: token }, res);
-  } catch (error) {
-    //     if (queryRunner.isTransactionActive)
-    //      await queryRunner.rollbackTransaction();
-    next(error)
-  } finally {
-    // you need to release query runner which is manually created:
-    await queryRunner.release();
+      const jwtsecret = process.env.JWT_SECRET ? process.env.JWT_SECRET : "";
+      const token = sign(user, jwtsecret, {
+        expiresIn: Number(process.env.JWT_EXPIRE_SECS),
+      });
+      //console.log("jwt", jwt);
+      //const tokenDecoded: any = decode(token);
+      this.jsonRes({ token: token }, res);
+    } catch (error) {
+      //     if (queryRunner.isTransactionActive)
+      //      await queryRunner.rollbackTransaction();
+      next(error)
+    } finally {
+      // you need to release query runner which is manually created:
+      await queryRunner.release();
+    }
+    //  })
+    //      .catch((error) => {
+    //  next(error);
+    //});
   }
-  //  })
-  //      .catch((error) => {
-  //  next(error);
-  //});
-}
 
-refreshToken(req: any, res: any, next: NextFunction) {
-  delete req.decoded_token.iat;
-  delete req.decoded_token.exp;
-  const jwtsecret = process.env.JWT_SECRET ? process.env.JWT_SECRET : "";
-  const token = sign(req.decoded_token, jwtsecret, {
-    expiresIn: Number(process.env.JWT_EXPIRE_SECS) * 1000,
-  });
-  this.jsonRes({ token: token }, res);
-}
+  refreshToken(req: any, res: any, next: NextFunction) {
+    delete req.decoded_token.iat;
+    delete req.decoded_token.exp;
+    const jwtsecret = process.env.JWT_SECRET ? process.env.JWT_SECRET : "";
+    const token = sign(req.decoded_token, jwtsecret, {
+      expiresIn: Number(process.env.JWT_EXPIRE_SECS) * 1000,
+    });
+    this.jsonRes({ token: token }, res);
+  }
 }
