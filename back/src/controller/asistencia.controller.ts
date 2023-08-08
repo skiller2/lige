@@ -353,16 +353,16 @@ export class AsistenciaController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-        const auth = await this.hasAuthObjetivo(
+      await this.hasAuthObjetivo(
           anio,
           mes,
           req,
           Number(ObjetivoId),
           queryRunner
         );
-//        if (!auth) throw new ClientException(`No tiene permisos para realizar operación`);
 
-      //Traigo el Art14 para analizarlo
+      
+        //Traigo el Art14 para analizarlo
       let resultAutoriz = await queryRunner.query(
         `SELECT art.PersonalArt14Id, art.Personalid, art.PersonalArt14ObjetivoId, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, 
                 art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde, art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta,

@@ -75,6 +75,7 @@ export class BaseController {
     let fechaHastaAuth = new Date(anio, mes, 1);
     fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1);
     let authSucursal = false
+    let authAdministrativo = false
 
     if (req.persona_cuit == "") return
 
@@ -109,9 +110,6 @@ export class BaseController {
     );
     const SucursalId = (resultAuth.length > 0) ? resultAuth[0].SucursalId : 0
 
-
-
-
     req.groups.forEach(group => {
       switch (SucursalId) {
         case 0: //Sin sucursal
@@ -133,20 +131,23 @@ export class BaseController {
         default:
           break;
       }
-
+      if (group.indexOf("Administrativo")!=-1)
+        authAdministrativo = true;
     })
 
     authSucursal = true;
     if (!authSucursal)
       throw new ClientException(`No tiene permisos para realizar operación en la sucursal ${SucursalId}`)
 
+    
+    if (authAdministrativo) return   //Si es administrativo no analizo el CUIT    
+    
     for (let row of resultAuth) {
       if (row.PersonalCUITCUILCUIT == req.persona_cuit) {
-        return true;
+        return
       }
     }
 
     throw new ClientException(`No tiene permisos para realizar operación identificado con CUIT ${req.persona_cuit}`)
-    return false;
   }
 }

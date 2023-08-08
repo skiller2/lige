@@ -22,7 +22,7 @@ export class AuthMiddleware {
       if (err) return this.catchError(err, res);
 
       req.decoded_token = decoded;
-      req.persona_cuit = (decoded.description != undefined) ? decoded.description[0] : "";
+      req.persona_cuit = (decoded.description != undefined) ? decoded.description : "";
       req.PersonalId = (decoded.PersonalId != undefined) ? decoded.PersonalId : 0;
 
       req.groups = decoded.groups
@@ -34,7 +34,7 @@ export class AuthMiddleware {
     return (req, res, next) => {
       let inGroup = false
       if (req?.groups) {
-        for (const rowgroup of req?.groups[0]) {
+        for (const rowgroup of req?.groups) {
           if (rowgroup.toLowerCase().indexOf(group.toLowerCase()) != -1)
             inGroup = true
         }

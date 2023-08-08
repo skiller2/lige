@@ -163,7 +163,6 @@ export class AuthController extends BaseController {
           tlsOptions: { rejectUnauthorized: false }
         },);
         client.on("error", (err: any) => {
-          console.log('error', err)
           err.message = "Servicio de validación no disponible";
           return reject(err);
         });
@@ -207,12 +206,10 @@ export class AuthController extends BaseController {
           });
    
           res.on("error", (err: any) => {
-            console.error("client.search", "error: " + err.message);
             err.message = "Servicio de validación no disponible";
           });
    
           res.on("end", (result: any) => {
-  //      console.log('res', result)
             if (!userEntry)
               return reject(new ClientException("Las credenciales ingresadas no son válidas"));
       
@@ -286,8 +283,9 @@ export class AuthController extends BaseController {
       let user: any = await this.authUser(userName, password)
       await queryRunner.connect();
 
-      const persona_cuit = (user.description !== undefined && user.description.length > 0) ? user.description[0] : 0
+      const persona_cuit = user.description
 
+      
       let result = await queryRunner.query(
         `SELECT per.PersonalId
       FROM Personal per
