@@ -372,7 +372,7 @@ export class ImpuestosAfipController extends BaseController {
   ) {
     const [personalIDQuery] = await queryRunner.query(
       "SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro OtroDescuentoId, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre FROM PersonalCUITCUIL cuit JOIN Personal per ON per.PersonalId = cuit.PersonalId WHERE cuit.PersonalCUITCUILCUIT = @0",
-      [CUIT]
+      [Number(CUIT)]
     );
 
     if (!personalIDQuery.PersonalId)
