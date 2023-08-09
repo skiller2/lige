@@ -85,6 +85,8 @@ export class WebServer {
     this.port = port;
     this.app = express();
     this.app.use(json());
+    this.app.set("trust proxy", true);
+
 
     /*
     * Agrega starTime a todas las peticiones de la api 

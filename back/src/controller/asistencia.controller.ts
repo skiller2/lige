@@ -512,7 +512,7 @@ export class AsistenciaController extends BaseController {
       UNION
              
       SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, 0 as ObjetivoId, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
-      @1 AS anio, @2 AS mes, 'Efecto' AS tipomov, efe.EfectoDescripcion AS desmovimiento, cuo.PersonalDescuentoCuotaImporte AS importe, des.PersonalDescuentoCuotasPagas AS cuotanro, des.PersonalDescuentoCuotas AS cantcuotas, des.PersonalDescuentoImporte - (des.PersonalDescuentoImporte * des.PersonalDescuentoPorcentajeDescuento /100)   AS importetotal
+      @1 AS anio, @2 AS mes, 'Efecto' AS tipomov, efe.EfectoDescripcion AS desmovimiento, cuo.PersonalDescuentoCuotaImporte*des.PersonalDescuentoCantidadEfectos AS importe, des.PersonalDescuentoCuotasPagas AS cuotanro, des.PersonalDescuentoCuotas AS cantcuotas, des.PersonalDescuentoImporte - (des.PersonalDescuentoImporte * des.PersonalDescuentoPorcentajeDescuento /100)   AS importetotal
       FROM PersonalDescuento des 
       JOIN PersonalDescuentoCuota cuo ON cuo.PersonalDescuentoId = des.PersonalDescuentoId AND cuo.PersonalDescuentoPersonalId = des.PersonalDescuentoPersonalId
       JOIN Efecto efe ON efe.EfectoId = des.PersonalDescuentoEfectoId
@@ -843,10 +843,11 @@ export class AsistenciaController extends BaseController {
         [personalId, anio, mes]
       );
 
-      const total = result.map(row => row.totalminutoscalcimporteconart14).reduce((prev, curr) => prev + curr, 0)
+      const totalImporte = result.map(row => row.totalminutoscalcimporteconart14).reduce((prev, curr) => prev + curr, 0)
+      const totalHoras = result.map(row => row.totalhorascalc).reduce((prev, curr) => prev + curr, 0)
 
 
-      this.jsonRes({ asistencia: result, total }, res);
+      this.jsonRes({ asistencia: result, totalImporte, totalHoras  }, res);
     } catch (error) {
       // if (queryRunner.isTransactionActive)
       //await queryRunner.rollbackTransaction()
@@ -1115,7 +1116,13 @@ export class AsistenciaController extends BaseController {
                 `,
         [objetivoId, anio, mes]
       );
-      this.jsonRes(result, res);
+
+      const totalImporte = result.map(row => row.totalminutoscalcimporteconart14).reduce((prev, curr) => prev + curr, 0)
+      const totalHoras = result.map(row => row.totalhorascalc).reduce((prev, curr) => prev + curr, 0)
+
+
+      this.jsonRes({ asistencia: result, totalImporte, totalHoras  }, res);
+
     } catch (error) {
       // if (queryRunner.isTransactionActive)
       //await queryRunner.rollbackTransaction()

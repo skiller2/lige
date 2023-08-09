@@ -30,6 +30,7 @@ import {
   filtrosToSql,
   getOptionsFromRequest,
   isOptions,
+  orderToSQL,
 } from "./filtros-utils/filtros";
 import {
   SendFileToDownload,
@@ -79,6 +80,9 @@ export class ImpuestosAfipController extends BaseController {
   async handleDownloadComprobantesByFiltro(req: Request, res: Response, next:NextFunction) {
     try {
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
+
+      req.body.options.sort= [{ fieldName: 'ApellidoNombre',direction:'ASC' }] 
+
       const periodo = getPeriodoFromRequest(req);
       const options = getOptionsFromRequest(req);
       const cantxpag = req.body.cantxpag
@@ -121,7 +125,11 @@ export class ImpuestosAfipController extends BaseController {
   }) {
 
     const filtros = params.options.filtros;
-    console.log("IMPRIMO FILTROS",filtros)
+
+    
+    const orderBy = orderToSQL(params.options.sort)
+
+    console.log("IMPRIMO FILTROS",params.options)
     let filtrosConsulta1 = [], filtrosConsulta2 = [];
     let filter1IsActive = false;
     params.options.filtros.forEach(element => {
@@ -190,7 +198,7 @@ export class ImpuestosAfipController extends BaseController {
     LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01')  BETWEEN opj.ObjetivoPersonalJerarquicoDesde  AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') AND opj.ObjetivoPersonalJerarquicoComo = 'J'
     LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
     
-    WHERE obja.ObjetivoAsistenciaAnoAno = @0 AND objm.ObjetivoAsistenciaAnoMesMes = @1 AND ${filterSql1}`,[params.anio,params.mes] )
+    WHERE obja.ObjetivoAsistenciaAnoAno = @0 AND objm.ObjetivoAsistenciaAnoMesMes = @1 AND ${filterSql1} `,[params.anio,params.mes] )
       let listPersonalId = ''
     
       personalIdArr.forEach(row => {
@@ -233,7 +241,8 @@ export class ImpuestosAfipController extends BaseController {
 
 	-- AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
   AND sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26)
-    AND (${filterSql2})
+    AND (${filterSql2}) 
+    ${orderBy}
    `,
       [, params.anio, params.mes, params.descuentoId]
     );
@@ -298,8 +307,6 @@ export class ImpuestosAfipController extends BaseController {
     const options: Options = isOptions(req.body.options)
       ? req.body.options
       : { filtros: [], sort: null };
-
-//    console.log(options);
 
     const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
@@ -628,7 +635,7 @@ export class ImpuestosAfipController extends BaseController {
         anio: year,
         mes: month,
         descuentoId: descuentoId,
-        options: { filtros:filtros, sort: null },
+        options: { filtros:filtros, sort: [] },
       });
       // const descuentos: DescuentoJSON[] = await this.getDescuentosByPeriodo({
       //   anio: year,

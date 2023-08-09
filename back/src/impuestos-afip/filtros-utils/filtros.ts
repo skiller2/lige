@@ -1,5 +1,5 @@
 import { ClientException } from "../../controller/baseController";
-import { Filtro, Options } from "../../schemas/filtro";
+import { CustomSort, Filtro, Options } from "../../schemas/filtro";
 import { findColumnByIndex } from "../comprobantes-utils/lista";
 import { Request } from "express";
 
@@ -106,10 +106,17 @@ const getOptionsFromRequest = (req: Request): Options => {
   return _options;
 };
 
+const orderToSQL = (s: CustomSort[]): String => {
+  return (s && s.length)? 'ORDER BY '+  s.map( x => `${x.fieldName} ${x.direction}` ).join(',') : ''
+};
+
+
+
 export {
   getOptionsFromRequest,
   filtrosToSql,
   isCondition,
   isFiltro,
   isOptions,
+  orderToSQL
 };

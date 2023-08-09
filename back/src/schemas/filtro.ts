@@ -5,12 +5,12 @@ export interface Filtro {
   valor: string;
 }
 
-export interface Sort {
-  index: string;
-  operador: "ASC" | "DES";
+export interface CustomSort {
+  fieldName: string;
+  direction: "ASC" | "DES";
 }
 
 export interface Options {
   filtros: Filtro[];
-  sort: Sort | null;
+  sort: CustomSort[] | null;
 }

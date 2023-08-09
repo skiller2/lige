@@ -65,6 +65,9 @@ export class DetalleAsistenciaComponent {
   selectedCategoriaId = '';
   listaDescuentosPerTotal = 0
   listaAsistenciaPerTotal = 0
+  listaAsistenciaPerTotalHoras = 0
+  listaAsistenciaObjTotalImporte = 0
+  listaAsistenciaObjTotalHoras = 0
 
   $isSucursalOptionsLoading = new BehaviorSubject(false);
 
@@ -105,9 +108,11 @@ export class DetalleAsistenciaComponent {
         Number(objetivoId),
         this.selectedPeriod.year,
         this.selectedPeriod.month
+      ).pipe(
+        tap(data => { this.listaAsistenciaObjTotalImporte = data.totalImporte, this.listaAsistenciaObjTotalHoras = data.totalHoras })
       )
     )
-  );
+  )
 
   $listaExcepciones = this.$selectedObjetivoIdChange.pipe(
     debounceTime(50),
@@ -141,6 +146,7 @@ export class DetalleAsistenciaComponent {
         event,
         this.asistencia.controls['SucursalId'].value
       )
+
     )
   );
 
@@ -157,7 +163,7 @@ export class DetalleAsistenciaComponent {
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
         //          tap({ complete: () => this.tableLoading$.next(false) })
         (
-          (tap(data => { this.listaAsistenciaPerTotal = data.total}))
+          (tap(data => { this.listaAsistenciaPerTotal = data.totalImporte, this.listaAsistenciaPerTotalHoras = data.totalHoras}))
 
         )
     )
