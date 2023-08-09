@@ -5,7 +5,7 @@ import { asistenciaController } from "../controller/controller.module";
 export const asistenciaRouter = Router();
 
 
-asistenciaRouter.get('/metodologia', (req, res, next) => { asistenciaController.getMetodologia(req, res, next) } )
+asistenciaRouter.get('/metodologia', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getMetodologia(req, res, next) } )
 
 asistenciaRouter.get('/exceporobj/:anio/:mes/:objetivoId', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.getExcepAsistenciaPorObjetivo(req, res, next) })
 
