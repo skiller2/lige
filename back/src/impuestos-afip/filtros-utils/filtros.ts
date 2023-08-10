@@ -63,7 +63,7 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
     let filterString;
 
     const condition = index === 0 ? "" : `${filtro.condition}`;
-
+  console.log("imprimo los filtros....",filtro)
     switch (filtro.operador) {
       case "LIKE":
         if (fieldName === "ApellidoNombre")

@@ -111,6 +111,7 @@ const listaColumnas: any[] = [
     field: "Sucursal",
     fieldName: "suc.SucursalId",
     searchComponent:"Sucursal",
+    searchType:"number",
     sortable: true,
     hidden: true,
     searchHidden: false
