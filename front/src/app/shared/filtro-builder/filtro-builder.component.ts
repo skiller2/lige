@@ -82,8 +82,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     const fieldObj: any = this._fieldsToSelect.filter(x => x.field === this.selections.field)[0];
     let inputValueSearch: HTMLElement
+    debugger;
     switch (fieldObj?.searchComponent) {
-     
       case 'inpurForPersonalSearch':
         inputValueSearch = document.getElementById("inpurForPersonalSearch") as HTMLElement;
         this.inputValue = this.selectedPersonalId == "" ? "Vacio" : inputValueSearch?.outerText
@@ -92,7 +92,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       case 'Sucursal':
         inputValueSearch = document.getElementById("sucursalName") as HTMLElement;
         let inputValueSearchDescription: HTMLElement = document.getElementById("sucursalDescription") as HTMLElement;
-        this.inputValue = inputValueSearch?.outerText 
+        this.inputValue = this.selectedSucursalId == "" ? "Vacio" : inputValueSearch?.outerText;
         break;
       case 'inpurForClientSearch':
         inputValueSearch = document.getElementById("inpurForClientSearch") as HTMLElement;
@@ -154,7 +154,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
           break; 
         default:
           break;
-      }
+      } 
 
       const appendedFilter = this.appendFiltro(
         this.selections as any,
