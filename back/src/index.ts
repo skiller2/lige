@@ -23,7 +23,7 @@ scheduleJob('1 0 * * *', async function (fireDate) {
     const ret = await categoriasController.procesaCambios(null, null, null)
     console.log(`job run at ${fireDate}, response: ${ret}`);
   } catch (error) {
-    console.log(`job run at ${fireDate}, response: ${error.message}`);
+    console.error(`job run at ${fireDate}, response: ${error.message}`);
   }
 });
 
