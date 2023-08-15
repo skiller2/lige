@@ -18,7 +18,7 @@ export class AsistenciaController extends BaseController {
       );
       this.jsonRes(result, res);
     } catch (error) {
-      next(error)
+      return next(error)
     }
   }
   async setExcepcion(req: any, res: Response, next:NextFunction) {
@@ -331,7 +331,7 @@ export class AsistenciaController extends BaseController {
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
-      next(error)
+      return next(error)
     } finally {
       // you need to release query runner which is manually created:
       await queryRunner.release();
@@ -419,7 +419,7 @@ export class AsistenciaController extends BaseController {
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
-      next(error)
+      return next(error)
     } finally {
       // you need to release query runner which is manually created:
       await queryRunner.release();
@@ -478,7 +478,7 @@ export class AsistenciaController extends BaseController {
     } catch (error) {
       // if (queryRunner.isTransactionActive)
       //            await queryRunner.rollbackTransaction()
-      next(error)
+      return next(error)
     }
   }
   
@@ -601,7 +601,7 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes({ descuentos: result, total }, res);
     } catch (error) {
-      next(error)
+      return next(error)
     }
   }
 
@@ -647,7 +647,7 @@ export class AsistenciaController extends BaseController {
     } catch (error) {
       // if (queryRunner.isTransactionActive)
       //            await queryRunner.rollbackTransaction()
-      next(error)
+      return next(error)
     }
   }
 
@@ -851,7 +851,7 @@ export class AsistenciaController extends BaseController {
     } catch (error) {
       // if (queryRunner.isTransactionActive)
       //await queryRunner.rollbackTransaction()
-      next(error)
+      return next(error)
     }
   }
 
@@ -927,7 +927,7 @@ export class AsistenciaController extends BaseController {
     } catch (error) {
       // if (queryRunner.isTransactionActive)
       //await queryRunner.rollbackTransaction()
-      next(error)
+      return next(error)
     }
   }
 
@@ -1126,7 +1126,7 @@ export class AsistenciaController extends BaseController {
     } catch (error) {
       // if (queryRunner.isTransactionActive)
       //await queryRunner.rollbackTransaction()
-      next(error)
+      return next(error)
     }
   }
 

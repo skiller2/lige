@@ -14,7 +14,7 @@ export class ObjetivoController extends BaseController {
       const info = result[0];
       this.jsonRes(info, res);
     } catch (error) {
-      next(error)
+      return next(error)
     }
   }
 
@@ -62,7 +62,7 @@ export class ObjetivoController extends BaseController {
         this.jsonRes(records, res);
       })
       .catch((error) => {
-        next(error);
+        return next(error);
       });
   }
 
@@ -131,7 +131,7 @@ WHERE suc.SucursalId = @0 AND `;
         this.jsonRes({ objetivos: result }, res);
       } else this.jsonRes({ objetivos: [] }, res);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   }
 }

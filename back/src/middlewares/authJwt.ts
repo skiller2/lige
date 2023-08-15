@@ -28,7 +28,7 @@ export class AuthMiddleware {
         req.groups = [decoded.groups]
       else
         req.groups = decoded.groups
-      next();
+      return next();
     });
   };
 
@@ -42,7 +42,7 @@ export class AuthMiddleware {
         }
       }
       if (inGroup)
-        next()
+      return next()
       else { 
         const stopTime = performance.now()
         res.status(409).json({ msg: `Requiere ser miembro del group ${group}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });

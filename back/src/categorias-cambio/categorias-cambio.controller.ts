@@ -155,7 +155,7 @@ export class CategoriasController extends BaseController {
       const pendCambioCategoria = await CategoriasController.listCambiosPendCategoria(options)
       this.jsonRes({ list: pendCambioCategoria }, res);
     } catch (error) {
-      next(error)
+      return next(error)
     }
   }
 
@@ -241,11 +241,11 @@ export class CategoriasController extends BaseController {
       }
 
       await queryRunner.commitTransaction();
-      next(`Se procesaron ${pendientes.length} ascensos `)
+      return next(`Se procesaron ${pendientes.length} ascensos `)
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
-      next(error)
+      return next(error)
     } finally {
       await queryRunner.release();
     }

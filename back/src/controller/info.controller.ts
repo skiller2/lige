@@ -21,7 +21,7 @@ export class InfoController extends BaseController {
         this.jsonRes(data, res);
       })
       .catch(error => {
-        next(error)
+        return next(error)
       });
   }
 

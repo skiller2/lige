@@ -19,7 +19,7 @@ export class PersonalController extends BaseController {
 
       this.jsonRes(result, res);
     } catch (error) {
-      next(error)
+      return next(error)
     }
   }
 
@@ -37,7 +37,7 @@ export class PersonalController extends BaseController {
       const info = result[0];
       this.jsonRes(info, res);
     } catch (error) {
-      next(error)
+      return next(error)
     }
   }
 
@@ -80,7 +80,7 @@ export class PersonalController extends BaseController {
       );
       this.jsonRes(responsables, res);
     } catch (error) {
-      next(error)
+      return next(error)
     }
   }
 
@@ -144,7 +144,7 @@ export class PersonalController extends BaseController {
         }
       })
       .catch((error) => {
-        next(error)
+        return next(error)
       });
   }
 
@@ -192,7 +192,7 @@ export class PersonalController extends BaseController {
         this.jsonRes({ recordsArray: records }, res);
       })
       .catch((error) => {
-        next(error)
+        return next(error)
       });
   }
   async execProcedure(someParam: number) {

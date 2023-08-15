@@ -80,6 +80,14 @@ export class AuthController extends BaseController {
       },
       strictDN: false,
     });
+
+    if (user == null)  //Valida undefined or null
+      throw new ClientException("Usuario vacío")
+
+    if (password == null) //Valida undefined or null
+      throw new ClientException("Contraseña vacía")
+    
+    console.log('user',user,password)
     const usernamenodomain = user.split("@")[0];
 
     try {
@@ -317,7 +325,7 @@ export class AuthController extends BaseController {
     
           })
           .catch((error) => {
-            next(error)
+            return next(error)
           });
     */
 
@@ -332,14 +340,14 @@ export class AuthController extends BaseController {
     } catch (error) {
       //     if (queryRunner.isTransactionActive)
       //      await queryRunner.rollbackTransaction();
-      next(error)
+      return next(error)
     } finally {
       // you need to release query runner which is manually created:
       await queryRunner.release();
     }
     //  })
     //      .catch((error) => {
-    //  next(error);
+    //  return next(error);
     //});
   }
 

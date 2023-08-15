@@ -43,7 +43,7 @@ export class ClienteController extends BaseController {
         this.jsonRes({ recordsArray: records }, res);
       })
       .catch((error) => {
-        next(error)
+        return next(error)
       });
   }
   async execProcedure(someParam: number) {

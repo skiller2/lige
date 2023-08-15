@@ -40,7 +40,7 @@ export class AdelantosController extends BaseController {
 
       this.jsonRes(adelantos, res);
     } catch (error) {
-      next(error)
+      return next(error)
     }
   }
 
@@ -64,7 +64,7 @@ export class AdelantosController extends BaseController {
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
-      next(error)
+      return next(error)
     } finally {
       await queryRunner.release();
     }
@@ -144,7 +144,7 @@ export class AdelantosController extends BaseController {
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
-      next(error)
+      return next(error)
     } finally {
       await queryRunner.release();
     }

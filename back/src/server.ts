@@ -93,7 +93,7 @@ export class WebServer {
     */
     this.app.use("*", function (req, res, next) {
       res.locals.startTime = performance.now()
-      next()
+      return next()
     });
   }
 

@@ -20,7 +20,7 @@ export class InitController extends BaseController {
     
     })
     .catch((error) => {
-      next(error);
+      return next(error);
     });
   }
 
@@ -137,7 +137,7 @@ export class InitController extends BaseController {
       
       })
       .catch((error) => {
-        next(error);
+        return next(error);
       });
   }
 
@@ -164,7 +164,7 @@ export class InitController extends BaseController {
       
       })
       .catch((error) => {
-        next(error);
+        return next(error);
       });
   }
 
@@ -205,7 +205,7 @@ export class InitController extends BaseController {
       
       })
       .catch((error) => {
-        next(error);
+        return next(error);
       });
   }
 
@@ -267,7 +267,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       
       })
       .catch((error) => {
-        next(error);
+        return next(error);
       });
   }
 
@@ -326,7 +326,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       
       })
       .catch((error) => {
-        next(error);
+        return next(error);
       });
   }
 
@@ -435,7 +435,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       
       })
       .catch((error) => {
-        next(error);
+        return next(error);
       });
   }
 
@@ -472,7 +472,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         this.jsonRes({ recordsArray: records }, res);
       })
       .catch((error) => {
-        next(error);
+        return next(error);
       });
   }
 

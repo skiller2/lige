@@ -77,6 +77,7 @@ export class ImpuestoAfipComponent {
   formChange$ = new BehaviorSubject('');
   filesChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
+  detailViewRowCount = 9;
 
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
@@ -136,7 +137,7 @@ export class ImpuestoAfipComponent {
 //    headerRowHeight: 45,
 //    rowHeight: 45, // increase row height so that the ng-select fits in the cell
 //    autoHeight: true,    
-    editable: true,
+    editable: false,
     enableCellMenu: true,
     enableCellNavigation: true,
 //    enableAutoResize: true,
@@ -144,15 +145,55 @@ export class ImpuestoAfipComponent {
     enableExcelCopyBuffer: true,
     enableExcelExport: true,
     registerExternalResources: [this.excelExportService],
+    enableAutoTooltip: true,
+    enableFiltering: false,
+    enableRowSelection: true,
+    enableRowDetailView: true,
+    rowDetailView: {
+      // optionally change the column index position of the icon (defaults to 0)
+      // columnIndexPosition: 1,
 
-    enableFiltering: true,
+      // We can load the "process" asynchronously in 2 different ways (httpClient OR even Promise)
+      //process: (item) => this.simulateServerAsyncCall(item),
+      process: (item:any) => item,
+      // process: (item) => this.http.get(`api/item/${item.id}`),
+
+      // load only once and reuse the same item detail without calling process method
+      loadOnce: true,
+
+      // limit expanded row to only 1 at a time
+      singleRowExpand: false,
+
+      // false by default, clicking anywhere on the row will open the detail view
+      // when set to false, only the "+" icon would open the row detail
+      // if you use editor or cell navigation you would want this flag set to false (default)
+      useRowClick: true,
+
+      // how many grid rows do we want to use for the row detail panel (this is only set once and will be used for all row detail)
+      // also note that the detail view adds an extra 1 row for padding purposes
+      // so if you choose 4 panelRows, the display will in fact use 5 rows
+      panelRows: this.detailViewRowCount,
+
+      // you can override the logic for showing (or not) the expand icon
+      // for example, display the expand icon only on every 2nd row
+      // expandableOverride: (row: number, dataContext: any) => (dataContext.rowId % 2 === 1),
+
+      // Preload View Component
+      //preloadComponent: RowDetailPreloadComponent,
+
+      // View Component to load when row detail data is ready
+      viewComponent: RowDetailView,
+
+      // Optionally pass your Parent Component reference to your Child Component (row detail component)
+      parent: this
+    },
+
 //    autoFitColumnsOnFirstLoad: true,
     enableAsyncPostRender: true, // for the Angular PostRenderer, don't forget to enable it
     asyncPostRenderDelay: 0,    // also make sure to remove any delay to render it
     params: {
       angularUtilService: this.angularUtilService // provide the service to all at once (Editor, Filter, AsyncPostRender)
     },
-
     showCustomFooter: true, // display some metrics in the bottom custom footer
     customFooterOptions: {
       // optionally display some text on the left footer container

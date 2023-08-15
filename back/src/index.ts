@@ -13,18 +13,14 @@ const categoriasController = new CategoriasController()
 
 
 scheduleJob('*/1 * * * *', async function (fireDate) {
-  //  const ret = await categoriasController.procesaCambios(null,null)
-  //  console.log(`job run at ${fireDate}, response: ${ret}`);
+//  const ret = await categoriasController.procesaCambios(null, null, (ret: any) => ret)
+//  console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
 
 scheduleJob('1 0 * * *', async function (fireDate) {
-  try {
-    const ret = await categoriasController.procesaCambios(null, null, null)
-    console.log(`job run at ${fireDate}, response: ${ret}`);
-  } catch (error) {
-    console.error(`job run at ${fireDate}, response: ${error.message}`);
-  }
+  const ret = await categoriasController.procesaCambios(null, null, (ret: any) => ret)
+  console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
 

@@ -24,9 +24,15 @@ authRouter.post(`${base}/login`, loginLimiter, (req, res, next) => {
 	authController.signin(req, res, next)
 })
 
+authRouter.post(`${base}/credentials`, (req, res, next) => {
+	authController.signin(req, res, next)
+})
+
+
 authRouter.get(`${base}/refresh`, authMiddleware.verifyToken, (req, res, next) => {
 	authController.refreshToken(req, res, next)
 })
+
 authRouter.post(`${base}/refresh`, authMiddleware.verifyToken, (req, res, next) => {
 	authController.refreshToken(req, res, next)
 })

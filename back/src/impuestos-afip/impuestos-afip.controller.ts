@@ -73,7 +73,7 @@ export class ImpuestosAfipController extends BaseController {
 
       const filesPath = path.join(this.directory, String(periodo.year));
     } catch (error) {
-      next(error)
+      return next(error)
     }
   }
 
@@ -113,7 +113,7 @@ export class ImpuestosAfipController extends BaseController {
 
       SendFileToDownload(res, filename, responsePDFBuffer);
     } catch (error) {
-      next(error)
+      return next(error)
     }
   }
 
@@ -326,7 +326,7 @@ export class ImpuestosAfipController extends BaseController {
         res
       );
     } catch (error) {
-      next(error)
+      return next(error)
     }
   }
 
@@ -357,7 +357,7 @@ export class ImpuestosAfipController extends BaseController {
         res
       );
     } catch (error) {
-      next(error)
+      return next(error)
     }
   }
 
@@ -578,7 +578,7 @@ export class ImpuestosAfipController extends BaseController {
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
-        next(error)
+        return next(error)
     } finally {
       await queryRunner.release();
       unlinkSync(file.path);
@@ -668,7 +668,7 @@ export class ImpuestosAfipController extends BaseController {
         unlinkSync(tmpfilename);
       });
     } catch (error) {
-      next(error)
+      return next(error)
     }
   }
 
@@ -908,7 +908,7 @@ export class ImpuestosAfipController extends BaseController {
         unlinkSync(tmpfilename);
       });
     } catch (error) {
-      next(error)
+      return next(error)
     }
   }
 

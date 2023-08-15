@@ -18,7 +18,7 @@ export class SucursalController extends BaseController {
       this.jsonRes(result, res)
     }
     catch (error) {
-      next(error)
+      return next(error)
     }
     /*
         const result = await this.connection.query(

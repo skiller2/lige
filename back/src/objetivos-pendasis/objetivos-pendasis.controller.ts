@@ -228,7 +228,7 @@ export class ObjetivosPendasisController extends BaseController {
       const pendCambioCategoria = await ObjetivosPendasisController.listObjetivosPendAsis(options)
       this.jsonRes({ list: pendCambioCategoria }, res);
     } catch (error) {
-      next(error)
+      return next(error)
     }
   }
 
