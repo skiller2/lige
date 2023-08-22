@@ -23,7 +23,9 @@ export class AuthMiddleware {
 
       req.decoded_token = decoded;
       req.persona_cuit = (decoded.description != undefined) ? decoded.description : "";
-      req.PersonalId = (decoded.PersonalId != undefined) ? decoded.PersonalId : 0;
+//      req.PersonalId = (decoded.PersonalId != undefined) ? decoded.PersonalId : 0;
+      res.locals.PersonalId= (decoded.PersonalId != undefined) ? decoded.PersonalId : 0;
+      res.locals.persona_cuit= (decoded.description != undefined) ? decoded.description : "";
       if (typeof decoded.groups === "string")
         req.groups = [decoded.groups]
       else

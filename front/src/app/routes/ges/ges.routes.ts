@@ -38,6 +38,10 @@ export const GesRoutes: Routes = [
     loadComponent: () => import('./adelanto/adelanto.component').then(c => c.AdelantoComponent),
   },
   {
+    path: 'adelanto/:tab',
+    loadComponent: () => import('./adelanto/adelanto.component').then(c => c.AdelantoComponent),
+  },
+  {
     path: 'asistencia_excepcion',
     loadComponent: () => import('./asisexcept/asistenciaexcepcion.component').then(c => c.ExcepcionAsistenciaComponent),
   },

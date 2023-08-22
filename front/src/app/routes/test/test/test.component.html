@@ -9,15 +9,13 @@
   <nz-date-picker nzMode="month" name="periodo1" />
 </nz-card>
 
-<shared-filtro-builder [ngModel]="selectedOptions" />
 
-<nz-card>
-  <angular-slickgrid gridId="grid2"
-                     [columnDefinitions]="columnDefinitions1"
-                     [gridOptions]="gridOptions1"
-                     [dataset]="dataset1">
-  </angular-slickgrid>
-
+<nz-card class="demo-container">
+  <angular-slickgrid gridId="grid21"
+  [gridOptions]="gridOptions"
+  [dataset]="dataset"
+  (onAngularGridCreated)="angularGridReady($event)">
+</angular-slickgrid>
 
 
 </nz-card>

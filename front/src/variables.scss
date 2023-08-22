@@ -1,0 +1,967 @@
+@import '@slickgrid-universal/common/dist/styles/sass/sass-utilities';
+
+
+
+
+/**
+ * This is a bare version of "slickgrid-theme-material.scss",
+ * Few files were removed and aren't included in this styling theme (while they are in original theme)
+ * - (colors, extra-styling, material-svg-icons, material-svg-utilities, slick-without-bootstrap-min-styling)
+ */
+/*
+ * SlickGrid-Universal theming variables, used by all Themes
+ * Lib Website (https://github.com/ghiscoding/slickgrid-universal)
+ * Licensed under MIT (https://github.com/ghiscoding/slickgrid-universal/blob/master/LICENSE)
+ */
+/* this is the only variable without $slick prefix and exists so that user could use the same Bootstrap primary color without declaring $slick-primary-color variable (which also exists) */
+/** extra styling when Bootstrap isn't provided */
+$primary-color:                                             #31708F !default;
+$input-focus-box-shadow:                                    inset 0 1px 1px rgba(0,0,0,.075), 0 0 6px rgba(lighten($primary-color, 3%), .3) !default;
+// Bootstrap 5 box-shadow
+// $input-focus-box-shadow: 0 0 0 0.25rem #0d6efd40 !default;
+
+$slick-border-color:                                        #dddddd !default;
+$slick-font-size-base-value:                                14 !default;
+$slick-font-size-base:          			                      $slick-font-size-base-value + 0px !default;
+$slick-font-family:                                         -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !default;
+$slick-primary-color:                                       $primary-color !default;
+$slick-button-primary-bg-color:                             $slick-primary-color !default;
+$slick-button-primary-bg-color-disabled:                    #bebebe !default;
+$slick-button-primary-color:                                inherit !default;
+$slick-flatpickr-bgcolor:                                   #ffffff !default;
+$slick-filter-placeholder-font-family:                      'Segoe UI Symbol' !default;
+$slick-focus-color:                                         rgb(115, 179, 229) !default;
+$slick-input-focus-border-color:                            lighten($slick-primary-color, 10%) !default;
+$slick-input-focus-box-shadow:                              $input-focus-box-shadow !default;
+
+/* Slickgrid container, including headers but excluding pagination */
+$slick-container-border-top:                                0 none !default;
+$slick-container-border-right:                              0 none !default;
+$slick-container-border-bottom:                             1px solid #{$slick-border-color} !default;
+$slick-container-border-left:                               0 none !default;
+
+/* grid */
+$slick-grid-border-color:                                   fade(black, 3%) !default;
+$slick-grid-border-style:                                   solid !default;
+$slick-grid-header-background:                              rgba(255, 255, 255, .6) !default;
+$slick-grid-cell-color:                                     rgb(255, 255, 255) !default;
+$slick-gray-dark:              			                        #333 !default;
+$slick-link-color:        				                          #08c !default;
+$slick-link-color-hover:                                    darker($slick-link-color, 15%) !default;
+$slick-navbar-default-link-hover-color:	                    $slick-gray-dark !default;
+$slick-text-color:             			                        $slick-gray-dark !default;
+$slick-table-background:                                    transparent !default;
+
+/* cell */
+$slick-cell-active-border:                                  none !default;
+$slick-cell-active-box-shadow:                              inset 0 0 0 1px #aaaaaa !default;
+$slick-cell-active-z-index:                                 6 !default;
+$slick-cell-box-shadow:                                     inherit !default;
+$slick-cell-text-color:                                     #000000 !default;
+$slick-cell-font-family:                                    $slick-font-family !default;
+$slick-cell-font-weight:                                    normal !default;
+$slick-cell-border-top:                                     1px solid #{$slick-border-color} !default;
+$slick-cell-border-right:                                   1px transparent !default;
+$slick-cell-border-bottom:                                  1px transparent !default;
+$slick-cell-border-left:                                    1px transparent !default;
+$slick-cell-even-background-color: 			                    #ffffff !default;
+$slick-cell-odd-background-color:                           darken($slick-grid-cell-color, 3%) !default; // for striping every second row
+$slick-cell-odd-active-background-color:                    darken($slick-grid-cell-color, 5%) !default;
+$slick-cell-padding-top-bottom:                             5px !default;
+$slick-cell-padding-left-right:                             6px !default;
+$slick-cell-padding:                                        $slick-cell-padding-top-bottom $slick-cell-padding-left-right !default;
+
+/** 4x available slick-pane (top, bottom, left, right) */
+$slick-pane-top-border-top:                                 none !default;
+
+/* row */
+$slick-row-mouse-hover-color:                               #eff5fc !default;
+$slick-row-mouse-hover-box-shadow:                          none !default;
+$slick-row-mouse-hover-z-index:                             5 !default;
+$slick-row-selected-color:                                  #dae8f1 !default;
+$slick-row-highlight-background-color:                      darken($slick-row-selected-color, 5%) !default;
+$slick-row-highlight-fade-animation:                        1.5s ease 1 !default;
+$slick-row-highlight-fade-out-animation:                    0.3s ease 1 !default;
+$slick-row-checkbox-selector-background:                    inherit !default;
+$slick-row-checkbox-selector-border:                        none !default;
+
+/* Pre-Header - Header Grouping colspan */
+$slick-preheader-border-left:                               none !default;
+$slick-preheader-border-left-first-element:                 none !default;
+$slick-preheader-border-right:                              none !default;
+$slick-preheader-border-right-last-element:                 none !default;
+$slick-preheader-border-bottom:                             none !default;
+$slick-preheader-border-top:                                none !default;
+$slick-preheader-font-size:                                 calc(#{$slick-font-size-base} + 3px) !default;
+$slick-preheader-height:                                    25px !default; /* full height is calculated with cell padding + borders (25px + 5px + 0px + 0px) = 30px must be set as preHeaderPanelHeight */
+$slick-preheader-grouped-title-display:                     inline-grid !default;
+$slick-preheader-grouped-title-justify:                     left !default;
+
+/* header */
+$slick-header-row-count:                                    2 !default;                           // how many rows to display on the header
+$slick-header-background-color:                             #ffffff !default;
+$slick-header-border-top:                                   0 none !default;                      // header, column titles, that is without the Filters
+$slick-header-border-right:                                 0 none !default;
+$slick-header-border-bottom:                                0 none !default;
+$slick-header-border-left:                                  0 none !default;
+$slick-header-column-height:                                calc(17px * #{$slick-header-row-count}) !default;  // header is calculated by rows to show
+$slick-header-column-background-active:                     darken($slick-grid-header-background, 5%) !default;
+$slick-header-column-background-hover:                      darken($slick-grid-header-background, 2%) !default;
+$slick-header-column-sortable-background-hover:             #e0e0e0 !default;
+$slick-header-column-name-margin-right:                     5px !default;
+$slick-header-column-border-top:                            0 none !default;                      // header, column titles, that is without the Filters
+$slick-header-column-border-right:                          0 none !default;
+$slick-header-column-border-bottom:                         0 none !default;
+$slick-header-column-border-left:                           0 none !default;
+$slick-header-filter-row-border-top:                        0 none !default;                      // header row is where the Filters are showing
+$slick-header-filter-row-border-right:                      0 none !default;
+$slick-header-filter-row-border-bottom:                     0 none !default;
+$slick-header-filter-row-border-left:                       0 none !default;
+$slick-header-font-size:                                    $slick-font-size-base !default;
+$slick-header-font-weight:                                  bold !default;
+$slick-header-input-height:                                 27px !default;                        // height of the filter form element (input, textarea, select)
+$slick-header-input-padding:                                0 6px !default;                       // padding of the filter form element (input, textarea, select)
+$slick-header-padding-top:                                  4px !default;
+$slick-header-padding-right:                                4px !default;
+$slick-header-padding-bottom:                               4px !default;
+$slick-header-padding-left:                                 4px !default;
+$slick-header-padding:                                      $slick-header-padding-top $slick-header-padding-right $slick-header-padding-bottom $slick-header-padding-left !default;
+$slick-header-row-background-color:                         #ffffff !default;
+$slick-header-row-filter-padding:                           4px !default;
+$slick-header-text-color:                                   #000000 !default;
+$slick-header-resizable-width:                              7px !default;
+$slick-header-resizable-hover:                              1px solid #d0d0d0 !default;
+$slick-header-resizable-hover-border-bottom:                0 none !default;
+$slick-header-resizable-hover-border-left:                  0 none !default;
+$slick-header-resizable-hover-border-right:                 $slick-header-resizable-hover !default;
+$slick-header-resizable-hover-border-top:                   0 none !default;
+$slick-header-resizable-hover-width:                        $slick-header-resizable-width !default;
+$slick-header-resizable-hover-border-radius:                8px !default;
+$slick-header-resizable-hover-right:                        0 !default;
+$slick-header-resizable-hover-height:                       100% !default;
+$slick-header-resizable-hover-top:                          0 !default;
+$slick-header-resizable-hover-opacity:                      1 !default;
+$slick-header-scroll-width-to-remove:                       16px !default;                        // without this, the header (which doesn't have scrolling) will be wider than the data viewport
+
+/* Frozen pinned rows/columns */
+$slick-frozen-border-bottom:                                1px solid #a5a5a5 !default;
+$slick-frozen-border-right:                                 1px solid #a5a5a5 !default;
+$slick-frozen-preheader-row-border-right:                   $slick-frozen-border-right !default;
+$slick-frozen-header-row-border-right:                      $slick-frozen-border-right !default;
+$slick-frozen-filter-row-border-right:                      $slick-frozen-border-right !default;
+$slick-frozen-overflow-right:                               scroll !default;                      // typically we would like to always have the scroll displayed when using hamburger menu (top right)
+
+/* icon font is using Font-Awesome by default but could be changed to any other icon package like Glyphicons, ... */
+$slick-icon-color:                                          #4a4a4a !default;
+$slick-icon-font-family:                                    "FontAwesome" !default;               // or Glyphicons Halflings */
+$slick-icon-font-size:                                      14px !default;
+$slick-icon-group-color:                                    $slick-primary-color !default;
+//$slick-icon-group-expanded:                                 "\f107" !default;
+//$slick-icon-group-collapsed:                                "\f105" !default;
+$slick-icon-group-font-size:                                calc(#{$slick-icon-font-size} + 4px) !default;
+$slick-icon-group-font-weight:                              bold !default;
+$slick-icon-group-margin-right:                             2px !default;
+$slick-icon-group-height:                                   20px !default;
+$slick-icon-group-vertical-align:                           middle !default;
+$slick-icon-group-width:                                    14px !default;
+
+/* Kraaden AutoComplete */
+$slick-autocomplete-bg-color:	                            #ffffff !default;
+$slick-autocomplete-group-bg-color:	                      #eeeeee !default;
+$slick-autocomplete-border:	                              1px solid rgba(0, 0, 0, 0.15) !default;
+$slick-autocomplete-hover-bg-color:                       darken($slick-row-mouse-hover-color, 3%) !default;
+$slick-autocomplete-loading-input-bg-color:               transparent !default;
+//$slick-autocomplete-loading-icon:                         "\f021" !default;
+$slick-autocomplete-loading-icon-color:                   $slick-icon-color !default;
+$slick-autocomplete-loading-icon-width:                   inherit !default;
+$slick-autocomplete-loading-icon-margin:                  0 0 0 -16px !default;
+$slick-autocomplete-loading-icon-line-height:             0px !default;
+$slick-autocomplete-loading-icon-vertical-align:          inherit !default;
+$slick-autocomplete-max-height:	                          25vh !default;
+$slick-autocomplete-min-height:	                          75px !default;
+$slick-autocomplete-min-width:	                          110px !default;
+$slick-autocomplete-text-color:	                          #333333 !default;
+$slick-autocomplete-z-index:	                            9999 !default;
+
+/** Kraaden AutoComplete with Custom Styling (2 rows) */
+$slick-autocomplete-tpl2-font-size:                         12px !default;
+$slick-autocomplete-tpl2-width:                             285px !default;
+$slick-autocomplete-tpl2-container-list-width:              calc(#{$slick-autocomplete-tpl2-width} - 15px) !default;
+$slick-autocomplete-tpl2-container-list-padding-lr:         10px !default; /* left/right */
+$slick-autocomplete-tpl2-container-list-padding-tb:         3px !default; /* top/bottom */
+$slick-autocomplete-tpl2-container-list-padding:            $slick-autocomplete-tpl2-container-list-padding-tb $slick-autocomplete-tpl2-container-list-padding-lr !default;
+$slick-autocomplete-tpl2-icon-left-height:                  32px !default;
+$slick-autocomplete-tpl2-icon-left-width:                   32px !default;
+$slick-autocomplete-tpl2-bottom-left-text-color:            #686868 !default;
+$slick-autocomplete-tpl2-bottom-left-font-size:             calc(#{$slick-autocomplete-tpl2-font-size} - 1px) !default;
+$slick-autocomplete-tpl2-bottom-left-font-style:            italic !default;
+$slick-autocomplete-tpl2-bottom-left-font-weight:           normal !default;
+$slick-autocomplete-tpl2-bottom-left-max-width:             calc(#{$slick-autocomplete-tpl2-container-list-width} - #{$slick-autocomplete-tpl2-icon-left-width} - (#{$slick-autocomplete-tpl2-container-list-padding-lr} * 2)) !default;
+$slick-autocomplete-tpl2-top-left-text-color:               #313131 !default;
+$slick-autocomplete-tpl2-top-left-font-size:                $slick-autocomplete-tpl2-font-size !default;
+$slick-autocomplete-tpl2-top-left-font-style:               normal !default;
+$slick-autocomplete-tpl2-top-left-font-weight:              bold !default;
+$slick-autocomplete-tpl2-top-left-max-width:                $slick-autocomplete-tpl2-bottom-left-max-width !default;
+
+/** Kraaden AutoComplete with Custom Styling (4 corners) */
+$slick-autocomplete-tpl4-font-size:                         12px !default;
+$slick-autocomplete-tpl4-width:                             385px !default;
+$slick-autocomplete-tpl4-container-list-width:              calc(#{$slick-autocomplete-tpl4-width} - 15px) !default;
+$slick-autocomplete-tpl4-container-list-padding-lr:         10px !default; /* left/right */
+$slick-autocomplete-tpl4-container-list-padding-tb:         3px !default; /* top/bottom */
+$slick-autocomplete-tpl4-container-list-padding:            $slick-autocomplete-tpl4-container-list-padding-tb $slick-autocomplete-tpl4-container-list-padding-lr !default;
+$slick-autocomplete-tpl4-icon-left-height:                  32px !default;
+$slick-autocomplete-tpl4-icon-left-width:                   32px !default;
+$slick-autocomplete-tpl4-bottom-left-text-color:            #686868 !default;
+$slick-autocomplete-tpl4-bottom-left-font-size:             calc(#{$slick-autocomplete-tpl4-font-size} - 1px) !default;
+$slick-autocomplete-tpl4-bottom-left-font-style:            italic !default;
+$slick-autocomplete-tpl4-bottom-left-font-weight:           normal !default;
+$slick-autocomplete-tpl4-bottom-left-max-width:             calc(#{$slick-autocomplete-tpl4-container-list-width} - #{$slick-autocomplete-tpl4-icon-left-width} - (#{$slick-autocomplete-tpl4-container-list-padding-lr} * 2)) !default;
+$slick-autocomplete-tpl4-bottom-right-font-size:            calc(#{$slick-autocomplete-tpl4-font-size} - 1px) !default;
+$slick-autocomplete-tpl4-bottom-right-font-style:           italic !default;
+$slick-autocomplete-tpl4-bottom-right-font-weight:          normal !default;
+$slick-autocomplete-tpl4-bottom-right-text-color:           #686868 !default;
+$slick-autocomplete-tpl4-bottom-right-max-width:            250px !default;
+$slick-autocomplete-tpl4-top-left-text-color:               #313131 !default;
+$slick-autocomplete-tpl4-top-left-font-size:                $slick-autocomplete-tpl4-font-size !default;
+$slick-autocomplete-tpl4-top-left-font-style:               normal !default;
+$slick-autocomplete-tpl4-top-left-font-weight:              bold !default;
+$slick-autocomplete-tpl4-top-left-max-width:                $slick-autocomplete-tpl4-bottom-left-max-width !default;
+$slick-autocomplete-tpl4-top-right-text-color:              lighten($slick-primary-color, 7%) !default;
+$slick-autocomplete-tpl4-top-right-font-size:               calc(#{$slick-autocomplete-tpl4-font-size} - 1px) !default;
+$slick-autocomplete-tpl4-top-right-font-style:              normal !default;
+$slick-autocomplete-tpl4-top-right-font-weight:             bold !default;
+$slick-autocomplete-tpl4-top-right-max-width:               100px !default;
+
+/* Sorting */
+//$slick-icon-sort-asc:                                       "\f0d7" !default;
+
+//$slick-icon-sort-desc:                                      "\f0d7" !default;
+
+$slick-icon-sort-color:                                     $slick-primary-color !default;
+$slick-icon-sort-font-size:                                 $slick-icon-font-size !default;
+$slick-icon-sort-width:                                     $slick-icon-font-size !default;
+$slick-icon-sort-position-right:                            10px !default;
+$slick-icon-sort-position-top:                              calc((15px * #{$slick-header-row-count}) - 15px) !default;
+$slick-sort-indicator-number-font-size:                     10px !default;
+$slick-sort-indicator-number-width:                         8px !default;
+$slick-sort-indicator-number-left:                          auto !default;
+$slick-sort-indicator-number-right:                         0px !default;
+$slick-sort-indicator-number-top:                           calc(13px * #{$slick-header-row-count}) !default;
+$slick-sort-indicator-hint-opacity:                         0.5 !default;
+
+/* Grouping Totals Formatter */
+$slick-group-border-bottom:                                 2px solid silver !default;
+$slick-group-totals-formatter-color:                        gray !default;
+$slick-group-totals-formatter-bgcolor:                      #fff !default;
+$slick-group-totals-formatter-font-size:                    14px !default;
+$slick-group-totals-text-background:                        white !default;
+$slick-group-totals-text-color:                             gray !default;
+
+/** Detail View Plugin */
+//$slick-detail-view-icon-collapse:                           "\f056" !default;
+$slick-detail-view-icon-collapse-color:                     $slick-primary-color !default;
+$slick-detail-view-icon-collapse-color-hover:               darken($slick-detail-view-icon-collapse-color, 10%) !default;
+//$slick-detail-view-icon-expand:                             "\f055" !default;
+$slick-detail-view-icon-expand-color:                       lighten($slick-primary-color, 25%) !default;
+$slick-detail-view-icon-expand-color-hover:                 darken($slick-detail-view-icon-expand-color, 10%) !default;
+$slick-detail-view-icon-size:                               calc(#{$slick-icon-font-size} + 2px) !default;
+$slick-detail-view-container-bgcolor:                       #f7f7f7 !default;
+$slick-detail-view-container-border:                        1px solid #c0c0c0 !default;
+$slick-detail-view-container-left:                          0 !default;
+$slick-detail-view-container-padding:                       10px !default;
+$slick-detail-view-container-z-index:                       1000 !default;
+
+/* Excel copy plugin */
+$slick-copied-cell-bg-color-transition:                     rgba(0, 0, 255, 0.2) !default;
+$slick-copied-cell-transition:                              0.5s background !default;
+
+/* Column picker */
+$slick-column-picker-background-color:                      #ffffff !default;
+$slick-column-picker-border:                                1px solid #b8b8b8 !default;
+$slick-column-picker-border-radius:                         2px !default;
+$slick-column-picker-box-shadow:                            1px 1px 1px silver !default;
+$slick-column-picker-checkbox-color:                        $slick-primary-color !default;
+$slick-column-picker-checkbox-size:                         13px !default;
+$slick-column-picker-checkbox-font-weight:                  bold !default;
+//$slick-column-picker-checkbox-icon-unchecked:               "\f00c" !default;
+//$slick-column-picker-checkbox-icon-checked:                 "\f00c" !default;
+$slick-column-picker-checkbox-icon-line-height:             calc(#{$slick-icon-font-size} + 2px) !default;
+$slick-column-picker-checkbox-icon-vertical-align:          baseline !default;
+$slick-column-picker-checkbox-opacity:                      0.15 !default;
+$slick-column-picker-checkbox-opacity-hover:                0.35 !default;
+$slick-column-picker-checkbox-width:                        13px !default;
+$slick-column-picker-close-btn-bg-color:                    #ffffff !default;
+$slick-column-picker-close-btn-color:                       #909090 !default;
+$slick-column-picker-close-btn-color-hover:                 darken($slick-column-picker-close-btn-color, 25%) !default;
+$slick-column-picker-close-btn-cursor:                      pointer !default;
+$slick-column-picker-close-btn-font-family:                 "Calibri Light", "Helvetica Neue", Arial, sans-serif !default;
+$slick-column-picker-close-btn-font-size:                   21px !default;
+$slick-column-picker-close-btn-border:                      0px solid #9c9c9c !default;
+$slick-column-picker-close-btn-height:                      21px !default;
+$slick-column-picker-close-btn-width:                       15px !default;
+$slick-column-picker-close-btn-margin:                      1px !default;
+$slick-column-picker-close-btn-padding:                     0px !default;
+$slick-column-picker-close-btn-opacity:                     0.5 !default;
+$slick-column-picker-close-btn-opacity-hover:               1 !default;
+$slick-column-picker-close-btn-position-right:              5px !default;
+$slick-column-picker-close-btn-position-top:                0px !default;
+$slick-column-picker-min-width:                             150px !default;
+$slick-column-picker-padding:                               6px !default;
+$slick-column-picker-list-width-firefox:                    calc(100% + 12px) !default;
+$slick-column-picker-padding-firefox:                       6px 15px 6px 6px !default;
+$slick-column-picker-divider-width:                         100% !default;
+$slick-column-picker-item-border:                           1px solid transparent !default;
+$slick-column-picker-item-border-radius:                    0px !default;
+$slick-column-picker-item-font-size:                        $slick-font-size-base !default;
+$slick-column-picker-item-height:                           28px !default;
+$slick-column-picker-item-line-height:                      calc(#{$slick-column-picker-item-font-size} + 2px) !default;
+$slick-column-picker-item-padding:                          2px 6px !default;
+$slick-column-picker-item-hover-border:                     1px solid #d5d5d5 !default;
+$slick-column-picker-item-hover-color:                      #fafafa !default;
+$slick-column-picker-label-margin:                          4px !default;
+$slick-column-picker-label-font-weight:                     normal !default;
+$slick-column-picker-link-background-color:                 #ffffff !default;
+$slick-column-picker-list-margin-bottom:                    8px !default;
+$slick-column-picker-title-border-bottom:                   1px solid #d6d6d6 !default;
+$slick-column-picker-title-font-size:                       calc(#{$slick-column-picker-item-font-size} + 2px) !default;
+$slick-column-picker-title-font-weight:                     normal !default;
+$slick-column-picker-title-margin-bottom:                   6px !default;
+$slick-column-picker-title-width:                           calc(100% - #{$slick-column-picker-close-btn-width} - 10px) !default;
+$slick-column-picker-z-index:                               9000 !default;
+
+/* Grid Menu - hamburger menu */
+$slick-grid-menu-button-padding:                            0 2px !default;
+$slick-grid-menu-label-margin:                              4px !default;
+$slick-grid-menu-label-font-weight:                         normal !default;
+$slick-grid-menu-link-background-color:                     #ffffff !default;
+$slick-grid-menu-icon-font-size:                            $slick-icon-font-size !default;
+$slick-grid-menu-icon-top-margin:                           5px !default;
+$slick-grid-menu-divider-width:                             calc(100% - 10px) !default;
+$slick-gri-menu-item-margin-right:                          6px !default;
+
+/* Menu Plugins */
+$slick-menu-bg-color:                                       #ffffff !default;
+$slick-menu-border:                                         1px solid #BFBDBD !default;
+$slick-menu-border-radius:                                  2px !default;
+$slick-menu-close-btn-bg-color:                             #ffffff !default;
+$slick-menu-close-btn-border:                               0px solid #dfdfdf !default;
+$slick-menu-close-btn-color:                                #909090 !default;
+$slick-menu-close-btn-font-family:                          $slick-column-picker-close-btn-font-family !default;
+$slick-menu-close-btn-font-size:                            $slick-column-picker-close-btn-font-size !default;
+$slick-menu-close-btn-height:                               18px !default;
+$slick-menu-close-btn-line-height:                          16px !default;
+$slick-menu-close-btn-width:                                18px !default;
+$slick-menu-close-btn-margin:                               0px !default;
+$slick-menu-close-btn-padding:                              0px !default;
+$slick-menu-close-btn-opacity:                              0.5 !default;
+$slick-menu-close-btn-opacity-hover:                        1 !default;
+$slick-menu-close-btn-margin-without-title:                 -4px -3px 0 0 !default;
+$slick-menu-divider-height:                                 1px !default;
+$slick-menu-divider-margin:                                 8px 5px !default;
+$slick-menu-divider-color:                                  #e7e7e7 !default;
+$slick-menu-divider-width:                                  calc(100% - 10px) !default;
+$slick-menu-item-border:                                    1px solid transparent !default;
+$slick-menu-item-border-radius:                             0px !default;
+$slick-menu-item-disabled-color:                            silver !default;
+$slick-menu-item-font-size:                                 $slick-font-size-base !default;
+$slick-menu-item-height:                                    28px !default;
+$slick-menu-item-hover-border:                              1px solid #d5d5d5 !default;
+$slick-menu-item-hover-color:                               #fafafa !default;
+$slick-menu-item-padding:                                   2px 6px !default;
+$slick-menu-item-width:                                     100% !default;
+$slick-menu-item-white-space:                               nowrap !default;
+$slick-menu-icon-font-size:                                 $slick-icon-font-size !default;
+$slick-menu-icon-line-height:                               calc(#{$slick-menu-icon-font-size} + 2px) !default;
+$slick-menu-item-width-when-button:                         calc(100% - #{$slick-menu-close-btn-width}) !default;
+$slick-menu-icon-margin-right:                              4px !default;
+$slick-menu-icon-width:                                     16px !default;
+$slick-menu-line-height:                                    24px !default;
+$slick-menu-min-width:                                      140px !default;
+$slick-menu-option-list-margin-bottom:                      6px !default;
+$slick-menu-padding:                                        6px !default;
+$slick-menu-padding-firefox:                                6px 15px 6px 6px !default;
+$slick-menu-title-container-display:                        flex !default;
+$slick-menu-title-container-align-items:                    flex-start !default;
+$slick-menu-title-container-justify-content:                flex-end !default;
+$slick-menu-title-border-bottom:                            1px solid #d6d6d6 !default;
+$slick-menu-title-font-size:                                calc(#{$slick-font-size-base} + 2px) !default;
+$slick-menu-title-font-weight:                              normal !default;
+$slick-menu-title-margin-bottom:                            6px !default;
+$slick-menu-title-margin-right:                             7px !default;
+$slick-menu-title-width:                                    100% !default;
+
+/* Header Button Plugin */
+$slick-header-button-float:                                 right !default;
+$slick-header-button-margin:                                1px 0 100px 0 !default;
+$slick-header-button-height:                                15px !default;
+$slick-header-button-width:                                 15px !default;
+$slick-header-button-hidden-margin-right:                   -5px !default;
+$slick-header-button-hidden-transition:                     0.2s width !default;
+$slick-header-button-vertical-align:                        top !default;
+
+/* Header Menu Plugin */
+$slick-header-menu-border:                                  1px solid #BFBDBD !default;
+$slick-header-menu-button-border:                           $slick-header-menu-border !default;
+$slick-header-menu-button-border-width:                     0px !default;
+$slick-header-menu-button-height:                           35px !default;
+//$slick-header-menu-button-icon:                             "\f13a" !default;
+$slick-header-menu-button-icon-color:                       $slick-icon-color !default;
+$slick-header-menu-button-icon-font-size:                   14px !default;
+$slick-header-menu-button-icon-font-weight:                 normal !default;
+$slick-header-menu-button-icon-width:                       14px !default;
+$slick-header-menu-button-padding:                          0px !default;
+$slick-header-menu-button-margin-right:                     3px !default;
+$slick-header-menu-button-width:                            14px !default;
+$slick-header-menu-display:                                 none !default; /* can be none or inline-block */
+
+/* Checkbox Selector / Row Selection */
+$slick-checkbox-selector-color:                             $slick-primary-color !default;
+$slick-checkbox-selector-checked-color:                     $slick-checkbox-selector-color !default;
+$slick-checkbox-selector-unchecked-color:                   $slick-checkbox-selector-color !default;
+$slick-checkbox-selector-size:                              calc(#{$slick-icon-font-size} - 1px) !default;
+//$slick-checkbox-selector-icon:                              "\f00c" !default;
+$slick-checkbox-selector-icon-bg-color:                     inherit !default;
+$slick-checkbox-selector-icon-font-weight:                  bold !default;
+$slick-checkbox-selector-icon-height:                       $slick-icon-font-size !default;
+$slick-checkbox-selector-icon-margin:                       0 !default;
+$slick-checkbox-selector-icon-width:                        $slick-icon-font-size !default;
+//$slick-checkbox-selector-icon-checked:                      $slick-checkbox-selector-icon !default;
+//$slick-checkbox-selector-icon-unchecked:                    $slick-checkbox-selector-icon !default;
+$slick-checkbox-selector-icon-border:                       none !default;
+$slick-checkbox-selector-icon-border-radius:                none !default;
+$slick-checkbox-selector-opacity:                           0.15 !default;
+$slick-checkbox-selector-opacity-hover:                     0.35 !default;
+
+/* Editors */
+$slick-editor-placeholder-color:                            #c9c9c9 !default;
+$slick-editor-input-border-radius:                          3px !default;
+$slick-editor-input-disabled-color:                         #ececec !default;
+$slick-editor-input-height:                                 24px !default;
+$slick-editor-focus-border-color:                           $slick-input-focus-border-color !default;
+$slick-editor-focus-box-shadow:                             $slick-input-focus-box-shadow !default;
+//$slick-editor-input-group-clear-btn-icon:                   "\f00d" !default;
+$slick-editor-input-group-clear-btn-icon-padding:           6px !default;
+$slick-editor-input-group-clear-btn-icon-size:              inherit !default;
+$slick-editor-input-group-clear-btn-icon-height:            auto !default;
+$slick-editor-input-group-clear-btn-icon-width:             initial !default;
+$slick-date-editor-input-padding:                           0 0 0 2px !default;
+$slick-date-editor-focus-border-color:                      $slick-input-focus-border-color !default;
+$slick-date-editor-focus-box-shadow:                        $slick-input-focus-box-shadow !default;
+$slick-date-editor-height:                                  $slick-editor-input-height !default;
+$slick-large-editor-background-color:                       #ffffff !default;
+$slick-large-editor-border:                                 2px solid #a0a0a0 !default;
+$slick-large-editor-text-padding:                           5px !default;
+$slick-large-editor-border-radius:                          6px !default;
+$slick-large-editor-button-border-radius:                   4px !default;
+$slick-large-editor-button-text-align:                      right !default;
+$slick-large-editor-footer-spacing:                         2px !default;
+$slick-large-editor-count-font-size:                        11px !default;
+$slick-large-editor-count-margin-top:                       8px !default;
+$slick-large-editor-count-separator-margin:                 0 1px !default;
+$slick-large-editor-count-color:                            #313131 !default;
+$slick-text-editor-border:                                  1px solid #e2e2e2 !default;
+$slick-text-editor-border-radius:                           $slick-editor-input-border-radius !default;
+$slick-text-editor-background:                              #ffffff !default;
+$slick-text-editor-margin-bottom:                           2px !default;
+$slick-text-editor-margin-left:                             -2px !default; /* negative number to cancel inside padding */
+$slick-text-editor-right-input-margin-left:                 calc(#{$slick-text-editor-margin-left} + 9px) !default;
+$slick-text-editor-margin-right:                            0px !default;
+$slick-text-editor-margin-top:                              0px !default;
+$slick-text-editor-padding-bottom:                          0 !default;
+$slick-text-editor-padding-left:                            2px !default;
+$slick-text-editor-padding-right:                           0 !default;
+$slick-text-editor-padding-top:                             0 !default;
+$slick-text-editor-focus-border-color:                      $slick-input-focus-border-color !default;
+$slick-text-editor-focus-box-shadow:                        $slick-input-focus-box-shadow !default;
+$slick-text-editor-readonly-color:                          #f0f0f0 !default;
+$slick-slider-editor-height:                                100% !default;
+$slick-slider-editor-runnable-track-padding:                0 6px !default;
+$slick-slider-editor-number-padding:                        4px 6px !default;
+$slick-slider-editor-focus-border-color:                    $slick-input-focus-border-color !default;
+$slick-slider-editor-focus-box-shadow:                      $slick-input-focus-box-shadow !default;
+$slick-multiselect-editor-height:                           $slick-editor-input-height !default;
+$slick-multiselect-editor-transform:                        translate(0, -2px) !default;
+
+/* Slick Composite Editor Modal */
+$slick-editor-modal-backdrop-transition-background:         rgba(0, 0, 0, 0.6) !default;
+$slick-editor-modal-backdrop-transition-start:              opacity .15s linear !default;
+$slick-editor-modal-backdrop-transition-end:                .3s linear !default;
+$slick-editor-modal-container-border:                       1px solid #b8b8b8 !default;
+$slick-editor-modal-container-bg-color:                     #ffffff !default;
+$slick-editor-modal-container-radius:                       2px !default;
+$slick-editor-modal-container-box-shadow:                   0 0 3px #a7a7a7 !default;
+$slick-editor-modal-container-margin:                       8px !default;
+$slick-editor-modal-container-width:                        400px !default;
+$slick-editor-modal-container-min-width:                    420px !default;
+$slick-editor-modal-container-top:                          30px !default;
+$slick-editor-modal-container-left:                         50% !default;
+$slick-editor-modal-container-transform:                    translate(-50%) !default;
+$slick-editor-modal-container-z-index:                      1050 !default;
+$slick-editor-modal-header-bg-color:                        #ffffff !default;
+$slick-editor-modal-header-padding-left-right:              8px !default;
+$slick-editor-modal-header-padding-top-bottom:              12px !default;
+$slick-editor-modal-header-padding:                         $slick-editor-modal-header-padding-top-bottom $slick-editor-modal-header-padding-left-right !default;
+$slick-editor-modal-header-border-bottom:                   1px solid #d2d2d2 !default;
+$slick-editor-modal-header-height:                          52px !default;
+$slick-editor-modal-close-btn-bg-color:                     transparent !default;
+$slick-editor-modal-close-btn-border:                       0px solid #9c9c9c !default;
+$slick-editor-modal-close-btn-color:                        $slick-column-picker-close-btn-color !default;
+$slick-editor-modal-close-btn-color-hover:                  $slick-column-picker-close-btn-color-hover !default;
+$slick-editor-modal-close-btn-font-family:                  $slick-column-picker-close-btn-font-family !default;
+$slick-editor-modal-close-btn-font-size:                    26px !default;
+$slick-editor-modal-close-btn-font-weight:                  500 !default;
+$slick-editor-modal-close-btn-height:                       20px !default;
+$slick-editor-modal-close-btn-margin:                       1px !default;
+$slick-editor-modal-close-btn-opacity:                      1 !default;
+$slick-editor-modal-close-btn-padding:                      0px !default;
+$slick-editor-modal-close-btn-width:                        20px !default;
+$slick-editor-modal-close-btn-right:                        10px !default;
+$slick-editor-modal-close-btn-top:                          10px !default;
+$slick-editor-modal-close-btn-border-left:                  1px solid #ced4da !default;
+$slick-editor-modal-close-btn-border-radius:                0 4px 4px 0 !default;
+$slick-editor-modal-close-btn-outside-color:                #dddddd !default;
+$slick-editor-modal-close-btn-outside-color-hover:          darken($slick-editor-modal-close-btn-outside-color, 10%) !default;
+$slick-editor-modal-close-btn-outside-font-size:            30px !default;
+$slick-editor-modal-close-btn-outside-right:                -24px !default;
+$slick-editor-modal-close-btn-outside-top:                  -28px !default;
+$slick-editor-modal-footer-height:                          50px !default;
+$slick-editor-modal-footer-bg-color:                        #f9f9f9 !default;
+$slick-editor-modal-footer-border-top:                      1px solid #c9c9c9 !default;
+$slick-editor-modal-footer-padding:                         8px !default;
+$slick-editor-modal-footer-status-text-width:               40% !default;
+$slick-editor-modal-footer-buttons-width:                   60% !default;
+$slick-editor-modal-footer-btn-border:                      1px solid #dbdbdb !default;
+$slick-editor-modal-footer-btn-border-hover:                #b5b5b5 !default;
+$slick-editor-modal-footer-btn-height:                      inherit !default;
+$slick-editor-modal-footer-btn-margin:                      0 5px 0 0 !default;
+$slick-editor-modal-footer-btn-radius:                      4px !default;
+$slick-editor-modal-footer-btn-max-width:                   162px !default;
+$slick-editor-modal-footer-btn-saving-icon-height:          18px !default;
+$slick-editor-modal-footer-btn-saving-icon-width:           18px !default;
+$slick-editor-modal-footer-btn-saving-icon-display:         inline-block !default;
+$slick-editor-modal-footer-btn-saving-icon-vertical-align:  bottom !default;
+$slick-editor-modal-footer-btn-saving-icon-margin:          -1px 5px 0 0 !default;
+$slick-editor-modal-footer-btn-saving-icon-animation:       md-spin 1s infinite linear !default;
+$slick-editor-modal-footer-btn-saving-icon-content:         url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="%23ffffff" viewBox="0 0 24 24"><path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"></path></svg>') !default;
+$slick-editor-modal-footer-line-height:                     30px !default;
+$slick-editor-modal-status-text-color:                      #333333 !default;
+$slick-editor-modal-status-text-font-size:                  12px !default;
+$slick-editor-modal-body-margin-bottom:                     5px !default;
+$slick-editor-modal-body-min-height:                        250px !default;
+$slick-editor-modal-body-max-height:                        calc(100vh - #{$slick-editor-modal-header-height} - #{$slick-editor-modal-footer-height} - #{$slick-editor-modal-container-top} - 15px) !default;
+$slick-editor-modal-body-padding:                           6px 8px 22px 8px !default;
+$slick-editor-modal-body-overflow:                          hidden auto !default;
+$slick-editor-modal-detail-container-border:                0 !default;
+$slick-editor-modal-detail-container-border-radius:         3px !default;
+$slick-editor-modal-detail-container-border-invalid:        1px solid #ff1d1d !default;
+$slick-editor-modal-detail-container-border-modified:       1px solid orange !default;
+$slick-editor-modal-detail-container-border-width-modified: 1px 6px 1px 1px !default;
+$slick-editor-modal-detail-label-color-invalid:             #ff1d1d !default;
+$slick-editor-modal-detail-label-margin:                    2px 0 0 10px !default;
+$slick-editor-modal-detail-label-font-size:                 13px !default;
+$slick-editor-modal-detail-label-font-style:                normal !default;
+$slick-editor-modal-detail-label-font-weight:               bold !default;
+$slick-editor-modal-detail-container-line-height:           20px !default;
+$slick-editor-modal-detail-container-margin:                4px 10px 0 10px !default;
+$slick-editor-modal-detail-container-padding:               0 !default;
+$slick-editor-modal-editor-btn-reset-height:                20px !default;
+$slick-editor-modal-editor-btn-reset-bg-color:              #ffffff !default;
+$slick-editor-modal-editor-btn-reset-margin:                0px 0 2px 5px !default;
+$slick-editor-modal-input-editor-height:                    28px !default;
+$slick-editor-modal-input-editor-border:                    1px solid #d2d2d2 !default;
+$slick-editor-modal-input-editor-margin:                    0 !default;
+$slick-editor-modal-input-editor-padding:                   0 6px !default;
+$slick-editor-modal-checkbox-editor-padding:                $slick-editor-modal-input-editor-padding !default;
+$slick-editor-modal-checkbox-editor-border:                 $slick-editor-modal-input-editor-border !default;
+$slick-editor-modal-checkbox-editor-border-radius:          $slick-editor-modal-detail-container-border-radius !default;
+$slick-editor-modal-large-editor-border:                    $slick-editor-modal-input-editor-border !default;
+$slick-editor-modal-large-editor-border-radius:             $slick-editor-modal-detail-container-border-radius !default;
+$slick-editor-modal-large-editor-padding:                   6px 6px 2px 6px !default;
+$slick-editor-modal-large-editor-footer-height:             12px !default;
+$slick-editor-modal-large-editor-footer-line-height:        12px !default;
+$slick-editor-modal-large-editor-count-color:               $slick-large-editor-count-color !default;
+$slick-editor-modal-large-editor-count-font-size:           10px !default;
+$slick-editor-modal-large-editor-count-margin:              0 !default;
+$slick-editor-modal-multiselect-editor-height:              $slick-editor-modal-input-editor-height !default;
+$slick-editor-modal-slider-editor-value-height:             $slick-editor-modal-input-editor-height !default;
+$slick-editor-modal-slider-editor-value-min-height:         100% !default;
+$slick-editor-modal-title-font-color:                       #333333 !default;
+$slick-editor-modal-title-font-size:                        20px !default;
+$slick-editor-modal-title-font-weight:                      500 !default;
+$slick-editor-modal-title-height:                           30px !default;
+$slick-editor-modal-title-line-height:                      28px !default;
+$slick-editor-modal-title-text-align:                       left !default;
+$slick-editor-modal-validation-color:                       $slick-editor-modal-detail-label-color-invalid !default;
+$slick-editor-modal-validation-font-size:                   12px !default;
+$slick-editor-modal-validation-font-style:                  italic !default;
+$slick-editor-modal-validation-font-weight:                 normal !default;
+$slick-editor-modal-validation-line-height:                 16px !default;
+$slick-editor-modal-validation-margin-left:                 2px !default;
+$slick-editor-modal-validation-min-height:                  16px !default;
+$slick-editor-modal-validation-summary-padding:             5px 10px !default;
+$slick-editor-modal-validation-summary-color:               $slick-editor-modal-detail-label-color-invalid !default;
+$slick-editor-modal-validation-summary-width:               100% !default;
+$slick-editor-modal-validation-summary-margin-bottom:       12px !default;
+$slick-editor-modal-validation-summary-font-size:           13px !default;
+$slick-editor-modal-validation-summary-font-style:          italic !default;
+
+/* Compound Filters */
+$slick-compound-filter-bgcolor:                             #ffffff !default;
+$slick-compound-filter-operator-select-font-family:         Consolas, "Lucida Console" !default; // use a monospace font so the operator descriptions are all aligned
+$slick-compound-filter-operator-select-font-size:           14px !important !default;
+$slick-compound-filter-operator-select-border:              1px solid #{lighten($slick-primary-color, 15%)} !default;
+$slick-compound-filter-operator-select-width:               25px !default;
+$slick-compound-filter-operator-border-radius:              4px 0 0 4px !default;
+$slick-compound-filter-border-radius:                       0 4px 4px 0 !default;
+$slick-compound-filter-text-weight:                         bold !default;
+$slick-compound-filter-text-color:                          #333333 !default;
+$slick-compound-filter-text-font-size:                      13px !default;
+$slick-compound-filter-text-padding:                        0 0 0 2px !default;
+
+/** Date Range Filters */
+$slick-date-range-filter-border-radius:                     4px !default;
+
+/* Draggable Grouping Plugin */
+$slick-draggable-group-column-background-color:             transparent !default;
+$slick-draggable-group-column-border:                       1px solid #d3d3d3 !default;
+$slick-draggable-group-column-border-radius:                20px !default;
+$slick-draggable-group-column-padding:                      0 10px !default;
+$slick-draggable-group-column-margin-right:                 8px !default;
+$slick-draggable-group-drop-border-hover:                   1px dashed #ff9e9e !default;
+$slick-draggable-group-drop-border:                         1px solid #e0e0e0 !default;
+$slick-draggable-group-drop-border-top:                     $slick-draggable-group-drop-border !default;
+$slick-draggable-group-drop-border-bottom:                  $slick-draggable-group-drop-border !default;
+$slick-draggable-group-drop-border-right:                   $slick-draggable-group-drop-border !default;
+$slick-draggable-group-drop-border-left:                    $slick-draggable-group-drop-border !default;
+$slick-draggable-group-drop-placeholder-hover-opacity:      0.6 !default;
+$slick-draggable-group-drop-bgcolor:                        #ffffff !default;
+$slick-draggable-group-drop-height:                         35px !default;
+$slick-draggable-group-drop-padding:                        5px 10px !default;
+$slick-draggable-group-drop-radius:                         4px !default;
+$slick-draggable-group-drop-width:                          calc(100% - 25px) !default;
+$slick-draggable-group-droppable-active-bgcolor:            #fafafa !default;
+$slick-draggable-group-droppable-hover-bgcolor:             #ffffff !default;
+$slick-draggable-group-placeholder-font-style:              italic !default;
+$slick-draggable-group-placeholder-color:                   #616161 !default;
+//$slick-draggable-group-by-remove-icon:                      "\f00d" !default;
+$slick-draggable-group-by-remove-icon-size:                 calc(#{$slick-icon-font-size} + 2px) !default;
+//$slick-draggable-group-sort-asc-icon:                       $slick-icon-sort-asc !default;
+$slick-draggable-group-sort-asc-icon-size:                  calc(#{$slick-icon-font-size} + 2px) !default;
+//$slick-draggable-group-sort-desc-icon:                      $slick-icon-sort-desc !default;
+$slick-draggable-group-sort-desc-icon-size:                 calc(#{$slick-icon-font-size} + 2px) !default;
+$slick-draggable-group-sort-icon-color:                     $slick-icon-color !default;
+$slick-draggable-group-sort-icon-hover-color:               darken($slick-icon-color, 5%) !default;
+$slick-draggable-group-sort-icon-margin-left:               2px !default;
+$slick-draggable-group-sort-icon-padding-left:              5px !default;
+$slick-draggable-group-sort-icon-padding-right:             0px !default;
+$slick-draggable-group-sort-icon-font-size:                 16px !default;
+$slick-draggable-group-sort-icon-vertical-align:            baseline !default;
+$slick-draggable-group-delete-color:                        pink !default;
+$slick-draggable-group-delete-hover-color:                  red !default;
+$slick-draggable-group-delete-margin-left:                  2px !default;
+$slick-draggable-group-delete-padding-left:                 5px !default;
+$slick-draggable-group-delete-padding-right:                0px !default;
+$slick-draggable-group-delete-font-size:                    16px !default;
+$slick-draggable-group-delete-vertical-align:               baseline !default;
+$slick-draggable-group-toggle-all-border:                   1px solid #c7c7c7 !default;
+$slick-draggable-group-toggle-all-border-radius:            3px !default;
+$slick-draggable-group-toggle-all-color:                    $slick-icon-group-color !default;
+$slick-draggable-group-toggle-all-display:                  none !default;
+$slick-draggable-group-toggle-all-margin-right:             15px !default;
+$slick-draggable-group-toggle-all-padding:                  0 8px !default;
+$slick-draggable-group-toggle-all-position:                 relative !default;
+$slick-draggable-group-toggle-all-top:                      0px !default;
+$slick-draggable-group-toggle-all-right:                    unset !default;
+$slick-draggable-group-toggle-all-icon-vertical-align:      middle !default;
+$slick-draggable-group-toggle-all-text-font-size:           15px !default;
+$slick-draggable-group-toggle-all-text-margin:              0 0 0 2px !default;
+$slick-draggable-group-toggle-all-icon-height:              inherit !default;
+$slick-draggable-group-toggle-all-icon-width:               $slick-icon-font-size !default;
+//$slick-draggable-group-toggle-collapsed-icon:               "\f0fe" !default;
+//$slick-draggable-group-toggle-expanded-icon:                "\f146" !default;
+$slick-draggable-group-title-height:                        $slick-icon-group-height !default;
+$slick-draggable-group-title-line-height:                   $slick-icon-group-height !default;
+$slick-draggable-group-title-vertical-align:                none !default;
+$slick-draggable-group-column-icon-font-weight:             normal !default;
+$slick-draggable-group-column-icon-color:                   #707070 !default;
+$slick-draggable-group-column-icon-height:                  9px !default;
+$slick-draggable-group-column-icon-width:                   9px !default;
+$slick-draggable-group-column-icon-margin-left:             4px !default;
+
+/* Input Slider Filter (vanilla html) */
+$slick-slider-filter-border:                                1px solid #ccc !default;
+$slick-slider-filter-border-radius:                         4px !default;
+$slick-slider-filter-bgcolor:                               #eee !default;
+$slick-slider-filter-input-bgcolor:                         #fff !default;
+$slick-slider-filter-runnable-track-bgcolor:                #ddd !default;
+$slick-slider-filter-runnable-track-cursor:                 pointer !default;
+$slick-slider-filter-runnable-track-height:                 5px !default;
+$slick-slider-filter-runnable-track-padding:                0 6px !default;
+$slick-slider-filter-fill-lower-color:                      #ddd !default; /* ms only */
+$slick-slider-filter-fill-focus-lower-color:                #aaa !default; /* ms only */
+$slick-slider-filter-focus-border-color:                    $slick-input-focus-border-color !default;
+$slick-slider-filter-focus-box-shadow:                      $slick-input-focus-box-shadow !default;
+$slick-slider-filter-height:                                $slick-header-input-height !default;
+$slick-slider-filter-thumb-border-radius:                   50% !default;
+$slick-slider-filter-thumb-cursor:                          grab !default;
+$slick-slider-filter-thumb-border:                          2px solid rgba($slick-primary-color, .68) !default;
+$slick-slider-filter-thumb-color:                           lighten($slick-primary-color, 75%) !default; // #c9dbcb
+$slick-slider-filter-thumb-active-color:                    rgba($slick-primary-color, .88) !default; // #c9dbcb
+$slick-slider-filter-thumb-active-bg-color:                 #fff !default;
+$slick-slider-filter-thumb-active-border:                   2px solid #{$slick-slider-filter-thumb-active-color} !default; // #c9dbcb
+$slick-slider-filter-thumb-active-box-shadow:               0 0 0 2px rgba(lighten($slick-primary-color, 3%), .15) !default; // #c9dbcb
+$slick-slider-filter-thumb-size:                            14px !default;
+$slick-slider-filter-thumb-height:                          calc(#{$slick-slider-filter-thumb-size} - 4px) !default;
+$slick-slider-filter-thumb-width:                           $slick-slider-filter-thumb-height !default;
+$slick-slider-filter-number-padding:                        4px 8px !default;
+$slick-slider-filter-number-font-size:                      calc(#{$slick-font-size-base-value} - 1px) !default;
+
+/* Multiple-Select Filter */
+$slick-multiselect-input-filter-border:                     1px solid #ccc !default;
+$slick-multiselect-input-filter-font-family:                "Helvetica Neue", Helvetica, Arial !default;
+$slick-multiselect-input-filter-font-size:                  12px !default;
+$slick-multiselect-input-focus-border-color:                $slick-input-focus-border-color !default;
+$slick-multiselect-input-focus-box-shadow:                  $slick-input-focus-box-shadow !default;
+$slick-multiselect-dropdown-border:                         1px solid #bbb !default;
+$slick-multiselect-dropdown-list-padding:                   4px 6px !default;
+$slick-multiselect-dropdown-max-width:                      250px !default;
+$slick-multiselect-dropdown-z-index:                        9999 !default;
+$slick-multiselect-checkbox-margin-left:                    0px !default;
+$slick-multiselect-checkbox-hover-bg-color:                 #fafafa !default;
+$slick-multiselect-icon-font-size:                          16px !default;
+$slick-multiselect-icon-arrow-font-size:                    $slick-multiselect-icon-font-size !default;
+$slick-multiselect-icon-color:                              $slick-primary-color !default;
+//$slick-multiselect-icon-checked:                            "\f14a" !default;
+$slick-multiselect-icon-checked-color:                      $slick-multiselect-icon-color !default;
+$slick-multiselect-icon-border:                             none !default;
+$slick-multiselect-icon-border-radius:                      none !default;
+$slick-multiselect-icon-height:                             20px !default;
+$slick-multiselect-icon-margin:                             0 !default;
+$slick-multiselect-icon-vertical-align:                     middle !default;
+$slick-multiselect-icon-width:                              20px !default;
+//$slick-multiselect-icon-unchecked:                          "\f096" !default;
+$slick-multiselect-icon-unchecked-color:                    $slick-multiselect-icon-color !default;
+$slick-multiselect-icon-radio-border:                       $slick-multiselect-icon-border !default;
+$slick-multiselect-icon-radio-border-radius:                $slick-multiselect-icon-border-radius !default;
+//$slick-multiselect-icon-radio-checked:                      "\f192" !default;
+$slick-multiselect-icon-radio-color:                        $slick-multiselect-icon-color !default;
+$slick-multiselect-icon-radio-height:                       $slick-multiselect-icon-height !default;
+$slick-multiselect-icon-radio-margin:                       $slick-multiselect-icon-margin !default;
+//$slick-multiselect-icon-radio-unchecked:                    "\f10c" !default;
+$slick-multiselect-icon-radio-width:                        $slick-multiselect-icon-width !default;
+$slick-multiselect-icon-search-margin-right:                8px !default;
+$slick-multiselect-item-height:                             26px !default;
+$slick-multiselect-item-border:                             1px solid transparent !default;
+$slick-multiselect-item-hover-border:                       1px solid #d5d5d5 !default;
+$slick-multiselect-item-line-height:                        calc(#{$slick-multiselect-icon-font-size} + 2px) !default;
+$slick-multiselect-item-padding:                            2px 4px !default;
+$slick-multiselect-unchecked-opacity:                       0.6 !default;
+$slick-multiselect-placeholder-bg-color:                    transparent !default;
+$slick-multiselect-placeholder-color:                       $slick-editor-placeholder-color !default;
+$slick-multiselect-placeholder-font-family:                 $slick-filter-placeholder-font-family !default;
+$slick-multiselect-ok-button-bg-color:                      #fff !default;
+$slick-multiselect-ok-button-bg-hover-color:                #f9f9f9 !default;
+$slick-multiselect-ok-button-border-color:                  #ccc !default;
+$slick-multiselect-ok-button-border-radius:                 0 0 4px 4px !default;
+$slick-multiselect-ok-button-border-width:                  1px 0 0 0 !default;
+$slick-multiselect-ok-button-font-weight:                   600 !default;
+$slick-multiselect-ok-button-text-color:                    $slick-primary-color !default;
+$slick-multiselect-ok-button-text-hover-color:              darken($slick-primary-color, 5%) !default;
+$slick-multiselect-ok-button-height:                        26px !default;
+$slick-multiselect-ok-button-width:                         100% !default;
+$slick-multiselect-ok-button-text-align:                    center !default;
+$slick-multiselect-select-all-border-bottom:                1px solid #ddd !default;
+$slick-multiselect-select-all-label-border:                 $slick-multiselect-item-border !default;
+$slick-multiselect-select-all-label-hover-border:           $slick-multiselect-item-hover-border !default;
+$slick-multiselect-select-all-label-hover-bg-color:         $slick-multiselect-checkbox-hover-bg-color !default;
+$slick-multiselect-select-all-label-padding:                4px !default;
+$slick-multiselect-select-all-line-height:                  calc(#{$slick-multiselect-icon-font-size} + 2px) !default;
+$slick-multiselect-select-all-padding:                      4px 6px !default;
+$slick-multiselect-select-all-text-color:                   darken($slick-primary-color, 5%) !default;
+$slick-multiselect-select-all-text-hover-color:             transparent !default;
+
+// override some multiple-select SASS variables
+$ms-drop-list-padding:                                      $slick-multiselect-dropdown-list-padding;
+$ms-drop-list-item-align-items:                             center;
+$ms-drop-list-item-display:                                 flex;
+$ms-drop-list-item-padding:                                 $slick-multiselect-item-padding;
+$ms-drop-hide-radio-selected-color:                         unset;
+$ms-drop-hide-radio-selected-bgcolor:                       unset;
+$ms-label-padding:                                          $slick-multiselect-item-padding;
+$ms-ok-button-bg-hover-color:                               $slick-multiselect-ok-button-bg-hover-color;
+$ms-ok-button-text-color:                                   $slick-multiselect-ok-button-text-color;
+$ms-ok-button-text-hover-color:                             $slick-multiselect-ok-button-text-hover-color;
+$ms-select-all-label-hover-border:                          $slick-multiselect-select-all-label-hover-border;
+$ms-select-all-label-padding:                               $slick-multiselect-select-all-padding;
+$ms-select-all-label-span-padding:                          $slick-multiselect-select-all-label-padding;
+$ms-select-all-text-color:                                  $slick-multiselect-select-all-text-color;
+
+/* pagination variables */
+$slick-pagination-border-color:                             #ddd !default;
+$slick-pagination-button-border-color:                      #acacac !default;
+$slick-pagination-button-border-radius:                     4px !default;
+$slick-pagination-button-height:                            32px !default;
+$slick-pagination-button-hover-color:                       #E6E6E6 !default;
+$slick-pagination-button-padding:                           6px 12px !default;
+$slick-pagination-button-border:                            1px solid #{$slick-pagination-button-border-color} !default;
+$slick-pagination-border-top:                               0 none !default;
+$slick-pagination-border-right:                             0 none !default;
+$slick-pagination-border-bottom:                            0 none !default;
+$slick-pagination-border-left:                              0 none !default;
+$slick-pagination-count-margin-left:                        2px !default;
+$slick-pagination-font-size:                                calc(#{$slick-font-size-base} - 1px) !default;
+$slick-pagination-height:                                   40px !default;
+$slick-pagination-icon-color:                               $slick-primary-color !default;
+$slick-pagination-icon-font-size:                           calc(#{$slick-icon-font-size} - 1px) !default;
+$slick-pagination-icon-line-height:                         calc(#{$slick-icon-font-size} + 4px) !default;
+$slick-pagination-icon-height:                              initial !default;
+//$slick-pagination-icon-seek-first:                          "\f100" !default;
+//$slick-pagination-icon-seek-end:                            "\f101" !default;
+//$slick-pagination-icon-seek-next:                           "\f105" !default;
+//$slick-pagination-icon-seek-prev:                           "\f104" !default;
+$slick-pagination-icon-seek-first-width:                    initial !default;
+$slick-pagination-icon-seek-end-width:                      initial !default;
+$slick-pagination-icon-seek-next-width:                     initial !default;
+$slick-pagination-icon-seek-prev-width:                     initial !default;
+$slick-pagination-icon-seek-text-stroke:                    0.4px !default;
+$slick-pagination-page-input-border-radius:                 4px !default;
+$slick-pagination-page-input-bgcolor:                       #fafbed !default;
+$slick-pagination-page-input-height:                        26px !default;
+$slick-pagination-page-input-width:                         50px !default;
+$slick-pagination-page-input-padding:                       2px !default;
+$slick-pagination-page-select-bg-color:                     #fff !default;
+$slick-pagination-page-select-border-radius:                3px !default;
+$slick-pagination-page-select-padding:                      0 0 2px 2px !default;
+$slick-pagination-page-select-height:                       32px !default;
+$slick-pagination-page-select-width:                        60px !default;
+$slick-pagination-page-select-font-size:                    calc(#{$slick-font-size-base} - 2px) !default;
+$slick-pagination-text-color:                               #808080 !default;
+
+/* Row Move Manager Plugin */
+//$slick-row-move-plugin-icon:                                "\f0c9" !default;
+$slick-row-move-plugin-icon-vertical-align:                 bottom !default;
+$slick-row-move-plugin-icon-width:                          $slick-icon-font-size !default;
+$slick-row-move-plugin-size:                                $slick-icon-font-size !default;
+$slick-row-move-plugin-cursor:                              move !default;
+$slick-row-move-plugin-guide-bg-color:                      blue !default;
+$slick-row-move-plugin-guide-height:                        2px !default;
+$slick-row-move-plugin-guide-opacity:                       0.7 !default;
+$slick-row-move-plugin-proxy-opacity:                       0.12 !default;
+$slick-row-move-plugin-proxy-bg-color:                      $slick-row-move-plugin-guide-bg-color !default;
+$slick-row-move-plugin-shadow-row-box-shadow:               rgb(0 0 0 / 20%) 8px 2px 8px 4px, rgb(0 0 0 / 19%) 2px 2px 0px 0px !default;
+
+/* selector plugin */
+$slick-selector-border-right:                               1px solid rgb(196, 196, 196) !default;
+
+/* Viewport */
+$slick-viewport-border-top:                                 0 none !default; // header row is where the Filters are showing
+$slick-viewport-border-right:                               0 none !default;
+$slick-viewport-border-bottom:                              0 none !default;
+$slick-viewport-border-left:                                0 none !default;
+
+/* Custom Footer */
+$slick-footer-bg-color:                                     transparent !default;
+$slick-footer-font-size:                                    $slick-font-size-base !default;
+$slick-footer-font-style:                                   italic !default;
+$slick-footer-font-weight:                                  normal !default;
+$slick-footer-height:                                       30px !default; // if you modify this height, you also have to modify the footerHeight in the customFooterOptions
+$slick-footer-padding:                                      5px 0 !default;
+$slick-footer-text-color:                                   #808080 !default;
+$slick-footer-left-float:                                   left !default;
+$slick-footer-left-font-style:                              italic !default;
+$slick-footer-left-font-weight:                             normal !default;
+$slick-footer-left-padding:                                 0px !default;
+$slick-footer-left-text-align:                              left !default;
+$slick-footer-left-text-color:                              $slick-footer-text-color !default;
+$slick-footer-left-width:                                   50% !default;
+$slick-footer-right-font-style:                             italic !default;
+$slick-footer-right-font-weight:                            normal !default;
+$slick-footer-right-padding:                                0px !default;
+$slick-footer-right-separator-margin:                       2px !default;
+$slick-footer-right-float:                                  right !default;
+$slick-footer-right-text-align:                             right !default;
+$slick-footer-right-text-color:                             $slick-footer-text-color !default;
+$slick-footer-right-width:                                  50% !default;
+
+/** Custom Tooltip */
+$slick-tooltip-background-color:                            #ffffff !default;
+$slick-tooltip-border-color:                                #BFBDBD !default;
+$slick-tooltip-border:                                      2px solid #{$slick-tooltip-border-color} !default;
+$slick-tooltip-border-radius:                               4px !default;
+$slick-tooltip-font-size:                                   calc(#{$slick-font-size-base} - 1px) !default;
+$slick-tooltip-color:                                       inherit !default;
+$slick-tooltip-height:                                      auto !default;
+$slick-tooltip-padding:                                     7px !default;
+$slick-tooltip-width:                                       auto !default;
+$slick-tooltip-overflow:                                    inherit !default;
+$slick-tooltip-text-overflow:                               ellipsis !default;
+$slick-tooltip-white-space:                                 normal !default;
+$slick-tooltip-z-index:                                     9999 !default;
+// tooltip arrow
+$slick-tooltip-arrow-color:                                 darken($slick-tooltip-border-color, 5%) !default;
+$slick-tooltip-arrow-size:                                  8px !default;
+$slick-tooltip-down-arrow-top-margin:                       100% !default;
+$slick-tooltip-up-arrow-top-margin:                         -($slick-tooltip-arrow-size * 2) !default;
+$slick-tooltip-arrow-side-margin:                           3px !default;
+$slick-tooltip-arrow-center-margin:                         calc(50% - #{$slick-tooltip-arrow-size}) !default;
+$slick-tooltip-right-arrow-side-margin:                     calc(100% - #{($slick-tooltip-arrow-size * 2)} - #{$slick-tooltip-arrow-side-margin}) !default;
+
+/** Empty Data Warning element */
+$slick-empty-data-warning-color:                            $slick-cell-text-color !default;
+$slick-empty-data-warning-font-family:                      $slick-font-family !default;
+$slick-empty-data-warning-font-size:                        calc(#{$slick-font-size-base} + 2px) !default;
+$slick-empty-data-warning-font-style:                       italic !default;
+$slick-empty-data-warning-line-height:                      18px !default;
+$slick-empty-data-warning-margin:                           0px !default;
+$slick-empty-data-warning-padding:                          8px !default;
+$slick-empty-data-warning-z-index:                          10 !default;
+
+
+
+//Nuevo
+
+$slick-icon-width:                                          18px !default;
+$slick-icon-sort-asc:                                       url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-icon-sort-color)}" viewBox="0 0 24 24"><path d="M13,20H11V8L5.5,13.5L4.08,12.08L12,4.16L19.92,12.08L18.5,13.5L13,8V20Z"></path></svg>') !default;
+$slick-icon-sort-desc:                                      url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-icon-sort-color)}" viewBox="0 0 24 24"><path d="M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4Z"></path></svg>') !default;
+$slick-checkbox-selector-icon-checked:                      url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-checkbox-selector-color)}" viewBox="0 0 24 24"><path d="M10,17L5,12L6.41,10.58L10,14.17L17.59,6.58L19,8M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z"></path></svg>') !default;
+$slick-checkbox-selector-icon-unchecked:                    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-checkbox-selector-color)}" viewBox="0 0 24 24"><path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z"></path></svg>') !default;
+$slick-column-picker-checkbox-icon-checked:                 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-column-picker-checkbox-color)}" viewBox="0 0 24 24"><path d="M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z"></path></svg>') !default;
+$slick-column-picker-checkbox-icon-unchecked:               $slick-column-picker-checkbox-icon-checked !default;
+
+$slick-icon-group-collapsed:                                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-icon-group-color)}" viewBox="0 0 24 24"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"></path></svg>') !default;
+$slick-icon-group-expanded:                                 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-icon-group-color)}" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"></path></svg>') !default;
+$slick-header-menu-button-icon:                             url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-header-menu-button-icon-color)}" viewBox="0 0 24 24"><path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"></path></svg>') !default;
+$slick-autocomplete-loading-icon:                           url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-autocomplete-loading-icon-color)}" viewBox="0 0 24 24"><path d="M16,13V11H21V13H16M14.83,7.76L17.66,4.93L19.07,6.34L16.24,9.17L14.83,7.76M11,16H13V21H11V16M11,3H13V8H11V3M4.93,17.66L7.76,14.83L9.17,16.24L6.34,19.07L4.93,17.66M4.93,6.34L6.34,4.93L9.17,7.76L7.76,9.17L4.93,6.34M8,13H3V11H8V13M19.07,17.66L17.66,19.07L14.83,16.24L16.24,14.83L19.07,17.66Z"></path></svg>') !default;
+$slick-multiselect-icon-radio-checked:                      url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-multiselect-icon-color)}" viewBox="0 0 24 24"><path d="M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7Z"></path></svg>') !default;
+$slick-multiselect-icon-radio-unchecked:                    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-multiselect-icon-color)}" viewBox="0 0 24 24"><path d="M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"></path></svg>') !default;
+$slick-row-move-plugin-icon-color:                          $slick-icon-color !default;
+$slick-row-move-plugin-icon:                                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-row-move-plugin-icon-color)}" viewBox="0 0 24 24"><path d="M11,18 C11,19.1 10.1,20 9,20 C7.9,20 7,19.1 7,18 C7,16.9 7.9,16 9,16 C10.1,16 11,16.9 11,18 Z M9,10 C7.9,10 7,10.9 7,12 C7,13.1 7.9,14 9,14 C10.1,14 11,13.1 11,12 C11,10.9 10.1,10 9,10 Z M9,4 C7.9,4 7,4.9 7,6 C7,7.1 7.9,8 9,8 C10.1,8 11,7.1 11,6 C11,4.9 10.1,4 9,4 Z M15,8 C16.1,8 17,7.1 17,6 C17,4.9 16.1,4 15,4 C13.9,4 13,4.9 13,6 C13,7.1 13.9,8 15,8 Z M15,10 C13.9,10 13,10.9 13,12 C13,13.1 13.9,14 15,14 C16.1,14 17,13.1 17,12 C17,10.9 16.1,10 15,10 Z M15,16 C13.9,16 13,16.9 13,18 C13,19.1 13.9,20 15,20 C16.1,20 17,19.1 17,18 C17,16.9 16.1,16 15,16 Z"></path></svg>') !default;
+$slick-editor-input-group-clear-btn-icon-color:             $slick-icon-color !default;
+$slick-editor-input-group-clear-btn-icon:                   url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-editor-input-group-clear-btn-icon-color)}" viewBox="0 0 24 24"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"></path></svg>') !default;
+$slick-detail-view-icon-collapse:                           url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-detail-view-icon-collapse-color)}" viewBox="0 0 24 24"><path d="M17,13H7V11H17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"></path></svg>') !default;
+$slick-detail-view-icon-expand:                             url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-detail-view-icon-expand-color)}" viewBox="0 0 24 24"><path d="M17,13H13V17H11V13H7V11H11V7H13V11H17M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"></path></svg>') !default;
+$slick-pagination-icon-seek-first:                          url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-pagination-icon-color)}" viewBox="0 0 24 24"><path d="M18.41 16.59L13.82 12l4.59-4.59L17 6l-6 6 6 6zM6 6h2v12H6z"/><path d="M24 24H0V0h24v24z" fill="none"/></svg>') !default;
+$slick-pagination-icon-seek-end:                            url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-pagination-icon-color)}" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M5.59 7.41L10.18 12l-4.59 4.59L7 18l6-6-6-6zM16 6h2v12h-2z"/></svg>') !default;
+$slick-pagination-icon-seek-next:                           url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-pagination-icon-color)}" viewBox="0 0 24 24"><path d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"></path></svg>') !default;
+$slick-pagination-icon-seek-prev:                           url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-pagination-icon-color)}" viewBox="0 0 24 24"> <path d="M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z"></path></svg>') !default;
+
+// import multiple-select SASS variables in order to override them
+@import 'multiple-select-vanilla/dist/styles/sass/multiple-select.scss';
+
+
+.slick-row {
+  .detail-view-toggle {
+    &.expand, &.collapse {
+      width: var(--slick-icon-width,$slick-icon-width);
+    }
+  }
+}
+
+/*  Definir iconos por CSS 
+.mio {
+  &:before {
+    content: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="#{encodecolor($slick-pagination-icon-color)}" viewBox="0 0 24 24"><path d="M912 192H328c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h584c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 284H328c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h584c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 284H328c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h584c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM104 228a56 56 0 10112 0 56 56 0 10-112 0zm0 284a56 56 0 10112 0 56 56 0 10-112 0zm0 284a56 56 0 10112 0 56 56 0 10-112 0z"></path></svg>');
+  }
+}
+*/ 

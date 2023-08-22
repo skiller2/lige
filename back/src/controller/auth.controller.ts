@@ -87,7 +87,6 @@ export class AuthController extends BaseController {
     if (password == null) //Valida undefined or null
       throw new ClientException("Contraseña vacía")
     
-    console.log('user',user,password)
     const usernamenodomain = user.split("@")[0];
 
     try {
@@ -306,7 +305,6 @@ export class AuthController extends BaseController {
       /*    
         this.authUser(userName, password)
           .then(async (user: any) => {
-            console.log('user', user)
             const queryRunner = dataSource.createQueryRunner();
             await queryRunner.connect();
     

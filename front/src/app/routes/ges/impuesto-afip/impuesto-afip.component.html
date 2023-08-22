@@ -33,21 +33,25 @@
     <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
-      <nz-tab>
+      <nz-tab >
         <a nz-tab-link routerLink="/ges/impuesto_afip/listado">Listado</a>
-        <ng-template nz-tab>
+        <ng-template nz-tab *ngIf="((gridData$ | async) || []) as gridData">
           <shared-filtro-builder [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
-
-          <div class="gridContainer container-fluid">
-            <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columns$ | async | colsFilter"
-              [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
-              (onAngularGridCreated)="angularGridReady($event)">
+          <div class="gridContainer container-fluid" >
+            <angular-slickgrid gridId="grid22" class="" 
+              [columnDefinitions]="columnDefinitions | colsFilter"
+              [gridOptions]="gridOptions" 
+              [dataset]="gridData"
+              (onAngularGridCreated)="angularGridReady($event)"
+              (onRowCountChanged)="refreshMetrics($event)"
+              >
             </angular-slickgrid>
           </div>
+          <div>Registros: {{ gridData.length }}</div>
         </ng-template>
       </nz-tab>
       <nz-tab>
-        <a nz-tab-link routerLink="/ges/impuesto_afip/carga">Carga</a>
+        <a nz-tab-link routerLink="/ges/impuesto_afip/carga">Carga </a>
         <ng-container *ngIf="{ lista: (listaDescuentos$ | async) } as context">
           <div *ngIf="context.lista?.RegistrosSinComprobantes && 1" nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
             <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">

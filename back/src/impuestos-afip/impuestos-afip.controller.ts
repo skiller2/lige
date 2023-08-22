@@ -129,7 +129,6 @@ export class ImpuestosAfipController extends BaseController {
     
     const orderBy = orderToSQL(params.options.sort)
 
-    console.log("IMPRIMO FILTROS",params.options)
     let filtrosConsulta1 = [], filtrosConsulta2 = [];
     let filter1IsActive = false;
     params.options.filtros.forEach(element => {

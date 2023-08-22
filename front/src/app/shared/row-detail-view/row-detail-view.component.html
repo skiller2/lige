@@ -1,0 +1,8 @@
+<div nz-form>
+  <nz-form-item *ngFor="let column of columnsDefinition">
+    <nz-form-label [nzSpan]="5">{{ column.name}}</nz-form-label>
+    <nz-form-control>
+      <span>{{ model[column.id] }}</span>
+    </nz-form-control>
+  </nz-form-item>
+</div>

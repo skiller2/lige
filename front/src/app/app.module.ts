@@ -105,10 +105,13 @@ import { STWidgetModule } from './shared/st-widget/st-widget.module';
 import { Observable } from 'rxjs';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { AngularSlickgridModule } from 'angular-slickgrid';
+import { RowDetailViewComponent } from './shared/row-detail-view/row-detail-view.component';
 
 
 @NgModule({
   declarations: [AppComponent],
+
+
   imports: [
 
     BrowserModule,

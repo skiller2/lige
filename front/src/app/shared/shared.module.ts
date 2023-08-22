@@ -23,12 +23,20 @@ import { AppFilterPipe,ColsFilterPipe } from './utils/filter-type';
 import { ObjetivoSearchComponent } from './objetivo-search/objetivo-search.component';
 import { AppDownFileDirective } from './down-file/down-file.directive';
 import { AngularSlickgridModule } from 'angular-slickgrid';
+//import { RowDetailViewComponent } from './row-detail-view/row-detail-view.component';
+//import { RowPreloadDetailComponent } from './row-preload-detail/row-preload-detail.component';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';
 
 const THIRDMODULES: Array<Type<any>> = [ImageCropperModule, QRModule,AngularSlickgridModule,];
 // #endregion
+
+export type listOptionsT = {
+  filtros: any[],
+  sort: any,
+}
+
 
 // #region your componets & directives
 const COMPONENTS: Array<Type<any>> = [
@@ -46,6 +54,7 @@ const DIRECTIVES: Array<Type<any>> = [CUITPipe, AppFilterPipe,AppDownFileDirecti
 // #endregion
 
 @NgModule({
+
   imports: [
     CommonModule,
     FormsModule,
@@ -65,6 +74,8 @@ const DIRECTIVES: Array<Type<any>> = [CUITPipe, AppFilterPipe,AppDownFileDirecti
     // your components
     ...COMPONENTS,
     ...DIRECTIVES,
+//    RowDetailViewComponent,
+//    RowPreloadDetailComponent,
   ],
   exports: [
     CommonModule,

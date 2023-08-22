@@ -5,7 +5,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { SharedModule } from '@shared';
+import { SharedModule, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import {
   BehaviorSubject,
@@ -13,6 +13,7 @@ import {
   Subscription,
   debounceTime,
   filter,
+  firstValueFrom,
   fromEvent,
   map,
   of,
@@ -25,24 +26,26 @@ import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { Options } from 'src/app/shared/schemas/filtro';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
-import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid } from 'angular-slickgrid';
+import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, FieldType, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { Router } from '@angular/router';
+import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
+import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
+import { CommonModule, NgIf } from '@angular/common';
 
-type listOptionsT = {
-  filtros: any[],
-  sort: any,
-}
 
 @Component({
   standalone: true,
   imports: [
     SharedModule,
+
   ],
+
   template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
     httpUrl="api/impuestos_afip/{{anio}}/{{mes}}/0/{{item.PersonalId}}"
            ><span class="pl-xs" nz-icon nzType="download"></span></a>`
 })
+
 export class CustomDescargaComprobanteComponent {
   item: any;
   anio: any
@@ -55,9 +58,12 @@ export class CustomDescargaComprobanteComponent {
   templateUrl: './impuesto-afip.component.html',
   standalone: true,
   imports: [
+    CommonModule,
     SharedModule,
     NzAffixModule,
     FiltroBuilderComponent,
+    RowPreloadDetailComponent,
+    RowDetailViewComponent,
   ],
   styleUrls: ['./impuesto-afip.component.less'],
   providers: [AngularUtilService]
@@ -78,28 +84,28 @@ export class ImpuestoAfipComponent {
   filesChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
   detailViewRowCount = 9;
-
+  columnDefinitions: Column[] = []
+  gridOptions!: GridOption;
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
-    if (colDef.params.component && dataContext.monto >0) {
+    if (colDef.params.component && dataContext.monto > 0) {
       const componentOutput = this.angularUtilService.createAngularComponent(colDef.params.component)
-      Object.assign(componentOutput.componentRef.instance, { item: dataContext, anio:this.anio,mes:this.mes })
+      Object.assign(componentOutput.componentRef.instance, { item: dataContext, anio: this.anio, mes: this.mes })
       cellNode.append(componentOutput.domElement)
-     //setTimeout(() => cellNode.append(componentOutput.domElement))
+      //setTimeout(() => cellNode.append(componentOutput.domElement))
     }
   }
 
 
-
   columns$ = this.apiService.getCols('/api/impuestos_afip/cols').pipe(map((cols) => {
-    const colmonto:Column = {
+    const colmonto: Column = {
       name: "Importe",
       type: "float",
       id: "monto",
       field: "monto",
-//      fieldName: "des.PersonalOtroDescuentoImporteVariable",
+      //      fieldName: "des.PersonalOtroDescuentoImporteVariable",
       sortable: true,
-//      formatter: () => '...',
+      //      formatter: () => '...',
       asyncPostRender: this.renderAngularComponent.bind(this),
       params: {
         component: CustomDescargaComprobanteComponent,
@@ -111,103 +117,22 @@ export class ImpuestoAfipComponent {
 
     let mapped = cols.map((col: any) => {
       if (col.id == 'monto')
-        col=colmonto
+        col = colmonto
       return col
-    }); 
+    });
+
     return mapped
   }));
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   gridObj!: SlickGrid;
-  gridOptions = {
-    asyncEditorLoading: false,
-    autoEdit: false,
-    autoCommitEdit: false,
-//    presets: { columns: [{ columnId: '', width: 0 }]},
-    autoResize: {
-      container: '.gridContainer',
-        rightPadding: 1,    // defaults to 0
-        //bottomPadding: 10,  // defaults to 20
-        //minHeight: 550,     // defaults to 180
-        //minWidth: 250,      // defaults to 300
-        //sidePadding: 10,
-        //bottomPadding: 10        
-    },
-    rowHeight: undefined,
-//    headerRowHeight: 45,
-//    rowHeight: 45, // increase row height so that the ng-select fits in the cell
-//    autoHeight: true,    
-    editable: false,
-    enableCellMenu: true,
-    enableCellNavigation: true,
-//    enableAutoResize: true,
-    enableColumnPicker: true,
-    enableExcelCopyBuffer: true,
-    enableExcelExport: true,
-    registerExternalResources: [this.excelExportService],
-    enableAutoTooltip: true,
-    enableFiltering: false,
-    enableRowSelection: true,
-    enableRowDetailView: true,
-    rowDetailView: {
-      // optionally change the column index position of the icon (defaults to 0)
-      // columnIndexPosition: 1,
-
-      // We can load the "process" asynchronously in 2 different ways (httpClient OR even Promise)
-      //process: (item) => this.simulateServerAsyncCall(item),
-      process: (item:any) => item,
-      // process: (item) => this.http.get(`api/item/${item.id}`),
-
-      // load only once and reuse the same item detail without calling process method
-      loadOnce: true,
-
-      // limit expanded row to only 1 at a time
-      singleRowExpand: false,
-
-      // false by default, clicking anywhere on the row will open the detail view
-      // when set to false, only the "+" icon would open the row detail
-      // if you use editor or cell navigation you would want this flag set to false (default)
-      useRowClick: true,
-
-      // how many grid rows do we want to use for the row detail panel (this is only set once and will be used for all row detail)
-      // also note that the detail view adds an extra 1 row for padding purposes
-      // so if you choose 4 panelRows, the display will in fact use 5 rows
-      panelRows: this.detailViewRowCount,
-
-      // you can override the logic for showing (or not) the expand icon
-      // for example, display the expand icon only on every 2nd row
-      // expandableOverride: (row: number, dataContext: any) => (dataContext.rowId % 2 === 1),
-
-      // Preload View Component
-      //preloadComponent: RowDetailPreloadComponent,
-
-      // View Component to load when row detail data is ready
-      viewComponent: RowDetailView,
-
-      // Optionally pass your Parent Component reference to your Child Component (row detail component)
-      parent: this
-    },
-
-//    autoFitColumnsOnFirstLoad: true,
-    enableAsyncPostRender: true, // for the Angular PostRenderer, don't forget to enable it
-    asyncPostRenderDelay: 0,    // also make sure to remove any delay to render it
-    params: {
-      angularUtilService: this.angularUtilService // provide the service to all at once (Editor, Filter, AsyncPostRender)
-    },
-    showCustomFooter: true, // display some metrics in the bottom custom footer
-    customFooterOptions: {
-      // optionally display some text on the left footer container
-      leftFooterText: '',
-      hideTotalItemCount: false,
-      hideLastUpdateTimestamp: false
-    
-    },
-
-  };
 
 
-  listOptions:listOptionsT = {
-    filtros:  [],
+
+
+
+  listOptions: listOptionsT = {
+    filtros: [],
     sort: null,
   };
 
@@ -224,7 +149,7 @@ export class ImpuestoAfipComponent {
       const periodo = this.impuestoForm.form.get('periodo')?.value
       return this.apiService
         .getDescuentosMonotributo(
-          { anio: periodo.getFullYear(), mes: periodo.getMonth()+1, options:this.listOptions, toggle: this.toggle }
+          { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptions, toggle: this.toggle }
         )
         .pipe(
           map(data => {
@@ -247,7 +172,6 @@ export class ImpuestoAfipComponent {
         )
         .pipe(
           map(items => {
-            debugger
             return {
               RegistrosConComprobantes: items.RegistrosConComprobantes,
               RegistrosSinComprobantes: items.RegistrosSinComprobantes,
@@ -262,12 +186,20 @@ export class ImpuestoAfipComponent {
   resizeObservable$: Observable<Event> | undefined;
   resizeSubscription$: Subscription | undefined;
 
-  ngOnInit() {
+  async ngOnInit() {
     this.resizeObservable$ = fromEvent(window, 'resize');
     this.resizeSubscription$ = this.resizeObservable$
       .pipe(debounceTime(500))
       .subscribe(evt => {
+        this.angularGrid.slickGrid.invalidate();
+        this.angularGrid.slickGrid.reRenderColumns(true)
+        this.angularGrid.slickGrid.render()
       });
+
+    this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    if (!this.apiService.isMobile())
+      this.gridOptions.enableRowDetailView = false
+
   }
 
   ngAfterViewInit(): void {
@@ -284,7 +216,7 @@ export class ImpuestoAfipComponent {
       this.impuestoForm.form
         .get('periodo')
         ?.setValue(new Date(Number(anio), Number(mes) - 1, 1));
-      
+
       this.filesChange$.next('')
     }, 1);
   }
@@ -318,7 +250,7 @@ export class ImpuestoAfipComponent {
     //   //   this.msg.error(`${file.name} file upload failed.`);
     // }
 
-    if (file.status === 'done') { 
+    if (file.status === 'done') {
       this.filesChange$.next('');
     }
   }
@@ -339,24 +271,58 @@ export class ImpuestoAfipComponent {
     this.resizeSubscription$!.unsubscribe();
   }
 
-
-  fncFile(rep: any): string {
-    console.log('fncFile', rep);
-
-    return 'pepe.pdf';
-  }
-
-  //angularGridReady(angularGrid: any) {
-  angularGridReady(angularGrid: any) {
-    
+  async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
-    this.gridObj.autosizeColumns();
+
+    const allColumns = this.angularGrid.gridService.getAllColumnDefinitions();
+
+
+
+    let newCols: Column[] = await firstValueFrom(this.columns$)
+
+
+    allColumns.push(...newCols)
+    this.columnDefinitions = allColumns;
+
+
+
+    setTimeout(() => {
+      if (this.apiService.isMobile())
+        this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
+
+    }, 0)
   }
 
-  exportGrid() { 
+  exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'monotributos-listado',
       format: FileType.xlsx
-    });  }
+    });
+  }
+
+  metrics: any
+  refreshMetrics(e: any) {
+    
+    this.gridOptions.customFooterOptions!.rightFooterText = 'update'
+    this.angularGrid.slickGrid.setOptions({ customFooterOptions: { rightFooterText: 'update'} },)
+
+
+
+    let _e = e.detail.eventData
+    let args = e.detail.args
+    if (args && args.current >= 0) {
+      setTimeout(() => {
+        this.metrics = {
+          startTime: new Date(),
+          endTime: new Date(),
+          //itemCount: args && args.current || 0,
+          itemCount: 10,
+          //totalItemCount: this.dataset.length || 0
+          totalItemCount: 10
+        };
+      });
+    }
+  }
+
 }
