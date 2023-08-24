@@ -8,6 +8,8 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { Router } from '@angular/router';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
 
 @Component({
   selector: 'app-adelanto',
@@ -15,11 +17,11 @@ import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detai
   styleUrls: ['./adelanto.component.less'],
   standalone: true,
   imports: [SharedModule, FiltroBuilderComponent],
-  providers: [AngularUtilService,ExcelExportService]
+  providers: [AngularUtilService, ExcelExportService]
 
 })
 export class AdelantoComponent {
-  constructor(private apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService, private excelExportService:ExcelExportService) { }
+  constructor(private apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService, private excelExportService: ExcelExportService) { }
   @ViewChild('adelanto', { static: true }) adelanto!: NgForm;
 
   selectedPeriod = { year: 0, month: 0 };
@@ -44,7 +46,7 @@ export class AdelantoComponent {
   }
 
   columns$ = this.apiService.getCols('/api/adelantos/cols').pipe(map((cols) => {
-  
+
     const colmonto: Column = {
       name: "Importe",
       type: "float",
@@ -67,22 +69,6 @@ export class AdelantoComponent {
         col.editor = {
           model: Editors.float, decimal: 2, valueStep: 1, minValue: 0, maxValue: 10000000, alwaysSaveOnEnterKey: true, required: true
         }
-        col.onCellChange= (e: Event, args: OnEventArgs) => {
-          console.log(args);
-//          this.alertWarning = `Updated Title: ${args.dataContext.title}`;
-        }
-        col.onBeforeEditCell = (e, args:any) => {
-          const { column, item, grid } = args;
-
-//          if (column && item) {
-//            if (!checkItemIsEditable(item, column, grid)) {
-//              e.stopImmediatePropagation();
-//              return false;
-//            }
-//          }
-          e.stopImmediatePropagation();
-
-          return false;        }
       }
       return col
     });
@@ -130,9 +116,66 @@ export class AdelantoComponent {
 */
     this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.autoEdit = true
-    this.gridOptions.editCommandHandler = (item, column, editCommand) => {
-      console.log('ejecuto', item, column, editCommand)
+    this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
       editCommand.execute();
+      //editCommand.undo()  Si no pudo comitear
+
+      if (item.PersonalAdelantoMonto == 0) {
+        const res = await firstValueFrom(this.apiService
+          .delAdelanto({ PersonalId: item.OperacionesPersonalAAsignarPersonalId, monto: item.PersonalAdelantoMonto }))
+        console.log('del', res)
+        item.PersonalAdelantoFechaSolicitud = null
+        item.PersonalAdelantoMonto = null
+        this.angularGrid.dataView.updateItem(item.id, item);
+        this.angularGrid.slickGrid.reRenderColumns(true)
+/*
+        this.apiService
+        .delAdelanto({ PersonalId: item.OperacionesPersonalAAsignarPersonalId, monto: item.PersonalAdelantoMonto })
+        .pipe(
+          doOnSubscribe(() => this.deleteLoading$.next(true)),
+          tap({
+            finalize: () => this.deleteLoading$.next(false),
+          }),
+//          takeUntilDestroyed()
+
+        )
+        .subscribe();
+  */
+      } else if (item.PersonalAdelantoMonto > 0) {
+
+        const res:any = await firstValueFrom(this.apiService
+          .addAdelanto({ PersonalId: item.OperacionesPersonalAAsignarPersonalId, monto: item.PersonalAdelantoMonto }))
+        
+        console.log('add', res)
+        item.PersonalAdelantoFechaSolicitud = res.data.PersonalAdelantoFechaSolicitud 
+        console.log('set', item)
+
+        this.angularGrid.dataView.updateItem(item.id, item);
+        this.angularGrid.slickGrid.reRenderColumns(true)
+//        this.angularGrid.slickGrid.updateRow()
+        
+        /*
+        this.apiService
+          .addAdelanto({ PersonalId: item.OperacionesPersonalAAsignarPersonalId, monto: item.PersonalAdelantoMonto })
+          .pipe(
+
+            doOnSubscribe(() => this.saveLoading$.next(true)),
+            tap({
+              complete: () => {
+                //            this.formChange('');
+                //            this.adelanto.form.get('monto')?.setValue(null);
+              },
+              finalize: () => this.saveLoading$.next(false),
+            }),
+  //          takeUntilDestroyed()
+          )
+          .subscribe();
+*/
+
+
+
+      }
+
     }
     if (!this.apiService.isMobile())
       this.gridOptions.enableRowDetailView = false
@@ -247,22 +290,22 @@ export class AdelantoComponent {
     allColumns.push(...newCols)
     this.columnDefinitions = allColumns;
 
-//    this.gridObj.bindOnBeforeEditCell(grid);
-    
-//    this.gridObj.onCellChange =  (e: Event, args: OnEventArgs) => {
-//      console.log(args);
-//          this.alertWarning = `Updated Title: ${args.dataContext.title}`;
-//    }
+    //    this.gridObj.bindOnBeforeEditCell(grid);
 
-//    this.gridObj.onBeforeEditCell = (eventData: any, args: SlickGridEventData): boolean => {
-      
-      //return true
-//    }
+    //    this.gridObj.onCellChange =  (e: Event, args: OnEventArgs) => {
+    //      console.log(args);
+    //          this.alertWarning = `Updated Title: ${args.dataContext.title}`;
+    //    }
+
+    //    this.gridObj.onBeforeEditCell = (eventData: any, args: SlickGridEventData): boolean => {
+
+    //return true
+    //    }
 
 
     setTimeout(() => {
-//      if (this.apiService.isMobile())
-//        this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
+      //      if (this.apiService.isMobile())
+      //        this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
 
     }, 0)
   }
@@ -280,5 +323,22 @@ export class AdelantoComponent {
 
   }
 
+  handleOnBeforeEditCell(e: Event) {
+    const { column, item, grid } = (<CustomEvent>e).detail.args;
+    if (item.PersonalAdelantoFechaAprobacion != null) {
+      e.stopImmediatePropagation();
+      return false
+    }
+    /*
+    if (column && item) {
+      if (!checkItemIsEditable(item, column, grid)) {
+        e.stopImmediatePropagation();
+        return false;
+      }
+    }
+    */
+    return true;
+  }
 
 }
+

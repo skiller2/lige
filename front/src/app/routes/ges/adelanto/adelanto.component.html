@@ -34,6 +34,8 @@
           <div class="gridContainer container-fluid">
             <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnDefinitions | colsFilter"
               [gridOptions]="gridOptions" [dataset]="gridData" (onAngularGridCreated)="angularGridReady($event)"
+              (onBeforeEditCell)="handleOnBeforeEditCell($event)"
+
               >
             </angular-slickgrid>
           </div>

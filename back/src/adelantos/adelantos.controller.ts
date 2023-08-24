@@ -30,6 +30,16 @@ export class AdelantosController extends BaseController {
       hidden: false,
     },
     {
+      name: "PersonalId",
+      type: "number",
+      id: "OperacionesPersonalAAsignarPersonalId",
+      field: "OperacionesPersonalAAsignarPersonalId",
+      fieldName: "perrel.OperacionesPersonalAAsignarPersonalId",
+      sortable: true,
+      searchHidden: true,
+      hidden: true,
+    },
+    {
       name: "Sit Revista",
       type: "string",
       id: "SituacionRevistaDescripcion",
@@ -175,6 +185,9 @@ export class AdelantosController extends BaseController {
                 AND PersonalId = @0`,
         [personalId]
       );
+      const now = new Date()
+      let today = now
+      today.setHours(0, 0, 0, 0)
 
       if (monto > 0) {
 
@@ -188,9 +201,6 @@ export class AdelantosController extends BaseController {
           )[0].max) + 1;
 
 
-        const now = new Date()
-        let today = now
-        today.setHours(0, 0, 0, 0)
 
         const result = await queryRunner.query(
           `INSERT INTO PersonalAdelanto(
@@ -238,7 +248,11 @@ export class AdelantosController extends BaseController {
       }
 
       await queryRunner.commitTransaction();
-      this.jsonRes([], res, "Adelanto añadido.");
+      this.jsonRes({
+        personalId, //PersonalId
+        PersonalAdelantoMonto: monto, //PersonalAdelantoMonto
+        PersonalAdelantoFechaSolicitud: today, //PersonalAdelantoFechaSolicitud
+      }, res, "Adelanto añadido.");
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
@@ -255,11 +269,39 @@ export class AdelantosController extends BaseController {
   async getAdelantoPersonaList(req: Request, res: Response, next: NextFunction) {
     const anio = String(req.body.anio);
     const mes = String(req.body.mes);
-    //const personalId = res.locals.PersonalId  // Ej 126
-    const personalId = 126
+
     const options: Options = isOptions(req.body.options)
       ? req.body.options
       : { filtros: [], sort: null };
+
+    
+  /*
+    const group='administrativo'
+    let inGroupAdminis = false
+    if ((<any>req)?.groups) {
+      for (const rowgroup of (<any>req)?.groups) {
+        if (rowgroup.toLowerCase().indexOf(group.toLowerCase()) != -1)
+        inGroupAdminis = true
+      }
+    }
+  
+  
+    if (!inGroupAdminis) {
+
+      req.body.options.filtros.filter((f: any) => f.index != 'ApellidoNombreJ')
+      req.body.options.filtros.push(
+        {
+          "index": "ApellidoNombreJ",
+          "condition": "AND",
+          "operador": "=",
+          "valor": res.locals.PersonalId
+        })
+    }
+*/
+    if (req.body.options.filtros.length == 0) { 
+      this.jsonRes({ list: [] }, res);
+      return
+    }
 
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
@@ -274,13 +316,14 @@ export class AdelantosController extends BaseController {
            LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
            LEFT JOIN Personal perjer ON perjer.PersonalId = perrel.PersonalCategoriaPersonalId
            LEFT JOIN PersonalCUITCUIL cuitjer ON cuitjer.PersonalId = perrel.PersonalCategoriaPersonalId AND cuitjer.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = perrel.PersonalCategoriaPersonalId) 
-          LEFT JOIN PersonalAdelanto ade  ON ade.PersonalId = per.PersonalId AND ade.PersonalAdelantoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) 
+          LEFT JOIN PersonalAdelanto ade  ON ade.PersonalId = per.PersonalId AND DATEPART(YEAR,ade.PersonalAdelantoFechaSolicitud) = @1 AND DATEPART(MONTH,ade.PersonalAdelantoFechaSolicitud) = @2  
+          -- ade.PersonalAdelantoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) 
               
-       WHERE (DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')) AND
-       perrel.PersonalCategoriaPersonalId=@0
+       WHERE (DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')) 
+       -- AND perrel.PersonalCategoriaPersonalId=@0
        AND (${filterSql}) 
        ${orderBy}`,
-        [personalId, anio, mes])
+        [0, anio, mes])
 
       this.jsonRes({ list: adelantos }, res);
     } catch (error) {
