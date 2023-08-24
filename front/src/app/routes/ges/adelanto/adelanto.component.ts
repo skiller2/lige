@@ -329,14 +329,6 @@ export class AdelantoComponent {
       e.stopImmediatePropagation();
       return false
     }
-    /*
-    if (column && item) {
-      if (!checkItemIsEditable(item, column, grid)) {
-        e.stopImmediatePropagation();
-        return false;
-      }
-    }
-    */
     return true;
   }
 

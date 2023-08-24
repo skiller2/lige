@@ -52,8 +52,13 @@ export const GesRoutes: Routes = [
   {
     path: 'cambio_categoria',
     loadComponent: () => import('./categorias-cambio/categorias-cambio.component').then(c => c.CategoriasCambioComponent),
-  },{
+  },
+  {
     path: 'liquidaciones',
+    loadComponent: () => import('./liquidaciones/liquidaciones.component').then(c => c.LiquidacionesComponent),
+  },
+  {
+    path: 'liquidaciones/:tab',
     loadComponent: () => import('./liquidaciones/liquidaciones.component').then(c => c.LiquidacionesComponent),
   },
 
