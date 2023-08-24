@@ -1,0 +1,16 @@
+<nz-card class="small-margin">
+    <form nz-form #impuestoForm="ngForm">
+      <ul nz-menu nzMode="horizontal">
+        <li nz-menu-item nzMatchRouter >
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'liquidaciones','listado']">Listado</a>
+        </li>
+  
+        <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <a [routerLink]="['/', 'ges', 'liquidaciones','Migracion']">Migracion</a>
+          </li>
+      </ul>
+  
+    </form>
+</nz-card>

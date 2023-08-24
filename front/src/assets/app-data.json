@@ -53,7 +53,7 @@
           "link": "/ges/credencial_lista"
         }]},        
         {
-          "text": "Liquidaciones",
+          "text": "Asistencia",
           "icon": "anticon-profile",
           "children": [
             {
@@ -73,6 +73,11 @@
               "icon": "anticon-profile"
             }
           ]
+        },
+        {
+          "text": "Liquidaciones",
+          "link": "/ges/liquidaciones/listado",
+          "icon": "anticon-profile"
         },
         {
           "text": "Adelanto",
