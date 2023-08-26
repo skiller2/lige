@@ -33,7 +33,6 @@ export class AdelantoComponent {
 
   detailViewRowCount = 9;
   gridData: any[] = []
-  columnDefinitions: Column[] = []
   gridOptions!: GridOption;
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
@@ -46,24 +45,6 @@ export class AdelantoComponent {
   }
 
   columns$ = this.apiService.getCols('/api/adelantos/cols').pipe(map((cols) => {
-
-    const colmonto: Column = {
-      name: "Importe",
-      type: "float",
-      id: "monto",
-      field: "monto",
-      sortable: true,
-      //      formatter: () => '...',
-      //asyncPostRender: this.renderAngularComponent.bind(this),
-      //params: {
-      //  component: CustomDescargaComprobanteComponent,
-      //  angularUtilService: this.angularUtilService,
-      //complexFieldLabel: 'assignee.name' // for the exportCustomFormatter
-      //},
-
-    }
-
-
     let mapped = cols.map((col: Column) => {
       if (col.id == 'PersonalAdelantoMonto') {
         col.editor = {
@@ -99,87 +80,37 @@ export class AdelantoComponent {
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
           tap({ complete: () => this.tableLoading$.next(false) })
-        );
+        )
     })
-  );
+  )
 
   async ngOnInit() {
-    /*
-    this.resizeObservable$ = fromEvent(window, 'resize');
-    this.resizeSubscription$ = this.resizeObservable$
-      .pipe(debounceTime(500))
-      .subscribe(evt => {
-        this.angularGrid.slickGrid.invalidate();
-        this.angularGrid.slickGrid.reRenderColumns(true)
-        this.angularGrid.slickGrid.render()
-      });
-*/
+
     this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.autoEdit = true
     this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
       editCommand.execute();
-      //editCommand.undo()  Si no pudo comitear
+      try {
+        if (item.PersonalAdelantoMonto == 0) {
+          const res = await firstValueFrom(this.apiService
+            .delAdelanto({ PersonalId: item.OperacionesPersonalAAsignarPersonalId, monto: item.PersonalAdelantoMonto }))
+          item.PersonalAdelantoFechaSolicitud = null
+          item.PersonalAdelantoMonto = null
+        } else if (item.PersonalAdelantoMonto > 0) {
+          const res: any = await firstValueFrom(this.apiService
+            .addAdelanto({ PersonalId: item.OperacionesPersonalAAsignarPersonalId, monto: item.PersonalAdelantoMonto }))
 
-      if (item.PersonalAdelantoMonto == 0) {
-        const res = await firstValueFrom(this.apiService
-          .delAdelanto({ PersonalId: item.OperacionesPersonalAAsignarPersonalId, monto: item.PersonalAdelantoMonto }))
-        console.log('del', res)
-        item.PersonalAdelantoFechaSolicitud = null
-        item.PersonalAdelantoMonto = null
-        this.angularGrid.dataView.updateItem(item.id, item);
-        this.angularGrid.slickGrid.reRenderColumns(true)
-/*
-        this.apiService
-        .delAdelanto({ PersonalId: item.OperacionesPersonalAAsignarPersonalId, monto: item.PersonalAdelantoMonto })
-        .pipe(
-          doOnSubscribe(() => this.deleteLoading$.next(true)),
-          tap({
-            finalize: () => this.deleteLoading$.next(false),
-          }),
-//          takeUntilDestroyed()
-
-        )
-        .subscribe();
-  */
-      } else if (item.PersonalAdelantoMonto > 0) {
-
-        const res:any = await firstValueFrom(this.apiService
-          .addAdelanto({ PersonalId: item.OperacionesPersonalAAsignarPersonalId, monto: item.PersonalAdelantoMonto }))
-        
-        console.log('add', res)
-        item.PersonalAdelantoFechaSolicitud = res.data.PersonalAdelantoFechaSolicitud 
-        console.log('set', item)
-
-        this.angularGrid.dataView.updateItem(item.id, item);
-        this.angularGrid.slickGrid.reRenderColumns(true)
-//        this.angularGrid.slickGrid.updateRow()
-        
-        /*
-        this.apiService
-          .addAdelanto({ PersonalId: item.OperacionesPersonalAAsignarPersonalId, monto: item.PersonalAdelantoMonto })
-          .pipe(
-
-            doOnSubscribe(() => this.saveLoading$.next(true)),
-            tap({
-              complete: () => {
-                //            this.formChange('');
-                //            this.adelanto.form.get('monto')?.setValue(null);
-              },
-              finalize: () => this.saveLoading$.next(false),
-            }),
-  //          takeUntilDestroyed()
-          )
-          .subscribe();
-*/
-
-
-
+          item.PersonalAdelantoFechaSolicitud = res.data.PersonalAdelantoFechaSolicitud
+        }
+      } catch (err) { 
+        editCommand.undo()
       }
 
-    }
-    if (!this.apiService.isMobile())
-      this.gridOptions.enableRowDetailView = false
+      this.angularGrid.dataView.updateItem(item.id, item);
+      this.angularGrid.slickGrid.updateRow(editCommand.row)
 
+    }
   }
 
 
@@ -277,37 +208,13 @@ export class AdelantoComponent {
   }
 
   async angularGridReady(angularGrid: any) {
+
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
 
-    const allColumns = this.angularGrid.gridService.getAllColumnDefinitions();
+    if (this.apiService.isMobile())
+      this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
 
-
-
-    let newCols: Column[] = await firstValueFrom(this.columns$)
-
-
-    allColumns.push(...newCols)
-    this.columnDefinitions = allColumns;
-
-    //    this.gridObj.bindOnBeforeEditCell(grid);
-
-    //    this.gridObj.onCellChange =  (e: Event, args: OnEventArgs) => {
-    //      console.log(args);
-    //          this.alertWarning = `Updated Title: ${args.dataContext.title}`;
-    //    }
-
-    //    this.gridObj.onBeforeEditCell = (eventData: any, args: SlickGridEventData): boolean => {
-
-    //return true
-    //    }
-
-
-    setTimeout(() => {
-      //      if (this.apiService.isMobile())
-      //        this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
-
-    }, 0)
   }
 
   exportGrid() {
