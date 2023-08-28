@@ -64,7 +64,7 @@
             },
             {
               "text": "Detalle Asistencia",
-              "link": "/ges/detalle_asistencia/objetivo",
+              "link": "/ges/detalle_asistencia",
               "icon": "anticon-profile"
             },
             {

@@ -7,7 +7,7 @@ export const GesRoutes: Routes = [
   },
   {
     path: 'detalle_asistencia',
-    loadComponent: () => import('./detalle-asistencia/detalle-asistencia.component').then(c => c.DetalleAsistenciaComponent),
+    redirectTo: 'detalle_asistencia/objetivo'
   },
   {
     path: 'detalle_asistencia/:tab',
@@ -51,7 +51,6 @@ export const GesRoutes: Routes = [
   },
 
   { path: 'liquidaciones', redirectTo: 'liquidaciones/listado' },
-  
   {
     path: 'liquidaciones/:tab',
     loadComponent: () => import('./liquidaciones/liquidaciones.component').then(c => c.LiquidacionesComponent),
