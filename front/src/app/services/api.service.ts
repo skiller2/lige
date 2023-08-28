@@ -7,7 +7,7 @@ import { error } from 'pdf-lib';
 import { DownloadService } from './download.service';
 import { formatNumber } from '@angular/common';
 import { ExternalResource, Formatters } from '@slickgrid-universal/common';
-import { AngularUtilService, Column, GridOption } from 'angular-slickgrid';
+import { AngularUtilService, Column, GridAutosizeColsMode, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export/*';
 
 
@@ -40,7 +40,7 @@ export class ApiService {
         //sidePadding: 10,
         //bottomPadding: 10        
       },
-      forceFitColumns: true,
+      gridAutosizeColsMode: GridAutosizeColsMode.fitColsToViewport,
       contextMenu: {
         autoAdjustDrop: true,
         autoAlignSide: true,
