@@ -299,8 +299,8 @@ export class AdelantosController extends BaseController {
     }
 */
     if (req.body.options.filtros.length == 0) { 
-//      this.jsonRes({ list: [] }, res);
-//      return
+      this.jsonRes({ list: [] }, res);
+      return
     }
 
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);

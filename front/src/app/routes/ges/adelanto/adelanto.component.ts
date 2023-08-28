@@ -31,10 +31,10 @@ export class AdelantoComponent {
   saveLoading$ = new BehaviorSubject(false);
   deleteLoading$ = new BehaviorSubject(false);
 
-  detailViewRowCount = 9;
-  gridData: any[] = []
-  gridOptions!: GridOption;
-
+  detailViewRowCount = 9
+  gridOptions!: GridOption
+  gridDataLen = 0
+  
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && dataContext.monto > 0) {
       const componentOutput = this.angularUtilService.createAngularComponent(colDef.params.component)
@@ -76,6 +76,7 @@ export class AdelantoComponent {
         )
         .pipe(
           map(data => {
+            this.gridDataLen = data.list.length 
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -111,6 +112,9 @@ export class AdelantoComponent {
       this.angularGrid.slickGrid.updateRow(editCommand.row)
 
     }
+    
+
+
   }
 
 

@@ -12,14 +12,13 @@ export const GesRoutes: Routes = [
   {
     path: 'detalle_asistencia/:tab',
     loadComponent: () => import('./detalle-asistencia/detalle-asistencia.component').then(c => c.DetalleAsistenciaComponent),
-  },  
+  },
   {
     path: 'pdf_retiro',
     loadComponent: () => import('./pdf-retiro/pdf-retiro.component').then(c => c.PdfRetiroComponent),
   },
   {
-    path: 'impuesto_afip',
-    loadComponent: () => import('./impuesto-afip/impuesto-afip.component').then(c => c.ImpuestoAfipComponent),
+    path: 'impuesto_afip', redirectTo: 'impuesto_afip/listado'
   },
   {
     path: 'impuesto_afip/:tab',
@@ -33,10 +32,7 @@ export const GesRoutes: Routes = [
     path: 'credencial_lista',
     loadComponent: () => import('./credencial-lista/credencial-lista.component').then(c => c.CredencialListaComponent),
   },
-  {
-    path: 'adelanto',
-    loadComponent: () => import('./adelanto/adelanto.component').then(c => c.AdelantoComponent),
-  },
+  { path: 'adelanto', redirectTo: 'adelanto/listado' },
   {
     path: 'adelanto/:tab',
     loadComponent: () => import('./adelanto/adelanto.component').then(c => c.AdelantoComponent),
@@ -53,10 +49,9 @@ export const GesRoutes: Routes = [
     path: 'cambio_categoria',
     loadComponent: () => import('./categorias-cambio/categorias-cambio.component').then(c => c.CategoriasCambioComponent),
   },
-  {
-    path: 'liquidaciones',
-    loadComponent: () => import('./liquidaciones/liquidaciones.component').then(c => c.LiquidacionesComponent),
-  },
+
+  { path: 'liquidaciones', redirectTo: 'liquidaciones/listado' },
+  
   {
     path: 'liquidaciones/:tab',
     loadComponent: () => import('./liquidaciones/liquidaciones.component').then(c => c.LiquidacionesComponent),

@@ -26,7 +26,7 @@ import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { Options } from 'src/app/shared/schemas/filtro';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
-import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, FieldType, GridOption } from 'angular-slickgrid';
+import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, FieldType, GridOption, Formatters } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { Router } from '@angular/router';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
@@ -43,7 +43,7 @@ import { CommonModule, NgIf } from '@angular/common';
 
   template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
     httpUrl="api/impuestos_afip/{{anio}}/{{mes}}/0/{{item.PersonalId}}"
-           ><span class="pl-xs" nz-icon nzType="download"></span></a>`
+           style="float:right"><span class="pl-xs" nz-icon nzType="download"></span></a>`
 })
 
 export class CustomDescargaComprobanteComponent {
@@ -86,6 +86,7 @@ export class ImpuestoAfipComponent {
   detailViewRowCount = 9;
   columnDefinitions: Column[] = []
   gridOptions!: GridOption;
+  gridDataLen = 0
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && dataContext.monto > 0) {
@@ -107,7 +108,9 @@ export class ImpuestoAfipComponent {
       sortable: true,
       //      formatter: () => '...',
       asyncPostRender: this.renderAngularComponent.bind(this),
+      formatter : Formatters.multiple,
       params: {
+        formatters: [Formatters.currency,Formatters.alignRight],
         component: CustomDescargaComprobanteComponent,
         angularUtilService: this.angularUtilService,
         //complexFieldLabel: 'assignee.name' // for the exportCustomFormatter
@@ -153,6 +156,7 @@ export class ImpuestoAfipComponent {
         )
         .pipe(
           map(data => {
+            this.gridDataLen = data.list.length 
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -191,15 +195,14 @@ export class ImpuestoAfipComponent {
     this.resizeSubscription$ = this.resizeObservable$
       .pipe(debounceTime(500))
       .subscribe(evt => {
-        this.angularGrid.slickGrid.invalidate();
-        this.angularGrid.slickGrid.reRenderColumns(true)
-        this.angularGrid.slickGrid.render()
+//        this.angularGrid.slickGrid.invalidate();
+//        this.angularGrid.slickGrid.reRenderColumns(true)
+//        this.angularGrid.slickGrid.render()
       });
 
+   
     this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
-    if (!this.apiService.isMobile())
-      this.gridOptions.enableRowDetailView = false
-
+    this.gridOptions.enableRowDetailView = this.apiService.isMobile()
   }
 
   ngAfterViewInit(): void {
@@ -275,23 +278,8 @@ export class ImpuestoAfipComponent {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
 
-    const allColumns = this.angularGrid.gridService.getAllColumnDefinitions();
-
-
-
-    let newCols: Column[] = await firstValueFrom(this.columns$)
-
-
-    allColumns.push(...newCols)
-    this.columnDefinitions = allColumns;
-
-
-
-    setTimeout(() => {
-      if (this.apiService.isMobile())
-        this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
-
-    }, 0)
+    if (this.apiService.isMobile())
+      this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
   }
 
   exportGrid() {

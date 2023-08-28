@@ -35,19 +35,19 @@
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
       <nz-tab >
         <a nz-tab-link routerLink="/ges/impuesto_afip/listado">Listado</a>
-        <ng-template nz-tab *ngIf="((gridData$ | async) || []) as gridData">
-          <shared-filtro-builder [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
+        <ng-template nz-tab *ngIf="(columns$|async) as columnas">
+          <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
           <div class="gridContainer container-fluid" >
             <angular-slickgrid gridId="grid22" class="" 
-              [columnDefinitions]="columnDefinitions | colsFilter"
+              [columnDefinitions]="columnas | colsFilter"
               [gridOptions]="gridOptions" 
-              [dataset]="gridData"
+              [dataset]="(gridData$ | async) || []"
               (onAngularGridCreated)="angularGridReady($event)"
               (onRowCountChanged)="refreshMetrics($event)"
               >
             </angular-slickgrid>
           </div>
-          <div>Registros: {{ gridData.length }}</div>
+          <div>Registros: {{ gridDataLen }}</div>
         </ng-template>
       </nz-tab>
       <nz-tab>
