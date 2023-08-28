@@ -21,6 +21,10 @@
 
 $slick-icon-width:                                          18px !default;
 
+.slick-column-name, .slick-sort-indicator {
+  float: none;
+  margin-bottom: auto;
+}
   
 //  .detail-view-toggle {
 //    display: none !important;

@@ -43,7 +43,7 @@ import { CommonModule, NgIf } from '@angular/common';
 
   template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
     httpUrl="api/impuestos_afip/{{anio}}/{{mes}}/0/{{item.PersonalId}}"
-           style="float:right"><span class="pl-xs" nz-icon nzType="download"></span></a>`
+           style="float:right;padding-right: 5px;"><span class="pl-xs" nz-icon nzType="download"></span></a>`
 })
 
 export class CustomDescargaComprobanteComponent {

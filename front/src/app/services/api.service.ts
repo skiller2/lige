@@ -94,7 +94,7 @@ export class ApiService {
         iconToggleFilterCommand: 'fa fa-random mdi mdi-flip-vertical',
         iconTogglePreHeaderCommand: 'fa fa-random mdi mdi-flip-vertical',
       },
-      rowHeight: undefined,
+      rowHeight: 28,
       //    headerRowHeight: 45,
       //    rowHeight: 45, // increase row height so that the ng-select fits in the cell
       //    autoHeight: true,    
