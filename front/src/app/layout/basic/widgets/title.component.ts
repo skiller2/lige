@@ -74,6 +74,7 @@ export class HeaderTitleComponent implements AfterViewInit, OnDestroy {
   }
 
   private get menus(): Menu[] {
+    this.recursiveBreadcrumb=true
     return this.menuSrv.getPathByUrl(this.router.url, this.recursiveBreadcrumb);
   }
   

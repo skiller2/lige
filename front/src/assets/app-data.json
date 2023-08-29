@@ -64,7 +64,7 @@
             },
             {
               "text": "Detalle Asistencia",
-              "link": "/ges/detalle_asistencia/objetivo",
+              "link": "/ges/detalle_asistencia",
               "icon": "anticon-profile"
             },
             {
@@ -76,7 +76,7 @@
         },
         {
           "text": "Liquidaciones",
-          "link": "/ges/liquidaciones/listado",
+          "link": "/ges/liquidaciones",
           "icon": "anticon-profile"
         },
         {
@@ -86,7 +86,7 @@
         },
         {
           "text": "Impuesto Afip",
-          "link": "/ges/impuesto_afip/listado",
+          "link": "/ges/impuesto_afip",
           "icon": "anticon-profile"
         }
       ]

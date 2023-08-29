@@ -1,13 +1,13 @@
 import { Inject, Injectable, Injector, LOCALE_ID } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { DescuentoJSON, ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON';
-import { Observable, catchError, debounceTime, defer, filter, map, of, tap, throwError } from 'rxjs';
+import { Observable, catchError, combineLatest, debounceTime, defer, filter, map, of, tap, throwError } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { error } from 'pdf-lib';
 import { DownloadService } from './download.service';
 import { formatNumber } from '@angular/common';
 import { ExternalResource, Formatters } from '@slickgrid-universal/common';
-import { AngularUtilService, GridOption } from 'angular-slickgrid';
+import { AngularUtilService, Column, GridAutosizeColsMode, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export/*';
 
 
@@ -40,7 +40,7 @@ export class ApiService {
         //sidePadding: 10,
         //bottomPadding: 10        
       },
-      forceFitColumns: true,
+      gridAutosizeColsMode: GridAutosizeColsMode.fitColsToViewport,
       contextMenu: {
         autoAdjustDrop: true,
         autoAlignSide: true,
@@ -94,7 +94,7 @@ export class ApiService {
         iconToggleFilterCommand: 'fa fa-random mdi mdi-flip-vertical',
         iconTogglePreHeaderCommand: 'fa fa-random mdi mdi-flip-vertical',
       },
-      rowHeight: undefined,
+      rowHeight: 28,
       //    headerRowHeight: 45,
       //    rowHeight: 45, // increase row height so that the ng-select fits in the cell
       //    autoHeight: true,    
@@ -202,11 +202,20 @@ export class ApiService {
   getCols(url: string) {
     return this.http.get<any>(url).pipe(
       map((res) => {
-        const mapped = res.data.map((col: any) => {
+        const mapped = res.data.map((col: Column) => {
           if (col.type == 'date')
             col.formatter = Formatters.dateEuro
-          if (col.type == 'currency' || col.type == 'money')
-            col.formatter = Formatters.currency
+
+          if (String(col.type) == 'currency' || String(col.type) == 'money') {
+            col.formatter = Formatters.multiple
+            col.params= { formatters: [Formatters.currency, Formatters.alignRight] }
+
+          }
+          
+          if (col.type == 'number') {
+            col.formatter = Formatters.multiple
+            col.params= { formatters: [Formatters.alignRight] }
+          }
 
           return col
         });
