@@ -294,6 +294,85 @@ export class ApiService {
 
   }
 
+  setmovimientosAutomaticos() {
+    const parameter = ""
+    this.notification.success('Respuesta', `Inicio Carga Mov Automatico`);
+
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/movimientosAutomaticos', parameter).pipe(
+      tap(res => this.response(res)),
+    )
+
+  }
+
+  setingresoPorAsistencia() {
+    const parameter = ""
+    this.notification.success('Respuesta', `Inicio Ingreso por Asistencia`);
+
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresoPorAsistencia', parameter).pipe(
+      tap(res => this.response(res)),
+    )
+
+  }
+  setingresoPorAsistenciaAdministrativos() {
+    const parameter = ""
+    this.notification.success('Respuesta', `Inicio Ingreso por Asistencia Administrativos`);
+
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresoPorAsistenciaAdministrativos', parameter).pipe(
+      tap(res => this.response(res)),
+    )
+
+  }
+
+  setingresoArt42() {
+    const parameter = ""
+    this.notification.success('Respuesta', `Inicio Ingreso por art 42`);
+
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresosArt42', parameter).pipe(
+      tap(res => this.response(res)),
+    )
+
+  }
+
+  setingresosCoordinadorDeCuenta() {
+    const parameter = ""
+    this.notification.success('Respuesta', `Inicio Ingreso coordinador de cuenta`);
+
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresosCoordinadorDeCuenta', parameter).pipe(
+      tap(res => this.response(res)),
+    )
+
+  }
+
+  setdescuentoPorDeudaAnterior() {
+    const parameter = ""
+    this.notification.success('Respuesta', `Inicio descuentos por deduda anterior`);
+
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/descuentoPorDeudaAnterior', parameter).pipe(
+      tap(res => this.response(res)),
+    )
+
+  }
+
+  setdescuentos() {
+    const parameter = ""
+    this.notification.success('Respuesta', `Inicio descuentos`);
+
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/descuentos', parameter).pipe(
+      tap(res => this.response(res)),
+    )
+
+  }
+
+  setmovimientoAcreditacionEnCuenta() {
+    const parameter = ""
+    this.notification.success('Respuesta', `Inicio movimiento Acreditacion En Cuenta`);
+
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/movimientoAcreditacionEnCuenta', parameter).pipe(
+      tap(res => this.response(res)),
+    )
+
+  }
+
   getDescuentoByPeriodo(year: number, month: number, personaIdRel: number): Observable<ResponseDescuentos> {
     const emptyResponse: ResponseDescuentos = { RegistrosConComprobantes: 0, RegistrosSinComprobantes: 0, Registros: [] };
     if (!month || !year) {
