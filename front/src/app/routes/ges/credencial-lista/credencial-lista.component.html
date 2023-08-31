@@ -7,11 +7,13 @@
           [(ngModel)]="selectedPersonalId"
           [ngModelOptions]="{ standalone: true }"
           (ngModelChange)="selectedValueChange($event)"
+          [nzDropdownMatchSelectWidth]="false"
           nzAllowClear
           nzPlaceHolder="Apellido, Nombre, CUIT"
           nzShowSearch
           nzServerSearch
           (nzOnSearch)="search($event)">
+          
           <ng-container *ngFor="let option of $optionsArray | async">
             <nz-option *ngIf="isOptionsLoading == false" [nzValue]="option.PersonalId" [nzLabel]="option.fullName"></nz-option>
           </ng-container>

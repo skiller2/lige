@@ -106,6 +106,7 @@ export class ObjetivoController extends BaseController {
       
 
 WHERE  `;
+      
       if (sucursalId > 0)
         query += ' suc.SucursalId = @0 AND '
       

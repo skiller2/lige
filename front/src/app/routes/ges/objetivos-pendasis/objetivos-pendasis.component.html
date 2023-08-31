@@ -18,7 +18,7 @@
       <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
 
       <nz-form-label [nzSpan]="5">Sucursal</nz-form-label>
-      <nz-select #sucursal="ngModel" nzSpan="19" name="SucursalId" [(ngModel)]="SucursalId"
+      <nz-select #sucursal="ngModel" nzSpan="19" name="SucursalId" [(ngModel)]="SucursalId" [nzDropdownMatchSelectWidth]="false"
         (ngModelChange)="formChanged($event)" nzAllowClear nzPlaceHolder="Sucursal" nzShowSearch>
         <ng-container *ngFor="let option of $optionsSucursales | async">
           <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>

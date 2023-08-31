@@ -11,6 +11,7 @@
       <nz-form-control>
         <nz-select #sucursal="ngModel" nzSpan="19" name="SucursalId" [(ngModel)]="selectedSucursalId"
           (ngModelChange)="selectedValueChange($event, Busqueda.Sucursal)" nzAllowClear nzPlaceHolder="Sucursal"
+          [nzDropdownMatchSelectWidth]="false"
           nzShowSearch>
           <ng-container *ngFor="let option of $optionsSucursales | async">
             <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
