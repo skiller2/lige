@@ -1,0 +1,80 @@
+<nz-card class="small-margin">
+
+  <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
+
+  <nz-form-item>
+    <nz-form-label [nzSpan]="5">Fecha control teléfonos </nz-form-label>
+    <nz-form-control>
+      <nz-date-picker name="fecha" ngModel (ngModelChange)="onChange($event)" />
+    </nz-form-control>
+  </nz-form-item>
+
+
+  <ul nz-menu nzMode="horizontal">
+    <li nz-menu-item nzMatchRouter >
+      <span nz-icon nzType=""></span>
+      <a [routerLink]="['/', 'ges', 'telefonia','listado']">Listado</a>
+    </li>
+    <li nz-menu-item nzMatchRouter>
+      <span nz-icon nzType=""></span>
+      <a [routerLink]="['/', 'ges', 'telefonia','carga']">Carga</a>
+    </li>
+
+    <li nz-submenu nzTitle="Acciones" *ngIf="router.url === '/ges/telefonia/listado'">
+      <ul>
+
+        <li nz-menu-item (click)="exportGrid()">
+          <span nz-icon nzType="download"></span>XLS
+        </li>
+      </ul>
+    </li>
+  </ul>
+
+
+  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/telefonia/listado">Listado</a>
+      <ng-template nz-tab *ngIf="(columns$|async) as columnas">
+        <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
+        <div class="gridContainer container-fluid" >
+          <angular-slickgrid gridId="grid22" class="" 
+            [columnDefinitions]="columnas | colsFilter"
+            [gridOptions]="gridOptions" 
+            [dataset]="(gridData$ | async) || []"
+            (onAngularGridCreated)="angularGridReady($event)"
+            >
+          </angular-slickgrid>
+        </div>
+        <div>Registros: {{ gridDataLen }}</div>
+      </ng-template>
+
+    </nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/telefonia/carga">Importar Consumos</a>
+
+      <form nz-form #telefonoForm="ngForm">
+
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Archivo Telefonía</nz-form-label>
+          <nz-form-control>
+            <ng-container>
+              <!-- input #cuitForzado type="number" [placeholder]="'CUIT'" nz-input name="cuitForzado" ngModel / -->
+
+              <nz-upload nzAccept="application/xls" nzAction="/api/telefonia/upload" [nzData]="{
+              anio: anio,
+              mes: mes,
+              fecha: fecha
+            }" nzName="xls">
+                <button nz-button>
+                  <span nz-icon nzType="upload"></span>
+                  Subir XLS
+                </button>
+              </nz-upload>
+            </ng-container>
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+    </nz-tab>
+  </nz-tabset>
+
+</nz-card>

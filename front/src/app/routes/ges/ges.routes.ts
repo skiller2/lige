@@ -55,5 +55,10 @@ export const GesRoutes: Routes = [
     path: 'liquidaciones/:tab',
     loadComponent: () => import('./liquidaciones/liquidaciones.component').then(c => c.LiquidacionesComponent),
   },
+  { path: 'telefonia', redirectTo: 'telefonia/listado' },
+  {
+    path: 'telefonia/:tab',
+    loadComponent: () => import('./telefonia/telefonia.component').then(c => c.TelefoniaComponent),
+  },
 
 ];

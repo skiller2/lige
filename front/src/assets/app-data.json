@@ -88,6 +88,12 @@
           "text": "Impuesto Afip",
           "link": "/ges/impuesto_afip",
           "icon": "anticon-profile"
+        },
+        
+        {
+          "text": "Telefonia",
+          "link": "/ges/telefonia",
+          "icon": "anticon-profile"
         }
       ]
     }
