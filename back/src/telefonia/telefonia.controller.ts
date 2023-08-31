@@ -25,14 +25,25 @@ export class TelefoniaController extends BaseController {
       fieldName: "tel.TelefoniaId",
       type: "number",
       sortable: true,
-      searchHidden: false
+      searchHidden: true,
+      hidden:true
     },
+    {
+      name: "Teléfono Número",
+      type: "number",
+      id: "TelefoniaNro",
+      field: "TelefoniaNro",
+      fieldName: "tel.TelefoniaNro",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },    
     {
       name: "Apellido Nombre",
       type: "string",
       id: "ApellidoNombre",
       field: "ApellidoNombre",
-      fieldName: "ApellidoNombre",
+      fieldName: "tel.TelefoniaPersonalId",
       searchComponent: "inpurForPersonalSearch",
       searchType: "number",
       sortable: true,
@@ -49,18 +60,27 @@ export class TelefoniaController extends BaseController {
       searchHidden: true,
       hidden: true,
     },
-    /*
+    {
+      name: "Objetivo",
+      type: "string",
+      id: "ObjetivoDescripcion",
+      field: "ObjetivoDescripcion",
+      fieldName: "tel.TelefoniaObjetivoId",
+      searchComponent: "inpurForObjetivoSearch",
+      searchType: "number",
+      sortable: true,
+      searchHidden: false
+    },
     {
       name: "Importe",
       type: "currency",
-      id: "PersonalAdelantoMonto",
-      field: "PersonalAdelantoMonto",
-      fieldName: "ade.PersonalAdelantoMonto",
+      id: "importe",
+      field: "importe",
+      fieldName: "conx.importe",
       sortable: true,
       searchHidden: false,
       hidden: false,
     },
-    */
     {
       name: "Fecha desde",
       type: "date",
@@ -80,27 +100,6 @@ export class TelefoniaController extends BaseController {
       sortable: true,
       searchHidden: false,
       hidden: false,
-    },
-    {
-      name: "Teléfono Número",
-      type: "number",
-      id: "TelefoniaNro",
-      field: "TelefoniaNro",
-      fieldName: "tel.TelefoniaNro",
-      sortable: true,
-      searchHidden: false,
-      hidden: false,
-    },
-    {
-      name: "Objetivo",
-      type: "string",
-      id: "ObjetivoDescripcion",
-      field: "ObjetivoDescripcion",
-      fieldName: "obj.ObjetivoDescripcion",
-      searchComponent: "inpurForPersonalSearch",
-      searchType: "string",
-      sortable: true,
-      searchHidden: false
     },
 
   ];
@@ -269,13 +268,13 @@ export class TelefoniaController extends BaseController {
   }
 
 
-  getTelefonos(fecha: Date, options: any) {
+  getTelefonos(fecha: Date, anio:number, mes:number, options: any) {
     const filterSql = filtrosToSql(options.filtros, this.listaColumnas);
     const orderBy = orderToSQL(options.sort)
 
     return dataSource.query(
       `SELECT tel.TelefoniaId id,tel.TelefoniaId, tel.TelefoniaNro, obj.ObjetivoDescripcion, CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)) ApellidoNombre,
-        tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId
+        tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe
         FROM Telefonia tel 
         
         LEFT JOIN Objetivo obj ON obj.ObjetivoId = tel.TelefoniaObjetivoId
@@ -283,11 +282,26 @@ export class TelefoniaController extends BaseController {
         
         LEFT JOIN Personal per ON per.PersonalId = ISNULL(tel.TelefoniaPersonalId,objjer.ObjetivoPersonalJerarquicoPersonalId)
         
+        LEFT JOIN (
+          SELECT asi.TelefoniaId,
+          SUM(con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte+ (con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte * imp.ImpuestoInternoTelefoniaImpuesto / 100 )) importe
+          
+          FROM ConsumoTelefoniaAno anio
+          JOIN ConsumoTelefoniaAnoMes mes ON mes.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId
+          JOIN ConsumoTelefoniaAnoMesTelefonoAsignado asi ON asi.ConsumoTelefoniaAnoMesId=mes.ConsumoTelefoniaAnoMesId AND asi.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId
+          JOIN ConsumoTelefoniaAnoMesTelefonoConsumo con ON con.ConsumoTelefoniaAnoMesId = mes.ConsumoTelefoniaAnoMesId AND con.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId AND con.ConsumoTelefoniaAnoMesTelefonoAsignadoId= asi.ConsumoTelefoniaAnoMesTelefonoAsignadoId
+          JOIN ImpuestoInternoTelefonia imp ON DATEFROMPARTS(@1,@2,28) > imp.ImpuestoInternoTelefoniaDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.ImpuestoInternoTelefoniaHasta ,'9999-12-31') 
+          WHERE anio.ConsumoTelefoniaAnoAno = @1 AND mes.ConsumoTelefoniaAnoMesMes = @2
+          GROUP BY asi.TelefoniaId
+        ) conx ON conx.TelefoniaId = tel.TelefoniaId
+          
+
+
         WHERE @0 >= tel.TelefoniaDesde AND @0 <= ISNULL(tel.TelefoniaHasta,'9999-12-31')
         
        AND (${filterSql}) 
        ${orderBy}`,
-      [fecha])
+      [fecha,anio,mes])
 
   }
 
@@ -332,7 +346,7 @@ export class TelefoniaController extends BaseController {
     }
     */
     try {
-      const telefonos = this.getTelefonos(fecha, req.body.options)
+      const telefonos = await this.getTelefonos(fecha, anio,mes, req.body.options)
 
       this.jsonRes({ list: telefonos }, res);
     } catch (error) {
@@ -374,7 +388,7 @@ export class TelefoniaController extends BaseController {
       if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
       const now = fechaRequest
 
-      let telefonos = await this.getTelefonos(fechaRequest, { filtros: [], sort: [] })
+      let telefonos = await this.getTelefonos(fechaRequest, 1, 1, { filtros: [], sort: [] })
       let telefonosNoRegistrados = []
 
       const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
@@ -424,7 +438,7 @@ export class TelefoniaController extends BaseController {
         }
       }
 
-      const telefonosRegistradosSinConsumo = telefonos.filter((row) => row.importe < 1)
+      const telefonosRegistradosSinConsumo = telefonos.filter((row) => row.total < 1)
 
       
       if (telefonosRegistradosSinConsumo.length > 0) {

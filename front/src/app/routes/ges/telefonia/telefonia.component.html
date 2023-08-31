@@ -1,11 +1,11 @@
 <nz-card class="small-margin">
 
-  <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
+  <nz-date-picker nzMode="month" name="periodo" [(ngModel)]="periodo" (ngModelChange)="onChange($event)" />
 
   <nz-form-item>
     <nz-form-label [nzSpan]="5">Fecha control teléfonos </nz-form-label>
     <nz-form-control>
-      <nz-date-picker name="fecha" ngModel (ngModelChange)="onChange($event)" />
+      <nz-date-picker name="fecha" [(ngModel)]="fecha" (ngModelChange)="onChange($event)" />
     </nz-form-control>
   </nz-form-item>
 

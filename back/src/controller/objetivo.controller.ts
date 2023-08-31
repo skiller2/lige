@@ -105,7 +105,10 @@ export class ObjetivoController extends BaseController {
       
       
 
-WHERE suc.SucursalId = @0 AND `;
+WHERE  `;
+      if (sucursalId > 0)
+        query += ' suc.SucursalId = @0 AND '
+      
       switch (fieldName) {
         case "Descripcion":
           const valueArray: Array<string> = value.split(/[\s,.-]+/);

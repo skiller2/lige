@@ -31,9 +31,10 @@ import { CustomDescargaComprobanteComponent } from '../objetivos-pendasis/objeti
 })
 export class TelefoniaComponent {
   @ViewChild('telefonoForm', { static: true }) telefonoForm: NgForm = new NgForm([], []);
-  anio: number =0
+  anio: number = 0
   mes: number = 0
   fecha: Date = new Date()
+  periodo: Date = new Date()
   files: NzUploadFile[] = [];
   formChange$ = new BehaviorSubject('');
   filesChange$ = new BehaviorSubject('');
@@ -73,9 +74,9 @@ export class TelefoniaComponent {
       sortable: true,
       //      formatter: () => '...',
       //asyncPostRender: this.renderAngularComponent.bind(this),
-      formatter : Formatters.multiple,
+      formatter: Formatters.multiple,
       params: {
-        formatters: [Formatters.currency,Formatters.alignRight],
+        formatters: [Formatters.currency, Formatters.alignRight],
         component: CustomDescargaComprobanteComponent,
         angularUtilService: this.angularUtilService,
         //complexFieldLabel: 'assignee.name' // for the exportCustomFormatter
@@ -95,14 +96,14 @@ export class TelefoniaComponent {
   gridData$ = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
-      const periodo = this.telefonoForm.form.get('periodo')?.value
+      //const periodo = this.telefonoForm.form.get('periodo')?.value
       return this.apiService
         .getTelefonos(
-          { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptions, toggle: this.toggle }
+          { anio: this.anio, mes: this.mes, fecha: this.fecha, options: this.listOptions, toggle: this.toggle }
         )
         .pipe(
           map(data => {
-            this.gridDataLen = data.list.length 
+            this.gridDataLen = data.list?.length
             return data.list
           }),
         );
@@ -112,7 +113,7 @@ export class TelefoniaComponent {
 
 
 
-  ngOnInit(): void { 
+  ngOnInit(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
 
@@ -130,34 +131,20 @@ export class TelefoniaComponent {
         Number(localStorage.getItem('mes')) > 0
           ? localStorage.getItem('mes')
           : now.getMonth() + 1;
-      this.telefonoForm.form
-        .get('periodo')
-        ?.setValue(new Date(Number(anio), Number(mes) - 1, 1));
 
-      this.filesChange$.next('')
+      this.periodo = (new Date(Number(anio), Number(mes) - 1, 1))
+      this.onChange(null)
     }, 1);
   }
 
+  onChange(_e: any): void {
+    console.log('onChange')
+    this.anio = this.periodo.getFullYear();
+    this.mes = this.periodo.getMonth() + 1;
+    localStorage.setItem('mes', String(this.mes));
+    localStorage.setItem('anio', String(this.anio));
 
-
-
-
-
-  onChange(result: Date): void {
-    if (result) {
-      this.anio = result.getFullYear();
-      this.mes = result.getMonth() + 1;
-      this.fecha = this.telefonoForm.form.get('fecha')?.value
-
-
-      localStorage.setItem('mes', String(this.mes));
-      localStorage.setItem('anio', String(this.anio));
-      this.filesChange$.next('')
-    } else {
-      this.anio = 0;
-      this.mes = 0;
-    }
-
+    this.filesChange$.next('')
     this.formChange$.next('');
     this.files = [];
   }
