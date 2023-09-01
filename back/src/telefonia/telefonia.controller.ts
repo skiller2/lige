@@ -43,7 +43,7 @@ export class TelefoniaController extends BaseController {
       type: "string",
       id: "ApellidoNombre",
       field: "ApellidoNombre",
-      fieldName: "tel.TelefoniaPersonalId",
+      fieldName: "per.PersonalId",
       searchComponent: "inpurForPersonalSearch",
       searchType: "number",
       sortable: true,
