@@ -11,7 +11,7 @@
 
 
   <ul nz-menu nzMode="horizontal">
-    <li nz-menu-item nzMatchRouter >
+    <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
       <a [routerLink]="['/', 'ges', 'telefonia','listado']">Listado</a>
     </li>
@@ -36,13 +36,10 @@
       <a nz-tab-link routerLink="/ges/telefonia/listado">Listado</a>
       <ng-template nz-tab *ngIf="(columns$|async) as columnas">
         <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
-        <div class="gridContainer container-fluid" >
-          <angular-slickgrid gridId="grid22" class="" 
-            [columnDefinitions]="columnas | colsFilter"
-            [gridOptions]="gridOptions" 
-            [dataset]="(gridData$ | async) || []"
-            (onAngularGridCreated)="angularGridReady($event)"
-            >
+        <div class="gridContainer container-fluid">
+          <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnas | colsFilter"
+            [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+            (onAngularGridCreated)="angularGridReady($event)">
           </angular-slickgrid>
         </div>
         <div>Registros: {{ gridDataLen }}</div>
@@ -51,8 +48,10 @@
     </nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/telefonia/carga">Importar Consumos</a>
+      <ng-template nz-tab >
 
       <form nz-form #telefonoForm="ngForm">
+        <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Archivo Telefonía</nz-form-label>
@@ -64,7 +63,7 @@
               anio: anio,
               mes: mes,
               fecha: fecha
-            }" nzName="xls">
+            }" nzName="xls" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
                 <button nz-button>
                   <span nz-icon nzType="upload"></span>
                   Subir XLS
@@ -73,8 +72,18 @@
             </ng-container>
           </nz-form-control>
         </nz-form-item>
+      </nz-spin>
       </form>
+
+        <div class="gridContainer container-fluid">
+          <angular-slickgrid gridId="grid23" class="" [columnDefinitions]="columnsImport | colsFilter"
+            [gridOptions]="gridOptions" [dataset]="(gridDataImport$ | async) || []">
+          </angular-slickgrid>
+        </div>
+        <div>Registros: {{ gridDataImportLen }}</div>
+      </ng-template>
+
+
     </nz-tab>
   </nz-tabset>
-
 </nz-card>

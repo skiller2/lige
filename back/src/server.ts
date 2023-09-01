@@ -55,7 +55,7 @@ const errorResponder = (
   res: Response,
   next: NextFunction) => {
   res.locals.stopTime = performance.now()
-
+  let data = {}
   let message = "Error interno, avise al administrador del sistema"
   let status = 500
 
@@ -66,6 +66,7 @@ const errorResponder = (
   if (error instanceof ClientException) {
     message = error.message
     status = 409
+    data = error.extended
   } else if (error instanceof QueryFailedError) {
     if (error.message.indexOf('Violation') > 0) {
       message = 'El registro ya existe'
@@ -73,7 +74,7 @@ const errorResponder = (
     }
   }
 
-  res.status(status).json({ msg: message, data: [], stamp: new Date(), ms: res.locals.stopTime - res.locals.startTime });
+  res.status(status).json({ msg: message, data: data, stamp: new Date(), ms: res.locals.stopTime - res.locals.startTime });
 }
 
 export class WebServer {

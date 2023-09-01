@@ -6,7 +6,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { AngularGridInstance, AngularUtilService, Column, FileType, Formatters, GridOption, SlickGrid } from 'angular-slickgrid';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzUploadFile } from 'ng-zorro-antd/upload';
-import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, debounceTime, map, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
@@ -38,6 +38,7 @@ export class TelefoniaComponent {
   files: NzUploadFile[] = [];
   formChange$ = new BehaviorSubject('');
   filesChange$ = new BehaviorSubject('');
+  uploading$ = new BehaviorSubject({loading:false,event:null});
   excelExportService = new ExcelExportService()
 
   angularGrid!: AngularGridInstance;
@@ -46,6 +47,7 @@ export class TelefoniaComponent {
   detailViewRowCount = 9;
 
   gridDataLen = 0
+  gridDataImportLen = 0
   toggle = false
 
   constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService) { }
@@ -62,6 +64,42 @@ export class TelefoniaComponent {
     this.formChange$.next('');
 
   }
+
+  columnsImport = [
+    {
+      id: "id",
+      name: "id",
+      field: "id",
+      fieldName: "id.TelefoniaId",
+      type: "number",
+      sortable: true,
+      searchHidden: true,
+      hidden: true
+    },
+    {
+      name: "Teléfono Número",
+      type: "number",
+      id: "TelefoniaNro",
+      field: "TelefoniaNro",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      name: "Detalle",
+      type: "string",
+      id: "Detalle",
+      field: "Detalle",
+      searchType: "string",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+
+
+  ]
+
+  gridDataImport$ = new BehaviorSubject([]);
 
 
   columns$ = this.apiService.getCols('/api/telefonia/cols').pipe(map((cols) => {
@@ -162,6 +200,36 @@ export class TelefoniaComponent {
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
+  }
+
+  uploadChange(event: any) {
+    switch (event.type) {
+      case 'start':
+        this.uploading$.next({ loading: true, event })
+        this.gridDataImport$.next([])
+        this.gridDataImportLen = 0
+        
+        break;
+      case 'progress':
+
+        break;
+      case 'error':
+        const Error = event.file.error
+        this.gridDataImport$.next(Error.error.data.list)
+        this.gridDataImportLen = Error.error.data.list.length
+        this.uploading$.next({ loading:false,event })
+        break;
+      case 'success':
+        const Response = event.file.response
+        this.gridDataImport$.next([])
+        this.gridDataImportLen = 0
+        this.uploading$.next({ loading: false, event })
+        this.apiService.response(Response)        
+        break
+      default:
+        break;
+    }
+
   }
 
 }

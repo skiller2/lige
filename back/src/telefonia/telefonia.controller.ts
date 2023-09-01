@@ -274,7 +274,8 @@ export class TelefoniaController extends BaseController {
 
     return dataSource.query(
       `SELECT tel.TelefoniaId id,tel.TelefoniaId, tel.TelefoniaNro, obj.ObjetivoDescripcion, CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)) ApellidoNombre,
-        tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe
+        tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe,
+        per.PersonalId
         FROM Telefonia tel 
         
         LEFT JOIN Objetivo obj ON obj.ObjetivoId = tel.TelefoniaObjetivoId
@@ -372,8 +373,9 @@ export class TelefoniaController extends BaseController {
       //const cuitRequest = req.body.cuit;
 
       //if (!importeRequest) throw new ClientException("Faltó indicar el importe.");
-      const importeMonto = 0;
 
+      let dataset = []
+      let datasetid = 0
 
 
 
@@ -389,7 +391,6 @@ export class TelefoniaController extends BaseController {
       const now = fechaRequest
 
       let telefonos = await this.getTelefonos(fechaRequest, 1, 1, { filtros: [], sort: [] })
-      let telefonosNoRegistrados = []
 
       const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
       const sheet1 = workSheetsFromBuffer[0];
@@ -416,10 +417,13 @@ export class TelefoniaController extends BaseController {
         const vroaming = parseFloat(row[12])
         const votros = parseFloat(row[13])
         const unicavez = parseFloat(row[15])
-
+        const totalxls = parseFloat(row[16])
+        const total = fimpplanvoz + fserviciosvoz + fpacksms + fpackdatos + fgarantia + fotros + vvoz + vldnldi + vmensajes + vdatos + vroaming + votros + unicavez
+        if (Math.abs(totalxls - total)>0.0001) 
+          dataset.push({id:datasetid++,TelefoniaNro:TelefoniaNro, Detalle:` Importe total calculado ($ ${total}) difiere del indicado en la última columna ($ ${totalxls})`})
 
         if (idx === -1) {
-          telefonosNoRegistrados.push({ TelefoniaNro })
+          dataset.push({id:datasetid++,TelefoniaNro:TelefoniaNro, Detalle:` sin registro vigente en el sistema, consumo $ ${total}`})
         } else {
           telefonos[idx].fimpplanvoz = fimpplanvoz  //1
           telefonos[idx].fserviciosvoz = fserviciosvoz  //2 
@@ -434,25 +438,16 @@ export class TelefoniaController extends BaseController {
           telefonos[idx].vroaming = vroaming //11
           telefonos[idx].votros = votros  //12
           telefonos[idx].unicavez = unicavez  //13
-          telefonos[idx].total = fimpplanvoz + fserviciosvoz + fpacksms + fpackdatos + fgarantia + fotros + vvoz + vldnldi + vmensajes + vdatos + vroaming + votros + unicavez
+          telefonos[idx].total = total
         }
       }
 
-      const telefonosRegistradosSinConsumo = telefonos.filter((row) => row.total < 1)
-
-      
-      if (telefonosRegistradosSinConsumo.length > 0) {
-        const texts = telefonosRegistradosSinConsumo.map((el) => el.TelefoniaNro);
-        throw new ClientException('Teléfonos sin consumo: ' + texts.join('\n'))
-      }
-
-      if (telefonosNoRegistrados.length > 0) {
-        const texts = telefonosNoRegistrados.map((el) => el.TelefoniaNro);
-        throw new ClientException('Teléfonos no registrados: ' + texts.join('\n'))
-      }
-
-
-
+      const telefonosRegistradosSinConsumo = telefonos.filter((row) => (Number(row.total) < 1 || isNaN(Number(row.total))))
+      for (const tel of telefonosRegistradosSinConsumo)
+        dataset.push({id:datasetid++,TelefoniaNro:tel.TelefoniaNro, Detalle:' sin consumos en archivo xls'})
+     
+//      if (dataset.length > 0)
+//        throw new ClientException('Hubo errores que no permiten importar el archivo', {list:dataset})
 
       const anioDS = await queryRunner.query('SELECT anio.ConsumoTelefoniaAnoId, anio.ConsumoTelefoniaAnoAno, anio.ConsumoTelefoniaAnoMesUltNro FROM ConsumoTelefoniaAno anio WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest])
       if (!anioDS[0].ConsumoTelefoniaAnoId)
@@ -502,8 +497,8 @@ export class TelefoniaController extends BaseController {
             anioDS[0].ConsumoTelefoniaAnoId,
             telrow.TelefoniaId,
             ConsumoTelefoniaAnoMesTelefonoConsumoUltlNro,
-            null,
-            null
+            telrow.PersonalId,
+            telrow.TelefoniaObjetivoId
           ])
 
         let ConsumoTelefoniaAnoMesTelefonoConsumoId = 0
@@ -734,7 +729,7 @@ export class TelefoniaController extends BaseController {
       //   copyFileSync(file.path, newFilePath);
       await queryRunner.commitTransaction();
 
-      this.jsonRes([], res, "XLS Recibido y procesado!");
+      this.jsonRes({}, res, "XLS Recibido y procesado!");
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
