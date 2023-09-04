@@ -53,7 +53,6 @@ export class AdelantoComponent {
       }
       return col
     });
-
     return mapped
   }));
 

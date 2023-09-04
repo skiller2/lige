@@ -1,5 +1,8 @@
 <nz-card class="small-margin">
     <form nz-form #impuestoForm="ngForm">
+
+      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
+
       <ul nz-menu nzMode="horizontal">
         <li nz-menu-item nzMatchRouter >
           <span nz-icon nzType=""></span>
@@ -36,8 +39,28 @@
           </li> 
 
         </ul>
+        
+      </li>
+      <li nz-menu-item (click)="exportGrid()">
+        <span nz-icon nzType="download"></span>XLS
       </li>
     </ul>
+
+    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+      <nz-tab >
+        <a nz-tab-link routerLink="/ges/liquidaciones/listado">Listado</a>
+        <ng-template nz-tab *ngIf="(columns$|async) as columnas">
+          <div class="gridContainer container-fluid" >
+            <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnas | colsFilter"
+            [gridOptions]="gridOptions" [dataset]="[]" (onAngularGridCreated)="angularGridReady($event)">
+          </angular-slickgrid>
+          </div>
+
+          <div>Registros: {{ gridDataLen }}</div>
+        </ng-template>
+      </nz-tab>
+    </nz-tabset>
+
   
     </form>
 </nz-card>

@@ -7,7 +7,8 @@ import { movimientosAutomaticosController,
          ingresoCoordinadorCuentaController,
          descuentoPorDeudaAnteriorController,
          descuentosController,
-         movimientoAcreditacionEnCuentaController } from "../controller/controller.module";
+         movimientoAcreditacionEnCuentaController,
+         liquidacionesController} from "../controller/controller.module";
 
 export const liquidacionesRouter = Router();
 
@@ -98,6 +99,10 @@ export const liquidacionesRouter = Router();
             res.status(409).json({ msg: error.message, data: [], stamp: new Date(), ms: stopTime-res.locals.startTime});
         }
     })
+
+    liquidacionesRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
+        liquidacionesController.getLiquidacionesCols(req, res); 
+    });
     
     
     
