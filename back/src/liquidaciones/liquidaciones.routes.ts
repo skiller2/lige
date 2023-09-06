@@ -103,6 +103,10 @@ export const liquidacionesRouter = Router();
     liquidacionesRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
         liquidacionesController.getLiquidacionesCols(req, res); 
     });
+
+    liquidacionesRouter.post('/list', authMiddleware.verifyToken, (req, res, next) => {
+        liquidacionesController.getByLiquidaciones(req, res, next)
+    })
     
     
     
