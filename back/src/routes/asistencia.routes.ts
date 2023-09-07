@@ -25,4 +25,4 @@ asistenciaRouter.get('/categorias', authMiddleware.verifyToken, (req, res, next)
 asistenciaRouter.post('/excepcion', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.setExcepcion(req, res, next) })
 
 
-asistenciaRouter.delete('/excepcion/:anio/:mes/:ObjetivoId/:PersonaId/:metodologia', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.deleteExcepcion(req, res, next) })
+asistenciaRouter.delete('/excepcion/:anio/:mes/:ObjetivoId/:PersonalId/:metodologia', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.deleteExcepcion(req, res, next) })

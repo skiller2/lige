@@ -242,7 +242,7 @@ export class ExcepcionAsistenciaComponent {
         complete: () => {
           console.log('complete');
 
-          this.asistenciaexcepcion.controls['PersonaId'].setValue('');
+          this.asistenciaexcepcion.controls['PersonalId'].setValue('');
           this.asistenciaexcepcion.controls['metodologia'].setValue('');
 
           this.notification.success('Grabación', 'Existosa');
@@ -266,7 +266,7 @@ export class ExcepcionAsistenciaComponent {
         complete: () => {
           console.log('complete');
 
-          this.asistenciaexcepcion.controls['PersonaId'].setValue('');
+          this.asistenciaexcepcion.controls['PersonalId'].setValue('');
           this.asistenciaexcepcion.controls['metodologia'].setValue('');
 
           this.notification.success('Finalización', 'Existosa');

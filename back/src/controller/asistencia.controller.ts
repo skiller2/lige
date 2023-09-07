@@ -30,7 +30,7 @@ export class AsistenciaController extends BaseController {
         anio,
         mes,
         ObjetivoId,
-        PersonaId,
+        PersonalId,
         metodologia,
         Equivalencia,
         SumaFija,
@@ -54,7 +54,8 @@ export class AsistenciaController extends BaseController {
       if (AdicionalHora == undefined) AdicionalHora = null;
       if (Horas == undefined) Horas = null;
 
-      if (Number(PersonaId) == 0) 
+
+      if (Number(PersonalId) == 0) 
         throw new ClientException("Debe seleccionar una persona")
 
       if (Number(ObjetivoId) == 0) 
@@ -106,7 +107,7 @@ export class AsistenciaController extends BaseController {
                 JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = percat.PersonalCategoriaTipoAsociadoId AND  cat.CategoriaPersonalId = percat.PersonalCategoriaCategoriaPersonalId
                 WHERE per.PersonalId = @0 AND percat.PersonalCategoriaDesde <= @1 AND (percat.PersonalCategoriaHasta >= @1 OR percat.PersonalCategoriaHasta IS NULL)
                 `,
-        [Number(PersonaId), fechaDesde]
+        [Number(PersonalId), fechaDesde]
       );
 
       let row: any;
@@ -141,7 +142,7 @@ export class AsistenciaController extends BaseController {
                 --AND art.PersonalArt14FormaArt14 = @2
                 AND art.PersonalArt14Autorizado = 'S'
                 AND art.PersonalArt14AutorizadoDesde <= @3 AND (art.PersonalArt14AutorizadoHasta >= @3 OR art.PersonalArt14AutorizadoHasta is null)`,
-        [PersonaId, ObjetivoId, metodologia, fechaDesde]
+        [PersonalId, ObjetivoId, metodologia, fechaDesde]
       );
 
       let resultNoAutoriz = await queryRunner.query(
@@ -155,7 +156,7 @@ export class AsistenciaController extends BaseController {
                 --AND art.PersonalArt14FormaArt14 = @2 
                 AND art.PersonalArt14Autorizado is null
                 AND art.PersonalArt14Desde <= @3 AND (art.PersonalArt14Hasta >= @3 OR art.PersonalArt14Hasta is null)`,
-        [PersonaId, ObjetivoId, metodologia, fechaDesde]
+        [PersonalId, ObjetivoId, metodologia, fechaDesde]
       );
 
       for (row of resultAutoriz) {
@@ -188,7 +189,7 @@ export class AsistenciaController extends BaseController {
               await queryRunner.query(
                 `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2
                             WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
-                [row["PersonalArt14Id"], PersonaId, hasta]
+                [row["PersonalArt14Id"], PersonalId, hasta]
               );
             }
             break;
@@ -197,7 +198,7 @@ export class AsistenciaController extends BaseController {
               await queryRunner.query(
                 `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2
                                 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
-                [row["PersonalArt14Id"], PersonaId, hasta]
+                [row["PersonalArt14Id"], PersonalId, hasta]
               );
             }
             break;
@@ -209,7 +210,7 @@ export class AsistenciaController extends BaseController {
           await queryRunner.query(
             `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2
                     WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
-            [row["PersonalArt14Id"], PersonaId, hasta]
+            [row["PersonalArt14Id"], PersonalId, hasta]
           );
         }
       }
@@ -241,7 +242,7 @@ export class AsistenciaController extends BaseController {
               await queryRunner.query(
                 `DELETE FROM PersonalArt14 
                                 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
-                [row["PersonalArt14Id"], PersonaId]
+                [row["PersonalArt14Id"], PersonalId]
               );
             }
             break;
@@ -250,7 +251,7 @@ export class AsistenciaController extends BaseController {
               await queryRunner.query(
                 `DELETE FROM PersonalArt14 
                                 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
-                [row["PersonalArt14Id"], PersonaId]
+                [row["PersonalArt14Id"], PersonalId]
               );
             }
             break;
@@ -262,7 +263,7 @@ export class AsistenciaController extends BaseController {
           await queryRunner.query(
             `DELETE FROM PersonalArt14 
                     WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
-            [row["PersonalArt14Id"], PersonaId]
+            [row["PersonalArt14Id"], PersonalId]
           );
         }
       }
@@ -271,7 +272,7 @@ export class AsistenciaController extends BaseController {
         `SELECT per.Personalid, per.PersonalArt14UltNro
                 FROM Personal per WHERE per.Personalid = @0   
             `,
-        [PersonaId]
+        [PersonalId]
       );
 
       let PersonalArt14UltNro: number = 0;
@@ -309,7 +310,7 @@ export class AsistenciaController extends BaseController {
           null,
           null,
           null,
-          PersonaId,
+          PersonalId,
           Equivalencia.TipoAsociadoId,
           Equivalencia.CategoriaPersonalId,
           null,
@@ -322,7 +323,7 @@ export class AsistenciaController extends BaseController {
       result = await queryRunner.query(
         `UPDATE Personal SET PersonalArt14UltNro=@1  WHERE PersonalId = @0
                 `,
-        [PersonaId, PersonalArt14UltNro]
+        [PersonalId, PersonalArt14UltNro]
       );
 
       await queryRunner.commitTransaction();
@@ -341,14 +342,21 @@ export class AsistenciaController extends BaseController {
   async deleteExcepcion(req: any, res: Response, next:NextFunction) {
     const anio: number = req.params.anio;
     const mes: number = req.params.mes;
-    const ObjetivoId: number = req.params.ObjetivoId;
-    const PersonaId: number = req.params.PersonaId;
+    const ObjetivoId: number = Number(req.params.ObjetivoId);
+    const PersonalId: number = (isNaN(Number(req.params.PersonalId)))?0:Number(req.params.PersonalId);
     const metodologia: string = req.params.metodologia;
     const persona_cuit = req.persona_cuit;
+
+
 
     const queryRunner = dataSource.createQueryRunner();
     try {
       const fechaDesde = new Date(anio, mes - 1, 1);
+
+      if (PersonalId==0)      
+      throw new ClientException("Debe ingresar una persona")
+
+  
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -373,7 +381,7 @@ export class AsistenciaController extends BaseController {
                 AND art.PersonalArt14FormaArt14 = @2
                 AND art.PersonalArt14Autorizado = 'S'
                 AND art.PersonalArt14AutorizadoDesde <= @3 AND (art.PersonalArt14AutorizadoHasta >= @3 OR art.PersonalArt14AutorizadoHasta is null)`,
-        [PersonaId, ObjetivoId, metodologia, fechaDesde]
+        [PersonalId, ObjetivoId, metodologia, fechaDesde]
       );
 
       let resultNoAutoriz = await queryRunner.query(
@@ -387,7 +395,7 @@ export class AsistenciaController extends BaseController {
                 AND art.PersonalArt14FormaArt14 = @2 
                 AND art.PersonalArt14Autorizado is null
                 AND art.PersonalArt14Desde <= @3 AND (art.PersonalArt14Hasta >= @3 OR art.PersonalArt14Hasta is null)`,
-        [PersonaId, ObjetivoId, metodologia, fechaDesde]
+        [PersonalId, ObjetivoId, metodologia, fechaDesde]
       );
 
       let hasta: Date = new Date(fechaDesde);
@@ -398,7 +406,7 @@ export class AsistenciaController extends BaseController {
         recupdate++;
         await queryRunner.query(
           `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2 WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
-          [row["PersonalArt14Id"], PersonaId, hasta]
+          [row["PersonalArt14Id"], PersonalId, hasta]
         );
       }
 
@@ -407,7 +415,7 @@ export class AsistenciaController extends BaseController {
         await queryRunner.query(
           `DELETE FROM PersonalArt14 
                                   WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
-          [row["PersonalArt14Id"], PersonaId]
+          [row["PersonalArt14Id"], PersonalId]
         );
       }
 

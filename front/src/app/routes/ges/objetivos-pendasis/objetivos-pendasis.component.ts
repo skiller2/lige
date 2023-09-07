@@ -18,10 +18,11 @@ import {
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
-import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid } from 'angular-slickgrid';
+import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { formatDate } from '@angular/common';
 import { SearchService } from 'src/app/services/search.service';
+import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
 
 type listOptionsT = {
   filtros: any[],
@@ -72,55 +73,14 @@ export class ObjetivosPendAsisComponent {
   columns$ = this.apiService.getCols('/api/objetivos-pendasis/cols').pipe(map((cols) => {
     return cols
   }));
+
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   gridObj!: SlickGrid;
-  gridOptions = {
-    asyncEditorLoading: false,
-    autoEdit: false,
-    autoCommitEdit: false,
-    //    presets: { columns: [{ columnId: '', width: 0 }]},
-    autoResize: {
-      container: '.gridContainer',
-      rightPadding: 1,    // defaults to 0
-      //bottomPadding: 10,  // defaults to 20
-      //minHeight: 550,     // defaults to 180
-      //minWidth: 250,      // defaults to 300
-      //sidePadding: 10,
-      //bottomPadding: 10        
-    },
-    rowHeight: undefined,
-    //    headerRowHeight: 45,
-    //    rowHeight: 45, // increase row height so that the ng-select fits in the cell
-    //    autoHeight: true,    
-    editable: true,
-    enableCellMenu: true,
-    enableCellNavigation: true,
-    //    enableAutoResize: true,
-    enableColumnPicker: true,
-    enableExcelCopyBuffer: true,
-    enableExcelExport: true,
-    registerExternalResources: [this.excelExportService],
-
-    enableFiltering: true,
-    //    autoFitColumnsOnFirstLoad: true,
-    enableAsyncPostRender: true, // for the Angular PostRenderer, don't forget to enable it
-    asyncPostRenderDelay: 0,    // also make sure to remove any delay to render it
-    params: {
-      angularUtilService: this.angularUtilService // provide the service to all at once (Editor, Filter, AsyncPostRender)
-    },
-
-    showCustomFooter: true, // display some metrics in the bottom custom footer
-    customFooterOptions: {
-      // optionally display some text on the left footer container
-      leftFooterText: '',
-      hideTotalItemCount: false,
-      hideLastUpdateTimestamp: false
-
-    },
-
-  }
-
+  detailViewRowCount = 9
+  gridOptions!: GridOption
+  gridDataLen = 0
+  
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
@@ -158,6 +118,9 @@ export class ObjetivosPendAsisComponent {
   )
 
   ngOnInit() {
+    this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptions.enableRowDetailView = this.apiService.isMobile()
+
   }
 
   ngAfterViewInit(): void {
@@ -201,12 +164,13 @@ export class ObjetivosPendAsisComponent {
   ngOnDestroy() {
   }
 
-  //angularGridReady(angularGrid: any) {
   angularGridReady(angularGrid: any) {
 
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
-    this.gridObj.autosizeColumns();
+
+    if (this.apiService.isMobile())
+      this.angularGrid.gridService.hideColumnByIds(['SucurladId'])
   }
 
   exportGrid() {

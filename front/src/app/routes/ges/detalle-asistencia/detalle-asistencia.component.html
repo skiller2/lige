@@ -29,7 +29,7 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
           <nz-form-control>
-            <app-objetivo-search [sucursalId]="selectedSucursalId" name="ObjetivoId"
+            <app-objetivo-search [(ngModel)]="selectedSucursalId" name="ObjetivoId"
               (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" ngModel />
           </nz-form-control>
         </nz-form-item>
