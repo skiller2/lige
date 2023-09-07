@@ -446,8 +446,8 @@ export class TelefoniaController extends BaseController {
       for (const tel of telefonosRegistradosSinConsumo)
         dataset.push({id:datasetid++,TelefoniaNro:tel.TelefoniaNro, Detalle:' sin consumos en archivo xls'})
      
-//      if (dataset.length > 0)
-//        throw new ClientException('Hubo errores que no permiten importar el archivo', {list:dataset})
+      if (dataset.length > 0)
+       throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, {list:dataset})
 
       const anioDS = await queryRunner.query('SELECT anio.ConsumoTelefoniaAnoId, anio.ConsumoTelefoniaAnoAno, anio.ConsumoTelefoniaAnoMesUltNro FROM ConsumoTelefoniaAno anio WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest])
       if (!anioDS[0].ConsumoTelefoniaAnoId)
