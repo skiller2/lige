@@ -63,8 +63,6 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
     let filterString: String[]=[]
 
     for (const valorBusqueda of filtro.valor) {
-      if (valorBusqueda.trim() == "")
-        continue
       switch (filtro.operador) {
         case "LIKE":
           if (fieldName === "ApellidoNombre")
