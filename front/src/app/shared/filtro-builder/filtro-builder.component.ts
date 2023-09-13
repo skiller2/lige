@@ -41,7 +41,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   @Input() conditionsToSelect = ['AND', 'OR'];
-  @Input() operatorsToSelect = ['LIKE', '>', '<'];
+  @Input() operatorsToSelect = ['LIKE', '>', '<','>=','<=','!=','<>','='];
 
   @Output() optionsChange = new EventEmitter<Options>();
   _fieldsToSelect: Array<any> = []
@@ -127,9 +127,47 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   verifySelections(): boolean {
     const fieldObj: any = this._fieldsToSelect.filter(x => x.field === this.selections.field)[0];
     const type = (fieldObj?.type) ? fieldObj.type : 'string'
+
     this.selections.operator = (fieldObj?.searchComponent) ? "=" : this.selections.operator
-    if (this.selections.operator == '' && (type == 'number' || type == 'string'))  
-      this.selections.operator = 'LIKE'
+
+    if (this.inputValue.startsWith('>=')) {
+      this.inputValue=this.inputValue.substring(2)
+      this.selections.operator = '>='
+    }
+
+    if (this.inputValue.startsWith('<=')) {
+      this.inputValue=this.inputValue.substring(2)
+      this.selections.operator = '<='
+    }
+
+    if (this.inputValue.startsWith('!=')) {
+      this.inputValue=this.inputValue.substring(2)
+      this.selections.operator = '<>'
+    }
+
+    if (this.inputValue.startsWith('>')) {
+      this.inputValue=this.inputValue.substring(1)
+      this.selections.operator = '>'
+    }
+
+    if (this.inputValue.startsWith('<')) {
+      this.inputValue=this.inputValue.substring(1)
+      this.selections.operator = '<'
+    }
+
+    if (this.inputValue.startsWith('=')) {
+      this.inputValue=this.inputValue.substring(1)
+      this.selections.operator = '='
+    }
+
+    
+
+    if (this.selections.operator == '') {
+      if (type == 'number' || type == 'string')
+        this.selections.operator = 'LIKE'        
+      if (type == 'float')
+        this.selections.operator = '='
+    }
 
     if (
       this.selections.field &&
@@ -142,37 +180,38 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   handleInputConfirm() {
     const fieldObj: any = this._fieldsToSelect.filter(x => x.field === this.selections.field)[0];
+    let filterValues = []
     // if ( this.verifySelections() && this.inputValue && this.tags.indexOf(this.inputValue) === -1 ) {
     if (this.verifySelections()) {
       this.addTag();
       switch (fieldObj?.searchComponent) {
         case 'inpurForPersonalSearch':
-          this.inputValue = this.selectedPersonalId;
+          filterValues.push(this.selectedPersonalId)
           this.inputSearchview = false;
           // this.inputValue = this.selectedPersonalId == null ? "0" : this.selectedPersonalId
           break;
         case 'Sucursal':
-          this.inputValue = this.selectedSucursalId
+          filterValues.push(this.selectedSucursalId)
           this.inputSucursalview = false;
           break;
         case 'inpurForClientSearch':
           //debugger
-          this.inputValue = this.selectedClienteId
+          filterValues.push(this.selectedClienteId)
           this.inputClientView = false;
           break;
         case 'inpurForObjetivoSearch':
           //debugger
-          this.inputValue = this.selectedObjetivoId
+          filterValues.push(this.selectedObjetivoId)
           this.inputObjetivoView = false;
           break;
-
         default:
+          filterValues = this.inputValue.trim().split(/\s+/)
           break;
       }
-
       const appendedFilter = this.appendFiltro(
         this.selections as any,
-        this.inputValue
+        //this.inputValue
+        filterValues
       );
     }
     this.resetSelections();
@@ -180,7 +219,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     this.selectedSucursalId = '';
     this.isFiltroBuilder = false;
     let inputSearch: HTMLElement = document.getElementsByTagName("nz-select-clear")[0] as HTMLElement;
-    inputSearch.click()
+    if (inputSearch)
+      inputSearch.click()
   }
 
   //
@@ -189,7 +229,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   appendFiltro(
     selections: { field: any; condition: any; operator: any },
-    valueToFilter: string
+    valueToFilter: string[]
   ): Filtro {
     const filtro = {
       index: selections.field,
@@ -312,9 +352,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   selectedValueSucursal(event: string) {
-
     this.selectedSucursalId = event;
-
   }
 
 

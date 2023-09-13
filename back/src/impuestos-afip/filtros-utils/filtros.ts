@@ -17,7 +17,7 @@ const isFiltro = (filtro: any): filtro is Filtro => {
     !filtro.index ||
     !filtro.operador ||
     !filtro.condition //||
-  //  !filtro.valor
+    //  !filtro.valor
   )
     return false;
   return (
@@ -46,7 +46,7 @@ const isCondition = (condition: any): boolean =>
  */
 
 const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
-  debugger
+
   if (filtros?.length === (0 || undefined)) return "1=1";
 
   let returnedString = "";
@@ -55,7 +55,7 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
 
     const columna = findColumnByIndex(filtro.index, cols);
     const fieldName = columna ? columna.fieldName : null;
-    const type = String((columna?.searchType) ? columna.searchType : ((columna?.type) ? columna.type:'string')).toLowerCase(); 
+    const type = String((columna?.searchType) ? columna.searchType : ((columna?.type) ? columna.type : 'string')).toLowerCase();
     if (!fieldName) return;
 
     if (!isCondition(filtro.condition)) return;
@@ -63,39 +63,53 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
     let filterString;
 
     const condition = index === 0 ? "" : `${filtro.condition}`;
-  console.log("imprimo los filtros....",filtro)
-    switch (filtro.operador) {
-      case "LIKE":
-        if (fieldName === "ApellidoNombre")
-          filterString = `${condition} (per.PersonalNombre LIKE '%${filtro.valor}%' OR per.PersonalApellido LIKE '%${filtro.valor}%')`;
-        else if (fieldName === "ApellidoNombreJ")
-          filterString = `${condition} (perjer.PersonalNombre LIKE '%${filtro.valor}%' OR perjer.PersonalApellido LIKE '%${filtro.valor}%')`;
-        else
-          filterString = `${condition} ${fieldName} LIKE '%${filtro.valor}%'`;
-        break;
-      case "=":
-        if (type == 'number') {
-          if (filtro.valor == '' || filtro.valor == null || filtro.valor == 'null')
-            filterString = `${condition} ${fieldName} IS NULL`;
-          else
-            filterString = `${condition} ${fieldName} = ${filtro.valor}`;
-        } else
-          filterString = `${condition} ${fieldName} = '${filtro.valor}'`;
+    console.log("imprimo los filtros....", filtro)
+    returnedString += ' ('
+    for (const valorBusqueda in filtro.valor) {
+      const valorBusqueda = filtro.valor[0]
 
-        break;
-      case ">":
-      case "<":
-        const valor = parseFloat(filtro.valor);
-        if (isNaN(valor)) return;
-        filterString = `${condition} ${fieldName} ${filtro.operador} ${valor}`;
-        break;
-      default:
-        break;
+      switch (filtro.operador) {
+        case "LIKE":
+          if (fieldName === "ApellidoNombre")
+            filterString = `${condition} (per.PersonalNombre LIKE '%${valorBusqueda}%' OR per.PersonalApellido LIKE '%${valorBusqueda}%')`;
+          else if (fieldName === "ApellidoNombreJ")
+            filterString = `${condition} (perjer.PersonalNombre LIKE '%${valorBusqueda}%' OR perjer.PersonalApellido LIKE '%${valorBusqueda}%')`;
+          else {
+            filterString = `${condition} ${fieldName} LIKE '%${valorBusqueda}%'`;
+          }
+          break;
+        case "=":
+          if (type == 'number' || type=='float' || type=='currency') {
+            if (valorBusqueda == '' || valorBusqueda == null || valorBusqueda == 'null')
+              filterString = `${condition} ${fieldName} IS NULL`;
+            else
+              filterString = `${condition} ${fieldName} = ${filtro.valor}`;
+          } else
+            filterString = `${condition} ${fieldName} = '${filtro.valor}'`;
+
+          break;
+        case ">":
+        case "<":
+        case ">=":
+        case "<=":
+        case "<>":
+          if (type == 'number' || type == 'float' || type=='currency') {
+            const valor = (!isNaN(parseFloat(valorBusqueda))) ? parseFloat(valorBusqueda) : '0';
+            filterString = `${condition} ${fieldName} ${filtro.operador} ${valor}`;
+          } else {
+            filterString = `${condition} ${fieldName} ${filtro.operador} '${valorBusqueda}'`
+          }
+
+          break;
+        default:
+          break;
+      }
+      returnedString += " " + filterString + " OR ";
     }
-    returnedString += " " + filterString;
+    returnedString += ' 1!=1) '
   });
   if (returnedString.trim() == "")
-    returnedString="1=1"
+    returnedString = "1=1"
   return returnedString;
 };
 
@@ -107,7 +121,7 @@ const getOptionsFromRequest = (req: Request): Options => {
 };
 
 const orderToSQL = (s: CustomSort[]): String => {
-  return (s && s.length)? 'ORDER BY '+  s.map( x => `${x.fieldName} ${x.direction}` ).join(',') : ''
+  return (s && s.length) ? 'ORDER BY ' + s.map(x => `${x.fieldName} ${x.direction}`).join(',') : ''
 };
 
 

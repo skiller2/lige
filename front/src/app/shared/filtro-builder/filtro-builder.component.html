@@ -1,6 +1,6 @@
 <nz-card>
   <nz-tag *ngFor="let tag of tags; let i = index" [nzMode]="'closeable'" (nzOnClose)="closeTag(i)">
-    {{ tag }}
+    <span class="app-tag-span">{{ tag }}</span>
   </nz-tag>
   <nz-tag *ngIf="!isFiltroBuilder" class="editable-tag" nzNoAnimation (click)="handleTagInteraction()">
     <span nz-icon nzType="plus"></span>
@@ -59,7 +59,8 @@
 
     <nz-form-control id="sucursalName" [nzSpan]="4" *ngIf="inputSucursalview" style="display:inline-block;width: 12%;">
       <nz-select #sucursal="ngModel" nzSpan="5" name="SucursalId" [(ngModel)]="selectedSucursalId" nzAllowClear
-        nzPlaceHolder="Sucursal" nzShowSearch (ngModelChange)="selectedValueSucursal($event)">
+        nzPlaceHolder="Sucursal" nzShowSearch (ngModelChange)="selectedValueSucursal($event)"   
+        [nzDropdownMatchSelectWidth]="false" >
         <ng-container *ngFor="let option of $optionsSucursales | async">
           <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
         </ng-container>
