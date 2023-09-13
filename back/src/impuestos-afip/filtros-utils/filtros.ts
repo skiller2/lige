@@ -104,7 +104,11 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
         default:
           break;
       }
-      returnedString += " " + filterString + " OR ";
+
+      if (filtro.operador!="<>")
+        returnedString += " " + filterString + " OR ";
+      else 
+        returnedString += " " + filterString + " AND ";
     }
     returnedString += ' 1!=1) '
   });
