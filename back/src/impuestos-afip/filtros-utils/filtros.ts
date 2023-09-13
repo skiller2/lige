@@ -49,7 +49,7 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
 
   if (filtros?.length === (0 || undefined)) return "1=1";
 
-  let returnedString = "";
+  let rowFilterString: String[]=[]
   filtros.forEach((filtro, index) => {
     if (!isFiltro(filtro)) return;
 
@@ -60,32 +60,29 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
 
     if (!isCondition(filtro.condition)) return;
 
-    let filterString;
+    let filterString: String[]=[]
 
-    const condition = index === 0 ? "" : `${filtro.condition}`;
-    console.log("imprimo los filtros....", filtro)
-    returnedString += ' ('
-    for (const valorBusqueda in filtro.valor) {
-      const valorBusqueda = filtro.valor[0]
-
+    for (const valorBusqueda of filtro.valor) {
+      if (valorBusqueda.trim() == "")
+        continue
       switch (filtro.operador) {
         case "LIKE":
           if (fieldName === "ApellidoNombre")
-            filterString = `${condition} (per.PersonalNombre LIKE '%${valorBusqueda}%' OR per.PersonalApellido LIKE '%${valorBusqueda}%')`;
+            filterString.push(` (per.PersonalNombre LIKE '%${valorBusqueda}%' OR per.PersonalApellido LIKE '%${valorBusqueda}%')`)
           else if (fieldName === "ApellidoNombreJ")
-            filterString = `${condition} (perjer.PersonalNombre LIKE '%${valorBusqueda}%' OR perjer.PersonalApellido LIKE '%${valorBusqueda}%')`;
+            filterString.push(` (perjer.PersonalNombre LIKE '%${valorBusqueda}%' OR perjer.PersonalApellido LIKE '%${valorBusqueda}%')`)
           else {
-            filterString = `${condition} ${fieldName} LIKE '%${valorBusqueda}%'`;
+            filterString.push(`${fieldName} LIKE '%${valorBusqueda}%'`)
           }
           break;
         case "=":
           if (type == 'number' || type=='float' || type=='currency') {
             if (valorBusqueda == '' || valorBusqueda == null || valorBusqueda == 'null')
-              filterString = `${condition} ${fieldName} IS NULL`;
+              filterString.push(`${fieldName} IS NULL`)
             else
-              filterString = `${condition} ${fieldName} = ${filtro.valor}`;
+              filterString.push(`${fieldName} = ${valorBusqueda}`)
           } else
-            filterString = `${condition} ${fieldName} = '${filtro.valor}'`;
+            filterString.push(`${fieldName} = '${valorBusqueda}'`)
 
           break;
         case ">":
@@ -95,23 +92,23 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
         case "<>":
           if (type == 'number' || type == 'float' || type=='currency') {
             const valor = (!isNaN(parseFloat(valorBusqueda))) ? parseFloat(valorBusqueda) : '0';
-            filterString = `${condition} ${fieldName} ${filtro.operador} ${valor}`;
+            filterString.push(`${fieldName} ${filtro.operador} ${valor}`)
           } else {
-            filterString = `${condition} ${fieldName} ${filtro.operador} '${valorBusqueda}'`
+            filterString.push(`${fieldName} ${filtro.operador} '${valorBusqueda}'`)
           }
 
           break;
         default:
           break;
       }
-
-      if (filtro.operador!="<>")
-        returnedString += " " + filterString + " OR ";
-      else 
-        returnedString += " " + filterString + " AND ";
     }
-    returnedString += ' 1!=1) '
+
+    if (filterString.length>0)
+      rowFilterString.push(' ('+filterString.join((filtro.operador=="<>")?' AND ':' OR ')+') ')
   });
+
+  let returnedString = rowFilterString.join(" AND ");
+
   if (returnedString.trim() == "")
     returnedString = "1=1"
   return returnedString;

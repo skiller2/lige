@@ -140,7 +140,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       this.selections.operator = '<='
     }
 
-    if (this.inputValue.startsWith('!=')) {
+    if (this.inputValue.startsWith('!=') || this.inputValue.startsWith('<>')) {
       this.inputValue=this.inputValue.substring(2)
       this.selections.operator = '<>'
     }
