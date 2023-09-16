@@ -628,7 +628,7 @@ export class ImpuestosAfipController extends BaseController {
       let filtros: Filtro[] = []
       
       if (personalIdRel != '') 
-        filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: personalIdRel })
+        filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: [personalIdRel] })
 
       const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
         anio: year,

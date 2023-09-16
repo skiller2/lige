@@ -13,7 +13,8 @@ const listaColumnas: any[] = [
     type: "string",
     id: "ApellidoNombre",
     field: "ApellidoNombre",
-    fieldName: "ApellidoNombre",
+    fieldName: "per.PersonalId",
+    searchComponent:"inpurForPersonalSearch",
     sortable: true,
     customTooltip: {
       useRegularTooltip: true, // note regular tooltip will try to find a "title" attribute in the cell formatter (it won't work without a cell formatter)

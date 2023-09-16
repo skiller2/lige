@@ -1,8 +1,8 @@
 export interface Filtro {
   index: string;
-  operador: "FIND" | "LIKE" | "<" | ">" | "=";
+  operador: "FIND" | "LIKE" | "<" | ">" | "=" | ">=" | "<=" | "<>";
   condition: "OR" | "AND";
-  valor: string;
+  valor: string[];
 }
 
 export interface CustomSort {
