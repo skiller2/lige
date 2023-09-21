@@ -55,8 +55,9 @@ export const GesRoutes: Routes = [
     path: 'liquidaciones/:tab',
     loadComponent: () => import('./liquidaciones/liquidaciones.component').then(c => c.LiquidacionesComponent),
   },
+  { path: 'liquidacion_banco', redirectTo: 'liquidacion_banco/listado' },
   {
-    path: 'liquidacion_banco',
+    path: 'liquidacion_banco/:tab',
     loadComponent: () => import('./liquidaciones-banco/liquidaciones-banco.component').then(c => c.LiquidacionesBancoComponent),
   },
   { path: 'telefonia', redirectTo: 'telefonia/listado' },

@@ -8,7 +8,8 @@ import { movimientosAutomaticosController,
          descuentoPorDeudaAnteriorController,
          descuentosController,
          movimientoAcreditacionEnCuentaController,
-         liquidacionesController} from "../controller/controller.module";
+         liquidacionesController,
+         liquidacionesBancoController} from "../controller/controller.module";
 
 export const liquidacionesRouter = Router();
 
@@ -106,7 +107,24 @@ export const liquidacionesRouter = Router();
 
     liquidacionesRouter.post('/list', authMiddleware.verifyToken, (req, res, next) => {
         liquidacionesController.getByLiquidaciones(req, res, next)
-    })
+    });
+
+    // seccion de banco
+    liquidacionesRouter.get("/banco/cols", authMiddleware.verifyToken, (req, res) => {
+        liquidacionesBancoController.getLiquidacionesBancoCols(req, res); 
+    });
+
+    liquidacionesRouter.post('/banco/list', authMiddleware.verifyToken, (req, res, next) => {
+        liquidacionesBancoController.getByLiquidacionesBanco(req, res, next)
+    });
+
+    liquidacionesRouter.post(
+        "/download/comprobantes_filtrados/",
+        authMiddleware.verifyToken,
+        (req, res, next) => {
+            liquidacionesBancoController.handleDownloadComprobantesByFiltro(req, res,next);
+        }
+      );
     
     
     

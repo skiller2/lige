@@ -12,37 +12,22 @@
       <ul nz-menu nzMode="horizontal">
         <li nz-menu-item nzMatchRouter >
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'liquidaciones','listado']">Listado</a>
+          <a [routerLink]="['/', 'ges', 'liquidacion_banco','listado']">Listado</a>
         </li>
 
-      <li nz-submenu nzTitle="Acciones" *ngIf="router.url === '/ges/liquidaciones/listado'">
+      <li nz-submenu nzTitle="Acciones" *ngIf="router.url === '/ges/liquidacion_banco/listado'">
         <ul style="width: auto !important">
           
 
-          <li nz-menu-item id="movimientosAutomaticos" (click)="liquidacionesAcciones($event)" >
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Carga de movs automático
+          <li nz-menu-item app-down-file [httpMethod]="'POST'"
+            [httpBody]="{anio, mes, options: listOptions, cantxpag:1}"
+            httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
+            <span nz-icon nzType="download"></span>Generar Banco ITAU
           </li>
-          <li nz-menu-item id="ingresosPorAsistencia" (click)="liquidacionesAcciones($event)">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por asistencia
+          <li nz-menu-item id="generacionBanco">
+            <span nz-icon nzType="plus" nzTheme="outline"></span> Generar Banco 
           </li>
-          <li nz-menu-item id="ingresosPorAsistenciaAdministrativos" (click)="liquidacionesAcciones($event)">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por asistencia administrativos
-          </li>
-          <li nz-menu-item id="ingresosArt42" (click)="liquidacionesAcciones($event)">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por art42 Lincencia
-          </li>
-          <li nz-menu-item  id="ingresosCoordinadorDeCuenta" (click)="liquidacionesAcciones($event)">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por coordinador de cuenta
-          </li>
-          <li nz-menu-item id="descuentoPorDeudaAnterior" (click)="liquidacionesAcciones($event)">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Descuentos por deuda período anterior
-          </li>
-          <li nz-menu-item id="descuentos" (click)="liquidacionesAcciones($event)">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Descuentos
-          </li>
-          <li nz-menu-item id="movimientoAcreditacionEnCuenta" (click)="liquidacionesAcciones($event)">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Movimiento de acreditación en cuenta
-          </li> 
+           
 
         </ul>
         
@@ -54,7 +39,7 @@
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
       <nz-tab >
-        <a nz-tab-link routerLink="/ges/liquidaciones/listado">Listado</a>
+        <a nz-tab-link routerLink="/ges/liquidacion_banco/listado">Listado</a>
         <ng-template nz-tab *ngIf="(columns$|async) as columnas">
           <div class="gridContainer container-fluid" >
             <angular-slickgrid gridId="grid22" class="" 

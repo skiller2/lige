@@ -258,7 +258,6 @@ export class ApiService {
 
   getLiquidaciones(filters: any) {
     const parameter = filters
-    console.log("voy");
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/list',parameter).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -267,6 +266,18 @@ export class ApiService {
       })
     );
   }
+
+  getLiquidacionesBanco(filters: any) {
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/list',parameter).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 
   getDescuentosMonotributo(filters: any) {
     const parameter = filters

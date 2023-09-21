@@ -1,16 +1,16 @@
 import { Component,ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
+import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NgForm } from '@angular/forms';
 import { SharedModule, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
+import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
 import { AngularGridInstance, AngularUtilService, Column, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
+ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import {
   BehaviorSubject,
   Observable,
@@ -153,11 +153,12 @@ export class LiquidacionesBancoComponent {
     switchMap(() => {
       const periodo = this.liquidacionesForm.form.get('periodo')?.value
       return this.apiService
-        .getLiquidaciones(
+        .getLiquidacionesBanco(
           { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptions }
         )
         .pipe(
           map(data => {
+            console.log("imprimo",data)
             this.gridDataLen = data.list.length 
             return data.list
           }),
@@ -185,9 +186,9 @@ export class LiquidacionesBancoComponent {
       format: FileType.xlsx
     });
   }
-
-  columns$ = this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols) => {
-    
+ 
+  columns$ = this.apiService.getCols('/api/liquidaciones/banco/cols').pipe(map((cols) => {
+    console.log("imprimo columnas",cols)
       return cols
   }));
 
@@ -200,41 +201,6 @@ export class LiquidacionesBancoComponent {
 
         this.apiService.setmovimientosAutomaticos().subscribe(evt => {this.formChange$.next('')});
         break;
-
-      case "ingresosPorAsistencia":
-
-        this.apiService.setingresoPorAsistencia().subscribe(evt => {this.formChange$.next('')});
-        break;
-
-      case "ingresosPorAsistenciaAdministrativos":
-
-          this.apiService.setingresoPorAsistenciaAdministrativos().subscribe(evt => {this.formChange$.next('') });
-         break;
-
-      case "ingresosArt42":
-
-         this.apiService.setingresoArt42().subscribe(evt => {this.formChange$.next('') });
-        break;
-
-      case "ingresosCoordinadorDeCuenta":
-
-        this.apiService.setingresosCoordinadorDeCuenta().subscribe(evt => {this.formChange$.next('') });
-       break;
-
-      case "descuentoPorDeudaAnterior":
-
-        this.apiService.setdescuentoPorDeudaAnterior().subscribe(evt => {this.formChange$.next('') });
-       break;
-
-       case "descuentos":
-
-       this.apiService.setdescuentos().subscribe(evt => {this.formChange$.next('') });
-      break;
-
-      case "movimientoAcreditacionEnCuenta":
-
-      this.apiService.setmovimientoAcreditacionEnCuenta().subscribe(evt => {this.formChange$.next('') });
-     break;
        
       default:
         break;
