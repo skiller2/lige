@@ -1,0 +1,60 @@
+<nz-card class="small-margin">
+    <form nz-form #liquidacionesForm="ngForm">
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="2">Periodosss</nz-form-label>
+        <nz-form-control>
+          <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
+        </nz-form-control>
+      </nz-form-item>
+
+
+      <ul nz-menu nzMode="horizontal">
+        <li nz-menu-item nzMatchRouter >
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'liquidacion_banco','listado']">Listado</a>
+        </li>
+
+      <li nz-submenu nzTitle="Acciones" *ngIf="router.url === '/ges/liquidacion_banco/listado'">
+        <ul style="width: auto !important">
+          
+
+          <li nz-menu-item app-down-file [httpMethod]="'POST'"
+            [httpBody]="{anio, mes, options: listOptions, cantxpag:1}"
+            httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
+            <span nz-icon nzType="download"></span>Generar Banco ITAU
+          </li>
+          <li nz-menu-item id="generacionBanco">
+            <span nz-icon nzType="plus" nzTheme="outline"></span> Generar Banco 
+          </li>
+           
+
+        </ul>
+        
+      </li>
+      <li nz-menu-item (click)="exportGrid()">
+        <span nz-icon nzType="download"></span>XLS
+      </li>
+    </ul>
+
+    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+      <nz-tab >
+        <a nz-tab-link routerLink="/ges/liquidacion_banco/listado">Listado</a>
+        <ng-template nz-tab *ngIf="(columns$|async) as columnas">
+          <div class="gridContainer container-fluid" >
+            <angular-slickgrid gridId="grid22" class="" 
+              [columnDefinitions]="columnas | colsFilter"
+              [gridOptions]="gridOptions" 
+              [dataset]="(gridData$ | async) || []" 
+              (onAngularGridCreated)="angularGridReady($event)">
+          </angular-slickgrid>
+          </div>
+
+          <div>Registros: {{ gridDataLen }}</div>
+        </ng-template>
+      </nz-tab>
+    </nz-tabset>
+
+  
+    </form>
+</nz-card>

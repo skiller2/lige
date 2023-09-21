@@ -76,8 +76,19 @@
         },
         {
           "text": "Liquidaciones",
-          "link": "/ges/liquidaciones",
-          "icon": "anticon-profile"
+          "icon": "anticon-profile",
+          "children": [
+            {
+              "text": "Consulta",
+              "icon": "anticon-profile",
+              "link": "/ges/liquidaciones"
+            },
+            {
+              "text": "Banco",
+              "link": "/ges/liquidacion_banco",
+              "icon": "anticon-profile"
+            }
+          ]
         },
         {
           "text": "Adelanto",

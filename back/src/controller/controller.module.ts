@@ -1,7 +1,7 @@
 import { AuthController } from "./auth.controller";
 import { InfoController } from "./info.controller";
 import { PersonalController } from "./personal.controller";
-import { ClienteController } from "./cliente.controller";
+import { ClienteController } from "./cliente.Controller";
 import { InitController } from "./init.controller";
 import { SucursalController } from "./sucursal.controller";
 import { ObjetivoController } from "./objetivo.controller";
@@ -20,6 +20,7 @@ import { DescuentoPorDeudaAnteriorController } from "../liquidaciones/descuento-
 import { DescuentosController } from "../liquidaciones/descuentos/descuentos.controller";
 import { MovimientoAcreditacionEnCuentaController } from "../liquidaciones/movimiento-acreditacion-cuenta/movimiento-acreditacion-cuenta.controller";
 import { LiquidacionesController } from "../liquidaciones/liquidaciones.controller";
+import { LiquidacionesBancoController } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.controller";
 
 
 export const infoController = new InfoController();
@@ -44,4 +45,5 @@ export const descuentoPorDeudaAnteriorController = new DescuentoPorDeudaAnterior
 export const descuentosController = new DescuentosController();
 export const movimientoAcreditacionEnCuentaController = new MovimientoAcreditacionEnCuentaController();
 export const liquidacionesController = new LiquidacionesController();
+export const liquidacionesBancoController = new LiquidacionesBancoController();
 

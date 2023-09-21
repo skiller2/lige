@@ -52,3 +52,12 @@ export interface ObjetivoInfo {
   elementoDependienteId: number;
   descripcion: string;
 }
+
+export interface LiqBanco {
+  PersonalId: number;
+  ApellidoNombre: string;
+  CUIT: number;
+  CBU: number;
+  Importe: number;
+  Banco:string;
+}
