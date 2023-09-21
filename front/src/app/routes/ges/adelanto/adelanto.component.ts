@@ -9,6 +9,8 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { Router } from '@angular/router';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { SettingsService } from '@delon/theme';
+
 
 
 @Component({
@@ -21,8 +23,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 })
 export class AdelantoComponent {
-  constructor(private apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService, private excelExportService: ExcelExportService) { }
+  constructor(private settingService:SettingsService, private apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService, private excelExportService: ExcelExportService) { }
   @ViewChild('adelanto', { static: true }) adelanto!: NgForm;
+  @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
 
   selectedPeriod = { year: 0, month: 0 };
 
@@ -85,7 +88,12 @@ export class AdelantoComponent {
   )
 
   async ngOnInit() {
+    const user: any = this.settingService.getUser()
+    
 
+    if (user.PersonalId > 0) { 
+
+    }
     this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.autoEdit = true
@@ -130,7 +138,37 @@ export class AdelantoComponent {
           : now.getMonth() + 1;
 
       this.adelanto.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
+
+
+
+  
+
+
+
+
+
     }, 1);
+
+    
+
+
+
+
+
+
+
+  }
+
+  ngAfterContentInit(): void {
+    setTimeout(() => {
+
+    console.log('filtro2', this.sharedFiltroBuilder)
+
+      
+    this.sharedFiltroBuilder.addFilter({field: 'ApellidoNombreJ', condition:'AND',operator:'=',value:'4834'})
+
+  }, 4000);
+
   }
 
   personaResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);

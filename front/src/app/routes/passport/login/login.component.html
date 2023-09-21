@@ -13,7 +13,9 @@
             <input
               nz-input
               formControlName="userName"
-              [placeholder]="'app.login.username-placeholder' | i18n" />
+              [placeholder]="'app.login.username-placeholder' | i18n"
+              autocomplete="username"
+              />
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -27,7 +29,9 @@
               nz-input
               [type]="passwordType$ | async"
               formControlName="password"
-              [placeholder]="'app.login.password-placeholder' | i18n" />
+              [placeholder]="'app.login.password-placeholder' | i18n"
+              autocomplete="current-password"
+              />
           </nz-input-group>
           <ng-template #suffixTemplate>
             <span

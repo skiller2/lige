@@ -236,7 +236,7 @@ export class ImpuestosAfipController extends BaseController {
    1=1
 
    AND DATEFROMPARTS(@1,@2,28) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
-     AND excep.PersonalExencionCUIT IS NULL
+--     AND excep.PersonalExencionCUIT IS NULL
 
 	-- AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
   AND sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26)

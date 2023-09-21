@@ -35,7 +35,7 @@
     -->
     <input
       *ngIf="inputSearchview == false && inputSucursalview == false && inputClientView == false && inputObjetivoView == false && selections.field != ''"
-      placeholder="Valor" #inputElement nz-input type="text" [(ngModel)]="inputValue" style="width: 78px"
+      placeholder="Valor" #inputElement nz-input type="text" [(ngModel)]="selections.value" style="width: 78px"
       (keydown.enter)="handleInputConfirm()" />
 
     <div nz-col [nzSpan]="5" id="inpurForPersonalSearch" style="text-align: center; display:inline-block;width: 22%;"

@@ -62,13 +62,14 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   };
 
 
-  inputValue = '';
+  
   isFiltroBuilder = false;
 
   selections = {
     field: '',
     condition: 'AND',
     operator: '',
+    value: ''
   };
 
   constructor(
@@ -81,28 +82,27 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   addTag() {
-
     const fieldObj: any = this._fieldsToSelect.filter(x => x.field === this.selections.field)[0];
     let inputValueSearch: HTMLElement
     switch (fieldObj?.searchComponent) {
       case 'inpurForPersonalSearch':
         inputValueSearch = document.getElementById("inpurForPersonalSearch") as HTMLElement;
-        this.inputValue = this.selectedPersonalId == "" ? "Vacio" : inputValueSearch?.outerText
+        this.selections.value = this.selectedPersonalId == "" ? "Vacio" : inputValueSearch?.outerText
         // this.inputValue =  inputValueSearch?.outerText == "" ? "vacio" :  inputValueSearch?.outerText
         break;
       case 'Sucursal':
         inputValueSearch = document.getElementById("sucursalName") as HTMLElement;
         let inputValueSearchDescription: HTMLElement = document.getElementById("sucursalDescription") as HTMLElement;
-        this.inputValue = this.selectedSucursalId == "" ? "Vacio" : inputValueSearch?.outerText;
+        this.selections.value = this.selectedSucursalId == "" ? "Vacio" : inputValueSearch?.outerText;
         break;
       case 'inpurForClientSearch':
         inputValueSearch = document.getElementById("inpurForClientSearch") as HTMLElement;
-        this.inputValue = this.selectedClienteId == "" ? "Vacio" : inputValueSearch?.outerText
+        this.selections.value = this.selectedClienteId == "" ? "Vacio" : inputValueSearch?.outerText
         // this.inputValue =  inputValueSearch?.outerText == "" ? "vacio" :  inputValueSearch?.outerText
         break;
       case 'inpurForObjetivoSearch':
         inputValueSearch = document.getElementById("inpurForObjetivoSearch") as HTMLElement;
-        this.inputValue = this.selectedObjetivoId == "" ? "Vacio" : inputValueSearch?.outerText
+        this.selections.value = this.selectedObjetivoId == "" ? "Vacio" : inputValueSearch?.outerText
         // this.inputValue =  inputValueSearch?.outerText == "" ? "vacio" :  inputValueSearch?.outerText
         break;
 
@@ -110,7 +110,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         break;
     }
 
-    const tagToAdd = `${fieldObj.name} ${this.selections.operator} ${this.inputValue}`;
+    const tagToAdd = `${fieldObj.name} ${this.selections.operator} ${this.selections.value}`;
     this.tags.push(tagToAdd);
 
   }
@@ -130,43 +130,49 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     this.selections.operator = (fieldObj?.searchComponent) ? "=" : this.selections.operator
 
-    if (this.inputValue.startsWith('>=')) {
-      this.inputValue=this.inputValue.substring(2)
+    if (this.selections.value.startsWith('>=')) {
+      this.selections.value=this.selections.value.substring(2)
       this.selections.operator = '>='
     }
 
-    if (this.inputValue.startsWith('<=')) {
-      this.inputValue=this.inputValue.substring(2)
+    if (this.selections.value.startsWith('<=')) {
+      this.selections.value=this.selections.value.substring(2)
       this.selections.operator = '<='
     }
 
-    if (this.inputValue.startsWith('!=') || this.inputValue.startsWith('<>')) {
-      this.inputValue=this.inputValue.substring(2)
+    if (this.selections.value.startsWith('!=') || this.selections.value.startsWith('<>')) {
+      this.selections.value=this.selections.value.substring(2)
       this.selections.operator = '<>'
     }
 
-    if (this.inputValue.startsWith('>')) {
-      this.inputValue=this.inputValue.substring(1)
+    if (this.selections.value.startsWith('>')) {
+      this.selections.value=this.selections.value.substring(1)
       this.selections.operator = '>'
     }
 
-    if (this.inputValue.startsWith('<')) {
-      this.inputValue=this.inputValue.substring(1)
+    if (this.selections.value.startsWith('<')) {
+      this.selections.value=this.selections.value.substring(1)
       this.selections.operator = '<'
     }
 
-    if (this.inputValue.startsWith('=')) {
-      this.inputValue=this.inputValue.substring(1)
+    if (this.selections.value.startsWith('=')) {
+      this.selections.value=this.selections.value.substring(1)
       this.selections.operator = '='
     }
 
     
 
     if (this.selections.operator == '') {
-      if (type == 'number' || type == 'string')
-        this.selections.operator = 'LIKE'        
-      if (type == 'float')
-        this.selections.operator = '='
+      switch (type) {
+        case 'float':
+        case 'boolean':
+          this.selections.operator = '='  
+          break;
+      
+        default:
+          this.selections.operator = 'LIKE'  
+          break;
+      }
     }
 
     if (
@@ -205,7 +211,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
           this.inputObjetivoView = false;
           break;
         default:
-          filterValues = this.inputValue.trim().split(/\s+/)
+          filterValues = this.selections.value.trim().split(/\s+/)
           break;
       }
       const appendedFilter = this.appendFiltro(
@@ -215,7 +221,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       );
     }
     this.resetSelections();
-    this.inputValue = '';
+    this.selections.value = '';
     this.selectedSucursalId = '';
     this.isFiltroBuilder = false;
     let inputSearch: HTMLElement = document.getElementsByTagName("nz-select-clear")[0] as HTMLElement;
@@ -252,6 +258,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       field: '',
       condition: 'AND',
       operator: '',
+      value: ''
     };
   }
 
@@ -355,6 +362,11 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     this.selectedSucursalId = event;
   }
 
+
+  addFilter(selection: { field: string; condition: string; operator: string; value: string; }) { 
+    this.selections = selection
+    this.handleInputConfirm()
+  }
 
 }
 

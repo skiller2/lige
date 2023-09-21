@@ -117,6 +117,17 @@ const listaColumnas: any[] = [
     hidden: true,
     searchHidden: false
   },
+  {
+    name: "Exceptuado",
+    type: "boolean",
+    id: "PersonalExencionCUIT",
+    field: "PersonalExencionCUIT",
+    fieldName: "excep.PersonalExencionCUIT",
+    searchType:"number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
 
 ];
 
