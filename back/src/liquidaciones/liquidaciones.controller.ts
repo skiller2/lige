@@ -71,9 +71,9 @@ export class LiquidacionesController extends BaseController {
         {
           name: "Persona",
           type: "string",
-          id: "PersonalApellidoNombre",
-          field: "PersonalApellidoNombre",
-          fieldName: "pers.PersonalApellidoNombre",
+          id: "ApellidoNombre",
+          field: "ApellidoNombre",
+          fieldName: "ApellidoNombre",
           sortable: true,
           hidden: false,
           searchHidden: false
@@ -100,12 +100,12 @@ export class LiquidacionesController extends BaseController {
     try {
 
       const adelantos = await dataSource.query(
-        `SELECT movimiento_id, movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,fecha,detalle,obj.ObjetivoDescripcion,pers.PersonalApellidoNombre,
-        importe FROM lige.dbo.liqmamovimientos AS li 
+        `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,obj.ObjetivoDescripcion,CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
+        li.importe * tipomo.signo AS importe FROM lige.dbo.liqmamovimientos AS li 
         INNER JOIN lige.dbo.liqcotipomovimiento AS tipomo ON li.tipo_movimiento_id = tipomo.tipo_movimiento_id 
         INNER JOIN lige.dbo.liqmaperiodo AS per ON li.periodo_id = per.periodo_id 
-        INNER JOIN ERP_Produccion.dbo.Personal AS pers ON li.persona_id = pers.PersonalId
-        INNER JOIN ERP_Produccion.dbo.Objetivo AS obj ON li.objetivo_id = obj.ObjetivoId`)
+        LEFT JOIN ERP_Produccion.dbo.Personal AS pers ON li.persona_id = pers.PersonalId
+        LEFT JOIN ERP_Produccion.dbo.Objetivo AS obj ON li.objetivo_id = obj.ObjetivoId`)
 
         this.jsonRes(
             {
