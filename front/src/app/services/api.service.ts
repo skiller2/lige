@@ -326,7 +326,7 @@ export class ApiService {
 
   }
 
-  setmovimientosAutomaticos() {
+  setmovimientosAutomaticos(anio:number,mes:number) {
     const parameter = ""
     this.notification.success('Respuesta', `Inicio Carga Mov Automatico`);
 
@@ -336,8 +336,8 @@ export class ApiService {
 
   }
 
-  setingresoPorAsistencia() {
-    const parameter = ""
+  setingresoPorAsistencia(anio:number,mes:number) {
+    const parameter = {anio,mes}
     this.notification.success('Respuesta', `Inicio Ingreso por Asistencia`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresoPorAsistencia', parameter).pipe(
@@ -345,7 +345,7 @@ export class ApiService {
     )
 
   }
-  setingresoPorAsistenciaAdministrativos() {
+  setingresoPorAsistenciaAdministrativos(anio:number,mes:number) {
     const parameter = ""
     this.notification.success('Respuesta', `Inicio Ingreso por Asistencia Administrativos`);
 
@@ -355,7 +355,7 @@ export class ApiService {
 
   }
 
-  setingresoArt42() {
+  setingresoArt42(anio:number,mes:number) {
     const parameter = ""
     this.notification.success('Respuesta', `Inicio Ingreso por art 42`);
 
@@ -365,7 +365,7 @@ export class ApiService {
 
   }
 
-  setingresosCoordinadorDeCuenta() {
+  setingresosCoordinadorDeCuenta(anio:number,mes:number) {
     const parameter = ""
     this.notification.success('Respuesta', `Inicio Ingreso coordinador de cuenta`);
 
@@ -375,7 +375,7 @@ export class ApiService {
 
   }
 
-  setdescuentoPorDeudaAnterior() {
+  setdescuentoPorDeudaAnterior(anio:number,mes:number) {
     const parameter = ""
     this.notification.success('Respuesta', `Inicio descuentos por deduda anterior`);
 
@@ -385,7 +385,7 @@ export class ApiService {
 
   }
 
-  setdescuentos() {
+  setdescuentos(anio:number,mes:number) {
     const parameter = ""
     this.notification.success('Respuesta', `Inicio descuentos`);
 
@@ -395,7 +395,7 @@ export class ApiService {
 
   }
 
-  setmovimientoAcreditacionEnCuenta() {
+  setmovimientoAcreditacionEnCuenta(anio:number,mes:number) {
     const parameter = ""
     this.notification.success('Respuesta', `Inicio movimiento Acreditacion En Cuenta`);
 

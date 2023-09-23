@@ -20,12 +20,13 @@ export class AuthMiddleware {
     const jwtsecret = (process.env.JWT_SECRET) ? process.env.JWT_SECRET : ""
     jwt.verify(token, jwtsecret, (err: any, decoded: any) => {
       if (err) return this.catchError(err, res);
-
+console.log('decoded',decoded)
       req.decoded_token = decoded;
       req.persona_cuit = (decoded.description != undefined) ? decoded.description : "";
 //      req.PersonalId = (decoded.PersonalId != undefined) ? decoded.PersonalId : 0;
       res.locals.PersonalId= (decoded.PersonalId != undefined) ? decoded.PersonalId : 0;
-      res.locals.persona_cuit= (decoded.description != undefined) ? decoded.description : "";
+      res.locals.persona_cuit = (decoded.description != undefined) ? decoded.description : "";
+      res.locals.userName =decoded.userName
       if (typeof decoded.groups === "string")
         req.groups = [decoded.groups]
       else

@@ -117,7 +117,7 @@ export class AuthController extends BaseController {
 
       await con.unbind();
 
-      return { dn, groups, sAMAccountName, email, name, description }
+      return { dn, groups, sAMAccountName, email, name, description, userName: usernamenodomain.toLowerCase() }
 
     } catch (err) {
       if (err instanceof InvalidCredentialsError) {

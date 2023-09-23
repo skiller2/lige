@@ -26,7 +26,13 @@ export class BaseController {
   jsonResDirect(data: any, res: Response, msg = "ok") {
     res.status(200).json(data);
   }
-  
+
+  getRemoteAddress(req:any) { 
+    return req.headers['x-origin-ip'] ??
+			(req.headers['x-forwarded-for'] as string)?.split(',')[0] ??
+			req.socket.remoteAddress
+  }
+
   async hasAuthPersona(anio, mes, persona_cuit, queryRunner) {
     let fechaHastaAuth = new Date(anio, mes, 1);
     fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1);

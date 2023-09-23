@@ -174,6 +174,8 @@ export class CategoriasController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
+//            throw new ClientException("Ups")
+
       const pendientes = await CategoriasController.listCambiosPendCategoria(options)
 
       for (const persona of pendientes) {
@@ -241,7 +243,7 @@ export class CategoriasController extends BaseController {
       }
 
       await queryRunner.commitTransaction();
-      return next(`Se procesaron ${pendientes.length} ascensos `)
+      this.jsonRes({list:[] }, res, `Se procesaron ${pendientes.length} ascensos `);
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();

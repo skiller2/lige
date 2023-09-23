@@ -1,4 +1,4 @@
-import { Component,ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { NgForm } from '@angular/forms';
@@ -20,6 +20,7 @@ import {
   map,
   switchMap,
   tap,
+  firstValueFrom,
 } from 'rxjs';
 
 @Component({
@@ -39,15 +40,13 @@ import {
 })
 export class LiquidacionesComponent {
   @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =
-  new NgForm([], []);
+    new NgForm([], []);
   constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService) { }
   url = '/api/liquidaciones';
   url_forzado = '/api/liquidaciones/forzado';
   formChange$ = new BehaviorSubject('');
   files: NzUploadFile[] = [];
   toggle = false;
-  anio = 0
-  mes = 0
   detailViewRowCount = 9;
   gridDataLen = 0
   tableLoading$ = new BehaviorSubject(false);
@@ -63,35 +62,19 @@ export class LiquidacionesComponent {
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && dataContext.monto > 0) {
       const componentOutput = this.angularUtilService.createAngularComponent(colDef.params.component)
-      Object.assign(componentOutput.componentRef.instance, { item: dataContext, anio: this.anio, mes: this.mes })
+      Object.assign(componentOutput.componentRef.instance, { item: dataContext, anio: this.selectedPeriod.year, mes: this.selectedPeriod.month })
       cellNode.append(componentOutput.domElement)
       //setTimeout(() => cellNode.append(componentOutput.domElement))
     }
   }
 
 
-  onChange(result: Date): void {
-    if (result) {
-      this.anio = result.getFullYear();
-      this.mes = result.getMonth() + 1;
-
-      localStorage.setItem('mes', String(this.mes));
-      localStorage.setItem('anio', String(this.anio));
-      this.filesChange$.next('')
-    } else {
-      this.anio = 0;
-      this.mes = 0;
-    }
-
-    this.formChange$.next('');
-    this.files = [];
-  }
 
   metrics: any
   refreshMetrics(e: any) {
-    
+
     this.gridOptions.customFooterOptions!.rightFooterText = 'update'
-    this.angularGrid.slickGrid.setOptions({ customFooterOptions: { rightFooterText: 'update'} },)
+    this.angularGrid.slickGrid.setOptions({ customFooterOptions: { rightFooterText: 'update' } },)
 
     let _e = e.detail.eventData
     let args = e.detail.args
@@ -108,7 +91,7 @@ export class LiquidacionesComponent {
       });
     }
   }
- 
+
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
@@ -139,7 +122,7 @@ export class LiquidacionesComponent {
       this.liquidacionesForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
     }, 1);
   }
-  
+
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
@@ -158,7 +141,7 @@ export class LiquidacionesComponent {
         )
         .pipe(
           map(data => {
-            this.gridDataLen = data.list.length 
+            this.gridDataLen = data.list.length
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -167,7 +150,7 @@ export class LiquidacionesComponent {
     })
   )
 
-  
+
   dateChange(result: Date): void {
     this.selectedPeriod.year = result.getFullYear();
     this.selectedPeriod.month = result.getMonth() + 1;
@@ -178,7 +161,7 @@ export class LiquidacionesComponent {
     this.formChange('');
   }
 
-  
+
   exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'liquidaciones-listado',
@@ -187,8 +170,8 @@ export class LiquidacionesComponent {
   }
 
   columns$ = this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols) => {
-    
-      return cols
+
+    return cols
   }));
 
   async liquidacionesAcciones(ev: Event) {
@@ -198,46 +181,47 @@ export class LiquidacionesComponent {
     switch (value) {
       case "movimientosAutomaticos":
 
-        this.apiService.setmovimientosAutomaticos().subscribe(evt => {this.formChange$.next('')});
+        firstValueFrom(this.apiService.setmovimientosAutomaticos(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
         break;
 
       case "ingresosPorAsistencia":
 
-        this.apiService.setingresoPorAsistencia().subscribe(evt => {this.formChange$.next('')});
+        firstValueFrom(this.apiService.setingresoPorAsistencia(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next('')))) //.subscribe(evt => {this.formChange$.next('')});
         break;
 
       case "ingresosPorAsistenciaAdministrativos":
 
-          this.apiService.setingresoPorAsistenciaAdministrativos().subscribe(evt => {this.formChange$.next('') });
-         break;
+        firstValueFrom(this.apiService.setingresoPorAsistenciaAdministrativos(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
+        break;
 
       case "ingresosArt42":
 
-         this.apiService.setingresoArt42().subscribe(evt => {this.formChange$.next('') });
+        firstValueFrom(this.apiService.setingresoArt42(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
         break;
 
       case "ingresosCoordinadorDeCuenta":
 
-        this.apiService.setingresosCoordinadorDeCuenta().subscribe(evt => {this.formChange$.next('') });
-       break;
+        firstValueFrom(this.apiService.setingresosCoordinadorDeCuenta(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
+        break;
 
       case "descuentoPorDeudaAnterior":
 
-        this.apiService.setdescuentoPorDeudaAnterior().subscribe(evt => {this.formChange$.next('') });
-       break;
+        firstValueFrom(this.apiService.setdescuentoPorDeudaAnterior(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
+        break;
 
-       case "descuentos":
+      case "descuentos":
 
-       this.apiService.setdescuentos().subscribe(evt => {this.formChange$.next('') });
-      break;
+        firstValueFrom(this.apiService.setdescuentos(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
+        break;
 
       case "movimientoAcreditacionEnCuenta":
 
-      this.apiService.setmovimientoAcreditacionEnCuenta().subscribe(evt => {this.formChange$.next('') });
-     break;
-       
+        firstValueFrom(this.apiService.setmovimientoAcreditacionEnCuenta(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
+        break;
+
       default:
         break;
+
     }
 
   }
@@ -252,10 +236,10 @@ export class LiquidacionesComponent {
       .subscribe(evt => {
       });
 
-   
+
     this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
   }
 
-  
+
 }

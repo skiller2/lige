@@ -1,4 +1,4 @@
-import { Component,ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NgForm } from '@angular/forms';
@@ -10,7 +10,7 @@ import { AngularGridInstance, AngularUtilService, Column, Editors, FileType, Gri
 import { CommonModule, NgIf } from '@angular/common';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
- import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
+import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import {
   BehaviorSubject,
   Observable,
@@ -20,6 +20,7 @@ import {
   map,
   switchMap,
   tap,
+  firstValueFrom,
 } from 'rxjs';
 
 @Component({
@@ -39,7 +40,7 @@ import {
 })
 export class LiquidacionesBancoComponent {
   @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =
-  new NgForm([], []);
+    new NgForm([], []);
   constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService) { }
   url = '/api/liquidaciones';
   url_forzado = '/api/liquidaciones/forzado';
@@ -89,9 +90,9 @@ export class LiquidacionesBancoComponent {
 
   metrics: any
   refreshMetrics(e: any) {
-    
+
     this.gridOptions.customFooterOptions!.rightFooterText = 'update'
-    this.angularGrid.slickGrid.setOptions({ customFooterOptions: { rightFooterText: 'update'} },)
+    this.angularGrid.slickGrid.setOptions({ customFooterOptions: { rightFooterText: 'update' } },)
 
     let _e = e.detail.eventData
     let args = e.detail.args
@@ -108,7 +109,7 @@ export class LiquidacionesBancoComponent {
       });
     }
   }
- 
+
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
@@ -139,7 +140,7 @@ export class LiquidacionesBancoComponent {
       this.liquidacionesForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
     }, 1);
   }
-  
+
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
@@ -158,8 +159,8 @@ export class LiquidacionesBancoComponent {
         )
         .pipe(
           map(data => {
-            console.log("imprimo",data)
-            this.gridDataLen = data.list.length 
+            console.log("imprimo", data)
+            this.gridDataLen = data.list.length
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -168,7 +169,7 @@ export class LiquidacionesBancoComponent {
     })
   )
 
-  
+
   dateChange(result: Date): void {
     this.selectedPeriod.year = result.getFullYear();
     this.selectedPeriod.month = result.getMonth() + 1;
@@ -179,17 +180,17 @@ export class LiquidacionesBancoComponent {
     this.formChange('');
   }
 
-  
+
   exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'liquidaciones-listado',
       format: FileType.xlsx
     });
   }
- 
+
   columns$ = this.apiService.getCols('/api/liquidaciones/banco/cols').pipe(map((cols) => {
-    console.log("imprimo columnas",cols)
-      return cols
+    console.log("imprimo columnas", cols)
+    return cols
   }));
 
   async liquidacionesAcciones(ev: Event) {
@@ -199,9 +200,9 @@ export class LiquidacionesBancoComponent {
     switch (value) {
       case "movimientosAutomaticos":
 
-        this.apiService.setmovimientosAutomaticos().subscribe(evt => {this.formChange$.next('')});
+        firstValueFrom(this.apiService.setmovimientosAutomaticos(this.anio, this.mes).pipe(tap(res => this.formChange$.next(''))))
         break;
-       
+
       default:
         break;
     }
@@ -218,10 +219,10 @@ export class LiquidacionesBancoComponent {
       .subscribe(evt => {
       });
 
-   
+
     this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
   }
 
-  
+
 }

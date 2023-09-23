@@ -58,7 +58,7 @@ const errorResponder = (
   let data = {}
   let message = "Error interno, avise al administrador del sistema"
   let status = 500
-
+  
   if (process.env.DEBUG) {
     console.error(error);
   }
