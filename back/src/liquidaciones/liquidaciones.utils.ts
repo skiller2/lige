@@ -1,6 +1,10 @@
 import { QueryFailedError, QueryRunner } from "typeorm";
 
 export class Utils {
+  static async getMovimientoId(queryRunner: QueryRunner) { 
+    const movimientomax = await queryRunner.query(`SELECT MAX(mov.movimiento_id) max_movimiento_id FROM lige.dbo.liqmamovimientos mov`)
+    return (movimientomax[0].max_movimiento_id != undefined) ? movimientomax[0].max_movimiento_id : 0
+  }
   static async getPeriodoId(queryRunner: QueryRunner, fechaActual: Date, anio: number, mes: number, usuario: any, ip: any) {
     let periodo_id = 0
     const periodo = await queryRunner.query(

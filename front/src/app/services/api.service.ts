@@ -327,7 +327,7 @@ export class ApiService {
   }
 
   setmovimientosAutomaticos(anio:number,mes:number) {
-    const parameter = ""
+    const parameter = {anio,mes}
     this.notification.success('Respuesta', `Inicio Carga Mov Automatico`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/movimientosAutomaticos', parameter).pipe(
@@ -346,7 +346,7 @@ export class ApiService {
 
   }
   setingresoPorAsistenciaAdministrativos(anio:number,mes:number) {
-    const parameter = ""
+    const parameter = {anio,mes}
     this.notification.success('Respuesta', `Inicio Ingreso por Asistencia Administrativos`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresoPorAsistenciaAdministrativos', parameter).pipe(
@@ -356,7 +356,7 @@ export class ApiService {
   }
 
   setingresoArt42(anio:number,mes:number) {
-    const parameter = ""
+    const parameter = {anio,mes}
     this.notification.success('Respuesta', `Inicio Ingreso por art 42`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresosArt42', parameter).pipe(
@@ -366,7 +366,7 @@ export class ApiService {
   }
 
   setingresosCoordinadorDeCuenta(anio:number,mes:number) {
-    const parameter = ""
+    const parameter = {anio,mes}
     this.notification.success('Respuesta', `Inicio Ingreso coordinador de cuenta`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresosCoordinadorDeCuenta', parameter).pipe(
@@ -376,7 +376,7 @@ export class ApiService {
   }
 
   setdescuentoPorDeudaAnterior(anio:number,mes:number) {
-    const parameter = ""
+    const parameter = {anio,mes}
     this.notification.success('Respuesta', `Inicio descuentos por deduda anterior`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/descuentoPorDeudaAnterior', parameter).pipe(
@@ -386,7 +386,7 @@ export class ApiService {
   }
 
   setdescuentos(anio:number,mes:number) {
-    const parameter = ""
+    const parameter = {anio,mes}
     this.notification.success('Respuesta', `Inicio descuentos`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/descuentos', parameter).pipe(
@@ -396,7 +396,7 @@ export class ApiService {
   }
 
   setmovimientoAcreditacionEnCuenta(anio:number,mes:number) {
-    const parameter = ""
+    const parameter = {anio,mes}
     this.notification.success('Respuesta', `Inicio movimiento Acreditacion En Cuenta`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/movimientoAcreditacionEnCuenta', parameter).pipe(

@@ -40,8 +40,7 @@ export class IngresoAsistenciaAdministrativosController extends BaseController {
 
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
 
-      const movimientomax = await queryRunner.query(`SELECT MAX(mov.movimiento_id) max_movimiento_id FROM lige.dbo.liqmamovimientos mov`)
-      let movimiento_id = (movimientomax[0].max_movimiento_id != undefined) ? movimientomax[0].max_movimiento_id : 0
+      let movimiento_id = await Utils.getMovimientoId(queryRunner)
 
       for (const row of result) {
         const detalle = `Horas ${row.totalhorascalc}, Categoría ${((row.rt14CategoriaDescripcion != undefined) ? row.rt14CategoriaDescripcion : row.CategoriaPersonalDescripcion).trim()}  `
