@@ -2,12 +2,11 @@
     <form nz-form #liquidacionesForm="ngForm">
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="2">Periodosss</nz-form-label>
+        <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
         <nz-form-control>
           <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
         </nz-form-control>
       </nz-form-item>
-
 
       <ul nz-menu nzMode="horizontal">
         <li nz-menu-item nzMatchRouter >
@@ -20,12 +19,14 @@
           
 
           <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{anio, mes, options: listOptions, cantxpag:1}"
-            httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
+            [httpBody]="{anio, mes, options: listOptions, cantxpag:1, banco:1}"
+            httpUrl="api/liquidaciones/download/comprobantes_filtrados/">
             <span nz-icon nzType="download"></span>Generar Banco ITAU
           </li>
-          <li nz-menu-item id="generacionBanco">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Generar Banco 
+          <li nz-menu-item app-down-file [httpMethod]="'POST'"
+            [httpBody]="{anio, mes, options: listOptions, cantxpag:1, banco:2}"
+            httpUrl="api/liquidaciones/download/comprobantes_filtrados/">
+            <span  nz-icon nzType="download"></span> Generar Banco Patagonia
           </li>
            
 

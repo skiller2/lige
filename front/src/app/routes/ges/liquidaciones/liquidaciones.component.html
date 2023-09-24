@@ -15,7 +15,7 @@
           <a [routerLink]="['/', 'ges', 'liquidaciones','listado']">Listado</a>
         </li>
 
-      <li nz-submenu nzTitle="Acciones" *ngIf="router.url === '/ges/liquidaciones/listado'">
+      <li nz-submenu nzTitle="Acciones">
         <ul style="width: auto !important">
           
 
@@ -50,6 +50,11 @@
       <li nz-menu-item (click)="exportGrid()">
         <span nz-icon nzType="download"></span>XLS
       </li>
+
+      <li nz-menu-item nzMatchRouter >
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'liquidaciones','cargamanual']">Carga manual</a>
+      </li>
     </ul>
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
@@ -57,6 +62,22 @@
         <a nz-tab-link routerLink="/ges/liquidaciones/listado">Listado</a>
         <ng-template nz-tab *ngIf="(columns$|async) as columnas">
           <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
+          <div class="gridContainer container-fluid" >
+            <angular-slickgrid gridId="grid22" class="" 
+              [columnDefinitions]="columnas | colsFilter"
+              [gridOptions]="gridOptions" 
+              [dataset]="(gridData$ | async) || []" 
+              (onAngularGridCreated)="angularGridReady($event)">
+          </angular-slickgrid>
+          </div>
+
+          <div>Registros: {{ gridDataLen }}</div>
+        </ng-template>
+      </nz-tab>
+      <nz-tab >
+        <a nz-tab-link routerLink="/ges/liquidaciones/cargamanual">Carga Manual</a>
+        <ng-template nz-tab *ngIf="(columns$|async) as columnas">
+          <!-- <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" /> -->
           <div class="gridContainer container-fluid" >
             <angular-slickgrid gridId="grid22" class="" 
               [columnDefinitions]="columnas | colsFilter"

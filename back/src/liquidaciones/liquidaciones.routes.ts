@@ -64,8 +64,7 @@ liquidacionesRouter.post('/banco/list', authMiddleware.verifyToken, (req, res, n
     liquidacionesBancoController.getByLiquidacionesBanco(req, res, next)
 });
 
-liquidacionesRouter.post(
-    "/download/comprobantes_filtrados/",
+liquidacionesRouter.post( "/download/comprobantes_filtrados/",
     authMiddleware.verifyToken,
     (req, res, next) => {
         liquidacionesBancoController.handleDownloadComprobantesByFiltro(req, res, next);
