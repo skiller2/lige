@@ -177,7 +177,7 @@ export class LiquidacionesBancoController extends BaseController {
 
       const responsePDFBuffer = await this.PDFmergeFromFiles(files, filesPath, cantxpag);
       //const responsePDFBuffer = new Uint8Array([17, -45.3]);
-      const filename = `${periodo.year}-${formattedMonth}-filtrado.pdf`;
+      const filename = `${periodo.year}-${formattedMonth}-liquidacion.pdf`;
 
       SendFileToDownload(res, filename, responsePDFBuffer);
     } catch (error) {

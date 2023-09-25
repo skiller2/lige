@@ -75,14 +75,16 @@
         </ng-template>
       </nz-tab>
       <nz-tab >
+       
         <a nz-tab-link routerLink="/ges/liquidaciones/cargamanual">Carga Manual</a>
         <ng-template nz-tab *ngIf="(columns$|async) as columnas">
+          <button class="btn btn-sm btn-outline-secondary" data-test="add-new-item-top-btn" (click)="addNewItem()">Agregar nuevo registro</button>
           <!-- <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" /> -->
           <div class="gridContainer container-fluid" >
-            <angular-slickgrid gridId="grid22" class="" 
-              [columnDefinitions]="columnas | colsFilter"
-              [gridOptions]="gridOptions" 
-              [dataset]="(gridData$ | async) || []" 
+            <angular-slickgrid gridId="grid23" class="" 
+              [columnDefinitions]="columnDefinitions | colsFilter"
+              [gridOptions]="gridOptionsEdit" 
+              [dataset]="gridDataInsert || []" 
               (onAngularGridCreated)="angularGridReady($event)">
           </angular-slickgrid>
           </div>

@@ -180,7 +180,7 @@ export class LiquidacionesBancoComponent {
 
     this.formChange('');
   }
-
+  
 
   exportGrid() {
     this.excelExportService.exportToExcel({
@@ -188,6 +188,8 @@ export class LiquidacionesBancoComponent {
       format: FileType.xlsx
     });
   }
+
+  
 
   columns$ = this.apiService.getCols('/api/liquidaciones/banco/cols').pipe(map((cols) => {
     console.log("imprimo columnas", cols)
