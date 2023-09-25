@@ -45,7 +45,7 @@ export class LiquidacionesController extends BaseController {
           field: "fecha",
           fieldName: "fecha",
           sortable: true,
-          searchHidden: true,
+          searchHidden: false,
           hidden: false,
         },
         {
@@ -63,9 +63,10 @@ export class LiquidacionesController extends BaseController {
           type: "string",
           id: "ObjetivoDescripcion",
           field: "ObjetivoDescripcion",
-          fieldName: "obj.ObjetivoDescripcion",
+          fieldName: "li.periodo_id",
+          searchComponent: "inpurForObjetivoSearch",
+          searchType: "number",
           sortable: true,
-          hidden: false,
           searchHidden: false
         },
         {
@@ -73,11 +74,13 @@ export class LiquidacionesController extends BaseController {
           type: "string",
           id: "ApellidoNombre",
           field: "ApellidoNombre",
-          fieldName: "ApellidoNombre",
+          fieldName: "li.persona_id",
+          searchComponent: "inpurForPersonalSearch",
+          searchType: "number",
           sortable: true,
+          searchHidden: false,
           hidden: false,
-          searchHidden: false
-        },
+            },
         {
           name: "Importe",
           type: "currency",
