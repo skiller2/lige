@@ -100,20 +100,29 @@ export class LiquidacionesController extends BaseController {
     res: Response, next: NextFunction
   ) {
 
+    const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
+    const orderBy = orderToSQL(req.body.options.sort)
+    const anio = Number(req.body.anio)
+    const mes = Number(req.body.mes)
+
+
     try {
 
-      const adelantos = await dataSource.query(
+      const liqudacion = await dataSource.query(
         `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,obj.ObjetivoDescripcion,CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
         li.importe * tipomo.signo AS importe FROM lige.dbo.liqmamovimientos AS li 
         INNER JOIN lige.dbo.liqcotipomovimiento AS tipomo ON li.tipo_movimiento_id = tipomo.tipo_movimiento_id 
         INNER JOIN lige.dbo.liqmaperiodo AS per ON li.periodo_id = per.periodo_id 
         LEFT JOIN ERP_Produccion.dbo.Personal AS pers ON li.persona_id = pers.PersonalId
-        LEFT JOIN ERP_Produccion.dbo.Objetivo AS obj ON li.objetivo_id = obj.ObjetivoId`)
+        LEFT JOIN ERP_Produccion.dbo.Objetivo AS obj ON li.objetivo_id = obj.ObjetivoId
+        WHERE per.anio = @0 AND per.mes = @1 AND (${filterSql}) 
+       ${orderBy}
+        `,[anio,mes])
 
         this.jsonRes(
             {
-              total: adelantos.length,
-              list: adelantos,
+              total: liqudacion.length,
+              list: liqudacion,
             },
             res
           );

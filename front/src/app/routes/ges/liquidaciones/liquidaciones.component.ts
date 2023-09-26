@@ -6,7 +6,7 @@ import { SharedModule, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
-import { AngularGridInstance, AngularUtilService, Column, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Formatters,FieldType ,Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -46,14 +46,16 @@ export class LiquidacionesComponent {
   url_forzado = '/api/liquidaciones/forzado';
   formChange$ = new BehaviorSubject('');
   files: NzUploadFile[] = [];
+  columnDefinitions: Column[] = [];
   toggle = false;
   detailViewRowCount = 9;
   gridDataLen = 0
   tableLoading$ = new BehaviorSubject(false);
   filesChange$ = new BehaviorSubject('');
   gridOptions!: GridOption;
+  gridOptionsEdit! : GridOption;
   selectedPeriod = { year: 0, month: 0 };
-
+ gridDataInsert = []
 
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
@@ -229,7 +231,102 @@ export class LiquidacionesComponent {
   resizeObservable$: Observable<Event> | undefined;
   resizeSubscription$: Subscription | undefined;
 
+
   async ngOnInit() {
+
+    this.columnDefinitions = [
+      {
+        id: 'delete',
+        field: 'id',
+        excludeFromHeaderMenu: true,
+        formatter: Formatters.deleteIcon,
+        maxWidth: 30,
+      },
+      {
+        id: 'periodo', name: 'Periodo', field: 'periodo',
+        sortable: true,
+        type: FieldType.string,
+        maxWidth: 60,
+      },
+      {
+        id: 'des_movimiento', name: 'Tipo Movimiento', field: 'des_movimiento',
+        sortable: true,
+        type: FieldType.string,
+        maxWidth: 200,
+        editor: {
+          model: Editors.text
+        }
+      },
+      {
+        id: 'fecha', name: 'Fecha', field: 'fecha',
+        formatter: Formatters.dateIso, sortable: true,
+        type: FieldType.date,
+        maxWidth: 120,
+      },
+      {
+        id: 'detalle', name: 'Detalle', field: 'detalle',
+        sortable: true,
+        type: FieldType.string,
+        maxWidth: 200,
+        editor: {
+          model: Editors.text
+        }
+      },
+      {
+        id: 'ObjetivoDescripcion', name: 'Objetivo', field: 'ObjetivoDescripcion',
+        sortable: true,
+        type: FieldType.string,
+        maxWidth: 200,
+        filter: {
+          // model: new CustomAngularComponentFilter(), // create a new instance to make each Filter independent from each other
+          //collection: this.ObjetivoDescripcion,
+          params: {
+            component: FiltroBuilderComponent,
+          }
+        },
+        queryFieldFilter: 'assignee.id', // for a complex object it's important to tell the Filter which field to query and our CustomAngularComponentFilter returns the "id" property
+        queryFieldSorter: 'assignee.name',
+      },
+      {
+        id: 'ApellidoNombre', name: 'Persona', field: 'ApellidoNombre',
+        sortable: true,
+        type: FieldType.string,
+        maxWidth: 200,
+        filter: {
+          // model: new CustomAngularComponentFilter(), // create a new instance to make each Filter independent from each other
+          //collection: this.ObjetivoDescripcion,
+          params: {
+            component: FiltroBuilderComponent,
+          }
+        },
+        queryFieldFilter: 'assignee.id', // for a complex object it's important to tell the Filter which field to query and our CustomAngularComponentFilter returns the "id" property
+        queryFieldSorter: 'assignee.name',
+      },
+      {
+        id: 'monto', name: 'Monto', field: 'monto',
+        sortable: true,
+        type: FieldType.string,
+        maxWidth: 200,
+        editor: {
+          model: Editors.text
+        }
+      }
+    ];
+
+    this.gridOptionsEdit = {
+      asyncEditorLoading: false,
+      autoResize: {
+        container: '#demo-container',
+        rightPadding: 2
+      },
+      editable: true,
+      enableColumnPicker: true,
+      enableCellNavigation: true,
+      enableRowSelection: true
+    };
+  
+
+
     this.resizeObservable$ = fromEvent(window, 'resize');
     this.resizeSubscription$ = this.resizeObservable$
       .pipe(debounceTime(500))
@@ -239,6 +336,48 @@ export class LiquidacionesComponent {
 
     this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
+
+    
+  }
+
+  
+
+  addNewItem(insertPosition?: 'top') {
+
+   
+    const newItem1 = this.createNewItem(1);
+
+    // single insert
+    this.angularGrid.gridService.addItem(newItem1, { position: insertPosition });
+
+    // OR multiple inserts
+    // this.angularGrid.gridService.addItems([newItem1, newItem2], { position: insertPosition });
+  }
+
+  createNewItem(incrementIdByHowMany = 1) {
+    const dataset = this.angularGrid.dataView.getItems();
+    let highestId = 0;
+    dataset.forEach((item: any) => {
+      if (item.id > highestId) {
+        highestId = item.id;
+      }
+    });
+    const newId = highestId + incrementIdByHowMany;
+    const periodo = this.liquidacionesForm.form.get('periodo')?.value
+    let periodoM = periodo.getMonth() + 1
+    let periodoY = periodo.getFullYear()
+
+    const fechaActual = new Date();
+    const dia = fechaActual.getDate();
+    const mes = fechaActual.getMonth() + 1; // Agrega 1 porque los meses se indexan desde 0 (0 = enero)
+    const anio = fechaActual.getFullYear();
+
+    return {
+      id: newId,
+      periodo: periodoM + "/" + periodoY,
+      fecha: new Date(),
+      detalle: ""
+    };
   }
 
 

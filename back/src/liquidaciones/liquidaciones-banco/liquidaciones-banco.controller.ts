@@ -5,6 +5,16 @@ import { LiqBanco } from "../../schemas/ResponseJSON";
 import { Filtro, Options } from "../../schemas/filtro";
 import path from "path";
 import {
+  PDFDocument,
+  PDFEmbeddedPage,
+  PDFPage,
+  PDFPageDrawPageOptions,
+  PageSizes,
+  degrees,
+  rgb,
+} from "pdf-lib";
+
+import {
   copyFileSync,
   existsSync,
   mkdirSync,
@@ -104,6 +114,10 @@ export class LiquidacionesBancoController extends BaseController {
     req: any,
     res: Response, next: NextFunction
   ) {
+    const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
+    const orderBy = orderToSQL(req.body.options.sort)
+    const anio = Number(req.body.anio)
+    const mes = Number(req.body.mes)
 
     try {
 
@@ -117,6 +131,8 @@ export class LiquidacionesBancoController extends BaseController {
         LEFT JOIN ERP_Produccion.dbo.PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM ERP_Produccion.dbo.PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
 
         LEFT JOIN ERP_Produccion.dbo.banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+        WHERE (${filterSql}) 
+        ${orderBy}
         `)
 
       this.jsonRes(
@@ -138,6 +154,7 @@ export class LiquidacionesBancoController extends BaseController {
 
   async handleDownloadComprobantesByFiltro(req: Request, res: Response, next: NextFunction) {
     try {
+      console.log("llegueeeeeeeeeeeeeeeeeeeeeeeeeeee")
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
       req.body.options.sort = [{ fieldName: 'ApellidoNombre', direction: 'ASC' }]
@@ -166,9 +183,9 @@ export class LiquidacionesBancoController extends BaseController {
           };
         });
 
-      // const responsePDFBuffer = await this.PDFmergeFromFiles(files, filesPath, cantxpag);
-      const responsePDFBuffer = new Uint8Array([17, -45.3]);
-      const filename = `${periodo.year}-${formattedMonth}-filtrado.pdf`;
+      const responsePDFBuffer = await this.PDFmergeFromFiles(files, filesPath, cantxpag);
+      //const responsePDFBuffer = new Uint8Array([17, -45.3]);
+      const filename = `${periodo.year}-${formattedMonth}-liquidacion.pdf`;
 
       SendFileToDownload(res, filename, responsePDFBuffer);
     } catch (error) {
@@ -193,177 +210,138 @@ export class LiquidacionesBancoController extends BaseController {
   }
 
 
-  // async PDFmergeFromFiles(
-  //     files: {
-  //       name: string;
-  //       apellidoNombre: string;
-  //     }[],
-  //     filesPath: string,
-  //     cantxpag: number
-  //   ) {
-  //     const newDocument = await PDFDocument.create();
-  //     let currentFileBuffer: Buffer;
-  //     let currentFilePDF: PDFDocument;
-  //     let currentFilePDFPage: PDFPage;
-  //     let lastPage: PDFPage;
+  async PDFmergeFromFiles(
+    files: {
+      name: string;
+      apellidoNombre: string;
+    }[],
+    filesPath: string,
+    cantxpag: number
+  ) {
+    const newDocument = await PDFDocument.create();
+    let currentFileBuffer: Buffer;
+    let currentFilePDF: PDFDocument;
+    let currentFilePDFPage: PDFPage;
+    let lastPage: PDFPage;
 
-  //     for (const [index, file] of files.entries()) {
-  //       const locationIndex = (cantxpag==4)?index % 4 :0
-  //       currentFileBuffer = null;
-  //       currentFilePDF = null;
-  //       currentFilePDFPage = null;
+    for (const [index, file] of files.entries()) {
+      const locationIndex = (cantxpag == 4) ? index % 4 : 0
+      currentFileBuffer = null;
+      currentFilePDF = null;
+      currentFilePDFPage = null;
 
-  //       if (locationIndex === 0) lastPage = newDocument.addPage(PageSizes.A4);
+      if (locationIndex === 0) lastPage = newDocument.addPage(PageSizes.A4);
 
-  //       const filePath = path.join(filesPath, file.name);
-  //       const fileExists = existsSync(filePath);
+      const filePath = path.join(filesPath, file.name);
+      const fileExists = existsSync(filePath);
 
-  //       const pageWidth = lastPage.getWidth();
-  //       const pageHeight = lastPage.getHeight();
+      const pageWidth = lastPage.getWidth();
+      const pageHeight = lastPage.getHeight();
 
-  //       if (fileExists) {
-  //         currentFileBuffer = readFileSync(filePath);
-  //         currentFilePDF = await PDFDocument.load(currentFileBuffer);
-  //         currentFilePDFPage = currentFilePDF.getPages()[0];
+      if (fileExists) {
+        currentFileBuffer = readFileSync(filePath);
+        currentFilePDF = await PDFDocument.load(currentFileBuffer);
+        currentFilePDFPage = currentFilePDF.getPages()[0];
 
-  //         let embeddedPage: PDFEmbeddedPage = null;
-  //         let origenComprobante = "";
+        let embeddedPage: PDFEmbeddedPage = null;
+        let origenComprobante = "";
 
-  //         if (
-  //           currentFilePDFPage.getWidth() == 595.276 &&
-  //           currentFilePDFPage.getHeight() == 841.89
-  //         ) {
-  //           origenComprobante = "PAGO"
-  //           embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
-  //             top: 790,
-  //             bottom: 410,
-  //             left: 53,
-  //             right: 307,
-  //           });
-  //         } else if (
-  //           currentFilePDFPage.getWidth() == 598 &&
-  //           currentFilePDFPage.getHeight() == 845
-  //         ) {
-  //           origenComprobante = "AFIP"
-  //           embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
-  //             top: 808,
-  //             bottom: 385,
-  //             left: 37,
-  //             right: 560,
-  //           });
-  //         } else {
-  //           embeddedPage = await newDocument.embedPage(currentFilePDFPage);
-  //         }
+        if (
+          currentFilePDFPage.getWidth() == 595.276 &&
+          currentFilePDFPage.getHeight() == 841.89
+        ) {
+          origenComprobante = "PAGO"
+          embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
+            top: 790,
+            bottom: 410,
+            left: 53,
+            right: 307,
+          });
+        } else if (
+          currentFilePDFPage.getWidth() == 598 &&
+          currentFilePDFPage.getHeight() == 845
+        ) {
+          origenComprobante = "AFIP"
+          embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
+            top: 808,
+            bottom: 385,
+            left: 37,
+            right: 560,
+          });
+        } else {
+          embeddedPage = await newDocument.embedPage(currentFilePDFPage);
+        }
 
-  //         const imgWidthScale = (pageWidth / 2 - 20) / embeddedPage.width;
-  //         const imgHeightScale = (pageHeight / 2 - 20) / embeddedPage.height;
-  //         const scalePage = embeddedPage.scale(
-  //           Math.min(imgWidthScale, imgHeightScale)
-  //         );
+        const imgWidthScale = (pageWidth / 2 - 20) / embeddedPage.width;
+        const imgHeightScale = (pageHeight / 2 - 20) / embeddedPage.height;
+        const scalePage = embeddedPage.scale(
+          Math.min(imgWidthScale, imgHeightScale)
+        );
 
-  //         const positionFromIndex: PDFPageDrawPageOptions = {
-  //           x:
-  //             locationIndex % 2 == 0
-  //               ? Math.abs(pageWidth / 2 - scalePage.width) / 2
-  //               : (Math.abs(pageWidth / 2 - scalePage.width) + pageWidth) / 2,
-  //           y:
-  //             locationIndex < 2
-  //               ? (Math.abs(pageHeight / 2 - scalePage.height) + pageHeight) / 2
-  //               : Math.abs(pageHeight / 2 - scalePage.height) / 2,
-  //           width: scalePage.width,
-  //           height: scalePage.height,
-  //         };
+        const positionFromIndex: PDFPageDrawPageOptions = {
+          x:
+            locationIndex % 2 == 0
+              ? Math.abs(pageWidth / 2 - scalePage.width) / 2
+              : (Math.abs(pageWidth / 2 - scalePage.width) + pageWidth) / 2,
+          y:
+            locationIndex < 2
+              ? (Math.abs(pageHeight / 2 - scalePage.height) + pageHeight) / 2
+              : Math.abs(pageHeight / 2 - scalePage.height) / 2,
+          width: scalePage.width,
+          height: scalePage.height,
+        };
 
-  //         lastPage.drawPage(embeddedPage, { ...positionFromIndex });
-
-
-  //         switch (origenComprobante) {
-  //           case "AFIP":
-  //             lastPage.drawText(
-  //               `Responsable: ${file.apellidoNombreJ}`,
-  //               {
-  //                 x: positionFromIndex.x + 22,
-  //                 y: positionFromIndex.y + 25,
-  //                 size: 5,
-  //                 color: rgb(0, 0, 0),
-  //                 lineHeight: 6,
-  //                 //opacity: 0.75,
-  //               }
-  //             );
-
-  //             lastPage.drawText(
-  //               `COMPROBANTE DE PAGO`,
-  //               {
-  //                 x: positionFromIndex.x + 125,
-  //                 y: positionFromIndex.y + 215,
-  //                 size: 8,
-  //                 color: rgb(0, 0, 0),
-  //                 lineHeight: 6,
-  //                 //opacity: 0.75,
-  //               }
-  //             );
+        lastPage.drawPage(embeddedPage, { ...positionFromIndex });
 
 
-  //             lastPage.drawText(
-  //               `352-CONTRIBUCIONES OBRA SOCIAL`,
-  //               {
-  //                 x: positionFromIndex.x + 123,
-  //                 y: positionFromIndex.y + 95,
-  //                 size: 4.5,
-  //                 color: rgb(0, 0, 0),
-  //                 lineHeight: 6,
-  //                 //opacity: 0.75,
-  //               }
-  //             );
+        switch (origenComprobante) {
+          case "PAGO":
+            lastPage.drawText(
+              `${file.apellidoNombre}\n\nResponsable: ${file.apellidoNombre}`,
+              {
+                x: positionFromIndex.x + 22,
+                y: positionFromIndex.y + 60,
+                size: 10,
+                color: rgb(0, 0, 0),
+                lineHeight: 6,
+                //opacity: 0.75,
+              }
+            );
 
-  //             break
-  //           case "PAGO":
-  //             lastPage.drawText(
-  //               `${file.apellidoNombre}\n\nResponsable: ${file.apellidoNombreJ}`,
-  //               {
-  //                 x: positionFromIndex.x + 22,
-  //                 y: positionFromIndex.y + 60,
-  //                 size: 10,
-  //                 color: rgb(0, 0, 0),
-  //                 lineHeight: 6,
-  //                 //opacity: 0.75,
-  //               }
-  //             );
+            break
+          default:
+            lastPage.drawText(
+              `${file.apellidoNombre}\n\nResponsable: ${file.apellidoNombre}`,
+              {
+                x: positionFromIndex.x + 22,
+                y: positionFromIndex.y + 60,
+                size: 10,
+                color: rgb(0, 0, 0),
+                lineHeight: 6,
+                //opacity: 0.75,
+              }
+            );
 
-  //             break
-  //           default:
-  //             lastPage.drawText(
-  //               `${file.apellidoNombre}\n\nResponsable: ${file.apellidoNombreJ}`,
-  //               {
-  //                 x: positionFromIndex.x + 22,
-  //                 y: positionFromIndex.y + 60,
-  //                 size: 10,
-  //                 color: rgb(0, 0, 0),
-  //                 lineHeight: 6,
-  //                 //opacity: 0.75,
-  //               }
-  //             );
-
-  //             break
-  //         }
+            break
+        }
 
 
-  //         // newPage.drawText(`Comprobante: ${file.name}`);
-  //       } else {
-  //         const positionFromIndex: PDFPageDrawPageOptions = {
-  //           x: locationIndex % 2 == 0 ? 20 : pageWidth / 2 + 20,
-  //           y: locationIndex < 2 ? pageHeight / 2 + 20 : 20,
-  //         };
-  //         lastPage.drawText(`Falta el comprobante: ${file.name}`, {
-  //           ...positionFromIndex,
-  //           size: 15,
-  //           rotate: degrees(65),
-  //         });
-  //       }
-  //     }
+        // newPage.drawText(`Comprobante: ${file.name}`);
+      } else {
+        const positionFromIndex: PDFPageDrawPageOptions = {
+          x: locationIndex % 2 == 0 ? 20 : pageWidth / 2 + 20,
+          y: locationIndex < 2 ? pageHeight / 2 + 20 : 20,
+        };
+        lastPage.drawText(`Falta el comprobante: ${file.name}`, {
+          ...positionFromIndex,
+          size: 15,
+          rotate: degrees(65),
+        });
+      }
+    }
 
-  //     return newDocument.save();
-  //   }
+    return newDocument.save();
+  }
 
 
 

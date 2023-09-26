@@ -159,7 +159,8 @@ export class LiquidacionesBancoComponent {
         )
         .pipe(
           map(data => {
-            console.log("imprimo", data)
+            this.anio = periodo.getFullYear();
+            this.mes = periodo.getMonth();
             this.gridDataLen = data.list.length
             return data.list
           }),
@@ -179,7 +180,7 @@ export class LiquidacionesBancoComponent {
 
     this.formChange('');
   }
-
+  
 
   exportGrid() {
     this.excelExportService.exportToExcel({
@@ -187,6 +188,8 @@ export class LiquidacionesBancoComponent {
       format: FileType.xlsx
     });
   }
+
+  
 
   columns$ = this.apiService.getCols('/api/liquidaciones/banco/cols').pipe(map((cols) => {
     console.log("imprimo columnas", cols)
