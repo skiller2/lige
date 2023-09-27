@@ -2,6 +2,7 @@ import { DBServer, WebServer } from "./server";
 import { makeRoutes } from "./routes/routes.module"
 import { dataSource } from "./data-source";
 import { scheduleJob } from "node-schedule"
+import { Response } from "express"
 import { CategoriasController } from "./categorias-cambio/categorias-cambio.controller";
 
 require("dotenv").config();
@@ -13,13 +14,15 @@ const categoriasController = new CategoriasController()
 
 
 scheduleJob('*/1 * * * *', async function (fireDate) {
-//  const ret = await categoriasController.procesaCambios(null, null, (ret: any) => ret)
-//  console.log(`job run at ${fireDate}, response: ${ret}`);
+//  const ret = await categoriasController.procesaCambios(null, res, (ret: any) => ret)
+//  console.log(`job run at ${fireDate}, response: ${ret}`, ret);
 });
 
 
 scheduleJob('1 0 * * *', async function (fireDate) {
-  const ret = await categoriasController.procesaCambios(null, null, (ret: any) => ret)
+  //TODO Se debería instanciar Response correctamente
+  let res: Response = { locals: { stopTime: null }, status: (s) => { return { json: (j) => { return j } } } }
+  const ret = await categoriasController.procesaCambios(null, res, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 

@@ -191,15 +191,11 @@ export class LiquidacionesComponent {
         firstValueFrom(this.apiService.setingresoPorAsistencia(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next('')))) //.subscribe(evt => {this.formChange$.next('')});
         break;
 
-      case "ingresosPorAsistenciaAdministrativos":
+      case "ingresosPorAsistenciaAdministrativosArt42":
 
-        firstValueFrom(this.apiService.setingresoPorAsistenciaAdministrativos(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.setingresoPorAsistenciaAdministrativosArt42(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
         break;
 
-      case "ingresosArt42":
-
-        firstValueFrom(this.apiService.setingresoArt42(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
-        break;
 
       case "ingresosCoordinadorDeCuenta":
 

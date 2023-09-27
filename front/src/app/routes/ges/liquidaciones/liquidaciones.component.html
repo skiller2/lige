@@ -17,19 +17,11 @@
 
       <li nz-submenu nzTitle="Acciones">
         <ul style="width: auto !important">
-          
-
-          <li nz-menu-item id="movimientosAutomaticos" (click)="liquidacionesAcciones($event)" >
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Carga de movs automático
-          </li>
           <li nz-menu-item id="ingresosPorAsistencia" (click)="liquidacionesAcciones($event)">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por asistencia
           </li>
-          <li nz-menu-item id="ingresosPorAsistenciaAdministrativos" (click)="liquidacionesAcciones($event)">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por asistencia administrativos
-          </li>
-          <li nz-menu-item id="ingresosArt42" (click)="liquidacionesAcciones($event)">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por art42 Lincencia
+          <li nz-menu-item id="ingresosPorAsistenciaAdministrativosArt42" (click)="liquidacionesAcciones($event)">
+            <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por asistencia administrativos y Art.42
           </li>
           <li nz-menu-item  id="ingresosCoordinadorDeCuenta" (click)="liquidacionesAcciones($event)">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por coordinador de cuenta
@@ -43,6 +35,9 @@
           <li nz-menu-item id="movimientoAcreditacionEnCuenta" (click)="liquidacionesAcciones($event)">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Movimiento de acreditación en cuenta
           </li> 
+          <li nz-menu-item id="movimientosAutomaticos" (click)="liquidacionesAcciones($event)" >
+            <span nz-icon nzType="plus" nzTheme="outline"></span> Carga de movs automático
+          </li>
 
         </ul>
         

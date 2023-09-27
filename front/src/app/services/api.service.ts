@@ -345,21 +345,11 @@ export class ApiService {
     )
 
   }
-  setingresoPorAsistenciaAdministrativos(anio:number,mes:number) {
+  setingresoPorAsistenciaAdministrativosArt42(anio:number,mes:number) {
     const parameter = {anio,mes}
     this.notification.success('Respuesta', `Inicio Ingreso por Asistencia Administrativos`);
 
-    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresoPorAsistenciaAdministrativos', parameter).pipe(
-      tap(res => this.response(res)),
-    )
-
-  }
-
-  setingresoArt42(anio:number,mes:number) {
-    const parameter = {anio,mes}
-    this.notification.success('Respuesta', `Inicio Ingreso por art 42`);
-
-    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresosArt42', parameter).pipe(
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresoPorAsistenciaAdministrativosArt42', parameter).pipe(
       tap(res => this.response(res)),
     )
 

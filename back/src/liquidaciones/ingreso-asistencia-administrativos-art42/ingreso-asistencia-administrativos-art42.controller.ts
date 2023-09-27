@@ -4,9 +4,10 @@ import { QueryFailedError } from "typeorm";
 import { NextFunction, Request, Response } from "express";
 import { ParsedQs } from "qs";
 import { Utils } from "../liquidaciones.utils";
+import { AsistenciaController } from "../../controller/asistencia.controller";
 
 
-export class IngresoAsistenciaAdministrativosController extends BaseController {
+export class IngresoAsistenciaAdministrativosArt42Controller extends BaseController {
 
  
   async procesaCambios(req: any, res: Response, next: NextFunction) {
@@ -23,10 +24,10 @@ export class IngresoAsistenciaAdministrativosController extends BaseController {
         throw new ClientException("Tipo de monvimiento 'MOV_ASISTENCIA_ADMINISTRA' no definindo en .env ")
 
 
-      if (anio < 2000)
+        if (anio < 2000 || isNaN(anio))
         throw new ClientException(`Año ${anio} no válido `)
 
-      if (mes > 12 || mes < 1)
+      if (mes > 12 || mes < 1 || isNaN(mes))
         throw new ClientException(`Mes ${mes} no válido `)
 
 
@@ -36,14 +37,21 @@ export class IngresoAsistenciaAdministrativosController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      const result = []
-
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+
+      await queryRunner.query(
+        `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `,[ periodo_id, tipo_movimiento_id ])
+
+      const result = await AsistenciaController.getAsistenciaAdminArt42(anio,mes,queryRunner,[])
+
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
 
       for (const row of result) {
-        const detalle = `Horas ${row.totalhorascalc}, Categoría ${((row.rt14CategoriaDescripcion != undefined) ? row.rt14CategoriaDescripcion : row.CategoriaPersonalDescripcion).trim()}  `
+//        if (row.total == 0)
+//          continue 
+          
+        const detalle= (row.ValorLiquidacionSumaFija>0)? `Suma Fija`: `Horas ${(row.horas_fijas>0)?row.horas_fijas:row.horas_reales}` + `Categoría ${row.CategoriaPersonalDescripcion.trim()} ${(row.SucursalAsistenciaAnoMesPersonalDiasCualArt42>0)? 'AP'+row.SucursalAsistenciaAnoMesPersonalDiasCualArt42:''} ` 
         await queryRunner.query(
           `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
@@ -55,9 +63,9 @@ export class IngresoAsistenciaAdministrativosController extends BaseController {
             tipo_movimiento_id,
             fechaActual,
             detalle,
-            row.ObjetivoId,
-            row.PersonalId,
-            row.totalminutoscalcimporteconart14,
+            null,
+            row.SucursalAsistenciaMesPersonalId,
+            row.total,
             usuario, ip, fechaActual, usuario, ip, fechaActual,
           ]
         );
