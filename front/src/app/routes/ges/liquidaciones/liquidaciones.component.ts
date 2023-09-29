@@ -275,15 +275,17 @@ export class LiquidacionesComponent {
         sortable: true,
         type: FieldType.string,
         maxWidth: 200,
-        filter: {
-          // model: new CustomAngularComponentFilter(), // create a new instance to make each Filter independent from each other
-          //collection: this.ObjetivoDescripcion,
+        formatter: Formatters.complexObject,
+        params: {
+          complexFieldLabel: 'ObjetivoDescripcion.fullName',
+        },        
+        editor: {
+          model: CustomGridEditor,
+          collection: [],
           params: {
-            component: FiltroBuilderComponent,
+            component: EditorPersonaComponent,
           }
         },
-        queryFieldFilter: 'assignee.id', // for a complex object it's important to tell the Filter which field to query and our CustomAngularComponentFilter returns the "id" property
-        queryFieldSorter: 'assignee.name',
       },
       {
         id: 'ApellidoNombre', name: 'Persona', field: 'ApellidoNombre',
@@ -301,15 +303,6 @@ export class LiquidacionesComponent {
             component: EditorPersonaComponent,
           }
         },
-        filter: {
-          // model: new CustomAngularComponentFilter(), // create a new instance to make each Filter independent from each other
-          //collection: this.ObjetivoDescripcion,
-          params: {
-            component: FiltroBuilderComponent,
-          }
-        },
-        queryFieldFilter: 'assignee.id', // for a complex object it's important to tell the Filter which field to query and our CustomAngularComponentFilter returns the "id" property
-        queryFieldSorter: 'assignee.name',
       },
       {
         id: 'monto', name: 'Monto', field: 'monto',
