@@ -283,7 +283,7 @@ export class DetalleAsistenciaComponent {
     this.$searchObjetivoChange.next(event);
   }
 
-  buscarPorPersona(PersonalId: string) {
+   buscarPorPersona(PersonalId: string) {
     this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
 //    this.router.navigate(['/ges/detalle_asistencia/persona', { state: { PersonalId } }])
     this.router.navigateByUrl('/ges/detalle_asistencia/persona', { state: { PersonalId } });

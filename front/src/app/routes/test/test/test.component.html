@@ -11,11 +11,12 @@
 
 
 <nz-card class="demo-container">
-  <angular-slickgrid gridId="grid21"
-  [gridOptions]="gridOptions"
-  [dataset]="dataset"
-  (onAngularGridCreated)="angularGridReady($event)">
-</angular-slickgrid>
+  <app-personal-search [(ngModel)]="selectedId" [ngModelOptions]="{ standalone: true }"
+  (change)="onChange($event)" (ngModelChange)="onModelChange($event)" [(valueExtended)]="valueExtended" />
 
+  <input [(ngModel)]="selectedId">
 
+  <button (click)="onClick($event)" >SET 699</button>
+
+  <p>Valor Extendido {{ this.valueExtended | json }}</p>
 </nz-card>

@@ -22,6 +22,8 @@ import {
   tap,
   firstValueFrom,
 } from 'rxjs';
+import { CustomGridEditor } from 'src/app/shared/custom-grid-editor/custom-grid-editor.component';
+import { EditorPersonaComponent } from 'src/app/shared/editor-persona/editor-persona.component';
 
 @Component({
   selector: 'app-liquidaciones',
@@ -143,8 +145,8 @@ export class LiquidacionesComponent {
         )
         .pipe(
           map(data => {
-            this.gridDataLen = data.list.length
-            return data.list
+            this.gridDataLen = data?.list?.length
+            return data?.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
           tap({ complete: () => this.tableLoading$.next(false) })
@@ -288,6 +290,17 @@ export class LiquidacionesComponent {
         sortable: true,
         type: FieldType.string,
         maxWidth: 200,
+        formatter: Formatters.complexObject,
+        params: {
+          complexFieldLabel: 'ApellidoNombre.fullName',
+        },        
+        editor: {
+          model: CustomGridEditor,
+          collection: [],
+          params: {
+            component: EditorPersonaComponent,
+          }
+        },
         filter: {
           // model: new CustomAngularComponentFilter(), // create a new instance to make each Filter independent from each other
           //collection: this.ObjetivoDescripcion,
@@ -309,20 +322,13 @@ export class LiquidacionesComponent {
       }
     ];
 
-    this.gridOptionsEdit = {
-      asyncEditorLoading: false,
-      autoResize: {
-        container: '#demo-container',
-        rightPadding: 2
-      },
-      editable: true,
-      enableColumnPicker: true,
-      enableCellNavigation: true,
-      enableRowSelection: true
-    };
+    this.gridOptionsEdit = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptionsEdit.editable = true
+    this.gridOptionsEdit.enableColumnPicker = true
+    this.gridOptionsEdit.enableCellNavigation = true
+    this.gridOptionsEdit.enableRowSelection = true
+    this.gridOptionsEdit.enableRowDetailView = false
   
-
-
     this.resizeObservable$ = fromEvent(window, 'resize');
     this.resizeSubscription$ = this.resizeObservable$
       .pipe(debounceTime(500))

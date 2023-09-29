@@ -1,8 +1,9 @@
-import { Component, Input, Output, forwardRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, forwardRef } from '@angular/core';
 import {
   BehaviorSubject,
   Observable,
   debounceTime,
+  noop,
   switchMap,
   tap,
 } from 'rxjs';
@@ -25,34 +26,71 @@ import { doOnSubscribe } from 'src/app/services/api.service';
   ],
 })
 export class PersonalSearchComponent implements ControlValueAccessor {
-  constructor(private searchService: SearchService) {}
+  constructor(private searchService: SearchService) { }
 
-  _selectedPersonalId = '';
+  _selectedPersonalId:string = ''
+  _selected = '';
   _selectedCuit = new BehaviorSubject('Falta');
+  private propagateTouched: () => void = noop;
+  private propagateChange: (_: any) => void = noop;
+
 
   get selectedPersonalId() {
     return this._selectedPersonalId;
   }
 
-  set selectedPersonalId(val) {
-    this._selectedPersonalId = val;
-    this.selectedValueChange(val);
-    this.propagateChange(this._selectedPersonalId);
+  set selectedPersonalId(val: string) {
+    val = (val === null || val === undefined)? '':val
+    if (val !== this._selectedPersonalId) {
+      this._selectedPersonalId = val;
+
+      if (!this._selectedPersonalId && this._selectedPersonalId !==null) {
+        this.valueExtendedEmitter.emit(null)
+        this.propagateChange(this._selectedPersonalId);
+        return
+      };
+
+      this.searchService
+        .getPersonFromName('PersonalId', this._selectedPersonalId)
+        .subscribe(info => {
+          this.valueExtendedEmitter.emit(info[0])
+          this._selected = this._selectedPersonalId
+          this.propagateChange(this._selectedPersonalId);
+  
+        });
+    }
   }
 
   writeValue(value: any) {
-    if (value !== undefined) {
+    if (value !== this._selectedPersonalId) {
       this.selectedPersonalId = value;
     }
   }
-  propagateChange = (_: any) => {};
 
   registerOnChange(fn: any) {
     this.propagateChange = fn;
   }
 
-  registerOnTouched() {}
-  selectedInfoChange$ = new BehaviorSubject<Search[] | null>(null);
+  onBlur() {
+    this.propagateTouched();
+  }
+
+  onChange() {
+//    console.log('onChange')
+    this.propagateChange(this._selectedPersonalId);
+  }
+
+  onRemove() {
+  //  console.log('onRemove')
+  }
+
+  registerOnTouched(fn: any) {
+    this.propagateTouched = fn;
+  }
+
+  @Input() valueExtended: any;
+  @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>();
+
 
   $searchChange = new BehaviorSubject('');
   $isOptionsLoading = new BehaviorSubject<boolean>(false);
@@ -70,14 +108,6 @@ export class PersonalSearchComponent implements ControlValueAccessor {
 
   modelChange(event: string) {
     this.selectedPersonalId = event;
-  }
-  selectedValueChange(event: string): void {
-    if (!event) return;
-    this.searchService
-      .getPersonFromName('PersonalId', event)
-      .subscribe(info => {
-        this.selectedInfoChange$.next(info);
-      });
   }
 
   search(value: string): void {

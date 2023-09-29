@@ -958,6 +958,11 @@ $slick-pagination-icon-seek-prev:                           url('data:image/svg+
   }
 }
 
+.slick-cell.selected.active.editable {
+  margin:0;
+  padding:0;
+}
+
 /*  Definir iconos por CSS 
 .mio {
   &:before {

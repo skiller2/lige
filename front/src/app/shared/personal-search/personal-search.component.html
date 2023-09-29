@@ -1,5 +1,6 @@
 <nz-select
-  [(ngModel)]="selectedPersonalId"  
+ngModel
+  [(ngModel)]="_selected"  
   [nzDropdownMatchSelectWidth]="false"
   [ngModelOptions]="{ standalone: true }"
   style="width: 100%"
@@ -15,8 +16,8 @@
       [nzValue]="option.PersonalId"
       [nzLabel]="option.fullName" />
   </ng-container>
-  <ng-container *ngFor="let option of selectedInfoChange$ | async">
-    <nz-option
+  <ng-container *ngFor="let option of valueExtendedEmitter | async">
+    <nz-option selected
       *ngIf="($isOptionsLoading | async) == false"
       [nzValue]="option.PersonalId"
       [nzLabel]="option.fullName" />
