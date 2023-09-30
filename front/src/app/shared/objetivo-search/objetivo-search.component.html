@@ -1,29 +1,14 @@
-<nz-select
-  [(ngModel)]="selectedObjetivoId"
-  [nzDropdownMatchSelectWidth]="false"
-  [ngModelOptions]="{ standalone: true }"
-  style="width: 100%"
-  (ngModelChange)="modelChange($event)"
-  nzAllowClear
-  nzPlaceHolder="Descripcion, Código"
-  nzShowSearch
-  nzServerSearch
-
-  (nzOnSearch)="search($event)">
+<nz-select [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
+  style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Descripcion, Código"
+  nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
   <ng-container *ngFor="let option of $optionsArray | async">
-    <nz-option *ngIf="($isOptionsLoading | async) == false"
-      [nzValue]="option.ObjetivoId"
+    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.ObjetivoId"
       nzLabel="{{ option.ClienteId }}/{{option.ClienteElementoDependienteId | nzSafeNull : '0' }} {{ option.ObjetivoDescripcion }} ({{option.ObjetivoId}})" />
   </ng-container>
-  <nz-option
-    *ngIf="selectedInfoChange$ | async as info"
-    [nzValue]="info.objetivoId"
-    nzLabel="{{ info.clienteId }}/{{
-      info.elementoDependienteId | nzSafeNull : '0'
-    }} {{ info.descripcion }}"
-    nzHide />
-    <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
-      <span nz-icon nzType="loading" class="loading-icon"></span>
-      Loading Data...
-    </nz-option>
+  <nz-option *ngIf="extendedOption.objetivoId >0 " [nzValue]="extendedOption.objetivoId"
+    [nzLabel]="extendedOption.fullName" />
+  <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
+    <span nz-icon nzType="loading" class="loading-icon"></span>
+    Cargando datos...
+  </nz-option>
 </nz-select>

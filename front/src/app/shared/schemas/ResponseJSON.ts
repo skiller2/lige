@@ -52,4 +52,5 @@ export interface ObjetivoInfo {
   clienteId: number;
   elementoDependienteId: number;
   descripcion: string;
+  fullName: string;
 }

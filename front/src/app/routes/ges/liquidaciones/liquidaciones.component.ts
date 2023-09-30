@@ -5,12 +5,12 @@ import { NgForm } from '@angular/forms';
 import { SharedModule, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
+import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
 import { AngularGridInstance, AngularUtilService, Column, Formatters,FieldType ,Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
+import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import {
   BehaviorSubject,
   Observable,
@@ -22,8 +22,9 @@ import {
   tap,
   firstValueFrom,
 } from 'rxjs';
-import { CustomGridEditor } from 'src/app/shared/custom-grid-editor/custom-grid-editor.component';
-import { EditorPersonaComponent } from 'src/app/shared/editor-persona/editor-persona.component';
+import { CustomGridEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
+import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
+import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-objetivo.component';
 
 @Component({
   selector: 'app-liquidaciones',
@@ -283,7 +284,7 @@ export class LiquidacionesComponent {
           model: CustomGridEditor,
           collection: [],
           params: {
-            component: EditorPersonaComponent,
+            component: EditorObjetivoComponent,
           }
         },
       },

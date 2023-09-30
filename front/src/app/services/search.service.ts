@@ -43,13 +43,14 @@ export class SearchService {
     return this.http
       .get<ResponseJSON<ObjetivoInfo>>(`api/objetivos/name/${objetivoId}`)
       .pipe(
-        map(res => res.data),
+        map(res => { res.data.fullName = `${res.data.clienteId}/${Number(res.data.elementoDependienteId)} ${res.data.descripcion}`;  return res.data }),
         catchError(() =>
           of({
             objetivoId: 0,
             clienteId: 0,
             elementoDependienteId: 0,
             descripcion: '',
+            fullName:''
           })
         )
       );

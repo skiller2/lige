@@ -11,12 +11,23 @@
 
 
 <nz-card class="demo-container">
-  <app-personal-search [(ngModel)]="selectedId" [ngModelOptions]="{ standalone: true }"
-  (change)="onChange($event)" (ngModelChange)="onModelChange($event)" [(valueExtended)]="valueExtended" />
+  <app-personal-search [(ngModel)]="personalId" [ngModelOptions]="{ standalone: true }"
+  (ngModelChange)="onModelChange($event)" [(valueExtended)]="valueExtended" />
 
-  <input [(ngModel)]="selectedId">
+  <input [(ngModel)]="personalId">
 
   <button (click)="onClick($event)" >SET 699</button>
 
   <p>Valor Extendido {{ this.valueExtended | json }}</p>
+
+
+  <app-objetivo-search [(ngModel)]="objetivoId" [ngModelOptions]="{ standalone: true }" SucursalId="1"
+  (ngModelChange)="onModelChangeObjetivo($event)" [(valueExtended)]="valueExtendedObjetivo" />
+
+  <input [(ngModel)]="objetivoId">
+
+  <button (click)="onClickObjetivo($event)" >SET OBJETIVO 780</button>
+
+  <p>Valor Extendido {{ this.valueExtendedObjetivo | json }}</p>
+
 </nz-card>

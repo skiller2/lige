@@ -11,7 +11,6 @@ import {
 import { Search } from '../schemas/personal.schemas'
 import { SearchService } from 'src/app/services/search.service'
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
-import { ResponseNameFromId } from '../schemas/ResponseJSON'
 import { doOnSubscribe } from 'src/app/services/api.service'
 
 @Component({
@@ -26,49 +25,23 @@ import { doOnSubscribe } from 'src/app/services/api.service'
     },
   ],
 })
+
 export class PersonalSearchComponent implements ControlValueAccessor {
   constructor(private searchService: SearchService) { }
 
-  _selectedPersonalId: string = ''
+  @Input() valueExtended: any
+  @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
+
+
+  $searchChange = new BehaviorSubject('')
+  $isOptionsLoading = new BehaviorSubject<boolean>(false)
+
+  private _selectedId: string = ''
   _selected = ''
   extendedOption = { PersonalId: 0, fullName: "" }
+  
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
-
-
-  get selectedPersonalId() {
-    return this._selectedPersonalId
-  }
-
-  set selectedPersonalId(val: string) {
-    val = (val === null || val === undefined) ? '' : val
-    if (val !== this._selectedPersonalId) {
-      this._selectedPersonalId = val
-
-      if (!this._selectedPersonalId && this._selectedPersonalId !== null) {
-        this.valueExtendedEmitter.emit(null)
-        this.propagateChange(this._selectedPersonalId)
-        return
-      }
-
-      firstValueFrom(
-        this.searchService
-          .getPersonFromName('PersonalId', this._selectedPersonalId)
-          .pipe(tap(res => {
-            this.extendedOption = res[0]
-            this._selected = this._selectedPersonalId
-            this.valueExtendedEmitter.emit(this.extendedOption)
-            this.propagateChange(this._selectedPersonalId)
-          }))
-      )
-    }
-  }
-
-  writeValue(value: any) {
-    if (value !== this._selectedPersonalId) {
-      this.selectedPersonalId = value
-    }
-  }
 
   registerOnChange(fn: any) {
     this.propagateChange = fn
@@ -79,8 +52,6 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
 
   onChange() {
-    //    console.log('onChange')
-    //    this.propagateChange(this._selectedPersonalId)
   }
 
   onRemove() {
@@ -91,12 +62,41 @@ export class PersonalSearchComponent implements ControlValueAccessor {
     this.propagateTouched = fn
   }
 
-  @Input() valueExtended: any
-  @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
 
+  get selectedId() {
+    return this._selectedId
+  }
 
-  $searchChange = new BehaviorSubject('')
-  $isOptionsLoading = new BehaviorSubject<boolean>(false)
+  set selectedId(val: string) {
+    val = (val === null || val === undefined) ? '' : val
+    if (val !== this._selectedId) {
+      this._selectedId = val
+
+      if (!this._selectedId && this._selectedId !== null) {
+        this.valueExtendedEmitter.emit(null)
+        this.propagateChange(this._selectedId)
+        return
+      }
+
+      firstValueFrom(
+        this.searchService
+          .getPersonFromName('PersonalId', this._selectedId)
+          .pipe(tap(res => {
+            this.extendedOption = res[0]
+            this._selected = this._selectedId
+            this.valueExtendedEmitter.emit(this.extendedOption)
+            this.propagateChange(this._selectedId)
+          }))
+      )
+    }
+  }
+
+  writeValue(value: any) {
+    if (value !== this._selectedId) {
+      this.selectedId = value
+    }
+  }
+
   $optionsArray: Observable<Search[]> = this.$searchChange.pipe(
     debounceTime(500),
     switchMap(value =>
@@ -109,8 +109,8 @@ export class PersonalSearchComponent implements ControlValueAccessor {
     )
   )
 
-  modelChange(event: string) {
-    this.selectedPersonalId = event
+  modelChange(val: string) {
+    this.selectedId = val
   }
 
   search(value: string): void {

@@ -39,7 +39,9 @@ import { SharedModule } from 'src/app/shared/shared.module';
 })
   
 export class TestComponent {
-  selectedId!: number
+  personalId!: number
+  objetivoId!:number
+  valueExtendedObjetivo:any
   valueExtended: any
 
   onChange(evt: any) {
@@ -48,12 +50,23 @@ export class TestComponent {
 
   onClick(evt: any) {
     console.log('onChange',evt)
-    this.selectedId = 699
+    this.personalId = 699
   }
 
   onModelChange(evt: any) {
-    console.log('onModelChange',evt,this.valueExtended)
+    console.log('onModelChangePersona',evt,this.valueExtended)
   }
+
+  onClickObjetivo(evt: any) {
+    console.log('onChange',evt)
+    this.objetivoId = 780
+  }
+
+  onModelChangeObjetivo(evt: any) {
+    console.log('onModelChangeObjetivo',evt,this.valueExtendedObjetivo)
+  }
+
+
 
   ngOnInit(): void {
   }

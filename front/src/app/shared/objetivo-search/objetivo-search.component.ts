@@ -1,15 +1,17 @@
-import { Component, Input, forwardRef } from '@angular/core';
-import { NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Component, EventEmitter, Input, Output, forwardRef } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
   debounceTime,
+  firstValueFrom,
+  noop,
   switchMap,
   tap,
-} from 'rxjs';
-import { doOnSubscribe } from 'src/app/services/api.service';
-import { SearchService } from 'src/app/services/search.service';
-import { ObjetivoInfo } from '../schemas/ResponseJSON';
+} from 'rxjs'
+import { Search } from '../schemas/personal.schemas'
+import { SearchService } from 'src/app/services/search.service'
+import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
+import { doOnSubscribe } from 'src/app/services/api.service'
 
 @Component({
   selector: 'app-objetivo-search',
@@ -23,78 +25,96 @@ import { ObjetivoInfo } from '../schemas/ResponseJSON';
     },
   ],
 })
-export class ObjetivoSearchComponent {
-  constructor(private searchService: SearchService) {}
 
-  @Input() sucursalId: string | null = null;
+export class ObjetivoSearchComponent implements ControlValueAccessor {
+  constructor(private searchService: SearchService) { }
 
-  private _selectedObjetivoId = '';
+  @Input() sucursalId: number | null = null;
+  @Input() valueExtended: any
+  @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
 
-  public get selectedObjetivoId() {
-    return this._selectedObjetivoId;
+  $searchChange = new BehaviorSubject('');
+  $isOptionsLoading = new BehaviorSubject<boolean>(false)
+
+  private _selectedId: string = ''
+  _selected = ''
+  extendedOption = { objetivoId: 0, clienteId: 0, elementoDependienteId: 0, descripcion: '', fullName: '' }
+
+  private propagateTouched: () => void = noop
+  private propagateChange: (_: any) => void = noop
+
+  registerOnChange(fn: any) {
+    this.propagateChange = fn
   }
-  public set selectedObjetivoId(v: string) {
-    this._selectedObjetivoId = v;
-    this.selectedValueChange(v);
-    this.propagateChange(this._selectedObjetivoId);
+
+  onBlur() {
+    this.propagateTouched()
+  }
+
+  onChange() {
+  }
+
+  onRemove() {
+    //  console.log('onRemove')
+  }
+
+  registerOnTouched(fn: any) {
+    this.propagateTouched = fn
+  }
+
+
+
+  get selectedId() {
+    return this._selectedId
+  }
+
+  set selectedId(val: string) {
+    val = (val === null || val === undefined) ? '' : val
+    if (val !== this._selectedId) {
+      this._selectedId = val
+
+      if (!this._selectedId && this._selectedId !== null) {
+        this.valueExtendedEmitter.emit(null)
+        this.propagateChange(this._selectedId)
+        return
+      }
+      firstValueFrom(
+        this.searchService
+          .ObjetivoInfoFromId(this._selectedId)
+          .pipe(tap(res => {
+            this.extendedOption = res
+            this._selected = this._selectedId
+            this.valueExtendedEmitter.emit(this.extendedOption)
+            this.propagateChange(this._selectedId)
+          }))
+      )
+    }
   }
 
   writeValue(value: any) {
-    if (value !== undefined) {
-      this.selectedObjetivoId = value;
+    if (value !== this._selectedId) {
+      this.selectedId = value
     }
   }
-  propagateChange = (_: any) => {};
-  registerOnChange(fn: any) {
-    this.propagateChange = fn;
-  }
-  registerOnTouched() {}
 
-  selectedInfoChange$ = new BehaviorSubject<ObjetivoInfo | null>(null);
-
-  $searchChange = new BehaviorSubject('');
-  $isOptionsLoading = new BehaviorSubject(false);
   $optionsArray = this.$searchChange.pipe(
     debounceTime(500),
     switchMap(value => {
-      if (this.sucursalId) {
-        return this.searchService
-          .getObjetivos(
-            Number(value.charAt(0)) ? 'Codigo' : 'Descripcion',
-            value,
-            this.sucursalId
-          )
-          .pipe(
-            doOnSubscribe(() => this.$isOptionsLoading.next(true)),
-            tap({ complete: () => this.$isOptionsLoading.next(false) })
-          );
-      }
-
-      //Should return all Objetivos, missing API call
       return this.searchService
-        .getObjetivos(
-          Number(value.charAt(0)) ? 'Codigo' : 'Descripcion',
-          value,
-          '0'
-        )
+        .getObjetivos(Number(value.charAt(0)) ? 'Codigo' : 'Descripcion', value, (this.sucursalId) ? String(this.sucursalId) : '0')
         .pipe(
           doOnSubscribe(() => this.$isOptionsLoading.next(true)),
           tap({ complete: () => this.$isOptionsLoading.next(false) })
         );
     })
-  );
+  )
 
-  modelChange(event: string) {
-    this.selectedObjetivoId = event;
-  }
-  selectedValueChange(event: string): void {
-    if (!event) return;
-    this.searchService.ObjetivoInfoFromId(event).subscribe(info => {
-      this.selectedInfoChange$.next(info);
-    });
+  modelChange(val: string) {
+    this.selectedId = val;
   }
 
   search(value: string): void {
+    this.extendedOption = { objetivoId: 0, clienteId: 0, elementoDependienteId: 0, descripcion: '', fullName: '' }
     this.$searchChange.next(value);
   }
 }
