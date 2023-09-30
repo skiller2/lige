@@ -4,9 +4,28 @@ import { dataSource } from "../data-source";
 import { QueryFailedError } from "typeorm";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
+import { ParsedQs } from "qs";
 
 export class LiquidacionesController extends BaseController {
+    async getTipoMovimiento(req: Request, res: Response, next: NextFunction) {
+      try {
 
+        const tipoMovimiento = await dataSource.query(
+          `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo FROM lige.dbo.liqcotipomovimiento AS tipo`)
+  
+          this.jsonRes(
+              {
+                total: tipoMovimiento.length,
+                list: tipoMovimiento,
+              },
+              res
+            );
+  
+      } catch (error) {
+        return next(error)
+      }
+    }
+  
     listaColumnas: any[] = [
         {
           id: "MovimientoId",

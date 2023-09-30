@@ -50,6 +50,10 @@ liquidacionesRouter.post('/list', authMiddleware.verifyToken, (req, res, next) =
     liquidacionesController.getByLiquidaciones(req, res, next)
 });
 
+liquidacionesRouter.get('/tipo_movimiento', authMiddleware.verifyToken, (req, res, next) => {
+    liquidacionesController.getTipoMovimiento(req, res, next)
+});
+
 // seccion de banco
 liquidacionesRouter.get("/banco/cols", authMiddleware.verifyToken, (req, res) => {
     liquidacionesBancoController.getLiquidacionesBancoCols(req, res);

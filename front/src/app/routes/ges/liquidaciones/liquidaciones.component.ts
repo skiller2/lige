@@ -6,7 +6,7 @@ import { SharedModule, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
-import { AngularGridInstance, AngularUtilService, Column, Formatters,FieldType ,Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -56,9 +56,9 @@ export class LiquidacionesComponent {
   tableLoading$ = new BehaviorSubject(false);
   filesChange$ = new BehaviorSubject('');
   gridOptions!: GridOption;
-  gridOptionsEdit! : GridOption;
+  gridOptionsEdit!: GridOption;
   selectedPeriod = { year: 0, month: 0 };
- gridDataInsert = []
+  gridDataInsert = []
 
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
@@ -230,9 +230,12 @@ export class LiquidacionesComponent {
   resizeObservable$: Observable<Event> | undefined;
   resizeSubscription$: Subscription | undefined;
 
+  //TODO tipoMovimiento:any[] = firstValueFrom(this.apiService.getTipoMovimiento())
+  tipoMovimiento: any[] = [{ value: 2, label: 'Retiro por coordinador de cuenta' }, { value: 3, label: 'Retiro por jefe de area' },
+  { value: 4, label: 'Descuento' }, { value: 8, label: 'Ingreso por Vigilancia' }, { value: 9, label: 'Ingreso por Administrativos' }]
+
 
   async ngOnInit() {
-
     this.columnDefinitions = [
       {
         id: 'delete',
@@ -253,8 +256,23 @@ export class LiquidacionesComponent {
         type: FieldType.string,
         maxWidth: 200,
         editor: {
-          model: Editors.text
-        }
+          model: Editors.singleSelect,
+
+          // We can also add HTML text to be rendered (any bad script will be sanitized) but we have to opt-in, else it will be sanitized
+          //enableRenderHtml: true,
+          //          collection: Array.from(Array(101).keys()).map(k => ({ value: k, label: k, symbol: '<i class="fa fa-percent" style="color:cadetblue"></i>' })),
+          //          collection: tipoMovimiento,
+          //collection:[],
+          collection:this.tipoMovimiento,
+          customStructure: {
+            value: 'value',
+            label: 'label',
+//            labelSuffix: 'symbol'
+          },
+          editorOptions: {
+            maxHeight: 400
+          }
+        },
       },
       {
         id: 'fecha', name: 'Fecha', field: 'fecha',
@@ -279,7 +297,7 @@ export class LiquidacionesComponent {
         formatter: Formatters.complexObject,
         params: {
           complexFieldLabel: 'ObjetivoDescripcion.fullName',
-        },        
+        },
         editor: {
           model: CustomGridEditor,
           collection: [],
@@ -296,7 +314,7 @@ export class LiquidacionesComponent {
         formatter: Formatters.complexObject,
         params: {
           complexFieldLabel: 'ApellidoNombre.fullName',
-        },        
+        },
         editor: {
           model: CustomGridEditor,
           collection: [],
@@ -322,7 +340,7 @@ export class LiquidacionesComponent {
     this.gridOptionsEdit.enableCellNavigation = true
     this.gridOptionsEdit.enableRowSelection = true
     this.gridOptionsEdit.enableRowDetailView = false
-  
+
     this.resizeObservable$ = fromEvent(window, 'resize');
     this.resizeSubscription$ = this.resizeObservable$
       .pipe(debounceTime(500))
@@ -333,14 +351,14 @@ export class LiquidacionesComponent {
     this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
 
-    
+
   }
 
-  
+
 
   addNewItem(insertPosition?: 'top') {
 
-   
+
     const newItem1 = this.createNewItem(1);
 
     // single insert

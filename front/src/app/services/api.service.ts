@@ -15,6 +15,17 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export/*';
   providedIn: 'root',
 })
 export class ApiService {
+  getTipoMovimiento() {
+    return this.http.get(`/api/liquidaciones/tipo_movimiento`).pipe(
+      map(res => res.data.list.map((row: { tipo_movimiento_id: any; des_movimiento: any; }) => ( { value: row.tipo_movimiento_id, label: row.des_movimiento } ))),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+
   isMobile():boolean { 
     return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
   }
