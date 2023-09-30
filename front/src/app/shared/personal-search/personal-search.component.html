@@ -6,7 +6,7 @@ ngModel
   style="width: 100%"
   (ngModelChange)="modelChange($event)"
   nzAllowClear
-  nzPlaceHolder="Apellido, Nombre, CUIT"
+  nzPlaceHolder="Apellido, Nombre o CUIT"
   nzShowSearch
   nzServerSearch
   
@@ -16,15 +16,12 @@ ngModel
       [nzValue]="option.PersonalId"
       [nzLabel]="option.fullName" />
   </ng-container>
-  <ng-container *ngFor="let option of valueExtendedEmitter | async">
-    <nz-option selected
-      *ngIf="($isOptionsLoading | async) == false"
-      [nzValue]="option.PersonalId"
-      [nzLabel]="option.fullName" />
-  </ng-container>
+    <nz-option *ngIf="extendedOption.PersonalId >0 "
+      [nzValue]="extendedOption.PersonalId"
+      [nzLabel]="extendedOption.fullName" />
 
   <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
     <span nz-icon nzType="loading" class="loading-icon"></span>
-    Loading Data...
+    Cargando datos...
   </nz-option>
 </nz-select>
