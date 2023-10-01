@@ -338,6 +338,7 @@ export class LiquidacionesComponent {
     ];
 
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+<<<<<<< HEAD
 
     
 //    this.gridOptionsEdit.editable = true
@@ -346,6 +347,10 @@ export class LiquidacionesComponent {
 //    this.gridOptionsEdit.enableRowSelection = true
     this.gridOptionsEdit.enableRowDetailView = false
     this.gridOptionsEdit .autoEdit = true
+=======
+    this.gridOptionsEdit.enableRowDetailView = false
+    this.gridOptionsEdit.autoEdit = true
+>>>>>>> main
 
 
     this.resizeObservable$ = fromEvent(window, 'resize');

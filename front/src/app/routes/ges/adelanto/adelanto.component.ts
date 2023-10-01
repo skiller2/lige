@@ -23,7 +23,7 @@ import { SettingsService } from '@delon/theme';
 
 })
 export class AdelantoComponent {
-  constructor(private settingService:SettingsService, private apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService, private excelExportService: ExcelExportService) { }
+  constructor(private settingService: SettingsService, private apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService, private excelExportService: ExcelExportService) { }
   @ViewChild('adelanto', { static: true }) adelanto!: NgForm;
   @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
 
@@ -37,7 +37,7 @@ export class AdelantoComponent {
   detailViewRowCount = 9
   gridOptions!: GridOption
   gridDataLen = 0
-  
+
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && dataContext.monto > 0) {
       const componentOutput = this.angularUtilService.createAngularComponent(colDef.params.component)
@@ -78,7 +78,7 @@ export class AdelantoComponent {
         )
         .pipe(
           map(data => {
-            this.gridDataLen = data.list.length 
+            this.gridDataLen = data.list.length
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -88,12 +88,8 @@ export class AdelantoComponent {
   )
 
   async ngOnInit() {
-    const user: any = this.settingService.getUser()
-    
 
-    if (user.PersonalId > 0) { 
 
-    }
     this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.autoEdit = true
@@ -111,7 +107,7 @@ export class AdelantoComponent {
 
           item.PersonalAdelantoFechaSolicitud = res.data.PersonalAdelantoFechaSolicitud
         }
-      } catch (err) { 
+      } catch (err) {
         editCommand.undo()
       }
 
@@ -119,7 +115,7 @@ export class AdelantoComponent {
       this.angularGrid.slickGrid.updateRow(editCommand.row)
 
     }
-    
+
 
 
   }
@@ -141,7 +137,7 @@ export class AdelantoComponent {
 
 
 
-  
+
 
 
 
@@ -149,7 +145,7 @@ export class AdelantoComponent {
 
     }, 1);
 
-    
+
 
 
 
@@ -160,14 +156,12 @@ export class AdelantoComponent {
   }
 
   ngAfterContentInit(): void {
+    const user: any = this.settingService.getUser()
+
     setTimeout(() => {
-
-    console.log('filtro2', this.sharedFiltroBuilder)
-
-      
-    this.sharedFiltroBuilder.addFilter({field: 'ApellidoNombreJ', condition:'AND',operator:'=',value:'4834'})
-
-  }, 4000);
+      if (user.PersonalId > 0)
+      this.sharedFiltroBuilder.addFilter('ApellidoNombreJ', 'AND', '=', '548')
+    }, 3000);
 
   }
 
