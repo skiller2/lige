@@ -14,28 +14,33 @@
           <a [routerLink]="['/', 'ges', 'liquidacion_banco','listado']">Listado</a>
         </li>
 
-      <li nz-submenu nzTitle="Acciones" *ngIf="router.url === '/ges/liquidacion_banco/listado'">
-        <ul style="width: auto !important">
+        <li nz-menu-item nzMatchRouter >
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'liquidacion_banco','ayudaasistencial']">Ayuda Asistencial</a>
+        </li>
+
+        <li nz-submenu nzTitle="Acciones" >
+          <ul style="width: auto !important">
+            
+
+            <li nz-menu-item app-down-file [httpMethod]="'POST'"
+              [httpBody]="{anio, mes, options: listOptions, cantxpag:1, banco:1,listdowload}"
+              httpUrl="api/liquidaciones/download/comprobantes_filtrados/">
+              <span nz-icon nzType="download"></span>Generar Banco ITAU
+            </li>
+            <li nz-menu-item app-down-file [httpMethod]="'POST'"
+              [httpBody]="{anio, mes, options: listOptions, cantxpag:1, banco:2,listdowload}"
+              httpUrl="api/liquidaciones/download/comprobantes_filtrados/">
+              <span  nz-icon nzType="download"></span> Generar Banco Patagonia
+            </li>
+            
+
+          </ul>
           
-
-          <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{anio, mes, options: listOptions, cantxpag:1, banco:1}"
-            httpUrl="api/liquidaciones/download/comprobantes_filtrados/">
-            <span nz-icon nzType="download"></span>Generar Banco ITAU
-          </li>
-          <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{anio, mes, options: listOptions, cantxpag:1, banco:2}"
-            httpUrl="api/liquidaciones/download/comprobantes_filtrados/">
-            <span  nz-icon nzType="download"></span> Generar Banco Patagonia
-          </li>
-           
-
-        </ul>
-        
-      </li>
-      <li nz-menu-item (click)="exportGrid()">
-        <span nz-icon nzType="download"></span>XLS
-      </li>
+        </li>
+        <li nz-menu-item (click)="exportGrid()">
+          <span nz-icon nzType="download"></span>XLS
+        </li>
     </ul>
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
@@ -48,6 +53,22 @@
               [columnDefinitions]="columnas | colsFilter"
               [gridOptions]="gridOptions" 
               [dataset]="(gridData$ | async) || []" 
+              (onAngularGridCreated)="angularGridReady($event)">
+          </angular-slickgrid>
+          </div>
+
+          <div>Registros: {{ gridDataLen }}</div>
+        </ng-template>
+      </nz-tab>
+      <nz-tab >
+        <a nz-tab-link routerLink="/ges/liquidacion_banco/ayudaasistencial">Listado</a>
+        <ng-template nz-tab *ngIf="(columns$|async) as columnas">
+          <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
+          <div class="gridContainer container-fluid" >
+            <angular-slickgrid gridId="grid23" class="" 
+              [columnDefinitions]="columnas | colsFilter"
+              [gridOptions]="gridOptions" 
+              [dataset]="(gridDataAyuda$ | async) || []" 
               (onAngularGridCreated)="angularGridReady($event)">
           </angular-slickgrid>
           </div>

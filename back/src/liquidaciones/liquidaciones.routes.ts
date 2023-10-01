@@ -70,4 +70,10 @@ liquidacionesRouter.post( "/download/comprobantes_filtrados/",
     }
 );
 
+// ayuda asistencial
+
+liquidacionesRouter.post('/banco/listAyudaAsistencial', authMiddleware.verifyToken, (req, res, next) => {
+    liquidacionesBancoController.getByLiquidacionesBancoAyudaAsistencial(req, res, next)
+});
+
 

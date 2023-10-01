@@ -290,6 +290,17 @@ export class ApiService {
     );
   }
 
+  getLiquidacionesBancoAyudaAsistencial(filters: any) {
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/listAyudaAsistencial',parameter).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 
   getDescuentosMonotributo(filters: any) {
     const parameter = filters

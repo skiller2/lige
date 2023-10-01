@@ -49,8 +49,10 @@ export class LiquidacionesBancoComponent {
   toggle = false;
   anio = 0
   mes = 0
+  listdowload="";
   detailViewRowCount = 9;
   gridDataLen = 0
+  gridAyudaDataLen = 0
   tableLoading$ = new BehaviorSubject(false);
   filesChange$ = new BehaviorSubject('');
   gridOptions!: GridOption;
@@ -162,6 +164,29 @@ export class LiquidacionesBancoComponent {
             this.anio = periodo.getFullYear();
             this.mes = periodo.getMonth();
             this.gridDataLen = data.list.length
+            this.listdowload = "gridData";
+            return data.list
+          }),
+          doOnSubscribe(() => this.tableLoading$.next(true)),
+          tap({ complete: () => this.tableLoading$.next(false) })
+        )
+    })
+  )
+
+  gridDataAyuda$ = this.formChange$.pipe(
+    debounceTime(500),
+    switchMap(() => {
+      const periodo = this.liquidacionesForm.form.get('periodo')?.value
+      return this.apiService
+        .getLiquidacionesBancoAyudaAsistencial(
+          { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptions }
+        )
+        .pipe(
+          map(data => {
+            this.anio = periodo.getFullYear();
+            this.mes = periodo.getMonth();
+            this.gridDataLen = data.list.length;
+            this.listdowload = "gridDataAyuda";
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),

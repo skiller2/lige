@@ -147,6 +147,7 @@ export class LiquidacionesComponent {
         .pipe(
           map(data => {
             this.gridDataLen = data?.list?.length
+            console.log("data",data)
             return data?.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -338,12 +339,13 @@ export class LiquidacionesComponent {
 
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
 
+    
 //    this.gridOptionsEdit.editable = true
 //    this.gridOptionsEdit.enableColumnPicker = true
 //    this.gridOptionsEdit.enableCellNavigation = true
 //    this.gridOptionsEdit.enableRowSelection = true
     this.gridOptionsEdit.enableRowDetailView = false
-    this.gridOptions.autoEdit = true
+    this.gridOptionsEdit .autoEdit = true
 
 
     this.resizeObservable$ = fromEvent(window, 'resize');
@@ -356,10 +358,13 @@ export class LiquidacionesComponent {
     this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
 
-
   }
 
-
+  
+  // onBeforeEditCell($event:any) {
+  //   console.log("soy el data set", this.gridDataInsert)
+  //   // this.angularGrid.resizerService.pauseResizer(true);
+  // }
 
   addNewItem(insertPosition?: 'top') {
 
@@ -371,6 +376,20 @@ export class LiquidacionesComponent {
 
     // OR multiple inserts
     // this.angularGrid.gridService.addItems([newItem1, newItem2], { position: insertPosition });
+  }
+
+  confirmNewItem(){
+
+  this.columnDefinitions.forEach((item: any) => {
+     let itemValue = item.field;
+     
+     this.gridDataInsert.forEach((itemArray: any) => {
+  
+      debugger
+    })
+  })
+    console.log("soy el data set", this.gridDataInsert)
+
   }
 
   createNewItem(incrementIdByHowMany = 1) {

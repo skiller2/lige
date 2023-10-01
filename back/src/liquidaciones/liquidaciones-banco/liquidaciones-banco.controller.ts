@@ -148,20 +148,61 @@ export class LiquidacionesBancoController extends BaseController {
     }
   }
 
+  async getByLiquidacionesBancoAyudaAsistencial(
+    req: any,
+    res: Response, next: NextFunction
+  ) {
+    const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
+    const orderBy = orderToSQL(req.body.options.sort)
+    const anio = Number(req.body.anio)
+    const mes = Number(req.body.mes)
+
+    try {
+
+      const banco = await dataSource.query(
+        `SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.sum_importe
+        FROM ERP_Produccion.dbo.Personal per
+        JOIN(SELECT liq.persona_id, SUM(liq.importe * tipo.signo) sum_importe FROM lige.dbo.liqmamovimientos liq
+        JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = liq.tipo_movimiento_id
+                GROUP BY liq.persona_id HAVING SUM(liq.importe* tipo.signo) > 0) AS movpos ON movpos.persona_id = per.PersonalId
+        LEFT JOIN ERP_Produccion.dbo.PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM ERP_Produccion.dbo.PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId)
+        LEFT JOIN ERP_Produccion.dbo.PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM ERP_Produccion.dbo.PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+
+        LEFT JOIN ERP_Produccion.dbo.banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+        WHERE (${filterSql}) 
+        ${orderBy}
+        `)
+
+      this.jsonRes(
+        {
+          total: banco.length,
+          list: banco,
+        },
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
   async getLiquidacionesBancoCols(req: Request, res: Response) {
     this.jsonRes(this.listaColumnas, res);
   }
 
   async handleDownloadComprobantesByFiltro(req: Request, res: Response, next: NextFunction) {
     try {
-      console.log("llegueeeeeeeeeeeeeeeeeeeeeeeeeeee")
+      
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
-
+      
       req.body.options.sort = [{ fieldName: 'ApellidoNombre', direction: 'ASC' }]
 
       const periodo = getPeriodoFromRequest(req);
       const options = getOptionsFromRequest(req);
-      const cantxpag = req.body.cantxpag
+      const cantxpag = req.body.cantxpag;
+      const listdowload = req.body.listdowload;
+
+      console.log("listdowload",listdowload)
 
       const formattedMonth = String(periodo.month).padStart(2, "0");
       const filesPath = path.join(this.directory, String(periodo.year));
