@@ -41,7 +41,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   @Input() conditionsToSelect = ['AND', 'OR'];
-  @Input() operatorsToSelect = ['LIKE', '>', '<','>=','<=','!=','<>','='];
+  @Input() operatorsToSelect = ['LIKE', '>', '<', '>=', '<=', '!=', '<>', '='];
 
   @Output() optionsChange = new EventEmitter<Options>();
   _fieldsToSelect: Array<any> = []
@@ -56,18 +56,19 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   };
 
 
-  
+
   isFiltroBuilder = false;
 
   selections = {
-    field: {searchComponent:'',name:'',type:''},
+    field: { searchComponent: '', name: '', type: '' },
     condition: 'AND',
     operator: '',
     value: '',
     label: ''
   };
 
-  valueExtended : any
+  valueExtended = { fullName:''}
+
 
   constructor(
     private searchService: SearchService
@@ -79,32 +80,12 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   addTag() {
-    let inputValueSearch: HTMLElement
-    switch (this.selections.field.searchComponent) {
-      case 'inpurForObjetivoSearch':      
-      case 'inpurForPersonalSearch':
-        if (this.selections.label == "") 
-        this.selections.label = (this.selections.value == "") ? "Vacio" : this.valueExtended.fullName
-        break;
-      case 'Sucursal':
-        inputValueSearch = document.getElementById("sucursalName") as HTMLElement;
-        if (this.selections.label == "")
-        this.selections.label = this.selections.value == "" ? "Vacio" : inputValueSearch?.outerText;
-        break;
-      case 'inpurForClientSearch':
-        inputValueSearch = document.getElementById("inpurForClientSearch") as HTMLElement;
-        if (this.selections.label == "")
-        this.selections.label = this.selections.value == "" ? "Vacio" : inputValueSearch?.outerText
-        break;
-      default:
-        if (this.selections.label == "")
-        this.selections.label = this.selections.value == "" ? "Vacio": this.selections.value
-        break;
-    }
-
+    if (this.selections.label == "")
+      this.selections.label = this.valueExtended.fullName
+    if (this.selections.label == "")
+      this.selections.label = this.selections.value == "" ? "Vacio" : this.selections.value
     const tagToAdd = `${this.selections.field.name} ${this.selections.operator} ${this.selections.label}`;
     this.tags.push(tagToAdd);
-
   }
 
   closeTag(indexToRemove: number) {
@@ -124,46 +105,46 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
 
     if (this.selections.value.startsWith('>=')) {
-      this.selections.value=this.selections.value.substring(2)
+      this.selections.value = this.selections.value.substring(2)
       this.selections.operator = '>='
     }
 
     if (this.selections.value.startsWith('<=')) {
-      this.selections.value=this.selections.value.substring(2)
+      this.selections.value = this.selections.value.substring(2)
       this.selections.operator = '<='
     }
 
     if (this.selections.value.startsWith('!=') || this.selections.value.startsWith('<>')) {
-      this.selections.value=this.selections.value.substring(2)
+      this.selections.value = this.selections.value.substring(2)
       this.selections.operator = '<>'
     }
 
     if (this.selections.value.startsWith('>')) {
-      this.selections.value=this.selections.value.substring(1)
+      this.selections.value = this.selections.value.substring(1)
       this.selections.operator = '>'
     }
 
     if (this.selections.value.startsWith('<')) {
-      this.selections.value=this.selections.value.substring(1)
+      this.selections.value = this.selections.value.substring(1)
       this.selections.operator = '<'
     }
 
     if (this.selections.value.startsWith('=')) {
-      this.selections.value=this.selections.value.substring(1)
+      this.selections.value = this.selections.value.substring(1)
       this.selections.operator = '='
     }
 
-    
+
 
     if (this.selections.operator == '') {
       switch (type) {
         case 'float':
         case 'boolean':
-          this.selections.operator = '='  
+          this.selections.operator = '='
           break;
-      
+
         default:
-          this.selections.operator = 'LIKE'  
+          this.selections.operator = 'LIKE'
           break;
       }
     }
@@ -217,12 +198,13 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   resetSelections() {
     this.selections = {
-      field: {searchComponent:'',name:'',type:''},
+      field: { searchComponent: '', name: '', type: '' },
       condition: 'AND',
       operator: '',
       value: '',
       label: ''
     };
+    this.valueExtended = { fullName:''}
   }
 
   //Control Value Accessor
@@ -290,8 +272,11 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     return !field.searchHidden
   }
 
-  selectedValueSucursal(event: string) {
-    this.selections.value = event;
+  selectedValueSucursal(val: any) {
+    if (val) {
+      this.selections.value = val.SucursalId;
+      this.valueExtended = { fullName: val.SucursalDescripcion };
+    }
   }
 
   async addFilter(field: string, condition: string, operator: string, value: string) {
@@ -301,7 +286,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       const person = await firstValueFrom(this.searchService.getPersonFromName('PersonalId', value))
       label = person[0].fullName
     }
-    this.selections = {field:fieldObj, condition, operator, value, label }
+    this.selections = { field: fieldObj, condition, operator, value, label }
     this.handleInputConfirm()
   }
 

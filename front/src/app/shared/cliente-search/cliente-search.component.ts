@@ -1,8 +1,10 @@
-import { Component, Input, Output, forwardRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, forwardRef } from '@angular/core';
 import {
   BehaviorSubject,
   Observable,
   debounceTime,
+  firstValueFrom,
+  noop,
   switchMap,
   tap,
 } from 'rxjs';
@@ -28,31 +30,99 @@ import { doOnSubscribe } from 'src/app/services/api.service';
 export class ClienteSearchComponent implements ControlValueAccessor {
   constructor(private searchService: SearchService) {}
 
-  _selectedClientId = '';
-  _selectedCuit = new BehaviorSubject('Falta');
+  @Input() valueExtended: any
+  @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
 
-  get selectedClientId() {
-    return this._selectedClientId;
+  private _selectedId: string = ''
+  _selected = ''
+  extendedOption = { ClienteId: 0, fullName: "" }
+
+  private propagateTouched: () => void = noop
+  private propagateChange: (_: any) => void = noop
+
+  registerOnChange(fn: any) {
+    this.propagateChange = fn
   }
 
-  set selectedClientId(val) {
+  onBlur() {
+    this.propagateTouched()
+  }
+
+  onChange() {
+  }
+
+  onRemove() {
+    //  console.log('onRemove')
+  }
+
+  registerOnTouched(fn: any) {
+    this.propagateTouched = fn
+  }
+
+
+  get selectedId() {
+    return this._selectedId
+  }
+
+  set selectedId(val: string) {
+    val = (val === null || val === undefined) ? '' : val
+    if (val !== this._selectedId) {
+      this._selectedId = val
+
+      if (!this._selectedId && this._selectedId !== null) {
+        this.valueExtendedEmitter.emit(null)
+        this.propagateChange(this._selectedId)
+        return
+      }
+
+      firstValueFrom(
+        this.searchService
+          .getClientFromName('ClienteId', this._selectedId)
+          .pipe(tap(res => {
+            this.extendedOption = { ClienteId: res[0].ClienteId, fullName: res[0].ClienteApellidoNombre }
+            this._selected = this._selectedId
+            this.valueExtendedEmitter.emit(this.extendedOption)
+            this.propagateChange(this._selectedId)
+          }))
+      )
+    }
+  }
+
+
+/*
+  set selectedId(val) {
     this._selectedClientId = val;
     this.selectedValueChange(val);
     this.propagateChange(this._selectedClientId);
   }
 
-  writeValue(value: any)  {
-    if (value !== undefined) {
-      this.selectedClientId = value;
+
+  selectedValueChange(event: string): void {
+    if (!event) return;
+    this.searchService
+      .getClientFromName('ClienteId', event)
+      .subscribe(info => {
+        this.selectedInfoChange$.next(info);
+      });
+  }
+*/
+
+
+
+
+
+
+
+
+
+
+
+  writeValue(value: any) {
+    if (value !== this._selectedId) {
+      this.selectedId = value
     }
   }
-  propagateChange = (_: any) => {};
-
-  registerOnChange(fn: any) {
-    this.propagateChange = fn;
-  }
-
-  registerOnTouched() {}
+  
   selectedInfoChange$ = new BehaviorSubject<SearchClient[] | null>(null);
 
   $searchChange = new BehaviorSubject('');
@@ -69,19 +139,12 @@ export class ClienteSearchComponent implements ControlValueAccessor {
      )
   );
 
-  modelChange(event: string) {
-    this.selectedClientId = event;
-  }
-  selectedValueChange(event: string): void {
-    if (!event) return;
-    this.searchService
-      .getClientFromName('ClienteId', event)
-      .subscribe(info => {
-        this.selectedInfoChange$.next(info);
-      });
+  modelChange(val: string) {
+    this.selectedId = val
   }
 
   search(value: string): void {
-    this.$searchChange.next(value);
+    this.extendedOption = { ClienteId: 0, fullName: "" }
+    this.$searchChange.next(value)
   }
 }
