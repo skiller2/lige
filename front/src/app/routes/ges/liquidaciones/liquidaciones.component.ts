@@ -230,11 +230,6 @@ export class LiquidacionesComponent {
   resizeObservable$: Observable<Event> | undefined;
   resizeSubscription$: Subscription | undefined;
 
-  //TODO tipoMovimiento:any[] = firstValueFrom(this.apiService.getTipoMovimiento())
-  tipoMovimiento: any[] = [{ value: 2, label: 'Retiro por coordinador de cuenta' }, { value: 3, label: 'Retiro por jefe de area' },
-  { value: 4, label: 'Descuento' }, { value: 8, label: 'Ingreso por Vigilancia' }, { value: 9, label: 'Ingreso por Administrativos' }]
-
-
   async ngOnInit() {
     this.columnDefinitions = [
       {
@@ -255,23 +250,23 @@ export class LiquidacionesComponent {
         sortable: true,
         type: FieldType.string,
         maxWidth: 200,
+        formatter: Formatters.collectionEditor,
+
         editor: {
           model: Editors.singleSelect,
-
           // We can also add HTML text to be rendered (any bad script will be sanitized) but we have to opt-in, else it will be sanitized
           //enableRenderHtml: true,
-          //          collection: Array.from(Array(101).keys()).map(k => ({ value: k, label: k, symbol: '<i class="fa fa-percent" style="color:cadetblue"></i>' })),
-          //          collection: tipoMovimiento,
-          //collection:[],
-          collection:this.tipoMovimiento,
+          collectionAsync: this.apiService.getTipoMovimiento(),
           customStructure: {
-            value: 'value',
-            label: 'label',
-//            labelSuffix: 'symbol'
+            value: 'tipo_movimiento_id',
+            label: 'des_movimiento',
+            //            labelSuffix: 'symbol'
           },
           editorOptions: {
             maxHeight: 400
-          }
+          },
+          alwaysSaveOnEnterKey: true,
+          required: true
         },
       },
       {
@@ -298,12 +293,15 @@ export class LiquidacionesComponent {
         params: {
           complexFieldLabel: 'ObjetivoDescripcion.fullName',
         },
+
         editor: {
           model: CustomGridEditor,
           collection: [],
           params: {
             component: EditorObjetivoComponent,
-          }
+          },
+          alwaysSaveOnEnterKey: true,
+          required: true
         },
       },
       {
@@ -320,26 +318,33 @@ export class LiquidacionesComponent {
           collection: [],
           params: {
             component: EditorPersonaComponent,
-          }
+          },
+          alwaysSaveOnEnterKey: true,
+          required: true
         },
       },
       {
         id: 'monto', name: 'Monto', field: 'monto',
         sortable: true,
-        type: FieldType.string,
+        type: FieldType.float,
         maxWidth: 200,
+        formatter: Formatters.multiple,
+        params: { formatters: [Formatters.currency, Formatters.alignRight] },
         editor: {
-          model: Editors.text
+          model: Editors.float, decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000,
         }
       }
     ];
 
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
-    this.gridOptionsEdit.editable = true
-    this.gridOptionsEdit.enableColumnPicker = true
-    this.gridOptionsEdit.enableCellNavigation = true
-    this.gridOptionsEdit.enableRowSelection = true
+
+//    this.gridOptionsEdit.editable = true
+//    this.gridOptionsEdit.enableColumnPicker = true
+//    this.gridOptionsEdit.enableCellNavigation = true
+//    this.gridOptionsEdit.enableRowSelection = true
     this.gridOptionsEdit.enableRowDetailView = false
+    this.gridOptions.autoEdit = true
+
 
     this.resizeObservable$ = fromEvent(window, 'resize');
     this.resizeSubscription$ = this.resizeObservable$

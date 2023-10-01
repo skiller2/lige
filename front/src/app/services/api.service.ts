@@ -17,7 +17,8 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export/*';
 export class ApiService {
   getTipoMovimiento() {
     return this.http.get(`/api/liquidaciones/tipo_movimiento`).pipe(
-      map(res => res.data.list.map((row: { tipo_movimiento_id: any; des_movimiento: any; }) => ( { value: row.tipo_movimiento_id, label: row.des_movimiento } ))),
+//      map(res => res.data.list.map((row: { tipo_movimiento_id: any; des_movimiento: any; }) => ( { value: row.tipo_movimiento_id, label: row.des_movimiento } ))),
+      map(res => res.data.list),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
