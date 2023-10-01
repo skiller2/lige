@@ -46,7 +46,7 @@
 
     <div nz-col [nzSpan]="5" id="inpurForClientSearch" style="text-align: center; display:inline-block;width: 22%;"
       *ngIf="selections.field.searchComponent=='inpurForClientSearch'">
-      <app-cliente-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      <app-cliente-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }" [(valueExtended)]="valueExtended"
         (keydown.enter)="handleInputConfirm()" />
     </div>
 
