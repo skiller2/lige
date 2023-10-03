@@ -31,7 +31,7 @@ export class EditorObjetivoComponent {
 
   onChange(item: any) {
     this.selectedItem = { id: item, fullName: this.valueExtended.fullName } 
-    this.onItemChanged.next(this.selectedItem)
+//    this.onItemChanged.next(this.selectedItem)
   }
 
   focus() {
