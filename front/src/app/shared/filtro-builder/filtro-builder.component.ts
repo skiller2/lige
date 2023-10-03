@@ -46,8 +46,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   @Output() optionsChange = new EventEmitter<Options>();
   _fieldsToSelect: Array<any> = []
   formChange$ = new BehaviorSubject('');
-  $selectedSucursalIdChange = new BehaviorSubject('');
-
+  
   $optionsSucursales = this.searchService.getSucursales();
   tags: string[] = [];
   private _options: Options = {
@@ -80,7 +79,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   addTag() {
-    if (this.selections.label == "")
+    if (this.selections.label == "" && this.valueExtended?.fullName)
       this.selections.label = this.valueExtended.fullName
     if (this.selections.label == "")
       this.selections.label = this.selections.value == "" ? "Vacio" : this.selections.value
@@ -148,13 +147,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
           break;
       }
     }
-    if (
-      this.selections.field.name &&
-      this.selections.condition &&
-      this.selections.operator
-    )
-      return true;
-    return false;
+
+    return (this.selections.field.name && this.selections.condition && this.selections.operator) ? true : false
   }
 
   handleInputConfirm() {
@@ -251,19 +245,10 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     this.onTouchedCallback = fn;
   }
 
-  //
-
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
   };
-
-
-  listOptionsChange(options: any) {
-    this.listOptions = options;
-    this.formChange$.next('');
-
-  }
 
   onOptionChange() {
   }

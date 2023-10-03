@@ -44,7 +44,7 @@ export class LiquidacionesController extends BaseController {
           field: "periodo",
           fieldName: "periodo",
           sortable: true,
-          searchHidden: false,
+          searchHidden: true,
           hidden: false,
         },
         {
@@ -82,7 +82,7 @@ export class LiquidacionesController extends BaseController {
           type: "string",
           id: "ObjetivoDescripcion",
           field: "ObjetivoDescripcion",
-          fieldName: "li.periodo_id",
+          fieldName: "li.objetivo_id",
           searchComponent: "inpurForObjetivoSearch",
           searchType: "number",
           sortable: true,

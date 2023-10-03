@@ -33,39 +33,35 @@
       <nz-option *ngFor="let operator of operatorsToSelect" [nzLabel]="operator" [nzValue]="operator"></nz-option>
     </nz-select>
     -->
-    <input
-      *ngIf="selections.field.searchComponent=='' && selections.field.name != ''"
-      placeholder="Valor" #inputElement nz-input type="text" [(ngModel)]="selections.value" style="width: 78px"
-      (keydown.enter)="handleInputConfirm()" />
 
-    <div nz-col [nzSpan]="5" id="inpurForPersonalSearch" style="text-align: center; display:inline-block;width: 22%;"
-      *ngIf="selections.field.searchComponent=='inpurForPersonalSearch'">
-      <app-personal-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }" [(valueExtended)]="valueExtended"
+    <div nz-col [nzSpan]="5" *ngIf="selections.field.name"
+      style="text-align: center; display:inline-block; width: 100%">
+
+      <input *ngIf="!selections.field.searchComponent" placeholder="Valor" #inputElement nz-input type="text"
+        [(ngModel)]="selections.value" (keydown.enter)="handleInputConfirm()" />
+
+      <app-personal-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+        [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForPersonalSearch'"
         (keydown.enter)="handleInputConfirm()" />
-    </div>
 
-    <div nz-col [nzSpan]="5" id="inpurForClientSearch" style="text-align: center; display:inline-block;width: 22%;"
-      *ngIf="selections.field.searchComponent=='inpurForClientSearch'">
-      <app-cliente-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }" [(valueExtended)]="valueExtended"
+      <app-cliente-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+        [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForClientSearch'"
         (keydown.enter)="handleInputConfirm()" />
-    </div>
 
-    <div nz-col [nzSpan]="5" id="inpurForObjetivoSearch" style="text-align: center; display:inline-block;width: 22%;"
-      *ngIf="selections.field.searchComponent=='inpurForObjetivoSearch'">
-      <app-objetivo-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }" [(valueExtended)]="valueExtended"
+      <app-objetivo-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+        [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForObjetivoSearch'"
         (keydown.enter)="handleInputConfirm()" />
-    </div>
 
-    <nz-form-control id="inpurForSucursalSearch" [nzSpan]="4" *ngIf="selections.field.searchComponent=='inpurForSucursalSearch'" style="display:inline-block;width: 12%;">
-      <nz-select #sucursal="ngModel" nzSpan="5" name="SucursalId" ngModel nzAllowClear
-        nzPlaceHolder="Sucursal" nzShowSearch (ngModelChange)="selectedValueSucursal($event)"   
-        [nzDropdownMatchSelectWidth]="false" >
+      <nz-select ngModel nzAllowClear style="width:100%"
+        *ngIf="selections.field.searchComponent=='inpurForSucursalSearch'" nzPlaceHolder="Sucursal" nzShowSearch
+        (ngModelChange)="selectedValueSucursal($event)" [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
         <ng-container *ngFor="let option of $optionsSucursales | async">
           <nz-option [nzValue]="option" [nzLabel]="option.SucursalDescripcion"></nz-option>
         </ng-container>
       </nz-select>
-    </nz-form-control>
 
+
+    </div>
 
     <button nz-button (click)="handleInputConfirm()">+</button>
   </ng-container>
