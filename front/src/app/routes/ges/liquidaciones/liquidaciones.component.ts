@@ -62,7 +62,9 @@ export class LiquidacionesComponent {
 
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
+  angularGridEdit!: AngularGridInstance;
   gridObj!: SlickGrid;
+  gridObjEdit!: SlickGrid;
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && dataContext.monto > 0) {
@@ -134,6 +136,19 @@ export class LiquidacionesComponent {
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
+  }
+
+  async angularGridReadyEdit(angularGrid: any) {
+    this.angularGridEdit = angularGrid.detail
+    this.gridObjEdit = angularGrid.detail.slickGrid;
+
+    setTimeout(() => {
+      this.addNewItem("bottom")
+      
+    }, 500);
+
+    if (this.apiService.isMobile())
+      this.angularGridEdit.gridService.hideColumnByIds([])
   }
 
   gridData$ = this.formChange$.pipe(
@@ -361,16 +376,9 @@ export class LiquidacionesComponent {
   //   // this.angularGrid.resizerService.pauseResizer(true);
   // }
 
-  addNewItem(insertPosition?: 'top') {
-
-
+  addNewItem(insertPosition?: 'bottom') {
     const newItem1 = this.createNewItem(1);
-
-    // single insert
-    this.angularGrid.gridService.addItem(newItem1, { position: insertPosition });
-
-    // OR multiple inserts
-    // this.angularGrid.gridService.addItems([newItem1, newItem2], { position: insertPosition });
+    this.angularGridEdit.gridService.addItem(newItem1, { position: insertPosition, highlightRow:false, scrollRowIntoView:false, triggerEvent:false });
   }
 
   confirmNewItem(){
@@ -387,8 +395,25 @@ export class LiquidacionesComponent {
 
   }
 
+  onCellChanged(e: any) {
+    const row = e.detail.args.item
+    if (!row.detalle && !row.des_movimiento || !row.ObjetivoDescripcion || !row.PersonalDescripcion || !row.monto)
+      this.angularGridEdit.gridService.deleteItem(row.id)
+
+    console.log('grabar aca cuando estén todos los datos', row,e)
+    if (row.detalle && row.des_movimiento && (row.ObjetivoDescripcion || row.PersonalDescripcion) && row.monto) { 
+      console.log('Debo grabar o actualizar registro')
+    }
+
+    const lastrow:any = this.gridDataInsert[this.gridDataInsert.length - 1];
+    if (lastrow && (lastrow.detalle || lastrow.des_movimiento || lastrow.ObjetivoDescripcion || lastrow.PersonalDescripcion || lastrow.monto)) { 
+      this.addNewItem("bottom")
+    }
+
+  }
+
   createNewItem(incrementIdByHowMany = 1) {
-    const dataset = this.angularGrid.dataView.getItems();
+    const dataset = this.angularGridEdit.dataView.getItems();
     let highestId = 0;
     dataset.forEach((item: any) => {
       if (item.id > highestId) {

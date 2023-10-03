@@ -30,7 +30,7 @@ export class EditorObjetivoComponent {
   valueExtended!:any
 
   onChange(item: any) {
-    this.selectedItem = { id: item, fullName: this.valueExtended.fullName } 
+    this.selectedItem = { id: item, fullName: this.valueExtended?.fullName } 
 //    this.onItemChanged.next(this.selectedItem)
   }
 
