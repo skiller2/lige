@@ -90,7 +90,7 @@ export class AdelantoComponent {
   async ngOnInit() {
 
 
-    this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.autoEdit = true
     this.gridOptions.editCommandHandler = async (item, column, editCommand) => {

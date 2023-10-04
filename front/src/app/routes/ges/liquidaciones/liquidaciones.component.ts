@@ -353,7 +353,7 @@ export class LiquidacionesComponent {
       }
     ];
 
-    this.gridOptionsEdit = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsEdit.enableRowDetailView = false
     this.gridOptionsEdit.autoEdit = true
 
@@ -366,7 +366,7 @@ export class LiquidacionesComponent {
       });
 
 
-    this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
 
   }

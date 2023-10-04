@@ -37,14 +37,14 @@ export class ApiService {
     return this.injector.get(NzNotificationService);
   }
 
-  getDefaultGridOptions(detailViewRowCount: number, xlsService: ExcelExportService | ExternalResource, utilService: AngularUtilService, parent: any, viewComponent: any): GridOption {
+  getDefaultGridOptions(container:string, detailViewRowCount: number, xlsService: ExcelExportService | ExternalResource, utilService: AngularUtilService, parent: any, viewComponent: any): GridOption {
     return {
       asyncEditorLoading: false,
       autoEdit: false,
       autoCommitEdit: false,
       //    presets: { columns: [{ columnId: '', width: 0 }]},
       autoResize: {
-        container: '.gridContainer',
+        container,
         rightPadding: 1,    // defaults to 0
         bottomPadding: 45,  // defaults to 20
         //minHeight: 550,     // defaults to 180

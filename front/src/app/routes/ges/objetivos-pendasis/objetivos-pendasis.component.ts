@@ -118,7 +118,7 @@ export class ObjetivosPendAsisComponent {
   )
 
   ngOnInit() {
-    this.gridOptions = this.apiService.getDefaultGridOptions(this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
 
   }
