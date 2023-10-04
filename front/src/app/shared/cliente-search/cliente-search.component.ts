@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, forwardRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild, forwardRef } from '@angular/core';
 import {
   BehaviorSubject,
   Observable,
@@ -13,6 +13,7 @@ import { SearchService } from 'src/app/services/search.service';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 import { ResponseNameFromId } from '../schemas/ResponseJSON';
 import { doOnSubscribe } from 'src/app/services/api.service';
+import { NzSelectComponent } from 'ng-zorro-antd/select';
 
 @Component({
   selector: 'app-cliente-search',
@@ -32,7 +33,8 @@ export class ClienteSearchComponent implements ControlValueAccessor {
 
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
-
+  @ViewChild("csc") csc!: NzSelectComponent
+  
   private _selectedId: string = ''
   _selected = ''
   extendedOption = { ClienteId: 0, fullName: "" }
@@ -57,6 +59,12 @@ export class ClienteSearchComponent implements ControlValueAccessor {
 
   registerOnTouched(fn: any) {
     this.propagateTouched = fn
+  }
+
+  ngAfterViewInit() {
+    setTimeout(() => {
+      this.csc.focus()
+    }, 1);
   }
 
 

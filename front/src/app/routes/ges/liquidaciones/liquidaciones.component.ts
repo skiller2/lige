@@ -143,7 +143,8 @@ export class LiquidacionesComponent {
     this.gridObjEdit = angularGrid.detail.slickGrid;
 
     setTimeout(() => {
-      this.addNewItem("bottom")
+      if (this.gridDataInsert.length == 0)
+        this.addNewItem("bottom")
       
     }, 500);
 

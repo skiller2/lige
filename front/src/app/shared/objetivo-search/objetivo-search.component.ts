@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, forwardRef } from '@angular/core'
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, forwardRef } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
@@ -12,6 +12,7 @@ import { Search } from '../schemas/personal.schemas'
 import { SearchService } from 'src/app/services/search.service'
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
 import { doOnSubscribe } from 'src/app/services/api.service'
+import { NzSelectComponent } from 'ng-zorro-antd/select'
 
 @Component({
   selector: 'app-objetivo-search',
@@ -32,6 +33,8 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
   @Input() sucursalId: number | null = null;
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
+  @ViewChild("osc") osc!: NzSelectComponent
+
 
   $searchChange = new BehaviorSubject('');
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
@@ -62,7 +65,11 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
     this.propagateTouched = fn
   }
 
-
+  ngAfterViewInit() {
+    setTimeout(() => {
+      this.osc.focus()
+    }, 1);
+  }
 
   get selectedId() {
     return this._selectedId
@@ -118,3 +125,4 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
     this.$searchChange.next(value);
   }
 }
+
