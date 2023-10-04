@@ -59,6 +59,10 @@ liquidacionesRouter.get("/banco/cols", authMiddleware.verifyToken, (req, res) =>
     liquidacionesBancoController.getLiquidacionesBancoCols(req, res);
 });
 
+liquidacionesRouter.get("/banco/ayuda/cols", authMiddleware.verifyToken, (req, res) => {
+    liquidacionesBancoController.getLiquidacionesBancoColsAyuda(req, res);
+});
+
 liquidacionesRouter.post('/banco/list', authMiddleware.verifyToken, (req, res, next) => {
     liquidacionesBancoController.getByLiquidacionesBanco(req, res, next)
 });

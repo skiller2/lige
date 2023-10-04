@@ -113,7 +113,6 @@ export class LiquidacionesController extends BaseController {
     
       ];
 
-
   async getByLiquidaciones(
     req: any,
     res: Response, next: NextFunction

@@ -56,12 +56,15 @@ export class LiquidacionesBancoComponent {
   tableLoading$ = new BehaviorSubject(false);
   filesChange$ = new BehaviorSubject('');
   gridOptions!: GridOption;
+  gridOptionsAyuda!: GridOption;
   selectedPeriod = { year: 0, month: 0 };
 
 
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
+  angularGridAyuda!: AngularGridInstance;
   gridObj!: SlickGrid;
+  gridObjAyuda!: SlickGrid;
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && dataContext.monto > 0) {
@@ -151,6 +154,14 @@ export class LiquidacionesBancoComponent {
       this.angularGrid.gridService.hideColumnByIds([])
   }
 
+  async angularGridReadyAyuda(angularGrid: any) {
+    this.angularGridAyuda = angularGrid.detail
+    this.gridObjAyuda = angularGrid.detail.slickGrid;
+
+    if (this.apiService.isMobile())
+      this.angularGridAyuda.gridService.hideColumnByIds([])
+  }
+
   gridData$ = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
@@ -221,6 +232,12 @@ export class LiquidacionesBancoComponent {
     return cols
   }));
 
+  columnsAyuda$ = this.apiService.getCols('/api/liquidaciones/banco/ayuda/cols').pipe(map((cols) => {
+    console.log("imprimo columnas", cols)
+    return cols
+  }));
+
+
   async liquidacionesAcciones(ev: Event) {
 
     let value = (ev.target as HTMLInputElement).id;
@@ -248,8 +265,11 @@ export class LiquidacionesBancoComponent {
       });
 
 
-    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
+
+    this.gridOptionsAyuda = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptionsAyuda.enableRowDetailView = this.apiService.isMobile()
   }
 
 

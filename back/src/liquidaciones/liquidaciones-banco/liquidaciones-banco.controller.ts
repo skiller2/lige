@@ -109,6 +109,72 @@ export class LiquidacionesBancoController extends BaseController {
 
   ];
 
+  listaColumnasAyuda: any[] = [
+    {
+      id: "PersonalId",
+      name: "Personal Id",
+      field: "PersonalId",
+      fieldName: "per.PersonalId",
+      type: "number",
+      sortable: true,
+      searchHidden: true,
+      hidden: true
+    },
+    {
+      name: "Apellido Nombre",
+      type: "string",
+      id: "PersonalApellidoNombre",
+      field: "PersonalApellidoNombre",
+      fieldName: "per.PersonalId",
+      searchComponent: "inpurForPersonalSearch",
+      searchType: "number",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      name: "CUIT",
+      type: "number",
+      id: "PersonalCUITCUILCUIT",
+      field: "PersonalCUITCUILCUIT",
+      fieldName: "cuit.PersonalCUITCUILCUIT",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
+      name: "CBU",
+      type: "number",
+      id: "PersonalBancoCBU",
+      field: "PersonalBancoCBU",
+      fieldName: "perban.PersonalBancoCBU",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      name: "importe",
+      type: "currency",
+      id: "importe",
+      field: "importe",
+      fieldName: "ade.importe",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      name: "Banco",
+      type: "string",
+      id: "BancoDescripcion",
+      field: "BancoDescripcion",
+      fieldName: "banc.BancoDescripcion",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    }
+
+  ];
+
 
   async getByLiquidacionesBanco(
     req: any,
@@ -159,24 +225,28 @@ export class LiquidacionesBancoController extends BaseController {
 
     try {
 
-      const banco = await dataSource.query(
-        `SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.sum_importe
-        FROM ERP_Produccion.dbo.Personal per
-        JOIN(SELECT liq.persona_id, SUM(liq.importe * tipo.signo) sum_importe FROM lige.dbo.liqmamovimientos liq
-        JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = liq.tipo_movimiento_id
-                GROUP BY liq.persona_id HAVING SUM(liq.importe* tipo.signo) > 0) AS movpos ON movpos.persona_id = per.PersonalId
-        LEFT JOIN ERP_Produccion.dbo.PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM ERP_Produccion.dbo.PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId)
-        LEFT JOIN ERP_Produccion.dbo.PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM ERP_Produccion.dbo.PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-
-        LEFT JOIN ERP_Produccion.dbo.banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+      const ayuda = await dataSource.query(
+        `SELECT CONCAT(per.PersonalId,'-',ade.PersonalAdelantoId ) as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,
+        ade.PersonalAdelantoMontoAutorizado AS importe, ade.PersonalAdelantoAplicaEl,
+        tipo.tipo_movimiento_id, tipo.des_movimiento,
+        ade.PersonalAdelantoLiquidoFinanzas,
+            1
+                FROM ERP_Produccion.dbo.Personal per
+                JOIN ERP_Produccion.dbo.PersonalAdelanto ade ON ade.PersonalId = per.PersonalId AND ade.PersonalAdelantoAprobado='S' AND ISNULL(ade.PersonalAdelantoLiquidoFinanzas,0) =0
+                JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = 1
+                LEFT JOIN ERP_Produccion.dbo.PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM ERP_Produccion.dbo.PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId)
+                LEFT JOIN ERP_Produccion.dbo.PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM ERP_Produccion.dbo.PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+        
+                LEFT JOIN ERP_Produccion.dbo.banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+                
         WHERE (${filterSql}) 
         ${orderBy}
         `)
 
       this.jsonRes(
         {
-          total: banco.length,
-          list: banco,
+          total: ayuda.length,
+          list: ayuda,
         },
         res
       );
@@ -188,6 +258,10 @@ export class LiquidacionesBancoController extends BaseController {
 
   async getLiquidacionesBancoCols(req: Request, res: Response) {
     this.jsonRes(this.listaColumnas, res);
+  }
+
+  async getLiquidacionesBancoColsAyuda(req: Request, res: Response) {
+    this.jsonRes(this.listaColumnasAyuda, res);
   }
 
   async handleDownloadComprobantesByFiltro(req: Request, res: Response, next: NextFunction) {

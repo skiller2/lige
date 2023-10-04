@@ -48,7 +48,7 @@
         <a nz-tab-link routerLink="/ges/liquidacion_banco/listado">Listado</a>
         <ng-template nz-tab *ngIf="(columns$|async) as columnas">
           <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
-          <div class="gridContainer container-fluid" >
+          <div class="gridContainer1 container-fluid" >
             <angular-slickgrid gridId="grid22" class="" 
               [columnDefinitions]="columnas | colsFilter"
               [gridOptions]="gridOptions" 
@@ -62,14 +62,14 @@
       </nz-tab>
       <nz-tab >
         <a nz-tab-link routerLink="/ges/liquidacion_banco/ayudaasistencial">Listado</a>
-        <ng-template nz-tab *ngIf="(columns$|async) as columnas">
-          <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
-          <div class="gridContainer container-fluid" >
+        <ng-template nz-tab *ngIf="(columnsAyuda$|async) as columnasAyuda">
+          <shared-filtro-builder #sfb [fieldsToSelect]="columnasAyuda" (optionsChange)="listOptionsChange($event)" />
+          <div class="gridContainer2 container-fluid" >
             <angular-slickgrid gridId="grid23" class="" 
-              [columnDefinitions]="columnas | colsFilter"
-              [gridOptions]="gridOptions" 
+              [columnDefinitions]="columnasAyuda | colsFilter"
+              [gridOptions]="gridOptionsAyuda" 
               [dataset]="(gridDataAyuda$ | async) || []" 
-              (onAngularGridCreated)="angularGridReady($event)">
+              (onAngularGridCreated)="angularGridReadyAyuda($event)">
           </angular-slickgrid>
           </div>
 
