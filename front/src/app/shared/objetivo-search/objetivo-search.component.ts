@@ -13,6 +13,7 @@ import { SearchService } from 'src/app/services/search.service'
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
 import { doOnSubscribe } from 'src/app/services/api.service'
 import { NzSelectComponent } from 'ng-zorro-antd/select'
+import { KeyCode } from 'angular-slickgrid'
 
 @Component({
   selector: 'app-objetivo-search',
@@ -65,8 +66,23 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
     this.propagateTouched = fn
   }
 
+  ngOnDestroy() { 
+    this.osc.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
+  }
+
+  onKeydown(event: KeyboardEvent) {
+    console.log('event',event)
+//    this._lastInputEvent = event;
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+      event.stopImmediatePropagation()
+    }
+  }
+
+
   ngAfterViewInit() {
     setTimeout(() => {
+      this.osc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
+
       this.osc.focus()
     }, 1);
   }

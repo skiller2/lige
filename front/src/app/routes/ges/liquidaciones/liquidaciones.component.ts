@@ -384,6 +384,7 @@ export class LiquidacionesComponent {
 
   confirmNewItem(){
 
+    //TODO Usar this.gridDataInsert
   this.columnDefinitions.forEach((item: any) => {
      let itemValue = item.field;
      
@@ -402,7 +403,6 @@ export class LiquidacionesComponent {
     if (!row.detalle && !row.des_movimiento && !row.ObjetivoDescripcion && !row.PersonalDescripcion && !row.monto)
       this.angularGridEdit.gridService.deleteItem(row)
 
-    console.log('grabar aca cuando estén todos los datos', row,e)
     if (row.detalle && row.des_movimiento && (row.ObjetivoDescripcion || row.PersonalDescripcion) && row.monto) { 
       console.log('Debo grabar o actualizar registro')
     }

@@ -140,6 +140,7 @@ export class CustomGridEditor implements Editor {
 
   /** optional, implement a focus method on your Angular Component */
   focus() {
+    console.log('uni fosdf')
     if (typeof this.componentRef?.instance.focus === 'function') {
       this.componentRef.instance.focus();
     }

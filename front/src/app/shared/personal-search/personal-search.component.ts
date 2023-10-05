@@ -64,10 +64,25 @@ export class PersonalSearchComponent implements ControlValueAccessor {
     this.propagateTouched = fn
   }
 
+  ngOnDestroy() { 
+    this.psc.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
+  }
+
+  onKeydown(event: KeyboardEvent) {
+    console.log('event',event)
+//    this._lastInputEvent = event;
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+      event.stopImmediatePropagation()
+    }
+  }
+
+
+
   ngAfterViewInit() {
     setTimeout(() => {
+      this.psc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
       this.psc.focus()
-      
+     
     }, 1);
   }
 
@@ -125,5 +140,10 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   search(value: string): void {
     this.extendedOption = { PersonalId: 0, fullName: "" }
     this.$searchChange.next(value)
+  }
+
+  focus() { 
+    console.log('focus')
+
   }
 }

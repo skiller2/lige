@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { SharedModule } from '../shared.module';
 import { CommonModule } from '@angular/common';
@@ -29,6 +29,9 @@ export class EditorPersonaComponent {
   onItemChanged = new Subject<any>();    // object
   valueExtended!:any
 
+  constructor(public element: ElementRef){}
+
+
   onChange(item: any) {
     this.selectedItem = { id: item, fullName: this.valueExtended?.fullName } 
 //    this.onItemChanged.next(this.selectedItem)
@@ -37,4 +40,21 @@ export class EditorPersonaComponent {
   focus() {
     // do a focus
   }
+
+  onKeydown(event: KeyboardEvent) {
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+      event.stopImmediatePropagation()
+    }
+  }
+
+
+  ngOnInit() {
+    this.element.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
+  }
+
+  ngOnDestroy() {
+    this.element.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this));
+  }
+
+
 }
