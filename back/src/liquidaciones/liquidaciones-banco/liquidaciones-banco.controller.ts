@@ -189,14 +189,14 @@ export class LiquidacionesBancoController extends BaseController {
 
       const banco = await dataSource.query(
         `SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.sum_importe
-        FROM ERP_Produccion.dbo.Personal per
+        FROM Personal per
         JOIN(SELECT liq.persona_id, SUM(liq.importe * tipo.signo) sum_importe FROM lige.dbo.liqmamovimientos liq
         JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = liq.tipo_movimiento_id
                 GROUP BY liq.persona_id HAVING SUM(liq.importe* tipo.signo) > 0) AS movpos ON movpos.persona_id = per.PersonalId
-        LEFT JOIN ERP_Produccion.dbo.PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM ERP_Produccion.dbo.PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId)
-        LEFT JOIN ERP_Produccion.dbo.PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM ERP_Produccion.dbo.PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+        LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId)
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
 
-        LEFT JOIN ERP_Produccion.dbo.banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+        LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
         WHERE (${filterSql}) 
         ${orderBy}
         `)
@@ -231,13 +231,13 @@ export class LiquidacionesBancoController extends BaseController {
         tipo.tipo_movimiento_id, tipo.des_movimiento,
         ade.PersonalAdelantoLiquidoFinanzas,
             1
-                FROM ERP_Produccion.dbo.Personal per
-                JOIN ERP_Produccion.dbo.PersonalAdelanto ade ON ade.PersonalId = per.PersonalId AND ade.PersonalAdelantoAprobado='S' AND ISNULL(ade.PersonalAdelantoLiquidoFinanzas,0) =0
+                FROM Personal per
+                JOIN PersonalAdelanto ade ON ade.PersonalId = per.PersonalId AND ade.PersonalAdelantoAprobado='S' AND ISNULL(ade.PersonalAdelantoLiquidoFinanzas,0) =0
                 JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = 1
-                LEFT JOIN ERP_Produccion.dbo.PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM ERP_Produccion.dbo.PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId)
-                LEFT JOIN ERP_Produccion.dbo.PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM ERP_Produccion.dbo.PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+                LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId)
+                LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         
-                LEFT JOIN ERP_Produccion.dbo.banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+                LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
                 
         WHERE (${filterSql}) 
         ${orderBy}
@@ -316,10 +316,10 @@ export class LiquidacionesBancoController extends BaseController {
   }) {
 
     return dataSource.query(`SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.sum_importe
-      FROM ERP_Produccion.dbo.Personal per
-      JOIN ERP_Produccion.dbo.PersonalBanco AS perban ON perban.PersonalId = per.PersonalId
-      JOIN ERP_Produccion.dbo.PersonalCUITCUIL AS cuit ON cuit.PersonalId = per.PersonalId
-      JOIN ERP_Produccion.dbo.banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+      FROM Personal per
+      JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId
+      JOIN PersonalCUITCUIL AS cuit ON cuit.PersonalId = per.PersonalId
+      JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
       JOIN(SELECT liq.persona_id, SUM(liq.importe) sum_importe FROM lige.dbo.liqmamovimientos liq
       GROUP BY liq.persona_id HAVING SUM(liq.importe) > 0) AS movpos ON movpos.persona_id = per.PersonalId`)
   }

@@ -131,8 +131,8 @@ export class LiquidacionesController extends BaseController {
         li.importe * tipomo.signo AS importe FROM lige.dbo.liqmamovimientos AS li 
         INNER JOIN lige.dbo.liqcotipomovimiento AS tipomo ON li.tipo_movimiento_id = tipomo.tipo_movimiento_id 
         INNER JOIN lige.dbo.liqmaperiodo AS per ON li.periodo_id = per.periodo_id 
-        LEFT JOIN ERP_Produccion.dbo.Personal AS pers ON li.persona_id = pers.PersonalId
-        LEFT JOIN ERP_Produccion.dbo.Objetivo AS obj ON li.objetivo_id = obj.ObjetivoId
+        LEFT JOIN Personal AS pers ON li.persona_id = pers.PersonalId
+        LEFT JOIN Objetivo AS obj ON li.objetivo_id = obj.ObjetivoId
         WHERE per.anio = @0 AND per.mes = @1 AND (${filterSql}) 
        ${orderBy}
         `,[anio,mes])
