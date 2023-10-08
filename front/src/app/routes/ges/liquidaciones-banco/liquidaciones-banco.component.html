@@ -63,7 +63,7 @@
       <nz-tab >
         <a nz-tab-link routerLink="/ges/liquidacion_banco/ayudaasistencial">Listado</a>
         <ng-template nz-tab *ngIf="(columnsAyuda$|async) as columnasAyuda">
-          <shared-filtro-builder #sfb [fieldsToSelect]="columnasAyuda" (optionsChange)="listOptionsChange($event)" />
+          <shared-filtro-builder #sfb [fieldsToSelect]="columnasAyuda" (optionsChange)="listOptionsChangeAyuda($event)" />
           <div class="gridContainer2 container-fluid" >
             <angular-slickgrid gridId="grid23" class="" 
               [columnDefinitions]="columnasAyuda | colsFilter"

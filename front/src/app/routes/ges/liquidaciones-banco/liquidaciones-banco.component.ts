@@ -118,7 +118,12 @@ export class LiquidacionesBancoComponent {
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
-  };
+  }
+
+  listOptionsAyuda: listOptionsT = {
+    filtros: [],
+    sort: null,
+  }
 
   formChange(event: any) {
     this.formChange$.next(event);
@@ -127,8 +132,13 @@ export class LiquidacionesBancoComponent {
   listOptionsChange(options: any) {
     this.listOptions = options;
     this.formChange$.next('');
-
   }
+
+  listOptionsChangeAyuda(options: any) {
+    this.listOptionsAyuda = options;
+    this.formChange$.next('');
+  }
+
 
   ngAfterViewInit(): void {
     const now = new Date(); //date
@@ -190,7 +200,7 @@ export class LiquidacionesBancoComponent {
       const periodo = this.liquidacionesForm.form.get('periodo')?.value
       return this.apiService
         .getLiquidacionesBancoAyudaAsistencial(
-          { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptions }
+          { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptionsAyuda }
         )
         .pipe(
           map(data => {
