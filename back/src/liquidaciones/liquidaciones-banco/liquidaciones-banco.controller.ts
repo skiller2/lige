@@ -3,6 +3,9 @@ import { BaseController, ClientException } from "../../controller/baseController
 import { dataSource } from "../../data-source";
 import { LiqBanco } from "../../schemas/ResponseJSON";
 import { Filtro, Options } from "../../schemas/filtro";
+//import xlsx, { WorkSheet } from 'node-xlsx';
+ import Excel from  'exceljs';
+
 import path from "path";
 import {
   PDFDocument,
@@ -32,6 +35,7 @@ import {
   isOptions,
   orderToSQL,
 } from "../../impuestos-afip/filtros-utils/filtros";
+import { tmpName } from "../../server";
 
 export class LiquidacionesBancoController extends BaseController {
 
@@ -105,7 +109,18 @@ export class LiquidacionesBancoController extends BaseController {
       sortable: true,
       hidden: false,
       searchHidden: false
+    },
+    {
+      name: "BancoId",
+      type: "number",
+      id: "BancoId",
+      field: "BancoId",
+      fieldName: "banc.BancoId",
+      sortable: true,
+      hidden: true,
+      searchHidden: true
     }
+
 
   ];
 
@@ -175,20 +190,12 @@ export class LiquidacionesBancoController extends BaseController {
 
   ];
 
+  async getBancoSaldo(anio: Number, mes: Number, filtros: any, sort: any) {
+    const filterSql = filtrosToSql(filtros, this.listaColumnas);
+    const orderBy = orderToSQL(sort)
 
-  async getByLiquidacionesBanco(
-    req: any,
-    res: Response, next: NextFunction
-  ) {
-    const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
-    const orderBy = orderToSQL(req.body.options.sort)
-    const anio = Number(req.body.anio)
-    const mes = Number(req.body.mes)
-
-    try {
-
-      const banco = await dataSource.query(
-        `SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.sum_importe
+    return dataSource.query(
+      `SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.sum_importe
         FROM Personal per
         JOIN(SELECT liq.persona_id, SUM(liq.importe * tipo.signo) sum_importe FROM lige.dbo.liqmamovimientos liq
         JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = liq.tipo_movimiento_id
@@ -201,8 +208,21 @@ export class LiquidacionesBancoController extends BaseController {
         LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
         WHERE  (${filterSql}) 
         ${orderBy}
-        `,[anio,mes])
+        `, [anio, mes])
 
+  }
+
+  async getByLiquidacionesBanco(
+    req: any,
+    res: Response, next: NextFunction
+  ) {
+    const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
+    const orderBy = orderToSQL(req.body.options.sort)
+    const anio = Number(req.body.anio)
+    const mes = Number(req.body.mes)
+
+    try {
+      const banco = await this.getBancoSaldo(anio, mes, req.body.options.filtros, req.body.options.sort)
       this.jsonRes(
         {
           total: banco.length,
@@ -266,11 +286,70 @@ export class LiquidacionesBancoController extends BaseController {
     this.jsonRes(this.listaColumnasAyuda, res);
   }
 
+  async downloadArchivoBanco(req: Request, res: Response, next: NextFunction) {
+    const directory = process.env.PATH_LIQUIDACIONES || "tmp";
+    if (!existsSync(directory)) {
+      mkdirSync(directory, { recursive: true });
+    }
+
+    try {
+      const periodo = getPeriodoFromRequest(req);
+      let options: any = getOptionsFromRequest(req);
+      const BancoId = req.body.BancoId
+
+      options.filtros.push({index: 'BancoId', condition: 'AND', operador: '=', valor: [BancoId]})
+
+
+      const banco = await this.getBancoSaldo(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort)
+
+/*
+      const workSheetsFromBuffer = xlsx.parse(readFileSync(`${directory}/Patagonia_Sueldos.xls`),{raw:true,rawNumbers:true})
+      const sheet0:WorkSheet = workSheetsFromBuffer[0] as WorkSheet;
+      const sheet1:WorkSheet = workSheetsFromBuffer[1]as WorkSheet;
+//console.log('sheet1',sheet1)
+
+      for (let row of banco) {
+//              console.log('row',row)        
+      }
+      const buffer = xlsx.build([sheet0,sheet1])
+
+      writeFileSync(tmpfilename, buffer);
+
+*/
+      
+      const formattedMonth = String(periodo.month).padStart(2, "0");
+      const fileName = `${periodo.year}-${formattedMonth}-liquidacion.xlsx`;
+      const tmpfilename = `${directory}/${tmpName(directory)}`;
+      
+  	  const  wb = new Excel.Workbook()
+      const wb1=  await wb.xlsx.readFile(`${directory}/Patagonia_Sueldos.xls`,)
+      const worksheet = wb1.worksheets[0];
+//      var row = worksheet.getRow(5);
+//        row.getCell(1).value = 5; // A5's value set to 5
+//        row.commit();
+console.log('wb1',wb1)
+console.log('worksheet',worksheet)
+//      workbook.properties.date1904 = true;
+
+      wb1.properties.date1904 = true
+
+      await wb1.xlsx.writeFile(tmpfilename)  
+      res.download(tmpfilename, fileName, (msg) => {
+        unlinkSync(tmpfilename);
+      });
+    
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+
   async handleDownloadComprobantesByFiltro(req: Request, res: Response, next: NextFunction) {
     try {
-      
+
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
-      
+
       req.body.options.sort = [{ fieldName: 'ApellidoNombre', direction: 'ASC' }]
 
       const periodo = getPeriodoFromRequest(req);
@@ -278,7 +357,7 @@ export class LiquidacionesBancoController extends BaseController {
       const cantxpag = req.body.cantxpag;
       const listdowload = req.body.listdowload;
 
-      console.log("listdowload",listdowload)
+      console.log("listdowload", listdowload)
 
       const formattedMonth = String(periodo.month).padStart(2, "0");
       const filesPath = path.join(this.directory, String(periodo.year));

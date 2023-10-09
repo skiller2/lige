@@ -24,13 +24,13 @@
             
 
             <li nz-menu-item app-down-file [httpMethod]="'POST'"
-              [httpBody]="{anio, mes, options: listOptions, cantxpag:1, banco:1,listdowload}"
-              httpUrl="api/liquidaciones/download/comprobantes_filtrados/">
+              [httpBody]="{anio, mes, options: listOptions, BancoId:11}"
+              httpUrl="api/liquidaciones/download/banco/">
               <span nz-icon nzType="download"></span>Generar Banco ITAU
             </li>
             <li nz-menu-item app-down-file [httpMethod]="'POST'"
-              [httpBody]="{anio, mes, options: listOptions, cantxpag:1, banco:2,listdowload}"
-              httpUrl="api/liquidaciones/download/comprobantes_filtrados/">
+              [httpBody]="{anio, mes, options: listOptions, BancoId:4}"
+              httpUrl="api/liquidaciones/download/banco/">
               <span  nz-icon nzType="download"></span> Generar Banco Patagonia
             </li>
             
