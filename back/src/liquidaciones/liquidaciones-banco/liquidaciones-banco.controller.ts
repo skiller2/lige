@@ -321,8 +321,30 @@ export class LiquidacionesBancoController extends BaseController {
       const fileName = `${periodo.year}-${formattedMonth}-liquidacion.xlsx`;
       const tmpfilename = `${directory}/${tmpName(directory)}`;
       
-  	  const  wb = new Excel.Workbook()
-      const wb1=  await wb.xlsx.readFile(`${directory}/Patagonia_Sueldos.xls`,)
+/*
+      const wb = new Excel.Workbook()
+
+      
+      const workbookReader = new Excel.stream.xlsx.WorkbookReader(`${directory}/Patagonia_Sueldos.xls`,{});
+      for await (const worksheetReader of workbookReader) {
+        console.log('worksheetReader',worksheetReader)
+        for await (const row of worksheetReader) {
+          
+        }
+      }
+
+
+
+      wb.xlsx.readFile(`${directory}/Patagonia_Sueldos.xls`).then((res) => {
+        console.log('res', res)
+
+        var sheet = wb.getWorksheet("Registros");
+        console.log('sheet',sheet)
+      }).catch((err) => {
+        console.log('log',err)
+      })
+
+      const wb1 =  await wb.xlsx.readFile(`${directory}/Patagonia_Sueldos.xls`)
       const worksheet = wb1.worksheets[0];
 //      var row = worksheet.getRow(5);
 //        row.getCell(1).value = 5; // A5's value set to 5
@@ -331,13 +353,15 @@ console.log('wb1',wb1)
 console.log('worksheet',worksheet)
 //      workbook.properties.date1904 = true;
 
-      wb1.properties.date1904 = true
+//      wb1.properties.date1904 = true
 
-      await wb1.xlsx.writeFile(tmpfilename)  
-      res.download(tmpfilename, fileName, (msg) => {
-        unlinkSync(tmpfilename);
-      });
-    
+//      await wb1.xlsx.writeFile(tmpfilename)  
+//      res.download(tmpfilename, fileName, (msg) => {
+//        unlinkSync(tmpfilename);
+//      });
+
+*/
+      throw new ClientException("Llegó")
 
     } catch (error) {
       return next(error)

@@ -111,6 +111,20 @@ export class DefaultInterceptor implements HttpInterceptor {
         this.toLogin();
         break;
       default:
+        if (err.error instanceof Blob) {
+          const reader = new FileReader();
+          reader.onload = e => { 
+            if (e.target?.readyState === 2) {
+              const res = JSON.parse(String(e.target.result))
+              this.notification.error(`Error`, res.msg);
+            }
+          }
+          reader.readAsText(err.error);
+          break;
+        }
+          
+        
+        
         const errortext = err.error?.msg
           ? err.error.msg
           : CODEMESSAGE[err.status] || err.statusText;
