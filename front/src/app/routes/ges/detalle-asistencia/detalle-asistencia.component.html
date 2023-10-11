@@ -221,8 +221,8 @@
         </nz-form-item>
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Retiro</nz-form-label>
-          <nz-form-control *ngIf="listaAsistenciaPerTotal > 0 || listaDescuentosPerTotal > 0">
-            <span>{{ listaAsistenciaPerTotal - listaDescuentosPerTotal | currency }} </span> <span> ({{ listaAsistenciaPerTotal | currency }} - {{ listaDescuentosPerTotal | currency }})</span><span>, total horas: {{ listaAsistenciaPerTotalHoras }}</span>  
+          <nz-form-control *ngIf="listaIngresosPerTotal + listaAsistenciaPerTotal > 0 || listaDescuentosPerTotal > 0">
+            <span>{{ listaIngresosPerTotal + listaAsistenciaPerTotal - listaDescuentosPerTotal | currency }} </span> <span> ({{ listaIngresosPerTotal + listaAsistenciaPerTotal | currency }} - {{ listaDescuentosPerTotal | currency }})</span><span>, total horas: {{ listaAsistenciaPerTotalHoras + listaIngresosPerTotalHoras}}</span>  
           </nz-form-control>
         </nz-form-item>
 
@@ -365,6 +365,37 @@
             </nz-table>
           </nz-form-control>
         </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Administrativos y Art42</nz-form-label>
+          <nz-form-control>
+            <nz-table #art42adminPer [nzData]="($listaIngresosPer | async).ingresos" nzSize="small" [nzPageSize]="100000000"
+              [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Objetivo</th>
+                  <th>Categoría</th>
+                  <th>Horas</th>
+                  <th>Valor Hora</th>
+                  <th>Importe Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let data of art42adminPer.data" class="">
+                  <td title="{{ data.SucursalId }}">{{ data.SucursalId }}</td>
+                  <td>{{ data.SucursalDescripcion}}</td>
+                  <td>{{ data.CategoriaPersonalDescripcion }} {{data.SucursalAsistenciaAnoMesPersonalDiasCualArt42 }}</td>
+                  <td>{{ (data.horas_fijas>0) ? data.horas_fijas: data.horas_reales }}</td>
+                  <td>{{ data.ValorLiquidacionHoraNormal }}</td>
+                  <td>{{ data.total | currency}}</td>
+                </tr>
+              </tbody>
+            </nz-table>
+          </nz-form-control>
+        </nz-form-item>
+
+
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Descuentos</nz-form-label>
           <nz-form-control *ngIf="$listaDescuentosPer | async as listaDescuentosPer "> 
