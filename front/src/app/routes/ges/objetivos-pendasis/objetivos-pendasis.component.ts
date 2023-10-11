@@ -65,10 +65,8 @@ export class ObjetivosPendAsisComponent {
   anio = 0
   mes = 0
   selectedTabIndex = 0;
-  SucursalId = 0
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
-  $optionsSucursales = this.searchService.getSucursales();
 
   columns$ = this.apiService.getCols('/api/objetivos-pendasis/cols').pipe(map((cols) => {
     return cols
