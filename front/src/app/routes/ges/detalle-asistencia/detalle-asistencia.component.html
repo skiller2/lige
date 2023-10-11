@@ -387,7 +387,7 @@
                   <td>{{ data.SucursalDescripcion}}</td>
                   <td>{{ data.CategoriaPersonalDescripcion }} {{data.SucursalAsistenciaAnoMesPersonalDiasCualArt42 }}</td>
                   <td>{{ (data.horas_fijas>0) ? data.horas_fijas: data.horas_reales }}</td>
-                  <td>{{ data.ValorLiquidacionHoraNormal }}</td>
+                  <td>{{ data.ValorLiquidacionHoraNormal | currency}}</td>
                   <td>{{ data.total | currency}}</td>
                 </tr>
               </tbody>

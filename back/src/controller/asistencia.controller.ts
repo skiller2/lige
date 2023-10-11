@@ -212,8 +212,6 @@ export class AsistenciaController extends BaseController {
         Number(ObjetivoId),
         queryRunner
       );
-      //        if (!auth)
-      //          throw new ClientException( `No tiene permisos para realizar operación CUIT ${persona_cuit}`);
 
       let result = await queryRunner.query(
         `SELECT percat.PersonalCategoriaTipoAsociadoId,percat.PersonalCategoriaCategoriaPersonalId, cat.CategoriaPersonalDescripcion, percat.PersonalCategoriaDesde, percat.PersonalCategoriaHasta
@@ -556,7 +554,6 @@ export class AsistenciaController extends BaseController {
       const mes = req.params.mes;
       var desde = new Date(anio, mes - 1, 1);
 
-      //            const { objetivoId } = req.body;
 
       const auth = await this.hasAuthObjetivo(
         anio,
@@ -565,8 +562,6 @@ export class AsistenciaController extends BaseController {
         Number(objetivoId),
         dataSource
       );
-      //        if (!auth)
-      //          throw new ClientException(`No tiene permisos para realizar la consulta al objetivo`);
 
       const result = await dataSource.query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion,
@@ -763,6 +758,11 @@ export class AsistenciaController extends BaseController {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
       const mes = req.params.mes;
+      const queryRunner = dataSource.createQueryRunner();
+
+      if (!this.hasGroup(req,'liquidaciones') &&  await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+        throw new ClientException(`No tiene persimo para obtener información de descuentos`)
+
 
       const result = await AsistenciaController.getDescuentos(anio, mes, [personalId])
 
@@ -775,12 +775,15 @@ export class AsistenciaController extends BaseController {
   }
 
   async getIngresosPorPersona(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
       const mes = req.params.mes;
-      const queryRunner = dataSource.createQueryRunner();
-
+      
+      if (!this.hasGroup(req,'liquidaciones') &&  await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+        throw new ClientException(`No tiene persimo para obtener información de ingresos`)
+      
       const result = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [personalId])
 
       const total = result.map(row => row.total).reduce((prev, curr) => prev + curr, 0)
@@ -794,22 +797,18 @@ export class AsistenciaController extends BaseController {
 
 
   async getExcepAsistenciaPorPersona(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
       const mes = req.params.mes;
       var desde = new Date(anio, mes - 1, 1);
 
-      //            const { objetivoId } = req.body;
-      /*
-            if (req.persona_cuit != "") {
-                const auth = await this.hasAuthObjetivo(anio, mes, req, objetivoId, dataSource)
-                if (!auth)
-                    throw new ClientException(`No tiene permisos para realizar la consulta al objetivo`)
-            }
-*/
+      if (!this.hasGroup(req,'liquidaciones') &&  await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+        throw new ClientException(`No tiene persimo para obtener información de art14`)
 
-      const result = await dataSource.query(
+      const result = await queryRunner.query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion,
                 IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde) AS Desde,
                 IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta,
@@ -832,30 +831,24 @@ export class AsistenciaController extends BaseController {
       );
       this.jsonRes(result, res);
     } catch (error) {
-      // if (queryRunner.isTransactionActive)
-      //            await queryRunner.rollbackTransaction()
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction()
       return next(error)
     }
   }
 
   async getAsistenciaPorPersona(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
       const mes = req.params.mes;
       var desde = new Date(anio, mes - 1, 1);
 
-      /*
-            if (req.persona_cuit != "") {
-                const auth = await this.hasAuthObjetivo(anio, mes, req, objetivoId, dataSource)
-                if (!auth)
-                    throw new ClientException(`No tiene permisos para realizar la consulta al objetivo`)
-            }
-*/
+      if (!this.hasGroup(req,'liquidaciones') &&  await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+        throw new ClientException(`No tiene persimo para obtener información de asistencia`)
 
-      //            const { objetivoId } = req.body;
-
-      const result = await dataSource.query(
+      const result = await queryRunner.query(
         `SELECT suc.SucursalId, obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
                 persona.PersonalEstado,
                 
@@ -1036,8 +1029,8 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes({ asistencia: result, totalImporte, totalHoras }, res);
     } catch (error) {
-      // if (queryRunner.isTransactionActive)
-      //await queryRunner.rollbackTransaction()
+       if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction()
       return next(error)
     }
   }
@@ -1136,10 +1129,6 @@ export class AsistenciaController extends BaseController {
         Number(objetivoId),
         dataSource
       );
-      //        if (!auth)
-      //          throw new ClientException(`No tiene permisos para realizar la consulta al objetivo`);
-
-      //            const { objetivoId } = req.body;
 
       const result = await dataSource.query(
         `SELECT suc.SucursalId, obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
