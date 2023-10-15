@@ -339,6 +339,16 @@ export class ApiService {
 
   }
 
+  setAgregarRegistros(gridDataInsert: any) {
+     const parameter = gridDataInsert
+     this.notification.success('Respuesta', `Inicio insercion `);
+
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/add', parameter).pipe(
+      tap(res => this.response(res)),
+     )
+
+  }
+
   setCambiarCategorias(filters: any) {
     const parameter = filters
     this.notification.success('Respuesta', `Inicio cambio de categoría`);
