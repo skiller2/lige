@@ -3,6 +3,9 @@ import { BaseController, ClientException } from "../../controller/baseController
 import { dataSource } from "../../data-source";
 import { LiqBanco } from "../../schemas/ResponseJSON";
 import { Filtro, Options } from "../../schemas/filtro";
+//import xlsx, { WorkSheet } from 'node-xlsx';
+ import Excel from  'exceljs';
+
 import path from "path";
 import {
   PDFDocument,
@@ -32,6 +35,7 @@ import {
   isOptions,
   orderToSQL,
 } from "../../impuestos-afip/filtros-utils/filtros";
+import { tmpName } from "../../server";
 
 export class LiquidacionesBancoController extends BaseController {
 
@@ -105,7 +109,18 @@ export class LiquidacionesBancoController extends BaseController {
       sortable: true,
       hidden: false,
       searchHidden: false
+    },
+    {
+      name: "BancoId",
+      type: "number",
+      id: "BancoId",
+      field: "BancoId",
+      fieldName: "banc.BancoId",
+      sortable: true,
+      hidden: true,
+      searchHidden: true
     }
+
 
   ];
 
@@ -175,6 +190,27 @@ export class LiquidacionesBancoController extends BaseController {
 
   ];
 
+  async getBancoSaldo(anio: Number, mes: Number, filtros: any, sort: any) {
+    const filterSql = filtrosToSql(filtros, this.listaColumnas);
+    const orderBy = orderToSQL(sort)
+
+    return dataSource.query(
+      `SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.sum_importe
+        FROM Personal per
+        JOIN(SELECT liq.persona_id, SUM(liq.importe * tipo.signo) sum_importe FROM lige.dbo.liqmamovimientos liq
+        JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = liq.tipo_movimiento_id
+        JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = liq.periodo_id AND per.anio=@0 AND per.mes=@1
+
+                GROUP BY liq.persona_id HAVING SUM(liq.importe* tipo.signo) > 0) AS movpos ON movpos.persona_id = per.PersonalId
+        LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId)
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+
+        LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+        WHERE  (${filterSql}) 
+        ${orderBy}
+        `, [anio, mes])
+
+  }
 
   async getByLiquidacionesBanco(
     req: any,
@@ -186,21 +222,7 @@ export class LiquidacionesBancoController extends BaseController {
     const mes = Number(req.body.mes)
 
     try {
-
-      const banco = await dataSource.query(
-        `SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.sum_importe
-        FROM ERP_Produccion.dbo.Personal per
-        JOIN(SELECT liq.persona_id, SUM(liq.importe * tipo.signo) sum_importe FROM lige.dbo.liqmamovimientos liq
-        JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = liq.tipo_movimiento_id
-                GROUP BY liq.persona_id HAVING SUM(liq.importe* tipo.signo) > 0) AS movpos ON movpos.persona_id = per.PersonalId
-        LEFT JOIN ERP_Produccion.dbo.PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM ERP_Produccion.dbo.PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId)
-        LEFT JOIN ERP_Produccion.dbo.PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM ERP_Produccion.dbo.PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-
-        LEFT JOIN ERP_Produccion.dbo.banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
-        WHERE (${filterSql}) 
-        ${orderBy}
-        `)
-
+      const banco = await this.getBancoSaldo(anio, mes, req.body.options.filtros, req.body.options.sort)
       this.jsonRes(
         {
           total: banco.length,
@@ -231,13 +253,13 @@ export class LiquidacionesBancoController extends BaseController {
         tipo.tipo_movimiento_id, tipo.des_movimiento,
         ade.PersonalAdelantoLiquidoFinanzas,
             1
-                FROM ERP_Produccion.dbo.Personal per
-                JOIN ERP_Produccion.dbo.PersonalAdelanto ade ON ade.PersonalId = per.PersonalId AND ade.PersonalAdelantoAprobado='S' AND ISNULL(ade.PersonalAdelantoLiquidoFinanzas,0) =0
+                FROM Personal per
+                JOIN PersonalAdelanto ade ON ade.PersonalId = per.PersonalId AND ade.PersonalAdelantoAprobado='S' AND ISNULL(ade.PersonalAdelantoLiquidoFinanzas,0) =0
                 JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = 1
-                LEFT JOIN ERP_Produccion.dbo.PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM ERP_Produccion.dbo.PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId)
-                LEFT JOIN ERP_Produccion.dbo.PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM ERP_Produccion.dbo.PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+                LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId)
+                LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         
-                LEFT JOIN ERP_Produccion.dbo.banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+                LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
                 
         WHERE (${filterSql}) 
         ${orderBy}
@@ -264,11 +286,94 @@ export class LiquidacionesBancoController extends BaseController {
     this.jsonRes(this.listaColumnasAyuda, res);
   }
 
+  async downloadArchivoBanco(req: Request, res: Response, next: NextFunction) {
+    const directory = process.env.PATH_LIQUIDACIONES || "tmp";
+    if (!existsSync(directory)) {
+      mkdirSync(directory, { recursive: true });
+    }
+
+    try {
+      const periodo = getPeriodoFromRequest(req);
+      let options: any = getOptionsFromRequest(req);
+      const BancoId = req.body.BancoId
+
+      options.filtros.push({index: 'BancoId', condition: 'AND', operador: '=', valor: [BancoId]})
+
+
+      const banco = await this.getBancoSaldo(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort)
+
+/*
+      const workSheetsFromBuffer = xlsx.parse(readFileSync(`${directory}/Patagonia_Sueldos.xls`),{raw:true,rawNumbers:true})
+      const sheet0:WorkSheet = workSheetsFromBuffer[0] as WorkSheet;
+      const sheet1:WorkSheet = workSheetsFromBuffer[1]as WorkSheet;
+//console.log('sheet1',sheet1)
+
+      for (let row of banco) {
+//              console.log('row',row)        
+      }
+      const buffer = xlsx.build([sheet0,sheet1])
+
+      writeFileSync(tmpfilename, buffer);
+
+*/
+      
+      const formattedMonth = String(periodo.month).padStart(2, "0");
+      const fileName = `${periodo.year}-${formattedMonth}-liquidacion.xlsx`;
+      const tmpfilename = `${directory}/${tmpName(directory)}`;
+      
+/*
+      const wb = new Excel.Workbook()
+
+      
+      const workbookReader = new Excel.stream.xlsx.WorkbookReader(`${directory}/Patagonia_Sueldos.xls`,{});
+      for await (const worksheetReader of workbookReader) {
+        console.log('worksheetReader',worksheetReader)
+        for await (const row of worksheetReader) {
+          
+        }
+      }
+
+
+
+      wb.xlsx.readFile(`${directory}/Patagonia_Sueldos.xls`).then((res) => {
+        console.log('res', res)
+
+        var sheet = wb.getWorksheet("Registros");
+        console.log('sheet',sheet)
+      }).catch((err) => {
+        console.log('log',err)
+      })
+
+      const wb1 =  await wb.xlsx.readFile(`${directory}/Patagonia_Sueldos.xls`)
+      const worksheet = wb1.worksheets[0];
+//      var row = worksheet.getRow(5);
+//        row.getCell(1).value = 5; // A5's value set to 5
+//        row.commit();
+console.log('wb1',wb1)
+console.log('worksheet',worksheet)
+//      workbook.properties.date1904 = true;
+
+//      wb1.properties.date1904 = true
+
+//      await wb1.xlsx.writeFile(tmpfilename)  
+//      res.download(tmpfilename, fileName, (msg) => {
+//        unlinkSync(tmpfilename);
+//      });
+
+*/
+      throw new ClientException("Llegó")
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+
   async handleDownloadComprobantesByFiltro(req: Request, res: Response, next: NextFunction) {
     try {
-      
+
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
-      
+
       req.body.options.sort = [{ fieldName: 'ApellidoNombre', direction: 'ASC' }]
 
       const periodo = getPeriodoFromRequest(req);
@@ -276,7 +381,7 @@ export class LiquidacionesBancoController extends BaseController {
       const cantxpag = req.body.cantxpag;
       const listdowload = req.body.listdowload;
 
-      console.log("listdowload",listdowload)
+      console.log("listdowload", listdowload)
 
       const formattedMonth = String(periodo.month).padStart(2, "0");
       const filesPath = path.join(this.directory, String(periodo.year));
@@ -316,10 +421,10 @@ export class LiquidacionesBancoController extends BaseController {
   }) {
 
     return dataSource.query(`SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.sum_importe
-      FROM ERP_Produccion.dbo.Personal per
-      JOIN ERP_Produccion.dbo.PersonalBanco AS perban ON perban.PersonalId = per.PersonalId
-      JOIN ERP_Produccion.dbo.PersonalCUITCUIL AS cuit ON cuit.PersonalId = per.PersonalId
-      JOIN ERP_Produccion.dbo.banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+      FROM Personal per
+      JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId
+      JOIN PersonalCUITCUIL AS cuit ON cuit.PersonalId = per.PersonalId
+      JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
       JOIN(SELECT liq.persona_id, SUM(liq.importe) sum_importe FROM lige.dbo.liqmamovimientos liq
       GROUP BY liq.persona_id HAVING SUM(liq.importe) > 0) AS movpos ON movpos.persona_id = per.PersonalId`)
   }

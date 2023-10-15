@@ -43,6 +43,7 @@ GlobalWorkerOptions.workerSrc = `./pdf.worker.js`;
 
 const cuitRegex = [
   /:\d{2}\n(\d{11})$/m,
+  /control\n(\d{11})$/m,
   /CUIT\/CUIL\/CDI\n(\d{11})/m,
   /^CUIT: (\d{11})$/m,
 ];
@@ -507,19 +508,19 @@ export class ImpuestosAfipController extends BaseController {
           let [, periodoAnio, periodoMes] = this.getByRegexText(
             textdocument,
             periodoRegex,
-            new Error("No se pudo encontrar el periodo.")
+            new ClientException("No se pudo encontrar el periodo.")
           );
 
           [, CUIT] = this.getByRegexText(
             textdocument,
             cuitRegex,
-            new Error("No se pudo encontrar el CUIT.")
+            new ClientException("No se pudo encontrar el CUIT.")
           );
 
           const [, importeMontoTemp] = this.getByRegexText(
             textdocument,
             importeMontoRegex,
-            new Error("No se pudo encontrar el monto.")
+            new ClientException("No se pudo encontrar el monto.")
           );
           importeMonto = parseFloat(importeMontoTemp.replace(",", "."));
 
@@ -707,7 +708,7 @@ export class ImpuestosAfipController extends BaseController {
 
         let embeddedPage: PDFEmbeddedPage = null;
         let origenComprobante = "";
-
+  
         if (
           currentFilePDFPage.getWidth() == 595.276 &&
           currentFilePDFPage.getHeight() == 841.89
@@ -730,6 +731,14 @@ export class ImpuestosAfipController extends BaseController {
             left: 37,
             right: 560,
           });
+        } else if (
+          currentFilePDFPage.getWidth() == 595.32001 &&
+          currentFilePDFPage.getHeight() == 841.92004
+        ) {
+          origenComprobante = "MANUAL"
+          embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
+             top: 830, bottom: 450, left: 167, right: 430 },
+          );
         } else {
           embeddedPage = await newDocument.embedPage(currentFilePDFPage);
         }
@@ -797,6 +806,7 @@ export class ImpuestosAfipController extends BaseController {
 
             break
           case "PAGO":
+          case "MANUAL":
             lastPage.drawText(
               `${file.apellidoNombre}\n\nResponsable: ${file.apellidoNombreJ}`,
               {
@@ -930,6 +940,9 @@ export class ImpuestosAfipController extends BaseController {
     let embededPages = null;
     let origenComprobante = "";
 
+  
+
+    TODO://Detectar el espacio vacío alrededor del comprobante de manera automática
     if (page0.getWidth() == 595.276 && page0.getHeight() == 841.89) {
       origenComprobante = "PAGO"
       embededPages = await newPdf.embedPages(originPDFPages, [
@@ -939,6 +952,11 @@ export class ImpuestosAfipController extends BaseController {
       origenComprobante = "AFIP"
       embededPages = await newPdf.embedPages(originPDFPages, [
         { top: 808, bottom: 385, left: 37, right: 560 },
+      ]);
+    } else if (page0.getWidth() == 595.32001 && page0.getHeight() == 841.92004) {  //Comprobante Manual
+      origenComprobante = "MANUAL"
+      embededPages = await newPdf.embedPages(originPDFPages, [
+        { top: 830, bottom: 450, left: 167, right: 430 },
       ]);
     } else {
       embededPages = await newPdf.embedPages(originPDFPages);
@@ -1009,6 +1027,7 @@ export class ImpuestosAfipController extends BaseController {
           );
           break;
         case "PAGO":
+        case "MANUAL":
           currentPage.drawText(
             `${ApellidoNombre}\n\nResponsable: ${ApellidoNombreJ}`,
             {

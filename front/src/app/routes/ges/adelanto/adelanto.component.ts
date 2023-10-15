@@ -160,7 +160,7 @@ export class AdelantoComponent {
 
     setTimeout(() => {
       if (user.PersonalId > 0)
-      this.sharedFiltroBuilder.addFilter('ApellidoNombreJ', 'AND', '=', '548')
+      this.sharedFiltroBuilder.addFilter('ApellidoNombreJ', 'AND', '=', user.PersonalId)  //Ej 548
     }, 3000);
 
   }

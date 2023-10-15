@@ -243,7 +243,8 @@ export class CategoriasController extends BaseController {
       }
 
       await queryRunner.commitTransaction();
-      this.jsonRes({list:[] }, res, `Se procesaron ${pendientes.length} ascensos `);
+      if (res)
+        this.jsonRes({list:[] }, res, `Se procesaron ${pendientes.length} ascensos `);
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();

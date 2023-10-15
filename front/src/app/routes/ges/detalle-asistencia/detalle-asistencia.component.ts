@@ -64,9 +64,11 @@ export class DetalleAsistenciaComponent {
   selectedMetodologiaId = '';
   selectedCategoriaId = '';
   listaDescuentosPerTotal = 0
+  listaIngresosPerTotal = 0
   listaAsistenciaPerTotal = 0
-  listaAsistenciaPerTotalHoras = 0
   listaAsistenciaObjTotalImporte = 0
+  listaAsistenciaPerTotalHoras = 0
+  listaIngresosPerTotalHoras = 0
   listaAsistenciaObjTotalHoras = 0
 
   $isSucursalOptionsLoading = new BehaviorSubject(false);
@@ -169,6 +171,23 @@ export class DetalleAsistenciaComponent {
     )
   );
 
+  $listaIngresosPer = this.$selectedPersonalIdChange.pipe(
+    debounceTime(500),
+    switchMap(PersonalId =>
+      this.searchService
+        .getIngresosPersona(
+          Number(PersonalId),
+          this.selectedPeriod.year,
+          this.selectedPeriod.month
+        )
+        .pipe
+        //          doOnSubscribe(() => this.tableLoading$.next(true)),
+        (tap(data => { this.listaIngresosPerTotal = data.total; this.listaIngresosPerTotalHoras = data.totalHoras})   
+        
+    
+  )))
+
+
   $listaDescuentosPer = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
     switchMap(PersonalId =>
@@ -267,7 +286,6 @@ export class DetalleAsistenciaComponent {
         this.$isSucursalDataLoading.next(true);
         return;
       case Busqueda.Objetivo:
-        console.log(event);
         this.$selectedObjetivoIdChange.next(event);
         this.$isObjetivoDataLoading.next(true);
         return;

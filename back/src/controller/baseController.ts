@@ -33,12 +33,31 @@ export class BaseController {
 			req.socket.remoteAddress
   }
 
-  async hasAuthPersona(anio, mes, persona_cuit, queryRunner) {
+  async hasGroup(req:any,group:string) { 
+    let inGroup = false
+    if (req?.groups) {
+      for (const rowgroup of req?.groups) {
+        if (rowgroup.toLowerCase().indexOf(group.toLowerCase()) != -1)
+          inGroup = true
+      }
+    }
+    return (inGroup) ? true:false 
+  }
+
+  async hasAuthPersona(res:any, anio:number, mes:number, PersonalId_auth:number, queryRunner:QueryRunner) {
     let fechaHastaAuth = new Date(anio, mes, 1);
     fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1);
+    const PersonalId = res.locals.PersonalId
+    if (PersonalId == PersonalId_auth)
+      return true
 
-    let autorizado = false;
-    let resultAuth = await queryRunner.query(
+    if (PersonalId < 1) { 
+      return false
+    }
+
+    let ObjetivoIdList = []
+
+    let resultObjs = await queryRunner.query(
       `SELECT suc.SucursalId,
          
     obj.ObjetivoId, 
@@ -65,16 +84,90 @@ export class BaseController {
     
     LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
 
-    WHERE obj.ObjetivoId=@1`,
-      [fechaHastaAuth]
-    );
+    WHERE opj.ObjetivoPersonalJerarquicoPersonalId=@1`,
+      [fechaHastaAuth, PersonalId]
+    )
 
-    for (let row of resultAuth) {
-      if (row.PersonalCUITCUILCUIT == persona_cuit) {
-        return true;
-      }
+    for (const row of resultObjs)
+      ObjetivoIdList.push(row.ObjetivoId)
+
+   
+    //Busco si la persona está en un objetivo
+    let resultPers = await queryRunner.query(
+      `
+    SELECT DISTINCT 
+                persona.PersonalId,
+                1 as last
+                FROM ObjetivoAsistenciaAnoMesPersonalDias objd
+                JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoMesId = objd.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objd.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objd.ObjetivoId
+                JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objm.ObjetivoId
+                JOIN Objetivo obj ON obj.ObjetivoId = obja.ObjetivoId
+                JOIN Personal persona ON persona.PersonalId = objd.ObjetivoAsistenciaMesPersonalId
+                LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = persona.PersonalId) 
+                JOIN CategoriaPersonal cat ON cat.CategoriaPersonalId = objd.ObjetivoAsistenciaCategoriaPersonalId AND cat.TipoAsociadoId=objd.ObjetivoAsistenciaTipoAsociadoId
+                
+                LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+                LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+                
+                
+                LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+                
+                LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = suc.SucursalId AND val.ValorLiquidacionTipoAsociadoId = objd.ObjetivoAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = objd.ObjetivoAsistenciaCategoriaPersonalId AND 
+                
+                DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,1)BETWEEN 
+                    val.ValorLiquidacionDesde AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31')
+                
+                LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'28')  BETWEEN opj.ObjetivoPersonalJerarquicoDesde  AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') AND opj.ObjetivoPersonalJerarquicoComo = 'J'
+                LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
+                
+                LEFT JOIN PersonalArt14 art14S ON art14S.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14S.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14S.PersonalArt14FormaArt14 = 'S' AND art14S.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14S.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < art14S.PersonalArt14AutorizadoHasta OR art14S.PersonalArt14AutorizadoHasta IS NULL) AND  ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < art14S.PersonalArt14Anulacion   OR art14S.PersonalArt14Anulacion IS NULL)
+                LEFT JOIN PersonalArt14 art14E ON art14E.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14E.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14E.PersonalArt14FormaArt14 = 'E' AND art14E.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14E.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < art14E.PersonalArt14AutorizadoHasta OR art14E.PersonalArt14AutorizadoHasta IS NULL) AND  ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < art14E.PersonalArt14Anulacion   OR art14E.PersonalArt14Anulacion IS NULL)
+                LEFT JOIN PersonalArt14 art14H ON art14H.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14H.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14H.PersonalArt14FormaArt14 = 'H' AND art14H.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14H.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < art14H.PersonalArt14AutorizadoHasta OR art14H.PersonalArt14AutorizadoHasta IS NULL) AND  ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < art14H.PersonalArt14Anulacion   OR art14H.PersonalArt14Anulacion IS NULL)
+                LEFT JOIN PersonalArt14 art14A ON art14A.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14A.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14A.PersonalArt14FormaArt14 = 'A' AND art14A.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14A.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < art14A.PersonalArt14AutorizadoHasta OR art14A.PersonalArt14AutorizadoHasta IS NULL) AND  ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < art14A.PersonalArt14Anulacion   OR art14A.PersonalArt14Anulacion IS NULL)
+                
+                LEFT JOIN ValorLiquidacion valart14cat ON valart14cat.ValorLiquidacionSucursalId = suc.SucursalId AND valart14cat.ValorLiquidacionTipoAsociadoId = art14E.PersonalArt14TipoAsociadoId AND valart14cat.ValorLiquidacionCategoriaPersonalId = art14E.PersonalArt14CategoriaId AND 
+                DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,1)BETWEEN 
+                valart14cat.ValorLiquidacionDesde AND ISNULL(valart14cat.ValorLiquidacionHasta,'9999-12-31')
+                
+                LEFT JOIN CategoriaPersonal art14cat ON art14cat.TipoAsociadoId = art14E.PersonalArt14TipoAsociadoId AND art14cat.CategoriaPersonalId  = art14E.PersonalArt14CategoriaId 
+                LEFT JOIN ObjetivoHabilitacion objhab ON objhab.ObjetivoHabilitacionObjetivoId = obj.ObjetivoId
+                
+                WHERE obja.ObjetivoAsistenciaAnoAno = @1 
+                AND objm.ObjetivoAsistenciaAnoMesMes = @2 
+                AND obj.ObjetivoId IN (${ObjetivoIdList.join(',')}) 
+                AND persona.PersonalId = @0
+                `,
+        [PersonalId_auth,anio, mes]
+      )
+    if (resultPers.length > 0) { 
+      //Encontré la persona.  Tengo permiso
+      return true
     }
 
+    let resultPers2 = await queryRunner.query(
+      `    
+    SELECT DISTINCT 
+        perrel.OperacionesPersonalAAsignarPersonalId,
+        CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre, 
+        perrel.PersonalCategoriaPersonalId,
+        CONCAT(TRIM(perjer.PersonalApellido), ', ',TRIM(perjer.PersonalNombre)) ApellidoNombreJ, 
+        1
+        FroM OperacionesPersonalAsignarAJerarquico perrel 
+
+        JOIN Personal perjer ON perjer.PersonalId = perrel.PersonalCategoriaPersonalId
+        
+        JOIN Personal per ON per.PersonalId = perrel.OperacionesPersonalAAsignarPersonalId
+       
+        
+        WHERE DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
+        AND perrel.OperacionesPersonalAAsignarPersonalId=@0 AND    perrel.PersonalCategoriaPersonalId=@3`,
+      [PersonalId_auth, anio, mes, PersonalId])
+    
+      if (resultPers2.length > 0) { 
+        //Encontré la persona.  Tengo permiso
+        return true
+      }
+    
     return false;
   }
 

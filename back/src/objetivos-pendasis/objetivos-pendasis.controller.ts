@@ -21,7 +21,7 @@ const columnasGrilla: any[] = [
     id: "SucursalId",
     field: "SucursalId",
     fieldName: "suc.SucursalId",
-    searchComponent:"Sucursal",
+    searchComponent:"inpurForSucursalSearch",
 
     hidden: true,
     searchHidden:false

@@ -17,18 +17,10 @@
 
       <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
 
-      <nz-form-label [nzSpan]="5">Sucursal</nz-form-label>
-      <nz-select #sucursal="ngModel" nzSpan="19" name="SucursalId" [(ngModel)]="SucursalId" [nzDropdownMatchSelectWidth]="false"
-        (ngModelChange)="formChanged($event)" nzAllowClear nzPlaceHolder="Sucursal" nzShowSearch>
-        <ng-container *ngFor="let option of $optionsSucursales | async">
-          <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
-        </ng-container>
-      </nz-select>
-
       <nz-tabset nzCentered [(nzSelectedIndex)]="selectedTabIndex" class="hide-ant-tabs-nav">
         <nz-tab [nzForceRender]="false">
           <ng-template nz-tab>
-            <shared-filtro-builder [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
+            <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
 
             <div class="gridContainer container-fluid">
               <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columns$ | async | colsFilter"

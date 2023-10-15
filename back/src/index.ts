@@ -21,8 +21,8 @@ scheduleJob('*/1 * * * *', async function (fireDate) {
 
 scheduleJob('1 0 * * *', async function (fireDate) {
   //TODO Se debería instanciar Response correctamente
-  let res: Response = { locals: { stopTime: null }, status: (s) => { return { json: (j) => { return j } } } }
-  const ret = await categoriasController.procesaCambios(null, res, (ret: any) => ret)
+
+  const ret = await categoriasController.procesaCambios(null, null, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 

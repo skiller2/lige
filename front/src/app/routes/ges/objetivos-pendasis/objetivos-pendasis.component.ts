@@ -23,6 +23,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { formatDate } from '@angular/common';
 import { SearchService } from 'src/app/services/search.service';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
+import { SettingsService } from '@delon/theme';
 
 type listOptionsT = {
   filtros: any[],
@@ -61,14 +62,14 @@ export class CustomDescargaComprobanteComponent {
 export class ObjetivosPendAsisComponent {
   @ViewChild('objpendForm', { static: true }) objpendForm: NgForm =
     new NgForm([], []);
-  constructor(public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService:SearchService) { }
+  @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
+
+  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService:SearchService) { }
   anio = 0
   mes = 0
   selectedTabIndex = 0;
-  SucursalId = 0
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
-  $optionsSucursales = this.searchService.getSucursales();
 
   columns$ = this.apiService.getCols('/api/objetivos-pendasis/cols').pipe(map((cols) => {
     return cols
@@ -122,6 +123,17 @@ export class ObjetivosPendAsisComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
 
   }
+
+  ngAfterContentInit(): void {
+    const user: any = this.settingService.getUser()
+
+    setTimeout(() => {
+      if (user.PersonalId > 0)
+      this.sharedFiltroBuilder.addFilter('ApellidoNombreJ', 'AND', '=', user.PersonalId)  //Ej 548
+    }, 3000);
+
+  }
+
 
   ngAfterViewInit(): void {
     setTimeout(() => {
