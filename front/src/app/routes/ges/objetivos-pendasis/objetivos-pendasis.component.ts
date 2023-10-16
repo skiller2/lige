@@ -129,7 +129,7 @@ export class ObjetivosPendAsisComponent {
 
     setTimeout(() => {
       if (user.PersonalId > 0)
-      this.sharedFiltroBuilder.addFilter('ApellidoNombreJ', 'AND', '=', user.PersonalId)  //Ej 548
+      this.sharedFiltroBuilder.addFilter('ApellidoNombreObjJ', 'AND', '=', user.PersonalId)  //Ej 548
     }, 3000);
 
   }
