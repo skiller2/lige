@@ -153,5 +153,52 @@ export class LiquidacionesController extends BaseController {
   async getLiquidacionesCols(req: Request, res: Response) {
     this.jsonRes(this.listaColumnas, res);
   }
+
+  async setAgregarRegistros(req: any, res: Response, next: NextFunction) {
+
+
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    // const queryRunner = dataSource.createQueryRunner();
+
+    console.log("req",req.body.gridDataInsert)
+    for (const row of req.body.gridDataInsert) {
+      
+      let periodo = row.periodo
+      let tipo_movimiento_id = row.des_movimiento
+      let fechaActual = new Date()
+      let detalle = row.detalle
+      let objetivo_id = row.ObjetivoDescripcion?.id == undefined ? null : row.ObjetivoDescripcion?.id
+      let persona_id = row.ApellidoNombre?.id == undefined ? null : row.ApellidoNombre.id
+      let importe = row.monto
+      
+  
+    // await queryRunner.connect();
+    // await queryRunner.startTransaction();
+
+
+    // const result = await queryRunner.query(
+    //   `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,
+    //      aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+    //       VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13)
+    //              `,
+    //   [
+    //     ++movimiento_id,
+    //     periodo,
+    //     tipo_movimiento_id,
+    //     fechaActual,
+    //     detalle,
+    //     objetivo_id,
+    //     persona_id,
+    //     importe,
+    //     usuario, ip, fechaActual, usuario, ip, fechaActual,
+    //   ]
+    // );
+      
+      
+
+    }
+   
+  }
 }
 

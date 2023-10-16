@@ -50,6 +50,10 @@ liquidacionesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.ha
     liquidacionesController.getByLiquidaciones(req, res, next)
 });
 
+liquidacionesRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')], (req, res, next) => {
+    liquidacionesController.setAgregarRegistros(req, res, next)
+});
+
 liquidacionesRouter.get('/tipo_movimiento', authMiddleware.verifyToken, (req, res, next) => {
     liquidacionesController.getTipoMovimiento(req, res, next)
 });
