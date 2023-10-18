@@ -440,7 +440,7 @@ export class LiquidacionesComponent {
     if (!row.detalle && !row.des_movimiento && !row.ObjetivoDescripcion && !row.PersonalDescripcion && !row.monto)
       this.angularGridEdit.gridService.deleteItem(row)
       debugger
-    if (row.detalle && row.des_movimiento && (row.ObjetivoDescripcion || row.PersonalDescripcion) && row.monto) { 
+    if (row.detalle && row.des_movimiento && (row?.ObjetivoDescripcion || row?.ApellidoNombre) && row.monto) { 
 
       // se agrega isfull para luego validar que el registro este commpleto en (confirmNewItem)
       row.isfull = 1;
