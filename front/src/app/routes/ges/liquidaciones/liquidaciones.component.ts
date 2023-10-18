@@ -12,6 +12,8 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
+import { NzModalService,NzModalModule } from "ng-zorro-antd/modal";
+
 import {
   BehaviorSubject,
   Observable,
@@ -33,6 +35,7 @@ import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-
   styleUrls: ['./liquidaciones.component.less'],
   standalone: true,
   imports: [
+    NzModalModule,
     CommonModule,
     SharedModule,
     NzAffixModule,
@@ -45,7 +48,8 @@ import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-
 export class LiquidacionesComponent {
   @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =
     new NgForm([], []);
-  constructor(public apiService: ApiService, private injector: Injector, public router: Router, private angularUtilService: AngularUtilService) { }
+  constructor(public apiService: ApiService, private injector: Injector, public router: Router, private angularUtilService: AngularUtilService,private modal: NzModalService) { }
+
 
   url = '/api/liquidaciones';
   url_forzado = '/api/liquidaciones/forzado';
@@ -495,6 +499,38 @@ export class LiquidacionesComponent {
       
     };
   }
+  
 
-
+  openCustomModal(): void {
+    const modalRef = this.modal.create({
+      nzTitle: 'Agregar liquidaciones',
+      nzContent: 'Seguro que desea cargar las liquidaciones...', 
+      nzFooter: [
+        {
+          label: 'Aceptar',
+          onClick: () => {
+            // Acciones al hacer clic en "Aceptar"
+            this.confirmNewItem();
+            modalRef.close();
+          },
+          class: 'custom-modal-button', 
+        },
+        {
+          label: 'Cancelar',
+          onClick: () => {
+            // Acciones al hacer clic en "Cancelar"
+            modalRef.close();
+          },
+          class: 'custom-modal-button', 
+        },
+      ],
+      nzClassName: 'custom-modal', // Clase CSS para el modal
+    });
+  }
+ 
 }
+
+
+
+
+
