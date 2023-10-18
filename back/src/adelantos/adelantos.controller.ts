@@ -22,7 +22,7 @@ export class AdelantosController extends BaseController {
       type: "string",
       id: "ApellidoNombre",
       field: "ApellidoNombre",
-      fieldName: "perrel.OperacionesPersonalAAsignarPersonalId",
+      fieldName: "per.PersonalId",
       searchComponent: "inpurForPersonalSearch",
       searchType: "number",
       sortable: true,
@@ -32,9 +32,9 @@ export class AdelantosController extends BaseController {
     {
       name: "PersonalId",
       type: "number",
-      id: "OperacionesPersonalAAsignarPersonalId",
-      field: "OperacionesPersonalAAsignarPersonalId",
-      fieldName: "perrel.OperacionesPersonalAAsignarPersonalId",
+      id: "PersonalId",
+      field: "PersonalId",
+      fieldName: "per.PersonalId",
       sortable: true,
       searchHidden: true,
       hidden: true,
@@ -170,7 +170,7 @@ export class AdelantosController extends BaseController {
     }
   }
 
-  async setAdelanto(personalId: string, monto: number, ip, res: Response, next: NextFunction) {
+  async setAdelanto(personalId: number, monto: number, ip, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.connect();
@@ -308,9 +308,11 @@ export class AdelantosController extends BaseController {
 
     try {
       const adelantos = await dataSource.query(
-        `SELECT DISTINCT CONCAT(per.PersonalId,'-',perrel.PersonalCategoriaPersonalId,'-',ade.PersonalAdelantoId) id, per.PersonalId, cuit.PersonalCUITCUILCUIT CUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+        `SELECT DISTINCT CONCAT(per.PersonalId,'-',perrel.PersonalCategoriaPersonalId,'-',ade.PersonalAdelantoId) id,
+        per.PersonalId, cuit.PersonalCUITCUILCUIT CUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
         perrel.PersonalCategoriaPersonalId, cuitjer.PersonalCUITCUILCUIT CUITJ,  CONCAT(TRIM(perjer.PersonalApellido),', ', TRIM(perjer.PersonalNombre)) AS ApellidoNombreJ, 
-   ade.* 
+   ade.PersonalAdelantoId, ade.PersonalAdelantoMonto, ade.PersonalAdelantoFechaSolicitud, ade.PersonalAdelantoAprobado, ade.PersonalAdelantoFechaAprobacion, ade.PersonalAdelantoCantidadCuotas, ade.PersonalAdelantoAplicaEl, ade.PersonalAdelantoLiquidoFinanzas, ade.PersonalAdelantoUltimaLiquidacion, ade.PersonalAdelantoCuotaUltNro, ade.PersonalAdelantoMontoAutorizado, ade.PersonalAdelantoJerarquicoId, ade.PersonalAdelantoPuesto, ade.PersonalAdelantoUsuarioId, ade.PersonalAdelantoDia, ade.PersonalAdelantoTiempo
+ 
            FROM Personal per 
            LEFT JOIN OperacionesPersonalAsignarAJerarquico perrel ON per.PersonalId = perrel.OperacionesPersonalAAsignarPersonalId AND DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
            LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
