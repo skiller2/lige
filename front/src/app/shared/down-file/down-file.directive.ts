@@ -2,6 +2,7 @@ import { Directive, ElementRef, EventEmitter, HostListener, Input } from '@angul
 import { finalize } from 'rxjs';
 import { saveAs } from 'file-saver';
 import { HttpClient, HttpResponse } from '@angular/common/http';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 @Directive({
     selector: '[app-down-file]'
@@ -11,6 +12,7 @@ export class AppDownFileDirective {
     @Input() httpData:any =""
     @Input() httpBody: any = ""
     @Input() httpMethod: any = ""
+    @Input() notificationMsg: string = ""
     @Input() fileName?: string | ((rep: HttpResponse<Blob>) => string)
     @Input() pre?: (ev: MouseEvent) => Promise<boolean>;
     @HostListener('click', ['$event']) async onClick(ev: MouseEvent){
@@ -19,6 +21,9 @@ export class AppDownFileDirective {
             ev.preventDefault();
             return;
         }
+        
+        if (this.notificationMsg != "")
+            this.notificationService.info('',this.notificationMsg)
         this.setDisabled(true);
         this._http
             .request(this.httpMethod, this.httpUrl, {
@@ -58,7 +63,7 @@ export class AppDownFileDirective {
     readonly success: EventEmitter<HttpResponse<Blob>>;
     readonly error: EventEmitter<any>;
     
-    constructor(public el: ElementRef, public _http: HttpClient) {
+    constructor(public el: ElementRef, public _http: HttpClient, public notificationService: NzNotificationService) {
         this.isFileSaverSupported = true;
         this.httpMethod = 'get';
         this.success = new EventEmitter();
