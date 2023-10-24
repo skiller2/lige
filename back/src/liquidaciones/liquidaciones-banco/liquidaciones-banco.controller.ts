@@ -335,13 +335,13 @@ export class LiquidacionesBancoController extends BaseController {
       if (BancoId == 4) { //Patagonia
         exportData.push(['Código de concepto', 'Importe neto a acreditar', 'Apellido y Nombre (Opcional)', 'Tipo de documento', 'Nro. de documento'])
         for (let row of banco)
-          exportData.push(['001', row.importe, row.PersonalApellidoNombre, '001', Number(String(row.PersonalCUITCUILCUIT).substring(2, 10))])
+          exportData.push(['001', row.importe, row.PersonalApellidoNombre.replaceAll(',',''), '001', Number(String(row.PersonalCUITCUILCUIT).substring(2, 10))])
         buffer = xlsx.build([{ name: 'Registros', data: exportData, options: { '!cols': [{ wch: 20 }, { wch: 20 }, { wch: 30 }, { wch: 20 }, { wch: 20 }] } }])
       } else if (BancoId == 11) { //Itau
-        exportData.push(['Marca', 'Razon Social', 'Tipo Doc', 'Nro Doc', 'CUIT', 'Calle	Numero', 'Piso', 'Departamento', 'CP Prefijo', 'CP Número', 'CP Ubicacion', 'Localidad', 'Provincia', 'Telefono', 'Mail', 'CBU (*)', 'Importe (*)', 'Importe Adelanto', 'FechaPago (*)'])
+        exportData.push(['Marca', 'Razon Social', 'Tipo Doc', 'Nro Doc', 'CUIT', 'Calle', 'Numero', 'Piso', 'Departamento', 'CP Prefijo', 'CP Número', 'CP Ubicacion', 'Localidad', 'Provincia', 'Telefono', 'Mail', 'CBU (*)', 'Importe (*)', 'Importe Adelanto', 'FechaPago (*)'])
         const exportDataGeneral = [[], ['Cuit:', '30643445510'], ['Producto:', '500'], ['Convenio:', '1'], [], [], ['NOTAS:', '(*) - Los campos identificados con (*), son obligatorios'], ['', '(**) - Se debe ingresar al menos uno de los campos identificados.'], [], ['Unidad:', 'C']]
         for (let row of banco)
-          exportData.push(['X', row.PersonalApellidoNombre, '', '', row.PersonalCUITCUILCUIT, '', '', '', '', '', '', '', '', '', '', row.PersonalBancoCBU, row.importe, '', new Date()])
+          exportData.push(['X', row.PersonalApellidoNombre.replaceAll(',',''), '', '', row.PersonalCUITCUILCUIT, '', '', '', '', '', '', '', '', '', '', '', row.PersonalBancoCBU, row.importe, '', new Date()])
         buffer = xlsx.build([{ name: 'DatosGenerales', data: exportDataGeneral, options: {} }, { name: 'Datos', data: exportData, options: { '!cols': [{ wch: 10 }, { wch: 30 }, { wch: 10 }, { wch: 10 }, { wch: 20 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 30 }, { wch: 20 }, { wch: 10 }, { wch: 15 }] } }])
       }
 

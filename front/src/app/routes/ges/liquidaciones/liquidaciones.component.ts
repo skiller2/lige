@@ -439,8 +439,8 @@ export class LiquidacionesComponent {
     //console.log('row',row)
     if (!row.detalle && !row.des_movimiento && !row.ObjetivoDescripcion && !row.PersonalDescripcion && !row.monto)
       this.angularGridEdit.gridService.deleteItem(row)
-      debugger
-    if (row.detalle && row.des_movimiento && (row?.ObjetivoDescripcion || row?.ApellidoNombre) && row.monto) { 
+
+    if (row.detalle && row.des_movimiento && (row.ObjetivoDescripcion || row.ApellidoNombre) && row.monto) { 
 
       // se agrega isfull para luego validar que el registro este commpleto en (confirmNewItem)
       row.isfull = 1;
@@ -463,6 +463,9 @@ export class LiquidacionesComponent {
       }
       document.getElementsByClassName("ui-widget-content")[row.id - 1].classList.add("elementAddNoComplete")
     }
+
+    this.angularGridEdit.dataView.updateItem(row.id, row);
+    this.angularGridEdit.slickGrid.updateRow(row)
 
     const lastrow:any = this.gridDataInsert[this.gridDataInsert.length - 1];
     if (lastrow && (lastrow.detalle || lastrow.des_movimiento || lastrow.ObjetivoDescripcion || lastrow.PersonalDescripcion || lastrow.monto)) { 
