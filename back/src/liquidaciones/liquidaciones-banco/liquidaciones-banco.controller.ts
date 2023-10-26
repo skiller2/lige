@@ -19,11 +19,14 @@ import {
 
 import {
   copyFileSync,
+  createWriteStream,
   existsSync,
   mkdirSync,
   readFileSync,
   unlinkSync,
+  write,
   writeFileSync,
+  writeSync,
 } from "fs";
 import {
   SendFileToDownload,
@@ -36,6 +39,8 @@ import {
   orderToSQL,
 } from "../../impuestos-afip/filtros-utils/filtros";
 import { tmpName } from "../../server";
+import { format, promisify } from "node:util";
+import { once } from "events";
 
 export class LiquidacionesBancoController extends BaseController {
 
@@ -296,6 +301,8 @@ export class LiquidacionesBancoController extends BaseController {
     this.jsonRes(this.listaColumnasAyuda, res);
   }
 
+
+
   async downloadArchivoBanco(req: Request, res: Response, next: NextFunction) {
     const directory = process.env.PATH_LIQUIDACIONES || "tmp";
     if (!existsSync(directory)) {
@@ -309,7 +316,7 @@ export class LiquidacionesBancoController extends BaseController {
       const tabIndex = Number(req.body.tabIndex) //0-banco 1-adelanto
 
       const formattedMonth = String(periodo.month).padStart(2, "0");
-      const fileName = `${periodo.year}-${formattedMonth}-banco-${(new Date()).toISOString()}.xlsx`;
+      let fileName = `${periodo.year}-${formattedMonth}-banco-${(new Date()).toISOString()}.xlsx`
       const tmpfilename = `${directory}/${tmpName(directory)}`;
       let banco
 
@@ -331,23 +338,55 @@ export class LiquidacionesBancoController extends BaseController {
 
       let exportData = []
       let buffer = null
+      /*
+            if (BancoId == 4) { //Patagonia
+              exportData.push(['Código de concepto', 'Importe neto a acreditar', 'Apellido y Nombre (Opcional)', 'Tipo de documento', 'Nro. de documento'])
+              for (let row of banco)
+                exportData.push(['001', row.importe, row.PersonalApellidoNombre.replaceAll(',',''), '001', Number(String(row.PersonalCUITCUILCUIT).substring(2, 10))])
+              buffer = xlsx.build([{ name: 'Registros', data: exportData, options: { '!cols': [{ wch: 20 }, { wch: 20 }, { wch: 30 }, { wch: 20 }, { wch: 20 }] } }])
+            } else if (BancoId == 11) { //Itau
+              exportData.push(['Marca', 'Razon Social', 'Tipo Doc', 'Nro Doc', 'CUIT', 'Calle', 'Numero', 'Piso', 'Departamento', 'CP Prefijo', 'CP Número', 'CP Ubicacion', 'Localidad', 'Provincia', 'Telefono', 'Mail', 'CBU (*)', 'Importe (*)', 'Importe Adelanto', 'FechaPago (*)'])
+              const exportDataGeneral = [[], ['Cuit:', '30643445510'], ['Producto:', '500'], ['Convenio:', '1'], [], [], ['NOTAS:', '(*) - Los campos identificados con (*), son obligatorios'], ['', '(**) - Se debe ingresar al menos uno de los campos identificados.'], [], ['Unidad:', 'C']]
+              for (let row of banco)
+                exportData.push(['X', row.PersonalApellidoNombre.replaceAll(',',''), '', '', row.PersonalCUITCUILCUIT, '', '', '', '', '', '', '', '', '', '', '', row.PersonalBancoCBU, row.importe, '', new Date()])
+              buffer = xlsx.build([{ name: 'DatosGenerales', data: exportDataGeneral, options: {} }, { name: 'Datos', data: exportData, options: { '!cols': [{ wch: 10 }, { wch: 30 }, { wch: 10 }, { wch: 10 }, { wch: 20 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 30 }, { wch: 20 }, { wch: 10 }, { wch: 15 }] } }])
+            }
+            writeFileSync(tmpfilename, buffer);
+      
+      */
+      const CUITEmpresa = "30643445510"
+      const NroEnvio = 12345
+      const FechaEnvio = '20230505'
 
       if (BancoId == 4) { //Patagonia
-        exportData.push(['Código de concepto', 'Importe neto a acreditar', 'Apellido y Nombre (Opcional)', 'Tipo de documento', 'Nro. de documento'])
-        for (let row of banco)
-          exportData.push(['001', row.importe, row.PersonalApellidoNombre.replaceAll(',',''), '001', Number(String(row.PersonalCUITCUILCUIT).substring(2, 10))])
-        buffer = xlsx.build([{ name: 'Registros', data: exportData, options: { '!cols': [{ wch: 20 }, { wch: 20 }, { wch: 30 }, { wch: 20 }, { wch: 20 }] } }])
+
       } else if (BancoId == 11) { //Itau
-        exportData.push(['Marca', 'Razon Social', 'Tipo Doc', 'Nro Doc', 'CUIT', 'Calle', 'Numero', 'Piso', 'Departamento', 'CP Prefijo', 'CP Número', 'CP Ubicacion', 'Localidad', 'Provincia', 'Telefono', 'Mail', 'CBU (*)', 'Importe (*)', 'Importe Adelanto', 'FechaPago (*)'])
-        const exportDataGeneral = [[], ['Cuit:', '30643445510'], ['Producto:', '500'], ['Convenio:', '1'], [], [], ['NOTAS:', '(*) - Los campos identificados con (*), son obligatorios'], ['', '(**) - Se debe ingresar al menos uno de los campos identificados.'], [], ['Unidad:', 'C']]
-        for (let row of banco)
-          exportData.push(['X', row.PersonalApellidoNombre.replaceAll(',',''), '', '', row.PersonalCUITCUILCUIT, '', '', '', '', '', '', '', '', '', '', '', row.PersonalBancoCBU, row.importe, '', new Date()])
-        buffer = xlsx.build([{ name: 'DatosGenerales', data: exportDataGeneral, options: {} }, { name: 'Datos', data: exportData, options: { '!cols': [{ wch: 10 }, { wch: 30 }, { wch: 10 }, { wch: 10 }, { wch: 20 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 30 }, { wch: 20 }, { wch: 10 }, { wch: 15 }] } }])
+        const file = createWriteStream(tmpfilename, {
+          flags: 'a' // 'a' means appending (old data will be preserved)
+        })
+        fileName = `${periodo.year}-${formattedMonth}-banco-${(new Date()).toISOString()}.txt`
+        file.write(format("H%11s500000001%5d%8s OP                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   \r\n",
+          CUITEmpresa, NroEnvio, FechaEnvio))
+        let rowNum = 2
+        let total = 0
+        for (const row of banco) {
+          file.write(format("CACT%11s         %62s%22d                              000000                                                             0000000000000000000000000000000000000000000000000000                                                                                                                                                                                                                                    %8s                                                                                                                                                                                                                                                                                                                   \r\n",
+            row.PersonalCUITCUILCUIT, row.PersonalApellidoNombre.replaceAll(',', '').toUpperCase(), row.PersonalCUITCUILCUIT, FechaEnvio))
+          file.write(format("F14%22d       %17d00000000000000000%8s                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      \r\n",
+            row.PersonalBancoCBU, row.importe * 100, FechaEnvio))
+          file.write(format("DAOP%8s%14d000                                                                                                                                                                                         %8s%17d                                                                                                                        000000000000000000000000000000000000000000000000000000000000000000000000000000000                                                                                                                                                                        000000                                                                                                                                                                                          \r\n",
+            FechaEnvio, rowNum++, FechaEnvio, row.importe * 100))
+          total += row.importe * 100
+        }
+        file.write(format("T%11s500000001%5d%8s%5d%17d                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ",
+          CUITEmpresa, NroEnvio, FechaEnvio, (rowNum - 1) * 3, total))
+        file.end()
+
+        await once(file, 'finish')
       }
 
-      writeFileSync(tmpfilename, buffer);
+
       res.download(tmpfilename, fileName, (msg) => {
-        unlinkSync(tmpfilename);
       });
 
     } catch (error) {
