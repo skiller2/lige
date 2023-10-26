@@ -25,6 +25,25 @@ export class LiquidacionesController extends BaseController {
         return next(error)
       }
     }
+
+    async getTipoCuenta(req: Request, res: Response, next: NextFunction) {
+      try {
+
+        const tipoCuenta = await dataSource.query(
+          `SELECT tipo.tipocuenta_id,tipo.detalle FROM lige.dbo.liqcontipocuenta AS tipo`)
+  
+          this.jsonRes(
+              {
+                total: tipoCuenta.length,
+                list: tipoCuenta,
+              },
+              res
+            );
+  
+      } catch (error) {
+        return next(error)
+      }
+    }
   
     listaColumnas: any[] = [
         {

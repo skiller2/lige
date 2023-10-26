@@ -26,6 +26,16 @@ export class ApiService {
     );
   }
 
+  getTipoCuenta() {
+    return this.http.get(`/api/liquidaciones/tipo_cuenta`).pipe(
+      map(res => res.data.list),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 
   isMobile():boolean { 
     return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))

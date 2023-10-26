@@ -6,7 +6,7 @@ import { SharedModule, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
-import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
+import { AngularGridInstance , AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -301,6 +301,27 @@ export class LiquidacionesComponent {
         },
       },
       {
+        id: 'des_cuenta', name: 'Tipo Cuenta', field: 'des_cuenta',
+        sortable: true,
+        type: FieldType.string,
+        maxWidth: 200,
+        formatter: Formatters.collectionEditor,
+
+        editor: {
+          model: Editors.singleSelect,
+          collectionAsync: this.apiService.getTipoCuenta(),
+          customStructure: {
+            value: 'tipocuenta_id',
+            label: 'detalle',
+          },
+          editorOptions: {
+            maxHeight: 400
+          },
+          alwaysSaveOnEnterKey: true,
+          required: true
+        },
+      },
+      {
         id: 'fecha', name: 'Fecha', field: 'fecha',
         formatter: Formatters.dateIso, sortable: true,
         type: FieldType.date,
@@ -382,6 +403,7 @@ export class LiquidacionesComponent {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
 
+
   }
 
   // onBeforeEditCell($event:any) {
@@ -437,38 +459,39 @@ export class LiquidacionesComponent {
   onCellChanged(e: any) {
     let row = e.detail.args.item
     //console.log('row',row)
-    if (!row.detalle && !row.des_movimiento && !row.ObjetivoDescripcion && !row.PersonalDescripcion && !row.monto)
+    debugger
+    if (!row.detalle && !row.des_movimiento && !row.ObjetivoDescripcion && !row.PersonalDescripcion && !row.monto && !row.des_cuenta)
       this.angularGridEdit.gridService.deleteItem(row)
 
-    if (row.detalle && row.des_movimiento && (row.ObjetivoDescripcion || row.ApellidoNombre) && row.monto) { 
+    if (row.detalle && row.des_movimiento && (row.ObjetivoDescripcion || row.ApellidoNombre) && row.monto && row.des_cuenta) { 
 
       // se agrega isfull para luego validar que el registro este commpleto en (confirmNewItem)
       row.isfull = 1;
       
-      if (document.getElementsByClassName("ui-widget-content")[row.id - 1].classList.contains("elementAddNoComplete")) {
+      if (document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.contains("elementAddNoComplete")) {
         // Si la clase existe, elimínala
-        document.getElementsByClassName("ui-widget-content")[row.id - 1].classList.remove("elementAddNoComplete");
+        document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.remove("elementAddNoComplete");
       }
 
-      document.getElementsByClassName("ui-widget-content")[row.id - 1].classList.add("elementAdd")
+      document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.add("elementAdd")
      
     }else{
     //NOTA: EVALUAR Si tiene isfull en true y ponerle false y quitar los estilos si los tiene
       row.isfull = 2;
 
       
-      if (document.getElementsByClassName("ui-widget-content")[row.id - 1].classList.contains("elementAdd")) {
+      if (document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.contains("elementAdd")) {
         // Si la clase existe, elimínala
-        document.getElementsByClassName("ui-widget-content")[row.id - 1].classList.remove("elementAdd");
+        document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.remove("elementAdd");
       }
-      document.getElementsByClassName("ui-widget-content")[row.id - 1].classList.add("elementAddNoComplete")
+      document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.add("elementAddNoComplete")
     }
 
     this.angularGridEdit.dataView.updateItem(row.id, row);
     this.angularGridEdit.slickGrid.updateRow(row)
 
     const lastrow:any = this.gridDataInsert[this.gridDataInsert.length - 1];
-    if (lastrow && (lastrow.detalle || lastrow.des_movimiento || lastrow.ObjetivoDescripcion || lastrow.PersonalDescripcion || lastrow.monto)) { 
+    if (lastrow && (lastrow.detalle || lastrow.des_movimiento || lastrow.ObjetivoDescripcion || lastrow.PersonalDescripcion || lastrow.monto || lastrow.des_cuenta)) { 
       this.addNewItem("bottom")
     }
 
