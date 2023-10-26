@@ -7,8 +7,8 @@ import { Options } from "../schemas/filtro";
 import { ParsedQs } from "qs";
 
 export class LiquidacionesController extends BaseController {
-    async getTipoMovimiento(req: Request, res: Response, next: NextFunction) {
-      try {
+  async getTipoMovimiento(req: Request, res: Response, next: NextFunction) {
+    try {
 
         const tipoMovimiento = await dataSource.query(
           `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo FROM lige.dbo.liqcotipomovimiento AS tipo`)
@@ -99,7 +99,18 @@ export class LiquidacionesController extends BaseController {
           sortable: true,
           searchHidden: false,
           hidden: false,
-            },
+        },
+        {
+          name: "Cuenta",
+          type: "string",
+          id: "tipocuenta_id",
+          field: "tipocuenta_id",
+          fieldName: "li.tipocuenta_id",
+          searchType: "string",
+          sortable: true,
+          searchHidden: false,
+          hidden: false,
+        },
         {
           name: "Importe",
           type: "currency",
@@ -128,22 +139,22 @@ export class LiquidacionesController extends BaseController {
 
       const liqudacion = await dataSource.query(
         `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,obj.ObjetivoDescripcion,CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
-        li.importe * tipomo.signo AS importe FROM lige.dbo.liqmamovimientos AS li 
+        li.tipocuenta_id, li.importe * tipomo.signo AS importe FROM lige.dbo.liqmamovimientos AS li 
         INNER JOIN lige.dbo.liqcotipomovimiento AS tipomo ON li.tipo_movimiento_id = tipomo.tipo_movimiento_id 
         INNER JOIN lige.dbo.liqmaperiodo AS per ON li.periodo_id = per.periodo_id 
         LEFT JOIN Personal AS pers ON li.persona_id = pers.PersonalId
         LEFT JOIN Objetivo AS obj ON li.objetivo_id = obj.ObjetivoId
         WHERE per.anio = @0 AND per.mes = @1 AND (${filterSql}) 
        ${orderBy}
-        `,[anio,mes])
+        `, [anio, mes])
 
-        this.jsonRes(
-            {
-              total: liqudacion.length,
-              list: liqudacion,
-            },
-            res
-          );
+      this.jsonRes(
+        {
+          total: liqudacion.length,
+          list: liqudacion,
+        },
+        res
+      );
 
     } catch (error) {
       return next(error)
@@ -161,9 +172,9 @@ export class LiquidacionesController extends BaseController {
     let ip = this.getRemoteAddress(req)
     // const queryRunner = dataSource.createQueryRunner();
 
-    console.log("req",req.body.gridDataInsert)
+    console.log("req", req.body.gridDataInsert)
     for (const row of req.body.gridDataInsert) {
-      
+
       let periodo = row.periodo
       let tipo_movimiento_id = row.des_movimiento
       let fechaActual = new Date()
@@ -171,34 +182,34 @@ export class LiquidacionesController extends BaseController {
       let objetivo_id = row.ObjetivoDescripcion?.id == undefined ? null : row.ObjetivoDescripcion?.id
       let persona_id = row.ApellidoNombre?.id == undefined ? null : row.ApellidoNombre.id
       let importe = row.monto
-      
-  
-    // await queryRunner.connect();
-    // await queryRunner.startTransaction();
 
 
-    // const result = await queryRunner.query(
-    //   `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,
-    //      aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-    //       VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13)
-    //              `,
-    //   [
-    //     ++movimiento_id,
-    //     periodo,
-    //     tipo_movimiento_id,
-    //     fechaActual,
-    //     detalle,
-    //     objetivo_id,
-    //     persona_id,
-    //     importe,
-    //     usuario, ip, fechaActual, usuario, ip, fechaActual,
-    //   ]
-    // );
-      
-      
+      // await queryRunner.connect();
+      // await queryRunner.startTransaction();
+
+
+      // const result = await queryRunner.query(
+      //   `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,
+      //      aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+      //       VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13)
+      //              `,
+      //   [
+      //     ++movimiento_id,
+      //     periodo,
+      //     tipo_movimiento_id,
+      //     fechaActual,
+      //     detalle,
+      //     objetivo_id,
+      //     persona_id,
+      //     importe,
+      //     usuario, ip, fechaActual, usuario, ip, fechaActual,
+      //   ]
+      // );
+
+
 
     }
-   
+
   }
 }
 
