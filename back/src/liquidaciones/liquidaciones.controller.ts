@@ -62,7 +62,7 @@ export class LiquidacionesController extends BaseController {
           type: "date",
           id: "fecha",
           field: "fecha",
-          fieldName: "fecha",
+          fieldName: "li.fecha",
           sortable: true,
           searchHidden: false,
           hidden: false,
