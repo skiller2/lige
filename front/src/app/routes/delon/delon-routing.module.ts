@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { ACLGuard } from '@delon/acl';
+//import { ACLGuard } from '@delon/acl';
 
 import { ACLComponent } from './acl/acl.component';
 import { CacheComponent } from './cache/cache.component';
@@ -32,18 +32,18 @@ const routes: Routes = [
         component: GuardLeaveComponent,
         canDeactivate: [CanLeaveProvide]
       },
-      {
-        path: 'auth',
-        component: GuardAuthComponent,
-        canActivate: [ACLGuard],
-        data: { guard: 'user1' }
-      },
-      {
-        path: 'admin',
-        component: GuardAdminComponent,
-        canActivate: [ACLGuard],
-        data: { guard: 'admin' }
-      }
+      // {
+      //   path: 'auth',
+      //   component: GuardAuthComponent,
+      //   canActivate: [ACLGuard],
+      //   data: { guard: 'user1' }
+      // },
+      // {
+      //   path: 'admin',
+      //   component: GuardAdminComponent,
+      //   canActivate: [ACLGuard],
+      //   data: { guard: 'admin' }
+      // }
     ]
   },
   { path: 'cache', component: CacheComponent },

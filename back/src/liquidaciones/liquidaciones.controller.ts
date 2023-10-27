@@ -10,119 +10,119 @@ export class LiquidacionesController extends BaseController {
   async getTipoMovimiento(req: Request, res: Response, next: NextFunction) {
     try {
 
-      const tipoMovimiento = await dataSource.query(
-        `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo FROM lige.dbo.liqcotipomovimiento AS tipo`)
-
-      this.jsonRes(
-        {
-          total: tipoMovimiento.length,
-          list: tipoMovimiento,
-        },
-        res
-      );
-
-    } catch (error) {
-      return next(error)
+        const tipoMovimiento = await dataSource.query(
+          `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo FROM lige.dbo.liqcotipomovimiento AS tipo`)
+  
+          this.jsonRes(
+              {
+                total: tipoMovimiento.length,
+                list: tipoMovimiento,
+              },
+              res
+            );
+  
+      } catch (error) {
+        return next(error)
+      }
     }
-  }
-
-  listaColumnas: any[] = [
-    {
-      id: "MovimientoId",
-      name: "Movimiento",
-      field: "MovimientoId",
-      fieldName: "movimiento_id",
-      type: "number",
-      sortable: true,
-      searchHidden: true,
-      hidden: true
-    },
-    {
-      name: "Periodo",
-      type: "date",
-      id: "periodo",
-      field: "periodo",
-      fieldName: "periodo",
-      sortable: true,
-      searchHidden: true,
-      hidden: false,
-    },
-    {
-      name: "Tipo Movimiento",
-      type: "string",
-      id: "des_movimiento",
-      field: "des_movimiento",
-      fieldName: "tipomo.des_movimiento",
-      sortable: true,
-      hidden: false,
-      searchHidden: false
-    },
-    {
-      name: "Fecha",
-      type: "date",
-      id: "fecha",
-      field: "fecha",
-      fieldName: "fecha",
-      sortable: true,
-      searchHidden: false,
-      hidden: false,
-    },
-    {
-      name: "Detalle",
-      type: "string",
-      id: "detalle",
-      field: "detalle",
-      fieldName: "detalle",
-      sortable: true,
-      hidden: false,
-      searchHidden: false
-    },
-    {
-      name: "Objetivo",
-      type: "string",
-      id: "ObjetivoDescripcion",
-      field: "ObjetivoDescripcion",
-      fieldName: "li.objetivo_id",
-      searchComponent: "inpurForObjetivoSearch",
-      searchType: "number",
-      sortable: true,
-      searchHidden: false
-    },
-    {
-      name: "Persona",
-      type: "string",
-      id: "ApellidoNombre",
-      field: "ApellidoNombre",
-      fieldName: "li.persona_id",
-      searchComponent: "inpurForPersonalSearch",
-      searchType: "number",
-      sortable: true,
-      searchHidden: false,
-      hidden: false,
-    },
-    {
-      name: "Cuenta",
-      type: "string",
-      id: "tipocuenta_id",
-      field: "tipocuenta_id",
-      fieldName: "li.tipocuenta_id",
-      searchType: "string",
-      sortable: true,
-      searchHidden: false,
-      hidden: false,
-    },
-    {
-      name: "Importe",
-      type: "currency",
-      id: "importe",
-      field: "importe",
-      fieldName: "importe",
-      sortable: true,
-      searchHidden: false,
-      hidden: false,
-    },
-
-  ];
+  
+    listaColumnas: any[] = [
+        {
+          id: "MovimientoId",
+          name: "Movimiento",
+          field: "MovimientoId",
+          fieldName: "movimiento_id",
+          type: "number",
+          sortable: true,
+          searchHidden: true,
+          hidden: true
+        },
+        {
+          name: "Periodo",
+          type: "date",
+          id: "periodo",
+          field: "periodo",
+          fieldName: "periodo",
+          sortable: true,
+          searchHidden: true,
+          hidden: false,
+        },
+        {
+          name: "Tipo Movimiento",
+          type: "string",
+          id: "des_movimiento",
+          field: "des_movimiento",
+          fieldName: "tipomo.des_movimiento",
+          sortable: true,
+          hidden: false,
+          searchHidden: false
+        },
+        {
+         name: "Fecha",
+          type: "date",
+          id: "fecha",
+          field: "fecha",
+          fieldName: "li.fecha",
+          sortable: true,
+          searchHidden: false,
+          hidden: false,
+        },
+        {
+          name: "Detalle",
+          type: "string",
+          id: "detalle",
+          field: "detalle",
+          fieldName: "detalle",
+          sortable: true,
+          hidden: false,
+          searchHidden: false
+        },
+        {
+          name: "Objetivo",
+          type: "string",
+          id: "ObjetivoDescripcion",
+          field: "ObjetivoDescripcion",
+          fieldName: "li.objetivo_id",
+          searchComponent: "inpurForObjetivoSearch",
+          searchType: "number",
+          sortable: true,
+          searchHidden: false
+        },
+        {
+          name: "Persona",
+          type: "string",
+          id: "ApellidoNombre",
+          field: "ApellidoNombre",
+          fieldName: "li.persona_id",
+          searchComponent: "inpurForPersonalSearch",
+          searchType: "number",
+          sortable: true,
+          searchHidden: false,
+          hidden: false,
+        },
+        {
+          name: "Cuenta",
+          type: "string",
+          id: "tipocuenta_id",
+          field: "tipocuenta_id",
+          fieldName: "li.tipocuenta_id",
+          searchType: "string",
+          sortable: true,
+          searchHidden: false,
+          hidden: false,
+        },
+        {
+          name: "Importe",
+          type: "currency",
+          id: "importe",
+          field: "importe",
+          fieldName: "importe",
+          sortable: true,
+          searchHidden: false,
+          hidden: false,
+        },
+    
+      ];
 
   async getByLiquidaciones(
     req: any,
