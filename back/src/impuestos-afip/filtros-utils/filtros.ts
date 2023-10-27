@@ -1,3 +1,4 @@
+import { log } from "console";
 import { ClientException } from "../../controller/baseController";
 import { CustomSort, Filtro, Options } from "../../schemas/filtro";
 import { findColumnByIndex } from "../comprobantes-utils/lista";
@@ -69,7 +70,10 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
             filterString.push(` (per.PersonalNombre LIKE '%${valorBusqueda}%' OR per.PersonalApellido LIKE '%${valorBusqueda}%')`)
           else if (fieldName === "ApellidoNombreJ")
             filterString.push(` (perjer.PersonalNombre LIKE '%${valorBusqueda}%' OR perjer.PersonalApellido LIKE '%${valorBusqueda}%')`)
-          else {
+          else if(type == 'date'){
+            const valor = valorBusqueda.split('/').reverse().join('/');
+            filterString.push(`${fieldName} >= '${valor} 00:00:00' AND ${fieldName} <= '${valor} 23:59:59'`)
+          }else {
             filterString.push(`${fieldName} LIKE '%${valorBusqueda}%'`)
           }
           break;
@@ -79,19 +83,45 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
               filterString.push(`${fieldName} IS NULL`)
             else
               filterString.push(`${fieldName} = ${valorBusqueda}`)
+          }else if(type == 'date'){
+                const valor = valorBusqueda.split('/').reverse().join('/');
+                filterString.push(`${fieldName} >= '${valor} 00:00:00' AND ${fieldName} <= '${valor} 23:59:59'`)
           } else
             filterString.push(`${fieldName} = '${valorBusqueda}'`)
 
           break;
         case ">":
+          if(type == 'date'){
+            const valor = valorBusqueda.split('/').reverse().join('/');
+            filterString.push(`${fieldName} ${filtro.operador} '${valor} 23:59:59'`)
+            break;
+          }
         case "<":
+          if(type == 'date'){
+            const valor = valorBusqueda.split('/').reverse().join('/');
+            filterString.push(`${fieldName} ${filtro.operador} '${valor} 00:00:00'`)
+            break;
+          }
         case ">=":
+          if(type == 'date'){
+            const valor = valorBusqueda.split('/').reverse().join('/');
+            filterString.push(`${fieldName} ${filtro.operador} '${valor} 00:00:00'`)
+            break;
+          }
         case "<=":
+          if(type == 'date'){
+            const valor = valorBusqueda.split('/').reverse().join('/');
+            filterString.push(`${fieldName} ${filtro.operador} '${valor} 23:59:59'`)
+            break;
+          }
         case "<>":
           if (type == 'number' || type == 'float' || type=='currency') {
             const valor = (!isNaN(parseFloat(valorBusqueda))) ? parseFloat(valorBusqueda) : '0';
             filterString.push(`${fieldName} ${filtro.operador} ${valor}`)
-          } else {
+          }else if(type == 'date'){
+            const valor = valorBusqueda.split('/').reverse().join('/');
+            filterString.push(`${fieldName} < '${valor} 00:00:00' AND ${fieldName} > '${valor} 23:59:59`)
+          }else {
             filterString.push(`${fieldName} ${filtro.operador} '${valorBusqueda}'`)
           }
 
