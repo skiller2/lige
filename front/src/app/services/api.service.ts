@@ -53,6 +53,7 @@ export class ApiService {
         //bottomPadding: 10        
       },
       gridAutosizeColsMode: GridAutosizeColsMode.fitColsToViewport,
+      
       contextMenu: {
         autoAdjustDrop: true,
         autoAlignSide: true,
@@ -183,8 +184,9 @@ export class ApiService {
         rightFooterText:'fin'
 
       },
-      createFooterRow: false,
-      showFooterRow: false,
+      
+      createFooterRow: true,
+      showFooterRow: true,
     };
   }
 
