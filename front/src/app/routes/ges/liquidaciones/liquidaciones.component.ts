@@ -1,4 +1,4 @@
-import { Component, ViewChild, Injector } from '@angular/core';
+import { Component, ViewChild, Injector,TemplateRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { NgForm } from '@angular/forms';
@@ -6,7 +6,7 @@ import { SharedModule, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
-import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
+import { AngularGridInstance , AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -48,7 +48,7 @@ import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-
 export class LiquidacionesComponent {
   @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =
     new NgForm([], []);
-  constructor(public apiService: ApiService, private injector: Injector, public router: Router, private angularUtilService: AngularUtilService,private modal: NzModalService) { }
+  constructor(public apiService: ApiService, private injector: Injector, public router: Router, private angularUtilService: AngularUtilService,private modal: NzModalService, private notification: NzNotificationService) { }
 
 
   url = '/api/liquidaciones';
@@ -301,6 +301,27 @@ export class LiquidacionesComponent {
         },
       },
       {
+        id: 'des_cuenta', name: 'Tipo Cuenta', field: 'des_cuenta',
+        sortable: true,
+        type: FieldType.string,
+        maxWidth: 200,
+        formatter: Formatters.collectionEditor,
+
+        editor: {
+          model: Editors.singleSelect,
+          collectionAsync: this.apiService.getTipoCuenta(),
+          customStructure: {
+            value: 'tipocuenta_id',
+            label: 'detalle',
+          },
+          editorOptions: {
+            maxHeight: 400
+          },
+          alwaysSaveOnEnterKey: true,
+          required: true
+        },
+      },
+      {
         id: 'fecha', name: 'Fecha', field: 'fecha',
         formatter: Formatters.dateIso, sortable: true,
         type: FieldType.date,
@@ -382,6 +403,7 @@ export class LiquidacionesComponent {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
 
+
   }
 
   // onBeforeEditCell($event:any) {
@@ -389,28 +411,34 @@ export class LiquidacionesComponent {
   //   // this.angularGrid.resizerService.pauseResizer(true);
   // }
 
-  private get notification(): NzNotificationService {
-    return this.injector.get(NzNotificationService);
-  }
+  // private get notification(): NzNotificationService {
+  //   return this.injector.get(NzNotificationService);
+  // }
 
+ 
   addNewItem(insertPosition?: 'bottom') {
     const newItem1 = this.createNewItem(1);
     this.angularGridEdit.gridService.addItem(newItem1, { position: insertPosition, highlightRow:false, scrollRowIntoView:false, triggerEvent:false });
   }
 
+  
+  
+  createBasicNotification(template: TemplateRef<{}>): void {
+    this.notification.template(template);
+  }
+
   confirmNewItem(){
 
       //TODO Usar this.gridDataInsert
-      debugger
     console.log("este es el grid data insert", this.gridDataInsert)
     let isComplete = false;
 
     for(let index of this.gridDataInsert){
       //este if valida el registro que se crea vacio
-       if(index["id"] != this.gridDataInsert.length - 1 ){
+       if(index["id"] != this.gridDataInsert.length ){
         
        // se valida que los registros esten completos
-         if ('isfull' in index) 
+         if (index["isfull"] == 1) 
           isComplete = true
         else 
           isComplete = false
@@ -437,38 +465,38 @@ export class LiquidacionesComponent {
   onCellChanged(e: any) {
     let row = e.detail.args.item
     //console.log('row',row)
-    if (!row.detalle && !row.des_movimiento && !row.ObjetivoDescripcion && !row.PersonalDescripcion && !row.monto)
+    if (!row.detalle && !row.des_movimiento && !row.ObjetivoDescripcion && !row.PersonalDescripcion && !row.monto && !row.des_cuenta)
       this.angularGridEdit.gridService.deleteItem(row)
 
-    if (row.detalle && row.des_movimiento && (row.ObjetivoDescripcion || row.ApellidoNombre) && row.monto) { 
+    if (row.detalle && row.des_movimiento && (row.ObjetivoDescripcion || row.ApellidoNombre) && row.monto && row.des_cuenta) { 
 
       // se agrega isfull para luego validar que el registro este commpleto en (confirmNewItem)
       row.isfull = 1;
       
-      if (document.getElementsByClassName("ui-widget-content")[row.id - 1].classList.contains("elementAddNoComplete")) {
+      if (document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.contains("elementAddNoComplete")) {
         // Si la clase existe, elimínala
-        document.getElementsByClassName("ui-widget-content")[row.id - 1].classList.remove("elementAddNoComplete");
+        document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.remove("elementAddNoComplete");
       }
 
-      document.getElementsByClassName("ui-widget-content")[row.id - 1].classList.add("elementAdd")
+      document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.add("elementAdd")
      
     }else{
     //NOTA: EVALUAR Si tiene isfull en true y ponerle false y quitar los estilos si los tiene
       row.isfull = 2;
 
       
-      if (document.getElementsByClassName("ui-widget-content")[row.id - 1].classList.contains("elementAdd")) {
+      if (document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.contains("elementAdd")) {
         // Si la clase existe, elimínala
-        document.getElementsByClassName("ui-widget-content")[row.id - 1].classList.remove("elementAdd");
+        document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.remove("elementAdd");
       }
-      document.getElementsByClassName("ui-widget-content")[row.id - 1].classList.add("elementAddNoComplete")
+      document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.add("elementAddNoComplete")
     }
 
     this.angularGridEdit.dataView.updateItem(row.id, row);
     this.angularGridEdit.slickGrid.updateRow(row)
 
     const lastrow:any = this.gridDataInsert[this.gridDataInsert.length - 1];
-    if (lastrow && (lastrow.detalle || lastrow.des_movimiento || lastrow.ObjetivoDescripcion || lastrow.PersonalDescripcion || lastrow.monto)) { 
+    if (lastrow && (lastrow.detalle || lastrow.des_movimiento || lastrow.ObjetivoDescripcion || lastrow.PersonalDescripcion || lastrow.monto || lastrow.des_cuenta)) { 
       this.addNewItem("bottom")
     }
 
@@ -501,34 +529,6 @@ export class LiquidacionesComponent {
       detalle: ""
       
     };
-  }
-  
-
-  openCustomModal(): void {
-    const modalRef = this.modal.create({
-      nzTitle: 'Agregar liquidaciones',
-      nzContent: 'Seguro que desea cargar las liquidaciones...', 
-      nzFooter: [
-        {
-          label: 'Aceptar',
-          onClick: () => {
-            // Acciones al hacer clic en "Aceptar"
-            this.confirmNewItem();
-            modalRef.close();
-          },
-          class: 'custom-modal-button', 
-        },
-        {
-          label: 'Cancelar',
-          onClick: () => {
-            // Acciones al hacer clic en "Cancelar"
-            modalRef.close();
-          },
-          class: 'custom-modal-button', 
-        },
-      ],
-      nzClassName: 'custom-modal', // Clase CSS para el modal
-    });
   }
  
 }

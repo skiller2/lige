@@ -58,6 +58,10 @@ liquidacionesRouter.get('/tipo_movimiento', authMiddleware.verifyToken, (req, re
     liquidacionesController.getTipoMovimiento(req, res, next)
 });
 
+liquidacionesRouter.get('/tipo_cuenta', authMiddleware.verifyToken, (req, res, next) => {
+    liquidacionesController.getTipoCuenta(req, res, next)
+});
+
 // seccion de banco
 liquidacionesRouter.get("/banco/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')], (req, res) => {
     liquidacionesBancoController.getLiquidacionesBancoCols(req, res);
