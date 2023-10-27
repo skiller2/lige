@@ -185,11 +185,13 @@ export class LiquidacionesController extends BaseController {
       
       let periodo = row.periodo
       let tipo_movimiento_id = row.des_movimiento
+      let tipocuenta_id = row.tipocuenta_id 
       let fechaActual = new Date()
       let detalle = row.detalle
       let objetivo_id = row.ObjetivoDescripcion?.id == undefined ? null : row.ObjetivoDescripcion?.id
       let persona_id = row.ApellidoNombre?.id == undefined ? null : row.ApellidoNombre.id
       let importe = row.monto
+      
       
   
     // await queryRunner.connect();
@@ -197,14 +199,15 @@ export class LiquidacionesController extends BaseController {
 
 
     // const result = await queryRunner.query(
-    //   `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,
+    //   `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
     //      aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-    //       VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13)
+    //       VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)
     //              `,
     //   [
     //     ++movimiento_id,
     //     periodo,
     //     tipo_movimiento_id,
+    //     tipocuenta_id,
     //     fechaActual,
     //     detalle,
     //     objetivo_id,

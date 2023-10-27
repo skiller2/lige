@@ -1,4 +1,4 @@
-import { Component, ViewChild, Injector } from '@angular/core';
+import { Component, ViewChild, Injector,TemplateRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { NgForm } from '@angular/forms';
@@ -48,7 +48,7 @@ import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-
 export class LiquidacionesComponent {
   @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =
     new NgForm([], []);
-  constructor(public apiService: ApiService, private injector: Injector, public router: Router, private angularUtilService: AngularUtilService,private modal: NzModalService) { }
+  constructor(public apiService: ApiService, private injector: Injector, public router: Router, private angularUtilService: AngularUtilService,private modal: NzModalService, private notification: NzNotificationService) { }
 
 
   url = '/api/liquidaciones';
@@ -411,28 +411,34 @@ export class LiquidacionesComponent {
   //   // this.angularGrid.resizerService.pauseResizer(true);
   // }
 
-  private get notification(): NzNotificationService {
-    return this.injector.get(NzNotificationService);
-  }
+  // private get notification(): NzNotificationService {
+  //   return this.injector.get(NzNotificationService);
+  // }
 
+ 
   addNewItem(insertPosition?: 'bottom') {
     const newItem1 = this.createNewItem(1);
     this.angularGridEdit.gridService.addItem(newItem1, { position: insertPosition, highlightRow:false, scrollRowIntoView:false, triggerEvent:false });
   }
 
+  
+  
+  createBasicNotification(template: TemplateRef<{}>): void {
+    this.notification.template(template);
+  }
+
   confirmNewItem(){
 
       //TODO Usar this.gridDataInsert
-      debugger
     console.log("este es el grid data insert", this.gridDataInsert)
     let isComplete = false;
 
     for(let index of this.gridDataInsert){
       //este if valida el registro que se crea vacio
-       if(index["id"] != this.gridDataInsert.length - 1 ){
+       if(index["id"] != this.gridDataInsert.length ){
         
        // se valida que los registros esten completos
-         if ('isfull' in index) 
+         if (index["isfull"] == 1) 
           isComplete = true
         else 
           isComplete = false
@@ -459,7 +465,6 @@ export class LiquidacionesComponent {
   onCellChanged(e: any) {
     let row = e.detail.args.item
     //console.log('row',row)
-    debugger
     if (!row.detalle && !row.des_movimiento && !row.ObjetivoDescripcion && !row.PersonalDescripcion && !row.monto && !row.des_cuenta)
       this.angularGridEdit.gridService.deleteItem(row)
 
@@ -524,34 +529,6 @@ export class LiquidacionesComponent {
       detalle: ""
       
     };
-  }
-  
-
-  openCustomModal(): void {
-    const modalRef = this.modal.create({
-      nzTitle: 'Agregar liquidaciones',
-      nzContent: 'Seguro que desea cargar las liquidaciones...', 
-      nzFooter: [
-        {
-          label: 'Aceptar',
-          onClick: () => {
-            // Acciones al hacer clic en "Aceptar"
-            this.confirmNewItem();
-            modalRef.close();
-          },
-          class: 'custom-modal-button', 
-        },
-        {
-          label: 'Cancelar',
-          onClick: () => {
-            // Acciones al hacer clic en "Cancelar"
-            modalRef.close();
-          },
-          class: 'custom-modal-button', 
-        },
-      ],
-      nzClassName: 'custom-modal', // Clase CSS para el modal
-    });
   }
  
 }
