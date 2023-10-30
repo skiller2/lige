@@ -1,4 +1,4 @@
-import { Component, ViewChild, Injector,TemplateRef } from '@angular/core';
+import { Component, ViewChild, Injector, TemplateRef, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { NgForm } from '@angular/forms';
@@ -6,13 +6,13 @@ import { SharedModule, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
-import { AngularGridInstance , AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
-import { NzModalService,NzModalModule } from "ng-zorro-antd/modal";
+import { NzModalService, NzModalModule } from "ng-zorro-antd/modal";
 
 import {
   BehaviorSubject,
@@ -48,7 +48,7 @@ import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-
 export class LiquidacionesComponent {
   @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =
     new NgForm([], []);
-  constructor(public apiService: ApiService, private injector: Injector, public router: Router, private angularUtilService: AngularUtilService,private modal: NzModalService, private notification: NzNotificationService) { }
+  constructor(private cdr: ChangeDetectorRef, public apiService: ApiService, private injector: Injector, public router: Router, private angularUtilService: AngularUtilService, private modal: NzModalService, private notification: NzNotificationService) { }
 
 
   url = '/api/liquidaciones';
@@ -65,7 +65,6 @@ export class LiquidacionesComponent {
   gridOptionsEdit!: GridOption;
   selectedPeriod = { year: 0, month: 0 };
   gridDataInsert = [];
-  isFull = false;
 
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
@@ -152,7 +151,7 @@ export class LiquidacionesComponent {
     setTimeout(() => {
       if (this.gridDataInsert.length == 0)
         this.addNewItem("bottom")
-      
+
     }, 500);
 
     if (this.apiService.isMobile())
@@ -170,7 +169,7 @@ export class LiquidacionesComponent {
         .pipe(
           map(data => {
             this.gridDataLen = data?.list?.length
-            console.log("data",data)
+            console.log("data", data)
             return data?.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -255,7 +254,7 @@ export class LiquidacionesComponent {
   resizeSubscription$: Subscription | undefined;
 
   async ngOnInit() {
-    
+
     this.columnDefinitions = [
       {
         id: 'delete',
@@ -392,12 +391,57 @@ export class LiquidacionesComponent {
     this.gridOptionsEdit.enableRowDetailView = false
     this.gridOptionsEdit.autoEdit = true
 
+
+    this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
+      editCommand.execute()
+
+      if (row.detalle && row.des_movimiento && (row.ObjetivoDescripcion || row.ApellidoNombre) && row.monto && row.des_cuenta) {
+        row.isfull = 1;
+      } else {
+        row.isfull = 2;
+      }
+
+      this.angularGridEdit.slickGrid.removeCellCssStyles(`row_${row.id - 1}`)
+
+
+      if (!row.detalle && !row.des_movimiento && !row.ObjetivoDescripcion && !row.PersonalDescripcion && !row.monto && !row.des_cuenta)
+        this.angularGridEdit.gridService.deleteItem(row)
+      else {
+        this.angularGridEdit.gridService.updateItem(row)
+
+
+        const cssClass = (row.isfull == 2) ? 'elementAddNoComplete' : 'elementAdd'
+        const hash = {
+          [row.id - 1]: {
+            'isfull': cssClass,
+            'periodo': cssClass,
+            'des_movimiento': cssClass,
+            'des_cuenta': cssClass,
+            'detalle': cssClass,
+            'fecha': cssClass,
+            'ObjetivoDescripcion': cssClass,
+            'ApellidoNombre': cssClass,
+            'monto': cssClass,
+          }
+        };
+        this.angularGridEdit.slickGrid.setCellCssStyles(`row_${row.id - 1}`, hash);
+      }
+
+      
+      const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
+      if (lastrow && (lastrow.detalle || lastrow.des_movimiento || lastrow.ObjetivoDescripcion || lastrow.PersonalDescripcion || lastrow.monto || lastrow.des_cuenta)) {
+        this.addNewItem("bottom")
+      }
+
+    }
+
+
     this.resizeObservable$ = fromEvent(window, 'resize');
     this.resizeSubscription$ = this.resizeObservable$
       .pipe(debounceTime(500))
       .subscribe(evt => {
       });
-      
+
 
 
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -406,63 +450,55 @@ export class LiquidacionesComponent {
 
   }
 
-  // onBeforeEditCell($event:any) {
-  //   console.log("soy el data set", this.gridDataInsert)
-  //   // this.angularGrid.resizerService.pauseResizer(true);
-  // }
 
-  // private get notification(): NzNotificationService {
-  //   return this.injector.get(NzNotificationService);
-  // }
-
- 
   addNewItem(insertPosition?: 'bottom') {
     const newItem1 = this.createNewItem(1);
-    this.angularGridEdit.gridService.addItem(newItem1, { position: insertPosition, highlightRow:false, scrollRowIntoView:false, triggerEvent:false });
+    this.angularGridEdit.gridService.addItem(newItem1, { position: insertPosition, highlightRow: false, scrollRowIntoView: false, triggerEvent: false });
   }
 
-  
-  
+
+
   createBasicNotification(template: TemplateRef<{}>): void {
     this.notification.template(template);
   }
 
-  confirmNewItem(){
+  confirmNewItem() {
 
-      //TODO Usar this.gridDataInsert
+    //TODO Usar this.gridDataInsert
     console.log("este es el grid data insert", this.gridDataInsert)
     let isComplete = false;
 
-    for(let index of this.gridDataInsert){
+    for (let index of this.gridDataInsert) {
       //este if valida el registro que se crea vacio
-       if(index["id"] != this.gridDataInsert.length ){
-        
-       // se valida que los registros esten completos
-         if (index["isfull"] == 1) 
+      if (index["id"] != this.gridDataInsert.length) {
+
+        // se valida que los registros esten completos
+        if (index["isfull"] == 1)
           isComplete = true
-        else 
+        else
           isComplete = false
-       }  
+      }
 
     }
 
-    if(isComplete){
+    if (isComplete) {
       this.gridDataInsert.pop()
       this.apiService.setAgregarRegistros({ gridDataInsert: this.gridDataInsert }).subscribe(evt => {
-      this.formChange$.next('')
-      
-    });
-    }else{
-     this.notification.error('Grabación', 'Campos vacios');
-   }
+        this.formChange$.next('')
 
-  
+      });
+    } else {
+      this.notification.error('Grabación', 'Campos vacios');
+    }
+
+
     // isComplete
     // // agregar mensaje de que los registros no estan completos
 
   }
 
   onCellChanged(e: any) {
+    /*
     let row = e.detail.args.item
     //console.log('row',row)
     if (!row.detalle && !row.des_movimiento && !row.ObjetivoDescripcion && !row.PersonalDescripcion && !row.monto && !row.des_cuenta)
@@ -492,14 +528,15 @@ export class LiquidacionesComponent {
       document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.add("elementAddNoComplete")
     }
 
-    this.angularGridEdit.dataView.updateItem(row.id, row);
+//    this.angularGridEdit.dataView.updateItem(row.id, row);
     this.angularGridEdit.slickGrid.updateRow(row)
+    console.log('updateRow',row.isfull)
 
     const lastrow:any = this.gridDataInsert[this.gridDataInsert.length - 1];
     if (lastrow && (lastrow.detalle || lastrow.des_movimiento || lastrow.ObjetivoDescripcion || lastrow.PersonalDescripcion || lastrow.monto || lastrow.des_cuenta)) { 
       this.addNewItem("bottom")
     }
-
+*/
   }
 
   createNewItem(incrementIdByHowMany = 1) {
@@ -523,14 +560,14 @@ export class LiquidacionesComponent {
 
     return {
       id: newId,
-      isfull:0,
+      isfull: 0,
       periodo: periodoM + "/" + periodoY,
       fecha: new Date(),
       detalle: ""
-      
+
     };
   }
- 
+
 }
 
 

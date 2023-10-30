@@ -69,7 +69,6 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
 
   onKeydown(event: KeyboardEvent) {
-    console.log('event',event)
 //    this._lastInputEvent = event;
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
       event.stopImmediatePropagation()
