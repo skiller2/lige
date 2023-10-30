@@ -5,6 +5,8 @@
         <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
         <nz-form-control>
           <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
+          <button nz-button nzType="primary" class="btn-add" *ngIf="(gridDataInsert.length >= 2)" data-test="add-new-item-top-btn" (click)="createBasicNotification(template)" >Confirmar nuevo registro</button>
+
         </nz-form-control>
       </nz-form-item>
 
@@ -74,7 +76,7 @@
         <a nz-tab-link routerLink="/ges/liquidaciones/cargamanual">Carga Manual</a>
         <ng-template nz-tab >
           <!-- <button nz-button nzType="primary" class="btn-add" data-test="add-new-item-top-btn" (click)="openCustomModal()" >Agregar nuevo registro</button>  -->
-          <button nz-button nzType="primary" class="btn-add" *ngIf="(gridDataInsert.length >= 2)" data-test="add-new-item-top-btn" (click)="createBasicNotification(template)" >Confirmar nuevo registro</button>
+         
           <!-- <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" /> -->
           <div class="gridContainer2 container-fluid" >
             <angular-slickgrid gridId="gridEdit" 
@@ -93,7 +95,7 @@
       </nz-tab>
     </nz-tabset>
 
-    <ng-template #template let-notification>
+    <ng-template #template let-notification  (nzOnCancel)="cancel()">
       <div class="ant-notification-notice-content">
         <div>
           <div class="ant-notification-notice-message">Agregar liquidaciones</div>

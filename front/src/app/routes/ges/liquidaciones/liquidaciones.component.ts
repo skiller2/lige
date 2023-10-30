@@ -424,11 +424,17 @@ export class LiquidacionesComponent {
   
   
   createBasicNotification(template: TemplateRef<{}>): void {
-    this.notification.template(template);
+
+    const element = document.getElementsByClassName('ant-notification-notice-content ng-star-inserted');
+
+    if (element.length == 0) 
+      this.notification.template(template);
+       
+      
   }
 
   confirmNewItem(){
-
+   
       //TODO Usar this.gridDataInsert
     console.log("este es el grid data insert", this.gridDataInsert)
     let isComplete = false;
@@ -447,12 +453,15 @@ export class LiquidacionesComponent {
     }
 
     if(isComplete){
+
+      (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
       this.gridDataInsert.pop()
       this.apiService.setAgregarRegistros({ gridDataInsert: this.gridDataInsert }).subscribe(evt => {
       this.formChange$.next('')
-      
+
     });
     }else{
+      (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
      this.notification.error('Grabación', 'Campos vacios');
    }
 
@@ -472,7 +481,6 @@ export class LiquidacionesComponent {
 
       // se agrega isfull para luego validar que el registro este commpleto en (confirmNewItem)
       row.isfull = 1;
-      
       if (document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.contains("elementAddNoComplete")) {
         // Si la clase existe, elimínala
         document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.remove("elementAddNoComplete");
@@ -491,7 +499,7 @@ export class LiquidacionesComponent {
       }
       document.getElementsByClassName("ui-widget-content slick-row even")[row.id - 1].classList.add("elementAddNoComplete")
     }
-
+    
     this.angularGridEdit.dataView.updateItem(row.id, row);
     this.angularGridEdit.slickGrid.updateRow(row)
 
