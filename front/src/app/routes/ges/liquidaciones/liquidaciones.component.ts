@@ -401,32 +401,15 @@ export class LiquidacionesComponent {
         row.isfull = 2;
       }
 
-      this.angularGridEdit.slickGrid.removeCellCssStyles(`row_${row.id - 1}`)
-
 
       if (!row.detalle && !row.des_movimiento && !row.ObjetivoDescripcion && !row.PersonalDescripcion && !row.monto && !row.des_cuenta)
         this.angularGridEdit.gridService.deleteItem(row)
       else {
         this.angularGridEdit.gridService.updateItem(row)
-
-
-        const cssClass = (row.isfull == 2) ? 'elementAddNoComplete' : 'elementAdd'
-        const hash = {
-          [row.id - 1]: {
-            'isfull': cssClass,
-            'periodo': cssClass,
-            'des_movimiento': cssClass,
-            'des_cuenta': cssClass,
-            'detalle': cssClass,
-            'fecha': cssClass,
-            'ObjetivoDescripcion': cssClass,
-            'ApellidoNombre': cssClass,
-            'monto': cssClass,
-          }
-        };
-        this.angularGridEdit.slickGrid.setCellCssStyles(`row_${row.id - 1}`, hash);
       }
 
+        
+      this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
       
       const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
       if (lastrow && (lastrow.detalle || lastrow.des_movimiento || lastrow.ObjetivoDescripcion || lastrow.PersonalDescripcion || lastrow.monto || lastrow.des_cuenta)) {
@@ -434,6 +417,9 @@ export class LiquidacionesComponent {
       }
 
     }
+
+
+
 
 
     this.resizeObservable$ = fromEvent(window, 'resize');
@@ -449,6 +435,29 @@ export class LiquidacionesComponent {
 
 
   }
+
+  updateItemMetadata(previousItemMetadata: any) {
+    const newCssClass = 'elementAddNoComplete';
+
+    return (rowNumber: number) => {
+      const item = this.angularGridEdit.dataView.getItem(rowNumber);
+      let meta = {
+        cssClasses: ''
+      };
+      if (typeof previousItemMetadata === 'object') {
+        meta = previousItemMetadata(rowNumber);
+      }
+
+      if (meta && item && item.isfull) {
+        if (item.isfull > 1) {
+          meta.cssClasses = (meta.cssClasses || '') + ' ' + newCssClass;
+        }
+      }
+
+      return meta;
+    };
+  }
+
 
 
   addNewItem(insertPosition?: 'bottom') {
