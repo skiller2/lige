@@ -282,5 +282,7 @@ export class LiquidacionesBancoComponent {
     this.gridOptionsAyuda.enableRowDetailView = this.apiService.isMobile()
   }
 
-
+  async confirmaMovimientosBanco(e: any) {
+    firstValueFrom(this.apiService.confirmaMovimientosBanco().pipe(tap(res => this.formChange$.next(''))))
+  }
 }
