@@ -468,7 +468,11 @@ export class LiquidacionesComponent {
 
 
   createBasicNotification(template: TemplateRef<{}>): void {
-    this.notification.template(template);
+    
+    const element = document.getElementsByClassName('ant-notification-notice-content ng-star-inserted');
+
+    if (element.length == 0) 
+      this.notification.template(template);
   }
 
   confirmNewItem() {
@@ -491,12 +495,14 @@ export class LiquidacionesComponent {
     }
 
     if (isComplete) {
+      (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
       this.gridDataInsert.pop()
       this.apiService.setAgregarRegistros({ gridDataInsert: this.gridDataInsert }).subscribe(evt => {
         this.formChange$.next('')
 
       });
     } else {
+      (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
       this.notification.error('Grabación', 'Campos vacios');
     }
 
@@ -578,8 +584,4 @@ export class LiquidacionesComponent {
   }
 
 }
-
-
-
-
 
