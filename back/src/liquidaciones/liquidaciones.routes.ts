@@ -34,6 +34,10 @@ liquidacionesRouter.post('/descuentoPorDeudaAnterior', [authMiddleware.verifyTok
     await descuentoPorDeudaAnteriorController.procesaCambios(req, res, next)
 })
 
+liquidacionesRouter.post('/confirmaMovimientosBanco', [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')], async (req, res, next) => {
+    await liquidacionesBancoController.confirmaMovimientosBanco(req, res, next)
+})
+
 liquidacionesRouter.post('/descuentos', [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')], async (req, res, next) => {
     await descuentosController.procesaCambios(req, res, next)
 })

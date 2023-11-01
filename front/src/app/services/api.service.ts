@@ -440,6 +440,16 @@ export class ApiService {
 
   }
 
+  confirmaMovimientosBanco() {
+    this.notification.success('Respuesta', `Inicio confirmación de movimientos bancarios`);
+    const parameter = {}
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/confirmaMovimientosBanco', parameter).pipe(
+      tap(res => this.response(res)),
+    )
+
+  }
+
+
   getDescuentoByPeriodo(year: number, month: number, personaIdRel: number): Observable<ResponseDescuentos> {
     const emptyResponse: ResponseDescuentos = { RegistrosConComprobantes: 0, RegistrosSinComprobantes: 0, Registros: [] };
     if (!month || !year) {

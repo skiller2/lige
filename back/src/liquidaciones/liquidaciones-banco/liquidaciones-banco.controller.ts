@@ -41,6 +41,7 @@ import {
 import { tmpName } from "../../server";
 import { format, promisify } from "node:util";
 import { once } from "events";
+import { Utils } from "../liquidaciones.utils";
 
 export class LiquidacionesBancoController extends BaseController {
 
@@ -200,7 +201,7 @@ export class LiquidacionesBancoController extends BaseController {
     const orderBy = orderToSQL(sort)
 
     return dataSource.query(
-      `SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion,movpos.tipocuenta_id, movpos.importe
+      `SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion,movpos.tipocuenta_id, movpos.importe, 'CUE' as ind_imputacion
         FROM Personal per
         JOIN(SELECT liq.persona_id, liq.tipocuenta_id, SUM(liq.importe * tipo.signo) importe FROM lige.dbo.liqmamovimientos liq
         JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = liq.tipo_movimiento_id
@@ -226,6 +227,8 @@ export class LiquidacionesBancoController extends BaseController {
       ade.PersonalAdelantoMontoAutorizado AS importe, ade.PersonalAdelantoAplicaEl,
       tipo.tipo_movimiento_id, tipo.des_movimiento,
       ade.PersonalAdelantoLiquidoFinanzas,
+      'G' as tipocuenta_id,
+      'ADE' as ind_imputacion,
           1
               FROM Personal per
               JOIN PersonalAdelanto ade ON ade.PersonalId = per.PersonalId AND ade.PersonalAdelantoAprobado='S' AND ISNULL(ade.PersonalAdelantoLiquidoFinanzas,0) =0
@@ -302,12 +305,86 @@ export class LiquidacionesBancoController extends BaseController {
   }
 
 
+  async getProxNumero(queryRunner: any, den_numerador: String, usuario: string, ip: string) {
+    const fechaActual = new Date()
+    let den_numero = 1
+    const numerador = await queryRunner.query('SELECT den_numero FROM lige.dbo.genmanumerador WHERE den_numerador=@0', [den_numerador])
+    if (numerador.length == 0) {
+      await queryRunner.query(`INSERT INTO lige.dbo.genmanumerador (den_numerador,den_numero,aud_usuario_ins,aud_ip_ins,aud_fecha_ins,aud_usuario_mod,aud_ip_mod,aud_fecha_mod) 
+      VALUES(@0,@1,@2,@3,@4,@5,@6,@7)`, [den_numerador,den_numero,usuario,ip,fechaActual,usuario,ip,fechaActual])
+    } else {
+      den_numero = numerador[0]['den_numero']+1
+      await queryRunner.query(`UPDATE lige.dbo.genmanumerador SET den_numero=@1, aud_usuario_mod=@2,aud_ip_mod=@3,aud_fecha_mod=@4 WHERE den_numerador=@0`,
+        [den_numerador, den_numero, usuario, ip, fechaActual])
+    }
+    return den_numero
+  }
+
+  async confirmaMovimientosBanco(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner()
+    const fechaActual = new Date()
+    const ip = this.getRemoteAddress(req)
+    const usuario = res.locals.userName
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const liqmvbanco = await queryRunner.query('SELECT mv.*, ban.BancoDescripcion, per.anio, per.mes FROM lige.dbo.liqmvbanco mv JOIN Banco ban ON ban.BancoId = mv.banco_id JOIN lige.dbo.liqmaperiodo per ON per.periodo_id=mv.periodo_id', [])
+      if (liqmvbanco.length==0)
+        throw new ClientException('No hay movimientos pendientes de confirmar')
+
+      let movimiento_id = await Utils.getMovimientoId(queryRunner)
+      const tipo_movimiento_id = 11 //Depósito
+      for (let row of liqmvbanco) {
+        if (row.ind_imputacion == 'CUE') {
+          await queryRunner.query(`INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,
+          aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+           VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13)`,
+            [++movimiento_id,
+            row.periodo_id,
+              tipo_movimiento_id,
+              fechaActual,
+            `Banco: ${row.BancoDescripcion.trim()}, Envio: ${row.envio_nro}, CBU ${row.cbu}`,
+              null,
+            row.persona_id,
+            row.importe,
+              usuario, ip, fechaActual, usuario, ip, fechaActual,
+            ])
+        } else if (row.ind_imputacion == 'ADE') {
+          await queryRunner.query(`UPDATE PersonalAdelanto SET PersonalAdelantoLiquidoFinanzas=1 WHERE PersonalId = @0 AND PersonalAdelantoMontoAutorizado = @1 AND PersonalAdelantoAplicaEl = @2 AND PersonalAdelantoLiquidoFinanzas IS NULL`,
+              [row.persona_id,
+                row.importe,
+                row.mes.toString().padStart(2,'0') +'/'+  row.anio.toString()
+              ])
+        }
+
+      }
+      
+      await queryRunner.query('DELETE FROM lige.dbo.liqmvbanco', [])
+      
+        
+//      throw new ClientException(`Se confirmaron ${liqmvbanco.length} movimientos`)
+
+
+      await queryRunner.commitTransaction();
+      return next(`Se confirmaron ${liqmvbanco.length} movimientos`)
+
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+
+      return next(error)
+    }
+
+  }
+
 
   async downloadArchivoBanco(req: Request, res: Response, next: NextFunction) {
     const directory = process.env.PATH_LIQUIDACIONES || "tmp";
     if (!existsSync(directory)) {
       mkdirSync(directory, { recursive: true });
     }
+    const queryRunner = dataSource.createQueryRunner();
 
     try {
       const periodo = getPeriodoFromRequest(req);
@@ -319,6 +396,11 @@ export class LiquidacionesBancoController extends BaseController {
       let fileName = `${periodo.year}-${formattedMonth}-banco-${(new Date()).toISOString()}.xlsx`
       const tmpfilename = `${directory}/${tmpName(directory)}`;
       let banco
+
+      let fechaActual = new Date()
+      let ip = this.getRemoteAddress(req)
+      let usuario = res.locals.userName
+  
 
       options.filtros.push({ index: 'BancoId', condition: 'AND', operador: '=', valor: [BancoId] })
 
@@ -336,6 +418,39 @@ export class LiquidacionesBancoController extends BaseController {
       if (banco.length == 0)
         throw new ClientException('No hay registros para generar archivo')
 
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+      const periodods = await queryRunner.query('SELECT periodo_id FROM lige.dbo.liqmaperiodo WHERE anio=@0 AND mes=@1', [periodo.year, periodo.month])
+      const periodo_id = periodods[0]['periodo_id'] 
+
+      if (! (Number(periodo_id)>0))
+        throw new ClientException('Período no localizado')
+
+      const movpend = await queryRunner.query('SELECT * FROM lige.dbo.liqmvbanco WHERE banco_id=@0', [BancoId])
+      if (movpend.length>0)
+        throw new ClientException('Existen movimientos pendientes de aplicar para el banco seleccionado')
+      
+      
+      const nro_envio = await this.getProxNumero(queryRunner, `banco_${BancoId}`, usuario, ip)
+      
+      console.log('nro_envio',nro_envio)
+      const FechaEnvio = (fechaActual.toISOString().split('T')[0]).replaceAll('-','')  //YYYYMMDD
+
+      
+      for (const row of banco) {
+
+        await queryRunner.query(
+          `INSERT INTO lige.dbo.liqmvbanco (banco_id, periodo_id, envio_nro, persona_id, importe, cbu, ind_imputacion, fecha, tipocuenta_id, 
+            aud_usuario_ins, aud_ip_ins, aud_fecha_ins)
+          VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8,
+            @9, @10, @11)`,
+          [
+            BancoId, periodo_id, nro_envio, row.PersonalId, row.importe, row.PersonalBancoCBU, row.ind_imputacion, fechaActual, row.tipocuenta_id,
+            usuario,ip,fechaActual
+          ]
+        );
+      }      
+      
       let exportData = []
       let buffer = null
       /*
@@ -355,41 +470,49 @@ export class LiquidacionesBancoController extends BaseController {
       
       */
       const CUITEmpresa = "30643445510"
-      const NroEnvio = 12345
-      const FechaEnvio = '20230505'
 
       if (BancoId == 4) { //Patagonia
+        exportData.push(['Código de concepto', 'Importe neto a acreditar', 'Apellido y Nombre (Opcional)', 'Tipo de documento', 'Nro. de documento'])
+        for (let row of banco)
+          exportData.push(['001', row.importe, row.PersonalApellidoNombre.replaceAll(',',''), '001', Number(String(row.PersonalCUITCUILCUIT).substring(2, 10))])
+        buffer = xlsx.build([{ name: 'Registros', data: exportData, options: { '!cols': [{ wch: 20 }, { wch: 20 }, { wch: 30 }, { wch: 20 }, { wch: 20 }] } }])
+        writeFileSync(tmpfilename, buffer);
 
       } else if (BancoId == 11) { //Itau
         const file = createWriteStream(tmpfilename, {
           flags: 'a' // 'a' means appending (old data will be preserved)
         })
         fileName = `${periodo.year}-${formattedMonth}-banco-${(new Date()).toISOString()}.txt`
-        file.write(format("H%11s500000001%5d%8s OP                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   \r\n",
-          CUITEmpresa, NroEnvio, FechaEnvio))
+        file.write(format("H%s500000001%s%s OP                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           \r\n",
+          CUITEmpresa.toString().substring(0,11), nro_envio.toString().padStart(5,'0'), FechaEnvio.substring(0,8)))
         let rowNum = 2
         let total = 0
         for (const row of banco) {
-          file.write(format("CACT%11s         %62s%22d                              000000                                                             0000000000000000000000000000000000000000000000000000                                                                                                                                                                                                                                    %8s                                                                                                                                                                                                                                                                                                                   \r\n",
-            row.PersonalCUITCUILCUIT, row.PersonalApellidoNombre.replaceAll(',', '').toUpperCase(), row.PersonalCUITCUILCUIT, FechaEnvio))
-          file.write(format("F14%22d       %17d00000000000000000%8s                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      \r\n",
-            row.PersonalBancoCBU, row.importe * 100, FechaEnvio))
-          file.write(format("DAOP%8s%14d000                                                                                                                                                                                         %8s%17d                                                                                                                        000000000000000000000000000000000000000000000000000000000000000000000000000000000                                                                                                                                                                        000000                                                                                                                                                                                          \r\n",
-            FechaEnvio, rowNum++, FechaEnvio, row.importe * 100))
-          total += row.importe * 100
+          file.write(format("CACT%s         %s%s                              000000                                                             0000000000000000000000000000000000000000000000000000                                                                                                                                                                                                                                    %s                                                                                                                                                                                                                                                                                                                   \r\n",
+            row.PersonalCUITCUILCUIT.toString().substring(0,11).padStart(11,'0'), row.PersonalApellidoNombre.replaceAll(',', '').toUpperCase().padEnd(62,' '), row.PersonalCUITCUILCUIT.toString().substring(0,11).padStart(22,'0'), FechaEnvio))
+          file.write(format("F14%s       %s00000000000000000%s                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      \r\n",
+            row.PersonalBancoCBU.toString().padStart(22,'0'), Math.trunc(row.importe * 100).toString().padStart(17,'0'), FechaEnvio))
+          file.write(format("DAOP%s%s000                                                                                                                                                                                         %s%s                                                                                                                        000000000000000000000000000000000000000000000000000000000000000000000000000000000                                                                                                                                                                        000000                                                                                                                                                                                          \r\n",
+            FechaEnvio, (rowNum++).toString().padStart(14,'0'), FechaEnvio, Math.trunc(row.importe * 100).toString().padStart(17,'0')))
+          total += Math.trunc(row.importe * 100)
         }
-        file.write(format("T%11s500000001%5d%8s%5d%17d                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ",
-          CUITEmpresa, NroEnvio, FechaEnvio, (rowNum - 1) * 3, total))
+        file.write(format("T%s500000001%s%s%s%s                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        \r\n",
+          CUITEmpresa.toString().substring(0,11).padStart(11,'0'), nro_envio.toString().padStart(5,'0'), FechaEnvio, ((rowNum - 2) * 3).toString().padStart(5,'0'), total.toString().padStart(17,'0')))
         file.end()
 
         await once(file, 'finish')
       }
 
 
-      res.download(tmpfilename, fileName, (msg) => {
+      res.download(tmpfilename, fileName, async (msg) => {
+
+        await queryRunner.commitTransaction();
       });
 
     } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+
       return next(error)
     }
   }
