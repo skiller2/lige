@@ -475,15 +475,38 @@ export class LiquidacionesComponent {
       this.notification.template(template);
   }
 
+  cleanTable(){
+    
+    const ids: number[] = [];
+
+    this.gridDataInsert.forEach(objeto => {
+      ids.push(objeto["id"]);
+    });
+
+    ids.pop();
+    
+   
+     for (let index = 0; index <= ids.length; index++) {
+
+      this.angularGridEdit.gridService.deleteItemById(ids[index]);
+
+     }
+
+     this.gridDataInsert = [];
+
+  }
+
   confirmNewItem() {
 
+    debugger
+    this.gridDataInsert.pop()
     //TODO Usar this.gridDataInsert
     console.log("este es el grid data insert", this.gridDataInsert)
     let isComplete = false;
 
     for (let index of this.gridDataInsert) {
       //este if valida el registro que se crea vacio
-      if (index["id"] != this.gridDataInsert.length) {
+      
 
         // se valida que los registros esten completos
         if (index["isfull"] == 1)
@@ -492,13 +515,14 @@ export class LiquidacionesComponent {
           isComplete = false
       }
 
-    }
+    
 
     if (isComplete) {
+
       (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
-      this.gridDataInsert.pop()
-      this.apiService.setAgregarRegistros({ gridDataInsert: this.gridDataInsert }).subscribe(evt => {
+        this.apiService.setAgregarRegistros({ gridDataInsert: this.gridDataInsert }).subscribe(evt => {
         this.formChange$.next('')
+        this.cleanTable()
 
       });
     } else {
@@ -507,8 +531,8 @@ export class LiquidacionesComponent {
     }
 
 
-    // isComplete
-    // // agregar mensaje de que los registros no estan completos
+    isComplete
+    // agregar mensaje de que los registros no estan completos
 
   }
 

@@ -1,10 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
-import { QueryFailedError } from "typeorm";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
-import { Options } from "../schemas/filtro";
-import { ParsedQs } from "qs";
+import { Utils } from "./liquidaciones.utils";
 
 export class LiquidacionesController extends BaseController {
   async getTipoMovimiento(req: Request, res: Response, next: NextFunction) {
@@ -186,71 +184,61 @@ export class LiquidacionesController extends BaseController {
 
   async setAgregarRegistros(req: any, res: Response, next: NextFunction) {
 
-
+    console.log("estoy en el back")
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
-    // const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = dataSource.createQueryRunner();
 
     console.log("req", req.body.gridDataInsert)
-    for (const row of req.body.gridDataInsert) {
+    try {
+      for (const row of req.body.gridDataInsert) {
 
-      let periodo = row.periodo
-      let tipo_movimiento_id = row.des_movimiento
-      let tipocuenta_id = row.tipocuenta_id 
-      let fechaActual = new Date()
-      let detalle = row.detalle
-      let objetivo_id = row.ObjetivoDescripcion?.id == undefined ? null : row.ObjetivoDescripcion?.id
-      let persona_id = row.ApellidoNombre?.id == undefined ? null : row.ApellidoNombre.id
-      let importe = row.monto
-      
-      
-  
-    // await queryRunner.connect();
-    // await queryRunner.startTransaction();
+       
+        let tipo_movimiento_id = row.des_movimiento
+        let tipocuenta_id = row.tipocuenta_id 
+        let fechaActual = new Date()
+        let detalle = row.detalle
+        let objetivo_id = row.ObjetivoDescripcion?.id == undefined ? null : row.ObjetivoDescripcion?.id
+        let persona_id = row.ApellidoNombre?.id == undefined ? null : row.ApellidoNombre.id
+        let importe = row.monto
+        
+        let movimiento_id = await Utils.getMovimientoId(queryRunner)
 
+        const periodo = row.periodo.split('/');
+        const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseFloat(periodo[1]), parseFloat(periodo[0]), usuario, ip)
 
-    // const result = await queryRunner.query(
-    //   `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
-    //      aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-    //       VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)
-    //              `,
-    //   [
-    //     ++movimiento_id,
-    //     periodo,
-    //     tipo_movimiento_id,
-    //     tipocuenta_id,
-    //     fechaActual,
-    //     detalle,
-    //     objetivo_id,
-    //     persona_id,
-    //     importe,
-    //     usuario, ip, fechaActual, usuario, ip, fechaActual,
-    //   ]
-    // );
-      
-      
+    
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
 
-      // const result = await queryRunner.query(
-      //   `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,
-      //      aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-      //       VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13)
-      //              `,
-      //   [
-      //     ++movimiento_id,
-      //     periodo,
-      //     tipo_movimiento_id,
-      //     fechaActual,
-      //     detalle,
-      //     objetivo_id,
-      //     persona_id,
-      //     importe,
-      //     usuario, ip, fechaActual, usuario, ip, fechaActual,
-      //   ]
-      // );
-
-
-
+      await queryRunner.query(
+        `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
+          aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+            VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)
+                  `,
+        [
+          ++movimiento_id,
+          periodo_id,
+          tipo_movimiento_id,
+          tipocuenta_id,
+          fechaActual,
+          detalle,
+          objetivo_id,
+          persona_id,
+          importe,
+          usuario, ip, fechaActual, usuario, ip, fechaActual,
+        ]
+      );
+    } 
+    await queryRunner.commitTransaction();
+      this.jsonRes({ list: [] }, res, `Se procesaron ${ req.body.gridDataInsert.length} registros `);
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+      return next(error)
+    } finally {
+      //   await queryRunner.release();
     }
 
   }
