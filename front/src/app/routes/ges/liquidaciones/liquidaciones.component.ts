@@ -65,12 +65,26 @@ export class LiquidacionesComponent {
   gridOptionsEdit!: GridOption;
   selectedPeriod = { year: 0, month: 0 };
   gridDataInsert = [];
+  uploading$ = new BehaviorSubject({loading:false,event:null});
+  selectedCuentalId = '';
+  selectedMovimientoId = '';
+  gridDataImportLen = 0
+
+  $selectedCuentalIdChange = new BehaviorSubject('');
+  $isCuentaDataLoading = new BehaviorSubject(false);
+  $selectedMovimientoIdChange = new BehaviorSubject('');
+  $isMovimientoDataLoading = new BehaviorSubject(false);
+
+  gridDataImport$ = new BehaviorSubject([]);
 
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   angularGridEdit!: AngularGridInstance;
   gridObj!: SlickGrid;
   gridObjEdit!: SlickGrid;
+
+  $optionsCuenta = this.apiService.getTipoCuenta();
+  $optionsMovimiento = this.apiService.getTipoMovimiento();
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && dataContext.monto > 0) {
@@ -188,6 +202,40 @@ export class LiquidacionesComponent {
 
     this.formChange('');
   }
+
+   columnsImport = [
+    {
+      id: "id",
+      name: "id",
+      field: "id",
+      fieldName: "id.liquidaciones",
+      type: "number",
+      sortable: true,
+      searchHidden: true,
+      hidden: true
+    },
+    {
+      name: "Liquidacion",
+      type: "number",
+      id: "LiquidacionNro",
+      field: "LiquidacionNro",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      name: "Detalle",
+      type: "string",
+      id: "Detalle",
+      field: "Detalle",
+      searchType: "string",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+
+
+  ]
 
 
   exportGrid() {
@@ -418,22 +466,31 @@ export class LiquidacionesComponent {
 
     }
 
-
-
-
-
-    this.resizeObservable$ = fromEvent(window, 'resize');
-    this.resizeSubscription$ = this.resizeObservable$
-      .pipe(debounceTime(500))
-      .subscribe(evt => {
-      });
-
-
+    
 
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
 
 
+  }
+
+  selectedValueChangeMovimiento(event: string): void {
+    
+    this.selectedMovimientoId = event;
+    this.$selectedMovimientoIdChange.next(event);
+    this.$isMovimientoDataLoading.next(true);
+    return;
+  
+}
+
+  
+  selectedValueChange(event: string): void {
+    
+    this.selectedCuentalId = event;
+    this.$selectedCuentalIdChange.next(event);
+    this.$isCuentaDataLoading.next(true);
+    return;
+    
   }
 
   updateItemMetadata(previousItemMetadata: any) {
@@ -475,15 +532,38 @@ export class LiquidacionesComponent {
       this.notification.template(template);
   }
 
+  cleanTable(){
+    
+    const ids: number[] = [];
+
+    this.gridDataInsert.forEach(objeto => {
+      ids.push(objeto["id"]);
+    });
+
+    ids.pop();
+    
+   
+     for (let index = 0; index <= ids.length; index++) {
+
+      this.angularGridEdit.gridService.deleteItemById(ids[index]);
+
+     }
+
+     this.gridDataInsert = [];
+
+  }
+
   confirmNewItem() {
 
+    debugger
+    this.gridDataInsert.pop()
     //TODO Usar this.gridDataInsert
     console.log("este es el grid data insert", this.gridDataInsert)
     let isComplete = false;
 
     for (let index of this.gridDataInsert) {
       //este if valida el registro que se crea vacio
-      if (index["id"] != this.gridDataInsert.length) {
+      
 
         // se valida que los registros esten completos
         if (index["isfull"] == 1)
@@ -492,13 +572,14 @@ export class LiquidacionesComponent {
           isComplete = false
       }
 
-    }
+    
 
     if (isComplete) {
+
       (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
-      this.gridDataInsert.pop()
-      this.apiService.setAgregarRegistros({ gridDataInsert: this.gridDataInsert }).subscribe(evt => {
+        this.apiService.setAgregarRegistros({ gridDataInsert: this.gridDataInsert }).subscribe(evt => {
         this.formChange$.next('')
+        this.cleanTable()
 
       });
     } else {
@@ -507,8 +588,8 @@ export class LiquidacionesComponent {
     }
 
 
-    // isComplete
-    // // agregar mensaje de que los registros no estan completos
+    isComplete
+    // agregar mensaje de que los registros no estan completos
 
   }
 
@@ -552,6 +633,36 @@ export class LiquidacionesComponent {
       this.addNewItem("bottom")
     }
 */
+  }
+
+  uploadChange(event: any) {
+    switch (event.type) {
+      case 'start':
+        this.uploading$.next({ loading: true, event })
+        this.gridDataImport$.next([])
+        this.gridDataImportLen = 0
+        
+        break;
+      case 'progress':
+
+        break;
+      case 'error':
+        const Error = event.file.error
+        this.gridDataImport$.next(Error.error.data.list)
+        this.gridDataImportLen = Error.error.data.list.length
+        this.uploading$.next({ loading:false,event })
+        break;
+      case 'success':
+        const Response = event.file.response
+        this.gridDataImport$.next([])
+        this.gridDataImportLen = 0
+        this.uploading$.next({ loading: false, event })
+        this.apiService.response(Response)        
+        break
+      default:
+        break;
+    }
+
   }
 
   createNewItem(incrementIdByHowMany = 1) {
