@@ -100,7 +100,7 @@ export class DescuentosController extends BaseController {
             detalle,
             row.ObjetivoId,
             row.PersonalId,
-            row.importe,
+            Math.round((row.importe+Number.EPSILON)*100)/100,
             0,
             usuario, ip, fechaActual, usuario, ip, fechaActual,
           ]

@@ -63,6 +63,7 @@ export class LiquidacionesComponent {
   filesChange$ = new BehaviorSubject('');
   gridOptions!: GridOption;
   gridOptionsEdit!: GridOption;
+  gridOptionsImport!: GridOption;
   selectedPeriod = { year: 0, month: 0 };
   gridDataInsert = [];
   uploading$ = new BehaviorSubject({loading:false,event:null});
@@ -471,6 +472,9 @@ export class LiquidacionesComponent {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
 
+    this.gridOptionsImport = this.apiService.getDefaultGridOptions('.gridContainer3', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptionsImport.enableRowDetailView = this.apiService.isMobile()
+   
 
   }
 

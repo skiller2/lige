@@ -426,6 +426,44 @@
 
       </form>
     </nz-tab>
+    <nz-tab>
+      <form nz-form #asistenciaPer="ngForm" >
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Persona</nz-form-label>
+          <nz-form-control nzHasFeedback>
+            <app-personal-search name="PersonalId" (ngModelChange)="selectedValueChange($event, Busqueda.Personal)"
+              ngModel />
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+      <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/listado-personas">Listado Personas</a>
+      <nz-table #listPer [nzData]="[]" nzSize="small" [nzPageSize]="100000000"
+      [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+      <thead>
+        <tr>
+          <th>Apellido Nombre</th>
+          <th>CUIT</th>
+          <th>Ingresos</th>
+          <th>Descuentos</th>
+          <th>Retiro</th>
+
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let data of listPer.data" class="">
+          <td>{{ data.tipomov }}</td>
+          <td>{{ data.desmovimiento }}</td>
+          <td>
+            <div *ngIf="data.importetotal>0">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
+              | currency }}</div>
+          </td>
+          <td>{{ data.importe | currency }}</td>
+          <td>{{ data.importe | currency }}</td>
+        </tr>
+      </tbody>
+    </nz-table>
+
+    </nz-tab>
   </nz-tabset>
 
 

@@ -433,7 +433,6 @@ export class LiquidacionesBancoController extends BaseController {
       
       const nro_envio = await this.getProxNumero(queryRunner, `banco_${BancoId}`, usuario, ip)
       
-      console.log('nro_envio',nro_envio)
       const FechaEnvio = (fechaActual.toISOString().split('T')[0]).replaceAll('-','')  //YYYYMMDD
 
       
@@ -472,10 +471,15 @@ export class LiquidacionesBancoController extends BaseController {
       const CUITEmpresa = "30643445510"
 
       if (BancoId == 4) { //Patagonia
+        const cabeceraData = [['Número de Envio', 'Fecha de acreditación'],[nro_envio,fechaActual]]
+
         exportData.push(['Código de concepto', 'Importe neto a acreditar', 'Apellido y Nombre (Opcional)', 'Tipo de documento', 'Nro. de documento'])
         for (let row of banco)
           exportData.push(['001', row.importe, row.PersonalApellidoNombre.replaceAll(',',''), '001', Number(String(row.PersonalCUITCUILCUIT).substring(2, 10))])
-        buffer = xlsx.build([{ name: 'Registros', data: exportData, options: { '!cols': [{ wch: 20 }, { wch: 20 }, { wch: 30 }, { wch: 20 }, { wch: 20 }] } }])
+        buffer = xlsx.build([
+          { name: 'Cabecera', data: cabeceraData, options: { '!cols': [{ wch: 20 }, { wch: 20 }, { wch: 30 }, { wch: 20 }, { wch: 20 }] } },
+          { name: 'Registros', data: exportData, options: { '!cols': [{ wch: 20 }, { wch: 20 }, { wch: 30 }, { wch: 20 }, { wch: 20 }] } }
+        ])
         writeFileSync(tmpfilename, buffer);
 
       } else if (BancoId == 11) { //Itau
@@ -483,6 +487,7 @@ export class LiquidacionesBancoController extends BaseController {
           flags: 'a' // 'a' means appending (old data will be preserved)
         })
         fileName = `${periodo.year}-${formattedMonth}-banco-${(new Date()).toISOString()}.txt`
+        fileName = `${CUITEmpresa.toString().substring(0,11)}500000001${FechaEnvio.substring(0,8)}${nro_envio.toString().padStart(5,'0')}.txt`
         file.write(format("H%s500000001%s%s OP                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           \r\n",
           CUITEmpresa.toString().substring(0,11), nro_envio.toString().padStart(5,'0'), FechaEnvio.substring(0,8)))
         let rowNum = 2
