@@ -607,7 +607,7 @@ export class AsistenciaController extends BaseController {
       `             
       SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, 0 as ObjetivoId,per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, 'Adelanto' AS tipomov, '' AS desmovimiento,
-      '' AS desmovimiento2,
+      '' AS desmovimiento2, 'ADEL' tipoint,
       ade.PersonalAdelantoMontoAutorizado AS importe, 1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
       FROM PersonalAdelanto ade 
               JOIN Personal per ON per.PersonalId = ade.PersonalId
@@ -621,7 +621,7 @@ export class AsistenciaController extends BaseController {
       SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, 0 as ObjetivoId, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov, 
       '' AS desmovimiento, 
-      '' AS desmovimiento2,
+      '' AS desmovimiento2, 'OTRO' tipoint,
       des.PersonalOtroDescuentoImporteVariable AS importe, 1 AS cuotanro, des.PersonalOtroDescuentoCantidadCuotas  AS cantcuotas, 0 AS importetotal
       
       FROM PersonalOtroDescuento des 
@@ -637,7 +637,7 @@ export class AsistenciaController extends BaseController {
       SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, 0 as ObjetivoId, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, 'Efecto' AS tipomov, 
       efe.EfectoDescripcion AS desmovimiento,
-      efe.EfectoDescripcion AS desmovimiento2,
+      efe.EfectoDescripcion AS desmovimiento2, 'DESC' tipoint,
       cuo.PersonalDescuentoCuotaImporte*des.PersonalDescuentoCantidadEfectos AS importe, des.PersonalDescuentoCuotasPagas AS cuotanro, des.PersonalDescuentoCuotas AS cantcuotas, des.PersonalDescuentoImporte - (des.PersonalDescuentoImporte * des.PersonalDescuentoPorcentajeDescuento /100)   AS importetotal
       FROM PersonalDescuento des 
       JOIN PersonalDescuentoCuota cuo ON cuo.PersonalDescuentoId = des.PersonalDescuentoId AND cuo.PersonalDescuentoPersonalId = des.PersonalDescuentoPersonalId
@@ -653,7 +653,7 @@ export class AsistenciaController extends BaseController {
       SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, 0 as ObjetivoId, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, 'Ayuda Asistencial' AS tipomov, 
       '' AS desmovimiento, 
-      '' AS desmovimiento2, 
+      '' AS desmovimiento2, 'AYUD' tipoint,
       cuo.PersonalPrestamoCuotaImporte AS importe, cuo.PersonalPrestamoCuotaCuota AS cuotanro, des.PersonalPrestamoCantidadCuotas AS cantcuotas, des.PersonalPrestamoMonto importetotal
       
       FROM PersonalPrestamo des 
@@ -672,6 +672,7 @@ export class AsistenciaController extends BaseController {
       @1 AS anio, @2 AS mes, 'Prepaga' AS tipomov, 
       CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento, 
       CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento2, 
+      'PREP' tipoint,
      
       IIF(dis.PersonalPrepagaDescuentoDiscriminadoTipo='C',(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)*-1,(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)) AS importe,  1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
 
@@ -693,7 +694,7 @@ export class AsistenciaController extends BaseController {
       
       @1 AS anio, @2 AS mes, 'Rentas' AS tipomov, 
       '' AS desmovimiento, 
-      '' AS desmovimiento2, 
+      '' AS desmovimiento2, 'RENT' tipoint, 
      
      	ren.PersonalRentasPagosImporte AS importe,  1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
 
@@ -710,7 +711,7 @@ export class AsistenciaController extends BaseController {
       
       @1 AS anio, @2 AS mes, 'Honorarios DDJJ' AS tipomov, 
       '' AS desmovimiento, 
-      '' AS desmovimiento2, 
+      '' AS desmovimiento2, 'DDJJ' tipoint,
      
      	vdj.ValorDDJJImporte AS importe,  1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
 
@@ -728,7 +729,7 @@ export class AsistenciaController extends BaseController {
       cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       anio.ConsumoTelefoniaAnoAno, mes.ConsumoTelefoniaAnoMesMes, 'Telefonía' AS tipomov, 
       CONCAT(TRIM(tel.TelefoniaNro), IIF(tel.TelefoniaObjetivoId>0,CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',obj.ObjetivoDescripcion),'')) AS desmovimiento,
-      TRIM(tel.TelefoniaNro) AS desmovimiento2, 
+      TRIM(tel.TelefoniaNro) AS desmovimiento2, 'TELE' tipoint, 
        con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte+ (con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte * imp.ImpuestoInternoTelefoniaImpuesto / 100 ) AS importe, 1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
       FROM ConsumoTelefoniaAno anio
       JOIN ConsumoTelefoniaAnoMes mes ON mes.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId
