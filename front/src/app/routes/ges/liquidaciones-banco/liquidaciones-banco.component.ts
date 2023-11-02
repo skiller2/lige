@@ -307,5 +307,7 @@ export class LiquidacionesBancoComponent {
     this.gridOptionsAyuda.createFooterRow = true
   }
 
-
+  async confirmaMovimientosBanco(e: any) {
+    firstValueFrom(this.apiService.confirmaMovimientosBanco().pipe(tap(res => this.formChange$.next(''))))
+  }
 }

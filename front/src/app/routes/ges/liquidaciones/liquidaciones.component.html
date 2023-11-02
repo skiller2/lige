@@ -5,6 +5,8 @@
         <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
         <nz-form-control>
           <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
+          <button nz-button nzType="primary" class="btn-add" *ngIf="(gridDataInsert.length >= 2)" data-test="add-new-item-top-btn" (click)="createBasicNotification(template)" >Confirmar nuevo registro</button>
+
         </nz-form-control>
       </nz-form-item>
 
@@ -50,6 +52,12 @@
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'liquidaciones','cargamanual']">Carga manual</a>
       </li>
+
+      <li nz-menu-item nzMatchRouter >
+        <span nz-icon nzType=""></span>
+        <!-- <a [routerLink]="['/', 'ges', 'liquidaciones','cargamanual']">Carga manual</a> -->
+        <a [routerLink]="['/', 'ges', 'liquidaciones','importacion']">Importación</a>
+      </li>
     </ul>
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
@@ -74,7 +82,7 @@
         <a nz-tab-link routerLink="/ges/liquidaciones/cargamanual">Carga Manual</a>
         <ng-template nz-tab >
           <!-- <button nz-button nzType="primary" class="btn-add" data-test="add-new-item-top-btn" (click)="openCustomModal()" >Agregar nuevo registro</button>  -->
-          <button nz-button nzType="primary" class="btn-add" *ngIf="(gridDataInsert.length >= 2)" data-test="add-new-item-top-btn" (click)="createBasicNotification(template)" >Confirmar nuevo registro</button>
+         
           <!-- <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" /> -->
           <div class="gridContainer2 container-fluid" >
             <angular-slickgrid gridId="gridEdit" 
@@ -91,9 +99,80 @@
           <!-- <div>Registros: {{ gridDataInsert.length }}</div> -->
         </ng-template>
       </nz-tab>
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/liquidaciones/importacion">Importar liquidaciones</a>
+      <ng-template nz-tab >
+
+      <form nz-form #telefonoForm="ngForm">
+       <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
+
+        <nz-form-item>
+          <nz-form-control>
+            <nz-form-label [nzSpan]="10">Tipo de Cuenta</nz-form-label>
+            <ng-container>
+              <nz-select #sucursal="ngModel" nzSpan="5" name="SucursalId" [(ngModel)]="selectedCuentalId"
+              (ngModelChange)="selectedValueChange($event)" nzAllowClear nzPlaceHolder="Cuenta"
+              [nzDropdownMatchSelectWidth]="false"
+              nzShowSearch>
+              <ng-container *ngFor="let option of $optionsCuenta | async">
+                <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
+              </ng-container>
+            </nz-select>
+            </ng-container>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+
+          <nz-form-control>
+            <nz-form-label [nzSpan]="10">Tipo de Movimiento</nz-form-label>
+            <ng-container>
+              <nz-select #sucursal="ngModel" nzSpan="5" name="MovimientoId" [(ngModel)]="selectedMovimientoId"
+              (ngModelChange)="selectedValueChangeMovimiento($event)" nzAllowClear nzPlaceHolder="Movimiento"
+              [nzDropdownMatchSelectWidth]="false"
+              nzShowSearch>
+              <ng-container *ngFor="let option of $optionsMovimiento | async">
+                <nz-option [nzValue]="option.tipo_movimiento_id" [nzLabel]="option.des_movimiento"></nz-option>
+              </ng-container>
+            </nz-select>
+            </ng-container>
+          </nz-form-control>
+        </nz-form-item>
+
+
+        <nz-form-item>
+        <nz-form-control>
+          <nz-form-label [nzSpan]="5">Archivo liquidaciones</nz-form-label>
+            <ng-container>
+              <nz-upload nzAccept="application/xls" nzAction="/api/liquidaciones/upload" [nzData]="{
+                tipocuenta: selectedCuentalId,
+                movimiento: selectedMovimientoId
+              }"  nzName="xls" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)" >
+                  <button nz-button>
+                    <span nz-icon nzType="upload"></span>
+                    Subir XLS
+                  </button>
+                </nz-upload>
+            </ng-container>
+          </nz-form-control>
+        </nz-form-item>
+
+       </nz-spin> 
+      </form>
+
+         <div class="gridContainer3 container-fluid">
+          <angular-slickgrid gridId="gridImport" class="" [columnDefinitions]="columnsImport | colsFilter"
+            [gridOptions]="gridOptionsImport" [dataset]="(gridDataImport$ | async) || []"  ()>
+          </angular-slickgrid>
+        </div>
+        <div>Registros: {{ gridDataImportLen }}</div> 
+      </ng-template>
+
+
+      </nz-tab>
     </nz-tabset>
 
-    <ng-template #template let-notification>
+    <ng-template #template let-notification >
       <div class="ant-notification-notice-content">
         <div>
           <div class="ant-notification-notice-message">Agregar liquidaciones</div>
