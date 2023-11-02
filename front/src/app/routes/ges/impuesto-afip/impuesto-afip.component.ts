@@ -119,11 +119,13 @@ export class ImpuestoAfipComponent {
     }
 
     let mapped = cols.map((col: any) => {
-      if (col.id == 'monto')
+      if (col.id == 'monto'){
+        //console.log('Pase'); 
         col = colmonto
+      }
       return col
     });
-
+    console.log('mapped',mapped); 
     return mapped
   }));
   excelExportService = new ExcelExportService()
@@ -157,6 +159,17 @@ export class ImpuestoAfipComponent {
         .pipe(
           map(data => {
             this.gridDataLen = data.list.length 
+
+            let gridDataTotalImporte = 0
+            for (let index = 0; index < data.list.length; index++) {
+              if(data.list[index].importe)
+                gridDataTotalImporte += data.list[index].importe
+            }
+            this.gridObj.getFooterRowColumn('monto').innerHTML = 'Total: '+ gridDataTotalImporte.toFixed(2)
+            this.gridObj.getFooterRowColumn(1).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
+            console.log(gridDataTotalImporte);
+            console.log(this.gridDataLen);
+            
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -203,6 +216,9 @@ export class ImpuestoAfipComponent {
    
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
+
+    this.gridOptions.showFooterRow = true
+    this.gridOptions.createFooterRow = true
   }
 
   ngAfterViewInit(): void {
@@ -277,6 +293,7 @@ export class ImpuestoAfipComponent {
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
+    //console.log('this.angularGrid',this.angularGrid); 
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])

@@ -183,20 +183,18 @@ export class ApiService {
       params: {
         angularUtilService: utilService // provide the service to all at once (Editor, Filter, AsyncPostRender)
       },
-      showCustomFooter: false, // display some metrics in the bottom custom footer
+      //showCustomFooter: true, // display some metrics in the bottom custom footer
       customFooterOptions: {
         // optionally display some text on the left footer container
-        leftFooterText: 'Prueba',
-        hideTotalItemCount: true,
+        //leftFooterText: 'Prueba',
+        //hideTotalItemCount: true,
         hideLastUpdateTimestamp: true,
         hideRowSelectionCount: true,
         metricTexts: {},
-        rightFooterText:'fin'
+        //rightFooterText:'fin'
 
       },
-      
-      createFooterRow: true,
-      showFooterRow: true,
+      enableGrouping : true
     };
   }
 

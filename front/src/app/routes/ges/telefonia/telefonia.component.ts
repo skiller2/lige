@@ -3,7 +3,7 @@ import { Component, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { AngularGridInstance, AngularUtilService, Column, FileType, Formatters, GridOption, SlickGrid } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, FileType, Formatters, GridOption, SlickGrid, GroupTotalFormatters, Aggregators } from 'angular-slickgrid';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzUploadFile } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, Observable, debounceTime, map, switchMap, tap } from 'rxjs';
@@ -118,13 +118,17 @@ export class TelefoniaComponent {
         component: CustomDescargaComprobanteComponent,
         angularUtilService: this.angularUtilService,
         //complexFieldLabel: 'assignee.name' // for the exportCustomFormatter
+        //groupFormatterPrefix: '<b>Total</b>: '
       },
+      //groupTotalsFormatter: GroupTotalFormatters.sumTotals,
 
     }
 
     let mapped = cols.map((col: any) => {
-      if (col.id == 'monto')
+      if (col.id == 'monto'){
+        //console.log('Pase'); //Nunca pasa
         col = colmonto
+      }
       return col
     });
 
@@ -141,7 +145,15 @@ export class TelefoniaComponent {
         )
         .pipe(
           map(data => {
+            let gridDataTotalImporte = 0
+            for (let index = 0; index < data.list.length; index++) {
+              if(data.list[index].importe)
+                gridDataTotalImporte += data.list[index].importe
+            }
+            this.gridObj.getFooterRowColumn('importe').innerHTML = 'Total: '+ gridDataTotalImporte.toFixed(2)
+            console.log('data:',data);
             this.gridDataLen = data.list?.length
+            this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
             return data.list
           }),
         );
@@ -154,8 +166,8 @@ export class TelefoniaComponent {
   ngOnInit(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
-
-
+    this.gridOptions.showFooterRow = true
+    this.gridOptions.createFooterRow = true
   }
 
   ngAfterViewInit(): void {
@@ -197,7 +209,8 @@ export class TelefoniaComponent {
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
-
+    //console.log('angularGridReady');
+    
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
   }

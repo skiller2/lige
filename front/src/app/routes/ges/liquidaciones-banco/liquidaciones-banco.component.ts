@@ -159,6 +159,7 @@ export class LiquidacionesBancoComponent {
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
+    //console.log('this.angularGrid', this.angularGrid);
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
@@ -186,6 +187,14 @@ export class LiquidacionesBancoComponent {
             this.mes = periodo.getMonth()+1;
             this.gridDataLen = data.list.length
             this.listdowload = "gridData";
+
+            let gridDataTotalImporte = 0
+            for (let index = 0; index < data.list.length; index++) {
+              if(data.list[index].importe)
+                gridDataTotalImporte += data.list[index].importe
+            }
+            this.gridObj.getFooterRowColumn('importe').innerHTML = 'Total: '+ gridDataTotalImporte.toFixed(2)
+            this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' +this.gridDataLen.toString()
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -208,6 +217,16 @@ export class LiquidacionesBancoComponent {
             this.mes = periodo.getMonth()+1;
             this.gridDataLen = data.list.length;
             this.listdowload = "gridDataAyuda";
+            
+            let gridDataTotalImporte = 0
+            for (let index = 0; index < data.list.length; index++) {
+              if(data.list[index].importe)
+                gridDataTotalImporte += data.list[index].importe
+            }
+            
+            this.gridObjAyuda.getFooterRowColumn('importe').innerHTML = 'Total: ' + gridDataTotalImporte.toFixed(2)
+            this.gridObjAyuda.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
+
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -243,7 +262,7 @@ export class LiquidacionesBancoComponent {
   }));
 
   columnsAyuda$ = this.apiService.getCols('/api/liquidaciones/banco/ayuda/cols').pipe(map((cols) => {
-    console.log("imprimo columnas", cols)
+    console.log("imprimo columnasAyuda", cols)
     return cols
   }));
 
@@ -280,6 +299,12 @@ export class LiquidacionesBancoComponent {
 
     this.gridOptionsAyuda = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsAyuda.enableRowDetailView = this.apiService.isMobile()
+
+    this.gridOptions.showFooterRow = true
+    this.gridOptions.createFooterRow = true
+
+    this.gridOptionsAyuda.showFooterRow = true
+    this.gridOptionsAyuda.createFooterRow = true
   }
 
 
