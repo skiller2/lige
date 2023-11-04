@@ -385,8 +385,8 @@
                 <tr *ngFor="let data of art42adminPer.data" class="">
                   <td title="{{ data.SucursalId }}">{{ data.SucursalId }}</td>
                   <td>{{ data.SucursalDescripcion}}</td>
-                  <td>{{ data.CategoriaPersonalDescripcion }} {{data.SucursalAsistenciaAnoMesPersonalDiasCualArt42 }}</td>
-                  <td>{{ (data.horas_fijas>0) ? data.horas_fijas: data.horas_reales }}</td>
+                  <td>{{ (data.SucursalAsistenciaAnoMesPersonalDiasCualArt42>0)? "ART42 AP"+data.SucursalAsistenciaAnoMesPersonalDiasCualArt42:"" }} {{ data.CategoriaPersonalDescripcion }} </td>
+                  <td>{{ data.horas }}</td>
                   <td>{{ data.ValorLiquidacionHoraNormal | currency}}</td>
                   <td>{{ data.total | currency}}</td>
                 </tr>
@@ -427,17 +427,18 @@
       </form>
     </nz-tab>
     <nz-tab>
-      <form nz-form #asistenciaPer="ngForm" >
+      <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/listado-personas">Listado Personas</a>
+      <form nz-form #listadoPer="ngForm" >
         <nz-form-item>
-          <nz-form-label [nzSpan]="5">Persona</nz-form-label>
+          <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
           <nz-form-control nzHasFeedback>
-            <app-personal-search name="PersonalId" (ngModelChange)="selectedValueChange($event, Busqueda.Personal)"
+            <app-personal-search name="persona_id_responsable" (ngModelChange)="selectedValueChange($event, Busqueda.Responsable)"
               ngModel />
           </nz-form-control>
         </nz-form-item>
       </form>
-      <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/listado-personas">Listado Personas</a>
-      <nz-table #listPer [nzData]="[]" nzSize="small" [nzPageSize]="100000000"
+
+      <nz-table #listPer [nzData]="($listaPersonal | async).persxresp" nzSize="small" [nzPageSize]="100000000"
       [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
       <thead>
         <tr>

@@ -63,7 +63,6 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
       for (const row of result) {
 //        if (row.total == 0)
 //          continue 
-        const horas = (row.horas_fijas > 0) ? row.horas_fijas : row.horas_reales
         
         switch (row.SucursalAsistenciaAnoMesPersonalDiasCualArt42) {
           case "0":
@@ -82,7 +81,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
             break;
         }
 
-        const detalle= ((row.ValorLiquidacionSumaFija>0)? `Suma Fija `: `Horas ${horas} `) + `Categoría ${row.CategoriaPersonalDescripcion.trim()} ${(row.SucursalAsistenciaAnoMesPersonalDiasCualArt42>0)? 'AP'+row.SucursalAsistenciaAnoMesPersonalDiasCualArt42:''} ` 
+        const detalle= ((row.ValorLiquidacionSumaFija>0)? `Suma Fija `: `Horas ${row.horas} `) + `Categoría ${row.CategoriaPersonalDescripcion.trim()} ${(row.SucursalAsistenciaAnoMesPersonalDiasCualArt42>0)? 'AP'+row.SucursalAsistenciaAnoMesPersonalDiasCualArt42:''} ` 
         await queryRunner.query(
           `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe, horas,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
@@ -97,7 +96,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
             null,
             row.SucursalAsistenciaMesPersonalId,
             Number(row.total),
-            horas,
+            row.horas,
             usuario, ip, fechaActual, usuario, ip, fechaActual,
           ]
         );

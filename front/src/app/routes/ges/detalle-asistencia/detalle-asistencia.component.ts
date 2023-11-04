@@ -26,6 +26,7 @@ enum Busqueda {
   Sucursal,
   Objetivo,
   Personal,
+  Responsable
 }
 
 @Component({
@@ -76,6 +77,7 @@ export class DetalleAsistenciaComponent {
   $selectedSucursalIdChange = new BehaviorSubject('');
   $selectedObjetivoIdChange = new BehaviorSubject('');
   $selectedPersonalIdChange = new BehaviorSubject('');
+  $selectedResponsablePersonalIdChange = new BehaviorSubject('');
 
   $searchObjetivoChange = new BehaviorSubject('');
 
@@ -204,6 +206,20 @@ export class DetalleAsistenciaComponent {
     
   )))
 
+  $listaPersonal = this.$selectedResponsablePersonalIdChange.pipe(
+    debounceTime(500),
+    switchMap(PersonalId =>
+      this.searchService
+        .getPersonalxResponsable(
+          Number(PersonalId),
+          this.selectedPeriod.year,
+          this.selectedPeriod.month
+        )
+        .pipe
+        //          doOnSubscribe(() => this.tableLoading$.next(true)),
+        (tap(data => { this.listaDescuentosPerTotal = data.total})   
+  )))
+
   $personaMonotributo = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
     switchMap(() =>
@@ -250,6 +266,7 @@ export class DetalleAsistenciaComponent {
   $isSucursalDataLoading = new BehaviorSubject(false);
   $isObjetivoDataLoading = new BehaviorSubject(false);
   $isPersonalDataLoading = new BehaviorSubject(false);
+  $isResponsableDataLoading = new BehaviorSubject(false);
 
   ngAfterViewInit(): void {
     const now = new Date(); //date
@@ -292,6 +309,10 @@ export class DetalleAsistenciaComponent {
       case Busqueda.Personal:
         this.$selectedPersonalIdChange.next(event);
         this.$isPersonalDataLoading.next(true);
+        return;
+      case Busqueda.Responsable:
+        this.$selectedResponsablePersonalIdChange.next(event);
+        this.$isResponsableDataLoading.next(true);
         return;
     }
   }

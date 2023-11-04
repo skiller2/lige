@@ -238,6 +238,26 @@ export class SearchService {
       );
   }
 
+  getPersonalxResponsable(
+    personalId: number,
+    anio: number,
+    mes: number
+  ): Observable<any> {
+    if (!personalId) return of([]);
+
+    return this.http
+      .get(`api/asistencia/personalxresp/${anio}/${mes}/${personalId}`)
+      .pipe(
+        map((res: ResponseJSON<any>) =>
+          res && res.data ? res.data : []
+        ),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
   getIngresosPersona(
     personalId: number,
     anio: number,
