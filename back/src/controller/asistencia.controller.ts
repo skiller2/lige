@@ -1,7 +1,7 @@
 import { NextFunction, Response } from "express";
 import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
-import { QueryRunner } from "typeorm";
+import { Any, QueryRunner } from "typeorm";
 
 export class AsistenciaController extends BaseController {
   static async getAsistenciaAdminArt42(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[]) {
@@ -823,30 +823,54 @@ export class AsistenciaController extends BaseController {
         throw new ClientException(`No tiene permisos para listar la información`)
 
       //Busco la lista de PersonalId que le corresponde al responsable
-      let personalIdList = []
+      let personalIdList=[]
       const personal = await queryRunner.query(
-        `SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+        `SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS PersonaDes,
+        cuit.PersonalCUITCUILCUIT,
+         0 as ingresos_importe,
+         0 as ingresos_horas,
+         0 as egresos_importe,
          1
          FROM Personal per
          LEFT JOIN OperacionesPersonalAsignarAJerarquico perrel ON perrel.OperacionesPersonalAAsignarPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
-         WHERE perrel.PersonalCategoriaPersonalId = @0`, [personalId, anio, mes])
-      
-      for (const ds of personal) {
-        personalIdList.push(ds.PersonalId)
-      }
+         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
 
+         WHERE perrel.PersonalCategoriaPersonalId = @0`, [personalId, anio, mes])
+
+      for (let ds of personal)
+        personalIdList.push(ds.PersonalId)
 
       const resDescuentos = await AsistenciaController.getDescuentos(anio, mes, personalIdList)
 
       const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, personalIdList)
 
+      const resAsisAdmArt42 = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, personalIdList)
 
-      let result = []
+      for (const row of resAsisObjetiv) {
+        const key=personal.findIndex(i=> i.PersonalId == row.PersonalId)
+        personal[key].ingresos_importe += row.totalminutoscalcimporteconart14
+        personal[key].ingresos_horas += row.totalhorascalc
+      }
 
-      result = resAsisObjetiv
-      const total = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
+      for (const row of resAsisAdmArt42) {
+        const key=personal.findIndex(i=> i.PersonalId == row.PersonalId)
+        personal[key].ingresos_importe += row.totalminutoscalcimporteconart14
+        personal[key].ingresos_horas += row.totalhorascalc
+      }
 
-      this.jsonRes({ persxresp: result, total }, res);
+
+
+      for (const row of resDescuentos) {
+        const key=personal.findIndex(i=> i.PersonalId == row.PersonalId)
+        personal[key].egresos_importe += row.importe
+        personal[key].retiro_importe = personal[key].ingresos_importe - personal[key].egresos_importe
+      }
+
+
+
+//      const total = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
+
+      this.jsonRes({ persxresp: personal, total:0 }, res);
     } catch (error) {
       return next(error)
     }
@@ -920,9 +944,8 @@ export class AsistenciaController extends BaseController {
     const listPersonaId = (personalId.length == 0) ? '' : 'AND objd.ObjetivoAsistenciaMesPersonalId IN (' + personalId.join(',') + ')'
     const queryRunner = dataSource.createQueryRunner();
     const result = await queryRunner.query(
-      `SELECT suc.SucursalId, obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
-              persona.PersonalEstado,
-              
+      `SELECT suc.SucursalId, obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, cuit.PersonalCUITCUILCUIT, persona.PersonalId, CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
+            
               obj.ObjetivoId, 
               CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
               obj.ObjetivoDescripcion,
@@ -1217,7 +1240,6 @@ export class AsistenciaController extends BaseController {
 
       const result = await dataSource.query(
         `SELECT suc.SucursalId, obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
-                persona.PersonalEstado,
                 persona.PersonalId,
                 obj.ObjetivoId, 
                 CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
