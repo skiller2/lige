@@ -330,8 +330,8 @@ export class LiquidacionesController extends BaseController {
     
         
       }
-      //await queryRunner.commitTransaction();
-      await queryRunner.rollbackTransaction();
+      await queryRunner.commitTransaction();
+      //await queryRunner.rollbackTransaction();
       this.jsonRes({}, res, "XLS Recibido y procesado!");
     } catch (error) {
       if (queryRunner.isTransactionActive)
