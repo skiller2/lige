@@ -85,7 +85,7 @@ export class LiquidacionesComponent {
   gridObjEdit!: SlickGrid;
 
   $optionsCuenta = this.apiService.getTipoCuenta();
-  $optionsMovimiento = this.apiService.getTipoMovimiento();
+  $optionsMovimiento = this.apiService.getTipoMovimiento("I");
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && dataContext.monto > 0) {
@@ -350,7 +350,7 @@ export class LiquidacionesComponent {
           model: Editors.singleSelect,
           // We can also add HTML text to be rendered (any bad script will be sanitized) but we have to opt-in, else it will be sanitized
           //enableRenderHtml: true,
-          collectionAsync: this.apiService.getTipoMovimiento(),
+          collectionAsync: this.apiService.getTipoMovimiento("M"),
           customStructure: {
             value: 'tipo_movimiento_id',
             label: 'des_movimiento',

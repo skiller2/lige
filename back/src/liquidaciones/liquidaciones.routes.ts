@@ -117,11 +117,11 @@ liquidacionesRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.has
     liquidacionesController.setAgregarRegistros(req, res, next)
 });
 
-liquidacionesRouter.get('/tipo_movimiento', authMiddleware.verifyToken, (req, res, next) => {
+liquidacionesRouter.get('/tipo_movimiento/:TipoMovimiento', [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')], (req, res, next) => {
     liquidacionesController.getTipoMovimiento(req, res, next)
 });
 
-liquidacionesRouter.get('/tipo_cuenta', authMiddleware.verifyToken, (req, res, next) => {
+liquidacionesRouter.get('/tipo_cuenta', [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')], (req, res, next) => {
     liquidacionesController.getTipoCuenta(req, res, next)
 });
 
