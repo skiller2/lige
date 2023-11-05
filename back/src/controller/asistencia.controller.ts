@@ -10,7 +10,7 @@ export class AsistenciaController extends BaseController {
     let asisadmin = await queryRunner.query(`SELECT suc.SucursalId, suc.SucursalDescripcion, 
     asisa.SucursalAsistenciaAnoAno, asism.SucursalAsistenciaAnoMesMes, 
     asis.SucursalAsistenciaMesPersonalId, cuit.PersonalCUITCUILCUIT, persona.PersonalApellido, persona.PersonalNombre, 
-    
+    persona.PersonalId,    
     
     asis.SucursalAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras,
     cat.CategoriaPersonalDescripcion,
@@ -835,7 +835,20 @@ export class AsistenciaController extends BaseController {
          LEFT JOIN OperacionesPersonalAsignarAJerarquico perrel ON perrel.OperacionesPersonalAAsignarPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
          LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
 
-         WHERE perrel.PersonalCategoriaPersonalId = @0`, [personalId, anio, mes])
+         WHERE perrel.PersonalCategoriaPersonalId = @0
+         UNION
+         
+         SELECT per.PersonalId PersonalIdJ, per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS PersonaDes,
+         cuit.PersonalCUITCUILCUIT,
+          0 as ingresos_importe,
+          0 as ingresos_horas,
+          0 as egresos_importe,
+          1
+          FROM Personal per
+          LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+        WHERE per.PersonalId=@0
+         ORDER BY PersonaDes
+         `, [personalId, anio, mes])
 
       for (let ds of personal)
         personalIdList.push(ds.PersonalId)
@@ -850,23 +863,21 @@ export class AsistenciaController extends BaseController {
         const key=personal.findIndex(i=> i.PersonalId == row.PersonalId)
         personal[key].ingresos_importe += row.totalminutoscalcimporteconart14
         personal[key].ingresos_horas += row.totalhorascalc
+        personal[key].retiro_importe = personal[key].ingresos_importe
       }
 
       for (const row of resAsisAdmArt42) {
         const key=personal.findIndex(i=> i.PersonalId == row.PersonalId)
-        personal[key].ingresos_importe += row.totalminutoscalcimporteconart14
-        personal[key].ingresos_horas += row.totalhorascalc
+        personal[key].ingresos_importe += row.total
+        personal[key].ingresos_horas += row.horas
+        personal[key].retiro_importe = personal[key].ingresos_importe 
       }
-
-
 
       for (const row of resDescuentos) {
         const key=personal.findIndex(i=> i.PersonalId == row.PersonalId)
         personal[key].egresos_importe += row.importe
         personal[key].retiro_importe = personal[key].ingresos_importe - personal[key].egresos_importe
       }
-
-
 
 //      const total = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
 

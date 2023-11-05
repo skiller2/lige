@@ -162,10 +162,9 @@
 
          <div class="gridContainer3 container-fluid">
           <angular-slickgrid gridId="gridImport" class="" [columnDefinitions]="columnsImport | colsFilter"
-            [gridOptions]="gridOptionsImport" [dataset]="(gridDataImport$ | async) || []"  ()>
+            [gridOptions]="gridOptionsImport" [dataset]="(gridDataImport$ | async) || []" >
           </angular-slickgrid>
         </div>
-        <div>Registros: {{ gridDataImportLen }}</div> 
       </ng-template>
 
 
