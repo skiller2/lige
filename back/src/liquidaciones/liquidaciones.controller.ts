@@ -5,6 +5,7 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { Utils } from "./liquidaciones.utils";
 import { mkdirSync, existsSync, readFileSync, unlinkSync } from "fs";
 import xlsx from 'node-xlsx';
+import { isNumberObject } from "util/types";
 
 export class LiquidacionesController extends BaseController {
   directory = process.env.PATH_LIQUIDACIONES || "tmp";
@@ -253,19 +254,20 @@ export class LiquidacionesController extends BaseController {
 
   async handleXLSUpload(req: Request, res: Response, next: NextFunction) {
     const file = req.file;
-    const anioRequest = Number(req.body.anio)
-    const mesRequest = Number(req.body.mes)
-    const fechaRequest = new Date(req.body.fecha);
+    const anio = Number(req.body.anio)
+    const mes = Number(req.body.mes)
+    const fechaActual = new Date();
     const queryRunner = dataSource.createQueryRunner()
     const tipocuenta_id = req.body.tipocuenta
-    const movimiento_id = req.body.movimiento
+    const tipo_movimiento_id = req.body.movimiento
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
 
     try {
-      if (!anioRequest) throw new ClientException("Faltó indicar el anio");
-      if (!mesRequest) throw new ClientException("Faltó indicar el mes");
-      if (!fechaRequest) throw new ClientException("Faltó indicar fecha de aplicación")
+      if (!anio) throw new ClientException("Faltó indicar el anio");
+      if (!mes) throw new ClientException("Faltó indicar el mes");
       if (!tipocuenta_id) new ClientException("No se especificó el tipo de cuenta")
-      if (!movimiento_id) new ClientException("No se especificó el movimiento")
+      if (!tipo_movimiento_id) new ClientException("No se especificó el movimiento")
 
 
       await queryRunner.connect();
@@ -276,25 +278,60 @@ export class LiquidacionesController extends BaseController {
       //if (!importeRequest) throw new ClientException("Faltó indicar el importe.");
 
 
-      mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
+      mkdirSync(`${this.directory}/${anio}`, { recursive: true });
       const newFilePath = `${this.directory
-        }/${anioRequest}/${anioRequest}-${mesRequest
+        }/${anio}/${anio}-${mes
           .toString()
           .padStart(2, "0")}.xls`;
 
       if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
-      const now = fechaRequest
 
       const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
       const sheet1 = workSheetsFromBuffer[0];
 
-      sheet1.data.splice(0, 2)
+      let movimiento_id = await Utils.getMovimientoId(queryRunner)
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+
+
+
+      //sheet1.data.splice(0, 2)
 
       for (const row of sheet1.data) { 
-        console.log('row',row)
-      }
-      await queryRunner.commitTransaction();
+        const cuit = row[1]
+        const importe = row[2]
+        if (!Number.isInteger(cuit))
+          continue
 
+          const persona = await queryRunner.query(
+            `SELECT personalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`,[cuit])
+        
+        const persona_id = persona[0]?.personalId
+        if (!persona_id) 
+          throw new ClientException(`CUIT ${cuit} no localizado`)
+        
+          await queryRunner.query(
+            `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
+              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+                VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)
+                      `,
+            [
+              ++movimiento_id,
+              periodo_id,
+              tipo_movimiento_id,
+              tipocuenta_id,
+              fechaActual,
+              '',
+              0,
+              persona_id,
+              importe,
+              usuario, ip, fechaActual, usuario, ip, fechaActual,
+            ]
+          );
+    
+        
+      }
+      //await queryRunner.commitTransaction();
+      await queryRunner.rollbackTransaction();
       this.jsonRes({}, res, "XLS Recibido y procesado!");
     } catch (error) {
       if (queryRunner.isTransactionActive)
