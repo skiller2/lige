@@ -51,11 +51,18 @@ export class AdelantoComponent {
     let mapped = cols.map((col: Column) => {
       if (col.id == 'PersonalAdelantoMonto') {
         col.editor = {
-          model: Editors.float, decimal: 2, valueStep: 1, minValue: 0, maxValue: 10000000, alwaysSaveOnEnterKey: true, required: true
+          model: Editors.float,
+          decimal: 2,
+          valueStep: 1,
+          minValue: 0,
+          maxValue: 10000000,
+          alwaysSaveOnEnterKey: true,
+          required: true
         }
       }
       return col
     });
+    //console.log('mapped',mapped);
     return mapped
   }));
 
@@ -114,6 +121,8 @@ export class AdelantoComponent {
       this.angularGrid.dataView.updateItem(item.id, item);
       this.angularGrid.slickGrid.updateRow(editCommand.row)
 
+      this.gridOptions.showFooterRow = true
+      this.gridOptions.createFooterRow = true
     }
 
 

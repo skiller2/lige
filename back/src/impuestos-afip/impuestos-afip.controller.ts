@@ -874,7 +874,6 @@ export class ImpuestosAfipController extends BaseController {
         per.PersonalId PersonalId,
         
         cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
-        per.PersonalEstado, 
         perrel.PersonalCategoriaPersonalId PersonalIdJ,
         cuit.PersonalCUITCUILCUIT AS CUITJ, CONCAT(TRIM(perjer.PersonalApellido), ', ', TRIM(perjer.PersonalNombre)) ApellidoNombreJ,
       1   

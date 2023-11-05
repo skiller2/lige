@@ -11,8 +11,7 @@
       <nz-form-control>
         <nz-select #sucursal="ngModel" nzSpan="19" name="SucursalId" [(ngModel)]="selectedSucursalId"
           (ngModelChange)="selectedValueChange($event, Busqueda.Sucursal)" nzAllowClear nzPlaceHolder="Sucursal"
-          [nzDropdownMatchSelectWidth]="false"
-          nzShowSearch>
+          [nzDropdownMatchSelectWidth]="false" nzShowSearch>
           <ng-container *ngFor="let option of $optionsSucursales | async">
             <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
           </ng-container>
@@ -62,7 +61,9 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Totales</nz-form-label>
           <nz-form-control *ngIf="listaAsistenciaObjTotalImporte >0 || listaAsistenciaObjTotalHoras >0 ">
-            <span >{{ listaAsistenciaObjTotalImporte | currency }} </span> <span>, total horas: {{ listaAsistenciaObjTotalHoras }}, promedio hora: {{ listaAsistenciaObjTotalImporte / listaAsistenciaObjTotalHoras | currency }}</span>  
+            <span>{{ listaAsistenciaObjTotalImporte | currency }} </span> <span>, total horas: {{
+              listaAsistenciaObjTotalHoras }}, promedio hora: {{ listaAsistenciaObjTotalImporte /
+              listaAsistenciaObjTotalHoras | currency }}</span>
           </nz-form-control>
         </nz-form-item>
 
@@ -127,7 +128,7 @@
                 <tr>
                   <th>CUIT</th>
                   <th>Apellido y Nombre</th>
-                  <th>Estado</th>
+                  <th>Situación Revista</th>
                   <th>Categoría</th>
                   <th>Horas</th>
                   <th>Valor Hora</th>
@@ -143,7 +144,7 @@
                   <td>
                     <a (click)="buscarPorPersona(data.PersonalId)" [textContent]="data.PersonaDes"></a>
                   </td>
-                  <td>{{ data.PersonalEstado }}</td>
+                  <td> N/A</td>
                   <td>{{ data.CategoriaPersonalDescripcion }}</td>
                   <td>{{ data.totalhorascalc }}</td>
                   <td>
@@ -153,7 +154,8 @@
                   </td>
 
                   <td>
-                    <span *ngIf="data.PersonalArt14SumaFija">Suma fija {{ data.PersonalArt14SumaFija | currency }}</span>
+                    <span *ngIf="data.PersonalArt14SumaFija">Suma fija {{ data.PersonalArt14SumaFija | currency
+                      }}</span>
                     <span *ngIf="data.PersonalArt14Horas">Horas {{ data.PersonalArt14Horas }}</span>
                     <span *ngIf="data.art14CategoriaDescripcion">Equivalencia {{ data.art14CategoriaDescripcion }}
                       {{ data.ValorHoraArt14Categoria | currency }}
@@ -211,7 +213,7 @@
     </nz-tab>
     <nz-tab>
       <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/persona">Persona</a>
-      <form nz-form #asistenciaPer="ngForm" >
+      <form nz-form #asistenciaPer="ngForm">
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Persona</nz-form-label>
           <nz-form-control nzHasFeedback>
@@ -222,7 +224,10 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Retiro</nz-form-label>
           <nz-form-control *ngIf="listaIngresosPerTotal + listaAsistenciaPerTotal > 0 || listaDescuentosPerTotal > 0">
-            <span>{{ listaIngresosPerTotal + listaAsistenciaPerTotal - listaDescuentosPerTotal | currency }} </span> <span> ({{ listaIngresosPerTotal + listaAsistenciaPerTotal | currency }} - {{ listaDescuentosPerTotal | currency }})</span><span>, total horas: {{ listaAsistenciaPerTotalHoras + listaIngresosPerTotalHoras}}</span>  
+            <span>{{ listaIngresosPerTotal + listaAsistenciaPerTotal - listaDescuentosPerTotal | currency }} </span>
+            <span> ({{ listaIngresosPerTotal + listaAsistenciaPerTotal | currency }} - {{ listaDescuentosPerTotal |
+              currency }})</span><span>, total horas: {{ listaAsistenciaPerTotalHoras +
+              listaIngresosPerTotalHoras}}</span>
           </nz-form-control>
         </nz-form-item>
 
@@ -345,7 +350,8 @@
                   </td>
 
                   <td>
-                    <span *ngIf="data.PersonalArt14SumaFija">Suma fija {{ data.PersonalArt14SumaFija | currency }}</span>
+                    <span *ngIf="data.PersonalArt14SumaFija">Suma fija {{ data.PersonalArt14SumaFija | currency
+                      }}</span>
                     <span *ngIf="data.PersonalArt14Horas">Horas {{ data.PersonalArt14Horas }}</span>
                     <span *ngIf="data.art14CategoriaDescripcion">Equivalencia {{ data.art14CategoriaDescripcion }}
                       {{ data.ValorHoraArt14Categoria | currency }}
@@ -369,8 +375,8 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Administrativos y Art42</nz-form-label>
           <nz-form-control>
-            <nz-table #art42adminPer [nzData]="($listaIngresosPer | async).ingresos" nzSize="small" [nzPageSize]="100000000"
-              [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
+            <nz-table #art42adminPer [nzData]="($listaIngresosPer | async).ingresos" nzSize="small"
+              [nzPageSize]="100000000" [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
               <thead>
                 <tr>
                   <th>Código</th>
@@ -385,8 +391,10 @@
                 <tr *ngFor="let data of art42adminPer.data" class="">
                   <td title="{{ data.SucursalId }}">{{ data.SucursalId }}</td>
                   <td>{{ data.SucursalDescripcion}}</td>
-                  <td>{{ data.CategoriaPersonalDescripcion }} {{data.SucursalAsistenciaAnoMesPersonalDiasCualArt42 }}</td>
-                  <td>{{ (data.horas_fijas>0) ? data.horas_fijas: data.horas_reales }}</td>
+                  <td>{{ (data.SucursalAsistenciaAnoMesPersonalDiasCualArt42>0)? "ART42
+                    AP"+data.SucursalAsistenciaAnoMesPersonalDiasCualArt42:"" }} {{ data.CategoriaPersonalDescripcion }}
+                  </td>
+                  <td>{{ data.horas }}</td>
                   <td>{{ data.ValorLiquidacionHoraNormal | currency}}</td>
                   <td>{{ data.total | currency}}</td>
                 </tr>
@@ -398,7 +406,7 @@
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Descuentos</nz-form-label>
-          <nz-form-control *ngIf="$listaDescuentosPer | async as listaDescuentosPer "> 
+          <nz-form-control *ngIf="$listaDescuentosPer | async as listaDescuentosPer ">
             <nz-table #descPer [nzData]="listaDescuentosPer.descuentos" nzSize="small" [nzPageSize]="100000000"
               [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
               <thead>
@@ -425,6 +433,49 @@
         </nz-form-item>
 
       </form>
+    </nz-tab>
+    <nz-tab>
+      <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/listado-personas">Listado Personas</a>
+      <form nz-form #listadoPer="ngForm">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
+          <nz-form-control nzHasFeedback>
+            <app-personal-search name="persona_id_responsable"
+              (ngModelChange)="selectedValueChange($event, Busqueda.Responsable)" ngModel />
+          </nz-form-control>
+        </nz-form-item>
+      </form>
+
+      <nz-table #listPer [nzData]="($listaPersonal | async).persxresp" nzSize="small" [nzPageSize]="100000000"
+        [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+        <thead>
+          <tr>
+            <th>CUIT</th>
+            <th>Apellido Nombre</th>
+            <th>Situcación Revista</th>
+            <th>Ingresos</th>
+            <th>Horas</th>
+            <th>Descuentos</th>
+            <th>Retiro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let data of listPer.data" class="">
+            <td title="{{ data.PersonalId }}">
+              {{ data.PersonalCUITCUILCUIT }}
+            </td>
+            <td>
+              <a (click)="buscarPorPersona(data.PersonalId)" [textContent]="data.PersonaDes"></a>
+            </td>
+            <td> N/A</td>
+            <td>{{ data.ingresos_importe | currency }}</td>
+            <td>{{ data.ingresos_horas }}</td>
+            <td>{{ data.egresos_importe | currency }}</td>
+            <td>{{ data.retiro_importe | currency }}</td>
+          </tr>
+        </tbody>
+      </nz-table>
+
     </nz-tab>
   </nz-tabset>
 

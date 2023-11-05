@@ -6,7 +6,7 @@ import { SharedModule, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
-import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData, GroupTotalFormatters, Aggregators, Grouping } from 'angular-slickgrid';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -63,6 +63,7 @@ export class LiquidacionesComponent {
   filesChange$ = new BehaviorSubject('');
   gridOptions!: GridOption;
   gridOptionsEdit!: GridOption;
+  gridOptionsImport!: GridOption;
   selectedPeriod = { year: 0, month: 0 };
   gridDataInsert = [];
   uploading$ = new BehaviorSubject({loading:false,event:null});
@@ -153,9 +154,12 @@ export class LiquidacionesComponent {
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
+    //console.log('this.angularGrid', this.angularGrid);
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
+
+    //this.angularGrid.dataView.onRowsChanged
   }
 
   async angularGridReadyEdit(angularGrid: any) {
@@ -183,6 +187,17 @@ export class LiquidacionesComponent {
         .pipe(
           map(data => {
             this.gridDataLen = data?.list?.length
+
+            let gridDataTotalImporte = 0
+            for (let index = 0; index < data.list.length; index++) {
+              if(data.list[index].importe)
+                gridDataTotalImporte += data.list[index].importe
+            }
+            this.gridObj.getFooterRowColumn('importe').innerHTML = 'Total: '+ gridDataTotalImporte.toFixed(2)
+            console.log('data:',data);
+            this.gridDataLen = data.list?.length
+            this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
+
             console.log("data", data)
             return data?.list
           }),
@@ -246,6 +261,7 @@ export class LiquidacionesComponent {
   }
 
   columns$ = this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols) => {
+    console.log('cols', cols);
 
     return cols
   }));
@@ -427,8 +443,12 @@ export class LiquidacionesComponent {
         sortable: true,
         type: FieldType.float,
         maxWidth: 200,
+        // groupTotalsFormatter: GroupTotalFormatters.sumTotals,
         formatter: Formatters.multiple,
-        params: { formatters: [Formatters.currency, Formatters.alignRight] },
+        params: { 
+          formatters: [Formatters.currency,Formatters.alignRight],  
+          // groupFormatterPrefix: '<b>Total</b>: ' 
+        },
         editor: {
           model: Editors.float, decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000,
         }
@@ -470,7 +490,14 @@ export class LiquidacionesComponent {
 
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
+    
+    this.gridOptions.showFooterRow = true
+    this.gridOptions.createFooterRow = true
 
+    
+    this.gridOptionsImport = this.apiService.getDefaultGridOptions('.gridContainer3', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptionsImport.enableRowDetailView = this.apiService.isMobile()
+   
 
   }
 

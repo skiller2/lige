@@ -74,7 +74,7 @@
           </angular-slickgrid>
           </div>
 
-          <div>Registros: {{ gridDataLen }}</div>
+          <!-- <div>total: {{ gridDataLen }}</div> -->
         </ng-template>
       </nz-tab>
       <nz-tab >
@@ -96,7 +96,7 @@
           </angular-slickgrid>
           </div>
 
-          <div>Registros: {{ gridDataInsert.length }}</div>
+          <!-- <div>Registros: {{ gridDataInsert.length }}</div> -->
         </ng-template>
       </nz-tab>
       <nz-tab>
@@ -160,9 +160,9 @@
        </nz-spin> 
       </form>
 
-         <div class="gridContainer container-fluid">
-          <angular-slickgrid gridId="grid23" class="" [columnDefinitions]="columnsImport | colsFilter"
-            [gridOptions]="gridOptions" [dataset]="(gridDataImport$ | async) || []">
+         <div class="gridContainer3 container-fluid">
+          <angular-slickgrid gridId="gridImport" class="" [columnDefinitions]="columnsImport | colsFilter"
+            [gridOptions]="gridOptionsImport" [dataset]="(gridDataImport$ | async) || []"  ()>
           </angular-slickgrid>
         </div>
         <div>Registros: {{ gridDataImportLen }}</div> 
