@@ -181,7 +181,7 @@ liquidacionesRouter.post("/upload", authMiddleware.verifyToken, (req, res, next)
   
       // SUCCESS
       else {
-        // liquidacionesController.handleXLSUpload(req, res, next);
+        liquidacionesController.handleXLSUpload(req, res, next);
       }
     });
   });

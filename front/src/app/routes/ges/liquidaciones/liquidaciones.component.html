@@ -146,7 +146,9 @@
             <ng-container>
               <nz-upload nzAccept="application/xls" nzAction="/api/liquidaciones/upload" [nzData]="{
                 tipocuenta: selectedCuentalId,
-                movimiento: selectedMovimientoId
+                movimiento: selectedMovimientoId,
+                anio:selectedPeriod.year, 
+                mes:selectedPeriod.month
               }"  nzName="xls" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)" >
                   <button nz-button>
                     <span nz-icon nzType="upload"></span>

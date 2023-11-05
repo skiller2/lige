@@ -3,8 +3,11 @@ import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Utils } from "./liquidaciones.utils";
+import { mkdirSync, existsSync, readFileSync, unlinkSync } from "fs";
+import xlsx from 'node-xlsx';
 
 export class LiquidacionesController extends BaseController {
+  directory = process.env.PATH_LIQUIDACIONES || "tmp";
   async getTipoMovimiento(req: Request, res: Response, next: NextFunction) {
     console.log("estoy en el back.......................")
     const TipoMovimientoFilter = req.params.TipoMovimiento;
@@ -246,5 +249,62 @@ export class LiquidacionesController extends BaseController {
     }
 
   }
+
+
+  async handleXLSUpload(req: Request, res: Response, next: NextFunction) {
+    const file = req.file;
+    const anioRequest = Number(req.body.anio)
+    const mesRequest = Number(req.body.mes)
+    const fechaRequest = new Date(req.body.fecha);
+    const queryRunner = dataSource.createQueryRunner()
+    const tipocuenta_id = req.body.tipocuenta
+    const movimiento_id = req.body.movimiento
+
+    try {
+      if (!anioRequest) throw new ClientException("Faltó indicar el anio");
+      if (!mesRequest) throw new ClientException("Faltó indicar el mes");
+      if (!fechaRequest) throw new ClientException("Faltó indicar fecha de aplicación")
+      if (!tipocuenta_id) new ClientException("No se especificó el tipo de cuenta")
+      if (!movimiento_id) new ClientException("No se especificó el movimiento")
+
+
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+      //const importeRequest = req.body.monto;
+      //const cuitRequest = req.body.cuit;
+
+      //if (!importeRequest) throw new ClientException("Faltó indicar el importe.");
+
+
+      mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
+      const newFilePath = `${this.directory
+        }/${anioRequest}/${anioRequest}-${mesRequest
+          .toString()
+          .padStart(2, "0")}.xls`;
+
+      if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
+      const now = fechaRequest
+
+      const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
+      const sheet1 = workSheetsFromBuffer[0];
+
+      sheet1.data.splice(0, 2)
+
+      for (const row of sheet1.data) { 
+        console.log('row',row)
+      }
+      await queryRunner.commitTransaction();
+
+      this.jsonRes({}, res, "XLS Recibido y procesado!");
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+      return next(error)
+    } finally {
+      await queryRunner.release();
+      unlinkSync(file.path);
+    }
+  }
+
 }
 
