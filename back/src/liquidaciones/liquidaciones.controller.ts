@@ -6,10 +6,14 @@ import { Utils } from "./liquidaciones.utils";
 
 export class LiquidacionesController extends BaseController {
   async getTipoMovimiento(req: Request, res: Response, next: NextFunction) {
+    console.log("estoy en el back.......................")
+    const TipoMovimientoFilter = req.params.TipoMovimiento;
+    console.log("TipoMovimiento" + TipoMovimientoFilter)
     try {
 
         const tipoMovimiento = await dataSource.query(
-          `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo FROM lige.dbo.liqcotipomovimiento AS tipo`)
+          `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo, tipo.tipo_movimiento FROM lige.dbo.liqcotipomovimiento AS tipo WHERE tipo.tipo_movimiento = @0`
+          , [TipoMovimientoFilter])
   
           this.jsonRes(
               {
