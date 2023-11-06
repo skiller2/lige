@@ -223,9 +223,9 @@
         </nz-form-item>
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Retiro</nz-form-label>
-          <nz-form-control *ngIf="listaIngresosPerTotal + listaAsistenciaPerTotal > 0 || listaDescuentosPerTotal > 0">
-            <span>{{ listaIngresosPerTotal + listaAsistenciaPerTotal - listaDescuentosPerTotal | currency }} </span>
-            <span> ({{ listaIngresosPerTotal + listaAsistenciaPerTotal | currency }} - {{ listaDescuentosPerTotal |
+          <nz-form-control *ngIf="listaIngresosPerTotal + listaAsistenciaPerTotal + listaIngresosExtraPerTotal > 0 || listaDescuentosPerTotal > 0">
+            <span>{{ listaIngresosPerTotal + listaAsistenciaPerTotal + listaIngresosExtraPerTotal - listaDescuentosPerTotal | currency }} </span>
+            <span> ({{ listaIngresosPerTotal + listaAsistenciaPerTotal + listaIngresosExtraPerTotal | currency }} - {{ listaDescuentosPerTotal |
               currency }})</span><span>, total horas: {{ listaAsistenciaPerTotalHoras +
               listaIngresosPerTotalHoras}}</span>
           </nz-form-control>
@@ -402,6 +402,28 @@
             </nz-table>
           </nz-form-control>
         </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Ingresos Extra</nz-form-label>
+          <nz-form-control>
+            <nz-table #ingextraPer [nzData]="($listaIngresosExtraPer | async).ingresos" nzSize="small"
+              [nzPageSize]="100000000" [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
+              <thead>
+                <tr>
+                  <th>Descripción
+                  <th>Importe Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let data of ingextraPer.data" class="">
+                  <td>{{ data.des_movimiento }}</td>
+                  <td>{{ data.importe | currency}}</td>
+                </tr>
+              </tbody>
+            </nz-table>
+          </nz-form-control>
+        </nz-form-item>
+
 
 
         <nz-form-item>
