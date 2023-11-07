@@ -226,10 +226,19 @@ export class LiquidacionesComponent {
       hidden: true
     },
     {
-      name: "Liquidacion",
+      name: "Nombre Apellido",
+      type: "string",
+      id: "NombreApellido",
+      field: "NombreApellido",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      name: "Cuit",
       type: "number",
-      id: "LiquidacionNro",
-      field: "LiquidacionNro",
+      id: "cuit",
+      field: "cuit",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -671,6 +680,7 @@ export class LiquidacionesComponent {
         break;
       case 'error':
         const Error = event.file.error
+        // console.log("di error...." + Error.error.data.list)
         this.gridDataImport$.next(Error.error.data.list)
         this.gridDataImportLen = Error.error.data.list?.length
         this.uploading$.next({ loading:false,event })
