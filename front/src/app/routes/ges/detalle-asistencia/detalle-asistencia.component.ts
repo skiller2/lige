@@ -66,10 +66,12 @@ export class DetalleAsistenciaComponent {
   selectedCategoriaId = '';
   listaDescuentosPerTotal = 0
   listaIngresosPerTotal = 0
+  listaIngresosExtraPerTotal = 0
   listaAsistenciaPerTotal = 0
   listaAsistenciaObjTotalImporte = 0
   listaAsistenciaPerTotalHoras = 0
   listaIngresosPerTotalHoras = 0
+  listaIngresosExtraPerTotalHoras = 0
   listaAsistenciaObjTotalHoras = 0
 
   $isSucursalOptionsLoading = new BehaviorSubject(false);
@@ -185,6 +187,22 @@ export class DetalleAsistenciaComponent {
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
         (tap(data => { this.listaIngresosPerTotal = data.total; this.listaIngresosPerTotalHoras = data.totalHoras})   
+        
+    
+      )))
+  
+  $listaIngresosExtraPer = this.$selectedPersonalIdChange.pipe(
+    debounceTime(500),
+    switchMap(PersonalId =>
+      this.searchService
+        .getIngresosExtraPersona(
+          Number(PersonalId),
+          this.selectedPeriod.year,
+          this.selectedPeriod.month
+        )
+        .pipe
+        //          doOnSubscribe(() => this.tableLoading$.next(true)),
+        (tap(data => { this.listaIngresosExtraPerTotal = data.total; this.listaIngresosExtraPerTotalHoras = data.totalHoras})   
         
     
   )))

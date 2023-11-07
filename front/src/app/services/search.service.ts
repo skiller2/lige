@@ -278,6 +278,26 @@ export class SearchService {
       );
   }
 
+  getIngresosExtraPersona(
+    personalId: number,
+    anio: number,
+    mes: number
+  ): Observable<any> {
+    if (!personalId) return of([]);
+
+    return this.http
+      .get(`api/asistencia/ingresosextraxper/${anio}/${mes}/${personalId}`)
+      .pipe(
+        map((res: ResponseJSON<any>) =>
+          res && res.data ? res.data : []
+        ),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
 
 
   getAsistenciaPersona(

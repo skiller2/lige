@@ -4,6 +4,18 @@ import { dataSource } from "../data-source";
 import { Any, QueryRunner } from "typeorm";
 
 export class AsistenciaController extends BaseController {
+
+  static async getIngresosExtra(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[]) { 
+    const listPersonaId = (personalId.length == 0) ? '' : 'AND ingext.persona_id IN (' + personalId.join(',') + ')'
+    let ingesosExtra = await queryRunner.query(`SELECT peri.anio, peri.mes, ingext.persona_id, tipo.des_movimiento, ingext.importe
+    FROM lige.dbo.liqmamovimientos ingext 
+    JOiN lige.dbo.liqmaperiodo peri ON peri.periodo_id = ingext.periodo_id
+    JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = ingext.tipo_movimiento_id
+    WHERE ingext.tipo_movimiento_id IN (2,3) AND peri.anio =@0 AND peri.mes=@1 ${listPersonaId} `, [anio, mes])    
+    return ingesosExtra
+  }
+
+
   static async getAsistenciaAdminArt42(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[]) {
     const listPersonaId = (personalId.length == 0) ? '' : 'AND persona.PersonalId IN (' + personalId.join(',') + ')'
 
@@ -122,7 +134,7 @@ export class AsistenciaController extends BaseController {
         asisadmin[index].total = value.ValorLiquidacionSumaFija
         asisadmin[index].horas = 0
       } else if (value.SucursalAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'N') {
-        if (value.horas_fijas > 0) {
+        if (value.horas_fijas > 0 ) { //&& value.horas_reales +8 >=value.horas_fijas
           asisadmin[index].total = value.horas_fijas * value.ValorLiquidacionHoraNormal
           asisadmin[index].horas = value.horas_fijas
         } else {
@@ -133,6 +145,7 @@ export class AsistenciaController extends BaseController {
         asisadmin[index].total = value.horas_reales * value.ValorLiquidacionHoraNormal
         asisadmin[index].horas = value.horas_reales
       }
+
       if (value.SucursalAsistenciaAnoMesPersonalDiasCualArt42 > 0) {
         asisadmin[index].total = value.horas_reales * value.ValorLiquidacionHoraNormal
         asisadmin[index].horas = value.horas_reales
@@ -147,6 +160,8 @@ export class AsistenciaController extends BaseController {
         continue
 
       if (persart42[value.SucursalAsistenciaMesPersonalId] > 0) {
+//        if (asisadmin[index].horas + persart42[value.SucursalAsistenciaMesPersonalId] > value.horas_fijas)
+//          asisadmin[index].horas =  value.horas_fijas - persart42[value.SucursalAsistenciaMesPersonalId]
         asisadmin[index].horas = asisadmin[index].horas - persart42[value.SucursalAsistenciaMesPersonalId]
         asisadmin[index].total = asisadmin[index].horas * value.ValorLiquidacionHoraNormal
       }
@@ -858,6 +873,9 @@ export class AsistenciaController extends BaseController {
       const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, personalIdList)
 
       const resAsisAdmArt42 = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, personalIdList)
+      const resIngreExtra = await AsistenciaController.getIngresosExtra(anio, mes, queryRunner, personalIdList)
+
+
 
       for (const row of resAsisObjetiv) {
         const key=personal.findIndex(i=> i.PersonalId == row.PersonalId)
@@ -870,6 +888,13 @@ export class AsistenciaController extends BaseController {
         const key=personal.findIndex(i=> i.PersonalId == row.PersonalId)
         personal[key].ingresos_importe += row.total
         personal[key].ingresos_horas += row.horas
+        personal[key].retiro_importe = personal[key].ingresos_importe 
+      }
+
+      for (const row of resIngreExtra) {
+        const key=personal.findIndex(i=> i.PersonalId == row.persona_id)
+        personal[key].ingresos_importe += row.importe
+        personal[key].ingresos_horas += 0
         personal[key].retiro_importe = personal[key].ingresos_importe 
       }
 
@@ -901,6 +926,26 @@ export class AsistenciaController extends BaseController {
 
       const total = result.map(row => row.total).reduce((prev, curr) => prev + curr, 0)
       const totalHoras = result.map(row => row.horas).reduce((prev, curr) => prev + curr, 0)
+
+      this.jsonRes({ ingresos: result, total, totalHoras }, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+  async getIngresosExtraPorPersona(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const personalId = req.params.personalId;
+      const anio = req.params.anio;
+      const mes = req.params.mes;
+
+      if (!this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+        throw new ClientException(`No tiene permiso para obtener información de ingresos`)
+
+      const result = await AsistenciaController.getIngresosExtra(anio, mes, queryRunner, [personalId])
+
+      const total = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
+      const totalHoras = 0
 
       this.jsonRes({ ingresos: result, total, totalHoras }, res);
     } catch (error) {
