@@ -20,6 +20,7 @@ import { DescuentosController } from "../liquidaciones/descuentos/descuentos.con
 import { MovimientoAcreditacionEnCuentaController } from "../liquidaciones/movimiento-acreditacion-cuenta/movimiento-acreditacion-cuenta.controller";
 import { LiquidacionesController } from "../liquidaciones/liquidaciones.controller";
 import { LiquidacionesBancoController } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.controller";
+import { InformesController } from "../informes/informes.controller";
 
 
 export const infoController = new InfoController();
@@ -44,4 +45,5 @@ export const descuentosController = new DescuentosController();
 export const movimientoAcreditacionEnCuentaController = new MovimientoAcreditacionEnCuentaController();
 export const liquidacionesController = new LiquidacionesController();
 export const liquidacionesBancoController = new LiquidacionesBancoController();
+export const informesController = new InformesController();
 
