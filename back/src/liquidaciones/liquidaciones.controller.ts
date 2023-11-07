@@ -334,7 +334,7 @@ export class LiquidacionesController extends BaseController {
               usuario, ip, fechaActual, usuario, ip, fechaActual,
             ]
           );
-
+            contador++
         }
       }
 
