@@ -13,7 +13,7 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { NzModalService, NzModalModule } from "ng-zorro-antd/modal";
-import { columnTotal } from "../../../shared/custom-search/custom-search"
+import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 
 import {
   BehaviorSubject,
@@ -161,8 +161,8 @@ export class LiquidacionesComponent {
       this.angularGrid.gridService.hideColumnByIds([])
 
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg)=>{
-      // columnTotal('registros', this.angularGrid)
-      // columnTotal('importe', this.angularGrid)
+        totalRecords(this.angularGrid)
+        columnTotal('importe', this.angularGrid)
     })
   }
 
@@ -190,17 +190,9 @@ export class LiquidacionesComponent {
         )
         .pipe(
           map(data => {
-            this.gridDataLen = data?.list?.length
-
-            let gridDataTotalImporte = 0
-            for (let index = 0; index < data.list.length; index++) {
-              if(data.list[index].importe)
-                gridDataTotalImporte += data.list[index].importe
-            }
-            this.gridObj.getFooterRowColumn('importe').innerHTML = 'Total: '+ gridDataTotalImporte.toFixed(2)
-            console.log('data:',data);
-            this.gridDataLen = data.list?.length
-            this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
+            // this.gridDataLen = data?.list?.length
+            // this.gridDataLen = data.list?.length
+            // this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
 
             console.log("data", data)
             return data?.list

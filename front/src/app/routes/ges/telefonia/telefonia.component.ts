@@ -13,7 +13,7 @@ import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detai
 import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
 import { SharedModule, listOptionsT } from 'src/app/shared/shared.module';
 import { CustomDescargaComprobanteComponent } from '../objetivos-pendasis/objetivos-pendasis.component';
-import { columnTotal } from "../../../shared/custom-search/custom-search"
+import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 
 @Component({
   selector: 'app-telefonia',
@@ -146,15 +146,8 @@ export class TelefoniaComponent {
         )
         .pipe(
           map(data => {
-            let gridDataTotalImporte = 0
-            for (let index = 0; index < data.list.length; index++) {
-              if(data.list[index].importe)
-                gridDataTotalImporte += data.list[index].importe
-            }
-            this.gridObj.getFooterRowColumn('importe').innerHTML = 'Total: '+ gridDataTotalImporte.toFixed(2)
-            
-            this.gridDataLen = data.list?.length
-            this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
+            // this.gridDataLen = data.list?.length
+            // this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
             console.log('data:',data);
             return data.list
           }),
@@ -217,8 +210,8 @@ export class TelefoniaComponent {
       this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
 
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg)=>{
-      // columnTotal('registros', this.angularGrid)
-      // columnTotal('importe', this.angularGrid)
+        totalRecords(this.angularGrid)
+        columnTotal('importe', this.angularGrid)
     })
   }
 

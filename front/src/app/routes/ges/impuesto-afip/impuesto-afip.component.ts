@@ -32,7 +32,7 @@ import { Router } from '@angular/router';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
 import { CommonModule, NgIf } from '@angular/common';
-
+import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 
 @Component({
   standalone: true,
@@ -158,17 +158,17 @@ export class ImpuestoAfipComponent {
         )
         .pipe(
           map(data => {
-            this.gridDataLen = data.list.length 
+            // this.gridDataLen = data.list.length 
 
-            let gridDataTotalImporte = 0
-            for (let index = 0; index < data.list.length; index++) {
-              if(data.list[index].importe)
-                gridDataTotalImporte += data.list[index].importe
-            }
-            this.gridObj.getFooterRowColumn('monto').innerHTML = 'Total: '+ gridDataTotalImporte.toFixed(2)
-            this.gridObj.getFooterRowColumn(1).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
-            console.log(gridDataTotalImporte);
-            console.log(this.gridDataLen);
+            // let gridDataTotalImporte = 0
+            // for (let index = 0; index < data.list.length; index++) {
+            //   if(data.list[index].importe)
+            //     gridDataTotalImporte += data.list[index].importe
+            // }
+            // this.gridObj.getFooterRowColumn('monto').innerHTML = 'Total: '+ gridDataTotalImporte.toFixed(2)
+            // this.gridObj.getFooterRowColumn(1).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
+            // console.log(gridDataTotalImporte);
+            // console.log(this.gridDataLen);
             
             return data.list
           }),
@@ -297,6 +297,10 @@ export class ImpuestoAfipComponent {
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
+      this.angularGrid.dataView.onRowsChanged.subscribe((e, arg)=>{
+        totalRecords(this.angularGrid)
+        columnTotal('monto', this.angularGrid)
+    })
   }
 
   exportGrid() {
