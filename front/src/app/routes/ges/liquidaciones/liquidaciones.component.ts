@@ -13,6 +13,7 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { NzModalService, NzModalModule } from "ng-zorro-antd/modal";
+import { columnTotal } from "../../../shared/custom-search/custom-search"
 
 import {
   BehaviorSubject,
@@ -159,7 +160,10 @@ export class LiquidacionesComponent {
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
 
-    //this.angularGrid.dataView.onRowsChanged
+    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg)=>{
+      // columnTotal('registros', this.angularGrid)
+      // columnTotal('importe', this.angularGrid)
+    })
   }
 
   async angularGridReadyEdit(angularGrid: any) {

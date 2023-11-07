@@ -13,6 +13,7 @@ import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detai
 import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
 import { SharedModule, listOptionsT } from 'src/app/shared/shared.module';
 import { CustomDescargaComprobanteComponent } from '../objetivos-pendasis/objetivos-pendasis.component';
+import { columnTotal } from "../../../shared/custom-search/custom-search"
 
 @Component({
   selector: 'app-telefonia',
@@ -151,9 +152,10 @@ export class TelefoniaComponent {
                 gridDataTotalImporte += data.list[index].importe
             }
             this.gridObj.getFooterRowColumn('importe').innerHTML = 'Total: '+ gridDataTotalImporte.toFixed(2)
-            console.log('data:',data);
+            
             this.gridDataLen = data.list?.length
             this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
+            console.log('data:',data);
             return data.list
           }),
         );
@@ -213,6 +215,11 @@ export class TelefoniaComponent {
     
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
+
+    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg)=>{
+      // columnTotal('registros', this.angularGrid)
+      // columnTotal('importe', this.angularGrid)
+    })
   }
 
   uploadChange(event: any) {
