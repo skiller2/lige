@@ -254,6 +254,23 @@ export class DetalleAsistenciaComponent {
     )
   );
 
+  $sitrevista  = this.$selectedPersonalIdChange.pipe(
+    debounceTime(500),
+    switchMap(() =>
+      this.apiService
+        .getPersonaSitRevista(
+          this.selectedPeriod.year,
+          this.selectedPeriod.month,
+          this.asistenciaPer.controls['PersonalId'].value
+        )
+        .pipe
+        //          doOnSubscribe(() => this.tableLoading$.next(true)),
+        //          tap({ complete: () => this.tableLoading$.next(false) })
+        ()
+    )
+  )
+
+
   $personaResponsables = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
     switchMap(() =>

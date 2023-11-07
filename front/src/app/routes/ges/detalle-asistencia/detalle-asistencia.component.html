@@ -264,7 +264,16 @@
             </ng-container>
           </nz-form-control>
         </nz-form-item>
-
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Situación Revista</nz-form-label>
+          <nz-form-control>
+            <ng-container *ngFor="let sitrevista of $sitrevista | async">
+              <p title="{{ sitrevista.SituacionRevistaDescripcion }}">
+                {{ sitrevista.SituacionRevistaDescripcion }} desde {{  sitrevista.PersonalSituacionRevistaDesde}}
+              </p>
+            </ng-container>
+          </nz-form-control>
+        </nz-form-item>
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Art14</nz-form-label>
           <nz-form-control>

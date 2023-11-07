@@ -278,6 +278,19 @@ export class ApiService {
     );
   }
 
+  getPersonaSitRevista(year: number, month: number, personalID: string) {
+    if (!personalID || !month || !year) {
+      return of([]);
+    }
+    return this.http.get<ResponseJSON<any[]>>(`api/personal/sitrevista/${personalID}/${year}/${month}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getLiquidaciones(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/list',parameter).pipe(

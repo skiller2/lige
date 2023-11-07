@@ -84,6 +84,23 @@ export class PersonalController extends BaseController {
     }
   }
 
+  async getPersonalSitRevista(req: any, res: Response, next:NextFunction) {
+    const personalId = req.params.personalId;
+    const anio = req.params.anio;
+    const mes = req.params.mes;
+
+    try {
+      const responsables = await dataSource.query(
+        `SELECT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.* FROM Personal per
+        LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,1) >=  sitrev.PersonalSituacionRevistaDesde AND  DATEFROMPARTS(@1,@2,28) <= ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')
+        LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+        WHERE per.PersonalId=@0`, [personalId, anio, mes])
+      this.jsonRes(responsables, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
   getById(PersonalId: string, res: Response, next:NextFunction) {
     dataSource
       .query(

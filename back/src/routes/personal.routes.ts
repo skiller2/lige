@@ -30,6 +30,14 @@ personalRouter.get(
 );
 
 personalRouter.get(
+  `${base}/sitrevista/:personalId/:anio/:mes`,
+  authMiddleware.verifyToken,
+  (req, res, next) => {
+    personalController.getPersonalSitRevista(req, res, next);
+  }
+);
+
+personalRouter.get(
   `${base}/monotributo/:personalId/:anio/:mes`,
   authMiddleware.verifyToken,
   (req, res, next) => {
