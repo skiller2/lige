@@ -15,8 +15,11 @@ export function columnTotal(column: string, angularGrid: any) {
             for (let index = 0; index < list.length; index++) {
                 gridDataTotal += list[index][column]
             }
-            if (gridDataTotal)
-                totalDisplay = 'Total: '+ gridDataTotal.toFixed(2)
+            if (gridDataTotal){
+                totalDisplay = gridDataTotal.toFixed(2)
+                columnFooter.style.textAlign = 'right'
+                columnFooter.style.paddingRight = '5px'
+            }
         }else {
             let cantData = angularGrid.slickGrid.getData().getItemCount()
             totalDisplay = cantData.toString()
