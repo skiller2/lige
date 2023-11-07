@@ -11,7 +11,7 @@ export class AsistenciaController extends BaseController {
     FROM lige.dbo.liqmamovimientos ingext 
     JOiN lige.dbo.liqmaperiodo peri ON peri.periodo_id = ingext.periodo_id
     JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = ingext.tipo_movimiento_id
-    WHERE ingext.tipo_movimiento_id IN (2,3) AND peri.anio =@0 AND peri.mes=@1 ${listPersonaId} `, [anio, mes])    
+    WHERE ingext.tipo_movimiento_id IN (2,3,18,19,20) AND peri.anio =@0 AND peri.mes=@1 ${listPersonaId} `, [anio, mes])    
     return ingesosExtra
   }
 

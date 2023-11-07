@@ -269,7 +269,7 @@
           <nz-form-control>
             <ng-container *ngFor="let sitrevista of $sitrevista | async">
               <p title="{{ sitrevista.SituacionRevistaDescripcion }}">
-                {{ sitrevista.SituacionRevistaDescripcion }} desde {{  sitrevista.PersonalSituacionRevistaDesde}}
+                {{ sitrevista.SituacionRevistaDescripcion }} desde {{  sitrevista.PersonalSituacionRevistaDesde | date}} hasta {{  sitrevista.PersonalSituacionRevistaHasta | date}}
               </p>
             </ng-container>
           </nz-form-control>

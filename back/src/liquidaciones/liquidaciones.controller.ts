@@ -295,7 +295,7 @@ export class LiquidacionesController extends BaseController {
       
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
-
+      let contador = 0
 
 
       //sheet1.data.splice(0, 2)
@@ -303,8 +303,8 @@ export class LiquidacionesController extends BaseController {
       for (const row of sheet1.data) {
         const cuit = row[1]
         const importe = row[2]
-        if (!Number.isInteger(cuit))
-          continue
+//        if (!Number.isInteger(cuit))
+//          continue
 
           const persona = await queryRunner.query(
             `SELECT personalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`,[cuit])     
@@ -343,7 +343,7 @@ export class LiquidacionesController extends BaseController {
         
       await queryRunner.commitTransaction();
       //await queryRunner.rollbackTransaction();
-      this.jsonRes({}, res, "XLS Recibido y procesado!");
+      this.jsonRes({}, res, `XLS Recibido y se procesaron ${contador} registros`);
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
