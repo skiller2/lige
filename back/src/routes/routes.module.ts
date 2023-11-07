@@ -14,6 +14,7 @@ import { categoriasRouter } from "../categorias-cambio/categorias-cambio.routes"
 import { objetivosPendasisRouter } from "../objetivos-pendasis/objetivos-pendasis.routes";
 import { telefoniaRouter } from "../telefonia/telefonia.routes";
 import { liquidacionesRouter } from "../liquidaciones/liquidaciones.routes";
+import { informesRouter } from "../informes/informes.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -31,4 +32,6 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/objetivos-pendasis", objetivosPendasisRouter);
   server.setRoute("/api/telefonia", telefoniaRouter);
   server.setRoute("/api/liquidaciones", liquidacionesRouter);
+  server.setRoute("/api/informes", informesRouter);
+
 }
