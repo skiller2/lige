@@ -11,6 +11,7 @@ import { CommonModule, NgIf } from '@angular/common';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
+import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import {
   BehaviorSubject,
   Observable,
@@ -163,6 +164,12 @@ export class LiquidacionesBancoComponent {
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
+    
+    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg)=>{
+      totalRecords(this.angularGrid)
+      columnTotal('importe', this.angularGrid)
+    })
+
   }
 
   async angularGridReadyAyuda(angularGrid: any) {
@@ -171,6 +178,12 @@ export class LiquidacionesBancoComponent {
 
     if (this.apiService.isMobile())
       this.angularGridAyuda.gridService.hideColumnByIds([])
+
+    this.angularGridAyuda.dataView.onRowsChanged.subscribe((e, arg)=>{
+      totalRecords(this.angularGridAyuda)
+      columnTotal('importe', this.angularGridAyuda)
+    })
+    
   }
 
   gridData$ = this.formChange$.pipe(
@@ -185,16 +198,7 @@ export class LiquidacionesBancoComponent {
           map(data => {
             this.anio = periodo.getFullYear();
             this.mes = periodo.getMonth()+1;
-            this.gridDataLen = data.list.length
             this.listdowload = "gridData";
-
-            let gridDataTotalImporte = 0
-            for (let index = 0; index < data.list.length; index++) {
-              if(data.list[index].importe)
-                gridDataTotalImporte += data.list[index].importe
-            }
-            this.gridObj.getFooterRowColumn('importe').innerHTML = 'Total: '+ gridDataTotalImporte.toFixed(2)
-            this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' +this.gridDataLen.toString()
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -218,14 +222,14 @@ export class LiquidacionesBancoComponent {
             this.gridDataLen = data.list.length;
             this.listdowload = "gridDataAyuda";
             
-            let gridDataTotalImporte = 0
-            for (let index = 0; index < data.list.length; index++) {
-              if(data.list[index].importe)
-                gridDataTotalImporte += data.list[index].importe
-            }
+            // let gridDataTotalImporte = 0
+            // for (let index = 0; index < data.list.length; index++) {
+            //   if(data.list[index].importe)
+            //     gridDataTotalImporte += data.list[index].importe
+            // }
             
-            this.gridObjAyuda.getFooterRowColumn('importe').innerHTML = 'Total: ' + gridDataTotalImporte.toFixed(2)
-            this.gridObjAyuda.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
+            // this.gridObjAyuda.getFooterRowColumn('importe').innerHTML = 'Total: ' + gridDataTotalImporte.toFixed(2)
+            // this.gridObjAyuda.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
 
             return data.list
           }),
