@@ -253,6 +253,7 @@ export class LiquidacionesController extends BaseController {
 
 
   async handleXLSUpload(req: Request, res: Response, next: NextFunction) {
+    
     const file = req.file;
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
@@ -262,6 +263,9 @@ export class LiquidacionesController extends BaseController {
     const tipo_movimiento_id = req.body.movimiento
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
+
+    let dataset = []
+    let datasetid = 0
 
     try {
       if (!anio) throw new ClientException("Faltó indicar el anio");
@@ -288,7 +292,7 @@ export class LiquidacionesController extends BaseController {
 
       const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
       const sheet1 = workSheetsFromBuffer[0];
-
+      
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
       let contador = 0
@@ -296,19 +300,22 @@ export class LiquidacionesController extends BaseController {
 
       //sheet1.data.splice(0, 2)
 
-      for (const row of sheet1.data) { 
+      for (const row of sheet1.data) {
         const cuit = row[1]
         const importe = row[2]
 //        if (!Number.isInteger(cuit))
 //          continue
 
           const persona = await queryRunner.query(
-            `SELECT personalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`,[cuit])
+            `SELECT personalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`,[cuit])     
         
         const persona_id = persona[0]?.personalId
-        if (!persona_id) 
-          throw new ClientException(`CUIT ${cuit} no localizado`)
-        
+        if (!persona_id) {
+
+          dataset.push({id:datasetid++,NombreApellido:row[0],cuit:cuit, Detalle:` CUIT no localizado`})
+
+        } else{
+
           await queryRunner.query(
             `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
               aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
@@ -327,8 +334,13 @@ export class LiquidacionesController extends BaseController {
               usuario, ip, fechaActual, usuario, ip, fechaActual,
             ]
           );
-          contador++
+            contador++
+        }
       }
+
+      if (dataset.length > 0)
+          throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, {list:dataset})
+        
       await queryRunner.commitTransaction();
       //await queryRunner.rollbackTransaction();
       this.jsonRes({}, res, `XLS Recibido y se procesaron ${contador} registros`);
