@@ -484,6 +484,9 @@ export class LiquidacionesComponent {
         
       this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
       
+      this.angularGridEdit.slickGrid.invalidate();
+      this.angularGridEdit.slickGrid.render();
+  
       const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
       if (lastrow && (lastrow.detalle || lastrow.des_movimiento || lastrow.ObjetivoDescripcion || lastrow.PersonalDescripcion || lastrow.monto || lastrow.des_cuenta)) {
         this.addNewItem("bottom")
@@ -526,7 +529,6 @@ export class LiquidacionesComponent {
   }
 
   updateItemMetadata(previousItemMetadata: any) {
-    const newCssClass = 'elementAddNoComplete';
 
     return (rowNumber: number) => {
       const item = this.angularGridEdit.dataView.getItem(rowNumber);
@@ -538,11 +540,19 @@ export class LiquidacionesComponent {
       }
 
       if (meta && item && item.isfull) {
-        if (item.isfull > 1) {
-          meta.cssClasses = (meta.cssClasses || '') + ' ' + newCssClass;
+        switch (item.isfull) {
+          case 2:
+            meta.cssClasses = 'element-add-no-complete';
+            break;
+          case 1:
+            meta.cssClasses = 'element-add-complete';
+            break;
+          
+          default:
+            break;
         }
       }
-
+console.log('nueva meta',meta)
       return meta;
     };
   }
