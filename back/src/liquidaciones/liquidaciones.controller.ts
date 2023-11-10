@@ -15,139 +15,139 @@ export class LiquidacionesController extends BaseController {
     console.log("TipoMovimiento" + TipoMovimientoFilter)
     try {
 
-        const tipoMovimiento = await dataSource.query(
-          `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo, tipo.tipo_movimiento FROM lige.dbo.liqcotipomovimiento AS tipo WHERE tipo.tipo_movimiento = @0`
-          , [TipoMovimientoFilter])
-  
-          this.jsonRes(
-              {
-                total: tipoMovimiento.length,
-                list: tipoMovimiento,
-              },
-              res
-            );
-  
-      } catch (error) {
-        return next(error)
-      }
-    }
+      const tipoMovimiento = await dataSource.query(
+        `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo, tipo.tipo_movimiento FROM lige.dbo.liqcotipomovimiento AS tipo WHERE tipo.tipo_movimiento = @0`
+        , [TipoMovimientoFilter])
 
-    async getTipoCuenta(req: Request, res: Response, next: NextFunction) {
-      try {
+      this.jsonRes(
+        {
+          total: tipoMovimiento.length,
+          list: tipoMovimiento,
+        },
+        res
+      );
 
-        const tipoCuenta = await dataSource.query(
-          `SELECT tipo.tipocuenta_id,tipo.detalle FROM lige.dbo.liqcontipocuenta AS tipo`)
-  
-          this.jsonRes(
-              {
-                total: tipoCuenta.length,
-                list: tipoCuenta,
-              },
-              res
-            );
-  
-      } catch (error) {
-        return next(error)
-      }
+    } catch (error) {
+      return next(error)
     }
-  
-    listaColumnas: any[] = [
+  }
+
+  async getTipoCuenta(req: Request, res: Response, next: NextFunction) {
+    try {
+
+      const tipoCuenta = await dataSource.query(
+        `SELECT tipo.tipocuenta_id,tipo.detalle FROM lige.dbo.liqcontipocuenta AS tipo`)
+
+      this.jsonRes(
         {
-          id: "MovimientoId",
-          name: "Movimiento",
-          field: "MovimientoId",
-          fieldName: "movimiento_id",
-          type: "number",
-          sortable: true,
-          searchHidden: true,
-          hidden: true
+          total: tipoCuenta.length,
+          list: tipoCuenta,
         },
-        {
-          name: "Periodo",
-          type: "date",
-          id: "periodo",
-          field: "periodo",
-          fieldName: "periodo",
-          sortable: true,
-          searchHidden: true,
-          hidden: false,
-        },
-        {
-          name: "Tipo Movimiento",
-          type: "string",
-          id: "des_movimiento",
-          field: "des_movimiento",
-          fieldName: "tipomo.des_movimiento",
-          sortable: true,
-          hidden: false,
-          searchHidden: false
-        },
-        {
-         name: "Fecha",
-          type: "date",
-          id: "fecha",
-          field: "fecha",
-          fieldName: "li.fecha",
-          sortable: true,
-          searchHidden: false,
-          hidden: false,
-        },
-        {
-          name: "Detalle",
-          type: "string",
-          id: "detalle",
-          field: "detalle",
-          fieldName: "detalle",
-          sortable: true,
-          hidden: false,
-          searchHidden: false
-        },
-        {
-          name: "Objetivo",
-          type: "string",
-          id: "ObjetivoDescripcion",
-          field: "ObjetivoDescripcion",
-          fieldName: "li.objetivo_id",
-          searchComponent: "inpurForObjetivoSearch",
-          searchType: "number",
-          sortable: true,
-          searchHidden: false
-        },
-        {
-          name: "Persona",
-          type: "string",
-          id: "ApellidoNombre",
-          field: "ApellidoNombre",
-          fieldName: "li.persona_id",
-          searchComponent: "inpurForPersonalSearch",
-          searchType: "number",
-          sortable: true,
-          searchHidden: false,
-          hidden: false,
-        },
-        {
-          name: "Cuenta",
-          type: "string",
-          id: "tipocuenta_id",
-          field: "tipocuenta_id",
-          fieldName: "li.tipocuenta_id",
-          searchType: "string",
-          sortable: true,
-          searchHidden: false,
-          hidden: false,
-        },
-        {
-          name: "Importe",
-          type: "currency",
-          id: "importe",
-          field: "importe",
-          fieldName: "importe",
-          sortable: true,
-          searchHidden: false,
-          hidden: false,
-        },
-    
-      ];
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  listaColumnas: any[] = [
+    {
+      id: "MovimientoId",
+      name: "Movimiento",
+      field: "MovimientoId",
+      fieldName: "movimiento_id",
+      type: "number",
+      sortable: true,
+      searchHidden: true,
+      hidden: true
+    },
+    {
+      name: "Periodo",
+      type: "date",
+      id: "periodo",
+      field: "periodo",
+      fieldName: "periodo",
+      sortable: true,
+      searchHidden: true,
+      hidden: false,
+    },
+    {
+      name: "Tipo Movimiento",
+      type: "string",
+      id: "des_movimiento",
+      field: "des_movimiento",
+      fieldName: "tipomo.des_movimiento",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
+      name: "Fecha",
+      type: "date",
+      id: "fecha",
+      field: "fecha",
+      fieldName: "li.fecha",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      name: "Detalle",
+      type: "string",
+      id: "detalle",
+      field: "detalle",
+      fieldName: "detalle",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
+      name: "Objetivo",
+      type: "string",
+      id: "ObjetivoDescripcion",
+      field: "ObjetivoDescripcion",
+      fieldName: "li.objetivo_id",
+      searchComponent: "inpurForObjetivoSearch",
+      searchType: "number",
+      sortable: true,
+      searchHidden: false
+    },
+    {
+      name: "Persona",
+      type: "string",
+      id: "ApellidoNombre",
+      field: "ApellidoNombre",
+      fieldName: "li.persona_id",
+      searchComponent: "inpurForPersonalSearch",
+      searchType: "number",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      name: "Cuenta",
+      type: "string",
+      id: "tipocuenta_id",
+      field: "tipocuenta_id",
+      fieldName: "li.tipocuenta_id",
+      searchType: "string",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      name: "Importe",
+      type: "currency",
+      id: "importe",
+      field: "importe",
+      fieldName: "importe",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+
+  ];
 
   async getByLiquidaciones(
     req: any,
@@ -192,55 +192,62 @@ export class LiquidacionesController extends BaseController {
 
   async setAgregarRegistros(req: any, res: Response, next: NextFunction) {
 
-    console.log("estoy en el back")
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
 
     console.log("req", req.body.gridDataInsert)
     try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+  
       for (const row of req.body.gridDataInsert) {
 
-       
+
         let tipo_movimiento_id = row.des_movimiento
-        let tipocuenta_id = row.tipocuenta_id 
+        let tipocuenta_id = row.des_cuenta
         let fechaActual = new Date()
         let detalle = row.detalle
         let objetivo_id = row.ObjetivoDescripcion?.id == undefined ? null : row.ObjetivoDescripcion?.id
         let persona_id = row.ApellidoNombre?.id == undefined ? null : row.ApellidoNombre.id
         let importe = row.monto
-        
+
+        if (!tipocuenta_id) throw new ClientException("No se especificó el tipo de cuenta")
+        if (!tipo_movimiento_id) throw new ClientException("No se especificó el movimiento")
+  
+
         let movimiento_id = await Utils.getMovimientoId(queryRunner)
 
         const periodo = row.periodo.split('/');
         const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseFloat(periodo[1]), parseFloat(periodo[0]), usuario, ip)
 
-    
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
 
 
-      await queryRunner.query(
-        `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
+
+        await queryRunner.query(
+          `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
           aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
             VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)
                   `,
-        [
-          ++movimiento_id,
-          periodo_id,
-          tipo_movimiento_id,
-          tipocuenta_id,
-          fechaActual,
-          detalle,
-          objetivo_id,
-          persona_id,
-          importe,
-          usuario, ip, fechaActual, usuario, ip, fechaActual,
-        ]
-      );
-    } 
-    await queryRunner.commitTransaction();
-      this.jsonRes({ list: [] }, res, `Se procesaron ${ req.body.gridDataInsert.length} registros `);
+          [
+            ++movimiento_id,
+            periodo_id,
+            tipo_movimiento_id,
+            tipocuenta_id,
+            fechaActual,
+            detalle,
+            objetivo_id,
+            persona_id,
+            importe,
+            usuario, ip, fechaActual, usuario, ip, fechaActual,
+          ]
+        );
+      }
+
+      //throw new ClientException("Paso oka")
+      await queryRunner.commitTransaction();
+
+      this.jsonRes({ list: [] }, res, `Se procesaron ${req.body.gridDataInsert.length} registros `);
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
@@ -253,7 +260,7 @@ export class LiquidacionesController extends BaseController {
 
 
   async handleXLSUpload(req: Request, res: Response, next: NextFunction) {
-    
+
     const file = req.file;
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
@@ -292,7 +299,7 @@ export class LiquidacionesController extends BaseController {
 
       const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
       const sheet1 = workSheetsFromBuffer[0];
-      
+
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
       let contador = 0
@@ -303,18 +310,18 @@ export class LiquidacionesController extends BaseController {
       for (const row of sheet1.data) {
         const cuit = row[1]
         const importe = row[2]
-//        if (!Number.isInteger(cuit))
-//          continue
+        //        if (!Number.isInteger(cuit))
+        //          continue
 
-          const persona = await queryRunner.query(
-            `SELECT personalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`,[cuit])     
-        
+        const persona = await queryRunner.query(
+          `SELECT personalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
+
         const persona_id = persona[0]?.personalId
         if (!persona_id) {
 
-          dataset.push({id:datasetid++,NombreApellido:row[0],cuit:cuit, Detalle:` CUIT no localizado`})
+          dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` CUIT no localizado` })
 
-        } else{
+        } else {
 
           await queryRunner.query(
             `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
@@ -334,13 +341,13 @@ export class LiquidacionesController extends BaseController {
               usuario, ip, fechaActual, usuario, ip, fechaActual,
             ]
           );
-            contador++
+          contador++
         }
       }
 
       if (dataset.length > 0)
-          throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, {list:dataset})
-        
+        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
+
       await queryRunner.commitTransaction();
       //await queryRunner.rollbackTransaction();
       this.jsonRes({}, res, `XLS Recibido y se procesaron ${contador} registros`);
