@@ -26,6 +26,20 @@ export class ApiService {
     );
   }
 
+  getImportacionesAnteriores() {
+    let anio = localStorage.getItem('anio');
+    let mes = localStorage.getItem('mes');
+
+
+    return this.http.get(`/api/liquidaciones/importaciones_anteriores/${anio}/${mes}`).pipe(
+        map(res => res.data.list),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+              return of([]);
+          })
+        );
+  }
+
   getTipoCuenta() {
     return this.http.get(`/api/liquidaciones/tipo_cuenta`).pipe(
       map(res => res.data.list),

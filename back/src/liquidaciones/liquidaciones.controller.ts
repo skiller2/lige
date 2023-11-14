@@ -9,8 +9,9 @@ import { isNumberObject } from "util/types";
 
 export class LiquidacionesController extends BaseController {
   directory = process.env.PATH_LIQUIDACIONES || "tmp";
+  
   async getTipoMovimiento(req: Request, res: Response, next: NextFunction) {
-    console.log("estoy en el back.......................")
+   
     const TipoMovimientoFilter = req.params.TipoMovimiento;
     console.log("TipoMovimiento" + TipoMovimientoFilter)
     try {
@@ -43,6 +44,34 @@ export class LiquidacionesController extends BaseController {
           total: tipoCuenta.length,
           list: tipoCuenta,
         },
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getImportacionesAnteriores(
+    Anio: string,
+    Mes: string,
+    req: Request,
+     res: Response, 
+     next: NextFunction
+     ) {
+
+    try {
+
+      const importacionesAnteriores = await dataSource.query(
+        `SELECT valor_random FROM lige.dbo.convalorimpoexpo WHERE anio = @0 AND mes = @1`,
+      [Anio, Mes])
+      
+      this.jsonRes(
+        {
+          total: importacionesAnteriores.length,
+          list: importacionesAnteriores,
+        },
+        
         res
       );
 
@@ -301,11 +330,13 @@ export class LiquidacionesController extends BaseController {
       const sheet1 = workSheetsFromBuffer[0];
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
+      let convalorimpoexpo_id = await Utils.getImpoexpoId(queryRunner)
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
       let contador = 0
 
 
       //sheet1.data.splice(0, 2)
+      let valorimpoexpo = false;
 
       for (const row of sheet1.data) {
         const cuit = row[1]
@@ -323,10 +354,32 @@ export class LiquidacionesController extends BaseController {
 
         } else {
 
+          if(!valorimpoexpo) {
+            // El tipo de movimiento E hace referencia a importacion
+            let TipoMovimiento = "E"
+            const nro_liquidaciones = await this.getProxNumero(queryRunner, `liquidaciones_${tipocuenta_id}`, usuario, ip)
+
+            await queryRunner.query(
+              `INSERT INTO lige.dbo.convalorimpoexpo (impoexpo_id, valor_random, tipo_movimiento, ruta_liquidacion,
+                aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod, periodo, año)
+                  VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10)
+                        `,
+              [
+                ++convalorimpoexpo_id,
+                nro_liquidaciones,
+                TipoMovimiento,
+                usuario, ip, fechaActual, usuario, ip, fechaActual,
+                mes,
+                anio
+              ]
+            );
+            valorimpoexpo = true;
+          }
+
           await queryRunner.query(
             `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
               aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-                VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)
+                VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)
                       `,
             [
               ++movimiento_id,
@@ -339,6 +392,7 @@ export class LiquidacionesController extends BaseController {
               persona_id,
               importe,
               usuario, ip, fechaActual, usuario, ip, fechaActual,
+              ++convalorimpoexpo_id
             ]
           );
           contador++
