@@ -125,6 +125,10 @@ liquidacionesRouter.get('/tipo_cuenta', [authMiddleware.verifyToken, authMiddlew
     liquidacionesController.getTipoCuenta(req, res, next)
 });
 
+liquidacionesRouter.get('/importaciones_anteriores/:anio/:mes', [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')], (req, res, next) => {
+  liquidacionesController.getImportacionesAnteriores(req.params.anio, req.params.mes, req, res, next)
+});
+
 // seccion de banco
 liquidacionesRouter.get("/banco/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')], (req, res) => {
     liquidacionesBancoController.getLiquidacionesBancoCols(req, res);
