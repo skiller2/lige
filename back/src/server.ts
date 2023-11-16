@@ -6,10 +6,9 @@ import { randomBytes } from "node:crypto";
 import { createServer } from "http";
 import { ClientException } from "./controller/baseController";
 
-require("dotenv").config();
+import dotenv from "dotenv"
 
-
-
+dotenv.config()
 export const tmpName = (dir: string) => {
   while (true) {
     const name = randomBytes(8).toString("hex") + ".tmp";

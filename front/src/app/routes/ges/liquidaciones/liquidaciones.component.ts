@@ -87,6 +87,11 @@ export class LiquidacionesComponent {
 
   $optionsCuenta = this.apiService.getTipoCuenta();
   $optionsMovimiento = this.apiService.getTipoMovimiento("I");
+  $importacionesAnteriores = this.apiService.getImportacionesAnteriores();
+
+  
+
+
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && dataContext.monto > 0) {
@@ -203,6 +208,7 @@ export class LiquidacionesComponent {
     })
   )
 
+  
 
   dateChange(result: Date): void {
     this.selectedPeriod.year = result.getFullYear();

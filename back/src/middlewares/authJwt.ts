@@ -1,5 +1,5 @@
-import * as jwt from "jsonwebtoken";
-import { TokenExpiredError } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+//import { TokenExpiredError } from "jsonwebtoken";
 export class AuthMiddleware {
   catchError = (err: any, res: any) => {
     //console.log('error', err.message);
@@ -47,7 +47,7 @@ export class AuthMiddleware {
       return next()
       else { 
         const stopTime = performance.now()
-        res.status(409).json({ msg: `Requiere ser miembro del group ${group}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
+        res.status(409).json({ msg: `Requiere ser miembro del grupo ${group}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
       }
     }
   }

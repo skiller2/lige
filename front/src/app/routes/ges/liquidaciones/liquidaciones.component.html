@@ -107,10 +107,10 @@
        <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
 
         <nz-form-item>
-          <nz-form-control>
+          <nz-form-control [nzSpan]="5">
             <nz-form-label [nzSpan]="10">Tipo de Cuenta</nz-form-label>
             <ng-container>
-              <nz-select #sucursal="ngModel" nzSpan="5" name="SucursalId" [(ngModel)]="selectedCuentalId"
+              <nz-select #sucursal="ngModel" nzSpan="15" name="SucursalId" [(ngModel)]="selectedCuentalId"
               (ngModelChange)="selectedValueChange($event)" nzAllowClear nzPlaceHolder="Cuenta"
               [nzDropdownMatchSelectWidth]="false"
               nzShowSearch>
@@ -120,14 +120,14 @@
             </nz-select>
             </ng-container>
           </nz-form-control>
-        </nz-form-item>
+        <!-- </nz-form-item>
 
-        <nz-form-item>
+        <nz-form-item> -->
 
-          <nz-form-control>
+          <nz-form-control [nzSpan]="7">
             <nz-form-label [nzSpan]="10">Tipo de Movimiento</nz-form-label>
             <ng-container>
-              <nz-select #sucursal="ngModel" nzSpan="5" name="MovimientoId" [(ngModel)]="selectedMovimientoId"
+              <nz-select #sucursal="ngModel" nzSpan="15" name="MovimientoId" [(ngModel)]="selectedMovimientoId"
               (ngModelChange)="selectedValueChangeMovimiento($event)" nzAllowClear nzPlaceHolder="Movimiento"
               [nzDropdownMatchSelectWidth]="false"
               nzShowSearch>
@@ -138,6 +138,21 @@
             </ng-container>
           </nz-form-control>
         </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-control>
+            <nz-form-label [nzSpan]="5">Importaciones anteriores</nz-form-label>
+            <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
+              <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
+                <button nz-button nzType="default" >
+              <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
+              {{movimiento.valor_random}}
+            </button>
+            </ng-container>
+
+            
+            </nz-form-control>
+          </nz-form-item>
 
 
         <nz-form-item>

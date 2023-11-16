@@ -15,18 +15,18 @@
 //    "declarationDir": "dist",
     "downlevelIteration": true,
     "experimentalDecorators": true,
-      "esModuleInterop":true,
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "esModuleInterop":true,
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
     "importHelpers": true,
-    "target": "es2021",
+    "target": "ES2022",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "strict":false,
     "emitDecoratorMetadata":true,
     "forceConsistentCasingInFileNames": true,
     "allowJs": true,
-
+    "skipLibCheck": true,
     "typeRoots": [
 //      "./src/types",
       "node_modules/@types"
