@@ -28,7 +28,7 @@ export class InformesController extends BaseController {
       if (resp.status != 200)
         throw new ClientException(`Error accediendo al sistema de reportes status ${resp.status}`)
 
-      const data = await resp.json()
+      const data:any = await resp.json()
       const rep = data.value.find(x => x.Name.localeCompare(Reporte) === 0)
       if (!rep.Path)
         throw new ClientException(`Reporte ${Reporte} no encontrado`)
@@ -38,7 +38,7 @@ export class InformesController extends BaseController {
       if (para.status != 200)
         throw new ClientException(`Error accediendo al sistema de reportes status ${para.status}`)
 
-      const dataparam = await para.json()
+      const dataparam:any = await para.json()
 
 
       const filtrosOk = {}

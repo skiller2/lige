@@ -62,6 +62,7 @@ export class DetalleAsistenciaComponent {
   selectedPeriod = { year: 0, month: 0 };
 
   selectedSucursalId = '';
+  selectedObjetivoId = '';
   selectedMetodologiaId = '';
   selectedCategoriaId = '';
   listaDescuentosPerTotal = 0
@@ -365,6 +366,7 @@ export class DetalleAsistenciaComponent {
   }
 
   buscarPorObjetivo(ObjetivoId: string) {
+    console.log('buscarPorObjetivo')
     this.asistenciaObj.controls['ObjetivoId'].setValue(ObjetivoId);
 //    this.router.navigate(['/ges/detalle_asistencia/objetivo', { state: { ObjetivoId } }]);
     this.router.navigateByUrl('/ges/detalle_asistencia/objetivo', { state: { ObjetivoId } });

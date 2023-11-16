@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/baseController";
 
-import { getDocument } from "pdfjs-dist";
+import { GlobalWorkerOptions, getDocument } from "pdfjs-dist";
 import { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
-import { GlobalWorkerOptions } from "pdfjs-dist/types/src/display/worker_options";
+import * as pdfWorker from "pdfjs-dist/build/pdf.worker.mjs";
 
 
 
@@ -46,7 +46,7 @@ import { getFiltroFromRequest } from "./download-informe-utils/informe-filtro";
 
 
 
-//GlobalWorkerOptions.workerSrc = `./pdf.worker.js`;
+GlobalWorkerOptions.workerSrc = pdfWorker
 
 
 const cuitRegex = [

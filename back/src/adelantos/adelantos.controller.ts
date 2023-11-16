@@ -106,7 +106,7 @@ export class AdelantosController extends BaseController {
 
   async getByPersonalId(
     personalId: Number,
-    Año: string,
+    Ano: string,
     Mes: string,
     req: any,
     res: Response,
@@ -119,7 +119,7 @@ export class AdelantosController extends BaseController {
         FroM ObjetivoPersonalJerarquico pje 
         JOIN ObjetivoPersonalJerarquico pjer ON pjer.ObjetivoId = pje.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > pjer.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(pjer.ObjetivoPersonalJerarquicoHasta, '9999-12-31')
         WHERE pje.ObjetivoPersonalJerarquicoPersonalId = @0`,
-        [res.locals.PersonalId, Año, Mes])
+        [res.locals.PersonalId, Ano, Mes])
 
       let PersonalIdList = ""
       responsables.forEach((row: any) => {
@@ -136,7 +136,7 @@ export class AdelantosController extends BaseController {
         LEFT JOIN OperacionesPersonalAsignarAJerarquico perrel ON perrel.OperacionesPersonalAAsignarPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
            WHERE ((ade.PersonalAdelantoAprobado IN (NULL) OR ade.PersonalAdelantoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1)) OR ade.PersonalAdelantoAprobado IS NULL)
                 AND (ade.PersonalId = @0 or perrel.PersonalCategoriaPersonalId IN(${PersonalIdList}))`,
-        [personalId, Año, Mes])
+        [personalId, Ano, Mes])
 
       this.jsonRes(adelantos, res);
     } catch (error) {

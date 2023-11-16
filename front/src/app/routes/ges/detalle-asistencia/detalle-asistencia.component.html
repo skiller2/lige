@@ -28,7 +28,7 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
           <nz-form-control>
-            <app-objetivo-search [(ngModel)]="selectedSucursalId" name="ObjetivoId"
+            <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
               (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" ngModel />
           </nz-form-control>
         </nz-form-item>
@@ -384,7 +384,7 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Administrativos y Art42</nz-form-label>
           <nz-form-control>
-            <nz-table #art42adminPer [nzData]="($listaIngresosPer | async).ingresos" nzSize="small"
+            <nz-table #art42adminPer [nzData]="($listaIngresosPer | async)?.ingresos" nzSize="small"
               [nzPageSize]="100000000" [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
               <thead>
                 <tr>
@@ -415,7 +415,7 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Ingresos Extra</nz-form-label>
           <nz-form-control>
-            <nz-table #ingextraPer [nzData]="($listaIngresosExtraPer | async).ingresos" nzSize="small"
+            <nz-table #ingextraPer [nzData]="($listaIngresosExtraPer | async)?.ingresos" nzSize="small"
               [nzPageSize]="100000000" [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
               <thead>
                 <tr>
@@ -477,7 +477,7 @@
         </nz-form-item>
       </form>
 
-      <nz-table #listPer [nzData]="($listaPersonal | async).persxresp" nzSize="small" [nzPageSize]="100000000"
+      <nz-table #listPer [nzData]="($listaPersonal | async)?.persxresp" nzSize="small" [nzPageSize]="100000000"
         [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
         <thead>
           <tr>

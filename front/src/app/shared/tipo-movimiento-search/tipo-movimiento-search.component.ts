@@ -11,7 +11,7 @@ import {
 import { Search } from '../schemas/personal.schemas'
 import { SearchService } from 'src/app/services/search.service'
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
-import { doOnSubscribe } from 'src/app/services/api.service'
+import { ApiService, doOnSubscribe } from 'src/app/services/api.service'
 import { NzSelectComponent } from 'ng-zorro-antd/select'
 import { KeyCode } from 'angular-slickgrid'
 
@@ -29,7 +29,7 @@ import { KeyCode } from 'angular-slickgrid'
 })
 
 export class TipoMovimientoSearchComponent implements ControlValueAccessor {
-  constructor(private searchService: SearchService) { }
+  constructor(private searchService: SearchService, private apiService:ApiService) { }
 
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
@@ -42,6 +42,7 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
   private _selectedId: string = ''
   _selected = ''
   extendedOption = {  }
+  tipo_movimiento:any
 
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
@@ -75,13 +76,21 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
     }
   }
 
+  async ngOnInit() { 
+    firstValueFrom(this.apiService.getTipoMovimiento('').pipe(tap(res => { 
+      this.tipo_movimiento = res
+    })))
+  }
 
   ngAfterViewInit() {
+    // 
+    /*
     setTimeout(() => {
       this.msc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
 
       this.msc.focus()
     }, 1);
+    */
   }
 
   get selectedId() {

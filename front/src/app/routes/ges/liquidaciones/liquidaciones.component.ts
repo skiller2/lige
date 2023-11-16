@@ -199,7 +199,6 @@ export class LiquidacionesComponent {
             // this.gridDataLen = data.list?.length
             // this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
 
-            console.log("data", data)
             return data?.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -272,8 +271,6 @@ export class LiquidacionesComponent {
   }
 
   columns$ = this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols) => {
-    console.log('cols', cols);
-
     return cols
   }));
 
@@ -469,6 +466,7 @@ export class LiquidacionesComponent {
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsEdit.enableRowDetailView = false
     this.gridOptionsEdit.autoEdit = true
+    
 
 
     this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
@@ -558,7 +556,6 @@ export class LiquidacionesComponent {
             break;
         }
       }
-console.log('nueva meta',meta)
       return meta;
     };
   }
@@ -602,8 +599,6 @@ console.log('nueva meta',meta)
   }
 
   confirmNewItem() {
-
-    debugger
     this.gridDataInsert.pop()
     //TODO Usar this.gridDataInsert
     console.log("este es el grid data insert", this.gridDataInsert)

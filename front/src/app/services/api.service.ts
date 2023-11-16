@@ -140,7 +140,7 @@ export class ApiService {
       enableCellNavigation: true,
       //    enableAutoResize: true,
       enableColumnPicker: true,
-      enableExcelCopyBuffer: true,
+      //enableExcelCopyBuffer: true,
       enableExcelExport: true,
       registerExternalResources: [xlsService],
       enableAutoTooltip: true,
