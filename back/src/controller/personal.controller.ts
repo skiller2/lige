@@ -92,10 +92,11 @@ export class PersonalController extends BaseController {
 
     try {
       const responsables = await dataSource.query(
-        `SELECT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.* FROM Personal per
-        LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND @1 >=  sitrev.PersonalSituacionRevistaDesde AND  @1 <= ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')
+        `SELECT DISTINCT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.* FROM Personal per
+        JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND ((DATEPART(YEAR,sitrev.PersonalSituacionRevistaDesde)=@1 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaDesde)=@2) OR (DATEPART(YEAR,sitrev.PersonalSituacionRevistaHasta)=@1 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaHasta)=@2) OR (sitrev.PersonalSituacionRevistaDesde <= DATEFROMPARTS(@1,@2,28) AND ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,28)))
+        
         LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
-        WHERE per.PersonalId=@0`, [personalId, stmactual])
+        WHERE per.PersonalId=@0`, [personalId, anio,mes])
       this.jsonRes(responsables, res);
     } catch (error) {
       return next(error)

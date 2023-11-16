@@ -65,7 +65,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
 
   ngOnDestroy() { 
-    this.psc.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
+    this.psc?.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
   }
 
   onKeydown(event: KeyboardEvent) {

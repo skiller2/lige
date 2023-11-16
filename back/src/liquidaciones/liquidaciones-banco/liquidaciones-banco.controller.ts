@@ -87,6 +87,16 @@ export class LiquidacionesBancoController extends BaseController {
       searchHidden: false
     },
     {
+      name: "Situación Revista",
+      type: "string",
+      id: "SituacionRevistaDescripcion",
+      field: "SituacionRevistaDescripcion",
+      fieldName: "sit.SituacionRevistaDescripcion",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
       name: "CBU",
       type: "number",
       id: "PersonalBancoCBU",
@@ -164,6 +174,16 @@ export class LiquidacionesBancoController extends BaseController {
       searchHidden: false
     },
     {
+      name: "Situación Revista",
+      type: "string",
+      id: "SituacionRevistaDescripcion",
+      field: "SituacionRevistaDescripcion",
+      fieldName: "sit.SituacionRevistaDescripcion",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
       name: "CBU",
       type: "number",
       id: "PersonalBancoCBU",
@@ -199,9 +219,11 @@ export class LiquidacionesBancoController extends BaseController {
   async getBancoSaldo(anio: Number, mes: Number, filtros: any, sort: any) {
     const filterSql = filtrosToSql(filtros, this.listaColumnas);
     const orderBy = orderToSQL(sort)
-//TODO devolve su situación
+    const stmactual = new Date()
+
     return dataSource.query(
-      `SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion,movpos.tipocuenta_id, movpos.importe, 'CUE' as ind_imputacion
+      `SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion,movpos.tipocuenta_id, movpos.importe, 'CUE' as ind_imputacion,
+        sit.SituacionRevistaDescripcion
         FROM Personal per
         JOIN(SELECT liq.persona_id, liq.tipocuenta_id, SUM(liq.importe * tipo.signo) importe FROM lige.dbo.liqmamovimientos liq
         JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = liq.tipo_movimiento_id
@@ -210,17 +232,21 @@ export class LiquidacionesBancoController extends BaseController {
                 GROUP BY liq.persona_id, liq.tipocuenta_id HAVING SUM(liq.importe* tipo.signo) > 0) AS movpos ON movpos.persona_id = per.PersonalId
         LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId)
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-
+        LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@2 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= @2
+        LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+        
+        
         LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
         WHERE  (${filterSql}) 
         ${orderBy}
-        `, [anio, mes])
+        `, [anio, mes,stmactual])
 
   }
 
   async getBancoSaldoAyudaAsistencial(anio: Number, mes: Number, filtros: any, sort: any) {
     const filterSql = filtrosToSql(filtros, this.listaColumnas);
     const orderBy = orderToSQL(sort)
+    const stmactual = new Date()
 
     return dataSource.query(
       `SELECT CONCAT(per.PersonalId,'-',ade.PersonalAdelantoId ) as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,
@@ -229,18 +255,21 @@ export class LiquidacionesBancoController extends BaseController {
       ade.PersonalAdelantoLiquidoFinanzas,
       'G' as tipocuenta_id,
       'ADE' as ind_imputacion,
+      sit.SituacionRevistaDescripcion,
           1
               FROM Personal per
               JOIN PersonalAdelanto ade ON ade.PersonalId = per.PersonalId AND ade.PersonalAdelantoAprobado='S' AND ISNULL(ade.PersonalAdelantoLiquidoFinanzas,0) =0
               JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = 1
               LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId)
               LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      
+              LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@2 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= @2
+              LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+            
               LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
               
       WHERE (${filterSql}) 
       ${orderBy}
-      `, [anio, mes])
+      `, [anio, mes,stmactual])
 
   }
 

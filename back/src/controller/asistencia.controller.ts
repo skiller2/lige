@@ -812,7 +812,7 @@ export class AsistenciaController extends BaseController {
       const mes = req.params.mes;
       const queryRunner = dataSource.createQueryRunner();
 
-      if (!this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
 
@@ -834,7 +834,7 @@ export class AsistenciaController extends BaseController {
       const mes = req.params.mes;
       const queryRunner = dataSource.createQueryRunner();
 
-      if (!this.hasGroup(req, 'liquidaciones') && res.locals.PersonalId != req.params.personalId)
+      if (!await this.hasGroup(req, 'liquidaciones') && res.locals.PersonalId != req.params.personalId)
         throw new ClientException(`No tiene permisos para listar la información`)
 
       //Busco la lista de PersonalId que le corresponde al responsable
@@ -919,7 +919,7 @@ export class AsistenciaController extends BaseController {
       const anio = req.params.anio;
       const mes = req.params.mes;
 
-      if (!this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de ingresos`)
 
       const result = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [personalId])
@@ -939,7 +939,7 @@ export class AsistenciaController extends BaseController {
       const anio = req.params.anio;
       const mes = req.params.mes;
 
-      if (!this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de ingresos`)
 
       const result = await AsistenciaController.getIngresosExtra(anio, mes, queryRunner, [personalId])
@@ -963,7 +963,7 @@ export class AsistenciaController extends BaseController {
       const mes = req.params.mes;
       var desde = new Date(anio, mes - 1, 1);
 
-      if (!this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de art14`)
 
       const result = await queryRunner.query(
@@ -1182,7 +1182,7 @@ export class AsistenciaController extends BaseController {
       const mes = req.params.mes;
       var desde = new Date(anio, mes - 1, 1);
 
-      if (!this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de asistencia`)
 
       const result = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [personalId])

@@ -5,7 +5,9 @@ import { scheduleJob } from "node-schedule"
 import { Response } from "express"
 import { CategoriasController } from "./categorias-cambio/categorias-cambio.controller";
 
-require("dotenv").config();
+import dotenv from "dotenv"
+
+dotenv.config()
 
 // Init App
 const dbServer = new DBServer(5, 2000, dataSource)

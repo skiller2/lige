@@ -67,7 +67,7 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
   }
 
   ngOnDestroy() { 
-    this.osc.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
+    this.osc?.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
   }
 
   onKeydown(event: KeyboardEvent) {

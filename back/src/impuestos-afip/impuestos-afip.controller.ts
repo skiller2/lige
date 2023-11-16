@@ -1,5 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/baseController";
+
+import { getDocument } from "pdfjs-dist";
+import { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
+import { GlobalWorkerOptions } from "pdfjs-dist/types/src/display/worker_options";
+
+
+
 import {
   copyFileSync,
   existsSync,
@@ -8,8 +15,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from "fs";
-import { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
-import { getDocument, GlobalWorkerOptions} from "pdfjs-dist/legacy/build/pdf";
+
 import { dataSource } from "../data-source";
 import {
   PDFDocument,
@@ -38,7 +44,9 @@ import {
 } from "./impuestos-afip.utils";
 import { getFiltroFromRequest } from "./download-informe-utils/informe-filtro";
 
-GlobalWorkerOptions.workerSrc = `./pdf.worker.js`;
+
+
+//GlobalWorkerOptions.workerSrc = `./pdf.worker.js`;
 
 
 const cuitRegex = [
@@ -144,11 +152,6 @@ export class ImpuestosAfipController extends BaseController {
           filtrosConsulta1.push(element);
           filter1IsActive = true;
           break;
-          case "ClienteId":
-          filtrosConsulta1.push(element);
-          filter1IsActive = true;
-          break;
-        
           case "ClienteId":
           filtrosConsulta1.push(element);
           filter1IsActive = true;

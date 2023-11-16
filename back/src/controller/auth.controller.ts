@@ -1,8 +1,8 @@
-import { hash, compare, getSalt } from "bcryptjs";
+import bcryptjs from "bcryptjs";
 //import { SearchOptions, createClient, SearchEntry,Control } from "ldapjs";
 import { Attribute, Change, Client, Control, InvalidCredentialsError, SearchOptions } from 'ldapts';
 
-import { sign, decode } from "jsonwebtoken";
+import jsonwebtoken, { } from "jsonwebtoken";
 import { dataSource } from "../data-source";
 import { NextFunction, Request } from "express";
 
@@ -274,12 +274,13 @@ export class AuthController extends BaseController {
   */
 
   encryptPassword(password: string) {
-    const salt = getSalt("10");
-    return hash(password, salt);
+    const salt = bcryptjs.getSalt("10");
+//    const salt = "10";
+    return bcryptjs.hash(password, salt);
   }
 
   comparePassword(password: string, passwordReceived: string) {
-    return compare(password, passwordReceived);
+    return bcryptjs.compare(password, passwordReceived);
   }
 
   async signin(req: Request, res: any, next: NextFunction) {
@@ -329,7 +330,7 @@ export class AuthController extends BaseController {
 
 
       const jwtsecret = process.env.JWT_SECRET ? process.env.JWT_SECRET : "";
-      const token = sign(user, jwtsecret, {
+      const token = jsonwebtoken.sign(user, jwtsecret, {
         expiresIn: Number(process.env.JWT_EXPIRE_SECS),
       });
       //console.log("jwt", jwt);
@@ -353,7 +354,7 @@ export class AuthController extends BaseController {
     delete req.decoded_token.iat;
     delete req.decoded_token.exp;
     const jwtsecret = process.env.JWT_SECRET ? process.env.JWT_SECRET : "";
-    const token = sign(req.decoded_token, jwtsecret, {
+    const token = jsonwebtoken.sign(req.decoded_token, jwtsecret, {
       expiresIn: Number(process.env.JWT_EXPIRE_SECS) * 1000,
     });
     this.jsonRes({ token: token }, res);
