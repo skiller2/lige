@@ -23,6 +23,7 @@ import { AppFilterPipe,ColsFilterPipe } from './utils/filter-type';
 import { ObjetivoSearchComponent } from './objetivo-search/objetivo-search.component';
 import { AppDownFileDirective } from './down-file/down-file.directive';
 import { AngularSlickgridModule } from 'angular-slickgrid';
+import { TipoMovimientoSearchComponent } from './tipo-movimiento-search/tipo-movimiento-search.component';
 //import { RowDetailViewComponent } from './row-detail-view/row-detail-view.component';
 //import { RowPreloadDetailComponent } from './row-preload-detail/row-preload-detail.component';
 
@@ -43,6 +44,7 @@ const COMPONENTS: Array<Type<any>> = [
   PersonalSearchComponent,
   ClienteSearchComponent,
   ObjetivoSearchComponent,
+  TipoMovimientoSearchComponent,
   PdfviewerComponent,
   UploadFileComponent,
   ViewCredentialComponent,

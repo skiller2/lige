@@ -78,6 +78,7 @@ export class LiquidacionesController extends BaseController {
       id: "des_movimiento",
       field: "des_movimiento",
       fieldName: "tipomo.des_movimiento",
+      // searchComponent: "inpurForTipoMovimientoSearch",
       sortable: true,
       hidden: false,
       searchHidden: false
@@ -88,6 +89,7 @@ export class LiquidacionesController extends BaseController {
       id: "fecha",
       field: "fecha",
       fieldName: "li.fecha",
+      // searchComponent: "inpurForFechaSearch",
       sortable: true,
       searchHidden: false,
       hidden: false,

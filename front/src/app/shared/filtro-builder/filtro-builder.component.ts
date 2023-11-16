@@ -83,7 +83,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       this.selections.label = this.valueExtended.fullName
     if (this.selections.label == "")
       this.selections.label = this.selections.value == "" ? "Vacio" : this.selections.value
+    // console.log('addTag(1) -> this.valueExtended', this.valueExtended);
     const tagToAdd = `${this.selections.field.name} ${this.selections.operator} ${this.selections.label}`;
+    // console.log('addTag(2) -> this.selections', this.selections);
     this.tags.push(tagToAdd);
   }
 
@@ -97,11 +99,12 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   verifySelections(): boolean {
+    // console.log('verifySelections(1) -> this.selections', this.selections);
     const type = (this.selections.field.type) ? this.selections.field.type : 'string'
 
     this.selections.operator = (this.selections.field.searchComponent) ? "=" : this.selections.operator
     this.selections.value = String(this.selections.value)
-
+    // console.log('verifySelections(2) -> this.selections', this.selections);
 
     if (this.selections.value.startsWith('>=')) {
       this.selections.value = this.selections.value.substring(2)
@@ -147,21 +150,26 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
           break;
       }
     }
-
+    // console.log('verifySelections(3) -> this.selections', this.selections);
     return (this.selections.field.name && this.selections.condition && this.selections.operator) ? true : false
   }
 
   handleInputConfirm() {
+    // console.log('handleInputConfirm(1) => this.selections', this.selections);
     if (this.verifySelections()) {
       this.addTag();
       const appendedFilter = this.appendFiltro(
         this.selections as any,
         this.selections.value.trim().split(/\s+/)
       );
+      // console.log('handleInputConfirm(1) => appendedFilter', appendedFilter);
     }
+    // console.log('handleInputConfirm(2) => this.selections', this.selections);
     this.resetSelections();
+    // console.log('handleInputConfirm(3) => this.selections', this.selections);
     this.isFiltroBuilder = false;
     let inputSearch: HTMLElement = document.getElementsByTagName("nz-select-clear")[0] as HTMLElement;
+    // console.log('handleInputConfirm(4) => inputSearch', inputSearch);
     if (inputSearch)
       inputSearch.click()
   }
@@ -258,6 +266,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   selectedValueSucursal(val: any) {
+    // console.log('val',val);
     if (val) {
       this.selections.value = val.SucursalId;
       this.valueExtended = { fullName: val.SucursalDescripcion };

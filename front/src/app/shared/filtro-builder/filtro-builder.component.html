@@ -52,6 +52,10 @@
         [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForObjetivoSearch'"
         (keydown.enter)="handleInputConfirm()" />
 
+      <!-- <app-tipo-movimiento-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+        [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForTipoMovimientoSearch'"
+        (keydown.enter)="handleInputConfirm()" /> -->
+
       <nz-select ngModel nzAllowClear style="width:100%"
         *ngIf="selections.field.searchComponent=='inpurForSucursalSearch'" nzPlaceHolder="Sucursal" nzShowSearch
         (ngModelChange)="selectedValueSucursal($event)" [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
