@@ -244,7 +244,7 @@ export class ApiService {
 
           if (String(col.type) == 'currency' || String(col.type) == 'money') {
             col.formatter = Formatters.multiple
-            col.params= { formatters: [Formatters.currency, Formatters.alignRight] }
+            col.params= { formatters: [Formatters.currency, Formatters.alignRight], thousandSeparator: '.',decimalSeparator: ',' }
 
           }
           

@@ -1,4 +1,4 @@
-import { AngularGridInstance } from 'angular-slickgrid';
+import { AngularGridInstance, Formatters } from 'angular-slickgrid';
 
 export function columnTotal(column: string, angularGrid: any) {
 
@@ -15,8 +15,9 @@ export function columnTotal(column: string, angularGrid: any) {
             for (let index = 0; index < list.length; index++) {
                 gridDataTotal += list[index][column]
             }
-            if (gridDataTotal){
-                totalDisplay = gridDataTotal.toFixed(2)
+
+            if (gridDataTotal) {
+                totalDisplay = String(Formatters.currency(0, 0, gridDataTotal, columnDetail, '', angularGrid.slickGrid))
                 columnFooter.style.textAlign = 'right'
                 columnFooter.style.paddingRight = '5px'
             }
