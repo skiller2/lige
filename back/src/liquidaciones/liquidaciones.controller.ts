@@ -63,7 +63,8 @@ export class LiquidacionesController extends BaseController {
     try {
 
       const importacionesAnteriores = await dataSource.query(
-        `SELECT impoexpo_id AS id, nombre_archivo_orig AS nombre, FORMAT(aud_fecha_ins, 'yyyy-MM-dd') AS fecha FROM lige.dbo.convalorimpoexpo WHERE anio = @0 AND mes = @1`,
+        
+        `SELECT impoexpo_id AS id, nombre_archivo_orig AS nombre, path, FORMAT(aud_fecha_ins, 'yyyy-MM-dd') AS fecha FROM lige.dbo.convalorimpoexpo WHERE anio = @0 AND mes = @1 AND ind_eliminado = 0`,
       [Anio, Mes])
       
       this.jsonRes(
@@ -235,64 +236,32 @@ export class LiquidacionesController extends BaseController {
 
   async setDeleteImportaciones(req: Request, res: Response, next: NextFunction) {
 
-    console.log("estoy en el back del borrado")
+    let deleteId = req.body.deleteId
+    console.log("deleteId " + deleteId)
 
-    //  let usuario = res.locals.userName
-    //let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
 
-    // console.log("req", req.body.gridDataInsert)
     try {
-      // await queryRunner.connect();
-      // await queryRunner.startTransaction();
-  
-      // for (const row of req.body.gridDataInsert) {
 
+        if(deleteId != null){ 
 
-      //   let tipo_movimiento_id = row.des_movimiento
-      //   let tipocuenta_id = row.des_cuenta
-      //   let fechaActual = new Date()
-      //   let detalle = row.detalle
-      //   let objetivo_id = row.ObjetivoDescripcion?.id == undefined ? null : row.ObjetivoDescripcion?.id
-      //   let persona_id = row.ApellidoNombre?.id == undefined ? null : row.ApellidoNombre.id
-      //   let importe = row.monto
+          await queryRunner.connect();
+          await queryRunner.startTransaction();
 
-      //   if (!tipocuenta_id) throw new ClientException("No se especificó el tipo de cuenta")
-      //   if (!tipo_movimiento_id) throw new ClientException("No se especificó el movimiento")
-  
+          await queryRunner.query(
+              `UPDATE lige.dbo.convalorimpoexpo SET ind_eliminado = 1 WHERE impoexpo_id = @0`,
+              [deleteId]
+            );
+            await queryRunner.query(
+              `DELETE FROM lige.dbo.liqmamovimientos WHERE impoexpo_id = @0`,
+              [deleteId]
+            );
 
-      //   let movimiento_id = await Utils.getMovimientoId(queryRunner)
+            await queryRunner.commitTransaction();
 
-      //   const periodo = row.periodo.split('/');
-      //   const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseFloat(periodo[1]), parseFloat(periodo[0]), usuario, ip)
-
-
-      await queryRunner.query(``);
-
-        // await queryRunner.query(
-        //   `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
-        //   aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-        //     VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)
-        //           `,
-        //   [
-        //     ++movimiento_id,
-        //     periodo_id,
-        //     tipo_movimiento_id,
-        //     tipocuenta_id,
-        //     fechaActual,
-        //     detalle,
-        //     objetivo_id,
-        //     persona_id,
-        //     importe,
-        //     usuario, ip, fechaActual, usuario, ip, fechaActual,
-        //   ]
-        // );
-      //}
-
-      //throw new ClientException("Paso oka")
-       await queryRunner.commitTransaction();
-
-      // this.jsonRes({ list: [] }, res, `Se procesaron ${req.body.gridDataInsert.length} registros `);
+            this.jsonRes({ list: [] }, res, `Se eliminaron con exito los registros `);
+        }
+       
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
