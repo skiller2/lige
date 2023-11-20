@@ -63,7 +63,7 @@ export class LiquidacionesController extends BaseController {
     try {
 
       const importacionesAnteriores = await dataSource.query(
-        `SELECT valor_random FROM lige.dbo.convalorimpoexpo WHERE anio = @0 AND mes = @1`,
+        `SELECT impoexpo_id AS id, nombre_archivo_orig AS nombre, FORMAT(aud_fecha_ins, 'yyyy-MM-dd') AS fecha FROM lige.dbo.convalorimpoexpo WHERE anio = @0 AND mes = @1`,
       [Anio, Mes])
       
       this.jsonRes(
@@ -233,6 +233,78 @@ export class LiquidacionesController extends BaseController {
     this.jsonRes(this.listaColumnas, res);
   }
 
+  async setDeleteImportaciones(req: Request, res: Response, next: NextFunction) {
+
+    console.log("estoy en el back del borrado")
+
+    //  let usuario = res.locals.userName
+    //let ip = this.getRemoteAddress(req)
+    const queryRunner = dataSource.createQueryRunner();
+
+    // console.log("req", req.body.gridDataInsert)
+    try {
+      // await queryRunner.connect();
+      // await queryRunner.startTransaction();
+  
+      // for (const row of req.body.gridDataInsert) {
+
+
+      //   let tipo_movimiento_id = row.des_movimiento
+      //   let tipocuenta_id = row.des_cuenta
+      //   let fechaActual = new Date()
+      //   let detalle = row.detalle
+      //   let objetivo_id = row.ObjetivoDescripcion?.id == undefined ? null : row.ObjetivoDescripcion?.id
+      //   let persona_id = row.ApellidoNombre?.id == undefined ? null : row.ApellidoNombre.id
+      //   let importe = row.monto
+
+      //   if (!tipocuenta_id) throw new ClientException("No se especificó el tipo de cuenta")
+      //   if (!tipo_movimiento_id) throw new ClientException("No se especificó el movimiento")
+  
+
+      //   let movimiento_id = await Utils.getMovimientoId(queryRunner)
+
+      //   const periodo = row.periodo.split('/');
+      //   const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseFloat(periodo[1]), parseFloat(periodo[0]), usuario, ip)
+
+
+      await queryRunner.query(``);
+
+        // await queryRunner.query(
+        //   `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
+        //   aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+        //     VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)
+        //           `,
+        //   [
+        //     ++movimiento_id,
+        //     periodo_id,
+        //     tipo_movimiento_id,
+        //     tipocuenta_id,
+        //     fechaActual,
+        //     detalle,
+        //     objetivo_id,
+        //     persona_id,
+        //     importe,
+        //     usuario, ip, fechaActual, usuario, ip, fechaActual,
+        //   ]
+        // );
+      //}
+
+      //throw new ClientException("Paso oka")
+       await queryRunner.commitTransaction();
+
+      // this.jsonRes({ list: [] }, res, `Se procesaron ${req.body.gridDataInsert.length} registros `);
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+      return next(error)
+    } finally {
+      //   await queryRunner.release();
+    }
+
+    
+  }
+
+
   async setAgregarRegistros(req: any, res: Response, next: NextFunction) {
 
     let usuario = res.locals.userName
@@ -342,7 +414,7 @@ export class LiquidacionesController extends BaseController {
       const convalorimpoexpo_id = await this.getProxNumero(queryRunner, `convalorimpoexpo`, usuario, ip)
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
       let contador = 0
-
+      
       newFilePath = `${this.directory
       }/${anio}/${anio}-${mes
         .toString()
@@ -355,37 +427,45 @@ export class LiquidacionesController extends BaseController {
       //sheet1.data.splice(0, 2)
 
       let TipoMovimiento = "E"
+      let entidad = "liquidacion"
       // file.originalfilename
       // newFilePath
       // Si fue eliminado
       await queryRunner.query(
-        `INSERT INTO lige.dbo.convalorimpoexpo (impoexpo_id, tipo_movimiento, ruta_liquidacion,
-          aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod, periodo, año)
-            VALUES(@0, @2, @3, @4, @5, @6, @7, @8, @9, @10)
+        `INSERT INTO lige.dbo.convalorimpoexpo (impoexpo_id, tipo_movimiento, path, nombre_archivo_orig, nombre_entidad, ind_eliminado,
+          aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod, mes, anio)
+            VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13)
                   `,
         [
           convalorimpoexpo_id,
           TipoMovimiento,
+          newFilePath,
+          file.originalname,
+          entidad,
+          0,
           usuario, ip, fechaActual, usuario, ip, fechaActual,
           mes,
           anio
         ]
       );
 
-
+    sheet1.data.splice(0, 2)
 
       for (const row of sheet1.data) {
         //TODO
         //Fijarse si el valor row[1] y row[3] no es numérco
 
 
-        const cuit = row[1]
-        const detalle = row[2]
-        const importe = row[3]
+        const cuit = row[2]
+        const detalle = row[1]
+        const importe = row[4]
 
-        const persona = await queryRunner.query(
-          `SELECT personalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
+        let persona
 
+        if(!isNaN(cuit))
+          persona = await queryRunner.query(`SELECT personalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
+  
+        
         const persona_id = persona[0]?.personalId
         if (!persona_id) {
 
@@ -396,7 +476,7 @@ export class LiquidacionesController extends BaseController {
 
           await queryRunner.query(
             `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
-              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod,impoexpo_id)
                 VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)
                       `,
             [
@@ -405,11 +485,12 @@ export class LiquidacionesController extends BaseController {
               tipo_movimiento_id,
               tipocuenta_id,
               fechaActual,
-              '',
+              detalle,
               0,
               persona_id,
               importe,
               usuario, ip, fechaActual, usuario, ip, fechaActual,
+              convalorimpoexpo_id
             ]
           );
           contador++

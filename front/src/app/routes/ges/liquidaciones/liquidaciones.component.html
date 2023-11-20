@@ -142,15 +142,14 @@
         <nz-form-item>
           <nz-form-control>
             <nz-form-label [nzSpan]="5">Importaciones anteriores</nz-form-label>
-            <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
-              <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
-                <button nz-button nzType="default" >
-              <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
-              {{movimiento.valor_random}}
-            </button>
+            <ng-container *ngFor="let movimiento of $importacionesAnteriores | async" >
+              <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{movimiento.nombre}}>
+                <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
+                <span nz-icon nzType="delete" nzTheme="outline" class="trash-color" (click)="createBasicNotificationImportacion(templateImportacion,movimiento.id)"></span>
+                <span nz-icon nzType="download" nzTheme="outline" class="download-color"></span>
+                <span > ID: {{movimiento.id}} - Fecha: {{movimiento.fecha}} </span>
+              </div>
             </ng-container>
-
-            
             </nz-form-control>
           </nz-form-item>
 
@@ -197,6 +196,22 @@
           </div>
           <span class="ant-notification-notice-btn">
             <button nz-button nzType="primary" nzSize="small" (click)="confirmNewItem()">
+              <span>Aceptar</span>
+            </button>
+          </span>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template #templateImportacion let-notification >
+      <div class=" notificacionImportacion ant-notification-notice-content">
+        <div>
+          <div class="ant-notification-notice-message">Eliminar Importación</div>
+          <div class="ant-notification-notice-description">
+            Seguro que desea eliminar dichas importaciones...
+          </div>
+          <span class="ant-notification-notice-btn">
+            <button nz-button nzType="primary" nzSize="small" (click)="confirmDeleteImportacion()">
               <span>Aceptar</span>
             </button>
           </span>

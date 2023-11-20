@@ -14,6 +14,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { NzModalService, NzModalModule } from "ng-zorro-antd/modal";
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 
 import {
   BehaviorSubject,
@@ -71,6 +72,7 @@ export class LiquidacionesComponent {
   selectedCuentalId = '';
   selectedMovimientoId = '';
   gridDataImportLen = 0
+  NotificationIdForDelete = 0;
 
   $selectedCuentalIdChange = new BehaviorSubject('');
   $isCuentaDataLoading = new BehaviorSubject(false);
@@ -577,6 +579,15 @@ export class LiquidacionesComponent {
       this.notification.template(template);
   }
 
+  createBasicNotificationImportacion(template: TemplateRef<{}>, id: string): void {
+
+    this.NotificationIdForDelete = parseInt(id);
+    const element = document.getElementsByClassName('notificacionImportacion');
+
+    if (element.length == 0)
+      this.notification.template(template);
+  }
+
   cleanTable() {
 
     const ids = this.gridDataInsert.filter((f: any) => f.isfull == 1);
@@ -605,6 +616,17 @@ export class LiquidacionesComponent {
       (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
       this.apiService.setAgregarRegistros({ gridDataInsert: altas }).subscribe(evt => {
         this.formChange$.next('')
+        this.cleanTable()
+      });
+    }
+  }
+
+  confirmDeleteImportacion() {
+   debugger
+    if ( this.NotificationIdForDelete > 0) {
+      (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
+      this.apiService.setDeleteImportacion({deleteId: this.NotificationIdForDelete}).subscribe(evt => {
+        // this.formChange$.next('')
         this.cleanTable()
       });
     }
