@@ -386,6 +386,16 @@ export class ApiService {
 
   }
 
+  setDeleteImportacion(deleteId: any) {
+    const parameter = deleteId
+    this.notification.success('Respuesta', `Inicio Borrado `);
+
+   return this.http.post<ResponseJSON<any>>('/api/liquidaciones/delete', parameter).pipe(
+     tap(res => this.response(res)),
+    )
+
+ }
+
   setCambiarCategorias(filters: any) {
     const parameter = filters
     this.notification.success('Respuesta', `Inicio cambio de categoría`);
