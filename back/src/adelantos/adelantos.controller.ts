@@ -305,7 +305,7 @@ export class AdelantosController extends BaseController {
 
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
-
+//TODO Ver como no mostras los adelantos pendientes en un mes viejo
     try {
       const adelantos = await dataSource.query(
         `SELECT DISTINCT CONCAT(per.PersonalId,'-',perrel.PersonalCategoriaPersonalId,'-',ade.PersonalAdelantoId) id,
