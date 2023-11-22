@@ -10,6 +10,35 @@ import { isNumberObject } from "util/types";
 export class LiquidacionesController extends BaseController {
   directory = process.env.PATH_LIQUIDACIONES || "tmp";
   
+  async getTipoMovimientoById(req: Request, res: Response, next: NextFunction) {
+   
+    const TipoMovimientoFilter = req.params.TipoMovimiento;
+    console.log("TipoMovimiento" + TipoMovimientoFilter)
+    try {
+      let tipoMovimiento
+      if (TipoMovimientoFilter == 'all') {
+        console.log('Pase');
+        tipoMovimiento = await dataSource.query(
+        `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo, tipo.tipo_movimiento FROM lige.dbo.liqcotipomovimiento AS tipo`
+        )
+      }else{
+        tipoMovimiento = await dataSource.query(
+          `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo, tipo.tipo_movimiento FROM lige.dbo.liqcotipomovimiento AS tipo WHERE tipo.tipo_movimiento_id = @0`
+          , [TipoMovimientoFilter])
+      }
+      this.jsonRes(
+        {
+          total: tipoMovimiento.length,
+          list: tipoMovimiento,
+        },
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
   async getTipoMovimiento(req: Request, res: Response, next: NextFunction) {
    
     const TipoMovimientoFilter = req.params.TipoMovimiento;
