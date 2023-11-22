@@ -396,10 +396,13 @@ export class ImpuestosAfipController extends BaseController {
         mesRequest,
       ]
     );
-    if (alreadyExists.length > 0)
-      throw new ClientException(
-        `Ya existe un descuento para el periodo ${anioRequest}-${mesRequest} y el CUIT ${CUIT}`
-      );
+
+    if (alreadyExists.length > 0) {
+      if (alreadyExists[0].PersonalOtroDescuentoImporteVariable != importeMonto)
+        throw new ClientException(
+          `Ya existe un descuento para el periodo ${anioRequest}-${mesRequest} y el CUIT ${CUIT} con importe ${alreadyExists[0].PersonalOtroDescuentoImporteVariable} distinto al cargado`
+        );
+    }
 
     mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
     const newFilePath = `${this.directory
@@ -407,32 +410,38 @@ export class ImpuestosAfipController extends BaseController {
         .toString()
         .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
 
-    if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
-    const now = new Date();
-    await queryRunner.query(
-      `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas, PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion)
+    if (existsSync(newFilePath)) {
+      unlinkSync(newFilePath)
+    }
+
+    if (alreadyExists.length == 0) {
+      const now = new Date();
+      await queryRunner.query(
+        `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas, PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion)
       VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13)`,
-      [
-        personalIDQuery.OtroDescuentoId + 1,
-        personalID,
-        Number(process.env.OTRO_DESCUENTO_ID),
-        anioRequest,
-        mesRequest,
-        mesRequest,
-        1,
-        1,
-        importeMonto,
-        now,
-        0,
-        0,
-        null,
-        "",
-      ]
-    );
-    await queryRunner.query(
-      `UPDATE Personal SET PersonalOtroDescuentoUltNro = @0 WHERE PersonalId = @1`,
-      [personalIDQuery.OtroDescuentoId + 1, personalID]
-    );
+        [
+          personalIDQuery.OtroDescuentoId + 1,
+          personalID,
+          Number(process.env.OTRO_DESCUENTO_ID),
+          anioRequest,
+          mesRequest,
+          mesRequest,
+          1,
+          1,
+          importeMonto,
+          now,
+          0,
+          0,
+          null,
+          "",
+        ]
+      );
+      await queryRunner.query(
+        `UPDATE Personal SET PersonalOtroDescuentoUltNro = @0 WHERE PersonalId = @1`,
+        [personalIDQuery.OtroDescuentoId + 1, personalID]
+      );
+    }
+
     if (pagenum == null) {
       copyFileSync(file.path, newFilePath);
     } else {

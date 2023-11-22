@@ -314,4 +314,8 @@ export class LiquidacionesBancoComponent {
   async confirmaMovimientosBanco(e: any) {
     firstValueFrom(this.apiService.confirmaMovimientosBanco().pipe(tap(res => this.formChange$.next(''))))
   }
+
+  async eliminaMovimientosBanco(e: any, banco_id:number) {
+    firstValueFrom(this.apiService.eliminaMovimientosBanco(banco_id).pipe(tap(res => this.formChange$.next(''))))
+  }
 }
