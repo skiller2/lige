@@ -57,7 +57,7 @@
       "dev": "tsx watch --tsconfig ./tsconfig.json ./src/index.ts",
       "buildold": "npx tsc",
       "build": "ncc -m build ./src/index.ts",
-      "build2": "npx esbuild --bundle ./src/index.ts --bundle --platform=node --format=esm --outdir=dist --loader:.node=copy",
+      "esbuild": "npx esbuild --bundle ./src/index.ts --bundle --platform=node --format=esm --outdir=dist --loader:.node=copy --packages=external",
       "start": "npm run dev"
    }
 }
