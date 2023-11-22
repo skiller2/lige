@@ -484,6 +484,16 @@ export class ApiService {
 
   }
 
+  eliminaMovimientosBanco(banco_id:number) {
+    const parameter = {banco_id}
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/elimina/banco', parameter).pipe(
+      tap(res => this.response(res)),
+      catchError(() => of(''))
+
+    )
+
+  }
+
 
   getDescuentoByPeriodo(year: number, month: number, personaIdRel: number): Observable<ResponseDescuentos> {
     const emptyResponse: ResponseDescuentos = { RegistrosConComprobantes: 0, RegistrosSinComprobantes: 0, Registros: [] };
