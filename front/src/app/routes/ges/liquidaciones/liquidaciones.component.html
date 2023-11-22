@@ -20,25 +20,31 @@
       <li nz-submenu nzTitle="Acciones">
         <ul style="width: auto !important">
           <li nz-menu-item id="ingresosPorAsistencia" (click)="liquidacionesAcciones($event)">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por asistencia
+            <span nz-icon nzType="plus" nzTheme="outline"></span> Asistencia Vigilancia
           </li>
           <li nz-menu-item id="ingresosPorAsistenciaAdministrativosArt42" (click)="liquidacionesAcciones($event)">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por asistencia administrativos y Art.42
+            <span nz-icon nzType="plus" nzTheme="outline"></span> Asistencia Administrativos y Art.42
           </li>
-          <li nz-menu-item  id="ingresosCoordinadorDeCuenta" (click)="liquidacionesAcciones($event)">
+          <li *ngIf="false" nz-menu-item  id="ingresosCoordinadorDeCuenta" (click)="liquidacionesAcciones($event)">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por coordinador de cuenta
           </li>
-          <li nz-menu-item id="descuentoPorDeudaAnterior" (click)="liquidacionesAcciones($event)">
+          <li *ngIf="false" nz-menu-item id="descuentoPorDeudaAnterior" (click)="liquidacionesAcciones($event)">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Descuentos por deuda período anterior
           </li>
           <li nz-menu-item id="descuentos" (click)="liquidacionesAcciones($event)">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Descuentos
           </li>
-          <li nz-menu-item id="movimientoAcreditacionEnCuenta" (click)="liquidacionesAcciones($event)">
+          <li *ngIf="false" nz-menu-item id="movimientoAcreditacionEnCuenta" (click)="liquidacionesAcciones($event)">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Movimiento de acreditación en cuenta
           </li> 
-          <li nz-menu-item id="movimientosAutomaticos" (click)="liquidacionesAcciones($event)" >
+          <li *ngIf="false" nz-menu-item id="movimientosAutomaticos" (click)="liquidacionesAcciones($event)" >
             <span nz-icon nzType="plus" nzTheme="outline"></span> Carga de movs automático
+          </li>
+          <li nz-menu-item app-down-file [httpMethod]="'POST'"
+            [httpBody]="{'Reporte':'Banelco','Formato':'EXCEL', 'Filtros': {'Anio':selectedPeriod.year,'Mes':selectedPeriod.month}}"
+            httpUrl="api/informes/descarga"
+            notificationMsg="Generando Informe Banelco">
+            <span nz-icon nzType="download"></span><span style="white-space: normal;">Informe Banelco</span> 
           </li>
 
         </ul>

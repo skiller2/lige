@@ -7,6 +7,9 @@ import { CategoriasController } from "./categorias-cambio/categorias-cambio.cont
 //import packageConfig from "./../package.json" with { type: 'json' }; 
 import dotenv from "dotenv"
 
+//const path = require('path');
+
+
 /*
 import path from 'path';
 import {fileURLToPath} from 'url';

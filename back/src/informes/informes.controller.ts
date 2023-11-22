@@ -6,7 +6,7 @@ import { mkdirSync, existsSync, readFileSync, unlinkSync, mkdir, createWriteStre
 import xlsx from 'node-xlsx'
 import { isNumberObject } from "util/types"
 import fetch from "node-fetch"
-import { resolve } from "path"
+//import { resolve } from "path"
 import { tmpName } from "../server"
 
 export class InformesController extends BaseController {
@@ -23,7 +23,26 @@ export class InformesController extends BaseController {
       Formato,
       Filtros
     } = req.body
+
+
+
+
     try {
+      const user = (res.locals.userName)? res.locals.userName : Usuario
+      if (!user)
+        throw new ClientException(`Usuario no identificado`)
+
+      switch (Reporte) {
+        case 'Banelco':
+          if (res.locals.userName && !await this.hasGroup(req, 'liquidaciones')) {
+            if (!Filtros.Jerarquico) throw new ClientException(`Debe seleccionar el responsable`)
+            if (Filtros.Jerarquico != res.locals.PersonalId) throw new ClientException(`No tiene permiso para ver los movimientos del responsable seleccionado`)
+          }
+          break;
+        default:
+          break;
+      }
+
       const resp = await fetch(this.ssrsURLAPI + "/CatalogItems", { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from(this.ssrsUser + ":" + this.ssrsPass).toString('base64') } })
       if (resp.status != 200)
         throw new ClientException(`Error accediendo al sistema de reportes status ${resp.status}`)

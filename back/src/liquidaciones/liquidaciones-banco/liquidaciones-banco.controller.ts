@@ -6,7 +6,7 @@ import { Filtro, Options } from "../../schemas/filtro";
 import xlsx, { WorkSheet } from 'node-xlsx';
 import Excel from 'exceljs';
 
-import path from "path";
+//import path from "path";
 import {
   PDFDocument,
   PDFEmbeddedPage,
@@ -556,7 +556,7 @@ export class LiquidacionesBancoController extends BaseController {
       console.log("listdowload", listdowload)
 
       const formattedMonth = String(periodo.month).padStart(2, "0");
-      const filesPath = path.join(this.directory, String(periodo.year));
+      const filesPath = this.directory+'/'+String(periodo.year)
 
       const liquidaciones: LiqBanco[] = await this.BancoByPeriodo({
         anio: String(periodo.year),
@@ -624,7 +624,7 @@ export class LiquidacionesBancoController extends BaseController {
 
       if (locationIndex === 0) lastPage = newDocument.addPage(PageSizes.A4);
 
-      const filePath = path.join(filesPath, file.name);
+      const filePath = filesPath+'/'+ file.name
       const fileExists = existsSync(filePath);
 
       const pageWidth = lastPage.getWidth();
