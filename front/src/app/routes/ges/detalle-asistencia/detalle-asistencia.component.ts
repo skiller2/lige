@@ -51,12 +51,15 @@ export class DetalleAsistenciaComponent {
   constructor(
     private searchService: SearchService,
     private apiService: ApiService,
-    private router: Router
+    private router: Router,
+    private settingService: SettingsService,
   ) {}
 
   private destroy$ = new Subject();
 
   selectedTabIndex = 0;
+  responsable = 0
+
 
   selectedDate = null;
   selectedPeriod = { year: 0, month: 0 };
@@ -375,7 +378,11 @@ export class DetalleAsistenciaComponent {
 
 
 
-  ngOnInit(): void { 
+  ngOnInit(): void {
+    const user: any = this.settingService.getUser()
+    this.responsable = user.PersonalId
+
+
 /*
     this.router.events.subscribe((val) => {
       // see also 

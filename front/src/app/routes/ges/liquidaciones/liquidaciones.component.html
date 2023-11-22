@@ -20,25 +20,31 @@
       <li nz-submenu nzTitle="Acciones">
         <ul style="width: auto !important">
           <li nz-menu-item id="ingresosPorAsistencia" (click)="liquidacionesAcciones($event)">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por asistencia
+            <span nz-icon nzType="plus" nzTheme="outline"></span> Asistencia Vigilancia
           </li>
           <li nz-menu-item id="ingresosPorAsistenciaAdministrativosArt42" (click)="liquidacionesAcciones($event)">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por asistencia administrativos y Art.42
+            <span nz-icon nzType="plus" nzTheme="outline"></span> Asistencia Administrativos y Art.42
           </li>
-          <li nz-menu-item  id="ingresosCoordinadorDeCuenta" (click)="liquidacionesAcciones($event)">
+          <li *ngIf="false" nz-menu-item  id="ingresosCoordinadorDeCuenta" (click)="liquidacionesAcciones($event)">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por coordinador de cuenta
           </li>
-          <li nz-menu-item id="descuentoPorDeudaAnterior" (click)="liquidacionesAcciones($event)">
+          <li *ngIf="false" nz-menu-item id="descuentoPorDeudaAnterior" (click)="liquidacionesAcciones($event)">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Descuentos por deuda período anterior
           </li>
           <li nz-menu-item id="descuentos" (click)="liquidacionesAcciones($event)">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Descuentos
           </li>
-          <li nz-menu-item id="movimientoAcreditacionEnCuenta" (click)="liquidacionesAcciones($event)">
+          <li *ngIf="false" nz-menu-item id="movimientoAcreditacionEnCuenta" (click)="liquidacionesAcciones($event)">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Movimiento de acreditación en cuenta
           </li> 
-          <li nz-menu-item id="movimientosAutomaticos" (click)="liquidacionesAcciones($event)" >
+          <li *ngIf="false" nz-menu-item id="movimientosAutomaticos" (click)="liquidacionesAcciones($event)" >
             <span nz-icon nzType="plus" nzTheme="outline"></span> Carga de movs automático
+          </li>
+          <li nz-menu-item app-down-file [httpMethod]="'POST'"
+            [httpBody]="{'Reporte':'Banelco','Formato':'EXCEL', 'Filtros': {'Anio':selectedPeriod.year,'Mes':selectedPeriod.month}}"
+            httpUrl="api/informes/descarga"
+            notificationMsg="Generando Informe Banelco">
+            <span nz-icon nzType="download"></span><span style="white-space: normal;">Informe Banelco</span> 
           </li>
 
         </ul>
@@ -142,15 +148,14 @@
         <nz-form-item>
           <nz-form-control>
             <nz-form-label [nzSpan]="5">Importaciones anteriores</nz-form-label>
-            <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
-              <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
-                <button nz-button nzType="default" >
-              <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
-              {{movimiento.valor_random}}
-            </button>
+            <ng-container *ngFor="let movimiento of $importacionesAnteriores | async" >
+              <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{movimiento.nombre}}>
+                <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
+                <span nz-icon nzType="delete" nzTheme="outline" class="trash-color" (click)="createBasicNotificationImportacion(templateImportacion,movimiento.id)"></span>
+                <a nz-icon nzType="download" nzHref="movimiento.path" target="_blank" nzTheme="outline" class="download-color"></a>
+                <span > ID: {{movimiento.id}} - Fecha: {{movimiento.fecha}} </span>
+              </div>
             </ng-container>
-
-            
             </nz-form-control>
           </nz-form-item>
 
@@ -197,6 +202,22 @@
           </div>
           <span class="ant-notification-notice-btn">
             <button nz-button nzType="primary" nzSize="small" (click)="confirmNewItem()">
+              <span>Aceptar</span>
+            </button>
+          </span>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-template #templateImportacion let-notification >
+      <div class=" notificacionImportacion ant-notification-notice-content">
+        <div>
+          <div class="ant-notification-notice-message">Eliminar Importación</div>
+          <div class="ant-notification-notice-description">
+            Seguro que desea eliminar dichas importaciones...
+          </div>
+          <span class="ant-notification-notice-btn">
+            <button nz-button nzType="primary" nzSize="small" (click)="confirmDeleteImportacion()">
               <span>Aceptar</span>
             </button>
           </span>

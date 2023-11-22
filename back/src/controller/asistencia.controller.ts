@@ -127,7 +127,7 @@ export class AsistenciaController extends BaseController {
     LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = asisa.SucursalId AND val.ValorLiquidacionTipoAsociadoId = asis.SucursalAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = asis.SucursalAsistenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= DATEFROMPARTS(asisa.SucursalAsistenciaAnoAno,asism.SucursalAsistenciaAnoMesMes,'28') AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(asisa.SucursalAsistenciaAnoAno,asism.SucursalAsistenciaAnoMesMes,'1')
     
     WHERE asisa.SucursalAsistenciaAnoAno = @0 AND asism.SucursalAsistenciaAnoMesMes = @1 ${listPersonaId} `, [anio, mes])
-    let persart42 = []
+    let persart42:any[] = []
 
     for (const [index, value] of asisadmin.entries()) {
       if (value.ValorLiquidacionSumaFija) {
@@ -838,7 +838,7 @@ export class AsistenciaController extends BaseController {
         throw new ClientException(`No tiene permisos para listar la información`)
 
       //Busco la lista de PersonalId que le corresponde al responsable
-      let personalIdList=[]
+      let personalIdList:number[]=[]
       const personal = await queryRunner.query(
         `SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS PersonaDes,
         cuit.PersonalCUITCUILCUIT,
@@ -1201,7 +1201,7 @@ export class AsistenciaController extends BaseController {
       const objetivoId = req.params.objetivoId;
       const anio = req.params.anio;
       const mes = req.params.mes;
-      let personalId = []
+      let personalId:number[] =[] 
 
       const auth = await this.hasAuthObjetivo(
         anio,

@@ -117,6 +117,11 @@ liquidacionesRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.has
     liquidacionesController.setAgregarRegistros(req, res, next)
 });
 
+liquidacionesRouter.post('/delete', [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')], (req, res, next) => {
+  liquidacionesController.setDeleteImportaciones(req, res, next)
+});
+
+
 liquidacionesRouter.get('/tipo_movimiento/:TipoMovimiento', [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')], (req, res, next) => {
     liquidacionesController.getTipoMovimiento(req, res, next)
 });

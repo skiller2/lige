@@ -14,6 +14,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { NzModalService, NzModalModule } from "ng-zorro-antd/modal";
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 
 import {
   BehaviorSubject,
@@ -67,10 +68,11 @@ export class LiquidacionesComponent {
   gridOptionsImport!: GridOption;
   selectedPeriod = { year: 0, month: 0 };
   gridDataInsert = [];
-  uploading$ = new BehaviorSubject({loading:false,event:null});
+  uploading$ = new BehaviorSubject({ loading: false, event: null });
   selectedCuentalId = '';
   selectedMovimientoId = '';
   gridDataImportLen = 0
+  NotificationIdForDelete = 0;
 
   $selectedCuentalIdChange = new BehaviorSubject('');
   $isCuentaDataLoading = new BehaviorSubject(false);
@@ -89,7 +91,7 @@ export class LiquidacionesComponent {
   $optionsMovimiento = this.apiService.getTipoMovimiento("I");
   $importacionesAnteriores = this.apiService.getImportacionesAnteriores();
 
-  
+
 
 
 
@@ -165,9 +167,9 @@ export class LiquidacionesComponent {
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
 
-    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg)=>{
-        totalRecords(this.angularGrid)
-        columnTotal('importe', this.angularGrid)
+    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGrid)
+      columnTotal('importe', this.angularGrid)
     })
   }
 
@@ -207,7 +209,7 @@ export class LiquidacionesComponent {
     })
   )
 
-  
+
 
   dateChange(result: Date): void {
     this.selectedPeriod.year = result.getFullYear();
@@ -219,7 +221,7 @@ export class LiquidacionesComponent {
     this.formChange('');
   }
 
-   columnsImport = [
+  columnsImport = [
     {
       id: "id",
       name: "id",
@@ -454,8 +456,8 @@ export class LiquidacionesComponent {
         maxWidth: 200,
         // groupTotalsFormatter: GroupTotalFormatters.sumTotals,
         formatter: Formatters.multiple,
-        params: { 
-          formatters: [Formatters.currency,Formatters.alignRight],  
+        params: {
+          formatters: [Formatters.currency, Formatters.alignRight],
           // groupFormatterPrefix: '<b>Total</b>: ' 
         },
         editor: {
@@ -467,7 +469,7 @@ export class LiquidacionesComponent {
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsEdit.enableRowDetailView = false
     this.gridOptionsEdit.autoEdit = true
-    
+
 
 
     this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
@@ -486,12 +488,12 @@ export class LiquidacionesComponent {
         this.angularGridEdit.gridService.updateItem(row)
       }
 
-        
+
       this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
-      
+
       this.angularGridEdit.slickGrid.invalidate();
       this.angularGridEdit.slickGrid.render();
-  
+
       const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
       if (lastrow && (lastrow.detalle || lastrow.des_movimiento || lastrow.ObjetivoDescripcion || lastrow.PersonalDescripcion || lastrow.monto || lastrow.des_cuenta)) {
         this.addNewItem("bottom")
@@ -499,38 +501,38 @@ export class LiquidacionesComponent {
 
     }
 
-    
+
 
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
-    
+
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
 
-    
+
     this.gridOptionsImport = this.apiService.getDefaultGridOptions('.gridContainer3', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsImport.enableRowDetailView = this.apiService.isMobile()
-   
+
 
   }
 
   selectedValueChangeMovimiento(event: string): void {
-    
+
     this.selectedMovimientoId = event;
     this.$selectedMovimientoIdChange.next(event);
     this.$isMovimientoDataLoading.next(true);
     return;
-  
-}
 
-  
+  }
+
+
   selectedValueChange(event: string): void {
-    
+
     this.selectedCuentalId = event;
     this.$selectedCuentalIdChange.next(event);
     this.$isCuentaDataLoading.next(true);
     return;
-    
+
   }
 
   updateItemMetadata(previousItemMetadata: any) {
@@ -552,7 +554,7 @@ export class LiquidacionesComponent {
           case 1:
             meta.cssClasses = 'element-add-complete';
             break;
-          
+
           default:
             break;
         }
@@ -571,70 +573,68 @@ export class LiquidacionesComponent {
 
 
   createBasicNotification(template: TemplateRef<{}>): void {
-    
+
     const element = document.getElementsByClassName('ant-notification-notice-content ng-star-inserted');
 
-    if (element.length == 0) 
+    if (element.length == 0)
       this.notification.template(template);
   }
 
-  cleanTable(){
-    
-    const ids: number[] = [];
+  createBasicNotificationImportacion(template: TemplateRef<{}>, id: string): void {
+
+    this.NotificationIdForDelete = parseInt(id);
+    const element = document.getElementsByClassName('notificacionImportacion');
+
+    if (element.length == 0)
+      this.notification.template(template);
+  }
+
+  cleanTable() {
+
+    const ids = this.gridDataInsert.filter((f: any) => f.isfull == 1);
+
 
     this.gridDataInsert.forEach(objeto => {
       ids.push(objeto["id"]);
     });
 
     ids.pop();
-    
-   
-     for (let index = 0; index <= ids.length; index++) {
 
-      this.angularGridEdit.gridService.deleteItemById(ids[index]);
 
-     }
+    for (let index = 0; index <= ids.length; index++) {
 
-     this.gridDataInsert = [];
+      this.angularGridEdit.gridService.deleteItemById(ids[index]["id"]);
+
+    }
+
+    this.gridDataInsert = [];
 
   }
 
   confirmNewItem() {
-    this.gridDataInsert.pop()
-    //TODO Usar this.gridDataInsert
-    console.log("este es el grid data insert", this.gridDataInsert)
-    let isComplete = false;
-
-    for (let index of this.gridDataInsert) {
-      //este if valida el registro que se crea vacio
-      
-
-        // se valida que los registros esten completos
-        if (index["isfull"] == 1)
-          isComplete = true
-        else
-          isComplete = false
-      }
-
-    
-
-    if (isComplete) {
-
+    const altas = this.gridDataInsert.filter((f: any) => f.isfull == 1);
+    if (altas.length > 0) {
       (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
-        this.apiService.setAgregarRegistros({ gridDataInsert: this.gridDataInsert }).subscribe(evt => {
+      this.apiService.setAgregarRegistros({ gridDataInsert: altas }).subscribe(evt => {
         this.formChange$.next('')
         this.cleanTable()
-
       });
-    } else {
-      (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
-      this.notification.error('Grabación', 'Campos vacios');
     }
+  }
 
+  confirmDeleteImportacion() {
+    if ( this.NotificationIdForDelete > 0) {
+      (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
+      this.apiService.setDeleteImportacion({deleteId: this.NotificationIdForDelete}).subscribe(evt => {
+        this.recargarPaginaDespuesDe3Segundos()
+      });
+    }
+  }
 
-    isComplete
-    // agregar mensaje de que los registros no estan completos
-
+  recargarPaginaDespuesDe3Segundos() {
+    setTimeout(() => {
+      window.location.reload();
+    }, 3000); // 3000 milisegundos = 3 segundos
   }
 
   onCellChanged(e: any) {
@@ -685,7 +685,7 @@ export class LiquidacionesComponent {
         this.uploading$.next({ loading: true, event })
         this.gridDataImport$.next([])
         this.gridDataImportLen = 0
-        
+
         break;
       case 'progress':
 
@@ -695,17 +695,18 @@ export class LiquidacionesComponent {
         // console.log("di error...." + Error.error.data.list)
         this.gridDataImport$.next(Error.error.data.list)
         this.gridDataImportLen = Error.error.data.list?.length
-        this.uploading$.next({ loading:false,event })
+        this.uploading$.next({ loading: false, event })
         break;
       case 'success':
         const Response = event.file.response
         this.gridDataImport$.next([])
         this.gridDataImportLen = 0
         this.uploading$.next({ loading: false, event })
-        this.apiService.response(Response)        
+        this.apiService.response(Response)
+        this.recargarPaginaDespuesDe3Segundos()
         break
       default:
-        
+
         break;
     }
 

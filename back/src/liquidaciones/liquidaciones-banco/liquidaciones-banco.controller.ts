@@ -6,7 +6,7 @@ import { Filtro, Options } from "../../schemas/filtro";
 import xlsx, { WorkSheet } from 'node-xlsx';
 import Excel from 'exceljs';
 
-import path from "path";
+//import path from "path";
 import {
   PDFDocument,
   PDFEmbeddedPage,
@@ -509,8 +509,10 @@ export class LiquidacionesBancoController extends BaseController {
         let rowNum = 2
         let total = 0
         for (const row of banco) {
+          const PersonalApellidoNombre = row.PersonalApellidoNombre.replaceAll(',', '').replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
+
           file.write(format("CACT%s         %s%s                              000000                                                             0000000000000000000000000000000000000000000000000000                                                                                                                                                                                                                                    %s                                                                                                                                                                                                                                                                                                                   \r\n",
-            row.PersonalCUITCUILCUIT.toString().substring(0, 11).padStart(11, '0'), row.PersonalApellidoNombre.replaceAll(',', '').toUpperCase().padEnd(62, ' '), row.PersonalCUITCUILCUIT.toString().substring(0, 11).padStart(22, '0'), FechaEnvio))
+            row.PersonalCUITCUILCUIT.toString().substring(0, 11).padStart(11, '0'), PersonalApellidoNombre.padEnd(62, ' '), row.PersonalCUITCUILCUIT.toString().substring(0, 11).padStart(22, '0'), FechaEnvio))
           file.write(format("F14%s       %s00000000000000000%s                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      \r\n",
             row.PersonalBancoCBU.toString().padStart(22, '0'), Math.trunc(row.importe * 100).toString().padStart(17, '0'), FechaEnvio))
           file.write(format("DAOP%s%s000                                                                                                                                                                                         %s%s                                                                                                                        000000000000000000000000000000000000000000000000000000000000000000000000000000000                                                                                                                                                                        000000                                                                                                                                                                                          \r\n",
@@ -554,7 +556,7 @@ export class LiquidacionesBancoController extends BaseController {
       console.log("listdowload", listdowload)
 
       const formattedMonth = String(periodo.month).padStart(2, "0");
-      const filesPath = path.join(this.directory, String(periodo.year));
+      const filesPath = this.directory+'/'+String(periodo.year)
 
       const liquidaciones: LiqBanco[] = await this.BancoByPeriodo({
         anio: String(periodo.year),
@@ -622,7 +624,7 @@ export class LiquidacionesBancoController extends BaseController {
 
       if (locationIndex === 0) lastPage = newDocument.addPage(PageSizes.A4);
 
-      const filePath = path.join(filesPath, file.name);
+      const filePath = filesPath+'/'+ file.name
       const fileExists = existsSync(filePath);
 
       const pageWidth = lastPage.getWidth();

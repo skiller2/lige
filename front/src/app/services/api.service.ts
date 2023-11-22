@@ -256,7 +256,7 @@ export class ApiService {
 
           if (String(col.type) == 'currency' || String(col.type) == 'money') {
             col.formatter = Formatters.multiple
-            col.params= { formatters: [Formatters.currency, Formatters.alignRight] }
+            col.params= { formatters: [Formatters.currency, Formatters.alignRight], thousandSeparator: '.',decimalSeparator: ',' }
 
           }
           
@@ -397,6 +397,16 @@ export class ApiService {
      )
 
   }
+
+  setDeleteImportacion(deleteId: any) {
+    const parameter = deleteId
+    this.notification.success('Respuesta', `Inicio Borrado `);
+
+   return this.http.post<ResponseJSON<any>>('/api/liquidaciones/delete', parameter).pipe(
+     tap(res => this.response(res)),
+    )
+
+ }
 
   setCambiarCategorias(filters: any) {
     const parameter = filters

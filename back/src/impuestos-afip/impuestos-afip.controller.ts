@@ -28,7 +28,7 @@ import {
 } from "pdf-lib";
 
 import { tmpName } from "../server";
-import path from "path";
+//import path from "path";
 import { DescuentoJSON } from "../schemas/ResponseJSON";
 import { Filtro, Options } from "../schemas/filtro";
 import { listaColumnas } from "./comprobantes-utils/lista";
@@ -82,7 +82,7 @@ export class ImpuestosAfipController extends BaseController {
       const periodo = getPeriodoFromRequest(req);
       const filtro = getFiltroFromRequest(req);
 
-      const filesPath = path.join(this.directory, String(periodo.year));
+      const filesPath = this.directory+'/'+ String(periodo.year)
     } catch (error) {
       return next(error)
     }
@@ -99,7 +99,7 @@ export class ImpuestosAfipController extends BaseController {
       const cantxpag = req.body.cantxpag
 
       const formattedMonth = String(periodo.month).padStart(2, "0");
-      const filesPath = path.join(this.directory, String(periodo.year));
+      const filesPath = this.directory+'/'+String(periodo.year)
 
       const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
         anio: String(periodo.year),
@@ -627,7 +627,7 @@ export class ImpuestosAfipController extends BaseController {
   ) {
     try {
       const formattedMonth = month.padStart(2, "0");
-      const filesPath = path.join(this.directory, year);
+      const filesPath = this.directory+'/'+year
 
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
@@ -700,7 +700,7 @@ export class ImpuestosAfipController extends BaseController {
 
       if (locationIndex === 0) lastPage = newDocument.addPage(PageSizes.A4);
 
-      const filePath = path.join(filesPath, file.name);
+      const filePath = filesPath+'/'+file.name
       const fileExists = existsSync(filePath);
 
       const pageWidth = lastPage.getWidth();

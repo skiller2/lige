@@ -10,8 +10,10 @@ import { ClientException } from "../controller/baseController";
 
 export const informesRouter = Router();
 
-
-//informesRouter.post('/', [authMiddleware.verifyToken], async (req, res, next) => {
 informesRouter.post('/', [], async (req, res, next) => {
+    await informesController.Report(req, res, next)
+})
+
+informesRouter.post('/descarga', [authMiddleware.verifyToken], async (req, res, next) => {
     await informesController.Report(req, res, next)
 })
