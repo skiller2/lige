@@ -1,1 +1,8 @@
-<p>HOLA MUNDO</p>
+<nz-select #msc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }" 
+style="width: 100%" nzAllowClear nzPlaceHolder="Tipo de Movimiento"
+nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
+    <ng-container *ngFor="let option of $optionsArray | async">
+        <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.tipo_movimiento_id"
+          nzLabel="{{ option.des_movimiento }}" />
+    </ng-container>
+</nz-select>
