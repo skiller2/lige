@@ -99,7 +99,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   verifySelections(): boolean {
-    // console.log('verifySelections(1) -> this.selections', this.selections);
+    console.log('verifySelections(1) -> this.selections', this.selections);
     const type = (this.selections.field.type) ? this.selections.field.type : 'string'
 
     this.selections.operator = (this.selections.field.searchComponent) ? "=" : this.selections.operator

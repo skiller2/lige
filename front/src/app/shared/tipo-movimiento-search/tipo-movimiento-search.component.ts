@@ -77,13 +77,15 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
   }
 
   async ngOnInit() { 
-    firstValueFrom(this.apiService.getTipoMovimiento('').pipe(tap(res => { 
-      this.tipo_movimiento = res
-    })))
   }
 
   ngAfterViewInit() {
-    // 
+    // firstValueFrom(this.apiService.getTipoMovimiento('').pipe(tap(res => { 
+    //   this.tipo_movimiento = res
+    //   console.log('this.tipo_movimiento',this.tipo_movimiento);
+      
+    // })))
+
     /*
     setTimeout(() => {
       this.msc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
@@ -108,9 +110,10 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
         return
       }
       firstValueFrom(
-        this.searchService
-          .ObjetivoInfoFromId(this._selectedId)
+        this.apiService.
+        getTipoMovimientoById(this._selectedId)
           .pipe(tap(res => {
+            console.log('res',res);
             this.extendedOption = res
             this._selected = this._selectedId
             this.valueExtendedEmitter.emit(this.extendedOption)
@@ -127,15 +130,14 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
   }
 
   $optionsArray = this.$searchChange.pipe(
-    // debounceTime(500),
-    // switchMap(value => {
-    //   return this.searchService
-    //     .getTipoMovimiento(value)
-    //     .pipe(
-    //       doOnSubscribe(() => this.$isOptionsLoading.next(true)),
-    //       tap({ complete: () => this.$isOptionsLoading.next(false) })
-    //     );
-    // })
+    debounceTime(500),
+    switchMap(value => {
+      return this.apiService.getTipoMovimientoById('all')
+        .pipe(
+          doOnSubscribe(() => this.$isOptionsLoading.next(true)),
+          tap({ complete: () => this.$isOptionsLoading.next(false) })
+        );
+    })
   )
 
   modelChange(val: string) {
@@ -143,7 +145,7 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
   }
 
   search(value: string): void {
-    this.extendedOption = { objetivoId: 0, clienteId: 0, elementoDependienteId: 0, descripcion: '', fullName: '' }
+    // this.extendedOption = { objetivoId: 0, clienteId: 0, elementoDependienteId: 0, descripcion: '', fullName: '' }
     this.$searchChange.next(value);
   }
 }

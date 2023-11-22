@@ -35,6 +35,7 @@
       "bcryptjs": "^2.4.3",
       "body-parser": "^1.20.2",
       "dotenv": "^16.3.1",
+      "es-dirname": "^0.1.0",
       "exceljs": "^4.3.0",
       "express": "^4.18.2",
       "express-rate-limit": "^6.7.1",
@@ -55,9 +56,7 @@
    "scripts": {
       "devold": "npx nodemon ./src/index.ts",
       "dev": "tsx watch --tsconfig ./tsconfig.json ./src/index.ts",
-      "buildold": "npx tsc",
-      "build": "ncc -m build ./src/index.ts",
-      "build2": "npx esbuild --bundle ./src/index.ts --bundle --platform=node --format=esm --outdir=dist --loader:.node=copy",
+      "build": "node ./scripts/builds.mjs",
       "start": "npm run dev"
    }
 }
