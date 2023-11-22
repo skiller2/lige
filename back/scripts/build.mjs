@@ -8,6 +8,7 @@ const buildOptions = {
   target: "esnext",
   platform: "node",
   logLevel: "info",
+  loader:{'.node':'copy'},
 
   banner: {
     js: `

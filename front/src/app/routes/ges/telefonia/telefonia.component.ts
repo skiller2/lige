@@ -228,8 +228,10 @@ export class TelefoniaComponent {
         break;
       case 'error':
         const Error = event.file.error
-        this.gridDataImport$.next(Error.error.data.list)
-        this.gridDataImportLen = Error.error.data.list.length
+        if (Error.error.data?.list) {
+          this.gridDataImport$.next(Error.error.data?.list)
+          this.gridDataImportLen = Error.error.data?.list?.length
+        }
         this.uploading$.next({ loading:false,event })
         break;
       case 'success':
