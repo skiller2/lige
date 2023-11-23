@@ -30,13 +30,28 @@
             httpUrl="api/liquidaciones/download/banco/">
             <span nz-icon nzType="download"></span> Generar Banco Patagonia
           </li>
-          <li nz-menu-item id="confirmaMovimientosBanco" (click)="confirmaMovimientosBanco($event)" >
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Confirma depósitos pendientes
+          <li nz-menu-item nz-popconfirm
+          nzPopconfirmTitle="Confirma depósitos pendientes?"
+          [nzBeforeConfirm]=""
+          [nzPopconfirmShowArrow]="false"
+          (nzOnConfirm)="confirmaMovimientosBanco($event)"
+          >
+            <span nz-icon nzType="plus" nzTheme="outline"></span>Confirma depósitos pendientes
           </li>
-          <li nz-menu-item id="confirmaMovimientosBanco" (click)="eliminaMovimientosBanco($event,11)" >
+          <li nz-menu-item  nz-popconfirm
+          nzPopconfirmTitle="Elimina archivo pendiente banco Itau?"
+          [nzBeforeConfirm]=""
+          [nzPopconfirmShowArrow]="false"
+          (nzOnConfirm)="eliminaMovimientosBanco($event,11)" >
             <span nz-icon nzType="plus" nzTheme="outline"></span>Elimina archivo pendiente banco Itau
           </li>
-          <li nz-menu-item id="confirmaMovimientosBanco" (click)="eliminaMovimientosBanco($event,4)" >
+          <li nz-menu-item  nz-popconfirm
+          nzPopconfirmTitle="Elimina archivo pendiente banco Patagonia?"
+          [nzBeforeConfirm]=""
+          [nzPopconfirmShowArrow]="false"
+          (nzOnConfirm)="eliminaMovimientosBanco($event,4)"
+          
+          >
             <span nz-icon nzType="plus" nzTheme="outline"></span>Elimina archivo pendiente banco Patagonia
           </li>
         </ul>
