@@ -71,6 +71,11 @@
               "text": "Objetivos Pendientes Asitencia",
               "link": "/ges/objetivos_pendasis",
               "icon": "anticon-profile"
+            },
+            {
+              "text": "Carga Asistencia",
+              "link": "/ges/carga_asistencia",
+              "icon": "anticon-profile"
             }
           ]
         },

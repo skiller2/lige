@@ -39,8 +39,8 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
   $searchChange = new BehaviorSubject('');
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
 
-  private _selectedId: string = ''
-  _selected = ''
+  private _selectedId: any = null
+  _selected: any
   extendedOption = {  }
   tipo_movimiento:any
 
@@ -99,27 +99,29 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
     return this._selectedId
   }
 
-  set selectedId(val: string) {
+  set selectedId(val: any) {
     val = (val === null || val === undefined) ? '' : val
     if (val !== this._selectedId) {
       this._selectedId = val
 
-      if (!this._selectedId && this._selectedId !== null) {
+      if (val.length==0) {
         this.valueExtendedEmitter.emit(null)
-        this.propagateChange(this._selectedId)
+        this.propagateChange('')
         return
       }
-      firstValueFrom(
-        this.apiService.
-        getTipoMovimientoById(this._selectedId)
-          .pipe(tap(res => {
-            console.log('res',res);
-            this.extendedOption = res
-            this._selected = this._selectedId
-            this.valueExtendedEmitter.emit(this.extendedOption)
-            this.propagateChange(this._selectedId)
-          }))
-      )
+
+      let labelArr:string[] = []
+      let valueArr:number[] = []
+      for (const row of val) {
+        labelArr.push(row.des_movimiento)
+        valueArr.push(row.tipo_movimiento_id)
+      }
+
+      const fullName = labelArr.join(' o ')
+
+      this.valueExtendedEmitter.emit({fullName})
+//      this.propagateChange([val[0].tipo_movimiento_id,val[1].tipo_movimiento_id])
+      this.propagateChange(valueArr)
     }
   }
 
@@ -140,7 +142,7 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
     })
   )
 
-  modelChange(val: string) {
+  modelChange(val: any) {
     this.selectedId = val;
   }
 

@@ -501,7 +501,7 @@
           <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
           <nz-form-control nzHasFeedback>
             <app-personal-search name="persona_id_responsable"
-              (ngModelChange)="selectedValueChange($event, Busqueda.Responsable)" ngModel />
+              (ngModelChange)="selectedValueChange($event, Busqueda.Responsable)" [(ngModel)]="responsable" />
           </nz-form-control>
         </nz-form-item>
       </form>

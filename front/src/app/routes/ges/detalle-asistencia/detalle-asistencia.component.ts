@@ -21,6 +21,7 @@ import { SharedModule } from '@shared';
 import { CurrencyPipeModule } from '@delon/util';
 import { NzResizableModule } from 'ng-zorro-antd/resizable';
 import { NavigationEnd, Router } from '@angular/router';
+import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 
 enum Busqueda {
   Sucursal,
@@ -44,6 +45,10 @@ export class DetalleAsistenciaComponent {
     new NgForm([], []);
   @ViewChild('asistenciaPer', { static: true }) asistenciaPer: NgForm =
     new NgForm([], []);
+  //@ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
+
+
+
   public get Busqueda() {
     return Busqueda;
   }
@@ -307,8 +312,15 @@ export class DetalleAsistenciaComponent {
   $isPersonalDataLoading = new BehaviorSubject(false);
   $isResponsableDataLoading = new BehaviorSubject(false);
 
+
+
   ngAfterViewInit(): void {
     const now = new Date(); //date
+    const user: any = this.settingService.getUser()
+    setTimeout(() => {
+      this.responsable = user.PersonalId
+    }, 100)
+  
     setTimeout(() => {
       const anio =
         Number(localStorage.getItem('anio')) > 0
@@ -379,9 +391,6 @@ export class DetalleAsistenciaComponent {
 
 
   ngOnInit(): void {
-    const user: any = this.settingService.getUser()
-    this.responsable = user.PersonalId
-
 
 /*
     this.router.events.subscribe((val) => {
