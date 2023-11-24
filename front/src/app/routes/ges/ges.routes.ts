@@ -1,6 +1,10 @@
 import { Routes } from '@angular/router';
 
 export const GesRoutes: Routes = [
+  // {
+  //   path: 'carga_asistencia',
+  //   loadComponent: () => import('./carga_asistencia/carga-asistencia.component').then(c => c.CargaAsistenciaComponent),
+  // },
   {
     path: 'objetivos_pendasis',
     loadComponent: () => import('./objetivos-pendasis/objetivos-pendasis.component').then(c => c.ObjetivosPendAsisComponent),
