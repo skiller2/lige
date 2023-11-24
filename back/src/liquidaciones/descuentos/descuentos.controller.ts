@@ -86,15 +86,17 @@ export class DescuentosController extends BaseController {
 
         if (row.cantcuotas > 1)
           detalle += ` cuota ${row.cuotanro}/${row.cantcuotas}, total $ ${row.importetotal} `
+        const tipocuenta_id= (row.ObjetivoId>0 && row.PersonalId>0)?'C':'G'
 
         await queryRunner.query(
-          `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,
+          `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipocuenta_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)
+              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)
                      `,
           [
             ++movimiento_id,
             periodo_id,
+            tipocuenta_id,
             tipo_movimiento_id,
             fechaActual,
             detalle,

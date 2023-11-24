@@ -70,7 +70,7 @@ export class AppComponent implements OnInit {
         interval(1000 * 10).subscribe(val => {
           this.swUpdate
             .checkForUpdate()
-            .then(_ => console.log('SW Checking for updates'));
+            .then(res => console.log('SW Checking for updates', res));
         })
       );
     }
@@ -93,13 +93,13 @@ export class AppComponent implements OnInit {
 
   private async loadModalPwa(): Promise<void> {
     if ("getInstalledRelatedApps" in navigator) {
-      
+
       // then... you can call navigator.getInstalledRelatedApps()
-      const fun:any = navigator['getInstalledRelatedApps'];
-      
+      const fun: any = navigator['getInstalledRelatedApps'];
+
       const listOfInstalledApps = await fun.call(navigator).then((relatedApps: any) => {
-        console.log('relatedApps',relatedApps)
-        
+        console.log('relatedApps', relatedApps)
+
         relatedApps.forEach((app: any) => {
           console.log('platform:', app.platform);
           console.log('url:', app.url);
@@ -108,16 +108,16 @@ export class AppComponent implements OnInit {
           console.log('version:', app.version);
         });
       })
-    
-    
-//      console.log("getInstalledRelatedApps", listOfInstalledApps)
+
+
+      //      console.log("getInstalledRelatedApps", listOfInstalledApps)
       //      const relatedApps = await navigator.
     }
 
-    
-    if (!('serviceWorker' in navigator)){
+
+    if (!('serviceWorker' in navigator)) {
       return;
-    }    
+    }
 
 
     if (window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && (navigator as any).standalone === true)) {
@@ -126,13 +126,13 @@ export class AppComponent implements OnInit {
 
     if (this.platform.ANDROID) {
       this.modalPwaPlatform = 'ANDROID';
-       //No es muy compatible
+      //No es muy compatible
       window.addEventListener('beforeinstallprompt', (event: any) => {
         event.preventDefault();
         this.modalPwaEvent = event;
         this.modalPwaPlatform = 'ANDROID';
       });
-      
+
     }
 
 
@@ -142,7 +142,7 @@ export class AppComponent implements OnInit {
     }
 
     if (this.modalPwaPlatform) {
-//      this.notification.template(this.tplpwa, { nzDuration: 10000, nzPauseOnHover: true })
+      //      this.notification.template(this.tplpwa, { nzDuration: 10000, nzPauseOnHover: true })
     }
 
   }
@@ -159,13 +159,15 @@ export class AppComponent implements OnInit {
 
     if (this.swUpdate.isEnabled) {
 
-      this.swUpdate.versionUpdates.pipe(
-        filter((evt: any): evt is VersionReadyEvent => evt.type === 'VERSION_READY'),
-        map((evt: any) => {
-          console.info(`currentVersion=[${evt.currentVersion} | latestVersion=[${evt.latestVersion}]`);
-          this.modalVersion = true;
-        }),
-      );
+      this.swUpdate.versionUpdates
+        .pipe(
+          filter((evt: any): evt is VersionReadyEvent => evt.type === 'VERSION_READY'),
+          map((evt: any) => {
+            console.info(`currentVersion=[${evt.currentVersion} | latestVersion=[${evt.latestVersion}]`);
+            this.modalVersion = true;
+          }),
+        )
+        .subscribe()
     }
 
 
@@ -196,5 +198,5 @@ export class AppComponent implements OnInit {
   }
 
 
-  
+
 }

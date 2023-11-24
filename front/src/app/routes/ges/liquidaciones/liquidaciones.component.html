@@ -50,9 +50,25 @@
         </ul>
         
       </li>
-      <li nz-menu-item (click)="exportGrid()">
-        <span nz-icon nzType="download"></span>XLS
+
+      <li nz-submenu nzTitle="Informes">
+        <ul style="width: auto !important">
+          <li nz-menu-item app-down-file [httpMethod]="'POST'"
+            [httpBody]="{'Reporte':'Banelco','Formato':'EXCEL', 'Filtros': {'Anio':selectedPeriod.year,'Mes':selectedPeriod.month}}"
+            httpUrl="api/informes/descarga"
+            notificationMsg="Generando Informe Banelco">
+            <span nz-icon nzType="download"></span><span style="white-space: normal;">Banelco</span> 
+          </li>
+          <li nz-menu-item (click)="exportGrid()">
+            <span nz-icon nzType="download"></span><span style="white-space: normal;">Grilla</span>
+          </li>
+    
+        </ul>
+        
       </li>
+
+
+
 
       <li nz-menu-item nzMatchRouter >
         <span nz-icon nzType=""></span>

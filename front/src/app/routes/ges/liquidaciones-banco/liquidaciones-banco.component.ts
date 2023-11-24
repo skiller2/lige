@@ -50,7 +50,7 @@ export class LiquidacionesBancoComponent {
   toggle = false;
   anio = 0
   mes = 0
-  listdowload="";
+  listdowload = "";
   detailViewRowCount = 9;
   gridDataLen = 0
   gridAyudaDataLen = 0
@@ -164,8 +164,8 @@ export class LiquidacionesBancoComponent {
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
-    
-    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg)=>{
+
+    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGrid)
       columnTotal('importe', this.angularGrid)
     })
@@ -179,11 +179,11 @@ export class LiquidacionesBancoComponent {
     if (this.apiService.isMobile())
       this.angularGridAyuda.gridService.hideColumnByIds([])
 
-    this.angularGridAyuda.dataView.onRowsChanged.subscribe((e, arg)=>{
+    this.angularGridAyuda.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGridAyuda)
       columnTotal('importe', this.angularGridAyuda)
     })
-    
+
   }
 
   gridData$ = this.formChange$.pipe(
@@ -197,7 +197,7 @@ export class LiquidacionesBancoComponent {
         .pipe(
           map(data => {
             this.anio = periodo.getFullYear();
-            this.mes = periodo.getMonth()+1;
+            this.mes = periodo.getMonth() + 1;
             this.listdowload = "gridData";
             return data.list
           }),
@@ -218,16 +218,16 @@ export class LiquidacionesBancoComponent {
         .pipe(
           map(data => {
             this.anio = periodo.getFullYear();
-            this.mes = periodo.getMonth()+1;
+            this.mes = periodo.getMonth() + 1;
             this.gridDataLen = data.list.length;
             this.listdowload = "gridDataAyuda";
-            
+
             // let gridDataTotalImporte = 0
             // for (let index = 0; index < data.list.length; index++) {
             //   if(data.list[index].importe)
             //     gridDataTotalImporte += data.list[index].importe
             // }
-            
+
             // this.gridObjAyuda.getFooterRowColumn('importe').innerHTML = 'Total: ' + gridDataTotalImporte.toFixed(2)
             // this.gridObjAyuda.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
 
@@ -249,7 +249,7 @@ export class LiquidacionesBancoComponent {
 
     this.formChange('');
   }
-  
+
 
   exportGrid() {
     this.excelExportService.exportToExcel({
@@ -258,7 +258,7 @@ export class LiquidacionesBancoComponent {
     });
   }
 
-  
+
 
   columns$ = this.apiService.getCols('/api/liquidaciones/banco/cols').pipe(map((cols) => {
     console.log("imprimo columnas", cols)
@@ -312,6 +312,19 @@ export class LiquidacionesBancoComponent {
   }
 
   async confirmaMovimientosBanco(e: any) {
-    firstValueFrom(this.apiService.confirmaMovimientosBanco().pipe(tap(res => this.formChange$.next(''))))
+    try {
+      await firstValueFrom(this.apiService.confirmaMovimientosBanco().pipe(tap(res => this.formChange$.next(''))))
+    } catch (e) {
+
+    }
+  }
+
+  async eliminaMovimientosBanco(e: any, banco_id: number) {
+    try {
+      await firstValueFrom(this.apiService.eliminaMovimientosBanco(banco_id).pipe(tap(res => this.formChange$.next(''))))
+    } catch (e) {
+
+    }
+
   }
 }

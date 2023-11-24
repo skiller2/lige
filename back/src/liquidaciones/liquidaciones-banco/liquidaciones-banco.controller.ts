@@ -239,7 +239,7 @@ export class LiquidacionesBancoController extends BaseController {
         LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
         WHERE  (${filterSql}) 
         ${orderBy}
-        `, [anio, mes,stmactual])
+        `, [anio, mes, stmactual])
 
   }
 
@@ -269,7 +269,7 @@ export class LiquidacionesBancoController extends BaseController {
               
       WHERE (${filterSql}) 
       ${orderBy}
-      `, [anio, mes,stmactual])
+      `, [anio, mes, stmactual])
 
   }
 
@@ -334,7 +334,37 @@ export class LiquidacionesBancoController extends BaseController {
   }
 
 
- 
+
+
+  async eliminaMovimientosBanco(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner()
+    const fechaActual = new Date()
+    const ip = this.getRemoteAddress(req)
+    const usuario = res.locals.userName
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const banco_id = Number(req.body.banco_id)
+      const pend = await queryRunner.query('SELECT * FROM lige.dbo.liqmvbanco WHERE banco_id = @0', [banco_id])
+
+      if (pend.length == 0)
+        throw new ClientException('No hay archivo generado pendiente para el banco seleccionado')
+
+      await queryRunner.query('DELETE FROM lige.dbo.liqmvbanco WHERE banco_id = @0', [banco_id])
+      await queryRunner.commitTransaction();
+      return this.jsonRes([], res, `Se eliminó el archivo pendiente`);
+
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+
+      return next(error)
+    }
+
+  }
+
 
   async confirmaMovimientosBanco(req: Request, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner()
@@ -346,10 +376,13 @@ export class LiquidacionesBancoController extends BaseController {
     await queryRunner.startTransaction();
     try {
       const liqmvbanco = await queryRunner.query('SELECT mv.*, ban.BancoDescripcion, per.anio, per.mes FROM lige.dbo.liqmvbanco mv JOIN Banco ban ON ban.BancoId = mv.banco_id JOIN lige.dbo.liqmaperiodo per ON per.periodo_id=mv.periodo_id', [])
+
+
       if (liqmvbanco.length == 0)
         throw new ClientException('No hay movimientos pendientes de confirmar')
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
+      const tipo_movimiento_id_ade = 1 //Adelanto
       const tipo_movimiento_id = 11 //Depósito
       for (let row of liqmvbanco) {
         if (row.ind_imputacion == 'CUE') {
@@ -372,18 +405,47 @@ export class LiquidacionesBancoController extends BaseController {
             row.importe,
             row.mes.toString().padStart(2, '0') + '/' + row.anio.toString()
             ])
+
+          //Adelanto Positivo          
+          await queryRunner.query(`INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,
+            aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13)`,
+            [++movimiento_id,
+            row.periodo_id,
+              tipo_movimiento_id_ade,
+              fechaActual,
+              `Adelanto`,
+              null,
+            row.persona_id,
+            row.importe,
+              usuario, ip, fechaActual, usuario, ip, fechaActual,
+            ])
+
+
+
+          await queryRunner.query(`INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,
+            aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13)`,
+            [++movimiento_id,
+            row.periodo_id,
+              tipo_movimiento_id,
+              fechaActual,
+            `Banco: ${row.BancoDescripcion.trim()}, Envio: ${row.envio_nro}, CBU ${row.cbu}`,
+              null,
+            row.persona_id,
+            row.importe,
+              usuario, ip, fechaActual, usuario, ip, fechaActual,
+            ])
+
+
         }
 
       }
 
       await queryRunner.query('DELETE FROM lige.dbo.liqmvbanco', [])
 
-
-      //      throw new ClientException(`Se confirmaron ${liqmvbanco.length} movimientos`)
-
-
       await queryRunner.commitTransaction();
-      return next(`Se confirmaron ${liqmvbanco.length} movimientos`)
+      return this.jsonRes([], res, `Se confirmaron ${liqmvbanco.length} movimientos`);
 
     } catch (error) {
       if (queryRunner.isTransactionActive)
@@ -490,8 +552,11 @@ export class LiquidacionesBancoController extends BaseController {
         const cabeceraData = [['Número de Envio', 'Fecha de acreditación'], [nro_envio, fechaActual]]
 
         exportData.push(['Código de concepto', 'Importe neto a acreditar', 'Apellido y Nombre (Opcional)', 'Tipo de documento', 'Nro. de documento'])
-        for (let row of banco)
-          exportData.push(['001', row.importe, row.PersonalApellidoNombre.replaceAll(',', ''), '001', Number(String(row.PersonalCUITCUILCUIT).substring(2, 10))])
+        for (let row of banco) {
+          const PersonalApellidoNombre = row.PersonalApellidoNombre.replaceAll(',', '').replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
+          exportData.push(['001', row.importe, '', 1, Number(String(row.PersonalCUITCUILCUIT).substring(2, 10))])
+        }
+
         buffer = xlsx.build([
           { name: 'Cabecera', data: cabeceraData, options: { '!cols': [{ wch: 20 }, { wch: 20 }, { wch: 30 }, { wch: 20 }, { wch: 20 }] } },
           { name: 'Registros', data: exportData, options: { '!cols': [{ wch: 20 }, { wch: 20 }, { wch: 30 }, { wch: 20 }, { wch: 20 }] } }
@@ -556,7 +621,7 @@ export class LiquidacionesBancoController extends BaseController {
       console.log("listdowload", listdowload)
 
       const formattedMonth = String(periodo.month).padStart(2, "0");
-      const filesPath = this.directory+'/'+String(periodo.year)
+      const filesPath = this.directory + '/' + String(periodo.year)
 
       const liquidaciones: LiqBanco[] = await this.BancoByPeriodo({
         anio: String(periodo.year),
@@ -624,7 +689,7 @@ export class LiquidacionesBancoController extends BaseController {
 
       if (locationIndex === 0) lastPage = newDocument.addPage(PageSizes.A4);
 
-      const filePath = filesPath+'/'+ file.name
+      const filePath = filesPath + '/' + file.name
       const fileExists = existsSync(filePath);
 
       const pageWidth = lastPage.getWidth();

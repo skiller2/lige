@@ -693,8 +693,10 @@ export class LiquidacionesComponent {
       case 'error':
         const Error = event.file.error
         // console.log("di error...." + Error.error.data.list)
-        this.gridDataImport$.next(Error.error.data.list)
-        this.gridDataImportLen = Error.error.data.list?.length
+        if (Error.error.data?.list) {
+          this.gridDataImport$.next(Error.error.data?.list)
+          this.gridDataImportLen = Error.error.data?.list?.length
+        }
         this.uploading$.next({ loading: false, event })
         break;
       case 'success':

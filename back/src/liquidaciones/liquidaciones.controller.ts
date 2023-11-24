@@ -454,9 +454,9 @@ export class LiquidacionesController extends BaseController {
         //Fijarse si el valor row[1] y row[3] no es numérco
 
 
-        const cuit = row[2]
-        const detalle = row[1]
-        const importe = row[4]
+        const cuit = row[1]
+        const detalle = row[2]
+        const importe = row[3]
 
         let persona
 

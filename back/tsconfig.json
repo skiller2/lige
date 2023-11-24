@@ -6,7 +6,6 @@
 
   },
   "compileOnSave": false,
-  "exclude": ["./dist","./node_modules"],
   "compilerOptions": {
     "baseUrl": "./",
     "rootDir": "./src",
@@ -17,10 +16,10 @@
     "downlevelIteration": true,
     "experimentalDecorators": true,
     "esModuleInterop":true,
-    "module": "ES2022",
+    "module": "ESNext",
+    "target": "ESNext",
     "moduleResolution": "Bundler",
     "importHelpers": true,
-    "target": "ESNext",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "strict":false,
@@ -35,14 +34,9 @@
     ],
     "lib": [
       "es2021",
-      "dom"
     ]
   },
-  "angularCompilerOptions": {
-    "fullTemplateTypeCheck": true,
-    "strictInjectionParameters": true
-  },
- // "references": [      // this is how we declare a dependency from
-//    { "path": "../" }  // this project to the one at the root dir`
-//  ]
+  
+  "exclude": ["scripts/**"]
+  
 }
