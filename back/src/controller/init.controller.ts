@@ -1,31 +1,31 @@
-import { Request, Response,NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
 import { CategoriasController } from "../categorias-cambio/categorias-cambio.controller";
 
 export class InitController extends BaseController {
-  getCategoriasPendientes(req: Request, res: Response,next:NextFunction) {
+  getCategoriasPendientes(req: Request, res: Response, next: NextFunction) {
     CategoriasController.listCambiosPendCategoria({}).then((records: Array<any>) => {
       let data: { x: string; y: any; }[] = []
       let total = 0
 
-//        if (records.length ==0) throw new ClientException('Data not found')
-      records.forEach(rec => { 
-//        data.push({ x: rec.SucursalDescripcion, y: rec.CantidadObjetivos })
-//        total += rec.CantidadObjetivos
+      //        if (records.length ==0) throw new ClientException('Data not found')
+      records.forEach(rec => {
+        //        data.push({ x: rec.SucursalDescripcion, y: rec.CantidadObjetivos })
+        //        total += rec.CantidadObjetivos
         total++
       })
 
-      this.jsonRes({ data, total },res);
-    
+      this.jsonRes({ data, total }, res);
+
     })
-    .catch((error) => {
-      return next(error);
-    });
+      .catch((error) => {
+        return next(error);
+      });
   }
 
-  
-  getObjetivosSinAsistencia(req: Request, res: Response,next:NextFunction) {
+
+  getObjetivosSinAsistencia(req: Request, res: Response, next: NextFunction) {
     const con = dataSource;
     const anio = req.params.anio
     const mes = req.params.mes
@@ -122,26 +122,86 @@ export class InitController extends BaseController {
               
         GROUP BY suc.SucursalId, suc.SucursalDescripcion
         `,
-        [anio,mes]
+        [anio, mes]
       )
       .then((records: Array<any>) => {
         let data: { x: string; y: any; }[] = []
         let total = 0
-//        if (records.length ==0) throw new ClientException('Data not found')
-        records.forEach(rec => { 
+        //        if (records.length ==0) throw new ClientException('Data not found')
+        records.forEach(rec => {
           data.push({ x: rec.SucursalDescripcion, y: rec.CantidadObjetivos })
           total += rec.CantidadObjetivos
         })
 
-        this.jsonRes({ objetivosSinAsistencia: data, objetivosSinAsistenciaTotal:total, anio:anio, mes:mes },res);
-      
+        this.jsonRes({ objetivosSinAsistencia: data, objetivosSinAsistenciaTotal: total, anio: anio, mes: mes }, res);
+
       })
       .catch((error) => {
         return next(error);
       });
   }
 
-  getAdelantosPendientes(req: Request, res: Response,next:NextFunction) {
+  getObjetivosSinGrupo(req: Request, res: Response, next: NextFunction) {
+    const con = dataSource;
+    const stmactual = new Date()
+    con
+      .query(
+        `SELECT
+                 
+        obj.ObjetivoId, 
+        obj.ClienteId,
+        obj.ClienteElementoDependienteId,
+        obj.ObjetivoDescripcion,
+    gru.GrupoActividadObjetivoId,
+    gru.GrupoActividadId,
+        
+        ISNULL(clicon.ClienteContratoFechaHasta,eledepcon.ClienteElementoDependienteContratoFechaHasta) fechaHasta,
+        gru.GrupoActividadObjetivoHasta,
+        1
+        
+    FROM Objetivo obj
+
+  LEFT JOIN GrupoActividadObjetivo gru  ON gru.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
+
+    LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+    LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledepcon.ClienteElementoDependienteContratoId = eledep.ClienteElementoDependienteContratoUltNro
+    
+    LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
+    LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = obj.ClienteId AND clicon.ClienteContratoId = cli.ClienteContratoUltNro AND obj.ClienteElementoDependienteId IS NULL 
+
+        
+        
+    WHERE 
+  
+gru.GrupoActividadObjetivoId IS null
+AND         (
+     (clicon.ClienteContratoFechaDesde <= @0 AND ISNULL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNULL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= @0) OR (
+     eledepcon.ClienteElementoDependienteContratoFechaDesde <= @0 AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0) 
+  )
+        `,
+        [stmactual]
+      )
+      .then((records: Array<any>) => {
+        let data: { x: string; y: any; }[] = []
+        let total = 0
+
+        records.forEach(rec => {
+
+//          data.push({ x: rec.totalpersonas, y: rec.PersonalAdelantoMonto })
+          //          total += rec.totalpersonas
+          total++
+        })
+
+        this.jsonRes({ objetivossingrupo: data, objetivossingrupoTotal: total }, res);
+
+      })
+      .catch((error) => {
+        return next(error);
+      });
+  }
+
+
+  getAdelantosPendientes(req: Request, res: Response, next: NextFunction) {
     const con = dataSource;
     const stmactual = new Date()
     con
@@ -151,24 +211,24 @@ export class InitController extends BaseController {
         [stmactual]
       )
       .then((records: Array<any>) => {
-        let data: { x: string; y: any; }[]=[]
-        let total=0
-  //      if (records.length ==0) throw new ClientException('Data not found')
+        let data: { x: string; y: any; }[] = []
+        let total = 0
+        //      if (records.length ==0) throw new ClientException('Data not found')
         records.forEach(rec => {
-          
+
           data.push({ x: rec.totalpersonas, y: rec.PersonalAdelantoMonto })
           total += rec.totalpersonas
         })
 
-        this.jsonRes({ adelantos: data, adelantosTotal: total },res);
-      
+        this.jsonRes({ adelantos: data, adelantosTotal: total }, res);
+
       })
       .catch((error) => {
         return next(error);
       });
   }
 
-  getExcepcionesPendientes(req: Request, res: Response,next:NextFunction) {
+  getExcepcionesPendientes(req: Request, res: Response, next: NextFunction) {
     const con = dataSource;
     const stmactual = new Date()
     con
@@ -192,17 +252,17 @@ export class InitController extends BaseController {
         [stmactual]
       )
       .then((records: Array<any>) => {
-        let data: { x: string; y: any; }[]=[]
-        let total=0
-  //      if (records.length ==0) throw new ClientException('Data not found')
+        let data: { x: string; y: any; }[] = []
+        let total = 0
+        //      if (records.length ==0) throw new ClientException('Data not found')
         records.forEach(rec => {
-          
+
           data.push({ x: rec.SucursalDescripcion, y: rec.totalpersonas })
           total += rec.totalpersonas
         })
 
-        this.jsonRes({ Excepciones: data, excepcionesTotal: total },res);
-      
+        this.jsonRes({ Excepciones: data, excepcionesTotal: total }, res);
+
       })
       .catch((error) => {
         return next(error);
@@ -211,7 +271,7 @@ export class InitController extends BaseController {
 
 
 
-  getObjetivosActivos(req: Request, res: Response,next:NextFunction) {
+  getObjetivosActivos(req: Request, res: Response, next: NextFunction) {
     const con = dataSource;
     const stmactual = new Date()
     con
@@ -254,17 +314,17 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         [stmactual]
       )
       .then((records: Array<any>) => {
-        let data: { x: string; y: any; }[]=[]
-        let total=0
-  //      if (records.length ==0) throw new ClientException('Data not found')
+        let data: { x: string; y: any; }[] = []
+        let total = 0
+        //      if (records.length ==0) throw new ClientException('Data not found')
         records.forEach(rec => {
-          
+
           data.push({ x: rec.SucursalDescripcion, y: rec.CantidadObjetivos })
           total += rec.CantidadObjetivos
         })
 
-        this.jsonRes({ objetivosActivos: data, objetivosActivosTotal: total },res);
-      
+        this.jsonRes({ objetivosActivos: data, objetivosActivosTotal: total }, res);
+
       })
       .catch((error) => {
         return next(error);
@@ -272,7 +332,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
   }
 
 
-  getClientesActivos(req: Request, res: Response,next:NextFunction) {
+  getClientesActivos(req: Request, res: Response, next: NextFunction) {
     const con = dataSource;
     const stmactual = new Date()
     con
@@ -314,16 +374,16 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         [stmactual]
       )
       .then((records: Array<any>) => {
-        let data: { x: string; y: any; }[]=[]
+        let data: { x: string; y: any; }[] = []
         //if (records.length ==0) throw new ClientException('Data not found')
-        let total=0
-        records.forEach(rec => { 
+        let total = 0
+        records.forEach(rec => {
           data.push({ x: rec.SucursalDescripcion, y: rec.CantidadClientes })
-          total+=rec.CantidadClientes
+          total += rec.CantidadClientes
         })
 
-        this.jsonRes({ clientesActivos: data, clientesActivosTotal:total },res);
-      
+        this.jsonRes({ clientesActivos: data, clientesActivosTotal: total }, res);
+
       })
       .catch((error) => {
         return next(error);
@@ -331,7 +391,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
   }
 
 
-  getHorasTrabajadas(req: Request, res: Response,next:NextFunction) {
+  getHorasTrabajadas(req: Request, res: Response, next: NextFunction) {
     const con = dataSource;
     const anio = req.params.anio
 
@@ -425,14 +485,14 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         [anio]
       )
       .then((records: Array<any>) => {
-        let horasTrabajadas: { x: string; y: any; }[]=[]
-        if (records.length ==0) throw new ClientException('Data not found')
-        records.forEach(rec => { 
-          horasTrabajadas.push({x: rec.ObjetivoAsistenciaAnoAno+'-'+rec.ObjetivoAsistenciaAnoMesMes, y:rec.totalhorascalc})
+        let horasTrabajadas: { x: string; y: any; }[] = []
+        if (records.length == 0) throw new ClientException('Data not found')
+        records.forEach(rec => {
+          horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoAno + '-' + rec.ObjetivoAsistenciaAnoMesMes, y: rec.totalhorascalc })
         })
 
-        this.jsonRes({ horasTrabajadas: horasTrabajadas, anio:anio },res);
-      
+        this.jsonRes({ horasTrabajadas: horasTrabajadas, anio: anio }, res);
+
       })
       .catch((error) => {
         return next(error);
@@ -448,7 +508,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
 
 
     let query: string =
-    `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalNombre) , ' ', TRIM(per.PersonalApellido), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName FROM dbo.Personal per 
+      `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalNombre) , ' ', TRIM(per.PersonalApellido), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName FROM dbo.Personal per 
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
 
       WHERE`
@@ -460,11 +520,11 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         });
         break;
       case 'CUIT':
-          query += ` cuit.PersonalCUITCUILCUIT LIKE '%${value}%' AND `
+        query += ` cuit.PersonalCUITCUILCUIT LIKE '%${value}%' AND `
       default:
         break;
     }
-    
+
 
     dataSource
       .query((query += " 1=1"))

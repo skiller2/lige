@@ -40,6 +40,10 @@ export class InitV1Component implements OnInit {
     .get('/api/init/stats/cambioscategoria')
     .pipe(share());
 
+  objetivosSinGrupo$ = this.http
+    .get('/api/init/stats/objetivossingrupo')
+    .pipe(share());
+
   horasTrabajadas$ = this.statshorastrabajadas();
   objetivosSinAsistencia$ = this.statssinAsistencia();
   objetivosSinAsistenciaCur$ = this.statssinAsistenciaCur();

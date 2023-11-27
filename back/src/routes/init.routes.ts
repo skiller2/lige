@@ -25,6 +25,10 @@ initRouter.get(`${base}/stats/objetivossinasistencia/:anio/:mes`, authMiddleware
 	initController.getObjetivosSinAsistencia(req, res, next)
 })
 
+initRouter.get(`${base}/stats/objetivossingrupo`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getObjetivosSinGrupo(req, res, next)
+})
+
 initRouter.get(`${base}/stats/clientesactivos`, authMiddleware.verifyToken, (req, res, next) => {
 	initController.getClientesActivos(req, res, next)
 })
