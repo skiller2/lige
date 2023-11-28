@@ -61,6 +61,7 @@ export class LiquidacionesComponent {
   toggle = false;
   detailViewRowCount = 9;
   gridDataLen = 0
+  saveLoading$ = new BehaviorSubject(false);
   tableLoading$ = new BehaviorSubject(false);
   filesChange$ = new BehaviorSubject('');
   gridOptions!: GridOption;
@@ -534,6 +535,7 @@ export class LiquidacionesComponent {
     return;
 
   }
+
 
   updateItemMetadata(previousItemMetadata: any) {
 
