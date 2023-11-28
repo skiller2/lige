@@ -104,36 +104,8 @@ export class TelefoniaComponent {
 
 
   columns$ = this.apiService.getCols('/api/telefonia/cols').pipe(map((cols) => {
-    const colmonto: Column = {
-      name: "Importe",
-      type: "float",
-      id: "monto",
-      field: "monto",
-      //      fieldName: "des.PersonalOtroDescuentoImporteVariable",
-      sortable: true,
-      //      formatter: () => '...',
-      //asyncPostRender: this.renderAngularComponent.bind(this),
-      formatter: Formatters.multiple,
-      params: {
-        formatters: [Formatters.currency, Formatters.alignRight],
-        component: CustomDescargaComprobanteComponent,
-        angularUtilService: this.angularUtilService,
-        //complexFieldLabel: 'assignee.name' // for the exportCustomFormatter
-        //groupFormatterPrefix: '<b>Total</b>: '
-      },
-      //groupTotalsFormatter: GroupTotalFormatters.sumTotals,
 
-    }
-
-    let mapped = cols.map((col: any) => {
-      if (col.id == 'monto'){
-        //console.log('Pase'); //Nunca pasa
-        col = colmonto
-      }
-      return col
-    });
-
-    return mapped
+    return cols
   }));
 
   gridData$ = this.formChange$.pipe(
@@ -148,7 +120,7 @@ export class TelefoniaComponent {
           map(data => {
             // this.gridDataLen = data.list?.length
             // this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
-            console.log('data:',data);
+            //console.log('data:',data);
             return data.list
           }),
         );
