@@ -59,7 +59,6 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
   }
 
   onRemove() {
-    //  console.log('onRemove')
   }
 
   registerOnTouched(fn: any) {
@@ -80,19 +79,6 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
   }
 
   ngAfterViewInit() {
-    // firstValueFrom(this.apiService.getTipoMovimiento('').pipe(tap(res => { 
-    //   this.tipo_movimiento = res
-    //   console.log('this.tipo_movimiento',this.tipo_movimiento);
-      
-    // })))
-
-    /*
-    setTimeout(() => {
-      this.msc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-
-      this.msc.focus()
-    }, 1);
-    */
   }
 
   get selectedId() {
@@ -118,9 +104,7 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
       }
 
       const fullName = labelArr.join(' o ')
-
       this.valueExtendedEmitter.emit({fullName})
-//      this.propagateChange([val[0].tipo_movimiento_id,val[1].tipo_movimiento_id])
       this.propagateChange(valueArr)
     }
   }
@@ -148,6 +132,6 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
 
   search(value: string): void {
     // this.extendedOption = { objetivoId: 0, clienteId: 0, elementoDependienteId: 0, descripcion: '', fullName: '' }
-    this.$searchChange.next(value);
+    // this.$searchChange.next(value);
   }
 }

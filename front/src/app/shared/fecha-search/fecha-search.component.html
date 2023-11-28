@@ -1,0 +1,10 @@
+<nz-date-picker
+    #fsc
+    name="fecProcesoCambio"
+    [(ngModel)]="_selected"
+    (ngModelChange)="modelChange($event)"
+    (ngModelChange)="onChange($event)"
+    nzMode="date"
+    nzFormat="dd/MM/yyyy"
+    style="width:100%"
+/>
