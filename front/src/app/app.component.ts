@@ -65,18 +65,7 @@ export class AppComponent implements OnInit {
     this.modalVersion = false;
     renderer.setAttribute(el.nativeElement, 'ng-alain-version', VERSION_ALAIN.full);
     renderer.setAttribute(el.nativeElement, 'ng-zorro-version', VERSION_ZORRO.full);
-/*
-    if (this.swUpdate.isEnabled) {
 
-      this.ngZone.runOutsideAngular(() =>
-        interval(1000 * 10).subscribe(val => {
-          this.swUpdate
-            .checkForUpdate()
-            .then(res => console.log('SW Checking for updates', res));
-        })
-      );
-    }
-*/
   }
 
   private updateOnlineStatus(): void {
@@ -198,8 +187,21 @@ export class AppComponent implements OnInit {
 
 
     this.loadModalPwa();
-    // Start listening for SW version update events.
+
+    this.swUpdatesService.updateVersion.subscribe(value => { 
+      this.modalSrv.confirm({
+        nzTitle: `Recordar`,
+        nzContent: `Hay una nueva versión de la aplicación, haga clic en Actualizar para que surta efecto.`,
+        nzCancelDisabled: false,
+        nzOkText: 'OK',
+        nzCancelText: 'Cancel',
+        nzOnOk: () => location.reload()
+      });
+     })
+    
     this.swUpdatesService.enable();
+
+
   }
 
 
