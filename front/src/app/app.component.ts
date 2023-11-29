@@ -8,6 +8,7 @@ import { VERSION as VERSION_ZORRO } from 'ng-zorro-antd/version';
 import { filter, interval, map } from 'rxjs';
 import { Platform } from '@angular/cdk/platform';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { SwUpdatesService } from './services/sw-updates.service';
 
 @Component({
   selector: 'app-root',
@@ -54,16 +55,17 @@ export class AppComponent implements OnInit {
     private router: Router,
     private titleSrv: TitleService,
     private modalSrv: NzModalService,
-    private swUpdate: SwUpdate,
+//    private swUpdate: SwUpdate,
     private platform: Platform,
     private ngZone: NgZone,
-    private notification: NzNotificationService
+    private notification: NzNotificationService,
+    private swUpdatesService: SwUpdatesService
   ) {
     this.isOnline = false;
     this.modalVersion = false;
     renderer.setAttribute(el.nativeElement, 'ng-alain-version', VERSION_ALAIN.full);
     renderer.setAttribute(el.nativeElement, 'ng-zorro-version', VERSION_ZORRO.full);
-
+/*
     if (this.swUpdate.isEnabled) {
 
       this.ngZone.runOutsideAngular(() =>
@@ -74,7 +76,7 @@ export class AppComponent implements OnInit {
         })
       );
     }
-
+*/
   }
 
   private updateOnlineStatus(): void {
@@ -157,6 +159,7 @@ export class AppComponent implements OnInit {
     window.addEventListener('online', this.updateOnlineStatus.bind(this));
     window.addEventListener('offline', this.updateOnlineStatus.bind(this));
 
+    /*
     if (this.swUpdate.isEnabled) {
 
       this.swUpdate.versionUpdates
@@ -169,6 +172,7 @@ export class AppComponent implements OnInit {
         )
         .subscribe()
     }
+    */
 
 
     let configLoad = false;
@@ -194,7 +198,8 @@ export class AppComponent implements OnInit {
 
 
     this.loadModalPwa();
-
+    // Start listening for SW version update events.
+    this.swUpdatesService.enable();
   }
 
 

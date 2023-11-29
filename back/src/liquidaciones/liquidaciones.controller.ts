@@ -6,6 +6,8 @@ import { Utils } from "./liquidaciones.utils";
 import { mkdirSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
 import xlsx from 'node-xlsx';
 import { isNumberObject } from "util/types";
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 export class LiquidacionesController extends BaseController {
   directory = process.env.PATH_LIQUIDACIONES || "tmp";
@@ -62,6 +64,53 @@ export class LiquidacionesController extends BaseController {
     }
   }
 
+  async getDocumentInfo(documentId: Number) {
+    
+
+    return dataSource.query(
+      `SELECT impoexpo_id AS id, path, nombre_archivo_orig AS name FROM lige.dbo.convalorimpoexpo WHERE impoexpo_id = @0`, [documentId])
+
+      
+
+  }
+
+  async getByDownloadDocument(
+    req: any,
+    res: Response, next: NextFunction
+  ) {
+    
+      const documentId = Number(req.body.documentId);
+      try {
+    
+        const document = await  this.getDocumentInfo(documentId);
+        const rutaArchivo = document[0]["path"];
+          
+         
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = dirname(__filename);
+    
+         const finalurl = __dirname.replace("src\\","").replace("liquidaciones","")
+         const filePath = finalurl + rutaArchivo
+         const cadenaConBarrasInvertidas = filePath.replace(/\//g, '\\');
+    
+    
+        console.log("filePath " + cadenaConBarrasInvertidas)
+        res.download(cadenaConBarrasInvertidas, (error) => {
+          if (error) {
+            console.error('Error al descargar el archivo:', error);
+            res.status(500).send('Error interno del servidor');
+          }
+        });
+    
+        return ([res])
+    
+      }catch (error) 
+      {
+        console.log("voy por el error")
+        return next(error)
+      }
+  }
+
   async getTipoCuenta(req: Request, res: Response, next: NextFunction) {
     try {
 
@@ -81,6 +130,7 @@ export class LiquidacionesController extends BaseController {
     }
   }
 
+
   async getImportacionesAnteriores(
     Anio: string,
     Mes: string,
@@ -93,7 +143,7 @@ export class LiquidacionesController extends BaseController {
 
       const importacionesAnteriores = await dataSource.query(
         
-        `SELECT impoexpo_id AS id, nombre_archivo_orig AS nombre, path, FORMAT(aud_fecha_ins, 'yyyy-MM-dd') AS fecha FROM lige.dbo.convalorimpoexpo WHERE anio = @0 AND mes = @1 AND ind_eliminado = 0`,
+        `SELECT impoexpo_id AS id, path, nombre_archivo_orig AS nombre, path, FORMAT(aud_fecha_ins, 'yyyy-MM-dd') AS fecha FROM lige.dbo.convalorimpoexpo WHERE anio = @0 AND mes = @1 AND ind_eliminado = 0`,
       [Anio, Mes])
       
       this.jsonRes(

@@ -15,6 +15,10 @@ import multer, { FileFilterCallback } from "multer";
 import { existsSync, mkdirSync } from "fs";
 import { tmpName } from "../server";
 import { ClientException } from "../controller/baseController";
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { ok } from "assert";
+
 
 type DestinationCallback = (error: Error | null, destination: string) => void;
 
@@ -203,4 +207,14 @@ liquidacionesRouter.post("/upload", authMiddleware.verifyToken, (req, res, next)
     }
   });
 });
+
+liquidacionesRouter.post("/downloadImportacion",(req, res, next) => {
+    liquidacionesController.getByDownloadDocument(req, res, next);
+  }
+);
+
+
+
+
+
 

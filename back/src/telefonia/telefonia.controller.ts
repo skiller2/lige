@@ -26,7 +26,7 @@ export class TelefoniaController extends BaseController {
       type: "number",
       sortable: true,
       searchHidden: true,
-      hidden:true
+      hidden: true
     },
     {
       name: "Teléfono Número",
@@ -37,7 +37,7 @@ export class TelefoniaController extends BaseController {
       sortable: true,
       searchHidden: false,
       hidden: false,
-    },    
+    },
     {
       name: "Apellido Nombre",
       type: "string",
@@ -268,7 +268,7 @@ export class TelefoniaController extends BaseController {
   }
 
 
-  getTelefonos(fecha: Date, anio:number, mes:number, options: any) {
+  getTelefonos(fecha: Date, anio: number, mes: number, options: any) {
     const filterSql = filtrosToSql(options.filtros, this.listaColumnas);
     const orderBy = orderToSQL(options.sort)
 
@@ -302,7 +302,7 @@ export class TelefoniaController extends BaseController {
         
        AND (${filterSql}) 
        ${orderBy}`,
-      [fecha,anio,mes])
+      [fecha, anio, mes])
 
   }
 
@@ -347,7 +347,7 @@ export class TelefoniaController extends BaseController {
     }
     */
     try {
-      const telefonos = await this.getTelefonos(fecha, anio,mes, req.body.options)
+      const telefonos = await this.getTelefonos(fecha, anio, mes, req.body.options)
 
       this.jsonRes({ list: telefonos }, res);
     } catch (error) {
@@ -419,11 +419,11 @@ export class TelefoniaController extends BaseController {
         const unicavez = parseFloat(row[15])
         const totalxls = parseFloat(row[16])
         const total = fimpplanvoz + fserviciosvoz + fpacksms + fpackdatos + fgarantia + fotros + vvoz + vldnldi + vmensajes + vdatos + vroaming + votros + unicavez
-        if (Math.abs(totalxls - total)>0.0001) 
-          dataset.push({id:datasetid++,TelefoniaNro:TelefoniaNro, Detalle:` Importe total calculado ($ ${total}) difiere del indicado en la última columna ($ ${totalxls})`})
+        if (Math.abs(totalxls - total) > 0.0001)
+          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` Importe total calculado ($ ${total}) difiere del indicado en la última columna ($ ${totalxls})` })
 
         if (idx === -1) {
-          dataset.push({id:datasetid++,TelefoniaNro:TelefoniaNro, Detalle:` sin registro vigente en el sistema, consumo $ ${total}`})
+          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` sin registro vigente en el sistema, consumo $ ${total}` })
         } else {
           telefonos[idx].fimpplanvoz = fimpplanvoz  //1
           telefonos[idx].fserviciosvoz = fserviciosvoz  //2 
@@ -443,11 +443,13 @@ export class TelefoniaController extends BaseController {
       }
 
       const telefonosRegistradosSinConsumo = telefonos.filter((row) => (Number(row.total) < 1 || isNaN(Number(row.total))))
-      for (const tel of telefonosRegistradosSinConsumo)
-        dataset.push({id:datasetid++,TelefoniaNro:tel.TelefoniaNro, Detalle:' sin consumos en archivo xls'})
-     
+      for (const tel of telefonosRegistradosSinConsumo) {
+        if (!tel.TelefoniaHasta || tel.TelefoniaHasta > new Date() )
+        dataset.push({ id: datasetid++, TelefoniaNro: tel.TelefoniaNro, Detalle: ' sin consumos en archivo xls y sin fecha de baja' })
+      }
+
       if (dataset.length > 0)
-       throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, {list:dataset})
+        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
 
       const anioDS = await queryRunner.query('SELECT anio.ConsumoTelefoniaAnoId, anio.ConsumoTelefoniaAnoAno, anio.ConsumoTelefoniaAnoMesUltNro FROM ConsumoTelefoniaAno anio WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest])
       if (!anioDS[0].ConsumoTelefoniaAnoId)

@@ -105,6 +105,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
         this.searchService
           .getPersonFromName('PersonalId', this._selectedId)
           .pipe(tap(res => {
+            if (res[0]?.PersonalId)
             this.extendedOption = res[0]
             this._selected = this._selectedId
             this.valueExtendedEmitter.emit(this.extendedOption)

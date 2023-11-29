@@ -4,6 +4,7 @@ import { dataSource } from "./data-source";
 import { scheduleJob } from "node-schedule"
 import { Response } from "express"
 import { CategoriasController } from "./categorias-cambio/categorias-cambio.controller";
+import { ObjetivoController } from "./controller/objetivo.controller";
 //import packageConfig from "./../package.json" with { type: 'json' }; 
 import dotenv from "dotenv"
 
@@ -27,6 +28,7 @@ dotenv.config()
 const dbServer = new DBServer(5, 2000, dataSource)
 const webServer = new WebServer(Number(process.env.SERVER_API_PORT))
 const categoriasController = new CategoriasController()
+const objetivoController = new ObjetivoController()
 
 
 scheduleJob('*/1 * * * *', async function (fireDate) {
@@ -35,10 +37,19 @@ scheduleJob('*/1 * * * *', async function (fireDate) {
 });
 
 
+
+
 scheduleJob('1 0 * * *', async function (fireDate) {
   //TODO Se debería instanciar Response correctamente
 
   const ret = await categoriasController.procesaCambios(null, null, (ret: any) => ret)
+  console.log(`job run at ${fireDate}, response: ${ret}`);
+});
+
+scheduleJob('1 0 * * *', async function (fireDate) {
+  //TODO Se debería instanciar Response correctamente
+
+  const ret = await objetivoController.objetivosGrupos(null, null, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
