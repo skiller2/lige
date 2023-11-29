@@ -42,6 +42,8 @@ export class FechaSearchComponent implements ControlValueAccessor {
 
   private _selectedId: any = null
   _selected: any
+  _operador: any  = '='
+  operatorsArray: string[] = ['=', '>=', '<=', '<', '>', '<>'];
   // extendedOption = {  }
   // tipo_movimiento:any
 
@@ -105,8 +107,8 @@ export class FechaSearchComponent implements ControlValueAccessor {
       this.propagateChange('')
       return
     }
-    this.valueExtendedEmitter.emit({fullName: this._selectedId})
-    this.propagateChange(this._selectedId)
+    this.valueExtendedEmitter.emit({fullName: this._selectedId })
+    this.propagateChange(this._operador + this._selectedId)
     }
   }
 
@@ -120,4 +122,9 @@ export class FechaSearchComponent implements ControlValueAccessor {
     this.selectedId = value;
   }
 
+
+  modelChangeOp(value: any) {
+    if (value !== this._operador) 
+      this._operador = value;
+  }
 }

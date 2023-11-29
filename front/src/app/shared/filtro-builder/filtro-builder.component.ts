@@ -100,35 +100,40 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     const type = (this.selections.field.type) ? this.selections.field.type : 'string'
 
     this.selections.operator = (this.selections.field.searchComponent) ? "=" : this.selections.operator
-    const value = String(this.selections.value)
-
+    let value = String(this.selections.value)
     if (value.startsWith('>=')) {
       this.selections.value = value.substring(2)
+      value = this.selections.value
       this.selections.operator = '>='
     }
 
     if (value.startsWith('<=')) {
       this.selections.value = value.substring(2)
+      value = this.selections.value
       this.selections.operator = '<='
     }
 
     if (value.startsWith('!=') || value.startsWith('<>')) {
       this.selections.value = value.substring(2)
+      value = this.selections.value
       this.selections.operator = '<>'
     }
 
     if (value.startsWith('>')) {
       this.selections.value = value.substring(1)
+      value = this.selections.value
       this.selections.operator = '>'
     }
 
     if (value.startsWith('<')) {
       this.selections.value = value.substring(1)
+      value = this.selections.value
       this.selections.operator = '<'
     }
 
     if (value.startsWith('=')) {
       this.selections.value = value.substring(1)
+      value = this.selections.value
       this.selections.operator = '='
     }
 
