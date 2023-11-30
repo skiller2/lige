@@ -460,6 +460,7 @@ export class LiquidacionesController extends BaseController {
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
       const convalorimpoexpo_id = await this.getProxNumero(queryRunner, `convalorimpoexpo`, usuario, ip)
+      console.log("convalorimpoexpo_id " + convalorimpoexpo_id)
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
       let contador = 0
       
@@ -467,6 +468,8 @@ export class LiquidacionesController extends BaseController {
       }/${anio}/${anio}-${mes
         .toString()
         .padStart(2, "0")}-${convalorimpoexpo_id}.xls`;
+
+        console.log("newFilePath " + newFilePath)
 
       if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
 
@@ -497,7 +500,7 @@ export class LiquidacionesController extends BaseController {
         ]
       );
 
-    sheet1.data.splice(0, 2)
+    //sheet1.data.splice(0, 2)
 
       for (const row of sheet1.data) {
         //TODO
@@ -508,42 +511,71 @@ export class LiquidacionesController extends BaseController {
         const detalle = row[2]
         const importe = row[3]
 
+        if(cuit == undefined && detalle == undefined && importe == undefined)
+            continue
+
+        if(typeof cuit == "string" && typeof detalle == "string" && typeof importe == "string")
+            continue
+       
+          
+
+        console.log( "cuit" + cuit)
+        console.log( "detalle" + detalle)
+        console.log( "importe" + importe)
+
         let persona
 
         if(!isNaN(cuit))
-          persona = await queryRunner.query(`SELECT personalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
-  
+          persona = await queryRunner.query(`SELECT personalId FROM dbo.PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
+
+          console.log( "persona" + persona[0])
+       
+          if(persona == undefined ){
+            dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` Error en persona` })
+            continue
+          }else if (detalle == undefined){
+            dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` Error en Detalle` })
+            continue
+          } else if ( importe == "" ||  importe == undefined){
+            dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` Error en Importe` })
+            continue
+          } else {
+            const persona_id = persona[0]?.personalId
+            if (!persona_id) {
+    
+              dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` CUIT no localizado` })
+    
+            } else {
+    
+              console.log("movimiento_id " + movimiento_id)
+    
+              await queryRunner.query(
+                `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
+                  aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod,impoexpo_id)
+                    VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)
+                          `,
+                [
+                  ++movimiento_id,
+                  periodo_id,
+                  tipo_movimiento_id,
+                  tipocuenta_id,
+                  fechaActual,
+                  detalle,
+                  0,
+                  persona_id,
+                  importe,
+                  usuario, ip, fechaActual, usuario, ip, fechaActual,
+                  convalorimpoexpo_id
+                ]
+              );
+              contador++
+            }
+
+          }
         
-        const persona_id = persona[0]?.personalId
-        if (!persona_id) {
-
-          dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` CUIT no localizado` })
-
-        } else {
-
-
-          await queryRunner.query(
-            `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
-              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod,impoexpo_id)
-                VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)
-                      `,
-            [
-              ++movimiento_id,
-              periodo_id,
-              tipo_movimiento_id,
-              tipocuenta_id,
-              fechaActual,
-              detalle,
-              0,
-              persona_id,
-              importe,
-              usuario, ip, fechaActual, usuario, ip, fechaActual,
-              convalorimpoexpo_id
-            ]
-          );
-          contador++
-        }
       }
+
+     console.log("cantidad de errores " + dataset.length)
 
       if (dataset.length > 0)
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
