@@ -17,9 +17,10 @@ import { filter, first, switchMap, takeUntil, tap } from 'rxjs/operators';
  */
 @Injectable({providedIn: 'root'})
 export class SwUpdatesService implements OnDestroy {
-  private checkInterval = 2000;  // 6 hours
+  private checkInterval = 1000 * 60 * 5;  // 5 minutes
 //  private checkInterval = 1000 * 60 * 60 * 6;  // 6 hours
   private onDisable = new Subject<void>();
+  updateVersion = new Subject<void>();
 
   constructor(
       private appRef: ApplicationRef, private errorHandler: ErrorHandler,
@@ -31,14 +32,17 @@ export class SwUpdatesService implements OnDestroy {
   }
 
   enable() {
-    this.log(`SWU ${this.swu.isEnabled}`)
+
     if (!this.swu.isEnabled) {
       return;
     }
 
     // Periodically check for updates (after the app is stabilized).
-    const appIsStable = this.appRef.isStable.pipe(first(v => v));
-    concat(appIsStable, interval(this.checkInterval))
+//    const appIsStable = this.appRef.isStable.pipe(first(v => v));
+
+//    const appIsStable = true;
+//    concat(appIsStable, interval(this.checkInterval))
+    concat( interval(this.checkInterval))
         .pipe(
             tap(() => this.log('Checking for update...')),
             takeUntil(this.onDisable),
@@ -56,7 +60,8 @@ export class SwUpdatesService implements OnDestroy {
 
         .subscribe((isActivated) => {
           if(isActivated) {
-            this.log('Update activated Reloading?');
+            this.log('Update activated');
+            this.updateVersion.next()
             //this.location.fullPageNavigationNeeded();
           }
         });

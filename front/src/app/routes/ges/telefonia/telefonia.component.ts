@@ -150,12 +150,15 @@ export class TelefoniaComponent {
           : now.getMonth() + 1;
 
       this.periodo = (new Date(Number(anio), Number(mes) - 1, 1))
+
+      const fechacorte = new Date()
+      fechacorte.setDate(this.periodo.getDate() - 1)
+      this.fecha = fechacorte
       this.onChange(null)
     }, 1);
   }
 
   onChange(_e: any): void {
-    console.log('onChange')
     this.anio = this.periodo.getFullYear();
     this.mes = this.periodo.getMonth() + 1;
     localStorage.setItem('mes', String(this.mes));

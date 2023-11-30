@@ -8,11 +8,9 @@ export function columnTotal(column: string, angularGrid: any) {
     if (list.length && columnFooter) {
         let columnId = angularGrid.slickGrid.getColumnIndex(column)
         let columnDetail = angularGrid.slickGrid.getColumns()[columnId]
-
+        let gridDataTotal = 0
         let totalDisplay = ''
-
-        if (columnDetail.type == 'float' || typeof list[0][column] === 'number') {
-            let gridDataTotal = 0
+        if( columnDetail.type == 'float' || typeof list[0][column] === 'number' ){
             for (let index = 0; index < list.length; index++) {
                 gridDataTotal += list[index][column]
             }

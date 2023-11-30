@@ -182,7 +182,7 @@ export class LiquidacionesController extends BaseController {
       hidden: false,
     },
     {
-      name: "Tipo Movimiento ID",
+      name: "Tipo Movimiento",
       type: "number",
       id: "tipo_movimiento_id",
       field: "tipo_movimiento_id",
@@ -190,7 +190,7 @@ export class LiquidacionesController extends BaseController {
       searchComponent: "inpurForTipoMovimientoSearch",
       searchType: "number",
       sortable: true,
-      hidden: false,
+      hidden: true,
       searchHidden: false
     },
     {
@@ -209,7 +209,7 @@ export class LiquidacionesController extends BaseController {
       id: "fecha",
       field: "fecha",
       fieldName: "li.fecha",
-      // searchComponent: "inpurForFechaSearch",
+      searchComponent: "inpurForFechaSearch",
       sortable: true,
       searchHidden: false,
       hidden: false,

@@ -274,7 +274,7 @@ export class LiquidacionesComponent {
   }
 
   columns$ = this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols) => {
-    console.log('Cols ',cols);
+    // console.log('Cols ',cols);
     return cols
   }));
 

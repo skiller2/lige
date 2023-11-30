@@ -24,6 +24,7 @@ import { ObjetivoSearchComponent } from './objetivo-search/objetivo-search.compo
 import { AppDownFileDirective } from './down-file/down-file.directive';
 import { AngularSlickgridModule } from 'angular-slickgrid';
 import { TipoMovimientoSearchComponent } from './tipo-movimiento-search/tipo-movimiento-search.component';
+import { FechaSearchComponent } from './fecha-search/fecha-search.component';
 //import { RowDetailViewComponent } from './row-detail-view/row-detail-view.component';
 //import { RowPreloadDetailComponent } from './row-preload-detail/row-preload-detail.component';
 
@@ -45,6 +46,7 @@ const COMPONENTS: Array<Type<any>> = [
   ClienteSearchComponent,
   ObjetivoSearchComponent,
   TipoMovimientoSearchComponent,
+  FechaSearchComponent,
   PdfviewerComponent,
   UploadFileComponent,
   ViewCredentialComponent,
