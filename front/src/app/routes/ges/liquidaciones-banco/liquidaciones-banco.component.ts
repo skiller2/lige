@@ -6,7 +6,7 @@ import { SharedModule, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
-import { AngularGridInstance, AngularUtilService, Column, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Editors, FileType, Formatters, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -23,6 +23,19 @@ import {
   tap,
   firstValueFrom,
 } from 'rxjs';
+
+@Component({
+  standalone: true,
+  imports: [
+    SharedModule,
+  ],
+  template: `<a [routerLink]="[link,{ PersonalId: item.PersonalId }]" > {{item.PersonalApellidoNombre}} </a>`
+})
+export class CustomLinkComponent {
+  item: any
+  link!: string;
+}
+
 
 @Component({
   selector: 'app-liquidaciones',
@@ -68,12 +81,9 @@ export class LiquidacionesBancoComponent {
   gridObjAyuda!: SlickGrid;
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
-    if (colDef.params.component && dataContext.monto > 0) {
-      const componentOutput = this.angularUtilService.createAngularComponent(colDef.params.component)
-      Object.assign(componentOutput.componentRef.instance, { item: dataContext, anio: this.anio, mes: this.mes })
-      cellNode.append(componentOutput.domElement)
-      //setTimeout(() => cellNode.append(componentOutput.domElement))
-    }
+      const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+      Object.assign(componentOutput.componentRef.instance, { item: dataContext,link:'/ges/liquidaciones/listado'  })
+      cellNode.replaceChildren(componentOutput.domElement)
   }
 
 
@@ -261,12 +271,17 @@ export class LiquidacionesBancoComponent {
 
 
   columns$ = this.apiService.getCols('/api/liquidaciones/banco/cols').pipe(map((cols) => {
-    console.log("imprimo columnas", cols)
+    const colf: Column = cols[1]
+    colf.asyncPostRender= this.renderAngularComponent.bind(this)
+
+//    colf.formatter = function ( row, cell, value, columnDef, dataContext ) {
+//      return '<a routerLink="#/ges/liquidaciones/listado/' + dataContext.PersonalId + '">' + value + '</a>';
+//    };
+
     return cols
   }));
 
   columnsAyuda$ = this.apiService.getCols('/api/liquidaciones/banco/ayuda/cols').pipe(map((cols) => {
-    console.log("imprimo columnasAyuda", cols)
     return cols
   }));
 
@@ -327,4 +342,12 @@ export class LiquidacionesBancoComponent {
     }
 
   }
+
+  buscarPorPersona(PersonalId: string) {
+//    this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
+//    this.router.navigate(['/ges/detalle_asistencia/persona', { state: { PersonalId } }])
+    this.router.navigateByUrl('/ges/liquidaciones/listado', { state: { PersonalId } });
+
+  }
+
 }
