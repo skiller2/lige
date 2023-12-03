@@ -10,7 +10,7 @@ export function columnTotal(column: string, angularGrid: any) {
         let columnDetail = angularGrid.slickGrid.getColumns()[columnId]
         let gridDataTotal = 0
         let totalDisplay = ''
-        if( columnDetail.type == 'float' || typeof list[0][column] === 'number' ){
+        if (columnDetail.type == 'float' || typeof list[0][column] === 'number') {
             for (let index = 0; index < list.length; index++) {
                 gridDataTotal += list[index][column]
             }
@@ -23,16 +23,15 @@ export function columnTotal(column: string, angularGrid: any) {
     }
 }
 
-export function totalRecords(angularGrid: any) {
-    let visibleColumns = angularGrid.gridService.getVisibleColumnDefinitions()
-    if (visibleColumns.length) {
-        for (let index = 0; index < visibleColumns.length; index++)
-            if ('fieldName' in visibleColumns[index]) {
-                let columnFooter = angularGrid.slickGrid.getFooterRowColumn(visibleColumns[index].id)
-                let cantData = angularGrid.slickGrid.getData().getItemCount()
-                columnFooter.innerHTML = 'Registros:  ' + cantData.toString()
-                break
-            }
-    }
+export function totalRecords(angularGrid: AngularGridInstance) {
+    const visibleColumns = angularGrid.gridService.getVisibleColumnDefinitions()
 
+    for (const col of visibleColumns) {
+        if ('fieldName' in col) {
+            let columnFooter = angularGrid.slickGrid.getFooterRowColumn(col.id)
+            let cantData = angularGrid.slickGrid.getData().getItemCount()
+            columnFooter.innerHTML = `Registros:  ${cantData}`
+            break
+        }
+    }
 }

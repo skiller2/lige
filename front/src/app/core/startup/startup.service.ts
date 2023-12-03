@@ -61,7 +61,7 @@ export class StartupService {
         try {
           const tkndec: any = this.tokenService.get(JWTTokenModel);
           if (tkndec) {
-            this.settingService.setUser({ PersonalId:tkndec.payload.PersonalId, name: tkndec.payload.name, email: tkndec.payload.email, key: tkndec.payload.username, CUIT: tkndec.payload.description });
+            this.settingService.setUser({ GrupoActividad:tkndec.payload.GrupoActividad, PersonalId:tkndec.payload.PersonalId, name: tkndec.payload.name, email: tkndec.payload.email, key: tkndec.payload.username, CUIT: tkndec.payload.description });
           }
         } catch (error) {}
       })

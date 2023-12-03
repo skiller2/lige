@@ -63,16 +63,16 @@
                   Cargando
                 </ng-container>
                 <ng-container *ngFor="let responsable of $personaResponsables | async">
-                  <p title="{{ responsable.PersonalCategoriaPersonalId }}">
-                    {{ responsable.CUITJ }} {{ responsable.ApellidoNombreJ }} desde
+                  <p title="{{ responsable.GrupoActividadId }}">
+                    {{ responsable.GrupoActividadNumero }} {{ responsable.GrupoActividadDetalle }} desde
                     {{
-                    responsable.OperacionesPersonalAsignarAJerarquicoDesde | date
+                    responsable.GrupoActividadPersonalDesde | date
                     }}
-                    <span *ngIf="responsable.OperacionesPersonalAsignarAJerarquicoHasta">
+                    <span *ngIf="responsable.GrupoActividadPersonalHasta">
                       hasta
                     </span>
                     {{
-                    responsable.OperacionesPersonalAsignarAJerarquicoHasta | date
+                    responsable.GrupoActividadPersonalHasta | date
                     }}
                   </p>
                 </ng-container>

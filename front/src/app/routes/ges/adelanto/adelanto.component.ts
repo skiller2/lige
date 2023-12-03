@@ -3,13 +3,14 @@ import { NgForm } from '@angular/forms';
 import { SharedModule, listOptionsT } from '@shared';
 import { AngularGridInstance, AngularUtilService, Column, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
+import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { Router } from '@angular/router';
-import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
+import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SettingsService } from '@delon/theme';
+import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 
 
 
@@ -95,8 +96,6 @@ export class AdelantoComponent {
   )
 
   async ngOnInit() {
-
-
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.autoEdit = true
@@ -166,11 +165,12 @@ export class AdelantoComponent {
 
   ngAfterContentInit(): void {
     const user: any = this.settingService.getUser()
+    const gruposActividadList = user.GrupoActividad
 
     setTimeout(() => {
-      if (user.PersonalId > 0)
-      this.sharedFiltroBuilder.addFilter('ApellidoNombreJ', 'AND', '=', user.PersonalId)  //Ej 548
-    }, 3000);
+      if (gruposActividadList.length > 0)
+      this.sharedFiltroBuilder.addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'))  //Ej 548
+    }, 1500);
 
   }
 
@@ -257,8 +257,13 @@ export class AdelantoComponent {
     this.gridObj = angularGrid.detail.slickGrid;
 
     if (this.apiService.isMobile())
-      this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
+      this.angularGrid.gridService.hideColumnByIds(['CUIT'])
 
+    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGrid)
+      columnTotal('importe', this.angularGrid)
+    })
+      
   }
 
   exportGrid() {

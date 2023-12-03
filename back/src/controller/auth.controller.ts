@@ -303,6 +303,21 @@ export class AuthController extends BaseController {
       ])
       const row = result[0]
       user.PersonalId = (row) ? row['PersonalId'] : 0
+      
+      const GrupoActividadList = await queryRunner.query(
+        `SELECT DISTINCT ga.GrupoActividadId, g.GrupoActividadNumero
+        -- , ga.GrupoActividadJerarquicoComo, 1
+        FroM GrupoActividadJerarquico ga
+        JOIN GrupoActividad g ON g.GrupoActividadId = ga.GrupoActividadId            
+        WHERE
+        ga.GrupoActividadJerarquicoPersonalId = @0 AND
+        @1 > ga.GrupoActividadJerarquicoDesde AND @1 <  ISNULL(ga.GrupoActividadJerarquicoHasta, '9999-12-31')`,
+        [user.PersonalId, new Date()]
+      )
+      user.GrupoActividad = []
+      for (const row of GrupoActividadList )
+        user.GrupoActividad.push(row.GrupoActividadNumero)
+      
       /*    
         this.authUser(userName, password)
           .then(async (user: any) => {

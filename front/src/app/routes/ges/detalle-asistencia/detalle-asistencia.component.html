@@ -73,16 +73,20 @@
                 Cargando
               </ng-container>
               <ng-container *ngFor="let responsable of $objetivoResponsables | async">
-                <p title="{{ responsable.PersonalId }}">
-                  ({{ responsable.ObjetivoPersonalJerarquicoComo }})
-                  {{ responsable.PersonalCUITCUILCUIT }}
-                  <a (click)="buscarPorPersona(responsable.PersonalId)"
-                    [textContent]="responsable.ApellidoNombreJerarquico"></a>
-                  desde
-                  {{ responsable.ObjetivoPersonalJerarquicoDesde | date }}
-                  <span *ngIf="responsable.ObjetivoPersonalJerarquicoHasta">hasta</span>
-                  {{ responsable.ObjetivoPersonalJerarquicoHasta | date }}
-                </p>
+                <p *ngIf="responsable.GrupoActividadId" title="{{ responsable.GrupoActividadId }}">{{responsable.GrupoActividadNumero}} -
+                  {{responsable.GrupoActividadDetalle}} desde {{
+                  responsable.GrupoActividadObjetivoDesde | date}} <span
+                    *ngIf="responsable.GrupoActividadObjetivoHasta
+                    ">hasta</span> {{
+                  responsable.GrupoActividadObjetivoHasta
+       | date}} </p>
+                <p *ngIf="responsable.PersonalIdCoordinador" title="{{ responsable.PersonalIdCoordinador }}">Coordinador: {{responsable.ApellidoNombreCoordinador}} desde {{
+                  responsable.ObjetivoPersonalJerarquicoDesde | date}} <span
+                    *ngIf="responsable.ObjetivoPersonalJerarquicoHasta
+                    ">hasta</span> {{
+                  responsable.GrupoActividadObjetivoHasta
+       | date}} </p>
+            
               </ng-container>
             </ng-container>
           </nz-form-control>
@@ -276,18 +280,16 @@
           <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
           <nz-form-control>
             <ng-container *ngFor="let responsable of $personaResponsables | async">
-              <p *ngIf="responsable.Tipo=='R'" title="{{ responsable.PersonalCategoriaPersonalId }}">
-                {{ responsable.CUITJ }} {{ responsable.ApellidoNombreJ }} ({{ responsable.Tipo }}) desde
+              <p title="{{ responsable.GrupoActividadId }}">
+                {{ responsable.GrupoActividadNumero }} {{ responsable.GrupoActividadDetalle }} desde
                 {{
-                responsable.OperacionesPersonalAsignarAJerarquicoDesde | date
+                responsable.GrupoActividadPersonalDesde | date
                 }}
-                <span *ngIf="
-                    responsable.OperacionesPersonalAsignarAJerarquicoHasta
-                  ">
+                <span *ngIf="responsable.GrupoActividadPersonalHasta">
                   hasta
                 </span>
                 {{
-                responsable.OperacionesPersonalAsignarAJerarquicoHasta | date
+                responsable.GrupoActividadPersonalHasta | date
                 }}
               </p>
             </ng-container>

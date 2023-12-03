@@ -49,32 +49,14 @@ export class PersonalController extends BaseController {
     try {
       const responsables = await dataSource.query(
         `
-        SELECT DISTINCT pjer.ObjetivoPersonalJerarquicoPersonalId, IIF(pjer.ObjetivoPersonalJerarquicoPersonalId=perrel.PersonalCategoriaPersonalId,'R','A') AS Tipo, perrel.*, 
-        perrel.OperacionesPersonalAAsignarPersonalId,
-        cuit2.PersonalCUITCUILCUIT as CUIT,
-        CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre, 
-        perrel.PersonalCategoriaPersonalId,
-        cuit.PersonalCUITCUILCUIT as CUITJ,
-        CONCAT(TRIM(perjer.PersonalApellido), ', ',TRIM(perjer.PersonalNombre)) ApellidoNombreJ, 
-        -- pjer.ObjetivoPersonalJerarquicoComo,
-        
-        1
-        FroM OperacionesPersonalAsignarAJerarquico perrel 
+        SELECT ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle, gap.GrupoActividadPersonalDesde, gap.GrupoActividadPersonalHasta
+FROM GrupoActividadPersonal gap
+-- JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = gap.GrupoActividadId AND DATEFROMPARTS(@1,@2,28) > gaj.GrupoActividadJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gaj.GrupoActividadJerarquicoHasta, '9999-12-31')
+JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
 
-        LEFT JOIN ObjetivoPersonalJerarquico pje ON pje.ObjetivoPersonalJerarquicoPersonalId = perrel.PersonalCategoriaPersonalId AND DATEFROMPARTS(@1,@2,28) > pje.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(pje.ObjetivoPersonalJerarquicoHasta, '9999-12-31')
-        LEFT JOIN ObjetivoPersonalJerarquico pjer ON pjer.ObjetivoId = pje.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > pjer.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(pjer.ObjetivoPersonalJerarquicoHasta, '9999-12-31')
+WHERE gap.GrupoActividadPersonalPersonalId=@0 AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadPersonalHasta, '9999-12-31')
 
-
-        LEFT JOIN Personal perjer ON perjer.PersonalId = ISNULL(pjer.ObjetivoPersonalJerarquicoPersonalId, perrel.PersonalCategoriaPersonalId)
-        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = perjer.PersonalId) 
-        
-        LEFT JOIN Personal per ON per.PersonalId = perrel.OperacionesPersonalAAsignarPersonalId
-        LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-
-        
-        
-        WHERE DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
-        AND perrel.OperacionesPersonalAAsignarPersonalId=@0        `,
+        `,
 
         [personalId, anio, mes]
       );
