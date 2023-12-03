@@ -99,6 +99,9 @@ export class AdelantoComponent {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.autoEdit = true
+    this.gridOptions.showFooterRow = true
+    this.gridOptions.createFooterRow = true
+
     this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
       editCommand.execute();
       try {
@@ -120,8 +123,6 @@ export class AdelantoComponent {
       this.angularGrid.dataView.updateItem(item.id, item);
       this.angularGrid.slickGrid.updateRow(editCommand.row)
 
-      this.gridOptions.showFooterRow = true
-      this.gridOptions.createFooterRow = true
     }
 
 
@@ -261,7 +262,7 @@ export class AdelantoComponent {
 
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGrid)
-      columnTotal('importe', this.angularGrid)
+      columnTotal('PersonalAdelantoMonto', this.angularGrid)
     })
       
   }

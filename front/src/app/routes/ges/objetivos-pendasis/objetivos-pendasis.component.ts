@@ -191,7 +191,6 @@ export class ObjetivosPendAsisComponent {
     
 
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-      console.log('valores')
       totalRecords(this.angularGrid)
     })    
   }

@@ -1,25 +1,26 @@
-import { AngularGridInstance, Column, Formatters } from 'angular-slickgrid';
+import { AngularGridInstance, Column, FormatterResultObject, Formatters } from 'angular-slickgrid';
 
-export function columnTotal(column: string, angularGrid: any) {
+export function columnTotal(column: string, angularGrid: AngularGridInstance) {
 
     let columnFooter = angularGrid.slickGrid.getFooterRowColumn(column)
     let list = angularGrid.dataView.getItems()
 
     if (list.length && columnFooter) {
+        
         let columnId = angularGrid.slickGrid.getColumnIndex(column)
-        let columnDetail = angularGrid.slickGrid.getColumns()[columnId]
+        let columnDetail:Column = angularGrid.slickGrid.getColumns()[columnId]
         let gridDataTotal = 0
-        let totalDisplay = ''
+        let totalDisplay :string | FormatterResultObject
         if (columnDetail.type == 'float' || typeof list[0][column] === 'number') {
             for (let index = 0; index < list.length; index++) {
                 gridDataTotal += list[index][column]
             }
-            totalDisplay = columnDetail.formatter(0, 0, gridDataTotal, columnDetail, null, null)
+            totalDisplay = (columnDetail.formatter)? columnDetail.formatter(0, 0, gridDataTotal, columnDetail, null, angularGrid.slickGrid):''
             columnFooter.style.paddingRight = '7px'
         } else {
             totalDisplay = list.length.toString()
         }
-        columnFooter.innerHTML = totalDisplay
+        columnFooter.innerHTML = totalDisplay.toString()
     }
 }
 
