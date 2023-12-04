@@ -497,32 +497,29 @@ export class LiquidacionesController extends BaseController {
           anio
         ]
       );
-console.log('data',sheet1.data)
       for (const row of sheet1.data) {
         const cuit = String(row[1]).match(/[0-9]{11}/)
-        const detalle = String((row[2])?row[2]:'').match(/.{3,}/)
+        const detalle = String((row[2]) ? row[2] : '').match(/.{3,}/)
         const importe = String(row[3]).match(/\d*[\.\,]\d*|\d{1,}/)
 
         contador++
-        console.log("IDX", contador)
-        console.log("cuit", cuit)
-        console.log("detalle", detalle)
-        console.log("importe", importe)
 
 
-        if (contador == 1 && (cuit == null || detalle == null || importe == null)) 
+        if (contador == 1 && (cuit == null || detalle == null || importe == null))
           continue
 
-        if (cuit == null && detalle == null && importe == null) 
+        if (cuit == null && detalle == null && importe == null)
           continue
-        
+
+
+        if (cuit == null)
+          dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: `CUIT no válido` })
 
         const persona = await queryRunner.query(`SELECT personalId FROM dbo.PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit[0]])
-
         if (persona.length == 0)
           dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` CUIT no localizado` })
 
-        if (detalle ==null)
+        if (detalle == null)
           dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` Detalle vacío` })
 
         if (Number(importe[0]) <= 0 || Number.isNaN(Number(importe[0])))
@@ -553,18 +550,18 @@ console.log('data',sheet1.data)
       if (dataset.length > 0)
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
 
-    await queryRunner.commitTransaction();
-    copyFileSync(file.path, newFilePath);
-    this.jsonRes({}, res, `XLS Recibido y se procesaron ${contador} registros`);
-  } catch(error) {
-    if (queryRunner.isTransactionActive)
-      await queryRunner.rollbackTransaction();
-    return next(error)
-  } finally {
-    await queryRunner.release();
-    unlinkSync(file.path);
+      await queryRunner.commitTransaction();
+      copyFileSync(file.path, newFilePath);
+      this.jsonRes({}, res, `XLS Recibido y se procesaron ${contador} registros`);
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+      return next(error)
+    } finally {
+      await queryRunner.release();
+      unlinkSync(file.path);
 
-  }
+    }
   }
 
 }
