@@ -7,6 +7,7 @@
     "dev": "ng serve --hmr",
     "start": "ng s --proxy-config proxy.conf.json",
     "build": "npm run ng-high-memory build",
+    "esbuild": "esbuild ./src/main.ts --bundle --minify --sourcemap --outfile=./dist/run.js",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "ng-high-memory": "node --max_old_space_size=8000 ./node_modules/@angular/cli/bin/ng",

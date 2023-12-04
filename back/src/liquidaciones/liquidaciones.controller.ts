@@ -74,11 +74,7 @@ export class LiquidacionesController extends BaseController {
 
   }
 
-  async getByDownloadDocument(
-    req: any,
-    res: Response, next: NextFunction
-  ) {
-
+  async getByDownloadDocument(req: any, res: Response, next: NextFunction) {
     const documentId = Number(req.body.documentId);
     try {
 
@@ -96,16 +92,13 @@ export class LiquidacionesController extends BaseController {
 
       console.log("filePath " + cadenaConBarrasInvertidas)
       res.download(cadenaConBarrasInvertidas, (error) => {
-        if (error) {
-          console.error('Error al descargar el archivo:', error);
-          res.status(500).send('Error interno del servidor');
-        }
+        if (error)
+          throw new ClientException('Error al descargar el archivo',error)
       });
 
-      return ([res])
+//      return ([res])
 
     } catch (error) {
-      console.log("voy por el error")
       return next(error)
     }
   }
