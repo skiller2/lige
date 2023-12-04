@@ -11,9 +11,9 @@ import { fileURLToPath } from 'url';
 
 export class LiquidacionesController extends BaseController {
   directory = process.env.PATH_LIQUIDACIONES || "tmp";
-  
+
   async getTipoMovimientoById(req: Request, res: Response, next: NextFunction) {
-   
+
     const TipoMovimientoFilter = req.params.TipoMovimiento;
     console.log("TipoMovimiento" + TipoMovimientoFilter)
     try {
@@ -21,9 +21,9 @@ export class LiquidacionesController extends BaseController {
       if (TipoMovimientoFilter == 'all') {
         console.log('Pase');
         tipoMovimiento = await dataSource.query(
-        `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo, tipo.tipo_movimiento FROM lige.dbo.liqcotipomovimiento AS tipo`
+          `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo, tipo.tipo_movimiento FROM lige.dbo.liqcotipomovimiento AS tipo`
         )
-      }else{
+      } else {
         tipoMovimiento = await dataSource.query(
           `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo, tipo.tipo_movimiento FROM lige.dbo.liqcotipomovimiento AS tipo WHERE tipo.tipo_movimiento_id = @0`
           , [TipoMovimientoFilter])
@@ -42,7 +42,7 @@ export class LiquidacionesController extends BaseController {
   }
 
   async getTipoMovimiento(req: Request, res: Response, next: NextFunction) {
-   
+
     const TipoMovimientoFilter = req.params.TipoMovimiento;
     console.log("TipoMovimiento" + TipoMovimientoFilter)
     try {
@@ -65,12 +65,12 @@ export class LiquidacionesController extends BaseController {
   }
 
   async getDocumentInfo(documentId: Number) {
-    
+
 
     return dataSource.query(
       `SELECT impoexpo_id AS id, path, nombre_archivo_orig AS name FROM lige.dbo.convalorimpoexpo WHERE impoexpo_id = @0`, [documentId])
 
-      
+
 
   }
 
@@ -78,37 +78,36 @@ export class LiquidacionesController extends BaseController {
     req: any,
     res: Response, next: NextFunction
   ) {
-    
-      const documentId = Number(req.body.documentId);
-      try {
-    
-        const document = await  this.getDocumentInfo(documentId);
-        const rutaArchivo = document[0]["path"];
-          
-         
-        const __filename = fileURLToPath(import.meta.url);
-        const __dirname = dirname(__filename);
-    
-         const finalurl = __dirname.replace("src\\","").replace("liquidaciones","")
-         const filePath = finalurl + rutaArchivo
-         const cadenaConBarrasInvertidas = filePath.replace(/\//g, '\\');
-    
-    
-        console.log("filePath " + cadenaConBarrasInvertidas)
-        res.download(cadenaConBarrasInvertidas, (error) => {
-          if (error) {
-            console.error('Error al descargar el archivo:', error);
-            res.status(500).send('Error interno del servidor');
-          }
-        });
-    
-        return ([res])
-    
-      }catch (error) 
-      {
-        console.log("voy por el error")
-        return next(error)
-      }
+
+    const documentId = Number(req.body.documentId);
+    try {
+
+      const document = await this.getDocumentInfo(documentId);
+      const rutaArchivo = document[0]["path"];
+
+
+      const __filename = fileURLToPath(import.meta.url);
+      const __dirname = dirname(__filename);
+
+      const finalurl = __dirname.replace("src\\", "").replace("liquidaciones", "")
+      const filePath = finalurl + rutaArchivo
+      const cadenaConBarrasInvertidas = filePath.replace(/\//g, '\\');
+
+
+      console.log("filePath " + cadenaConBarrasInvertidas)
+      res.download(cadenaConBarrasInvertidas, (error) => {
+        if (error) {
+          console.error('Error al descargar el archivo:', error);
+          res.status(500).send('Error interno del servidor');
+        }
+      });
+
+      return ([res])
+
+    } catch (error) {
+      console.log("voy por el error")
+      return next(error)
+    }
   }
 
   async getTipoCuenta(req: Request, res: Response, next: NextFunction) {
@@ -135,23 +134,23 @@ export class LiquidacionesController extends BaseController {
     Anio: string,
     Mes: string,
     req: Request,
-     res: Response, 
-     next: NextFunction
-     ) {
+    res: Response,
+    next: NextFunction
+  ) {
 
     try {
 
       const importacionesAnteriores = await dataSource.query(
-        
+
         `SELECT impoexpo_id AS id, path, nombre_archivo_orig AS nombre, path, FORMAT(aud_fecha_ins, 'yyyy-MM-dd') AS fecha FROM lige.dbo.convalorimpoexpo WHERE anio = @0 AND mes = @1 AND ind_eliminado = 0`,
-      [Anio, Mes])
-      
+        [Anio, Mes])
+
       this.jsonRes(
         {
           total: importacionesAnteriores.length,
           list: importacionesAnteriores,
         },
-        
+
         res
       );
 
@@ -322,25 +321,25 @@ export class LiquidacionesController extends BaseController {
 
     try {
 
-        if(deleteId != null){ 
+      if (deleteId != null) {
 
-          await queryRunner.connect();
-          await queryRunner.startTransaction();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
-          await queryRunner.query(
-              `UPDATE lige.dbo.convalorimpoexpo SET ind_eliminado = 1 WHERE impoexpo_id = @0`,
-              [deleteId]
-            );
-            await queryRunner.query(
-              `DELETE FROM lige.dbo.liqmamovimientos WHERE impoexpo_id = @0`,
-              [deleteId]
-            );
+        await queryRunner.query(
+          `UPDATE lige.dbo.convalorimpoexpo SET ind_eliminado = 1 WHERE impoexpo_id = @0`,
+          [deleteId]
+        );
+        await queryRunner.query(
+          `DELETE FROM lige.dbo.liqmamovimientos WHERE impoexpo_id = @0`,
+          [deleteId]
+        );
 
-            await queryRunner.commitTransaction();
+        await queryRunner.commitTransaction();
 
-            this.jsonRes({ list: [] }, res, `Se eliminaron con exito los registros `);
-        }
-       
+        this.jsonRes({ list: [] }, res, `Se eliminaron con exito los registros `);
+      }
+
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
@@ -349,7 +348,7 @@ export class LiquidacionesController extends BaseController {
       //   await queryRunner.release();
     }
 
-    
+
   }
 
 
@@ -363,7 +362,7 @@ export class LiquidacionesController extends BaseController {
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
-  
+
       for (const row of req.body.gridDataInsert) {
 
 
@@ -377,7 +376,7 @@ export class LiquidacionesController extends BaseController {
 
         if (!tipocuenta_id) throw new ClientException("No se especificó el tipo de cuenta")
         if (!tipo_movimiento_id) throw new ClientException("No se especificó el movimiento")
-  
+
 
         let movimiento_id = await Utils.getMovimientoId(queryRunner)
 
@@ -454,7 +453,7 @@ export class LiquidacionesController extends BaseController {
 
 
       mkdirSync(`${this.directory}/${anio}`, { recursive: true });
-      
+
       const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
       const sheet1 = workSheetsFromBuffer[0];
 
@@ -462,13 +461,13 @@ export class LiquidacionesController extends BaseController {
       const convalorimpoexpo_id = await this.getProxNumero(queryRunner, `convalorimpoexpo`, usuario, ip)
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
       let contador = 0
-      
-      newFilePath = `${this.directory
-      }/${anio}/${anio}-${mes
-        .toString()
-        .padStart(2, "0")}-${convalorimpoexpo_id}.xls`;
 
-        console.log("newFilePath " + newFilePath)
+      newFilePath = `${this.directory
+        }/${anio}/${anio}-${mes
+          .toString()
+          .padStart(2, "0")}-${convalorimpoexpo_id}.xls`;
+
+      console.log("newFilePath " + newFilePath)
 
       if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
 
@@ -498,100 +497,74 @@ export class LiquidacionesController extends BaseController {
           anio
         ]
       );
-
-    //sheet1.data.splice(0, 2)
-
+console.log('data',sheet1.data)
       for (const row of sheet1.data) {
-        //TODO
-        //Fijarse si el valor row[1] y row[3] no es numérco
+        const cuit = String(row[1]).match(/[0-9]{11}/)
+        const detalle = String((row[2])?row[2]:'').match(/.{3,}/)
+        const importe = String(row[3]).match(/\d*[\.\,]\d*|\d{1,}/)
+
+        contador++
+        console.log("IDX", contador)
+        console.log("cuit", cuit)
+        console.log("detalle", detalle)
+        console.log("importe", importe)
 
 
-        const cuit = row[1]
-        const detalle = row[2]
-        const importe = row[3]
+        if (contador == 1 && (cuit == null || detalle == null || importe == null)) 
+          continue
 
-        if(cuit == undefined && detalle == undefined && importe == undefined)
-            continue
+        if (cuit == null && detalle == null && importe == null) 
+          continue
+        
 
-        if(typeof cuit == "string" && typeof detalle == "string" && typeof importe == "string")
-            continue
-       
-          
+        const persona = await queryRunner.query(`SELECT personalId FROM dbo.PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit[0]])
 
-        console.log( "cuit" + cuit)
-        console.log( "detalle" + detalle)
-        console.log( "importe" + importe)
+        if (persona.length == 0)
+          dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` CUIT no localizado` })
 
-        let persona
+        if (detalle ==null)
+          dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` Detalle vacío` })
 
-        if(!isNaN(cuit))
-          persona = await queryRunner.query(`SELECT personalId FROM dbo.PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
+        if (Number(importe[0]) <= 0 || Number.isNaN(Number(importe[0])))
+          dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` Importe vacío` })
 
-          console.log( "persona" + persona[0])
-       
-          if(persona == undefined ){
-            dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` Error en persona` })
-            continue
-          }else if (detalle == undefined){
-            dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` Error en Detalle` })
-            continue
-          } else if ( importe == "" ||  importe == undefined){
-            dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` Error en Importe` })
-            continue
-          } else {
-            const persona_id = persona[0]?.personalId
-            if (!persona_id) {
-    
-              dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` CUIT no localizado` })
-    
-            } else {
-    
-              console.log("movimiento_id " + movimiento_id)
-    
-              await queryRunner.query(
-                `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
+        if (dataset.length == 0)
+          await queryRunner.query(
+            `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
                   aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod,impoexpo_id)
                     VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)
                           `,
-                [
-                  ++movimiento_id,
-                  periodo_id,
-                  tipo_movimiento_id,
-                  tipocuenta_id,
-                  fechaActual,
-                  detalle,
-                  0,
-                  persona_id,
-                  importe,
-                  usuario, ip, fechaActual, usuario, ip, fechaActual,
-                  convalorimpoexpo_id
-                ]
-              );
-              contador++
-            }
-
-          }
-        
-      }
-
-     console.log("cantidad de errores " + dataset.length)
+            [
+              ++movimiento_id,
+              periodo_id,
+              tipo_movimiento_id,
+              tipocuenta_id,
+              fechaActual,
+              detalle[0],
+              0,
+              persona[0].persona_id,
+              importe[0],
+              usuario, ip, fechaActual, usuario, ip, fechaActual,
+              convalorimpoexpo_id
+            ]
+          );
+      }//For
 
       if (dataset.length > 0)
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
 
-      await queryRunner.commitTransaction();
-      //await queryRunner.rollbackTransaction();
-      this.jsonRes({}, res, `XLS Recibido y se procesaron ${contador} registros`);
-    } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
-      return next(error)
-    } finally {
-      await queryRunner.release();
-      copyFileSync(file.path, newFilePath);
-      unlinkSync(file.path);
+    await queryRunner.commitTransaction();
+    copyFileSync(file.path, newFilePath);
+    this.jsonRes({}, res, `XLS Recibido y se procesaron ${contador} registros`);
+  } catch(error) {
+    if (queryRunner.isTransactionActive)
+      await queryRunner.rollbackTransaction();
+    return next(error)
+  } finally {
+    await queryRunner.release();
+    unlinkSync(file.path);
 
-    }
+  }
   }
 
 }

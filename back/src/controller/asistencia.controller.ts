@@ -127,7 +127,7 @@ export class AsistenciaController extends BaseController {
     
     LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = asisa.SucursalId AND val.ValorLiquidacionTipoAsociadoId = asis.SucursalAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = asis.SucursalAsistenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= DATEFROMPARTS(asisa.SucursalAsistenciaAnoAno,asism.SucursalAsistenciaAnoMesMes,'28') AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(asisa.SucursalAsistenciaAnoAno,asism.SucursalAsistenciaAnoMesMes,'1')
     
-    WHERE asisa.SucursalAsistenciaAnoAno = @0 AND asism.SucursalAsistenciaAnoMesMes = @1 ${listPersonaId} `, [anio, mes])
+    WHERE asisa.SucursalAsistenciaAnoAno = @1 AND asism.SucursalAsistenciaAnoMesMes = @2 ${listPersonaId} `, [,anio, mes])
     let persart42:any[] = []
 
     for (const [index, value] of asisadmin.entries()) {

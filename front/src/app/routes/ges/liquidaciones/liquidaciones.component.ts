@@ -325,12 +325,12 @@ export class LiquidacionesComponent {
         firstValueFrom(this.apiService.setmovimientosAutomaticos(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
         break;
 
-      case "ingresosPorAsistencia":
+      case "Asistencia":
 
         firstValueFrom(this.apiService.setingresoPorAsistencia(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next('')))) //.subscribe(evt => {this.formChange$.next('')});
         break;
 
-      case "ingresosPorAsistenciaAdministrativosArt42":
+      case "Art42":
 
         firstValueFrom(this.apiService.setingresoPorAsistenciaAdministrativosArt42(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
         break;
