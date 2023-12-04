@@ -38,11 +38,7 @@ export class ApiService {
     );
   }
 
-  getImportacionesAnteriores() {
-    let anio = localStorage.getItem('anio');
-    let mes = localStorage.getItem('mes');
-
-
+  getImportacionesAnteriores(anio:number,mes:number) {
     return this.http.get(`/api/liquidaciones/importaciones_anteriores/${anio}/${mes}`).pipe(
         map(res => res.data.list),
         catchError((err, caught) => {

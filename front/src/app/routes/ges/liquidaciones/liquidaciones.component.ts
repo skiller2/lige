@@ -107,11 +107,21 @@ export class LiquidacionesComponent {
 
   $optionsCuenta = this.apiService.getTipoCuenta();
   $optionsMovimiento = this.apiService.getTipoMovimiento("I");
-  $importacionesAnteriores = this.apiService.getImportacionesAnteriores();
-
-
-
-
+  $importacionesAnteriores = this.formChange$.pipe(
+    debounceTime(500),
+    switchMap(() => {
+      const periodo = this.liquidacionesForm.form.get('periodo')?.value
+      return this.apiService
+        .getImportacionesAnteriores(
+          periodo.getFullYear(),periodo.getMonth() + 1
+        )
+        .pipe(
+          //map(data => {return data}),
+          //doOnSubscribe(() => this.tableLoading$.next(true)),
+          //tap({ complete: () => this.tableLoading$.next(false) })
+        )
+    })
+  )
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)

@@ -504,13 +504,11 @@ export class LiquidacionesController extends BaseController {
 
         contador++
 
-
         if (contador == 1 && (cuit == null || detalle == null || importe == null))
           continue
 
         if (cuit == null && detalle == null && importe == null)
           continue
-
 
         if (cuit == null)
           dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: `CUIT no válido` })
