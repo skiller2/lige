@@ -89,14 +89,9 @@ export class LiquidacionesController extends BaseController {
       const filePath = finalurl + rutaArchivo
       const cadenaConBarrasInvertidas = filePath.replace(/\//g, '\\');
 
+//      throw new ClientException('No se descargo')
 
-      console.log("filePath " + cadenaConBarrasInvertidas)
-      res.download(cadenaConBarrasInvertidas, (error) => {
-        if (error)
-          throw new ClientException('Error al descargar el archivo',error)
-      });
-
-//      return ([res])
+      res.download(cadenaConBarrasInvertidas, document[0]["name"])
 
     } catch (error) {
       return next(error)
