@@ -80,23 +80,22 @@ export class AdelantosController extends BaseController {
       hidden: false,
     },
     {
-      name: "CUIT Responsable Persona",
+      name: "Grupo Número",
       type: "number",
-      id: "CUITJ",
-      field: "CUITJ",
-      fieldName: "cuitjer.PersonalCUITCUILCUIT",
+      id: "GrupoActividadNumero",
+      field: "GrupoActividadNumero",
+      fieldName: "g.GrupoActividadNumero",
       sortable: true,
       searchHidden: false,
       hidden: false,
     },
     {
-      name: "Responsable Persona",
+      name: "Grupo Detalle",
       type: "string",
-      id: "ApellidoNombreJ",
-      field: "ApellidoNombreJ",
-      fieldName: "perrel.PersonalCategoriaPersonalId",
-      searchComponent: "inpurForPersonalSearch",
-      searchType: "number",
+      id: "GrupoActividadDetalle",
+      field: "GrupoActividadDetalle",
+      fieldName: "g.GrupoActividadDetalle",
+      searchType: "string",
       sortable: true,
       searchHidden: false
     },
@@ -114,28 +113,28 @@ export class AdelantosController extends BaseController {
   ) {
 
     try {
-      const responsables = await dataSource.query(
-        `SELECT DISTINCT pjer.ObjetivoPersonalJerarquicoPersonalId as PersonalId, 1
-        FroM ObjetivoPersonalJerarquico pje 
-        JOIN ObjetivoPersonalJerarquico pjer ON pjer.ObjetivoId = pje.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > pjer.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(pjer.ObjetivoPersonalJerarquicoHasta, '9999-12-31')
-        WHERE pje.ObjetivoPersonalJerarquicoPersonalId = @0`,
+      const grupos = await dataSource.query(
+        `SELECT DISTINCT ga.GrupoActividadId, ga.GrupoActividadJerarquicoComo, 1
+        FroM GrupoActividadJerarquico ga 
+        WHERE ga.GrupoActividadJerarquicoPersonalId = @0
+        AND DATEFROMPARTS(@1,@2,28) > ga.GrupoActividadJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(ga.GrupoActividadJerarquicoHasta, '9999-12-31')`,
         [res.locals.PersonalId, Ano, Mes])
 
-      let PersonalIdList = ""
-      responsables.forEach((row: any) => {
-        PersonalIdList += `${row.PersonalId},`
+      let GrupoActividadIdList =[]
+      grupos.forEach((row: any) => {
+        GrupoActividadIdList.push(row.GrupoActividadId)
       })
-      PersonalIdList += `0`
+      if (GrupoActividadIdList.length == 0)
+        GrupoActividadIdList.push(0)
 
       const adelantos = await dataSource.query(
-        `SELECT perrel.PersonalCategoriaPersonalId PersonalIdJ, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, ade.* 
+        `SELECT perrel.GrupoActividadId GrupoActividadId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, ade.* 
         FROM PersonalAdelanto ade 
         JOIN Personal per ON per.PersonalId = ade.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-
-        LEFT JOIN OperacionesPersonalAsignarAJerarquico perrel ON perrel.OperacionesPersonalAAsignarPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
+        LEFT JOIN GrupoActividadPersonal perrel ON perrel.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > perrel.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(perrel.GrupoActividadPersonalHasta, '9999-12-31')
            WHERE ((ade.PersonalAdelantoAprobado IN (NULL) OR ade.PersonalAdelantoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1)) OR ade.PersonalAdelantoAprobado IS NULL)
-                AND (ade.PersonalId = @0 or perrel.PersonalCategoriaPersonalId IN(${PersonalIdList}))`,
+                AND (ade.PersonalId = @0 or perrel.GrupoActividadId IN(${GrupoActividadIdList.join(',')}))`,
         [personalId, Ano, Mes])
 
       this.jsonRes(adelantos, res);
@@ -308,21 +307,22 @@ export class AdelantosController extends BaseController {
 //TODO Ver como no mostras los adelantos pendientes en un mes viejo
     try {
       const adelantos = await dataSource.query(
-        `SELECT DISTINCT CONCAT(per.PersonalId,'-',perrel.PersonalCategoriaPersonalId,'-',ade.PersonalAdelantoId) id,
+        `SELECT DISTINCT CONCAT(per.PersonalId,'-',ade.PersonalAdelantoId,'-',g.GrupoActividadId) id,
         per.PersonalId, cuit.PersonalCUITCUILCUIT CUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
-        perrel.PersonalCategoriaPersonalId, cuitjer.PersonalCUITCUILCUIT CUITJ,  CONCAT(TRIM(perjer.PersonalApellido),', ', TRIM(perjer.PersonalNombre)) AS ApellidoNombreJ, 
-   ade.PersonalAdelantoId, ade.PersonalAdelantoMonto, ade.PersonalAdelantoFechaSolicitud, ade.PersonalAdelantoAprobado, ade.PersonalAdelantoFechaAprobacion, ade.PersonalAdelantoCantidadCuotas, ade.PersonalAdelantoAplicaEl, ade.PersonalAdelantoLiquidoFinanzas, ade.PersonalAdelantoUltimaLiquidacion, ade.PersonalAdelantoCuotaUltNro, ade.PersonalAdelantoMontoAutorizado, ade.PersonalAdelantoJerarquicoId, ade.PersonalAdelantoPuesto, ade.PersonalAdelantoUsuarioId, ade.PersonalAdelantoDia, ade.PersonalAdelantoTiempo
- 
-           FROM Personal per 
-           LEFT JOIN OperacionesPersonalAsignarAJerarquico perrel ON per.PersonalId = perrel.OperacionesPersonalAAsignarPersonalId AND DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
-           LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-           LEFT JOIN Personal perjer ON perjer.PersonalId = perrel.PersonalCategoriaPersonalId
-           LEFT JOIN PersonalCUITCUIL cuitjer ON cuitjer.PersonalId = perrel.PersonalCategoriaPersonalId AND cuitjer.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = perrel.PersonalCategoriaPersonalId) 
-          LEFT JOIN PersonalAdelanto ade  ON ade.PersonalId = per.PersonalId
-          -- AND DATEPART(YEAR,ade.PersonalAdelantoFechaSolicitud) = @1 AND DATEPART(MONTH,ade.PersonalAdelantoFechaSolicitud) = @2
-          -- ade.PersonalAdelantoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1)
-          AND (ade.PersonalAdelantoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) OR (ade.PersonalAdelantoAplicaEl IS NULL AND ade.PersonalAdelantoAprobado IS NULL)) 
-       WHERE (1=1) 
+       g.GrupoActividadId, g.GrupoActividadNumero, g.GrupoActividadDetalle,
+        ade.PersonalAdelantoId, ade.PersonalAdelantoMonto, ade.PersonalAdelantoFechaSolicitud, ade.PersonalAdelantoAprobado, ade.PersonalAdelantoFechaAprobacion, ade.PersonalAdelantoCantidadCuotas, ade.PersonalAdelantoAplicaEl, ade.PersonalAdelantoLiquidoFinanzas, ade.PersonalAdelantoUltimaLiquidacion, ade.PersonalAdelantoCuotaUltNro, ade.PersonalAdelantoMontoAutorizado, ade.PersonalAdelantoJerarquicoId, ade.PersonalAdelantoPuesto, ade.PersonalAdelantoUsuarioId, ade.PersonalAdelantoDia, ade.PersonalAdelantoTiempo
+      
+        FROM Personal per
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+     
+        LEFT JOIN GrupoActividadPersonal ga ON ga.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > ga.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(ga.GrupoActividadPersonalHasta, '9999-12-31')
+       LEFT JOIN GrupoActividad g ON g.GrupoActividadId = ga.GrupoActividadId           
+     
+        LEFT JOIN PersonalAdelanto ade  ON ade.PersonalId = per.PersonalId
+               -- AND DATEPART(YEAR,ade.PersonalAdelantoFechaSolicitud) = @1 AND DATEPART(MONTH,ade.PersonalAdelantoFechaSolicitud) = @2
+               -- ade.PersonalAdelantoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1)
+        AND (ade.PersonalAdelantoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) OR (ade.PersonalAdelantoAplicaEl IS NULL AND ade.PersonalAdelantoAprobado IS NULL)) 
+        WHERE (1=1) 
        -- AND perrel.PersonalCategoriaPersonalId=@0
        AND (${filterSql}) 
        ${orderBy}`,

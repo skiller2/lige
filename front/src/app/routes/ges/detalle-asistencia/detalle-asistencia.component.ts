@@ -20,7 +20,7 @@ import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { SharedModule } from '@shared';
 import { CurrencyPipeModule } from '@delon/util';
 import { NzResizableModule } from 'ng-zorro-antd/resizable';
-import { NavigationEnd, Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 
 enum Busqueda {
@@ -57,6 +57,7 @@ export class DetalleAsistenciaComponent {
     private searchService: SearchService,
     private apiService: ApiService,
     private router: Router,
+    private route: ActivatedRoute,
     private settingService: SettingsService,
   ) {}
 
@@ -340,6 +341,20 @@ export class DetalleAsistenciaComponent {
       }
       //this.asistenciaexcepcion.valueChanges
     }, 1);
+
+
+    const PersonalId = Number(this.route.snapshot.paramMap.get('PersonalId'))
+    const ObjetivoId = Number(this.route.snapshot.paramMap.get('ObjetivoId'))
+
+    setTimeout(() => {
+      if (PersonalId > 0)
+      this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
+      if (ObjetivoId > 0)
+      this.asistenciaPer.controls['ObjetivoId'].setValue(ObjetivoId);
+    }, 1000)
+
+
+
   }
 
   selectedValueChange(event: string, busqueda: Busqueda): void {

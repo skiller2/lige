@@ -4,6 +4,8 @@ import { QueryFailedError } from "typeorm";
 import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-utils/filtros";
 import { NextFunction, Request, Response } from "express";
 import { ParsedQs } from "qs";
+import { AsistenciaController } from "src/controller/asistencia.controller";
+import { exit } from "process";
 
 const columnasGrilla: any[] = [
   {
@@ -52,14 +54,31 @@ const columnasGrilla: any[] = [
     sortable: true,
   },
   {
-    name: "Responsable Objetivo",
+    name: "Grupo Objetivo",
     type: "string",
-    id: "ApellidoNombreObjJ",
-    field: "ApellidoNombreObjJ",
-    searchComponent:"inpurForPersonalSearch",
-    fieldName: "opj.ObjetivoPersonalJerarquicoPersonalId",
+    id: "GrupoActividadDetalle",
+    field: "GrupoActividadDetalle",
+    fieldName: "ga.GrupoActividadDetalle",
     sortable: true,
   },
+  {
+    name: "Grupo Objetivo Número",
+    type: "number",
+    id: "GrupoActividadNumero",
+    field: "GrupoActividadNumero",
+    fieldName: "ga.GrupoActividadNumero",
+    sortable: true,
+  },
+  {
+    name: "Grupo Objetivo ID",
+    type: "number",
+    id: "GrupoActividadId",
+    field: "GrupoActividadId",
+    fieldName: "GrupoActividadId",
+    sortable: true,
+    hidden: true
+  },
+
   {
     name: "Horas cargadas",
     type: "number",
@@ -105,7 +124,14 @@ export class ObjetivosPendasisController extends BaseController {
     const anio:number = filtros.filter((x: { index: string; }) => x.index === "anio")[0]?.valor;
     const mes:number = filtros.filter((x: { index: string; }) => x.index === "mes")[0]?.valor;
 
-    return dataSource.query(
+    const queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+
+
+    //const result = await AsistenciaController.getObjetivoAsistencia(anio,mes,[filterSql],queryRunner)
+
+
+    return queryRunner.query(
       `SELECT DISTINCT suc.SucursalId, 
       suc.SucursalDescripcion,
       obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId, obj.ObjetivoDescripcion,
@@ -115,10 +141,13 @@ export class ObjetivosPendasisController extends BaseController {
       
       obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes,
       
-      CONCAT(TRIM(perjer.PersonalApellido),', ',TRIM(perjer.PersonalNombre)) AS ApellidoNombreObjJ,
+      -- CONCAT(TRIM(perjer.PersonalApellido),', ',TRIM(perjer.PersonalNombre)) AS ApellidoNombreObjJ,
       
+		ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
+		gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
+
       
-      CAST (objasissub.totalminutoscalc AS FLOAT)/60 AS AsistenciaHoras,
+      objasissub.sumtotalhorascalc AS AsistenciaHoras,
       
       eledepcon.ClienteElementoDependienteContratoFechaDesde,  eledepcon.ClienteElementoDependienteContratoFechaHasta, eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,
       clicon.ClienteContratoFechaDesde, clicon.ClienteContratoFechaHasta, clicon.ClienteContratoFechaFinalizacion,
@@ -134,52 +163,69 @@ export class ObjetivosPendasisController extends BaseController {
       
       FROM Objetivo obj 
       
-      LEFT JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoId = obj.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @0
-      LEFT JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoId  = obja.ObjetivoAsistenciaAnoId AND  objm.ObjetivoId = obja.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @1
+      LEFT JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoId = obj.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
+      LEFT JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoId  = obja.ObjetivoAsistenciaAnoId AND  objm.ObjetivoId = obja.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
       LEFT JOIN ObjetivoAsistenciaAnoMesPersonalDias objd ON objd.ObjetivoId = obj.ObjetivoId AND objd.ObjetivoAsistenciaAnoMesId = objm.ObjetivoAsistenciaAnoMesId AND objd.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId
       
       
-      LEFT JOIN ( SELECT objasis.ObjetivoId, objasis.ObjetivoAsistenciaAnoMesId, objasis.ObjetivoAsistenciaAnoId,
-      SUM (
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias2Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias2Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias3Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias3Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias4Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias4Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias5Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias5Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias6Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias6Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias7Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias7Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias8Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias8Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias9Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias9Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias10Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias10Gral),2) AS INT),0)+
+      LEFT JOIN ( SELECT objd.ObjetivoId, objd.ObjetivoAsistenciaAnoMesId, objd.ObjetivoAsistenciaAnoId,
       
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias11Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias11Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias12Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias12Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias13Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias13Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias14Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias14Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias15Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias15Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias16Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias16Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias17Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias17Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias18Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias18Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias19Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias19Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias20Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias20Gral),2) AS INT),0)+
+      SUM(      IIF(val.ValorLiquidacionHorasTrabajoHoraNormal>1,val.ValorLiquidacionHorasTrabajoHoraNormal,((
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias2Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias2Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias3Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias3Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias4Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias4Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias5Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias5Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias6Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias6Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias7Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias7Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias8Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias8Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias9Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias9Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias10Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias10Gral),2) AS INT),0)+
       
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias21Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias21Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias22Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias22Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias23Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias23Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias24Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias24Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias25Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias25Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias26Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias26Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias27Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias27Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias28Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias28Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias29Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias29Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias30Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias30Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias11Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias11Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias12Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias12Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias13Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias13Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias14Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias14Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias15Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias15Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias16Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias16Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias17Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias17Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias18Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias18Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias19Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias19Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias20Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias20Gral),2) AS INT),0)+
       
-      ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0) 
-      ) AS totalminutoscalc
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias21Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias21Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias22Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias22Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias23Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias23Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias24Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias24Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias25Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias25Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias26Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias26Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias27Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias27Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias28Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias28Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias29Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias29Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias30Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias30Gral),2) AS INT),0)+
+      ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0) 
+      ) / CAST(60 AS FLOAT))) ) AS sumtotalhorascalc
       
+            FROM ObjetivoAsistenciaAnoMesPersonalDias objd
+      JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoMesId = objd.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objd.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objd.ObjetivoId
+      JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objm.ObjetivoId
+      JOIN Objetivo obj ON obj.ObjetivoId = obja.ObjetivoId
+      -- JOIN Personal persona ON persona.PersonalId = objd.ObjetivoAsistenciaMesPersonalId
+      -- LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = persona.PersonalId) 
+      -- JOIN CategoriaPersonal cat ON cat.CategoriaPersonalId = objd.ObjetivoAsistenciaCategoriaPersonalId AND cat.TipoAsociadoId=objd.ObjetivoAsistenciaTipoAsociadoId
       
-      FROM ObjetivoAsistenciaAnoMesPersonalDias objasis 
-      GROUP BY objasis.ObjetivoId, objasis.ObjetivoAsistenciaAnoMesId, objasis.ObjetivoAsistenciaAnoId
+      LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+      LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+      
+      -- aca3
+      LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+      LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = suc.SucursalId AND val.ValorLiquidacionTipoAsociadoId = objd.ObjetivoAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = objd.ObjetivoAsistenciaCategoriaPersonalId AND 
+
+      DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,1)BETWEEN 
+          val.ValorLiquidacionDesde AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31')
+
+		 
+      GROUP BY objd.ObjetivoId, objd.ObjetivoAsistenciaAnoMesId, objd.ObjetivoAsistenciaAnoId
       
       ) objasissub ON objasissub.ObjetivoId = obj.ObjetivoId AND objasissub.ObjetivoAsistenciaAnoMesId = objm.ObjetivoAsistenciaAnoMesId AND objasissub.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId
       
@@ -192,8 +238,10 @@ export class ObjetivosPendasisController extends BaseController {
       
       
       
-      LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(@0,@1,'28')  BETWEEN opj.ObjetivoPersonalJerarquicoDesde  AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') AND opj.ObjetivoPersonalJerarquicoComo = 'J'
-      LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
+      LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(@1,@2,'28')  BETWEEN gap.GrupoActividadObjetivoDesde  AND ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31') 
+      LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+      
+      
       
       LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledepcon.ClienteElementoDependienteContratoId = eledep.ClienteElementoDependienteContratoUltNro
@@ -202,17 +250,18 @@ export class ObjetivosPendasisController extends BaseController {
       LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = obj.ClienteId AND clicon.ClienteContratoId = cli.ClienteContratoUltNro AND obj.ClienteElementoDependienteId IS NULL 
       
       LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
-      
-      
+       
       WHERE 
       (objd.ObjetivoId IS NULL OR objm.ObjetivoAsistenciaAnoMesHasta IS NULL) AND
-             ( (clicon.ClienteContratoFechaDesde <= DATETIMEFROMPARTS ( @0, @1, 28, 0, 0, 0, 0 )  
-       AND ISNULL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= DATETIMEFROMPARTS ( @0, @1, 1, 0, 0, 0, 0 ) AND ISNULL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= DATETIMEFROMPARTS ( @0, @1, 1, 0, 0, 0, 0 ) ) OR (
-          eledepcon.ClienteElementoDependienteContratoFechaDesde <= DATETIMEFROMPARTS ( @0, @1, 28, 0, 0, 0, 0 ) AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= DATETIMEFROMPARTS ( @0, @1, 1, 0, 0, 0, 0 ) AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= DATETIMEFROMPARTS ( @0, @1, 1, 0, 0, 0, 0 )) 
+             ( (clicon.ClienteContratoFechaDesde <= DATETIMEFROMPARTS ( @1, @2, 28, 0, 0, 0, 0 )  
+       AND ISNULL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= DATETIMEFROMPARTS ( @1, @2, 1, 0, 0, 0, 0 ) AND ISNULL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= DATETIMEFROMPARTS ( @1, @2, 1, 0, 0, 0, 0 ) ) OR (
+          eledepcon.ClienteElementoDependienteContratoFechaDesde <= DATETIMEFROMPARTS ( @1, @2, 28, 0, 0, 0, 0 ) AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= DATETIMEFROMPARTS ( @1, @2, 1, 0, 0, 0, 0 ) AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= DATETIMEFROMPARTS ( @1, @2, 1, 0, 0, 0, 0 )) 
             
-            ) AND (${filterSql})
+            )
+
+     AND (${filterSql})
       `,
-      [anio,mes])
+      [,anio,mes])
 
   }
 

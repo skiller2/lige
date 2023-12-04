@@ -54,11 +54,20 @@
       <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
       <nz-form-control>
         <ng-container *ngFor="let responsable of $objetivoResponsables | async">
-          <p title="{{ responsable.PersonalId }}">({{responsable.ObjetivoPersonalJerarquicoComo}})
-            {{responsable.PersonalCUITCUILCUIT}} {{ responsable.ApellidoNombreJerarquico }} desde {{
+          <p *ngIf="responsable.GrupoActividadId" title="{{ responsable.GrupoActividadId }}">{{responsable.GrupoActividadNumero}} -
+            {{responsable.GrupoActividadDetalle}} desde {{
+            responsable.GrupoActividadObjetivoDesde | date}} <span
+              *ngIf="responsable.GrupoActividadObjetivoHasta
+              ">hasta</span> {{
+            responsable.GrupoActividadObjetivoHasta
+ | date}} </p>
+          <p *ngIf="responsable.PersonalIdCoordinador" title="{{ responsable.PersonalIdCoordinador }}">Coordinador: {{responsable.ApellidoNombreCoordinador}} desde {{
             responsable.ObjetivoPersonalJerarquicoDesde | date}} <span
-              *ngIf="responsable.ObjetivoPersonalJerarquicoHasta">hasta</span> {{
-            responsable.ObjetivoPersonalJerarquicoHasta | date}} </p>
+              *ngIf="responsable.ObjetivoPersonalJerarquicoHasta
+              ">hasta</span> {{
+            responsable.GrupoActividadObjetivoHasta
+ | date}} </p>
+
         </ng-container>
       </nz-form-control>
     </nz-form-item>
@@ -117,11 +126,18 @@
       <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
       <nz-form-control>
         <ng-container *ngFor="let responsable of $personaResponsables | async">
-          <p title="{{ responsable.PersonalCategoriaPersonalId }}">
-            {{responsable.CUITJ}} {{ responsable.ApellidoNombreJ }} desde {{
-            responsable.OperacionesPersonalAsignarAJerarquicoDesde | date}} <span
-              *ngIf="responsable.OperacionesPersonalAsignarAJerarquicoHasta"> hasta </span> {{
-                responsable.OperacionesPersonalAsignarAJerarquicoHasta | date}} </p>
+          <p title="{{ responsable.GrupoActividadId }}">
+            {{ responsable.GrupoActividadNumero }} {{ responsable.GrupoActividadDetalle }} desde
+            {{
+            responsable.GrupoActividadPersonalDesde | date
+            }}
+            <span *ngIf="responsable.GrupoActividadPersonalHasta">
+              hasta
+            </span>
+            {{
+            responsable.GrupoActividadPersonalHasta | date
+            }}
+          </p>
         </ng-container>
       </nz-form-control>
     </nz-form-item>

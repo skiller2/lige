@@ -22,8 +22,8 @@
           <ng-template nz-tab>
             <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
 
-            <div class="gridContainer container-fluid">
-              <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columns$ | async | colsFilter"
+            <div class="gridContainer container-fluid" *ngIf="(columns$|async) as columnas">
+              <angular-slickgrid gridId="gridOPA" class="" [columnDefinitions]="columnas | colsFilter"
                 [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
                 (onAngularGridCreated)="angularGridReady($event)">
               </angular-slickgrid>

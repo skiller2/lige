@@ -55,46 +55,53 @@ export class BaseController {
       return false
     }
 
+    const grupos = await this.getGruposActividad(queryRunner, res.locals.PersonalId)
+    let listGrupos = []
+    for (const row of grupos)
+      listGrupos.push(row.GrupoActividadId)
+    
+    if (listGrupos.length > 0) {
+      let resPers = await queryRunner.query(`SELECT * FROM GrupoActividadPersonal gap WHERE gap.GrupoActividadPersonalPersonalId = @0 AND gap.GrupoActividadPersonalDesde <= @1 AND gap.GrupoActividadPersonalHasta >= @1 AND gap.GrupoActividadId IN(${listGrupos.join(',')})`,
+        [PersonalId_auth, new Date()])
+      if (resPers.length > 0)
+        return true
+    }
+
     let ObjetivoIdList = []
 
     let resultObjs = await queryRunner.query(
       `SELECT suc.SucursalId,
          
-    obj.ObjetivoId, 
-    obj.ClienteId,
-    obj.ClienteElementoDependienteId,
-    obj.ObjetivoDescripcion,
-    
-    perjer.PersonalId,
-    CONCAT(TRIM(perjer.PersonalApellido), ', ' ,TRIM(perjer.PersonalNombre) ) AS ApellidoNombreJerarquico,
-    cuit.PersonalCUITCUILCUIT,
-    opj.ObjetivoPersonalJerarquicoDesde,
-    opj.ObjetivoPersonalJerarquicoHasta,
-    opj.ObjetivoPersonalJerarquicoComo,
-    1
-    
-    FROM Objetivo obj 
-    LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  <= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @0
-    LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
-    LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = perjer.PersonalId) 
-
-
-    LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-    LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-    
-    LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
-
-    WHERE opj.ObjetivoPersonalJerarquicoPersonalId=@1`,
+      obj.ObjetivoId, 
+      obj.ClienteId,
+      obj.ClienteElementoDependienteId,
+      obj.ObjetivoDescripcion,
+      
+      opj.GrupoActividadObjetivoDesde,
+      opj.GrupoActividadObjetivoHasta,
+      1
+      
+      FROM Objetivo obj 
+     JOIN GrupoActividadObjetivo opj ON opj.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND  opj.GrupoActividadObjetivoDesde  <= @0 AND ISNULL(opj.GrupoActividadObjetivoHasta,'9999-12-31') >= @0
+      JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = opj.GrupoActividadId AND  gaj.GrupoActividadJerarquicoDesde  <= @0 AND ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31') >= @0
+  
+  
+      LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+      LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+      
+      LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+  
+      WHERE gaj.GrupoActividadJerarquicoPersonalId=@1`,
       [fechaHastaAuth, PersonalId]
     )
 
     for (const row of resultObjs)
       ObjetivoIdList.push(row.ObjetivoId)
 
-   
-    //Busco si la persona está en un objetivo
-    let resultPers = await queryRunner.query(
-      `
+    if (ObjetivoIdList.length > 0) {
+      //Busco si la persona está en un objetivo
+      let resultPers = await queryRunner.query(
+        `
     SELECT DISTINCT 
                 persona.PersonalId,
                 1 as last
@@ -116,8 +123,6 @@ export class BaseController {
                 DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,1)BETWEEN 
                     val.ValorLiquidacionDesde AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31')
                 
-                LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'28')  BETWEEN opj.ObjetivoPersonalJerarquicoDesde  AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') AND opj.ObjetivoPersonalJerarquicoComo = 'J'
-                LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
                 
                 LEFT JOIN PersonalArt14 art14S ON art14S.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14S.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14S.PersonalArt14FormaArt14 = 'S' AND art14S.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14S.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < art14S.PersonalArt14AutorizadoHasta OR art14S.PersonalArt14AutorizadoHasta IS NULL) AND  ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < art14S.PersonalArt14Anulacion   OR art14S.PersonalArt14Anulacion IS NULL)
                 LEFT JOIN PersonalArt14 art14E ON art14E.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14E.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14E.PersonalArt14FormaArt14 = 'E' AND art14E.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14E.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < art14E.PersonalArt14AutorizadoHasta OR art14E.PersonalArt14AutorizadoHasta IS NULL) AND  ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < art14E.PersonalArt14Anulacion   OR art14E.PersonalArt14Anulacion IS NULL)
@@ -136,80 +141,61 @@ export class BaseController {
                 AND obj.ObjetivoId IN (${ObjetivoIdList.join(',')}) 
                 AND persona.PersonalId = @0
                 `,
-        [PersonalId_auth,anio, mes]
+        [PersonalId_auth, anio, mes]
       )
-    if (resultPers.length > 0) { 
-      //Encontré la persona.  Tengo permiso
-      return true
-    }
-
-    let resultPers2 = await queryRunner.query(
-      `    
-    SELECT DISTINCT 
-        perrel.OperacionesPersonalAAsignarPersonalId,
-        CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre, 
-        perrel.PersonalCategoriaPersonalId,
-        CONCAT(TRIM(perjer.PersonalApellido), ', ',TRIM(perjer.PersonalNombre)) ApellidoNombreJ, 
-        1
-        FroM OperacionesPersonalAsignarAJerarquico perrel 
-
-        JOIN Personal perjer ON perjer.PersonalId = perrel.PersonalCategoriaPersonalId
-        
-        JOIN Personal per ON per.PersonalId = perrel.OperacionesPersonalAAsignarPersonalId
-       
-        
-        WHERE DATEFROMPARTS(@1,@2,28) > perrel.OperacionesPersonalAsignarAJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(perrel.OperacionesPersonalAsignarAJerarquicoHasta, '9999-12-31')
-        AND perrel.OperacionesPersonalAAsignarPersonalId=@0 AND    perrel.PersonalCategoriaPersonalId=@3`,
-      [PersonalId_auth, anio, mes, PersonalId])
-    
-      if (resultPers2.length > 0) { 
+      if (resultPers.length > 0) { 
         //Encontré la persona.  Tengo permiso
         return true
       }
-    
+ 
+    }
+
     return false;
   }
 
-  async hasAuthObjetivo(anio: number, mes: number, req: any, ObjetivoId: number, queryRunner: DataSource | QueryRunner) {
+  async hasAuthObjetivo(anio: number, mes: number, res: any, ObjetivoId: number, queryRunner: DataSource | QueryRunner) {
     let fechaHastaAuth = new Date(anio, mes, 1);
     fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1);
     let authSucursal = false
     let authAdministrativo = false
+    const PersonalId = res.locals.PersonalId
 
-    if (req.persona_cuit == "") return
+    if (PersonalId == "") return
 
-    let resultAuth = await queryRunner.query(
-      `SELECT suc.SucursalId,
-         
-    obj.ObjetivoId, 
-    obj.ClienteId,
-    obj.ClienteElementoDependienteId,
-    obj.ObjetivoDescripcion,
+    const grupos = await this.getGruposActividad(queryRunner, res.locals.PersonalId)
+    let listGrupos = []
+    for (const row of grupos)
+      listGrupos.push(row.GrupoActividadId)
     
-    perjer.PersonalId,
-    CONCAT(TRIM(perjer.PersonalApellido), ', ' ,TRIM(perjer.PersonalNombre) ) AS ApellidoNombreJerarquico,
-    cuit.PersonalCUITCUILCUIT,
-    opj.ObjetivoPersonalJerarquicoDesde,
-    opj.ObjetivoPersonalJerarquicoHasta,
-    opj.ObjetivoPersonalJerarquicoComo,
-    1
-    
-    FROM Objetivo obj 
-    LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  <= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @0
-    LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
-    LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = perjer.PersonalId) 
+    if (listGrupos.length > 0) { 
+      let resultAuth = await queryRunner.query(
+        `SELECT suc.SucursalId,
+           
+      obj.ObjetivoId, 
+      obj.ClienteId,
+      obj.ClienteElementoDependienteId,
+      obj.ObjetivoDescripcion,
+      
+      1
+      
+      FROM Objetivo obj 
+      LEFT JOIN GrupoActividadObjetivo gao ON gao.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND gao.GrupoActividadObjetivoDesde  <= @0 AND ISNULL(gao.GrupoActividadObjetivoHasta,'9999-12-31') >= @0
+      LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+      LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+      LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+      
+  
+      WHERE obj.ObjetivoId=@1 AND gao.GrupoActividadId IN (${listGrupos})`,
+        [fechaHastaAuth, ObjetivoId]
+      );
+      if (resultAuth.length > 0)
+        return
+    }
 
-    LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-    LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-    LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
-    
 
-    WHERE obj.ObjetivoId=@1`,
-      [fechaHastaAuth, ObjetivoId]
-    );
-    const SucursalId = (resultAuth.length > 0) ? resultAuth[0].SucursalId : 0
+   /*
 
-    req.groups.forEach(group => {
+    res.locals.groups.forEach(group => {
       switch (SucursalId) {
         case 0: //Sin sucursal
           authSucursal = true;
@@ -237,17 +223,12 @@ export class BaseController {
     authSucursal = true;
     if (!authSucursal)
       throw new ClientException(`No tiene permisos para realizar operación en la sucursal ${SucursalId}`)
-
+*/
     
     if (authAdministrativo) return   //Si es administrativo no analizo el CUIT    
     
-    for (let row of resultAuth) {
-      if (row.PersonalCUITCUILCUIT == req.persona_cuit) {
-        return
-      }
-    }
 
-    throw new ClientException(`No tiene permisos para realizar operación identificado con CUIT ${req.persona_cuit}`)
+    throw new ClientException(`No tiene permisos para realizar operación`)
   }
 
 
@@ -264,6 +245,15 @@ export class BaseController {
         [den_numerador, den_numero, usuario, ip, fechaActual])
     }
     return den_numero
+  }
+
+  async getGruposActividad(queryRunner: any, PersonalId:number) { 
+    return await queryRunner.query(
+      `SELECT DISTINCT ga.GrupoActividadId, ga.GrupoActividadJerarquicoComo, 1
+      FroM GrupoActividadJerarquico ga 
+      WHERE ga.GrupoActividadJerarquicoPersonalId = @0
+      AND @1 > ga.GrupoActividadJerarquicoDesde AND @1 <  ISNULL(ga.GrupoActividadJerarquicoHasta, '9999-12-31')`,
+      [PersonalId, new Date()])
   }
 
 }

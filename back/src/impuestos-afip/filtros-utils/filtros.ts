@@ -81,8 +81,12 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
           if (type == 'number' || type=='float' || type=='currency') {
             if (valorBusqueda == '' || valorBusqueda == null || valorBusqueda == 'null')
               filterString.push(`${fieldName} IS NULL`)
-            else
-              filterString.push(`${fieldName} = ${valorBusqueda}`)
+            else {
+              if (String(valorBusqueda).indexOf(';') == 0)
+                filterString.push(`${fieldName} = ${valorBusqueda}`)
+              else 
+                filterString.push(`${fieldName} IN (${String(valorBusqueda).replaceAll(';',',')})`)
+            }
           }else if(type == 'date'){
                 const valor = valorBusqueda.split('/').reverse().join('/');
                 filterString.push(`${fieldName} >= '${valor} 00:00:00' AND ${fieldName} <= '${valor} 23:59:59'`)

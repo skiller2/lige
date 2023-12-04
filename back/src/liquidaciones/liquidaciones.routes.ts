@@ -208,10 +208,10 @@ liquidacionesRouter.post("/upload", authMiddleware.verifyToken, (req, res, next)
   });
 });
 
-liquidacionesRouter.post("/downloadImportacion",(req, res, next) => {
-    liquidacionesController.getByDownloadDocument(req, res, next);
-  }
-);
+
+liquidacionesRouter.post("/downloadImportacion", authMiddleware.verifyToken, async (req, res, next) => {
+  await liquidacionesController.getByDownloadDocument(req, res, next);
+});
 
 
 

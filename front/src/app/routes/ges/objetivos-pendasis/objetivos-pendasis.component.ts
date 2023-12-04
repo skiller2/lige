@@ -21,9 +21,10 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { formatDate } from '@angular/common';
-import { SearchService } from 'src/app/services/search.service';
-import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
+import { SearchService } from '../../../services/search.service';
+import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SettingsService } from '@delon/theme';
+import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 
 type listOptionsT = {
   filtros: any[],
@@ -121,15 +122,18 @@ export class ObjetivosPendAsisComponent {
   ngOnInit() {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
+    this.gridOptions.showFooterRow = true
+    this.gridOptions.createFooterRow = true
 
   }
 
   ngAfterContentInit(): void {
     const user: any = this.settingService.getUser()
+    const gruposActividadList = user.GrupoActividad
 
     setTimeout(() => {
-      if (user.PersonalId > 0)
-      this.sharedFiltroBuilder.addFilter('ApellidoNombreObjJ', 'AND', '=', user.PersonalId)  //Ej 548
+      if (gruposActividadList.length > 0)
+      this.sharedFiltroBuilder.addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'))  //Ej 548
     }, 3000);
 
   }
@@ -183,6 +187,12 @@ export class ObjetivosPendAsisComponent {
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds(['SucurladId'])
+
+    
+
+    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGrid)
+    })    
   }
 
   exportGrid() {

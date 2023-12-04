@@ -1,5 +1,5 @@
 import { Component, ViewChild, Injector, TemplateRef, ChangeDetectorRef } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { NgForm } from '@angular/forms';
 import { SharedModule, listOptionsT } from '@shared';
@@ -32,6 +32,21 @@ import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-pe
 import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-objetivo.component';
 
 @Component({
+  standalone: true,
+  imports: [
+    SharedModule,
+  ],
+  template: `<a [routerLink]="[link,params]" >{{detail}}</a>`
+})
+
+export class CustomLinkComponent {
+  link!: string
+  params!: any
+  detail!:string
+}
+
+
+@Component({
   selector: 'app-liquidaciones',
   templateUrl: './liquidaciones.component.html',
   styleUrls: ['./liquidaciones.component.less'],
@@ -49,8 +64,10 @@ import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-
 })
 export class LiquidacionesComponent {
   @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =
-    new NgForm([], []);
-  constructor(private cdr: ChangeDetectorRef, public apiService: ApiService, private injector: Injector, public router: Router, private angularUtilService: AngularUtilService, private modal: NzModalService, private notification: NzNotificationService) { }
+    new NgForm([], [])
+  @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent
+  
+  constructor(private cdr: ChangeDetectorRef, public apiService: ApiService, private injector: Injector, public router: Router, private route: ActivatedRoute, private angularUtilService: AngularUtilService, private modal: NzModalService, private notification: NzNotificationService) { }
 
 
   url = '/api/liquidaciones';
@@ -90,20 +107,41 @@ export class LiquidacionesComponent {
 
   $optionsCuenta = this.apiService.getTipoCuenta();
   $optionsMovimiento = this.apiService.getTipoMovimiento("I");
-  $importacionesAnteriores = this.apiService.getImportacionesAnteriores();
-
-
-
-
+  $importacionesAnteriores = this.formChange$.pipe(
+    debounceTime(500),
+    switchMap(() => {
+      const periodo = this.liquidacionesForm.form.get('periodo')?.value
+      return this.apiService
+        .getImportacionesAnteriores(
+          periodo.getFullYear(),periodo.getMonth() + 1
+        )
+        .pipe(
+          //map(data => {return data}),
+          //doOnSubscribe(() => this.tableLoading$.next(true)),
+          //tap({ complete: () => this.tableLoading$.next(false) })
+        )
+    })
+  )
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
-    if (colDef.params.component && dataContext.monto > 0) {
-      const componentOutput = this.angularUtilService.createAngularComponent(colDef.params.component)
-      Object.assign(componentOutput.componentRef.instance, { item: dataContext, anio: this.selectedPeriod.year, mes: this.selectedPeriod.month })
-      cellNode.append(componentOutput.domElement)
-      //setTimeout(() => cellNode.append(componentOutput.domElement))
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+    switch (colDef.id) {
+      case 'ApellidoNombre':
+        Object.assign(componentOutput.componentRef.instance, { link: '/ges/detalle_asistencia/persona', params: {PersonalId:dataContext.persona_id}, detail:cellNode.innerText
+       })
+        
+        break;
+      case 'ObjetivoDescripcion':
+        Object.assign(componentOutput.componentRef.instance, { link: '/ges/detalle_asistencia/objetivo', params: {ObjetivoId:dataContext.objetivo_id}, detail: cellNode.innerText })
+        
+        break;
+    
+      default:
+        break;
     }
-  }
+
+    cellNode.replaceChildren(componentOutput.domElement)
+}
 
 
 
@@ -158,6 +196,13 @@ export class LiquidacionesComponent {
 
       this.liquidacionesForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
     }, 1);
+
+    const PersonalId = Number(this.route.snapshot.paramMap.get('PersonalId'))
+
+    setTimeout(() => {
+      if (PersonalId > 0)
+      this.sharedFiltroBuilder.addFilter('ApellidoNombre', 'AND', '=', String(PersonalId))
+    }, 1000)
   }
 
   async angularGridReady(angularGrid: any) {
@@ -274,7 +319,9 @@ export class LiquidacionesComponent {
   }
 
   columns$ = this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols) => {
-    // console.log('Cols ',cols);
+    cols[7].asyncPostRender= this.renderAngularComponent.bind(this)
+    cols[6].asyncPostRender= this.renderAngularComponent.bind(this)
+
     return cols
   }));
 
@@ -288,12 +335,12 @@ export class LiquidacionesComponent {
         firstValueFrom(this.apiService.setmovimientosAutomaticos(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
         break;
 
-      case "ingresosPorAsistencia":
+      case "Asistencia":
 
         firstValueFrom(this.apiService.setingresoPorAsistencia(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next('')))) //.subscribe(evt => {this.formChange$.next('')});
         break;
 
-      case "ingresosPorAsistenciaAdministrativosArt42":
+      case "Art42":
 
         firstValueFrom(this.apiService.setingresoPorAsistenciaAdministrativosArt42(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
         break;
@@ -500,6 +547,9 @@ export class LiquidacionesComponent {
         this.addNewItem("bottom")
       }
 
+
+
+
     }
 
 
@@ -513,8 +563,6 @@ export class LiquidacionesComponent {
 
     this.gridOptionsImport = this.apiService.getDefaultGridOptions('.gridContainer3', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsImport.enableRowDetailView = this.apiService.isMobile()
-
-
   }
 
   selectedValueChangeMovimiento(event: string): void {
@@ -628,15 +676,9 @@ export class LiquidacionesComponent {
     if ( this.NotificationIdForDelete > 0) {
       (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
       this.apiService.setDeleteImportacion({deleteId: this.NotificationIdForDelete}).subscribe(evt => {
-        this.recargarPaginaDespuesDe3Segundos()
+        this.formChange$.next('')
       });
     }
-  }
-
-  recargarPaginaDespuesDe3Segundos() {
-    setTimeout(() => {
-      window.location.reload();
-    }, 3000); // 3000 milisegundos = 3 segundos
   }
 
   onCellChanged(e: any) {
@@ -707,7 +749,7 @@ export class LiquidacionesComponent {
         this.gridDataImportLen = 0
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response)
-        this.recargarPaginaDespuesDe3Segundos()
+        this.formChange$.next('')
         break
       default:
 

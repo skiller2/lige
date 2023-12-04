@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from "express";
 import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
 import { CategoriasController } from "../categorias-cambio/categorias-cambio.controller";
+import { objetivosPendasisController } from "./controller.module";
+import { ObjetivosPendasisController } from "src/objetivos-pendasis/objetivos-pendasis.controller";
+import { isNumberObject } from "util/types";
 
 export class InitController extends BaseController {
   getCategoriasPendientes(req: Request, res: Response, next: NextFunction) {
@@ -25,120 +28,41 @@ export class InitController extends BaseController {
   }
 
 
-  getObjetivosSinAsistencia(req: Request, res: Response, next: NextFunction) {
+  async getObjetivosSinAsistencia(req: Request, res: Response, next: NextFunction) {
     const con = dataSource;
     const anio = req.params.anio
     const mes = req.params.mes
-    con
-      .query(
-        `
-        SELECT DISTINCT suc.SucursalId, suc.SucursalDescripcion,
-        
-        COUNT(DISTINCT obj.ObjetivoId) AS CantidadObjetivos,
-        
-        1
-        
-        FROM Objetivo obj 
-        
-        LEFT JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoId = obj.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @0
-        LEFT JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoId  = obja.ObjetivoAsistenciaAnoId AND  objm.ObjetivoId = obja.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @1
-        LEFT JOIN ObjetivoAsistenciaAnoMesPersonalDias objd ON objd.ObjetivoId = obj.ObjetivoId AND objd.ObjetivoAsistenciaAnoMesId = objm.ObjetivoAsistenciaAnoMesId AND objd.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId
-        
-        
-        LEFT JOIN ( SELECT objasis.ObjetivoId, objasis.ObjetivoAsistenciaAnoMesId, objasis.ObjetivoAsistenciaAnoId,
-        SUM (
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias2Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias2Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias3Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias3Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias4Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias4Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias5Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias5Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias6Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias6Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias7Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias7Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias8Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias8Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias9Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias9Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias10Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias10Gral),2) AS INT),0)+
-        
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias11Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias11Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias12Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias12Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias13Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias13Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias14Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias14Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias15Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias15Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias16Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias16Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias17Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias17Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias18Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias18Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias19Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias19Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias20Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias20Gral),2) AS INT),0)+
-        
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias21Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias21Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias22Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias22Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias23Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias23Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias24Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias24Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias25Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias25Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias26Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias26Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias27Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias27Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias28Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias28Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias29Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias29Gral),2) AS INT),0)+
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias30Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias30Gral),2) AS INT),0)+
-        
-        ISNULL(CAST(LEFT(objasis.ObjetivoAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objasis.ObjetivoAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0) 
-        ) AS totalminutoscalc
-        
-        
-        FROM ObjetivoAsistenciaAnoMesPersonalDias objasis 
-        GROUP BY objasis.ObjetivoId, objasis.ObjetivoAsistenciaAnoMesId, objasis.ObjetivoAsistenciaAnoId
-        
-        ) objasissub ON objasissub.ObjetivoId = obj.ObjetivoId AND objasissub.ObjetivoAsistenciaAnoMesId = objm.ObjetivoAsistenciaAnoMesId AND objasissub.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId
-        
-        
-        
-        LEFT JOIN Personal persona ON persona.PersonalId = objd.ObjetivoAsistenciaMesPersonalId
-        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = persona.PersonalId) 
 
-        
-        
-        
-        LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(@0,@1,'28')  BETWEEN opj.ObjetivoPersonalJerarquicoDesde  AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') AND opj.ObjetivoPersonalJerarquicoComo = 'J'
-        LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
-        
-        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
-        LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledepcon.ClienteElementoDependienteContratoId = eledep.ClienteElementoDependienteContratoUltNro
-        
-        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
-        LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = obj.ClienteId AND clicon.ClienteContratoId = cli.ClienteContratoUltNro AND obj.ClienteElementoDependienteId IS NULL 
-        
-        LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+    const result = await ObjetivosPendasisController.listObjetivosPendAsis({
+      filtros: [
+        { index: 'anio', operador: '=', condition: 'AND', valor: anio },
+        { index: 'mes', operador: '=', condition: 'AND', valor: mes }
+      ],
+      sort: null,
+      extra: null
+    })
 
-        WHERE 
-        --	obja.ObjetivoAsistenciaAnoAno = 2023 AND objm.ObjetivoAsistenciaAnoMesMes = 3 AND 
-        (objd.ObjetivoId IS NULL OR objm.ObjetivoAsistenciaAnoMesHasta IS NULL) AND
-               ( (clicon.ClienteContratoFechaDesde <= DATETIMEFROMPARTS ( @0, @1, 28, 0, 0, 0, 0 )  
-         AND ISNULL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= DATETIMEFROMPARTS ( @0, @1, 1, 0, 0, 0, 0 ) AND ISNULL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= DATETIMEFROMPARTS ( @0, @1, 1, 0, 0, 0, 0 ) ) OR (
-                eledepcon.ClienteElementoDependienteContratoFechaDesde <= DATETIMEFROMPARTS ( @0, @1, 28, 0, 0, 0, 0 ) AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= DATETIMEFROMPARTS ( @0, @1, 1, 0, 0, 0, 0 ) AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= DATETIMEFROMPARTS ( @0, @1, 1, 0, 0, 0, 0 )) 
-        --		  OR ClienteContratoFechaDesde IS NULL AND clicon.ClienteContratoFechaHasta IS NULL AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NULL AND eledepcon.ClienteElementoDependienteContratoFechaHasta IS NULL)        
-                
-              
-              
-              )
-              
-        GROUP BY suc.SucursalId, suc.SucursalDescripcion
-        `,
-        [anio, mes]
-      )
-      .then((records: Array<any>) => {
-        let data: { x: string; y: any; }[] = []
-        let total = 0
-        //        if (records.length ==0) throw new ClientException('Data not found')
-        records.forEach(rec => {
-          data.push({ x: rec.SucursalDescripcion, y: rec.CantidadObjetivos })
-          total += rec.CantidadObjetivos
-        })
+    let porGrupo: { GrupoActividadDetalle: string; CantidadObjetivos: number; }[]=[]
+    let data: { x: string; y: any; }[] = []
+    let total = 0
 
-        this.jsonRes({ objetivosSinAsistencia: data, objetivosSinAsistenciaTotal: total, anio: anio, mes: mes }, res);
 
-      })
-      .catch((error) => {
-        return next(error);
-      });
+    result.forEach(rec => {
+      const cant: number = (Number(porGrupo[rec.GrupoActividadId]?.CantidadObjetivos) > 0) ? porGrupo[rec.GrupoActividadId].CantidadObjetivos : 0
+      const GrupoActividadId = (rec.GrupoActividadId) ? rec.GrupoActividadId:0
+      const GrupoActividadDetalle = (rec.GrupoActividadDetalle) ? rec.GrupoActividadDetalle:'Sin Grupo'
+      porGrupo[GrupoActividadId] = { GrupoActividadDetalle, CantidadObjetivos: cant+1 }
+      total++
+    })
+
+
+    for (const row of porGrupo) {
+      console.log('row', row)
+      if (row)
+      data.push({ x: row.GrupoActividadDetalle, y: row.CantidadObjetivos })
+    }
+
+    this.jsonRes({ objetivosSinAsistencia: data, objetivosSinAsistenciaTotal: total, anio: anio, mes: mes }, res);
   }
 
   getObjetivosSinGrupo(req: Request, res: Response, next: NextFunction) {
@@ -187,7 +111,7 @@ AND         (
 
         records.forEach(rec => {
 
-//          data.push({ x: rec.totalpersonas, y: rec.PersonalAdelantoMonto })
+          //          data.push({ x: rec.totalpersonas, y: rec.PersonalAdelantoMonto })
           //          total += rec.totalpersonas
           total++
         })
@@ -401,25 +325,10 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
 
         obja.ObjetivoAsistenciaAnoAno, 
         objm.ObjetivoAsistenciaAnoMesMes, 
-        -- cuit.PersonalCUITCUILCUIT, 
-        -- persona.PersonalApellido, 
-        -- persona.PersonalNombre, 
-        -- obj.ObjetivoId, 
-        -- obj.ClienteId,
-        -- obj.ClienteElementoDependienteId,
-        -- obj.ObjetivoDescripcion,
         
-        -- perjer.PersonalNombre AS NombreCoordinadorZona, perjer.PersonalApellido AS ApellidoCoordinadorZona,
-        -- objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras,
-        -- cat.CategoriaPersonalDescripcion,
-        -- val.ValorLiquidacionHoraNormal,
-        -- CAST (objd.ObjetivoAsistenciaAnoMesPersonalDiasTotalGral AS FLOAT) AS HorasMensuales,
-        -- CAST (objd.ObjetivoAsistenciaAnoMesPersonalDiasTotalGral AS FLOAT)*val.ValorLiquidacionHoraNormal AS HorasMensualesImporte,
-        
-        -- objd.ObjetivoAsistenciaTipoAsociadoId,
-        -- objd.ObjetivoAsistenciaCategoriaPersonalId,
-        
-        SUM ((ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
+        SUM (
+          IIF(val.ValorLiquidacionHorasTrabajoHoraNormal>1,val.ValorLiquidacionHorasTrabajoHoraNormal,((
+        ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
         ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias2Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias2Gral),2) AS INT),0)+
         ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias3Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias3Gral),2) AS INT),0)+
         ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias4Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias4Gral),2) AS INT),0)+
@@ -453,7 +362,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias30Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias30Gral),2) AS INT),0)+
         
         ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0) )/ 60
-        ) AS totalhorascalc
+        ))) AS totalhorascalc
         
         
         
@@ -472,17 +381,14 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
         LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
 
-        -- LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = suc.SucursalId AND val.ValorLiquidacionTipoAsociadoId = objd.ObjetivoAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = objd.ObjetivoAsistenciaCategoriaPersonalId 
-        -- AND  DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') BETWEEN 
-        --  val.ValorLiquidacionDesde and COALESCE (val.ValorLiquidacionHasta, '9999-01-01')
+        LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = suc.SucursalId AND val.ValorLiquidacionTipoAsociadoId = objd.ObjetivoAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = objd.ObjetivoAsistenciaCategoriaPersonalId 
+        AND  DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') BETWEEN 
+        val.ValorLiquidacionDesde and COALESCE (val.ValorLiquidacionHasta, '9999-01-01')
         
-        -- LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') BETWEEN 
-        --  opj.ObjetivoPersonalJerarquicoDesde and COALESCE (opj.ObjetivoPersonalJerarquicoHasta, '9999-01-01')
-        -- LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
         
-        WHERE obja.ObjetivoAsistenciaAnoAno = @0   -- AND cuit.PersonalCUITCUILCUIT = '20241355471'
+        WHERE obja.ObjetivoAsistenciaAnoAno = @1
         GROUP BY obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes`,
-        [anio]
+        [,anio]
       )
       .then((records: Array<any>) => {
         let horasTrabajadas: { x: string; y: any; }[] = []

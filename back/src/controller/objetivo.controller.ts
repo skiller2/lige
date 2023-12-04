@@ -26,33 +26,36 @@ export class ObjetivoController extends BaseController {
       .query(
         `SELECT DISTINCT suc.SucursalId,
                  
-            obj.ObjetivoId, 
-            obj.ClienteId,
-            obj.ClienteElementoDependienteId,
-            obj.ObjetivoDescripcion,
-            
-            perjer.PersonalId,
-            CONCAT(TRIM(perjer.PersonalApellido), ', ' ,TRIM(perjer.PersonalNombre) ) AS ApellidoNombreJerarquico,
-            cuit.PersonalCUITCUILCUIT,
-            opj.ObjetivoPersonalJerarquicoDesde,
-            opj.ObjetivoPersonalJerarquicoHasta,
-            opj.ObjetivoPersonalJerarquicoComo,
-            1
-            
-            FROM Objetivo obj 
-            LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  <= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @0
-            LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
-            LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = perjer.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = perjer.PersonalId) 
+        obj.ObjetivoId, 
+        obj.ClienteId,
+        obj.ClienteElementoDependienteId,
+        obj.ObjetivoDescripcion,
+        ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
+        gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
+		  CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombreCoordinador,
+      opj.ObjetivoPersonalJerarquicoDesde,opj.ObjetivoPersonalJerarquicoHasta,
+		  per.PersonalId AS PersonalIdCoordinador,
+        1
+        
+        FROM Objetivo obj 
+        
+  LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  <= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @0 AND opj.ObjetivoPersonalJerarquicoComo = 'C'
+  LEFT JOIN Personal per ON per.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
+  
+  LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND  gap.GrupoActividadObjetivoDesde  <= @0 AND ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31') >= @0
+  LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
 
-            LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-            LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-            
 
-            LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = clidep.ClienteId AND domdep.ClienteElementoDependienteId  = clidep.ClienteElementoDependienteId
-            LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL
-            
-            LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
-            
+
+        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+        LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+        
+
+        LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = clidep.ClienteId AND domdep.ClienteElementoDependienteId  = clidep.ClienteElementoDependienteId
+        LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL
+        
+        LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+        
 
             WHERE obj.ObjetivoId=@1`,
         [fechaHasta, objetivoId]
@@ -124,8 +127,9 @@ export class ObjetivoController extends BaseController {
       SELECT 
       suc.SucursalId, suc.SucursalDescripcion, 
       
-      perjer.PersonalId, perjer.PersonalApellido, perjer.PersonalNombre, 
-      
+      ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
+      gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
+
       obj.ObjetivoDescripcion, 
       obj.ObjetivoId, 
       
@@ -137,9 +141,6 @@ export class ObjetivoController extends BaseController {
       
       1
       FROM Objetivo obj
-      LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND GETDATE() BETWEEN 
-       opj.ObjetivoPersonalJerarquicoDesde AND COALESCE (opj.ObjetivoPersonalJerarquicoHasta, '9999-01-01') AND  opj.ObjetivoPersonalJerarquicoComo = 'J'
-      LEFT JOIN Personal perjer ON perjer.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
       
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
       LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
@@ -148,13 +149,16 @@ export class ObjetivoController extends BaseController {
       LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL AND domcli.ClienteDomicilioActual = 0
       
       LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+
+      LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND  gap.GrupoActividadObjetivoDesde  <= @0 AND ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31') >= @0
+      LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
       
       
 
 WHERE  `;
       
       if (sucursalId > 0)
-        query += ' suc.SucursalId = @0 AND '
+        query += ' suc.SucursalId = @1 AND '
       
       switch (fieldName) {
         case "Descripcion":
@@ -177,7 +181,7 @@ WHERE  `;
       }
 
       if (buscar) {
-        const result = await dataSource.query(query, [sucursalId]);
+        const result = await dataSource.query(query, [new Date(),sucursalId]);
         this.jsonRes({ objetivos: result }, res);
       } else this.jsonRes({ objetivos: [] }, res);
     } catch (error) {
