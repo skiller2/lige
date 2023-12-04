@@ -676,15 +676,9 @@ export class LiquidacionesComponent {
     if ( this.NotificationIdForDelete > 0) {
       (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
       this.apiService.setDeleteImportacion({deleteId: this.NotificationIdForDelete}).subscribe(evt => {
-        this.recargarPaginaDespuesDe3Segundos()
+        this.formChange$.next('')
       });
     }
-  }
-
-  recargarPaginaDespuesDe3Segundos() {
-    setTimeout(() => {
-      window.location.reload();
-    }, 3000); // 3000 milisegundos = 3 segundos
   }
 
   onCellChanged(e: any) {
@@ -755,7 +749,7 @@ export class LiquidacionesComponent {
         this.gridDataImportLen = 0
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response)
-        this.recargarPaginaDespuesDe3Segundos()
+        this.formChange$.next('')
         break
       default:
 
