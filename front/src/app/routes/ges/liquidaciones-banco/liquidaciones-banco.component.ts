@@ -261,12 +261,10 @@ export class LiquidacionesBancoComponent {
 
 
   columns$ = this.apiService.getCols('/api/liquidaciones/banco/cols').pipe(map((cols) => {
-    console.log("imprimo columnas", cols)
     return cols
   }));
 
   columnsAyuda$ = this.apiService.getCols('/api/liquidaciones/banco/ayuda/cols').pipe(map((cols) => {
-    console.log("imprimo columnasAyuda", cols)
     return cols
   }));
 
