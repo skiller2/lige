@@ -63,12 +63,12 @@ export class AsistenciaController extends BaseController {
     ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias30Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias30Gral),2) AS INT),0)+
     
     ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0)
-    ) / 60 AS horas_reales,
+    ) / 60 AS horas,
     ISNULL(val.ValorLiquidacionHorasTrabajoHoraNormal,0) AS horas_fijas,
     
     val.ValorLiquidacionHoraNormal,
     
-    IIF((val.ValorLiquidacionSumaFija>0),val.ValorLiquidacionSumaFija,IIF(val.ValorLiquidacionHorasTrabajoHoraNormal>0,val.ValorLiquidacionHorasTrabajoHoraNormal*val.ValorLiquidacionHoraNormal, (
+    IIF(val.ValorLiquidacionHorasTrabajoHoraNormal>0,0, (
     ((
     ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
     ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias2Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias2Gral),2) AS INT),0)+
@@ -107,10 +107,9 @@ export class AsistenciaController extends BaseController {
     / 60 * val.ValorLiquidacionHoraNormal
     
     
-    ) )) AS total1,
+    ) ) AS total,
     
     asis.SucursalAsistenciaAnoMesPersonalDiasCualArt42,
-    val.ValorLiquidacionSumaFija,
     
     1
     
@@ -127,7 +126,9 @@ export class AsistenciaController extends BaseController {
     
     LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = asisa.SucursalId AND val.ValorLiquidacionTipoAsociadoId = asis.SucursalAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = asis.SucursalAsistenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= DATEFROMPARTS(asisa.SucursalAsistenciaAnoAno,asism.SucursalAsistenciaAnoMesMes,'28') AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(asisa.SucursalAsistenciaAnoAno,asism.SucursalAsistenciaAnoMesMes,'1')
     
-    WHERE asisa.SucursalAsistenciaAnoAno = @1 AND asism.SucursalAsistenciaAnoMesMes = @2 ${listPersonaId} `, [,anio, mes])
+    WHERE asisa.SucursalAsistenciaAnoAno = @1 AND asism.SucursalAsistenciaAnoMesMes = @2 ${listPersonaId} `, [, anio, mes])
+    
+    /*
     let persart42:any[] = []
 
     for (const [index, value] of asisadmin.entries()) {
@@ -167,7 +168,7 @@ export class AsistenciaController extends BaseController {
         asisadmin[index].total = asisadmin[index].horas * value.ValorLiquidacionHoraNormal
       }
     }
-
+*/
     return asisadmin
   }
   async getCategoria(req: any, res: Response, next: NextFunction) {

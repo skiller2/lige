@@ -2,7 +2,7 @@
   style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Apellido, Nombre o CUIT"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
   <ng-container *ngFor="let option of $optionsArray | async">
-    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.PersonalId" [nzLabel]="option.fullName" />
+    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.PersonalId" [nzLabel]="option.fullName +' '+option.PersonalId" />
   </ng-container>
   <nz-option *ngIf="extendedOption.PersonalId >0 " [nzValue]="extendedOption.PersonalId"
     [nzLabel]="extendedOption.fullName" />
