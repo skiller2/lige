@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, TemplateRef, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, Injector, TemplateRef, ChangeDetectorRef, ViewEncapsulation } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -24,6 +24,7 @@ import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-pe
     templateUrl: './carga-asistencia.componet.html',
     styleUrls: ['./carga-asistencia.componet.less'],
     standalone: true,
+    encapsulation: ViewEncapsulation.None,
     imports: [
         CommonModule,
         SharedModule,
