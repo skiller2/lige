@@ -72,7 +72,7 @@ export class CargaAsistenciaComponent {
                 // maxWidth: 150,
             },
         ]
-        this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+        this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.grid-container-asis', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptionsEdit.enableRowDetailView = false
         this.gridOptionsEdit.autoEdit = true
 
@@ -156,8 +156,7 @@ export class CargaAsistenciaComponent {
                 sortable: true,
                 type: FieldType.number,
                 maxWidth: 50,
-                //headerCssClass: (dow==6)? 'grid-weekend':''
-                headerCssClass:'grid-weekend',
+                headerCssClass:(dow==6 || dow==0)?'grid-weekend':'',
             });
         }
 
