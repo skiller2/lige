@@ -156,8 +156,7 @@ export class CargaAsistenciaComponent {
                 sortable: true,
                 type: FieldType.number,
                 maxWidth: 50,
-                //cssClass: (dow==6)? 'grid-weekend':''
-                cssClass: 'grid-weekend',
+                //headerCssClass: (dow==6)? 'grid-weekend':''
                 headerCssClass:'grid-weekend',
             });
         }
