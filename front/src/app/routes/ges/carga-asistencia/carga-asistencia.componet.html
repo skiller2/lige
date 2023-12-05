@@ -1,18 +1,16 @@
-<form nz-form #asistenciaForm="ngForm">
+<form nz-form #carasistForm="ngForm">
     <nz-form-item>
         <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
         <nz-form-control>
-            <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" nzFormat="MM/yyyy"/>
+            <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)"
+                nzFormat="MM/yyyy" />
         </nz-form-control>
     </nz-form-item>
-    <angular-slickgrid
-        gridId="gridEdit" 
-        [columnDefinitions]="column | colsFilter"
-        [gridOptions]="gridOptionsEdit" 
-        [dataset]="gridDataInsert || []"
-        (onCellChange)="onCellChanged($event)"
-        (onAngularGridCreated)="angularGridReadyEdit($event)"
-    >
-        <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
-    </angular-slickgrid>
+    <div class="gridContainer1 container-fluid">
+        <angular-slickgrid gridId="gridEdit" [columnDefinitions]="column | colsFilter" [gridOptions]="gridOptionsEdit"
+            [dataset]="gridDataInsert || []" (onCellChange)="onCellChanged($event)"
+            (onAngularGridCreated)="angularGridReadyEdit($event)">
+            <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
+        </angular-slickgrid>
+    </div>
 </form>

@@ -25,19 +25,19 @@ import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-pe
     styleUrls: ['./carga-asistencia.componet.less'],
     standalone: true,
     imports: [
-      CommonModule,
-      SharedModule,
-      NzAffixModule,
-      FiltroBuilderComponent,
-      RowPreloadDetailComponent,
-      RowDetailViewComponent,
+        CommonModule,
+        SharedModule,
+        NzAffixModule,
+        FiltroBuilderComponent,
+        RowPreloadDetailComponent,
+        RowDetailViewComponent,
     ],
     providers: [AngularUtilService]
-  })
+})
 
 export class CargaAsistenciaComponent {
-    @ViewChild('asistenciasForm', { static: true }) asistenciasForm: NgForm =
-    new NgForm([], []);
+    @ViewChild('carasistForm', { static: true }) carasistForm: NgForm =
+        new NgForm([], []);
     constructor(private cdr: ChangeDetectorRef, public apiService: ApiService, private injector: Injector, public router: Router, private angularUtilService: AngularUtilService, private modal: NzModalService, private notification: NzNotificationService) { }
 
     columnDefinitions: Column[] = [];
@@ -54,118 +54,135 @@ export class CargaAsistenciaComponent {
     async ngOnInit() {
         this.columnDefinitions = [
             {
-                id:'ApellidoNombre', name:'Persona', field:'ApellidoNombre',
+                id: 'ApellidoNombre', name: 'Persona', field: 'ApellidoNombre',
                 sortable: true,
                 type: FieldType.string,
                 // maxWidth: 250,
             },
             {
-                id:'CUIT', name:'CUIT', field:'CUIT',
+                id: 'CUIT', name: 'CUIT', field: 'CUIT',
                 sortable: true,
                 type: FieldType.number,
                 // maxWidth: 150,
             },
             {
-                id:'Forma', name:'Forma', field:'Forma',
+                id: 'Forma', name: 'Forma', field: 'Forma',
                 sortable: true,
                 type: FieldType.string,
                 // maxWidth: 150,
             },
         ]
-        this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+        this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptionsEdit.enableRowDetailView = false
         this.gridOptionsEdit.autoEdit = true
 
         this.gridOptionsEdit.enableAutoSizeColumns = false
         this.gridOptionsEdit.frozenColumn = 2
-        this.gridOptionsEdit.enableAutoSizeColumns = true
         // this.gridOptionsEdit.enableAutoResize = false
         // this.gridOptionsEdit.enableColumnReorder = false
         // this.gridOptionsEdit.enableAutoResizeColumnsByCellContent = true
         this.gridOptionsEdit.enableAutoTooltip = true
         this.gridOptionsEdit.fullWidthRows = true
-
-        if(this.selectedPeriod.month != 0 && this.selectedPeriod.year != 0){
-            const daysOfMonth = this.getDaysOfWeekOfMonth(this.selectedPeriod.year, this.selectedPeriod.month);
-            this.column = [...this.columnDefinitions, ...daysOfMonth];
-        } else
-            this.column = this.columnDefinitions
     }
 
-    onCellChanged(e: any) {}
+
+    ngAfterViewInit(): void {
+        const now = new Date(); //date
+        setTimeout(() => {
+            const anio =
+                Number(localStorage.getItem('anio')) > 0
+                    ? Number(localStorage.getItem('anio'))
+                    : now.getFullYear();
+            const mes =
+                Number(localStorage.getItem('mes')) > 0
+                    ? Number(localStorage.getItem('mes'))
+                    : now.getMonth() + 1;
+    
+            this.carasistForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1))
+        }, 1);
+    }    
+
+    onCellChanged(e: any) { }
 
     async angularGridReadyEdit(angularGrid: any) {
-        // this.angularGridEdit = angularGrid.detail
-        // this.gridObjEdit = angularGrid.detail.slickGrid;
+        this.angularGridEdit = angularGrid.detail
+        //this.gridObjEdit = angularGrid.detail.slickGrid;
 
-        // setTimeout(() => {
-        // if (this.gridDataInsert.length == 0)
-        //     this.addNewItem("bottom")
+        setTimeout(() => {
+            if (this.gridDataInsert.length == 0)
+                this.addNewItem("bottom")
 
-        // }, 500);
+        }, 500);
 
-        // if (this.apiService.isMobile())
-        // this.angularGridEdit.gridService.hideColumnByIds([])
+        if (this.apiService.isMobile())
+            this.angularGridEdit.gridService.hideColumnByIds([])
     }
 
-    // addNewItem(insertPosition?: 'bottom') {
-    //     const newItem1 = this.createNewItem(1);
-    //     this.angularGridEdit.gridService.addItem(newItem1, { position: insertPosition, highlightRow: false, scrollRowIntoView: false, triggerEvent: false });
-    // }
+    addNewItem(insertPosition?: 'bottom') {
+        const newItem1 = this.createNewItem(1);
+        this.angularGridEdit.gridService.addItem(newItem1, { position: insertPosition, highlightRow: false, scrollRowIntoView: false, triggerEvent: false });
+    }
 
-    // createNewItem(incrementIdByHowMany = 1) {
-    //     const dataset = this.angularGridEdit.dataView.getItems();
-    //     let highestId = 0;
-    //     dataset.forEach((item: any) => {
-    //       if (item.id > highestId) {
-    //         highestId = item.id;
-    //       }
-    //     });
-    //     const newId = highestId + incrementIdByHowMany;
-    //     const periodo = this.asistenciasForm.form.get('periodo')?.value
-    //     let periodoM = periodo.getMonth() + 1
-    //     let periodoY = periodo.getFullYear()
-    //     let isfull = 0
-    
-    //     const fechaActual = new Date();
-    //     const dia = fechaActual.getDate();
-    //     const mes = fechaActual.getMonth() + 1; // Agrega 1 porque los meses se indexan desde 0 (0 = enero)
-    //     const anio = fechaActual.getFullYear();
-    
-    //     return {
-    //       id: newId,
-    //       isfull: 0,
-    //       periodo: periodoM + "/" + periodoY,
-    //       fecha: new Date(),
-    //       detalle: ""
-    
-    //     };
-    //   }
+    createNewItem(incrementIdByHowMany = 1) {
+        const dataset = this.angularGridEdit.dataView.getItems();
+        let highestId = 0;
+        dataset.forEach((item: any) => {
+            if (item.id > highestId) {
+                highestId = item.id;
+            }
+        });
+        const newId = highestId + incrementIdByHowMany;
+        return {
+            id: newId,
+            ApellidoNombre: '',
+            CUIT: '',
+            Forma: ''
+        };
+    }
+
     getDaysOfWeekOfMonth(year: number, month: number): Column[] {
-        let columnDays = []
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        let columnDays:Column[] =[] 
+        const daysInMonth = new Date(year, month, 0).getDate();
         // console.log('daysInMonth',daysInMonth);
         const daysOfWeek = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'];
         for (let index = 1; index <= daysInMonth; index++) {
             let date = new Date(year, month, index);
-            let name = daysOfWeek[date.getDay()];
+            const dow=date.getDay()
+            let name = daysOfWeek[dow];
             columnDays.push({
-                id:`day${index}`,
-                name: `${name} - ${index}`, field: 'day',
+                id: `day${index}`,
+                name: `${name} <BR> ${index}`,
+                field: 'day',
                 sortable: true,
                 type: FieldType.number,
-                maxWidth: 100,
+                maxWidth: 50,
+                //cssClass: (dow==6)? 'grid-weekend':''
+                cssClass: 'grid-weekend',
+                headerCssClass:'grid-weekend',
             });
         }
+
+        columnDays.push({
+            id: `total`,
+            name: `Total`,
+            field: 'total',
+            sortable: true,
+            type: FieldType.number,
+            maxWidth: 50,
+        });
+
         return columnDays
-      }
+    }
 
     dateChange(result: Date): void {
         this.selectedPeriod.year = result.getFullYear();
-        this.selectedPeriod.month = result.getMonth();
+        this.selectedPeriod.month = result.getMonth()+1;
 
         const daysOfMonth = this.getDaysOfWeekOfMonth(this.selectedPeriod.year, this.selectedPeriod.month);
         console.log(daysOfMonth)
         this.column = [...this.columnDefinitions, ...daysOfMonth];
+        
+        this.angularGridEdit.slickGrid.setOptions({ forceFitColumns: true })
+        this.angularGridEdit.slickGrid.reRenderColumns(true)
     }
 }
