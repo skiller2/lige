@@ -6,7 +6,7 @@
                 nzFormat="MM/yyyy" />
         </nz-form-control>
     </nz-form-item>
-    <div class="gridContainer1 container-fluid">
+    <div class="grid-container-asis container-fluid">
         <angular-slickgrid gridId="gridEdit" [columnDefinitions]="column | colsFilter" [gridOptions]="gridOptionsEdit"
             [dataset]="gridDataInsert || []" (onCellChange)="onCellChanged($event)"
             (onAngularGridCreated)="angularGridReadyEdit($event)">

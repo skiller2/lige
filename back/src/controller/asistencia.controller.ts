@@ -20,7 +20,8 @@ export class AsistenciaController extends BaseController {
   static async getAsistenciaAdminArt42(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[]) {
     const listPersonaId = (personalId.length == 0) ? '' : 'AND persona.PersonalId IN (' + personalId.join(',') + ')'
 
-    let asisadmin = await queryRunner.query(`SELECT suc.SucursalId, suc.SucursalDescripcion, 
+    let asisadmin = await queryRunner.query(`
+    SELECT suc.SucursalId, suc.SucursalDescripcion, 
     asisa.SucursalAsistenciaAnoAno, asism.SucursalAsistenciaAnoMesMes, 
     asis.SucursalAsistenciaMesPersonalId, cuit.PersonalCUITCUILCUIT, persona.PersonalApellido, persona.PersonalNombre, 
     persona.PersonalId,    
@@ -128,6 +129,12 @@ export class AsistenciaController extends BaseController {
     
     WHERE asisa.SucursalAsistenciaAnoAno = @1 AND asism.SucursalAsistenciaAnoMesMes = @2 ${listPersonaId} `, [, anio, mes])
     
+    for (const [index, value] of asisadmin.entries()) { 
+      if (value.horas >= value.horas_fijas) { 
+        asisadmin[index].total = value.horas_fijas * value.ValorLiquidacionHoraNormal
+      } 
+    }
+
     /*
     let persart42:any[] = []
 
@@ -874,7 +881,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
          JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId=gap.GrupoActividadId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
          JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
          
-         WHERE gaj.GrupoActividadJerarquicoPersonalId = @0
+         WHERE gaj.GrupoActividadJerarquicoPersonalId = @0 AND per.PersonalId <> @0
          UNION
          
          SELECT 0,0,'', per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS PersonaDes,

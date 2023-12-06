@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, TemplateRef, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, Injector, TemplateRef, ChangeDetectorRef, ViewEncapsulation } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -24,6 +24,7 @@ import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-pe
     templateUrl: './carga-asistencia.componet.html',
     styleUrls: ['./carga-asistencia.componet.less'],
     standalone: true,
+    encapsulation: ViewEncapsulation.None,
     imports: [
         CommonModule,
         SharedModule,
@@ -96,7 +97,7 @@ export class CargaAsistenciaComponent {
                 },
             },
         ]
-        this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+        this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.grid-container-asis', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptionsEdit.enableRowDetailView = false
         this.gridOptionsEdit.autoEdit = true
 
@@ -130,7 +131,7 @@ export class CargaAsistenciaComponent {
                     ? Number(localStorage.getItem('mes'))
                     : now.getMonth() + 1;
     
-            this.carasistForm.form.get('periodo')?.setValue(new Date(anio, mes, 1))
+            this.carasistForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1))
         }, 1);
     }    
 
@@ -189,12 +190,7 @@ export class CargaAsistenciaComponent {
                 sortable: true,
                 type: FieldType.number,
                 maxWidth: 50,
-                //headerCssClass: (dow==6)? 'grid-weekend':''
-                headerCssClass:'grid-weekend',
-                editor: {
-                    model: Editors.text
-                },
-                onCellChange: this.onHorasChange.bind(this)
+                headerCssClass:(dow==6 || dow==0)?'grid-weekend':'',
             });
         }
 
