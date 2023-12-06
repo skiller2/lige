@@ -21,33 +21,32 @@
   </form>
 
   <ul nz-menu nzMode="horizontal">
-  <li nz-menu-item nzMatchRouter >
-    <span nz-icon nzType=""></span>
-    <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo']">Objetivo</a>
-  </li>
+    <li nz-menu-item nzMatchRouter>
+      <span nz-icon nzType=""></span>
+      <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo']">Objetivo</a>
+    </li>
 
-  <li nz-menu-item nzMatchRouter >
-    <span nz-icon nzType=""></span>
-    <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona']">Persona</a>
-  </li>
-  <li nz-menu-item nzMatchRouter >
-    <span nz-icon nzType=""></span>
-    <a [routerLink]="['/', 'ges', 'detalle_asistencia','listado-personas']">Listado</a>
-  </li>
+    <li nz-menu-item nzMatchRouter>
+      <span nz-icon nzType=""></span>
+      <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona']">Persona</a>
+    </li>
+    <li nz-menu-item nzMatchRouter>
+      <span nz-icon nzType=""></span>
+      <a [routerLink]="['/', 'ges', 'detalle_asistencia','listado-personas']">Listado</a>
+    </li>
 
-  <li nz-submenu nzTitle="Informes">
-    <ul style="width: auto !important">
-      <li nz-menu-item app-down-file [httpMethod]="'POST'"
-        [httpBody]="{'Reporte':'Banelco','Formato':'EXCEL', 'Filtros': {'Anio':selectedPeriod.year,'Mes':selectedPeriod.month, 'Jerarquico':responsable}}"
-        httpUrl="api/informes/descarga"
-        notificationMsg="Generando Informe Banelco">
-        <span nz-icon nzType="download"></span><span style="white-space: normal;">Banelco</span> 
-      </li>
+    <li nz-submenu nzTitle="Informes">
+      <ul style="width: auto !important">
+        <li nz-menu-item app-down-file [httpMethod]="'POST'"
+          [httpBody]="{'Reporte':'Banelco','Formato':'EXCEL', 'Filtros': {'Anio':selectedPeriod.year,'Mes':selectedPeriod.month, 'Jerarquico':responsable}}"
+          httpUrl="api/informes/descarga" notificationMsg="Generando Informe Banelco">
+          <span nz-icon nzType="download"></span><span style="white-space: normal;">Banelco</span>
+        </li>
 
-    </ul>
-    
-  </li>
-</ul>
+      </ul>
+
+    </li>
+  </ul>
 
   <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
     <nz-tab>
@@ -73,20 +72,20 @@
                 Cargando
               </ng-container>
               <ng-container *ngFor="let responsable of $objetivoResponsables | async">
-                <p *ngIf="responsable.GrupoActividadId" title="{{ responsable.GrupoActividadId }}">{{responsable.GrupoActividadNumero}} -
+                <p *ngIf="responsable.GrupoActividadId" title="{{ responsable.GrupoActividadId }}">
+                  {{responsable.GrupoActividadNumero}} -
                   {{responsable.GrupoActividadDetalle}} desde {{
-                  responsable.GrupoActividadObjetivoDesde | date}} <span
-                    *ngIf="responsable.GrupoActividadObjetivoHasta
+                  responsable.GrupoActividadObjetivoDesde | date}} <span *ngIf="responsable.GrupoActividadObjetivoHasta
                     ">hasta</span> {{
                   responsable.GrupoActividadObjetivoHasta
-       | date}} </p>
-                <p *ngIf="responsable.PersonalIdCoordinador" title="{{ responsable.PersonalIdCoordinador }}">Coordinador: {{responsable.ApellidoNombreCoordinador}} desde {{
-                  responsable.ObjetivoPersonalJerarquicoDesde | date}} <span
-                    *ngIf="responsable.ObjetivoPersonalJerarquicoHasta
+                  | date}} </p>
+                <p *ngIf="responsable.PersonalIdCoordinador" title="{{ responsable.PersonalIdCoordinador }}">
+                  Coordinador: {{responsable.ApellidoNombreCoordinador}} desde {{
+                  responsable.ObjetivoPersonalJerarquicoDesde | date}} <span *ngIf="responsable.ObjetivoPersonalJerarquicoHasta
                     ">hasta</span> {{
                   responsable.GrupoActividadObjetivoHasta
-       | date}} </p>
-            
+                  | date}} </p>
+
               </ng-container>
             </ng-container>
           </nz-form-control>
@@ -254,15 +253,27 @@
               ngModel />
           </nz-form-control>
         </nz-form-item>
-        <nz-form-item>
-          <nz-form-label [nzSpan]="5">Retiro</nz-form-label>
-          <nz-form-control *ngIf="listaIngresosPerTotal + listaAsistenciaPerTotal + listaIngresosExtraPerTotal > 0 || listaDescuentosPerTotal > 0">
-            <span>{{ listaIngresosPerTotal + listaAsistenciaPerTotal + listaIngresosExtraPerTotal - listaDescuentosPerTotal | currency }} </span>
-            <span> ({{ listaIngresosPerTotal + listaAsistenciaPerTotal + listaIngresosExtraPerTotal | currency }} - {{ listaDescuentosPerTotal |
+        <nz-form-item
+          *ngIf="listaIngresosPerTotal + listaAsistenciaPerTotal + listaIngresosExtraPerTotalG > 0 || listaDescuentosPerTotalG > 0">
+          <nz-form-label [nzSpan]="5">Retiro General</nz-form-label>
+          <nz-form-control>
+            <span>{{ listaIngresosPerTotal + listaAsistenciaPerTotal + listaIngresosExtraPerTotalG -
+              listaDescuentosPerTotalG | currency }} </span>
+            <span> ({{ listaIngresosPerTotal + listaAsistenciaPerTotal + listaIngresosExtraPerTotalG | currency }} - {{
+              listaDescuentosPerTotalG |
               currency }})</span><span>, total horas: {{ listaAsistenciaPerTotalHoras +
               listaIngresosPerTotalHoras}}</span>
           </nz-form-control>
         </nz-form-item>
+        <nz-form-item *ngIf="listaIngresosExtraPerTotalC > 0 || listaDescuentosPerTotalC > 0">
+          <nz-form-label [nzSpan]="5">Retiro Coordinador</nz-form-label>
+          <nz-form-control>
+            <span>{{ listaIngresosExtraPerTotalC - listaDescuentosPerTotalC | currency }} </span>
+            <span> ({{ listaIngresosExtraPerTotalC | currency }} - {{ listaDescuentosPerTotalC |
+              currency }})</span>
+          </nz-form-control>
+        </nz-form-item>
+        
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Monotributo</nz-form-label>
@@ -300,7 +311,19 @@
           <nz-form-control>
             <ng-container *ngFor="let sitrevista of $sitrevista | async">
               <p title="{{ sitrevista.SituacionRevistaDescripcion }}">
-                {{ sitrevista.SituacionRevistaDescripcion }} desde {{  sitrevista.PersonalSituacionRevistaDesde | date}} hasta {{  sitrevista.PersonalSituacionRevistaHasta | date}}
+                {{ sitrevista.SituacionRevistaDescripcion }} desde {{ sitrevista.PersonalSituacionRevistaDesde | date}}
+                <span *ngIf="sitrevista.PersonalSituacionRevistaHasta">hasta {{ sitrevista.PersonalSituacionRevistaHasta | date}}</span>
+              </p>
+            </ng-container>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Categorías</nz-form-label>
+          <nz-form-control>
+            <ng-container *ngFor="let categoria of ($listaCategoriasPer | async).categorias">
+              <p title="{{ categoria.TipoAsociadoDescripcion }} {{ categoria.CategoriaPersonalDescripcion }}">
+                {{ categoria.TipoAsociadoDescripcion }} {{ categoria.CategoriaPersonalDescripcion }} desde {{ categoria.PersonalCategoriaDesde | date}}
+                <span *ngIf="categoria.PersonalCategoriaHasta">hasta {{ categoria.PersonalCategoriaHasta | date}}</span>
               </p>
             </ng-container>
           </nz-form-control>
@@ -456,7 +479,7 @@
               </thead>
               <tbody>
                 <tr *ngFor="let data of ingextraPer.data" class="">
-                  <td>{{ data.des_movimiento }}</td>
+                  <td><span *ngIf="data.tipocuenta_id=='C'">Coordinador </span>{{ data.des_movimiento }}</td>
                   <td>{{ data.importe | currency}}</td>
                 </tr>
               </tbody>
@@ -481,7 +504,7 @@
               </thead>
               <tbody>
                 <tr *ngFor="let data of descPer.data" class="">
-                  <td>{{ data.tipomov }}</td>
+                  <td><span *ngIf="data.tipocuenta_id=='C'">Coordinador </span>{{ data.tipomov }}</td>
                   <td>{{ data.desmovimiento }}</td>
                   <td>
                     <div *ngIf="data.importetotal>0">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
@@ -522,19 +545,37 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let data of listPer.data" class="">
-            <td title="{{ data.PersonalId }}">
-              {{ data.PersonalCUITCUILCUIT }}
-            </td>
-            <td>
-              <a (click)="buscarPorPersona(data.PersonalId)" [textContent]="data.PersonaDes"></a>
-            </td>
-            <td> N/A</td>
-            <td>{{ data.ingresos_importe | currency }}</td>
-            <td>{{ data.ingresos_horas }}</td>
-            <td>{{ data.egresos_importe | currency }}</td>
-            <td>{{ data.retiro_importe | currency }}</td>
-          </tr>
+          <ng-container *ngFor="let data of listPer.data" class="">
+            <tr *ngIf="data.ingresosG_importe || data.egresosG_importe ">
+              <td title="{{ data.PersonalId }}">
+                {{ data.PersonalCUITCUILCUIT }}
+              </td>
+              <td>
+                <a (click)="buscarPorPersona(data.PersonalId)" [textContent]="data.PersonaDes"></a>
+              </td>
+              <td> N/A</td>
+              <td>{{ data.ingresosG_importe | currency }}</td>
+              <td>{{ data.ingresos_horas }}</td>
+              <td>{{ data.egresosG_importe | currency }}</td>
+              <td>{{ data.retiroG_importe | currency }}</td>
+
+            </tr>
+            <tr *ngIf="data.ingresosC_importe != 0 || data.egresosC_importe != 0">
+
+              <td title="{{ data.PersonalId }}">
+                {{ data.PersonalCUITCUILCUIT }}
+              </td>
+              <td>
+                <a (click)="buscarPorPersona(data.PersonalId)" [textContent]="data.PersonaDes"></a>
+              </td>
+              <td> N/A</td>
+              <td>{{ data.ingresosC_importe | currency }}</td>
+              <td></td>
+              <td>{{ data.egresosC_importe | currency }}</td>
+              <td>{{ data.retiroC_importe | currency }}</td>
+            </tr>
+
+          </ng-container>
         </tbody>
       </nz-table>
 

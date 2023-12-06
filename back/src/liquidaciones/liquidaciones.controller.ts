@@ -459,10 +459,6 @@ export class LiquidacionesController extends BaseController {
 
       if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
 
-
-
-      //sheet1.data.splice(0, 2)
-
       let TipoMovimiento = "E"
       let entidad = "liquidacion"
       // file.originalfilename
@@ -525,7 +521,7 @@ export class LiquidacionesController extends BaseController {
               fechaActual,
               detalle[0],
               0,
-              persona[0].persona_id,
+              persona[0].personalId,
               importe[0],
               usuario, ip, fechaActual, usuario, ip, fechaActual,
               convalorimpoexpo_id

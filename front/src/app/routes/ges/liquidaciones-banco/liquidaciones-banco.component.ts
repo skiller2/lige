@@ -29,7 +29,7 @@ import {
   imports: [
     SharedModule,
   ],
-  template: `<a [routerLink]="[link,{ PersonalId: item.PersonalId }]" > {{item.PersonalApellidoNombre}} </a>`
+  template: `<a [routerLink]="[link,{ PersonalId: item.PersonalId, tipocuenta_id:item.tipocuenta_id }]" > {{item.PersonalApellidoNombre}} </a>`
 })
 export class CustomLinkComponent {
   item: any

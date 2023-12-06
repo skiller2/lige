@@ -14,6 +14,8 @@ asistenciaRouter.get('/listaporobj/:anio/:mes/:objetivoId', authMiddleware.verif
 asistenciaRouter.get('/exceporper/:anio/:mes/:personalId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getExcepAsistenciaPorPersona(req, res, next) })
 
 asistenciaRouter.get('/descuentosxper/:anio/:mes/:personalId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getDescuentosPorPersona(req, res, next) })
+asistenciaRouter.get('/categoriasxper/:anio/:mes/:personalId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getCategoriasPorPersona(req, res, next) })
+
 asistenciaRouter.get('/personalxresp/:anio/:mes/:personalId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getPersonalxResponsable(req, res, next) })
 asistenciaRouter.get('/ingresosxper/:anio/:mes/:personalId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getIngresosPorPersona(req, res, next) })
 asistenciaRouter.get('/ingresosextraxper/:anio/:mes/:personalId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getIngresosExtraPorPersona(req, res, next) })

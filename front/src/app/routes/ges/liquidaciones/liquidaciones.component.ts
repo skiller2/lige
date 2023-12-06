@@ -198,10 +198,13 @@ export class LiquidacionesComponent {
     }, 1);
 
     const PersonalId = Number(this.route.snapshot.paramMap.get('PersonalId'))
+    const tipocuenta_id:string = String(this.route.snapshot.paramMap.get('tipocuenta_id'))
 
     setTimeout(() => {
-      if (PersonalId > 0)
-      this.sharedFiltroBuilder.addFilter('ApellidoNombre', 'AND', '=', String(PersonalId))
+      if (PersonalId > 0) {
+        this.sharedFiltroBuilder.addFilter('ApellidoNombre', 'AND', '=', String(PersonalId))
+        this.sharedFiltroBuilder.addFilter('tipocuenta_id', 'AND', '=', tipocuenta_id)
+      }
     }, 1000)
   }
 

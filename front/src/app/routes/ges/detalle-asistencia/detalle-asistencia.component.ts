@@ -59,7 +59,7 @@ export class DetalleAsistenciaComponent {
     private router: Router,
     private route: ActivatedRoute,
     private settingService: SettingsService,
-  ) {}
+  ) { }
 
   private destroy$ = new Subject();
 
@@ -74,9 +74,11 @@ export class DetalleAsistenciaComponent {
   selectedObjetivoId = '';
   selectedMetodologiaId = '';
   selectedCategoriaId = '';
-  listaDescuentosPerTotal = 0
+  listaDescuentosPerTotalC = 0
+  listaDescuentosPerTotalG = 0
   listaIngresosPerTotal = 0
-  listaIngresosExtraPerTotal = 0
+  listaIngresosExtraPerTotalG = 0
+  listaIngresosExtraPerTotalC = 0
   listaAsistenciaPerTotal = 0
   listaAsistenciaObjTotalImporte = 0
   listaAsistenciaPerTotalHoras = 0
@@ -179,7 +181,7 @@ export class DetalleAsistenciaComponent {
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
         //          tap({ complete: () => this.tableLoading$.next(false) })
         (
-          (tap(data => { this.listaAsistenciaPerTotal = data.totalImporte, this.listaAsistenciaPerTotalHoras = data.totalHoras}))
+          (tap(data => { this.listaAsistenciaPerTotal = data.totalImporte, this.listaAsistenciaPerTotalHoras = data.totalHoras }))
 
         )
     )
@@ -196,11 +198,11 @@ export class DetalleAsistenciaComponent {
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
-        (tap(data => { this.listaIngresosPerTotal = data.total; this.listaIngresosPerTotalHoras = data.totalHoras})   
-        
-    
-      )))
-  
+        (tap(data => { this.listaIngresosPerTotal = data.total; this.listaIngresosPerTotalHoras = data.totalHoras })
+
+
+        )))
+
   $listaIngresosExtraPer = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
     switchMap(PersonalId =>
@@ -212,10 +214,10 @@ export class DetalleAsistenciaComponent {
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
-        (tap(data => { this.listaIngresosExtraPerTotal = data.total; this.listaIngresosExtraPerTotalHoras = data.totalHoras})   
-        
-    
-  )))
+        (tap(data => { this.listaIngresosExtraPerTotalC = data.totalC; this.listaIngresosExtraPerTotalG = data.totalG; this.listaIngresosExtraPerTotalHoras = data.totalHoras })
+
+
+        )))
 
 
   $listaDescuentosPer = this.$selectedPersonalIdChange.pipe(
@@ -229,10 +231,26 @@ export class DetalleAsistenciaComponent {
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
-        (tap(data => { this.listaDescuentosPerTotal = data.total})   
-        
-    
-  )))
+        (tap(data => { this.listaDescuentosPerTotalG = data.totalG; this.listaDescuentosPerTotalC = data.totalC })
+
+
+        )))
+
+  $listaCategoriasPer = this.$selectedPersonalIdChange.pipe(
+    debounceTime(500),
+    switchMap(PersonalId =>
+      this.searchService
+        .getCategoriasPersona(
+          Number(PersonalId),
+          this.selectedPeriod.year,
+          this.selectedPeriod.month
+        )
+        .pipe
+        //          doOnSubscribe(() => this.tableLoading$.next(true)),
+        (tap(data => {  })
+
+
+        )))
 
   $listaPersonal = this.$selectedResponsablePersonalIdChange.pipe(
     debounceTime(500),
@@ -245,8 +263,8 @@ export class DetalleAsistenciaComponent {
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
-        (tap(data => { this.listaDescuentosPerTotal = data.total})   
-  )))
+        (tap(data => { /*this.listaDescuentosPerTotal = data.total*/ })
+        )))
 
   $personaMonotributo = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
@@ -264,7 +282,7 @@ export class DetalleAsistenciaComponent {
     )
   );
 
-  $sitrevista  = this.$selectedPersonalIdChange.pipe(
+  $sitrevista = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
     switchMap(() =>
       this.apiService
@@ -321,7 +339,7 @@ export class DetalleAsistenciaComponent {
     setTimeout(() => {
       this.responsable = user.PersonalId
     }, 100)
-  
+
     setTimeout(() => {
       const anio =
         Number(localStorage.getItem('anio')) > 0
@@ -348,9 +366,9 @@ export class DetalleAsistenciaComponent {
 
     setTimeout(() => {
       if (PersonalId > 0)
-      this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
+        this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
       if (ObjetivoId > 0)
-      this.asistenciaPer.controls['ObjetivoId'].setValue(ObjetivoId);
+        this.asistenciaObj.controls['ObjetivoId'].setValue(ObjetivoId);
     }, 1000)
 
 
@@ -388,9 +406,9 @@ export class DetalleAsistenciaComponent {
     this.$searchObjetivoChange.next(event);
   }
 
-   buscarPorPersona(PersonalId: string) {
+  buscarPorPersona(PersonalId: string) {
     this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
-//    this.router.navigate(['/ges/detalle_asistencia/persona', { state: { PersonalId } }])
+    //    this.router.navigate(['/ges/detalle_asistencia/persona', { state: { PersonalId } }])
     this.router.navigateByUrl('/ges/detalle_asistencia/persona', { state: { PersonalId } });
 
   }
@@ -398,7 +416,7 @@ export class DetalleAsistenciaComponent {
   buscarPorObjetivo(ObjetivoId: string) {
     console.log('buscarPorObjetivo')
     this.asistenciaObj.controls['ObjetivoId'].setValue(ObjetivoId);
-//    this.router.navigate(['/ges/detalle_asistencia/objetivo', { state: { ObjetivoId } }]);
+    //    this.router.navigate(['/ges/detalle_asistencia/objetivo', { state: { ObjetivoId } }]);
     this.router.navigateByUrl('/ges/detalle_asistencia/objetivo', { state: { ObjetivoId } });
 
   }
@@ -407,19 +425,19 @@ export class DetalleAsistenciaComponent {
 
   ngOnInit(): void {
 
-/*
-    this.router.events.subscribe((val) => {
-      // see also 
-      console.log(val) 
-    });
-  
-    
-    this.router.routerState.
-    this.router.events.pipe(filter((event: any) => event instanceof NavigationEnd)).subscribe((event: NavigationEnd) => {
-      //Do something with the NavigationEnd event object.
-      console.log(event) 
-    });
-*/
+    /*
+        this.router.events.subscribe((val) => {
+          // see also 
+          console.log(val) 
+        });
+      
+        
+        this.router.routerState.
+        this.router.events.pipe(filter((event: any) => event instanceof NavigationEnd)).subscribe((event: NavigationEnd) => {
+          //Do something with the NavigationEnd event object.
+          console.log(event) 
+        });
+    */
   }
 
   dateChange(result: Date): void {

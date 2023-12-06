@@ -8,11 +8,11 @@ export class AsistenciaController extends BaseController {
 
   static async getIngresosExtra(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[]) { 
     const listPersonaId = (personalId.length == 0) ? '' : 'AND ingext.persona_id IN (' + personalId.join(',') + ')'
-    let ingesosExtra = await queryRunner.query(`SELECT peri.anio, peri.mes, ingext.persona_id, tipo.des_movimiento, ingext.importe
+    let ingesosExtra = await queryRunner.query(`SELECT peri.anio, peri.mes, ingext.persona_id, tipo.des_movimiento, ingext.tipocuenta_id, ingext.importe
     FROM lige.dbo.liqmamovimientos ingext 
     JOiN lige.dbo.liqmaperiodo peri ON peri.periodo_id = ingext.periodo_id
     JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = ingext.tipo_movimiento_id
-    WHERE ingext.tipo_movimiento_id IN (2,3,18,19,20) AND peri.anio =@0 AND peri.mes=@1 ${listPersonaId} `, [anio, mes])    
+    WHERE tipo.tipo_movimiento = 'I' AND peri.anio =@0 AND peri.mes=@1 ${listPersonaId} `, [anio, mes])    
     return ingesosExtra
   }
 
@@ -665,7 +665,7 @@ export class AsistenciaController extends BaseController {
 
     return dataSource.query(
       `             
-      SELECT gap.GrupoActividadId, 0 as ObjetivoId,per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT gap.GrupoActividadId, 0 as ObjetivoId,per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, 'Adelanto' AS tipomov, '' AS desmovimiento,
       '' AS desmovimiento2, 'ADEL' tipoint,
       ade.PersonalAdelantoMontoAutorizado AS importe, 1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
@@ -678,7 +678,7 @@ export class AsistenciaController extends BaseController {
       
       UNION
              
-      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov, 
       '' AS desmovimiento, 
       '' AS desmovimiento2, 'OTRO' tipoint,
@@ -694,7 +694,7 @@ export class AsistenciaController extends BaseController {
       
       UNION
              
-      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, 'Efecto' AS tipomov, 
       efe.EfectoDescripcion AS desmovimiento,
       efe.EfectoDescripcion AS desmovimiento2, 'DESC' tipoint,
@@ -710,7 +710,7 @@ export class AsistenciaController extends BaseController {
       
       UNION
       
-      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, 'Ayuda Asistencial' AS tipomov, 
       '' AS desmovimiento, 
       '' AS desmovimiento2, 'AYUD' tipoint,
@@ -726,7 +726,7 @@ export class AsistenciaController extends BaseController {
       
       UNION
       
-      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       -- pre.PrepagaDescripcion, pla.PrepagaPlanDescripcion, dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL,  dis.PersonalPrepagaDescuentoDiscriminadoGravado, dis.PersonalPrepagaDescuentoDiscriminadoExento, dis.PersonalPrepagaDescuentoDiscriminadoTipo,
       
       @1 AS anio, @2 AS mes, 'Prepaga' AS tipomov, 
@@ -749,7 +749,7 @@ export class AsistenciaController extends BaseController {
 
       UNION
 
-      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       -- pre.PrepagaDescripcion, pla.PrepagaPlanDescripcion, dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL,  dis.PersonalPrepagaDescuentoDiscriminadoGravado, dis.PersonalPrepagaDescuentoDiscriminadoExento, dis.PersonalPrepagaDescuentoDiscriminadoTipo,
       
       @1 AS anio, @2 AS mes, 'Rentas' AS tipomov, 
@@ -767,7 +767,7 @@ export class AsistenciaController extends BaseController {
 
       UNION
 
-      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       
       @1 AS anio, @2 AS mes, 'Honorarios DDJJ' AS tipomov, 
       '' AS desmovimiento, 
@@ -785,7 +785,7 @@ export class AsistenciaController extends BaseController {
 
       UNION
 
-      SELECT gap.GrupoActividadId, des.ObjetivoId, per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT gap.GrupoActividadId, des.ObjetivoId, per.PersonalId, IIF(des.ObjetivoId>0,'C','G') tipocuenta_id,   cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
 @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov, 
 CONCAT(des.ObjetivoDescuentoDetalle,' ',CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',obj.ObjetivoDescripcion)) AS desmovimiento, 
 '' AS desmovimiento2, 'OTRO' tipoint,
@@ -804,7 +804,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
 
       UNION
 
-      SELECT gap.GrupoActividadId, obj.ObjetivoId, per.PersonalId, 
+      SELECT gap.GrupoActividadId, obj.ObjetivoId, per.PersonalId, IIF(obj.ObjetivoId>0,'C','G') tipocuenta_id,
       cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       anio.ConsumoTelefoniaAnoAno, mes.ConsumoTelefoniaAnoMesMes, 'Telefonía' AS tipomov, 
       CONCAT(TRIM(tel.TelefoniaNro), IIF(tel.TelefoniaObjetivoId>0,CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',obj.ObjetivoDescripcion),'')) AS desmovimiento,
@@ -833,6 +833,31 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
 
   }
 
+  async getCategoriasPorPersona(req: any, res: Response, next: NextFunction) {
+    try {
+      const personalId = req.params.personalId;
+      const anio = req.params.anio;
+      const mes = req.params.mes;
+      const queryRunner = dataSource.createQueryRunner();
+
+      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+        throw new ClientException(`No tiene permiso para obtener información de descuentos`)
+        
+        const categorias = await queryRunner.query(
+          `SELECT catrel.PersonalCategoriaPersonalId, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta, tip.TipoAsociadoDescripcion,cat.CategoriaPersonalDescripcion
+          FROM PersonalCategoria catrel
+            JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = catrel.PersonalCategoriaTipoAsociadoId AND cat.CategoriaPersonalId = catrel.PersonalCategoriaCategoriaPersonalId
+           JOIN TipoAsociado tip ON tip.TipoAsociadoId = cat.TipoAsociadoId
+        WHERE ((DATEPART(YEAR,catrel.PersonalCategoriaDesde)=@1 AND  DATEPART(MONTH, catrel.PersonalCategoriaDesde)=@2) OR (DATEPART(YEAR,catrel.PersonalCategoriaHasta)=@1 AND  DATEPART(MONTH, catrel.PersonalCategoriaHasta)=@2) OR (catrel.PersonalCategoriaDesde <= DATEFROMPARTS(@1,@2,28) AND ISNULL(catrel.PersonalCategoriaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,28))
+        ) AND catrel.PersonalCategoriaPersonalId=@0`, [personalId, anio,mes])
+  
+        this.jsonRes({ categorias: categorias }, res);
+      } catch (error) {
+        return next(error)
+      }
+    }
+  
+
   async getDescuentosPorPersona(req: any, res: Response, next: NextFunction) {
     try {
       const personalId = req.params.personalId;
@@ -846,9 +871,17 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
 
       const result = await AsistenciaController.getDescuentos(anio, mes, [personalId])
 
-      const total = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
+      let totalG = 0
+      let totalC = 0
 
-      this.jsonRes({ descuentos: result, total }, res);
+      for (const row of result) { 
+        if (row.tipocuenta_id == 'G')
+          totalG += row.importe
+        if (row.tipocuenta_id == 'C')
+          totalC += row.importe
+      }
+
+      this.jsonRes({ descuentos: result, totalG, totalC }, res);
     } catch (error) {
       return next(error)
     }
@@ -870,9 +903,11 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       const personal = await queryRunner.query(
         `SELECT gap.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle, per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS PersonaDes,
         cuit.PersonalCUITCUILCUIT,
-         0 as ingresos_importe,
+         0 as ingresosG_importe,
+         0 as ingresosC_importe,
          0 as ingresos_horas,
-         0 as egresos_importe,
+         0 as egresosG_importe,
+         0 as egresosC_importe,
          1
          FROM Personal per
 			LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
@@ -886,9 +921,11 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
          
          SELECT 0,0,'', per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS PersonaDes,
          cuit.PersonalCUITCUILCUIT,
-          0 as ingresos_importe,
+          0 as ingresosG_importe,
+          0 as ingresosC_importe,
           0 as ingresos_horas,
-          0 as egresos_importe,
+          0 as egresosG_importe,
+          0 as egresosC_importe,
           1
           FROM Personal per
           LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
@@ -910,29 +947,39 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
 
       for (const row of resAsisObjetiv) {
         const key=personal.findIndex(i=> i.PersonalId == row.PersonalId)
-        personal[key].ingresos_importe += row.totalminutoscalcimporteconart14
+        personal[key].ingresosG_importe += row.totalminutoscalcimporteconart14
         personal[key].ingresos_horas += row.totalhorascalc
-        personal[key].retiro_importe = personal[key].ingresos_importe
+        personal[key].retiroG_importe = personal[key].ingresosG_importe
       }
 
       for (const row of resAsisAdmArt42) {
         const key=personal.findIndex(i=> i.PersonalId == row.PersonalId)
-        personal[key].ingresos_importe += row.total
+        personal[key].ingresosG_importe += row.total
         personal[key].ingresos_horas += row.horas
-        personal[key].retiro_importe = personal[key].ingresos_importe 
+        personal[key].retiroG_importe = personal[key].ingresosG_importe 
       }
 
       for (const row of resIngreExtra) {
         const key=personal.findIndex(i=> i.PersonalId == row.persona_id)
-        personal[key].ingresos_importe += row.importe
         personal[key].ingresos_horas += 0
-        personal[key].retiro_importe = personal[key].ingresos_importe 
+        if (row.tipocuenta_id == 'C') {
+          personal[key].ingresosC_importe += row.importe
+          personal[key].retiroC_importe = personal[key].ingresosC_importe - personal[key].egresosC_importe
+        } else if (row.tipocuenta_id == 'G') {
+          personal[key].ingresosG_importe += row.importe
+          personal[key].retiroG_importe = personal[key].ingresosG_importe - personal[key].egresosG_importe
+        } 
       }
 
       for (const row of resDescuentos) {
-        const key=personal.findIndex(i=> i.PersonalId == row.PersonalId)
-        personal[key].egresos_importe += row.importe
-        personal[key].retiro_importe = personal[key].ingresos_importe - personal[key].egresos_importe
+        const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
+        if (row.tipocuenta_id == 'C') {
+          personal[key].egresosC_importe += row.importe
+          personal[key].retiroC_importe = personal[key].ingresosC_importe - personal[key].egresosC_importe
+        } else if (row.tipocuenta_id == 'G') {
+          personal[key].egresosG_importe += row.importe
+          personal[key].retiroG_importe = personal[key].ingresosG_importe - personal[key].egresosG_importe
+        } 
       }
 
 //      const total = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
@@ -974,11 +1021,19 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
         throw new ClientException(`No tiene permiso para obtener información de ingresos`)
 
       const result = await AsistenciaController.getIngresosExtra(anio, mes, queryRunner, [personalId])
+      let totalG = 0
+      let totalC = 0
 
-      const total = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
+      for (const row of result) { 
+        if (row.tipocuenta_id == 'G')
+          totalG += row.importe
+        if (row.tipocuenta_id == 'C')
+          totalC += row.importe
+      }
+
       const totalHoras = 0
 
-      this.jsonRes({ ingresos: result, total, totalHoras }, res);
+      this.jsonRes({ ingresos: result, totalG, totalC, totalHoras }, res);
     } catch (error) {
       return next(error)
     }

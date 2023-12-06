@@ -237,6 +237,25 @@ export class SearchService {
         })
       );
   }
+  getCategoriasPersona(
+    personalId: number,
+    anio: number,
+    mes: number
+  ): Observable<any> {
+    if (!personalId) return of([]);
+
+    return this.http
+      .get(`api/asistencia/categoriasxper/${anio}/${mes}/${personalId}`)
+      .pipe(
+        map((res: ResponseJSON<any>) =>
+          res && res.data ? res.data : []
+        ),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
 
   getPersonalxResponsable(
     personalId: number,
