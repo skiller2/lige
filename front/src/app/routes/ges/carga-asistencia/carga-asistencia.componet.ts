@@ -191,6 +191,10 @@ export class CargaAsistenciaComponent {
                 type: FieldType.number,
                 maxWidth: 50,
                 headerCssClass:(dow==6 || dow==0)?'grid-weekend':'',
+                editor: {
+                    model: Editors.text
+                },
+                onCellChange: this.onHorasChange.bind(this)
             });
         }
 
