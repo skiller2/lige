@@ -3,7 +3,7 @@ import { Component, ViewChild, Injector, TemplateRef, ChangeDetectorRef } from '
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { AngularGridInstance, AngularUtilService, Column, FieldType, FileType, Formatters, GridOption, SlickGrid, GroupTotalFormatters, Aggregators } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, FileType, Formatters, GridOption, SlickGrid, GroupTotalFormatters, Aggregators } from 'angular-slickgrid';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzUploadFile } from 'ng-zorro-antd/upload';
 import { NzModalService, NzModalModule } from "ng-zorro-antd/modal";
@@ -54,22 +54,46 @@ export class CargaAsistenciaComponent {
     async ngOnInit() {
         this.columnDefinitions = [
             {
-                id: 'ApellidoNombre', name: 'Persona', field: 'ApellidoNombre',
+                id: 'apellidoNombre', name: 'Persona', field: 'ApellidoNombre',
                 sortable: true,
                 type: FieldType.string,
                 // maxWidth: 250,
+                formatter: Formatters.complexObject,
+                params: {
+                    complexFieldLabel: 'ApellidoNombre.fullName',
+                  },
+                editor: {
+                    model: CustomGridEditor,
+                    collection: [],
+                    params: {
+                      component: EditorPersonaComponent,
+                    },
+                    alwaysSaveOnEnterKey: true,
+                    // required: true
+                },
             },
             {
-                id: 'CUIT', name: 'CUIT', field: 'CUIT',
+                id: 'cuit', name: 'CUIT', field: 'CUIT',
                 sortable: true,
                 type: FieldType.number,
                 // maxWidth: 150,
+                editor: {
+                    model: Editors.integer,
+                    alwaysSaveOnEnterKey: true,
+                    // required: true
+                },
             },
             {
-                id: 'Forma', name: 'Forma', field: 'Forma',
+                id: 'forma', name: 'Forma', field: 'Forma',
                 sortable: true,
                 type: FieldType.string,
                 // maxWidth: 150,
+                editor: {
+                    model: Editors.singleSelect,
+                    collection: ['HORAS NORMALES', 'HORAS EXTRAS','Horas EXTRAORDINARIAS', 'NO HABITUALES', 'CAPACITACION'],
+                    alwaysSaveOnEnterKey: true,
+                    // required: true
+                },
             },
         ]
         this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -83,6 +107,14 @@ export class CargaAsistenciaComponent {
         // this.gridOptionsEdit.enableAutoResizeColumnsByCellContent = true
         this.gridOptionsEdit.enableAutoTooltip = true
         this.gridOptionsEdit.fullWidthRows = true
+
+        this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
+            editCommand.execute()
+            const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
+            if (lastrow && (lastrow.ApellidoNombre || lastrow.CUIT)) {
+                this.addNewItem("bottom")
+            }
+        }
     }
 
 
@@ -98,11 +130,12 @@ export class CargaAsistenciaComponent {
                     ? Number(localStorage.getItem('mes'))
                     : now.getMonth() + 1;
     
-            this.carasistForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1))
+            this.carasistForm.form.get('periodo')?.setValue(new Date(anio, mes, 1))
         }, 1);
     }    
 
-    onCellChanged(e: any) { }
+    onCellChanged(e: any) {
+    }
 
     async angularGridReadyEdit(angularGrid: any) {
         this.angularGridEdit = angularGrid.detail
@@ -152,12 +185,16 @@ export class CargaAsistenciaComponent {
             columnDays.push({
                 id: `day${index}`,
                 name: `${name} <BR> ${index}`,
-                field: 'day',
+                field: `day${index}`,
                 sortable: true,
                 type: FieldType.number,
                 maxWidth: 50,
                 //headerCssClass: (dow==6)? 'grid-weekend':''
                 headerCssClass:'grid-weekend',
+                editor: {
+                    model: Editors.text
+                },
+                onCellChange: this.onHorasChange.bind(this)
             });
         }
 
@@ -178,10 +215,31 @@ export class CargaAsistenciaComponent {
         this.selectedPeriod.month = result.getMonth()+1;
 
         const daysOfMonth = this.getDaysOfWeekOfMonth(this.selectedPeriod.year, this.selectedPeriod.month);
-        console.log(daysOfMonth)
+
         this.column = [...this.columnDefinitions, ...daysOfMonth];
         
         this.angularGridEdit.slickGrid.setOptions({ forceFitColumns: true })
         this.angularGridEdit.slickGrid.reRenderColumns(true)
+        this.clearAngularGrid()
     }
+
+    clearAngularGrid():void {
+        const items = this.angularGridEdit.dataView.getItems()
+        const itemsId = items.map(item => {
+            return item.id
+        })
+        this.angularGridEdit.dataView.deleteItems(itemsId)
+        this.addNewItem("bottom")
+    }
+
+    onHorasChange(e: Event, args: any) {
+        const item = args.dataContext
+        const keysDays = Object.keys(item).filter(key => key.startsWith("day"))
+        const total = keysDays.reduce((acc, key) => {
+            const value = parseInt(item[key], 10);
+            return isNaN(value) ? acc : acc + value;
+        }, 0);
+        args.dataContext.total = total
+      }
+
 }
