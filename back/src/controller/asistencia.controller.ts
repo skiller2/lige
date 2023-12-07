@@ -538,13 +538,17 @@ export class AsistenciaController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      await this.hasAuthObjetivo(
-        anio,
-        mes,
-        res,
-        Number(ObjetivoId),
-        queryRunner
-      );
+      if (!await this.hasGroup(req, 'liquidaciones')) { 
+        const auth = await this.hasAuthObjetivo(
+          anio,
+          mes,
+          res,
+          Number(ObjetivoId),
+          queryRunner
+        );
+  
+      }
+
 
 
       //Traigo el Art14 para analizarlo
