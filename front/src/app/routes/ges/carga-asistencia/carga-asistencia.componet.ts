@@ -18,6 +18,13 @@ import { CustomDescargaComprobanteComponent } from '../objetivos-pendasis/objeti
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { CustomGridEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
+import { SearchService } from '../../../services/search.service';
+enum Busqueda {
+    Sucursal,
+    Objetivo,
+    Personal,
+    Responsable
+  }
 
 @Component({
     selector: 'app-carga-asistencia',
@@ -39,7 +46,16 @@ import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-pe
 export class CargaAsistenciaComponent {
     @ViewChild('carasistForm', { static: true }) carasistForm: NgForm =
         new NgForm([], []);
-    constructor(private cdr: ChangeDetectorRef, public apiService: ApiService, private injector: Injector, public router: Router, private angularUtilService: AngularUtilService, private modal: NzModalService, private notification: NzNotificationService) { }
+    constructor(
+        private cdr: ChangeDetectorRef,
+        public apiService: ApiService,
+        private injector: Injector,
+        public router: Router,
+        private angularUtilService: AngularUtilService,
+        private modal: NzModalService,
+        private notification: NzNotificationService,
+        private searchService: SearchService,
+    ) { }
 
     columnDefinitions: Column[] = [];
     column: Column[] = [];
@@ -47,10 +63,36 @@ export class CargaAsistenciaComponent {
     gridDataInsert = [];
 
     excelExportService = new ExcelExportService()
-    // angularGrid!: AngularGridInstance;
     angularGridEdit!: AngularGridInstance;
-    detailViewRowCount = 3;
+    detailViewRowCount = 1;
     selectedPeriod = { year: 0, month: 0 };
+    
+    public get Busqueda() {
+        return Busqueda;
+    }
+    selectedObjetivoId = '';
+    $isObjetivoDataLoading = new BehaviorSubject(false);
+    $selectedObjetivoIdChange = new BehaviorSubject('');
+    objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
+
+    $objetivoResponsables = this.$selectedObjetivoIdChange.pipe(
+        debounceTime(50),
+        switchMap(objetivoId => {
+          if (!objetivoId) return [];
+          return this.searchService
+            .getObjetivo(
+              Number(objetivoId),
+              this.selectedPeriod.year,
+              this.selectedPeriod.month
+            )
+            .pipe(
+              doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
+              tap({
+                complete: () => this.objetivoResponsablesLoading$.next(false),
+              })
+            );
+        })
+      );
 
     async ngOnInit() {
         this.columnDefinitions = [
@@ -74,24 +116,35 @@ export class CargaAsistenciaComponent {
                 },
             },
             {
-                id: 'cuit', name: 'CUIT', field: 'CUIT',
-                sortable: true,
-                type: FieldType.number,
-                // maxWidth: 150,
-                editor: {
-                    model: Editors.integer,
-                    alwaysSaveOnEnterKey: true,
-                    // required: true
-                },
-            },
-            {
                 id: 'forma', name: 'Forma', field: 'Forma',
                 sortable: true,
                 type: FieldType.string,
                 // maxWidth: 150,
                 editor: {
                     model: Editors.singleSelect,
-                    collection: ['HORAS NORMALES', 'HORAS EXTRAS','Horas EXTRAORDINARIAS', 'NO HABITUALES', 'CAPACITACION'],
+                    collection: ['HORAS NORMALES', 'CAPACITACION'],
+                    alwaysSaveOnEnterKey: true,
+                    // required: true
+                },
+            },
+            {
+                id: 'tipo', name: 'Tipo', field: 'tipo',
+                sortable: true,
+                type: FieldType.string,
+                // maxWidth: 150,
+                editor: {
+                    model: Editors.text,
+                    alwaysSaveOnEnterKey: true,
+                    // required: true
+                },
+            },
+            {
+                id: 'categoria', name: 'Categoria', field: 'categoria',
+                sortable: true,
+                type: FieldType.string,
+                // maxWidth: 150,
+                editor: {
+                    model: Editors.text,
                     alwaysSaveOnEnterKey: true,
                     // required: true
                 },
@@ -240,6 +293,14 @@ export class CargaAsistenciaComponent {
             return isNaN(value) ? acc : acc + value;
         }, 0);
         args.dataContext.total = total
-      }
-
+    }
+    
+    selectedValueChange(event: string, busqueda: Busqueda): void {
+        this.$selectedObjetivoIdChange.next(event);
+        this.$isObjetivoDataLoading.next(true);
+        
+        // if (event != '') {
+        //     console.log(this.selectedObjetivoId);
+        // }
+    }
 }
