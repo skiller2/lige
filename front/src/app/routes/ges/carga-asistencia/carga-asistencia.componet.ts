@@ -293,6 +293,7 @@ export class CargaAsistenciaComponent {
             return isNaN(value) ? acc : acc + value;
         }, 0);
         args.dataContext.total = total
+        args.grid.invalidateRow(args.row);
     }
     
     selectedValueChange(event: string, busqueda: Busqueda): void {
