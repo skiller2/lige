@@ -320,7 +320,7 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Categorías</nz-form-label>
           <nz-form-control>
-            <ng-container *ngFor="let categoria of ($listaCategoriasPer | async).categorias">
+            <ng-container *ngFor="let categoria of ($listaCategoriasPer | async)?.categorias">
               <p title="{{ categoria.TipoAsociadoDescripcion }} {{ categoria.CategoriaPersonalDescripcion }}">
                 {{ categoria.TipoAsociadoDescripcion }} {{ categoria.CategoriaPersonalDescripcion }} desde {{ categoria.PersonalCategoriaDesde | date}}
                 <span *ngIf="categoria.PersonalCategoriaHasta">hasta {{ categoria.PersonalCategoriaHasta | date}}</span>

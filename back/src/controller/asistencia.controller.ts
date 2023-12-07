@@ -265,13 +265,17 @@ export class AsistenciaController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      const auth = await this.hasAuthObjetivo(
-        anio,
-        mes,
-        res,
-        Number(ObjetivoId),
-        queryRunner
-      );
+      if (!await this.hasGroup(req, 'liquidaciones')) { 
+        const auth = await this.hasAuthObjetivo(
+          anio,
+          mes,
+          res,
+          Number(ObjetivoId),
+          queryRunner
+        );
+  
+      }
+
 
       let result = await queryRunner.query(
         `SELECT percat.PersonalCategoriaTipoAsociadoId,percat.PersonalCategoriaCategoriaPersonalId, cat.CategoriaPersonalDescripcion, percat.PersonalCategoriaDesde, percat.PersonalCategoriaHasta
@@ -613,15 +617,18 @@ export class AsistenciaController extends BaseController {
       const anio = req.params.anio;
       const mes = req.params.mes;
       var desde = new Date(anio, mes - 1, 1);
+      
+      if (!await this.hasGroup(req, 'liquidaciones')) { 
+        const auth = await this.hasAuthObjetivo(
+          anio,
+          mes,
+          res,
+          Number(objetivoId),
+          dataSource
+        );
+  
+      }
 
-
-      const auth = await this.hasAuthObjetivo(
-        anio,
-        mes,
-        res,
-        Number(objetivoId),
-        dataSource
-      );
 
       const result = await dataSource.query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion,
@@ -900,7 +907,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       const anio = req.params.anio;
       const mes = req.params.mes;
       const queryRunner = dataSource.createQueryRunner();
-
+console.log('permisos',res.locals,req.params.personalId)
       if (!await this.hasGroup(req, 'liquidaciones') && res.locals.PersonalId != req.params.personalId)
         throw new ClientException(`No tiene permisos para listar la información`)
 

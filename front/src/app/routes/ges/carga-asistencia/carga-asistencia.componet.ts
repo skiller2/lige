@@ -218,7 +218,7 @@ export class CargaAsistenciaComponent {
 
         this.column = [...this.columnDefinitions, ...daysOfMonth];
         
-        this.angularGridEdit.slickGrid.setOptions({ forceFitColumns: true })
+        this.angularGridEdit.slickGrid.setOptions({ forceFitColumns: true, frozenColumn: 2 })
         this.angularGridEdit.slickGrid.reRenderColumns(true)
         this.clearAngularGrid()
     }
