@@ -307,6 +307,21 @@ export class AsistenciaController extends BaseController {
         }
       }
 
+      let resultObjs = await queryRunner.query(
+        `SELECT anio.ObjetivoAsistenciaAnoAno, anio.ObjetivoId, mes.ObjetivoAsistenciaAnoMesMes, mes.ObjetivoAsistenciaAnoMesDesde, mes.ObjetivoAsistenciaAnoMesHasta
+        FROM ObjetivoAsistenciaAno anio
+        JOIN ObjetivoAsistenciaAnoMes mes ON mes.ObjetivoAsistenciaAnoId = anio.ObjetivoAsistenciaAnoId AND mes.ObjetivoId = anio.ObjetivoId
+        WHERE anio.ObjetivoId = @0 AND anio.ObjetivoAsistenciaAnoAno = @1 AND mes.ObjetivoAsistenciaAnoMesMes = @2`,
+        [ObjetivoId, anio, mes]
+      );
+
+      if (resultObjs.length == 0)
+        throw new ClientException(`El objetivo seleccionado no tiene habilitada la carga de asistencia para el período ${anio}/${mes}`)
+      if (resultObjs[0].ObjetivoAsistenciaAnoMesHasta != null)
+        throw new ClientException(`El objetivo seleccionado tiene cerrada la carga de asistencia para el período ${anio}/${mes} el ${new Date(resultObjs[0].ObjetivoAsistenciaAnoMesHasta).toLocaleDateString('en-GB')}`)
+
+      
+      
       //Traigo el Art14 para analizarlo
 
       let resultAutoriz = await queryRunner.query(
@@ -356,6 +371,9 @@ export class AsistenciaController extends BaseController {
         ) {
           throw new ClientException("Ya se encuentra cargada la información")
         }
+
+
+
 
         let hasta: Date = new Date(fechaDesde);
         hasta.setDate(fechaDesde.getDate() - 1);
@@ -548,6 +566,19 @@ export class AsistenciaController extends BaseController {
         );
   
       }
+
+      let resultObjs = await queryRunner.query(
+        `SELECT anio.ObjetivoAsistenciaAnoAno, anio.ObjetivoId, mes.ObjetivoAsistenciaAnoMesMes, mes.ObjetivoAsistenciaAnoMesDesde, mes.ObjetivoAsistenciaAnoMesHasta
+        FROM ObjetivoAsistenciaAno anio
+        JOIN ObjetivoAsistenciaAnoMes mes ON mes.ObjetivoAsistenciaAnoId = anio.ObjetivoAsistenciaAnoId AND mes.ObjetivoId = anio.ObjetivoId
+        WHERE anio.ObjetivoId = @0 AND anio.ObjetivoAsistenciaAnoAno = @1 AND mes.ObjetivoAsistenciaAnoMesMes = @2`,
+        [ObjetivoId, anio, mes]
+      );
+
+      if (resultObjs.length == 0)
+        throw new ClientException(`El objetivo seleccionado no tiene habilitada la carga de asistencia para el período ${anio}/${mes}`)
+      if (resultObjs[0].ObjetivoAsistenciaAnoMesHasta != null)
+        throw new ClientException(`El objetivo seleccionado tiene cerrada la carga de asistencia para el período ${anio}/${mes} el ${new Date(resultObjs[0].ObjetivoAsistenciaAnoMesHasta).toLocaleDateString('en-GB')}`)
 
 
 
