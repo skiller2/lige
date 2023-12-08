@@ -231,9 +231,9 @@ export class LiquidacionesBancoController extends BaseController {
     {
       name: "Apellido Nombre",
       type: "string",
-      id: "PersonalApellidoNombre",
-      field: "PersonalApellidoNombre",
-      fieldName: "PersonalApellidoNombre",
+      id: "ApellidoNombre",
+      field: "ApellidoNombre",
+      fieldName: "per.PersonalId",
       searchComponent: "inpurForPersonalSearch",
       searchType: "number",
       sortable: true,
@@ -263,9 +263,9 @@ export class LiquidacionesBancoController extends BaseController {
     {
       name: "CBU",
       type: "number",
-      id: "PersonalBancoCBU",
-      field: "PersonalBancoCBU",
-      fieldName: "PersonalBancoCBU",
+      id: "cbu",
+      field: "cbu",
+      fieldName: "cbu",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -283,9 +283,9 @@ export class LiquidacionesBancoController extends BaseController {
     {
       name: "Banco",
       type: "string",
-      id: "BancoDescripcion",
-      field: "BancoDescripcion",
-      fieldName: "BancoDescripcion",
+      id: "bancodescripcion",
+      field: "bancodescripcion",
+      fieldName: "bancodescripcion",
       sortable: true,
       hidden: false,
       searchHidden: false
@@ -313,8 +313,8 @@ export class LiquidacionesBancoController extends BaseController {
     {
       name: "Tipo Cuenta",
       type: "string",
-      id: "TipoCuenta",
-      field: "TipoCuenta",
+      id: "tipocuenta_id",
+      field: "tipocuenta_id",
       fieldName: "tipocuenta_id",
       sortable: true,
       hidden: false,
@@ -382,17 +382,17 @@ export class LiquidacionesBancoController extends BaseController {
   }
 
   async getMovimientosPendientes(filtros: any, sort: any) {
-    const filterSql = filtrosToSql(filtros, this.listaColumnas);
+    const filterSql = filtrosToSql(filtros, this.listaColumnasMovimientos);
     const orderBy = orderToSQL(sort)
     const stmactual = new Date()
 
     return dataSource.query(
-      `SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU ,movpos.importe,banc.bancodescripcion,movpos.fecha,movpos.tipocuenta_id
-      FROM Personal per
-      JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId
-      JOIN PersonalCUITCUIL AS cuit ON cuit.PersonalId = per.PersonalId
-      JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
-      JOIN(SELECT liq.persona_id,liq.cbu,liq.importe,liq.banco_id,liq.envio_nro,liq.fecha,liq.tipocuenta_id FROM lige.dbo.liqmvbanco liq) AS movpos ON movpos.persona_id = per.PersonalId
+      `
+      SELECT CONCAT(banco_id,'-',envio_nro,'-',persona_id) id, liq.persona_id,liq.cbu,liq.importe,liq.banco_id,liq.envio_nro,liq.fecha,liq.tipocuenta_id,banc.bancodescripcion, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+      FROM lige.dbo.liqmvbanco liq
+      JOIn Personal per ON per.PersonalId = liq.persona_id
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+      JOIN banco AS banc ON banc.BancoId = liq.banco_id WHERE ${filterSql} ${orderBy}
     `)
 
   }
