@@ -60,7 +60,7 @@
       <li nz-menu-item (click)="exportGrid()">
         <span nz-icon nzType="download"></span>XLS
       </li>
-      <li nz-menu-item>
+      <li nz-menu-item nzMatchRouter>
         <a [routerLink]="['/', 'ges', 'liquidacion_banco','moviemientospendientes']">Movimientos Pendientes</a>
       </li>
     </ul>
@@ -95,7 +95,7 @@
       </nz-tab>
 
       <nz-tab>
-        <a nz-tab-link routerLink="/ges/liquidacion_banco/moviemientospendientes">Pendientes</a>
+        <a nz-tab-link routerLink="/ges/liquidacion_banco/moviemientospendientes">Movimientos Pendientes</a>
         <ng-template nz-tab>
         <movimientos-pendientes></movimientos-pendientes>
       </ng-template>
