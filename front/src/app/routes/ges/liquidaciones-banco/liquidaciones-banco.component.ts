@@ -12,6 +12,7 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
+import { MovimientosPendientes } from '../movimientos-pendientes/movimientos-pendientes.component';
 import {
   BehaviorSubject,
   Observable,
@@ -49,6 +50,7 @@ export class CustomLinkComponent {
     FiltroBuilderComponent,
     RowPreloadDetailComponent,
     RowDetailViewComponent,
+    MovimientosPendientes
   ],
   providers: [AngularUtilService]
 })
@@ -84,6 +86,7 @@ export class LiquidacionesBancoComponent {
       const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
       Object.assign(componentOutput.componentRef.instance, { item: dataContext,link:'/ges/liquidaciones/listado'  })
       cellNode.replaceChildren(componentOutput.domElement)
+      MovimientosPendientes
   }
 
 
@@ -206,6 +209,7 @@ export class LiquidacionesBancoComponent {
         )
         .pipe(
           map(data => {
+            debugger
             this.anio = periodo.getFullYear();
             this.mes = periodo.getMonth() + 1;
             this.listdowload = "gridData";
@@ -306,6 +310,7 @@ export class LiquidacionesBancoComponent {
   resizeSubscription$: Subscription | undefined;
 
   async ngOnInit() {
+    MovimientosPendientes
     this.resizeObservable$ = fromEvent(window, 'resize');
     this.resizeSubscription$ = this.resizeObservable$
       .pipe(debounceTime(500))
