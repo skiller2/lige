@@ -30,21 +30,7 @@ import {
 import { CustomGridEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
 import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-objetivo.component';
-
-@Component({
-  standalone: true,
-  imports: [
-    SharedModule,
-  ],
-  template: `<a [routerLink]="[link,params]" >{{detail}}</a>`
-})
-
-export class CustomLinkComponent {
-  link!: string
-  params!: any
-  detail!:string
-}
-
+import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 
 @Component({
   selector: 'app-liquidaciones',
@@ -62,6 +48,7 @@ export class CustomLinkComponent {
   ],
   providers: [AngularUtilService]
 })
+  
 export class LiquidacionesComponent {
   @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =
     new NgForm([], [])

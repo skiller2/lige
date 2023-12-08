@@ -24,19 +24,7 @@ import {
   tap,
   firstValueFrom,
 } from 'rxjs';
-
-@Component({
-  standalone: true,
-  imports: [
-    SharedModule,
-  ],
-  template: `<a [routerLink]="[link,{ PersonalId: item.PersonalId, tipocuenta_id:item.tipocuenta_id }]" > {{item.PersonalApellidoNombre}} </a>`
-})
-export class CustomLinkComponent {
-  item: any
-  link!: string;
-}
-
+import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 
 @Component({
   selector: 'app-liquidaciones',
@@ -84,7 +72,7 @@ export class LiquidacionesBancoComponent {
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
       const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
-      Object.assign(componentOutput.componentRef.instance, { item: dataContext,link:'/ges/liquidaciones/listado'  })
+      Object.assign(componentOutput.componentRef.instance, { item: dataContext,link:'/ges/liquidaciones/listado',params:{ PersonalId: dataContext.PersonalId, tipocuenta_id:dataContext.tipocuenta_id },detail:dataContext.PersonalApellidoNombre  })
       cellNode.replaceChildren(componentOutput.domElement)
       MovimientosPendientes
   }

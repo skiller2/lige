@@ -13,56 +13,52 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import {
-    BehaviorSubject,
-    Observable,
-    Subscription,
-    fromEvent,
-    debounceTime,
-    map,
-    switchMap,
-    tap,
-    firstValueFrom,
-  } from 'rxjs';
-
-export class CustomLinkComponent {
-    item: any
-    link!: string;
-}
+  BehaviorSubject,
+  Observable,
+  Subscription,
+  fromEvent,
+  debounceTime,
+  map,
+  switchMap,
+  tap,
+  firstValueFrom,
+} from 'rxjs';
+import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 
 @Component({
-    selector: 'movimientos-pendientes',
-    templateUrl: './movimientos-pendientes.component.html',
-    styleUrls: ['./movimientos-pendientes.component.less'],
-    standalone: true,
-    imports: [
-        CommonModule,
-        SharedModule,
-        NzAffixModule,
-        FiltroBuilderComponent,
-        RowPreloadDetailComponent,
-        RowDetailViewComponent,
-    ],
-    providers: [AngularUtilService]
-    
-  })
-  
-  export class MovimientosPendientes  {
-    @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =
+  selector: 'movimientos-pendientes',
+  templateUrl: './movimientos-pendientes.component.html',
+  styleUrls: ['./movimientos-pendientes.component.less'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    SharedModule,
+    NzAffixModule,
+    FiltroBuilderComponent,
+    RowPreloadDetailComponent,
+    RowDetailViewComponent,
+  ],
+  providers: [AngularUtilService]
+
+})
+
+export class MovimientosPendientes {
+  @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =
     new NgForm([], []);
-    constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService) { }
-    url = '/api/liquidaciones';
-    url_forzado = '/api/liquidaciones/forzado';
-    formChange$ = new BehaviorSubject('');
-    gridOptionsMovimientos!: GridOption;
-    detailViewRowCount = 12;
-    gridDataLen = 0;
-    anio = 0;
-    mes = 0;
-    tableLoading$ = new BehaviorSubject(false);
-    listdowload = "";
-    excelExportService = new ExcelExportService();
-    angularGrid!: AngularGridInstance;
-    gridObj!: SlickGrid;
+  constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService) { }
+  url = '/api/liquidaciones';
+  url_forzado = '/api/liquidaciones/forzado';
+  formChange$ = new BehaviorSubject('');
+  gridOptionsMovimientos!: GridOption;
+  detailViewRowCount = 12;
+  gridDataLen = 0;
+  anio = 0;
+  mes = 0;
+  tableLoading$ = new BehaviorSubject(false);
+  listdowload = "";
+  excelExportService = new ExcelExportService();
+  angularGrid!: AngularGridInstance;
+  gridObj!: SlickGrid;
   /* . . . */
 
 
@@ -72,21 +68,21 @@ export class CustomLinkComponent {
   }
 
   listOptionsChangeMovimiento(options: any) {
-    this.listOptions = options;
-    this.formChange$.next('');
+    this.listOptions = options
+    this.formChange$.next('')
 
   }
-   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
-      const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
-      Object.assign(componentOutput.componentRef.instance, { item: dataContext,link:'/ges/liquidacion/moviemientospendientes'  })
-      debugger
-      cellNode.replaceChildren(componentOutput.domElement)
-      
+
+  renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+    Object.assign(componentOutput.componentRef.instance, { item: dataContext,params:{ PersonalId: dataContext.persona_id, tipocuenta_id:dataContext.tipocuenta_id },   link:'/ges/liquidacion_banco/listado', detail: dataContext.ApellidoNombre })
+    cellNode.replaceChildren(componentOutput.domElement)
+
   }
 
   resizeObservable$: Observable<Event> | undefined;
   resizeSubscription$: Subscription | undefined;
-  
+
   async ngOnInit() {
     this.resizeObservable$ = fromEvent(window, 'resize');
     this.resizeSubscription$ = this.resizeObservable$
@@ -100,11 +96,12 @@ export class CustomLinkComponent {
 
     this.gridOptionsMovimientos.showFooterRow = true
     this.gridOptionsMovimientos.createFooterRow = true
+
   }
 
   columnsMovimientos$ = this.apiService.getCols('/api/liquidaciones/banco/movimientospendientes').pipe(map((cols) => {
     const colf: Column = cols[1]
-    colf.asyncPostRender= this.renderAngularComponent.bind(this)
+    colf.asyncPostRender = this.renderAngularComponent.bind(this)
     return cols
   }));
 
@@ -116,7 +113,7 @@ export class CustomLinkComponent {
   }
 
   gridDataMovimiento$ = this.formChange$.pipe(
-   
+
     debounceTime(500),
     switchMap(() => {
       const periodo = new Date();
