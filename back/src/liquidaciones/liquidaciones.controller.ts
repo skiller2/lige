@@ -79,19 +79,12 @@ export class LiquidacionesController extends BaseController {
     try {
 
       const document = await this.getDocumentInfo(documentId);
-      const rutaArchivo = document[0]["path"];
 
+      const finalurl = `${this.directory}/${document[0]["path"]}`
+      if (!existsSync(finalurl))
+        throw new ClientException(`Archivo ${document[0]["name"]} no localizado`, {path:finalurl})
 
-      const __filename = fileURLToPath(import.meta.url);
-      const __dirname = dirname(__filename);
-
-      const finalurl = __dirname.replace("src\\", "").replace("liquidaciones", "")
-      const filePath = finalurl + rutaArchivo
-      const cadenaConBarrasInvertidas = filePath.replace(/\//g, '\\');
-
-//      throw new ClientException('No se descargo')
-
-      res.download(cadenaConBarrasInvertidas, document[0]["name"])
+      res.download(finalurl, document[0]["name"])
 
     } catch (error) {
       return next(error)

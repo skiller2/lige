@@ -296,10 +296,11 @@ export class AuthController extends BaseController {
       
       let result = await queryRunner.query(
         `SELECT per.PersonalId
-      FROM Personal per
-      JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      WHERE cuit.PersonalCUITCUILCUIT = @0`, [
-        persona_cuit,
+        FROM Personal per
+        JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+        WHERE cuit.PersonalCUITCUILCUIT = @0 OR per.PersonalId IN (SELECT usu.UsuarioPersonalId FROM Usuario usu WHERE usu.UsuarioNombreLDAP = @1)
+        `, [
+        persona_cuit,userName
       ])
       const row = result[0]
       user.PersonalId = (row) ? row['PersonalId'] : 0
