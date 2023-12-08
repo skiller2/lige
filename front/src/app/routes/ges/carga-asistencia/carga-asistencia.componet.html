@@ -11,7 +11,7 @@
             <nz-form-label [nzSpan]="2">Objetivo</nz-form-label>
             <nz-form-control>
                 <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
-                  (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" ngModel />
+                  (ngModelChange)="selectedObjetivoChange($event, Busqueda.Objetivo)" ngModel />
             </nz-form-control>
         </nz-form-item>
     

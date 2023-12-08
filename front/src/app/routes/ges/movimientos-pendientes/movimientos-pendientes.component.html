@@ -1,0 +1,13 @@
+  <div nz-tab *ngIf="(columnsMovimientos$|async) as columnasMovimientos">
+     <shared-filtro-builder #sfb [fieldsToSelect]="columnasMovimientos" (optionsChange)="listOptionsChangeMovimiento($event)" /> 
+    <div class="gridContainer3 container-fluid">
+      <angular-slickgrid  gridId="grid24" class="" [columnDefinitions]="columnasMovimientos | colsFilter"
+        [gridOptions]="gridOptionsMovimientos" [dataset]="(gridDataMovimiento$ | async) || []"
+        (onAngularGridCreated)="angularGridReady($event)">
+      </angular-slickgrid>
+    </div>
+
+     <!-- <div>Registros: {{ gridDataLen }}</div>   -->
+</div> 
+
+ <span>hola</span>

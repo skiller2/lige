@@ -97,13 +97,13 @@ export class CargaAsistenciaComponent {
     async ngOnInit() {
         this.columnDefinitions = [
             {
-                id: 'apellidoNombre', name: 'Persona', field: 'ApellidoNombre',
+                id: 'apellidoNombre', name: 'Persona', field: 'apellidoNombre',
                 sortable: true,
                 type: FieldType.string,
-                // maxWidth: 250,
+                maxWidth: 250,
                 formatter: Formatters.complexObject,
                 params: {
-                    complexFieldLabel: 'ApellidoNombre.fullName',
+                    complexFieldLabel: 'apellidoNombre.fullName',
                   },
                 editor: {
                     model: CustomGridEditor,
@@ -114,12 +114,13 @@ export class CargaAsistenciaComponent {
                     alwaysSaveOnEnterKey: true,
                     // required: true
                 },
+                onCellChange: this.personChange.bind(this),
             },
             {
-                id: 'forma', name: 'Forma', field: 'Forma',
+                id: 'forma', name: 'Forma', field: 'forma',
                 sortable: true,
                 type: FieldType.string,
-                // maxWidth: 150,
+                maxWidth: 150,
                 editor: {
                     model: Editors.singleSelect,
                     collection: ['HORAS NORMALES', 'CAPACITACION'],
@@ -131,7 +132,7 @@ export class CargaAsistenciaComponent {
                 id: 'tipo', name: 'Tipo', field: 'tipo',
                 sortable: true,
                 type: FieldType.string,
-                // maxWidth: 150,
+                maxWidth: 150,
                 editor: {
                     model: Editors.text,
                     alwaysSaveOnEnterKey: true,
@@ -142,7 +143,7 @@ export class CargaAsistenciaComponent {
                 id: 'categoria', name: 'Categoria', field: 'categoria',
                 sortable: true,
                 type: FieldType.string,
-                // maxWidth: 150,
+                maxWidth: 150,
                 editor: {
                     model: Editors.text,
                     alwaysSaveOnEnterKey: true,
@@ -154,18 +155,18 @@ export class CargaAsistenciaComponent {
         this.gridOptionsEdit.enableRowDetailView = false
         this.gridOptionsEdit.autoEdit = true
 
-        this.gridOptionsEdit.enableAutoSizeColumns = false
-        this.gridOptionsEdit.frozenColumn = 2
+        // this.gridOptionsEdit.enableAutoSizeColumns = true
+        // this.gridOptionsEdit.frozenColumn = 1
         // this.gridOptionsEdit.enableAutoResize = false
         // this.gridOptionsEdit.enableColumnReorder = false
         // this.gridOptionsEdit.enableAutoResizeColumnsByCellContent = true
-        this.gridOptionsEdit.enableAutoTooltip = true
-        this.gridOptionsEdit.fullWidthRows = true
+        // this.gridOptionsEdit.enableAutoTooltip = true
+        // this.gridOptionsEdit.fullWidthRows = true
 
         this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
             editCommand.execute()
             const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
-            if (lastrow && (lastrow.ApellidoNombre || lastrow.CUIT)) {
+            if (lastrow && (lastrow.apellidoNombre)) {
                 this.addNewItem("bottom")
             }
         }
@@ -221,9 +222,10 @@ export class CargaAsistenciaComponent {
         const newId = highestId + incrementIdByHowMany;
         return {
             id: newId,
-            ApellidoNombre: '',
-            CUIT: '',
-            Forma: ''
+            apellidoNombre: '',
+            forma: '',
+            tipo: '',
+            categoria: '',
         };
     }
 
@@ -242,12 +244,12 @@ export class CargaAsistenciaComponent {
                 field: `day${index}`,
                 sortable: true,
                 type: FieldType.number,
-                maxWidth: 50,
+                maxWidth: 60,
                 headerCssClass:(dow==6 || dow==0)?'grid-weekend':'',
                 editor: {
                     model: Editors.text
                 },
-                onCellChange: this.onHorasChange.bind(this)
+                onCellChange: this.onHoursChange.bind(this),
             });
         }
 
@@ -285,23 +287,47 @@ export class CargaAsistenciaComponent {
         this.addNewItem("bottom")
     }
 
-    onHorasChange(e: Event, args: any) {
+    onHoursChange(e: Event, args: any) {
         const item = args.dataContext
         const keysDays = Object.keys(item).filter(key => key.startsWith("day"))
         const total = keysDays.reduce((acc, key) => {
-            const value = parseInt(item[key], 10);
+            const value = parseFloat(item[key]);
             return isNaN(value) ? acc : acc + value;
         }, 0);
-        args.dataContext.total = total
-        args.grid.invalidateRow(args.row);
+
+        const idItemGrid = args.dataContext.id
+        const updateItem = {
+            ... args.dataContext,
+            total:total
+        }
+        this.angularGridEdit.gridService.updateItemById(idItemGrid, updateItem)
     }
     
-    selectedValueChange(event: string, busqueda: Busqueda): void {
+    selectedObjetivoChange(event: string, busqueda: Busqueda): void {
         this.$selectedObjetivoIdChange.next(event);
         this.$isObjetivoDataLoading.next(true);
-        
-        // if (event != '') {
-        //     console.log(this.selectedObjetivoId);
-        // }
     }
+
+    personChange(e: Event, args: any) {
+        if(args.dataContext.apellidoNombre?.id){
+            const idPersona = args.dataContext.apellidoNombre.id
+            const idItemGrid = args.dataContext.id
+            this.searchService.getCategoriasPersona(
+                Number(idPersona),
+                this.selectedPeriod.year,
+                this.selectedPeriod.month
+            ).subscribe((datos) => {
+                if(datos.categorias.length){
+                    const updateItem = {
+                        ... args.dataContext,
+                        forma: 'HORAS NORMALES',
+                        tipo: datos.categorias[0].CategoriaPersonalDescripcion,
+                        categoria: datos.categorias[0].TipoAsociadoDescripcion,
+                    }
+                    this.angularGridEdit.gridService.updateItemById(idItemGrid, updateItem)
+                }
+            })
+        }
+    }
+
 }

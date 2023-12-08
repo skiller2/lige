@@ -60,6 +60,9 @@
       <li nz-menu-item (click)="exportGrid()">
         <span nz-icon nzType="download"></span>XLS
       </li>
+      <li nz-menu-item (click)="exportGrid()">
+        <a [routerLink]="['/', 'ges', 'liquidacion_banco','moviemientospendientes']">Movimientos Pendientes</a>
+      </li>
     </ul>
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
@@ -91,6 +94,11 @@
 
           <!-- <div>Registros: {{ gridDataLen }}</div> -->
         </ng-template>
+      </nz-tab>
+
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/liquidacion_banco/moviemientospendientes">Listado</a>
+        <movimientos-pendientes #sfb></movimientos-pendientes>
       </nz-tab>
     
     </nz-tabset>

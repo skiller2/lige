@@ -6,6 +6,7 @@ import { Filtro, Options } from "../../schemas/filtro";
 import xlsx, { WorkSheet } from 'node-xlsx';
 import Excel from 'exceljs';
 
+
 //import path from "path";
 import {
   PDFDocument,
@@ -216,6 +217,113 @@ export class LiquidacionesBancoController extends BaseController {
 
   ];
 
+  listaColumnasMovimientos: any[] = [
+    {
+      id: "PersonalId",
+      name: "Personal Id",
+      field: "PersonalId",
+      fieldName: "PersonalId",
+      type: "number",
+      sortable: true,
+      searchHidden: true,
+      hidden: true
+    },
+    {
+      name: "Apellido Nombre",
+      type: "string",
+      id: "PersonalApellidoNombre",
+      field: "PersonalApellidoNombre",
+      fieldName: "PersonalApellidoNombre",
+      searchComponent: "inpurForPersonalSearch",
+      searchType: "number",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      name: "CUIT",
+      type: "number",
+      id: "PersonalCUITCUILCUIT",
+      field: "PersonalCUITCUILCUIT",
+      fieldName: "PersonalCUITCUILCUIT",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    // {
+    //   name: "Situación Revista",
+    //   type: "string",
+    //   id: "SituacionRevistaDescripcion",
+    //   field: "SituacionRevistaDescripcion",
+    //   fieldName: "sit.SituacionRevistaDescripcion",
+    //   sortable: true,
+    //   hidden: false,
+    //   searchHidden: false
+    // },
+    {
+      name: "CBU",
+      type: "number",
+      id: "PersonalBancoCBU",
+      field: "PersonalBancoCBU",
+      fieldName: "PersonalBancoCBU",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      name: "importe",
+      type: "currency",
+      id: "importe",
+      field: "importe",
+      fieldName: "importe",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
+      name: "Banco",
+      type: "string",
+      id: "BancoDescripcion",
+      field: "BancoDescripcion",
+      fieldName: "BancoDescripcion",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+     },
+    //  {
+    //    name: "Nro Envio",
+    //    type: "number",
+    //    id: "NroEnvio",
+    //    field: "NroEnvio",
+    //    fieldName: "Nro Envio",
+    //    sortable: true,
+    //    hidden: true,
+    //    searchHidden: true
+    // },
+    {
+      name: "Fecha",
+      type: "string",
+      id: "fecha",
+      field: "fecha",
+      fieldName: "fecha",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+    {
+      name: "Tipo Cuenta",
+      type: "string",
+      id: "TipoCuenta",
+      field: "TipoCuenta",
+      fieldName: "tipocuenta_id",
+      sortable: true,
+      hidden: false,
+      searchHidden: false
+    },
+
+
+  ];
+
   async getBancoSaldo(anio: Number, mes: Number, filtros: any, sort: any) {
     const filterSql = filtrosToSql(filtros, this.listaColumnas);
     const orderBy = orderToSQL(sort)
@@ -273,6 +381,21 @@ export class LiquidacionesBancoController extends BaseController {
 
   }
 
+  async getMovimientosPendientes(filtros: any, sort: any) {
+    const filterSql = filtrosToSql(filtros, this.listaColumnas);
+    const orderBy = orderToSQL(sort)
+    const stmactual = new Date()
+
+    return dataSource.query(
+      `SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU ,movpos.importe,banc.bancodescripcion,movpos.fecha,movpos.tipocuenta_id
+      FROM Personal per
+      JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId
+      JOIN PersonalCUITCUIL AS cuit ON cuit.PersonalId = per.PersonalId
+      JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+      JOIN(SELECT liq.persona_id,liq.cbu,liq.importe,liq.banco_id,liq.envio_nro,liq.fecha,liq.tipocuenta_id FROM lige.dbo.liqmvbanco liq) AS movpos ON movpos.persona_id = per.PersonalId
+    `)
+
+  }
 
 
   async getByLiquidacionesBanco(
@@ -290,6 +413,30 @@ export class LiquidacionesBancoController extends BaseController {
         {
           total: banco.length,
           list: banco,
+        },
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getByMovimientos(
+    req: any,
+    res: Response, next: NextFunction
+  ) {
+    const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
+    const orderBy = orderToSQL(req.body.options.sort)
+
+
+    try {
+      const movimientosPendientes = await this.getMovimientosPendientes(req.body.options.filtros, req.body.options.sort)
+      console.log("voy con : " + movimientosPendientes.length)
+      this.jsonRes(
+        {
+          total: movimientosPendientes.length,
+          list: movimientosPendientes,
         },
         res
       );
@@ -327,6 +474,10 @@ export class LiquidacionesBancoController extends BaseController {
 
   async getLiquidacionesBancoCols(req: Request, res: Response) {
     this.jsonRes(this.listaColumnas, res);
+  }
+
+  async getLiquidacionesBancoMovimientosPendientesCols(req: Request, res: Response) {
+    this.jsonRes(this.listaColumnasMovimientos, res);
   }
 
   async getLiquidacionesBancoColsAyuda(req: Request, res: Response) {
