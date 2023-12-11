@@ -641,10 +641,11 @@ export class LiquidacionesBancoController extends BaseController {
           banco = await this.getBancoSaldoAyudaAsistencial(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort)
           break;
         default:
+          throw new ClientException('Debe posicionarse en la sopapa Listado o Adelanto/Ayuda')
           break;
       }
 
-      if (banco.length == 0)
+      if (!banco || banco.length == 0)
         throw new ClientException('No hay registros para generar archivo')
 
       await queryRunner.connect();
@@ -769,7 +770,6 @@ export class LiquidacionesBancoController extends BaseController {
       const cantxpag = req.body.cantxpag;
       const listdowload = req.body.listdowload;
 
-      console.log("listdowload", listdowload)
 
       const formattedMonth = String(periodo.month).padStart(2, "0");
       const filesPath = this.directory + '/' + String(periodo.year)
