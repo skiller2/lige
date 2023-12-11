@@ -432,7 +432,7 @@ export class LiquidacionesBancoController extends BaseController {
 
     try {
       const movimientosPendientes = await this.getMovimientosPendientes(req.body.options.filtros, req.body.options.sort)
-      console.log("voy con : " + movimientosPendientes.length)
+      
       this.jsonRes(
         {
           total: movimientosPendientes.length,
@@ -949,6 +949,42 @@ export class LiquidacionesBancoController extends BaseController {
     }
 
     return newDocument.save();
+  }
+
+  async setDeleteMovimiento(req: Request, res: Response, next: NextFunction) {
+
+    let deleteId = req.body.deleteId
+    console.log("deleteId " + deleteId)
+
+    const queryRunner = dataSource.createQueryRunner();
+
+    try {
+
+      if (deleteId != null) {
+
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        
+        await queryRunner.query(
+          `DELETE FROM lige.dbo.liqmvbanco WHERE persona_id = @0`,
+          [deleteId]
+        );
+
+        await queryRunner.commitTransaction();
+
+        this.jsonRes({ list: [] }, res, `Se eliminaron con exito los registros `);
+      }
+
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+      return next(error)
+    } finally {
+      //   await queryRunner.release();
+    }
+
+
   }
 
 

@@ -9,9 +9,11 @@ import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/ro
 import { AngularGridInstance, AngularUtilService, Column, Editors, FileType, Formatters, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
+import {  TemplateRef } from '@angular/core';
 import {
   BehaviorSubject,
   Observable,
@@ -45,7 +47,10 @@ import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.com
 export class MovimientosPendientes {
   @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =
     new NgForm([], []);
-  constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService) { }
+  @ViewChild('templateMovimientos') content!: TemplateRef<any> ;
+
+
+  constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService,private notification: NzNotificationService) { }
   url = '/api/liquidaciones';
   url_forzado = '/api/liquidaciones/forzado';
   formChange$ = new BehaviorSubject('');
@@ -54,11 +59,13 @@ export class MovimientosPendientes {
   gridDataLen = 0;
   anio = 0;
   mes = 0;
+  NotificationIdForDelete = 0;
   tableLoading$ = new BehaviorSubject(false);
   listdowload = "";
   excelExportService = new ExcelExportService();
   angularGrid!: AngularGridInstance;
   gridObj!: SlickGrid;
+  columnDefinitions: Column[] = [];
   /* . . . */
 
 
@@ -84,6 +91,25 @@ export class MovimientosPendientes {
   resizeSubscription$: Subscription | undefined;
 
   async ngOnInit() {
+
+    this.columnDefinitions = [
+      {
+        id: 'delete',
+        field: 'id_delete',
+        excludeFromHeaderMenu: true,
+        formatter:  (row, cell, value, columnDef, dataContext) =>
+        `<img src="../../../assets/tmp/img/borrar.png" class="slick-delete-icon slick-delete-icon-width" />`,
+        minWidth: 30,
+        maxWidth: 30,
+        // use onCellClick OR grid.onClick.subscribe which you can see down below
+        onCellClick: (e: Event, args: OnEventArgs) => {
+          console.log(args);
+          this.createBasicNotificationImportacion(this.content,args.dataContext.persona_id)
+        }
+      },
+      
+    ];
+
     this.resizeObservable$ = fromEvent(window, 'resize');
     this.resizeSubscription$ = this.resizeObservable$
       .pipe(debounceTime(500))
@@ -102,7 +128,7 @@ export class MovimientosPendientes {
   columnsMovimientos$ = this.apiService.getCols('/api/liquidaciones/banco/movimientospendientes').pipe(map((cols) => {
     const colf: Column = cols[1]
     colf.asyncPostRender = this.renderAngularComponent.bind(this)
-    return cols
+    return  [...this.columnDefinitions, ...cols]; 
   }));
 
   exportGrid() {
@@ -110,6 +136,15 @@ export class MovimientosPendientes {
       filename: 'liquidaciones-listado',
       format: FileType.xlsx
     });
+  }
+
+  createBasicNotificationImportacion(template: TemplateRef<{}>, id: string): void {
+
+    this.NotificationIdForDelete = parseInt(id);
+    const element = document.getElementsByClassName('notificacionImportacion');
+    console.log("this is the id for delete " + this.NotificationIdForDelete)
+    if (element.length == 0)
+      this.notification.template(template);
   }
 
   gridDataMovimiento$ = this.formChange$.pipe(
@@ -123,7 +158,6 @@ export class MovimientosPendientes {
         )
         .pipe(
           map(data => {
-            console.log("estoy")
             debugger
             this.anio = periodo.getFullYear();
             this.mes = periodo.getMonth() + 1;
@@ -149,5 +183,14 @@ export class MovimientosPendientes {
       columnTotal('importe', this.angularGrid)
     })
 
+  }
+
+  confirmDeleteMovimiento() {
+    if ( this.NotificationIdForDelete > 0) {
+      (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
+      this.apiService.setDeleteMovimiento({deleteId: this.NotificationIdForDelete}).subscribe(evt => {
+        this.formChange$.next('')
+      });
+    }
   }
 }

@@ -175,6 +175,10 @@ liquidacionesRouter.post("/elimina/banco/", [authMiddleware.verifyToken, authMid
   }
 );
 
+liquidacionesRouter.post('/deleteMovimiento', [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')], (req, res, next) => {
+  liquidacionesBancoController.setDeleteMovimiento(req, res, next)
+});
+
 // ayuda asistencial
 
 liquidacionesRouter.post('/banco/listAyudaAsistencial', [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')], (req, res, next) => {

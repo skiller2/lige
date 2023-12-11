@@ -10,4 +10,18 @@
      <!-- <div>Registros: {{ gridDataLen }}</div>   -->
 </ng-container>
 
- <span>hola</span>
+<ng-template #templateMovimientos  let-notification >
+  <div class=" notificacionImportacion ant-notification-notice-content">
+    <div>
+      <div class="ant-notification-notice-message">Eliminar Movimiento</div>
+      <div class="ant-notification-notice-description">
+        Seguro que desea eliminar el movimiento
+      </div>
+      <span class="ant-notification-notice-btn">
+        <button nz-button nzType="primary" nzSize="small" (click)="confirmDeleteMovimiento()">
+          <span>Aceptar</span>
+        </button>
+      </span>
+    </div>
+  </div>
+</ng-template>
