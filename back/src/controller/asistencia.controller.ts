@@ -198,7 +198,7 @@ export class AsistenciaController extends BaseController {
   }
   async setExcepcion(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-
+    let ConceptoId:number|null = null
     try {
       let {
         SucursalId,
@@ -206,11 +206,12 @@ export class AsistenciaController extends BaseController {
         mes,
         ObjetivoId,
         PersonalId,
-        metodologia,
+        metodo,
         Equivalencia,
         SumaFija,
         AdicionalHora,
         Horas,
+        metodologiaId,
       } = req.body;
       const persona_cuit = req.persona_cuit;
       const fechaDesde = new Date(anio, mes - 1, 1);
@@ -236,7 +237,7 @@ export class AsistenciaController extends BaseController {
       if (Number(ObjetivoId) == 0)
         throw new ClientException("Debe seleccionar un objetivo")
 
-      switch (metodologia) {
+      switch (metodo) {
         case "E":
           if (!Equivalencia.TipoAsociadoId)
             throw new ClientException("Debe seleccionar una categoria");
@@ -289,7 +290,7 @@ export class AsistenciaController extends BaseController {
 
       let row: any;
       if ((row = result[0])) {
-        if (metodologia == "E") {
+        if (metodo == "E") {
           if (
             Equivalencia.CategoriaPersonalId ==
             row["PersonalCategoriaCategoriaPersonalId"] &&
@@ -334,7 +335,7 @@ export class AsistenciaController extends BaseController {
                 --AND art.PersonalArt14FormaArt14 = @2
                 AND art.PersonalArt14Autorizado = 'S'
                 AND art.PersonalArt14AutorizadoDesde <= @3 AND (art.PersonalArt14AutorizadoHasta >= @3) AND art.PersonalArt14Anulacion is null`,
-        [PersonalId, ObjetivoId, metodologia, fechaDesde]
+        [PersonalId, ObjetivoId, metodo, fechaDesde]
       );
 
       let resultNoAutoriz = await queryRunner.query(
@@ -348,7 +349,7 @@ export class AsistenciaController extends BaseController {
                 --AND art.PersonalArt14FormaArt14 = @2 
                 AND art.PersonalArt14Autorizado is null
                 AND art.PersonalArt14Desde <= @3 AND (art.PersonalArt14Hasta >= @3) AND art.PersonalArt14Anulacion is null`,
-        [PersonalId, ObjetivoId, metodologia, fechaDesde]
+        [PersonalId, ObjetivoId, metodo, fechaDesde]
       );
 
       for (row of resultAutoriz) {
@@ -362,7 +363,7 @@ export class AsistenciaController extends BaseController {
         const PersonalArt14AdicionalHora = row["PersonalArt14AdicionalHora"];
 
         if (
-          PersonalArt14FormaArt14 == metodologia &&
+          PersonalArt14FormaArt14 == metodo &&
           PersonalArt14CategoriaId == Equivalencia.CategoriaPersonalId &&
           PersonalArt14TipoAsociadoId == Equivalencia.TipoAsociadoId &&
           PersonalArt14SumaFija == SumaFija &&
@@ -378,7 +379,7 @@ export class AsistenciaController extends BaseController {
         let hasta: Date = new Date(fechaDesde);
         hasta.setDate(fechaDesde.getDate() - 1);
 
-        switch (metodologia) {
+        switch (metodo) {
           case "A":
             if (PersonalArt14FormaArt14 == "E") {
               await queryRunner.query(
@@ -401,7 +402,7 @@ export class AsistenciaController extends BaseController {
           default:
             break;
         }
-        if (PersonalArt14FormaArt14 == metodologia) {
+        if (PersonalArt14FormaArt14 == metodo) {
           await queryRunner.query(
             `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2
                     WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
@@ -420,7 +421,7 @@ export class AsistenciaController extends BaseController {
         const PersonalArt14AdicionalHora = row["PersonalArt14AdicionalHora"];
 
         if (
-          PersonalArt14FormaArt14 == metodologia &&
+          PersonalArt14FormaArt14 == metodo &&
           PersonalArt14CategoriaId == Equivalencia.CategoriaPersonalId &&
           PersonalArt14TipoAsociadoId == Equivalencia.TipoAsociadoId &&
           PersonalArt14SumaFija == SumaFija &&
@@ -431,7 +432,7 @@ export class AsistenciaController extends BaseController {
         }
 
         //Borro los registros que no están autorizados.
-        switch (metodologia) {
+        switch (metodo) {
           case "A":
             if (PersonalArt14FormaArt14 == "E") {
               await queryRunner.query(
@@ -454,7 +455,7 @@ export class AsistenciaController extends BaseController {
           default:
             break;
         }
-        if (PersonalArt14FormaArt14 == metodologia) {
+        if (PersonalArt14FormaArt14 == metodo) {
           await queryRunner.query(
             `DELETE FROM PersonalArt14 
                     WHERE PersonalArt14Id = @0 AND PersonalId=@1 `,
@@ -482,6 +483,9 @@ export class AsistenciaController extends BaseController {
       if (Equivalencia.CategoriaPersonalId == "NULL")
         Equivalencia.CategoriaPersonalId = null;
 
+      if (metodologiaId == "F")
+        ConceptoId = 3
+
       result = await queryRunner.query(
         `INSERT INTO PersonalArt14(PersonalArt14Id, PersonalArt14FormaArt14, PersonalArt14SumaFija, PersonalArt14AdicionalHora, PersonalArt14Horas, PersonalArt14Porcentaje, PersonalArt14Desde, 
                     PersonalArt14Hasta, PersonalArt14Autorizado, PersonalArt14AutorizadoDesde, PersonalArt14AutorizadoHasta, PersonalArt14Anulacion, PersonalArt14Puesto, PersonalArt14Dia, PersonalArt14Tiempo, PersonalId, 
@@ -491,7 +495,7 @@ export class AsistenciaController extends BaseController {
                 `,
         [
           PersonalArt14UltNro,
-          metodologia,
+          metodo,
           SumaFija,
           AdicionalHora,
           Horas,
@@ -508,7 +512,7 @@ export class AsistenciaController extends BaseController {
           PersonalId,
           Equivalencia.TipoAsociadoId,
           Equivalencia.CategoriaPersonalId,
-          null,
+          ConceptoId,
           ObjetivoId,
           null,
           null,
@@ -1429,22 +1433,33 @@ console.log('permisos',res.locals,req.params.personalId)
   async getMetodologia(req: any, res: Response, next: NextFunction) {
     const recordSet = new Array();
     recordSet.push({
+      id: "F",
+      metodo: "S",
+      descripcion: "Fiestas Importe Adicional",
+      etiqueta: "Imp. Adicional Fiesta",
+    });
+
+    recordSet.push({
       id: "S",
+      metodo: "S",
       descripcion: "Monto fijo a sumar",
       etiqueta: "Imp. Adicional",
     });
     recordSet.push({
       id: "E",
+      metodo: "E",
       descripcion: "Equivalencia de categoría",
       etiqueta: "Equivalencia",
     });
     recordSet.push({
       id: "A",
+      metodo: "A",
       descripcion: "Monto adicional por hora",
       etiqueta: "Imp. Adicional Hora",
     });
     recordSet.push({
       id: "H",
+      metodo: "H",
       descripcion: "Se suman a las cargadas",
       etiqueta: "Horas adicionales",
     });

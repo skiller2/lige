@@ -45,7 +45,7 @@ export class ExcepcionAsistenciaComponent {
   selectedSucursalId = '';
   selectedObjetivoId = '';
   selectedPersonalId = '';
-  selectedMetodologiaId = '';
+  selectedMetodologiaId:any;
   selectedCategoriaId = '';
 
   $isSucursalOptionsLoading = new BehaviorSubject(false);
