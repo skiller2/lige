@@ -130,9 +130,10 @@ export class CargaAsistenciaComponent {
                 id: 'tipo', name: 'Tipo', field: 'tipo',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 150,
+                maxWidth: 100,
                 editor: {
-                    model: Editors.text,
+                    model: Editors.singleSelect,
+                    collection: [],
                     alwaysSaveOnEnterKey: true,
                     // required: true
                 },
@@ -141,9 +142,10 @@ export class CargaAsistenciaComponent {
                 id: 'categoria', name: 'Categoria', field: 'categoria',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 150,
+                maxWidth: 100,
                 editor: {
-                    model: Editors.text,
+                    model: Editors.singleSelect,
+                    collection: [],
                     alwaysSaveOnEnterKey: true,
                     // required: true
                 },
@@ -153,9 +155,9 @@ export class CargaAsistenciaComponent {
         this.gridOptionsEdit.enableRowDetailView = false
         this.gridOptionsEdit.autoEdit = true
 
-        // this.gridOptionsEdit.enableAutoSizeColumns = true
-        // this.gridOptionsEdit.frozenColumn = 1
-        // this.gridOptionsEdit.enableAutoResize = false
+        this.gridOptionsEdit.enableAutoSizeColumns = true
+        this.gridOptionsEdit.frozenColumn = 1
+        this.gridOptionsEdit.enableAutoResize = false
         // this.gridOptionsEdit.enableColumnReorder = false
         // this.gridOptionsEdit.enableAutoResizeColumnsByCellContent = true
         // this.gridOptionsEdit.enableAutoTooltip = true
@@ -242,7 +244,7 @@ export class CargaAsistenciaComponent {
                 field: `day${index}`,
                 sortable: true,
                 type: FieldType.number,
-                maxWidth: 60,
+                maxWidth: 55,
                 headerCssClass:(dow==6 || dow==0)?'grid-weekend':'',
                 editor: {
                     model: Editors.text
@@ -304,6 +306,7 @@ export class CargaAsistenciaComponent {
     selectedObjetivoChange(event: string, busqueda: Busqueda): void {
         this.$selectedObjetivoIdChange.next(event);
         this.$isObjetivoDataLoading.next(true);
+        this.clearAngularGrid()
     }
 
     personChange(e: Event, args: any) {
@@ -316,16 +319,36 @@ export class CargaAsistenciaComponent {
                 this.selectedPeriod.month
             ).subscribe((datos) => {
                 if(datos.categorias.length){
+                    let editColumns = this.angularGridEdit.slickGrid.getColumns()
+                    this.editColumnSelectOptions('categoria', datos.categorias, 'CategoriaPersonalDescripcion', editColumns)
+                    this.editColumnSelectOptions('tipo', datos.categorias,'TipoAsociadoDescripcion', editColumns)
+                    this.angularGridEdit.slickGrid.setColumns(editColumns)
+
                     const updateItem = {
                         ... args.dataContext,
                         forma: 'HORAS NORMALES',
-                        tipo: datos.categorias[0].CategoriaPersonalDescripcion,
-                        categoria: datos.categorias[0].TipoAsociadoDescripcion,
+                        tipo: datos.categorias[0].TipoAsociadoDescripcion,
+                        categoria: datos.categorias[0].CategoriaPersonalDescripcion,
                     }
                     this.angularGridEdit.gridService.updateItemById(idItemGrid, updateItem)
+                    
                 }
             })
         }
+    }
+
+    editColumnSelectOptions(column: string, array:Object[], campo:string, columns: any){
+        const idColumn =this.angularGridEdit.slickGrid.getColumnIndex(column)
+        const newOptions : any = array.map((cate: any)=> {
+            return cate[campo]
+        })
+        let options = columns[idColumn].internalColumnEditor?.collection || []
+        options = [...new Set(options.concat(newOptions))]
+        columns[idColumn].internalColumnEditor = {
+            ...columns[idColumn].internalColumnEditor,
+            collection: options
+        }
+        
     }
 
 }
