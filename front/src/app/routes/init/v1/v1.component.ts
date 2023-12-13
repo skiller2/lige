@@ -1,5 +1,5 @@
 import { Platform } from '@angular/cdk/platform';
-import { DOCUMENT } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -9,8 +9,9 @@ import {
   Renderer2,
 } from '@angular/core';
 import type { Chart } from '@antv/g2';
-import { OnboardingConfig, OnboardingService } from '@delon/abc/onboarding';
+//import { OnboardingConfig, OnboardingService } from '@delon/abc/onboarding';
 import { _HttpClient } from '@delon/theme';
+import { SHARED_IMPORTS } from '@shared';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
 import {
   BehaviorSubject,
@@ -19,11 +20,16 @@ import {
   share,
   switchMap,
 } from 'rxjs';
+import { G2BarModule } from '@delon/chart/bar';
+import { G2MiniBarModule } from '@delon/chart/mini-bar';
+import { G2TimelineModule } from '@delon/chart/timeline';
 
 @Component({
   selector: 'app-init-v1',
   templateUrl: './v1.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [ ...SHARED_IMPORTS,CommonModule, G2TimelineModule, G2BarModule, G2MiniBarModule],
 })
 export class InitV1Component implements OnInit {
   adelantosPendientes$ = this.http.get('/api/init/stats/adelantospendientes');
@@ -55,7 +61,7 @@ export class InitV1Component implements OnInit {
   constructor(
     private http: _HttpClient,
     private cdr: ChangeDetectorRef,
-    private obSrv: OnboardingService,
+//    private obSrv: OnboardingService,
     private platform: Platform,
     @Inject(DOCUMENT) private doc: NzSafeAny
   ) {
@@ -109,11 +115,13 @@ export class InitV1Component implements OnInit {
     if (!this.platform.isBrowser || localStorage.getItem(KEY) === '1') {
       return;
     }
+    /*
     this.http
       .get(`./assets/tmp/on-boarding.json`)
       .subscribe((res: OnboardingConfig) => {
         this.obSrv.start(res);
         localStorage.setItem(KEY, '1');
       });
+      */
   }
 }

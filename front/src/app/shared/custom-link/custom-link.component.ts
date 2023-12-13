@@ -1,11 +1,10 @@
 import { Component } from "@angular/core"
-import { SharedModule } from "../shared.module"
+import { RouterLink } from "@angular/router"
+import { SHARED_IMPORTS } from "@shared"
 
 @Component({
   standalone: true,
-  imports: [
-    SharedModule,
-  ],
+  imports: [ ...SHARED_IMPORTS, RouterLink],
   template: `<a [routerLink]="[link,params]" > {{detail}} </a>`
 })
 

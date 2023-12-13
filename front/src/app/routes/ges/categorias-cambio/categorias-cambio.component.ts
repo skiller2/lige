@@ -7,7 +7,6 @@ import {
   ViewChild,
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { SharedModule } from '@shared';
 import {
   BehaviorSubject,
   debounceTime,
@@ -18,9 +17,11 @@ import {
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
-import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid } from 'angular-slickgrid';
+import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, ContainerService } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { formatDate } from '@angular/common';
+import { CommonModule, formatDate } from '@angular/common';
+import { SHARED_IMPORTS } from '@shared';
+import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 
 type listOptionsT = {
   filtros: any[],
@@ -31,7 +32,7 @@ type listOptionsT = {
 @Component({
   standalone: true,
   imports: [
-    SharedModule,
+    SHARED_IMPORTS,
   ],
   template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
     httpUrl="api/impuestos_afip/{{anio}}/{{mes}}/0/{{item.PersonalId}}"
@@ -49,17 +50,19 @@ export class CustomDescargaComprobanteComponent {
   templateUrl: './categorias-cambio.component.html',
   standalone: true,
   imports: [
-    SharedModule,
+    SHARED_IMPORTS,
     NzAffixModule,
     FiltroBuilderComponent,
+    CommonModule,
+    PersonalSearchComponent
   ],
   styleUrls: ['./categorias-cambio.component.less'],
-  providers: [AngularUtilService]
+  providers: [AngularUtilService,ContainerService]
 })
 export class CategoriasCambioComponent {
   @ViewChild('cambiocatForm', { static: true }) cambiocatForm: NgForm =
     new NgForm([], []);
-  constructor(public apiService: ApiService, private cdr: ChangeDetectorRef, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string) { }
+  constructor(public apiService: ApiService, private cdr: ChangeDetectorRef, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public containerService:ContainerService) { }
   anio = 0
   mes = 0
   selectedTabIndex = 0;
@@ -107,7 +110,7 @@ export class CategoriasCambioComponent {
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   gridObj!: SlickGrid;
-  gridOptions = {
+  gridOptions:GridOption = {
     asyncEditorLoading: false,
     autoEdit: false,
     autoCommitEdit: false,
@@ -121,6 +124,7 @@ export class CategoriasCambioComponent {
       //sidePadding: 10,
       //bottomPadding: 10        
     },
+    gridContainerId: 'gridContainerCateg', 
     rowHeight: undefined,
     //    headerRowHeight: 45,
     //    rowHeight: 45, // increase row height so that the ng-select fits in the cell
@@ -132,14 +136,14 @@ export class CategoriasCambioComponent {
     enableColumnPicker: true,
     enableExcelCopyBuffer: true,
     enableExcelExport: true,
-    registerExternalResources: [this.excelExportService],
-
+    externalResources:[this.excelExportService],
+//    registerExternalResources: [this.excelExportService],
     enableFiltering: true,
     //    autoFitColumnsOnFirstLoad: true,
     enableAsyncPostRender: true, // for the Angular PostRenderer, don't forget to enable it
     asyncPostRenderDelay: 0,    // also make sure to remove any delay to render it
     params: {
-      angularUtilService: this.angularUtilService // provide the service to all at once (Editor, Filter, AsyncPostRender)
+      angularUtilService: this.angularUtilService, // provide the service to all at once (Editor, Filter, AsyncPostRender)
     },
 
     showCustomFooter: true, // display some metrics in the bottom custom footer

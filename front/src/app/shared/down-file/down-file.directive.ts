@@ -5,7 +5,7 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 @Directive({
-    selector: '[app-down-file]'
+    selector: '[app-down-file]', standalone:true 
 })
 export class AppDownFileDirective {
     @Input() httpUrl:string =""

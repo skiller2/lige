@@ -14,6 +14,8 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
 import { doOnSubscribe } from 'src/app/services/api.service'
 import { NzSelectComponent } from 'ng-zorro-antd/select'
 import { KeyCode } from 'angular-slickgrid'
+import { SHARED_IMPORTS } from '@shared'
+import { CommonModule } from '@angular/common'
 
 @Component({
   selector: 'app-objetivo-search',
@@ -26,6 +28,9 @@ import { KeyCode } from 'angular-slickgrid'
       multi: true,
     },
   ],
+  standalone: true,
+  imports: [ ...SHARED_IMPORTS,CommonModule],
+
 })
 
 export class ObjetivoSearchComponent implements ControlValueAccessor {

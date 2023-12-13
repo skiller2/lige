@@ -1,13 +1,17 @@
 import { Component, Input } from '@angular/core';
-import { NzUploadFile } from 'ng-zorro-antd/upload/interface.js';
-import { base64ToFile, Dimensions, ImageCroppedEvent, ImageTransform, LoadedImage } from 'ngx-image-cropper';
+import { base64ToFile, Dimensions, ImageCroppedEvent, ImageCropperModule, ImageTransform, LoadedImage } from 'ngx-image-cropper';
 import { BehaviorSubject, map } from 'rxjs';
 import { changeDpiDataUrl } from '../../utils/changeDpi.js'
+import { SHARED_IMPORTS } from '@shared'
+import { CommonModule} from '@angular/common';
+import { FormComponent } from '../form/form.component';
 
 @Component({
     selector: 'app-image-content',
     templateUrl: './image-content.component.html',
-    styleUrls: ['./image-content.component.css']
+    styleUrls: ['./image-content.component.css'],
+    imports: [ ...SHARED_IMPORTS,CommonModule,ImageCropperModule,FormComponent],
+    standalone:true,    
 })
 export class ImageContentComponent {
     @Input() personalImage = ''

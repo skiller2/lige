@@ -14,6 +14,8 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 import { ResponseNameFromId } from '../schemas/ResponseJSON';
 import { doOnSubscribe } from 'src/app/services/api.service';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
+import { SHARED_IMPORTS } from '@shared';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-cliente-search',
@@ -26,6 +28,9 @@ import { NzSelectComponent } from 'ng-zorro-antd/select';
       multi: true,
     },
   ],
+  standalone: true,
+  imports: [ ...SHARED_IMPORTS,CommonModule],
+
 })
 
 export class ClienteSearchComponent implements ControlValueAccessor {

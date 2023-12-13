@@ -2,8 +2,8 @@ import { Component, ViewChild, Injector, TemplateRef, ChangeDetectorRef } from '
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { NgForm } from '@angular/forms';
-import { SharedModule, listOptionsT } from '@shared';
-import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
+import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
 import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData, GroupTotalFormatters, Aggregators, Grouping } from 'angular-slickgrid';
@@ -40,11 +40,12 @@ import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.com
   imports: [
     NzModalModule,
     CommonModule,
-    SharedModule,
+    SHARED_IMPORTS,
     NzAffixModule,
     FiltroBuilderComponent,
     RowPreloadDetailComponent,
     RowDetailViewComponent,
+    NzUploadModule
   ],
   providers: [AngularUtilService]
 })

@@ -6,7 +6,10 @@ import { FormGroup, NgForm } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from 'src/app/services/api.service';
-import { SharedModule } from '@shared';
+import { SHARED_IMPORTS } from '@shared';
+import { CommonModule } from '@angular/common';
+import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
+import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
 
 enum Busqueda {
   Sucursal,
@@ -21,7 +24,7 @@ enum Busqueda {
   templateUrl: './asistenciaexcepcion.component.html',
   styleUrls: ['./asistenciaexcepcion.component.less'],
   standalone: true,
-  imports: [SharedModule],
+  imports: [...SHARED_IMPORTS,CommonModule,PersonalSearchComponent,ObjetivoSearchComponent],
 })
 export class ExcepcionAsistenciaComponent {
   @ViewChild('asistenciaexcepcion', { static: true })
@@ -235,8 +238,8 @@ export class ExcepcionAsistenciaComponent {
         takeUntil(this.destroy$)
       )
       .subscribe({
-        next: data => console.log('data', data),
-        error: err => {
+        next: (data:any) => console.log('data', data),
+        error: (err:any) => {
           console.log('error', err);
         },
         complete: () => {
@@ -259,8 +262,8 @@ export class ExcepcionAsistenciaComponent {
         takeUntil(this.destroy$)
       )
       .subscribe({
-        next: data => console.log('data', data),
-        error: err => {
+        next: (data:any) => console.log('data', data),
+        error: (err:any) => {
           console.log('error', err);
         },
         complete: () => {

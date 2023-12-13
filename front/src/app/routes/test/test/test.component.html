@@ -10,7 +10,12 @@
 </nz-card>
 
 
-<nz-card class="demo-container">
+<nz-card class="">
+  <angular-slickgrid ></angular-slickgrid>
+</nz-card>
+
+
+  <nz-card class="demo-container">
   <app-personal-search [(ngModel)]="personalId" [ngModelOptions]="{ standalone: true }"
   (ngModelChange)="onModelChange($event)" [(valueExtended)]="valueExtended" />
 

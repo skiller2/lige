@@ -32,7 +32,7 @@
         nzCentered
         [(nzSelectedIndex)]="selectedTabIndex"
         class="hide-ant-tabs-nav">
-        <nz-tab [nzForceRender]="false">
+        <nz-tab >
           <ng-template nz-tab>
             <div nz-row nzJustify="space-around">
               <div nz-col [nzSpan]="13" style="text-align: center">
@@ -48,14 +48,6 @@
               [fieldsToSelect]="columns$ | async"
               (optionsChange)="listOptionsChange($event)" />
 
-              <div class="gridContainer container-fluid">
-                <angular-slickgrid gridId="grid22" class=""
-                  [columnDefinitions]="columns$ | async | colsFilter" 
-                  [gridOptions]="gridOptions"
-                  [dataset]="(gridData$ | async) || []"
-                  (onAngularGridCreated)="angularGridReady($event)">
-                </angular-slickgrid>
-              </div>
           </ng-template>
         </nz-tab>
         <nz-tab>
@@ -64,4 +56,13 @@
       </nz-tabset>
     </ng-container>
   </form>
+  <div class="gridContainer container-fluid" id="gridContainerCateg">
+    <angular-slickgrid gridId="grid22"
+      [columnDefinitions]="columns$ | async | colsFilter" 
+      [gridOptions]="gridOptions"
+      [dataset]="(gridData$ | async) || []"
+      (onAngularGridCreated)="angularGridReady($event)">
+    </angular-slickgrid>
+  </div>
+
 </nz-card>

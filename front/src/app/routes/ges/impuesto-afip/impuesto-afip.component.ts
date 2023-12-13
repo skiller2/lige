@@ -5,8 +5,8 @@ import {
   ViewChild,
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { SharedModule, listOptionsT } from '@shared';
-import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
+import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import {
   BehaviorSubject,
   Observable,
@@ -37,7 +37,7 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 @Component({
   standalone: true,
   imports: [
-    SharedModule,
+    SHARED_IMPORTS,
 
   ],
 
@@ -59,11 +59,12 @@ export class CustomDescargaComprobanteComponent {
   standalone: true,
   imports: [
     CommonModule,
-    SharedModule,
+    SHARED_IMPORTS,
     NzAffixModule,
     FiltroBuilderComponent,
     RowPreloadDetailComponent,
     RowDetailViewComponent,
+    NzUploadModule
   ],
   styleUrls: ['./impuesto-afip.component.less'],
   providers: [AngularUtilService]

@@ -1,13 +1,21 @@
+import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { G2MiniBarData } from '@delon/chart/mini-bar';
+import { G2BarComponent, G2BarModule } from '@delon/chart/bar';
+import { G2MiniAreaModule } from '@delon/chart/mini-area';
+import { G2MiniBarData, G2MiniBarModule } from '@delon/chart/mini-bar';
 import { _HttpClient } from '@delon/theme';
+import { SHARED_IMPORTS } from '@shared';
+import { NzCarouselModule } from 'ng-zorro-antd/carousel';
 import { NzMessageService } from 'ng-zorro-antd/message';
 
 @Component({
   selector: 'app-widgets',
   templateUrl: './widgets.component.html',
   styleUrls: ['./widgets.component.less'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [ ...SHARED_IMPORTS,CommonModule,G2MiniBarModule,G2MiniAreaModule,NzCarouselModule],
+
 })
 export class WidgetsComponent implements OnInit {
   data: G2MiniBarData[] = [];

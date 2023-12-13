@@ -10,7 +10,8 @@ export interface PersonaObj {
     DNI: string,
     CategoriaPersonalDescripcion: string,
     FechaDesde: Date,
-    FechaHasta: Date
+    FechaHasta: Date,
+    Faltantes:boolean
 }
 
 export interface Search {

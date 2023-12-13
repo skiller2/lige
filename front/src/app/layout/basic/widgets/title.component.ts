@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -8,10 +9,11 @@ import {
   Optional,
   Renderer2
 } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { ReuseTabService } from '@delon/abc/reuse-tab';
 import { SettingsService, MenuService, AlainI18NService, TitleService, ALAIN_I18N_TOKEN, Menu } from '@delon/theme';
 import { AlainConfigService } from '@delon/util';
+import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
 import { Subject, merge, filter, takeUntil } from 'rxjs';
 
 interface PageHeaderPath {
@@ -35,7 +37,10 @@ interface PageHeaderPath {
   `,
   styles: [`
   `],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [CommonModule, NzBreadCrumbModule, RouterModule]
+  
 })
   
 export class HeaderTitleComponent implements AfterViewInit, OnDestroy {

@@ -2,7 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NgForm } from '@angular/forms';
-import { SharedModule, listOptionsT } from '@shared';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
@@ -33,7 +33,7 @@ import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.com
   standalone: true,
   imports: [
     CommonModule,
-    SharedModule,
+    SHARED_IMPORTS,
     NzAffixModule,
     FiltroBuilderComponent,
     RowPreloadDetailComponent,

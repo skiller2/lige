@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { SharedModule } from '@shared';
+import { ControlContainer, FormGroupName } from '@angular/forms';
+import { SHARED_IMPORTS } from '@shared';
 import { FilesService } from 'src/app/services/files.service';
 import { PdfviewerComponent } from 'src/app/shared/pdfviewer/pdfviewer.component';
 import { UploadFileComponent } from 'src/app/shared/upload-file/upload-file.component';
@@ -8,7 +9,8 @@ import { UploadFileComponent } from 'src/app/shared/upload-file/upload-file.comp
   selector: 'app-pdf-retiro',
   templateUrl: './pdf-retiro.component.html',
   standalone: true,
-  imports: [SharedModule],
+  imports: [...SHARED_IMPORTS, UploadFileComponent, PdfviewerComponent],
+  viewProviders: [{ provide: ControlContainer, useExisting: FormGroupName }],
 })
 export class PdfRetiroComponent {
   constructor(private filesService: FilesService) {}

@@ -4,12 +4,15 @@ import { BehaviorSubject, debounceTime, finalize, Observable, switchMap, tap } f
 import { Search } from 'src/app/shared/schemas/personal.schemas';
 import { SearchService } from '../../../services/search.service';
 
-import { SharedModule } from '@shared';
+import { SHARED_IMPORTS } from '@shared';
+import { CommonModule } from '@angular/common';
+import { ImageContentComponent } from 'src/app/shared/imagePreview/image-content/image-content.component';
+import { ViewCredentialComponent } from 'src/app/shared/viewCredential/view-credential.component';
 
 @Component({
   selector: 'app-credencial-personal',
   standalone: true,
-  imports: [SharedModule],
+  imports: [...SHARED_IMPORTS,CommonModule,ImageContentComponent,ViewCredentialComponent],
   templateUrl: './credencial-personal.component.html',
   styleUrls: ['./credencial-personal.component.less'],
 })

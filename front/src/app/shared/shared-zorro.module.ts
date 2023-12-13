@@ -12,11 +12,13 @@ import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzImageModule } from 'ng-zorro-antd/image';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzListModule } from 'ng-zorro-antd/list';
 import { NzMessageModule } from 'ng-zorro-antd/message';
 import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzPipesModule } from 'ng-zorro-antd/pipes';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzPopoverModule } from 'ng-zorro-antd/popover';
 import { NzProgressModule } from 'ng-zorro-antd/progress';
@@ -29,17 +31,8 @@ import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
-import { NzUploadModule } from 'ng-zorro-antd/upload';
-import { NzPipesModule } from 'ng-zorro-antd/pipes';
-import { NzImageModule } from 'ng-zorro-antd/image';
-import { NzCalendarModule } from 'ng-zorro-antd/calendar';
-import { NzSpaceModule } from 'ng-zorro-antd/space';
 
 export const SHARED_ZORRO_MODULES = [
-  NzSpaceModule,
-  NzCalendarModule,
-  NzImageModule,
-  NzPipesModule,
   NzButtonModule,
   NzMessageModule,
   NzDropDownModule,
@@ -71,5 +64,6 @@ export const SHARED_ZORRO_MODULES = [
   NzDividerModule,
   NzProgressModule,
   NzPopconfirmModule,
-  NzUploadModule,
+  NzImageModule,
+  NzPipesModule
 ];

@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({ name: 'CUIT' })
+@Pipe({ name: 'CUIT',standalone:true })
 
 export class CUITPipe implements PipeTransform {
   transform(value: string | number, sep = "-"): string {

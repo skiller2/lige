@@ -1,6 +1,8 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, ElementRef, ViewChild, ViewEncapsulation, inject } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { AngularGridInstance, Column, Editors, FieldType, Filters, Formatters, GridOption, SlickRowDetailView } from 'angular-slickgrid';
+import { SHARED_IMPORTS } from '@shared';
+import { AngularGridInstance, AngularSlickgridComponent, AngularSlickgridModule, Column, ContainerService, Editors, FieldType, Filters, Formatters, GridOption, SlickRowDetailView } from 'angular-slickgrid';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 import {
   NzTableSortOrder,
@@ -19,11 +21,12 @@ import {
   throttleTime,
 } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
+import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
+import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { Options } from 'src/app/shared/schemas/filtro';
-import { SharedModule } from 'src/app/shared/shared.module';
 
 /** config ng-zorro-antd i18n **/
 
@@ -31,18 +34,20 @@ import { SharedModule } from 'src/app/shared/shared.module';
   selector: 'test',
   templateUrl: './test.component.html',
   styleUrls: ['./test.component.less'],
-  imports: [
-    SharedModule,
+  standalone: true,
+  imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, PersonalSearchComponent, AngularSlickgridModule],
+  providers:[        ContainerService,  ],
 
-  ],
-  standalone: true
 })
   
 export class TestComponent {
+  public _ContainerService = inject(ContainerService)
   personalId!: number
   objetivoId!:number
   valueExtendedObjetivo:any
   valueExtended: any
+
+
 
   onChange(evt: any) {
     console.log('onChange',evt)

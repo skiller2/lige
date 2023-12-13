@@ -1,7 +1,7 @@
 import { Component, ElementRef, NgZone, OnInit, Renderer2, TemplateRef, ViewChild } from '@angular/core';
-import { NavigationEnd, NavigationError, RouteConfigLoadStart, Router } from '@angular/router';
-import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
-import { TitleService, VERSION as VERSION_ALAIN } from '@delon/theme';
+import { NavigationEnd, NavigationError, RouteConfigLoadStart, Router, RouterOutlet } from '@angular/router';
+import { ServiceWorkerModule, SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { TitleService, VERSION as VERSION_ALAIN, stepPreloader } from '@delon/theme';
 import { environment } from '@env/environment';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { VERSION as VERSION_ZORRO } from 'ng-zorro-antd/version';
@@ -9,6 +9,8 @@ import { filter, interval, map } from 'rxjs';
 import { Platform } from '@angular/cdk/platform';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { SwUpdatesService } from './services/sw-updates.service';
+import { CommonModule } from '@angular/common';
+import { SHARED_IMPORTS } from '@shared';
 
 @Component({
   selector: 'app-root',
@@ -38,9 +40,14 @@ import { SwUpdatesService } from './services/sw-updates.service';
 <router-outlet></router-outlet> 
 
 
-`
+`,
+standalone: true,
+imports: [RouterOutlet,CommonModule,...SHARED_IMPORTS,
+]
 })
 export class AppComponent implements OnInit {
+
+  private donePreloader = stepPreloader();
 
   isOnline: boolean;
   modalVersion: boolean;
@@ -180,10 +187,12 @@ export class AppComponent implements OnInit {
         });
       }
       if (ev instanceof NavigationEnd) {
+this.donePreloader();
         this.titleSrv.setTitle();
         this.modalSrv.closeAll();
       }
     });
+
 
 
     this.loadModalPwa();

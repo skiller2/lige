@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { HttpContext } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
@@ -22,6 +23,7 @@ import {
 } from '@delon/auth';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { environment } from '@env/environment';
+import { SHARED_IMPORTS } from '@shared';
 import { NzTabChangeEvent } from 'ng-zorro-antd/tabs';
 import {
   BehaviorSubject,
@@ -38,6 +40,8 @@ import {
   styleUrls: ['./login.component.less'],
   providers: [SocialService],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [...SHARED_IMPORTS,CommonModule]
 })
 export class UserLoginComponent implements OnDestroy {
   constructor(

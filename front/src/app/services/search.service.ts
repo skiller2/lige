@@ -165,6 +165,7 @@ export class SearchService {
       CategoriaPersonalDescripcion: '',
       FechaDesde: new Date(),
       FechaHasta: new Date(),
+      Faltantes:true
     };
     if (!id || id == '')
       return new BehaviorSubject<PersonaObj>(dummy).asObservable();

@@ -7,10 +7,15 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Filtro, Options } from '../schemas/filtro';
-import { SharedModule } from '../shared.module';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { SearchService } from '../../services/search.service';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { SHARED_IMPORTS } from '@shared';
+import { FechaSearchComponent } from '../fecha-search/fecha-search.component';
+import { TipoMovimientoSearchComponent } from '../tipo-movimiento-search/tipo-movimiento-search.component';
+import { ObjetivoSearchComponent } from '../objetivo-search/objetivo-search.component';
+import { ClienteSearchComponent } from '../cliente-search/cliente-search.component';
+import { PersonalSearchComponent } from '../personal-search/personal-search.component';
 
 type listOptionsT = {
   filtros: any[],
@@ -29,7 +34,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
 @Component({
   selector: 'shared-filtro-builder',
   standalone: true,
-  imports: [SharedModule],
+  imports: [ ...SHARED_IMPORTS,CommonModule,FechaSearchComponent,TipoMovimientoSearchComponent,ObjetivoSearchComponent,ClienteSearchComponent,PersonalSearchComponent],
   templateUrl: './filtro-builder.component.html',
   styles: [],
   providers: [CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR],

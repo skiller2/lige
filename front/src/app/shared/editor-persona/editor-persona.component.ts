@@ -1,11 +1,8 @@
 import { Component, ElementRef } from '@angular/core';
 import { Subject } from 'rxjs';
-import { SharedModule } from '../shared.module';
 import { CommonModule } from '@angular/common';
-import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { FiltroBuilderComponent } from '../filtro-builder/filtro-builder.component';
-import { RowDetailViewComponent } from '../row-detail-view/row-detail-view.component';
-import { RowPreloadDetailComponent } from '../row-preload-detail/row-preload-detail.component';
+import { PersonalSearchComponent } from '../personal-search/personal-search.component';
+import { SHARED_IMPORTS } from '@shared';
 
 @Component({
   selector: 'app-editor-persona',
@@ -13,12 +10,9 @@ import { RowPreloadDetailComponent } from '../row-preload-detail/row-preload-det
   styleUrls: ['./editor-persona.component.less'],
   standalone: true,
   imports: [
+    ...SHARED_IMPORTS,
     CommonModule,
-    SharedModule,
-    NzAffixModule,
-    FiltroBuilderComponent,
-    RowPreloadDetailComponent,
-    RowDetailViewComponent,
+    PersonalSearchComponent
   ],
 
 })

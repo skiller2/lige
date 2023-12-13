@@ -17,11 +17,14 @@ import { SearchService } from '../../../services/search.service';
 import { NgForm } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
-import { SharedModule } from '@shared';
+import { SHARED_IMPORTS } from '@shared';
 import { CurrencyPipeModule } from '@delon/util';
 import { NzResizableModule } from 'ng-zorro-antd/resizable';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
+import { CommonModule } from '@angular/common';
+import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
+import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 
 enum Busqueda {
   Sucursal,
@@ -33,7 +36,7 @@ enum Busqueda {
 @Component({
   selector: 'app-detalle-asistencia',
   standalone: true,
-  imports: [SharedModule, NzResizableModule, CurrencyPipeModule],
+  imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule,CommonModule,PersonalSearchComponent,ObjetivoSearchComponent],
   templateUrl: './detalle-asistencia.component.html',
 })
 export class DetalleAsistenciaComponent {

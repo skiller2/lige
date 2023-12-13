@@ -1,6 +1,6 @@
 import { Component, Injector, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { SharedModule, listOptionsT } from '@shared';
+import { SHARED_IMPORTS,listOptionsT } from '@shared';
 import { AngularGridInstance, AngularUtilService, Column, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
@@ -11,6 +11,8 @@ import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-deta
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
+import { CommonModule } from '@angular/common';
+import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 
 
 
@@ -19,7 +21,7 @@ import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-
   templateUrl: './adelanto.component.html',
   styleUrls: ['./adelanto.component.less'],
   standalone: true,
-  imports: [SharedModule, FiltroBuilderComponent],
+  imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule,PersonalSearchComponent],
   providers: [AngularUtilService, ExcelExportService]
 
 })

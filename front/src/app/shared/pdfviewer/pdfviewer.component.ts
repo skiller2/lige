@@ -4,11 +4,16 @@ import { DownloadService } from 'src/app/services/download.service';
 import { grayscale, rgb } from 'pdf-lib';
 import { BehaviorSubject } from 'rxjs';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { SHARED_IMPORTS } from '@shared';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-pdfviewer',
   templateUrl: './pdfviewer.component.html',
   styleUrls: ['./pdfviewer.component.less'],
+  standalone: true,
+  imports: [ ...SHARED_IMPORTS,CommonModule],
+
 })
 export class PdfviewerComponent implements OnChanges {
   @Input() bufferPDF: Uint8Array = new Uint8Array();

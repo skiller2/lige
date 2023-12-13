@@ -18,7 +18,7 @@
     ></image-cropper>
     <ng-container *ngIf="personalImage">
         <img nz-image  [nzSrc]="croppedImage" [style.border]="croppedImage ? '1px solid black' : 'none'" />
-        <span *ngIf="$croppedImageFileSize | async as size">{{size | nzBytes}}, {{ imageCroppedX }}x{{imageCroppedY}}px @ {{imageCroppedDpi}}dpi </span>
+        <span *ngIf="$croppedImageFileSize | async as size">{{size | nzBytes}}, {{ imageCroppedX }}x{{imageCroppedY}}px &#64; {{imageCroppedDpi}}dpi </span>
         <button nz-button nzType="primary" [nzSize]="'large'" (click)="saveImage()">
             <span nz-icon nzType="download"></span>
             Formato PBA

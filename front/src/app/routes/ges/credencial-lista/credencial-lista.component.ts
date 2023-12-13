@@ -1,17 +1,17 @@
-import { SharedModule } from '@shared';
-import { DOCUMENT } from '@angular/common';
+import { SHARED_IMPORTS } from '@shared';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { Component, ElementRef, Inject, OnInit, Renderer2, ViewChild } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
-import { BehaviorSubject, catchError, debounceTime, finalize, map, Observable, switchMap, tap } from 'rxjs';
-import { FormComponent } from 'src/app/shared/imagePreview/form/form.component';
+import { BehaviorSubject, debounceTime, finalize, map, Observable, switchMap, tap } from 'rxjs';
 import { PersonaObj, Search } from 'src/app/shared/schemas/personal.schemas';
 import { SearchService } from '../../../services/search.service';
 import { LoadingService } from '@delon/abc/loading';
+import { ViewCredentialComponent } from 'src/app/shared/viewCredential/view-credential.component';
 
 @Component({
   selector: 'app-credencial-lista',
   standalone: true,
-  imports: [SharedModule],
+  imports: [...SHARED_IMPORTS,CommonModule,ViewCredentialComponent],
   templateUrl: './credencial-lista.component.html',
   styleUrls: ['./credencial-lista.component.less'],
 })
@@ -19,8 +19,6 @@ export class CredencialListaComponent {
   @ViewChild('credcards', { static: false }) credcards!: ElementRef;
 
   constructor(
-    @Inject(DOCUMENT) private document: any,
-    private renderer: Renderer2,
     private searchService: SearchService,
     private loadingSrv: LoadingService
   ) {}
@@ -93,27 +91,5 @@ export class CredencialListaComponent {
   search(value: string): void {
     this.isOptionsLoading = true;
     this.$searchChange.next(value);
-  }
-
-  printCards(): void {
-    const e = this.renderer.createElement('iframe');
-    this.renderer.setStyle(e, 'display', 'none');
-    this.renderer.appendChild(this.document.body, e);
-    e.contentWindow.document.write(
-      `<!DOCTYPE html><html><head>
-       <link rel="stylesheet" href="./assets/credencial.css" >
-       <title>Credencial</title>
-       </head>
-       <body>
-       ${this.credcards.nativeElement.innerHTML}
-       </body></html>`
-    );
-    e.contentWindow.document.close();
-
-    setTimeout(() => {
-      e.focus();
-      e.contentWindow.print();
-      this.renderer.removeChild(this.document.body, e);
-    }, 100);
   }
 }

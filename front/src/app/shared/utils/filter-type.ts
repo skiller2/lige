@@ -1,23 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-
-@Pipe({ name: 'colsFilter' })
-
-
-export class ColsFilterPipe implements PipeTransform {
-  transform(items: any[]): any {
-
-    const cols= (items||[]).filter((col: any) => {
-      return !col.hidden
-    });
-    return cols
-  }
-}
-
-
-@Pipe({ name: 'appFilter' })
-
-
+@Pipe({ name: 'appFilter',standalone:true  })
 export class AppFilterPipe implements PipeTransform {
   transform(items: any, term: string, excludes: any = []): any {
     if (!term || !items) return items;

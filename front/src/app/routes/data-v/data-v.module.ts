@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { SharedModule } from '@shared';
+import { SHARED_IMPORTS } from '@shared';
 
 import { DataVRoutingModule } from './data-v-routing.module';
 import { RelationComponent } from './relation/relation.component';
@@ -7,7 +7,7 @@ import { RelationComponent } from './relation/relation.component';
 const COMPONENTS = [RelationComponent];
 
 @NgModule({
-  imports: [SharedModule, DataVRoutingModule],
+  imports: [...SHARED_IMPORTS, DataVRoutingModule],
   declarations: [...COMPONENTS]
 })
 export class DataVModule {}

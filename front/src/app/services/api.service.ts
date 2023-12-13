@@ -8,7 +8,7 @@ import { DownloadService } from './download.service';
 import { formatNumber } from '@angular/common';
 import { ExternalResource, Formatters } from '@slickgrid-universal/common';
 import { AngularUtilService, Column, GridAutosizeColsMode, GridOption } from 'angular-slickgrid';
-import { ExcelExportService } from '@slickgrid-universal/excel-export/*';
+import { ExcelExportService } from '@slickgrid-universal/excel-export';
 
 
 @Injectable({
@@ -19,7 +19,7 @@ export class ApiService {
   getTipoMovimientoById(TipoMovimiento:string) {
     return this.http.get(`/api/liquidaciones/tipo_movimiento_by_id/${TipoMovimiento}`).pipe(
 //      map(res => res.data.list.map((row: { tipo_movimiento_id: any; des_movimiento: any; }) => ( { value: row.tipo_movimiento_id, label: row.des_movimiento } ))),
-      map(res => res.data.list),
+      map((res:any) => res.data.list),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -30,7 +30,7 @@ export class ApiService {
   getTipoMovimiento(TipoMovimiento:string) {
     return this.http.get(`/api/liquidaciones/tipo_movimiento/${TipoMovimiento}`).pipe(
 //      map(res => res.data.list.map((row: { tipo_movimiento_id: any; des_movimiento: any; }) => ( { value: row.tipo_movimiento_id, label: row.des_movimiento } ))),
-      map(res => res.data.list),
+      map((res:any) => res.data.list),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -40,7 +40,7 @@ export class ApiService {
 
   getImportacionesAnteriores(anio:number,mes:number) {
     return this.http.get(`/api/liquidaciones/importaciones_anteriores/${anio}/${mes}`).pipe(
-        map(res => res.data.list),
+        map((res:any) => res.data.list),
         catchError((err, caught) => {
           console.log('Something went wrong!');
               return of([]);
@@ -50,7 +50,7 @@ export class ApiService {
 
   getTipoCuenta() {
     return this.http.get(`/api/liquidaciones/tipo_cuenta`).pipe(
-      map(res => res.data.list),
+      map((res:any) => res.data.list),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -150,7 +150,8 @@ export class ApiService {
       enableColumnPicker: true,
       //enableExcelCopyBuffer: true,
       enableExcelExport: true,
-      registerExternalResources: [xlsService],
+      externalResources: [xlsService],
+      
       enableAutoTooltip: true,
       enableFiltering: false,
       enableRowSelection: true,
@@ -224,7 +225,7 @@ export class ApiService {
     if (personalId == 0) return of([])
 
     return this.http.get<ResponseJSON<any[]>>(`api/personal/monotributo/${personalId}/${year}/${month}`).pipe(
-      map(res => res.data),
+      map((res:any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -235,7 +236,7 @@ export class ApiService {
 
   get(url: string) {
     return this.http.get<any>(url).pipe(
-      map(res => res.data),
+      map((res:any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -245,7 +246,7 @@ export class ApiService {
 
   getCols(url: string) {
     return this.http.get<any>(url).pipe(
-      map((res) => {
+      map((res:any) => {
         const mapped = res.data.map((col: Column) => {
           if (col.type == 'date')
             col.formatter = Formatters.dateEuro
@@ -279,7 +280,7 @@ export class ApiService {
     }
     if (personalID == "") personalID = "0"
     return this.http.get<ResponseJSON<any[]>>(`api/adelantos/${personalID}/${year}/${month}`).pipe(
-      map(res => res.data),
+      map((res:any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -292,7 +293,7 @@ export class ApiService {
       return of([]);
     }
     return this.http.get<ResponseJSON<any[]>>(`api/personal/responsables/${personalID}/${year}/${month}`).pipe(
-      map(res => res.data),
+      map((res:any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -305,7 +306,7 @@ export class ApiService {
       return of([]);
     }
     return this.http.get<ResponseJSON<any[]>>(`api/personal/sitrevista/${personalID}/${year}/${month}`).pipe(
-      map(res => res.data),
+      map((res:any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -316,7 +317,7 @@ export class ApiService {
   getLiquidaciones(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/list',parameter).pipe(
-      map(res => res.data),
+      map((res:any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -327,7 +328,7 @@ export class ApiService {
   getLiquidacionesBanco(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/list',parameter).pipe(
-      map(res => res.data),
+      map((res:any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -339,7 +340,7 @@ export class ApiService {
     console.log("pase por aca")
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/listMovimientos',parameter).pipe(
-      map(res => res.data),
+      map((res:any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -350,7 +351,7 @@ export class ApiService {
   getLiquidacionesBancoAyudaAsistencial(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/listAyudaAsistencial',parameter).pipe(
-      map(res => res.data),
+      map((res:any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -363,7 +364,7 @@ export class ApiService {
     const parameter = filters
 
     return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/list', parameter).pipe(
-      map(res => res.data),
+      map((res:any) => res.data),
       catchError(() => of([]))
     );
 
@@ -373,7 +374,7 @@ export class ApiService {
     const parameter = filters
 
     return this.http.post<ResponseJSON<any>>('/api/adelantos/list', parameter).pipe(
-      map(res => res.data),
+      map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
 
@@ -382,7 +383,7 @@ export class ApiService {
   getPersonalCategoriaPendiente(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/categorias/list', parameter).pipe(
-      map(res => res.data),
+      map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
 
@@ -390,7 +391,7 @@ export class ApiService {
   getObjetivosPendAsis(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/objetivos-pendasis/list', parameter).pipe(
-      map(res => res.data),
+      map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
 
@@ -401,7 +402,7 @@ export class ApiService {
      this.notification.success('Respuesta', `Inicio insercion `);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/add', parameter).pipe(
-      tap(res => this.response(res)),
+      tap((res: ResponseJSON<any>) => this.response(res)),
      )
 
   }
@@ -411,7 +412,7 @@ export class ApiService {
     this.notification.success('Respuesta', `Inicio Borrado `);
 
    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/delete', parameter).pipe(
-     tap(res => this.response(res)),
+     tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
  }
@@ -421,7 +422,7 @@ export class ApiService {
   this.notification.success('Respuesta', `Inicio Borrado `);
 
  return this.http.post<ResponseJSON<any>>('/api/liquidaciones/deleteMovimiento', parameter).pipe(
-   tap(res => this.response(res)),
+   tap((res: ResponseJSON<any>) => this.response(res)),
   )
 
 }
@@ -431,7 +432,7 @@ export class ApiService {
     this.notification.success('Respuesta', `Inicio cambio de categoría`);
 
     return this.http.post<ResponseJSON<any>>('/api/categorias/cambiarCategorias', parameter).pipe(
-      tap(res => this.response(res)),
+      tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
   }
@@ -441,7 +442,7 @@ export class ApiService {
     this.notification.success('Respuesta', `Inicio Carga Mov Automatico`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/movimientosAutomaticos', parameter).pipe(
-      tap(res => this.response(res)),
+      tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
   }
@@ -451,7 +452,7 @@ export class ApiService {
     this.notification.success('Respuesta', `Inicio Ingreso por Asistencia`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresoPorAsistencia', parameter).pipe(
-      tap(res => this.response(res)),
+      tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
   }
@@ -460,7 +461,7 @@ export class ApiService {
     this.notification.success('Respuesta', `Inicio Ingreso por Asistencia Administrativos`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresoPorAsistenciaAdministrativosArt42', parameter).pipe(
-      tap(res => this.response(res)),
+      tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
   }
@@ -470,7 +471,7 @@ export class ApiService {
     this.notification.success('Respuesta', `Inicio Ingreso coordinador de cuenta`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresosCoordinadorDeCuenta', parameter).pipe(
-      tap(res => this.response(res)),
+      tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
   }
@@ -480,7 +481,7 @@ export class ApiService {
     this.notification.success('Respuesta', `Inicio descuentos por deduda anterior`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/descuentoPorDeudaAnterior', parameter).pipe(
-      tap(res => this.response(res)),
+      tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
   }
@@ -490,7 +491,7 @@ export class ApiService {
     this.notification.success('Respuesta', `Inicio descuentos`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/descuentos', parameter).pipe(
-      tap(res => this.response(res)),
+      tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
   }
@@ -500,7 +501,7 @@ export class ApiService {
     this.notification.success('Respuesta', `Inicio movimiento Acreditacion En Cuenta`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/movimientoAcreditacionEnCuenta', parameter).pipe(
-      tap(res => this.response(res)),
+      tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
   }
@@ -509,7 +510,7 @@ export class ApiService {
     this.notification.success('Respuesta', `Inicio confirmación de movimientos bancarios`);
     const parameter = {}
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/confirmaMovimientosBanco', parameter).pipe(
-      tap(res => this.response(res)),
+      tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
   }
@@ -517,7 +518,7 @@ export class ApiService {
   eliminaMovimientosBanco(banco_id:number) {
     const parameter = {banco_id}
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/elimina/banco', parameter).pipe(
-      tap(res => this.response(res)),
+      tap((res: ResponseJSON<any>) => this.response(res)),
       catchError(() => of(''))
 
     )
@@ -532,7 +533,7 @@ export class ApiService {
     }
     const path = `/api/impuestos_afip/${year}/${month}` + (personaIdRel > 0 ? `/${personaIdRel}` : ``);
     return this.http.get<ResponseJSON<ResponseDescuentos>>(path).pipe(
-      map(res => res.data),
+      map((res:any) => res.data),
       catchError(() => of(emptyResponse))
     );
   }
@@ -541,20 +542,20 @@ export class ApiService {
     const parameter = filters
 
     return this.http.post<ResponseJSON<any>>('/api/telefonia/list', parameter).pipe(
-      map(res => res.data),
+      map((res:any) => res.data),
       catchError(() => of([]))
     );
 
   }
 
   addAdelanto(adelanto: { PersonalId: string; monto: number }) {
-    return this.http.post<ResponseJSON<any>>(`api/adelantos`, adelanto).pipe(tap(res => this.response(res)));
+    return this.http.post<ResponseJSON<any>>(`api/adelantos`, adelanto).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
   }
 
   delAdelanto(adelanto: { PersonalId: string; monto: number }) {
     return this.http
       .delete<ResponseJSON<any>>(`api/adelantos/${adelanto.PersonalId}`, adelanto)
-      .pipe(tap(res => this.response(res)));
+      .pipe(tap((res: ResponseJSON<any>) => this.response(res)));
   }
 
   response(res: ResponseJSON<any>) {

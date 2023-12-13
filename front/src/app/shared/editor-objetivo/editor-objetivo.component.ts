@@ -5,21 +5,16 @@ import { Subject } from 'rxjs';
 import { FiltroBuilderComponent } from '../filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from '../row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from '../row-preload-detail/row-preload-detail.component';
-import { SharedModule } from '../shared.module';
+import { SHARED_IMPORTS } from '@shared';
+import { ObjetivoSearchComponent } from '../objetivo-search/objetivo-search.component';
+
 
 @Component({
   selector: 'app-editor-objetivo',
   templateUrl: './editor-objetivo.component.html',
   styleUrls: ['./editor-objetivo.component.less'],
   standalone: true,
-  imports: [
-    CommonModule,
-    SharedModule,
-    NzAffixModule,
-    FiltroBuilderComponent,
-    RowPreloadDetailComponent,
-    RowDetailViewComponent,
-  ],
+  imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent,],
 
 })
 export class EditorObjetivoComponent {
