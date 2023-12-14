@@ -16,6 +16,7 @@ import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-pe
 import { SearchService } from '../../../services/search.service';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
+import { MenuService, SettingsService } from '@delon/theme';
 enum Busqueda {
     Sucursal,
     Objetivo,
@@ -53,6 +54,7 @@ export class CargaAsistenciaComponent {
         private modal: NzModalService,
         private notification: NzNotificationService,
         private searchService: SearchService,
+        private settingsService: SettingsService
     ) { }
 
     columnDefinitions: Column[] = [];
@@ -93,6 +95,7 @@ export class CargaAsistenciaComponent {
       );
 
     async ngOnInit() {
+        this.settingsService.setLayout('collapsed',status)
         this.columnDefinitions = [
             {
                 id: 'apellidoNombre', name: 'Persona', field: 'apellidoNombre',
@@ -267,7 +270,8 @@ export class CargaAsistenciaComponent {
             field: 'total',
             sortable: true,
             type: FieldType.number,
-            maxWidth: 50,
+            maxWidth: 100,
+            minWidth: 75,
         });
 
         return columnDays
