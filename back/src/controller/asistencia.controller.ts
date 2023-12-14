@@ -1,7 +1,7 @@
 import { NextFunction, Response } from "express";
 import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
-import { Any, QueryRunner } from "typeorm";
+import { Any, QueryRunner, QueryRunnerAlreadyReleasedError } from "typeorm";
 import { exit } from "process";
 
 export class AsistenciaController extends BaseController {
@@ -196,6 +196,24 @@ export class AsistenciaController extends BaseController {
       return next(error)
     }
   }
+
+  async checkAsistenciaObjetivo(ObjetivoId: number, anio: number, mes: number, queryRunner: any) {
+    let resultObjs = await queryRunner.query(
+      `SELECT anio.ObjetivoAsistenciaAnoAno, anio.ObjetivoId, mes.ObjetivoAsistenciaAnoMesMes, mes.ObjetivoAsistenciaAnoMesDesde, mes.ObjetivoAsistenciaAnoMesHasta
+    FROM ObjetivoAsistenciaAno anio
+    JOIN ObjetivoAsistenciaAnoMes mes ON mes.ObjetivoAsistenciaAnoId = anio.ObjetivoAsistenciaAnoId AND mes.ObjetivoId = anio.ObjetivoId
+    WHERE anio.ObjetivoId = @0 AND anio.ObjetivoAsistenciaAnoAno = @1 AND mes.ObjetivoAsistenciaAnoMesMes = @2`,
+      [ObjetivoId, anio, mes]
+    );
+
+    if (resultObjs.length == 0)
+      throw new ClientException(`El objetivo seleccionado no tiene habilitada la carga de asistencia para el período ${anio}/${mes}`)
+    if (resultObjs[0].ObjetivoAsistenciaAnoMesHasta != null)
+      throw new ClientException(`El objetivo seleccionado tiene cerrada la carga de asistencia para el período ${anio}/${mes} el ${new Date(resultObjs[0].ObjetivoAsistenciaAnoMesHasta).toLocaleDateString('en-GB')}`)
+    return true
+  }
+
+
   async setExcepcion(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     let ConceptoId:number|null = null
@@ -311,19 +329,7 @@ export class AsistenciaController extends BaseController {
         }
       }
 
-      let resultObjs = await queryRunner.query(
-        `SELECT anio.ObjetivoAsistenciaAnoAno, anio.ObjetivoId, mes.ObjetivoAsistenciaAnoMesMes, mes.ObjetivoAsistenciaAnoMesDesde, mes.ObjetivoAsistenciaAnoMesHasta
-        FROM ObjetivoAsistenciaAno anio
-        JOIN ObjetivoAsistenciaAnoMes mes ON mes.ObjetivoAsistenciaAnoId = anio.ObjetivoAsistenciaAnoId AND mes.ObjetivoId = anio.ObjetivoId
-        WHERE anio.ObjetivoId = @0 AND anio.ObjetivoAsistenciaAnoAno = @1 AND mes.ObjetivoAsistenciaAnoMesMes = @2`,
-        [ObjetivoId, anio, mes]
-      );
-
-      if (resultObjs.length == 0)
-        throw new ClientException(`El objetivo seleccionado no tiene habilitada la carga de asistencia para el período ${anio}/${mes}`)
-      if (resultObjs[0].ObjetivoAsistenciaAnoMesHasta != null)
-        throw new ClientException(`El objetivo seleccionado tiene cerrada la carga de asistencia para el período ${anio}/${mes} el ${new Date(resultObjs[0].ObjetivoAsistenciaAnoMesHasta).toLocaleDateString('en-GB')}`)
-
+      this.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
       
       
       //Traigo el Art14 para analizarlo
@@ -337,7 +343,7 @@ export class AsistenciaController extends BaseController {
                 WHERE art.Personalid = @0 AND art.PersonalArt14ObjetivoId=@1 
                 --AND art.PersonalArt14FormaArt14 = @2
                 AND art.PersonalArt14Autorizado = 'S'
-                AND art.PersonalArt14ConceptoId = @4
+                AND ISNULL(art.PersonalArt14ConceptoId,0) = ISNULL(@4,0)
                 AND art.PersonalArt14AutorizadoDesde <= @3 AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= @3) AND art.PersonalArt14Anulacion is null`,
         [PersonalId, ObjetivoId, metodo, fechaDesde, ConceptoId]
       );
@@ -352,7 +358,7 @@ export class AsistenciaController extends BaseController {
                 WHERE art.Personalid = @0 AND art.PersonalArt14ObjetivoId=@1
                 --AND art.PersonalArt14FormaArt14 = @2 
                 AND art.PersonalArt14Autorizado is null
-                AND art.PersonalArt14ConceptoId = @4
+                AND ISNULL(art.PersonalArt14ConceptoId,0) = ISNULL(@4,0)
                 AND art.PersonalArt14Desde <= @3 AND (ISNULL(art.PersonalArt14Hasta,'9999-12-31') >= @3) AND art.PersonalArt14Anulacion is null`,
         [PersonalId, ObjetivoId, metodo, fechaDesde,ConceptoId]
       );
@@ -470,8 +476,10 @@ export class AsistenciaController extends BaseController {
       }
 
       result = await queryRunner.query(
-        `SELECT per.Personalid, per.PersonalArt14UltNro
-                FROM Personal per WHERE per.Personalid = @0   
+        `SELECT MAX(art14.PersonalArt14Id) PersonalArt14UltNro, art14.PersonalId 
+        FROM PersonalArt14 art14 
+        WHERE art14.Personalid = @0
+        GROUP BY art14.PersonalId
             `,
         [PersonalId]
       );
@@ -546,13 +554,18 @@ export class AsistenciaController extends BaseController {
     const mes: number = req.params.mes;
     const ObjetivoId: number = Number(req.params.ObjetivoId);
     const PersonalId: number = (isNaN(Number(req.params.PersonalId))) ? 0 : Number(req.params.PersonalId);
-    const metodologia: string = req.params.metodologia;
+    const metodologiaId: string = req.params.metodologiaId;
+    const metodo: string = req.params.metodo;
     const persona_cuit = req.persona_cuit;
+    let ConceptoId:number|null = null
 
+    if (metodologiaId == "F")
+    ConceptoId = 3
 
 
     const queryRunner = dataSource.createQueryRunner();
     try {
+
       const fechaDesde = new Date(anio, mes - 1, 1);
 
       if (PersonalId == 0)
@@ -574,18 +587,7 @@ export class AsistenciaController extends BaseController {
   
       }
 
-      let resultObjs = await queryRunner.query(
-        `SELECT anio.ObjetivoAsistenciaAnoAno, anio.ObjetivoId, mes.ObjetivoAsistenciaAnoMesMes, mes.ObjetivoAsistenciaAnoMesDesde, mes.ObjetivoAsistenciaAnoMesHasta
-        FROM ObjetivoAsistenciaAno anio
-        JOIN ObjetivoAsistenciaAnoMes mes ON mes.ObjetivoAsistenciaAnoId = anio.ObjetivoAsistenciaAnoId AND mes.ObjetivoId = anio.ObjetivoId
-        WHERE anio.ObjetivoId = @0 AND anio.ObjetivoAsistenciaAnoAno = @1 AND mes.ObjetivoAsistenciaAnoMesMes = @2`,
-        [ObjetivoId, anio, mes]
-      );
-
-      if (resultObjs.length == 0)
-        throw new ClientException(`El objetivo seleccionado no tiene habilitada la carga de asistencia para el período ${anio}/${mes}`)
-      if (resultObjs[0].ObjetivoAsistenciaAnoMesHasta != null)
-        throw new ClientException(`El objetivo seleccionado tiene cerrada la carga de asistencia para el período ${anio}/${mes} el ${new Date(resultObjs[0].ObjetivoAsistenciaAnoMesHasta).toLocaleDateString('en-GB')}`)
+      this.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
 
 
 
@@ -599,8 +601,10 @@ export class AsistenciaController extends BaseController {
                 WHERE art.Personalid = @0 AND art.PersonalArt14ObjetivoId=@1 
                 AND art.PersonalArt14FormaArt14 = @2
                 AND art.PersonalArt14Autorizado = 'S'
+                AND ISNULL(art.PersonalArt14ConceptoId,0) = ISNULL(@4,0)
+
                 AND art.PersonalArt14AutorizadoDesde <= @3 AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= @3) AND art.PersonalArt14Anulacion is null`,
-        [PersonalId, ObjetivoId, metodologia, fechaDesde]
+        [PersonalId, ObjetivoId, metodo, fechaDesde,ConceptoId]
       );
 
       let resultNoAutoriz = await queryRunner.query(
@@ -611,10 +615,11 @@ export class AsistenciaController extends BaseController {
                 
                 FROM PersonalArt14 art
                 WHERE art.Personalid = @0 AND art.PersonalArt14ObjetivoId=@1
-                AND art.PersonalArt14FormaArt14 = @2 
+                AND art.PersonalArt14FormaArt14 = @2
+                AND ISNULL(art.PersonalArt14ConceptoId,0) = ISNULL(@4,0) 
                 AND art.PersonalArt14Autorizado is null
                 AND art.PersonalArt14Desde <= @3 AND (art.PersonalArt14Hasta >= @3) AND art.PersonalArt14Anulacion is null`,
-        [PersonalId, ObjetivoId, metodologia, fechaDesde]
+        [PersonalId, ObjetivoId, metodo, fechaDesde,ConceptoId]
       );
 
       let hasta: Date = new Date(fechaDesde);
@@ -676,11 +681,14 @@ export class AsistenciaController extends BaseController {
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion,
                 suc.SucursalId, 
                 IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde) AS Desde,
-                IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta
-                
-                FROM PersonalArt14 art 
+                IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta,
+                art.PersonalArt14ConceptoId,con.ConceptoArt14Descripcion,
+                IIF(art.PersonalArt14FormaArt14='S','Suma fija',IIF(art.PersonalArt14FormaArt14='E','Equivalencia',IIF(art.PersonalArt14FormaArt14='A','Adicional hora',IIF(art.PersonalArt14FormaArt14='H','Horas adicionales','')))) AS FormaDescripcion,
+                1
+                FROM PersonalArt14 art
                 JOIN Personal per ON per.PersonalId = art.PersonalId
                 JOIN Objetivo obj ON obj.ObjetivoId = art.PersonalArt14ObjetivoId
+                LEFT JOIN ConceptoArt14 con ON con.ConceptoArt14Id = art.PersonalArt14ConceptoId
                 LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = art.PersonalArt14TipoAsociadoId  AND cat.CategoriaPersonalId = art.PersonalArt14CategoriaId
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
 
@@ -1113,10 +1121,14 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
                 CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)) ObjetivoCodigo,
                 obj.ObjetivoId,
                 obj.ObjetivoDescripcion,
+                art.PersonalArt14ConceptoId,con.ConceptoArt14Descripcion,
+                IIF(art.PersonalArt14FormaArt14='S','Suma fija',IIF(art.PersonalArt14FormaArt14='E','Equivalencia',IIF(art.PersonalArt14FormaArt14='A','Adicional hora',IIF(art.PersonalArt14FormaArt14='H','Horas adicionales','')))) AS FormaDescripcion,
+                
                 1 id
                 FROM PersonalArt14 art 
                 JOIN Personal per ON per.PersonalId = art.PersonalId
                 JOIN Objetivo obj ON obj.ObjetivoId = art.PersonalArt14ObjetivoId
+                LEFT JOIN ConceptoArt14 con ON con.ConceptoArt14Id = art.PersonalArt14ConceptoId
                 LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = art.PersonalArt14TipoAsociadoId  AND cat.CategoriaPersonalId = art.PersonalArt14CategoriaId
                 LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
                 WHERE art.PersonalId = @0 
@@ -1266,7 +1278,12 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
 
       LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
 
-      LEFT JOIN PersonalArt14 art14S ON art14S.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14S.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14S.PersonalArt14FormaArt14 = 'S' AND art14S.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14S.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') <= ISNULL(art14S.PersonalArt14AutorizadoHasta,'9999-12-31') ) AND  art14S.PersonalArt14Anulacion IS NULL
+      LEFT JOIN (
+		SELECT art14SX.PersonalArt14ObjetivoId, art14SX.PersonalId, SUM(art14SX.PersonalArt14SumaFija) PersonalArt14SumaFija FROM 
+			PersonalArt14 art14SX 
+			WHERE art14SX.PersonalArt14FormaArt14 = 'S' AND art14SX.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(@1,@2,'01') >= art14SX.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(@1,@2,'02') <= ISNULL(art14SX.PersonalArt14AutorizadoHasta,'9999-12-31') ) AND  art14SX.PersonalArt14Anulacion IS NULL
+			GROUP BY art14SX.PersonalArt14ObjetivoId, art14SX.PersonalId
+		) art14s ON art14S.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14S.PersonalId = objd.ObjetivoAsistenciaMesPersonalId
       LEFT JOIN PersonalArt14 art14E ON art14E.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14E.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14E.PersonalArt14FormaArt14 = 'E' AND art14E.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14E.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') <= ISNULL(art14E.PersonalArt14AutorizadoHasta,'9999-12-31') ) AND  art14E.PersonalArt14Anulacion IS NULL
       LEFT JOIN PersonalArt14 art14H ON art14H.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14H.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14H.PersonalArt14FormaArt14 = 'H' AND art14H.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14H.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') <= ISNULL(art14H.PersonalArt14AutorizadoHasta,'9999-12-31') ) AND  art14H.PersonalArt14Anulacion IS NULL
       LEFT JOIN PersonalArt14 art14A ON art14A.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14A.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14A.PersonalArt14FormaArt14 = 'A' AND art14A.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14A.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') <= ISNULL(art14A.PersonalArt14AutorizadoHasta,'9999-12-31') ) AND  art14A.PersonalArt14Anulacion IS NULL
@@ -1280,6 +1297,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       
       WHERE obja.ObjetivoAsistenciaAnoAno = @1 
       AND objm.ObjetivoAsistenciaAnoMesMes = @2
+
       ${extraFiltersStr}
 `,
       [, anio, mes]
@@ -1359,18 +1377,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
                 
                 LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'28')  BETWEEN gap.GrupoActividadObjetivoDesde AND ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31') 
                 LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
-                          
-                LEFT JOIN PersonalArt14 art14S ON art14S.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14S.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14S.PersonalArt14FormaArt14 = 'S' AND art14S.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14S.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < ISNULL(art14S.PersonalArt14AutorizadoHasta,'9999-12-31') ) AND art14S.PersonalArt14Anulacion IS NULL
-                LEFT JOIN PersonalArt14 art14E ON art14E.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14E.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14E.PersonalArt14FormaArt14 = 'E' AND art14E.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14E.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < ISNULL(art14E.PersonalArt14AutorizadoHasta,'9999-12-31') ) AND art14E.PersonalArt14Anulacion IS NULL
-                LEFT JOIN PersonalArt14 art14H ON art14H.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14H.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14H.PersonalArt14FormaArt14 = 'H' AND art14H.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14H.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < ISNULL(art14H.PersonalArt14AutorizadoHasta,'9999-12-31') ) AND art14H.PersonalArt14Anulacion IS NULL
-                LEFT JOIN PersonalArt14 art14A ON art14A.PersonalArt14ObjetivoId = obj.ObjetivoId AND art14A.PersonalId = objd.ObjetivoAsistenciaMesPersonalId   AND art14A.PersonalArt14FormaArt14 = 'A' AND art14A.PersonalArt14Autorizado = 'S' AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') >= art14A.PersonalArt14AutorizadoDesde AND ( DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'02') < ISNULL(art14A.PersonalArt14AutorizadoHasta,'9999-12-31') ) AND art14A.PersonalArt14Anulacion IS NULL
                 
-                LEFT JOIN ValorLiquidacion valart14cat ON valart14cat.ValorLiquidacionSucursalId = suc.SucursalId AND valart14cat.ValorLiquidacionTipoAsociadoId = art14E.PersonalArt14TipoAsociadoId AND valart14cat.ValorLiquidacionCategoriaPersonalId = art14E.PersonalArt14CategoriaId AND 
-                DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,1)BETWEEN 
-                valart14cat.ValorLiquidacionDesde AND ISNULL(valart14cat.ValorLiquidacionHasta,'9999-12-31')
-                
-                LEFT JOIN CategoriaPersonal art14cat ON art14cat.TipoAsociadoId = art14E.PersonalArt14TipoAsociadoId AND art14cat.CategoriaPersonalId  = art14E.PersonalArt14CategoriaId 
-                LEFT JOIN ObjetivoHabilitacion objhab ON objhab.ObjetivoHabilitacionObjetivoId = obj.ObjetivoId
                 
                 WHERE obja.ObjetivoAsistenciaAnoAno = @1 
                 AND objm.ObjetivoAsistenciaAnoMesMes = @2 

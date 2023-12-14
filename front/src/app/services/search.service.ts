@@ -400,7 +400,7 @@ export class SearchService {
   deleteAsistenciaExcepcion(params: any) {
     return this.http
       .delete<ResponseJSON<any>>(
-        `api/asistencia/excepcion/${params.anio}/${params.mes}/${params.ObjetivoId}/${params.PersonalId}/${params.metodologia}`
+        `api/asistencia/excepcion/${params.anio}/${params.mes}/${params.ObjetivoId}/${params.PersonalId}/${params.metodo}/${params.metodologiaId}`
       )
       .pipe(map(res => res.data));
   }

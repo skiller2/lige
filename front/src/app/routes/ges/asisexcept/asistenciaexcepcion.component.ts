@@ -47,7 +47,7 @@ export class ExcepcionAsistenciaComponent {
 
   selectedSucursalId = '';
   selectedObjetivoId = '';
-  selectedPersonalId = '';
+  //selectedPersonalId = '';
   selectedMetodologiaId:any;
   selectedCategoriaId = '';
 
@@ -156,7 +156,7 @@ export class ExcepcionAsistenciaComponent {
     }, 1);
   }
 
-  selectedValueChange(event: string, busqueda: Busqueda): void {
+  selectedValueChange(event: any, busqueda: Busqueda): void {
     //   this.asistenciaexcepcion.controls['anio'].setValue(2023);
     //    this.asistenciaexcepcion.controls['mes'].setValue(3);
 
@@ -244,8 +244,13 @@ export class ExcepcionAsistenciaComponent {
         },
         complete: () => {
           console.log('complete');
-
-          this.asistenciaexcepcion.controls['PersonalId'].setValue('');
+          /*
+          onlySelf?: boolean;
+          emitEvent?: boolean;
+          emitModelToViewChange?: boolean;
+          emitViewToModelChange ?: boolean;
+          */
+          this.asistenciaexcepcion.controls['PersonalId'].setValue('0',{ emitEvent: true });
           this.asistenciaexcepcion.controls['metodologia'].setValue('');
 
           this.notification.success('Grabación', 'Existosa');
@@ -253,6 +258,7 @@ export class ExcepcionAsistenciaComponent {
       });
   }
 
+  
   endexception() {
     this.searchService
       .deleteAsistenciaExcepcion(this.asistenciaexcepcion.value)
@@ -267,11 +273,10 @@ export class ExcepcionAsistenciaComponent {
           console.log('error', err);
         },
         complete: () => {
-          console.log('complete');
 
-          this.asistenciaexcepcion.controls['PersonalId'].setValue('');
+          this.asistenciaexcepcion.controls['PersonalId'].setValue('0');
           this.asistenciaexcepcion.controls['metodologia'].setValue('');
-
+          
           this.notification.success('Finalización', 'Existosa');
         },
       });

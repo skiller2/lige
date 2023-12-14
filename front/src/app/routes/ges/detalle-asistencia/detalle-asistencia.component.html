@@ -122,20 +122,17 @@
                   <td>
                     <a (click)="buscarPorPersona(data.PersonalId)" [textContent]="data.ApellidoNombre"></a>
                   </td>
+
                   <td>{{ data.PersonalArt14Autorizado }}</td>
-                  <td *ngIf="data.PersonalArt14FormaArt14 == 'S'">
-                    Suma fija {{ data.PersonalArt14SumaFija }}
+                  <td>
+                    <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}</span>
+                    <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | currency:'$' }}</span>
+                    <span *ngIf="data.PersonalArt14FormaArt14=='H'">{{data.PersonalArt14Horas}}</span>
+                    <span *ngIf="data.PersonalArt14FormaArt14=='E'">{{data.CategoriaPersonalDescripcion}}</span>
+                    <span *ngIf="data.PersonalArt14FormaArt14=='A'">{{data.PersonalArt14AdicionalHora |
+                      currency:'$'}}</span>
                   </td>
-                  <td *ngIf="data.PersonalArt14FormaArt14 == 'H'">
-                    Horas {{ data.PersonalArt14Horas }}
-                  </td>
-                  <td *ngIf="data.PersonalArt14FormaArt14 == 'E'">
-                    Equivalencia {{ data.CategoriaPersonalDescripcion }}
-                  </td>
-                  <td *ngIf="data.PersonalArt14FormaArt14 == 'A'">
-                    Adicional Hora {{ data.PersonalArt14AdicionalHora }}
-                  </td>
-                  <td>{{ data.Desde | date }}</td>
+                    <td>{{ data.Desde | date }}</td>
                   <td>{{ data.Hasta | date }}</td>
 
                   <td></td>
@@ -186,13 +183,13 @@
                   </td>
 
                   <td>
-                    <span *ngIf="data.PersonalArt14SumaFija">Suma fija {{ data.PersonalArt14SumaFija | currency
+                    <span class="inline-block" *ngIf="data.PersonalArt14SumaFija">Suma fija {{ data.PersonalArt14SumaFija | currency
                       }}</span>
-                    <span *ngIf="data.PersonalArt14Horas">Horas {{ data.PersonalArt14Horas }}</span>
-                    <span *ngIf="data.art14CategoriaDescripcion">Equivalencia {{ data.art14CategoriaDescripcion }}
+                    <span class="inline-block" *ngIf="data.PersonalArt14Horas">Horas {{ data.PersonalArt14Horas }}</span>
+                    <span class="inline-block" *ngIf="data.art14CategoriaDescripcion">Equivalencia {{ data.art14CategoriaDescripcion }}
                       {{ data.ValorHoraArt14Categoria | currency }}
                     </span>
-                    <span *ngIf="data.PersonalArt14AdicionalHora">Adicional Hora
+                    <span class="inline-block" *ngIf="data.PersonalArt14AdicionalHora">Adicional Hora
                       {{ data.PersonalArt14AdicionalHora | currency }}</span>
                   </td>
                   <td>{{ data.totalminutoscalcimporteconart14 | currency }}</td>
@@ -353,17 +350,13 @@
                     </a>
                   </td>
                   <td>{{ data.PersonalArt14Autorizado }}</td>
-                  <td *ngIf="data.PersonalArt14FormaArt14 == 'S'">
-                    Suma fija {{ data.PersonalArt14SumaFija }}
-                  </td>
-                  <td *ngIf="data.PersonalArt14FormaArt14 == 'H'">
-                    Horas {{ data.PersonalArt14Horas }}
-                  </td>
-                  <td *ngIf="data.PersonalArt14FormaArt14 == 'E'">
-                    Equivalencia {{ data.CategoriaPersonalDescripcion }}
-                  </td>
-                  <td *ngIf="data.PersonalArt14FormaArt14 == 'A'">
-                    Adicional Hora {{ data.PersonalArt14AdicionalHora }}
+                  <td>
+                    <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}</span>
+                    <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | currency:'$' }}</span>
+                    <span *ngIf="data.PersonalArt14FormaArt14=='H'">{{data.PersonalArt14Horas}}</span>
+                    <span *ngIf="data.PersonalArt14FormaArt14=='E'">{{data.CategoriaPersonalDescripcion}}</span>
+                    <span *ngIf="data.PersonalArt14FormaArt14=='A'">{{data.PersonalArt14AdicionalHora |
+                      currency:'$'}}</span>
                   </td>
                   <td>{{ data.Desde | date }}</td>
                   <td>{{ data.Hasta | date }}</td>
