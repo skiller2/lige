@@ -58,26 +58,29 @@ const columnasGrilla: any[] = [
     type: "string",
     id: "GrupoActividadDetalle",
     field: "GrupoActividadDetalle",
+    searchComponent: "inpurForGrupoPersonaSearch",
     fieldName: "ga.GrupoActividadDetalle",
     sortable: true,
+    searchHidden: false,
+    hidden: false,
   },
-  {
-    name: "Grupo Objetivo Número",
-    type: "number",
-    id: "GrupoActividadNumero",
-    field: "GrupoActividadNumero",
-    fieldName: "ga.GrupoActividadNumero",
-    sortable: true,
-  },
-  {
-    name: "Grupo Objetivo ID",
-    type: "number",
-    id: "GrupoActividadId",
-    field: "GrupoActividadId",
-    fieldName: "GrupoActividadId",
-    sortable: true,
-    hidden: true
-  },
+  // {
+  //   name: "Grupo Objetivo Número",
+  //   type: "number",
+  //   id: "GrupoActividadNumero",
+  //   field: "GrupoActividadNumero",
+  //   fieldName: "ga.GrupoActividadNumero",
+  //   sortable: true,
+  // },
+  // {
+  //   name: "Grupo Objetivo ID",
+  //   type: "number",
+  //   id: "GrupoActividadId",
+  //   field: "GrupoActividadId",
+  //   fieldName: "GrupoActividadId",
+  //   sortable: true,
+  //   hidden: true
+  // },
 
   {
     name: "Horas cargadas",

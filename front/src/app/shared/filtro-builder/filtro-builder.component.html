@@ -44,6 +44,10 @@
         [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForPersonalSearch'"
         (keydown.enter)="handleInputConfirm()" />
 
+      <app-grupo-actividad [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+        [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForGrupoPersonaSearch'"
+        (keydown.enter)="handleInputConfirm()" />
+
       <app-cliente-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
         [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForClientSearch'"
         (keydown.enter)="handleInputConfirm()" />
