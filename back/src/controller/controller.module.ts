@@ -21,6 +21,7 @@ import { MovimientoAcreditacionEnCuentaController } from "../liquidaciones/movim
 import { LiquidacionesController } from "../liquidaciones/liquidaciones.controller";
 import { LiquidacionesBancoController } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.controller";
 import { InformesController } from "../informes/informes.controller";
+import { PendienteController } from "../controller/pendiente.controller"
 
 
 export const infoController = new InfoController();
@@ -46,4 +47,5 @@ export const movimientoAcreditacionEnCuentaController = new MovimientoAcreditaci
 export const liquidacionesController = new LiquidacionesController();
 export const liquidacionesBancoController = new LiquidacionesBancoController();
 export const informesController = new InformesController();
+export const pendienteController = new PendienteController();
 

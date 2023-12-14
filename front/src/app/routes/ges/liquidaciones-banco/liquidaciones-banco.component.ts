@@ -197,7 +197,6 @@ export class LiquidacionesBancoComponent {
         )
         .pipe(
           map(data => {
-            debugger
             this.anio = periodo.getFullYear();
             this.mes = periodo.getMonth() + 1;
             this.listdowload = "gridData";

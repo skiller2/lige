@@ -955,7 +955,7 @@ export class LiquidacionesBancoController extends BaseController {
   async setDeleteMovimiento(req: Request, res: Response, next: NextFunction) {
 
     let deleteId = req.body.deleteId
-    console.log("deleteId " + deleteId)
+    
 
     const queryRunner = dataSource.createQueryRunner();
 
