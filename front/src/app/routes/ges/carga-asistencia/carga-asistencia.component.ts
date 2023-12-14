@@ -99,6 +99,8 @@ export class CargaAsistenciaComponent {
                 sortable: true,
                 type: FieldType.string,
                 maxWidth: 250,
+                width: 100,
+                minWidth: 150,
                 formatter: Formatters.complexObject,
                 params: {
                     complexFieldLabel: 'apellidoNombre.fullName',
@@ -119,6 +121,8 @@ export class CargaAsistenciaComponent {
                 sortable: true,
                 type: FieldType.string,
                 maxWidth: 150,
+                minWidth: 50,
+
                 editor: {
                     model: Editors.singleSelect,
                     collection: ['HORAS NORMALES', 'CAPACITACION'],
@@ -142,7 +146,9 @@ export class CargaAsistenciaComponent {
                 id: 'categoria', name: 'Categoria', field: 'categoria',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 100,
+                maxWidth: 150,
+                minWidth: 150,
+
                 editor: {
                     model: Editors.singleSelect,
                     collection: [],
@@ -151,17 +157,19 @@ export class CargaAsistenciaComponent {
                 },
             },
         ]
+
+        this.columnas= this.columnDefinitions
         this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.grid-container-asis', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptionsEdit.enableRowDetailView = false
         this.gridOptionsEdit.autoEdit = true
 
         this.gridOptionsEdit.enableAutoSizeColumns = true
-        this.gridOptionsEdit.frozenColumn = 1
-        this.gridOptionsEdit.enableAutoResize = false
+        //this.gridOptionsEdit.frozenColumn = 1
+        //this.gridOptionsEdit.enableAutoResize = false
         // this.gridOptionsEdit.enableColumnReorder = false
         // this.gridOptionsEdit.enableAutoResizeColumnsByCellContent = true
         // this.gridOptionsEdit.enableAutoTooltip = true
-        // this.gridOptionsEdit.fullWidthRows = true
+        this.gridOptionsEdit.fullWidthRows = true
 
         this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
             editCommand.execute()
@@ -273,7 +281,7 @@ export class CargaAsistenciaComponent {
 
         this.columnas = [...this.columnDefinitions, ...daysOfMonth];
         
-        this.angularGridEdit.slickGrid.setOptions({ forceFitColumns: true, frozenColumn: 2 })
+        this.angularGridEdit.slickGrid.setOptions({ frozenColumn: 3 })
         this.angularGridEdit.slickGrid.reRenderColumns(true)
         this.clearAngularGrid()
     }
