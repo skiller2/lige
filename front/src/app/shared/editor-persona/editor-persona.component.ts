@@ -17,7 +17,8 @@ import { SHARED_IMPORTS } from '@shared';
 
 })
 export class EditorPersonaComponent {
-  selectedId = '';
+  
+  selectedId:number = 0; //Lo utiliza la grilla para pasar el valor
   selectedItem: any;
   collection?: any[]; // this will be filled by the collection of your column definition
   onItemChanged = new Subject<any>();    // object
@@ -25,10 +26,11 @@ export class EditorPersonaComponent {
 
   constructor(public element: ElementRef){}
 
-
   onChange(item: any) {
+    if (item=='') item=0
+    this.selectedId = item
     this.selectedItem = { id: item, fullName: this.valueExtended?.fullName } 
-//    this.onItemChanged.next(this.selectedItem)
+//    this.onItemChanged.next(item)
   }
 
   focus() {

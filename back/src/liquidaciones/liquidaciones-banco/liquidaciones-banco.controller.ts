@@ -331,20 +331,21 @@ export class LiquidacionesBancoController extends BaseController {
 
     return dataSource.query(
       `SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion,movpos.tipocuenta_id, movpos.importe, 'CUE' as ind_imputacion,
-        sit.SituacionRevistaDescripcion
-        FROM Personal per
-        JOIN(SELECT liq.persona_id, liq.tipocuenta_id, SUM(liq.importe * tipo.signo) importe FROM lige.dbo.liqmamovimientos liq
-        JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = liq.tipo_movimiento_id
-        JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = liq.periodo_id AND per.anio=@1 AND per.mes=@2
+      sit.SituacionRevistaDescripcion
+      FROM Personal per
+      JOIN(SELECT liq.persona_id, liq.tipocuenta_id, SUM(liq.importe * tipo.signo) importe FROM lige.dbo.liqmamovimientos liq
+      JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = liq.tipo_movimiento_id
+      JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = liq.periodo_id AND per.anio=@1 AND per.mes=@2
 
-                GROUP BY liq.persona_id, liq.tipocuenta_id HAVING SUM(liq.importe* tipo.signo) > 0) AS movpos ON movpos.persona_id = per.PersonalId
-        LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId) AND ISNULL(perban.PersonalBancoHasta,'9999-12-31') >= @0
-        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-        LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@0 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= @0
-        LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
-        
-        
-        LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+              GROUP BY liq.persona_id, liq.tipocuenta_id HAVING SUM(liq.importe* tipo.signo) > 0) AS movpos ON movpos.persona_id = per.PersonalId
+      LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId  AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId AND ISNULL(perbanmax.PersonalBancoHasta,'9999-12-31') >= @0) 
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+      LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@0 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= @0
+      LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+      
+      
+      LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+
         WHERE  (${filterSql}) 
         ${orderBy}
         `, [stmactual,anio, mes])

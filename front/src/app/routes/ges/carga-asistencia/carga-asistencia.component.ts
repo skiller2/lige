@@ -16,7 +16,7 @@ import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-pe
 import { SearchService } from '../../../services/search.service';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
-import { MenuService, SettingsService } from '@delon/theme';
+import { SettingsService } from '@delon/theme';
 enum Busqueda {
     Sucursal,
     Objetivo,
@@ -95,7 +95,6 @@ export class CargaAsistenciaComponent {
       );
 
     async ngOnInit() {
-        this.settingsService.setLayout('collapsed',status)
         this.columnDefinitions = [
             {
                 id: 'apellidoNombre', name: 'Persona', field: 'apellidoNombre',
@@ -198,7 +197,8 @@ export class CargaAsistenciaComponent {
     
             this.carasistForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1))
         }, 1);
-    }    
+        this.settingsService.setLayout('collapsed',true)
+    }
 
     onCellChanged(e: any) {
     }

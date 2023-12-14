@@ -146,7 +146,7 @@ export class BaseController {
     let authAdministrativo = false
     const PersonalId = res.locals.PersonalId
 
-    if (PersonalId == "") return
+    if (PersonalId == "") return false
 
     const grupos = await this.getGruposActividad(queryRunner, res.locals.PersonalId)
     let listGrupos = []
@@ -175,7 +175,7 @@ export class BaseController {
         [fechaHastaAuth, ObjetivoId]
       );
       if (resultAuth.length > 0)
-        return
+        return true
     }
 
 
@@ -211,10 +211,9 @@ export class BaseController {
       throw new ClientException(`No tiene permisos para realizar operación en la sucursal ${SucursalId}`)
 */
     
-    if (authAdministrativo) return   //Si es administrativo no analizo el CUIT    
+    if (authAdministrativo) return true  //Si es administrativo no analizo el CUIT    
     
-
-    throw new ClientException(`No tiene permisos para realizar operación`)
+    return false
   }
 
 
