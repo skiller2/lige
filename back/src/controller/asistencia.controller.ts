@@ -197,7 +197,7 @@ export class AsistenciaController extends BaseController {
     }
   }
 
-  async checkAsistenciaObjetivo(ObjetivoId: number, anio: number, mes: number, queryRunner: any) {
+  static async checkAsistenciaObjetivo(ObjetivoId: number, anio: number, mes: number, queryRunner: any) {
     let resultObjs = await queryRunner.query(
       `SELECT anio.ObjetivoAsistenciaAnoAno, anio.ObjetivoId, mes.ObjetivoAsistenciaAnoMesMes, mes.ObjetivoAsistenciaAnoMesDesde, mes.ObjetivoAsistenciaAnoMesHasta
     FROM ObjetivoAsistenciaAno anio
@@ -207,10 +207,11 @@ export class AsistenciaController extends BaseController {
     );
 
     if (resultObjs.length == 0)
-      throw new ClientException(`El objetivo seleccionado no tiene habilitada la carga de asistencia para el período ${anio}/${mes}`)
+      return new ClientException(`El objetivo seleccionado no tiene habilitada la carga de asistencia para el período ${anio}/${mes}`)
     if (resultObjs[0].ObjetivoAsistenciaAnoMesHasta != null)
-      throw new ClientException(`El objetivo seleccionado tiene cerrada la carga de asistencia para el período ${anio}/${mes} el ${new Date(resultObjs[0].ObjetivoAsistenciaAnoMesHasta).toLocaleDateString('en-GB')}`)
-    return true
+      return new ClientException(`El objetivo seleccionado tiene cerrada la carga de asistencia para el período ${anio}/${mes} el ${new Date(resultObjs[0].ObjetivoAsistenciaAnoMesHasta).toLocaleDateString('en-GB')}`)
+
+      return true
   }
 
 
@@ -329,8 +330,10 @@ export class AsistenciaController extends BaseController {
         }
       }
 
-      this.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
-      
+      const val= await AsistenciaController.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
+      if (val !== true)
+        throw val
+          
       
       //Traigo el Art14 para analizarlo
 
@@ -587,7 +590,9 @@ export class AsistenciaController extends BaseController {
   
       }
 
-      this.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
+      const val= await AsistenciaController.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
+      if (val !== true)
+        throw val
 
 
 
