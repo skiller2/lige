@@ -15,11 +15,10 @@ export class LiquidacionesController extends BaseController {
   async getTipoMovimientoById(req: Request, res: Response, next: NextFunction) {
 
     const TipoMovimientoFilter = req.params.TipoMovimiento;
-    console.log("TipoMovimiento" + TipoMovimientoFilter)
     try {
       let tipoMovimiento
       if (TipoMovimientoFilter == 'all') {
-        console.log('Pase');
+        
         tipoMovimiento = await dataSource.query(
           `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo, tipo.tipo_movimiento FROM lige.dbo.liqcotipomovimiento AS tipo`
         )
@@ -44,7 +43,6 @@ export class LiquidacionesController extends BaseController {
   async getTipoMovimiento(req: Request, res: Response, next: NextFunction) {
 
     const TipoMovimientoFilter = req.params.TipoMovimiento;
-    console.log("TipoMovimiento" + TipoMovimientoFilter)
     try {
 
       const tipoMovimiento = await dataSource.query(
