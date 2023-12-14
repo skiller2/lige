@@ -101,7 +101,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
       this._selectedId = val
 
       if (!this._selectedId && this._selectedId !== null) {
-        this.valueExtendedEmitter.emit(null)
+        this.valueExtendedEmitter.emit({})
         this.propagateChange(this._selectedId)
         return
       }

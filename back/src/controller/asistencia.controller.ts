@@ -285,16 +285,8 @@ export class AsistenciaController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (!await this.hasGroup(req, 'liquidaciones')) { 
-        const auth = await this.hasAuthObjetivo(
-          anio,
-          mes,
-          res,
-          Number(ObjetivoId),
-          queryRunner
-        );
-  
-      }
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+        throw new ClientException(`No tiene permisos para grabar la excepción`)
 
       if (metodologiaId == "F")
         ConceptoId = 3
@@ -579,22 +571,12 @@ export class AsistenciaController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (!await this.hasGroup(req, 'liquidaciones')) { 
-        const auth = await this.hasAuthObjetivo(
-          anio,
-          mes,
-          res,
-          Number(ObjetivoId),
-          queryRunner
-        );
-  
-      }
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+        throw new ClientException(`No tiene permisos para eliminar la excepción`)
 
       const val= await AsistenciaController.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
       if (val !== true)
         throw val
-
-
 
       //Traigo el Art14 para analizarlo
       let resultAutoriz = await queryRunner.query(
@@ -670,17 +652,8 @@ export class AsistenciaController extends BaseController {
       const mes = req.params.mes;
       var desde = new Date(anio, mes - 1, 1);
       
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo')) { 
-        const auth = await this.hasAuthObjetivo(
-          anio,
-          mes,
-          res,
-          Number(objetivoId),
-          dataSource
-        );
-  
-      }
-
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), dataSource))
+        throw new ClientException(`No tiene permisos para listar asistencia del objetivo`)
 
       const result = await dataSource.query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion,
@@ -1350,13 +1323,8 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       const mes = req.params.mes;
       let personalId:number[] =[] 
 
-      const auth = await this.hasAuthObjetivo(
-        anio,
-        mes,
-        res,
-        Number(objetivoId),
-        dataSource
-      );
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), dataSource))
+        throw new ClientException(`No tiene permisos para listar descuentos de personal del objetivo`)
 
       const personas = await dataSource.query(
         `SELECT DISTINCT 
@@ -1421,13 +1389,8 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       var desde = new Date(anio, mes - 1, 1);
 
 
-      const auth = await this.hasAuthObjetivo(
-        anio,
-        mes,
-        res,
-        Number(objetivoId),
-        queryRunner
-      );
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
+        throw new ClientException(`No tiene permisos para realizar consulta de asistencia por objetivo`)
 
       const result = await AsistenciaController.getObjetivoAsistencia(anio,mes,[`obj.ObjetivoId = ${objetivoId}`],queryRunner)
 
