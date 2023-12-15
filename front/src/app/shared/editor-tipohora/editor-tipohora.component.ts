@@ -3,7 +3,6 @@ import { Subject } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
-// import { X } from 'dist/chunk-RPA3BUAA';
 
 @Component({
   selector: 'app-tipohora-persona',

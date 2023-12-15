@@ -26,6 +26,65 @@ $slick-icon-width:                                          18px !default;
   margin-bottom: auto;
 }
 
+.slickgrid-container {
+  .grid-canvas .slick-cell {
+    padding: 1px;
+  }
+ 
+  .slick-row .slick-cell.active {
+    padding: 1px;
+  }
+  
+  .slick-header-columns .slick-header-column.ui-state-default {
+    padding: 1px 1px 6px;
+    //  font-size: var(--slick-font-size-base, 14px);
+  }
+
+  app-objetivo-search ,
+  app-personal-search ,
+  app-categoria-persona ,
+  app-tipohora-persona  {
+    > .ant-select-single .ant-select-selector .ant-select-selection-item, .ant-select-single .ant-select-selector .ant-select-selection-placeholder {
+      line-height: unset;
+
+    }
+
+    > .ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
+      width: 100%;
+      height: 26px;
+      padding: 0 3px;
+    }
+
+    > .ant-select-single .ant-select-selector .ant-select-selection-search {
+      left: 2px;
+    }
+
+    > .ant-select-single .ant-select-selector .ant-select-selection-item {
+      padding: 0;
+    }
+    
+
+    > .ant-select-single .ant-select-selector .ant-select-selection-placeholder {
+      padding: 0;
+    }
+
+    > .ant-select-single:not(.ant-select-customize-input) .ant-select-selector .ant-select-selection-search-input {
+      /* height: 30px; */
+      height: unset;
+    }
+
+  }
+
+  app-editor-persona > nz-select,
+  app-categoria-persona > nz-select,
+  app-tipohora-persona > nz-select {
+    display:block;
+    width: 100%;
+  }
+  
+}
+
+
 
 //  .detail-view-toggle {
 //    display: none !important;
