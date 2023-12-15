@@ -39,7 +39,7 @@ export class EditorPersonaComponent {
 
   onKeydown(event: KeyboardEvent) {
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
-      event.stopImmediatePropagation()
+//      event.stopImmediatePropagation()
     }
   }
 

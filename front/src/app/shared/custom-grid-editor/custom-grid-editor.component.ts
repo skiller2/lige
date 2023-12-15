@@ -86,7 +86,7 @@ export class CustomGridEditor implements Editor {
 
       // here we override the collection object of the Angular Component
       // but technically you can pass any values you wish to your Component
-      Object.assign(this.componentRef.instance, { collection: this.collection });
+      Object.assign(this.componentRef.instance, { collection: this.collection, item:this.args.item });
 
       // when our model (item object) changes, we'll call a save of the slickgrid editor
       this._subscriptions.push(

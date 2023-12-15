@@ -51,6 +51,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   private propagateChange: (_: any) => void = noop
 
   registerOnChange(fn: any) {
+
     this.propagateChange = fn
   }
 
@@ -59,6 +60,9 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
 
   onChange() {
+    console.log('onChange',this.psc)
+//    this.psc?.focus()
+
   }
 
   onRemove() {
@@ -75,7 +79,8 @@ export class PersonalSearchComponent implements ControlValueAccessor {
 
   onKeydown(event: KeyboardEvent) {
 //    this._lastInputEvent = event;
-    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+//    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+    if ( event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
       event.stopImmediatePropagation()
     }
   }
@@ -85,7 +90,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   ngAfterViewInit() {
     setTimeout(() => {
       this.psc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-      this.psc.focus()
+      this.psc.focus()  //Al hacer click en el componente hace foco
      
     }, 1);
   }
@@ -96,6 +101,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
 
   set selectedId(val: string) {
+    this.psc?.focus()
     val = (val === null || val === undefined) ? '' : val
     if (val !== this._selectedId) {
       this._selectedId = val

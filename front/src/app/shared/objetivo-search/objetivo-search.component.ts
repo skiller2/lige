@@ -86,7 +86,7 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
     setTimeout(() => {
       this.osc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
 
-      this.osc.focus()
+      this.osc.focus() //Al hacer click en el componente hace foco
     }, 1);
   }
 
@@ -95,6 +95,8 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
   }
 
   set selectedId(val: string) {
+    this.osc?.focus()
+
     val = (val === null || val === undefined) ? '' : val
     if (val !== this._selectedId) {
       this._selectedId = val
