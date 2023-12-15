@@ -13,7 +13,7 @@ import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detai
 import { SHARED_IMPORTS } from '@shared';
 import { CustomGridEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
-import { SearchService } from '../../../services/search.service';
+import { SearchService } from 'src/app/services/search.service';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { SettingsService } from '@delon/theme';
@@ -313,6 +313,8 @@ export class CargaAsistenciaComponent {
             total:total
         }
         this.angularGridEdit.gridService.updateItemById(idItemGrid, updateItem)
+
+        //this.apiService.addAsistencia(this.gridDataInsert[idItemGrid])
     }
     
     selectedObjetivoChange(event: string, busqueda: Busqueda): void {

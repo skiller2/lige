@@ -31,3 +31,6 @@ asistenciaRouter.post('/excepcion', authMiddleware.verifyToken, (req, res, next)
 
 
 asistenciaRouter.delete('/excepcion/:anio/:mes/:ObjetivoId/:PersonalId/:metodo/:metodologiaId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.deleteExcepcion(req, res, next) })
+
+asistenciaRouter.post("/agregarAsistencia", authMiddleware.verifyToken, (req, res, next) => {  asistenciaController.addAsitencia(req, res, next);});
+

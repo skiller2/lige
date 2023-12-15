@@ -1443,4 +1443,6 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
 
     this.jsonRes(recordSet, res);
   }
+
+  async addAsitencia(req: any, res: Response, next: NextFunction) {}
 }
