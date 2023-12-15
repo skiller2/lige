@@ -564,6 +564,12 @@ export class ApiService {
       tiempoConsido = `<BR> Tiempo consumidio ${formatNumber(Number(res.ms) / 1000, this.locale, '1.2-2')} segundos`
     this.notification.success('Respuesta', `${res.msg} ${tiempoConsido}`);
   }
+
+  addAsistencia(asistencia: any){
+    console.log('asistencia',asistencia);
+    return this.http.post<ResponseJSON<any>>(`/api/asistencia/agregarasistencia`, asistencia).pipe(map(res => res.data));
+  }
+  
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {
