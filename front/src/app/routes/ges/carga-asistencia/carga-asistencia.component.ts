@@ -17,6 +17,8 @@ import { SearchService } from 'src/app/services/search.service';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { SettingsService } from '@delon/theme';
+import { EditorTipoHoraComponent } from 'src/app/shared/editor-tipohora/editor-tipohora.component';
+import { EditorCategoriaComponent } from 'src/app/shared/editor-categoria/editor-categoria.component';
 enum Busqueda {
     Sucursal,
     Objetivo,
@@ -122,24 +124,19 @@ export class CargaAsistenciaComponent {
                 id: 'forma', name: 'Forma', field: 'forma',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 150,
-                minWidth: 50,
+                maxWidth: 100,
+                minWidth: 100,
+                formatter: Formatters.complexObject,
+                params: {
+                    complexFieldLabel: 'forma.fullName',
+                  },
 
                 editor: {
-                    model: Editors.singleSelect,
-                    collection: ['HORAS NORMALES', 'CAPACITACION'],
-                    alwaysSaveOnEnterKey: true,
-                    // required: true
-                },
-            },
-            {
-                id: 'tipo', name: 'Tipo', field: 'tipo',
-                sortable: true,
-                type: FieldType.string,
-                maxWidth: 100,
-                editor: {
-                    model: Editors.singleSelect,
+                    model: CustomGridEditor,
                     collection: [],
+                    params: {
+                      component: EditorTipoHoraComponent,
+                    },
                     alwaysSaveOnEnterKey: true,
                     // required: true
                 },
@@ -148,12 +145,19 @@ export class CargaAsistenciaComponent {
                 id: 'categoria', name: 'Categoria', field: 'categoria',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 150,
-                minWidth: 150,
+                maxWidth: 200,
+                minWidth: 200,
+                formatter: Formatters.complexObject,
+                params: {
+                    complexFieldLabel: 'categoria.fullName',
+                  },
 
                 editor: {
-                    model: Editors.singleSelect,
+                    model: CustomGridEditor,
                     collection: [],
+                    params: {
+                      component: EditorCategoriaComponent,
+                    },
                     alwaysSaveOnEnterKey: true,
                     // required: true
                 },
@@ -285,7 +289,7 @@ export class CargaAsistenciaComponent {
 
         this.columnas = [...this.columnDefinitions, ...daysOfMonth];
         
-        this.angularGridEdit.slickGrid.setOptions({ frozenColumn: 3 })
+        this.angularGridEdit.slickGrid.setOptions({ frozenColumn: 2 })
         this.angularGridEdit.slickGrid.reRenderColumns(true)
         this.clearAngularGrid()
     }
@@ -324,6 +328,7 @@ export class CargaAsistenciaComponent {
     }
 
     personChange(e: Event, args: any) {
+        /*
         if(args.dataContext.apellidoNombre?.id){
             const idPersona = args.dataContext.apellidoNombre.id
             const idItemGrid = args.dataContext.id
@@ -349,6 +354,7 @@ export class CargaAsistenciaComponent {
                 }
             })
         }
+        */
     }
 
     editColumnSelectOptions(column: string, array:Object[], campo:string, columns: any){

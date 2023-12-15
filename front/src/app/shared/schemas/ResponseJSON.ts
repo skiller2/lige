@@ -53,3 +53,5 @@ export interface ObjetivoInfo {
   descripcion: string;
   fullName: string;
 }
+
+

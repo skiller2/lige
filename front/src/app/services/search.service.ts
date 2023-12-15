@@ -123,9 +123,11 @@ export class SearchService {
         fieldName: fieldName,
         value: values,
       })
+      
       .pipe(
         map(res => {
-          if (res.data.recordsArray) return res.data.recordsArray;
+          if (res.data.recordsArray)
+           return res.data.recordsArray;
           else return [];
         }),
         catchError((err, caught) => {
