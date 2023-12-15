@@ -32,16 +32,7 @@ enum Busqueda {
     styleUrls: ['./carga-asistencia.component.less'],
     standalone: true,
     encapsulation: ViewEncapsulation.None,
-  imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule,PersonalSearchComponent,ObjetivoSearchComponent],
-
-    // imports: [
-    //     CommonModule,
-    //     SHARED_IMPORTS,
-    //     NzAffixModule,
-    //     FiltroBuilderComponent,
-    //     RowPreloadDetailComponent,
-    //     RowDetailViewComponent,
-    // ],
+    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule,PersonalSearchComponent,ObjetivoSearchComponent],
     providers: [AngularUtilService]
 })
 export class CargaAsistenciaComponent {
@@ -68,7 +59,9 @@ export class CargaAsistenciaComponent {
     angularGridEdit!: AngularGridInstance;
     detailViewRowCount = 1;
     selectedPeriod = { year: 0, month: 0 };
-    
+    selectedSucursalId = 0    
+    objetivoData : any
+
     public get Busqueda() {
         return Busqueda;
     }
@@ -76,6 +69,7 @@ export class CargaAsistenciaComponent {
     $isObjetivoDataLoading = new BehaviorSubject(false);
     $selectedObjetivoIdChange = new BehaviorSubject('');
     objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
+
 
     $objetivoResponsables = this.$selectedObjetivoIdChange.pipe(
         debounceTime(50),
@@ -156,7 +150,9 @@ export class CargaAsistenciaComponent {
                     model: CustomGridEditor,
                     collection: [],
                     params: {
-                      component: EditorCategoriaComponent,
+                        component: EditorCategoriaComponent,
+//                        anio: this.getPeriodo().year,
+//                        mes: this.getPeriodo().month,
                     },
                     alwaysSaveOnEnterKey: true,
                     // required: true
@@ -291,6 +287,20 @@ export class CargaAsistenciaComponent {
         
         this.angularGridEdit.slickGrid.setOptions({ frozenColumn: 2 })
         this.angularGridEdit.slickGrid.reRenderColumns(true)
+        const colCategoria = this.columnas.filter(col => col.id == 'categoria')
+//        colCategoria[0].editor.params.anio = this.selectedPeriod.year
+//        colCategoria[0].editor.params.mes = this.selectedPeriod.month
+
+
+
+        this.gridOptionsEdit.params.anio = this.selectedPeriod.year
+        this.gridOptionsEdit.params.mes = this.selectedPeriod.month
+        this.gridOptionsEdit.params.ObjetivoId = this.selectedObjetivoId
+        this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
+
+        this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
+
+        
         this.clearAngularGrid()
     }
 

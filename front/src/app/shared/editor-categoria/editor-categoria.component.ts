@@ -1,5 +1,5 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Subject, firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
@@ -23,7 +23,8 @@ export class EditorCategoriaComponent {
   selectedId: number = 0; //Lo utiliza la grilla para pasar el valor
   selectedItem: any;
   collection?: any[]; // this will be filled by the collection of your column definition
-  item?:any
+  item?: any
+  params?:any
   onItemChanged = new Subject<any>();    // object
   valueExtended!: any
   optionsArray: any 
@@ -48,21 +49,14 @@ export class EditorCategoriaComponent {
   }
 
 
-  ngOnInit() {
-    const anio = 2023
-    const mes = 11
+  async ngOnInit() {
     //    this.element.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
     //    this.eto.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
     if (this.item.apellidoNombre.id) { 
-      this.searchService.getCategoriasPersona(
-        Number(this.item.apellidoNombre.id),
-        anio,
-        mes
-      ).subscribe((datos: any) => {
-        this.optionsArray = datos.categorias
-        if (this.selectedId==0)
-          this.onChange(datos.categorias[0].PersonalCategoriaCategoriaPersonalId)
-      })
+      const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(Number(this.item.apellidoNombre.id),this.params?.anio,this.params?.mes))
+      this.optionsArray = categorias.categorias
+      if (this.selectedId==0)
+        this.onChange(categorias.categorias[0].PersonalCategoriaCategoriaPersonalId)
     }
   }
 
