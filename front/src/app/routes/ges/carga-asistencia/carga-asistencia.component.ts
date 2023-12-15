@@ -170,11 +170,6 @@ export class CargaAsistenciaComponent {
         this.gridOptionsEdit.autoEdit = true
 
         this.gridOptionsEdit.enableAutoSizeColumns = true
-        //this.gridOptionsEdit.frozenColumn = 1
-        //this.gridOptionsEdit.enableAutoResize = false
-        // this.gridOptionsEdit.enableColumnReorder = false
-        // this.gridOptionsEdit.enableAutoResizeColumnsByCellContent = true
-        // this.gridOptionsEdit.enableAutoTooltip = true
         this.gridOptionsEdit.fullWidthRows = true
 
         this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
@@ -182,6 +177,8 @@ export class CargaAsistenciaComponent {
             const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
             if (lastrow && (lastrow.apellidoNombre)) {
                 this.addNewItem("bottom")
+            }else if (!row.apellidoNombre.id && (row.id != lastrow.id)){
+                this.angularGridEdit.gridService.deleteItemById(row.id)
             }
         }
     }
@@ -317,8 +314,7 @@ export class CargaAsistenciaComponent {
             total:total
         }
         this.angularGridEdit.gridService.updateItemById(idItemGrid, updateItem)
-
-        //this.apiService.addAsistencia(this.gridDataInsert[idItemGrid])
+        //this.insertDB(args.dataContext.id)
     }
     
     selectedObjetivoChange(event: string, busqueda: Busqueda): void {
@@ -369,6 +365,18 @@ export class CargaAsistenciaComponent {
             collection: options
         }
         
+    }
+
+    async insertDB(rowId: string | number){
+        if (this.selectedObjetivoId) {
+            let{id, ...item} = this.angularGridEdit.dataView.getItemById(rowId)
+            item = {
+                ...this.selectedPeriod,
+                objetivoId: this.selectedObjetivoId,
+                ...item,
+            }
+            this.apiService.addAsistencia(item)
+        }
     }
 
 }

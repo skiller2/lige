@@ -565,8 +565,9 @@ export class ApiService {
     this.notification.success('Respuesta', `${res.msg} ${tiempoConsido}`);
   }
 
-  addAsistencia(asistencia: object){
-    return this.http.post<ResponseJSON<any>>(`api/asitencia/agregarAsistencia`, asistencia).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
+  addAsistencia(asistencia: any){
+    console.log('asistencia',asistencia);
+    return this.http.post<ResponseJSON<any>>(`/api/asistencia/agregarasistencia`, asistencia).pipe(map(res => res.data));
   }
   
 }

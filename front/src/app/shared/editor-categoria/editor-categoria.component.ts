@@ -34,6 +34,7 @@ export class EditorCategoriaComponent {
     const selopt: any = this.optionsArray.filter((v:any) => v.PersonalCategoriaCategoriaPersonalId == item)
     this.selectedId = item
     this.selectedItem = { id: item, fullName: selopt[0].CategoriaPersonalDescripcion }
+    this.item.tipo = { id: selopt[0].TipoAsociadoId, fullName: selopt[0].TipoAsociadoDescripcion }
   }
 
   focus() {
