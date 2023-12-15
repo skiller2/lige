@@ -81,10 +81,11 @@ export class CargaAsistenciaComponent {
               this.selectedPeriod.year,
               this.selectedPeriod.month
             )
-            .pipe(
+              .pipe(
+                //  switchMap((data)=>this.objetivoData = data[0]),
               doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
               tap({
-                complete: () => this.objetivoResponsablesLoading$.next(false),
+                  complete: () => { this.objetivoResponsablesLoading$.next(false) },
               })
             );
         })
@@ -324,13 +325,16 @@ export class CargaAsistenciaComponent {
             total:total
         }
         this.angularGridEdit.gridService.updateItemById(idItemGrid, updateItem)
-        //this.insertDB(args.dataContext.id)
+        this.insertDB(args.dataContext.id)
     }
     
     selectedObjetivoChange(event: string, busqueda: Busqueda): void {
         this.$selectedObjetivoIdChange.next(event);
         this.$isObjetivoDataLoading.next(true);
         this.clearAngularGrid()
+
+//        this.objetivoData.
+        
     }
 
     personChange(e: Event, args: any) {
@@ -386,6 +390,15 @@ export class CargaAsistenciaComponent {
                 ...item,
             }
             this.apiService.addAsistencia(item)
+            .pipe(
+ //               doOnSubscribe(() => this.saveLoading$.next(true)),
+                tap({
+                  complete: () => {
+                  },
+//                  finalize: () => this.saveLoading$.next(false),
+                })
+              )
+              .subscribe();
         }
     }
 
