@@ -177,6 +177,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     if (inputSearch)
       inputSearch.click()
   }
+  
 
   //
   // Filtros

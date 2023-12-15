@@ -6,7 +6,6 @@ export const pendieteRouter = Router();
 const base = "";
 
 pendieteRouter.post(`${base}/search`, authMiddleware.verifyToken,(req, res, next) => {
-    console.log("estoy en el back 1......................")
     pendienteController.search(req, res, next);
   }
 );

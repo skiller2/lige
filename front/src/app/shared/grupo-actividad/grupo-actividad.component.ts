@@ -111,9 +111,8 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
         this.searchService
           .getGrupoActividad('GrupoActividadId', this._selectedId)
           .pipe(tap(res => {
-            // if (res[0]?.PersonalId)
-            // this.extendedOption = res[0]
-            console.log("estoy aca 2 " + res[0])
+             if (res[0]?.GrupoActividadId)
+             this.extendedOption = res[0]
             this._selected = this._selectedId
             this.valueExtendedEmitter.emit(this.extendedOption)
             this.propagateChange(this._selectedId)
