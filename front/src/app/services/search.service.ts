@@ -76,6 +76,21 @@ export class SearchService {
       );
   }
 
+  getObjetivoDetalle(objetivoId: number, anio: number, mes: number) { 
+  if (!objetivoId) {
+      return of([]);
+    }
+    return this.http
+      .get<ResponseJSON<any>>(`api/objetivos/detalle/${anio}/${mes}/${objetivoId}`)
+      .pipe(
+        map(res => res.data),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
   getObjetivo(objetivoId: number, anio: number, mes: number) {
     if (!objetivoId) {
       return of([]);

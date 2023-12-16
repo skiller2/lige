@@ -18,6 +18,54 @@ export class ObjetivoController extends BaseController {
     }
   }
 
+  async getObjetivoDetalle(objetivoId: number, anio: number, mes: number, res: Response,next:NextFunction) {
+    let fechaHasta = new Date(anio, mes, 1);
+    fechaHasta.setDate(fechaHasta.getDate() - 1);
+
+    dataSource
+      .query(
+        `SELECT DISTINCT suc.SucursalId,
+                 
+        obj.ObjetivoId, 
+        obj.ClienteId,
+        obj.ClienteElementoDependienteId,
+        obj.ObjetivoDescripcion,
+--        ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
+--        gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
+--	  CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombreCoordinador,
+--      opj.ObjetivoPersonalJerarquicoDesde,opj.ObjetivoPersonalJerarquicoHasta,
+--		  per.PersonalId AS PersonalIdCoordinador,
+      ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) ContratoFechaDesde,
+      ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,clicon.ClienteContratoFechaHasta) ContratoFechaHasta,
+      
+        1
+        
+        FROM Objetivo obj 
+
+        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId  AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+        LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND @0 >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0
+        
+        LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = eledep.ClienteId AND domdep.ClienteElementoDependienteId  = eledep.ClienteElementoDependienteId
+        LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL
+        LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL AND @0 >= clicon.ClienteContratoFechaDesde AND ISNuLL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= @0  
+        
+        LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+        
+
+            WHERE obj.ObjetivoId=@1`,
+        [fechaHasta, objetivoId]
+      )
+      .then((records: Array<any>) => {
+        //                if (records.length != 1) throw new ClientException('Objetivo not found')
+        this.jsonRes(records, res);
+      })
+      .catch((error) => {
+        return next(error);
+      });
+  }
+
+
   async getById(objetivoId: number, anio: number, mes: number, res: Response,next:NextFunction) {
     let fechaHasta = new Date(anio, mes, 1);
     fechaHasta.setDate(fechaHasta.getDate() - 1);

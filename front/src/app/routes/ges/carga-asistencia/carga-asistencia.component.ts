@@ -6,7 +6,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption } from 'angular-slickgrid';
 import { NzModalService } from "ng-zorro-antd/modal";
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { BehaviorSubject, debounceTime, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
@@ -82,7 +82,7 @@ export class CargaAsistenciaComponent {
               this.selectedPeriod.month
             )
               .pipe(
-                //  switchMap((data)=>this.objetivoData = data[0]),
+//                  switchMap((data:any) => { return data}),
               doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
               tap({
                   complete: () => { this.objetivoResponsablesLoading$.next(false) },
@@ -328,13 +328,14 @@ export class CargaAsistenciaComponent {
         this.insertDB(args.dataContext.id)
     }
     
-    selectedObjetivoChange(event: string, busqueda: Busqueda): void {
+    async selectedObjetivoChange(event: string, busqueda: Busqueda): Promise<void> {
         this.$selectedObjetivoIdChange.next(event);
         this.$isObjetivoDataLoading.next(true);
-        this.clearAngularGrid()
 
-//        this.objetivoData.
-        
+        const detalle = await firstValueFrom(this.searchService.getObjetivoDetalle(Number(event), this.selectedPeriod.year, this.selectedPeriod.month))
+console.log('detalle',detalle)
+
+        this.clearAngularGrid()
     }
 
     personChange(e: Event, args: any) {
