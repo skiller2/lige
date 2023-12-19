@@ -3,6 +3,7 @@ import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
 import { Any, QueryRunner, QueryRunnerAlreadyReleasedError } from "typeorm";
 import { clienteController } from "./controller.module";
+import { ObjetivoController } from "./objetivo.controller";
 
 
 export class AsistenciaController extends BaseController {
@@ -18,7 +19,7 @@ export class AsistenciaController extends BaseController {
 
     try {
       await queryRunner.startTransaction()
-      this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner)
+      await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner)
       await queryRunner.commitTransaction();
       this.jsonRes([], res, `Período habilitado para el objetivo`);
     } catch (error) {
@@ -34,93 +35,99 @@ export class AsistenciaController extends BaseController {
 
   async addAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number, queryRunner: QueryRunner) {
 
-      const cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
-      if (cabecera.length == 0)
-        throw new ClientException('Objetivo no localizado')
 
-      let ObjetivoAsistenciaAnoUltNro = cabecera[0].ObjetivoAsistenciaAnoId
+    const cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
+    if (cabecera.length == 0)
+      throw new ClientException('Objetivo no localizado')
 
-      if (cabecera[0].ObjetivoAsistenciaAnoAno == null) {
-        ObjetivoAsistenciaAnoUltNro = cabecera[0].ObjetivoAsistenciaAnoUltNro + 1
+    const contratos = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
+    if (contratos.length == 0)
+      throw new ClientException(`No tiene contrato vigente para el período ${anio}/${mes}`)
+      
+    
+    let ObjetivoAsistenciaAnoUltNro = cabecera[0].ObjetivoAsistenciaAnoId
 
-        await queryRunner.query(
-          `INSERT ObjetivoAsistenciaAno (ObjetivoAsistenciaAnoId,ObjetivoId,ObjetivoAsistenciaAnoAno,ObjetivoAsistenciaAnoMesUltNro) VALUES(@0,@1,@2,@3)
+    if (cabecera[0].ObjetivoAsistenciaAnoAno == null) {
+      ObjetivoAsistenciaAnoUltNro = cabecera[0].ObjetivoAsistenciaAnoUltNro + 1
+
+      await queryRunner.query(
+        `INSERT ObjetivoAsistenciaAno (ObjetivoAsistenciaAnoId,ObjetivoId,ObjetivoAsistenciaAnoAno,ObjetivoAsistenciaAnoMesUltNro) VALUES(@0,@1,@2,@3)
           `, [ObjetivoAsistenciaAnoUltNro, ObjetivoId, anio, 0]
-        );
-        await queryRunner.query(
-          ` UPDATE Objetivo SET ObjetivoAsistenciaAnoUltNro = @1 WHERE ObjetivoId = @0
+      );
+      await queryRunner.query(
+        ` UPDATE Objetivo SET ObjetivoAsistenciaAnoUltNro = @1 WHERE ObjetivoId = @0
           `, [ObjetivoId, ObjetivoAsistenciaAnoUltNro]
-        );
-      }
+      );
+    }
 
-      if (cabecera[0].ObjetivoAsistenciaAnoMesMes == null) { //Da de alta el mes para el objetivo
-        const ano = await queryRunner.query(`SELECT ObjetivoAsistenciaAnoMesUltNro FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId =@1 `, [ObjetivoId, ObjetivoAsistenciaAnoUltNro])
-        const ObjetivoAsistenciaAnoMesUltNro = Number(ano[0].ObjetivoAsistenciaAnoMesUltNro) + 1
-        let fechaActual = new Date()
-        fechaActual.setHours(0, 0, 0, 0)
+    if (cabecera[0].ObjetivoAsistenciaAnoMesMes == null) { //Da de alta el mes para el objetivo
+      const ano = await queryRunner.query(`SELECT ObjetivoAsistenciaAnoMesUltNro FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId =@1 `, [ObjetivoId, ObjetivoAsistenciaAnoUltNro])
+      const ObjetivoAsistenciaAnoMesUltNro = Number(ano[0].ObjetivoAsistenciaAnoMesUltNro) + 1
+      let fechaActual = new Date()
+      fechaActual.setHours(0, 0, 0, 0)
 
-        await queryRunner.query(
-          `INSERT ObjetivoAsistenciaAnoMes (ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaAnoMesMes, ObjetivoAsistenciaAnoMesMeses, ObjetivoAsistenciaAnoMesDesde, ObjetivoAsistenciaAnoMesHasta,
+      await queryRunner.query(
+        `INSERT ObjetivoAsistenciaAnoMes (ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaAnoMesMes, ObjetivoAsistenciaAnoMesMeses, ObjetivoAsistenciaAnoMesDesde, ObjetivoAsistenciaAnoMesHasta,
             ObjetivoAsistenciaAnoMesDiaUltNro, ObjetivoAsistenciaAnoMesPersonalUltNro, ObjetivoAsistenciaAnoMesDiasPersonalUltNro, ObjetivoAsistenciaAnoMesPersonalDiasUltNro, ObjetivoAsistenciaAnoMesDiaPersonalUltNro,
             ObjetivoAsistenciaAnoMesTraspasaUltimaAsistencia, ObjetivoAsistenciaAnoMesRectificativa)
           VALUES(@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13)
         `, [ObjetivoAsistenciaAnoMesUltNro, ObjetivoAsistenciaAnoUltNro, ObjetivoId, mes, mes, fechaActual, null, 0, 0, 0, 0, 0, 'N', 0]
-        );
+      );
 
-        await queryRunner.query(
-          ` UPDATE ObjetivoAsistenciaAno SET ObjetivoAsistenciaAnoMesUltNro=@2 WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = @1
+      await queryRunner.query(
+        ` UPDATE ObjetivoAsistenciaAno SET ObjetivoAsistenciaAnoMesUltNro=@2 WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = @1
         `, [ObjetivoId, ObjetivoAsistenciaAnoUltNro, ObjetivoAsistenciaAnoMesUltNro]
-        );
-      }
-
-      if (cabecera[0].ObjetivoAsistenciaAnoMesHasta != null) {
-        const result = await queryRunner.query(
-          ` UPDATE ObjetivoAsistenciaAnoMes SET ObjetivoAsistenciaAnoMesHasta = NULL WHERE ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
-          `, [cabecera[0].ObjetivoId, cabecera[0].ObjetivoAsistenciaAnoId, cabecera[0].ObjetivoAsistenciaAnoMesId]
-        );
-      }
-      return cabecera[0]
+      );
     }
+
+    if (cabecera[0].ObjetivoAsistenciaAnoMesHasta != null) {
+      const result = await queryRunner.query(
+        ` UPDATE ObjetivoAsistenciaAnoMes SET ObjetivoAsistenciaAnoMesHasta = NULL WHERE ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
+          `, [cabecera[0].ObjetivoId, cabecera[0].ObjetivoAsistenciaAnoId, cabecera[0].ObjetivoAsistenciaAnoMesId]
+      );
+    }
+    return cabecera[0]
+  }
 
   async endAsistenciaPeriodo(req: any, res: Response, next: NextFunction) {
-      const {
-        anio,
-        mes,
-        ObjetivoId,
-      } = req.body;
+    const {
+      anio,
+      mes,
+      ObjetivoId,
+    } = req.body;
 
-      const queryRunner = dataSource.createQueryRunner();
-      let fechaActual = new Date()
-      fechaActual.setHours(0, 0, 0, 0)
+    const queryRunner = dataSource.createQueryRunner();
+    let fechaActual = new Date()
+    fechaActual.setHours(0, 0, 0, 0)
 
-      try {
-        await queryRunner.startTransaction()
-        const cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
-        if (cabecera.length == 0)
-          throw new ClientException('Objetivo no localizado')
+    try {
+      await queryRunner.startTransaction()
+      const cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
+      if (cabecera.length == 0)
+        throw new ClientException('Objetivo no localizado')
 
-        if (cabecera[0].ObjetivoAsistenciaAnoId == null || cabecera[0].ObjetivoAsistenciaAnoMesId == null)
-          throw new ClientException('Periodo de carga de asitencia no generado')
+      if (cabecera[0].ObjetivoAsistenciaAnoId == null || cabecera[0].ObjetivoAsistenciaAnoMesId == null)
+        throw new ClientException('Periodo de carga de asitencia no generado')
 
-        if (cabecera[0].ObjetivoAsistenciaAnoMesHasta == null) {
-          const result = await queryRunner.query(
-            `UPDATE ObjetivoAsistenciaAnoMes SET ObjetivoAsistenciaAnoMesHasta = @3 WHERE ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
+      if (cabecera[0].ObjetivoAsistenciaAnoMesHasta == null) {
+        const result = await queryRunner.query(
+          `UPDATE ObjetivoAsistenciaAnoMes SET ObjetivoAsistenciaAnoMesHasta = @3 WHERE ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
           `, [ObjetivoId, cabecera[0].ObjetivoAsistenciaAnoId, cabecera[0].ObjetivoAsistenciaAnoMesId, fechaActual]
-          );
-        }
-
-        await queryRunner.commitTransaction();
-
-        this.jsonRes([], res, `Período finalizado para el objetivo ${cabecera[0].ObjetivoCodigo} ${cabecera[0].ObjetivoDescripcion}`)
-      } catch (error) {
-        if (queryRunner.isTransactionActive)
-          await queryRunner.rollbackTransaction()
-        return next(error)
-      } finally {
-        // you need to release query runner which is manually created:
-        await queryRunner.release()
+        );
       }
+
+      await queryRunner.commitTransaction();
+
+      this.jsonRes([], res, `Período finalizado para el objetivo ${cabecera[0].ObjetivoCodigo} ${cabecera[0].ObjetivoDescripcion}`)
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction()
+      return next(error)
+    } finally {
+      // you need to release query runner which is manually created:
+      await queryRunner.release()
     }
+  }
 
   static async getIngresosExtra(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[]) {
     const listPersonaId = (personalId.length == 0) ? '' : 'AND ingext.persona_id IN (' + personalId.join(',') + ')'
@@ -318,7 +325,8 @@ export class AsistenciaController extends BaseController {
       `SELECT obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, 
       obj.ObjetivoId, 
       obja.ObjetivoAsistenciaAnoId, 
-    objm.ObjetivoAsistenciaAnoMesId, 
+    objm.ObjetivoAsistenciaAnoMesId,
+    obj.ObjetivoAsistenciaAnoUltNro,
       
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
       obj.ObjetivoDescripcion,
@@ -339,12 +347,12 @@ export class AsistenciaController extends BaseController {
   }
 
   static async checkAsistenciaObjetivo(ObjetivoId: number, anio: number, mes: number, queryRunner: any) {
-    let resultObjs = await this.getObjetivoAsistenciaCabecera(anio,mes,ObjetivoId,queryRunner)
+    let resultObjs = await this.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
 
     if (resultObjs.length == 0)
       return new ClientException(`El objetivo no se localizó`)
-    if (resultObjs[0].ObjetivoAsistenciaAnoAno==null ||  resultObjs[0].ObjetivoAsistenciaAnoMesMes==null)
-      return new ClientException(`El objetivo seleccionado no tiene habilitada la carga de asistencia para el período ${anio}/${mes}`)
+    if (resultObjs[0].ObjetivoAsistenciaAnoAno == null || resultObjs[0].ObjetivoAsistenciaAnoMesMes == null)
+      return new ClientException(`El objetivo seleccionado no tiene habilitada la carga de asistencia para el período ${anio}/${mes}`, {}, 100102)
     if (resultObjs[0].ObjetivoAsistenciaAnoMesHasta != null)
       return new ClientException(`El objetivo seleccionado tiene cerrada la carga de asistencia para el período ${anio}/${mes} el ${new Date(resultObjs[0].ObjetivoAsistenciaAnoMesHasta).toLocaleDateString('en-GB')}`)
 
@@ -460,18 +468,16 @@ export class AsistenciaController extends BaseController {
       }
 
       const val = await AsistenciaController.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
-      if (val !== true) {
-        throw val
-        
-        try {
-          await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner)
-        } catch (e) { 
-          throw new e
-        }
-        
+      if (val instanceof ClientException) {
+        if (val.code == 100102) {
+          try {
+            await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner)
+          } catch (e) {
+            throw new e
+          }
+        } else
+          throw val
       }
-        
-
 
       //Traigo el Art14 para analizarlo
 

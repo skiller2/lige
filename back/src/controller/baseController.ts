@@ -2,7 +2,7 @@ import { NextFunction, Response } from "express";
 import { DataSource, QueryRunner } from "typeorm";
 
 export class ClientException extends Error {
-  constructor(message: string, public extended: any = '') {
+  constructor(message: string, public extended: any = '', public code:number=0) {
     super(message);
     this.name = "ClientException";
     if (extended)

@@ -26,7 +26,7 @@ objetivoRouter.get(
   "/contratos/:anio/:mes/:objetivoId",
   authMiddleware.verifyToken,
   (req, res, next) => {
-    objetivoController.getObjetivoContratos(
+    objetivoController.getObjetivoContratosResponse(
       Number(req.params.objetivoId),
       Number(req.params.anio),
       Number(req.params.mes),
