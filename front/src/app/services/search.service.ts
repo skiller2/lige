@@ -76,14 +76,14 @@ export class SearchService {
       );
   }
 
-  getObjetivoDetalle(objetivoId: number, anio: number, mes: number) { 
+  getObjetivoContratos(objetivoId: number, anio: number, mes: number) { 
   if (!objetivoId) {
       return of([]);
     }
     return this.http
-      .get<ResponseJSON<any>>(`api/objetivos/detalle/${anio}/${mes}/${objetivoId}`)
+      .get<ResponseJSON<any>>(`api/objetivos/contratos/${anio}/${mes}/${objetivoId}`)
       .pipe(
-        map(res => res.data),
+        map(res => res.data ),
         catchError((err, caught) => {
           console.log('Something went wrong!');
           return of([]);

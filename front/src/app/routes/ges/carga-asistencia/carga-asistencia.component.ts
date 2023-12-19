@@ -6,7 +6,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption } from 'angular-slickgrid';
 import { NzModalService } from "ng-zorro-antd/modal";
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { BehaviorSubject, debounceTime, firstValueFrom, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, of, shareReplay, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
@@ -23,8 +23,9 @@ enum Busqueda {
     Sucursal,
     Objetivo,
     Personal,
-    Responsable
-  }
+    Responsable,
+    Periodo
+}
 
 @Component({
     selector: 'app-carga-asistencia',
@@ -32,7 +33,7 @@ enum Busqueda {
     styleUrls: ['./carga-asistencia.component.less'],
     standalone: true,
     encapsulation: ViewEncapsulation.None,
-    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule,PersonalSearchComponent,ObjetivoSearchComponent],
+    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent],
     providers: [AngularUtilService]
 })
 export class CargaAsistenciaComponent {
@@ -59,37 +60,52 @@ export class CargaAsistenciaComponent {
     angularGridEdit!: AngularGridInstance;
     detailViewRowCount = 1;
     selectedPeriod = { year: 0, month: 0 };
-    selectedSucursalId = 0    
-    objetivoData : any
+    selectedSucursalId = 0
+    objetivoData: any
 
     public get Busqueda() {
         return Busqueda;
     }
-    selectedObjetivoId = '';
+    selectedObjetivoId: number = 0
     $isObjetivoDataLoading = new BehaviorSubject(false);
-    $selectedObjetivoIdChange = new BehaviorSubject('');
+    $selectedObjetivoIdChange = new BehaviorSubject(0);
     objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
 
 
     $objetivoResponsables = this.$selectedObjetivoIdChange.pipe(
         debounceTime(50),
         switchMap(objetivoId => {
-          if (!objetivoId) return [];
-          return this.searchService
-            .getObjetivo(
-              Number(objetivoId),
-              this.selectedPeriod.year,
-              this.selectedPeriod.month
-            )
-              .pipe(
-//                  switchMap((data:any) => { return data}),
-              doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
-              tap({
-                  complete: () => { this.objetivoResponsablesLoading$.next(false) },
-              })
-            );
+            return this.searchService
+                .getObjetivo(
+                    Number(objetivoId),
+                    this.selectedPeriod.year,
+                    this.selectedPeriod.month
+                )
+                .pipe(
+                    //                  switchMap((data:any) => { return data}),
+                    doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
+                    tap({
+                        complete: () => { this.objetivoResponsablesLoading$.next(false) },
+                    })
+                );
         })
-      );
+    );
+
+    $objetivoContratos = this.$selectedObjetivoIdChange.pipe(
+        debounceTime(50),
+        shareReplay(1),
+        switchMap(objetivoId => {
+            if (!objetivoId) return [];
+            return this.searchService.getObjetivoContratos(this.selectedObjetivoId, this.selectedPeriod.year, this.selectedPeriod.month)
+                .pipe(
+                    //                  switchMap((data:any) => { return data}),
+                    doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
+                    tap({
+                        complete: () => { this.objetivoResponsablesLoading$.next(false) },
+                    })
+                );
+        })
+    );
 
     async ngOnInit() {
         this.columnDefinitions = [
@@ -103,12 +119,12 @@ export class CargaAsistenciaComponent {
                 formatter: Formatters.complexObject,
                 params: {
                     complexFieldLabel: 'apellidoNombre.fullName',
-                  },
+                },
                 editor: {
                     model: CustomGridEditor,
                     collection: [],
                     params: {
-                      component: EditorPersonaComponent,
+                        component: EditorPersonaComponent,
                     },
                     alwaysSaveOnEnterKey: true,
                     // required: true
@@ -124,13 +140,13 @@ export class CargaAsistenciaComponent {
                 formatter: Formatters.complexObject,
                 params: {
                     complexFieldLabel: 'forma.fullName',
-                  },
+                },
 
                 editor: {
                     model: CustomGridEditor,
                     collection: [],
                     params: {
-                      component: EditorTipoHoraComponent,
+                        component: EditorTipoHoraComponent,
                     },
                     alwaysSaveOnEnterKey: true,
                     // required: true
@@ -145,15 +161,15 @@ export class CargaAsistenciaComponent {
                 formatter: Formatters.complexObject,
                 params: {
                     complexFieldLabel: 'categoria.fullName',
-                  },
+                },
 
                 editor: {
                     model: CustomGridEditor,
                     collection: [],
                     params: {
                         component: EditorCategoriaComponent,
-//                        anio: this.getPeriodo().year,
-//                        mes: this.getPeriodo().month,
+                        //                        anio: this.getPeriodo().year,
+                        //                        mes: this.getPeriodo().month,
                     },
                     alwaysSaveOnEnterKey: true,
                     // required: true
@@ -161,11 +177,12 @@ export class CargaAsistenciaComponent {
             },
         ]
 
-        this.columnas= this.columnDefinitions
+        this.columnas = this.columnDefinitions
         this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.grid-container-asis', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptionsEdit.enableRowDetailView = false
         this.gridOptionsEdit.autoEdit = true
 
+        this.gridOptionsEdit.editable = false
         this.gridOptionsEdit.enableAutoSizeColumns = true
         this.gridOptionsEdit.fullWidthRows = true
 
@@ -174,7 +191,7 @@ export class CargaAsistenciaComponent {
             const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
             if (lastrow && (lastrow.apellidoNombre)) {
                 this.addNewItem("bottom")
-            }else if (!row.apellidoNombre.id && (row.id != lastrow.id)){
+            } else if (!row.apellidoNombre.id && (row.id != lastrow.id)) {
                 this.angularGridEdit.gridService.deleteItemById(row.id)
             }
         }
@@ -192,10 +209,10 @@ export class CargaAsistenciaComponent {
                 Number(localStorage.getItem('mes')) > 0
                     ? Number(localStorage.getItem('mes'))
                     : now.getMonth() + 1;
-    
+
             this.carasistForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1))
         }, 1);
-        this.settingsService.setLayout('collapsed',true)
+        this.settingsService.setLayout('collapsed', true)
     }
 
     onCellChanged(e: any) {
@@ -239,13 +256,12 @@ export class CargaAsistenciaComponent {
     }
 
     getDaysOfWeekOfMonth(year: number, month: number): Column[] {
-        let columnDays:Column[] =[] 
+        let columnDays: Column[] = []
         const daysInMonth = new Date(year, month, 0).getDate();
-        // console.log('daysInMonth',daysInMonth);
         const daysOfWeek = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'];
         for (let index = 1; index <= daysInMonth; index++) {
             let date = new Date(year, month, index);
-            const dow=date.getDay()
+            const dow = date.getDay()
             let name = daysOfWeek[dow];
             columnDays.push({
                 id: `day${index}`,
@@ -254,7 +270,7 @@ export class CargaAsistenciaComponent {
                 sortable: true,
                 type: FieldType.number,
                 maxWidth: 55,
-                headerCssClass:(dow==6 || dow==0)?'grid-weekend':'',
+                headerCssClass: (dow == 6 || dow == 0) ? 'grid-weekend' : '',
                 editor: {
                     model: Editors.text
                 },
@@ -275,22 +291,38 @@ export class CargaAsistenciaComponent {
         return columnDays
     }
 
-    dateChange(result: Date): void {
-        this.selectedPeriod.year = result.getFullYear();
-        this.selectedPeriod.month = result.getMonth()+1;
+    async formChange(result: Date | String, busqueda: Busqueda): Promise<void> {
+        console.log('formChange', result)
+        switch (busqueda) {
+            case Busqueda.Periodo:
+                this.selectedPeriod.year = (result as Date).getFullYear();
+                this.selectedPeriod.month = (result as Date).getMonth() + 1;
+                const daysOfMonth = this.getDaysOfWeekOfMonth(this.selectedPeriod.year, this.selectedPeriod.month);
+                this.columnas = [...this.columnDefinitions, ...daysOfMonth];
+                this.$selectedObjetivoIdChange.next(this.selectedObjetivoId);
 
-        const daysOfMonth = this.getDaysOfWeekOfMonth(this.selectedPeriod.year, this.selectedPeriod.month);
+                break;
+            case Busqueda.Objetivo:
+                this.$selectedObjetivoIdChange.next(this.selectedObjetivoId);
+                this.$isObjetivoDataLoading.next(true);
+                break;
 
-        this.columnas = [...this.columnDefinitions, ...daysOfMonth];
-        
+            default:
+                break;
+        }
+
+        console.log('pase1')
+
+        const objetivoContrato = await firstValueFrom(this.$objetivoContratos)
+        for (const contrato of objetivoContrato) {
+            this.selectedSucursalId = contrato.SucursalId
+        }
+
+        console.log('objetivoContrato', objetivoContrato)
+        this.gridOptionsEdit.editable = (objetivoContrato.length > 0)
+
         this.angularGridEdit.slickGrid.setOptions({ frozenColumn: 2 })
         this.angularGridEdit.slickGrid.reRenderColumns(true)
-        const colCategoria = this.columnas.filter(col => col.id == 'categoria')
-//        colCategoria[0].editor.params.anio = this.selectedPeriod.year
-//        colCategoria[0].editor.params.mes = this.selectedPeriod.month
-
-
-
         this.gridOptionsEdit.params.anio = this.selectedPeriod.year
         this.gridOptionsEdit.params.mes = this.selectedPeriod.month
         this.gridOptionsEdit.params.ObjetivoId = this.selectedObjetivoId
@@ -298,11 +330,11 @@ export class CargaAsistenciaComponent {
 
         this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
 
-        
+
         this.clearAngularGrid()
     }
 
-    clearAngularGrid():void {
+    clearAngularGrid(): void {
         const items = this.angularGridEdit.dataView.getItems()
         const itemsId = items.map(item => {
             return item.id
@@ -321,19 +353,14 @@ export class CargaAsistenciaComponent {
 
         const idItemGrid = args.dataContext.id
         const updateItem = {
-            ... args.dataContext,
-            total:total
+            ...args.dataContext,
+            total: total
         }
         this.angularGridEdit.gridService.updateItemById(idItemGrid, updateItem)
         this.insertDB(args.dataContext.id)
     }
-    
-    async selectedObjetivoChange(event: string, busqueda: Busqueda): Promise<void> {
-        this.$selectedObjetivoIdChange.next(event);
-        this.$isObjetivoDataLoading.next(true);
 
-        const detalle = await firstValueFrom(this.searchService.getObjetivoDetalle(Number(event), this.selectedPeriod.year, this.selectedPeriod.month))
-console.log('detalle',detalle)
+    async selectedObjetivoChange(event: string, busqueda: Busqueda): Promise<void> {
 
         this.clearAngularGrid()
     }
@@ -368,9 +395,9 @@ console.log('detalle',detalle)
         */
     }
 
-    editColumnSelectOptions(column: string, array:Object[], campo:string, columns: any){
-        const idColumn =this.angularGridEdit.slickGrid.getColumnIndex(column)
-        const newOptions : any = array.map((cate: any)=> {
+    editColumnSelectOptions(column: string, array: Object[], campo: string, columns: any) {
+        const idColumn = this.angularGridEdit.slickGrid.getColumnIndex(column)
+        const newOptions: any = array.map((cate: any) => {
             return cate[campo]
         })
         let options = columns[idColumn].internalColumnEditor?.collection || []
@@ -379,28 +406,36 @@ console.log('detalle',detalle)
             ...columns[idColumn].internalColumnEditor,
             collection: options
         }
-        
+
     }
 
-    async insertDB(rowId: string | number){
+    async insertDB(rowId: string | number) {
         if (this.selectedObjetivoId) {
-            let{id, ...item} = this.angularGridEdit.dataView.getItemById(rowId)
+            let { id, ...item } = this.angularGridEdit.dataView.getItemById(rowId)
             item = {
                 ...this.selectedPeriod,
                 objetivoId: this.selectedObjetivoId,
                 ...item,
             }
             this.apiService.addAsistencia(item)
-            .pipe(
- //               doOnSubscribe(() => this.saveLoading$.next(true)),
-                tap({
-                  complete: () => {
-                  },
-//                  finalize: () => this.saveLoading$.next(false),
-                })
-              )
-              .subscribe();
+                .pipe(
+                    //               doOnSubscribe(() => this.saveLoading$.next(true)),
+                    tap({
+                        complete: () => {
+                        },
+                        //                  finalize: () => this.saveLoading$.next(false),
+                    })
+                )
+                .subscribe();
         }
     }
+
+    endCargaAsistencia() {
+        const res = firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId))
+    }
+
+    setCargaAsistencia() {
+        const res = firstValueFrom(this.apiService.addAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId))
+    }    
 
 }

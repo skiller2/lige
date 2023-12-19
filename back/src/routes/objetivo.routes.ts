@@ -23,10 +23,10 @@ objetivoRouter.get(
 );
 
 objetivoRouter.get(
-  "/detalle/:anio/:mes/:objetivoId",
+  "/contratos/:anio/:mes/:objetivoId",
   authMiddleware.verifyToken,
   (req, res, next) => {
-    objetivoController.getObjetivoDetalle(
+    objetivoController.getObjetivoContratos(
       Number(req.params.objetivoId),
       Number(req.params.anio),
       Number(req.params.mes),
