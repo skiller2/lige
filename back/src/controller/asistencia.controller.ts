@@ -2,17 +2,140 @@ import { NextFunction, Response } from "express";
 import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
 import { Any, QueryRunner, QueryRunnerAlreadyReleasedError } from "typeorm";
-import { exit } from "process";
+import { clienteController } from "./controller.module";
+import { ObjetivoController } from "./objetivo.controller";
+
 
 export class AsistenciaController extends BaseController {
+  async addAsistenciaPeriodoResJson(req: any, res: Response, next: NextFunction) {
+    const {
+      anio,
+      mes,
+      ObjetivoId,
+    } = req.body
 
-  static async getIngresosExtra(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[]) { 
+    const queryRunner = dataSource.createQueryRunner();
+
+
+    try {
+      await queryRunner.startTransaction()
+      await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner)
+      await queryRunner.commitTransaction();
+      this.jsonRes([], res, `Período habilitado para el objetivo`);
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+      return next(error)
+    } finally {
+      // you need to release query runner which is manually created:
+      await queryRunner.release();
+    }
+
+  }
+
+  async addAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number, queryRunner: QueryRunner) {
+
+
+    const cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
+    if (cabecera.length == 0)
+      throw new ClientException('Objetivo no localizado')
+
+    const contratos = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
+    if (contratos.length == 0)
+      throw new ClientException(`No tiene contrato vigente para el período ${anio}/${mes}`)
+      
+    
+    let ObjetivoAsistenciaAnoUltNro = cabecera[0].ObjetivoAsistenciaAnoId
+
+    if (cabecera[0].ObjetivoAsistenciaAnoAno == null) {
+      ObjetivoAsistenciaAnoUltNro = cabecera[0].ObjetivoAsistenciaAnoUltNro + 1
+
+      await queryRunner.query(
+        `INSERT ObjetivoAsistenciaAno (ObjetivoAsistenciaAnoId,ObjetivoId,ObjetivoAsistenciaAnoAno,ObjetivoAsistenciaAnoMesUltNro) VALUES(@0,@1,@2,@3)
+          `, [ObjetivoAsistenciaAnoUltNro, ObjetivoId, anio, 0]
+      );
+      await queryRunner.query(
+        ` UPDATE Objetivo SET ObjetivoAsistenciaAnoUltNro = @1 WHERE ObjetivoId = @0
+          `, [ObjetivoId, ObjetivoAsistenciaAnoUltNro]
+      );
+    }
+
+    if (cabecera[0].ObjetivoAsistenciaAnoMesMes == null) { //Da de alta el mes para el objetivo
+      const ano = await queryRunner.query(`SELECT ObjetivoAsistenciaAnoMesUltNro FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId =@1 `, [ObjetivoId, ObjetivoAsistenciaAnoUltNro])
+      const ObjetivoAsistenciaAnoMesUltNro = Number(ano[0].ObjetivoAsistenciaAnoMesUltNro) + 1
+      let fechaActual = new Date()
+      fechaActual.setHours(0, 0, 0, 0)
+
+      await queryRunner.query(
+        `INSERT ObjetivoAsistenciaAnoMes (ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaAnoMesMes, ObjetivoAsistenciaAnoMesMeses, ObjetivoAsistenciaAnoMesDesde, ObjetivoAsistenciaAnoMesHasta,
+            ObjetivoAsistenciaAnoMesDiaUltNro, ObjetivoAsistenciaAnoMesPersonalUltNro, ObjetivoAsistenciaAnoMesDiasPersonalUltNro, ObjetivoAsistenciaAnoMesPersonalDiasUltNro, ObjetivoAsistenciaAnoMesDiaPersonalUltNro,
+            ObjetivoAsistenciaAnoMesTraspasaUltimaAsistencia, ObjetivoAsistenciaAnoMesRectificativa)
+          VALUES(@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13)
+        `, [ObjetivoAsistenciaAnoMesUltNro, ObjetivoAsistenciaAnoUltNro, ObjetivoId, mes, mes, fechaActual, null, 0, 0, 0, 0, 0, 'N', 0]
+      );
+
+      await queryRunner.query(
+        ` UPDATE ObjetivoAsistenciaAno SET ObjetivoAsistenciaAnoMesUltNro=@2 WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = @1
+        `, [ObjetivoId, ObjetivoAsistenciaAnoUltNro, ObjetivoAsistenciaAnoMesUltNro]
+      );
+    }
+
+    if (cabecera[0].ObjetivoAsistenciaAnoMesHasta != null) {
+      const result = await queryRunner.query(
+        ` UPDATE ObjetivoAsistenciaAnoMes SET ObjetivoAsistenciaAnoMesHasta = NULL WHERE ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
+          `, [cabecera[0].ObjetivoId, cabecera[0].ObjetivoAsistenciaAnoId, cabecera[0].ObjetivoAsistenciaAnoMesId]
+      );
+    }
+    return cabecera[0]
+  }
+
+  async endAsistenciaPeriodo(req: any, res: Response, next: NextFunction) {
+    const {
+      anio,
+      mes,
+      ObjetivoId,
+    } = req.body;
+
+    const queryRunner = dataSource.createQueryRunner();
+    let fechaActual = new Date()
+    fechaActual.setHours(0, 0, 0, 0)
+
+    try {
+      await queryRunner.startTransaction()
+      const cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
+      if (cabecera.length == 0)
+        throw new ClientException('Objetivo no localizado')
+
+      if (cabecera[0].ObjetivoAsistenciaAnoId == null || cabecera[0].ObjetivoAsistenciaAnoMesId == null)
+        throw new ClientException('Periodo de carga de asitencia no generado')
+
+      if (cabecera[0].ObjetivoAsistenciaAnoMesHasta == null) {
+        const result = await queryRunner.query(
+          `UPDATE ObjetivoAsistenciaAnoMes SET ObjetivoAsistenciaAnoMesHasta = @3 WHERE ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
+          `, [ObjetivoId, cabecera[0].ObjetivoAsistenciaAnoId, cabecera[0].ObjetivoAsistenciaAnoMesId, fechaActual]
+        );
+      }
+
+      await queryRunner.commitTransaction();
+
+      this.jsonRes([], res, `Período finalizado para el objetivo ${cabecera[0].ObjetivoCodigo} ${cabecera[0].ObjetivoDescripcion}`)
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction()
+      return next(error)
+    } finally {
+      // you need to release query runner which is manually created:
+      await queryRunner.release()
+    }
+  }
+
+  static async getIngresosExtra(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[]) {
     const listPersonaId = (personalId.length == 0) ? '' : 'AND ingext.persona_id IN (' + personalId.join(',') + ')'
     let ingesosExtra = await queryRunner.query(`SELECT peri.anio, peri.mes, ingext.persona_id, tipo.des_movimiento, ingext.tipocuenta_id, ingext.importe
     FROM lige.dbo.liqmamovimientos ingext 
     JOiN lige.dbo.liqmaperiodo peri ON peri.periodo_id = ingext.periodo_id
     JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = ingext.tipo_movimiento_id
-    WHERE tipo.tipo_movimiento = 'I' AND peri.anio =@0 AND peri.mes=@1 ${listPersonaId} `, [anio, mes])    
+    WHERE tipo.tipo_movimiento = 'I' AND peri.anio =@0 AND peri.mes=@1 ${listPersonaId} `, [anio, mes])
     return ingesosExtra
   }
 
@@ -128,16 +251,16 @@ export class AsistenciaController extends BaseController {
     LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = asisa.SucursalId AND val.ValorLiquidacionTipoAsociadoId = asis.SucursalAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = asis.SucursalAsistenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= DATEFROMPARTS(asisa.SucursalAsistenciaAnoAno,asism.SucursalAsistenciaAnoMesMes,'28') AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(asisa.SucursalAsistenciaAnoAno,asism.SucursalAsistenciaAnoMesMes,'1')
     
     WHERE asisa.SucursalAsistenciaAnoAno = @1 AND asism.SucursalAsistenciaAnoMesMes = @2 ${listPersonaId} `, [, anio, mes])
-    
-    for (const [index, value] of asisadmin.entries()) { 
-      if (value.horas >= value.horas_fijas && value.horas_fijas>0) { 
+
+    for (const [index, value] of asisadmin.entries()) {
+      if (value.horas >= value.horas_fijas && value.horas_fijas > 0) {
         asisadmin[index].total = value.horas_fijas * value.ValorLiquidacionHoraNormal
-      } 
+      }
     }
 
     /*
     let persart42:any[] = []
-
+  
     for (const [index, value] of asisadmin.entries()) {
       if (value.ValorLiquidacionSumaFija) {
         asisadmin[index].total = value.ValorLiquidacionSumaFija
@@ -154,28 +277,28 @@ export class AsistenciaController extends BaseController {
         asisadmin[index].total = value.horas_reales * value.ValorLiquidacionHoraNormal
         asisadmin[index].horas = value.horas_reales
       }
-
+  
       if (value.SucursalAsistenciaAnoMesPersonalDiasCualArt42 > 0) {
         asisadmin[index].total = value.horas_reales * value.ValorLiquidacionHoraNormal
         asisadmin[index].horas = value.horas_reales
         persart42[value.SucursalAsistenciaMesPersonalId] = asisadmin[index].horas
       }
-
+  
     }
-
-
+  
+  
     for (const [index, value] of asisadmin.entries()) {
       if (value.SucursalAsistenciaAnoMesPersonalDiasCualArt42 > 0 || value.SucursalAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'X' || value.horas_fijas == 0)
         continue
-
+  
       if (persart42[value.SucursalAsistenciaMesPersonalId] > 0) {
-//        if (asisadmin[index].horas + persart42[value.SucursalAsistenciaMesPersonalId] > value.horas_fijas)
-//          asisadmin[index].horas =  value.horas_fijas - persart42[value.SucursalAsistenciaMesPersonalId]
+  //        if (asisadmin[index].horas + persart42[value.SucursalAsistenciaMesPersonalId] > value.horas_fijas)
+  //          asisadmin[index].horas =  value.horas_fijas - persart42[value.SucursalAsistenciaMesPersonalId]
         asisadmin[index].horas = asisadmin[index].horas - persart42[value.SucursalAsistenciaMesPersonalId]
         asisadmin[index].total = asisadmin[index].horas * value.ValorLiquidacionHoraNormal
       }
     }
-*/
+  */
     return asisadmin
   }
   async getCategoria(req: any, res: Response, next: NextFunction) {
@@ -197,27 +320,49 @@ export class AsistenciaController extends BaseController {
     }
   }
 
-  static async checkAsistenciaObjetivo(ObjetivoId: number, anio: number, mes: number, queryRunner: any) {
-    let resultObjs = await queryRunner.query(
-      `SELECT anio.ObjetivoAsistenciaAnoAno, anio.ObjetivoId, mes.ObjetivoAsistenciaAnoMesMes, mes.ObjetivoAsistenciaAnoMesDesde, mes.ObjetivoAsistenciaAnoMesHasta
-    FROM ObjetivoAsistenciaAno anio
-    JOIN ObjetivoAsistenciaAnoMes mes ON mes.ObjetivoAsistenciaAnoId = anio.ObjetivoAsistenciaAnoId AND mes.ObjetivoId = anio.ObjetivoId
-    WHERE anio.ObjetivoId = @0 AND anio.ObjetivoAsistenciaAnoAno = @1 AND mes.ObjetivoAsistenciaAnoMesMes = @2`,
-      [ObjetivoId, anio, mes]
+  static async getObjetivoAsistenciaCabecera(anio: number, mes: number, objetivoId: number, queryRunner: QueryRunner) {
+    return queryRunner.query(
+      `SELECT obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, 
+      obj.ObjetivoId, 
+      obja.ObjetivoAsistenciaAnoId, 
+    objm.ObjetivoAsistenciaAnoMesId,
+    obj.ObjetivoAsistenciaAnoUltNro,
+      
+      CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
+      obj.ObjetivoDescripcion,
+      objm.ObjetivoAsistenciaAnoMesDesde, objm.ObjetivoAsistenciaAnoMesHasta,
+      1 as last
+      
+      
+      FROM Objetivo obj 
+          
+      LEFT JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoId = obj.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1 
+      LEFT JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoId = obj.ObjetivoId AND objm.ObjetivoAsistenciaAnoId = obja.ObjetivoAsistenciaAnoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
+      LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+      LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+              
+        WHERE obj.ObjetivoId = @0
+      `, [objetivoId, anio, mes]
     );
+  }
+
+  static async checkAsistenciaObjetivo(ObjetivoId: number, anio: number, mes: number, queryRunner: any) {
+    let resultObjs = await this.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
 
     if (resultObjs.length == 0)
-      return new ClientException(`El objetivo seleccionado no tiene habilitada la carga de asistencia para el período ${anio}/${mes}`)
+      return new ClientException(`El objetivo no se localizó`)
+    if (resultObjs[0].ObjetivoAsistenciaAnoAno == null || resultObjs[0].ObjetivoAsistenciaAnoMesMes == null)
+      return new ClientException(`El objetivo seleccionado no tiene habilitada la carga de asistencia para el período ${anio}/${mes}`, {}, 100102)
     if (resultObjs[0].ObjetivoAsistenciaAnoMesHasta != null)
       return new ClientException(`El objetivo seleccionado tiene cerrada la carga de asistencia para el período ${anio}/${mes} el ${new Date(resultObjs[0].ObjetivoAsistenciaAnoMesHasta).toLocaleDateString('en-GB')}`)
 
-      return true
+    return true
   }
 
 
   async setExcepcion(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    let ConceptoId:number|null = null
+    let ConceptoId: number | null = null
     try {
       let {
         SucursalId,
@@ -322,11 +467,18 @@ export class AsistenciaController extends BaseController {
         }
       }
 
-      const val= await AsistenciaController.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
-      if (val !== true)
-        throw val
-          
-      
+      const val = await AsistenciaController.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
+      if (val instanceof ClientException) {
+        if (val.code == 100102) {
+          try {
+            await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner)
+          } catch (e) {
+            throw new e
+          }
+        } else
+          throw val
+      }
+
       //Traigo el Art14 para analizarlo
 
       let resultAutoriz = await queryRunner.query(
@@ -355,7 +507,7 @@ export class AsistenciaController extends BaseController {
                 AND art.PersonalArt14Autorizado is null
                 AND ISNULL(art.PersonalArt14ConceptoId,0) = ISNULL(@4,0)
                 AND art.PersonalArt14Desde <= @3 AND (ISNULL(art.PersonalArt14Hasta,'9999-12-31') >= @3) AND art.PersonalArt14Anulacion is null`,
-        [PersonalId, ObjetivoId, metodo, fechaDesde,ConceptoId]
+        [PersonalId, ObjetivoId, metodo, fechaDesde, ConceptoId]
       );
 
       for (row of resultAutoriz) {
@@ -552,10 +704,10 @@ export class AsistenciaController extends BaseController {
     const metodologiaId: string = req.params.metodologiaId;
     const metodo: string = req.params.metodo;
     const persona_cuit = req.persona_cuit;
-    let ConceptoId:number|null = null
+    let ConceptoId: number | null = null
 
     if (metodologiaId == "F")
-    ConceptoId = 3
+      ConceptoId = 3
 
 
     const queryRunner = dataSource.createQueryRunner();
@@ -574,7 +726,7 @@ export class AsistenciaController extends BaseController {
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para eliminar la excepción`)
 
-      const val= await AsistenciaController.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
+      const val = await AsistenciaController.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
       if (val !== true)
         throw val
 
@@ -591,7 +743,7 @@ export class AsistenciaController extends BaseController {
                 AND ISNULL(art.PersonalArt14ConceptoId,0) = ISNULL(@4,0)
 
                 AND art.PersonalArt14AutorizadoDesde <= @3 AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= @3) AND art.PersonalArt14Anulacion is null`,
-        [PersonalId, ObjetivoId, metodo, fechaDesde,ConceptoId]
+        [PersonalId, ObjetivoId, metodo, fechaDesde, ConceptoId]
       );
 
       let resultNoAutoriz = await queryRunner.query(
@@ -606,7 +758,7 @@ export class AsistenciaController extends BaseController {
                 AND ISNULL(art.PersonalArt14ConceptoId,0) = ISNULL(@4,0) 
                 AND art.PersonalArt14Autorizado is null
                 AND art.PersonalArt14Desde <= @3 AND (art.PersonalArt14Hasta >= @3) AND art.PersonalArt14Anulacion is null`,
-        [PersonalId, ObjetivoId, metodo, fechaDesde,ConceptoId]
+        [PersonalId, ObjetivoId, metodo, fechaDesde, ConceptoId]
       );
 
       let hasta: Date = new Date(fechaDesde);
@@ -651,7 +803,7 @@ export class AsistenciaController extends BaseController {
       const anio = req.params.anio;
       const mes = req.params.mes;
       var desde = new Date(anio, mes - 1, 1);
-      
+
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), dataSource))
         throw new ClientException(`No tiene permisos para listar asistencia del objetivo`)
 
@@ -698,7 +850,7 @@ export class AsistenciaController extends BaseController {
   static async getDescuentos(anio: number, mes: number, personalId: number[]) {
     const listPersonaId = (personalId.length == 0) ? '' : 'AND per.PersonalId IN (' + personalId.join(',') + ')'
 
-    let descuentos= await dataSource.query(
+    let descuentos = await dataSource.query(
       `             
       SELECT gap.GrupoActividadId, 0 as ObjetivoId,per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, 'Adelanto' AS tipomov, '' AS desmovimiento,
@@ -883,21 +1035,21 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
 
       if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
-        
-        const categorias = await queryRunner.query(
-          `SELECT cat.TipoAsociadoId, catrel.PersonalCategoriaCategoriaPersonalId, catrel.PersonalCategoriaPersonalId, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta, tip.TipoAsociadoDescripcion,cat.CategoriaPersonalDescripcion
+
+      const categorias = await queryRunner.query(
+        `SELECT cat.TipoAsociadoId, catrel.PersonalCategoriaCategoriaPersonalId, catrel.PersonalCategoriaPersonalId, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta, tip.TipoAsociadoDescripcion,cat.CategoriaPersonalDescripcion
           FROM PersonalCategoria catrel
             JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = catrel.PersonalCategoriaTipoAsociadoId AND cat.CategoriaPersonalId = catrel.PersonalCategoriaCategoriaPersonalId
            JOIN TipoAsociado tip ON tip.TipoAsociadoId = cat.TipoAsociadoId
         WHERE ((DATEPART(YEAR,catrel.PersonalCategoriaDesde)=@1 AND  DATEPART(MONTH, catrel.PersonalCategoriaDesde)=@2) OR (DATEPART(YEAR,catrel.PersonalCategoriaHasta)=@1 AND  DATEPART(MONTH, catrel.PersonalCategoriaHasta)=@2) OR (catrel.PersonalCategoriaDesde <= DATEFROMPARTS(@1,@2,28) AND ISNULL(catrel.PersonalCategoriaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,28))
-        ) AND catrel.PersonalCategoriaPersonalId=@0`, [personalId, anio,mes])
-  
-        this.jsonRes({ categorias: categorias }, res);
-      } catch (error) {
-        return next(error)
-      }
+        ) AND catrel.PersonalCategoriaPersonalId=@0`, [personalId, anio, mes])
+
+      this.jsonRes({ categorias: categorias }, res);
+    } catch (error) {
+      return next(error)
     }
-  
+  }
+
 
   async getDescuentosPorPersona(req: any, res: Response, next: NextFunction) {
     try {
@@ -915,7 +1067,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       let totalG = 0
       let totalC = 0
 
-      for (const row of result) { 
+      for (const row of result) {
         if (row.tipocuenta_id == 'G')
           totalG += row.importe
         if (row.tipocuenta_id == 'C')
@@ -939,7 +1091,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
         throw new ClientException(`No tiene permisos para listar la información`)
 
       //Busco la lista de PersonalId que le corresponde al responsable
-      let personalIdList:number[]=[]
+      let personalIdList: number[] = []
       const personal = await queryRunner.query(
         `SELECT gap.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle, per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS PersonaDes,
         cuit.PersonalCUITCUILCUIT,
@@ -986,21 +1138,21 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
 
 
       for (const row of resAsisObjetiv) {
-        const key=personal.findIndex(i=> i.PersonalId == row.PersonalId)
+        const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
         personal[key].ingresosG_importe += row.totalminutoscalcimporteconart14
         personal[key].ingresos_horas += row.totalhorascalc
         personal[key].retiroG_importe = personal[key].ingresosG_importe
       }
 
       for (const row of resAsisAdmArt42) {
-        const key=personal.findIndex(i=> i.PersonalId == row.PersonalId)
+        const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
         personal[key].ingresosG_importe += row.total
         personal[key].ingresos_horas += row.horas
-        personal[key].retiroG_importe = personal[key].ingresosG_importe 
+        personal[key].retiroG_importe = personal[key].ingresosG_importe
       }
 
       for (const row of resIngreExtra) {
-        const key=personal.findIndex(i=> i.PersonalId == row.persona_id)
+        const key = personal.findIndex(i => i.PersonalId == row.persona_id)
         personal[key].ingresos_horas += 0
         if (row.tipocuenta_id == 'C') {
           personal[key].ingresosC_importe += row.importe
@@ -1008,7 +1160,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
         } else if (row.tipocuenta_id == 'G') {
           personal[key].ingresosG_importe += row.importe
           personal[key].retiroG_importe = personal[key].ingresosG_importe - personal[key].egresosG_importe
-        } 
+        }
       }
 
       for (const row of resDescuentos) {
@@ -1019,12 +1171,12 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
         } else if (row.tipocuenta_id == 'G') {
           personal[key].egresosG_importe += row.importe
           personal[key].retiroG_importe = personal[key].ingresosG_importe - personal[key].egresosG_importe
-        } 
+        }
       }
 
-//      const total = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
+      //      const total = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
 
-      this.jsonRes({ persxresp: personal, total:0 }, res);
+      this.jsonRes({ persxresp: personal, total: 0 }, res);
     } catch (error) {
       return next(error)
     }
@@ -1064,7 +1216,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       let totalG = 0
       let totalC = 0
 
-      for (const row of result) { 
+      for (const row of result) {
         if (row.tipocuenta_id == 'G')
           totalG += row.importe
         if (row.tipocuenta_id == 'C')
@@ -1125,8 +1277,8 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
     }
   }
 
-  static async getObjetivoAsistencia(anio: number, mes: number, extraFilters: string[],queryRunner:any) {
-    const extraFiltersStr = `${(extraFilters.length>0)?'AND':''} ${extraFilters.join(' AND ')}`
+  static async getObjetivoAsistencia(anio: number, mes: number, extraFilters: string[], queryRunner: any) {
+    const extraFiltersStr = `${(extraFilters.length > 0) ? 'AND' : ''} ${extraFilters.join(' AND ')}`
     const result = await queryRunner.query(
       `SELECT suc.SucursalId, obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
       persona.PersonalId,
@@ -1287,7 +1439,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
   static async getAsistenciaObjetivos(anio: number, mes: number, personalId: number[]) {
     const listPersonaId = (personalId.length == 0) ? '' : 'objd.ObjetivoAsistenciaMesPersonalId IN (' + personalId.join(',') + ')'
     const queryRunner = dataSource.createQueryRunner();
-    const result = await AsistenciaController.getObjetivoAsistencia(anio,mes,[listPersonaId],queryRunner)
+    const result = await AsistenciaController.getObjetivoAsistencia(anio, mes, [listPersonaId], queryRunner)
     return result
   }
 
@@ -1321,7 +1473,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       const objetivoId = req.params.objetivoId;
       const anio = req.params.anio;
       const mes = req.params.mes;
-      let personalId:number[] =[] 
+      let personalId: number[] = []
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), dataSource))
         throw new ClientException(`No tiene permisos para listar descuentos de personal del objetivo`)
@@ -1392,7 +1544,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para realizar consulta de asistencia por objetivo`)
 
-      const result = await AsistenciaController.getObjetivoAsistencia(anio,mes,[`obj.ObjetivoId = ${objetivoId}`],queryRunner)
+      const result = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${objetivoId}`], queryRunner)
 
       const totalImporte = result.map(row => row.totalminutoscalcimporteconart14).reduce((prev, curr) => prev + curr, 0)
       const totalHoras = result.map(row => row.totalhorascalc).reduce((prev, curr) => prev + curr, 0)
