@@ -345,7 +345,7 @@ export class LiquidacionesController extends BaseController {
       for (const row of req.body.gridDataInsert) {
 
 
-        let tipo_movimiento_id = row.des_movimiento
+        let tipo_movimiento_id = row.des_movimiento.id
         let tipocuenta_id = row.des_cuenta
         let fechaActual = new Date()
         let detalle = row.detalle

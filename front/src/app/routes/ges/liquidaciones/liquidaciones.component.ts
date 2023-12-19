@@ -15,6 +15,7 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { NzModalService, NzModalModule } from "ng-zorro-antd/modal";
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
+import {EditorTipoMovimientoComponent} from '../../../shared/editor-tipomovimiento/editor-tipomovimiento.component'
 
 import {
   BehaviorSubject,
@@ -389,28 +390,24 @@ export class LiquidacionesComponent {
         type: FieldType.string,
         maxWidth: 60,
       },
-      {
+       {
         id: 'des_movimiento', name: 'Tipo Movimiento', field: 'des_movimiento',
         sortable: true,
         type: FieldType.string,
-        maxWidth: 200,
-        formatter: Formatters.collectionEditor,
-
+        maxWidth: 100,
+        minWidth: 100,
+        formatter: Formatters.complexObject,
+        params: {
+          complexFieldLabel: 'des_movimiento.fullName',
+        },
         editor: {
-          model: Editors.singleSelect,
-          // We can also add HTML text to be rendered (any bad script will be sanitized) but we have to opt-in, else it will be sanitized
-          //enableRenderHtml: true,
-          collectionAsync: this.apiService.getTipoMovimiento("M"),
-          customStructure: {
-            value: 'tipo_movimiento_id',
-            label: 'des_movimiento',
-            //            labelSuffix: 'symbol'
-          },
-          editorOptions: {
-            maxHeight: 400
+          model: CustomGridEditor,
+          collection: [],
+          params: {
+            component: EditorTipoMovimientoComponent,
           },
           alwaysSaveOnEnterKey: true,
-          required: true
+          // required: true
         },
       },
       {
@@ -513,7 +510,6 @@ export class LiquidacionesComponent {
 
     this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
       editCommand.execute()
-
       if (row.detalle && row.des_movimiento && (row.ObjetivoDescripcion || row.ApellidoNombre) && row.monto && row.des_cuenta) {
         row.isfull = 1;
       } else {
@@ -557,7 +553,7 @@ export class LiquidacionesComponent {
   }
 
   selectedValueChangeMovimiento(event: string): void {
-
+debugger
     this.selectedMovimientoId = event;
     this.$selectedMovimientoIdChange.next(event);
     this.$isMovimientoDataLoading.next(true);
