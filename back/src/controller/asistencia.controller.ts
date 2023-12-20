@@ -33,6 +33,8 @@ export class AsistenciaController extends BaseController {
 
   }
 
+
+  
   async addAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number, queryRunner: QueryRunner) {
 
 
@@ -87,6 +89,26 @@ export class AsistenciaController extends BaseController {
       );
     }
     return cabecera[0]
+  }
+
+  async getAsistenciaPeriodo(req: any, res: Response, next: NextFunction) {
+    const ObjetivoId = req.params.ObjetivoId;
+    const anio = req.params.anio;
+    const mes = req.params.mes;
+
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const periodo = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
+      this.jsonRes(periodo, res)
+
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction()
+      return next(error)
+    } finally {
+      // you need to release query runner which is manually created:
+      await queryRunner.release()
+    }
   }
 
   async endAsistenciaPeriodo(req: any, res: Response, next: NextFunction) {

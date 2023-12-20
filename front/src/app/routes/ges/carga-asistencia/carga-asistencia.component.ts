@@ -6,7 +6,7 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption } from 'angular-slickgrid';
 import { NzModalService } from "ng-zorro-antd/modal";
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { BehaviorSubject, debounceTime, firstValueFrom, of, shareReplay, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, debounceTime, distinctUntilChanged, firstValueFrom, forkJoin, map, merge, mergeAll, of, shareReplay, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
@@ -39,14 +39,12 @@ enum Busqueda {
 export class CargaAsistenciaComponent {
     @ViewChild('carasistForm', { static: true }) carasistForm: NgForm =
         new NgForm([], []);
+    peridoDesde: any;
+    peridoHasta: any;
     constructor(
-        private cdr: ChangeDetectorRef,
         public apiService: ApiService,
-        private injector: Injector,
         public router: Router,
         private angularUtilService: AngularUtilService,
-        private modal: NzModalService,
-        private notification: NzNotificationService,
         private searchService: SearchService,
         private settingsService: SettingsService
     ) { }
@@ -69,9 +67,40 @@ export class CargaAsistenciaComponent {
     selectedObjetivoId: number = 0
     $isObjetivoDataLoading = new BehaviorSubject(false);
     $selectedObjetivoIdChange = new BehaviorSubject(0);
+    $formChange = new BehaviorSubject({});
     objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
 
+    getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
+        return forkJoin([
+            this.searchService.getObjetivo(objetivoId, anio, mes),
+            this.searchService.getObjetivoContratos(objetivoId, anio, mes),
+            this.searchService.getAsistenciaPeriodo(objetivoId, anio, mes)
+        ]).pipe(
+            map((data: any[]) => {
+                this.selectedSucursalId = data[1][0]?.SucursalId
+                this.gridOptionsEdit.editable = (data[1].length > 0)
+                this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
+          
+                return { responsable: data[0], contratos: data[1], periodo: data[2] };
+            })
+        );
+    }
 
+    $objetivoDetalle = this.$selectedObjetivoIdChange.pipe(
+        debounceTime(50),
+        switchMap(objetivoId => {
+            return this.getObjetivoDetalle(objetivoId, this.selectedPeriod.year, this.selectedPeriod.month)
+                .pipe(
+                    //                  switchMap((data:any) => { return data}),
+                    doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
+                    tap({
+                        complete: () => { this.objetivoResponsablesLoading$.next(false) },
+                    })
+                );
+        })
+    );
+
+/*
     $objetivoResponsables = this.$selectedObjetivoIdChange.pipe(
         debounceTime(50),
         switchMap(objetivoId => {
@@ -95,7 +124,6 @@ export class CargaAsistenciaComponent {
         debounceTime(50),
         shareReplay(1),
         switchMap(objetivoId => {
-            if (!objetivoId) return [];
             return this.searchService.getObjetivoContratos(this.selectedObjetivoId, this.selectedPeriod.year, this.selectedPeriod.month)
                 .pipe(
                     //                  switchMap((data:any) => { return data}),
@@ -106,6 +134,30 @@ export class CargaAsistenciaComponent {
                 );
         })
     );
+
+    $objetivoAsistenciaPeriodo = this.$selectedObjetivoIdChange.pipe(
+        debounceTime(50),
+        shareReplay(1),
+        switchMap(objetivoId => {
+            return this.searchService.getAsistenciaPeriodo(this.selectedObjetivoId, this.selectedPeriod.year, this.selectedPeriod.month)
+                .pipe(
+                    //                  switchMap((data:any) => { return data}),
+                    doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
+                    tap({
+                        complete: () => { this.objetivoResponsablesLoading$.next(false) },
+                    }),
+                    switchMap(periodo => {
+                        console.log(periodo)
+                        if (periodo && periodo.length > 0) {
+                            this.peridoDesde = periodo[0]?.ObjetivoAsistenciaAnoMesDesde
+                            this.peridoHasta = periodo[0]?.ObjetivoAsistenciaAnoMesHasta
+                        }
+                        return periodo
+                    })
+                );
+        })
+    );
+*/
 
     async ngOnInit() {
         this.columnDefinitions = [
@@ -299,27 +351,18 @@ export class CargaAsistenciaComponent {
                 this.selectedPeriod.month = (result as Date).getMonth() + 1;
                 const daysOfMonth = this.getDaysOfWeekOfMonth(this.selectedPeriod.year, this.selectedPeriod.month);
                 this.columnas = [...this.columnDefinitions, ...daysOfMonth];
-                this.$selectedObjetivoIdChange.next(this.selectedObjetivoId);
-
                 break;
             case Busqueda.Objetivo:
-                this.$selectedObjetivoIdChange.next(this.selectedObjetivoId);
-                this.$isObjetivoDataLoading.next(true);
                 break;
 
             default:
                 break;
         }
 
-        console.log('pase1')
+        this.$selectedObjetivoIdChange.next(this.selectedObjetivoId);
+        this.$isObjetivoDataLoading.next(true);
 
-        const objetivoContrato = await firstValueFrom(this.$objetivoContratos)
-        for (const contrato of objetivoContrato) {
-            this.selectedSucursalId = contrato.SucursalId
-        }
-
-        console.log('objetivoContrato', objetivoContrato)
-        this.gridOptionsEdit.editable = (objetivoContrato.length > 0)
+  
 
         this.angularGridEdit.slickGrid.setOptions({ frozenColumn: 2 })
         this.angularGridEdit.slickGrid.reRenderColumns(true)
@@ -380,7 +423,7 @@ export class CargaAsistenciaComponent {
                     this.editColumnSelectOptions('categoria', datos.categorias, 'CategoriaPersonalDescripcion', editColumns)
                     this.editColumnSelectOptions('tipo', datos.categorias,'TipoAsociadoDescripcion', editColumns)
                     this.angularGridEdit.slickGrid.setColumns(editColumns)
-
+    
                     const updateItem = {
                         ... args.dataContext,
                         forma: 'HORAS NORMALES',
@@ -436,6 +479,6 @@ export class CargaAsistenciaComponent {
 
     setCargaAsistencia() {
         const res = firstValueFrom(this.apiService.addAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId))
-    }    
+    }
 
 }
