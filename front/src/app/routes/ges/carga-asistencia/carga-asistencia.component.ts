@@ -78,7 +78,7 @@ export class CargaAsistenciaComponent {
         ]).pipe(
             map((data: any[]) => {
                 this.selectedSucursalId = data[1][0]?.SucursalId
-                this.gridOptionsEdit.editable = (data[1].length > 0)
+                this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null )
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
           
                 return { responsable: data[0], contratos: data[1], periodo: data[2] };
@@ -99,65 +99,6 @@ export class CargaAsistenciaComponent {
                 );
         })
     );
-
-/*
-    $objetivoResponsables = this.$selectedObjetivoIdChange.pipe(
-        debounceTime(50),
-        switchMap(objetivoId => {
-            return this.searchService
-                .getObjetivo(
-                    Number(objetivoId),
-                    this.selectedPeriod.year,
-                    this.selectedPeriod.month
-                )
-                .pipe(
-                    //                  switchMap((data:any) => { return data}),
-                    doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
-                    tap({
-                        complete: () => { this.objetivoResponsablesLoading$.next(false) },
-                    })
-                );
-        })
-    );
-
-    $objetivoContratos = this.$selectedObjetivoIdChange.pipe(
-        debounceTime(50),
-        shareReplay(1),
-        switchMap(objetivoId => {
-            return this.searchService.getObjetivoContratos(this.selectedObjetivoId, this.selectedPeriod.year, this.selectedPeriod.month)
-                .pipe(
-                    //                  switchMap((data:any) => { return data}),
-                    doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
-                    tap({
-                        complete: () => { this.objetivoResponsablesLoading$.next(false) },
-                    })
-                );
-        })
-    );
-
-    $objetivoAsistenciaPeriodo = this.$selectedObjetivoIdChange.pipe(
-        debounceTime(50),
-        shareReplay(1),
-        switchMap(objetivoId => {
-            return this.searchService.getAsistenciaPeriodo(this.selectedObjetivoId, this.selectedPeriod.year, this.selectedPeriod.month)
-                .pipe(
-                    //                  switchMap((data:any) => { return data}),
-                    doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
-                    tap({
-                        complete: () => { this.objetivoResponsablesLoading$.next(false) },
-                    }),
-                    switchMap(periodo => {
-                        console.log(periodo)
-                        if (periodo && periodo.length > 0) {
-                            this.peridoDesde = periodo[0]?.ObjetivoAsistenciaAnoMesDesde
-                            this.peridoHasta = periodo[0]?.ObjetivoAsistenciaAnoMesHasta
-                        }
-                        return periodo
-                    })
-                );
-        })
-    );
-*/
 
     async ngOnInit() {
         this.columnDefinitions = [
