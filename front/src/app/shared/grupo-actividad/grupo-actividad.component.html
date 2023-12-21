@@ -2,10 +2,10 @@
   style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Grupo o Id"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
   <ng-container *ngFor="let option of $optionsArray | async">
-    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.GrupoActividadId" [nzLabel]="option.Detalle +' '+option.GrupoActividadId" />
+    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.GrupoActividadId"  [nzLabel]="option.fullName +' '+option.GrupoActividadId" />
   </ng-container>
   <nz-option *ngIf="extendedOption.GrupoActividadId >0 " [nzValue]="extendedOption.GrupoActividadId"
-    [nzLabel]="extendedOption.Detalle" />
+    [nzLabel]="extendedOption.fullName" />
 
   <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
     <span nz-icon nzType="loading" class="loading-icon"></span>

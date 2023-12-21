@@ -1,8 +1,8 @@
-import { Router } from "express";
-import { authMiddleware } from "../middlewares/middleware.module";
-import { asistenciaController } from "../controller/controller.module";
+import { Router } from "express"
+import { authMiddleware } from "../middlewares/middleware.module"
+import { asistenciaController } from "../controller/controller.module"
 
-export const asistenciaRouter = Router();
+export const asistenciaRouter = Router()
 
 
 asistenciaRouter.get('/metodologia', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getMetodologia(req, res, next) } )
@@ -32,5 +32,8 @@ asistenciaRouter.post('/excepcion', authMiddleware.verifyToken, (req, res, next)
 
 asistenciaRouter.delete('/excepcion/:anio/:mes/:ObjetivoId/:PersonalId/:metodo/:metodologiaId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.deleteExcepcion(req, res, next) })
 
-asistenciaRouter.post('/agregarasistencia', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.addAsistencia(req, res, next);});
+asistenciaRouter.post('/agregarasistencia', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.addAsistencia(req, res, next)})
+asistenciaRouter.post('/periodo/inicio', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.addAsistenciaPeriodoResJson(req, res, next)})
+asistenciaRouter.post('/periodo/fin', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.endAsistenciaPeriodo(req, res, next)})
+asistenciaRouter.get('/periodo/:anio/:mes/:ObjetivoId', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.getAsistenciaPeriodo(req, res, next)})
 

@@ -22,7 +22,7 @@ export class AppFilterPipe implements PipeTransform {
     function checkInside(item: any, term: string) {
 
       if (typeof item === "string" && item.toString().toLowerCase().includes(toCompare)) {
-        console.log('compara',item, toCompare)
+        //console.log('compara',item, toCompare)
 
         return true;
       }

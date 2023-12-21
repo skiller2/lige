@@ -29,6 +29,16 @@ import {
   providedIn: 'root',
 })
 export class SearchService {
+  getAsistenciaPeriodo(ObjetivoId: number, anio: number, mes: number) {
+    if (!ObjetivoId)
+      return of([])
+    return this.http
+      .get<ResponseJSON<any>>(`api/asistencia/periodo/${anio}/${mes}/${ObjetivoId}`)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
   constructor(private http: _HttpClient) {}
 
   getCUITfromPersonalId(personalId: string): Observable<null | number> {
@@ -69,6 +79,21 @@ export class SearchService {
       })
       .pipe(
         map(res => res.data.objetivos),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
+  getObjetivoContratos(objetivoId: number, anio: number, mes: number) { 
+  if (!objetivoId) {
+      return of([]);
+    }
+    return this.http
+      .get<ResponseJSON<any>>(`api/objetivos/contratos/${anio}/${mes}/${objetivoId}`)
+      .pipe(
+        map(res => res.data ),
         catchError((err, caught) => {
           console.log('Something went wrong!');
           return of([]);

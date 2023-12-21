@@ -15,11 +15,22 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
   providedIn: 'root',
 })
 export class ApiService {
-  
-  getTipoMovimientoById(TipoMovimiento:string) {
+  addAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number) {
+    return this.http.post<ResponseJSON<any>>('api/asistencia/periodo/inicio', { anio, mes, ObjetivoId }).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+  endAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number) {
+    return this.http.post<ResponseJSON<any>>('api/asistencia/periodo/fin', { anio, mes, ObjetivoId }).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    )
+  }
+
+
+  getTipoMovimientoById(TipoMovimiento: string) {
     return this.http.get(`/api/liquidaciones/tipo_movimiento_by_id/${TipoMovimiento}`).pipe(
-//      map(res => res.data.list.map((row: { tipo_movimiento_id: any; des_movimiento: any; }) => ( { value: row.tipo_movimiento_id, label: row.des_movimiento } ))),
-      map((res:any) => res.data.list),
+      //      map(res => res.data.list.map((row: { tipo_movimiento_id: any; des_movimiento: any; }) => ( { value: row.tipo_movimiento_id, label: row.des_movimiento } ))),
+      map((res: any) => res.data.list),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -27,10 +38,10 @@ export class ApiService {
     );
   }
 
-  getTipoMovimiento(TipoMovimiento:string) {
+  getTipoMovimiento(TipoMovimiento: string) {
     return this.http.get(`/api/liquidaciones/tipo_movimiento/${TipoMovimiento}`).pipe(
-//      map(res => res.data.list.map((row: { tipo_movimiento_id: any; des_movimiento: any; }) => ( { value: row.tipo_movimiento_id, label: row.des_movimiento } ))),
-      map((res:any) => res.data.list),
+      //      map(res => res.data.list.map((row: { tipo_movimiento_id: any; des_movimiento: any; }) => ( { value: row.tipo_movimiento_id, label: row.des_movimiento } ))),
+      map((res: any) => res.data.list),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -38,19 +49,19 @@ export class ApiService {
     );
   }
 
-  getImportacionesAnteriores(anio:number,mes:number) {
+  getImportacionesAnteriores(anio: number, mes: number) {
     return this.http.get(`/api/liquidaciones/importaciones_anteriores/${anio}/${mes}`).pipe(
-        map((res:any) => res.data.list),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-              return of([]);
-          })
-        );
+      map((res: any) => res.data.list),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
   }
 
   getTipoCuenta() {
     return this.http.get(`/api/liquidaciones/tipo_cuenta`).pipe(
-      map((res:any) => res.data.list),
+      map((res: any) => res.data.list),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -59,7 +70,7 @@ export class ApiService {
   }
 
 
-  isMobile():boolean { 
+  isMobile(): boolean {
     return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
   }
 
@@ -69,7 +80,7 @@ export class ApiService {
     return this.injector.get(NzNotificationService);
   }
 
-  getDefaultGridOptions(container:string, detailViewRowCount: number, xlsService: ExcelExportService | ExternalResource, utilService: AngularUtilService, parent: any, viewComponent: any): GridOption {
+  getDefaultGridOptions(container: string, detailViewRowCount: number, xlsService: ExcelExportService | ExternalResource, utilService: AngularUtilService, parent: any, viewComponent: any): GridOption {
     return {
       asyncEditorLoading: false,
       autoEdit: false,
@@ -85,7 +96,7 @@ export class ApiService {
         //bottomPadding: 10        
       },
       gridAutosizeColsMode: GridAutosizeColsMode.fitColsToViewport,
-      
+
       contextMenu: {
         autoAdjustDrop: true,
         autoAlignSide: true,
@@ -151,7 +162,7 @@ export class ApiService {
       //enableExcelCopyBuffer: true,
       enableExcelExport: true,
       externalResources: [xlsService],
-      
+
       enableAutoTooltip: true,
       enableFiltering: false,
       enableRowSelection: true,
@@ -217,7 +228,7 @@ export class ApiService {
         //rightFooterText:'fin'
 
       },
-      enableGrouping : true
+      enableGrouping: true
     };
   }
 
@@ -225,7 +236,7 @@ export class ApiService {
     if (personalId == 0) return of([])
 
     return this.http.get<ResponseJSON<any[]>>(`api/personal/monotributo/${personalId}/${year}/${month}`).pipe(
-      map((res:any) => res.data),
+      map((res: any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -236,7 +247,7 @@ export class ApiService {
 
   get(url: string) {
     return this.http.get<any>(url).pipe(
-      map((res:any) => res.data),
+      map((res: any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -246,20 +257,20 @@ export class ApiService {
 
   getCols(url: string) {
     return this.http.get<any>(url).pipe(
-      map((res:any) => {
+      map((res: any) => {
         const mapped = res.data.map((col: Column) => {
           if (col.type == 'date')
             col.formatter = Formatters.dateEuro
 
           if (String(col.type) == 'currency' || String(col.type) == 'money') {
             col.formatter = Formatters.multiple
-            col.params= { formatters: [Formatters.currency, Formatters.alignRight], thousandSeparator: '.',decimalSeparator: ',' }
+            col.params = { formatters: [Formatters.currency, Formatters.alignRight], thousandSeparator: '.', decimalSeparator: ',' }
             col.type = 'float'
           }
-          
+
           if (col.type == 'number') {
             col.formatter = Formatters.multiple
-            col.params= { formatters: [Formatters.alignRight] }
+            col.params = { formatters: [Formatters.alignRight] }
           }
 
           return col
@@ -280,7 +291,7 @@ export class ApiService {
     }
     if (personalID == "") personalID = "0"
     return this.http.get<ResponseJSON<any[]>>(`api/adelantos/${personalID}/${year}/${month}`).pipe(
-      map((res:any) => res.data),
+      map((res: any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -293,7 +304,7 @@ export class ApiService {
       return of([]);
     }
     return this.http.get<ResponseJSON<any[]>>(`api/personal/responsables/${personalID}/${year}/${month}`).pipe(
-      map((res:any) => res.data),
+      map((res: any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -306,7 +317,7 @@ export class ApiService {
       return of([]);
     }
     return this.http.get<ResponseJSON<any[]>>(`api/personal/sitrevista/${personalID}/${year}/${month}`).pipe(
-      map((res:any) => res.data),
+      map((res: any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -316,8 +327,8 @@ export class ApiService {
 
   getLiquidaciones(filters: any) {
     const parameter = filters
-    return this.http.post<ResponseJSON<any>>('api/liquidaciones/list',parameter).pipe(
-      map((res:any) => res.data),
+    return this.http.post<ResponseJSON<any>>('api/liquidaciones/list', parameter).pipe(
+      map((res: any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -327,8 +338,8 @@ export class ApiService {
 
   getLiquidacionesBanco(filters: any) {
     const parameter = filters
-    return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/list',parameter).pipe(
-      map((res:any) => res.data),
+    return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/list', parameter).pipe(
+      map((res: any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -339,8 +350,8 @@ export class ApiService {
   getMovimientosBanco(filters: any) {
     console.log("pase por aca")
     const parameter = filters
-    return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/listMovimientos',parameter).pipe(
-      map((res:any) => res.data),
+    return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/listMovimientos', parameter).pipe(
+      map((res: any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -350,8 +361,8 @@ export class ApiService {
 
   getLiquidacionesBancoAyudaAsistencial(filters: any) {
     const parameter = filters
-    return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/listAyudaAsistencial',parameter).pipe(
-      map((res:any) => res.data),
+    return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/listAyudaAsistencial', parameter).pipe(
+      map((res: any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -364,7 +375,7 @@ export class ApiService {
     const parameter = filters
 
     return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/list', parameter).pipe(
-      map((res:any) => res.data),
+      map((res: any) => res.data),
       catchError(() => of([]))
     );
 
@@ -398,12 +409,12 @@ export class ApiService {
   }
 
   setAgregarRegistros(gridDataInsert: any) {
-     const parameter = gridDataInsert
-     this.notification.success('Respuesta', `Inicio insercion `);
+    const parameter = gridDataInsert
+    this.notification.success('Respuesta', `Inicio insercion `);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/add', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
-     )
+    )
 
   }
 
@@ -411,21 +422,21 @@ export class ApiService {
     const parameter = deleteId
     this.notification.success('Respuesta', `Inicio Borrado `);
 
-   return this.http.post<ResponseJSON<any>>('/api/liquidaciones/delete', parameter).pipe(
-     tap((res: ResponseJSON<any>) => this.response(res)),
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/delete', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
- }
+  }
 
- setDeleteMovimiento(deleteId: any) {
-  const parameter = deleteId
-  this.notification.success('Respuesta', `Inicio Borrado `);
+  setDeleteMovimiento(deleteId: any) {
+    const parameter = deleteId
+    this.notification.success('Respuesta', `Inicio Borrado `);
 
- return this.http.post<ResponseJSON<any>>('/api/liquidaciones/deleteMovimiento', parameter).pipe(
-   tap((res: ResponseJSON<any>) => this.response(res)),
-  )
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/deleteMovimiento', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
 
-}
+  }
 
   setCambiarCategorias(filters: any) {
     const parameter = filters
@@ -437,8 +448,8 @@ export class ApiService {
 
   }
 
-  setmovimientosAutomaticos(anio:number,mes:number) {
-    const parameter = {anio,mes}
+  setmovimientosAutomaticos(anio: number, mes: number) {
+    const parameter = { anio, mes }
     this.notification.success('Respuesta', `Inicio Carga Mov Automatico`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/movimientosAutomaticos', parameter).pipe(
@@ -447,8 +458,8 @@ export class ApiService {
 
   }
 
-  setingresoPorAsistencia(anio:number,mes:number) {
-    const parameter = {anio,mes}
+  setingresoPorAsistencia(anio: number, mes: number) {
+    const parameter = { anio, mes }
     this.notification.success('Respuesta', `Inicio Ingreso por Asistencia`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresoPorAsistencia', parameter).pipe(
@@ -456,8 +467,8 @@ export class ApiService {
     )
 
   }
-  setingresoPorAsistenciaAdministrativosArt42(anio:number,mes:number) {
-    const parameter = {anio,mes}
+  setingresoPorAsistenciaAdministrativosArt42(anio: number, mes: number) {
+    const parameter = { anio, mes }
     this.notification.success('Respuesta', `Inicio Ingreso por Asistencia Administrativos`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresoPorAsistenciaAdministrativosArt42', parameter).pipe(
@@ -466,8 +477,8 @@ export class ApiService {
 
   }
 
-  setingresosCoordinadorDeCuenta(anio:number,mes:number) {
-    const parameter = {anio,mes}
+  setingresosCoordinadorDeCuenta(anio: number, mes: number) {
+    const parameter = { anio, mes }
     this.notification.success('Respuesta', `Inicio Ingreso coordinador de cuenta`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresosCoordinadorDeCuenta', parameter).pipe(
@@ -476,8 +487,8 @@ export class ApiService {
 
   }
 
-  setdescuentoPorDeudaAnterior(anio:number,mes:number) {
-    const parameter = {anio,mes}
+  setdescuentoPorDeudaAnterior(anio: number, mes: number) {
+    const parameter = { anio, mes }
     this.notification.success('Respuesta', `Inicio descuentos por deduda anterior`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/descuentoPorDeudaAnterior', parameter).pipe(
@@ -486,8 +497,8 @@ export class ApiService {
 
   }
 
-  setdescuentos(anio:number,mes:number) {
-    const parameter = {anio,mes}
+  setdescuentos(anio: number, mes: number) {
+    const parameter = { anio, mes }
     this.notification.success('Respuesta', `Inicio descuentos`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/descuentos', parameter).pipe(
@@ -496,8 +507,8 @@ export class ApiService {
 
   }
 
-  setmovimientoAcreditacionEnCuenta(anio:number,mes:number) {
-    const parameter = {anio,mes}
+  setmovimientoAcreditacionEnCuenta(anio: number, mes: number) {
+    const parameter = { anio, mes }
     this.notification.success('Respuesta', `Inicio movimiento Acreditacion En Cuenta`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/movimientoAcreditacionEnCuenta', parameter).pipe(
@@ -515,8 +526,8 @@ export class ApiService {
 
   }
 
-  eliminaMovimientosBanco(banco_id:number) {
-    const parameter = {banco_id}
+  eliminaMovimientosBanco(banco_id: number) {
+    const parameter = { banco_id }
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/elimina/banco', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
       catchError(() => of(''))
@@ -533,7 +544,7 @@ export class ApiService {
     }
     const path = `/api/impuestos_afip/${year}/${month}` + (personaIdRel > 0 ? `/${personaIdRel}` : ``);
     return this.http.get<ResponseJSON<ResponseDescuentos>>(path).pipe(
-      map((res:any) => res.data),
+      map((res: any) => res.data),
       catchError(() => of(emptyResponse))
     );
   }
@@ -542,7 +553,7 @@ export class ApiService {
     const parameter = filters
 
     return this.http.post<ResponseJSON<any>>('/api/telefonia/list', parameter).pipe(
-      map((res:any) => res.data),
+      map((res: any) => res.data),
       catchError(() => of([]))
     );
 
@@ -565,11 +576,11 @@ export class ApiService {
     this.notification.success('Respuesta', `${res.msg} ${tiempoConsido}`);
   }
 
-  addAsistencia(asistencia: any){
-    console.log('asistencia',asistencia);
+  addAsistencia(asistencia: any) {
+    console.log('asistencia', asistencia);
     return this.http.post<ResponseJSON<any>>(`api/asistencia/agregarasistencia`, asistencia).pipe(map(res => res.data));
   }
-  
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

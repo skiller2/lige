@@ -1,0 +1,9 @@
+<nz-select #eto [(ngModel)]="selectedId" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
+   (ngModelChange)="onChange($event)" nzAllowClear nzPlaceHolder="Tipo Movimiento"
+  nzShowSearch >
+  <ng-container *ngFor="let option of optionsArray">
+    <nz-option [nzValue]="option.tipo_movimiento_id"
+      [nzLabel]="option.des_movimiento" />
+  </ng-container>
+</nz-select> 
+
