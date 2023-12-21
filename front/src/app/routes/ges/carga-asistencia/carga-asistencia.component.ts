@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption } from 'angular-slickgrid';
 import { NzModalService } from "ng-zorro-antd/modal";
@@ -44,6 +44,8 @@ export class CargaAsistenciaComponent {
     peridoHasta: any;
 
     private readonly loadingSrv = inject(LoadingService);
+    private readonly route = inject(ActivatedRoute);
+
 
 
     constructor(
@@ -213,6 +215,15 @@ export class CargaAsistenciaComponent {
             this.carasistForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1))
         }, 1);
         this.settingsService.setLayout('collapsed', true)
+
+        const ObjetivoId = Number(this.route.snapshot.paramMap.get('ObjetivoId'))
+
+        setTimeout(() => {
+          if (ObjetivoId > 0)
+            this.carasistForm.controls['ObjetivoId'].setValue(ObjetivoId);
+        }, 1000)
+    
+
     }
 
     onCellChanged(e: any) {
@@ -297,6 +308,9 @@ export class CargaAsistenciaComponent {
             case Busqueda.Periodo:
                 this.selectedPeriod.year = (result as Date).getFullYear();
                 this.selectedPeriod.month = (result as Date).getMonth() + 1;
+                localStorage.setItem('anio', String(this.selectedPeriod.year));
+                localStorage.setItem('mes', String(this.selectedPeriod.month));
+
                 const daysOfMonth = this.getDaysOfWeekOfMonth(this.selectedPeriod.year, this.selectedPeriod.month);
                 this.columnas = [...this.columnDefinitions, ...daysOfMonth];
                 break;

@@ -51,7 +51,7 @@
                 (nzOnConfirm)="setCargaAsistencia()"><span nz-icon nzType="plus" nzTheme="outline"></span>Inicia
                 Carga</button>
             <button nz-button nzType="primary" nz-popconfirm nzPopconfirmTitle="Cierra carga asistencia?"
-                *ngIf=" objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesHasta == null" [nzBeforeConfirm]=""
+                *ngIf=" objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesHasta == null && objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesDesde != null" [nzBeforeConfirm]=""
                 [nzPopconfirmShowArrow]="false" (nzOnConfirm)="endCargaAsistencia()"><span nz-icon nzType="check"
                     nzTheme="outline"></span>Finaliza
                 Carga</button>
