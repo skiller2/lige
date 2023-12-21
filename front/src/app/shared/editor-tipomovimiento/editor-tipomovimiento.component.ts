@@ -32,7 +32,6 @@ export class EditorTipoMovimientoComponent {
   constructor(public element: ElementRef, public apiService: ApiService) { }
 
   onChange(item: any) {
-    debugger
     if(this.optionsArray.length > 0 ){
       const selectedItem = this.optionsArray.find(option => option.tipo_movimiento_id === item);
       this.eto?.focus()  //Al hacer click en el componente hace foco nuevamente
