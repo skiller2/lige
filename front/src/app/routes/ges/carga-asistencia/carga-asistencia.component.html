@@ -17,27 +17,21 @@
         <nz-form-item>
             <nz-form-label [nzSpan]="2">Responsable</nz-form-label>
             <nz-form-control>
-                <ng-container *ngIf="{ loading: objetivoResponsablesLoading$ | async } as responsablesContext">
-                    <ng-container *ngIf="responsablesContext.loading">
-                        <span nz-icon nzType="loading" class="loading-icon"></span>
-                        Cargando
-                    </ng-container>
                     <ng-container *ngFor="let responsable of objetivoDetalle.responsable">
-                        <p *ngIf="responsable.GrupoActividadId" title="{{ responsable.GrupoActividadId }}">
+                        <li *ngIf="responsable.GrupoActividadId" title="{{ responsable.GrupoActividadId }}">
                             {{responsable.GrupoActividadNumero}} -
                             {{responsable.GrupoActividadDetalle}} desde {{
                             responsable.GrupoActividadObjetivoDesde | date}} <span *ngIf="responsable.GrupoActividadObjetivoHasta
                         ">hasta</span> {{
                             responsable.GrupoActividadObjetivoHasta
-                            | date}} </p>
-                        <p *ngIf="responsable.PersonalIdCoordinador" title="{{ responsable.PersonalIdCoordinador }}">
+                            | date}} </li>
+                        <li *ngIf="responsable.PersonalIdCoordinador" title="{{ responsable.PersonalIdCoordinador }}">
                             Coordinador: {{responsable.ApellidoNombreCoordinador}} desde {{
                             responsable.ObjetivoPersonalJerarquicoDesde | date}} <span *ngIf="responsable.ObjetivoPersonalJerarquicoHasta
                         ">hasta</span> {{
                             responsable.GrupoActividadObjetivoHasta
-                            | date}} </p>
+                            | date}} </li>
                     </ng-container>
-                </ng-container>
             </nz-form-control>
         </nz-form-item>
         <nz-form-item>
@@ -50,18 +44,24 @@
                 </ng-container>
             </nz-form-control>
         </nz-form-item>
-        <button nz-button nzType="primary" nz-popconfirm *ngIf=" objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesDesde == null || objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesHasta != null" nzPopconfirmTitle="Habilita carga asistencia?"
-            [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false" (nzOnConfirm)="setCargaAsistencia()">Inicia
-            Carga</button>
-        <button nz-button nzType="primary" nz-popconfirm nzPopconfirmTitle="Cierra carga asistencia?" *ngIf=" objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesHasta == null"
-            [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false" (nzOnConfirm)="endCargaAsistencia()">Finaliza
-            Carga</button>
+        <ng-container *ngIf="selectedObjetivoId>0">
+            <button nz-button nzType="primary" nz-popconfirm
+                *ngIf="(objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesDesde == null || objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesHasta != null)"
+                nzPopconfirmTitle="Habilita carga asistencia?" [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false"
+                (nzOnConfirm)="setCargaAsistencia()"><span nz-icon nzType="plus" nzTheme="outline"></span>Inicia
+                Carga</button>
+            <button nz-button nzType="primary" nz-popconfirm nzPopconfirmTitle="Cierra carga asistencia?"
+                *ngIf=" objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesHasta == null" [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false" (nzOnConfirm)="endCargaAsistencia()"><span nz-icon nzType="check"
+                    nzTheme="outline"></span>Finaliza
+                Carga</button>
+        </ng-container>
     </ng-container>
-    <div class="grid-container-asis container-fluid">
-        <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptionsEdit"
-            [dataset]="gridDataInsert || []" (onCellChange)="onCellChanged($event)"
-            (onAngularGridCreated)="angularGridReadyEdit($event)">
-            <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
-        </angular-slickgrid>
-    </div>
 </form>
+<div class="grid-container-asis container-fluid">
+    <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptionsEdit"
+        [dataset]="gridDataInsert || []" (onCellChange)="onCellChanged($event)"
+        (onAngularGridCreated)="angularGridReadyEdit($event)">
+        <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
+    </angular-slickgrid>
+</div>
