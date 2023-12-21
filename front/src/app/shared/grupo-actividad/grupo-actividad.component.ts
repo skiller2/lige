@@ -62,7 +62,6 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   }
 
   onRemove() {
-    //  console.log('onRemove')
   }
 
   registerOnTouched(fn: any) {
@@ -113,7 +112,6 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
           .pipe(tap(res => {
              if (res[0]?.GrupoActividadId)
               this.extendedOption = res[0]
-            console.log('this.extendedOption',this.extendedOption, res)
             this._selected = this._selectedId
             this.valueExtendedEmitter.emit(this.extendedOption)
             this.propagateChange(this._selectedId)
@@ -150,7 +148,6 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   }
 
   focus() { 
-    console.log('focus')
 
   }
 }

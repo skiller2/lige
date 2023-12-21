@@ -57,7 +57,7 @@ export class InitController extends BaseController {
 
 
     for (const row of porGrupo) {
-      console.log('row', row)
+      //console.log('row', row)
       if (row)
       data.push({ x: row.GrupoActividadDetalle, y: row.CantidadObjetivos })
     }

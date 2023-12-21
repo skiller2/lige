@@ -27,7 +27,7 @@ export class ExtrasSettingsComponent implements OnInit {
   constructor(private fb: FormBuilder, public msg: NzMessageService) {}
 
   profileSave(value: any): void {
-    console.log('profile value', value);
+    //console.log('profile value', value);
   }
 
   pwdSave(): void {
@@ -43,7 +43,7 @@ export class ExtrasSettingsComponent implements OnInit {
       this.msg.error('invalid confirm new password');
       return;
     }
-    console.log('pwd value', this.pwd);
+    //console.log('pwd value', this.pwd);
   }
 
   ngOnInit(): void {
