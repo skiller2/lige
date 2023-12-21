@@ -16,8 +16,11 @@ export class AsistenciaController extends BaseController {
 
     const queryRunner = dataSource.createQueryRunner();
 
-
     try {
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+        throw new ClientException(`No tiene permisos para habilitar carga`)
+
+
       await queryRunner.startTransaction()
       await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner)
       await queryRunner.commitTransaction();
@@ -33,13 +36,15 @@ export class AsistenciaController extends BaseController {
 
   }
 
+
+  
   async addAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number, queryRunner: QueryRunner) {
 
 
     const cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
     if (cabecera.length == 0)
       throw new ClientException('Objetivo no localizado')
-
+    
     const contratos = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
     if (contratos.length == 0)
       throw new ClientException(`No tiene contrato vigente para el período ${anio}/${mes}`)
@@ -89,6 +94,26 @@ export class AsistenciaController extends BaseController {
     return cabecera[0]
   }
 
+  async getAsistenciaPeriodo(req: any, res: Response, next: NextFunction) {
+    const ObjetivoId = req.params.ObjetivoId;
+    const anio = req.params.anio;
+    const mes = req.params.mes;
+
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const periodo = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
+      this.jsonRes(periodo, res)
+
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction()
+      return next(error)
+    } finally {
+      // you need to release query runner which is manually created:
+      await queryRunner.release()
+    }
+  }
+
   async endAsistenciaPeriodo(req: any, res: Response, next: NextFunction) {
     const {
       anio,
@@ -106,6 +131,10 @@ export class AsistenciaController extends BaseController {
       if (cabecera.length == 0)
         throw new ClientException('Objetivo no localizado')
 
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+        throw new ClientException(`No tiene permisos para habilitar carga`)
+      
+      
       if (cabecera[0].ObjetivoAsistenciaAnoId == null || cabecera[0].ObjetivoAsistenciaAnoMesId == null)
         throw new ClientException('Periodo de carga de asitencia no generado')
 

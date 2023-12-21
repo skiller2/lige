@@ -5,8 +5,7 @@ export interface GrupoObj {
 
 export interface SearchGrup {
     GrupoActividadId: number,
-    Detalle: string
-    fullaname: string
+    fullName: string
 }
 
 export interface ResponseBySearchGrup {

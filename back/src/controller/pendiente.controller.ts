@@ -14,7 +14,7 @@ export class PendienteController extends BaseController {
 
     let buscar = false;
     
-    let query: string = `SELECT GrupoActividadId AS GrupoActividadId ,GrupoActividadDetalle AS Detalle from ERP_PRODUCCION_PRACTICA.DBO.GrupoActividad
+    let query: string = `SELECT GrupoActividadId AS GrupoActividadId ,GrupoActividadDetalle AS fullName from GrupoActividad
     WHERE`;
     
     switch (fieldName) {
@@ -28,10 +28,8 @@ export class PendienteController extends BaseController {
         });
         break;
       case "GrupoActividadId":
-        if (value.length > 1) {
-          query += ` GrupoActividadId LIKE '%${value.trim()}%' AND `;
+          query += ` GrupoActividadId LIKE '%${String(value).trim()}%' AND `;
           buscar = true;
-        }
         break;
       
       default:

@@ -10,7 +10,7 @@ export class RowPreloadDetailComponent implements OnInit {
 
 
   ngOnInit(): void { 
-    console.log('Init Preload')
+    //console.log('Init Preload')
   }
 
 }

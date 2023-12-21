@@ -105,8 +105,6 @@ export class FechaSearchComponent implements ControlValueAccessor {
         const año = value.getFullYear().toString();
         this._selectedId = `${dia}/${mes}/${año}`
       }
-      // console.log('val:',val);
-      // console.log('this._selectedId:',this._selectedId);
     if (!this._selectedId && this._selectedId !== null) {
       this.valueExtendedEmitter.emit(null)
       this.propagateChange('')

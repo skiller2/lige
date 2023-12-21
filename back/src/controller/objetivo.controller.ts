@@ -6,7 +6,7 @@ import { NextFunction } from "express-serve-static-core";
 import { QueryRunner, QueryRunnerAlreadyReleasedError } from "typeorm";
 
 export class ObjetivoController extends BaseController {
-  async ObjetivoInfoFromId(objetivoId: string, res,next:NextFunction) {
+  async ObjetivoInfoFromId(objetivoId: string, res, next: NextFunction) {
     try {
       const result: ObjetivoInfo[] = await dataSource.query(
         `SELECT obj.ObjetivoId objetivoId, obj.ClienteId clienteId, obj.ClienteElementoDependienteId elementoDependienteId, obj.ObjetivoDescripcion descripcion FROM Objetivo obj WHERE obj.ObjetivoId = @0`,
@@ -19,10 +19,11 @@ export class ObjetivoController extends BaseController {
     }
   }
   static async getObjetivoContratos(objetivoId: number, anio: number, mes: number, queryRunner: QueryRunner) {
-    return  queryRunner
-    .query(
-      `SELECT  DISTINCT obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
-    -- obj.ObjetivoDescripcion,
+    const buscaObjetivo =  (objetivoId!=0) ? ' AND obj.ObjetivoId=@0':''
+    return queryRunner
+      .query(
+        `SELECT  DISTINCT obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
+     obj.ObjetivoDescripcion,
     ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId,
   ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) ContratoFechaDesde,
   ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,clicon.ClienteContratoFechaHasta) ContratoFechaHasta,
@@ -43,26 +44,26 @@ export class ObjetivoController extends BaseController {
     
   WHERE 
      ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) IS NOT NULL
-    AND obj.ObjetivoId=@0`,
-      [objetivoId, anio, mes]
-  )
+    ${buscaObjetivo}`,
+        [objetivoId, anio, mes]
+      )
 
   }
 
-  async getObjetivoContratosResponse(objetivoId: number, anio: number, mes: number, res: Response,next:NextFunction) {
+  async getObjetivoContratosResponse(objetivoId: number, anio: number, mes: number, res: Response, next: NextFunction) {
     try {
       const queryRunner = dataSource.createQueryRunner();
       const records = await ObjetivoController.getObjetivoContratos(objetivoId, anio, mes, queryRunner)
       this.jsonRes(records, res);
-      
-    } catch (error) { 
+
+    } catch (error) {
       return next(error);
 
     }
   }
 
 
-  async getById(objetivoId: number, anio: number, mes: number, res: Response,next:NextFunction) {
+  async getById(objetivoId: number, anio: number, mes: number, res: Response, next: NextFunction) {
     let fechaHasta = new Date(anio, mes, 1);
     fechaHasta.setDate(fechaHasta.getDate() - 1);
 
@@ -79,8 +80,6 @@ export class ObjetivoController extends BaseController {
 		  CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombreCoordinador,
       opj.ObjetivoPersonalJerarquicoDesde,opj.ObjetivoPersonalJerarquicoHasta,
 		  per.PersonalId AS PersonalIdCoordinador,
-      ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) ContratoFechaDesde,
-      ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,clicon.ClienteContratoFechaHasta) ContratoFechaHasta,
       
         1
         
@@ -96,11 +95,9 @@ export class ObjetivoController extends BaseController {
 
         LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
         LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId  AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-        LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledepcon.ClienteElementoDependienteContratoId = eledep.ClienteElementoDependienteContactoUltNro
         
         LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = eledep.ClienteId AND domdep.ClienteElementoDependienteId  = eledep.ClienteElementoDependienteId
         LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL
-        LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId AND clicon.ClienteContratoId = cli.ClienteContratoUltNro AND obj.ClienteElementoDependienteId IS NULL 
         
         LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
         
@@ -126,8 +123,8 @@ export class ObjetivoController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-        const catactual = await queryRunner.query(
-          `UPDATE gru
+      const catactual = await queryRunner.query(
+        `UPDATE gru
           SET 		  gru.GrupoActividadObjetivoHasta=ISNULL(clicon.ClienteContratoFechaHasta,eledepcon.ClienteElementoDependienteContratoFechaHasta)
                       
                              
@@ -146,13 +143,13 @@ export class ObjetivoController extends BaseController {
                       
                   WHERE ISNULL(ISNULL(clicon.ClienteContratoFechaHasta,eledepcon.ClienteElementoDependienteContratoFechaHasta),'9999-12-31') < ISNULL(gru.GrupoActividadObjetivoHasta,'9999-12-31') AND 
                   ISNULL(ISNULL(clicon.ClienteContratoFechaHasta,eledepcon.ClienteElementoDependienteContratoFechaHasta),'9999-12-31') < @0`,
-          [fechaActual]
-        )
+        [fechaActual]
+      )
 
 
       await queryRunner.commitTransaction();
       if (res)
-        this.jsonRes({list:[] }, res, `Se actualizaron los grupos `);
+        this.jsonRes({ list: [] }, res, `Se actualizaron los grupos `);
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
@@ -166,7 +163,7 @@ export class ObjetivoController extends BaseController {
 
 
 
-  async search(req: any, res: Response,next:NextFunction) {
+  async search(req: any, res: Response, next: NextFunction) {
     try {
       const { sucursalId, fieldName, value } = req.body;
       if (sucursalId == "") {
@@ -207,10 +204,10 @@ export class ObjetivoController extends BaseController {
       
 
 WHERE  `;
-      
+
       if (sucursalId > 0)
         query += ' suc.SucursalId = @1 AND '
-      
+
       switch (fieldName) {
         case "Descripcion":
           const valueArray: Array<string> = value.split(/[\s,.-]+/);
@@ -232,7 +229,7 @@ WHERE  `;
       }
 
       if (buscar) {
-        const result = await dataSource.query(query, [new Date(),sucursalId]);
+        const result = await dataSource.query(query, [new Date(), sucursalId]);
         this.jsonRes({ objetivos: result }, res);
       } else this.jsonRes({ objetivos: [] }, res);
     } catch (error) {

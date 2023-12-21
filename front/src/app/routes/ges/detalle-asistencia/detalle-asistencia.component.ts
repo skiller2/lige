@@ -419,7 +419,7 @@ export class DetalleAsistenciaComponent {
   }
 
   buscarPorObjetivo(ObjetivoId: string) {
-    console.log('buscarPorObjetivo')
+    //console.log('buscarPorObjetivo')
     this.asistenciaObj.controls['ObjetivoId'].setValue(ObjetivoId);
     //    this.router.navigate(['/ges/detalle_asistencia/objetivo', { state: { ObjetivoId } }]);
     this.router.navigateByUrl('/ges/detalle_asistencia/objetivo', { state: { ObjetivoId } });
