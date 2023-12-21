@@ -6,6 +6,7 @@ import { NextFunction, Request, Response } from "express";
 import { ParsedQs } from "qs";
 import { AsistenciaController } from "src/controller/asistencia.controller";
 import { exit } from "process";
+import { ObjetivoController } from "src/controller/objetivo.controller";
 
 const columnasGrilla: any[] = [
   {
@@ -74,15 +75,15 @@ const columnasGrilla: any[] = [
     searchHidden: false,
     hidden: true,
   },
-  // {
-  //   name: "Grupo Objetivo ID",
-  //   type: "number",
-  //   id: "GrupoActividadId",
-  //   field: "GrupoActividadId",
-  //   fieldName: "GrupoActividadId",
-  //   sortable: true,
-  //   hidden: true
-  // },
+  {
+     name: "Grupo Objetivo Número",
+     type: "number",
+     id: "GrupoActividadNumero",
+     field: "GrupoActividadNumero",
+     fieldName: "ga.GrupoActividadNumero",
+     sortable: true,
+     hidden: false
+  },
 
   {
     name: "Horas cargadas",
@@ -93,6 +94,7 @@ const columnasGrilla: any[] = [
     sortable: true,
     hidden: false
   },
+  /*
   {
     name: "Contrato Desde",
     type: "date",
@@ -111,7 +113,7 @@ const columnasGrilla: any[] = [
     sortable: true,
     hidden: false
   },
-  
+  */
 ];
 
 
@@ -134,6 +136,12 @@ export class ObjetivosPendasisController extends BaseController {
 
 
     //const result = await AsistenciaController.getObjetivoAsistencia(anio,mes,[filterSql],queryRunner)
+    const objetivos = await ObjetivoController.getObjetivoContratos(0, anio, mes, queryRunner)
+    let arrObjetivos = [] 
+    for (const objetivo of objetivos)
+      arrObjetivos.push(objetivo.ObjetivoId)
+    
+
 
 
     return queryRunner.query(
@@ -146,21 +154,19 @@ export class ObjetivosPendasisController extends BaseController {
       
       obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes,
       
-      -- CONCAT(TRIM(perjer.PersonalApellido),', ',TRIM(perjer.PersonalNombre)) AS ApellidoNombreObjJ,
-      
 		ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 		gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
 
       
       objasissub.sumtotalhorascalc AS AsistenciaHoras,
       
-      eledepcon.ClienteElementoDependienteContratoFechaDesde,  eledepcon.ClienteElementoDependienteContratoFechaHasta, eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,
-      clicon.ClienteContratoFechaDesde, clicon.ClienteContratoFechaHasta, clicon.ClienteContratoFechaFinalizacion,
+--      eledepcon.ClienteElementoDependienteContratoFechaDesde,  eledepcon.ClienteElementoDependienteContratoFechaHasta, eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,
+--      clicon.ClienteContratoFechaDesde, clicon.ClienteContratoFechaHasta, clicon.ClienteContratoFechaFinalizacion,
       
       objm.ObjetivoAsistenciaAnoMesHasta,
       
-      ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) as ContratoFechaDesde ,  
-	    ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,clicon.ClienteContratoFechaHasta) as  ContratoFechaHasta ,
+--      ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) as ContratoFechaDesde ,  
+--	    ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,clicon.ClienteContratoFechaHasta) as  ContratoFechaHasta ,
 	  
       
       
@@ -249,20 +255,19 @@ export class ObjetivosPendasisController extends BaseController {
       
       
       LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
-      LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledepcon.ClienteElementoDependienteContratoId = eledep.ClienteElementoDependienteContratoUltNro
-      
+      LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
+      AND EOMONTH(DATEFROMPARTS(@1,@2,1)) >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+        
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
-      LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = obj.ClienteId AND clicon.ClienteContratoId = cli.ClienteContratoUltNro AND obj.ClienteElementoDependienteId IS NULL 
-      
+      LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL 
+      AND EOMONTH(DATEFROMPARTS(@1,@2,1)) >= clicon.ClienteContratoFechaDesde AND ISNuLL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND ISNuLL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+        
       LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
        
       WHERE 
       (objd.ObjetivoId IS NULL OR objm.ObjetivoAsistenciaAnoMesHasta IS NULL) AND
-             ( (clicon.ClienteContratoFechaDesde <= DATETIMEFROMPARTS ( @1, @2, 28, 0, 0, 0, 0 )  
-       AND ISNULL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= DATETIMEFROMPARTS ( @1, @2, 1, 0, 0, 0, 0 ) AND ISNULL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= DATETIMEFROMPARTS ( @1, @2, 1, 0, 0, 0, 0 ) ) OR (
-          eledepcon.ClienteElementoDependienteContratoFechaDesde <= DATETIMEFROMPARTS ( @1, @2, 28, 0, 0, 0, 0 ) AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= DATETIMEFROMPARTS ( @1, @2, 1, 0, 0, 0, 0 ) AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= DATETIMEFROMPARTS ( @1, @2, 1, 0, 0, 0, 0 )) 
-            
-            )
+      ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) IS NOT NULL
+
 
      AND (${filterSql})
       `,

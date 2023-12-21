@@ -278,12 +278,16 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   async addFilter(field: string, condition: string, operator: string, value: string) {
-    const fieldObj: any = this._fieldsToSelect.filter(x => x.field === field)[0];
+    const fieldObj: any = this._fieldsToSelect.filter(x => x.field === field)[0]
+    if (!fieldObj)
+      return
     let label = ''
+//TODO revisar que pasa con el resto de los filtros
     if (fieldObj.searchComponent == 'inpurForPersonalSearch') {
       const person = await firstValueFrom(this.searchService.getPersonFromName('PersonalId', value))
       label = person[0].fullName
     }
+
     this.selections = { field: fieldObj, condition, operator, value, label }
     this.handleInputConfirm()
   }

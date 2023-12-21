@@ -133,9 +133,9 @@ export class ObjetivosPendAsisComponent {
     const gruposActividadList = user.GrupoActividad
 
     setTimeout(() => {
-      
+      console.log('gruposActividadList',gruposActividadList)
       if (gruposActividadList.length > 0)
-      this.sharedFiltroBuilder.addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'))  //Ej 548
+        this.sharedFiltroBuilder.addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'))  //Ej 548
     }, 3000);
 
   }

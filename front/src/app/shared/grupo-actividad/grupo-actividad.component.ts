@@ -45,7 +45,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
 
   private _selectedId: string = ''
   _selected = ''
-  extendedOption = { GrupoActividadId: 0, Detalle: "" }
+  extendedOption = { GrupoActividadId: 0, fullName: "" }
   
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
@@ -112,7 +112,8 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
           .getGrupoActividad('GrupoActividadId', this._selectedId)
           .pipe(tap(res => {
              if (res[0]?.GrupoActividadId)
-             this.extendedOption = res[0]
+              this.extendedOption = res[0]
+            console.log('this.extendedOption',this.extendedOption, res)
             this._selected = this._selectedId
             this.valueExtendedEmitter.emit(this.extendedOption)
             this.propagateChange(this._selectedId)
@@ -144,7 +145,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   }
 
   search(value: string): void {
-    this.extendedOption = { GrupoActividadId: 0, Detalle: "" }
+    this.extendedOption = { GrupoActividadId: 0, fullName: "" }
     this.$searchChange.next(value)
   }
 
