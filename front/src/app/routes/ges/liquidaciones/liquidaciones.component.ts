@@ -16,6 +16,7 @@ import { NzModalService, NzModalModule } from "ng-zorro-antd/modal";
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import {EditorTipoMovimientoComponent} from '../../../shared/editor-tipomovimiento/editor-tipomovimiento.component'
+import {EditorTipoCuentaComponent} from '../../../shared/editor-tipocuenta/editor-tipocuenta.component'
 
 import {
   BehaviorSubject,
@@ -394,8 +395,8 @@ export class LiquidacionesComponent {
         id: 'des_movimiento', name: 'Tipo Movimiento', field: 'des_movimiento',
         sortable: true,
         type: FieldType.string,
-        maxWidth: 100,
-        minWidth: 100,
+        maxWidth: 200,
+        minWidth: 200,
         formatter: Formatters.complexObject,
         params: {
           complexFieldLabel: 'des_movimiento.fullName',
@@ -407,6 +408,7 @@ export class LiquidacionesComponent {
             component: EditorTipoMovimientoComponent,
           },
           alwaysSaveOnEnterKey: true,
+        
           // required: true
         },
       },
@@ -415,20 +417,20 @@ export class LiquidacionesComponent {
         sortable: true,
         type: FieldType.string,
         maxWidth: 200,
-        formatter: Formatters.collectionEditor,
-
+        minWidth: 200,
+        formatter: Formatters.complexObject,
+        params: {
+          complexFieldLabel: 'des_cuenta.fullName',
+        },
         editor: {
-          model: Editors.singleSelect,
-          collectionAsync: this.apiService.getTipoCuenta(),
-          customStructure: {
-            value: 'tipocuenta_id',
-            label: 'detalle',
-          },
-          editorOptions: {
-            maxHeight: 400
+          model: CustomGridEditor,
+          collection: [],
+          params: {
+            component: EditorTipoCuentaComponent,
           },
           alwaysSaveOnEnterKey: true,
-          required: true
+        
+          // required: true
         },
       },
       {

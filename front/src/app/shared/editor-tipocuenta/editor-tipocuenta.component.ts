@@ -7,9 +7,9 @@ import { ApiService } from 'src/app/services/api.service';
 
 
 @Component({
-  selector: 'app-tipomovimiento-persona',
-  templateUrl: './editor-tipomovimiento.component.html',
-  styleUrls: ['./editor-tipomovimiento.component.less'],
+  selector: 'app-tipocuenta',
+  templateUrl: './editor-tipocuenta.component.html',
+  styleUrls: ['./editor-tipocuenta.component.less'],
   standalone: true,
   imports: [
     ...SHARED_IMPORTS,
@@ -18,7 +18,7 @@ import { ApiService } from 'src/app/services/api.service';
   ],
 
 })
-export class EditorTipoMovimientoComponent {
+export class EditorTipoCuentaComponent {
   @ViewChild("eto") eto!: NzSelectComponent
 
   selectedId: any = ''; //Lo utiliza la grilla para pasar el valor
@@ -28,17 +28,15 @@ export class EditorTipoMovimientoComponent {
   valueExtended!: any;
   optionsArray: any[] = [];
   // optionsArray = [{ MovimientoId: 21, Descripcion: 'Ajuste Positivo' }, { MovimientoId: 22, Descripcion: 'Ajuste Negativo' }]
-  optionsArra2 = this.apiService.getTipoMovimiento("M")
   constructor(public element: ElementRef, public apiService: ApiService) { }
 
   onChange(item: any) {
-    debugger
     if(this.optionsArray.length > 0 ){
-      const selectedItem = this.optionsArray.find(option => option.tipo_movimiento_id === item);
+      const selectedItem = this.optionsArray.find(option => option.tipocuenta_id === item);
       this.eto?.focus()  //Al hacer click en el componente hace foco nuevamente
       const selopt: any = this.optionsArray
       this.selectedId = item
-      this.selectedItem = { id: item, fullName: selectedItem.des_movimiento }
+      this.selectedItem = { id: item, fullName: selectedItem.detalle }
     }
   }
 
@@ -58,7 +56,7 @@ export class EditorTipoMovimientoComponent {
     //    this.element.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
     //    this.eto.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
 
-    this.apiService.getTipoMovimiento("M").subscribe((data: any[]) => {
+    this.apiService.getTipoCuenta().subscribe((data: any[]) => {
       this.optionsArray = data;
     });
     if (this.selectedId == '')

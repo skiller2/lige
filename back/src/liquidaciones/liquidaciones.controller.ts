@@ -346,7 +346,7 @@ export class LiquidacionesController extends BaseController {
 
 
         let tipo_movimiento_id = row.des_movimiento.id
-        let tipocuenta_id = row.des_cuenta
+        let tipocuenta_id = row.des_cuenta.id
         let fechaActual = new Date()
         let detalle = row.detalle
         let objetivo_id = row.ObjetivoDescripcion?.id == undefined ? null : row.ObjetivoDescripcion?.id
