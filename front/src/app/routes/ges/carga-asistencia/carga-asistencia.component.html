@@ -38,9 +38,9 @@
             <nz-form-label [nzSpan]="2">Contrato</nz-form-label>
             <nz-form-control>
                 <ng-container *ngFor="let contrato of objetivoDetalle.contratos">
-                    <p>Desde {{contrato.ContratoFechaDesde | date}} <span
+                    <li>Desde {{contrato.ContratoFechaDesde | date}} <span
                             *ngIf="contrato.ContratoFechaHasta">hasta</span>
-                        {{ contrato.ContratoFechaHasta | date}} </p>
+                        {{ contrato.ContratoFechaHasta | date}} </li>
                 </ng-container>
             </nz-form-control>
         </nz-form-item>
