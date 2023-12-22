@@ -45,16 +45,12 @@ export class CargaAsistenciaComponent {
 
     private readonly loadingSrv = inject(LoadingService);
     private readonly route = inject(ActivatedRoute);
+    public apiService = inject(ApiService)
+    public router = inject(Router)
+    private angularUtilService = inject(AngularUtilService)
+    private searchService = inject(SearchService)
+    private settingsService = inject(SettingsService)
 
-
-
-    constructor(
-        public apiService: ApiService,
-        public router: Router,
-        private angularUtilService: AngularUtilService,
-        private searchService: SearchService,
-        private settingsService: SettingsService
-    ) { }
 
     columnDefinitions: Column[] = [];
     columnas: Column[] = [];
@@ -78,7 +74,7 @@ export class CargaAsistenciaComponent {
     objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
 
     getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
-        this.loadingSrv.open({type:'spin',text:''})
+        this.loadingSrv.open({ type: 'spin', text: '' })
         return forkJoin([
             this.searchService.getObjetivo(objetivoId, anio, mes),
             this.searchService.getObjetivoContratos(objetivoId, anio, mes),
@@ -110,7 +106,7 @@ export class CargaAsistenciaComponent {
     );
 
     async ngOnInit() {
-        
+
         this.columnDefinitions = [
             {
                 id: 'apellidoNombre', name: 'Persona', field: 'apellidoNombre',
@@ -220,10 +216,10 @@ export class CargaAsistenciaComponent {
         const ObjetivoId = Number(this.route.snapshot.paramMap.get('ObjetivoId'))
 
         setTimeout(() => {
-          if (ObjetivoId > 0)
-            this.carasistForm.controls['ObjetivoId'].setValue(ObjetivoId);
+            if (ObjetivoId > 0)
+                this.carasistForm.controls['ObjetivoId'].setValue(ObjetivoId);
         }, 1000)
-    
+
 
     }
 
@@ -425,7 +421,7 @@ export class CargaAsistenciaComponent {
                 objetivoId: this.selectedObjetivoId,
                 personalId: apellidoNombre.id,
                 tipoAsociadoId: tipo.id,
-                categoriaPersonalId:categoria.id,
+                categoriaPersonalId: categoria.id,
                 formaLiquidacion: forma.id,
             }
             this.apiService.addAsistencia(item)
@@ -443,13 +439,13 @@ export class CargaAsistenciaComponent {
 
     endCargaAsistencia() {
         const res = firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)
-        ).finally(()=>{this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)})
-            
+        ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
+
     }
 
     setCargaAsistencia() {
         const res = firstValueFrom(this.apiService.addAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)
-        ).finally(()=>{this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)})
+        ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
     }
 
 }

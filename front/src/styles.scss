@@ -40,6 +40,8 @@ $slick-icon-width:                                          18px !default;
     //  font-size: var(--slick-font-size-base, 14px);
   }
 
+  app-tipocuenta ,
+  app-tipomovimiento-persona, 
   app-objetivo-search ,
   app-personal-search ,
   app-categoria-persona ,
@@ -75,6 +77,8 @@ $slick-icon-width:                                          18px !default;
 
   }
 
+  app-tipocuenta > nz-select,
+  app-tipomovimiento-persona > nz-select, 
   app-editor-persona > nz-select,
   app-categoria-persona > nz-select,
   app-tipohora-persona > nz-select {
