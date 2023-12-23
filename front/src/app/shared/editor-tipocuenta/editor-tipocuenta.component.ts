@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 import { ApiService } from 'src/app/services/api.service';
+import { Injector, inject } from '@angular/core';
 
 
 @Component({
@@ -28,7 +29,10 @@ export class EditorTipoCuentaComponent {
   valueExtended!: any;
   optionsArray: any[] = [];
   // optionsArray = [{ MovimientoId: 21, Descripcion: 'Ajuste Positivo' }, { MovimientoId: 22, Descripcion: 'Ajuste Negativo' }]
-  constructor(public element: ElementRef, public apiService: ApiService) { }
+
+
+  private element = inject(ElementRef);
+  private apiService = inject(ApiService);
 
   onChange(item: any) {
     if(this.optionsArray.length > 0 ){

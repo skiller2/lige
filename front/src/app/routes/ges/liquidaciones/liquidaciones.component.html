@@ -5,7 +5,18 @@
         <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
         <nz-form-control>
           <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
-          <button nz-button nzType="primary" class="btn-add" *ngIf="(gridDataInsert.length >= 2)" data-test="add-new-item-top-btn" (click)="createBasicNotification(template)" >Confirmar nuevo registro</button>
+          <!-- <button nz-button nzType="primary" class="btn-add" *ngIf="(gridDataInsert.length >= 2)" 
+            data-test="add-new-item-top-btn" (click)="createBasicNotification(template)"  >Confirmar nuevo registro</button> -->
+
+          <button
+            *ngIf="(gridDataInsert.length >= 2)" nz-popconfirm nzType="primary" class="btn-add"
+            nzPopconfirmTitle="Confirmar nuevo registro?"
+            (nzOnConfirm)="confirmNewItem()"
+            nzPopconfirmPlacement="topLeft"
+            nz-button
+          >
+          Confirmar nuevo registro
+        </button>
 
         </nz-form-control>
       </nz-form-item>
@@ -205,22 +216,6 @@
 
       </nz-tab>
     </nz-tabset>
-
-    <ng-template #template let-notification >
-      <div class="ant-notification-notice-content">
-        <div>
-          <div class="ant-notification-notice-message">Agregar liquidaciones</div>
-          <div class="ant-notification-notice-description">
-            Seguro que desea cargar las liquidaciones...
-          </div>
-          <span class="ant-notification-notice-btn">
-            <button nz-button nzType="primary" nzSize="small" (click)="confirmNewItem()">
-              <span>Aceptar</span>
-            </button>
-          </span>
-        </div>
-      </div>
-    </ng-template>
 
     <ng-template #templateImportacion let-notification >
       <div class=" notificacionImportacion ant-notification-notice-content">

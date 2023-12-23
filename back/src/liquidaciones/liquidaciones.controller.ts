@@ -337,12 +337,12 @@ export class LiquidacionesController extends BaseController {
     let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
 
-    console.log("req", req.body.gridDataInsert)
+    console.log("periodo", req.body)
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      for (const row of req.body.gridDataInsert) {
+      for (const row of req.body[1].gridDataInsert) {
 
 
         let tipo_movimiento_id = row.des_movimiento.id
@@ -359,7 +359,7 @@ export class LiquidacionesController extends BaseController {
 
         let movimiento_id = await Utils.getMovimientoId(queryRunner)
 
-        const periodo = row.periodo.split('/');
+        const periodo = req.body[0].split('/');
         const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseFloat(periodo[1]), parseFloat(periodo[0]), usuario, ip)
 
 
@@ -388,7 +388,7 @@ export class LiquidacionesController extends BaseController {
       //throw new ClientException("Paso oka")
       await queryRunner.commitTransaction();
 
-      this.jsonRes({ list: [] }, res, `Se procesaron ${req.body.gridDataInsert.length} registros `);
+      this.jsonRes({ list: [] }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
