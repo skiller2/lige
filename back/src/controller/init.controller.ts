@@ -33,36 +33,39 @@ export class InitController extends BaseController {
     const anio = req.params.anio
     const mes = req.params.mes
 
-    const result = await ObjetivosPendasisController.listObjetivosPendAsis({
-      filtros: [
-        { index: 'anio', operador: '=', condition: 'AND', valor: anio },
-        { index: 'mes', operador: '=', condition: 'AND', valor: mes }
-      ],
-      sort: null,
-      extra: null
-    })
+    try {
+      const result = await ObjetivosPendasisController.listObjetivosPendAsis({
+        filtros: [
+          { index: 'anio', operador: '=', condition: 'AND', valor: anio },
+          { index: 'mes', operador: '=', condition: 'AND', valor: mes }
+        ],
+        sort: null,
+        extra: null
+      })
 
-    let porGrupo: { GrupoActividadDetalle: string; CantidadObjetivos: number; }[]=[]
-    let data: { x: string; y: any; }[] = []
-    let total = 0
-
-
-    result.forEach(rec => {
-      const cant: number = (Number(porGrupo[rec.GrupoActividadId]?.CantidadObjetivos) > 0) ? porGrupo[rec.GrupoActividadId].CantidadObjetivos : 0
-      const GrupoActividadId = (rec.GrupoActividadId) ? rec.GrupoActividadId:0
-      const GrupoActividadDetalle = (rec.GrupoActividadDetalle) ? rec.GrupoActividadDetalle:'Sin Grupo'
-      porGrupo[GrupoActividadId] = { GrupoActividadDetalle, CantidadObjetivos: cant+1 }
-      total++
-    })
+      let porGrupo: { GrupoActividadDetalle: string; CantidadObjetivos: number; }[] = []
+      let data: { x: string; y: any; }[] = []
+      let total = 0
 
 
-    for (const row of porGrupo) {
-      //console.log('row', row)
-      if (row)
-      data.push({ x: row.GrupoActividadDetalle, y: row.CantidadObjetivos })
+      result.forEach(rec => {
+        const cant: number = (Number(porGrupo[rec.GrupoActividadId]?.CantidadObjetivos) > 0) ? porGrupo[rec.GrupoActividadId].CantidadObjetivos : 0
+        const GrupoActividadId = (rec.GrupoActividadId) ? rec.GrupoActividadId : 0
+        const GrupoActividadDetalle = (rec.GrupoActividadDetalle) ? rec.GrupoActividadDetalle : 'Sin Grupo'
+        porGrupo[GrupoActividadId] = { GrupoActividadDetalle, CantidadObjetivos: cant + 1 }
+        total++
+      })
+
+
+      for (const row of porGrupo) {
+        //console.log('row', row)
+        if (row)
+          data.push({ x: row.GrupoActividadDetalle, y: row.CantidadObjetivos })
+      }
+      this.jsonRes({ objetivosSinAsistencia: data, objetivosSinAsistenciaTotal: total, anio: anio, mes: mes }, res);
+    } catch (error) {
+      return next(error);
     }
-
-    this.jsonRes({ objetivosSinAsistencia: data, objetivosSinAsistenciaTotal: total, anio: anio, mes: mes }, res);
   }
 
   getObjetivosSinGrupo(req: Request, res: Response, next: NextFunction) {

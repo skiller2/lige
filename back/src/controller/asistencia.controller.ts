@@ -23,7 +23,7 @@ export class AsistenciaController extends BaseController {
 
 
       await queryRunner.startTransaction()
-      await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner)
+      await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, req)
       await queryRunner.commitTransaction();
       this.jsonRes([], res, `Período habilitado para el objetivo`);
     } catch (error) {
@@ -39,9 +39,7 @@ export class AsistenciaController extends BaseController {
 
 
   
-  async addAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number, queryRunner: QueryRunner) {
-
-
+  async addAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number, queryRunner: QueryRunner, req:any) {
     const cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
     if (cabecera.length == 0)
       throw new ClientException('Objetivo no localizado')
@@ -87,6 +85,8 @@ export class AsistenciaController extends BaseController {
     }
 
     if (cabecera[0].ObjetivoAsistenciaAnoMesHasta != null) {
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') )
+      throw new ClientException(`No tiene permisos para habilitar carga`)
       const result = await queryRunner.query(
         ` UPDATE ObjetivoAsistenciaAnoMes SET ObjetivoAsistenciaAnoMesHasta = NULL WHERE ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
           `, [cabecera[0].ObjetivoId, cabecera[0].ObjetivoAsistenciaAnoId, cabecera[0].ObjetivoAsistenciaAnoMesId]
@@ -133,7 +133,7 @@ export class AsistenciaController extends BaseController {
         throw new ClientException('Objetivo no localizado')
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
-        throw new ClientException(`No tiene permisos para habilitar carga`)
+        throw new ClientException(`No tiene permisos para habilitar carga del objetivo, no se encuentra en el grupo liquidaciones o administrativo`)
       
       
       if (cabecera[0].ObjetivoAsistenciaAnoId == null || cabecera[0].ObjetivoAsistenciaAnoMesId == null)
@@ -501,7 +501,7 @@ export class AsistenciaController extends BaseController {
       if (val instanceof ClientException) {
         if (val.code == 100102) {
           try {
-            await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner)
+            await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, req)
           } catch (e) {
             throw new e
           }
