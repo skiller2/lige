@@ -15,6 +15,7 @@ import { doOnSubscribe } from 'src/app/services/api.service'
 import { NzSelectComponent } from 'ng-zorro-antd/select'
 import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
+import { Injector, inject } from '@angular/core';
 
 @Component({
   selector: 'app-grupo-actividad',
@@ -33,7 +34,8 @@ import { CommonModule } from '@angular/common'
 })
 
 export class GrupoActividadSearchComponent implements ControlValueAccessor {
-  constructor(private searchService: SearchService) { }
+
+  private searchService = inject(SearchService);
 
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()

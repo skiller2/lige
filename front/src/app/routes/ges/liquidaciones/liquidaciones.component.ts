@@ -1,4 +1,4 @@
-import { Component, ViewChild, Injector, TemplateRef, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, Injector, inject, TemplateRef, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { NgForm } from '@angular/forms';
@@ -15,8 +15,12 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { NzModalService, NzModalModule } from "ng-zorro-antd/modal";
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
-import {EditorTipoMovimientoComponent} from '../../../shared/editor-tipomovimiento/editor-tipomovimiento.component'
-import {EditorTipoCuentaComponent} from '../../../shared/editor-tipocuenta/editor-tipocuenta.component'
+import {EditorTipoMovimientoComponent} from '../../../shared/editor-tipomovimiento/editor-tipomovimiento.component';
+import {EditorTipoCuentaComponent} from '../../../shared/editor-tipocuenta/editor-tipocuenta.component';
+import { NzMessageService } from 'ng-zorro-antd/message';
+
+
+
 
 import {
   BehaviorSubject,
@@ -57,7 +61,14 @@ export class LiquidacionesComponent {
     new NgForm([], [])
   @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent
   
-  constructor(private cdr: ChangeDetectorRef, public apiService: ApiService, private injector: Injector, public router: Router, private route: ActivatedRoute, private angularUtilService: AngularUtilService, private modal: NzModalService, private notification: NzNotificationService) { }
+  private cdr = inject(ChangeDetectorRef);
+  public apiService = inject(ApiService);
+  private injector = inject(Injector);
+  public router = inject(Router);
+  public route = inject(ActivatedRoute);
+  private angularUtilService = inject(AngularUtilService);
+  private modal = inject(NzModalService);
+  private notification = inject(NzNotificationService);
 
 
   url = '/api/liquidaciones';
@@ -94,13 +105,12 @@ export class LiquidacionesComponent {
   angularGridEdit!: AngularGridInstance;
   gridObj!: SlickGrid;
   gridObjEdit!: SlickGrid;
-
   $optionsCuenta = this.apiService.getTipoCuenta();
   $optionsMovimiento = this.apiService.getTipoMovimiento("I");
   $importacionesAnteriores = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
-      const periodo = this.liquidacionesForm.form.get('periodo')?.value
+        const periodo = this.liquidacionesForm.form.get('periodo')?.value
       return this.apiService
         .getImportacionesAnteriores(
           periodo.getFullYear(),periodo.getMonth() + 1
@@ -375,28 +385,22 @@ export class LiquidacionesComponent {
       {
         id: 'delete',
         field: 'id',
-        excludeFromHeaderMenu: true,
+        excludeFromHeaderMenu: false,
         formatter: Formatters.deleteIcon,
         maxWidth: 30,
       },
       {
         id: 'isfull', name: 'isfull', field: 'isfull',
-        sortable: true,
+        excludeFromHeaderMenu: true,
         type: FieldType.number,
-        maxWidth: 130,
-      },
-      {
-        id: 'periodo', name: 'Periodo', field: 'periodo',
-        sortable: true,
-        type: FieldType.string,
-        maxWidth: 60,
+        maxWidth: 130,    
       },
        {
         id: 'des_movimiento', name: 'Tipo Movimiento', field: 'des_movimiento',
         sortable: true,
         type: FieldType.string,
-        maxWidth: 200,
-        minWidth: 200,
+        maxWidth: 250,
+        minWidth: 250,
         formatter: Formatters.complexObject,
         params: {
           complexFieldLabel: 'des_movimiento.fullName',
@@ -416,8 +420,8 @@ export class LiquidacionesComponent {
         id: 'des_cuenta', name: 'Tipo Cuenta', field: 'des_cuenta',
         sortable: true,
         type: FieldType.string,
-        maxWidth: 200,
-        minWidth: 200,
+        maxWidth: 250,
+        minWidth: 250,
         formatter: Formatters.complexObject,
         params: {
           complexFieldLabel: 'des_cuenta.fullName',
@@ -434,16 +438,10 @@ export class LiquidacionesComponent {
         },
       },
       {
-        id: 'fecha', name: 'Fecha', field: 'fecha',
-        formatter: Formatters.dateIso, sortable: true,
-        type: FieldType.date,
-        maxWidth: 120,
-      },
-      {
         id: 'detalle', name: 'Detalle', field: 'detalle',
         sortable: true,
         type: FieldType.string,
-        maxWidth: 200,
+        maxWidth: 250,
         editor: {
           model: Editors.text
         }
@@ -472,7 +470,8 @@ export class LiquidacionesComponent {
         id: 'ApellidoNombre', name: 'Persona', field: 'ApellidoNombre',
         sortable: true,
         type: FieldType.string,
-        maxWidth: 200,
+        maxWidth: 250,
+        minWidth: 250,
         formatter: Formatters.complexObject,
         params: {
           complexFieldLabel: 'ApellidoNombre.fullName',
@@ -609,16 +608,6 @@ debugger
     this.angularGridEdit.gridService.addItem(newItem1, { position: insertPosition, highlightRow: false, scrollRowIntoView: false, triggerEvent: false });
   }
 
-
-
-  createBasicNotification(template: TemplateRef<{}>): void {
-
-    const element = document.getElementsByClassName('ant-notification-notice-content ng-star-inserted');
-
-    if (element.length == 0)
-      this.notification.template(template);
-  }
-
   createBasicNotificationImportacion(template: TemplateRef<{}>, id: string): void {
 
     this.NotificationIdForDelete = parseInt(id);
@@ -652,9 +641,12 @@ debugger
 
   confirmNewItem() {
     const altas = this.gridDataInsert.filter((f: any) => f.isfull == 1);
+    const periodo = this.liquidacionesForm.form.get('periodo')?.value
+    let periodoM = periodo.getMonth() + 1;
+    let periodoY = periodo.getFullYear();
+    const valuePeriodo = periodoM + "/" + periodoY;
     if (altas.length > 0) {
-      (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
-      this.apiService.setAgregarRegistros({ gridDataInsert: altas }).subscribe(evt => {
+      this.apiService.setAgregarRegistros({ gridDataInsert: altas} , valuePeriodo).subscribe(evt => {
         this.formChange$.next('')
         this.cleanTable()
       });
