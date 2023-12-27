@@ -391,9 +391,10 @@ export class LiquidacionesComponent {
       },
       {
         id: 'isfull', name: 'isfull', field: 'isfull',
-        excludeFromHeaderMenu: true,
+        excludeFromHeaderMenu: false,
         type: FieldType.number,
-        maxWidth: 130,    
+        width: 0, minWidth: 0, maxWidth: 0, cssClass: "reallyHidden", headerCssClass: "reallyHidden"
+
       },
        {
         id: 'des_movimiento', name: 'Tipo Movimiento', field: 'des_movimiento',
