@@ -23,7 +23,7 @@ export class AsistenciaController extends BaseController {
 
 
       await queryRunner.startTransaction()
-      await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner)
+      await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, req)
       await queryRunner.commitTransaction();
       this.jsonRes([], res, `Período habilitado para el objetivo`);
     } catch (error) {
@@ -38,19 +38,17 @@ export class AsistenciaController extends BaseController {
   }
 
 
-  
-  async addAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number, queryRunner: QueryRunner) {
 
-
+  async addAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number, queryRunner: QueryRunner, req: any) {
     const cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
     if (cabecera.length == 0)
       throw new ClientException('Objetivo no localizado')
-    
+
     const contratos = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
     if (contratos.length == 0)
       throw new ClientException(`No tiene contrato vigente para el período ${anio}/${mes}`)
-      
-    
+
+
     let ObjetivoAsistenciaAnoUltNro = cabecera[0].ObjetivoAsistenciaAnoId
 
     if (cabecera[0].ObjetivoAsistenciaAnoAno == null) {
@@ -87,6 +85,8 @@ export class AsistenciaController extends BaseController {
     }
 
     if (cabecera[0].ObjetivoAsistenciaAnoMesHasta != null) {
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
+        throw new ClientException(`No tiene permisos para habilitar carga`)
       const result = await queryRunner.query(
         ` UPDATE ObjetivoAsistenciaAnoMes SET ObjetivoAsistenciaAnoMesHasta = NULL WHERE ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
           `, [cabecera[0].ObjetivoId, cabecera[0].ObjetivoAsistenciaAnoId, cabecera[0].ObjetivoAsistenciaAnoMesId]
@@ -133,9 +133,9 @@ export class AsistenciaController extends BaseController {
         throw new ClientException('Objetivo no localizado')
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
-        throw new ClientException(`No tiene permisos para habilitar carga`)
-      
-      
+        throw new ClientException(`No tiene permisos para habilitar carga del objetivo, no se encuentra en el grupo liquidaciones o administrativo`)
+
+
       if (cabecera[0].ObjetivoAsistenciaAnoId == null || cabecera[0].ObjetivoAsistenciaAnoMesId == null)
         throw new ClientException('Periodo de carga de asitencia no generado')
 
@@ -501,7 +501,7 @@ export class AsistenciaController extends BaseController {
       if (val instanceof ClientException) {
         if (val.code == 100102) {
           try {
-            await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner)
+            await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, req)
           } catch (e) {
             throw new e
           }
@@ -1628,104 +1628,162 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
 
   async addAsistencia(req: any, res: Response, next: NextFunction) {
     // console.log('REQ', req.body);
-    let columnsDays = ''
-    let valueColumnsDays = ''
-    for (const key in req.body) {
-      if (key.startsWith('day')) {
-        let num = key[key.length - 1]
-        columnsDays = columnsDays + `, ObjetivoAsistenciaAnoMesPersonalDias${num}Gral`
-        valueColumnsDays = valueColumnsDays + `, '${req.body[key]}'`
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      let columnsDays = ''
+      let columnsDay = ''
+      let valueColumnsDays = ''
+      for (const key in req.body) {
+        if (key.startsWith('day')) {
+          let num = key[key.length - 1]
+          columnsDays = columnsDays + `, ObjetivoAsistenciaAnoMesPersonalDias${num}Gral`
+          columnsDay = columnsDay + `, ObjetivoAsistenciaAnoMesPersonalDia${num}Gral`
+          valueColumnsDays = valueColumnsDays + `, '${req.body[key]}'`
+        }
       }
-    }
+      let num = Math.round(req.body.total % 1 * 60)
+      let min = ''
+      if (num<10)
+        min = '0'+ num.toString()
+      else
+        min = num.toString()
+      const horas = parseInt(req.body.total).toString()
+      req.body.total = `${horas}.${min}`
 
-    let anoId = await dataSource.query(
-      `SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1`,
-      [req.body.objetivoId, req.body.year]
-    )
-    // console.log('ANOID', anoId);
-    if(!anoId.lenth){
-      anoId = await dataSource.query(
-        `INSERT INTO ObjetivoAsistenciaAno (ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaAnoAno, ObjetivoAsistenciaAnoMesUltNro) 
-        VALUES (
-          COALESCE((SELECT MAX(ObjetivoAsistenciaAnoId)+1 FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0), 1), 
-          @0, @1, 0)`,
+      let anoId = await queryRunner.query(
+        `SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1`,
         [req.body.objetivoId, req.body.year]
       )
-      // console.log('INSERT INTO ANOID', anoId);
-    } 
-    else {
-      anoId = await dataSource.query(
-        `UPDATE ObjetivoAsistenciaAno SET (ObjetivoAsistenciaAnoMesUltNro = (SELECT MAX(ObjetivoAsistenciaAnoId) FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1)) WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1`,
-        [req.body.objetivoId, req.body.year]
-      )
-    }
-    let mesId = await dataSource.query(
-      `SELECT ObjetivoAsistenciaAnoMesId from ObjetivoAsistenciaAnoMes 
-      WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) AND ObjetivoAsistenciaAnoMesMes = @2`,
-      [req.body.objetivoId, req.body.year, req.body.month]
-    )
-    // console.log('MESID',mesId);
-    if(!mesId.lenth){
-      mesId = await dataSource.query(
-        `INSERT INTO ObjetivoAsistenciaAnoMes (ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaAnoMesMes, ObjetivoAsistenciaAnoMesMeses, ObjetivoAsistenciaAnoMesDiaUltNro, ObjetivoAsistenciaAnoMesPersonalUltNro, ObjetivoAsistenciaAnoMesDiasPersonalUltNro, ObjetivoAsistenciaAnoMesPersonalDiasUltNro, ObjetivoAsistenciaAnoMesDiaPersonalUltNro, ObjetivoAsistenciaAnoMesRectificativa) 
-        VALUES (
-          COALESCE((SELECT MAX(ObjetivoAsistenciaAnoMesId)+1 FROM ObjetivoAsistenciaAnoMes WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1)), 1), 
-          (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1)
-          @0, @2, @2, 0, 0, 0, 0, 0, 0)`,
+      if(!anoId.lenth){
+        // anoId = await queryRunner.query(
+        //   `INSERT INTO ObjetivoAsistenciaAno (ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaAnoAno, ObjetivoAsistenciaAnoMesUltNro) 
+        //   VALUES (
+        //     COALESCE((SELECT MAX(ObjetivoAsistenciaAnoId)+1 FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0), 1), 
+        //     @0, @1, 0)`,
+        //   [req.body.objetivoId, req.body.year]
+        // )
+      }
+      let mesId = await queryRunner.query(
+        `SELECT ObjetivoAsistenciaAnoMesId from ObjetivoAsistenciaAnoMes 
+        WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) AND ObjetivoAsistenciaAnoMesMes = @2`,
         [req.body.objetivoId, req.body.year, req.body.month]
       )
-    }
+      if(!mesId.lenth){
+        // mesId = await queryRunner.query(
+        //   `INSERT INTO ObjetivoAsistenciaAnoMes (ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaAnoMesMes, ObjetivoAsistenciaAnoMesMeses, ObjetivoAsistenciaAnoMesDiaUltNro, ObjetivoAsistenciaAnoMesPersonalUltNro, ObjetivoAsistenciaAnoMesDiasPersonalUltNro, ObjetivoAsistenciaAnoMesPersonalDiasUltNro, ObjetivoAsistenciaAnoMesDiaPersonalUltNro, ObjetivoAsistenciaAnoMesRectificativa) 
+        //   VALUES (
+        //     COALESCE((SELECT MAX(ObjetivoAsistenciaAnoMesId)+1 FROM ObjetivoAsistenciaAnoMes WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1)), 1), 
+        //     (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1)
+        //     @0, @2, @2, 0, 0, 0, 0, 0, 0)`,
+        //   [req.body.objetivoId, req.body.year, req.body.month]
+        // )
+        //UPDATE
+        // await queryRunner.query(
+        //   `UPDATE ObjetivoAsistenciaAno 
+        //   SET ObjetivoAsistenciaAnoMesUltNro = @3
+        //   WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1)`, 
+        //   [req.body.objetivoId, req.body.year, req.body.month]
+        // )
+      }
 
-    let asistencia = await dataSource.query(
-      `SELECT ObjetivoAsistenciaAnoMesPersonalDiasId FROM ObjetivoAsistenciaAnoMesPersonalDias 
-      WHERE ObjetivoId = @0 
-      AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) 
-      AND ObjetivoAsistenciaAnoMesId = (SELECT ObjetivoAsistenciaAnoMesId from ObjetivoAsistenciaAnoMes WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) AND ObjetivoAsistenciaAnoMesMes = @2) 
-      AND ObjetivoAsistenciaMesPersonalId = @3 
-      AND ObjetivoAsistenciaTipoAsociadoId = @4 
-      AND ObjetivoAsistenciaCategoriaPersonalId = @5
-      AND ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras = @6`,
-      [req.body.objetivoId, req.body.year, req.body.month, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion])
+      let asistencia = await queryRunner.query(
+        `SELECT ObjetivoAsistenciaAnoMesPersonalDiasId FROM ObjetivoAsistenciaAnoMesPersonalDias 
+        WHERE ObjetivoId = @0 
+        AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) 
+        AND ObjetivoAsistenciaAnoMesId = (SELECT ObjetivoAsistenciaAnoMesId from ObjetivoAsistenciaAnoMes WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) AND ObjetivoAsistenciaAnoMesMes = @2) 
+        AND ObjetivoAsistenciaMesPersonalId = @3 
+        AND ObjetivoAsistenciaTipoAsociadoId = @4 
+        AND ObjetivoAsistenciaCategoriaPersonalId = @5
+        AND ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras = @6`,
+        [req.body.objetivoId, req.body.year, req.body.month, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion])
 
-    if(!asistencia.lenth){
-      // const result = await dataSource.query(
-      //   `INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id)
-      //   VALUES (@0, @1, @2, @3, @4, @5, @6${valueColumnsDays}, @7)`, 
-      //   [0, anoId, req.body.objetivoId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion, 0]
-      // )
-      // return result
-      return
-    } else {
-      // const deleteAsistencia = await dataSource.query(
-      //   `DELETE ObjetivoAsistenciaAnoMesPersonalDias 
-      //   WHERE ObjetivoId = @0 
-      //   AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) 
-      //   AND ObjetivoAsistenciaAnoMesId = (SELECT ObjetivoAsistenciaAnoMesId from ObjetivoAsistenciaAnoMes WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) AND ObjetivoAsistenciaAnoMesMes = @2) 
-      //   AND ObjetivoAsistenciaMesPersonalId = @3 
-      //   AND ObjetivoAsistenciaTipoAsociadoId = @4 
-      //   AND ObjetivoAsistenciaCategoriaPersonalId = @5
-      //   AND ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras = @6`,
-      //   [req.body.objetivoId, req.body.year, req.body.month, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion])
-      // const result = await dataSource.query(
-      //   `INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id)
-      //   VALUES (@0, @1, @2, @3, @4, @5, @6${valueColumnsDays}, @7)`, 
-      //   [0, anoId, req.body.objetivoId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion, 0]
-      // )
-      return
+      if(!asistencia.lenth){
+        const result = await queryRunner.query(
+          `INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, )
+          VALUES (
+            (SELECT ObjetivoAsistenciaAnoMesId from ObjetivoAsistenciaAnoMes WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) AND ObjetivoAsistenciaAnoMesMes = @2), 
+            (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1), 
+            @0, @3, @4, @5, @6${valueColumnsDays}, @7)
+          INSERT INTO ObjetivoAsistenciaMesDiasPersonal (ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaMesDiasPersonalFormaLiquidacionHoras ${columnsDay}, ObjetivoAsistenciaAnoMesPersonalDiaTotalGral)
+          VALUES (
+            (SELECT ObjetivoAsistenciaAnoMesId from ObjetivoAsistenciaAnoMes WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) AND ObjetivoAsistenciaAnoMesMes = @2), 
+            (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1), 
+            @0, @3, @4, @5, @6${valueColumnsDays}, @7)`, 
+          [req.body.objetivoId, req.body.year, req.body.month, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion, req.body.total]
+        )
+        await queryRunner.query(
+          `UPDATE ObjetivoAsistenciaAnoMesPersonalDias SET ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id = ObjetivoAsistenciaAnoMesPersonalDiasId
+          WHERE ObjetivoId = @0 
+          AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) 
+          AND ObjetivoAsistenciaAnoMesId = (SELECT ObjetivoAsistenciaAnoMesId from ObjetivoAsistenciaAnoMes WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) AND ObjetivoAsistenciaAnoMesMes = @2) 
+          AND ObjetivoAsistenciaMesPersonalId = @3 
+          AND ObjetivoAsistenciaTipoAsociadoId = @4 
+          AND ObjetivoAsistenciaCategoriaPersonalId = @5
+          AND ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras = @6
+          UPDATE ObjetivoAsistenciaMesDiasPersonal SET ObjetivoAsistenciaAnoMesPersonalAsignadoSuId = ObjetivoAsistenciaMesDiasPersonalId
+          WHERE ObjetivoId = @0 
+          AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) 
+          AND ObjetivoAsistenciaAnoMesId = (SELECT ObjetivoAsistenciaAnoMesId from ObjetivoAsistenciaAnoMes WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) AND ObjetivoAsistenciaAnoMesMes = @2) 
+          AND ObjetivoAsistenciaMesPersonalId = @3 
+          AND ObjetivoAsistenciaTipoAsociadoId = @4 
+          AND ObjetivoAsistenciaCategoriaPersonalId = @5
+          AND ObjetivoAsistenciaMesDiasPersonalFormaLiquidacionHoras = @6`,
+          [req.body.objetivoId, req.body.year, req.body.month, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion] 
+        )
+        await queryRunner.query(
+          `UPDATE ObjetivoAsistenciaAnoMes 
+          SET ObjetivoAsistenciaAnoMesPersonalDiasUltNro = ObjetivoAsistenciaAnoMesPersonalDiasUltNro +1, ObjetivoAsistenciaAnoMesPersonalUltNro = ObjetivoAsistenciaAnoMesPersonalUltNro +1 , ObjetivoAsistenciaAnoMesDiasPersonalUltNro = ObjetivoAsistenciaAnoMesDiasPersonalUltNro +1
+          WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) AND ObjetivoAsistenciaAnoMesMes = @2`, 
+          [req.body.objetivoId, req.body.year, req.body.month]
+        )
+        return result
+      } else {
+        const deleteAsistencia = await queryRunner.query(
+          `DELETE ObjetivoAsistenciaAnoMesPersonalDias 
+          WHERE ObjetivoId = @0 
+          AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) 
+          AND ObjetivoAsistenciaAnoMesId = (SELECT ObjetivoAsistenciaAnoMesId from ObjetivoAsistenciaAnoMes WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) AND ObjetivoAsistenciaAnoMesMes = @2) 
+          AND ObjetivoAsistenciaMesPersonalId = @3 
+          AND ObjetivoAsistenciaTipoAsociadoId = @4 
+          AND ObjetivoAsistenciaCategoriaPersonalId = @5
+          AND ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras = @6`,
+          [req.body.objetivoId, req.body.year, req.body.month, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion])
+        const result = await queryRunner.query(
+          `INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral)
+          VALUES (
+            (SELECT ObjetivoAsistenciaAnoMesId from ObjetivoAsistenciaAnoMes WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) AND ObjetivoAsistenciaAnoMesMes = @2), 
+            (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1), 
+            @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8)`, 
+          [req.body.objetivoId, req.body.year, req.body.month, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion, req.body.total]
+        )
+        return result
+      }
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction()
+      return next(error)
     }
+    
   }
 
   async deleteAsistencia(req: any, res: Response, next: NextFunction) {
-    // const result = await dataSource.query(
-    //   `DELETE ObjetivoAsistenciaAnoMesPersonalDias 
-    //   WHERE ObjetivoId = @0 
-    //     AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) 
-    //     AND ObjetivoAsistenciaAnoMesId = (SELECT ObjetivoAsistenciaAnoMesId from ObjetivoAsistenciaAnoMes WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) AND ObjetivoAsistenciaAnoMesMes = @2) 
-    //     AND ObjetivoAsistenciaMesPersonalId = @3 
-    //     AND ObjetivoAsistenciaTipoAsociadoId = @4 
-    //     AND ObjetivoAsistenciaCategoriaPersonalId = @5
-    //     AND ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras = @6`,
-    //     [req.body.objetivoId, req.body.year, req.body.month, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion]
-    //   )
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      // const result = await queryRunner.query(
+      //   `DELETE ObjetivoAsistenciaAnoMesPersonalDias 
+      //   WHERE ObjetivoId = @0 
+      //     AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) 
+      //     AND ObjetivoAsistenciaAnoMesId = (SELECT ObjetivoAsistenciaAnoMesId from ObjetivoAsistenciaAnoMes WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) AND ObjetivoAsistenciaAnoMesMes = @2) 
+      //     AND ObjetivoAsistenciaMesPersonalId = @3 
+      //     AND ObjetivoAsistenciaTipoAsociadoId = @4 
+      //     AND ObjetivoAsistenciaCategoriaPersonalId = @5
+      //     AND ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras = @6`,
+      //     [req.body.objetivoId, req.body.year, req.body.month, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion]
+      //   )
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction()
+      return next(error)
+    }
   }
 }

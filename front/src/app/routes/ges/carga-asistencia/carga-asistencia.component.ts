@@ -79,6 +79,7 @@ export class CargaAsistenciaComponent {
             this.searchService.getObjetivo(objetivoId, anio, mes),
             this.searchService.getObjetivoContratos(objetivoId, anio, mes),
             this.searchService.getAsistenciaPeriodo(objetivoId, anio, mes)
+            // Carga detalle de diario.
         ]).pipe(
             map((data: any[]) => {
                 this.selectedSucursalId = data[1][0]?.SucursalId
@@ -412,14 +413,8 @@ export class CargaAsistenciaComponent {
 
     async insertDB(rowId: string | number) {
         if (this.selectedObjetivoId) {
-            let { id, apellidoNombre, categoria, forma, tipo, ...row } = this.angularGridEdit.dataView.getItemById(rowId)
-            let num = Math.round(row.total % 1 * 60)
-            let min = ''
-            if (num < 10)
-                min = '0' + num.toString()
-            else
-                min = num.toString()
-            const horas = parseInt(row.total).toString()
+            let {id, apellidoNombre, categoria, forma, tipo, ...row} = this.angularGridEdit.dataView.getItemById(rowId)
+            
             const item = {
                 ...row,
                 ...this.selectedPeriod,
@@ -428,7 +423,6 @@ export class CargaAsistenciaComponent {
                 tipoAsociadoId: tipo.id,
                 categoriaPersonalId: categoria.id,
                 formaLiquidacion: forma.id,
-                total: `${horas}.${min}`
             }
             this.apiService.addAsistencia(item)
                 .pipe(
