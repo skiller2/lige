@@ -82,6 +82,7 @@ export class CargaAsistenciaComponent {
             // Carga detalle de diario.
         ]).pipe(
             map((data: any[]) => {
+                console.log('DATA',data);
                 this.selectedSucursalId = data[1][0]?.SucursalId
                 this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null)
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
