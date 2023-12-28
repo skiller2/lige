@@ -1679,7 +1679,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
         WHERE objm.ObjetivoId = @0 AND objm.ObjetivoAsistenciaAnoId = @1 AND objm.ObjetivoAsistenciaAnoMesMes = @2 AND objm.ObjetivoAsistenciaAnoMesMeses = @2`,
         [req.body.objetivoId, anoId[0].anoId, req.body.month]
       )
-      console.log('MESId',mesId);
+      //console.log('MESId',mesId);
       // if(!mesId.length){
       //   mesId = await queryRunner.query(
       //     `INSERT INTO ObjetivoAsistenciaAnoMes (ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaAnoMesMes, ObjetivoAsistenciaAnoMesMeses, ObjetivoAsistenciaAnoMesDiaUltNro, ObjetivoAsistenciaAnoMesPersonalUltNro, ObjetivoAsistenciaAnoMesDiasPersonalUltNro, ObjetivoAsistenciaAnoMesPersonalDiasUltNro, ObjetivoAsistenciaAnoMesDiaPersonalUltNro, ObjetivoAsistenciaAnoMesRectificativa) 
@@ -1723,7 +1723,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
           AND objp.ObjetivoAsistenciaCategoriaPersonalId = @5
           AND objp.ObjetivoAsistenciaMesDiasPersonalFormaLiquidacionHoras = @6`,
           [req.body.objetivoId, anoId[0].anoId, mesId[0].mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion])
-      console.log('ASISTENCIA', asistenciaPersonalDiasId);
+      //console.log('ASISTENCIA', asistenciaPersonalDiasId);
       
       if(!asistenciaPersonalDiasId.length){
         // const anoId = await queryRunner.query(`SELECT MAX(ObjetivoAsistenciaAnoId) id FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1`,[req.body.objetivoId, req.body.year])
@@ -1862,12 +1862,14 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
   async getListaAsistenciaPersonalAsignado(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
-      const objetivoId = req.body.objetivoId;
-      const anio = req.body.year;
-      const mes = req.body.month;
+      console.log('req.params',req.params);
+      
+      const objetivoId = req.params.ObjetivoId;
+      const anio = req.params.anio;
+      const mes = req.params.mes;
       let dias = ''
       for (let index = 1; index <= 31; index++) 
-        dias = dias+`, objp.ObjetivoAsistenciaAnoMesPersonalDias${index}Gral day${index}`
+        dias = dias+`, TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias${index}Gral) day${index}`
 
       let personal = await queryRunner.query(`
       SELECT objp.ObjetivoAsistenciaMesPersonalId PersonalId,
@@ -1876,7 +1878,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
         tipoas.TipoAsociadoDescripcion,
         objp.ObjetivoAsistenciaCategoriaPersonalId CategoriaId,
         catep.CategoriaPersonalDescripcion CategoriaDescripcion,
-        objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras FormaLiquidacion,
+        objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras FormaLiquidacion
         ${dias}
 
       FROM ObjetivoAsistenciaAnoMesPersonalDias objp
@@ -1890,6 +1892,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       WHERE objp.ObjetivoId = @0
       ORDER BY fullName
       `, [objetivoId, anio, mes])
+      //console.log('PERSONAL',personal);
       const data = personal.map((obj:any, index:number)=>{
         const camposDay = Object.keys(obj).filter(clave => clave.startsWith('day'));
         const days = {};
@@ -1909,13 +1912,13 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
             id: obj.CategoriaId
           },
           forma:{
-            fullName: (obj.FormaLiquidacion='N'? 'Normal' : 'Capacitación'),
-            id: obj.FormaLiquidacion
+            id: obj.FormaLiquidacion,
+            fullName: (obj.FormaLiquidacion='N'? 'Normal' : 'Capacitación')
           },
           ...days
         }
       })
-      console.log('DATA',data);
+      // console.log('DATA',data);
       this.jsonRes(data, res);
     } catch (error) {
       if (queryRunner.isTransactionActive)

@@ -80,14 +80,16 @@ export class CargaAsistenciaComponent {
             this.searchService.getObjetivoContratos(objetivoId, anio, mes),
             this.searchService.getAsistenciaPeriodo(objetivoId, anio, mes),
             // Carga detalle de diario.
-            // this.searchService.getListaAsistenciaPersonalAsignado(objetivoId, anio, mes)
+            this.searchService.getListaAsistenciaPersonalAsignado(objetivoId, anio, mes)
         ]).pipe(
             map((data: any[]) => {
-                console.log('DATA',data);
+                // console.log('DATA',data);
                 this.selectedSucursalId = data[1][0]?.SucursalId
                 this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null)
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
                 this.loadingSrv.close()
+                if (data[3].length) 
+                    this.gridDataInsert =  data[3]
                 return { responsable: data[0], contratos: data[1], periodo: data[2] };
             })
         );
