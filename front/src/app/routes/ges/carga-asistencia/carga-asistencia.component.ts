@@ -78,8 +78,9 @@ export class CargaAsistenciaComponent {
         return forkJoin([
             this.searchService.getObjetivo(objetivoId, anio, mes),
             this.searchService.getObjetivoContratos(objetivoId, anio, mes),
-            this.searchService.getAsistenciaPeriodo(objetivoId, anio, mes)
+            this.searchService.getAsistenciaPeriodo(objetivoId, anio, mes),
             // Carga detalle de diario.
+            // this.searchService.getListaAsistenciaPersonalAsignado(objetivoId, anio, mes)
         ]).pipe(
             map((data: any[]) => {
                 console.log('DATA',data);
