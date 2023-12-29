@@ -6,6 +6,7 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { Options } from "../schemas/filtro";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
 import xlsx from 'node-xlsx';
+import { json } from "body-parser";
 
 
 export class TelefoniaController extends BaseController {
@@ -282,11 +283,13 @@ export class TelefoniaController extends BaseController {
           telefonos[idx].total = total
         }
       }
-
       const telefonosRegistradosSinConsumo = telefonos.filter((row) => (Number(row.total) < 1 || isNaN(Number(row.total))))
       for (const tel of telefonosRegistradosSinConsumo) {
-        if (!tel.TelefoniaHasta || tel.TelefoniaHasta > new Date() )
-        dataset.push({ id: datasetid++, TelefoniaNro: tel.TelefoniaNro, Detalle: ' sin consumos en archivo xls y sin fecha de baja' })
+        if (!tel.TelefoniaHasta || tel.TelefoniaHasta > new Date()) {
+          dataset.push({ id: datasetid++, TelefoniaNro: tel.TelefoniaNro, Detalle: ` sin consumos en archivo xls y sin fecha de baja (TelefonoId: ${tel.TelefoniaId})` })
+//          console.log('telefonos',tel)
+
+        }
       }
 
       if (dataset.length > 0)
