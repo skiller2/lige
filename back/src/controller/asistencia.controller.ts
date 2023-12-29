@@ -1630,6 +1630,8 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
     // console.log('REQ', req.body);
     const queryRunner = dataSource.createQueryRunner();
     try {
+      //throw new ClientException(`No disponible`)
+
       let resultObjs = await AsistenciaController.getObjetivoAsistenciaCabecera(req.year, req.month, req.objetivoId, queryRunner)
       if ((resultObjs[0]?.ObjetivoAsistenciaAnoMesDesde == null && resultObjs[0]?.ObjetivoAsistenciaAnoMesHasta != null)) {
         this.jsonRes([], res);
