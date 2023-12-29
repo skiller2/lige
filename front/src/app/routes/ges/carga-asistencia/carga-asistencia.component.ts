@@ -87,9 +87,9 @@ export class CargaAsistenciaComponent {
                 this.selectedSucursalId = data[1][0]?.SucursalId
                 this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null)
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
+                data[3].length? this.angularGridEdit.dataView.setItems(data[3]) : this.clearAngularGrid()
+                //data[3].length? this.gridDataInsert = data[3] : this.clearAngularGrid()
                 this.loadingSrv.close()
-                if (data[3].length) 
-                    this.gridDataInsert =  data[3]
                 return { responsable: data[0], contratos: data[1], periodo: data[2] };
             })
         );
