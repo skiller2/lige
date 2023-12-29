@@ -387,7 +387,7 @@ export class AsistenciaController extends BaseController {
     if (resultObjs[0].ObjetivoAsistenciaAnoMesHasta != null)
       return new ClientException(`El objetivo seleccionado tiene cerrada la carga de asistencia para el período ${anio}/${mes} el ${new Date(resultObjs[0].ObjetivoAsistenciaAnoMesHasta).toLocaleDateString('en-GB')}`)
 
-    return true
+    return resultObjs
   }
 
 
@@ -758,7 +758,7 @@ export class AsistenciaController extends BaseController {
         throw new ClientException(`No tiene permisos para eliminar la excepción`)
 
       const val = await AsistenciaController.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
-      if (val !== true)
+      if (val instanceof ClientException)
         throw val
 
       //Traigo el Art14 para analizarlo
