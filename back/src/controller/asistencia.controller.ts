@@ -218,12 +218,11 @@ export class AsistenciaController extends BaseController {
     
     ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0)
     ) / 60 AS horas,
-    ISNULL(val.ValorLiquidacionHorasTrabajoHoraNormal,0) AS horas_fijas,
+    -- ISNULL(val.ValorLiquidacionHorasTrabajoHoraNormal,0) AS horas_fijas,
     
     val.ValorLiquidacionHoraNormal,
     
-    IIF(val.ValorLiquidacionHorasTrabajoHoraNormal>0,0, (
-    ((
+    (
     ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
     ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias2Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias2Gral),2) AS INT),0)+
     ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias3Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias3Gral),2) AS INT),0)+
@@ -257,11 +256,8 @@ export class AsistenciaController extends BaseController {
     ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias29Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias29Gral),2) AS INT),0)+
     ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias30Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias30Gral),2) AS INT),0)+
     ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0) 
-    ))
-    / 60 * val.ValorLiquidacionHoraNormal
-    
-    
-    ) ) AS total,
+    )
+    / 60 * val.ValorLiquidacionHoraNormal AS total,
     
     asis.SucursalAsistenciaAnoMesPersonalDiasCualArt42,
     
@@ -282,13 +278,14 @@ export class AsistenciaController extends BaseController {
     
     WHERE asisa.SucursalAsistenciaAnoAno = @1 AND asism.SucursalAsistenciaAnoMesMes = @2 ${listPersonaId} `, [, anio, mes])
 
+    /*
     for (const [index, value] of asisadmin.entries()) {
       if (value.horas >= value.horas_fijas && value.horas_fijas > 0) {
         asisadmin[index].total = value.horas_fijas * value.ValorLiquidacionHoraNormal
       }
     }
 
-    /*
+    
     let persart42:any[] = []
   
     for (const [index, value] of asisadmin.entries()) {
@@ -357,6 +354,10 @@ export class AsistenciaController extends BaseController {
       obja.ObjetivoAsistenciaAnoId, 
     objm.ObjetivoAsistenciaAnoMesId,
     obj.ObjetivoAsistenciaAnoUltNro,
+    objm.ObjetivoAsistenciaAnoMesPersonalUltNro
+    objm.ObjetivoAsistenciaAnoMesDiasPersonalUltNro
+    objm.ObjetivoAsistenciaAnoMesPersonalDiasUltNro
+
       
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
       obj.ObjetivoDescripcion,
@@ -757,7 +758,7 @@ export class AsistenciaController extends BaseController {
         throw new ClientException(`No tiene permisos para eliminar la excepción`)
 
       const val = await AsistenciaController.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
-      if (val !== true)
+      if (val instanceof ClientException)
         throw val
 
       //Traigo el Art14 para analizarlo
