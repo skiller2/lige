@@ -354,9 +354,9 @@ export class AsistenciaController extends BaseController {
       obja.ObjetivoAsistenciaAnoId, 
     objm.ObjetivoAsistenciaAnoMesId,
     obj.ObjetivoAsistenciaAnoUltNro,
-    objm.ObjetivoAsistenciaAnoMesPersonalUltNro
-    objm.ObjetivoAsistenciaAnoMesDiasPersonalUltNro
-    objm.ObjetivoAsistenciaAnoMesPersonalDiasUltNro
+    objm.ObjetivoAsistenciaAnoMesPersonalUltNro,
+    objm.ObjetivoAsistenciaAnoMesDiasPersonalUltNro,
+    objm.ObjetivoAsistenciaAnoMesPersonalDiasUltNro,
 
       
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
