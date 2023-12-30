@@ -1651,12 +1651,15 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       for (const key in req.body) {
         if (key.startsWith('day')) {
           let num = key.slice(3)
+          const horas = Number(req.body[key])
           columnsDays = columnsDays + `, ObjetivoAsistenciaAnoMesPersonalDias${num}Gral`
           columnsDay = columnsDay + `, ObjetivoAsistenciaAnoMesPersonalDia${num}Gral`
-          if (!(req.body[key])) {
+          if (!horas) {
             valueColumnsDays = valueColumnsDays + `, NULL`
           } else {
-            valueColumnsDays = valueColumnsDays + `, '${req.body[key]}'`
+            const h = String(Math.trunc(horas))
+            const m = (horas - Math.trunc(horas)>=.5)?'30':'00'  //Se fuerza a medias horas
+            valueColumnsDays = valueColumnsDays + `, '${h.padStart(2,'0')}.${m.padStart(2,'0')}'`
           }
         }
       }
