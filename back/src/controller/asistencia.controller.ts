@@ -1888,10 +1888,12 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       const data = personal.map((obj:any, index:number)=>{
         const camposDay = Object.keys(obj).filter(clave => clave.startsWith('day'));
         const days = {};
+        let total = 0
         camposDay.forEach(clave => {
           if (obj[clave]) {
             days[clave] = obj[clave];
           }
+          total += obj[clave]
         });
         return {
           id: index+1,
@@ -1911,7 +1913,8 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
             id: obj.TipoAsociadoId,
             fullName: (obj.TipoAsociadoDescripcion)
           },
-          ...days
+          ...days,
+          total
         }
       })
       // console.log('DATA',data);
