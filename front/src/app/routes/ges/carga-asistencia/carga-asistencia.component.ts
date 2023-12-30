@@ -138,8 +138,8 @@ export class CargaAsistenciaComponent {
                 id: 'forma', name: 'Forma', field: 'forma',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 100,
-                minWidth: 100,
+                maxWidth: 70,
+                minWidth: 70,
                 formatter: Formatters.complexObject,
                 params: {
                     complexFieldLabel: 'forma.fullName',
@@ -296,8 +296,8 @@ export class CargaAsistenciaComponent {
             field: 'total',
             sortable: true,
             type: FieldType.number,
-            maxWidth: 100,
-            minWidth: 75,
+            maxWidth: 50,
+            minWidth: 50,
         });
 
         return columnDays
