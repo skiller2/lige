@@ -63,6 +63,7 @@ export class CargaAsistenciaComponent {
     selectedPeriod = { year: 0, month: 0 };
     selectedSucursalId = 0
     objetivoData: any
+    ObjetivoIdUrl: any
 
     public get Busqueda() {
         return Busqueda;
@@ -111,6 +112,7 @@ export class CargaAsistenciaComponent {
 
     async ngOnInit() {
 
+       
         this.columnDefinitions = [
             {
                 id: 'apellidoNombre', name: 'Persona', field: 'apellidoNombre',
@@ -217,14 +219,14 @@ export class CargaAsistenciaComponent {
         }, 1);
         this.settingsService.setLayout('collapsed', true)
 
-        const ObjetivoId = Number(this.route.snapshot.paramMap.get('ObjetivoId'))
-
+        const ObjetivoId = Number(this.route.snapshot.queryParamMap.get('ObjetivoId'));
+        
         setTimeout(() => {
             if (ObjetivoId > 0)
                 this.carasistForm.controls['ObjetivoId'].setValue(ObjetivoId);
         }, 1000)
 
-
+        
     }
 
     onCellChanged(e: any) {

@@ -90,6 +90,7 @@ export class DetalleAsistenciaComponent {
   listaIngresosPerTotalHoras = 0
   listaIngresosExtraPerTotalHoras = 0
   listaAsistenciaObjTotalHoras = 0
+  objetivoIdSelected = 0;
 
   $isSucursalOptionsLoading = new BehaviorSubject(false);
 
@@ -116,9 +117,15 @@ export class DetalleAsistenciaComponent {
           this.selectedPeriod.month
         )
         .pipe(
-          doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
+          doOnSubscribe(() => {
+            this.objetivoIdSelected = parseInt(objetivoId)
+            this.objetivoResponsablesLoading$.next(true)
+          }),
           tap({
-            complete: () => this.objetivoResponsablesLoading$.next(false),
+            complete: () => {
+              this.objetivoIdSelected = parseInt(objetivoId)
+              this.objetivoResponsablesLoading$.next(false)
+            },
           })
         );
     })
