@@ -1890,10 +1890,14 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
         const days = {};
         let total = 0
         camposDay.forEach(clave => {
-          if (obj[clave]) {
-            days[clave] = obj[clave];
+          if (String(obj[clave]).indexOf('.') >= 0) {
+            const hm = obj[clave].split('.')
+            const horas = Number(hm[0]) + Number(hm[1]) / 60 
+            if (horas>0) {
+              days[clave] = horas;
+            }
+            total += horas
           }
-          total += obj[clave]
         });
         return {
           id: index+1,

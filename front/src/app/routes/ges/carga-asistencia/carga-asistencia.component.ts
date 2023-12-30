@@ -162,8 +162,8 @@ export class CargaAsistenciaComponent {
                 id: 'categoria', name: 'Categoria', field: 'categoria',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 200,
-                minWidth: 200,
+                maxWidth: 180,
+                minWidth: 180,
                 formatter: Formatters.complexObject,
                 params: {
                     complexFieldLabel: 'categoria.fullName',
