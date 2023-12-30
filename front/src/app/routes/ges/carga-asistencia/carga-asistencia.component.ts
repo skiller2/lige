@@ -286,6 +286,13 @@ export class CargaAsistenciaComponent {
                 type: FieldType.number,
                 maxWidth: 55,
                 headerCssClass: (dow == 6 || dow == 0) ? 'grid-weekend' : '',
+//                formatter : Formatters.multiple,
+//                params: {
+//                    formatters: [Formatters.currency],
+//                    thousandSeparator: '.',
+//                    decimalSeparator: ',',
+//                },
+                cssClass: 'text-right',
                 editor: {
                     model: Editors.text
                 },
@@ -301,6 +308,7 @@ export class CargaAsistenciaComponent {
             type: FieldType.number,
             maxWidth: 50,
             minWidth: 50,
+            cssClass: 'text-right',
         });
 
         return columnDays
