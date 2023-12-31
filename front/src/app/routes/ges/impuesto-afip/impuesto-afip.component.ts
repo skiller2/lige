@@ -111,13 +111,14 @@ export class ImpuestoAfipComponent {
       asyncPostRender: this.renderAngularComponent.bind(this),
       formatter : Formatters.multiple,
       params: {
-        formatters: [Formatters.currency, Formatters.alignRight],
+        formatters: [Formatters.currency],
         thousandSeparator: '.',
         decimalSeparator: ',',
         component: CustomDescargaComprobanteComponent,
         angularUtilService: this.angularUtilService,
         //complexFieldLabel: 'assignee.name' // for the exportCustomFormatter
       },
+      cssClass: 'text-right',
 
     }
 

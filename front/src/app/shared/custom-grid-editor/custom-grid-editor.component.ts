@@ -16,7 +16,7 @@ import {
  * An example of a 'detached' editor.
  * KeyDown events are also handled to provide handling for Tab, Shift-Tab, Esc and Ctrl-Enter.
  */
-export class CustomGridEditor implements Editor {
+export class CustomInputEditor implements Editor {
   private _subscriptions: Subscription[] = [];
 
   /** Angular Component Reference */
@@ -62,7 +62,7 @@ export class CustomGridEditor implements Editor {
 
   /** Getter for the Grid Options pulled through the Grid Object */
   get gridOptions(): GridOption {
-    return this.grid?.getOptions() ?? {} as GridOption;
+    return this.grid?.getOptions() as GridOption
   }
 
   get hasAutoCommitEdit(): boolean {

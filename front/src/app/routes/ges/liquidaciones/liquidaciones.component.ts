@@ -33,7 +33,7 @@ import {
   tap,
   firstValueFrom,
 } from 'rxjs';
-import { CustomGridEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
+import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
 import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-objetivo.component';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
@@ -386,7 +386,8 @@ export class LiquidacionesComponent {
         id: 'delete',
         field: 'id',
         excludeFromHeaderMenu: false,
-        formatter: Formatters.deleteIcon,
+        formatter: Formatters.icon,
+        params: { iconCssClass: 'fa fa-trash pointer' },
         maxWidth: 30,
       },
       {
@@ -407,7 +408,7 @@ export class LiquidacionesComponent {
           complexFieldLabel: 'des_movimiento.fullName',
         },
         editor: {
-          model: CustomGridEditor,
+          model: CustomInputEditor,
           collection: [],
           params: {
             component: EditorTipoMovimientoComponent,
@@ -428,7 +429,7 @@ export class LiquidacionesComponent {
           complexFieldLabel: 'des_cuenta.fullName',
         },
         editor: {
-          model: CustomGridEditor,
+          model: CustomInputEditor,
           collection: [],
           params: {
             component: EditorTipoCuentaComponent,
@@ -458,7 +459,7 @@ export class LiquidacionesComponent {
         },
 
         editor: {
-          model: CustomGridEditor,
+          model: CustomInputEditor,
           collection: [],
           params: {
             component: EditorObjetivoComponent,
@@ -478,7 +479,7 @@ export class LiquidacionesComponent {
           complexFieldLabel: 'ApellidoNombre.fullName',
         },
         editor: {
-          model: CustomGridEditor,
+          model: CustomInputEditor,
           collection: [],
           params: {
             component: EditorPersonaComponent,
@@ -495,9 +496,10 @@ export class LiquidacionesComponent {
         // groupTotalsFormatter: GroupTotalFormatters.sumTotals,
         formatter: Formatters.multiple,
         params: {
-          formatters: [Formatters.currency, Formatters.alignRight],
+          formatters: [Formatters.currency],
           // groupFormatterPrefix: '<b>Total</b>: ' 
         },
+        cssClass: 'text-right',
         editor: {
           model: Editors.float, decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000,
         }

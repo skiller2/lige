@@ -137,7 +137,6 @@ export class CategoriasCambioComponent {
     enableExcelCopyBuffer: true,
     enableExcelExport: true,
     externalResources:[this.excelExportService],
-//    registerExternalResources: [this.excelExportService],
     enableFiltering: true,
     //    autoFitColumnsOnFirstLoad: true,
     enableAsyncPostRender: true, // for the Angular PostRenderer, don't forget to enable it

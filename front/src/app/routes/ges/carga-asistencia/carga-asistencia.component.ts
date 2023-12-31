@@ -3,7 +3,7 @@ import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, i
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption } from 'angular-slickgrid';
+import { SlickEditorLock, AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock } from 'angular-slickgrid';
 import { NzModalService } from "ng-zorro-antd/modal";
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { BehaviorSubject, Observable, debounceTime, distinctUntilChanged, firstValueFrom, forkJoin, map, merge, mergeAll, of, shareReplay, switchMap, tap } from 'rxjs';
@@ -11,7 +11,7 @@ import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
 import { SHARED_IMPORTS } from '@shared';
-import { CustomGridEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
+import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
 import { SearchService } from 'src/app/services/search.service';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
@@ -127,7 +127,7 @@ export class CargaAsistenciaComponent {
                     complexFieldLabel: 'apellidoNombre.fullName',
                 },
                 editor: {
-                    model: CustomGridEditor,
+                    model: CustomInputEditor,
                     collection: [],
                     params: {
                         component: EditorPersonaComponent,
@@ -149,7 +149,7 @@ export class CargaAsistenciaComponent {
                 },
 
                 editor: {
-                    model: CustomGridEditor,
+                    model: CustomInputEditor,
                     collection: [],
                     params: {
                         component: EditorTipoHoraComponent,
@@ -170,7 +170,7 @@ export class CargaAsistenciaComponent {
                 },
 
                 editor: {
-                    model: CustomGridEditor,
+                    model: CustomInputEditor,
                     collection: [],
                     params: {
                         component: EditorCategoriaComponent,
@@ -192,17 +192,31 @@ export class CargaAsistenciaComponent {
         this.gridOptionsEdit.enableAutoSizeColumns = true
         this.gridOptionsEdit.fullWidthRows = true
 
-        this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
-            editCommand.execute()
+        this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand:EditCommand) => {
+            let undoCommandArr:EditCommand[]=[]
+            
             const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
             if (lastrow && (lastrow.apellidoNombre)) {
                 this.addNewItem("bottom")
             } else if (!row.apellidoNombre.id && (row.id != lastrow.id)) {
                 this.angularGridEdit.gridService.deleteItemById(row.id)
             }
+            //Intento grabar si tiene error hago undo
+
+            try {
+                editCommand.serializedValue = Number(editCommand.serializedValue)
+                undoCommandArr.push(editCommand)
+                editCommand.execute()
+                await this.insertDB(row)
+            } catch (e) {
+                const undoCommand = undoCommandArr.pop()
+                if (undoCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
+                    this.angularGridEdit.gridService.updateItemById(row.id, undoCommand.editor.args.item)
+                    undoCommand.undo();
+                }
+            }
         }
     }
-
 
     ngAfterViewInit(): void {
         const now = new Date(); //date
@@ -245,6 +259,8 @@ export class CargaAsistenciaComponent {
 
         if (this.apiService.isMobile())
             this.angularGridEdit.gridService.hideColumnByIds([])
+
+        
     }
 
     addNewItem(insertPosition?: 'bottom') {
@@ -293,9 +309,7 @@ export class CargaAsistenciaComponent {
 //                    decimalSeparator: ',',
 //                },
                 cssClass: 'text-right',
-                editor: {
-                    model: Editors.text
-                },
+                editor: { model: Editors.float, decimal: 1 },
                 onCellChange: this.onHoursChange.bind(this),
             });
         }
@@ -374,7 +388,7 @@ export class CargaAsistenciaComponent {
             total: total
         }
         this.angularGridEdit.gridService.updateItemById(idItemGrid, updateItem)
-        this.insertDB(args.dataContext.id)
+//        this.insertDB(args.dataContext.id)
     }
 
     async selectedObjetivoChange(event: string, busqueda: Busqueda): Promise<void> {
@@ -426,11 +440,11 @@ export class CargaAsistenciaComponent {
 
     }
 
-    async insertDB(rowId: string | number) {
+    async insertDB(item:any) {
         if (this.selectedObjetivoId) {
-            let {id, apellidoNombre, categoria, forma, tipo, ...row} = this.angularGridEdit.dataView.getItemById(rowId)
+            let {id, apellidoNombre, categoria, forma, tipo, ...row} = item
             
-            const item = {
+            const outItem = {
                 ...row,
                 ...this.selectedPeriod,
                 objetivoId: this.selectedObjetivoId,
@@ -439,6 +453,9 @@ export class CargaAsistenciaComponent {
                 categoriaPersonalId: categoria.id,
                 formaLiquidacion: forma.id,
             }
+
+            return firstValueFrom(this.apiService.addAsistencia(outItem))
+/*
             this.apiService.addAsistencia(item)
                 .pipe(
                     //               doOnSubscribe(() => this.saveLoading$.next(true)),
@@ -449,6 +466,7 @@ export class CargaAsistenciaComponent {
                     })
                 )
                 .subscribe();
+*/
         }
     }
 

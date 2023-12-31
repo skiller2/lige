@@ -1,4 +1,4 @@
-import { AngularGridInstance, Column, FormatterResultObject, Formatters } from 'angular-slickgrid';
+import { AngularGridInstance, Column, FormatterResultObject, FormatterResultWithHtml, FormatterResultWithText, Formatters } from 'angular-slickgrid';
 
 export function columnTotal(column: string, angularGrid: AngularGridInstance) {
 
@@ -10,7 +10,7 @@ export function columnTotal(column: string, angularGrid: AngularGridInstance) {
         let columnId = angularGrid.slickGrid.getColumnIndex(column)
         let columnDetail:Column = angularGrid.slickGrid.getColumns()[columnId]
         let gridDataTotal = 0
-        let totalDisplay :string | FormatterResultObject
+        let totalDisplay :string | HTMLElement | FormatterResultWithText | DocumentFragment | FormatterResultWithHtml
         if (columnDetail.type == 'float' || typeof list[0][column] === 'number') {
             for (let index = 0; index < list.length; index++) {
                 gridDataTotal += list[index][column]
