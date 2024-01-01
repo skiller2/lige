@@ -1631,7 +1631,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
     const queryRunner = dataSource.createQueryRunner();
     try {
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') )
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
         throw new ClientException(`No tiene permisos para grabar asistencia`)
 
 
@@ -1657,9 +1657,14 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
           if (!horas) {
             valueColumnsDays = valueColumnsDays + `, NULL`
           } else {
-            const h = String(Math.trunc(horas))
-            const m = (horas - Math.trunc(horas)>=.5)?'30':'00'  //Se fuerza a medias horas
-            valueColumnsDays = valueColumnsDays + `, '${h.padStart(2,'0')}.${m.padStart(2,'0')}'`
+            if (horas > 24)
+              throw new ClientException(`La cantidad de horas no puede superar las 24`)
+             const h = String(Math.trunc(horas))
+            const horafrac = horas - Math.trunc(horas)
+            if (horafrac != 0 && horafrac != 0.5)
+              throw new ClientException(`La fracción de hora debe ser .5 únicamente`)
+            const m = String(60 * horafrac)
+            valueColumnsDays = valueColumnsDays + `, '${h.padStart(2, '0')}.${m.padStart(2, '0')}'`
           }
         }
       }

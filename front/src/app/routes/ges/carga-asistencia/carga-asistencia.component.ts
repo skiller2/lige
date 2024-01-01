@@ -3,9 +3,7 @@ import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, i
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { SlickEditorLock, AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock } from 'angular-slickgrid';
-import { NzModalService } from "ng-zorro-antd/modal";
-import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock } from 'angular-slickgrid';
 import { BehaviorSubject, Observable, debounceTime, distinctUntilChanged, firstValueFrom, forkJoin, map, merge, mergeAll, of, shareReplay, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
@@ -20,6 +18,7 @@ import { SettingsService } from '@delon/theme';
 import { EditorTipoHoraComponent } from 'src/app/shared/editor-tipohora/editor-tipohora.component';
 import { EditorCategoriaComponent } from 'src/app/shared/editor-categoria/editor-categoria.component';
 import { LoadingService } from '@delon/abc/loading';
+import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
 enum Busqueda {
     Sucursal,
     Objetivo,
@@ -88,6 +87,10 @@ export class CargaAsistenciaComponent {
                 this.selectedSucursalId = data[1][0]?.SucursalId
                 this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null)
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
+                this.angularGridEdit.resizerService.resizeGrid();
+                totalRecords(this.angularGridEdit)
+                columnTotal('total', this.angularGridEdit)
+    
                 data[3].length ? this.angularGridEdit.dataView.setItems(data[3]) : this.clearAngularGrid()
                 //this.gridDataInsert = data[3]
                 //data[3].length? this.gridDataInsert = data[3] : this.clearAngularGrid()
@@ -162,8 +165,8 @@ export class CargaAsistenciaComponent {
                 id: 'categoria', name: 'Categoria', field: 'categoria',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 180,
-                minWidth: 180,
+                maxWidth: 150,
+                minWidth: 150,
                 formatter: Formatters.complexObject,
                 params: {
                     complexFieldLabel: 'categoria.fullName',
@@ -192,8 +195,11 @@ export class CargaAsistenciaComponent {
         this.gridOptionsEdit.enableAutoSizeColumns = true
         this.gridOptionsEdit.fullWidthRows = true
 
+        this.gridOptionsEdit.showFooterRow = true
+        this.gridOptionsEdit.createFooterRow = true
+
         this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand:EditCommand) => {
-            let undoCommandArr:EditCommand[]=[]
+//            let undoCommandArr:EditCommand[]=[]
             
             const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
             if (lastrow && (lastrow.apellidoNombre)) {
@@ -204,15 +210,15 @@ export class CargaAsistenciaComponent {
             //Intento grabar si tiene error hago undo
 
             try {
-                editCommand.serializedValue = Number(editCommand.serializedValue)
-                undoCommandArr.push(editCommand)
+//                editCommand.serializedValue = Number(editCommand.serializedValue)
+//                undoCommandArr.push(editCommand)
                 editCommand.execute()
                 await this.insertDB(row)
             } catch (e) {
-                const undoCommand = undoCommandArr.pop()
-                if (undoCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
-                    this.angularGridEdit.gridService.updateItemById(row.id, undoCommand.editor.args.item)
-                    undoCommand.undo();
+//                const undoCommand = undoCommandArr.pop()
+                if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
+                    this.angularGridEdit.gridService.updateItemById(row.id, editCommand.editor.args.item)
+                    editCommand.undo();
                 }
             }
         }
@@ -260,7 +266,12 @@ export class CargaAsistenciaComponent {
         if (this.apiService.isMobile())
             this.angularGridEdit.gridService.hideColumnByIds([])
 
-        
+        this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
+            console.log('trigger',arg)
+            totalRecords(this.angularGridEdit)
+            columnTotal('total', this.angularGridEdit)
+        })
+
     }
 
     addNewItem(insertPosition?: 'bottom') {
