@@ -389,7 +389,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       )
       .then((records: Array<any>) => {
         let horasTrabajadas: { x: string; y: any; }[] = []
-        if (records.length == 0) throw new ClientException('Data not found')
+//        if (records.length == 0) throw new ClientException('Data not found')
         records.forEach(rec => {
           horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoAno + '-' + rec.ObjetivoAsistenciaAnoMesMes, y: rec.totalhorascalc })
         })

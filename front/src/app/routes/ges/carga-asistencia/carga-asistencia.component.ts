@@ -89,7 +89,7 @@ export class CargaAsistenciaComponent {
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
                 this.angularGridEdit.resizerService.resizeGrid();
                 totalRecords(this.angularGridEdit)
-                columnTotal('total', this.angularGridEdit)
+                columnTotal('day1', this.angularGridEdit)
     
                 data[3].length ? this.angularGridEdit.dataView.setItems(data[3]) : this.clearAngularGrid()
                 //this.gridDataInsert = data[3]
@@ -267,9 +267,10 @@ export class CargaAsistenciaComponent {
             this.angularGridEdit.gridService.hideColumnByIds([])
 
         this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
-            console.log('trigger',arg)
             totalRecords(this.angularGridEdit)
+            columnTotal('day1', this.angularGridEdit)
             columnTotal('total', this.angularGridEdit)
+
         })
 
     }

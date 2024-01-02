@@ -91,7 +91,9 @@ export class InitV1Component implements OnInit {
 
   statssinAsistencia(): Observable<any> {
     const stmactual = new Date();
-    const mes = stmactual.getMonth();
+    stmactual.setMonth(stmactual.getMonth()-1)
+
+    const mes = stmactual.getMonth()+1;
     const anio = stmactual.getFullYear();
 
     return this.http.get(
