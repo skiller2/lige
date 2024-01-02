@@ -19,6 +19,7 @@ import { EditorTipoHoraComponent } from 'src/app/shared/editor-tipohora/editor-t
 import { EditorCategoriaComponent } from 'src/app/shared/editor-categoria/editor-categoria.component';
 import { LoadingService } from '@delon/abc/loading';
 import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 enum Busqueda {
     Sucursal,
     Objetivo,
@@ -88,10 +89,15 @@ export class CargaAsistenciaComponent {
                 this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null)
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
                 this.angularGridEdit.resizerService.resizeGrid();
-                totalRecords(this.angularGridEdit)
-                columnTotal('day1', this.angularGridEdit)
-    
+
+
                 data[3].length ? this.angularGridEdit.dataView.setItems(data[3]) : this.clearAngularGrid()
+
+                for (const col of this.angularGridEdit.slickGrid.getColumns())
+                    if (String(col.id).indexOf('day') != -1) columnTotal(String(col.id), this.angularGridEdit)
+                totalRecords(this.angularGridEdit)
+                columnTotal('total', this.angularGridEdit)
+
                 //this.gridDataInsert = data[3]
                 //data[3].length? this.gridDataInsert = data[3] : this.clearAngularGrid()
                 this.loadingSrv.close()
@@ -116,15 +122,14 @@ export class CargaAsistenciaComponent {
 
     async ngOnInit() {
 
-       
+
         this.columnDefinitions = [
             {
                 id: 'apellidoNombre', name: 'Persona', field: 'apellidoNombre',
                 sortable: true,
                 type: FieldType.string,
                 maxWidth: 250,
-                width: 100,
-                minWidth: 150,
+                minWidth: 170,
                 formatter: Formatters.complexObject,
                 params: {
                     complexFieldLabel: 'apellidoNombre.fullName',
@@ -144,8 +149,8 @@ export class CargaAsistenciaComponent {
                 id: 'forma', name: 'Forma', field: 'forma',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 70,
-                minWidth: 70,
+                maxWidth: 50,
+                minWidth: 50,
                 formatter: Formatters.complexObject,
                 params: {
                     complexFieldLabel: 'forma.fullName',
@@ -165,8 +170,8 @@ export class CargaAsistenciaComponent {
                 id: 'categoria', name: 'Categoria', field: 'categoria',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 150,
-                minWidth: 150,
+                maxWidth: 100,
+                minWidth: 100,
                 formatter: Formatters.complexObject,
                 params: {
                     complexFieldLabel: 'categoria.fullName',
@@ -198,9 +203,9 @@ export class CargaAsistenciaComponent {
         this.gridOptionsEdit.showFooterRow = true
         this.gridOptionsEdit.createFooterRow = true
 
-        this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand:EditCommand) => {
-//            let undoCommandArr:EditCommand[]=[]
-            
+        this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand: EditCommand) => {
+            //            let undoCommandArr:EditCommand[]=[]
+
             const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
             if (lastrow && (lastrow.apellidoNombre)) {
                 this.addNewItem("bottom")
@@ -210,12 +215,12 @@ export class CargaAsistenciaComponent {
             //Intento grabar si tiene error hago undo
 
             try {
-//                editCommand.serializedValue = Number(editCommand.serializedValue)
-//                undoCommandArr.push(editCommand)
+                //                editCommand.serializedValue = Number(editCommand.serializedValue)
+                //                undoCommandArr.push(editCommand)
                 editCommand.execute()
                 await this.insertDB(row)
             } catch (e) {
-//                const undoCommand = undoCommandArr.pop()
+                //                const undoCommand = undoCommandArr.pop()
                 if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
                     this.angularGridEdit.gridService.updateItemById(row.id, editCommand.editor.args.item)
                     editCommand.undo();
@@ -241,13 +246,13 @@ export class CargaAsistenciaComponent {
         this.settingsService.setLayout('collapsed', true)
 
         const ObjetivoId = Number(this.route.snapshot.queryParamMap.get('ObjetivoId'));
-        
+
         setTimeout(() => {
             if (ObjetivoId > 0)
                 this.carasistForm.controls['ObjetivoId'].setValue(ObjetivoId);
         }, 1000)
 
-        
+
     }
 
     onCellChanged(e: any) {
@@ -266,10 +271,21 @@ export class CargaAsistenciaComponent {
         if (this.apiService.isMobile())
             this.angularGridEdit.gridService.hideColumnByIds([])
 
+        const x = this
+        this.angularGridEdit.slickGrid.onCellChange.subscribe(function (e, args) {
+            //                console.log('args',args)
+            columnTotal(String(args.column.id), x.angularGridEdit)
+            columnTotal('total', x.angularGridEdit)
+            totalRecords(x.angularGridEdit)
+
+        });
+
+
         this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
-            totalRecords(this.angularGridEdit)
-            columnTotal('day1', this.angularGridEdit)
-            columnTotal('total', this.angularGridEdit)
+            //            console.log('arg',arg)
+            //            totalRecords(this.angularGridEdit)
+            //            columnTotal('day1', this.angularGridEdit)
+            //            columnTotal('total', this.angularGridEdit)
 
         })
 
@@ -314,12 +330,12 @@ export class CargaAsistenciaComponent {
                 type: FieldType.number,
                 maxWidth: 55,
                 headerCssClass: (dow == 6 || dow == 0) ? 'grid-weekend' : '',
-//                formatter : Formatters.multiple,
-//                params: {
-//                    formatters: [Formatters.currency],
-//                    thousandSeparator: '.',
-//                    decimalSeparator: ',',
-//                },
+                //                formatter : Formatters.multiple,
+                //                params: {
+                //                    formatters: [Formatters.currency],
+                //                    thousandSeparator: '.',
+                //                    decimalSeparator: ',',
+                //                },
                 cssClass: 'text-right',
                 editor: { model: Editors.float, decimal: 1 },
                 onCellChange: this.onHoursChange.bind(this),
@@ -400,7 +416,7 @@ export class CargaAsistenciaComponent {
             total: total
         }
         this.angularGridEdit.gridService.updateItemById(idItemGrid, updateItem)
-//        this.insertDB(args.dataContext.id)
+        //        this.insertDB(args.dataContext.id)
     }
 
     async selectedObjetivoChange(event: string, busqueda: Busqueda): Promise<void> {
@@ -452,10 +468,10 @@ export class CargaAsistenciaComponent {
 
     }
 
-    async insertDB(item:any) {
+    async insertDB(item: any) {
         if (this.selectedObjetivoId) {
-            let {id, apellidoNombre, categoria, forma, tipo, ...row} = item
-            
+            let { id, apellidoNombre, categoria, forma, tipo, ...row } = item
+
             const outItem = {
                 ...row,
                 ...this.selectedPeriod,
@@ -467,18 +483,18 @@ export class CargaAsistenciaComponent {
             }
 
             return firstValueFrom(this.apiService.addAsistencia(outItem))
-/*
-            this.apiService.addAsistencia(item)
-                .pipe(
-                    //               doOnSubscribe(() => this.saveLoading$.next(true)),
-                    tap({
-                        complete: () => {
-                        },
-                        //                  finalize: () => this.saveLoading$.next(false),
-                    })
-                )
-                .subscribe();
-*/
+            /*
+                        this.apiService.addAsistencia(item)
+                            .pipe(
+                                //               doOnSubscribe(() => this.saveLoading$.next(true)),
+                                tap({
+                                    complete: () => {
+                                    },
+                                    //                  finalize: () => this.saveLoading$.next(false),
+                                })
+                            )
+                            .subscribe();
+            */
         }
     }
 
