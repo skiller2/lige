@@ -319,7 +319,7 @@ export class CargaAsistenciaComponent {
         const daysInMonth = new Date(year, month, 0).getDate();
         const daysOfWeek = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'];
         for (let index = 1; index <= daysInMonth; index++) {
-            let date = new Date(year, month, index);
+            let date = new Date(year, month-1, index);
             const dow = date.getDay()
             let name = daysOfWeek[dow];
             columnDays.push({

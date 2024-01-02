@@ -1631,7 +1631,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
     const queryRunner = dataSource.createQueryRunner();
     try {
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
+//      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
         throw new ClientException(`No tiene permisos para grabar asistencia`)
 
 
