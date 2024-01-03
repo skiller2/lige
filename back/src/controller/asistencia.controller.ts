@@ -218,7 +218,6 @@ export class AsistenciaController extends BaseController {
     
     ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0)
     ) / 60 AS horas,
-    -- ISNULL(val.ValorLiquidacionHorasTrabajoHoraNormal,0) AS horas_fijas,
     
     val.ValorLiquidacionHoraNormal,
     
@@ -278,54 +277,6 @@ export class AsistenciaController extends BaseController {
     
     WHERE asisa.SucursalAsistenciaAnoAno = @1 AND asism.SucursalAsistenciaAnoMesMes = @2 ${listPersonaId} `, [, anio, mes])
 
-    /*
-    for (const [index, value] of asisadmin.entries()) {
-      if (value.horas >= value.horas_fijas && value.horas_fijas > 0) {
-        asisadmin[index].total = value.horas_fijas * value.ValorLiquidacionHoraNormal
-      }
-    }
-
-    
-    let persart42:any[] = []
-  
-    for (const [index, value] of asisadmin.entries()) {
-      if (value.ValorLiquidacionSumaFija) {
-        asisadmin[index].total = value.ValorLiquidacionSumaFija
-        asisadmin[index].horas = 0
-      } else if (value.SucursalAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'N') {
-        if (value.horas_fijas > 0 ) { //&& value.horas_reales +8 >=value.horas_fijas
-          asisadmin[index].total = value.horas_fijas * value.ValorLiquidacionHoraNormal
-          asisadmin[index].horas = value.horas_fijas
-        } else {
-          asisadmin[index].total = value.horas_reales * value.ValorLiquidacionHoraNormal
-          asisadmin[index].horas = value.horas_reales
-        }
-      } else if (value.SucursalAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'X') {
-        asisadmin[index].total = value.horas_reales * value.ValorLiquidacionHoraNormal
-        asisadmin[index].horas = value.horas_reales
-      }
-  
-      if (value.SucursalAsistenciaAnoMesPersonalDiasCualArt42 > 0) {
-        asisadmin[index].total = value.horas_reales * value.ValorLiquidacionHoraNormal
-        asisadmin[index].horas = value.horas_reales
-        persart42[value.SucursalAsistenciaMesPersonalId] = asisadmin[index].horas
-      }
-  
-    }
-  
-  
-    for (const [index, value] of asisadmin.entries()) {
-      if (value.SucursalAsistenciaAnoMesPersonalDiasCualArt42 > 0 || value.SucursalAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'X' || value.horas_fijas == 0)
-        continue
-  
-      if (persart42[value.SucursalAsistenciaMesPersonalId] > 0) {
-  //        if (asisadmin[index].horas + persart42[value.SucursalAsistenciaMesPersonalId] > value.horas_fijas)
-  //          asisadmin[index].horas =  value.horas_fijas - persart42[value.SucursalAsistenciaMesPersonalId]
-        asisadmin[index].horas = asisadmin[index].horas - persart42[value.SucursalAsistenciaMesPersonalId]
-        asisadmin[index].total = asisadmin[index].horas * value.ValorLiquidacionHoraNormal
-      }
-    }
-  */
     return asisadmin
   }
   async getCategoria(req: any, res: Response, next: NextFunction) {
@@ -1062,18 +1013,22 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       const personalId = req.params.personalId;
       const anio = req.params.anio;
       const mes = req.params.mes;
+      const SucursalId = req.params.SucursalId;
       const queryRunner = dataSource.createQueryRunner();
 
-      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
-        throw new ClientException(`No tiene permiso para obtener información de descuentos`)
+//      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+//        throw new ClientException(`No tiene permiso para obtener información de categorías de persona`)
 
       const categorias = await queryRunner.query(
-        `SELECT cat.TipoAsociadoId, catrel.PersonalCategoriaCategoriaPersonalId, catrel.PersonalCategoriaPersonalId, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta, tip.TipoAsociadoDescripcion,cat.CategoriaPersonalDescripcion
-          FROM PersonalCategoria catrel
-            JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = catrel.PersonalCategoriaTipoAsociadoId AND cat.CategoriaPersonalId = catrel.PersonalCategoriaCategoriaPersonalId
-           JOIN TipoAsociado tip ON tip.TipoAsociadoId = cat.TipoAsociadoId
-        WHERE ((DATEPART(YEAR,catrel.PersonalCategoriaDesde)=@1 AND  DATEPART(MONTH, catrel.PersonalCategoriaDesde)=@2) OR (DATEPART(YEAR,catrel.PersonalCategoriaHasta)=@1 AND  DATEPART(MONTH, catrel.PersonalCategoriaHasta)=@2) OR (catrel.PersonalCategoriaDesde <= DATEFROMPARTS(@1,@2,28) AND ISNULL(catrel.PersonalCategoriaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,28))
-        ) AND catrel.PersonalCategoriaPersonalId=@0`, [personalId, anio, mes])
+        `SELECT cat.TipoAsociadoId, catrel.PersonalCategoriaCategoriaPersonalId, catrel.PersonalCategoriaPersonalId, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta, tip.TipoAsociadoDescripcion,cat.CategoriaPersonalDescripcion,
+        val.ValorLiquidacionHoraNormal, val.ValorLiquidacionHorasTrabajoHoraNormal
+                  FROM PersonalCategoria catrel
+                    JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = catrel.PersonalCategoriaTipoAsociadoId AND cat.CategoriaPersonalId = catrel.PersonalCategoriaCategoriaPersonalId
+                   JOIN TipoAsociado tip ON tip.TipoAsociadoId = cat.TipoAsociadoId
+                   LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionTipoAsociadoId = cat.TipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = cat.CategoriaPersonalId AND val.ValorLiquidacionSucursalId = @3
+                   AND val.ValorLiquidacionDesde <= DATEFROMPARTS(@1,@2,1) AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31')>=DATEFROMPARTS(@1,@2,1)
+                WHERE ((DATEPART(YEAR,catrel.PersonalCategoriaDesde)=@1 AND  DATEPART(MONTH, catrel.PersonalCategoriaDesde)=@2) OR (DATEPART(YEAR,catrel.PersonalCategoriaHasta)=@1 AND  DATEPART(MONTH, catrel.PersonalCategoriaHasta)=@2) OR (catrel.PersonalCategoriaDesde <= DATEFROMPARTS(@1,@2,28) AND ISNULL(catrel.PersonalCategoriaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,28))
+                ) AND catrel.PersonalCategoriaPersonalId=@0`, [personalId, anio, mes, SucursalId])
 
       this.jsonRes({ categorias: categorias }, res);
     } catch (error) {
@@ -1311,7 +1266,8 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
   static async getObjetivoAsistencia(anio: number, mes: number, extraFilters: string[], queryRunner: any) {
     const extraFiltersStr = `${(extraFilters.length > 0) ? 'AND' : ''} ${extraFilters.join(' AND ')}`
     const result = await queryRunner.query(
-      `SELECT suc.SucursalId, obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
+      `
+      SELECT suc.SucursalId, obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
       persona.PersonalId,
       obj.ObjetivoId, 
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
@@ -1328,7 +1284,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       objd.ObjetivoAsistenciaCategoriaPersonalId,
       
       
-      IIF(val.ValorLiquidacionHorasTrabajoHoraNormal>1,val.ValorLiquidacionHorasTrabajoHoraNormal,((
+      ((
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias2Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias2Gral),2) AS INT),0)+
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias3Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias3Gral),2) AS INT),0)+
@@ -1362,9 +1318,9 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias29Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias29Gral),2) AS INT),0)+
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias30Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias30Gral),2) AS INT),0)+
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0) 
-      ) / CAST(60 AS FLOAT))) AS totalhorascalc ,
+      ) / CAST(60 AS FLOAT)) AS totalhorascalc ,
       
-      IIF(val.ValorLiquidacionHorasTrabajoHoraNormal>1,val.ValorLiquidacionHorasTrabajoHoraNormal,((
+      ((
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias2Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias2Gral),2) AS INT),0)+
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias3Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias3Gral),2) AS INT),0)+
@@ -1398,7 +1354,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias29Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias29Gral),2) AS INT),0)+
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias30Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias30Gral),2) AS INT),0)+
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0) 
-      ) / CAST(60 AS FLOAT)) + ISNULL(art14H.PersonalArt14Horas,0)) * (COALESCE (valart14cat.ValorLiquidacionHoraNormal, val.ValorLiquidacionHoraNormal)+ISNULL(art14A.PersonalArt14AdicionalHora,0)) + ISNULL(art14S.PersonalArt14SumaFija,0)
+      ) / CAST(60 AS FLOAT)) + ISNULL(art14H.PersonalArt14Horas,0) * (COALESCE (valart14cat.ValorLiquidacionHoraNormal, val.ValorLiquidacionHoraNormal)+ISNULL(art14A.PersonalArt14AdicionalHora,0)) + ISNULL(art14S.PersonalArt14SumaFija,0)
       AS totalminutoscalcimporteconart14,
       art14S.PersonalArt14SumaFija,
       art14H.PersonalArt14Horas,
@@ -1458,7 +1414,6 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       
       WHERE obja.ObjetivoAsistenciaAnoAno = @1 
       AND objm.ObjetivoAsistenciaAnoMesMes = @2
-
       ${extraFiltersStr}
 `,
       [, anio, mes]
@@ -1631,7 +1586,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
     const queryRunner = dataSource.createQueryRunner();
     try {
 
-//      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
         throw new ClientException(`No tiene permisos para grabar asistencia`)
 
 

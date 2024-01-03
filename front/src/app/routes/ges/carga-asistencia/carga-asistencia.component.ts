@@ -87,6 +87,10 @@ export class CargaAsistenciaComponent {
                 // console.log('DATA',data);
                 this.selectedSucursalId = data[1][0]?.SucursalId
                 this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null)
+                this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
+        
+                this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
+        
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
                 this.angularGridEdit.resizerService.resizeGrid();
 
@@ -217,6 +221,7 @@ export class CargaAsistenciaComponent {
             try {
                 //                editCommand.serializedValue = Number(editCommand.serializedValue)
                 //                undoCommandArr.push(editCommand)
+                if (editCommand.serializedValue==editCommand.prevSerializedValue)return
                 editCommand.execute()
                 await this.insertDB(row)
             } catch (e) {
