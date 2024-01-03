@@ -36,7 +36,7 @@ enum Busqueda {
 @Component({
   selector: 'app-detalle-asistencia',
   standalone: true,
-  imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule,CommonModule,PersonalSearchComponent,ObjetivoSearchComponent],
+  imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent],
   templateUrl: './detalle-asistencia.component.html',
   styleUrls: ['./detalle-asistencia.component.less'],
 
@@ -260,7 +260,7 @@ export class DetalleAsistenciaComponent {
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
-        (tap(data => {  })
+        (tap(data => { })
 
 
         )))
