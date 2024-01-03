@@ -255,7 +255,8 @@ export class DetalleAsistenciaComponent {
         .getCategoriasPersona(
           Number(PersonalId),
           this.selectedPeriod.year,
-          this.selectedPeriod.month
+          this.selectedPeriod.month,
+          0
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),

@@ -87,6 +87,10 @@ export class CargaAsistenciaComponent {
                 // console.log('DATA',data);
                 this.selectedSucursalId = data[1][0]?.SucursalId
                 this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null)
+                this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
+        
+                this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
+        
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
                 this.angularGridEdit.resizerService.resizeGrid();
 
@@ -223,6 +227,7 @@ export class CargaAsistenciaComponent {
             try {
                 //                editCommand.serializedValue = Number(editCommand.serializedValue)
                 //                undoCommandArr.push(editCommand)
+                if (editCommand.serializedValue==editCommand.prevSerializedValue)return
                 editCommand.execute()
                 if (row.total)
                     await this.insertDB(row)
@@ -326,7 +331,7 @@ export class CargaAsistenciaComponent {
         const daysInMonth = new Date(year, month, 0).getDate();
         const daysOfWeek = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'];
         for (let index = 1; index <= daysInMonth; index++) {
-            let date = new Date(year, month, index);
+            let date = new Date(year, month-1, index);
             const dow = date.getDay()
             let name = daysOfWeek[dow];
             columnDays.push({

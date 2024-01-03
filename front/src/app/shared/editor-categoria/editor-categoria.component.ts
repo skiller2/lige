@@ -34,7 +34,7 @@ export class EditorCategoriaComponent {
     this.eto.focus()  //Al hacer click en el componente hace foco nuevamente
     const selopt: any = this.optionsArray.filter((v:any) => v.PersonalCategoriaCategoriaPersonalId == item)
     this.selectedId = item
-    this.selectedItem = { id: item, fullName: selopt[0].CategoriaPersonalDescripcion }
+    this.selectedItem = { id: item, fullName: `${selopt[0].CategoriaPersonalDescripcion.trim()} ${(selopt[0].ValorLiquidacionHorasTrabajoHoraNormal>0)?selopt[0].ValorLiquidacionHorasTrabajoHoraNormal:''}` }
     this.item.tipo = { id: selopt[0].TipoAsociadoId, fullName: selopt[0].TipoAsociadoDescripcion }
   }
 
@@ -54,10 +54,11 @@ export class EditorCategoriaComponent {
     //    this.element.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
     //    this.eto.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
     if (this.item.apellidoNombre.id) { 
-      const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(Number(this.item.apellidoNombre.id),this.params?.anio,this.params?.mes))
-      this.optionsArray = categorias.categorias
+      const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(Number(this.item.apellidoNombre.id), this.params?.anio, this.params?.mes, this.params?.SucursalId))
+      
+      this.optionsArray = (this.params?.SucursalId > 0) ? categorias.categorias?.filter((f:any)=>f.ValorLiquidacionHoraNormal >0) : categorias.categorias
       if (this.selectedId==0)
-        this.onChange(categorias.categorias[0].PersonalCategoriaCategoriaPersonalId)
+        this.onChange(this.optionsArray[0].PersonalCategoriaCategoriaPersonalId)
     }
   }
 
