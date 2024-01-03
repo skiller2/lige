@@ -55,7 +55,7 @@ export class CargaAsistenciaComponent {
     columnDefinitions: Column[] = [];
     columnas: Column[] = [];
     gridOptionsEdit!: GridOption;
-    gridDataInsert = [];
+    gridDataInsert : any[] = [];
 
     excelExportService = new ExcelExportService()
     angularGridEdit!: AngularGridInstance;
@@ -90,8 +90,14 @@ export class CargaAsistenciaComponent {
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
                 this.angularGridEdit.resizerService.resizeGrid();
 
-
-                data[3].length ? this.angularGridEdit.dataView.setItems(data[3]) : this.clearAngularGrid()
+                console.log('data[3]',data[3]);
+                if (data[3].length) {
+                    this.angularGridEdit.dataView.setItems(data[3])
+                    this.gridDataInsert = this.angularGridEdit.dataView.getItems()
+                    this.addNewItem("bottom")
+                } else {
+                    this.clearAngularGrid()
+                }
 
                 for (const col of this.angularGridEdit.slickGrid.getColumns())
                     if (String(col.id).indexOf('day') != -1) columnTotal(String(col.id), this.angularGridEdit)
@@ -218,7 +224,8 @@ export class CargaAsistenciaComponent {
                 //                editCommand.serializedValue = Number(editCommand.serializedValue)
                 //                undoCommandArr.push(editCommand)
                 editCommand.execute()
-                await this.insertDB(row)
+                if (row.total)
+                    await this.insertDB(row)
             } catch (e) {
                 //                const undoCommand = undoCommandArr.pop()
                 if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
@@ -357,7 +364,7 @@ export class CargaAsistenciaComponent {
     }
 
     async formChange(result: Date | String, busqueda: Busqueda): Promise<void> {
-        console.log('formChange', result)
+        //console.log('formChange', result)
         switch (busqueda) {
             case Busqueda.Periodo:
                 this.selectedPeriod.year = (result as Date).getFullYear();
@@ -470,7 +477,7 @@ export class CargaAsistenciaComponent {
 
     async insertDB(item: any) {
         if (this.selectedObjetivoId) {
-            let { id, apellidoNombre, categoria, forma, tipo, ...row } = item
+            let { apellidoNombre, categoria, forma, tipo, ...row } = item
 
             const outItem = {
                 ...row,

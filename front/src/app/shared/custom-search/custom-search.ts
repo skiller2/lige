@@ -23,7 +23,7 @@ export function columnTotal(column: string, angularGrid: AngularGridInstance) {
             totalDisplay = list.length.toString()
         }
         columnFooter.innerHTML = totalDisplay
-        console.log('columnFooter.innerHTML', totalDisplay)
+        // console.log('columnFooter.innerHTML', totalDisplay)
     }
 
 
