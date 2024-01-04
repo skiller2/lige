@@ -999,12 +999,12 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       //      [personalId.join(','), anio,mes]
       ['', anio, mes]
     );
-    //TODO customizacion personal 
+/*
     descuentos.forEach((row, index) => {
       if (row.PersonalId == 3032 || row.PersonalId == 1278 || row.PersonalId == 3530)
         descuentos[index].tipocuenta_id = 'G'
     });
-
+*/
     return descuentos
   }
 
