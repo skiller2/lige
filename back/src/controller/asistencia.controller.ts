@@ -1591,13 +1591,16 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
     const queryRunner = dataSource.createQueryRunner();
     try {
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
-        throw new ClientException(`No tiene permisos para grabar asistencia`)
 
       const ObjetivoAsistenciaAnoMesPersonalDiasIdId: number = req.body.id
       const year: number = req.body.year
       const month: number = req.body.month
       const objetiveId: number = req.body.objetivoId
+
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(year, month, res, objetiveId, queryRunner))
+        throw new ClientException(`No tiene permisos para grabar asistencia`)
+
+
       const val = await AsistenciaController.checkAsistenciaObjetivo(objetiveId, year, month, queryRunner)
       if (val instanceof ClientException)
         throw val
