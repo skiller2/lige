@@ -410,6 +410,15 @@ export class ApiService {
 
   }
 
+  getTipoDocumentos(filters: any) {
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>('/api/tipo-documento/list', parameter).pipe(
+      map((res: { data: any; }) => res.data ),
+      catchError(() => of([]))
+    );
+
+  }
+
   setAgregarRegistros(gridDataInsert: any, periodo: any) {
     const parameter = [periodo,gridDataInsert]
     this.notification.success('Respuesta', `Inicio insercion `);

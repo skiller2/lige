@@ -85,6 +85,19 @@
         <!-- <a [routerLink]="['/', 'ges', 'liquidaciones','cargamanual']">Carga manual</a> -->
         <a [routerLink]="['/', 'ges', 'liquidaciones','importacion']">Importación</a>
       </li>
+
+      <li nz-submenu nzTitle="Generacion de Recibos">
+        <ul style="width: auto !important">
+          <li nz-menu-item app-down-file [httpMethod]="'POST'"
+          [httpBody]="{'Reporte':'Banelco','Formato':'EXCEL', 'Filtros': {'Anio':selectedPeriod.year,'Mes':selectedPeriod.month}}"
+          httpUrl=""
+          notificationMsg="Generando Informe Banelco">
+          <span nz-icon nzType="download"></span><span style="white-space: normal;">Generar</span> 
+          </li>
+    
+        </ul>
+        
+      </li>
     </ul>
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
