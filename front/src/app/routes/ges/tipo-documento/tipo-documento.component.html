@@ -1,0 +1,39 @@
+<nz-card class="small-margin">
+  <form nz-form #objpendForm="ngForm">
+    <ng-container>
+      <ul nz-menu nzMode="horizontal">
+        <li nz-menu-item nzSelected (click)="selectedTabIndex = 0">
+          <span nz-icon nzType=""></span>
+          Documentos
+        </li>
+        <li nz-submenu nzTitle="Acciones" *ngIf="selectedTabIndex == 0">
+          <ul>
+            <li nz-menu-item (click)="exportGrid()">
+              <span nz-icon nzType="download"></span>XLS
+            </li>
+          </ul>
+        </li>
+      </ul>
+
+      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
+
+      <nz-tabset nzCentered [(nzSelectedIndex)]="selectedTabIndex" class="hide-ant-tabs-nav">
+        <nz-tab [nzForceRender]="false">
+          <ng-template nz-tab>
+            <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
+
+            <div class="gridContainer container-fluid" *ngIf="(columns$|async) as columnas">
+              <angular-slickgrid gridId="gridOPA" class="" [columnDefinitions]="columnas | colsFilter"
+                [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+                (onAngularGridCreated)="angularGridReady($event)">
+              </angular-slickgrid>
+            </div>
+          </ng-template>
+        </nz-tab>
+        <nz-tab>
+        </nz-tab>
+
+      </nz-tabset>
+    </ng-container>
+  </form>
+</nz-card>
