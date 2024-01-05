@@ -258,8 +258,7 @@ export class CargaAsistenciaComponent {
             this.carasistForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1))
         }, 1);
         this.settingsService.setLayout('collapsed', true)
-
-        const ObjetivoId = Number(this.route.snapshot.queryParamMap.get('ObjetivoId'));
+        const ObjetivoId = Number(this.route.snapshot.params['ObjetivoId']);
 
         setTimeout(() => {
             if (ObjetivoId > 0)

@@ -25,6 +25,7 @@ import { SearchService } from '../../../services/search.service';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
+import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 
 type listOptionsT = {
   filtros: any[],
@@ -74,6 +75,8 @@ export class ObjetivosPendAsisComponent {
   tableLoading$ = new BehaviorSubject(false);
 
   columns$ = this.apiService.getCols('/api/objetivos-pendasis/cols').pipe(map((cols) => {
+    cols[3].asyncPostRender= this.renderAngularComponent.bind(this)
+
     return cols
   }));
 
@@ -138,6 +141,23 @@ export class ObjetivosPendAsisComponent {
     }, 3000);
 
   }
+
+  renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+    switch (colDef.id) {
+      case 'ObjetivoDescripcion':
+        Object.assign(componentOutput.componentRef.instance, { link: '/ges/carga_asistencia', params: {ObjetivoId:dataContext.ObjetivoId}, detail:cellNode.innerText
+       })
+        
+        break;
+    
+      default:
+        break;
+    }
+
+    cellNode.replaceChildren(componentOutput.domElement)
+}
+
 
 
   ngAfterViewInit(): void {

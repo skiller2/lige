@@ -34,8 +34,8 @@ export class EditorCategoriaComponent {
     this.eto.focus()  //Al hacer click en el componente hace foco nuevamente
     const selopt: any = this.optionsArray.filter((v:any) => v.PersonalCategoriaCategoriaPersonalId == item)
     this.selectedId = item
-    this.selectedItem = { id: item, fullName: `${selopt[0].CategoriaPersonalDescripcion.trim()} ${(selopt[0].ValorLiquidacionHorasTrabajoHoraNormal>0)?selopt[0].ValorLiquidacionHorasTrabajoHoraNormal:''}` }
-    this.item.tipo = { id: selopt[0].TipoAsociadoId, fullName: selopt[0].TipoAsociadoDescripcion }
+    this.selectedItem = { id: item, fullName: `${selopt[0]?.CategoriaPersonalDescripcion.trim()} ${(selopt[0]?.ValorLiquidacionHorasTrabajoHoraNormal>0)?selopt[0].ValorLiquidacionHorasTrabajoHoraNormal:''}` }
+    this.item.tipo = { id: selopt[0]?.TipoAsociadoId, fullName: selopt[0]?.TipoAsociadoDescripcion }
   }
 
   focus() {

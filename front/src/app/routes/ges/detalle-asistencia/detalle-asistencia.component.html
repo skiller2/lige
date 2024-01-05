@@ -58,7 +58,7 @@
           <nz-form-control>
             <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
               (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" ngModel />
-              <button *ngIf="objetivoIdSelected"  nz-button class="btnAsistenciaClass" nzType="default" [routerLink]="['/', 'ges', 'carga_asistencia']" [queryParams]="{ ObjetivoId:objetivoIdSelected }"  >Asistencia</button>
+              <button *ngIf="objetivoIdSelected"  nz-button class="btnAsistenciaClass" nzType="default" [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:objetivoIdSelected }]"   >Asistencia</button>
             
           </nz-form-control>
         </nz-form-item>

@@ -328,10 +328,7 @@ export class LiquidacionesComponent {
     return cols
   }));
 
-  async liquidacionesAcciones(ev: Event) {
-
-    let value = (ev.target as HTMLInputElement).id;
-
+  async liquidacionesAcciones(value:string) {
     switch (value) {
       case "movimientosAutomaticos":
 
