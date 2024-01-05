@@ -94,7 +94,7 @@ export class CargaAsistenciaComponent {
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
                 this.angularGridEdit.resizerService.resizeGrid();
 
-                console.log('data[3]',data[3]);
+                //console.log('data[3]',data[3]);
                 if (data[3].length) {
                     this.angularGridEdit.dataView.setItems(data[3])
                     this.gridDataInsert = this.angularGridEdit.dataView.getItems()
@@ -198,6 +198,7 @@ export class CargaAsistenciaComponent {
                     alwaysSaveOnEnterKey: true,
                     // required: true
                 },
+                // onCellChange: this.categoryChange.bind(this),
             },
         ]
 
@@ -229,8 +230,20 @@ export class CargaAsistenciaComponent {
                 //                undoCommandArr.push(editCommand)
                 if (editCommand.serializedValue==editCommand.prevSerializedValue)return
                 editCommand.execute()
-                if (row.total)
-                    await this.insertDB(row)
+
+                const item = this.gridDataInsert.find((obj:any)=>{
+                    return (obj.id == row.id)
+                })
+                // console.log(item.apellidoNombre.id, item.categoria.id, item.forma.id, item.tipo.id, item.total)
+                if(item.apellidoNombre.id && item.categoria.id && item.forma.id && item.tipo.id && item.total){
+                    // const copia = this.gridDataInsert.find((obj:any)=>{
+                    //     return (obj.id != item.id && obj.apellidoNombre.id == item.apellidoNombre.id && obj.categoria.id == item.categoria.id && obj.forma.id == item.forma.id)
+                    // })
+                    // if (!copia) {
+                    //     await this.insertDB(item)
+                    // }
+                    await this.insertDB(item)
+                } 
             } catch (e) {
                 //                const undoCommand = undoCommandArr.pop()
                 if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
@@ -437,34 +450,15 @@ export class CargaAsistenciaComponent {
     }
 
     personChange(e: Event, args: any) {
-        /*
-        if(args.dataContext.apellidoNombre?.id){
-            const idPersona = args.dataContext.apellidoNombre.id
-            const idItemGrid = args.dataContext.id
-            this.searchService.getCategoriasPersona(
-                Number(idPersona),
-                this.selectedPeriod.year,
-                this.selectedPeriod.month
-            ).subscribe((datos) => {
-                if(datos.categorias.length){
-                    let editColumns = this.angularGridEdit.slickGrid.getColumns()
-                    this.editColumnSelectOptions('categoria', datos.categorias, 'CategoriaPersonalDescripcion', editColumns)
-                    this.editColumnSelectOptions('tipo', datos.categorias,'TipoAsociadoDescripcion', editColumns)
-                    this.angularGridEdit.slickGrid.setColumns(editColumns)
-    
-                    const updateItem = {
-                        ... args.dataContext,
-                        forma: 'HORAS NORMALES',
-                        tipo: datos.categorias[0].TipoAsociadoDescripcion,
-                        categoria: datos.categorias[0].CategoriaPersonalDescripcion,
-                    }
-                    this.angularGridEdit.gridService.updateItemById(idItemGrid, updateItem)
-                    
-                }
-            })
-        }
-        */
+        let item = args.dataContext
+        item.categoria = ''
+        item.tipo = ''
+        this.angularGridEdit.gridService.updateItemById(item.id, item)
     }
+
+    // categoryChange(e: Event, args: any) {
+    //     console.log('HUBO CAMBIO DE CATEGORIA');
+    // }
 
     editColumnSelectOptions(column: string, array: Object[], campo: string, columns: any) {
         const idColumn = this.angularGridEdit.slickGrid.getColumnIndex(column)
