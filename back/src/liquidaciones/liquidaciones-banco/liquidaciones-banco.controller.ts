@@ -389,7 +389,7 @@ export class LiquidacionesBancoController extends BaseController {
 
     return dataSource.query(
       `
-      SELECT CONCAT(banco_id,'-',envio_nro,'-',persona_id) id, liq.persona_id,liq.cbu,liq.importe,liq.banco_id,liq.envio_nro,liq.fecha,liq.tipocuenta_id,banc.bancodescripcion, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+      SELECT CONCAT(liq.banco_id,'-',liq.envio_nro,'-',liq.persona_id,'-',liq.tipocuenta_id) id, liq.persona_id,liq.cbu,liq.importe,liq.banco_id,liq.envio_nro,liq.fecha,liq.tipocuenta_id,banc.bancodescripcion, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
       FROM lige.dbo.liqmvbanco liq
       JOIn Personal per ON per.PersonalId = liq.persona_id
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
