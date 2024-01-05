@@ -999,12 +999,12 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       //      [personalId.join(','), anio,mes]
       ['', anio, mes]
     );
-    //TODO customizacion personal 
+/*
     descuentos.forEach((row, index) => {
       if (row.PersonalId == 3032 || row.PersonalId == 1278 || row.PersonalId == 3530)
         descuentos[index].tipocuenta_id = 'G'
     });
-
+*/
     return descuentos
   }
 
@@ -1268,7 +1268,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
     const extraFiltersStr = `${(extraFilters.length > 0) ? 'AND' : ''} ${extraFilters.join(' AND ')}`
     const result = await queryRunner.query(
       `
-      SELECT suc.SucursalId, obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
+      SELECT DISTINCT suc.SucursalId, obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
       persona.PersonalId,
       obj.ObjetivoId, 
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
@@ -1591,8 +1591,8 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
     const queryRunner = dataSource.createQueryRunner();
     try {
 
-      // if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
-      //   throw new ClientException(`No tiene permisos para grabar asistencia`)
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
+        throw new ClientException(`No tiene permisos para grabar asistencia`)
 
       const ObjetivoAsistenciaAnoMesPersonalDiasIdId: number = req.body.id
       const anio: number = req.body.year

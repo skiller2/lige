@@ -3,7 +3,7 @@ import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, i
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects } from 'angular-slickgrid';
 import { BehaviorSubject, Observable, debounceTime, distinctUntilChanged, firstValueFrom, forkJoin, map, merge, mergeAll, of, shareReplay, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
@@ -55,7 +55,7 @@ export class CargaAsistenciaComponent {
     columnDefinitions: Column[] = [];
     columnas: Column[] = [];
     gridOptionsEdit!: GridOption;
-    gridDataInsert : any[] = [];
+    gridDataInsert: any[] = [];
 
     excelExportService = new ExcelExportService()
     angularGridEdit!: AngularGridInstance;
@@ -88,13 +88,13 @@ export class CargaAsistenciaComponent {
                 this.selectedSucursalId = data[1][0]?.SucursalId
                 this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null)
                 this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
-        
+
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
-        
+
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
                 this.angularGridEdit.resizerService.resizeGrid();
 
-                //console.log('data[3]',data[3]);
+                console.log('data[3]',data[3]);
                 if (data[3].length) {
                     this.angularGridEdit.dataView.setItems(data[3])
                     this.gridDataInsert = this.angularGridEdit.dataView.getItems()
@@ -226,24 +226,14 @@ export class CargaAsistenciaComponent {
             //Intento grabar si tiene error hago undo
 
             try {
-                //                editCommand.serializedValue = Number(editCommand.serializedValue)
                 //                undoCommandArr.push(editCommand)
-                if (editCommand.serializedValue==editCommand.prevSerializedValue)return
-                editCommand.execute()
+                if (column.type == FieldType.number || column.type == FieldType.float)
+                    editCommand.serializedValue = Number(editCommand.serializedValue)
 
-                const item = this.gridDataInsert.find((obj:any)=>{
-                    return (obj.id == row.id)
-                })
-                // console.log(item.apellidoNombre.id, item.categoria.id, item.forma.id, item.tipo.id, item.total)
-                if(item.apellidoNombre.id && item.categoria.id && item.forma.id && item.tipo.id && item.total){
-                    // const copia = this.gridDataInsert.find((obj:any)=>{
-                    //     return (obj.id != item.id && obj.apellidoNombre.id == item.apellidoNombre.id && obj.categoria.id == item.categoria.id && obj.forma.id == item.forma.id)
-                    // })
-                    // if (!copia) {
-                    //     await this.insertDB(item)
-                    // }
-                    await this.insertDB(item)
-                } 
+                if (editCommand.serializedValue === editCommand.prevSerializedValue) return
+                editCommand.execute()
+                if (row.total)
+                    await this.insertDB(row)
             } catch (e) {
                 //                const undoCommand = undoCommandArr.pop()
                 if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
@@ -269,8 +259,7 @@ export class CargaAsistenciaComponent {
             this.carasistForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1))
         }, 1);
         this.settingsService.setLayout('collapsed', true)
-
-        const ObjetivoId = Number(this.route.snapshot.queryParamMap.get('ObjetivoId'));
+        const ObjetivoId = Number(this.route.snapshot.params['ObjetivoId']);
 
         setTimeout(() => {
             if (ObjetivoId > 0)
@@ -344,7 +333,7 @@ export class CargaAsistenciaComponent {
         const daysInMonth = new Date(year, month, 0).getDate();
         const daysOfWeek = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'];
         for (let index = 1; index <= daysInMonth; index++) {
-            let date = new Date(year, month-1, index);
+            let date = new Date(year, month - 1, index);
             const dow = date.getDay()
             let name = daysOfWeek[dow];
             columnDays.push({
@@ -352,7 +341,7 @@ export class CargaAsistenciaComponent {
                 name: `${name} <BR> ${index}`,
                 field: `day${index}`,
                 sortable: true,
-                type: FieldType.number,
+                type: FieldType.float,
                 maxWidth: 55,
                 headerCssClass: (dow == 6 || dow == 0) ? 'grid-weekend' : '',
                 //                formatter : Formatters.multiple,

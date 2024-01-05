@@ -25,7 +25,6 @@ import { SearchService } from '../../../services/search.service';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
-import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 
 type listOptionsT = {
   filtros: any[],
@@ -33,15 +32,6 @@ type listOptionsT = {
   sort: any,
 }
 
-@Component({
-  standalone: true,
-  imports: [
-    SHARED_IMPORTS,
-  ],
-  template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
-    httpUrl="api/impuestos_afip/{{anio}}/{{mes}}/0/{{item.PersonalId}}"
-           ><span class="pl-xs" nz-icon nzType="download"></span></a>`
-})
 export class CustomDescargaComprobanteComponent {
   item: any;
   anio: any
@@ -50,8 +40,8 @@ export class CustomDescargaComprobanteComponent {
 
 
 @Component({
-  selector: 'objetivos-pendasis',
-  templateUrl: './objetivos-pendasis.component.html',
+  selector: 'tipo-documento',
+  templateUrl: './tipo-documento.component.html',
   standalone: true,
   imports: [
     SHARED_IMPORTS,
@@ -59,10 +49,10 @@ export class CustomDescargaComprobanteComponent {
     NzAffixModule,
     FiltroBuilderComponent,
   ],
-  styleUrls: ['./objetivos-pendasis.component.less'],
+  styleUrls: ['./tipo-documento.component.less'],
   providers: [AngularUtilService]
 })
-export class ObjetivosPendAsisComponent {
+export class TipoDocumentoComponent {
   @ViewChild('objpendForm', { static: true }) objpendForm: NgForm =
     new NgForm([], []);
   @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
@@ -74,9 +64,7 @@ export class ObjetivosPendAsisComponent {
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
 
-  columns$ = this.apiService.getCols('/api/objetivos-pendasis/cols').pipe(map((cols) => {
-    cols[3].asyncPostRender= this.renderAngularComponent.bind(this)
-
+  columns$ = this.apiService.getCols('/api/tipo-documento/cols').pipe(map((cols) => {
     return cols
   }));
 
@@ -110,7 +98,7 @@ export class ObjetivosPendAsisComponent {
     debounceTime(500),
     switchMap(() => {
       return this.apiService
-        .getObjetivosPendAsis(
+        .getTipoDocumentos(
           { options: this.listOptions }
         )
         .pipe(
@@ -130,35 +118,6 @@ export class ObjetivosPendAsisComponent {
     this.gridOptions.createFooterRow = true
 
   }
-
-  ngAfterContentInit(): void {
-    const user: any = this.settingService.getUser()
-    const gruposActividadList = user.GrupoActividad
-
-    setTimeout(() => {
-      if (gruposActividadList.length > 0)
-        this.sharedFiltroBuilder.addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'))  //Ej 548
-    }, 3000);
-
-  }
-
-  renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
-    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
-    switch (colDef.id) {
-      case 'ObjetivoDescripcion':
-        Object.assign(componentOutput.componentRef.instance, { link: '/ges/carga_asistencia', params: {ObjetivoId:dataContext.ObjetivoId}, detail:cellNode.innerText
-       })
-        
-        break;
-    
-      default:
-        break;
-    }
-
-    cellNode.replaceChildren(componentOutput.domElement)
-}
-
-
 
   ngAfterViewInit(): void {
     setTimeout(() => {
@@ -207,7 +166,7 @@ export class ObjetivosPendAsisComponent {
     this.gridObj = angularGrid.detail.slickGrid;
 
     if (this.apiService.isMobile())
-      this.angularGrid.gridService.hideColumnByIds(['SucurladId'])
+      // this.angularGrid.gridService.hideColumnByIds(['SucurladId'])
 
     
 
@@ -218,17 +177,9 @@ export class ObjetivosPendAsisComponent {
 
   exportGrid() {
     this.excelExportService.exportToExcel({
-      filename: 'objetivos-pendasis',
+      filename: 'tipo-documento',
       format: FileType.xlsx
     });
-  }
-
-  async setCambiarCategorias() {
-    this.apiService.setCambiarCategorias({ options: this.listOptions }).subscribe(evt => {
-      this.formChange$.next('')
-
-    });
-
   }
 
 }

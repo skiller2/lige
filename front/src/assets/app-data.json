@@ -96,6 +96,11 @@
           ]
         },
         {
+          "text": "Tipo Documento",
+          "link": "/ges/tipo_documento",
+          "icon": "anticon-profile"
+        },
+        {
           "text": "Adelanto",
           "link": "/ges/adelanto",
           "icon": "anticon-profile"

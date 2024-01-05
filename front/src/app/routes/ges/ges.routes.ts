@@ -69,5 +69,9 @@ export const GesRoutes: Routes = [
     path: 'telefonia/:tab',
     loadComponent: () => import('./telefonia/telefonia.component').then(c => c.TelefoniaComponent),
   },
-
+  {
+    path: 'tipo_documento',
+    loadComponent: () => import('./tipo-documento/tipo-documento.component').then(c => c.TipoDocumentoComponent),
+  },
+  
 ];
