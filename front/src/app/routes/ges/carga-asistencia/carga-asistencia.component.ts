@@ -94,7 +94,7 @@ export class CargaAsistenciaComponent {
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
                 this.angularGridEdit.resizerService.resizeGrid();
 
-                console.log('data[3]',data[3]);
+                //console.log('data[3]',data[3]);
                 if (data[3].length) {
                     this.angularGridEdit.dataView.setItems(data[3])
                     this.gridDataInsert = this.angularGridEdit.dataView.getItems()
@@ -232,8 +232,20 @@ export class CargaAsistenciaComponent {
 
                 if (editCommand.serializedValue === editCommand.prevSerializedValue) return
                 editCommand.execute()
-                if (row.total)
-                    await this.insertDB(row)
+
+                const item = this.gridDataInsert.find((obj:any)=>{
+                    return (obj.id == row.id)
+                })
+                // console.log(item.apellidoNombre.id, item.categoria.id, item.forma.id, item.tipo.id, item.total)
+                if(item.apellidoNombre.id && item.categoria.id && item.forma.id && item.tipo.id && item.total){
+                    // const copia = this.gridDataInsert.find((obj:any)=>{
+                    //     return (obj.id != item.id && obj.apellidoNombre.id == item.apellidoNombre.id && obj.categoria.id == item.categoria.id && obj.forma.id == item.forma.id)
+                    // })
+                    // if (!copia) {
+                    //     await this.insertDB(item)
+                    // }
+                    await this.insertDB(item)
+                } 
             } catch (e) {
                 //                const undoCommand = undoCommandArr.pop()
                 if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
