@@ -1591,22 +1591,39 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
     const queryRunner = dataSource.createQueryRunner();
     try {
 
-
-      const ObjetivoAsistenciaAnoMesPersonalDiasIdId: number = req.body.id
-      const year: number = req.body.year
-      const month: number = req.body.month
-      const objetiveId: number = req.body.objetivoId
-
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(year, month, res, objetiveId, queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
         throw new ClientException(`No tiene permisos para grabar asistencia`)
 
-
-      const val = await AsistenciaController.checkAsistenciaObjetivo(objetiveId, year, month, queryRunner)
+      const ObjetivoAsistenciaAnoMesPersonalDiasIdId: number = req.body.id
+      const anio: number = req.body.year
+      const mes: number = req.body.month
+      const objetivoId: number = req.body.objetivoId
+      const personalId: number = req.body.personalId
+      const tipoAsociadoId: number = req.body.tipoAsociadoId
+      const categoriaPersonalId: number = req.body.categoriaPersonalId
+      const formaLiquidacion: number = req.body.formaLiquidacion
+      let Errores: any[] = []
+      //Validación de Objetivo
+      const val = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
       if (val instanceof ClientException)
         throw val
-      // console.log('val', val);
-      const anoId = val[0].ObjetivoAsistenciaAnoId
+      const anioId = val[0].ObjetivoAsistenciaAnoId
       const mesId = val[0].ObjetivoAsistenciaAnoMesId
+      
+      //Validación de Persona ya registrada
+      const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
+      let personal: any = null
+      let personaLista: any[] = []
+      lista.forEach((obj: any)=>{
+        if(obj.id == ObjetivoAsistenciaAnoMesPersonalDiasIdId)
+          personal = obj
+        if(obj.id != ObjetivoAsistenciaAnoMesPersonalDiasIdId && obj.apellidoNombre.id == personalId && obj.categoria.id == categoriaPersonalId && obj.tipo.id == tipoAsociadoId && obj.forma.id == formaLiquidacion)
+          personaLista.push(obj)
+      })
+
+      if (personaLista.length) {
+        throw new ClientException(`El empleado ya tiene un registro existente en el objetivo`)
+      }
 
       let columnsDays = ''
       let columnsDay = ''
@@ -1648,13 +1665,8 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       const horas = Math.trunc(totalhs).toString()
       req.body.total = `${horas}.${min}`
 
-      let result
-      const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetiveId, year, month, queryRunner)
-      const personal = lista.find((obj: any)=>{ return obj.id == ObjetivoAsistenciaAnoMesPersonalDiasIdId })
-      console.log('personal', personal);
-      console.log('ObjetivoAsistenciaAnoMesPersonalDiasIdId', ObjetivoAsistenciaAnoMesPersonalDiasIdId);
       
-      
+
       // const asistenciaPersonalDias = await queryRunner.query(`
       //   SELECT objp.ObjetivoAsistenciaAnoMesPersonalDiasId id
       //   FROM ObjetivoAsistenciaAnoMesPersonalDias objp
@@ -1690,6 +1702,8 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       //   [objetiveId, anoId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion])
       // console.log('ASISTENCIA', asistenciaPersonalDias);
       // if (!asistenciaPersonalAsignado.length && rowId>lista.length) {
+        let result
+     
       if (!personal) {
         const objAsistenciaUltsNros = await queryRunner.query(`
           SELECT ObjetivoAsistenciaAnoMesPersonalUltNro, ObjetivoAsistenciaAnoMesDiasPersonalUltNro, ObjetivoAsistenciaAnoMesPersonalDiasUltNro 
@@ -1697,7 +1711,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
           WHERE ObjetivoAsistenciaAnoMesId = @2
           AND ObjetivoAsistenciaAnoId = @1
           AND ObjetivoId = @0`,
-          [objetiveId, anoId, mesId])
+          [objetivoId, anioId, mesId])
         const newAsistenciaPersonalDiasId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesPersonalDiasUltNro + 1
         const newAsistenciaDiasPersonalId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesDiasPersonalUltNro + 1
         const newAsistenciaPersonalAsignadoId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesPersonalUltNro + 1
@@ -1712,7 +1726,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
           INSERT INTO ObjetivoAsistenciaAnoMesPersonalAsignado (ObjetivoAsistenciaAnoMesPersonalAsignadoId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras, ObjetivoAsistenciaAnoMesPersonalAsignadoIngresaPersonal)
           VALUES (
             ${newAsistenciaPersonalAsignadoId}, @2, @1, @0, @3, @4, @5, @6, 'P')`,
-          [objetiveId, anoId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion, req.body.total]
+          [objetivoId, anioId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion, req.body.total]
         )
         // console.log('RESULT1',result);
 
@@ -1720,7 +1734,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
           `UPDATE ObjetivoAsistenciaAnoMes 
           SET ObjetivoAsistenciaAnoMesPersonalDiasUltNro = @4, ObjetivoAsistenciaAnoMesPersonalUltNro = @5 , ObjetivoAsistenciaAnoMesDiasPersonalUltNro = @6
           WHERE ObjetivoAsistenciaAnoMesId = @3 AND ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = @1 AND ObjetivoAsistenciaAnoMesMes = @2`,
-          [objetiveId, anoId, month, mesId, newAsistenciaPersonalDiasId, newAsistenciaPersonalAsignadoId, newAsistenciaDiasPersonalId]
+          [objetivoId, anioId, mes, mesId, newAsistenciaPersonalDiasId, newAsistenciaPersonalAsignadoId, newAsistenciaDiasPersonalId]
         )
       } else {
         // const deleteAsistencia = await queryRunner.query(`
@@ -1781,7 +1795,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
           AND ObjetivoId = @0 
           AND ObjetivoAsistenciaAnoId = @1
           AND ObjetivoAsistenciaAnoMesId = @2`,
-          [objetiveId, anoId, mesId]
+          [objetivoId, anioId, mesId]
         )
         result = await queryRunner.query(`
           INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id)
@@ -1793,10 +1807,11 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
           INSERT INTO ObjetivoAsistenciaAnoMesPersonalAsignado (ObjetivoAsistenciaAnoMesPersonalAsignadoId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras, ObjetivoAsistenciaAnoMesPersonalAsignadoIngresaPersonal)
           VALUES (
             ${personal.id}, @2, @1, @0, @3, @4, @5, @6, 'P')`,
-          [objetiveId, anoId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion, req.body.total]
+          [objetivoId, anioId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion, req.body.total]
         )
       }
-      this.jsonRes(result, res);}
+      this.jsonRes(result, res);
+    }
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction()
@@ -1891,17 +1906,17 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
           total += horas
       }});
       return {
-          id: obj.id,
-          apellidoNombre: {
-            fullName: obj.fullName,
-            id: obj.PersonalId
-          },
-          categoria: {
-            fullName: obj.CategoriaDescripcion,
-            id: obj.CategoriaId
-          },
-          forma: {
-            id: obj.FormaLiquidacion,
+        id: obj.id,
+        apellidoNombre: {
+          fullName: obj.fullName,
+          id: obj.PersonalId
+        },
+        categoria: {
+          fullName: obj.CategoriaDescripcion,
+          id: obj.CategoriaId
+        },
+        forma: {
+          id: obj.FormaLiquidacion,
           fullName: (obj.FormaLiquidacion == 'N' ? 'Normal' : 'Capacitación')
         },
         tipo: {
