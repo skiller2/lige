@@ -1591,8 +1591,6 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
     const queryRunner = dataSource.createQueryRunner();
     try {
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
-        throw new ClientException(`No tiene permisos para grabar asistencia`)
 
       const ObjetivoAsistenciaAnoMesPersonalDiasIdId: number = req.body.id
       const anio: number = req.body.year
@@ -1603,6 +1601,11 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       const categoriaPersonalId: number = req.body.categoriaPersonalId
       const formaLiquidacion: number = req.body.formaLiquidacion
       let Errores: any[] = []
+
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
+        throw new ClientException(`No tiene permisos para grabar/modificar asistencia`)
+
+
       //Validación de Objetivo
       const val = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
       if (val instanceof ClientException)

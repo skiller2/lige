@@ -233,11 +233,11 @@ export class CargaAsistenciaComponent {
                 if (editCommand.serializedValue === editCommand.prevSerializedValue) return
                 editCommand.execute()
 
-                const item = this.gridDataInsert.find((obj:any)=>{
+                const item = this.gridDataInsert.find((obj: any) => {
                     return (obj.id == row.id)
                 })
                 // console.log(item.apellidoNombre.id, item.categoria.id, item.forma.id, item.tipo.id, item.total)
-                if(item.apellidoNombre.id && item.categoria.id && item.forma.id && item.tipo.id && item.total){
+                if (item.apellidoNombre.id && item.categoria.id && item.forma.id && item.tipo.id && item.total) {
                     // const copia = this.gridDataInsert.find((obj:any)=>{
                     //     return (obj.id != item.id && obj.apellidoNombre.id == item.apellidoNombre.id && obj.categoria.id == item.categoria.id && obj.forma.id == item.forma.id)
                     // })
@@ -245,7 +245,7 @@ export class CargaAsistenciaComponent {
                     //     await this.insertDB(item)
                     // }
                     await this.insertDB(item)
-                } 
+                }
             } catch (e) {
                 //                const undoCommand = undoCommandArr.pop()
                 if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
@@ -383,7 +383,6 @@ export class CargaAsistenciaComponent {
     }
 
     async formChange(result: Date | String, busqueda: Busqueda): Promise<void> {
-        //console.log('formChange', result)
         switch (busqueda) {
             case Busqueda.Periodo:
                 this.selectedPeriod.year = (result as Date).getFullYear();

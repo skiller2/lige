@@ -57,7 +57,7 @@ export class EditorCategoriaComponent {
       const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(Number(this.item.apellidoNombre.id), this.params?.anio, this.params?.mes, this.params?.SucursalId))
       
       this.optionsArray = (this.params?.SucursalId > 0) ? categorias.categorias?.filter((f:any)=>f.ValorLiquidacionHoraNormal >0) : categorias.categorias
-      if (this.selectedId==0)
+      if (this.selectedId==0 && this.optionsArray.length>0)
         this.onChange(this.optionsArray[0].PersonalCategoriaCategoriaPersonalId)
     }
   }

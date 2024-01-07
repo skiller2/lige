@@ -9,8 +9,14 @@
     <nz-form-item>
         <nz-form-label [nzSpan]="2">Objetivo</nz-form-label>
         <nz-form-control>
-            <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
-                (ngModelChange)="formChange($event, Busqueda.Objetivo)" ngModel />
+            <ng-template #suffixReloadTpl>
+                <a (click)="formChange('', Busqueda.Objetivo)"><span nz-icon nzType="reload" nzTheme="outline"></span></a>
+            </ng-template>
+            <nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="width: 90%">
+                <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
+                (ngModelChange)="formChange($event, Busqueda.Objetivo)" ngModel style="width:100%" />
+
+              </nz-input-group>
         </nz-form-control>
     </nz-form-item>
     <ng-container *ngIf="$objetivoDetalle| async as objetivoDetalle">
