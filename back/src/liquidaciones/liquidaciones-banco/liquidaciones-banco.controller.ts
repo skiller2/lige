@@ -289,7 +289,7 @@ export class LiquidacionesBancoController extends BaseController {
       sortable: true,
       hidden: false,
       searchHidden: false
-     },
+    },
     //  {
     //    name: "Nro Envio",
     //    type: "number",
@@ -348,7 +348,7 @@ export class LiquidacionesBancoController extends BaseController {
 
         WHERE  (${filterSql}) 
         ${orderBy}
-        `, [stmactual,anio, mes])
+        `, [stmactual, anio, mes])
 
   }
 
@@ -433,7 +433,7 @@ export class LiquidacionesBancoController extends BaseController {
 
     try {
       const movimientosPendientes = await this.getMovimientosPendientes(req.body.options.filtros, req.body.options.sort)
-      
+
       this.jsonRes(
         {
           total: movimientosPendientes.length,
@@ -954,29 +954,33 @@ export class LiquidacionesBancoController extends BaseController {
 
   async setDeleteMovimiento(req: Request, res: Response, next: NextFunction) {
 
-    let deleteId = req.body.deleteId
-    
+    const persona_id = req.body.persona_id
+    const banco_id = req.body.banco_id
+    const envio_nro = req.body.envio_nro
+    const tipocuenta_id = req.body.tipocuenta_id
 
     const queryRunner = dataSource.createQueryRunner();
 
     try {
 
-      if (deleteId != null) {
+      if (!await this.hasGroup(req, 'liquidaciones'))
+        throw new ClientException(`No tiene permisos para eliminar registro`)
 
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
+      if (persona_id == null)
+        throw new ClientException(`Debe seleccionar una persona`)
 
-        
-        await queryRunner.query(
-          `DELETE FROM lige.dbo.liqmvbanco WHERE persona_id = @0`,
-          [deleteId]
-        );
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
-        await queryRunner.commitTransaction();
 
-        this.jsonRes({ list: [] }, res, `Se eliminaron con exito los registros `);
-      }
+      await queryRunner.query(
+        `DELETE FROM lige.dbo.liqmvbanco WHERE persona_id = @0 AND banco_id = @1 AND envio_nro = @2 AND tipocuenta_id = @3`,
+        [persona_id, banco_id, envio_nro, tipocuenta_id]
+      );
 
+      await queryRunner.commitTransaction();
+
+      this.jsonRes({ list: [] }, res, `Se eliminó el registro `);
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();

@@ -1,3 +1,4 @@
+<nz-popconfirm #nzpc ></nz-popconfirm>
 <ng-container *ngIf="(columnsMovimientos$|async) as columnasMovimientos">
      <shared-filtro-builder #sfb [fieldsToSelect]="columnasMovimientos" (optionsChange)="listOptionsChangeMovimiento($event)" /> 
     <div class="gridContainer3 container-fluid">
@@ -6,22 +7,4 @@
         (onAngularGridCreated)="angularGridReady($event)">
       </angular-slickgrid>
     </div>
-
-     <!-- <div>Registros: {{ gridDataLen }}</div>   -->
 </ng-container>
-
-<ng-template #templateMovimientos  let-notification >
-  <div class=" notificacionImportacion ant-notification-notice-content">
-    <div>
-      <div class="ant-notification-notice-message">Eliminar Movimiento</div>
-      <div class="ant-notification-notice-description">
-        Seguro que desea eliminar el movimiento
-      </div>
-      <span class="ant-notification-notice-btn">
-        <button nz-button nzType="primary" nzSize="small" (click)="confirmDeleteMovimiento()">
-          <span>Aceptar</span>
-        </button>
-      </span>
-    </div>
-  </div>
-</ng-template>
