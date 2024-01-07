@@ -1,86 +1,87 @@
 <nz-card class="small-margin">
-    <form nz-form #liquidacionesForm="ngForm">
+  <form nz-form #liquidacionesForm="ngForm">
 
-      <nz-form-item>
-        <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
-        <nz-form-control>
-          <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
-          <!-- <button nz-button nzType="primary" class="btn-add" *ngIf="(gridDataInsert.length >= 2)" 
+    <nz-form-item>
+      <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
+      <nz-form-control>
+        <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
+        <!-- <button nz-button nzType="primary" class="btn-add" *ngIf="(gridDataInsert.length >= 2)" 
             data-test="add-new-item-top-btn" (click)="createBasicNotification(template)"  >Confirmar nuevo registro</button> -->
 
-          <button
-            *ngIf="(gridDataInsert.length >= 2)" nz-popconfirm nzType="primary" class="btn-add"
-            nzPopconfirmTitle="Confirmar nuevo registro?"
-            (nzOnConfirm)="confirmNewItem()"
-            nzPopconfirmPlacement="topLeft"
-            nz-button
-          >
+        <button *ngIf="(gridDataInsert.length >= 2)" nz-popconfirm nzType="primary" class="btn-add"
+          nzPopconfirmTitle="Confirmar nuevo registro?" (nzOnConfirm)="confirmNewItem()" nzPopconfirmPlacement="topLeft"
+          nz-button>
           Confirmar nuevo registro
         </button>
 
-        </nz-form-control>
-      </nz-form-item>
+      </nz-form-control>
+    </nz-form-item>
 
 
-      <ul nz-menu nzMode="horizontal">
-        <li nz-menu-item nzMatchRouter >
-          <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'liquidaciones','listado']">Listado</a>
-        </li>
+    <ul nz-menu nzMode="horizontal">
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'liquidaciones','listado']">Listado</a>
+      </li>
 
       <li nz-submenu nzTitle="Acciones">
         <ul style="width: auto !important">
-          <li nz-menu-item id="Asistencia" (click)="liquidacionesAcciones($event)">
+          <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros de Asistencia?" [nzBeforeConfirm]=""
+            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('Asistencia')">
             <span nz-icon nzType="plus" nzTheme="outline"></span>Asistencia
           </li>
-          <li nz-menu-item id="Art42" (click)="liquidacionesAcciones($event)">
+          <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros de Art.42?" [nzBeforeConfirm]=""
+            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('Art42')">
             <span nz-icon nzType="plus" nzTheme="outline"></span>Art.42
           </li>
-          <li *ngIf="false" nz-menu-item  id="ingresosCoordinadorDeCuenta" (click)="liquidacionesAcciones($event)">
+          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros ?" [nzBeforeConfirm]=""
+            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('ingresosCoordinadorDeCuenta')">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por coordinador de cuenta
           </li>
-          <li *ngIf="false" nz-menu-item id="descuentoPorDeudaAnterior" (click)="liquidacionesAcciones($event)">
+          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros ?" [nzBeforeConfirm]=""
+            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('descuentoPorDeudaAnterior')">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Descuentos por deuda período anterior
           </li>
-          <li nz-menu-item id="descuentos" (click)="liquidacionesAcciones($event)">
+          <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros de descuentos?" [nzBeforeConfirm]=""
+            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('descuentos')">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Descuentos
           </li>
-          <li *ngIf="false" nz-menu-item id="movimientoAcreditacionEnCuenta" (click)="liquidacionesAcciones($event)">
+          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros ?" [nzBeforeConfirm]=""
+            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('movimientoAcreditacionEnCuenta')">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Movimiento de acreditación en cuenta
-          </li> 
-          <li *ngIf="false" nz-menu-item id="movimientosAutomaticos" (click)="liquidacionesAcciones($event)" >
+          </li>
+          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros ?" [nzBeforeConfirm]=""
+            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('movimientosAutomaticos')">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Carga de movs automático
           </li>
         </ul>
-        
       </li>
 
       <li nz-submenu nzTitle="Informes">
         <ul style="width: auto !important">
           <li nz-menu-item app-down-file [httpMethod]="'POST'"
-          [httpBody]="{'Reporte':'Banelco','Formato':'EXCEL', 'Filtros': {'Anio':selectedPeriod.year,'Mes':selectedPeriod.month}}"
-          httpUrl="api/informes/descarga"
-          notificationMsg="Generando Informe Banelco">
-          <span nz-icon nzType="download"></span><span style="white-space: normal;">Banelco</span> 
+            [httpBody]="{'Reporte':'Banelco','Formato':'EXCEL', 'Filtros': {'Anio':selectedPeriod.year,'Mes':selectedPeriod.month}}"
+            httpUrl="api/informes/descarga" notificationMsg="Generando Informe Banelco">
+            <span nz-icon nzType="download"></span><span style="white-space: normal;">Banelco</span>
           </li>
 
           <li nz-menu-item (click)="exportGrid()">
             <span nz-icon nzType="download"></span><span style="white-space: normal;">Grilla</span>
           </li>
-    
+
         </ul>
-        
+
       </li>
 
 
 
 
-      <li nz-menu-item nzMatchRouter >
+      <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'liquidaciones','cargamanual']">Carga manual</a>
       </li>
 
-      <li nz-menu-item nzMatchRouter >
+      <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
         <!-- <a [routerLink]="['/', 'ges', 'liquidaciones','cargamanual']">Carga manual</a> -->
         <a [routerLink]="['/', 'ges', 'liquidaciones','importacion']">Importación</a>
@@ -94,46 +95,39 @@
           notificationMsg="Generando Recibos">
           <span nz-icon nzType="download"></span><span style="white-space: normal;">Generar</span> 
           </li>
-    
+
         </ul>
-        
+
       </li>
     </ul>
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
-      <nz-tab >
+      <nz-tab>
         <a nz-tab-link routerLink="/ges/liquidaciones/listado">Listado</a>
         <ng-template nz-tab *ngIf="(columns$|async) as columnas">
           <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
-          <div class="gridContainer1 container-fluid" >
-            <angular-slickgrid gridId="gridLiq" 
-              [columnDefinitions]="columnas | colsFilter"
-              [gridOptions]="gridOptions" 
-              [dataset]="(gridData$ | async) || []" 
-              (onAngularGridCreated)="angularGridReady($event)">
-          </angular-slickgrid>
+          <div class="gridContainer1 container-fluid">
+            <angular-slickgrid gridId="gridLiq" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptions"
+              [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)">
+            </angular-slickgrid>
           </div>
 
           <!-- <div>total: {{ gridDataLen }}</div> -->
         </ng-template>
       </nz-tab>
-      <nz-tab >
-       
+      <nz-tab>
+
         <a nz-tab-link routerLink="/ges/liquidaciones/cargamanual">Carga Manual</a>
-        <ng-template nz-tab >
+        <ng-template nz-tab>
           <!-- <button nz-button nzType="primary" class="btn-add" data-test="add-new-item-top-btn" (click)="openCustomModal()" >Agregar nuevo registro</button>  -->
-         
+
           <!-- <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" /> -->
-          <div class="gridContainer2 container-fluid" >
-            <angular-slickgrid gridId="gridEdit" 
-              [columnDefinitions]="columnDefinitions | colsFilter"
-              [gridOptions]="gridOptionsEdit" 
-              [dataset]="gridDataInsert || []"
-              (onCellChange)="onCellChanged($event)"
-              (onAngularGridCreated)="angularGridReadyEdit($event)"
-              >
+          <div class="gridContainer2 container-fluid">
+            <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnDefinitions | colsFilter"
+              [gridOptions]="gridOptionsEdit" [dataset]="gridDataInsert || []" (onCellChange)="onCellChanged($event)"
+              (onAngularGridCreated)="angularGridReadyEdit($event)">
               <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
-          </angular-slickgrid>
+            </angular-slickgrid>
           </div>
 
           <!-- <div>Registros: {{ gridDataInsert.length }}</div> -->
@@ -141,96 +135,94 @@
       </nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/liquidaciones/importacion">Importar liquidaciones</a>
-      <ng-template nz-tab >
+        <ng-template nz-tab>
 
-      <form nz-form #telefonoForm="ngForm">
-       <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
+          <form nz-form #telefonoForm="ngForm">
+            <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
 
-        <nz-form-item>
-          <nz-form-control [nzSpan]="5">
-            <nz-form-label [nzSpan]="10">Tipo de Cuenta</nz-form-label>
-            <ng-container>
-              <nz-select #sucursal="ngModel" nzSpan="15" name="SucursalId" [(ngModel)]="selectedCuentalId"
-              (ngModelChange)="selectedValueChange($event)" nzAllowClear nzPlaceHolder="Cuenta"
-              [nzDropdownMatchSelectWidth]="false"
-              nzShowSearch>
-              <ng-container *ngFor="let option of $optionsCuenta | async">
-                <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
-              </ng-container>
-            </nz-select>
-            </ng-container>
-          </nz-form-control>
-        <!-- </nz-form-item>
+              <nz-form-item>
+                <nz-form-control [nzSpan]="5">
+                  <nz-form-label [nzSpan]="10">Tipo de Cuenta</nz-form-label>
+                  <ng-container>
+                    <nz-select #sucursal="ngModel" nzSpan="15" name="SucursalId" [(ngModel)]="selectedCuentalId"
+                      (ngModelChange)="selectedValueChange($event)" nzAllowClear nzPlaceHolder="Cuenta"
+                      [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+                      <ng-container *ngFor="let option of $optionsCuenta | async">
+                        <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
+                      </ng-container>
+                    </nz-select>
+                  </ng-container>
+                </nz-form-control>
+                <!-- </nz-form-item>
 
         <nz-form-item> -->
 
-          <nz-form-control [nzSpan]="7">
-            <nz-form-label [nzSpan]="10">Tipo de Movimiento</nz-form-label>
-            <ng-container>
-              <nz-select #sucursal="ngModel" nzSpan="15" name="MovimientoId" [(ngModel)]="selectedMovimientoId"
-              (ngModelChange)="selectedValueChangeMovimiento($event)" nzAllowClear nzPlaceHolder="Movimiento"
-              [nzDropdownMatchSelectWidth]="false"
-              nzShowSearch>
-              <ng-container *ngFor="let option of $optionsMovimiento | async">
-                <nz-option [nzValue]="option.tipo_movimiento_id" [nzLabel]="option.des_movimiento"></nz-option>
-              </ng-container>
-            </nz-select>
-            </ng-container>
-          </nz-form-control>
-        </nz-form-item>
+                <nz-form-control [nzSpan]="7">
+                  <nz-form-label [nzSpan]="10">Tipo de Movimiento</nz-form-label>
+                  <ng-container>
+                    <nz-select #sucursal="ngModel" nzSpan="15" name="MovimientoId" [(ngModel)]="selectedMovimientoId"
+                      (ngModelChange)="selectedValueChangeMovimiento($event)" nzAllowClear nzPlaceHolder="Movimiento"
+                      [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+                      <ng-container *ngFor="let option of $optionsMovimiento | async">
+                        <nz-option [nzValue]="option.tipo_movimiento_id" [nzLabel]="option.des_movimiento"></nz-option>
+                      </ng-container>
+                    </nz-select>
+                  </ng-container>
+                </nz-form-control>
+              </nz-form-item>
 
-        <nz-form-item>
-          <nz-form-control>
-            <nz-form-label [nzSpan]="5">Importaciones anteriores</nz-form-label>
-            <ng-container *ngFor="let movimiento of $importacionesAnteriores | async" >
-              <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{movimiento.nombre}}>
-                <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
-                <span nz-icon nzType="delete" nzTheme="outline" class="trash-color" (click)="createBasicNotificationImportacion(templateImportacion,movimiento.id)"></span>
-                <a nz-icon nzType="download" nzHref="movimiento.path" target="_blank" nzTheme="outline" class="download-color" 
-                app-down-file [httpMethod]="'POST'"
-                [httpBody]="{'documentId': movimiento.id}"
-                httpUrl="api/liquidaciones/downloadImportacion"></a>
-                <span > ID: {{movimiento.id}} - Fecha: {{movimiento.fecha}} </span>
-              </div>
-            </ng-container>
-            </nz-form-control>
-          </nz-form-item>
+              <nz-form-item>
+                <nz-form-control>
+                  <nz-form-label [nzSpan]="5">Importaciones anteriores</nz-form-label>
+                  <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
+                    <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{movimiento.nombre}}>
+                      <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
+                      <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"
+                        (click)="createBasicNotificationImportacion(templateImportacion,movimiento.id)"></span>
+                      <a nz-icon nzType="download" nzHref="movimiento.path" target="_blank" nzTheme="outline"
+                        class="download-color" app-down-file [httpMethod]="'POST'"
+                        [httpBody]="{'documentId': movimiento.id}" httpUrl="api/liquidaciones/downloadImportacion"></a>
+                      <span> ID: {{movimiento.id}} - Fecha: {{movimiento.fecha}} </span>
+                    </div>
+                  </ng-container>
+                </nz-form-control>
+              </nz-form-item>
 
 
-        <nz-form-item>
-        <nz-form-control>
-          <nz-form-label [nzSpan]="5">Archivo liquidaciones</nz-form-label>
-            <ng-container>
-              <nz-upload nzAccept="application/xls" nzAction="/api/liquidaciones/upload" [nzData]="{
+              <nz-form-item>
+                <nz-form-control>
+                  <nz-form-label [nzSpan]="5">Archivo liquidaciones</nz-form-label>
+                  <ng-container>
+                    <nz-upload nzAccept="application/xls" nzAction="/api/liquidaciones/upload" [nzData]="{
                 tipocuenta: selectedCuentalId,
                 movimiento: selectedMovimientoId,
                 anio:selectedPeriod.year, 
                 mes:selectedPeriod.month
-              }"  nzName="xls" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)" >
-                  <button nz-button>
-                    <span nz-icon nzType="upload"></span>
-                    Subir XLS
-                  </button>
-                </nz-upload>
-            </ng-container>
-          </nz-form-control>
-        </nz-form-item>
+              }" nzName="xls" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
+                      <button nz-button>
+                        <span nz-icon nzType="upload"></span>
+                        Subir XLS
+                      </button>
+                    </nz-upload>
+                  </ng-container>
+                </nz-form-control>
+              </nz-form-item>
 
-       </nz-spin> 
-      </form>
+            </nz-spin>
+          </form>
 
-         <div class="gridContainer3 container-fluid">
-          <angular-slickgrid gridId="gridImport" class="" [columnDefinitions]="columnsImport | colsFilter"
-            [gridOptions]="gridOptionsImport" [dataset]="(gridDataImport$ | async) || []" >
-          </angular-slickgrid>
-        </div>
-      </ng-template>
+          <div class="gridContainer3 container-fluid">
+            <angular-slickgrid gridId="gridImport" class="" [columnDefinitions]="columnsImport | colsFilter"
+              [gridOptions]="gridOptionsImport" [dataset]="(gridDataImport$ | async) || []">
+            </angular-slickgrid>
+          </div>
+        </ng-template>
 
 
       </nz-tab>
     </nz-tabset>
 
-    <ng-template #templateImportacion let-notification >
+    <ng-template #templateImportacion let-notification>
       <div class=" notificacionImportacion ant-notification-notice-content">
         <div>
           <div class="ant-notification-notice-message">Eliminar Importación</div>
@@ -245,5 +237,5 @@
         </div>
       </div>
     </ng-template>
-    </form>
+  </form>
 </nz-card>
