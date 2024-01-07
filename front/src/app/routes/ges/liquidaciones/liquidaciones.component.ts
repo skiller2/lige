@@ -79,6 +79,8 @@ export class LiquidacionesComponent {
   toggle = false;
   detailViewRowCount = 9;
   gridDataLen = 0
+  anio = 0
+  mes = 0
   saveLoading$ = new BehaviorSubject(false);
   tableLoading$ = new BehaviorSubject(false);
   filesChange$ = new BehaviorSubject('');
@@ -246,6 +248,8 @@ export class LiquidacionesComponent {
         )
         .pipe(
           map(data => {
+            this.anio = periodo.getFullYear();
+            this.mes = periodo.getMonth() + 1;
             // this.gridDataLen = data?.list?.length
             // this.gridDataLen = data.list?.length
             // this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
@@ -554,7 +558,6 @@ export class LiquidacionesComponent {
   }
 
   selectedValueChangeMovimiento(event: string): void {
-debugger
     this.selectedMovimientoId = event;
     this.$selectedMovimientoIdChange.next(event);
     this.$isMovimientoDataLoading.next(true);
@@ -767,6 +770,8 @@ debugger
 
     };
   }
+
+ 
 
 }
 
