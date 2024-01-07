@@ -8,9 +8,23 @@ import xlsx from 'node-xlsx';
 import { isNumberObject } from "util/types";
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import {
+  SendFileToDownload,
+  getPeriodoFromRequest,
+} from "./liquidaciones-banco/liquidaciones-banco.utils";
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
+import { promises as fs } from 'fs';
 
 export class LiquidacionesController extends BaseController {
   directory = process.env.PATH_LIQUIDACIONES || "tmp";
+  
+  directoryRecibo = process.env.PATH_RECIBO || "tmp";
+  constructor() {
+    super();
+    if (!existsSync(this.directoryRecibo)) {
+      mkdirSync(this.directoryRecibo, { recursive: true });
+    }
+  }
 
   async getTipoMovimientoById(req: Request, res: Response, next: NextFunction) {
 
@@ -536,6 +550,102 @@ export class LiquidacionesController extends BaseController {
 
     }
   }
+
+
+  async downloadArchivoRecibo(req: Request, res: Response, next: NextFunction) {
+
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const periodo = getPeriodoFromRequest(req);
+      let fechaActual = new Date()
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
+      console.log("mes " + periodo.month)
+      console.log("anio " + periodo.year)
+
+      console.log("periodo " + periodo_id)
+
+      const movimientosPendientes = await this.getUsuariosLiquidacion(periodo_id)
+
+
+      // movimientosPendientes.forEach(movimiento => {
+      //   // Hacer algo con cada elemento, por ejemplo:
+      //   console.log(movimiento.persona_id);
+      // });
+
+
+      var assetsIcons = process.env.PATH_ASSETS + "icons" ;
+      console.log("ruta recibo " + this.directoryRecibo)
+      const filesPath = this.directoryRecibo + '/' + String(periodo.month) +"-"+ String(periodo.year) + ".pdf"
+      
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage();
+
+      
+      const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+      const logoBytes = await fs.readFile(assetsIcons + '/icon-lince-96x96.png');
+      const logoImage = await pdfDoc.embedPng(logoBytes);
+
+      // Obtener las dimensiones del logo y centrarlo en la página
+      const logoWidth = logoImage.width * 0.5;
+      const logoHeight = logoImage.height * 0.5;
+      const centerX = page.getWidth() / 2 - logoWidth / 2;
+      const centerY = page.getHeight() / 1 - logoHeight / 1;
+
+      // Dibujar el logo centrado en la página
+      page.drawImage(logoImage, {
+        x: centerX,
+        y: centerY,
+        width: logoWidth,
+        height: logoHeight,
+      });
+      const fontSize = 14;
+      page.drawText('Creating PDFs in JavaScript is awesome!', {
+          x: 50,
+          y: page.getHeight() - 8 * fontSize,
+          size: fontSize,
+          font,
+          color: rgb(0, 0.53, 0.71),
+        });
+
+      // Guardar el PDF en un archivo
+      const pdfBytes = await pdfDoc.save();
+      await fs.writeFile(filesPath, pdfBytes);
+
+       console.log("movimientosPendientes " + movimientosPendientes.length)
+
+
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+      return next(error)
+    } finally {
+      //   await queryRunner.release();
+    }
+
+
+  }
+
+  async getUsuariosLiquidacion(periodo_id: Number) {
+   
+    return dataSource.query( `SELECT DISTINCT persona_id FROM lige.dbo.liqmamovimientos WHERE tipocuenta_id = 'G' AND periodo_id=@0 ORDER BY persona_id ASC;`, [periodo_id])
+
+  }
+
+
+  async getUsuariosLiquidacionMovimientos(periodo_id: Number,user_id: Number) {
+   
+    return dataSource.query( `SELECT liq.persona_id, liq.tipo_movimiento_id, tip.des_movimiento, SUM(liq.importe) AS SumaImporte
+        FROM lige.dbo.liqmamovimientos AS liq
+        JOIN lige.dbo.liqcotipomovimiento AS tip ON tip.tipo_movimiento_id  = liq.tipo_movimiento_id
+        WHERE periodo_id = @0 AND tipocuenta_id = 'G' AND user_id = @1
+        GROUP BY liq.periodo_id, liq.persona_id, liq.tipocuenta_id, liq.tipo_movimiento_id,tip.des_movimiento`, [periodo_id,user_id])
+
+  }
+
+
+  
 
 }
 

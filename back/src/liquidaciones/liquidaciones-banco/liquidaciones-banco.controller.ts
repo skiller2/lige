@@ -988,8 +988,6 @@ export class LiquidacionesBancoController extends BaseController {
 
   }
 
-
-
 }
 
 
