@@ -27,6 +27,7 @@ import {
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { NzPopconfirmComponent } from 'ng-zorro-antd/popconfirm';
 import { NzModalService } from 'ng-zorro-antd/modal';
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
   selector: 'movimientos-pendientes',
@@ -65,6 +66,7 @@ export class MovimientosPendientes {
   gridObj!: SlickGrid;
   columnDefinitions: Column[] = [];
   private currencyPipe = inject(CurrencyPipe)
+  private readonly loadingSrv = inject(LoadingService);
 
 
 
@@ -165,8 +167,8 @@ export class MovimientosPendientes {
             this.listdowload = "gridDataMovimiento";
             return data.list
           }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
+          doOnSubscribe(() => this.loadingSrv.open()),
+          tap({ complete: () => this.loadingSrv.close() })
         )
     })
   )

@@ -35,13 +35,14 @@ export function columnTotal(column: string, angularGrid: AngularGridInstance) {
 export function totalRecords(angularGrid: AngularGridInstance, colid:string='') {
     const visibleColumns = angularGrid.gridService.getVisibleColumnDefinitions()
     if (visibleColumns.length == 0) return
-    let colId = 0
+    let colId = visibleColumns[0].id
     for (const col of visibleColumns) {
         if ('fieldName' in col) {
-            colId=Number(col.id)
+            colId=col.id
             break
         }
     }
+    
     const columnFooter = angularGrid.slickGrid.getFooterRowColumn(colId)
     let cantData
     if (colid=='') {

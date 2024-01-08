@@ -37,6 +37,7 @@ import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-gri
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
 import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-objetivo.component';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
   selector: 'app-liquidaciones',
@@ -61,14 +62,12 @@ export class LiquidacionesComponent {
     new NgForm([], [])
   @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent
   
-  private cdr = inject(ChangeDetectorRef);
   public apiService = inject(ApiService);
-  private injector = inject(Injector);
   public router = inject(Router);
   public route = inject(ActivatedRoute);
   private angularUtilService = inject(AngularUtilService);
-  private modal = inject(NzModalService);
   private notification = inject(NzNotificationService);
+  private readonly loadingSrv = inject(LoadingService);
 
 
   url = '/api/liquidaciones';
@@ -82,7 +81,6 @@ export class LiquidacionesComponent {
   anio = 0
   mes = 0
   saveLoading$ = new BehaviorSubject(false);
-  tableLoading$ = new BehaviorSubject(false);
   filesChange$ = new BehaviorSubject('');
   gridOptions!: GridOption;
   gridOptionsEdit!: GridOption;
@@ -256,8 +254,8 @@ export class LiquidacionesComponent {
 
             return data?.list
           }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
+          doOnSubscribe(() => this.loadingSrv.open()),
+          tap({ complete: () => this.loadingSrv.close() })
         )
     })
   )

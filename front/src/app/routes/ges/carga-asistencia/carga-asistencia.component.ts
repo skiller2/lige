@@ -299,11 +299,9 @@ export class CargaAsistenciaComponent {
 
         const x = this
         this.angularGridEdit.slickGrid.onCellChange.subscribe(function (e, args) {
-            //                console.log('args',args)
-            columnTotal(String(args.column.id), x.angularGridEdit)
+            if (String(args.column.id).indexOf('day') != -1) columnTotal(String(args.column.id), x.angularGridEdit)
+            totalRecords(x.angularGridEdit, 'apellidoNombre')
             columnTotal('total', x.angularGridEdit)
-            totalRecords(x.angularGridEdit)
-
         });
 
 
@@ -442,11 +440,6 @@ export class CargaAsistenciaComponent {
         }
         this.angularGridEdit.gridService.updateItemById(idItemGrid, updateItem)
         //        this.insertDB(args.dataContext.id)
-    }
-
-    async selectedObjetivoChange(event: string, busqueda: Busqueda): Promise<void> {
-
-        this.clearAngularGrid()
     }
 
     personChange(e: Event, args: any) {
