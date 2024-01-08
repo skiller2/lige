@@ -1,4 +1,5 @@
-import { AngularGridInstance, Column } from 'angular-slickgrid';
+import { AngularGridInstance, Column, Formatter } from 'angular-slickgrid';
+import { createDomElement } from '@slickgrid-universal/utils';
 
 export function columnTotal(column: string, angularGrid: AngularGridInstance) {
     let columnFooter = angularGrid.slickGrid.getFooterRowColumn(column)
@@ -18,7 +19,7 @@ export function columnTotal(column: string, angularGrid: AngularGridInstance) {
             totalDisplay = String((columnDetail.formatter) ? columnDetail.formatter(0, 0, gridDataTotal, columnDetail, null, angularGrid.slickGrid) : gridDataTotal)
 
             columnFooter.style.paddingRight = '1px'
-            columnFooter.classList.add(String(columnDetail.cssClass));
+            columnFooter.classList.add(String(columnDetail?.cssClass));
         } else {
             totalDisplay = list.length.toString()
         }
@@ -30,24 +31,49 @@ export function columnTotal(column: string, angularGrid: AngularGridInstance) {
 
 }
 
-export function totalRecords(angularGrid: AngularGridInstance) {
+
+export function totalRecords(angularGrid: AngularGridInstance, colid:string='') {
     const visibleColumns = angularGrid.gridService.getVisibleColumnDefinitions()
     if (visibleColumns.length == 0) return
-    let added = false
+    let colId = visibleColumns[0].id
     for (const col of visibleColumns) {
         if ('fieldName' in col) {
-            let columnFooter = angularGrid.slickGrid.getFooterRowColumn(col.id)
-            let cantData = angularGrid.slickGrid.getData().getItemCount()
-            columnFooter.innerHTML = `Registros:  ${cantData}`
-            added = true
+            colId=col.id
             break
         }
     }
-    if (!added) {
-        const col = visibleColumns[0]
-        let columnFooter = angularGrid.slickGrid.getFooterRowColumn(col.id)
-        let cantData = angularGrid.slickGrid.getData().getItemCount()
-        columnFooter.innerHTML = `Registros:  ${cantData}`
+    
+    const columnFooter = angularGrid.slickGrid.getFooterRowColumn(colId)
+    let cantData
+    if (colid=='') {
+        cantData = angularGrid.slickGrid.getData().getItemCount()
+    } else {
+    
+        const items = angularGrid.slickGrid.getData().getItems().filter(row => row[colid] != '')
+        cantData = items.length
     }
+    if (cantData)
+    columnFooter.innerHTML = `Registros:  ${cantData}`
 
 }
+
+
+
+export const appIconFormatter: Formatter = (_row, _cell, _value, columnDef) => {
+    const columnParams = columnDef?.params ?? {};
+    const cssClasses = columnParams.iconCssClass || columnParams.icon || columnParams.formatterIcon;
+    if (columnParams.icon || columnParams.formatterIcon) {
+      console.warn('[Slickgrid-Universal] deprecated params.icon or params.formatterIcon are deprecated when using `Formatters.icon` in favor of params.iconCssClass. (e.g.: `{ formatter: Formatters.icon, params: { iconCssClass: "fa fa-search" }}`');
+    }
+  
+    if (!cssClasses) {
+      throw new Error('[Slickgrid-Universal] When using `Formatters.icon`, you must provide the "iconCssClass" via the generic "params". (e.g.: `{ formatter: Formatters.icon, params: { iconCssClass: "fa fa-search" }}`');
+    }
+    const elem:HTMLElement = createDomElement('a', { className:cssClasses })
+//    elem.setAttribute('nz-icon','')
+//    elem.setAttribute('nzType',cssClasses)
+//    elem.setAttribute('nzTheme','outline')
+    return elem
+  };
+
+

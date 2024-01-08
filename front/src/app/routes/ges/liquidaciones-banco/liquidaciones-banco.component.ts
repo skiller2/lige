@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NgForm } from '@angular/forms';
@@ -25,6 +25,7 @@ import {
   firstValueFrom,
 } from 'rxjs';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
   selector: 'app-liquidaciones',
@@ -46,6 +47,9 @@ export class LiquidacionesBancoComponent {
   @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =
     new NgForm([], []);
   constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService) { }
+  private readonly loadingSrv = inject(LoadingService);
+
+
   url = '/api/liquidaciones';
   url_forzado = '/api/liquidaciones/forzado';
   formChange$ = new BehaviorSubject('');
@@ -202,8 +206,8 @@ export class LiquidacionesBancoComponent {
             this.listdowload = "gridData";
             return data.list
           }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
+          doOnSubscribe(() => this.loadingSrv.open() ),
+          tap({ complete: () => this.loadingSrv.close() })
         )
     })
   )

@@ -439,9 +439,15 @@ export class ApiService {
 
   }
 
-  setDeleteMovimiento(deleteId: any) {
-    const parameter = deleteId
-    this.notification.success('Respuesta', `Inicio Borrado `);
+  setDeleteMovimiento(row: any) {
+    const parameter = {
+      persona_id :  row.persona_id, 
+      banco_id : row.banco_id,
+      envio_nro : row.envio_nro, 
+      tipocuenta_id : row.tipocuenta_id
+  
+    }
+//    this.notification.success('Respuesta', `Inicio Borrado `);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/deleteMovimiento', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),

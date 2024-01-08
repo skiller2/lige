@@ -18,6 +18,5 @@ if (environment.production) {
 
     defaultEncapsulation: ViewEncapsulation.Emulated,
     preserveWhitespaces: false,
-    providers:[{provide: DEFAULT_CURRENCY_CODE, useValue: '$' }]
   */
 

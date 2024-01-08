@@ -105,7 +105,7 @@ export class CargaAsistenciaComponent {
 
                 for (const col of this.angularGridEdit.slickGrid.getColumns())
                     if (String(col.id).indexOf('day') != -1) columnTotal(String(col.id), this.angularGridEdit)
-                totalRecords(this.angularGridEdit)
+                totalRecords(this.angularGridEdit, 'apellidoNombre')
                 columnTotal('total', this.angularGridEdit)
 
                 //this.gridDataInsert = data[3]
@@ -233,7 +233,7 @@ export class CargaAsistenciaComponent {
                 if (editCommand.serializedValue === editCommand.prevSerializedValue) return
                 editCommand.execute()
 
-                const item = this.gridDataInsert.find((obj:any)=>{
+                const item = this.gridDataInsert.find((obj: any) => {
                     return (obj.id == row.id)
                 })
                 // console.log(item.apellidoNombre.id, item.categoria.id, item.forma.id, item.tipo.id, item.total)
@@ -305,11 +305,9 @@ export class CargaAsistenciaComponent {
 
         const x = this
         this.angularGridEdit.slickGrid.onCellChange.subscribe(function (e, args) {
-            //                console.log('args',args)
-            columnTotal(String(args.column.id), x.angularGridEdit)
+            if (String(args.column.id).indexOf('day') != -1) columnTotal(String(args.column.id), x.angularGridEdit)
+            totalRecords(x.angularGridEdit, 'apellidoNombre')
             columnTotal('total', x.angularGridEdit)
-            totalRecords(x.angularGridEdit)
-
         });
 
 
@@ -389,7 +387,6 @@ export class CargaAsistenciaComponent {
     }
 
     async formChange(result: Date | String, busqueda: Busqueda): Promise<void> {
-        //console.log('formChange', result)
         switch (busqueda) {
             case Busqueda.Periodo:
                 this.selectedPeriod.year = (result as Date).getFullYear();
@@ -449,11 +446,6 @@ export class CargaAsistenciaComponent {
         }
         this.angularGridEdit.gridService.updateItemById(idItemGrid, updateItem)
         //        this.insertDB(args.dataContext.id)
-    }
-
-    async selectedObjetivoChange(event: string, busqueda: Busqueda): Promise<void> {
-
-        this.clearAngularGrid()
     }
 
     personChange(e: Event, args: any) {

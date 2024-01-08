@@ -3,6 +3,18 @@
 </nz-card>
 
 <nz-card>
+  <nz-popconfirm #nzpc ></nz-popconfirm>
+
+  <p>Trigger popover</p>
+  <a #btntest (click)="clickTest()" >HOLA</a>
+
+  <button (click)="click1($event)" >nzpc</button>
+  <button (click)="click2()" >otro</button>
+
+
+</nz-card>
+
+<nz-card>
 
   <nz-date-picker name="periodo0" />
 
@@ -10,9 +22,6 @@
 </nz-card>
 
 
-<nz-card class="">
-  <angular-slickgrid ></angular-slickgrid>
-</nz-card>
 
 
   <nz-card class="demo-container">
@@ -34,5 +43,7 @@
   <button (click)="onClickObjetivo($event)" >SET OBJETIVO 780</button>
 
   <p>Valor Extendido {{ this.valueExtendedObjetivo | json }}</p>
+
+
 
 </nz-card>

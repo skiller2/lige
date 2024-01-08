@@ -1,8 +1,10 @@
-import { CommonModule } from '@angular/common';
-import { Component, ElementRef, ViewChild, ViewEncapsulation, inject } from '@angular/core';
+import { CommonModule, DOCUMENT } from '@angular/common';
+import { ChangeDetectorRef, Component, ElementRef, ViewChild, ViewEncapsulation, inject } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import { AngularGridInstance, AngularSlickgridComponent, AngularSlickgridModule, Column, ContainerService, Editors, FieldType, Filters, Formatters, GridOption, SlickRowDetailView } from 'angular-slickgrid';
+import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzPopconfirmComponent } from 'ng-zorro-antd/popconfirm';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 import {
   NzTableSortOrder,
@@ -27,6 +29,7 @@ import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detai
 import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { Options } from 'src/app/shared/schemas/filtro';
+import { Directionality } from '@angular/cdk/bidi';
 
 /** config ng-zorro-antd i18n **/
 
@@ -46,7 +49,14 @@ export class TestComponent {
   objetivoId!:number
   valueExtendedObjetivo:any
   valueExtended: any
-
+  confirmation!: NzPopconfirmComponent
+  @ViewChild('btntest', { static: false }) btn!: ElementRef<any>
+  @ViewChild('nzpc', { static: false }) nzpc!: NzPopconfirmComponent
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly dir = inject(Directionality);
+  private modalService = inject(NzModalService);
+  private el = inject(ElementRef);
+  private document = inject(DOCUMENT)
 
 
   onChange(evt: any) {
@@ -74,6 +84,42 @@ export class TestComponent {
 
 
   ngOnInit(): void {
+
+    setTimeout(() => {
+      console.log('this.btn', this.btn)
+      this.confirmation = new NzPopconfirmComponent(this.cdr, this.el , this.dir, this.document)
+      //          this.confirmation = new NzPopconfirmComponent(this.cdr, e.target, this.dir, document, undefined)
+      this.confirmation.nzTitle = 'Está seguro de borrar el registro?'
+      this.confirmation.setOverlayOrigin(this.btn);
+//        this.confirmation.nzVisible = true
+//        this.confirmation.show()
+      console.log('this.confirmation', this.confirmation)
+
+      this.nzpc.nzTitle = 'Está seguro de borrar el registro?'
+//      this.nzpc.setOverlayOrigin(this.btn);
+      console.log('this.nzpc', this.nzpc)
+  
+
+    }, 3000);
+  }
+
+  click1(e: any): void {
+    this.nzpc.setOverlayOrigin(new ElementRef(e.target));
+
+    this.nzpc.hide()
+    this.nzpc.show()
+
+  }
+
+  click2(): void {
+    this.confirmation.hide()
+    this.confirmation.show()
+
+  }
+
+
+  clickTest(): void {
+    console.log('curr this.confirmation', this.confirmation)
   }
 
 }

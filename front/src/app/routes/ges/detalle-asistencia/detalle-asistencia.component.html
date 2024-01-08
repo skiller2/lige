@@ -58,8 +58,9 @@
           <nz-form-control>
             <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
               (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" ngModel />
-              <button *ngIf="objetivoIdSelected"  nz-button class="btnAsistenciaClass" nzType="default" [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:objetivoIdSelected }]"   >Asistencia</button>
-            
+            <button *ngIf="objetivoIdSelected" nz-button class="btnAsistenciaClass" nzType="default"
+              [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:objetivoIdSelected }]">Asistencia</button>
+
           </nz-form-control>
         </nz-form-item>
 
@@ -128,13 +129,13 @@
                   <td>{{ data.PersonalArt14Autorizado }}</td>
                   <td>
                     <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}</span>
-                    <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | currency:'$' }}</span>
+                    <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | currency }}</span>
                     <span *ngIf="data.PersonalArt14FormaArt14=='H'">{{data.PersonalArt14Horas}}</span>
                     <span *ngIf="data.PersonalArt14FormaArt14=='E'">{{data.CategoriaPersonalDescripcion}}</span>
                     <span *ngIf="data.PersonalArt14FormaArt14=='A'">{{data.PersonalArt14AdicionalHora |
                       currency:'$'}}</span>
                   </td>
-                    <td>{{ data.Desde | date }}</td>
+                  <td>{{ data.Desde | date }}</td>
                   <td>{{ data.Hasta | date }}</td>
 
                   <td></td>
@@ -185,10 +186,13 @@
                   </td>
 
                   <td>
-                    <span class="inline-block" *ngIf="data.PersonalArt14SumaFija">Suma fija {{ data.PersonalArt14SumaFija | currency
+                    <span class="inline-block" *ngIf="data.PersonalArt14SumaFija">Suma fija {{
+                      data.PersonalArt14SumaFija | currency
                       }}</span>
-                    <span class="inline-block" *ngIf="data.PersonalArt14Horas">Horas {{ data.PersonalArt14Horas }}</span>
-                    <span class="inline-block" *ngIf="data.art14CategoriaDescripcion">Equivalencia {{ data.art14CategoriaDescripcion }}
+                    <span class="inline-block" *ngIf="data.PersonalArt14Horas">Horas {{ data.PersonalArt14Horas
+                      }}</span>
+                    <span class="inline-block" *ngIf="data.art14CategoriaDescripcion">Equivalencia {{
+                      data.art14CategoriaDescripcion }}
                       {{ data.ValorHoraArt14Categoria | currency }}
                     </span>
                     <span class="inline-block" *ngIf="data.PersonalArt14AdicionalHora">Adicional Hora
@@ -272,7 +276,7 @@
               currency }})</span>
           </nz-form-control>
         </nz-form-item>
-        
+
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Monotributo</nz-form-label>
@@ -311,7 +315,8 @@
             <ng-container *ngFor="let sitrevista of $sitrevista | async">
               <p title="{{ sitrevista.SituacionRevistaDescripcion }}">
                 {{ sitrevista.SituacionRevistaDescripcion }} desde {{ sitrevista.PersonalSituacionRevistaDesde | date}}
-                <span *ngIf="sitrevista.PersonalSituacionRevistaHasta">hasta {{ sitrevista.PersonalSituacionRevistaHasta | date}}</span>
+                <span *ngIf="sitrevista.PersonalSituacionRevistaHasta">hasta {{ sitrevista.PersonalSituacionRevistaHasta
+                  | date}}</span>
               </p>
             </ng-container>
           </nz-form-control>
@@ -321,7 +326,8 @@
           <nz-form-control>
             <ng-container *ngFor="let categoria of ($listaCategoriasPer | async)?.categorias">
               <p title="{{ categoria.TipoAsociadoDescripcion }} {{ categoria.CategoriaPersonalDescripcion }}">
-                {{ categoria.TipoAsociadoDescripcion }} {{ categoria.CategoriaPersonalDescripcion }} desde {{ categoria.PersonalCategoriaDesde | date}}
+                {{ categoria.TipoAsociadoDescripcion }} {{ categoria.CategoriaPersonalDescripcion }} desde {{
+                categoria.PersonalCategoriaDesde | date}}
                 <span *ngIf="categoria.PersonalCategoriaHasta">hasta {{ categoria.PersonalCategoriaHasta | date}}</span>
               </p>
             </ng-container>
@@ -354,11 +360,11 @@
                   <td>{{ data.PersonalArt14Autorizado }}</td>
                   <td>
                     <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}</span>
-                    <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | currency:'$' }}</span>
+                    <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | currency }}</span>
                     <span *ngIf="data.PersonalArt14FormaArt14=='H'">{{data.PersonalArt14Horas}}</span>
                     <span *ngIf="data.PersonalArt14FormaArt14=='E'">{{data.CategoriaPersonalDescripcion}}</span>
                     <span *ngIf="data.PersonalArt14FormaArt14=='A'">{{data.PersonalArt14AdicionalHora |
-                      currency:'$'}}</span>
+                      currency}}</span>
                   </td>
                   <td>{{ data.Desde | date }}</td>
                   <td>{{ data.Hasta | date }}</td>
