@@ -31,27 +31,32 @@ export function columnTotal(column: string, angularGrid: AngularGridInstance) {
 
 }
 
-export function totalRecords(angularGrid: AngularGridInstance) {
+
+export function totalRecords(angularGrid: AngularGridInstance, colid:string='') {
     const visibleColumns = angularGrid.gridService.getVisibleColumnDefinitions()
     if (visibleColumns.length == 0) return
-    let added = false
+    let colId = 0
     for (const col of visibleColumns) {
         if ('fieldName' in col) {
-            let columnFooter = angularGrid.slickGrid.getFooterRowColumn(col.id)
-            let cantData = angularGrid.slickGrid.getData().getItemCount()
-            columnFooter.innerHTML = `Registros:  ${cantData}`
-            added = true
+            colId=Number(col.id)
             break
         }
     }
-    if (!added) {
-        const col = visibleColumns[0]
-        let columnFooter = angularGrid.slickGrid.getFooterRowColumn(col.id)
-        let cantData = angularGrid.slickGrid.getData().getItemCount()
-        columnFooter.innerHTML = `Registros:  ${cantData}`
+    const columnFooter = angularGrid.slickGrid.getFooterRowColumn(colId)
+    let cantData
+    if (colid=='') {
+        cantData = angularGrid.slickGrid.getData().getItemCount()
+    } else {
+    
+        const items = angularGrid.slickGrid.getData().getItems().filter(row => row[colid] != '')
+        cantData = items.length
     }
+    if (cantData)
+    columnFooter.innerHTML = `Registros:  ${cantData}`
 
 }
+
+
 
 export const appIconFormatter: Formatter = (_row, _cell, _value, columnDef) => {
     const columnParams = columnDef?.params ?? {};
@@ -69,3 +74,5 @@ export const appIconFormatter: Formatter = (_row, _cell, _value, columnDef) => {
 //    elem.setAttribute('nzTheme','outline')
     return elem
   };
+
+

@@ -105,7 +105,7 @@ export class CargaAsistenciaComponent {
 
                 for (const col of this.angularGridEdit.slickGrid.getColumns())
                     if (String(col.id).indexOf('day') != -1) columnTotal(String(col.id), this.angularGridEdit)
-                totalRecords(this.angularGridEdit)
+                totalRecords(this.angularGridEdit, 'apellidoNombre')
                 columnTotal('total', this.angularGridEdit)
 
                 //this.gridDataInsert = data[3]
