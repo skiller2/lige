@@ -1594,6 +1594,12 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
         throw new ClientException(`No tiene permisos para grabar asistencia`)
 
+      //Validación de los datos ingresados
+      console.log(req.body.personalId,req.body.formaLiquidacion,req.body.categoriaPersonalId,req.body.tipoAsociadoId);
+      
+      if(!req.body.personalId || !req.body.formaLiquidacion || !req.body.categoriaPersonalId || !req.body.tipoAsociadoId)
+        throw new ClientException(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`)
+      
       const ObjetivoAsistenciaAnoMesPersonalDiasIdId: number = req.body.id
       const anio: number = req.body.year
       const mes: number = req.body.month
@@ -1603,6 +1609,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       const categoriaPersonalId: number = req.body.categoriaPersonalId
       const formaLiquidacion: number = req.body.formaLiquidacion
       let Errores: any[] = []
+
       //Validación de Objetivo
       const val = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
       if (val instanceof ClientException)
@@ -1610,7 +1617,7 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       const anioId = val[0].ObjetivoAsistenciaAnoId
       const mesId = val[0].ObjetivoAsistenciaAnoMesId
       
-      //Validación de Persona ya registrada
+      //Validación de Personal ya registrado
       const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
       let personal: any = null
       let personaLista: any[] = []
@@ -1620,24 +1627,47 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
         if(obj.id != ObjetivoAsistenciaAnoMesPersonalDiasIdId && obj.apellidoNombre.id == personalId && obj.categoria.id == categoriaPersonalId && obj.tipo.id == tipoAsociadoId && obj.forma.id == formaLiquidacion)
           personaLista.push(obj)
       })
-
       if (personaLista.length) {
         throw new ClientException(`El empleado ya tiene un registro existente en el objetivo`)
       }
+
+      //Validación de Personal disponible
+      const licencias = await queryRunner.query(`
+        SELECT PersonalLicenciaDesde desde, PersonalLicenciaHasta hasta, PersonalLicenciaTermina termina
+        FROM PersonalLicencia 
+        WHERE PersonalId = @0
+        AND ((YEAR(PersonalLicenciaDesde) = @1 AND MONTH(PersonalLicenciaDesde) = @2)
+        OR (YEAR(PersonalLicenciaHasta) = @1 AND MONTH(PersonalLicenciaHasta) = @2)
+        OR (YEAR(PersonalLicenciaTermina) = @1 AND MONTH(PersonalLicenciaTermina) = @2))
+        `,[personalId, anio, mes])
 
       let columnsDays = ''
       let columnsDay = ''
       let valueColumnsDays = ''
       let totalhs = 0
+      let numdia = ''
+      let fecha
       for (const key in req.body) {
         if (key.startsWith('day')) {
-          let num = key.slice(3)
+          numdia = key.slice(3)
           const horas = Number(req.body[key])
-          columnsDays = columnsDays + `, ObjetivoAsistenciaAnoMesPersonalDias${num}Gral`
-          columnsDay = columnsDay + `, ObjetivoAsistenciaAnoMesPersonalDia${num}Gral`
+          columnsDays = columnsDays + `, ObjetivoAsistenciaAnoMesPersonalDias${numdia}Gral`
+          columnsDay = columnsDay + `, ObjetivoAsistenciaAnoMesPersonalDia${numdia}Gral`
           if (!horas) {
             valueColumnsDays = valueColumnsDays + `, NULL`
           } else {
+            //Validación de Personal disponible
+            fecha = new Date(`${anio}-${mes}-${numdia}`)
+            licencias.forEach((fechas:any)=>{
+              const fechaFin = (fechas.hasta? fechas.hasta : (fechas.termina? fechas.termina : new Date(`2999-12-31`)))
+              if (fechas.desde <= fecha && fechaFin >= fecha) {
+                const desde = AsistenciaController.formatearFecha(fechas.desde)
+                const hasta = AsistenciaController.formatearFecha(fechaFin)
+                throw new ClientException(`El personal se encuentra de licencia desde ${desde} hasta ${((hasta != `2999-12-31`)? hasta : `INDEFINIDO`)}`)
+                //Errores.push(`El personal se encuentra de licencia desde ${fechas.desde} hasta ${(fechaFin != `2999-12-31`? fechaFin : `INDEFINIDO`)}`)
+              }
+            })
+
             if (horas > 24)
               throw new ClientException(`La cantidad de horas no puede superar las 24`)
             const h = String(Math.trunc(horas))
@@ -1653,8 +1683,26 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
 
       if(!totalhs){
         // console.log('SALIR', totalhs);
-        this.jsonRes('', res);
-      } else {
+        const deleteAsistencia = await queryRunner.query(`
+          DELETE ObjetivoAsistenciaAnoMesPersonalDias
+          WHERE ObjetivoAsistenciaAnoMesPersonalDiasId = @3
+          AND ObjetivoId = @0 
+          AND ObjetivoAsistenciaAnoId = @1 
+          AND ObjetivoAsistenciaAnoMesId = @2
+          DELETE ObjetivoAsistenciaMesDiasPersonal
+          WHERE ObjetivoAsistenciaMesDiasPersonalId = @3
+          AND ObjetivoId = @0 
+          AND ObjetivoAsistenciaAnoId = @1 
+          AND ObjetivoAsistenciaAnoMesId = @2
+          DELETE ObjetivoAsistenciaAnoMesPersonalAsignado
+          WHERE ObjetivoAsistenciaAnoMesPersonalAsignadoId = @3
+          AND ObjetivoId = @0 
+          AND ObjetivoAsistenciaAnoId = @1
+          AND ObjetivoAsistenciaAnoMesId = @2`,
+          [objetivoId, anioId, mesId, personal.id]
+        )
+        return this.jsonRes({row:{id:personal.id}}, res);
+      }
       // console.log('NO SALIR', totalhs);
       let num = Math.round(totalhs % 1 * 60)
       let min = ''
@@ -1702,8 +1750,11 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       //   [objetiveId, anoId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion])
       // console.log('ASISTENCIA', asistenciaPersonalDias);
       // if (!asistenciaPersonalAsignado.length && rowId>lista.length) {
-        let result
-     
+      if(Errores.length){
+        throw new ClientException(Errores.toString())
+      }
+      let result
+
       if (!personal) {
         const objAsistenciaUltsNros = await queryRunner.query(`
           SELECT ObjetivoAsistenciaAnoMesPersonalUltNro, ObjetivoAsistenciaAnoMesDiasPersonalUltNro, ObjetivoAsistenciaAnoMesPersonalDiasUltNro 
@@ -1781,37 +1832,36 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
         // )
         const deleteAsistencia = await queryRunner.query(`
           DELETE ObjetivoAsistenciaAnoMesPersonalDias
-          WHERE ObjetivoAsistenciaAnoMesPersonalDiasId = ${personal.id}
+          WHERE ObjetivoAsistenciaAnoMesPersonalDiasId = @3
           AND ObjetivoId = @0 
           AND ObjetivoAsistenciaAnoId = @1 
           AND ObjetivoAsistenciaAnoMesId = @2
           DELETE ObjetivoAsistenciaMesDiasPersonal
-          WHERE ObjetivoAsistenciaMesDiasPersonalId = ${personal.id}
+          WHERE ObjetivoAsistenciaMesDiasPersonalId = @3
           AND ObjetivoId = @0 
           AND ObjetivoAsistenciaAnoId = @1 
           AND ObjetivoAsistenciaAnoMesId = @2
           DELETE ObjetivoAsistenciaAnoMesPersonalAsignado
-          WHERE ObjetivoAsistenciaAnoMesPersonalAsignadoId = ${personal.id}
+          WHERE ObjetivoAsistenciaAnoMesPersonalAsignadoId = @3
           AND ObjetivoId = @0 
           AND ObjetivoAsistenciaAnoId = @1
           AND ObjetivoAsistenciaAnoMesId = @2`,
-          [objetivoId, anioId, mesId]
+          [objetivoId, anioId, mesId, personal.id]
         )
         result = await queryRunner.query(`
           INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id)
           VALUES (
-            ${personal.id}, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, ${personal.id})
+            @8, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8)
           INSERT INTO ObjetivoAsistenciaMesDiasPersonal (ObjetivoAsistenciaMesDiasPersonalId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaMesDiasPersonalFormaLiquidacionHoras ${columnsDay}, ObjetivoAsistenciaAnoMesPersonalDiaTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSuId)
           VALUES (
-            ${personal.id}, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, ${personal.id})
+            @8, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8)
           INSERT INTO ObjetivoAsistenciaAnoMesPersonalAsignado (ObjetivoAsistenciaAnoMesPersonalAsignadoId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras, ObjetivoAsistenciaAnoMesPersonalAsignadoIngresaPersonal)
           VALUES (
-            ${personal.id}, @2, @1, @0, @3, @4, @5, @6, 'P')`,
-          [objetivoId, anioId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion, req.body.total]
+            @8, @2, @1, @0, @3, @4, @5, @6, 'P')`,
+          [objetivoId, anioId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion, req.body.total, personal.id]
         )
       }
-      this.jsonRes(result, res);
-    }
+      return this.jsonRes('', res);
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction()
@@ -1928,6 +1978,14 @@ WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica =
       }
     })
     return data
+  }
+
+  static formatearFecha(fecha:Date){
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, '0') // Los meses van de 0 a 11
+    const day = String(fecha.getDate()+1).padStart(2, '0')
+
+    return `${year}-${month}-${day}`
   }
 
 }
