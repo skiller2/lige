@@ -55,7 +55,7 @@ const errorResponder = (
   next: NextFunction) => {
   res.locals.stopTime = performance.now()
   let data = {}
-  let message = "Error interno, avise al administrador del sistema"
+  let message:string[] = ["Error interno, avise al administrador del sistema"]
   let status = 500
   
   if (process.env.DEBUG) {
@@ -63,12 +63,12 @@ const errorResponder = (
   }
 
   if (error instanceof ClientException) {
-    message = error.message
+    message = (error.message as any instanceof Array)?error.message as any:[error.message]
     status = 409
     data = error.extended
   } else if (error instanceof QueryFailedError) {
     if (error.message.indexOf('Violation') > 0) {
-      message = 'El registro ya existe'
+      message = ['El registro ya existe']
       status = 409
     }
   }

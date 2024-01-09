@@ -234,7 +234,7 @@
                   <td>{{ data.tipomov }}</td>
                   <td>{{ data.desmovimiento }}</td>
                   <td>
-                    <div *ngIf="data.importetotal>0">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
+                    <div *ngIf="(data.cantcuotas>1) ">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
                       | currency }}</div>
                   </td>
                   <td>{{ data.importe | currency }}</td>
