@@ -1633,7 +1633,7 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
           personaLista.push(obj)
       })
       if (personaLista.length) {
-        throw new ClientException(`El empleado ya tiene un registro existente en el objetivo`)
+        throw new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`)
       }
 
       //Validación de Personal disponible
