@@ -51,7 +51,8 @@ export class DescuentosController extends BaseController {
 
 
       for (const row of result) {
-        let detalle = `${row.tipomov} ${row.desmovimiento2.trim()}`
+//        console.log('row',row)
+        let detalle = `${row.tipomov} ${String(row.desmovimiento2).trim()}`
         let tipo_movimiento_id
         switch (row.tipoint) {
           case "DESC":

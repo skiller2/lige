@@ -835,8 +835,10 @@ export class AsistenciaController extends BaseController {
     let descuentos = await dataSource.query(
       `             
       SELECT gap.GrupoActividadId, 0 as ObjetivoId,per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
-      @1 AS anio, @2 AS mes, 'Adelanto' AS tipomov, '' AS desmovimiento,
-      '' AS desmovimiento2, 'ADEL' tipoint,
+      @1 AS anio, @2 AS mes, 'Adelanto' AS tipomov,
+      '' AS desmovimiento,
+      '' AS desmovimiento2,
+      'ADEL' tipoint,
       ade.PersonalAdelantoMontoAutorizado AS importe, 1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
       FROM PersonalAdelanto ade 
               JOIN Personal per ON per.PersonalId = ade.PersonalId
@@ -850,7 +852,8 @@ export class AsistenciaController extends BaseController {
       SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov,
       des.PersonalOtroDescuentoDetalle AS desmovimiento, 
-      des.PersonalOtroDescuentoDetalle AS desmovimiento2, 'OTRO' tipoint,
+      des.PersonalOtroDescuentoDetalle AS desmovimiento2, 
+      'OTRO' tipoint,
       cuo.PersonalOtroDescuentoCuotaImporte AS importe, cuo.PersonalOtroDescuentoCuotaCuota AS cuotanro, des.PersonalOtroDescuentoCantidadCuotas  AS cantcuotas, des.PersonalOtroDescuentoImporteVariable * des.PersonalOtroDescuentoCantidad AS importetotal
       FROM PersonalOtroDescuentoCuota cuo
       JOIN PersonalOtroDescuento des ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId
