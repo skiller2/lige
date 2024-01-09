@@ -848,18 +848,18 @@ export class AsistenciaController extends BaseController {
       UNION
              
       SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
-      @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov, 
-      '' AS desmovimiento, 
-      '' AS desmovimiento2, 'OTRO' tipoint,
-      des.PersonalOtroDescuentoImporteVariable AS importe, 1 AS cuotanro, des.PersonalOtroDescuentoCantidadCuotas  AS cantcuotas, 0 AS importetotal
-      
-      FROM PersonalOtroDescuento des 
+      @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov,
+      des.PersonalOtroDescuentoDetalle AS desmovimiento, 
+      des.PersonalOtroDescuentoDetalle AS desmovimiento2, 'OTRO' tipoint,
+      cuo.PersonalOtroDescuentoCuotaImporte AS importe, cuo.PersonalOtroDescuentoCuotaCuota AS cuotanro, des.PersonalOtroDescuentoCantidadCuotas  AS cantcuotas, des.PersonalOtroDescuentoImporteVariable * des.PersonalOtroDescuentoCantidad AS importetotal
+      FROM PersonalOtroDescuentoCuota cuo
+      JOIN PersonalOtroDescuento des ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId
       JOIN Descuento det ON det.DescuentoId = des.PersonalOtroDescuentoDescuentoId
               JOIN Personal per ON per.PersonalId = des.PersonalId
               LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
               LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
       
-      WHERE des.PersonalOtroDescuentoAnoAplica = @1 AND des.PersonalOtroDescuentoMesesAplica = @2 ${listPersonaId}
+      WHERE cuo.PersonalOtroDescuentoCuotaAno = @1 AND cuo.PersonalOtroDescuentoCuotaMes = @2 ${listPersonaId}
       
       UNION
              
@@ -867,7 +867,7 @@ export class AsistenciaController extends BaseController {
       @1 AS anio, @2 AS mes, 'Efecto' AS tipomov, 
       efe.EfectoDescripcion AS desmovimiento,
       efe.EfectoDescripcion AS desmovimiento2, 'DESC' tipoint,
-      cuo.PersonalDescuentoCuotaImporte*des.PersonalDescuentoCantidadEfectos AS importe, des.PersonalDescuentoCuotasPagas AS cuotanro, des.PersonalDescuentoCuotas AS cantcuotas, des.PersonalDescuentoImporte - (des.PersonalDescuentoImporte * des.PersonalDescuentoPorcentajeDescuento /100)   AS importetotal
+      cuo.PersonalDescuentoCuotaImporte*des.PersonalDescuentoCantidadEfectos AS importe, cuo.PersonalDescuentoCuotaCuota AS cuotanro, des.PersonalDescuentoCuotas AS cantcuotas, des.PersonalDescuentoImporte - (des.PersonalDescuentoImporte * des.PersonalDescuentoPorcentajeDescuento /100)   AS importetotal
       FROM PersonalDescuento des 
       JOIN PersonalDescuentoCuota cuo ON cuo.PersonalDescuentoId = des.PersonalDescuentoId AND cuo.PersonalDescuentoPersonalId = des.PersonalDescuentoPersonalId
       JOIN Efecto efe ON efe.EfectoId = des.PersonalDescuentoEfectoId
