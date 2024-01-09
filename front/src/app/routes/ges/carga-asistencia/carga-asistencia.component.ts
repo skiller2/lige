@@ -237,14 +237,20 @@ export class CargaAsistenciaComponent {
                     return (obj.id == row.id)
                 })
                 // console.log(item.apellidoNombre.id, item.categoria.id, item.forma.id, item.tipo.id, item.total)
-                if (item.apellidoNombre.id && item.categoria.id && item.forma.id && item.tipo.id && item.total) {
-                    // const copia = this.gridDataInsert.find((obj:any)=>{
-                    //     return (obj.id != item.id && obj.apellidoNombre.id == item.apellidoNombre.id && obj.categoria.id == item.categoria.id && obj.forma.id == item.forma.id)
-                    // })
-                    // if (!copia) {
-                    //     await this.insertDB(item)
-                    // }
-                    await this.insertDB(item)
+                // if(item.apellidoNombre.id && item.categoria.id && item.forma.id && item.tipo.id && item.total != undefined){
+                //     const copia = this.gridDataInsert.find((obj:any)=>{
+                //         return (obj.id != item.id && obj.apellidoNombre.id == item.apellidoNombre.id && obj.categoria.id == item.categoria.id && obj.forma.id == item.forma.id)
+                //     })
+                //     if (!copia) {
+                //         const response = await this.insertDB(item)
+                //         if(item.total == 0 && response.row?.id)
+                //             this.angularGridEdit.gridService.deleteItemById(response.row.id)
+                //     }
+                // }
+                if(item.total != undefined){
+                    const response = await this.insertDB(item)
+                    if(item.total == 0 && response.row?.id)
+                        this.angularGridEdit.gridService.deleteItemById(response.row.id)
                 }
             } catch (e) {
                 //                const undoCommand = undoCommandArr.pop()
