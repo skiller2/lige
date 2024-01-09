@@ -538,7 +538,7 @@ export class LiquidacionesBancoController extends BaseController {
       const tipo_movimiento_id = 11 //Depósito
       for (let row of liqmvbanco) {
         if (row.ind_imputacion == 'CUE') {
-          await queryRunner.query(`INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,
+          await queryRunner.query(`INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe, tipo_cuenta_id,
           aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
            VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13)`,
             [++movimiento_id,
@@ -549,6 +549,7 @@ export class LiquidacionesBancoController extends BaseController {
               null,
             row.persona_id,
             row.importe,
+            row.tipo_cuenta_id,
               usuario, ip, fechaActual, usuario, ip, fechaActual,
             ])
         } else if (row.ind_imputacion == 'ADE') {
@@ -559,7 +560,7 @@ export class LiquidacionesBancoController extends BaseController {
             ])
 
           //Adelanto Positivo          
-          await queryRunner.query(`INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,
+          await queryRunner.query(`INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe, tipo_cuenta_id,
             aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
               VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13)`,
             [++movimiento_id,
@@ -570,12 +571,13 @@ export class LiquidacionesBancoController extends BaseController {
               null,
             row.persona_id,
             row.importe,
+            row.tipo_cuenta_id,
               usuario, ip, fechaActual, usuario, ip, fechaActual,
             ])
 
 
 
-          await queryRunner.query(`INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,
+          await queryRunner.query(`INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe, tipo_cuenta_id,
             aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
               VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13)`,
             [++movimiento_id,
@@ -586,6 +588,8 @@ export class LiquidacionesBancoController extends BaseController {
               null,
             row.persona_id,
             row.importe,
+            row.tipo_cuenta_id,
+
               usuario, ip, fechaActual, usuario, ip, fechaActual,
             ])
 

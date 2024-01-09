@@ -958,10 +958,10 @@ export class AsistenciaController extends BaseController {
 @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov, 
 CONCAT(des.ObjetivoDescuentoDetalle,' ',CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',obj.ObjetivoDescripcion)) AS desmovimiento, 
 '' AS desmovimiento2, 'OTRO' tipoint,
-des.ObjetivoDescuentoImporteVariable AS importe, 1 AS cuotanro, des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas, 0 AS importetotal
+cuo.ObjetivoDescuentoCuotaImporte AS importe, cuo.ObjetivoDescuentoCuotaCuota AS cuotanro, des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas, (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad) AS importetotal
 
-FROM ObjetivoDescuento des 
-LEFT JOIN ObjetivoDescuentoCuota cuo ON cuo.ObjetivoDescuentoId = des.ObjetivoDescuentoId AND cuo.ObjetivoId = des.ObjetivoId
+FROM ObjetivoDescuentoCuota cuo 
+JOIN ObjetivoDescuento des ON cuo.ObjetivoDescuentoId = des.ObjetivoDescuentoId AND cuo.ObjetivoId = des.ObjetivoId
 LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@1,@2,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoComo = 'C' AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
 JOIN Descuento det ON det.DescuentoId = des.ObjetivoDescuentoDescuentoId
 JOIN Objetivo obj ON obj.ObjetivoId = des.ObjetivoId
@@ -969,7 +969,8 @@ JOIN Objetivo obj ON obj.ObjetivoId = des.ObjetivoId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
 
-WHERE des.ObjetivoDescuentoAnoAplica = @1 AND des.ObjetivoDescuentoMesesAplica = @2 ${listPersonaId}
+WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
+ ${listPersonaId}
 
       UNION
 
