@@ -1635,7 +1635,7 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
       lista.forEach((obj: any) => {
         if (obj.id == ObjetivoAsistenciaAnoMesPersonalDiasIdId)
           personal = obj
-        if (obj.id != ObjetivoAsistenciaAnoMesPersonalDiasIdId && obj.apellidoNombre.id == personalId && obj.categoria.id == categoriaPersonalId && obj.tipo.id == tipoAsociadoId && obj.forma.id == formaLiquidacion)
+        if (obj.id != ObjetivoAsistenciaAnoMesPersonalDiasIdId && obj.apellidoNombre.id == personalId && obj.categoria.id == categoriaPersonalId && obj.categoria.TipoId == tipoAsociadoId && obj.forma.id == formaLiquidacion)
           personaLista.push(obj)
       })
       if (personaLista.length) {
