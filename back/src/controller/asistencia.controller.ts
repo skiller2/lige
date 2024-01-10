@@ -308,7 +308,7 @@ export class AsistenciaController extends BaseController {
     objm.ObjetivoAsistenciaAnoMesPersonalUltNro,
     objm.ObjetivoAsistenciaAnoMesDiasPersonalUltNro,
     objm.ObjetivoAsistenciaAnoMesPersonalDiasUltNro,
-
+    suc.SucursalId,
       
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
       obj.ObjetivoDescripcion,
@@ -322,6 +322,7 @@ export class AsistenciaController extends BaseController {
       LEFT JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoId = obj.ObjetivoId AND objm.ObjetivoAsistenciaAnoId = obja.ObjetivoAsistenciaAnoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
       LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+      LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
               
         WHERE obj.ObjetivoId = @0
       `, [objetivoId, anio, mes]
@@ -1003,28 +1004,18 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
       //      [personalId.join(','), anio,mes]
       ['', anio, mes]
     );
-/*
-    descuentos.forEach((row, index) => {
-      if (row.PersonalId == 3032 || row.PersonalId == 1278 || row.PersonalId == 3530)
-        descuentos[index].tipocuenta_id = 'G'
-    });
-*/
+    /*
+        descuentos.forEach((row, index) => {
+          if (row.PersonalId == 3032 || row.PersonalId == 1278 || row.PersonalId == 3530)
+            descuentos[index].tipocuenta_id = 'G'
+        });
+    */
     return descuentos
   }
 
-  async getCategoriasPorPersona(req: any, res: Response, next: NextFunction) {
-    try {
-      const personalId = req.params.personalId;
-      const anio = req.params.anio;
-      const mes = req.params.mes;
-      const SucursalId = req.params.SucursalId;
-      const queryRunner = dataSource.createQueryRunner();
-
-//      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
-//        throw new ClientException(`No tiene permiso para obtener información de categorías de persona`)
-
-      const categorias = await queryRunner.query(
-        `SELECT cat.TipoAsociadoId, catrel.PersonalCategoriaCategoriaPersonalId, catrel.PersonalCategoriaPersonalId, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta,
+  async getCategoriasPorPersonaQuery(anio: number, mes: number, personalId: number, SucursalId: number, queryRunner: QueryRunner) {
+    return queryRunner.query(
+      `SELECT cat.TipoAsociadoId, catrel.PersonalCategoriaCategoriaPersonalId, catrel.PersonalCategoriaPersonalId, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta,
         TRIM(tip.TipoAsociadoDescripcion) as TipoAsociadoDescripcion ,TRIM(cat.CategoriaPersonalDescripcion) as CategoriaPersonalDescripcion ,
         val.ValorLiquidacionHoraNormal, val.ValorLiquidacionHorasTrabajoHoraNormal
                   FROM PersonalCategoria catrel
@@ -1035,6 +1026,20 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
                 WHERE ((DATEPART(YEAR,catrel.PersonalCategoriaDesde)=@1 AND  DATEPART(MONTH, catrel.PersonalCategoriaDesde)=@2) OR (DATEPART(YEAR,catrel.PersonalCategoriaHasta)=@1 AND  DATEPART(MONTH, catrel.PersonalCategoriaHasta)=@2) OR (catrel.PersonalCategoriaDesde <= DATEFROMPARTS(@1,@2,28) AND ISNULL(catrel.PersonalCategoriaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,28))
                 ) AND catrel.PersonalCategoriaPersonalId=@0`, [personalId, anio, mes, SucursalId])
 
+  }
+
+  async getCategoriasPorPersona(req: any, res: Response, next: NextFunction) {
+    try {
+      const personalId = req.params.personalId;
+      const anio = req.params.anio;
+      const mes = req.params.mes;
+      const SucursalId = req.params.SucursalId;
+      const queryRunner = dataSource.createQueryRunner();
+
+      //      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      //        throw new ClientException(`No tiene permiso para obtener información de categorías de persona`)
+
+      const categorias = await this.getCategoriasPorPersonaQuery(anio, mes, personalId, SucursalId, queryRunner)
       this.jsonRes({ categorias: categorias }, res);
     } catch (error) {
       return next(error)
@@ -1425,9 +1430,9 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
       [, anio, mes]
     );
 
-    for (const row of result) { 
+    for (const row of result) {
       //totalminutoscalcimporteconart14
-    } 
+    }
     return result
   }
 
@@ -1620,21 +1625,29 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
         throw val
       const anioId = val[0].ObjetivoAsistenciaAnoId
       const mesId = val[0].ObjetivoAsistenciaAnoMesId
-      
+      const SucursalId = val[0].SucursalId
+
       //Validación de Personal ya registrado
       const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
       let personal: any = null
       let personaLista: any[] = []
-      lista.forEach((obj: any)=>{
-        if(obj.id == ObjetivoAsistenciaAnoMesPersonalDiasIdId)
+      lista.forEach((obj: any) => {
+        if (obj.id == ObjetivoAsistenciaAnoMesPersonalDiasIdId)
           personal = obj
-        if(obj.id != ObjetivoAsistenciaAnoMesPersonalDiasIdId && obj.apellidoNombre.id == personalId && obj.categoria.id == categoriaPersonalId && obj.tipo.id == tipoAsociadoId && obj.forma.id == formaLiquidacion)
+        if (obj.id != ObjetivoAsistenciaAnoMesPersonalDiasIdId && obj.apellidoNombre.id == personalId && obj.categoria.id == categoriaPersonalId && obj.categoria.TipoId == tipoAsociadoId && obj.forma.id == formaLiquidacion)
           personaLista.push(obj)
       })
       if (personaLista.length) {
         throw new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`)
       }
 
+
+      const categorias = await this.getCategoriasPorPersonaQuery(anio, mes, personalId, SucursalId, queryRunner)
+      const filterres = categorias.filter((cat: any) => cat.TipoAsociadoId == tipoAsociadoId && cat.PersonalCategoriaCategoriaPersonalId == categoriaPersonalId)
+      
+      if (filterres.length == 0)
+        throw new ClientException(`La categoría seleccionada no se encuentra habilitada para la persona`)
+      
       //Validación de Personal disponible
       const licencias = await queryRunner.query(`
         SELECT PersonalLicenciaDesde desde, ISNULL( ISNULL(PersonalLicenciaTermina,PersonalLicenciaHasta), '9999-12-31') hasta
@@ -1754,7 +1767,7 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
       const horas = Math.trunc(totalhs).toString()
       req.body.total = `${horas}.${min}`
 
-      
+
 
       // const asistenciaPersonalDias = await queryRunner.query(`
       //   SELECT objp.ObjetivoAsistenciaAnoMesPersonalDiasId id
@@ -1791,7 +1804,7 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
       //   [objetiveId, anoId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion])
       // console.log('ASISTENCIA', asistenciaPersonalDias);
       // if (!asistenciaPersonalAsignado.length && rowId>lista.length) {
-      if(Errores.length){
+      if (Errores.length) {
         throw new ClientException(Errores.toString())
       }
       let result
@@ -1950,7 +1963,7 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
 
       const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
       // console.log('DATA',data);
-      //await queryRunner.commitTransaction()
+      await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
     } catch (error) {
       if (queryRunner.isTransactionActive)
@@ -1960,7 +1973,7 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
       await queryRunner.release()
     }
   }
-  
+
   static async listaAsistenciaPersonalAsignado(objetivoId: number, anio: number, mes: number, queryRunner: any) {
     let dias = ''
     for (let index = 1; index <= 31; index++)
@@ -2001,7 +2014,8 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
             days[clave] = horas;
           }
           total += horas
-      }});
+        }
+      });
       return {
         id: obj.id,
         apellidoNombre: {
@@ -2010,15 +2024,13 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
         },
         categoria: {
           fullName: obj.CategoriaDescripcion,
-          id: obj.CategoriaId
+          id: obj.CategoriaId,
+          tipoId: obj.TipoAsociadoId,
+          tipoFullName: obj.TipoAsociadoDescripcion
         },
         forma: {
           id: obj.FormaLiquidacion,
           fullName: (obj.FormaLiquidacion == 'N' ? 'Normal' : 'Capacitación')
-        },
-        tipo: {
-          id: obj.TipoAsociadoId,
-          fullName: (obj.TipoAsociadoDescripcion)
         },
         ...days,
         total
@@ -2027,10 +2039,10 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
     return data
   }
 
-  static formatearFecha(fecha:Date){
+  static formatearFecha(fecha: Date) {
     const year = fecha.getFullYear();
     const month = String(fecha.getMonth() + 1).padStart(2, '0') // Los meses van de 0 a 11
-    const day = String(fecha.getDate()+1).padStart(2, '0')
+    const day = String(fecha.getDate() + 1).padStart(2, '0')
 
     return `${year}-${month}-${day}`
   }
