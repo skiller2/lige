@@ -339,7 +339,7 @@ export class CargaAsistenciaComponent {
             id: newId,
             apellidoNombre: '',
             forma: '',
-            tipo: '',
+//            tipo: '',
             categoria: '',
         };
     }
@@ -449,10 +449,10 @@ export class CargaAsistenciaComponent {
     }
 
     personChange(e: Event, args: any) {
-        let item = args.dataContext
-        item.categoria = ''
-        item.tipo = ''
-        this.angularGridEdit.gridService.updateItemById(item.id, item)
+//        let item = args.dataContext
+//        item.categoria = {}
+//        item.tipo = ''
+//        this.angularGridEdit.gridService.updateItemById(item.id, item)
     }
 
     // categoryChange(e: Event, args: any) {
@@ -475,31 +475,19 @@ export class CargaAsistenciaComponent {
 
     async insertDB(item: any) {
         if (this.selectedObjetivoId) {
-            let { apellidoNombre, categoria, forma, tipo, ...row } = item
+            let { apellidoNombre, categoria, forma, ...row } = item
 
             const outItem = {
                 ...row,
                 ...this.selectedPeriod,
                 objetivoId: this.selectedObjetivoId,
                 personalId: apellidoNombre.id,
-                tipoAsociadoId: tipo.id,
+                tipoAsociadoId: categoria.tipoId,
                 categoriaPersonalId: categoria.id,
                 formaLiquidacion: forma.id,
             }
 
             return firstValueFrom(this.apiService.addAsistencia(outItem))
-            /*
-                        this.apiService.addAsistencia(item)
-                            .pipe(
-                                //               doOnSubscribe(() => this.saveLoading$.next(true)),
-                                tap({
-                                    complete: () => {
-                                    },
-                                    //                  finalize: () => this.saveLoading$.next(false),
-                                })
-                            )
-                            .subscribe();
-            */
         }
     }
 
