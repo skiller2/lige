@@ -63,7 +63,8 @@ const errorResponder = (
   }
 
   if (error instanceof ClientException) {
-    message = (error.message as any instanceof Array)?error.message as any:[error.message]
+    console.log('error.message',error)
+    message = error.messageArr
     status = 409
     data = error.extended
   } else if (error instanceof QueryFailedError) {

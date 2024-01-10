@@ -2,11 +2,15 @@ import { NextFunction, Response } from "express";
 import { DataSource, QueryRunner } from "typeorm";
 
 export class ClientException extends Error {
+  messageArr:string[]
   constructor(message: string | string[], public extended: any = '', public code: number = 0) {
-    if (message instanceof Array)
+    if (message instanceof Array) {
       super(message.join(', '))
-    else 
+      this.messageArr = message
+    } else {
       super(message)
+      this.messageArr = [message]
+    }
     this.name = "ClientException";
     if (extended)
       this.stack += "\nExtra: "+extended  
