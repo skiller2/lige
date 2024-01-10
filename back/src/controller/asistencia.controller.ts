@@ -1644,7 +1644,8 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
 
 
       const categorias = await this.getCategoriasPorPersonaQuery(anio, mes, personalId, SucursalId, queryRunner)
-      const filterres = categorias.filter(cat => cat.TipoAsociadoId == tipoAsociadoId && cat.CategoriaPersonalId == categoriaPersonalId)
+      const filterres = categorias.filter((cat: any) => cat.TipoAsociadoId == tipoAsociadoId && cat.PersonalCategoriaCategoriaPersonalId == categoriaPersonalId)
+      
       if (filterres.length == 0)
         throw new ClientException(`La categoría seleccionada no se encuentra habilitada para la persona`)
       
