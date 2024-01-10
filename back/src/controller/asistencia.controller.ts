@@ -1735,7 +1735,7 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
         }
       }
 
-      if(!totalhs){
+      if(!totalhs && personal.id){
         const deleteAsistencia = await queryRunner.query(`
           DELETE ObjetivoAsistenciaAnoMesPersonalDias
           WHERE ObjetivoAsistenciaAnoMesPersonalDiasId = @3
@@ -1953,6 +1953,7 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
   async getListaAsistenciaPersonalAsignado(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
+      await queryRunner.startTransaction()
       const objetivoId = req.params.ObjetivoId;
       const anio = req.params.anio;
       const mes = req.params.mes;
