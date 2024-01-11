@@ -108,6 +108,12 @@ export class CargaAsistenciaComponent {
                 totalRecords(this.angularGridEdit, 'apellidoNombre')
                 columnTotal('total', this.angularGridEdit)
 
+                this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
+
+//                this.angularGridEdit.slickGrid.invalidate();
+//                this.angularGridEdit.slickGrid.render();
+    
+
                 //this.gridDataInsert = data[3]
                 //data[3].length? this.gridDataInsert = data[3] : this.clearAngularGrid()
                 this.loadingSrv.close()
@@ -247,9 +253,9 @@ export class CargaAsistenciaComponent {
                 //             this.angularGridEdit.gridService.deleteItemById(response.row.id)
                 //     }
                 // }
-                if(item.total != undefined){
+                if (item.total != undefined) {
                     const response = await this.insertDB(item)
-                    if(item.total == 0 && response.row?.id)
+                    if (item.total == 0 && response.row?.id)
                         this.angularGridEdit.gridService.deleteItemById(response.row.id)
                 }
             } catch (e) {
@@ -259,6 +265,13 @@ export class CargaAsistenciaComponent {
                     editCommand.undo();
                 }
             }
+
+            this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
+
+            this.angularGridEdit.slickGrid.invalidate();
+            this.angularGridEdit.slickGrid.render();
+
+
         }
     }
 
@@ -339,7 +352,7 @@ export class CargaAsistenciaComponent {
             id: newId,
             apellidoNombre: '',
             forma: '',
-//            tipo: '',
+            //            tipo: '',
             categoria: '',
         };
     }
@@ -398,8 +411,8 @@ export class CargaAsistenciaComponent {
                 this.columnas = [...this.columnDefinitions, ...daysOfMonth];
                 break;
             case Busqueda.Objetivo:
-//                this.router.navigateByUrl('/ges/carga_asistencia', { skipLocationChange: true, state: { 'ObjetivoId': '1' } })
-//                this.router.navigate([],{relativeTo: this.route, skipLocationChange: true})
+                //                this.router.navigateByUrl('/ges/carga_asistencia', { skipLocationChange: true, state: { 'ObjetivoId': '1' } })
+                //                this.router.navigate([],{relativeTo: this.route, skipLocationChange: true})
                 break;
 
             default:
@@ -451,10 +464,10 @@ export class CargaAsistenciaComponent {
     }
 
     personChange(e: Event, args: any) {
-//        let item = args.dataContext
-//        item.categoria = {}
-//        item.tipo = ''
-//        this.angularGridEdit.gridService.updateItemById(item.id, item)
+        //        let item = args.dataContext
+        //        item.categoria = {}
+        //        item.tipo = ''
+        //        this.angularGridEdit.gridService.updateItemById(item.id, item)
     }
 
     // categoryChange(e: Event, args: any) {
@@ -506,10 +519,24 @@ export class CargaAsistenciaComponent {
 
     collapseChange($event: any) {
         setTimeout(() => {
-            this.angularGridEdit.resizerService.resizeGrid();       
-           
+            this.angularGridEdit.resizerService.resizeGrid();
+
         }, 500);
     }
 
- 
+    updateItemMetadata(previousItemMetadata: any) {
+        return (rowNumber: number) => {
+            const item = this.angularGridEdit.dataView.getItem(rowNumber)
+            let meta = { cssClasses: '' }
+
+            if (typeof previousItemMetadata === 'object')
+                meta = previousItemMetadata(rowNumber)
+
+            if (item.categoria.horasRecomendadas > 0)
+                meta.cssClasses = 'app-horas-fijas'
+            else
+                meta.cssClasses = ''
+            return meta
+        }
+    }
 }
