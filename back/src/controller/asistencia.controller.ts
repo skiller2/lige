@@ -1704,9 +1704,11 @@ console.log('valido permisos')
         INNER JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
         INNER JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
         WHERE objp.ObjetivoAsistenciaMesPersonalId = @0 
-        AND objp.ObjetivoId != @3
+        AND (objp.ObjetivoAsistenciaTipoAsociadoId != @3
+        OR objp.ObjetivoAsistenciaCategoriaPersonalId != @4
+        OR objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras != @5)
         GROUP BY objp.ObjetivoAsistenciaMesPersonalId
-        `,[personalId, anio, mes, objetivoId]
+        `,[personalId, anio, mes, tipoAsociadoId, categoriaPersonalId, formaLiquidacion]
       )
 
       //Validación de horas dentro del perido de contrato
