@@ -487,7 +487,7 @@
                   <td><span *ngIf="data.tipocuenta_id=='C'">Coordinador </span>{{ data.tipomov }}</td>
                   <td>{{ data.desmovimiento }}</td>
                   <td>
-                    <div *ngIf="data.importetotal>0">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
+                    <div *ngIf="data.cantcuotas>1">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
                       | currency }}</div>
                   </td>
                   <td>{{ data.importe | currency }}</td>
@@ -526,7 +526,8 @@
         </thead>
         <tbody>
           <ng-container *ngFor="let data of listPer.data" class="">
-            <tr *ngIf="data.ingresosG_importe || data.egresosG_importe ">
+            <!-- <tr *ngIf="data.ingresosG_importe || data.egresosG_importe "> -->
+            <tr>
               <td title="{{ data.PersonalId }}">
                 {{ data.PersonalCUITCUILCUIT }}
               </td>

@@ -50,13 +50,13 @@ export class BaseController {
     return (inGroup) ? true:false 
   }
 
-  async hasAuthPersona(res:any, anio:number, mes:number, PersonalId_auth:number, queryRunner:QueryRunner) {
+  async hasAuthPersona(res: any, anio: number, mes: number, PersonalId_auth: number, queryRunner: QueryRunner) {
+    
     let fechaHastaAuth = new Date(anio, mes, 1);
     fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1);
     const PersonalId = res.locals.PersonalId
     if (PersonalId == PersonalId_auth)
       return true
-
     if (PersonalId < 1) { 
       return false
     }
@@ -65,14 +65,21 @@ export class BaseController {
     let listGrupos = []
     for (const row of grupos)
       listGrupos.push(row.GrupoActividadId)
-    
     if (listGrupos.length > 0) {
-      let resPers = await queryRunner.query(`SELECT * FROM GrupoActividadPersonal gap WHERE gap.GrupoActividadPersonalPersonalId = @0 AND gap.GrupoActividadPersonalDesde <= @1 AND gap.GrupoActividadPersonalHasta >= @1 AND gap.GrupoActividadId IN(${listGrupos.join(',')})`,
-        [PersonalId_auth, new Date()])
+      let resPers = await queryRunner.query(`
+      SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
+      WHERE gap.GrupoActividadPersonalPersonalId = @0  AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
+      ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${listGrupos.join(',')})
+      UNION
+      SELECT gap.GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico gap 
+      WHERE gap.GrupoActividadJerarquicoPersonalId = @0  AND gap.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
+      ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${listGrupos.join(',')})
+      AND gap.GrupoActividadJerarquicoComo = 'J'
+      `,
+        [PersonalId_auth, anio,mes])
       if (resPers.length > 0)
         return true
     }
-
     let ObjetivoIdList = []
 
     let resultObjs = await queryRunner.query(
