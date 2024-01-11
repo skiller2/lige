@@ -111,7 +111,7 @@ export class DetalleAsistenciaComponent {
     switchMap(objetivoId => {
       if (!objetivoId) return [];
       return this.searchService
-        .getObjetivo(
+        .getObjetivoResponsables(
           Number(objetivoId),
           this.selectedPeriod.year,
           this.selectedPeriod.month

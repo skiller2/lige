@@ -36,6 +36,20 @@ objetivoRouter.get(
   }
 );
 
+objetivoRouter.get(
+  "/responsables/:anio/:mes/:objetivoId",
+  authMiddleware.verifyToken,
+  (req, res, next) => {
+    objetivoController.getObjetivoResponsablesResponse(
+      Number(req.params.objetivoId),
+      Number(req.params.anio),
+      Number(req.params.mes),
+      res,
+      next
+    );
+  }
+);
+
 
 objetivoRouter.get(
   "/name/:objetivoId",

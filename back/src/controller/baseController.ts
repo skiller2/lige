@@ -61,7 +61,7 @@ export class BaseController {
       return false
     }
 
-    const grupos = await this.getGruposActividad(queryRunner, res.locals.PersonalId)
+    const grupos = await this.getGruposActividad(queryRunner, res.locals.PersonalId,anio,mes)
     let listGrupos = []
     for (const row of grupos)
       listGrupos.push(row.GrupoActividadId)
@@ -154,7 +154,7 @@ export class BaseController {
 
     if (PersonalId == "") return false
 
-    const grupos = await this.getGruposActividad(queryRunner, res.locals.PersonalId)
+    const grupos = await this.getGruposActividad(queryRunner, res.locals.PersonalId, anio,mes)
     let listGrupos = []
     for (const row of grupos)
       listGrupos.push(row.GrupoActividadId)
@@ -238,13 +238,13 @@ export class BaseController {
     return den_numero
   }
 
-  async getGruposActividad(queryRunner: any, PersonalId:number) { 
+  async getGruposActividad(queryRunner: any, PersonalId:number, anio:number, mes:number) { 
     return await queryRunner.query(
-      `SELECT DISTINCT ga.GrupoActividadId, ga.GrupoActividadJerarquicoComo, 1
-      FroM GrupoActividadJerarquico ga 
-      WHERE ga.GrupoActividadJerarquicoPersonalId = @0
-      AND @1 > ga.GrupoActividadJerarquicoDesde AND @1 <  ISNULL(ga.GrupoActividadJerarquicoHasta, '9999-12-31')`,
-      [PersonalId, new Date()])
+      `SELECT DISTINCT gaj.GrupoActividadId, gaj.GrupoActividadJerarquicoComo, 1
+      FroM GrupoActividadJerarquico gaj 
+      WHERE gaj.GrupoActividadJerarquicoPersonalId = @0
+      AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >   gaj.GrupoActividadJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31')`,
+      [PersonalId, anio,mes])
   }
 
 }

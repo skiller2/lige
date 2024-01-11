@@ -24,19 +24,9 @@
             <nz-form-label [nzSpan]="2">Responsable</nz-form-label>
             <nz-form-control>
                     <ng-container *ngFor="let responsable of objetivoDetalle.responsable">
-                        <li *ngIf="responsable.GrupoActividadId" title="{{ responsable.GrupoActividadId }}">
-                            {{responsable.GrupoActividadNumero}} -
-                            {{responsable.GrupoActividadDetalle}} desde {{
-                            responsable.GrupoActividadObjetivoDesde | date}} <span *ngIf="responsable.GrupoActividadObjetivoHasta
-                        ">hasta</span> {{
-                            responsable.GrupoActividadObjetivoHasta
-                            | date}} </li>
-                        <li *ngIf="responsable.PersonalIdCoordinador" title="{{ responsable.PersonalIdCoordinador }}">
-                            Coordinador: {{responsable.ApellidoNombreCoordinador}} desde {{
-                            responsable.ObjetivoPersonalJerarquicoDesde | date}} <span *ngIf="responsable.ObjetivoPersonalJerarquicoHasta
-                        ">hasta</span> {{
-                            responsable.GrupoActividadObjetivoHasta
-                            | date}} </li>
+                        <li title="{{ responsable.id }}">
+                            {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}} <span *ngIf="responsable.hasta
+                        ">hasta</span> {{responsable.hasta | date}}</li>
                     </ng-container>
             </nz-form-control>
         </nz-form-item>

@@ -49,13 +49,41 @@ export class PersonalController extends BaseController {
     try {
       const responsables = await dataSource.query(
         `
-        SELECT ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle, gap.GrupoActividadPersonalDesde, gap.GrupoActividadPersonalHasta
-FROM GrupoActividadPersonal gap
--- JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = gap.GrupoActividadId AND DATEFROMPARTS(@1,@2,28) > gaj.GrupoActividadJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gaj.GrupoActividadJerarquicoHasta, '9999-12-31')
-JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
-
-WHERE gap.GrupoActividadPersonalPersonalId=@0 AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadPersonalHasta, '9999-12-31')
-
+        SELECT 1 AS ord, gap.GrupoActividadPersonalPersonalId as id, 'Grupo' tipo,
+        ga.GrupoActividadId AS id, CONCAT (ga.GrupoActividadNumero, ' ',ga.GrupoActividadDetalle) AS detalle, gap.GrupoActividadPersonalDesde AS desde , gap.GrupoActividadPersonalHasta hasta,
+          1
+          
+          FROM GrupoActividadPersonal gap
+        JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
+        WHERE gap.GrupoActividadPersonalPersonalId=@0 AND EOMONTh(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadPersonalHasta, '9999-12-31')
+    AND gap.GrupoActividadPersonalPersonalId = @0
+    UNION
+    SELECT 3, gap.GrupoActividadPersonalPersonalId, 'Supervisor' tipo,
+        per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta,
+          1
+          
+          FROM GrupoActividadPersonal gap
+        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+        LEFT JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = ga.GrupoActividadId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >   gaj.GrupoActividadJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31') AND gaj.GrupoActividadJerarquicoComo = 'J'
+        JOIN Personal per ON per.PersonalId = gaj.GrupoActividadJerarquicoPersonalId
+        WHERE gap.GrupoActividadPersonalPersonalId=@0 AND EOMONTh(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadPersonalHasta, '9999-12-31')
+    AND gap.GrupoActividadPersonalPersonalId = @0
+    
+    
+    UNION
+    SELECT 4, gap.GrupoActividadPersonalPersonalId, 'Administrador' tipo,
+        per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta,
+          1
+          
+          FROM GrupoActividadPersonal gap
+        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+        LEFT JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = ga.GrupoActividadId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >   gaj.GrupoActividadJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31') AND gaj.GrupoActividadJerarquicoComo = 'A'
+        JOIN Personal per ON per.PersonalId = gaj.GrupoActividadJerarquicoPersonalId
+        WHERE gap.GrupoActividadPersonalPersonalId=@0 AND EOMONTh(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadPersonalHasta, '9999-12-31')
+    AND gap.GrupoActividadPersonalPersonalId = @0
+    ORDER BY ord
+    
+    
         `,
 
         [personalId, anio, mes]

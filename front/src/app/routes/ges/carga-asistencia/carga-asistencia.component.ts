@@ -77,7 +77,7 @@ export class CargaAsistenciaComponent {
     getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
         this.loadingSrv.open({ type: 'spin', text: '' })
         return forkJoin([
-            this.searchService.getObjetivo(objetivoId, anio, mes),
+            this.searchService.getObjetivoResponsables(objetivoId, anio, mes),
             this.searchService.getObjetivoContratos(objetivoId, anio, mes),
             this.searchService.getAsistenciaPeriodo(objetivoId, anio, mes),
             // Carga detalle de diario.
