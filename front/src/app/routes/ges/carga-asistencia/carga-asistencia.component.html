@@ -1,31 +1,49 @@
+<nz-card class="small-margin">
+
 <form nz-form #carasistForm="ngForm">
+    <ng-container *ngIf="$objetivoDetalle| async as objetivoDetalle">
+
     <nz-form-item>
-        <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
-        <nz-form-control>
+        <nz-form-label [nzSpan]="3">Periodo</nz-form-label>
+        <nz-form-control [nzSpan]="5">
+
             <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="formChange($event,Busqueda.Periodo)"
                 nzFormat="MM/yyyy" />
         </nz-form-control>
+        <nz-form-control [nzSpan]="17" style="text-align: right;" *ngIf="selectedObjetivoId>0">
+            <nz-button-group>
+                <button nz-button nzType="primary" nz-popconfirm
+                *ngIf="(objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesDesde == null || objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesHasta != null)"
+                nzPopconfirmTitle="Habilita carga asistencia?" [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false"
+                (nzOnConfirm)="setCargaAsistencia()"><span nz-icon nzType="plus" nzTheme="outline"></span>Inicia
+                Carga</button>
+            <button nz-button nzType="primary" nz-popconfirm nzPopconfirmTitle="Cierra carga asistencia?"
+                *ngIf=" objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesHasta == null && objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesDesde != null"
+                [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false" (nzOnConfirm)="endCargaAsistencia()"><span nz-icon
+                    nzType="check" nzTheme="outline"></span>Finaliza
+                Carga</button>
+              </nz-button-group>
+        </nz-form-control>
     </nz-form-item>
     <nz-form-item>
-        <nz-form-label [nzSpan]="2">Objetivo</nz-form-label>
-        <nz-form-control>
+        <nz-form-label [nzSpan]="3">Objetivo</nz-form-label>
+        <nz-form-control [nzSpan]="21">
             <ng-template #suffixReloadTpl>
                 <a (click)="formChange('', Busqueda.Objetivo)"><span nz-icon nzType="reload"
                         nzTheme="outline"></span></a>
             </ng-template>
-            <nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="width: 90%">
+            <nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="width: 100%">
                 <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
-                    (ngModelChange)="formChange($event, Busqueda.Objetivo)" ngModel style="width:100%" />
+                    (ngModelChange)="formChange($event, Busqueda.Objetivo)" ngModel />
 
             </nz-input-group>
         </nz-form-control>
     </nz-form-item>
-    <ng-container *ngIf="$objetivoDetalle| async as objetivoDetalle">
         <nz-form-item>
-            <nz-form-label [nzSpan]="2">Responsable</nz-form-label>
-            <nz-form-control>
+            <nz-form-label [nzSpan]="3">Responsable</nz-form-label>
+            <nz-form-control [nzSpan]="21">
                 <nz-collapse nzBordered="false"  nzGhost="false" class="app-collapse-header" *ngIf="objetivoDetalle.responsable.length">
-                    <nz-collapse-panel  [nzHeader]="objetivoDetalle.responsable[0]?.tipo+' '+objetivoDetalle.responsable[0]?.detalle" >
+                    <nz-collapse-panel  [nzHeader]="objetivoDetalle.responsable[0]?.tipo+' '+objetivoDetalle.responsable[0]?.detalle" (nzActiveChange)="collapseChange($event)" >
                         <ng-container *ngFor="let responsable of objetivoDetalle.responsable">
                             <li *ngIf="responsable.ord !=1" title="{{ responsable.id }}">
                                 {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}} <span
@@ -37,8 +55,8 @@
             </nz-form-control>
         </nz-form-item>
         <nz-form-item>
-            <nz-form-label [nzSpan]="2">Contrato</nz-form-label>
-            <nz-form-control>
+            <nz-form-label [nzSpan]="3">Contrato</nz-form-label>
+            <nz-form-control [nzSpan]="21">
                 <ng-container *ngFor="let contrato of objetivoDetalle.contratos">
                     <li>Desde {{contrato.ContratoFechaDesde | date}} <span
                             *ngIf="contrato.ContratoFechaHasta">hasta</span>
@@ -46,18 +64,6 @@
                 </ng-container>
             </nz-form-control>
         </nz-form-item>
-        <ng-container *ngIf="selectedObjetivoId>0">
-            <button nz-button nzType="primary" nz-popconfirm
-                *ngIf="(objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesDesde == null || objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesHasta != null)"
-                nzPopconfirmTitle="Habilita carga asistencia?" [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false"
-                (nzOnConfirm)="setCargaAsistencia()"><span nz-icon nzType="plus" nzTheme="outline"></span>Inicia
-                Carga</button>
-            <button nz-button nzType="primary" nz-popconfirm nzPopconfirmTitle="Cierra carga asistencia?"
-                *ngIf=" objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesHasta == null && objetivoDetalle.periodo[0]?.ObjetivoAsistenciaAnoMesDesde != null"
-                [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false" (nzOnConfirm)="endCargaAsistencia()"><span nz-icon
-                    nzType="check" nzTheme="outline"></span>Finaliza
-                Carga</button>
-        </ng-container>
     </ng-container>
 </form>
 <div class="grid-container-asis container-fluid">
@@ -67,3 +73,4 @@
         <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
     </angular-slickgrid>
 </div>
+</nz-card>
