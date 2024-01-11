@@ -313,6 +313,7 @@ export class AsistenciaController extends BaseController {
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
       obj.ObjetivoDescripcion,
       objm.ObjetivoAsistenciaAnoMesDesde, objm.ObjetivoAsistenciaAnoMesHasta,
+      objm.ObjetivoAsistenciaAnoMesDesde desde, ISNULL(objm.ObjetivoAsistenciaAnoMesHasta,'9999-12-31') hasta,
       1 as last
       
       
@@ -1708,6 +1709,9 @@ console.log('valido permisos')
         `,[personalId, anio, mes, objetivoId]
       )
 
+      //Validación de horas dentro del perido de contrato
+      let periodoContrato = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, objetivoId, queryRunner)
+      
       let columnsDays = ''
       let columnsDay = ''
       let valueColumnsDays = ''
@@ -1743,6 +1747,11 @@ console.log('valido permisos')
             if(totalhsxdia.length && (totalhsxdia[0][key] + horas)> 24.0){
               throw new ClientException(`La cantidad de horas por dia no puede superar las 24`)
               //Errores.push(`La cantidad de horas por dia no puede superar las 24`)
+            }
+            //Validación de horas dentro del perido de contrato
+            if (periodoContrato.length && (periodoContrato.desde > fecha || periodoContrato.hasta < fecha)) {
+              throw new ClientException(`El dia${numdia} no pertecese al periodo del contrato`)
+              //Errores.push(`El dia${numdia} no pertecese al periodo del contrato`)
             }
             if (horas > 24)
               throw new ClientException(`La cantidad de horas no puede superar las 24`)
