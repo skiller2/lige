@@ -398,6 +398,8 @@ export class CargaAsistenciaComponent {
                 this.columnas = [...this.columnDefinitions, ...daysOfMonth];
                 break;
             case Busqueda.Objetivo:
+//                this.router.navigateByUrl('/ges/carga_asistencia', { skipLocationChange: true, state: { 'ObjetivoId': '1' } })
+//                this.router.navigate([],{relativeTo: this.route, skipLocationChange: true})
                 break;
 
             default:
@@ -502,4 +504,12 @@ export class CargaAsistenciaComponent {
         ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
     }
 
+    collapseChange($event: any) {
+        setTimeout(() => {
+            this.angularGridEdit.resizerService.resizeGrid();       
+           
+        }, 500);
+    }
+
+ 
 }
