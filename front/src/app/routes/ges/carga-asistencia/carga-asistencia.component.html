@@ -24,10 +24,10 @@
         <nz-form-item>
             <nz-form-label [nzSpan]="2">Responsable</nz-form-label>
             <nz-form-control>
-                <nz-collapse nzBordered="false"  nzGhost="false" class="app-collapse-header">
-                    <nz-collapse-panel  [nzHeader]="objetivoDetalle.responsable[0]?.detalle" >
+                <nz-collapse nzBordered="false"  nzGhost="false" class="app-collapse-header" *ngIf="objetivoDetalle.responsable.length">
+                    <nz-collapse-panel  [nzHeader]="objetivoDetalle.responsable[0]?.tipo+' '+objetivoDetalle.responsable[0]?.detalle" >
                         <ng-container *ngFor="let responsable of objetivoDetalle.responsable">
-                            <li title="{{ responsable.id }}">
+                            <li *ngIf="responsable.ord !=1" title="{{ responsable.id }}">
                                 {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}} <span
                                     *ngIf="responsable.hasta
                         ">hasta</span> {{responsable.hasta | date}}</li>
