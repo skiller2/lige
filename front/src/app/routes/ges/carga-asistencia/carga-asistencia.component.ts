@@ -110,8 +110,8 @@ export class CargaAsistenciaComponent {
 
                 this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
 
-//                this.angularGridEdit.slickGrid.invalidate();
-//                this.angularGridEdit.slickGrid.render();
+                this.angularGridEdit.slickGrid.invalidate();
+                this.angularGridEdit.slickGrid.render();
     
 
                 //this.gridDataInsert = data[3]
@@ -222,6 +222,8 @@ export class CargaAsistenciaComponent {
 
         this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand: EditCommand) => {
             //            let undoCommandArr:EditCommand[]=[]
+            this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
+            this.angularGridEdit.slickGrid.invalidate();
 
             const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
             if (lastrow && (lastrow.apellidoNombre)) {
@@ -265,13 +267,6 @@ export class CargaAsistenciaComponent {
                     editCommand.undo();
                 }
             }
-
-            this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
-
-           // this.angularGridEdit.slickGrid.invalidate();
-            this.angularGridEdit.slickGrid.render();
-
-
         }
     }
 
