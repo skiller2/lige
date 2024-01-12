@@ -2104,12 +2104,4 @@ console.log('valido permisos')
     return data
   }
 
-  static formatearFecha(fecha: Date) {
-    const year = fecha.getFullYear();
-    const month = String(fecha.getMonth() + 1).padStart(2, '0') // Los meses van de 0 a 11
-    const day = String(fecha.getDate() + 1).padStart(2, '0')
-
-    return `${year}-${month}-${day}`
-  }
-
 }
