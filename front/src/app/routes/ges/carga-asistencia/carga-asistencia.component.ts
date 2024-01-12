@@ -64,6 +64,7 @@ export class CargaAsistenciaComponent {
     selectedSucursalId = 0
     objetivoData: any
     ObjetivoIdUrl: any
+    periodos:any
 
     public get Busqueda() {
         return Busqueda;
@@ -113,7 +114,7 @@ export class CargaAsistenciaComponent {
                 this.angularGridEdit.slickGrid.invalidate();
                 this.angularGridEdit.slickGrid.render();
     
-
+                this.periodos = data[2] 
                 //this.gridDataInsert = data[3]
                 //data[3].length? this.gridDataInsert = data[3] : this.clearAngularGrid()
                 this.loadingSrv.close()
@@ -406,6 +407,14 @@ export class CargaAsistenciaComponent {
                 this.columnas = [...this.columnDefinitions, ...daysOfMonth];
                 break;
             case Busqueda.Objetivo:
+                if (this.selectedObjetivoId > 0) {
+                    this.router.navigate(['.', { ObjetivoId: this.selectedObjetivoId }], {
+                        relativeTo: this.route,
+                        skipLocationChange: false,
+                        replaceUrl: false,
+                    })
+                }
+        
                 //                this.router.navigateByUrl('/ges/carga_asistencia', { skipLocationChange: true, state: { 'ObjetivoId': '1' } })
                 //                this.router.navigate([],{relativeTo: this.route, skipLocationChange: true})
                 break;
@@ -533,5 +542,9 @@ export class CargaAsistenciaComponent {
                 meta.cssClasses = ''
             return meta
         }
+    }
+
+    gotoExcepcionAsistencia(): void { 
+        this.router.navigate(['/ges/asistencia_excepcion',{ObjetivoId:this.selectedObjetivoId}])
     }
 }

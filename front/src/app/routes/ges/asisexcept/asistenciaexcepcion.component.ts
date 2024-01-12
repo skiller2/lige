@@ -1,4 +1,4 @@
-import { Component, HostListener, Injector, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, Injector, OnInit, ViewChild, inject } from '@angular/core';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { BehaviorSubject, Subject, catchError, debounceTime, of, switchMap, takeUntil, tap } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
@@ -33,13 +33,15 @@ export class ExcepcionAsistenciaComponent {
   public get Busqueda() {
     return Busqueda;
   }
+  
+  public router = inject(Router)
+
 
   constructor(
     private searchService: SearchService,
     private injector: Injector,
     private settingService: SettingsService,
     private _route: ActivatedRoute,
-    private _router: Router,
     private apiService: ApiService
   ) {}
 
@@ -88,7 +90,7 @@ export class ExcepcionAsistenciaComponent {
     switchMap(objetivoId => {
       if (!objetivoId) return [];
       else
-        return this.searchService.getObjetivo(
+        return this.searchService.getObjetivoResponsables(
           Number(objetivoId),
           this.asistenciaexcepcion.controls['anio'].value,
           this.asistenciaexcepcion.controls['mes'].value
@@ -146,9 +148,10 @@ export class ExcepcionAsistenciaComponent {
       const routeParams = this._route.snapshot.paramMap;
 
       if (routeParams.get('ObjetivoId') != null) {
-        this.asistenciaexcepcion.form.get('SucursalId')?.setValue(Number(routeParams.get('SucursalId')));
         this.asistenciaexcepcion.form.get('ObjetivoId')?.setValue(Number(routeParams.get('ObjetivoId')));
-      } else if (localStorage.getItem('SucursalId')) {
+      }
+      
+      if (localStorage.getItem('SucursalId')) {
         this.asistenciaexcepcion.form.get('SucursalId')?.setValue(Number(localStorage.getItem('SucursalId')));
       }
 
@@ -183,6 +186,12 @@ export class ExcepcionAsistenciaComponent {
         this.$isObjetivoDataLoading.next(true);
 
         if (this.asistenciaexcepcion.controls['ObjetivoId'].value > 0) {
+          this.router.navigate(['.', { ObjetivoId: this.selectedObjetivoId }], {
+            relativeTo: this._route,
+            skipLocationChange: false,
+            replaceUrl: false,
+          })
+
           /*
           this._router.navigate(
             [
@@ -285,5 +294,9 @@ export class ExcepcionAsistenciaComponent {
   ngOnDestroy(): void {
     this.destroy$.next('');
     this.destroy$.complete();
+  }
+
+  gotoCargaAsistencia(): void { 
+    this.router.navigate(['/ges/carga_asistencia',{ObjetivoId:this.selectedObjetivoId}])
   }
 }
