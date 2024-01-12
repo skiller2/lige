@@ -31,7 +31,7 @@ export class EditorTipoHoraComponent {
     this.eto?.focus()  //Al hacer click en el componente hace foco nuevamente
     const selopt: any = this.optionsArray.filter((v) => v.TipoHoraId == item)
     this.selectedId =item
-    this.selectedItem = { id: item, fullName: selopt[0].Descripcion }
+    this.selectedItem = { id: item, fullName: (selopt[0])? selopt[0].Descripcion:'' }
   }
 
   focus() {

@@ -1621,6 +1621,8 @@ console.log('valido permisos')
 
   async addAsistencia(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
+    const dateFormatter = new Intl.DateTimeFormat('es-AR', { year: 'numeric', month: 'numeric', day: 'numeric' });
+
     try {
       await queryRunner.startTransaction()
       const anio: number = req.body.year
@@ -1696,9 +1698,10 @@ console.log('valido permisos')
 
       //Validación de Personal Situación de Revista
       const situacionesRevista = await queryRunner.query(`
-        SELECT sit.PersonalSituacionRevistaDesde desde, ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') hasta
+        SELECT sit.PersonalSituacionRevistaId, sr.SituacionRevistaDescripcion, sit.PersonalSituacionRevistaDesde desde, ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') hasta
         FROM PersonalSituacionRevista sit
-        WHERE sit.PersonalId = @0 AND sit.PersonalSituacionRevistaId IN (2,4,5,6,9,10,11,12,20,23,26)
+        JOIN SituacionRevista sr ON sr.SituacionRevistaId = sit.PersonalSituacionRevistaId 
+        WHERE sit.PersonalId = @0 AND sit.PersonalSituacionRevistaId NOT IN (2,4,5,6,9,10,11,12,20,23,26)
         AND sit.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
         AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
         AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
@@ -1708,23 +1711,27 @@ console.log('valido permisos')
       //Validación de Personal total de horas por dia
       let querydias = ''
       for (let index = 1; index <= 31; index++)
-      querydias = querydias + `, SUM(CAST(LEFT(ObjetivoAsistenciaAnoMesPersonalDias${index}Gral,2) AS INT) % 60 + CAST(RIGHT(TRIM(ObjetivoAsistenciaAnoMesPersonalDias${index}Gral),2) AS INT)) day${index}`
+        querydias = querydias + `, SUM(CAST(LEFT(ObjetivoAsistenciaAnoMesPersonalDias${index}Gral,2) AS INT) + CAST(RIGHT(TRIM(ObjetivoAsistenciaAnoMesPersonalDias${index}Gral),2) AS INT) / CAST(60 AS FLOAT)) day${index}`
+        
       const totalhsxdia = await queryRunner.query(`
         SELECT objp.ObjetivoAsistenciaMesPersonalId personalId
         ${querydias}
         FROM ObjetivoAsistenciaAnoMesPersonalDias objp
-        INNER JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
-        INNER JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
+        INNER JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId 
+        INNER JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId
         WHERE objp.ObjetivoAsistenciaMesPersonalId = @0 
-        AND (objp.ObjetivoAsistenciaTipoAsociadoId != @3
-        OR objp.ObjetivoAsistenciaCategoriaPersonalId != @4
-        OR objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras != @5)
+        AND obja.ObjetivoAsistenciaAnoAno = @1
+        AND objm.ObjetivoAsistenciaAnoMesMes = @2
+        -- AND objp.ObjetivoAsistenciaTipoAsociadoId != @3
+        -- AND objp.ObjetivoAsistenciaCategoriaPersonalId != @4
+        -- AND  objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras != @5
+        AND objp.ObjetivoAsistenciaAnoMesPersonalDiasId <> @6
         GROUP BY objp.ObjetivoAsistenciaMesPersonalId
-        `,[personalId, anio, mes, tipoAsociadoId, categoriaPersonalId, formaLiquidacion]
+        `,[personalId, anio, mes, tipoAsociadoId, categoriaPersonalId, formaLiquidacion,ObjetivoAsistenciaAnoMesPersonalDiasIdId]
       )
 
       //Validación de horas dentro del perido de contrato
-      let periodoContrato = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, objetivoId, queryRunner)
+      let periodoContrato = await ObjetivoController.getObjetivoContratos(objetivoId,anio, mes, queryRunner)
       
       let columnsDays = ''
       let columnsDay = ''
@@ -1741,40 +1748,41 @@ console.log('valido permisos')
           if (!horas) {
             valueColumnsDays = valueColumnsDays + `, NULL`
           } else {
-            fecha = new Date(`${anio}-${mes}-${numdia}`)
-            //Validación de Personal disponible
-            licencias.forEach((fechas:any)=>{
-              if (fechas.desde <= fecha && fechas.hasta >= fecha) {
-                const desde = AsistenciaController.formatearFecha(fechas.desde)
-                const hasta = AsistenciaController.formatearFecha(fechas.hasta)
-                // throw new ClientException(`El personal se encuentra de licencia desde ${desde} hasta ${hasta}`)
-                errores.push(`El personal se encuentra de licencia desde ${desde} hasta ${hasta}`)
-              }
-            })
-            //Validación de Personal Situación de Revista
-            const situacion = situacionesRevista.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
-            if (!situacion) {
-              // throw new ClientException(`La persona no se encuentra en una situación de revista hábil`)
-              errores.push(`La persona no se encuentra en una situación de revista hábil`)
+            fecha = new Date(`${anio}-${mes}-${numdia} 0:0:0`)
+            //Validación Licencia
+            const licencia = licencias.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
+            if (licencia) {
+              // throw new ClientException(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta)}. dia:${numdia}`)
+              errores.push(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta)}. dia:${numdia}`)
             }
-            //Validación de horas dentro del perido de contrato
-            if (periodoContrato.length && (periodoContrato.desde > fecha || periodoContrato.hasta < fecha)) {
-              // throw new ClientException(`El dia${numdia} no pertecese al periodo del contrato`)
-              errores.push(`El dia${numdia} no pertecese al periodo del contrato`)
+            //Validación Situación de Revista
+            const situacion = situacionesRevista.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
+            if (situacion){
+              // throw new ClientException(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
+              errores.push(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
             }
             //Validación de Personal total de horas por dia
-            if(totalhsxdia.length && (totalhsxdia[0][key] + horas)> 24){
-              // throw new ClientException(`La persona registra mas de 24 horas en el dia${numdia}`)
-              errores.push(`La persona registra mas de 24 horas en el dia${numdia}`)
-            }else if (horas > 24){
-              //throw new ClientException(`La cantidad de horas no puede superar las 24`)
+            if (totalhsxdia.length && (totalhsxdia[0][key] + horas) > 24.0) {
+              // console.log('totalhsxdia',totalhsxdia )
+              // throw new ClientException(`La cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
+              errores.push(`a cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
+            }
+
+            //Validación de horas dentro del perido de contrato
+            const contrato= periodoContrato.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
+            if (!contrato) {
+              //throw new ClientException(`El dia ${numdia} no pertenece al periodo del contrato`)
+              errores.push(`El dia${numdia} no pertecese al periodo del contrato`)
+            }
+            if (horas > 24){
+              // throw new ClientException(`La cantidad de horas no puede superar las 24`)
               errores.push(`La cantidad de horas no puede superar las 24`)
             }
             const h = String(Math.trunc(horas))
             const horafrac = horas - Math.trunc(horas)
             if (horafrac != 0 && horafrac != 0.5){
-              //throw new ClientException(`La fracción de hora debe ser .5 únicamente`)
-              errores.push(`La fracción de hora debe ser .5 únicamente`)
+              // throw new ClientException(`La fracción de hora debe ser .5 únicamente, ej: 0.5; 8.5 `)
+              errores.push(`La fracción de hora debe ser .5 únicamente, ej: 0.5; 8.5`)
             }
             const m = String(60 * horafrac)
             valueColumnsDays = valueColumnsDays + `, '${h.padStart(2, '0')}.${m.padStart(2, '0')}'`
@@ -2036,20 +2044,27 @@ console.log('valido permisos')
         tipoas.TipoAsociadoDescripcion,
         objp.ObjetivoAsistenciaCategoriaPersonalId CategoriaId,
         catep.CategoriaPersonalDescripcion CategoriaDescripcion,
+        val.ValorLiquidacionHorasTrabajoHoraNormal,
         objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras FormaLiquidacion
         ${dias}
 
       FROM ObjetivoAsistenciaAnoMesPersonalDias objp
-      INNER JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
-      INNER JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
-      INNER JOIN TipoAsociado tipoas ON tipoas.TipoAsociadoId = objp.ObjetivoAsistenciaTipoAsociadoId
-      INNER JOIN CategoriaPersonal catep ON catep.TipoAsociadoId = objp.ObjetivoAsistenciaTipoAsociadoId AND catep.CategoriaPersonalId = objp.ObjetivoAsistenciaCategoriaPersonalId
-      INNER JOIN Personal per ON per.PersonalId = objp.ObjetivoAsistenciaMesPersonalId
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)  
+        INNER JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
+        INNER JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
+        INNER JOIN TipoAsociado tipoas ON tipoas.TipoAsociadoId = objp.ObjetivoAsistenciaTipoAsociadoId
+        INNER JOIN CategoriaPersonal catep ON catep.TipoAsociadoId = objp.ObjetivoAsistenciaTipoAsociadoId AND catep.CategoriaPersonalId = objp.ObjetivoAsistenciaCategoriaPersonalId
+        INNER JOIN Personal per ON per.PersonalId = objp.ObjetivoAsistenciaMesPersonalId
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)  
 
+        JOIN Objetivo obj ON obj.ObjetivoId = obja.ObjetivoId
+        JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+        LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+
+        LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionTipoAsociadoId = objp.ObjetivoAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = objp.ObjetivoAsistenciaCategoriaPersonalId AND EOMONTH(DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes,1)) >= val.ValorLiquidacionDesde AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes,1) <= ISNULL(val.ValorLiquidacionHasta,'9999-12-31')   
+          AND val.ValorLiquidacionSucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
       WHERE objp.ObjetivoId = @0
       ORDER BY objp.ObjetivoAsistenciaAnoMesPersonalDiasId
-      `, [objetivoId, anio, mes])
+    `, [objetivoId, anio, mes])
     //console.log('PERSONAL',personal);
     const data = personal.map((obj: any, index: number) => {
       const camposDay = Object.keys(obj).filter(clave => clave.startsWith('day'));
@@ -2072,10 +2087,11 @@ console.log('valido permisos')
           id: obj.PersonalId
         },
         categoria: {
-          fullName: obj.CategoriaDescripcion,
+          fullName: `${obj.CategoriaDescripcion.trim()} ${(obj.ValorLiquidacionHorasTrabajoHoraNormal>0)?obj.ValorLiquidacionHorasTrabajoHoraNormal:''}`,
           id: obj.CategoriaId,
           tipoId: obj.TipoAsociadoId,
-          tipoFullName: obj.TipoAsociadoDescripcion
+          tipoFullName: obj.TipoAsociadoDescripcion,
+          horasRecomendadas: obj.ValorLiquidacionHorasTrabajoHoraNormal
         },
         forma: {
           id: obj.FormaLiquidacion,
