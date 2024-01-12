@@ -1765,7 +1765,7 @@ console.log('valido permisos')
             const h = String(Math.trunc(horas))
             const horafrac = horas - Math.trunc(horas)
             if (horafrac != 0 && horafrac != 0.5)
-              throw new ClientException(`La fracción de hora debe ser .5 únicamente`)
+              throw new ClientException(`La fracción de hora debe ser .5 únicamente, ej: 0.5; 8.5 `)
             const m = String(60 * horafrac)
             valueColumnsDays = valueColumnsDays + `, '${h.padStart(2, '0')}.${m.padStart(2, '0')}'`
             totalhs = totalhs + horas
