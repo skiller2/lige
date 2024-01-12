@@ -1621,6 +1621,8 @@ console.log('valido permisos')
 
   async addAsistencia(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
+    const dateFormatter = new Intl.DateTimeFormat('es-AR', { year: 'numeric', month: 'numeric', day: 'numeric' });
+
     try {
       await queryRunner.startTransaction()
       const anio: number = req.body.year
@@ -1684,9 +1686,10 @@ console.log('valido permisos')
 
       //Validación de Personal Situación de Revista
       const situacionesRevista = await queryRunner.query(`
-        SELECT sit.PersonalSituacionRevistaDesde desde, ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') hasta
+        SELECT sit.PersonalSituacionRevistaId, sr.SituacionRevistaDescripcion, sit.PersonalSituacionRevistaDesde desde, ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') hasta
         FROM PersonalSituacionRevista sit
-        WHERE sit.PersonalId = @0 AND sit.PersonalSituacionRevistaId IN (2,4,5,6,9,10,11,12,20,23,26)
+        JOIN SituacionRevista sr ON sr.SituacionRevistaId = sit.PersonalSituacionRevistaId 
+        WHERE sit.PersonalId = @0 AND sit.PersonalSituacionRevistaId NOT IN (2,4,5,6,9,10,11,12,20,23,26)
         AND sit.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
         AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
         AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
@@ -1729,22 +1732,18 @@ console.log('valido permisos')
           if (!horas) {
             valueColumnsDays = valueColumnsDays + `, NULL`
           } else {
-            fecha = new Date(`${anio}-${mes}-${numdia}`)
-            //Validación de Personal disponible
-            licencias.forEach((fechas:any)=>{
-              if (fechas.desde <= fecha && fechas.hasta >= fecha) {
-                const desde = AsistenciaController.formatearFecha(fechas.desde)
-                const hasta = AsistenciaController.formatearFecha(fechas.hasta)
-                throw new ClientException(`El personal se encuentra de licencia desde ${desde} hasta ${hasta}`)
-                //Errores.push(`El personal se encuentra de licencia desde ${desde} hasta ${hasta}`)
-              }
-            })
-            //Validación de Personal Situación de Revista
+            fecha = new Date(`${anio}-${mes}-${numdia} 0:0:0`)
+            //Validación Licencia
+            const licencia = licencias.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
+            if (licencia) 
+              throw new ClientException(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta)}. dia:${numdia}`)
+
+            //Validación Situación de Revista
             const situacion = situacionesRevista.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
-            if (!situacion) {
-              throw new ClientException(`La persona no se encuentra en una situación de revista hábil`)
+            if (situacion)
+              throw new ClientException(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
               //Errores.push(`La persona no se encuentra en una situación de revista hábil`)
-            }
+ 
             //Validación de Personal total de horas por dia
             if(totalhsxdia.length && (totalhsxdia[0][key] + horas)> 24.0){
               throw new ClientException(`La cantidad de horas por dia no puede superar las 24`)
