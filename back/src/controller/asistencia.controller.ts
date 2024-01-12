@@ -1713,8 +1713,9 @@ console.log('valido permisos')
         -- AND objp.ObjetivoAsistenciaTipoAsociadoId != @3
         -- AND objp.ObjetivoAsistenciaCategoriaPersonalId != @4
         -- AND  objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras != @5
+        AND objp.ObjetivoAsistenciaAnoMesPersonalDiasId <> @6
         GROUP BY objp.ObjetivoAsistenciaMesPersonalId
-        `,[personalId, anio, mes, tipoAsociadoId, categoriaPersonalId, formaLiquidacion]
+        `,[personalId, anio, mes, tipoAsociadoId, categoriaPersonalId, formaLiquidacion,ObjetivoAsistenciaAnoMesPersonalDiasIdId]
       )
 
       //Validación de horas dentro del perido de contrato
@@ -1748,8 +1749,9 @@ console.log('valido permisos')
               //Errores.push(`La persona no se encuentra en una situación de revista hábil`)
  
             //Validación de Personal total de horas por dia
-            if(totalhsxdia.length && (totalhsxdia[0][key] + horas)> 24.0){
-              throw new ClientException(`La cantidad de horas por dia no puede superar las 24, se validan todos los objetivos`)
+            if (totalhsxdia.length && (totalhsxdia[0][key] + horas) > 24.0) {
+              console.log('totalhsxdia',totalhsxdia )
+              throw new ClientException(`La cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
               //Errores.push(`La cantidad de horas por dia no puede superar las 24`)
             }
 

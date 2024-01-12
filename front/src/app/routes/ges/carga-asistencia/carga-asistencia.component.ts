@@ -268,7 +268,7 @@ export class CargaAsistenciaComponent {
 
             this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
 
-            this.angularGridEdit.slickGrid.invalidate();
+           // this.angularGridEdit.slickGrid.invalidate();
             this.angularGridEdit.slickGrid.render();
 
 
