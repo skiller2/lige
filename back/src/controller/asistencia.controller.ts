@@ -1699,17 +1699,20 @@ console.log('valido permisos')
       //Validación de Personal total de horas por dia
       let querydias = ''
       for (let index = 1; index <= 31; index++)
-      querydias = querydias + `, SUM(CAST(LEFT(ObjetivoAsistenciaAnoMesPersonalDias${index}Gral,2) AS INT) % 60 + CAST(RIGHT(TRIM(ObjetivoAsistenciaAnoMesPersonalDias${index}Gral),2) AS INT)) day${index}`
+        querydias = querydias + `, SUM(CAST(LEFT(ObjetivoAsistenciaAnoMesPersonalDias${index}Gral,2) AS INT) + CAST(RIGHT(TRIM(ObjetivoAsistenciaAnoMesPersonalDias${index}Gral),2) AS INT) / CAST(60 AS FLOAT)) day${index}`
+        
       const totalhsxdia = await queryRunner.query(`
         SELECT objp.ObjetivoAsistenciaMesPersonalId personalId
         ${querydias}
         FROM ObjetivoAsistenciaAnoMesPersonalDias objp
-        INNER JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
-        INNER JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
+        INNER JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId 
+        INNER JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId
         WHERE objp.ObjetivoAsistenciaMesPersonalId = @0 
-        AND (objp.ObjetivoAsistenciaTipoAsociadoId != @3
-        OR objp.ObjetivoAsistenciaCategoriaPersonalId != @4
-        OR objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras != @5)
+        AND obja.ObjetivoAsistenciaAnoAno = @1
+        AND objm.ObjetivoAsistenciaAnoMesMes = @2
+        -- AND objp.ObjetivoAsistenciaTipoAsociadoId != @3
+        -- AND objp.ObjetivoAsistenciaCategoriaPersonalId != @4
+        -- AND  objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras != @5
         GROUP BY objp.ObjetivoAsistenciaMesPersonalId
         `,[personalId, anio, mes, tipoAsociadoId, categoriaPersonalId, formaLiquidacion]
       )
@@ -1746,7 +1749,7 @@ console.log('valido permisos')
  
             //Validación de Personal total de horas por dia
             if(totalhsxdia.length && (totalhsxdia[0][key] + horas)> 24.0){
-              throw new ClientException(`La cantidad de horas por dia no puede superar las 24`)
+              throw new ClientException(`La cantidad de horas por dia no puede superar las 24, se validan todos los objetivos`)
               //Errores.push(`La cantidad de horas por dia no puede superar las 24`)
             }
 
