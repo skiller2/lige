@@ -1753,7 +1753,7 @@ console.log('valido permisos')
             //Validación de horas dentro del perido de contrato
             const contrato= periodoContrato.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
             if (!contrato) {
-              throw new ClientException(`El dia${numdia} no pertenece al periodo del contrato`)
+              throw new ClientException(`El dia ${numdia} no pertenece al periodo del contrato`)
               //Errores.push(`El dia${numdia} no pertecese al periodo del contrato`)
             }
 
