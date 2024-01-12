@@ -1633,14 +1633,14 @@ console.log('valido permisos')
       //Validación de los datos ingresados
       // console.log(req.body.personalId,req.body.formaLiquidacion,req.body.categoriaPersonalId,req.body.tipoAsociadoId)
       if(!req.body.personalId || !req.body.formaLiquidacion || !req.body.categoriaPersonalId || !req.body.tipoAsociadoId)
-        throw new ClientException(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`)
+        throw new ClientException(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`, 'hola', 999)
 
       const ObjetivoAsistenciaAnoMesPersonalDiasIdId: number = req.body.id
       const personalId: number = req.body.personalId
       const tipoAsociadoId: number = req.body.tipoAsociadoId
       const categoriaPersonalId: number = req.body.categoriaPersonalId
       const formaLiquidacion: number = req.body.formaLiquidacion
-      let Errores: any[] = []
+      let errores: any[] = []
 
       //Validación de Objetivo
       const val = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
@@ -1657,7 +1657,7 @@ console.log('valido permisos')
       lista.forEach((obj: any) => {
         if (obj.id == ObjetivoAsistenciaAnoMesPersonalDiasIdId)
           personal = obj
-        if (obj.id != ObjetivoAsistenciaAnoMesPersonalDiasIdId && obj.apellidoNombre.id == personalId && obj.categoria.id == categoriaPersonalId && obj.categoria.TipoId == tipoAsociadoId && obj.forma.id == formaLiquidacion)
+        if (obj.id != ObjetivoAsistenciaAnoMesPersonalDiasIdId && obj.apellidoNombre.id == personalId && obj.categoria.id == categoriaPersonalId && obj.categoria.tipoId == tipoAsociadoId && obj.forma.id == formaLiquidacion)
           personaLista.push(obj)
       })
       if (personaLista.length) {
@@ -1668,9 +1668,21 @@ console.log('valido permisos')
       const categorias = await this.getCategoriasPorPersonaQuery(anio, mes, personalId, SucursalId, queryRunner)
       const filterres = categorias.filter((cat: any) => cat.TipoAsociadoId == tipoAsociadoId && cat.PersonalCategoriaCategoriaPersonalId == categoriaPersonalId)
       
-      if (filterres.length == 0)
-        throw new ClientException(`La categoría seleccionada no se encuentra habilitada para la persona`)
-      
+      if (filterres.length == 0){
+        let data = {}
+        if (categorias.length) {
+          data = {
+            categoria:{
+              fullName: categorias[0].CategoriaPersonalDescripcion,
+              id: categorias[0].PersonalCategoriaCategoriaPersonalId,
+              tipoFullName: categorias[0].TipoAsociadoDescripcion,
+              tipoId: categorias[0].TipoAsociadoId
+            }
+          }
+        }
+        throw new ClientException(`La categoría seleccionada no se encuentra habilitada para la persona`, data)
+      }
+
       //Validación de Personal disponible
       const licencias = await queryRunner.query(`
         SELECT PersonalLicenciaDesde desde, ISNULL( ISNULL(PersonalLicenciaTermina,PersonalLicenciaHasta), '9999-12-31') hasta
@@ -1735,32 +1747,35 @@ console.log('valido permisos')
               if (fechas.desde <= fecha && fechas.hasta >= fecha) {
                 const desde = AsistenciaController.formatearFecha(fechas.desde)
                 const hasta = AsistenciaController.formatearFecha(fechas.hasta)
-                throw new ClientException(`El personal se encuentra de licencia desde ${desde} hasta ${hasta}`)
-                //Errores.push(`El personal se encuentra de licencia desde ${desde} hasta ${hasta}`)
+                // throw new ClientException(`El personal se encuentra de licencia desde ${desde} hasta ${hasta}`)
+                errores.push(`El personal se encuentra de licencia desde ${desde} hasta ${hasta}`)
               }
             })
             //Validación de Personal Situación de Revista
             const situacion = situacionesRevista.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
             if (!situacion) {
-              throw new ClientException(`La persona no se encuentra en una situación de revista hábil`)
-              //Errores.push(`La persona no se encuentra en una situación de revista hábil`)
-            }
-            //Validación de Personal total de horas por dia
-            if(totalhsxdia.length && (totalhsxdia[0][key] + horas)> 24.0){
-              throw new ClientException(`La cantidad de horas por dia no puede superar las 24`)
-              //Errores.push(`La cantidad de horas por dia no puede superar las 24`)
+              // throw new ClientException(`La persona no se encuentra en una situación de revista hábil`)
+              errores.push(`La persona no se encuentra en una situación de revista hábil`)
             }
             //Validación de horas dentro del perido de contrato
             if (periodoContrato.length && (periodoContrato.desde > fecha || periodoContrato.hasta < fecha)) {
-              throw new ClientException(`El dia${numdia} no pertecese al periodo del contrato`)
-              //Errores.push(`El dia${numdia} no pertecese al periodo del contrato`)
+              // throw new ClientException(`El dia${numdia} no pertecese al periodo del contrato`)
+              errores.push(`El dia${numdia} no pertecese al periodo del contrato`)
             }
-            if (horas > 24)
-              throw new ClientException(`La cantidad de horas no puede superar las 24`)
+            //Validación de Personal total de horas por dia
+            if(totalhsxdia.length && (totalhsxdia[0][key] + horas)> 24){
+              // throw new ClientException(`La persona registra mas de 24 horas en el dia${numdia}`)
+              errores.push(`La persona registra mas de 24 horas en el dia${numdia}`)
+            }else if (horas > 24){
+              //throw new ClientException(`La cantidad de horas no puede superar las 24`)
+              errores.push(`La cantidad de horas no puede superar las 24`)
+            }
             const h = String(Math.trunc(horas))
             const horafrac = horas - Math.trunc(horas)
-            if (horafrac != 0 && horafrac != 0.5)
-              throw new ClientException(`La fracción de hora debe ser .5 únicamente`)
+            if (horafrac != 0 && horafrac != 0.5){
+              //throw new ClientException(`La fracción de hora debe ser .5 únicamente`)
+              errores.push(`La fracción de hora debe ser .5 únicamente`)
+            }
             const m = String(60 * horafrac)
             valueColumnsDays = valueColumnsDays + `, '${h.padStart(2, '0')}.${m.padStart(2, '0')}'`
             totalhs = totalhs + horas
@@ -1837,8 +1852,8 @@ console.log('valido permisos')
       //   [objetiveId, anoId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion])
       // console.log('ASISTENCIA', asistenciaPersonalDias);
       // if (!asistenciaPersonalAsignado.length && rowId>lista.length) {
-      if (Errores.length) {
-        throw new ClientException(Errores.toString())
+      if (errores.length) {
+        throw new ClientException(errores.join(`\n`))
       }
       let result
 

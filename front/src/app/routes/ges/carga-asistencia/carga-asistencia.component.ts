@@ -232,10 +232,10 @@ export class CargaAsistenciaComponent {
 
                 if (editCommand.serializedValue === editCommand.prevSerializedValue) return
                 editCommand.execute()
-
                 const item = this.gridDataInsert.find((obj: any) => {
                     return (obj.id == row.id)
                 })
+                // console.log('this.gridDataInsert',this.gridDataInsert);
                 // console.log(item.apellidoNombre.id, item.categoria.id, item.forma.id, item.tipo.id, item.total)
                 // if(item.apellidoNombre.id && item.categoria.id && item.forma.id && item.tipo.id && item.total != undefined){
                 //     const copia = this.gridDataInsert.find((obj:any)=>{
@@ -252,9 +252,17 @@ export class CargaAsistenciaComponent {
                     if(item.total == 0 && response.row?.id)
                         this.angularGridEdit.gridService.deleteItemById(response.row.id)
                 }
-            } catch (e) {
-                //                const undoCommand = undoCommandArr.pop()
-                if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
+            } catch (e:any) {
+                //console.log('error', e)
+                if (e.error.data.categoria) {
+                    let item = this.gridDataInsert.find((obj: any) => {
+                        return (obj.id == row.id)
+                    }) 
+                    item.categoria = e.error.data.categoria
+                    this.angularGridEdit.gridService.updateItemById(row.id, item)
+                    console.log('this.gridDataInsert',this.gridDataInsert);
+                    
+                }else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
                     this.angularGridEdit.gridService.updateItemById(row.id, editCommand.editor.args.item)
                     editCommand.undo();
                 }
