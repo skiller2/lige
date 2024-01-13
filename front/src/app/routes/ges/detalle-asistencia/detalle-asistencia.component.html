@@ -2,11 +2,19 @@
   <form nz-form #asistencia="ngForm">
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
-      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)"
-        [nzAllowClear]="false" />
+      <nz-form-control [nzSpan]="5">
+        <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)"
+          [nzAllowClear]="false" />
+      </nz-form-control>
+      <nz-form-control [nzSpan]="14" style="text-align: right;" >
+        <nz-button-group>
+          <button *ngIf="objetivoIdSelected" nz-button nzType="default"
+            [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:objetivoIdSelected }]">Asistencia diaria</button>
+        </nz-button-group>
+      </nz-form-control>
     </nz-form-item>
 
-    <nz-form-item>
+    <!-- <nz-form-item>
       <nz-form-label [nzSpan]="5">Sucursal</nz-form-label>
       <nz-form-control>
         <nz-select #sucursal="ngModel" nzSpan="19" name="SucursalId" [(ngModel)]="selectedSucursalId"
@@ -17,18 +25,18 @@
           </ng-container>
         </nz-select>
       </nz-form-control>
-    </nz-form-item>
+    </nz-form-item> -->
   </form>
 
   <ul nz-menu nzMode="horizontal">
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo']">Objetivo</a>
+      <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:objetivoIdSelected }]">Objetivo</a>
     </li>
 
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona']">Persona</a>
+      <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:selectedPersonalId }]">Persona</a>
     </li>
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
@@ -48,7 +56,7 @@
     </li>
   </ul>
 
-  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" >
     <nz-tab>
       <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/objetivo">Objetivo</a>
 
@@ -58,12 +66,9 @@
           <nz-form-control>
             <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
               (ngModelChange)="selectedValueChange($event, Busqueda.Objetivo)" ngModel />
-            <button *ngIf="objetivoIdSelected" nz-button class="btnAsistenciaClass" nzType="default"
-              [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:objetivoIdSelected }]">Asistencia</button>
 
           </nz-form-control>
         </nz-form-item>
-
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
           <nz-form-control>
@@ -75,20 +80,9 @@
                 Cargando
               </ng-container>
               <ng-container *ngFor="let responsable of $objetivoResponsables | async">
-                <p *ngIf="responsable.GrupoActividadId" title="{{ responsable.GrupoActividadId }}">
-                  {{responsable.GrupoActividadNumero}} -
-                  {{responsable.GrupoActividadDetalle}} desde {{
-                  responsable.GrupoActividadObjetivoDesde | date}} <span *ngIf="responsable.GrupoActividadObjetivoHasta
-                    ">hasta</span> {{
-                  responsable.GrupoActividadObjetivoHasta
-                  | date}} </p>
-                <p *ngIf="responsable.PersonalIdCoordinador" title="{{ responsable.PersonalIdCoordinador }}">
-                  Coordinador: {{responsable.ApellidoNombreCoordinador}} desde {{
-                  responsable.ObjetivoPersonalJerarquicoDesde | date}} <span *ngIf="responsable.ObjetivoPersonalJerarquicoHasta
-                    ">hasta</span> {{
-                  responsable.GrupoActividadObjetivoHasta
-                  | date}} </p>
-
+                <li title="{{ responsable.id }}">
+                  {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}} <span *ngIf="responsable.hasta
+              ">hasta</span> {{responsable.hasta | date}}</li>
               </ng-container>
             </ng-container>
           </nz-form-control>
@@ -123,7 +117,7 @@
                     {{ data.PersonalCUITCUILCUIT }}
                   </td>
                   <td>
-                    <a (click)="buscarPorPersona(data.PersonalId)" [textContent]="data.ApellidoNombre"></a>
+                    <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]" [textContent]="data.ApellidoNombre"></a>
                   </td>
 
                   <td>{{ data.PersonalArt14Autorizado }}</td>
@@ -174,7 +168,7 @@
                     {{ data.PersonalCUITCUILCUIT }}
                   </td>
                   <td>
-                    <a (click)="buscarPorPersona(data.PersonalId)" [textContent]="data.PersonaDes"></a>
+                    <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]" [textContent]="data.PersonaDes"></a>
                   </td>
                   <td> N/A</td>
                   <td>{{ data.CategoriaPersonalDescripcion }}</td>
@@ -229,12 +223,12 @@
                 <tr *ngFor="let data of descObj.data" class="">
                   <td>{{ data.PersonalCUITCUILCUIT }}</td>
                   <td>
-                    <a (click)="buscarPorPersona(data.PersonalId)" [textContent]="data.ApellidoNombre"></a>
+                    <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]" [textContent]="data.ApellidoNombre"></a>
                   </td>
                   <td>{{ data.tipomov }}</td>
                   <td>{{ data.desmovimiento }}</td>
                   <td>
-                    <div *ngIf="data.importetotal>0">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
+                    <div *ngIf="(data.cantcuotas>1) ">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
                       | currency }}</div>
                   </td>
                   <td>{{ data.importe | currency }}</td>
@@ -252,7 +246,7 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Persona</nz-form-label>
           <nz-form-control nzHasFeedback>
-            <app-personal-search name="PersonalId" (ngModelChange)="selectedValueChange($event, Busqueda.Personal)"
+            <app-personal-search name="PersonalId" [(ngModel)]="selectedPersonalId"  (ngModelChange)="selectedValueChange($event, Busqueda.Personal)"
               ngModel />
           </nz-form-control>
         </nz-form-item>
@@ -294,18 +288,9 @@
           <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
           <nz-form-control>
             <ng-container *ngFor="let responsable of $personaResponsables | async">
-              <p title="{{ responsable.GrupoActividadId }}">
-                {{ responsable.GrupoActividadNumero }} {{ responsable.GrupoActividadDetalle }} desde
-                {{
-                responsable.GrupoActividadPersonalDesde | date
-                }}
-                <span *ngIf="responsable.GrupoActividadPersonalHasta">
-                  hasta
-                </span>
-                {{
-                responsable.GrupoActividadPersonalHasta | date
-                }}
-              </p>
+              <li title="{{ responsable.id }}">
+                {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}} <span *ngIf="responsable.hasta
+            ">hasta</span> {{responsable.hasta | date}}</li>
             </ng-container>
           </nz-form-control>
         </nz-form-item>
@@ -354,7 +339,7 @@
                     {{ data.ObjetivoCodigo }}
                   </td>
                   <td>
-                    <a (click)="buscarPorObjetivo(data.ObjetivoId)" [textContent]="data.ObjetivoDescripcion">
+                    <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:data.ObjetivoId }]" [textContent]="data.ObjetivoDescripcion">
                     </a>
                   </td>
                   <td>{{ data.PersonalArt14Autorizado }}</td>
@@ -402,7 +387,7 @@
                     {{ data.ObjetivoCodigo }}
                   </td>
                   <td>
-                    <a (click)="buscarPorObjetivo(data.ObjetivoId)" [textContent]="data.ObjetivoDescripcion">
+                    <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:data.ObjetivoId }]" [textContent]="data.ObjetivoDescripcion">
                     </a>
                   </td>
                   <td>{{ data.CategoriaPersonalDescripcion }}</td>
@@ -508,7 +493,7 @@
                   <td><span *ngIf="data.tipocuenta_id=='C'">Coordinador </span>{{ data.tipomov }}</td>
                   <td>{{ data.desmovimiento }}</td>
                   <td>
-                    <div *ngIf="data.importetotal>0">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
+                    <div *ngIf="data.cantcuotas>1">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
                       | currency }}</div>
                   </td>
                   <td>{{ data.importe | currency }}</td>
@@ -547,12 +532,13 @@
         </thead>
         <tbody>
           <ng-container *ngFor="let data of listPer.data" class="">
-            <tr *ngIf="data.ingresosG_importe || data.egresosG_importe ">
+            <!-- <tr *ngIf="data.ingresosG_importe || data.egresosG_importe "> -->
+            <tr>
               <td title="{{ data.PersonalId }}">
                 {{ data.PersonalCUITCUILCUIT }}
               </td>
               <td>
-                <a (click)="buscarPorPersona(data.PersonalId)" [textContent]="data.PersonaDes"></a>
+                <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]" [textContent]="data.PersonaDes"></a>
               </td>
               <td> N/A</td>
               <td>{{ data.ingresosG_importe | currency }}</td>
@@ -567,7 +553,7 @@
                 {{ data.PersonalCUITCUILCUIT }}
               </td>
               <td>
-                <a (click)="buscarPorPersona(data.PersonalId)" [textContent]="data.PersonaDes"></a>
+                <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]" [textContent]="data.PersonaDes"></a>
               </td>
               <td> N/A</td>
               <td>{{ data.ingresosC_importe | currency }}</td>

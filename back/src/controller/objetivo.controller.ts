@@ -18,6 +18,7 @@ export class ObjetivoController extends BaseController {
       return next(error)
     }
   }
+
   static async getObjetivoContratos(objetivoId: number, anio: number, mes: number, queryRunner: QueryRunner) {
     const buscaObjetivo =  (objetivoId!=0) ? ' AND obj.ObjetivoId=@0':''
     return queryRunner
@@ -27,6 +28,8 @@ export class ObjetivoController extends BaseController {
     ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId,
   ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) ContratoFechaDesde,
   ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,clicon.ClienteContratoFechaHasta) ContratoFechaHasta,
+  ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) desde,
+  ISNULL(ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,clicon.ClienteContratoFechaHasta),'9999-12-31') hasta,
   
     1
     
@@ -50,10 +53,72 @@ export class ObjetivoController extends BaseController {
 
   }
 
+  static async getObjetivoResponsables(objetivoId: number, anio: number, mes: number, queryRunner: QueryRunner) {
+    return queryRunner
+      .query(
+        `SELECT 1 AS ord, obj.ObjetivoId as id, 'Grupo' tipo,
+        ga.GrupoActividadId, CONCAT (ga.GrupoActividadNumero, ' ',ga.GrupoActividadDetalle) AS detalle, gap.GrupoActividadObjetivoDesde AS desde , gap.GrupoActividadObjetivoHasta hasta,
+          1
+          
+          FROM Objetivo obj 
+          LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >   gap.GrupoActividadObjetivoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31') 
+        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+          WHERE  obj.ObjetivoId = @0
+    UNION
+    SELECT 2, obj.ObjetivoId, 'Coordinador' tipo,
+        per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, opj.ObjetivoPersonalJerarquicoDesde, opj.ObjetivoPersonalJerarquicoHasta,
+          1
+          
+          FROM Objetivo obj 
+          JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND 
+        EOMONTh(DATEFROMPARTS(@1,@2,1)) >   opj.ObjetivoPersonalJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') AND opj.ObjetivoPersonalJerarquicoComo='C'
+          JOIN Personal per ON per.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
+        WHERE  obj.ObjetivoId = @0
+    UNION
+    SELECT 3, obj.ObjetivoId, 'Supervisor' tipo,
+        per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta,
+          1
+          
+          FROM Objetivo obj 
+          LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >   gap.GrupoActividadObjetivoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31') 
+        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+        LEFT JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = ga.GrupoActividadId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >   gaj.GrupoActividadJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31') AND gaj.GrupoActividadJerarquicoComo = 'J'
+        JOIN Personal per ON per.PersonalId = gaj.GrupoActividadJerarquicoPersonalId
+          WHERE  obj.ObjetivoId = @0
+    UNION
+    SELECT 4, obj.ObjetivoId, 'Administrador' tipo,
+        per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta,
+          1
+          
+          FROM Objetivo obj 
+          LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >   gap.GrupoActividadObjetivoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31') 
+        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+        LEFT JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = ga.GrupoActividadId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >   gaj.GrupoActividadJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31') AND gaj.GrupoActividadJerarquicoComo = 'A'
+        JOIN Personal per ON per.PersonalId = gaj.GrupoActividadJerarquicoPersonalId
+          WHERE  obj.ObjetivoId = @0
+    ORDER BY ord
+    `,
+        [objetivoId, anio, mes]
+      )
+
+  }
+
   async getObjetivoContratosResponse(objetivoId: number, anio: number, mes: number, res: Response, next: NextFunction) {
     try {
       const queryRunner = dataSource.createQueryRunner();
       const records = await ObjetivoController.getObjetivoContratos(objetivoId, anio, mes, queryRunner)
+      this.jsonRes(records, res);
+
+    } catch (error) {
+      return next(error);
+
+    }
+  }
+
+  async getObjetivoResponsablesResponse(objetivoId: number, anio: number, mes: number, res: Response, next: NextFunction) {
+    try {
+      const queryRunner = dataSource.createQueryRunner();
+      const records = await ObjetivoController.getObjetivoResponsables(objetivoId, anio, mes, queryRunner)
       this.jsonRes(records, res);
 
     } catch (error) {

@@ -67,16 +67,17 @@ export class DetalleAsistenciaComponent {
   ) { }
 
   private destroy$ = new Subject();
-
-  selectedTabIndex = 0;
+  
   responsable = 0
 
 
   selectedDate = null;
   selectedPeriod = { year: 0, month: 0 };
 
-  selectedSucursalId = '';
-  selectedObjetivoId = '';
+//  selectedSucursalId = '';
+  selectedObjetivoId = 0;
+  selectedPersonalId = 0;
+  selectedTabIndex = 0;
   selectedMetodologiaId = '';
   selectedCategoriaId = '';
   listaDescuentosPerTotalC = 0
@@ -94,7 +95,6 @@ export class DetalleAsistenciaComponent {
 
   $isSucursalOptionsLoading = new BehaviorSubject(false);
 
-  $selectedSucursalIdChange = new BehaviorSubject('');
   $selectedObjetivoIdChange = new BehaviorSubject('');
   $selectedPersonalIdChange = new BehaviorSubject('');
   $selectedResponsablePersonalIdChange = new BehaviorSubject('');
@@ -111,7 +111,7 @@ export class DetalleAsistenciaComponent {
     switchMap(objetivoId => {
       if (!objetivoId) return [];
       return this.searchService
-        .getObjetivo(
+        .getObjetivoResponsables(
           Number(objetivoId),
           this.selectedPeriod.year,
           this.selectedPeriod.month
@@ -167,7 +167,7 @@ export class DetalleAsistenciaComponent {
   );
 
 
-
+/*
   $optionsObjetivos = this.$searchObjetivoChange.pipe(
     debounceTime(500),
     switchMap(event =>
@@ -179,6 +179,7 @@ export class DetalleAsistenciaComponent {
 
     )
   );
+*/
 
   $listaAsistenciaPer = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
@@ -346,7 +347,7 @@ export class DetalleAsistenciaComponent {
 
 
 
-  ngAfterViewInit(): void {
+  ngAfterContentInit(): void {
     const now = new Date(); //date
     const user: any = this.settingService.getUser()
     setTimeout(() => {
@@ -365,12 +366,6 @@ export class DetalleAsistenciaComponent {
 
       this.asistencia.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
 
-      if (localStorage.getItem('SucursalId')) {
-        this.asistencia.controls['SucursalId'].setValue(
-          Number(localStorage.getItem('SucursalId'))
-        );
-      }
-      //this.asistenciaexcepcion.valueChanges
     }, 1);
 
 
@@ -382,7 +377,7 @@ export class DetalleAsistenciaComponent {
         this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
       if (ObjetivoId > 0)
         this.asistenciaObj.controls['ObjetivoId'].setValue(ObjetivoId);
-    }, 1000)
+    }, 1)
 
 
 
@@ -391,6 +386,7 @@ export class DetalleAsistenciaComponent {
   selectedValueChange(event: string, busqueda: Busqueda): void {
     switch (busqueda) {
       case Busqueda.Sucursal:
+        /*
         localStorage.setItem(
           'SucursalId',
           this.asistencia.controls['SucursalId'].value
@@ -398,14 +394,30 @@ export class DetalleAsistenciaComponent {
         this.selectedSucursalId = event;
         this.$selectedSucursalIdChange.next(event);
         this.$isSucursalDataLoading.next(true);
+        */
         return;
       case Busqueda.Objetivo:
         this.$selectedObjetivoIdChange.next(event);
         this.$isObjetivoDataLoading.next(true);
+        if (Number(event)>0)
+        this.router.navigate(['.', { ObjetivoId: event }], {
+          relativeTo: this.route,
+          skipLocationChange: false,
+          replaceUrl: false,
+        })
+
+
         return;
       case Busqueda.Personal:
         this.$selectedPersonalIdChange.next(event);
         this.$isPersonalDataLoading.next(true);
+        if (Number(event)>0)
+        this.router.navigate(['.', { PersonalId: event }], {
+          relativeTo: this.route,
+          skipLocationChange: false,
+          replaceUrl: false,
+        })
+
         return;
       case Busqueda.Responsable:
         this.$selectedResponsablePersonalIdChange.next(event);
@@ -419,38 +431,23 @@ export class DetalleAsistenciaComponent {
     this.$searchObjetivoChange.next(event);
   }
 
-  buscarPorPersona(PersonalId: string) {
-    this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
-    //    this.router.navigate(['/ges/detalle_asistencia/persona', { state: { PersonalId } }])
-    this.router.navigateByUrl('/ges/detalle_asistencia/persona', { state: { PersonalId } });
-
-  }
-
-  buscarPorObjetivo(ObjetivoId: string) {
-    //console.log('buscarPorObjetivo')
-    this.asistenciaObj.controls['ObjetivoId'].setValue(ObjetivoId);
-    //    this.router.navigate(['/ges/detalle_asistencia/objetivo', { state: { ObjetivoId } }]);
-    this.router.navigateByUrl('/ges/detalle_asistencia/objetivo', { state: { ObjetivoId } });
-
-  }
-
-
+  
 
   ngOnInit(): void {
+  }
 
-    /*
-        this.router.events.subscribe((val) => {
-          // see also 
-          console.log(val) 
-        });
-      
-        
-        this.router.routerState.
-        this.router.events.pipe(filter((event: any) => event instanceof NavigationEnd)).subscribe((event: NavigationEnd) => {
-          //Do something with the NavigationEnd event object.
-          console.log(event) 
-        });
-    */
+  onTabsetChange(_event: any) { 
+    const PersonalId = Number(this.route.snapshot.paramMap.get('PersonalId'))
+    const ObjetivoId = Number(this.route.snapshot.paramMap.get('ObjetivoId'))
+
+    
+      if (PersonalId > 0)
+        this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
+      if (ObjetivoId > 0)
+        this.asistenciaObj.controls['ObjetivoId'].setValue(ObjetivoId);
+    
+
+
   }
 
   dateChange(result: Date): void {

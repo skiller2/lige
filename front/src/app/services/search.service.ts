@@ -127,6 +127,21 @@ export class SearchService {
       );
   }
 
+  getObjetivoResponsables(objetivoId: number, anio: number, mes: number) {
+    if (!objetivoId) {
+      return of([]);
+    }
+    return this.http
+      .get<ResponseJSON<any>>(`api/objetivos/responsables/${anio}/${mes}/${objetivoId}`)
+      .pipe(
+        map(res => res.data),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
   getPersonFromName(fieldName: string, values: string): Observable<Search[]> {
     if (!values || values == '') {
       return of([]);

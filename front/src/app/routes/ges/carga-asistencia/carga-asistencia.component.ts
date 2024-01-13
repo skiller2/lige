@@ -64,6 +64,7 @@ export class CargaAsistenciaComponent {
     selectedSucursalId = 0
     objetivoData: any
     ObjetivoIdUrl: any
+    periodos:any
 
     public get Busqueda() {
         return Busqueda;
@@ -77,7 +78,7 @@ export class CargaAsistenciaComponent {
     getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
         this.loadingSrv.open({ type: 'spin', text: '' })
         return forkJoin([
-            this.searchService.getObjetivo(objetivoId, anio, mes),
+            this.searchService.getObjetivoResponsables(objetivoId, anio, mes),
             this.searchService.getObjetivoContratos(objetivoId, anio, mes),
             this.searchService.getAsistenciaPeriodo(objetivoId, anio, mes),
             // Carga detalle de diario.
@@ -108,6 +109,12 @@ export class CargaAsistenciaComponent {
                 totalRecords(this.angularGridEdit, 'apellidoNombre')
                 columnTotal('total', this.angularGridEdit)
 
+                this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
+
+                this.angularGridEdit.slickGrid.invalidate();
+                this.angularGridEdit.slickGrid.render();
+    
+                this.periodos = data[2] 
                 //this.gridDataInsert = data[3]
                 //data[3].length? this.gridDataInsert = data[3] : this.clearAngularGrid()
                 this.loadingSrv.close()
@@ -216,6 +223,8 @@ export class CargaAsistenciaComponent {
 
         this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand: EditCommand) => {
             //            let undoCommandArr:EditCommand[]=[]
+            this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
+            this.angularGridEdit.slickGrid.invalidate();
 
             const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
             if (lastrow && (lastrow.apellidoNombre)) {
@@ -232,10 +241,10 @@ export class CargaAsistenciaComponent {
 
                 if (editCommand.serializedValue === editCommand.prevSerializedValue) return
                 editCommand.execute()
-
                 const item = this.gridDataInsert.find((obj: any) => {
                     return (obj.id == row.id)
                 })
+                // console.log('this.gridDataInsert',this.gridDataInsert);
                 // console.log(item.apellidoNombre.id, item.categoria.id, item.forma.id, item.tipo.id, item.total)
                 // if(item.apellidoNombre.id && item.categoria.id && item.forma.id && item.tipo.id && item.total != undefined){
                 //     const copia = this.gridDataInsert.find((obj:any)=>{
@@ -247,14 +256,22 @@ export class CargaAsistenciaComponent {
                 //             this.angularGridEdit.gridService.deleteItemById(response.row.id)
                 //     }
                 // }
-                if(item.total != undefined){
+                if (item.total != undefined) {
                     const response = await this.insertDB(item)
-                    if(item.total == 0 && response.row?.id)
+                    if (item.total == 0 && response.row?.id)
                         this.angularGridEdit.gridService.deleteItemById(response.row.id)
                 }
-            } catch (e) {
-                //                const undoCommand = undoCommandArr.pop()
-                if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
+            } catch (e:any) {
+                //console.log('error', e)
+                if (e.error.data.categoria) {
+                    let item = this.gridDataInsert.find((obj: any) => {
+                        return (obj.id == row.id)
+                    }) 
+                    item.categoria = e.error.data.categoria
+                    this.angularGridEdit.gridService.updateItemById(row.id, item)
+                    console.log('this.gridDataInsert',this.gridDataInsert);
+                    
+                }else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
                     this.angularGridEdit.gridService.updateItemById(row.id, editCommand.editor.args.item)
                     editCommand.undo();
                 }
@@ -339,7 +356,7 @@ export class CargaAsistenciaComponent {
             id: newId,
             apellidoNombre: '',
             forma: '',
-            tipo: '',
+            //            tipo: '',
             categoria: '',
         };
     }
@@ -398,6 +415,16 @@ export class CargaAsistenciaComponent {
                 this.columnas = [...this.columnDefinitions, ...daysOfMonth];
                 break;
             case Busqueda.Objetivo:
+                if (this.selectedObjetivoId > 0) {
+                    this.router.navigate(['.', { ObjetivoId: this.selectedObjetivoId }], {
+                        relativeTo: this.route,
+                        skipLocationChange: false,
+                        replaceUrl: false,
+                    })
+                }
+        
+                //                this.router.navigateByUrl('/ges/carga_asistencia', { skipLocationChange: true, state: { 'ObjetivoId': '1' } })
+                //                this.router.navigate([],{relativeTo: this.route, skipLocationChange: true})
                 break;
 
             default:
@@ -449,10 +476,10 @@ export class CargaAsistenciaComponent {
     }
 
     personChange(e: Event, args: any) {
-        let item = args.dataContext
-        item.categoria = ''
-        item.tipo = ''
-        this.angularGridEdit.gridService.updateItemById(item.id, item)
+        //        let item = args.dataContext
+        //        item.categoria = {}
+        //        item.tipo = ''
+        //        this.angularGridEdit.gridService.updateItemById(item.id, item)
     }
 
     // categoryChange(e: Event, args: any) {
@@ -475,31 +502,19 @@ export class CargaAsistenciaComponent {
 
     async insertDB(item: any) {
         if (this.selectedObjetivoId) {
-            let { apellidoNombre, categoria, forma, tipo, ...row } = item
+            let { apellidoNombre, categoria, forma, ...row } = item
 
             const outItem = {
                 ...row,
                 ...this.selectedPeriod,
                 objetivoId: this.selectedObjetivoId,
                 personalId: apellidoNombre.id,
-                tipoAsociadoId: tipo.id,
+                tipoAsociadoId: categoria.tipoId,
                 categoriaPersonalId: categoria.id,
                 formaLiquidacion: forma.id,
             }
 
             return firstValueFrom(this.apiService.addAsistencia(outItem))
-            /*
-                        this.apiService.addAsistencia(item)
-                            .pipe(
-                                //               doOnSubscribe(() => this.saveLoading$.next(true)),
-                                tap({
-                                    complete: () => {
-                                    },
-                                    //                  finalize: () => this.saveLoading$.next(false),
-                                })
-                            )
-                            .subscribe();
-            */
         }
     }
 
@@ -512,6 +527,29 @@ export class CargaAsistenciaComponent {
     setCargaAsistencia() {
         const res = firstValueFrom(this.apiService.addAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)
         ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
+    }
+
+    collapseChange($event: any) {
+        setTimeout(() => {
+            this.angularGridEdit.resizerService.resizeGrid();
+
+        }, 500);
+    }
+
+    updateItemMetadata(previousItemMetadata: any) {
+        return (rowNumber: number) => {
+            const item = this.angularGridEdit.dataView.getItem(rowNumber)
+            let meta = { cssClasses: '' }
+
+            if (typeof previousItemMetadata === 'object')
+                meta = previousItemMetadata(rowNumber)
+
+            if (item.categoria.horasRecomendadas > 0)
+                meta.cssClasses = 'app-horas-fijas'
+            else
+                meta.cssClasses = ''
+            return meta
+        }
     }
 
 }

@@ -7,7 +7,6 @@
   </nz-button-group>
 </ng-template>
 
-<page-header [action]="phActionTpl"></page-header>
 <nz-card class="small-margin">
 
 
@@ -27,6 +26,12 @@
             </div>
           </div>
         </nz-input-group>
+      </nz-form-control>
+      <nz-form-control [nzSpan]="19" style="text-align: right;">
+        <nz-button-group *ngIf="this.selectedObjetivoId">
+          <button nz-button nzType="default" (click)="gotoCargaAsistencia()"><span nz-icon nzType="right"
+              nzTheme="outline"></span>Asistencia diaria</button>
+        </nz-button-group>
       </nz-form-control>
     </nz-form-item>
 
@@ -54,24 +59,24 @@
 
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
-      <nz-form-control>
-        <ng-container *ngFor="let responsable of $objetivoResponsables | async">
-          <p *ngIf="responsable.GrupoActividadId" title="{{ responsable.GrupoActividadId }}">
-            {{responsable.GrupoActividadNumero}} -
-            {{responsable.GrupoActividadDetalle}} desde {{
-            responsable.GrupoActividadObjetivoDesde | date}} <span *ngIf="responsable.GrupoActividadObjetivoHasta
-              ">hasta</span> {{
-            responsable.GrupoActividadObjetivoHasta
-            | date}} </p>
-          <p *ngIf="responsable.PersonalIdCoordinador" title="{{ responsable.PersonalIdCoordinador }}">Coordinador:
-            {{responsable.ApellidoNombreCoordinador}} desde {{
-            responsable.ObjetivoPersonalJerarquicoDesde | date}} <span *ngIf="responsable.ObjetivoPersonalJerarquicoHasta
-              ">hasta</span> {{
-            responsable.GrupoActividadObjetivoHasta
-            | date}} </p>
+      <ng-container *ngIf="$objetivoResponsables| async as objetivoDetalle">
+        <nz-form-control [nzSpan]="21">
+          <nz-collapse nzBordered="false" nzGhost="false" class="app-collapse-header"
+            *ngIf="objetivoDetalle.length">
+            <nz-collapse-panel
+              [nzHeader]="objetivoDetalle[0]?.tipo+' '+objetivoDetalle[0]?.detalle"
+              >
+              <ng-container *ngFor="let responsable of objetivoDetalle">
+                <li *ngIf="responsable.ord !=1" title="{{ responsable.id }}">
+                  {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}} <span *ngIf="responsable.hasta
+                    ">hasta</span> {{responsable.hasta | date}}</li>
+              </ng-container>
+            </nz-collapse-panel>
+          </nz-collapse>
+        </nz-form-control>
 
-        </ng-container>
-      </nz-form-control>
+
+      </ng-container>
     </nz-form-item>
 
     <nz-form-item>
@@ -119,7 +124,8 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Persona</nz-form-label>
       <nz-form-control>
-        <app-personal-search name="PersonalId" ngModel (ngModelChange)="selectedValueChange($event, Busqueda.Personal)" />
+        <app-personal-search name="PersonalId" ngModel
+          (ngModelChange)="selectedValueChange($event, Busqueda.Personal)" />
       </nz-form-control>
     </nz-form-item>
     <nz-form-item>
@@ -150,8 +156,7 @@
           <nz-select name="metodologia" [(ngModel)]="selectedMetodologiaId" nzAllowClear nzPlaceHolder="Metodologia"
             [nzDropdownMatchSelectWidth]="false" nzShowSearch>
             <ng-container *ngFor="let option of optionsMetodologia">
-              <nz-option [nzValue]="option"
-                [nzLabel]="option.etiqueta + ' (' + option.descripcion + ')'"></nz-option>
+              <nz-option [nzValue]="option" [nzLabel]="option.etiqueta + ' (' + option.descripcion + ')'"></nz-option>
             </ng-container>
           </nz-select>
         </nz-form-control>
@@ -160,10 +165,10 @@
       <nz-form-item *ngIf="asistenciaexcepcion.controls['metodologia']?.value">
         <input name="metodo" [ngModel]="asistenciaexcepcion.controls['metodologia'].value.metodo" type="hidden">
         <input name="metodologiaId" [ngModel]="asistenciaexcepcion.controls['metodologia'].value.id" type="hidden">
-    
+
         <nz-form-label [nzSpan]="5"> <span>{{asistenciaexcepcion.controls['metodologia'].value.etiqueta}} </span>
         </nz-form-label>
-        <ng-container  [ngSwitch]="asistenciaexcepcion.controls['metodologia'].value.metodo">
+        <ng-container [ngSwitch]="asistenciaexcepcion.controls['metodologia'].value.metodo">
           <nz-form-control *ngSwitchCase="'S'">
             <nz-input-number name="SumaFija" ngModel [nzStep]="0" style="width:100%"></nz-input-number>
           </nz-form-control>
