@@ -552,7 +552,4 @@ export class CargaAsistenciaComponent {
         }
     }
 
-    gotoExcepcionAsistencia(): void { 
-        this.router.navigate(['/ges/asistencia_excepcion',{ObjetivoId:this.selectedObjetivoId}])
-    }
 }
