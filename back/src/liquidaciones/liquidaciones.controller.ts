@@ -14,6 +14,7 @@ import {
 } from "./liquidaciones-banco/liquidaciones-banco.utils";
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import { promises as fs } from 'fs';
+import { QueryRunner } from "typeorm";
 
 export class LiquidacionesController extends BaseController {
   directory = process.env.PATH_LIQUIDACIONES || "tmp";
@@ -559,27 +560,68 @@ export class LiquidacionesController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     try {
       const periodo = getPeriodoFromRequest(req);
-      let fechaActual = new Date()
+      let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
       console.log("mes " + periodo.month)
       console.log("anio " + periodo.year)
 
       console.log("periodo " + periodo_id)
 
-      const movimientosPendientes = await this.getUsuariosLiquidacion(periodo_id)
-
-
-      // movimientosPendientes.forEach(movimiento => {
-      //   // Hacer algo con cada elemento, por ejemplo:
-      //   console.log(movimiento.persona_id);
-      // });
-
+      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner,periodo_id)
 
       var assetsIcons = process.env.PATH_ASSETS + "icons" ;
-      console.log("ruta recibo " + this.directoryRecibo)
-      const filesPath = this.directoryRecibo + '/' + String(periodo.month) +"-"+ String(periodo.year) + ".pdf"
-      
-      const pdfDoc = await PDFDocument.create();
+
+      var directorPath = this.directoryRecibo+ '/' + String(periodo.month) +"-"+ String(periodo.year) + '/' + periodo_id
+      if (!existsSync(directorPath)) {
+        mkdirSync(directorPath, { recursive: true });
+      }
+      for (const movimiento of movimientosPendientes) {
+
+        const filesPath = directorPath + '/' + movimiento.persona_id + '-' + String(periodo.month) +"-"+ String(periodo.year) + ".pdf"
+        var doc_id =  await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
+
+        if(movimiento.persona_id != null){
+
+        //se nulea mientras se analiza que pasa con los trabajadores que tienen multiples objetivos
+        const objetivo_id = null
+
+        await this.setUsuariosLiquidacionDocGeneral(
+            queryRunner,
+            doc_id,
+            periodo_id, 
+            fechaActual,
+            movimiento.persona_id,
+            objetivo_id,
+            directorPath,
+            filesPath,
+            usuario,
+            ip, 
+            fechaActual,
+            "REC"
+            
+            )
+        }
+       
+
+        //   this.createPdf(filesPath,assetsIcons)
+
+        
+      }
+
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+      return next(error)
+    } finally {
+      //   await queryRunner.release();
+    }
+
+
+  }
+
+  async createPdf(filesPath:string,assetsIcons:string) {
+
+    const pdfDoc = await PDFDocument.create();
       const page = pdfDoc.addPage();
 
       
@@ -612,24 +654,12 @@ export class LiquidacionesController extends BaseController {
       // Guardar el PDF en un archivo
       const pdfBytes = await pdfDoc.save();
       await fs.writeFile(filesPath, pdfBytes);
-
-       console.log("movimientosPendientes " + movimientosPendientes.length)
-
-
-    } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
-      return next(error)
-    } finally {
-      //   await queryRunner.release();
-    }
-
-
+    
   }
 
-  async getUsuariosLiquidacion(periodo_id: Number) {
+  async getUsuariosLiquidacion(queryRunner:QueryRunner,periodo_id: Number) {
    
-    return dataSource.query( `SELECT DISTINCT persona_id FROM lige.dbo.liqmamovimientos WHERE tipocuenta_id = 'G' AND periodo_id=@0 ORDER BY persona_id ASC;`, [periodo_id])
+    return queryRunner.query( `SELECT DISTINCT persona_id FROM lige.dbo.liqmamovimientos WHERE tipocuenta_id = 'G' AND periodo_id=@0 ORDER BY persona_id ASC;`, [periodo_id])
 
   }
 
@@ -644,6 +674,40 @@ export class LiquidacionesController extends BaseController {
 
   }
 
+  
+  async setUsuariosLiquidacionDocGeneral(
+    queryRunner:any,
+    doc_id:number,
+    periodo:number, 
+    fecha:Date,
+    persona_id:number,
+    objetivo_id:number,
+    path:string,
+    nombre_archivo:string,
+    usuario:string,
+    ip:string,
+    audfecha: Date,
+    doctipo_id:string
+    
+    ) {
+
+    return queryRunner.query( `INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "persona_id", "objetivo_id", "path", "nombre_archivo", "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod", "doctipo_id")
+    VALUES
+    (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13);`, 
+    [
+      doc_id,
+      periodo,
+      fecha,
+      persona_id,
+      objetivo_id,
+      path,
+      nombre_archivo,
+      usuario,ip,audfecha,
+      usuario,ip,audfecha,
+      doctipo_id
+      ])
+
+  }
 
   
 
