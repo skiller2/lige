@@ -260,18 +260,16 @@ export class CargaAsistenciaComponent {
                     const response = await this.insertDB(item)
                     if (item.total == 0 && response.row?.id)
                         this.angularGridEdit.gridService.deleteItemById(response.row.id)
+                    if (response.categoria) {
+                        item.categoria = response.categoria
+                        this.angularGridEdit.gridService.updateItemById(row.id, item)
+                    }
                 }
             } catch (e:any) {
                 //console.log('error', e)
                 if (e.error.data.categoria) {
-                    let item = this.gridDataInsert.find((obj: any) => {
-                        return (obj.id == row.id)
-                    }) 
-                    item.categoria = e.error.data.categoria
-                    this.angularGridEdit.gridService.updateItemById(row.id, item)
-                    console.log('this.gridDataInsert',this.gridDataInsert);
                     
-                }else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
+                } else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
                     this.angularGridEdit.gridService.updateItemById(row.id, editCommand.editor.args.item)
                     editCommand.undo();
                 }

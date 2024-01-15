@@ -1639,8 +1639,8 @@ console.log('valido permisos')
 
       const ObjetivoAsistenciaAnoMesPersonalDiasIdId: number = req.body.id
       const personalId: number = req.body.personalId
-      const tipoAsociadoId: number = req.body.tipoAsociadoId
-      const categoriaPersonalId: number = req.body.categoriaPersonalId
+      let tipoAsociadoId: number = req.body.tipoAsociadoId
+      let categoriaPersonalId: number = req.body.categoriaPersonalId
       const formaLiquidacion: number = req.body.formaLiquidacion
       let errores: any[] = []
 
@@ -1666,14 +1666,13 @@ console.log('valido permisos')
         throw new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`)
       }
 
-
+      // Validacion categoria de la persona
       const categorias = await this.getCategoriasPorPersonaQuery(anio, mes, personalId, SucursalId, queryRunner)
       const filterres = categorias.filter((cat: any) => cat.TipoAsociadoId == tipoAsociadoId && cat.PersonalCategoriaCategoriaPersonalId == categoriaPersonalId)
-      
+      let dataCat : object = null
       if (filterres.length == 0){
-        let data = {}
         if (categorias.length) {
-          data = {
+          dataCat = {
             categoria:{
               fullName: categorias[0].CategoriaPersonalDescripcion,
               id: categorias[0].PersonalCategoriaCategoriaPersonalId,
@@ -1681,8 +1680,12 @@ console.log('valido permisos')
               tipoId: categorias[0].TipoAsociadoId
             }
           }
+          tipoAsociadoId = categorias[0].TipoAsociadoId
+          categoriaPersonalId = categorias[0].PersonalCategoriaCategoriaPersonalId
+        } else {
+          dataCat = { categoria:{ fullName: '', id: 0, tipoFullName: '', tipoId: 0 }}
+          throw new ClientException(`La categoría seleccionada no se encuentra habilitada para la persona`, dataCat)
         }
-        throw new ClientException(`La categoría seleccionada no se encuentra habilitada para la persona`, data)
       }
 
       //Validación de Personal disponible
@@ -1823,43 +1826,6 @@ console.log('valido permisos')
       const horas = Math.trunc(totalhs).toString()
       req.body.total = `${horas}.${min}`
 
-
-
-      // const asistenciaPersonalDias = await queryRunner.query(`
-      //   SELECT objp.ObjetivoAsistenciaAnoMesPersonalDiasId id
-      //   FROM ObjetivoAsistenciaAnoMesPersonalDias objp
-      //   WHERE objp.ObjetivoId = @0 
-      //   AND objp.ObjetivoAsistenciaAnoId = @1 
-      //   AND objp.ObjetivoAsistenciaAnoMesId = @2 
-      //   AND objp.ObjetivoAsistenciaMesPersonalId = @3 
-      //   AND objp.ObjetivoAsistenciaTipoAsociadoId = @4 
-      //   AND objp.ObjetivoAsistenciaCategoriaPersonalId = @5
-      //   AND objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras = @6`,
-      //   [objetiveId, anoId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion])
-      // const asistenciaDiasPersonal = await queryRunner.query(`
-      //   SELECT objp.ObjetivoAsistenciaMesDiasPersonalId id
-      //   FROM ObjetivoAsistenciaMesDiasPersonal objp
-      //   WHERE objp.ObjetivoId = @0 
-      //   AND objp.ObjetivoAsistenciaAnoId = @1
-      //   AND objp.ObjetivoAsistenciaAnoMesId = @2
-      //   AND objp.ObjetivoAsistenciaMesPersonalId = @3 
-      //   AND objp.ObjetivoAsistenciaTipoAsociadoId = @4 
-      //   AND objp.ObjetivoAsistenciaCategoriaPersonalId = @5
-      //   AND objp.ObjetivoAsistenciaMesDiasPersonalFormaLiquidacionHoras = @6`,
-      //   [objetiveId, anoId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion])
-      // const asistenciaPersonalAsignado = await queryRunner.query(`
-      //   SELECT objp.ObjetivoAsistenciaAnoMesPersonalAsignadoId id
-      //   FROM ObjetivoAsistenciaAnoMesPersonalAsignado objp
-      //   WHERE objp.ObjetivoId = @0 
-      //   AND objp.ObjetivoAsistenciaAnoId = @1
-      //   AND objp.ObjetivoAsistenciaAnoMesId = @2
-      //   AND objp.ObjetivoAsistenciaMesPersonalId = @3 
-      //   AND objp.ObjetivoAsistenciaTipoAsociadoId = @4 
-      //   AND objp.ObjetivoAsistenciaCategoriaPersonalId = @5
-      //   AND objp.ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras = @6`,
-      //   [objetiveId, anoId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion])
-      // console.log('ASISTENCIA', asistenciaPersonalDias);
-      // if (!asistenciaPersonalAsignado.length && rowId>lista.length) {
       if (errores.length) {
         throw new ClientException(errores.join(`\n`))
       }
@@ -1877,7 +1843,7 @@ console.log('valido permisos')
         const newAsistenciaDiasPersonalId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesDiasPersonalUltNro + 1
         const newAsistenciaPersonalAsignadoId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesPersonalUltNro + 1
 
-        result = await queryRunner.query(`
+        await queryRunner.query(`
           INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id)
           VALUES (
             ${newAsistenciaPersonalDiasId}, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, ${newAsistenciaPersonalDiasId})
@@ -1887,9 +1853,8 @@ console.log('valido permisos')
           INSERT INTO ObjetivoAsistenciaAnoMesPersonalAsignado (ObjetivoAsistenciaAnoMesPersonalAsignadoId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras, ObjetivoAsistenciaAnoMesPersonalAsignadoIngresaPersonal)
           VALUES (
             ${newAsistenciaPersonalAsignadoId}, @2, @1, @0, @3, @4, @5, @6, 'P')`,
-          [objetivoId, anioId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion, req.body.total]
+          [objetivoId, anioId, mesId, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, req.body.total]
         )
-        // console.log('RESULT1',result);
 
         await queryRunner.query(
           `UPDATE ObjetivoAsistenciaAnoMes 
@@ -1898,49 +1863,7 @@ console.log('valido permisos')
           [objetivoId, anioId, mes, mesId, newAsistenciaPersonalDiasId, newAsistenciaPersonalAsignadoId, newAsistenciaDiasPersonalId]
         )
       } else {
-        // const deleteAsistencia = await queryRunner.query(`
-        //   DELETE ObjetivoAsistenciaAnoMesPersonalDias
-        //   WHERE ObjetivoAsistenciaAnoMesPersonalDiasId = ${asistenciaPersonalDias[0].id}
-        //   AND ObjetivoId = @0 
-        //   AND ObjetivoAsistenciaAnoId = @1 
-        //   AND ObjetivoAsistenciaAnoMesId = @2
-        //   AND ObjetivoAsistenciaMesPersonalId = @3 
-        //   AND ObjetivoAsistenciaTipoAsociadoId = @4 
-        //   AND ObjetivoAsistenciaCategoriaPersonalId = @5
-        //   AND ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras = @6
-        //   DELETE ObjetivoAsistenciaMesDiasPersonal
-        //   WHERE ObjetivoAsistenciaMesDiasPersonalId = ${asistenciaDiasPersonal[0].id}
-        //   AND ObjetivoId = @0 
-        //   AND ObjetivoAsistenciaAnoId = @1 
-        //   AND ObjetivoAsistenciaAnoMesId = @2
-        //   AND ObjetivoAsistenciaMesPersonalId = @3 
-        //   AND ObjetivoAsistenciaTipoAsociadoId = @4 
-        //   AND ObjetivoAsistenciaCategoriaPersonalId = @5
-        //   AND ObjetivoAsistenciaMesDiasPersonalFormaLiquidacionHoras = @6
-        //   DELETE ObjetivoAsistenciaAnoMesPersonalAsignado
-        //   WHERE ObjetivoAsistenciaAnoMesPersonalAsignadoId = ${asistenciaPersonalAsignado[0].id}
-        //   AND ObjetivoId = @0 
-        //   AND ObjetivoAsistenciaAnoId = @1
-        //   AND ObjetivoAsistenciaAnoMesId = @2
-        //   AND ObjetivoAsistenciaMesPersonalId = @3 
-        //   AND ObjetivoAsistenciaTipoAsociadoId = @4 
-        //   AND ObjetivoAsistenciaCategoriaPersonalId = @5
-        //   AND ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras = @6`,
-        //   [objetiveId, anoId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion]
-        // )
-        // result = await queryRunner.query(`
-        //   INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id)
-        //   VALUES (
-        //     ${asistenciaPersonalDias[0].id}, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, ${asistenciaPersonalDias[0].id})
-        //   INSERT INTO ObjetivoAsistenciaMesDiasPersonal (ObjetivoAsistenciaMesDiasPersonalId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaMesDiasPersonalFormaLiquidacionHoras ${columnsDay}, ObjetivoAsistenciaAnoMesPersonalDiaTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSuId)
-        //   VALUES (
-        //     ${asistenciaDiasPersonal[0].id}, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, ${asistenciaDiasPersonal[0].id})
-        //   INSERT INTO ObjetivoAsistenciaAnoMesPersonalAsignado (ObjetivoAsistenciaAnoMesPersonalAsignadoId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras, ObjetivoAsistenciaAnoMesPersonalAsignadoIngresaPersonal)
-        //   VALUES (
-        //     ${asistenciaPersonalAsignado[0].id}, @2, @1, @0, @3, @4, @5, @6, 'P')`,
-        //   [objetiveId, anoId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion, req.body.total]
-        // )
-        const deleteAsistencia = await queryRunner.query(`
+        await queryRunner.query(`
           DELETE ObjetivoAsistenciaAnoMesPersonalDias
           WHERE ObjetivoAsistenciaAnoMesPersonalDiasId = @3
           AND ObjetivoId = @0 
@@ -1958,7 +1881,7 @@ console.log('valido permisos')
           AND ObjetivoAsistenciaAnoMesId = @2`,
           [objetivoId, anioId, mesId, personal.id]
         )
-        result = await queryRunner.query(`
+        await queryRunner.query(`
           INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id)
           VALUES (
             @8, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8)
@@ -1968,11 +1891,14 @@ console.log('valido permisos')
           INSERT INTO ObjetivoAsistenciaAnoMesPersonalAsignado (ObjetivoAsistenciaAnoMesPersonalAsignadoId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras, ObjetivoAsistenciaAnoMesPersonalAsignadoIngresaPersonal)
           VALUES (
             @8, @2, @1, @0, @3, @4, @5, @6, 'P')`,
-          [objetivoId, anioId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion, req.body.total, personal.id]
+          [objetivoId, anioId, mesId, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, req.body.total, personal.id]
         )
       }
       await queryRunner.commitTransaction()
-      return this.jsonRes('', res);
+      if (dataCat) {
+        return this.jsonRes(dataCat, res, `Se actualizó la categoría`);
+      }
+      return this.jsonRes('', res, null);
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction()
