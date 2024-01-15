@@ -569,8 +569,6 @@ export class LiquidacionesController extends BaseController {
 
       const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner,periodo_id)
 
-      var assetsIcons = process.env.PATH_ASSETS + "icons" ;
-
       var directorPath = this.directoryRecibo+ '/' + String(periodo.month) +"-"+ String(periodo.year) + '/' + periodo_id
       if (!existsSync(directorPath)) {
         mkdirSync(directorPath, { recursive: true });
@@ -603,7 +601,7 @@ export class LiquidacionesController extends BaseController {
         }
        
 
-        //   this.createPdf(filesPath,assetsIcons)
+      this.createPdf(queryRunner,filesPath,movimiento.persona_id)
 
         
       }
@@ -619,42 +617,39 @@ export class LiquidacionesController extends BaseController {
 
   }
 
-  async createPdf(filesPath:string,assetsIcons:string) {
+  async createPdf(queryRunner:QueryRunner,filesPath:string,persona_id:number) {
 
-    const pdfDoc = await PDFDocument.create();
-      const page = pdfDoc.addPage();
+       const name =  await this.getnomberById(queryRunner,persona_id);
 
-      
-      const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-      const logoBytes = await fs.readFile(assetsIcons + '/icon-lince-96x96.png');
-      const logoImage = await pdfDoc.embedPng(logoBytes);
+       if (name && name.length > 0) {
+        const personalApellidoNombre = name[0].PersonalApellidoNombre;
+        
+    	// Fetch the PDF with form fields
+       const formUrl = process.env.PATH_PDFRECIBO + "recibo.pdf"
+      // const formPdfBytes = await fetch(formUrl).then(res => res.arrayBuffer())
+      const formPdfBytes = await fs.readFile(formUrl);
 
-      // Obtener las dimensiones del logo y centrarlo en la página
-      const logoWidth = logoImage.width * 0.5;
-      const logoHeight = logoImage.height * 0.5;
-      const centerX = page.getWidth() / 2 - logoWidth / 2;
-      const centerY = page.getHeight() / 1 - logoHeight / 1;
+      // Load a PDF with form fields
+      const pdfDoc = await PDFDocument.load(formPdfBytes)
 
-      // Dibujar el logo centrado en la página
-      page.drawImage(logoImage, {
-        x: centerX,
-        y: centerY,
-        width: logoWidth,
-        height: logoHeight,
-      });
-      const fontSize = 14;
-      page.drawText('Creating PDFs in JavaScript is awesome!', {
-          x: 50,
-          y: page.getHeight() - 8 * fontSize,
-          size: fontSize,
-          font,
-          color: rgb(0, 0.53, 0.71),
-        });
+
+      // Get the form containing all the fields
+      const form = pdfDoc.getForm()
+
+      // Get all fields in the PDF by their names
+      const nameField = form.getTextField(`nombre`)
+
+      nameField.setText(`${personalApellidoNombre}`)
 
       // Guardar el PDF en un archivo
       const pdfBytes = await pdfDoc.save();
       await fs.writeFile(filesPath, pdfBytes);
-    
+      
+    }
+  }
+
+  async getnomberById(queryRunner:QueryRunner,persona_id:number){
+    return queryRunner.query( `SELECT PersonalApellidoNombre FROM Personal WHERE PersonalId =@0`, [persona_id])
   }
 
   async getUsuariosLiquidacion(queryRunner:QueryRunner,periodo_id: Number) {
