@@ -580,8 +580,7 @@ export class LiquidacionesController extends BaseController {
 
         if(movimiento.persona_id != null){
 
-        //se nulea mientras se analiza que pasa con los trabajadores que tienen multiples objetivos
-        const objetivo_id = null
+        //el objetivo_id para este caso es 0
 
         await this.setUsuariosLiquidacionDocGeneral(
             queryRunner,
@@ -589,7 +588,7 @@ export class LiquidacionesController extends BaseController {
             periodo_id, 
             fechaActual,
             movimiento.persona_id,
-            objetivo_id,
+            0,
             directorPath,
             filesPath,
             usuario,
@@ -601,7 +600,7 @@ export class LiquidacionesController extends BaseController {
         }
        
 
-      this.createPdf(queryRunner,filesPath,movimiento.persona_id)
+      this.createPdf(queryRunner,filesPath,movimiento.persona_id,doc_id,fechaActual)
 
         
       }
@@ -617,39 +616,78 @@ export class LiquidacionesController extends BaseController {
 
   }
 
-  async createPdf(queryRunner:QueryRunner,filesPath:string,persona_id:number) {
+  async createPdf(queryRunner:QueryRunner,filesPath:string,persona_id:number,doc_id:number,fechaActual:Date) {
 
-       const name =  await this.getnomberById(queryRunner,persona_id);
+       const userInfo =  await this.getInfoById(queryRunner,persona_id);
 
-       if (name && name.length > 0) {
-        const personalApellidoNombre = name[0].PersonalApellidoNombre;
+       const dia = fechaActual.getDate();
+       const mes = fechaActual.getMonth() + 1; // Suma 1 ya que los meses van de 0 a 11
+       const anio = fechaActual.getFullYear();
+
+      // Formatea la fecha como "dia/mes/año"
+      const fechaFormateada = `${dia}/${mes}/${anio}`
+
+       if (userInfo && userInfo.length > 0) {
+
         
-    	// Fetch the PDF with form fields
-       const formUrl = process.env.PATH_PDFRECIBO + "recibo.pdf"
-      // const formPdfBytes = await fetch(formUrl).then(res => res.arrayBuffer())
-      const formPdfBytes = await fs.readFile(formUrl);
+        // Fetch the PDF with form fields
+        const formUrl = process.env.PATH_PDFRECIBO + "inaes.pdf"
+        // const formPdfBytes = await fetch(formUrl).then(res => res.arrayBuffer())
+        const formPdfBytes = await fs.readFile(formUrl);
 
-      // Load a PDF with form fields
-      const pdfDoc = await PDFDocument.load(formPdfBytes)
+        // Load a PDF with form fields
+        const pdfDoc = await PDFDocument.load(formPdfBytes)
 
+        // Get the form containing all the fields
+        const form = pdfDoc.getForm()
 
-      // Get the form containing all the fields
-      const form = pdfDoc.getForm()
+        const numberField = form.getTextField(`NUMERO`)
 
-      // Get all fields in the PDF by their names
-      const nameField = form.getTextField(`nombre`)
+        numberField.setText(`${doc_id}`)
 
-      nameField.setText(`${personalApellidoNombre}`)
+        const dateField = form.getTextField(`FECHA`)
 
-      // Guardar el PDF en un archivo
-      const pdfBytes = await pdfDoc.save();
-      await fs.writeFile(filesPath, pdfBytes);
-      
+        dateField.setText(`${fechaFormateada}`)
+
+        const nameField = form.getTextField(`NOMBRE`)
+
+        nameField.setText(`${userInfo[0].PersonalNombre}`)
+
+        const cuitField = form.getTextField(`CUIT`)
+
+        cuitField.setText(`${userInfo[0].PersonalCUITCUILCUIT}`)
+
+        const domicilioField = form.getTextField(`DOMICILIO`)
+
+        domicilioField.setText(`${userInfo[0].DomicilioCompleto}`)
+
+        const cbuField = form.getTextField(`CBU`)
+
+        cbuField.setText(`${userInfo[0].PersonalBancoCBU}`)
+
+        // Guardar el PDF en un archivo
+        const pdfBytes = await pdfDoc.save();
+        await fs.writeFile(filesPath, pdfBytes);
+        
     }
   }
 
-  async getnomberById(queryRunner:QueryRunner,persona_id:number){
-    return queryRunner.query( `SELECT PersonalApellidoNombre FROM Personal WHERE PersonalId =@0`, [persona_id])
+  async getInfoById(queryRunner:QueryRunner,persona_id:number){
+    return queryRunner.query( `SELECT
+    CONCAT(RTRIM(Personal.PersonalNombre), ' ', Personal.PersonalApellido) AS PersonalNombre,
+    cuit.PersonalCUITCUILCUIT,
+    CONCAT(
+      RTRIM(dom.PersonalDomicilioDomCalle), ' ',
+      dom.PersonalDomicilioDomNro, ' ',
+      dom.PersonalDomicilioDomPiso, ' ',
+      dom.PersonalDomicilioDomDpto
+    ) AS DomicilioCompleto,
+    perbanco.PersonalBancoCBU
+    FROM Personal
+    JOIN PersonalBanco AS perbanco ON perbanco.PersonalId = Personal.PersonalId
+    JOIN PersonalCUITCUIL AS cuit ON cuit.PersonalId = Personal.PersonalId
+    JOIN PersonalDomicilio AS dom ON dom.PersonalId = Personal.PersonalId
+    WHERE Personal.PersonalId =@0`, [persona_id])
   }
 
   async getUsuariosLiquidacion(queryRunner:QueryRunner,periodo_id: Number) {
