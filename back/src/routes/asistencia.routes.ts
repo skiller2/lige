@@ -39,3 +39,4 @@ asistenciaRouter.post('/periodo/fin', authMiddleware.verifyToken, (req, res, nex
 asistenciaRouter.get('/periodo/:anio/:mes/:ObjetivoId', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.getAsistenciaPeriodo(req, res, next)})
 asistenciaRouter.get('/listaperasig/:anio/:mes/:ObjetivoId', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.getListaAsistenciaPersonalAsignado(req, res, next)})
 
+asistenciaRouter.get('/listaperasigant/:anio/:mes/:ObjetivoId', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.getListaAsistenciaPersonalAsignadoAnterior(req, res, next)})

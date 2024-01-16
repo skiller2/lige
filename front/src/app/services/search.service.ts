@@ -40,6 +40,17 @@ export class SearchService {
       );
   }
 
+  getListaAsistenciaPersonalAsignadoAnterior(ObjetivoId: number, anio: number, mes: number) {
+    if (!ObjetivoId)
+      return of([])
+    return this.http
+      .get<ResponseJSON<any>>(`api/asistencia/listaperasigant/${anio}/${mes}/${ObjetivoId}`)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
   getAsistenciaPeriodo(ObjetivoId: number, anio: number, mes: number) {
     if (!ObjetivoId)
       return of([])

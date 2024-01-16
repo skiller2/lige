@@ -1962,9 +1962,9 @@ console.log('valido permisos')
     }
   }
 
-  static async listaAsistenciaPersonalAsignado(objetivoId: number, anio: number, mes: number, queryRunner: any) {
+  static async listaAsistenciaPersonalAsignado(objetivoId: number, anio: number, mes: number, queryRunner: any, hasta: number = 31) {
     let dias = ''
-    for (let index = 1; index <= 31; index++)
+    for (let index = 1; index <= hasta; index++)
       dias = dias + `, TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias${index}Gral) day${index}`
 
     let personal = await queryRunner.query(`
@@ -2012,7 +2012,7 @@ console.log('valido permisos')
         }
       });
       return {
-        id: obj.id,
+        id: hasta? obj.id : index+1,
         apellidoNombre: {
           fullName: obj.fullName,
           id: obj.PersonalId
@@ -2035,4 +2035,35 @@ console.log('valido permisos')
     return data
   }
 
+  async getListaAsistenciaPersonalAsignadoAnterior(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction()
+      const objetivoId = req.params.ObjetivoId;
+      let anio = req.params.anio;
+      let mes = req.params.mes;
+
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
+        throw new ClientException(`No tiene permisos para ver asistencia`)
+
+      if(mes == 1){
+        mes = 12
+        anio--
+      } else {
+        mes--
+      }
+      console.log('periodo', anio, mes);
+      const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner, 0)
+      //console.log('lista', lista);
+      
+      await queryRunner.commitTransaction()
+      this.jsonRes(lista, res);
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction()
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
 }
