@@ -571,7 +571,7 @@ export class LiquidacionesController extends BaseController {
 
       var directorPath = this.directoryRecibo+ '/' + String(periodo.month) +"-"+ String(periodo.year) + '/' + periodo_id
       if (!existsSync(directorPath)) {
-        mkdirSync(directorPath, { recursive: true });
+        mkdirSync(directorPath, { recursive: true }); 
       }
       for (const movimiento of movimientosPendientes) {
 
