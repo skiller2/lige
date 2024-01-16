@@ -974,7 +974,7 @@ JOIN Objetivo obj ON obj.ObjetivoId = des.ObjetivoId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
 
-WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
+WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2 AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
  ${listPersonaId}
 
       UNION
@@ -1029,6 +1029,19 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
 
   }
 
+  async getLicenciasPorPersonaQuery(anio: number, mes: number, personalId: number, queryRunner: QueryRunner) {
+    return queryRunner.query(
+      `
+        SELECT PersonalLicenciaDesde desde, ISNULL( ISNULL(PersonalLicenciaTermina,PersonalLicenciaHasta), '9999-12-31') hasta, ISNULL(PersonalLicenciaTermina,PersonalLicenciaHasta) hasta2 
+        FROM PersonalLicencia 
+        WHERE PersonalId = @0 
+        AND PersonalLicenciaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+        AND ISNULL(PersonalLicenciaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
+        AND ISNULL(PersonalLicenciaTermina,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+        `,[personalId, anio, mes]
+      )
+  }
+
   async getCategoriasPorPersona(req: any, res: Response, next: NextFunction) {
     try {
       const personalId = req.params.personalId;
@@ -1042,6 +1055,23 @@ WHERE cuo.ObjetivoDescuentoCuotaAno = @1 AND cuo.ObjetivoDescuentoCuotaMes = @2
 
       const categorias = await this.getCategoriasPorPersonaQuery(anio, mes, personalId, SucursalId, queryRunner)
       this.jsonRes({ categorias: categorias }, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getLicenciasPorPersona(req: any, res: Response, next: NextFunction) {
+    try {
+      const personalId = req.params.personalId;
+      const anio = req.params.anio;
+      const mes = req.params.mes;
+      const queryRunner = dataSource.createQueryRunner();
+
+      //      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      //        throw new ClientException(`No tiene permiso para obtener información de categorías de persona`)
+
+      const licencias = await this.getLicenciasPorPersonaQuery(anio, mes, personalId, queryRunner)
+      this.jsonRes({ licencias }, res);
     } catch (error) {
       return next(error)
     }
@@ -1089,60 +1119,35 @@ console.log('valido permisos')
 
       //Busco la lista de PersonalId que le corresponde al responsable
       let personalIdList: number[] = []
-      const personal = await queryRunner.query(
-        `SELECT gap.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle, per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS PersonaDes,
-        cuit.PersonalCUITCUILCUIT,
-         0 as ingresosG_importe,
-         0 as ingresosC_importe,
-         0 as ingresos_horas,
-         0 as egresosG_importe,
-         0 as egresosC_importe,
-         1
-         FROM Personal per
-			LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-         
-         JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
-         JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId=gap.GrupoActividadId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gaj.GrupoActividadJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gaj.GrupoActividadJerarquicoHasta , '9999-12-31')
-         JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
-         
-         WHERE gaj.GrupoActividadJerarquicoPersonalId = @0 AND per.PersonalId <> @0
-         UNION
-         
-         SELECT 0,0,'', per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS PersonaDes,
-         cuit.PersonalCUITCUILCUIT,
-          0 as ingresosG_importe,
-          0 as ingresosC_importe,
-          0 as ingresos_horas,
-          0 as egresosG_importe,
-          0 as egresosC_importe,
-          1
-          FROM Personal per
-          LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-        WHERE per.PersonalId=@0
+      const personal = await queryRunner.query(`
+      SELECT 0,0,'', per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS PersonaDes,
+      cuit.PersonalCUITCUILCUIT,
+      0 as ingresosG_importe,
+      0 as ingresosC_importe,
+      0 as ingresos_horas,
+      0 as egresosG_importe,
+      0 as egresosC_importe,
+      1
+      FROM Personal per
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+      WHERE per.PersonalId IN (
+        SELECT gap.GrupoActividadPersonalPersonalId
+        FROM GrupoActividadJerarquico gaj 
+        JOIN GrupoActividadPersonal gap ON gap.GrupoActividadId=gaJ.GrupoActividadId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31') 
+        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gaj.GrupoActividadJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gaj.GrupoActividadJerarquicoHasta , '9999-12-31') AND gaj.GrupoActividadJerarquicoPersonalId = @0
         UNION
-        SELECT DISTINCT gaj.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle, per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS PersonaDes,
-        cuit.PersonalCUITCUILCUIT,
-         0 as ingresosG_importe,
-         0 as ingresosC_importe,
-         0 as ingresos_horas,
-         0 as egresosG_importe,
-         0 as egresosC_importe,
-         1
-         FROM Personal per
-			LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-         
-			JOIN GrupoActividadJerarquico gaj ON EOMONTh(DATEFROMPARTS(@1,@2,1)) > gaj.GrupoActividadJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gaj.GrupoActividadJerarquicoHasta , '9999-12-31') 
-         JOIN GrupoActividad ga ON ga.GrupoActividadId = gaj.GrupoActividadId
-         
-         JOIN GrupoActividadJerarquico gap ON gap.GrupoActividadId=ga.GrupoActividadId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gap.GrupoActividadJerarquicoHasta , '9999-12-31') AND gap.GrupoActividadJerarquicoPersonalId = per.PersonalId AND gap.GrupoActividadJerarquicoComo ='J'
-         
-         
-         WHERE  gaj.GrupoActividadJerarquicoPersonalId = @0  AND per.PersonalId <> @0      
-
-
-
-         ORDER BY PersonaDes
-         `, [personalId, anio, mes])
+        
+        SELECT gap.GrupoActividadJerarquicoPersonalId
+                 FROM GrupoActividadJerarquico gaj 
+                 JOIN GrupoActividadJerarquico gap ON gap.GrupoActividadId=gaJ.GrupoActividadId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gap.GrupoActividadJerarquicoHasta , '9999-12-31') AND gap.GrupoActividadJerarquicoComo = 'J' 
+                 WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gaj.GrupoActividadJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gaj.GrupoActividadJerarquicoHasta , '9999-12-31') AND gaj.GrupoActividadJerarquicoPersonalId = @0 
+        
+        UNION
+        SELECT @0
+      )
+      ORDER BY PersonaDes`
+        
+, [personalId, anio, mes])
 
       for (let ds of personal)
         personalIdList.push(ds.PersonalId)
@@ -1827,7 +1832,7 @@ console.log('valido permisos')
       req.body.total = `${horas}.${min}`
 
       if (errores.length) {
-        throw new ClientException(errores.join(`\n`))
+        throw new ClientException(errores)
       }
       let result
 

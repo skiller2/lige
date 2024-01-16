@@ -1,5 +1,5 @@
 import {
-  Component, Injector, ViewChild
+  Component, Injector, Input, ViewChild
 } from '@angular/core';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import {
@@ -51,7 +51,8 @@ export class DetalleAsistenciaComponent {
   @ViewChild('asistenciaPer', { static: true }) asistenciaPer: NgForm =
     new NgForm([], []);
   //@ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
-
+  @Input('ObjetivoId') ObjetivoId:number | undefined
+  @Input('PersonalId') PersonalId:number | undefined
 
 
   public get Busqueda() {
@@ -301,9 +302,9 @@ export class DetalleAsistenciaComponent {
     switchMap(() =>
       this.apiService
         .getPersonaSitRevista(
+          Number(this.asistenciaPer.controls['PersonalId'].value),
           this.selectedPeriod.year,
           this.selectedPeriod.month,
-          this.asistenciaPer.controls['PersonalId'].value
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -318,9 +319,9 @@ export class DetalleAsistenciaComponent {
     switchMap(() =>
       this.apiService
         .getPersonaResponsables(
+          Number(this.asistenciaPer.controls['PersonalId'].value),
           this.selectedPeriod.year,
           this.selectedPeriod.month,
-          this.asistenciaPer.controls['PersonalId'].value
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -368,15 +369,11 @@ export class DetalleAsistenciaComponent {
 
     }, 1);
 
-
-    const PersonalId = Number(this.route.snapshot.paramMap.get('PersonalId'))
-    const ObjetivoId = Number(this.route.snapshot.paramMap.get('ObjetivoId'))
-
     setTimeout(() => {
-      if (PersonalId > 0)
-        this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
-      if (ObjetivoId > 0)
-        this.asistenciaObj.controls['ObjetivoId'].setValue(ObjetivoId);
+      if (this.PersonalId)
+        this.asistenciaPer.controls['PersonalId'].setValue(Number(this.PersonalId))
+      if (this.ObjetivoId)
+        this.asistenciaObj.controls['ObjetivoId'].setValue(Number(this.ObjetivoId))
     }, 1)
 
 
@@ -437,17 +434,10 @@ export class DetalleAsistenciaComponent {
   }
 
   onTabsetChange(_event: any) { 
-    const PersonalId = Number(this.route.snapshot.paramMap.get('PersonalId'))
-    const ObjetivoId = Number(this.route.snapshot.paramMap.get('ObjetivoId'))
-
-    
-      if (PersonalId > 0)
-        this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
-      if (ObjetivoId > 0)
-        this.asistenciaObj.controls['ObjetivoId'].setValue(ObjetivoId);
-    
-
-
+      if (this.PersonalId)
+        this.asistenciaPer.controls['PersonalId'].setValue(Number(this.PersonalId))
+      if (this.ObjetivoId)
+        this.asistenciaObj.controls['ObjetivoId'].setValue(Number(this.ObjetivoId))
   }
 
   dateChange(result: Date): void {

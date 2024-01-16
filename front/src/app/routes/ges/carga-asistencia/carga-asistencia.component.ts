@@ -65,6 +65,13 @@ export class CargaAsistenciaComponent {
     objetivoData: any
     ObjetivoIdUrl: any
     periodos:any
+    visibleDrawer: boolean = false
+    personalDetalleCategorias: any[] =[]
+    personalDetalleLicencias: any[] =[]
+    personalDetalleSitRevista: any[] = [];
+    personalApellidoNombre: any;
+    personalDetalleResponsables: any[] = [];
+    personalDetalle: any | undefined
 
     public get Busqueda() {
         return Busqueda;
@@ -74,6 +81,27 @@ export class CargaAsistenciaComponent {
     $selectedObjetivoIdChange = new BehaviorSubject(0);
     $formChange = new BehaviorSubject({});
     objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
+
+
+    async getPersonaDetalle(PersonalId: number, anio: number, mes: number, SucursalId:number) {
+        const result = await firstValueFrom(forkJoin([
+            this.searchService.getCategoriasPersona(PersonalId, anio, mes, SucursalId),
+            this.searchService.getLicenciasPersona(PersonalId, anio, mes),
+            this.apiService.getPersonaSitRevista(PersonalId, anio, mes),
+            this.apiService.getPersonaResponsables(PersonalId, anio, mes),
+            this.searchService.getPersonalById(PersonalId)
+            //this.searchService.getObjetivoContratos(PersonalId, anio, mes),
+        ]))
+
+        console.log('detalle',result)
+
+        this.personalDetalleCategorias = result[0].categorias
+        this.personalDetalleLicencias = result[1].licencias
+        this.personalDetalleSitRevista = result[2]
+        this.personalDetalleResponsables = result[3]
+        this.personalDetalle = result[4]
+    }
+
 
     getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
         this.loadingSrv.open({ type: 'spin', text: '' })
@@ -432,8 +460,6 @@ export class CargaAsistenciaComponent {
         this.$selectedObjetivoIdChange.next(this.selectedObjetivoId);
         this.$isObjetivoDataLoading.next(true);
 
-
-
         this.angularGridEdit.slickGrid.setOptions({ frozenColumn: 2 })
         this.angularGridEdit.slickGrid.reRenderColumns(true)
         this.gridOptionsEdit.params.anio = this.selectedPeriod.year
@@ -442,7 +468,6 @@ export class CargaAsistenciaComponent {
         this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
 
         this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
-
 
         this.clearAngularGrid()
     }
@@ -550,4 +575,20 @@ export class CargaAsistenciaComponent {
         }
     }
 
+    openDrawer(): void {
+        const selrows = this.angularGridEdit.slickGrid.getSelectedRows()
+        if (selrows[0]==undefined) return
+        this.visibleDrawer = true
+
+        const row = this.angularGridEdit.slickGrid.getDataItem(selrows[0])
+
+        //
+        const PersonalId = row.apellidoNombre.id;
+        this.personalApellidoNombre = row.apellidoNombre.fullName    
+        this.getPersonaDetalle(PersonalId,this.selectedPeriod.year,this.selectedPeriod.month,this.selectedSucursalId)
+    }
+    
+    closeDrawer(): void {
+        this.visibleDrawer = false;
+    }
 }

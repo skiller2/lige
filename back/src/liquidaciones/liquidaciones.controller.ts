@@ -309,7 +309,6 @@ export class LiquidacionesController extends BaseController {
   async setDeleteImportaciones(req: Request, res: Response, next: NextFunction) {
 
     let deleteId = req.body.deleteId
-    console.log("deleteId " + deleteId)
 
     const queryRunner = dataSource.createQueryRunner();
 
@@ -352,7 +351,6 @@ export class LiquidacionesController extends BaseController {
     let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
 
-    console.log("periodo", req.body)
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -461,7 +459,6 @@ export class LiquidacionesController extends BaseController {
           .toString()
           .padStart(2, "0")}-${convalorimpoexpo_id}.xls`;
 
-      console.log("newFilePath " + newFilePath)
 
       if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
 
@@ -562,10 +559,6 @@ export class LiquidacionesController extends BaseController {
       const periodo = getPeriodoFromRequest(req);
       let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
-      console.log("mes " + periodo.month)
-      console.log("anio " + periodo.year)
-
-      console.log("periodo " + periodo_id)
 
       const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner,periodo_id)
 
@@ -573,11 +566,13 @@ export class LiquidacionesController extends BaseController {
       if (!existsSync(directorPath)) {
         mkdirSync(directorPath, { recursive: true });
       }
+
+
+
       for (const movimiento of movimientosPendientes) {
 
         const filesPath = directorPath + '/' + movimiento.persona_id + '-' + String(periodo.month) +"-"+ String(periodo.year) + ".pdf"
         var doc_id =  await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
-
         if(movimiento.persona_id != null){
 
         //se nulea mientras se analiza que pasa con los trabajadores que tienen multiples objetivos
@@ -602,7 +597,6 @@ export class LiquidacionesController extends BaseController {
        
 
       this.createPdf(queryRunner,filesPath,movimiento.persona_id)
-
         
       }
 
@@ -625,7 +619,7 @@ export class LiquidacionesController extends BaseController {
         const personalApellidoNombre = name[0].PersonalApellidoNombre;
         
     	// Fetch the PDF with form fields
-       const formUrl = process.env.PATH_PDFRECIBO + "recibo.pdf"
+       const formUrl = (process.env.PATH_PDFRECIBO)? process.env.PATH_PDFRECIBO: './assets/pdf' +'/' + "recibo.pdf"
       // const formPdfBytes = await fetch(formUrl).then(res => res.arrayBuffer())
       const formPdfBytes = await fs.readFile(formUrl);
 

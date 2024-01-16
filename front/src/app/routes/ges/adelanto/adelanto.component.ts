@@ -182,9 +182,10 @@ export class AdelantoComponent {
     switchMap(() =>
       this.apiService
         .getPersonaResponsables(
+          Number(this.adelanto.form.get('PersonalId')?.value),
           this.selectedPeriod.year,
           this.selectedPeriod.month,
-          this.adelanto.form.get('PersonalId')?.value
+          
         )
         .pipe(
           doOnSubscribe(() => this.personaResponsablesLoading$.next(true)),
