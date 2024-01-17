@@ -301,7 +301,7 @@ export class ApiService {
     );
   }
 
-  getPersonaResponsables(year: number, month: number, personalID: string) {
+  getPersonaResponsables(personalID: number, year: number, month: number) {
     if (!personalID || !month || !year) {
       return of([]);
     }
@@ -314,7 +314,7 @@ export class ApiService {
     );
   }
 
-  getPersonaSitRevista(year: number, month: number, personalID: string) {
+  getPersonaSitRevista(personalID: number, year: number, month: number) {
     if (!personalID || !month || !year) {
       return of([]);
     }

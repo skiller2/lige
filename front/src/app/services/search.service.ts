@@ -482,4 +482,35 @@ export class SearchService {
       )
       .pipe(map(res => res.data));
   }
+
+  getPersonalById(id: number): Observable<{}> {
+    if (!id) return of([]);    
+    return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/${id}`).pipe(
+        map(res => res.data),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+  
+  getLicenciasPersona(
+    personalId: number,
+    anio: number,
+    mes: number,
+  ): Observable<any> {
+    if (!personalId) return of([]);
+
+    return this.http
+      .get(`api/asistencia/licenciasxper/${anio}/${mes}/${personalId}`)
+      .pipe(
+        map((res: ResponseJSON<any>) =>
+          res && res.data ? res.data : []
+        ),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
 }

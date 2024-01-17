@@ -73,9 +73,10 @@ export class ExcepcionAsistenciaComponent {
     switchMap(event =>
       this.apiService
         .getPersonaResponsables(
+          Number(event),
           this.asistenciaexcepcion.form.get('anio')?.value,
           this.asistenciaexcepcion.form.get('mes')?.value,
-          event
+          
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),

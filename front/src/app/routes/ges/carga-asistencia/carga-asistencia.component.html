@@ -64,12 +64,19 @@
             </nz-form-item>
             <nz-form-item>
                 <nz-form-label [nzSpan]="3">Contrato</nz-form-label>
-                <nz-form-control [nzSpan]="21">
+                <nz-form-control [nzSpan]="10">
                     <ng-container *ngFor="let contrato of objetivoDetalle.contratos">
                         <li>Desde {{contrato.ContratoFechaDesde | date}} <span
                                 *ngIf="contrato.ContratoFechaHasta">hasta</span>
                             {{ contrato.ContratoFechaHasta | date}} </li>
                     </ng-container>
+                    <nz-form-control [nzSpan]="11" style="text-align: right;" >
+                        <nz-button-group>
+                            <button nz-button nzType="default"
+                                (click)="openDrawer()"><span nz-icon
+                                    nzType="user" nzTheme="outline"></span></button>
+                        </nz-button-group>
+                    </nz-form-control>
                 </nz-form-control>
             </nz-form-item>
         </ng-container>
@@ -82,3 +89,29 @@
         </angular-slickgrid>
     </div>
 </nz-card>
+<nz-drawer [nzClosable]="true" [nzVisible]="visibleDrawer" [nzPlacement]="'left'" [nzTitle]="personalApellidoNombre"
+    (nzOnClose)="closeDrawer()">
+    <ng-container *nzDrawerContent>
+        <div class="app-foto-container">
+            <img class="app-foto" nz-image [nzSrc]="personalDetalle?.image" nzFallback="./assets/dummy-person-image.jpg" />
+        </div>
+        <h4>Categorías</h4>
+        @for (cat of personalDetalleCategorias; track cat.PersonalCategoriaCategoriaPersonalId) {
+            <li> {{cat.CategoriaPersonalDescripcion}} {{cat.ValorLiquidacionHoraNormal|currency}}</li>
+        }
+        <h4>Licencia</h4>
+        @for (lic of personalDetalleLicencias; track lic.desde) {
+            <li> {{lic.desde|date }} {{lic.hasta2|date}}</li>
+        }
+        <h4>Situacion Revista</h4>
+        @for (sit of personalDetalleSitRevista; track sit.PersonalSituacionRevistaDesde) {
+            <li>{{sit.SituacionRevistaDescripcion}} {{sit.PersonalSituacionRevistaDesde|date }} {{sit.PersonalSituacionRevistaHasta|date}}</li>
+        }
+        <h4>Responsable</h4>
+        @for (responsable of personalDetalleResponsables; track responsable.id) {
+            <li title="{{ responsable.id }}">
+                {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}} <span *ngIf="responsable.hasta
+            ">hasta</span> {{responsable.hasta | date}}</li>        }
+
+    </ng-container>
+</nz-drawer>
