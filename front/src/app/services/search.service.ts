@@ -483,7 +483,7 @@ export class SearchService {
       .pipe(map(res => res.data));
   }
 
-  getPersonalById(id: number): Observable<{}> {
+  getPersonalById(id: number): Observable<any> {
     if (!id) return of([]);    
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/${id}`).pipe(
         map(res => res.data),

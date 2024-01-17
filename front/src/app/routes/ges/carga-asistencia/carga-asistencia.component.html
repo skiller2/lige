@@ -2,47 +2,52 @@
 
     <form nz-form #carasistForm="ngForm">
 
-            <nz-form-item>
-                <nz-form-label [nzSpan]="3">Periodo</nz-form-label>
-                <nz-form-control [nzSpan]="5">
+        <nz-form-item>
+            <nz-form-label [nzSpan]="3">Periodo</nz-form-label>
+            <nz-form-control [nzSpan]="5">
 
-                    <nz-date-picker nzMode="month" name="periodo" ngModel
-                        (ngModelChange)="formChange($event,Busqueda.Periodo)" nzFormat="MM/yyyy" />
-                </nz-form-control>
-                <nz-form-control [nzSpan]="16" style="text-align: right;" *ngIf="selectedObjetivoId>0">
-                    <nz-button-group>
-                        <button nz-button nzType="default" [routerLink]="['/ges/asistencia_excepcion',{ObjetivoId:this.selectedObjetivoId}]"><span nz-icon
-                                nzType="right" nzTheme="outline"></span>Excepción Art14</button>
-                        <button nz-button nzType="primary" nz-popconfirm
-                            *ngIf="(periodos[0]?.ObjetivoAsistenciaAnoMesDesde == null || periodos[0]?.ObjetivoAsistenciaAnoMesHasta != null)"
-                            nzPopconfirmTitle="Habilita carga asistencia?" [nzBeforeConfirm]=""
-                            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="setCargaAsistencia()"><span nz-icon
-                                nzType="plus" nzTheme="outline"></span>Inicia
-                            Carga</button>
-                        <button nz-button nzType="primary" nz-popconfirm nzPopconfirmTitle="Cierra carga asistencia?"
-                            *ngIf=" periodos[0]?.ObjetivoAsistenciaAnoMesHasta == null && periodos[0]?.ObjetivoAsistenciaAnoMesDesde != null"
-                            [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false"
-                            (nzOnConfirm)="endCargaAsistencia()"><span nz-icon nzType="check"
-                                nzTheme="outline"></span>Finaliza
-                            Carga</button>
-                    </nz-button-group>
-                </nz-form-control>
-            </nz-form-item>
-            <nz-form-item>
-                <nz-form-label [nzSpan]="3">Objetivo</nz-form-label>
-                <nz-form-control [nzSpan]="21">
-                    <ng-template #suffixReloadTpl>
-                        <a (click)="formChange('', Busqueda.Objetivo)"><span nz-icon nzType="reload"
-                                nzTheme="outline"></span></a>
-                    </ng-template>
-                    <nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="width: 100%">
-                        <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
-                            (ngModelChange)="formChange($event, Busqueda.Objetivo)" ngModel />
+                <nz-date-picker nzMode="month" name="periodo" ngModel
+                    (ngModelChange)="formChange($event,Busqueda.Periodo)" nzFormat="MM/yyyy" />
+            </nz-form-control>
+            <nz-form-control [nzSpan]="16" style="text-align: right;" *ngIf="selectedObjetivoId>0">
+                <nz-button-group>
+                    <button nz-button nzType="default"
+                        [routerLink]="['/ges/asistencia_excepcion',{ObjetivoId:this.selectedObjetivoId}]"><span nz-icon
+                            nzType="right" nzTheme="outline"></span>Excepción Art14</button>
+                    <button nz-button nzType="default" nz-popconfirm
+                        nzPopconfirmTitle="Cargo vigiladores del mes anterior?" (nzOnConfirm)="autocomplete()"
+                        *ngIf="gridDataInsert.length <= 1 && gridOptionsEdit.editable"><span nz-icon nzType="copy"
+                            nzTheme="outline"></span>Copia mes anterior</button>
 
-                    </nz-input-group>
-                </nz-form-control>
-            </nz-form-item>
-            <ng-container *ngIf="$objetivoDetalle| async as objetivoDetalle">
+                    <button nz-button nzType="primary" nz-popconfirm
+                        *ngIf="(periodos && (periodos[0]?.ObjetivoAsistenciaAnoMesDesde == null || periodos[0]?.ObjetivoAsistenciaAnoMesHasta != null))"
+                        nzPopconfirmTitle="Habilita carga asistencia?" [nzBeforeConfirm]=""
+                        [nzPopconfirmShowArrow]="false" (nzOnConfirm)="setCargaAsistencia()"><span nz-icon nzType="plus"
+                            nzTheme="outline"></span>Inicia
+                        Carga</button>
+                    <button nz-button nzType="primary" nz-popconfirm nzPopconfirmTitle="Cierra carga asistencia?"
+                        *ngIf="periodos &&  periodos[0]?.ObjetivoAsistenciaAnoMesHasta == null && periodos[0]?.ObjetivoAsistenciaAnoMesDesde != null"
+                        [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false" (nzOnConfirm)="endCargaAsistencia()"><span
+                            nz-icon nzType="check" nzTheme="outline"></span>Finaliza
+                        Carga</button>
+                </nz-button-group>
+            </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+            <nz-form-label [nzSpan]="3">Objetivo</nz-form-label>
+            <nz-form-control [nzSpan]="21">
+                <ng-template #suffixReloadTpl>
+                    <a (click)="formChange('', Busqueda.Objetivo)"><span nz-icon nzType="reload"
+                            nzTheme="outline"></span></a>
+                </ng-template>
+                <nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="width: 100%">
+                    <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
+                        (ngModelChange)="formChange($event, Busqueda.Objetivo)" ngModel />
+
+                </nz-input-group>
+            </nz-form-control>
+        </nz-form-item>
+        <ng-container *ngIf="$objetivoDetalle| async as objetivoDetalle">
             <nz-form-item>
                 <nz-form-label [nzSpan]="3">Responsable</nz-form-label>
                 <nz-form-control [nzSpan]="21">
@@ -71,12 +76,10 @@
                             {{ contrato.ContratoFechaHasta | date}} </li>
                     </ng-container>
                 </nz-form-control>
-                <nz-form-control [nzSpan]="11" style="text-align: right;" >
+                <nz-form-control [nzSpan]="11" style="text-align: right;">
                     <nz-button-group>
-                        <button nz-button nzType="default"
-                            (click)="openDrawer()"><span nz-icon
-                                nzType="user" nzTheme="outline"></span></button>
-                        <button nz-button nzType="default" nz-popconfirm nzPopconfirmTitle="Cargo vigiladores del mes anterior?" (nzOnConfirm)="autocomplete()" *ngIf="gridDataInsert.length <= 1 && selectedObjetivoId">Carga mes anterior</button>                                    
+                        <button nz-button nzType="default" (click)="openDrawer()"><span nz-icon nzType="user"
+                                nzTheme="outline"></span></button>
                     </nz-button-group>
                 </nz-form-control>
 
@@ -94,26 +97,37 @@
 <nz-drawer [nzClosable]="true" [nzVisible]="visibleDrawer" [nzPlacement]="'left'" [nzTitle]="personalApellidoNombre"
     (nzOnClose)="closeDrawer()">
     <ng-container *nzDrawerContent>
-        <div class="app-foto-container">
-            <img class="app-foto" nz-image [nzSrc]="personalDetalle?.image" nzFallback="./assets/dummy-person-image.jpg" />
+        <div class="app-foto-container" *ngIf="(personalDetalle$ | async) as imgdata">
+            <img class="app-foto" nz-image [nzSrc]="imgdata.image"
+                nzFallback="./assets/dummy-person-image.jpg" />
         </div>
-        <h4>Categorías</h4>
-        @for (cat of personalDetalleCategorias; track cat.PersonalCategoriaCategoriaPersonalId) {
-            <li> {{cat.CategoriaPersonalDescripcion}} {{cat.ValorLiquidacionHoraNormal|currency}}</li>
+        @if ((personalDetalleCategorias$ | async)?.categorias; as categorias){
+        @if (categorias.length){ <h4>Categorías</h4>}
+        @for (cat of categorias; track cat.PersonalCategoriaCategoriaPersonalId) {
+        <li> {{cat.CategoriaPersonalDescripcion}} {{cat.ValorLiquidacionHoraNormal|currency}}
+            {{(cat.ValorLiquidacionHorasTrabajoHoraNormal>0)?'('+cat.ValorLiquidacionHorasTrabajoHoraNormal+' hs)':''}}
+        </li>
         }
-        <h4>Licencia</h4>
-        @for (lic of personalDetalleLicencias; track lic.desde) {
-            <li> {{lic.desde|date }} {{lic.hasta2|date}}</li>
         }
-        <h4>Situacion Revista</h4>
-        @for (sit of personalDetalleSitRevista; track sit.PersonalSituacionRevistaDesde) {
-            <li>{{sit.SituacionRevistaDescripcion}} {{sit.PersonalSituacionRevistaDesde|date }} {{sit.PersonalSituacionRevistaHasta|date}}</li>
+        @if ((personalDetalleLicencias$ |async)?.licencias; as licencias){
+        @if (licencias.length){<h4>Licencia</h4>}
+        @for (lic of licencias; track lic.desde) {
+        <li> {{lic.desde|date }} {{lic.hasta2|date}}</li>
         }
-        <h4>Responsable</h4>
-        @for (responsable of personalDetalleResponsables; track responsable.id) {
-            <li title="{{ responsable.id }}">
-                {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}} <span *ngIf="responsable.hasta
-            ">hasta</span> {{responsable.hasta | date}}</li>        }
-
+        }
+        @if (personalDetalleSitRevista$ | async; as situacion){
+        @if (situacion.length) {<h4>Situacion Revista</h4>}
+        @for (sit of situacion; track sit.PersonalSituacionRevistaDesde) {
+        <li>{{sit.SituacionRevistaDescripcion}} {{sit.PersonalSituacionRevistaDesde|date }}
+            {{sit.PersonalSituacionRevistaHasta|date}}</li>
+        }
+        }
+        @if (personalDetalleResponsables$ | async; as responsables){
+        @if (responsables.length) { <h4>Responsable</h4>}
+        @for (responsable of responsables; track responsable.id) {
+        <li title="{{ responsable.id }}">
+            {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}} <span *ngIf="responsable.hasta
+            ">hasta</span> {{responsable.hasta | date}}</li> }
+        }
     </ng-container>
 </nz-drawer>

@@ -67,12 +67,12 @@ export class CargaAsistenciaComponent {
     periodos:any
 
     visibleDrawer: boolean = false
-    personalDetalleCategorias: any[] =[]
-    personalDetalleLicencias: any[] =[]
-    personalDetalleSitRevista: any[] = [];
+    personalDetalleCategorias$:Observable<any> | undefined
+    personalDetalleLicencias$:Observable<any> | undefined
+    personalDetalleSitRevista$:Observable<any> | undefined
     personalApellidoNombre: any;
-    personalDetalleResponsables: any[] = [];
-    personalDetalle: any | undefined
+    personalDetalleResponsables$:Observable<any> | undefined
+    personalDetalle$:Observable<any> | undefined
 
     public get Busqueda() {
         return Busqueda;
@@ -560,36 +560,23 @@ export class CargaAsistenciaComponent {
         }
     }
 
-    async getPersonaDetalle(PersonalId: number, anio: number, mes: number, SucursalId:number) {
-        const result = await firstValueFrom(forkJoin([
-            this.searchService.getCategoriasPersona(PersonalId, anio, mes, SucursalId),
-            this.searchService.getLicenciasPersona(PersonalId, anio, mes),
-            this.apiService.getPersonaSitRevista(PersonalId, anio, mes),
-            this.apiService.getPersonaResponsables(PersonalId, anio, mes),
-            this.searchService.getPersonalById(PersonalId)
-            //this.searchService.getObjetivoContratos(PersonalId, anio, mes),
-        ]))
-
-        console.log('detalle',result)
-
-        this.personalDetalleCategorias = result[0].categorias
-        this.personalDetalleLicencias = result[1].licencias
-        this.personalDetalleSitRevista = result[2]
-        this.personalDetalleResponsables = result[3]
-        this.personalDetalle = result[4]
-    }
-
     openDrawer(): void {
         const selrows = this.angularGridEdit.slickGrid.getSelectedRows()
         if (selrows[0]==undefined) return
-        this.visibleDrawer = true
-
         const row = this.angularGridEdit.slickGrid.getDataItem(selrows[0])
+        if (row.apellidoNombre == '') return
 
-        //
         const PersonalId = row.apellidoNombre.id;
         this.personalApellidoNombre = row.apellidoNombre.fullName    
-        this.getPersonaDetalle(PersonalId,this.selectedPeriod.year,this.selectedPeriod.month,this.selectedSucursalId)
+
+        this.personalDetalle$             = this.searchService.getPersonalById(PersonalId)
+        this.personalDetalleSitRevista$   = this.apiService.getPersonaSitRevista(PersonalId, this.selectedPeriod.year, this.selectedPeriod.month)
+        this.personalDetalleCategorias$   = this.searchService.getCategoriasPersona(PersonalId, this.selectedPeriod.year, this.selectedPeriod.month, this.selectedSucursalId)
+        this.personalDetalleLicencias$    = this.searchService.getLicenciasPersona(PersonalId, this.selectedPeriod.year, this.selectedPeriod.month)
+        this.personalDetalleResponsables$ = this.apiService.getPersonaResponsables(PersonalId, this.selectedPeriod.year, this.selectedPeriod.month)
+
+
+        this.visibleDrawer = true
     }
 
     closeDrawer(): void {
