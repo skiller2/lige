@@ -1673,13 +1673,13 @@ console.log('valido permisos')
 
       //Validación de Personal Situación de Revista
       const situacionesRevista = await queryRunner.query(`
-        SELECT sit.PersonalSituacionRevistaId, sr.SituacionRevistaDescripcion, sit.PersonalSituacionRevistaDesde desde, ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') hasta
-        FROM PersonalSituacionRevista sit
-        JOIN SituacionRevista sr ON sr.SituacionRevistaId = sit.PersonalSituacionRevistaId 
-        WHERE sit.PersonalId = @0 AND sit.PersonalSituacionRevistaId NOT IN (2,4,5,6,9,10,11,12,20,23,26)
-        AND sit.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
-        AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
-        AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+      SELECT sit.PersonalSituacionRevistaId, sr.SituacionRevistaDescripcion, sit.PersonalSituacionRevistaDesde desde, ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') hasta
+      FROM PersonalSituacionRevista sit
+      JOIN SituacionRevista sr ON sr.SituacionRevistaId = sit.PersonalSituacionRevistaSituacionId 
+      WHERE sit.PersonalId = @0  AND sit.PersonalSituacionRevistaSituacionId NOT IN (2,4,5,6,9,10,11,12,20,23,26)
+      AND sit.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+      AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
+
         `,[personalId, anio, mes]
       )
 
@@ -1731,6 +1731,7 @@ console.log('valido permisos')
               errores.push(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta)}. dia:${numdia}`)
             }
             //Validación Situación de Revista
+            console.log('situacionesRevista',situacionesRevista)
             const situacion = situacionesRevista.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
             if (situacion){
               // throw new ClientException(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
