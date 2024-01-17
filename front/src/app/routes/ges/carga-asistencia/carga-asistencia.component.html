@@ -75,6 +75,7 @@
                             <button nz-button nzType="default"
                                 (click)="openDrawer()"><span nz-icon
                                     nzType="user" nzTheme="outline"></span></button>
+                            <button nz-button nzType="default" (click)="autocomplete()" *ngIf="gridDataInsert.length <= 1 && selectedObjetivoId">Autocomplete</button>                                    
                         </nz-button-group>
                     </nz-form-control>
                 </nz-form-control>
