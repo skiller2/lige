@@ -252,8 +252,7 @@ export class CargaAsistenciaComponent {
                 const item = this.gridDataInsert.find((obj: any) => {
                     return (obj.id == row.id)
                 })
-                // console.log('item',item);
-                // console.log('row',row);
+                console.log('this.gridDataInsert',this.gridDataInsert);
                 // console.log(item.apellidoNombre.id, item.categoria.id, item.forma.id, item.tipo.id, item.total)
                 // if(item.apellidoNombre.id && item.categoria.id && item.forma.id && item.tipo.id && item.total != undefined){
                 //     const copia = this.gridDataInsert.find((obj:any)=>{
@@ -267,10 +266,11 @@ export class CargaAsistenciaComponent {
                 // }
                 if (item.total != undefined) {
                     const response = await this.insertDB(item)
-                    if (item.total == 0 && response.row?.id)
-                        this.angularGridEdit.gridService.deleteItemById(response.row.id)
+                    if (item.total == 0 && response.deleteRowId)
+                        this.angularGridEdit.gridService.deleteItemById(response.deleteRowId)
                     if (response.newRowId && response.newRowId != row.id){
-                        this.gridDataInsert.forEach((obj:any)=>{
+                        this.gridDataInsert.pop()
+                        let newData = this.gridDataInsert.map((obj:any)=>{
                             if (obj.id == row.id){
                                 obj.id = response.newRowId
                                 //this.angularGridEdit.gridService.updateItemById(row.id, obj)
@@ -278,8 +278,11 @@ export class CargaAsistenciaComponent {
                                 obj.id = row.id
                                 //this.angularGridEdit.gridService.updateItemById(response.newRowId, obj)
                             }
+                            return obj
                         })
-                        this.angularGridEdit.dataView.setItems(this.gridDataInsert)
+                        this.angularGridEdit.dataView.setItems(newData)
+                        this.gridDataInsert = newData
+                        this.addNewItem("bottom")
                         //this.gridDataInsert = this.angularGridEdit.dataView.getItems()
                     }
                 }

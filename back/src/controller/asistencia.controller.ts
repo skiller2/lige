@@ -1597,191 +1597,65 @@ console.log('valido permisos')
 
   async addAsistencia(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const dateFormatter = new Intl.DateTimeFormat('es-AR', { year: 'numeric', month: 'numeric', day: 'numeric' });
 
     try {
       await queryRunner.startTransaction()
+      
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(req.body.anio, req.body.mes, res, Number(req.body.objetivoId), queryRunner))
+        throw new ClientException(`No tiene permisos para grabar/modificar asistencia`)
+
       const anio: number = req.body.year
       const mes: number = req.body.month
       const objetivoId: number = req.body.objetivoId
-
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
-        throw new ClientException(`No tiene permisos para grabar/modificar asistencia`)
-
-      //Validación de los datos ingresados
-      // console.log(req.body.personalId,req.body.formaLiquidacion,req.body.categoriaPersonalId,req.body.tipoAsociadoId)
-      if(!req.body.personalId || !req.body.formaLiquidacion || !req.body.categoriaPersonalId || !req.body.tipoAsociadoId)
-        throw new ClientException(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`, 'hola', 999)
-
       const rowId: number = req.body.id
       const personalId: number = req.body.personalId
       const tipoAsociadoId: number = req.body.tipoAsociadoId
       const categoriaPersonalId: number = req.body.categoriaPersonalId
       const formaLiquidacion: number = req.body.formaLiquidacion
-      let errores: any[] = []
+      //let errores: any[] = []
+
+      //Validación de los datos ingresados
+      if(!personalId || !formaLiquidacion || !categoriaPersonalId || !tipoAsociadoId)
+        throw new ClientException(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`, 'hola', 999)
 
       //Validación de Objetivo
-      const val = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
-      if (val instanceof ClientException)
-        throw val
-      const anioId = val[0].ObjetivoAsistenciaAnoId
-      const mesId = val[0].ObjetivoAsistenciaAnoMesId
-      const SucursalId = val[0].SucursalId
+      const valObjetivo = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
+      console.log('VALIDACION1', valObjetivo);
+      if (valObjetivo instanceof ClientException)
+        throw valObjetivo
+      const anioId = valObjetivo[0].ObjetivoAsistenciaAnoId
+      const mesId = valObjetivo[0].ObjetivoAsistenciaAnoMesId
+      const sucursalId = valObjetivo[0].SucursalId
 
       //Validación de Personal ya registrado
-      const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
-      let personal: any = null
-      let personaLista: any[] = []
-      lista.forEach((obj: any) => {
-        if (obj.id == rowId)
-          personal = obj
-        if (obj.id != rowId && obj.apellidoNombre.id == personalId && obj.categoria.id == categoriaPersonalId && obj.categoria.tipoId == tipoAsociadoId && obj.forma.id == formaLiquidacion)
-          personaLista.push(obj)
-      })
-      if (personaLista.length) {
-        throw new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`)
-      }
-
-
-      const categorias = await this.getCategoriasPorPersonaQuery(anio, mes, personalId, SucursalId, queryRunner)
-      const filterres = categorias.filter((cat: any) => cat.TipoAsociadoId == tipoAsociadoId && cat.PersonalCategoriaCategoriaPersonalId == categoriaPersonalId)
+      const valPersonalRegistrado = await this.valPersonalRegistrado(req.body, queryRunner)
+      console.log('VALIDACION2', valPersonalRegistrado);
+      if (valPersonalRegistrado instanceof ClientException)
+        throw valPersonalRegistrado
       
-      if (filterres.length == 0){
-        let data = {}
-        if (categorias.length) {
-          data = {
-            categoria:{
-              fullName: categorias[0].CategoriaPersonalDescripcion,
-              id: categorias[0].PersonalCategoriaCategoriaPersonalId,
-              tipoFullName: categorias[0].TipoAsociadoDescripcion,
-              tipoId: categorias[0].TipoAsociadoId
-            }
-          }
-        }
-        throw new ClientException(`La categoría seleccionada no se encuentra habilitada para la persona`, data)
-      }
+      let personal: any = valPersonalRegistrado
+
+      //Validación Categoria del Personal
+      const valCategoriaPersonal = await this.valCategoriaPersonal(req.body, sucursalId, queryRunner)
+      console.log('VALIDACION3', valCategoriaPersonal);
+      if (valCategoriaPersonal instanceof ClientException)
+        throw valCategoriaPersonal
       
-      //Validación de Licencias
-      const licencias = await this.getLicenciasPorPersonaQuery(anio,mes,personalId,queryRunner)
-
-      //Validación de Personal Situación de Revista
-      const situacionesRevista = await queryRunner.query(`
-      SELECT sit.PersonalSituacionRevistaId, sr.SituacionRevistaDescripcion, sit.PersonalSituacionRevistaDesde desde, ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') hasta
-      FROM PersonalSituacionRevista sit
-      JOIN SituacionRevista sr ON sr.SituacionRevistaId = sit.PersonalSituacionRevistaSituacionId 
-      WHERE sit.PersonalId = @0  AND sit.PersonalSituacionRevistaSituacionId NOT IN (2,4,5,6,9,10,11,12,20,23,26)
-      AND sit.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
-      AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
-
-        `,[personalId, anio, mes]
-      )
-
-      //Validación de Personal total de horas por dia
-      let querydias = ''
-      for (let index = 1; index <= 31; index++)
-        querydias = querydias + `, SUM(CAST(LEFT(ObjetivoAsistenciaAnoMesPersonalDias${index}Gral,2) AS INT) + CAST(RIGHT(TRIM(ObjetivoAsistenciaAnoMesPersonalDias${index}Gral),2) AS INT) / CAST(60 AS FLOAT)) day${index}`
-        
-      const totalhsxdia = await queryRunner.query(`
-        SELECT objp.ObjetivoAsistenciaMesPersonalId personalId
-        ${querydias}
-        FROM ObjetivoAsistenciaAnoMesPersonalDias objp
-        INNER JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId 
-        INNER JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId
-        WHERE objp.ObjetivoAsistenciaMesPersonalId = @0 
-        AND obja.ObjetivoAsistenciaAnoAno = @1
-        AND objm.ObjetivoAsistenciaAnoMesMes = @2
-        -- AND objp.ObjetivoAsistenciaTipoAsociadoId != @3
-        -- AND objp.ObjetivoAsistenciaCategoriaPersonalId != @4
-        -- AND  objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras != @5
-        AND objp.ObjetivoAsistenciaAnoMesPersonalDiasId <> @6
-        GROUP BY objp.ObjetivoAsistenciaMesPersonalId
-        `,[personalId, anio, mes, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, rowId]
-      )
-
-      //Validación de horas dentro del perido de contrato
-      let periodoContrato = await ObjetivoController.getObjetivoContratos(objetivoId,anio, mes, queryRunner)
-      
-      let columnsDays = ''
-      let columnsDay = ''
-      let valueColumnsDays = ''
-      let totalhs = 0
-      let numdia = ''
-      let fecha
-      for (const key in req.body) {
-        if (key.startsWith('day')) {
-          numdia = key.slice(3)
-          const horas = Number(req.body[key])
-          columnsDays = columnsDays + `, ObjetivoAsistenciaAnoMesPersonalDias${numdia}Gral`
-          columnsDay = columnsDay + `, ObjetivoAsistenciaAnoMesPersonalDia${numdia}Gral`
-          if (!horas) {
-            valueColumnsDays = valueColumnsDays + `, NULL`
-          } else {
-            fecha = new Date(`${anio}-${mes}-${numdia} 0:0:0`)
-            //Validación Licencia
-            const licencia = licencias.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
-            if (licencia) {
-              // throw new ClientException(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta)}. dia:${numdia}`)
-              errores.push(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta2)}. dia:${numdia}`)
-            }
-            //Validación Situación de Revista
-            console.log('situacionesRevista',situacionesRevista)
-            const situacion = situacionesRevista.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
-            if (situacion){
-              // throw new ClientException(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
-              console.log('situacion',situacion);
-              errores.push(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
-            }
-            //Validación de Personal total de horas por dia
-            if (totalhsxdia.length && (totalhsxdia[0][key] + horas) > 24.0) {
-              // console.log('totalhsxdia',totalhsxdia )
-              // throw new ClientException(`La cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
-              errores.push(`a cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
-            }
-
-            //Validación de horas dentro del perido de contrato
-            const contrato= periodoContrato.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
-            if (!contrato) {
-              //throw new ClientException(`El dia ${numdia} no pertenece al periodo del contrato`)
-              errores.push(`El dia${numdia} no pertecese al periodo del contrato`)
-            }
-            if (horas > 24){
-              // throw new ClientException(`La cantidad de horas no puede superar las 24`)
-              errores.push(`La cantidad de horas no puede superar las 24`)
-            }
-            const h = String(Math.trunc(horas))
-            const horafrac = horas - Math.trunc(horas)
-            if (horafrac != 0 && horafrac != 0.5){
-              // throw new ClientException(`La fracción de hora debe ser .5 únicamente, ej: 0.5; 8.5 `)
-              errores.push(`La fracción de hora debe ser .5 únicamente, ej: 0.5; 8.5`)
-            }
-            const m = String(60 * horafrac)
-            valueColumnsDays = valueColumnsDays + `, '${h.padStart(2, '0')}.${m.padStart(2, '0')}'`
-            totalhs = totalhs + horas
-          }
-        }
+      //Validaciónes de los días del mes
+      const valsDiasMes = await this.valsDiasMes(req.body, queryRunner)
+      console.log('VALIDACION4', valsDiasMes);
+      if (valsDiasMes instanceof ClientException) {
+        throw valsDiasMes
       }
-
+      let columnsDays = valsDiasMes.columnsDays
+      let columnsDay = valsDiasMes.columnsDay
+      let valueColumnsDays = valsDiasMes.valueColumnsDays
+      let totalhs = valsDiasMes.totalhs
+      
       if(!totalhs && personal?.id){
-        const deleteAsistencia = await queryRunner.query(`
-          DELETE ObjetivoAsistenciaAnoMesPersonalDias
-          WHERE ObjetivoAsistenciaAnoMesPersonalDiasId = @3
-          AND ObjetivoId = @0 
-          AND ObjetivoAsistenciaAnoId = @1 
-          AND ObjetivoAsistenciaAnoMesId = @2
-          DELETE ObjetivoAsistenciaMesDiasPersonal
-          WHERE ObjetivoAsistenciaMesDiasPersonalId = @3
-          AND ObjetivoId = @0 
-          AND ObjetivoAsistenciaAnoId = @1 
-          AND ObjetivoAsistenciaAnoMesId = @2
-          DELETE ObjetivoAsistenciaAnoMesPersonalAsignado
-          WHERE ObjetivoAsistenciaAnoMesPersonalAsignadoId = @3
-          AND ObjetivoId = @0 
-          AND ObjetivoAsistenciaAnoId = @1
-          AND ObjetivoAsistenciaAnoMesId = @2`,
-          [objetivoId, anioId, mesId, personal.id]
-        )
+        await this.deleteAsistencia(objetivoId, anioId, mesId, personal.id, queryRunner)
         await queryRunner.commitTransaction()
-        return this.jsonRes({row:{id:rowId}}, res);
+        return this.jsonRes({deleteRowId:rowId}, res);
       }
 
       let num = Math.round(totalhs % 1 * 60)
@@ -1792,10 +1666,6 @@ console.log('valido permisos')
         min = num.toString()
       const horas = Math.trunc(totalhs).toString()
       req.body.total = `${horas}.${min}`
-
-      if (errores.length) {
-        throw new ClientException(errores.join(`\n`))
-      }
 
       let result: any = ''
      
@@ -1821,7 +1691,7 @@ console.log('valido permisos')
           INSERT INTO ObjetivoAsistenciaAnoMesPersonalAsignado (ObjetivoAsistenciaAnoMesPersonalAsignadoId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras, ObjetivoAsistenciaAnoMesPersonalAsignadoIngresaPersonal)
           VALUES (
             ${newAsistenciaPersonalAsignadoId}, @2, @1, @0, @3, @4, @5, @6, 'P')`,
-          [objetivoId, anioId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion, req.body.total]
+          [objetivoId, anioId, mesId, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, req.body.total]
         )
 
         await queryRunner.query(
@@ -1832,7 +1702,34 @@ console.log('valido permisos')
         )
         result = {newRowId: newAsistenciaPersonalDiasId}
       } else {
+        await this.deleteAsistencia(objetivoId, anioId, mesId, personal.id, queryRunner)
         await queryRunner.query(`
+          INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id)
+          VALUES (
+            @8, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8)
+          INSERT INTO ObjetivoAsistenciaMesDiasPersonal (ObjetivoAsistenciaMesDiasPersonalId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaMesDiasPersonalFormaLiquidacionHoras ${columnsDay}, ObjetivoAsistenciaAnoMesPersonalDiaTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSuId)
+          VALUES (
+            @8, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8)
+          INSERT INTO ObjetivoAsistenciaAnoMesPersonalAsignado (ObjetivoAsistenciaAnoMesPersonalAsignadoId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras, ObjetivoAsistenciaAnoMesPersonalAsignadoIngresaPersonal)
+          VALUES (
+            @8, @2, @1, @0, @3, @4, @5, @6, 'P')`,
+          [objetivoId, anioId, mesId, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, req.body.total, personal.id]
+        )
+      }
+      await queryRunner.commitTransaction()
+      return this.jsonRes(result, res);
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction()
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+
+  }
+
+  deleteAsistencia(objetivoId: number, anioId: number, mesId: number, personalId: number, queryRunner: QueryRunner) {
+    return queryRunner.query(`
           DELETE ObjetivoAsistenciaAnoMesPersonalDias
           WHERE ObjetivoAsistenciaAnoMesPersonalDiasId = @3
           AND ObjetivoId = @0 
@@ -1848,54 +1745,178 @@ console.log('valido permisos')
           AND ObjetivoId = @0 
           AND ObjetivoAsistenciaAnoId = @1
           AND ObjetivoAsistenciaAnoMesId = @2`,
-          [objetivoId, anioId, mesId, personal.id]
+          [objetivoId, anioId, mesId, personalId]
         )
-        await queryRunner.query(`
-          INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id)
-          VALUES (
-            @8, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8)
-          INSERT INTO ObjetivoAsistenciaMesDiasPersonal (ObjetivoAsistenciaMesDiasPersonalId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaMesDiasPersonalFormaLiquidacionHoras ${columnsDay}, ObjetivoAsistenciaAnoMesPersonalDiaTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSuId)
-          VALUES (
-            @8, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8)
-          INSERT INTO ObjetivoAsistenciaAnoMesPersonalAsignado (ObjetivoAsistenciaAnoMesPersonalAsignadoId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras, ObjetivoAsistenciaAnoMesPersonalAsignadoIngresaPersonal)
-          VALUES (
-            @8, @2, @1, @0, @3, @4, @5, @6, 'P')`,
-          [objetivoId, anioId, mesId, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion, req.body.total, personal.id]
-        )
-      }
-      await queryRunner.commitTransaction()
-      return this.jsonRes(result, res);
-    } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
-      return next(error)
-    } finally {
-      await queryRunner.release()
-    }
-
   }
 
-  async deleteAsistencia(req: any, res: Response, next: NextFunction) {
-    // const queryRunner = dataSource.createQueryRunner();
-    // try {
-    //   const result = await queryRunner.query(
-    //     `DELETE ObjetivoAsistenciaAnoMesPersonalDias 
-    //     WHERE ObjetivoId = @0 
-    //       AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) 
-    //       AND ObjetivoAsistenciaAnoMesId = (SELECT ObjetivoAsistenciaAnoMesId FROM ObjetivoAsistenciaAnoMes WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = (SELECT ObjetivoAsistenciaAnoId FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoAno = @1) AND ObjetivoAsistenciaAnoMesMes = @2) 
-    //       AND ObjetivoAsistenciaMesPersonalId = @3 
-    //       AND ObjetivoAsistenciaTipoAsociadoId = @4 
-    //       AND ObjetivoAsistenciaCategoriaPersonalId = @5
-    //       AND ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras = @6`,
-    //       [req.body.objetivoId, req.body.year, req.body.month, req.body.personalId, req.body.tipoAsociadoId, req.body.categoriaPersonalId, req.body.formaLiquidacion]
-    //     )
-    // } catch (error) {
-    //   if (queryRunner.isTransactionActive)
-    //     await queryRunner.rollbackTransaction()
-    //   return next(error)
-    // } finally {
-    //   await queryRunner.release()
-    // }
+  async valPersonalRegistrado(item: any, queryRunner: QueryRunner) {
+    const anio: number = item.year
+    const mes: number = item.month
+    const objetivoId: number = item.objetivoId
+    const rowId: number = item.id
+    const personalId: number = item.personalId
+    const tipoAsociadoId: number = item.tipoAsociadoId
+    const categoriaPersonalId: number = item.categoriaPersonalId
+    const formaLiquidacion: number = item.formaLiquidacion
+
+    const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
+    console.log('lista',lista);
+    
+    let personal: any = null
+    let personaLista: any[] = []
+    lista.forEach((obj: any) => {
+      if (obj.id == rowId)
+        personal = obj
+      if (obj.id != rowId && obj.apellidoNombre.id == personalId && obj.categoria.id == categoriaPersonalId && obj.categoria.tipoId == tipoAsociadoId && obj.forma.id == formaLiquidacion)
+        personaLista.push(obj)
+    })
+    if (personaLista.length) {
+      return new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`)
+    }
+    return personal
+  }
+
+  async valCategoriaPersonal(item: any, sucursalId: number, queryRunner: QueryRunner) {
+    const anio: number = item.year
+    const mes: number = item.month
+    const personalId: number = item.personalId
+    const tipoAsociadoId: number = item.tipoAsociadoId
+    const categoriaPersonalId: number = item.categoriaPersonalId
+
+    const categorias = await this.getCategoriasPorPersonaQuery(anio, mes, personalId, sucursalId, queryRunner)
+    const filterres = categorias.filter((cat: any) => cat.TipoAsociadoId == tipoAsociadoId && cat.PersonalCategoriaCategoriaPersonalId == categoriaPersonalId)
+      
+    if (filterres.length == 0){
+      let data = {}
+      if (categorias.length) {
+        data = {
+          categoria:{
+            fullName: categorias[0].CategoriaPersonalDescripcion,
+            id: categorias[0].PersonalCategoriaCategoriaPersonalId,
+            tipoFullName: categorias[0].TipoAsociadoDescripcion,
+            tipoId: categorias[0].TipoAsociadoId
+          }
+        }
+      }
+      return new ClientException(`La categoría seleccionada no se encuentra habilitada para la persona`, data)
+    }
+    return
+  }
+
+  async valsDiasMes(item: any, queryRunner: QueryRunner) {
+
+    const dateFormatter = new Intl.DateTimeFormat('es-AR', { year: 'numeric', month: 'numeric', day: 'numeric' });
+
+    const anio: number = item.year
+    const mes: number = item.month
+    const objetivoId: number = item.objetivoId
+    const rowId: number = item.id
+    const personalId: number = item.personalId
+    const tipoAsociadoId: number = item.tipoAsociadoId
+    const categoriaPersonalId: number = item.categoriaPersonalId
+    const formaLiquidacion: number = item.formaLiquidacion
+    let errores: any[] = []
+
+    //Validación de Licencias
+    const licencias = await this.getLicenciasPorPersonaQuery(anio,mes,personalId,queryRunner)
+
+    //Validación de Personal Situación de Revista
+    const situacionesRevista = await queryRunner.query(`
+    SELECT sit.PersonalSituacionRevistaId, sr.SituacionRevistaDescripcion, sit.PersonalSituacionRevistaDesde desde, ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') hasta
+    FROM PersonalSituacionRevista sit
+    JOIN SituacionRevista sr ON sr.SituacionRevistaId = sit.PersonalSituacionRevistaSituacionId 
+    WHERE sit.PersonalId = @0  AND sit.PersonalSituacionRevistaSituacionId NOT IN (2,4,5,6,9,10,11,12,20,23,26)
+    AND sit.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+    AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
+
+      `,[personalId, anio, mes]
+    )
+
+    //Validación de Personal total de horas por dia
+    let querydias = ''
+    for (let index = 1; index <= 31; index++)
+      querydias = querydias + `, SUM(CAST(LEFT(ObjetivoAsistenciaAnoMesPersonalDias${index}Gral,2) AS INT) + CAST(RIGHT(TRIM(ObjetivoAsistenciaAnoMesPersonalDias${index}Gral),2) AS INT) / CAST(60 AS FLOAT)) day${index}`
+      
+    const totalhsxdia = await queryRunner.query(`
+      SELECT objp.ObjetivoAsistenciaMesPersonalId personalId
+      ${querydias}
+      FROM ObjetivoAsistenciaAnoMesPersonalDias objp
+      INNER JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId 
+      INNER JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId
+      WHERE objp.ObjetivoAsistenciaMesPersonalId = @0 
+      AND obja.ObjetivoAsistenciaAnoAno = @1
+      AND objm.ObjetivoAsistenciaAnoMesMes = @2
+      -- AND objp.ObjetivoAsistenciaTipoAsociadoId != @3
+      -- AND objp.ObjetivoAsistenciaCategoriaPersonalId != @4
+      -- AND  objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras != @5
+      AND objp.ObjetivoAsistenciaAnoMesPersonalDiasId <> @6
+      GROUP BY objp.ObjetivoAsistenciaMesPersonalId
+      `,[personalId, anio, mes, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, rowId]
+    )
+
+    //Validación de horas dentro del perido de contrato
+    let periodoContrato = await ObjetivoController.getObjetivoContratos(objetivoId, anio, mes, queryRunner)
+    
+    let columnsDays = ''
+    let columnsDay = ''
+    let valueColumnsDays = ''
+    let totalhs = 0
+    let numdia = ''
+    let fecha
+    for (const key in item) {
+      if (key.startsWith('day')) {
+        numdia = key.slice(3)
+        const horas = Number(item[key])
+        columnsDays = columnsDays + `, ObjetivoAsistenciaAnoMesPersonalDias${numdia}Gral`
+        columnsDay = columnsDay + `, ObjetivoAsistenciaAnoMesPersonalDia${numdia}Gral`
+        if (!horas) {
+          valueColumnsDays = valueColumnsDays + `, NULL`
+        } else {
+          fecha = new Date(`${anio}-${mes}-${numdia} 0:0:0`)
+          //Validación Licencia
+          const licencia = licencias.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
+          if (licencia) {
+            // throw new ClientException(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta)}. dia:${numdia}`)
+            errores.push(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta2)}. dia:${numdia}`)
+          }
+          //Validación Situación de Revista
+          console.log('situacionesRevista',situacionesRevista)
+          const situacion = situacionesRevista.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
+          if (situacion){
+            // throw new ClientException(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
+            errores.push(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
+          }
+          //Validación de Personal total de horas por dia
+          if (totalhsxdia.length && (totalhsxdia[0][key] + horas) > 24.0) {
+            // throw new ClientException(`La cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
+            errores.push(`a cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
+          }
+
+          //Validación de horas dentro del perido de contrato
+          const contrato= periodoContrato.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
+          if (!contrato) {
+            //throw new ClientException(`El dia ${numdia} no pertenece al periodo del contrato`)
+            errores.push(`El dia${numdia} no pertecese al periodo del contrato`)
+          }
+          if (horas > 24){
+            // throw new ClientException(`La cantidad de horas no puede superar las 24`)
+            errores.push(`La cantidad de horas no puede superar las 24`)
+          }
+          const h = String(Math.trunc(horas))
+          const horafrac = horas - Math.trunc(horas)
+          if (horafrac != 0 && horafrac != 0.5){
+            // throw new ClientException(`La fracción de hora debe ser .5 únicamente, ej: 0.5; 8.5 `)
+            errores.push(`La fracción de hora debe ser .5 únicamente, ej: 0.5; 8.5`)
+          }
+          const m = String(60 * horafrac)
+          valueColumnsDays = valueColumnsDays + `, '${h.padStart(2, '0')}.${m.padStart(2, '0')}'`
+          totalhs = totalhs + horas
+        }
+      }
+    }
+    if(errores.length)
+      return new ClientException(errores.join(`\n`))
+    return { columnsDays ,columnsDay ,valueColumnsDays ,totalhs }
   }
 
   async getListaAsistenciaPersonalAsignado(req: any, res: Response, next: NextFunction) {
