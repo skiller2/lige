@@ -1761,7 +1761,7 @@ console.log('valido permisos')
         }
       }
 
-      if(!totalhs && personal.id){
+      if(!totalhs && personal?.id){
         const deleteAsistencia = await queryRunner.query(`
           DELETE ObjetivoAsistenciaAnoMesPersonalDias
           WHERE ObjetivoAsistenciaAnoMesPersonalDiasId = @3
