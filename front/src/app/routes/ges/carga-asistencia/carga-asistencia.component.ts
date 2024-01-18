@@ -252,7 +252,6 @@ export class CargaAsistenciaComponent {
                 const item = this.gridDataInsert.find((obj: any) => {
                     return (obj.id == row.id)
                 })
-                console.log('this.gridDataInsert',this.gridDataInsert);
                 // console.log(item.apellidoNombre.id, item.categoria.id, item.forma.id, item.tipo.id, item.total)
                 // if(item.apellidoNombre.id && item.categoria.id && item.forma.id && item.tipo.id && item.total != undefined){
                 //     const copia = this.gridDataInsert.find((obj:any)=>{

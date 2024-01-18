@@ -1620,7 +1620,6 @@ console.log('valido permisos')
 
       //Validación de Objetivo
       const valObjetivo = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
-      console.log('VALIDACION1', valObjetivo);
       if (valObjetivo instanceof ClientException)
         throw valObjetivo
       const anioId = valObjetivo[0].ObjetivoAsistenciaAnoId
@@ -1629,7 +1628,6 @@ console.log('valido permisos')
 
       //Validación de Personal ya registrado
       const valPersonalRegistrado = await this.valPersonalRegistrado(req.body, queryRunner)
-      console.log('VALIDACION2', valPersonalRegistrado);
       if (valPersonalRegistrado instanceof ClientException)
         throw valPersonalRegistrado
       
@@ -1637,13 +1635,11 @@ console.log('valido permisos')
 
       //Validación Categoria del Personal
       const valCategoriaPersonal = await this.valCategoriaPersonal(req.body, sucursalId, queryRunner)
-      console.log('VALIDACION3', valCategoriaPersonal);
       if (valCategoriaPersonal instanceof ClientException)
         throw valCategoriaPersonal
       
       //Validaciónes de los días del mes
       const valsDiasMes = await this.valsDiasMes(req.body, queryRunner)
-      console.log('VALIDACION4', valsDiasMes);
       if (valsDiasMes instanceof ClientException) {
         throw valsDiasMes
       }
@@ -1760,7 +1756,6 @@ console.log('valido permisos')
     const formaLiquidacion: number = item.formaLiquidacion
 
     const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
-    console.log('lista',lista);
     
     let personal: any = null
     let personaLista: any[] = []
@@ -1880,7 +1875,6 @@ console.log('valido permisos')
             errores.push(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta2)}. dia:${numdia}`)
           }
           //Validación Situación de Revista
-          console.log('situacionesRevista',situacionesRevista)
           const situacion = situacionesRevista.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
           if (situacion){
             // throw new ClientException(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
@@ -2064,7 +2058,6 @@ console.log('valido permisos')
       } else {
         mes--
       }
-      console.log('periodo', anio, mes);
       const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner, 0)
       //console.log('lista', lista);
 
