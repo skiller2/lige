@@ -5,6 +5,7 @@ import { Any, QueryRunner, QueryRunnerAlreadyReleasedError } from "typeorm";
 import { clienteController } from "./controller.module";
 import { ObjetivoController } from "./objetivo.controller";
 import { toHexString } from "pdf-lib";
+import { PersonalController } from "./personal.controller";
 
 
 export class AsistenciaController extends BaseController {
@@ -1659,17 +1660,9 @@ console.log('valido permisos')
         }
         throw new ClientException(`La categoría seleccionada no se encuentra habilitada para la persona`, data)
       }
-
-      //Validación de Personal disponible
-      const licencias = await queryRunner.query(`
-        SELECT PersonalLicenciaDesde desde, ISNULL( ISNULL(PersonalLicenciaTermina,PersonalLicenciaHasta), '9999-12-31') hasta
-        FROM PersonalLicencia 
-        WHERE PersonalId = @0 
-        AND PersonalLicenciaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
-        AND ISNULL(PersonalLicenciaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
-        AND ISNULL(PersonalLicenciaTermina,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
-        `,[personalId, anio, mes]
-      )
+      
+      //Validación de Licencias
+      const licencias = await this.getLicenciasPorPersonaQuery(anio,mes,personalId,queryRunner)
 
       //Validación de Personal Situación de Revista
       const situacionesRevista = await queryRunner.query(`
