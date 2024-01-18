@@ -1721,7 +1721,7 @@ console.log('valido permisos')
             const licencia = licencias.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
             if (licencia) {
               // throw new ClientException(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta)}. dia:${numdia}`)
-              errores.push(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta)}. dia:${numdia}`)
+              errores.push(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta2)}. dia:${numdia}`)
             }
             //Validación Situación de Revista
             console.log('situacionesRevista',situacionesRevista)
