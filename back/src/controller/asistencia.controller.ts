@@ -1056,7 +1056,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const anio = req.params.anio;
       const mes = req.params.mes;
       const queryRunner = dataSource.createQueryRunner();
-console.log('valido permisos')
+      console.log('valido permisos')
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
@@ -1600,7 +1600,7 @@ console.log('valido permisos')
 
     try {
       await queryRunner.startTransaction()
-      
+
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(req.body.anio, req.body.mes, res, Number(req.body.objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para grabar/modificar asistencia`)
 
@@ -1615,7 +1615,7 @@ console.log('valido permisos')
       //let errores: any[] = []
 
       //Validación de los datos ingresados
-      if(!personalId || !formaLiquidacion || !categoriaPersonalId || !tipoAsociadoId)
+      if (!personalId || !formaLiquidacion || !categoriaPersonalId || !tipoAsociadoId)
         throw new ClientException(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`, 'hola', 999)
 
       //Validación de Objetivo
@@ -1630,14 +1630,14 @@ console.log('valido permisos')
       const valPersonalRegistrado = await this.valPersonalRegistrado(req.body, queryRunner)
       if (valPersonalRegistrado instanceof ClientException)
         throw valPersonalRegistrado
-      
+
       let personal: any = valPersonalRegistrado
 
       //Validación Categoria del Personal
       const valCategoriaPersonal = await this.valCategoriaPersonal(req.body, sucursalId, queryRunner)
       if (valCategoriaPersonal instanceof ClientException)
         throw valCategoriaPersonal
-      
+
       //Validaciónes de los días del mes
       const valsDiasMes = await this.valsDiasMes(req.body, queryRunner)
       if (valsDiasMes instanceof ClientException) {
@@ -1647,11 +1647,11 @@ console.log('valido permisos')
       let columnsDay = valsDiasMes.columnsDay
       let valueColumnsDays = valsDiasMes.valueColumnsDays
       let totalhs = valsDiasMes.totalhs
-      
-      if(!totalhs && personal?.id){
+
+      if (!totalhs && personal?.id) {
         await this.deleteAsistencia(objetivoId, anioId, mesId, personal.id, queryRunner)
         await queryRunner.commitTransaction()
-        return this.jsonRes({deleteRowId:rowId}, res);
+        return this.jsonRes({ deleteRowId: rowId }, res);
       }
 
       let num = Math.round(totalhs % 1 * 60)
@@ -1664,7 +1664,7 @@ console.log('valido permisos')
       req.body.total = `${horas}.${min}`
 
       let result: any = ''
-     
+
       if (!personal) {
         const objAsistenciaUltsNros = await queryRunner.query(`
           SELECT ObjetivoAsistenciaAnoMesPersonalUltNro, ObjetivoAsistenciaAnoMesDiasPersonalUltNro, ObjetivoAsistenciaAnoMesPersonalDiasUltNro 
@@ -1696,7 +1696,7 @@ console.log('valido permisos')
           WHERE ObjetivoAsistenciaAnoMesId = @3 AND ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = @1 AND ObjetivoAsistenciaAnoMesMes = @2`,
           [objetivoId, anioId, mes, mesId, newAsistenciaPersonalDiasId, newAsistenciaPersonalAsignadoId, newAsistenciaDiasPersonalId]
         )
-        result = {newRowId: newAsistenciaPersonalDiasId}
+        result = { newRowId: newAsistenciaPersonalDiasId }
       } else {
         await this.deleteAsistencia(objetivoId, anioId, mesId, personal.id, queryRunner)
         await queryRunner.query(`
@@ -1741,8 +1741,8 @@ console.log('valido permisos')
           AND ObjetivoId = @0 
           AND ObjetivoAsistenciaAnoId = @1
           AND ObjetivoAsistenciaAnoMesId = @2`,
-          [objetivoId, anioId, mesId, personalId]
-        )
+      [objetivoId, anioId, mesId, personalId]
+    )
   }
 
   async valPersonalRegistrado(item: any, queryRunner: QueryRunner) {
@@ -1756,7 +1756,7 @@ console.log('valido permisos')
     const formaLiquidacion: number = item.formaLiquidacion
 
     const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
-    
+
     let personal: any = null
     let personaLista: any[] = []
     lista.forEach((obj: any) => {
@@ -1780,16 +1780,17 @@ console.log('valido permisos')
 
     const categorias = await this.getCategoriasPorPersonaQuery(anio, mes, personalId, sucursalId, queryRunner)
     const filterres = categorias.filter((cat: any) => cat.TipoAsociadoId == tipoAsociadoId && cat.PersonalCategoriaCategoriaPersonalId == categoriaPersonalId)
-      
-    if (filterres.length == 0){
+
+    if (filterres.length == 0) {
       let data = {}
       if (categorias.length) {
         data = {
-          categoria:{
-            fullName: categorias[0].CategoriaPersonalDescripcion,
+          categoria: {
+            fullName: `${categorias[0].CategoriaPersonalDescripcion.trim()} ${(categorias[0].ValorLiquidacionHorasTrabajoHoraNormal > 0) ? categorias[0].ValorLiquidacionHorasTrabajoHoraNormal : ''}`,
             id: categorias[0].PersonalCategoriaCategoriaPersonalId,
             tipoFullName: categorias[0].TipoAsociadoDescripcion,
-            tipoId: categorias[0].TipoAsociadoId
+            tipoId: categorias[0].TipoAsociadoId,
+            horasRecomendadas: categorias[0].ValorLiquidacionHorasTrabajoHoraNormal
           }
         }
       }
@@ -1813,7 +1814,7 @@ console.log('valido permisos')
     let errores: any[] = []
 
     //Validación de Licencias
-    const licencias = await this.getLicenciasPorPersonaQuery(anio,mes,personalId,queryRunner)
+    const licencias = await this.getLicenciasPorPersonaQuery(anio, mes, personalId, queryRunner)
 
     //Validación de Personal Situación de Revista
     const situacionesRevista = await queryRunner.query(`
@@ -1824,14 +1825,14 @@ console.log('valido permisos')
     AND sit.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
     AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
 
-      `,[personalId, anio, mes]
+      `, [personalId, anio, mes]
     )
 
     //Validación de Personal total de horas por dia
     let querydias = ''
     for (let index = 1; index <= 31; index++)
       querydias = querydias + `, SUM(CAST(LEFT(ObjetivoAsistenciaAnoMesPersonalDias${index}Gral,2) AS INT) + CAST(RIGHT(TRIM(ObjetivoAsistenciaAnoMesPersonalDias${index}Gral),2) AS INT) / CAST(60 AS FLOAT)) day${index}`
-      
+
     const totalhsxdia = await queryRunner.query(`
       SELECT objp.ObjetivoAsistenciaMesPersonalId personalId
       ${querydias}
@@ -1846,12 +1847,12 @@ console.log('valido permisos')
       -- AND  objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras != @5
       AND objp.ObjetivoAsistenciaAnoMesPersonalDiasId <> @6
       GROUP BY objp.ObjetivoAsistenciaMesPersonalId
-      `,[personalId, anio, mes, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, rowId]
+      `, [personalId, anio, mes, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, rowId]
     )
 
     //Validación de horas dentro del perido de contrato
     let periodoContrato = await ObjetivoController.getObjetivoContratos(objetivoId, anio, mes, queryRunner)
-    
+
     let columnsDays = ''
     let columnsDay = ''
     let valueColumnsDays = ''
@@ -1869,14 +1870,14 @@ console.log('valido permisos')
         } else {
           fecha = new Date(`${anio}-${mes}-${numdia} 0:0:0`)
           //Validación Licencia
-          const licencia = licencias.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
+          const licencia = licencias.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
           if (licencia) {
             // throw new ClientException(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta)}. dia:${numdia}`)
             errores.push(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta2)}. dia:${numdia}`)
           }
           //Validación Situación de Revista
-          const situacion = situacionesRevista.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
-          if (situacion){
+          const situacion = situacionesRevista.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
+          if (situacion) {
             // throw new ClientException(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
             errores.push(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
           }
@@ -1887,18 +1888,18 @@ console.log('valido permisos')
           }
 
           //Validación de horas dentro del perido de contrato
-          const contrato= periodoContrato.find((fechas:any)=>(fechas.desde <= fecha && fechas.hasta >= fecha))
+          const contrato = periodoContrato.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
           if (!contrato) {
             //throw new ClientException(`El dia ${numdia} no pertenece al periodo del contrato`)
             errores.push(`El dia${numdia} no pertecese al periodo del contrato`)
           }
-          if (horas > 24){
+          if (horas > 24) {
             // throw new ClientException(`La cantidad de horas no puede superar las 24`)
             errores.push(`La cantidad de horas no puede superar las 24`)
           }
           const h = String(Math.trunc(horas))
           const horafrac = horas - Math.trunc(horas)
-          if (horafrac != 0 && horafrac != 0.5){
+          if (horafrac != 0 && horafrac != 0.5) {
             // throw new ClientException(`La fracción de hora debe ser .5 únicamente, ej: 0.5; 8.5 `)
             errores.push(`La fracción de hora debe ser .5 únicamente, ej: 0.5; 8.5`)
           }
@@ -1908,9 +1909,9 @@ console.log('valido permisos')
         }
       }
     }
-    if(errores.length)
+    if (errores.length)
       return new ClientException(errores.join(`\n`))
-    return { columnsDays ,columnsDay ,valueColumnsDays ,totalhs }
+    return { columnsDays, columnsDay, valueColumnsDays, totalhs }
   }
 
   async getListaAsistenciaPersonalAsignado(req: any, res: Response, next: NextFunction) {
@@ -1988,13 +1989,13 @@ console.log('valido permisos')
         }
       });
       return {
-        id: hasta? obj.id : index+1,
+        id: hasta ? obj.id : index + 1,
         apellidoNombre: {
           fullName: obj.fullName,
           id: obj.PersonalId
         },
         categoria: {
-          fullName: `${obj.CategoriaDescripcion.trim()} ${(obj.ValorLiquidacionHorasTrabajoHoraNormal>0)?obj.ValorLiquidacionHorasTrabajoHoraNormal:''}`,
+          fullName: `${obj.CategoriaDescripcion.trim()} ${(obj.ValorLiquidacionHorasTrabajoHoraNormal > 0) ? obj.ValorLiquidacionHorasTrabajoHoraNormal : ''}`,
           id: obj.CategoriaId,
           tipoId: obj.TipoAsociadoId,
           tipoFullName: obj.TipoAsociadoDescripcion,
@@ -2020,8 +2021,8 @@ console.log('valido permisos')
         AND PersonalLicenciaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
         AND ISNULL(PersonalLicenciaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
         AND ISNULL(PersonalLicenciaTermina,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
-        `,[personalId, anio, mes]
-      )
+        `, [personalId, anio, mes]
+    )
   }
 
   async getLicenciasPorPersona(req: any, res: Response, next: NextFunction) {
@@ -2052,7 +2053,7 @@ console.log('valido permisos')
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para ver asistencia`)
 
-      if(mes == 1){
+      if (mes == 1) {
         mes = 12
         anio--
       } else {
