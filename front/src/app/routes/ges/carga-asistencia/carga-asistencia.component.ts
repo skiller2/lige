@@ -282,9 +282,21 @@ export class CargaAsistenciaComponent {
                         this.angularGridEdit.dataView.setItems(newData)
                         this.gridDataInsert = newData
                         this.addNewItem("bottom")
-                        //this.gridDataInsert = this.angularGridEdit.dataView.getItems()
+
+                        // this.gridDataInsert.pop()
+                        // let updateItem1 = this.angularGridEdit.dataView.getItemById(row.id)
+                        // let updateItem2 = this.angularGridEdit.dataView.getItemById(response.newRowId)
+                        // console.log('item2',updateItem2);
+                        // updateItem1.id = response.newRowId
+                        // if(updateItem2){
+                        //     updateItem2.id = row.id
+                        //     this.angularGridEdit.dataView.updateItems([row.id, response.newRowId], [updateItem2, updateItem1])
+                        // } else
+                        //     this.angularGridEdit.dataView.updateItem(row.id, updateItem1)
+                        // this.addNewItem("bottom")
                     }
                 }
+                //console.log('this.gridDataInsert', this.gridDataInsert);
             } catch (e:any) {
                 console.log('error', e)
                 if (e.error.data.categoria) {

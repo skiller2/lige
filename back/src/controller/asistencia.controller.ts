@@ -1925,9 +1925,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para ver asistencia`)
 
-
       const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
-      // console.log('DATA',data);
+      // console.log('LISTA',lista);
       await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
     } catch (error) {
@@ -1977,7 +1976,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const data = personal.map((obj: any, index: number) => {
       const camposDay = Object.keys(obj).filter(clave => clave.startsWith('day'));
       const days = {};
-      let total = 0
+      let total = hasta? 0 : undefined
       camposDay.forEach(clave => {
         if (String(obj[clave]).indexOf('.') >= 0) {
           const hm = obj[clave].split('.')
@@ -2060,7 +2059,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         mes--
       }
       const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner, 0)
-      //console.log('lista', lista);
+      // console.log('LISTA', lista);
 
       await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
