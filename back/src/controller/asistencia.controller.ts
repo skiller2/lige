@@ -1601,9 +1601,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     try {
       await queryRunner.startTransaction()
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(req.body.anio, req.body.mes, res, Number(req.body.objetivoId), queryRunner))
-        throw new ClientException(`No tiene permisos para grabar/modificar asistencia`)
-
       const anio: number = req.body.year
       const mes: number = req.body.month
       const objetivoId: number = req.body.objetivoId
@@ -1613,6 +1610,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const categoriaPersonalId: number = req.body.categoriaPersonalId
       const formaLiquidacion: number = req.body.formaLiquidacion
       //let errores: any[] = []
+
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(req.body.objetivoId), queryRunner))
+        throw new ClientException(`No tiene permisos para grabar/modificar asistencia`)
+
 
       //Validación de los datos ingresados
       if (!personalId || !formaLiquidacion || !categoriaPersonalId || !tipoAsociadoId)
