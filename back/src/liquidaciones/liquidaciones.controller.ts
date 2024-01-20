@@ -566,7 +566,7 @@ export class LiquidacionesController extends BaseController {
 
       const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner,periodo_id)
 
-      var directorPath = this.directoryRecibo+ '/' + String(periodo.month) +"-"+ String(periodo.year) + '/' + periodo_id
+      var directorPath = this.directoryRecibo+ '/' + String(periodo.year) + String(periodo.month) + '/' + periodo_id
       if (!existsSync(directorPath)) {
         mkdirSync(directorPath, { recursive: true }); 
       }
@@ -595,9 +595,13 @@ export class LiquidacionesController extends BaseController {
             
             )
         }
+
+        const PersonalNombre = movimiento.PersonalNombre
+        const Cuit = movimiento.PersonalCUITCUILCUIT
+        const Domicilio = movimiento.DomicilioCompleto
        
 
-      this.createPdf(queryRunner,filesPath,movimiento.persona_id,doc_id,fechaActual)
+      this.createPdf(queryRunner,filesPath,movimiento.persona_id,doc_id,fechaActual,PersonalNombre,Cuit,Domicilio,periodo_id)
 
         
       }
@@ -612,9 +616,8 @@ export class LiquidacionesController extends BaseController {
 
   }
 
-  async createPdf(queryRunner:QueryRunner,filesPath:string,persona_id:number,doc_id:number,fechaActual:Date) {
+  async createPdf(queryRunner:QueryRunner,filesPath:string,persona_id:number,doc_id:number,fechaActual:Date,PersonaNombre:string,Cuit:string,Domicilio:string,periodo_id:number) {
 
-       const userInfo =  await this.getInfoById(queryRunner,persona_id);
 
        const dia = fechaActual.getDate();
        const mes = fechaActual.getMonth() + 1; // Suma 1 ya que los meses van de 0 a 11
@@ -623,9 +626,7 @@ export class LiquidacionesController extends BaseController {
       // Formatea la fecha como "dia/mes/año"
       const fechaFormateada = `${dia}/${mes}/${anio}`
 
-       if (userInfo && userInfo.length > 0) {
-
-        
+   
         // Fetch the PDF with form fields
         const formUrl = process.env.PATH_PDFRECIBO + "inaes.pdf"
         // const formPdfBytes = await fetch(formUrl).then(res => res.arrayBuffer())
@@ -647,59 +648,100 @@ export class LiquidacionesController extends BaseController {
 
         const nameField = form.getTextField(`NOMBRE`)
 
-        nameField.setText(`${userInfo[0].PersonalNombre}`)
+        nameField.setText(`${PersonaNombre}`)
 
         const cuitField = form.getTextField(`CUIT`)
 
-        cuitField.setText(`${userInfo[0].PersonalCUITCUILCUIT}`)
+        cuitField.setText(`${Cuit}`)
 
         const domicilioField = form.getTextField(`DOMICILIO`)
 
-        domicilioField.setText(`${userInfo[0].DomicilioCompleto}`)
+        domicilioField.setText(`${Domicilio}`)
 
-        const cbuField = form.getTextField(`CBU`)
+        const liquidacionInfo = await this.getUsuariosLiquidacionMovimientos(queryRunner,periodo_id,persona_id)
 
-        cbuField.setText(`${userInfo[0].PersonalBancoCBU}`)
+        let ingreso = ""
+        let egreso = ""
+        let neto = 0
+        let retribucion = 0
+
+        for (const liquidacionElement of liquidacionInfo ) {
+          
+          if(liquidacionElement.indicador =="D"){
+            egreso += `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte},`
+            neto = neto + parseFloat(liquidacionElement.SumaImporte)
+            retribucion = retribucion + parseFloat(liquidacionElement.SumaImporte)
+          }
+
+          if(liquidacionElement.indicador =="I"){
+            ingreso += `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte},`
+            neto = neto - parseFloat(liquidacionElement.SumaImporte);
+          }
+          
+        }
+        const retribucionField = form.getTextField(`RETRIBUCION`)
+
+        retribucionField.setText(`${retribucion.toFixed(2)}`)
+        
+        const netoField = form.getTextField(`RETRIBUCION NETA`)
+
+        netoField.setText(`${neto.toFixed(2)}`)
+
+        const retencionesField = form.getTextField(`DETALLE OTRAS RETENCIONES`)
+
+        retencionesField.setText(`${egreso}`)
+
+        const retribucionesField = form.getTextField(`DETALLE DE RETRIBUCIONES`)
+
+        retribucionesField.setText(`${ingreso}`)
 
         // Guardar el PDF en un archivo
         const pdfBytes = await pdfDoc.save();
         await fs.writeFile(filesPath, pdfBytes);
         
-    }
+    
   }
 
-  async getInfoById(queryRunner:QueryRunner,persona_id:number){
-    return queryRunner.query( `SELECT
-    CONCAT(RTRIM(Personal.PersonalNombre), ' ', Personal.PersonalApellido) AS PersonalNombre,
-    cuit.PersonalCUITCUILCUIT,
-    CONCAT(
-      RTRIM(dom.PersonalDomicilioDomCalle), ' ',
-      dom.PersonalDomicilioDomNro, ' ',
-      dom.PersonalDomicilioDomPiso, ' ',
-      dom.PersonalDomicilioDomDpto
-    ) AS DomicilioCompleto,
-    perbanco.PersonalBancoCBU
-    FROM Personal
-    JOIN PersonalBanco AS perbanco ON perbanco.PersonalId = Personal.PersonalId
-    JOIN PersonalCUITCUIL AS cuit ON cuit.PersonalId = Personal.PersonalId
-    JOIN PersonalDomicilio AS dom ON dom.PersonalId = Personal.PersonalId
-    WHERE Personal.PersonalId =@0`, [persona_id])
-  }
 
   async getUsuariosLiquidacion(queryRunner:QueryRunner,periodo_id: Number) {
    
-    return queryRunner.query( `SELECT DISTINCT persona_id FROM lige.dbo.liqmamovimientos WHERE tipocuenta_id = 'G' AND periodo_id=@0 ORDER BY persona_id ASC;`, [periodo_id])
+    return queryRunner.query( `SELECT DISTINCT
+    liq.persona_id,
+    CONCAT(TRIM(per.PersonalNombre), ' ', TRIM(per.PersonalApellido)) AS PersonalNombre,
+  
+    cuit.PersonalCUITCUILCUIT,
+    CONCAT(
+      TRIM(dom.PersonalDomicilioDomCalle), ' ',
+      TRIM(dom.PersonalDomicilioDomNro), ' ',
+      TRIM(dom.PersonalDomicilioDomPiso), ' ',
+      TRIM(dom.PersonalDomicilioDomDpto)
+    ) AS DomicilioCompleto
+  FROM lige.dbo.liqmamovimientos AS liq
+  JOIN Personal AS per ON per.PersonalId = liq.persona_id
+  JOIN PersonalCUITCUIL AS cuit ON cuit.PersonalId = liq.persona_id
+  LEFT JOIN PersonalDomicilio AS dom ON dom.PersonalId = liq.persona_id AND dom.PersonalDomicilioActual = 1
+  WHERE liq.tipocuenta_id = 'G' AND liq.periodo_id = @0 AND liq.tipo_movimiento_id = 11
+  ORDER BY liq.persona_id ASC`, [periodo_id])
 
   }
 
 
-  async getUsuariosLiquidacionMovimientos(periodo_id: Number,user_id: Number) {
+  async getUsuariosLiquidacionMovimientos(queryRunner:QueryRunner,periodo_id: Number,user_id: Number) {
    
-    return dataSource.query( `SELECT liq.persona_id, liq.tipo_movimiento_id, tip.des_movimiento, SUM(liq.importe) AS SumaImporte
-        FROM lige.dbo.liqmamovimientos AS liq
-        JOIN lige.dbo.liqcotipomovimiento AS tip ON tip.tipo_movimiento_id  = liq.tipo_movimiento_id
-        WHERE periodo_id = @0 AND tipocuenta_id = 'G' AND user_id = @1
-        GROUP BY liq.periodo_id, liq.persona_id, liq.tipocuenta_id, liq.tipo_movimiento_id,tip.des_movimiento`, [periodo_id,user_id])
+    return queryRunner.query( `SELECT 
+    liq.persona_id, 
+    liq.tipo_movimiento_id, 
+    tip.des_movimiento, 
+    SUM(liq.importe) AS SumaImporte, 
+    tip.indicador_recibo AS indicador
+    FROM  lige.dbo.liqmamovimientos AS liq
+    JOIN  lige.dbo.liqcotipomovimiento AS tip ON tip.tipo_movimiento_id = liq.tipo_movimiento_id
+    WHERE  liq.periodo_id = @0 AND  liq.tipocuenta_id = 'G' AND  liq.persona_id = @1
+    GROUP BY 
+    liq.persona_id, 
+    liq.tipo_movimiento_id, 
+    tip.des_movimiento, 
+    tip.indicador_recibo;`, [periodo_id,user_id])
 
   }
 
