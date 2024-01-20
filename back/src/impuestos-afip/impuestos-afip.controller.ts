@@ -592,9 +592,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       this.jsonRes([], res, "PDF Recibido!");
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
-        return next(error)
+      this.rollbackTransaction(queryRunner)
+      return next(error)
     } finally {
       await queryRunner.release();
       unlinkSync(file.path);

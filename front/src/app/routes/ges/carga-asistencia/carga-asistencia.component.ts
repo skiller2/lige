@@ -298,8 +298,7 @@ export class CargaAsistenciaComponent {
                 }
                 //console.log('this.gridDataInsert', this.gridDataInsert);
             } catch (e:any) {
-                console.log('error', e)
-                if (e.error.data.categoria) {
+                if (e.error?.data?.categoria) {
                     let item = this.gridDataInsert.find((obj: any) => {
                         return (obj.id == row.id)
                     }) 

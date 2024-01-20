@@ -73,8 +73,7 @@ export class IngresoPorAsistenciaController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, `Se procesaron ${result.length} registros `);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       //   await queryRunner.release();

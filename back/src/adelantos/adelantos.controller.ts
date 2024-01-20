@@ -161,8 +161,7 @@ export class AdelantosController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes([], res, "Adelanto/s eliminado.");
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release();
@@ -253,8 +252,7 @@ export class AdelantosController extends BaseController {
         PersonalAdelantoFechaSolicitud: today, //PersonalAdelantoFechaSolicitud
       }, res, "Adelanto añadido.");
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release();

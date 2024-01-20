@@ -51,7 +51,7 @@
       "pdf-lib": "^1.17.1",
       "pdfjs-dist": "^4.0.189",
       "remove": "^0.1.5",
-      "typeorm": "^0.3.14"
+      "typeorm": "^0.3.19"
    },
    "scripts": {
       "devold": "npx nodemon ./src/index.ts",
