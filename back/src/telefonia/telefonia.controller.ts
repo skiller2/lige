@@ -577,8 +577,7 @@ export class TelefoniaController extends BaseController {
 
       this.jsonRes({}, res, "XLS Recibido y procesado!");
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release();

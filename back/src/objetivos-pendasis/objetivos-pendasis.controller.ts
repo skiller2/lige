@@ -376,8 +376,8 @@ AS gas ON gas.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
       await queryRunner.commitTransaction();
       return `Se procesaron ${pendientes.length} ascensos `
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
+      this.rollbackTransaction(queryRunner)
+      //return next(error)
       throw error
     } finally {
       await queryRunner.release();

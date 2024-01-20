@@ -6,6 +6,7 @@ import { clienteController } from "./controller.module";
 import { ObjetivoController } from "./objetivo.controller";
 import { toHexString } from "pdf-lib";
 import { PersonalController } from "./personal.controller";
+import { exit } from "process";
 
 
 export class AsistenciaController extends BaseController {
@@ -28,8 +29,7 @@ export class AsistenciaController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes([], res, `Período habilitado para el objetivo`);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:
@@ -107,8 +107,7 @@ export class AsistenciaController extends BaseController {
       this.jsonRes(periodo, res)
 
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:
@@ -151,8 +150,7 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes([], res, `Período finalizado para el objetivo ${cabecera[0].ObjetivoCodigo} ${cabecera[0].ObjetivoDescripcion}`)
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:
@@ -672,8 +670,7 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes([], res);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:
@@ -773,8 +770,7 @@ export class AsistenciaController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes([], res);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:
@@ -826,8 +822,7 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes(result, res);
     } catch (error) {
-      // if (queryRunner.isTransactionActive)
-      //            await queryRunner.rollbackTransaction()
+//      this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1266,8 +1261,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       );
       this.jsonRes(result, res);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+      this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1461,8 +1455,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       this.jsonRes({ asistencia: result, totalImporte, totalHoras }, res);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+      this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1524,8 +1517,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
 
     } catch (error) {
-      // if (queryRunner.isTransactionActive)
-      //await queryRunner.rollbackTransaction()
+//      this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1552,8 +1544,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       this.jsonRes({ asistencia: result, totalImporte, totalHoras }, res);
 
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+      this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1599,7 +1590,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const queryRunner = dataSource.createQueryRunner();
 
     try {
-      await queryRunner.startTransaction()
 
       const anio: number = req.body.year
       const mes: number = req.body.month
@@ -1610,6 +1600,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const categoriaPersonalId: number = req.body.categoriaPersonalId
       const formaLiquidacion: number = req.body.formaLiquidacion
       //let errores: any[] = []
+      await queryRunner.startTransaction()
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(req.body.objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para grabar/modificar asistencia`)
@@ -1648,6 +1639,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       let columnsDay = valsDiasMes.columnsDay
       let valueColumnsDays = valsDiasMes.valueColumnsDays
       let totalhs = valsDiasMes.totalhs
+
 
       if (!totalhs && personal?.id) {
         await this.deleteAsistencia(objetivoId, anioId, mesId, personal.id, queryRunner)
@@ -1716,8 +1708,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       await queryRunner.commitTransaction()
       return this.jsonRes(result, res);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+
+      this.rollbackTransaction(queryRunner)
+      
       return next(error)
     } finally {
       await queryRunner.release()
@@ -1794,8 +1787,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
             horasRecomendadas: categorias[0].ValorLiquidacionHorasTrabajoHoraNormal
           }
         }
+        return new ClientException(`Se actualizó la categoría de la persona`, data)
+ 
       }
-      return new ClientException(`La categoría seleccionada no se encuentra habilitada para la persona`, data)
+      return new ClientException(`La categoría no se encuentra habilitada para la persona`, data)
     }
     return
   }
@@ -1918,7 +1913,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   async getListaAsistenciaPersonalAsignado(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
-      await queryRunner.startTransaction()
+//      await queryRunner.startTransaction()
       const objetivoId = req.params.ObjetivoId;
       const anio = req.params.anio;
       const mes = req.params.mes;
@@ -1928,11 +1923,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
       // console.log('LISTA',lista);
-      await queryRunner.commitTransaction()
+//      await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -2045,7 +2039,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   async getListaAsistenciaPersonalAsignadoAnterior(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
-      await queryRunner.startTransaction()
+//      await queryRunner.startTransaction()
       const objetivoId = req.params.ObjetivoId;
       let anio = req.params.anio;
       let mes = req.params.mes;
@@ -2062,11 +2056,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner, 0)
       // console.log('LISTA', lista);
 
-      await queryRunner.commitTransaction()
+//      await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -2074,3 +2067,5 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   }
 
 }
+
+
