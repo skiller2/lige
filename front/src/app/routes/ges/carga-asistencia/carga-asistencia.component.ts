@@ -307,16 +307,13 @@ export class CargaAsistenciaComponent {
                     this.angularGridEdit.gridService.updateItemById(row.id, item)
                     
                 } else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
-                    console.log('row actual',this.angularGridEdit.dataView.getItemById(row.id))
-                    console.log('capturada',editCommand.editor.args.item)
 
-                    this.angularGridEdit.gridService.updateItemById(row.id, editCommand.editor.args.item)
-                        editCommand.undo();
-                    
-//                    editCommand.editor.applyValue(editCommand.prevSerializedValue)
-                    
-
-                    console.log('row despues',this.angularGridEdit.dataView.getItemById(row.id))
+                    const curitem = this.angularGridEdit.dataView.getItemById(row.id)
+                    editCommand.editor.applyValue(curitem, editCommand.prevSerializedValue)
+                    this.angularGridEdit.gridService.updateItemById(row.id, curitem)
+                    this.angularGridEdit.slickGrid.updateRow(editCommand.row)
+                    const col:Column= this.angularGridEdit.slickGrid.getColumns()[editCommand.cell]
+                    this.updateTotals(String(col.id),this.angularGridEdit)
                       
                 }
             }
@@ -366,10 +363,10 @@ export class CargaAsistenciaComponent {
 
         const x = this
         this.angularGridEdit.slickGrid.onCellChange.subscribe(function (e, args) {
-            if (String(args.column.id).indexOf('day') != -1) columnTotal(String(args.column.id), x.angularGridEdit)
-            totalRecords(x.angularGridEdit, 'apellidoNombre')
-            columnTotal('total', x.angularGridEdit)
+            x.updateTotals(String(args.column.id),x.angularGridEdit) 
         });
+
+        
 
 
         this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
@@ -380,6 +377,12 @@ export class CargaAsistenciaComponent {
 
         })
 
+    }
+
+    updateTotals(columnId:string,angularGrid: AngularGridInstance) { 
+        if (columnId.indexOf('day') != -1) columnTotal(columnId, angularGrid)
+        totalRecords(angularGrid, 'apellidoNombre')
+        columnTotal('total', angularGrid)
     }
 
     addNewItem(insertPosition?: 'bottom') {
