@@ -566,7 +566,7 @@ export class LiquidacionesController extends BaseController {
 
       const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner,periodo_id)
 
-      var directorPath = this.directoryRecibo+ '/' + String(periodo.year) + String(periodo.month) + '/' + periodo_id
+      var directorPath = this.directoryRecibo+ '/' + String(periodo.year) + String(periodo.month).padStart(2,'0') + '/' + periodo_id
       if (!existsSync(directorPath)) {
         mkdirSync(directorPath, { recursive: true }); 
       }
