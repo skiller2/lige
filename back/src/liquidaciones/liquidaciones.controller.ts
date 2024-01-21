@@ -626,9 +626,9 @@ export class LiquidacionesController extends BaseController {
       // Formatea la fecha como "dia/mes/año"
       const fechaFormateada = `${dia}/${mes}/${anio}`
 
-   
+        const basePath = (process.env.PATH_PDFRECIBO) ? process.env.PATH_PDFRECIBO : "./assets/pdf"
         // Fetch the PDF with form fields
-        const formUrl = process.env.PATH_PDFRECIBO + "inaes.pdf"
+        const formUrl = basePath + "/inaes.pdf"
         // const formPdfBytes = await fetch(formUrl).then(res => res.arrayBuffer())
         const formPdfBytes = await fs.readFile(formUrl);
 
