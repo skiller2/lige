@@ -1022,7 +1022,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       1   
           
    FROM Personal per
-   JOIN PersonalHabilitacion hab ON hab.PersonalId = per.PersonalId hab.PersonalHabilitacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(hab.PersonalHabilitacionHasta,'9999-12-31')>=DATEFROMPARTS(@1,@2,1)
+   JOIN PersonalHabilitacion hab ON hab.PersonalId = per.PersonalId AND hab.PersonalHabilitacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(hab.PersonalHabilitacionHasta,'9999-12-31')>=DATEFROMPARTS(@1,@2,1)
    JOIN LugarHabilitacion lug ON lug.LugarHabilitacionId = hab.PersonalHabilitacionLugarHabilitacionId
    WHERE 
       per.PersonalId = @0
@@ -1041,8 +1041,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       //      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
       //        throw new ClientException(`No tiene permiso para obtener información de categorías de persona`)
 
-      const habiltaciones = await this.getHabilitacionesPorPersonaQuery(anio, mes, personalId, queryRunner)
-      this.jsonRes({ habiltaciones }, res);
+      const habilitaciones = await this.getHabilitacionesPorPersonaQuery(anio, mes, personalId, queryRunner)
+      this.jsonRes({ habilitaciones }, res);
     } catch (error) {
       return next(error)
     }
