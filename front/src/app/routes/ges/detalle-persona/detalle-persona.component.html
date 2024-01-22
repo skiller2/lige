@@ -20,8 +20,10 @@
 <li> {{lic.desde|date }} {{lic.hasta2|date}}</li>
 }
 }
+
+<nz-divider nzText="Situación Revista"></nz-divider>
 @if (personalDetalleSitRevista$ | async; as situacion){
-@if (situacion.length) {<h4>Situacion Revista</h4>}
+@if (!situacion.length) {<li>Sin datos</li>}
 @for (sit of situacion; track sit.PersonalSituacionRevistaDesde) {
 <li>{{sit.SituacionRevistaDescripcion}} {{sit.PersonalSituacionRevistaDesde|date }}
   {{sit.PersonalSituacionRevistaHasta|date}}</li>

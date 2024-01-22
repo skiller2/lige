@@ -1,8 +1,8 @@
-import { Component, Injector, ViewChild } from '@angular/core';
+import { Component, Injector, ViewChild, inject } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS,listOptionsT } from '@shared';
 import { AngularGridInstance, AngularUtilService, Column, Editors, FileType, GridOption, OnEventArgs, SlickGrid, SlickGridEventData } from 'angular-slickgrid';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -13,6 +13,7 @@ import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { CommonModule } from '@angular/common';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
+import { SearchService } from 'src/app/services/search.service';
 
 
 
@@ -26,17 +27,19 @@ import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal
 
 })
 export class AdelantoComponent {
-  constructor(private settingService: SettingsService, private apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService, private excelExportService: ExcelExportService) { }
+  constructor(private settingService: SettingsService, public router: Router, private angularUtilService: AngularUtilService, private excelExportService: ExcelExportService) { }
   @ViewChild('adelanto', { static: true }) adelanto!: NgForm;
   @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
-
+  private searchService = inject(SearchService)
+  private apiService = inject(ApiService)
+  
   selectedPeriod = { year: 0, month: 0 };
 
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
   saveLoading$ = new BehaviorSubject(false);
   deleteLoading$ = new BehaviorSubject(false);
-
+  objetivos$= new Observable<any>
   detailViewRowCount = 9
   gridOptions!: GridOption
   gridDataLen = 0
@@ -179,17 +182,23 @@ export class AdelantoComponent {
   personaResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
   $personaResponsables = this.formChange$.pipe(
     debounceTime(500),
-    switchMap(() =>
-      this.apiService
+    switchMap(() => {
+      this.objetivos$ = this.searchService.getAsistenciaPersona(this.adelanto.form.get('PersonalId')?.value, this.selectedPeriod.year, this.selectedPeriod.month)
+
+      return this.apiService
         .getPersonaResponsables(
+          this.adelanto.form.get('PersonalId')?.value,
           this.selectedPeriod.year,
           this.selectedPeriod.month,
-          this.adelanto.form.get('PersonalId')?.value
+          
         )
         .pipe(
           doOnSubscribe(() => this.personaResponsablesLoading$.next(true)),
           tap({ complete: () => this.personaResponsablesLoading$.next(false) })
         )
+      
+
+    }
     )
   );
 
