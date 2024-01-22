@@ -20,6 +20,7 @@ import { EditorCategoriaComponent } from 'src/app/shared/editor-categoria/editor
 import { LoadingService } from '@delon/abc/loading';
 import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 enum Busqueda {
     Sucursal,
     Objetivo,
@@ -34,7 +35,7 @@ enum Busqueda {
     styleUrls: ['./carga-asistencia.component.less'],
     standalone: true,
     encapsulation: ViewEncapsulation.None,
-    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent],
+    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent,DetallePersonaComponent],
     providers: [AngularUtilService]
 })
 export class CargaAsistenciaComponent {
@@ -62,17 +63,13 @@ export class CargaAsistenciaComponent {
     detailViewRowCount = 1;
     selectedPeriod = { year: 0, month: 0 };
     selectedSucursalId = 0
+    selectedPersonalId = 0
     objetivoData: any
     ObjetivoIdUrl: any
     periodos:any
 
     visibleDrawer: boolean = false
-    personalDetalleCategorias$:Observable<any> | undefined
-    personalDetalleLicencias$:Observable<any> | undefined
-    personalDetalleSitRevista$:Observable<any> | undefined
     personalApellidoNombre: any;
-    personalDetalleResponsables$:Observable<any> | undefined
-    personalDetalle$:Observable<any> | undefined
 
     public get Busqueda() {
         return Busqueda;
@@ -156,8 +153,13 @@ export class CargaAsistenciaComponent {
                 maxWidth: 250,
                 minWidth: 170,
                 formatter: Formatters.complexObject,
+                exportWithFormatter:true,
                 params: {
                     complexFieldLabel: 'apellidoNombre.fullName',
+                },
+                excelExportOptions: {
+                    autoDetectCellFormat: true,
+                    
                 },
                 editor: {
                     model: CustomInputEditor,
@@ -180,6 +182,7 @@ export class CargaAsistenciaComponent {
                 params: {
                     complexFieldLabel: 'forma.fullName',
                 },
+                exportWithFormatter:true,
 
                 editor: {
                     model: CustomInputEditor,
@@ -201,7 +204,7 @@ export class CargaAsistenciaComponent {
                 params: {
                     complexFieldLabel: 'categoria.fullName',
                 },
-
+                exportWithFormatter:true,
                 editor: {
                     model: CustomInputEditor,
                     collection: [],
@@ -267,6 +270,10 @@ export class CargaAsistenciaComponent {
                     const response = await this.insertDB(item)
                     if (item.total == 0 && response.deleteRowId)
                         this.angularGridEdit.gridService.deleteItemById(response.deleteRowId)
+                    if (response.categoria) {
+                        item.categoria = response.categoria
+                        this.angularGridEdit.gridService.updateItemById(row.id, item)
+                    }
                     if (response.newRowId && response.newRowId != row.id){
                         this.gridDataInsert.pop()
                         let newData = this.gridDataInsert.map((obj:any)=>{
@@ -298,14 +305,16 @@ export class CargaAsistenciaComponent {
                 }
                 //console.log('this.gridDataInsert', this.gridDataInsert);
             } catch (e:any) {
-                if (e.error?.data?.categoria) {
-                    let item = this.gridDataInsert.find((obj: any) => {
-                        return (obj.id == row.id)
-                    }) 
-                    item.categoria = e.error.data.categoria
-                    this.angularGridEdit.gridService.updateItemById(row.id, item)
+                console.log('error', e)
+                // if (e.error.data.categoria) {
+                //     let item = this.gridDataInsert.find((obj: any) => {
+                //         return (obj.id == row.id)
+                //     }) 
+                //     item.categoria = e.error.data.categoria
+                //     this.angularGridEdit.gridService.updateItemById(row.id, item)
                     
-                }else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
+                // }else 
+                if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
                     this.angularGridEdit.gridService.updateItemById(row.id, editCommand.editor.args.item)
                     editCommand.undo();
                 }
@@ -356,10 +365,10 @@ export class CargaAsistenciaComponent {
 
         const x = this
         this.angularGridEdit.slickGrid.onCellChange.subscribe(function (e, args) {
-            if (String(args.column.id).indexOf('day') != -1) columnTotal(String(args.column.id), x.angularGridEdit)
-            totalRecords(x.angularGridEdit, 'apellidoNombre')
-            columnTotal('total', x.angularGridEdit)
+            x.updateTotals(String(args.column.id),x.angularGridEdit) 
         });
+
+        
 
 
         this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
@@ -370,6 +379,12 @@ export class CargaAsistenciaComponent {
 
         })
 
+    }
+
+    updateTotals(columnId:string,angularGrid: AngularGridInstance) { 
+        if (columnId.indexOf('day') != -1) columnTotal(columnId, angularGrid)
+        totalRecords(angularGrid, 'apellidoNombre')
+        columnTotal('total', angularGrid)
     }
 
     addNewItem(insertPosition?: 'bottom') {
@@ -592,17 +607,18 @@ export class CargaAsistenciaComponent {
         const row = this.angularGridEdit.slickGrid.getDataItem(selrows[0])
         if (row.apellidoNombre == '') return
 
-        const PersonalId = row.apellidoNombre.id;
         this.personalApellidoNombre = row.apellidoNombre.fullName    
-
-        this.personalDetalle$             = this.searchService.getPersonalById(PersonalId)
-        this.personalDetalleSitRevista$   = this.apiService.getPersonaSitRevista(PersonalId, this.selectedPeriod.year, this.selectedPeriod.month)
-        this.personalDetalleCategorias$   = this.searchService.getCategoriasPersona(PersonalId, this.selectedPeriod.year, this.selectedPeriod.month, this.selectedSucursalId)
-        this.personalDetalleLicencias$    = this.searchService.getLicenciasPersona(PersonalId, this.selectedPeriod.year, this.selectedPeriod.month)
-        this.personalDetalleResponsables$ = this.apiService.getPersonaResponsables(PersonalId, this.selectedPeriod.year, this.selectedPeriod.month)
-
-
+        this.selectedPersonalId = row.apellidoNombre.id
         this.visibleDrawer = true
+    }
+
+    getPersonalIdFromGrid():number {
+        console.log('getPersonalIdFromGrid')
+        const selrows = this.angularGridEdit.slickGrid.getSelectedRows()
+        if (selrows[0]==undefined) return 0
+        const row = this.angularGridEdit.slickGrid.getDataItem(selrows[0])
+        if (row.apellidoNombre == '') return 0
+        return row.apellidoNombre.id
     }
 
     closeDrawer(): void {

@@ -1,6 +1,6 @@
 <nz-card class="small-margin">
   <ul nz-menu nzMode="horizontal">
-    <li nz-menu-item nzMatchRouter >
+    <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
       <a [routerLink]="['/', 'ges', 'adelanto','listado']">Listado</a>
     </li>
@@ -19,12 +19,12 @@
   </ul>
   <form nz-form #adelanto="ngForm" class="">
 
-  <nz-form-item>
-    <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
-    <nz-form-control>
-      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
-    </nz-form-control>
-  </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
+      <nz-form-control>
+        <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
+      </nz-form-control>
+    </nz-form-item>
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
       <nz-tab>
@@ -33,11 +33,8 @@
           <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
           <div class="gridContainer container-fluid">
             <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnas | colsFilter"
-              [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
-              (onBeforeEditCell)="handleOnBeforeEditCell($event)"
-              
-
-              >
+              [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+              (onAngularGridCreated)="angularGridReady($event)" (onBeforeEditCell)="handleOnBeforeEditCell($event)">
             </angular-slickgrid>
           </div>
           <!-- <div>Registros: {{ gridDataLen }}</div> -->
@@ -46,92 +43,104 @@
       <nz-tab>
         <a nz-tab-link routerLink="/ges/adelanto/carga">Carga</a>
 
-          <nz-form-item>
-            <nz-form-label [nzSpan]="5">Persona</nz-form-label>
-            <nz-form-control nzHasFeedback>
-              <app-personal-search name="PersonalId" (ngModelChange)="this.formChange($event)" ngModel />
-            </nz-form-control>
-          </nz-form-item>
-          <nz-form-item>
-            <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
-            <nz-form-control>
-              <ng-container *ngIf="{
-                  loading: personaResponsablesLoading$ | async
-                } as responsablesContext">
-                <ng-container *ngIf="responsablesContext.loading">
-                  <span nz-icon nzType="loading" class="loading-icon"></span>
-                  Cargando
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Persona</nz-form-label>
+          <nz-form-control nzHasFeedback>
+            <app-personal-search name="PersonalId" (ngModelChange)="this.formChange($event)" ngModel />
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
+          <nz-form-control>
+            @if ($personaResponsables | async; as responsables){
+            @if (responsables.length) {
+
+            <nz-collapse nzBordered="false" nzGhost="false" class="app-collapse-header">
+              <nz-collapse-panel [nzHeader]="tmplHeader">
+                <ng-template #tmplHeader>{{responsables[0]?.tipo}} {{responsables[0]?.detalle}} desde {{
+                  responsables[0]?.desde | date}} <span *ngIf="responsables[0]?.hasta
+                      ">hasta</span> {{responsables[0]?.hasta | date}}</ng-template>
+                <ng-container *ngFor="let responsable of responsables">
+                  <li *ngIf="responsable.ord !=1" title="{{ responsable.id }}">
+                    {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}}
+                    <span *ngIf="responsable.hasta
+                ">hasta</span> {{responsable.hasta | date}}
+                  </li>
                 </ng-container>
-                <ng-container *ngFor="let responsable of $personaResponsables | async">
-                  <p title="{{ responsable.GrupoActividadId }}">
-                    {{ responsable.GrupoActividadNumero }} {{ responsable.GrupoActividadDetalle }} desde
-                    {{
-                    responsable.GrupoActividadPersonalDesde | date
-                    }}
-                    <span *ngIf="responsable.GrupoActividadPersonalHasta">
-                      hasta
-                    </span>
-                    {{
-                    responsable.GrupoActividadPersonalHasta | date
-                    }}
-                  </p>
-                </ng-container>
-              </ng-container>
-            </nz-form-control>
-          </nz-form-item>
-      
-          <nz-form-item>
-            <nz-form-label [nzSpan]="5">Importe</nz-form-label>
-            <nz-form-control>
-              <input type="number" [placeholder]="'Monto'" nz-input name="monto" ngModel />
-            </nz-form-control>
-          </nz-form-item>
-      
-          <nz-form-item>
-            <nz-input-group>
-              <button nz-col nz-button nzType="primary" [nzLoading]="this.saveLoading$ | async"
-                [disabled]="this.saveLoading$ | async" [nzSize]="'default'" (click)="SaveForm()">
-                <span nz-icon nzType="save" nzTheme="outline"></span>Grabar
-              </button>
-              <button nz-col nzDanger nz-button nzType="primary" [nzLoading]="this.deleteLoading$ | async"
-                [disabled]="this.deleteLoading$ | async" [nzSize]="'default'" (click)="DeleteForm()">
-                <span nz-icon nzType="delete" nzTheme="outline"></span>Eliminar
-              </button>
-            </nz-input-group>
-          </nz-form-item>
-          <nz-form-item class="app-table">
-            <nz-form-label [nzSpan]="5"> Lista de Adelantos </nz-form-label>
-            <nz-form-control>
-              <nz-table class="app-table" #tableAdelantos [nzData]="(listaAdelantos$ | async) || []" nzSize="small"
-                [nzPageSize]="100000000" [nzShowPagination]="false" [nzScroll]="{ x: '500px' }"
-                [nzLoading]="tableLoading$ | async">
-                <thead>
-                  <tr>
-                    <th>CUIT</th>
-                    <th>Apellido Nombre</th>
-                    <th>Monto</th>
-                    <th>Fecha de Solicitud</th>
-                    <th>Fecha de Aprobación</th>
-                    <th>Estado</th>
-                    <th>Aplica El</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let data of this.tableAdelantos.data">
-                    <td>{{ data.PersonalCUITCUILCUIT }}</td>
-                    <td>{{ data.ApellidoNombre }}</td>
-                    <td>{{ data.PersonalAdelantoMonto | currency }}</td>
-                    <td>{{ data.PersonalAdelantoFechaSolicitud | date }}</td>
-                    <td>{{ data.PersonalAdelantoFechaAprobacion | date }}</td>
-                    <td *ngIf="data.PersonalAdelantoAprobado=='S'; then aprobado else pendiente"></td>
-                    <ng-template #aprobado>Aprobado</ng-template>
-                    <ng-template #pendiente>Pendiente</ng-template>
-                    <td>{{ data.PersonalAdelantoAplicaEl }}</td>
-                  </tr>
-                </tbody>
-              </nz-table>
-            </nz-form-control>
-          </nz-form-item>
+              </nz-collapse-panel>
+            </nz-collapse>
+            }
+            }@else {
+              <span>No tiene responsable</span>
+           }
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Trabaja en</nz-form-label>
+          <nz-form-control>
+            @if ((objetivos$ | async)?.asistencia; as objetivos){
+
+              @if (!objetivos.length) { <li>No tiene horas cargadas</li>}
+              
+              @for (objetivo of objetivos; track objetivo.ObjetivoId) {
+              <li title="{{ objetivo.ObjetivoId }}">
+                {{objetivo.ObjetivoCodigo}} {{objetivo.ObjetivoDescripcion}} {{objetivo.totalhorascalc}}hs </li> }
+              }            
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Importe</nz-form-label>
+          <nz-form-control>
+            <input type="number" [placeholder]="'Monto'" nz-input name="monto" ngModel />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-input-group>
+            <button nz-col nz-button nzType="primary" [nzLoading]="this.saveLoading$ | async"
+              [disabled]="this.saveLoading$ | async" [nzSize]="'default'" (click)="SaveForm()">
+              <span nz-icon nzType="save" nzTheme="outline"></span>Grabar
+            </button>
+            <button nz-col nzDanger nz-button nzType="primary" [nzLoading]="this.deleteLoading$ | async"
+              [disabled]="this.deleteLoading$ | async" [nzSize]="'default'" (click)="DeleteForm()">
+              <span nz-icon nzType="delete" nzTheme="outline"></span>Eliminar
+            </button>
+          </nz-input-group>
+        </nz-form-item>
+        <nz-form-item class="app-table">
+          <nz-form-label [nzSpan]="5"> Lista de Adelantos </nz-form-label>
+          <nz-form-control>
+            <nz-table class="app-table" #tableAdelantos [nzData]="(listaAdelantos$ | async) || []" nzSize="small"
+              [nzPageSize]="100000000" [nzShowPagination]="false" [nzScroll]="{ x: '500px' }"
+              [nzLoading]="tableLoading$ | async">
+              <thead>
+                <tr>
+                  <th>CUIT</th>
+                  <th>Apellido Nombre</th>
+                  <th>Monto</th>
+                  <th>Fecha de Solicitud</th>
+                  <th>Fecha de Aprobación</th>
+                  <th>Estado</th>
+                  <th>Aplica El</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let data of this.tableAdelantos.data">
+                  <td>{{ data.PersonalCUITCUILCUIT }}</td>
+                  <td>{{ data.ApellidoNombre }}</td>
+                  <td>{{ data.PersonalAdelantoMonto | currency }}</td>
+                  <td>{{ data.PersonalAdelantoFechaSolicitud | date }}</td>
+                  <td>{{ data.PersonalAdelantoFechaAprobacion | date }}</td>
+                  <td *ngIf="data.PersonalAdelantoAprobado=='S'; then aprobado else pendiente"></td>
+                  <ng-template #aprobado>Aprobado</ng-template>
+                  <ng-template #pendiente>Pendiente</ng-template>
+                  <td>{{ data.PersonalAdelantoAplicaEl }}</td>
+                </tr>
+              </tbody>
+            </nz-table>
+          </nz-form-control>
+        </nz-form-item>
       </nz-tab>
     </nz-tabset>
   </form>

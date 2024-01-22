@@ -1011,6 +1011,45 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     return descuentos
   }
 
+
+  async getHabilitacionesPorPersonaQuery(anio: number, mes: number, personalId: number, queryRunner: QueryRunner) {
+    return queryRunner.query(
+      `SELECT DISTINCT
+      per.PersonalId PersonalId,
+      hab.PersonalHabilitacionDesde, hab.PersonalHabilitacionHasta, hab.PersonalHabilitacionLugarHabilitacionId, hab.PersonalHabilitacionPresentacionPapeles,
+      lug.LugarHabilitacionDescripcion,
+      hab.PersonalHabilitacionRechazado, hab.PersonalHabilitacionClase,
+      1   
+          
+   FROM Personal per
+   JOIN PersonalHabilitacion hab ON hab.PersonalId = per.PersonalId AND hab.PersonalHabilitacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(hab.PersonalHabilitacionHasta,'9999-12-31')>=DATEFROMPARTS(@1,@2,1)
+   JOIN LugarHabilitacion lug ON lug.LugarHabilitacionId = hab.PersonalHabilitacionLugarHabilitacionId
+   WHERE 
+      per.PersonalId = @0
+   `, [personalId, anio, mes])
+
+  }
+
+
+  async getHabilitacionesPorPersona(req: any, res: Response, next: NextFunction) {
+    try {
+      const personalId = req.params.personalId;
+      const anio = req.params.anio;
+      const mes = req.params.mes;
+      const queryRunner = dataSource.createQueryRunner();
+
+      //      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      //        throw new ClientException(`No tiene permiso para obtener información de categorías de persona`)
+
+      const habilitaciones = await this.getHabilitacionesPorPersonaQuery(anio, mes, personalId, queryRunner)
+      this.jsonRes({ habilitaciones }, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+
+
   async getCategoriasPorPersonaQuery(anio: number, mes: number, personalId: number, SucursalId: number, queryRunner: QueryRunner) {
     return queryRunner.query(
       `SELECT cat.TipoAsociadoId, catrel.PersonalCategoriaCategoriaPersonalId, catrel.PersonalCategoriaPersonalId, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta,
@@ -1594,20 +1633,13 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const anio: number = req.body.year
       const mes: number = req.body.month
       const objetivoId: number = req.body.objetivoId
-      const rowId: number = req.body.id
-      const personalId: number = req.body.personalId
-      const tipoAsociadoId: number = req.body.tipoAsociadoId
-      const categoriaPersonalId: number = req.body.categoriaPersonalId
-      const formaLiquidacion: number = req.body.formaLiquidacion
-      //let errores: any[] = []
-      await queryRunner.startTransaction()
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(req.body.objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para grabar/modificar asistencia`)
 
 
       //Validación de los datos ingresados
-      if (!personalId || !formaLiquidacion || !categoriaPersonalId || !tipoAsociadoId)
+      if (!req.body.personalId || !req.body.formaLiquidacion || !req.body.categoriaPersonalId || !req.body.tipoAsociadoId)
         throw new ClientException(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`, 'hola', 999)
 
       //Validación de Objetivo
@@ -1618,17 +1650,29 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const mesId = valObjetivo[0].ObjetivoAsistenciaAnoMesId
       const sucursalId = valObjetivo[0].SucursalId
 
+      //Validación Categoria del Personal
+      const valCategoriaPersonal : any = await this.valCategoriaPersonal(req.body, sucursalId, queryRunner)
+      //console.log('VALCategoriaPersonal',valCategoriaPersonal.extended.categoria);
+      if (valCategoriaPersonal instanceof ClientException){
+        if(!valCategoriaPersonal.extended.categoria)
+          throw valCategoriaPersonal
+        req.body.tipoAsociadoId = valCategoriaPersonal.extended.categoria.tipoId
+        req.body.categoriaPersonalId = valCategoriaPersonal.extended.categoria.id
+      }
+
       //Validación de Personal ya registrado
       const valPersonalRegistrado = await this.valPersonalRegistrado(req.body, queryRunner)
-      if (valPersonalRegistrado instanceof ClientException)
+      if (valPersonalRegistrado instanceof ClientException){
+        if(valCategoriaPersonal instanceof ClientException && valCategoriaPersonal.extended.categoria)
+          valPersonalRegistrado.extended.categoria = {
+            fullName: ``,
+            id: 0,
+            tipoFullName: ``,
+            tipoId: 0,
+          }
         throw valPersonalRegistrado
-
+      }
       let personal: any = valPersonalRegistrado
-
-      //Validación Categoria del Personal
-      const valCategoriaPersonal = await this.valCategoriaPersonal(req.body, sucursalId, queryRunner)
-      if (valCategoriaPersonal instanceof ClientException)
-        throw valCategoriaPersonal
 
       //Validaciónes de los días del mes
       const valsDiasMes = await this.valsDiasMes(req.body, queryRunner)
@@ -1640,6 +1684,11 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       let valueColumnsDays = valsDiasMes.valueColumnsDays
       let totalhs = valsDiasMes.totalhs
 
+      const rowId: number = req.body.id
+      const personalId: number = req.body.personalId
+      const tipoAsociadoId: number = req.body.tipoAsociadoId
+      const categoriaPersonalId: number = req.body.categoriaPersonalId
+      const formaLiquidacion: number = req.body.formaLiquidacion
 
       if (!totalhs && personal?.id) {
         await this.deleteAsistencia(objetivoId, anioId, mesId, personal.id, queryRunner)
@@ -1656,7 +1705,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const horas = Math.trunc(totalhs).toString()
       req.body.total = `${horas}.${min}`
 
-      let result: any = ''
+      let result: any = {}
 
       if (!personal) {
         const objAsistenciaUltsNros = await queryRunner.query(`
@@ -1689,7 +1738,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           WHERE ObjetivoAsistenciaAnoMesId = @3 AND ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = @1 AND ObjetivoAsistenciaAnoMesMes = @2`,
           [objetivoId, anioId, mes, mesId, newAsistenciaPersonalDiasId, newAsistenciaPersonalAsignadoId, newAsistenciaDiasPersonalId]
         )
-        result = { newRowId: newAsistenciaPersonalDiasId }
+        result.newRowId = newAsistenciaPersonalDiasId
       } else {
         await this.deleteAsistencia(objetivoId, anioId, mesId, personal.id, queryRunner)
         await queryRunner.query(`
@@ -1706,6 +1755,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         )
       }
       await queryRunner.commitTransaction()
+      if (valCategoriaPersonal instanceof ClientException  && valCategoriaPersonal.extended.categoria)
+        result.categoria = valCategoriaPersonal.extended.categoria
       return this.jsonRes(result, res);
     } catch (error) {
 
@@ -1760,7 +1811,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         personaLista.push(obj)
     })
     if (personaLista.length) {
-      return new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`)
+      return new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`, {})
     }
     return personal
   }
@@ -1792,7 +1843,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       }
       return new ClientException(`La categoría no se encuentra habilitada para la persona`, data)
     }
-    return
+    return null
   }
 
   async valsDiasMes(item: any, queryRunner: QueryRunner) {
@@ -1880,14 +1931,14 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           //Validación de Personal total de horas por dia
           if (totalhsxdia.length && (totalhsxdia[0][key] + horas) > 24.0) {
             // throw new ClientException(`La cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
-            errores.push(`a cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
+            errores.push(`La cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
           }
 
           //Validación de horas dentro del perido de contrato
           const contrato = periodoContrato.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
           if (!contrato) {
             //throw new ClientException(`El dia ${numdia} no pertenece al periodo del contrato`)
-            errores.push(`El dia${numdia} no pertecese al periodo del contrato`)
+            errores.push(`El dia${numdia} no pertenece al periodo del contrato`)
           }
           if (horas > 24) {
             // throw new ClientException(`La cantidad de horas no puede superar las 24`)
@@ -2060,6 +2111,90 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       this.jsonRes(lista, res);
     } catch (error) {
       this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async valGrid(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction()
+      const objetivoId = req.params.ObjetivoId
+      const anio = req.params.anio
+      const mes = req.params.mes
+      const gridData = req.params.grid
+      let errores : any[] = []
+
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
+        throw new ClientException(`No tiene permisos para ver asistencia`)
+
+      gridData.forEach(async (obj:any)=>{
+        let { apellidoNombre, categoria, forma, ...row } = obj
+        const item = {
+          ...row,
+          personalId: apellidoNombre.id,
+          tipoAsociadoId: categoria.tipoId,
+          categoriaPersonalId: categoria.id,
+          formaLiquidacion: forma.id,
+        }
+        //Validación de los datos ingresados
+        if (!item.personalId || !item.formaLiquidacion || !item.categoriaPersonalId || !item.tipoAsociadoId){
+          errores.push(new ClientException(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`, 'hola', 999))
+          return
+        }
+        //Validación de Objetivo
+        const valObjetivo = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
+        if (valObjetivo instanceof ClientException){
+          errores.push(valObjetivo)
+          return
+        }
+        // const anioId = valObjetivo[0].ObjetivoAsistenciaAnoId
+        // const mesId = valObjetivo[0].ObjetivoAsistenciaAnoMesId
+        const sucursalId = valObjetivo[0].SucursalId
+
+        //Validación de Personal ya registrado
+        const valPersonalRegistrado = await this.valPersonalRegistrado(item, queryRunner)
+        if (valPersonalRegistrado instanceof ClientException){
+          errores.push(valPersonalRegistrado)
+          return
+        }
+
+        // let personal: any = valPersonalRegistrado
+
+        //Validación Categoria del Personal
+        const valCategoriaPersonal = await this.valCategoriaPersonal(item, sucursalId, queryRunner)
+        if (valCategoriaPersonal instanceof ClientException){
+          errores.push(valCategoriaPersonal)
+          return
+        }
+
+        //Validaciónes de los días del mes
+        const valsDiasMes = await this.valsDiasMes(item, queryRunner)
+        if (valsDiasMes instanceof ClientException) {
+          errores.push(valsDiasMes)
+          return
+        }
+
+        let totalhs = valsDiasMes.totalhs
+        if (totalhs<1) {
+          // errores.push('')
+          return
+        }
+
+      })
+
+      await queryRunner.commitTransaction()
+
+      if (errores.length) {
+        // throw errores
+      }
+
+      this.jsonRes('', res);
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction()
       return next(error)
     } finally {
       await queryRunner.release()

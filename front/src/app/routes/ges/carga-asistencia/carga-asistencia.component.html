@@ -96,38 +96,5 @@
 </nz-card>
 <nz-drawer [nzClosable]="true" [nzVisible]="visibleDrawer" [nzPlacement]="'left'" [nzTitle]="personalApellidoNombre"
     (nzOnClose)="closeDrawer()">
-    <ng-container *nzDrawerContent>
-        <div class="app-foto-container" *ngIf="(personalDetalle$ | async) as imgdata">
-            <img class="app-foto" nz-image [nzSrc]="imgdata.image"
-                nzFallback="./assets/dummy-person-image.jpg" />
-        </div>
-        @if ((personalDetalleCategorias$ | async)?.categorias; as categorias){
-        @if (categorias.length){ <h4>Categorías</h4>}
-        @for (cat of categorias; track cat.PersonalCategoriaCategoriaPersonalId) {
-        <li> {{cat.CategoriaPersonalDescripcion}} {{cat.ValorLiquidacionHoraNormal|currency}}
-            {{(cat.ValorLiquidacionHorasTrabajoHoraNormal>0)?'('+cat.ValorLiquidacionHorasTrabajoHoraNormal+' hs)':''}}
-        </li>
-        }
-        }
-        @if ((personalDetalleLicencias$ |async)?.licencias; as licencias){
-        @if (licencias.length){<h4>Licencia</h4>}
-        @for (lic of licencias; track lic.desde) {
-        <li> {{lic.desde|date }} {{lic.hasta2|date}}</li>
-        }
-        }
-        @if (personalDetalleSitRevista$ | async; as situacion){
-        @if (situacion.length) {<h4>Situacion Revista</h4>}
-        @for (sit of situacion; track sit.PersonalSituacionRevistaDesde) {
-        <li>{{sit.SituacionRevistaDescripcion}} {{sit.PersonalSituacionRevistaDesde|date }}
-            {{sit.PersonalSituacionRevistaHasta|date}}</li>
-        }
-        }
-        @if (personalDetalleResponsables$ | async; as responsables){
-        @if (responsables.length) { <h4>Responsable</h4>}
-        @for (responsable of responsables; track responsable.id) {
-        <li title="{{ responsable.id }}">
-            {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}} <span *ngIf="responsable.hasta
-            ">hasta</span> {{responsable.hasta | date}}</li> }
-        }
-    </ng-container>
+    <app-detalle-persona *nzDrawerContent [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="selectedSucursalId" [PersonalId]="selectedPersonalId" ></app-detalle-persona>
 </nz-drawer>
