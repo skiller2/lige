@@ -92,9 +92,8 @@ export class MovimientoAcreditacionEnCuentaController extends BaseController {
     //   await queryRunner.commitTransaction();
       return next(`Se procesaron cambios `)
     } catch (error) {
-    //   if (queryRunner.isTransactionActive)
-    //     await queryRunner.rollbackTransaction();
-    //   return next(error)
+      this.rollbackTransaction(queryRunner)
+//      return next(error)
     return next(`Se procesaron cambios `)
     } finally {
         return next(`Se procesaron cambios `)

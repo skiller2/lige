@@ -161,8 +161,7 @@ export class AdelantosController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes([], res, "Adelanto/s eliminado.");
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release();
@@ -253,8 +252,7 @@ export class AdelantosController extends BaseController {
         PersonalAdelantoFechaSolicitud: today, //PersonalAdelantoFechaSolicitud
       }, res, "Adelanto añadido.");
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release();
@@ -309,14 +307,14 @@ export class AdelantosController extends BaseController {
       const adelantos = await dataSource.query(
         `SELECT DISTINCT CONCAT(per.PersonalId,'-',ade.PersonalAdelantoId,'-',g.GrupoActividadId) id,
         per.PersonalId, cuit.PersonalCUITCUILCUIT CUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
-       g.GrupoActividadId, g.GrupoActividadNumero, g.GrupoActividadDetalle,
+        g.GrupoActividadId, g.GrupoActividadNumero, g.GrupoActividadDetalle,
         ade.PersonalAdelantoId, ade.PersonalAdelantoMonto, ade.PersonalAdelantoFechaSolicitud, ade.PersonalAdelantoAprobado, ade.PersonalAdelantoFechaAprobacion, ade.PersonalAdelantoCantidadCuotas, ade.PersonalAdelantoAplicaEl, ade.PersonalAdelantoLiquidoFinanzas, ade.PersonalAdelantoUltimaLiquidacion, ade.PersonalAdelantoCuotaUltNro, ade.PersonalAdelantoMontoAutorizado, ade.PersonalAdelantoJerarquicoId, ade.PersonalAdelantoPuesto, ade.PersonalAdelantoUsuarioId, ade.PersonalAdelantoDia, ade.PersonalAdelantoTiempo
       
         FROM Personal per
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
      
         LEFT JOIN GrupoActividadPersonal ga ON ga.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > ga.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) <  ISNULL(ga.GrupoActividadPersonalHasta, '9999-12-31')
-       LEFT JOIN GrupoActividad g ON g.GrupoActividadId = ga.GrupoActividadId           
+        LEFT JOIN GrupoActividad g ON g.GrupoActividadId = ga.GrupoActividadId           
      
         LEFT JOIN PersonalAdelanto ade  ON ade.PersonalId = per.PersonalId
                -- AND DATEPART(YEAR,ade.PersonalAdelantoFechaSolicitud) = @1 AND DATEPART(MONTH,ade.PersonalAdelantoFechaSolicitud) = @2

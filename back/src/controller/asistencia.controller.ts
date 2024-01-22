@@ -6,6 +6,7 @@ import { clienteController } from "./controller.module";
 import { ObjetivoController } from "./objetivo.controller";
 import { toHexString } from "pdf-lib";
 import { PersonalController } from "./personal.controller";
+import { exit } from "process";
 
 
 export class AsistenciaController extends BaseController {
@@ -28,8 +29,7 @@ export class AsistenciaController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes([], res, `Período habilitado para el objetivo`);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:
@@ -107,8 +107,7 @@ export class AsistenciaController extends BaseController {
       this.jsonRes(periodo, res)
 
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:
@@ -151,8 +150,7 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes([], res, `Período finalizado para el objetivo ${cabecera[0].ObjetivoCodigo} ${cabecera[0].ObjetivoDescripcion}`)
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:
@@ -672,8 +670,7 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes([], res);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:
@@ -773,8 +770,7 @@ export class AsistenciaController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes([], res);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:
@@ -826,8 +822,7 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes(result, res);
     } catch (error) {
-      // if (queryRunner.isTransactionActive)
-      //            await queryRunner.rollbackTransaction()
+//      this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1015,6 +1010,45 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     */
     return descuentos
   }
+
+
+  async getHabilitacionesPorPersonaQuery(anio: number, mes: number, personalId: number, queryRunner: QueryRunner) {
+    return queryRunner.query(
+      `SELECT DISTINCT
+      per.PersonalId PersonalId,
+      hab.PersonalHabilitacionDesde, hab.PersonalHabilitacionHasta, hab.PersonalHabilitacionLugarHabilitacionId, hab.PersonalHabilitacionPresentacionPapeles,
+      lug.LugarHabilitacionDescripcion,
+      hab.PersonalHabilitacionRechazado, hab.PersonalHabilitacionClase,
+      1   
+          
+   FROM Personal per
+   JOIN PersonalHabilitacion hab ON hab.PersonalId = per.PersonalId hab.PersonalHabilitacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(hab.PersonalHabilitacionHasta,'9999-12-31')>=DATEFROMPARTS(@1,@2,1)
+   JOIN LugarHabilitacion lug ON lug.LugarHabilitacionId = hab.PersonalHabilitacionLugarHabilitacionId
+   WHERE 
+      per.PersonalId = @0
+   `, [personalId, anio, mes])
+
+  }
+
+
+  async getHabilitacionesPorPersona(req: any, res: Response, next: NextFunction) {
+    try {
+      const personalId = req.params.personalId;
+      const anio = req.params.anio;
+      const mes = req.params.mes;
+      const queryRunner = dataSource.createQueryRunner();
+
+      //      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      //        throw new ClientException(`No tiene permiso para obtener información de categorías de persona`)
+
+      const habiltaciones = await this.getHabilitacionesPorPersonaQuery(anio, mes, personalId, queryRunner)
+      this.jsonRes({ habiltaciones }, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+
 
   async getCategoriasPorPersonaQuery(anio: number, mes: number, personalId: number, SucursalId: number, queryRunner: QueryRunner) {
     return queryRunner.query(
@@ -1266,8 +1300,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       );
       this.jsonRes(result, res);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+      this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1461,8 +1494,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       this.jsonRes({ asistencia: result, totalImporte, totalHoras }, res);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+      this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1524,8 +1556,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
 
     } catch (error) {
-      // if (queryRunner.isTransactionActive)
-      //await queryRunner.rollbackTransaction()
+//      this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1552,8 +1583,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       this.jsonRes({ asistencia: result, totalImporte, totalHoras }, res);
 
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+      this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1599,7 +1629,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const queryRunner = dataSource.createQueryRunner();
 
     try {
-      await queryRunner.startTransaction()
 
       const anio: number = req.body.year
       const mes: number = req.body.month
@@ -1730,8 +1759,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         result.categoria = valCategoriaPersonal.extended.categoria
       return this.jsonRes(result, res);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+
+      this.rollbackTransaction(queryRunner)
+      
       return next(error)
     } finally {
       await queryRunner.release()
@@ -1781,7 +1811,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         personaLista.push(obj)
     })
     if (personaLista.length) {
-      return new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`,{})
+      return new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`, {})
     }
     return personal
   }
@@ -1808,8 +1838,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
             horasRecomendadas: categorias[0].ValorLiquidacionHorasTrabajoHoraNormal
           }
         }
+        return new ClientException(`Se actualizó la categoría de la persona`, data)
+ 
       }
-      return new ClientException(`La categoría seleccionada no se encuentra habilitada para la persona`, data)
+      return new ClientException(`La categoría no se encuentra habilitada para la persona`, data)
     }
     return null
   }
@@ -1899,14 +1931,14 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           //Validación de Personal total de horas por dia
           if (totalhsxdia.length && (totalhsxdia[0][key] + horas) > 24.0) {
             // throw new ClientException(`La cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
-            errores.push(`a cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
+            errores.push(`La cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
           }
 
           //Validación de horas dentro del perido de contrato
           const contrato = periodoContrato.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
           if (!contrato) {
             //throw new ClientException(`El dia ${numdia} no pertenece al periodo del contrato`)
-            errores.push(`El dia${numdia} no pertecese al periodo del contrato`)
+            errores.push(`El dia${numdia} no pertenece al periodo del contrato`)
           }
           if (horas > 24) {
             // throw new ClientException(`La cantidad de horas no puede superar las 24`)
@@ -1932,7 +1964,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   async getListaAsistenciaPersonalAsignado(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
-      await queryRunner.startTransaction()
+//      await queryRunner.startTransaction()
       const objetivoId = req.params.ObjetivoId;
       const anio = req.params.anio;
       const mes = req.params.mes;
@@ -1942,11 +1974,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
       // console.log('LISTA',lista);
-      await queryRunner.commitTransaction()
+//      await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -2059,7 +2090,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   async getListaAsistenciaPersonalAsignadoAnterior(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
-      await queryRunner.startTransaction()
+//      await queryRunner.startTransaction()
       const objetivoId = req.params.ObjetivoId;
       let anio = req.params.anio;
       let mes = req.params.mes;
@@ -2076,11 +2107,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner, 0)
       // console.log('LISTA', lista);
 
-      await queryRunner.commitTransaction()
+//      await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
     } catch (error) {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction()
+      this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -2172,3 +2202,5 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   }
 
 }
+
+

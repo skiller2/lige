@@ -254,4 +254,12 @@ export class BaseController {
       [PersonalId, anio,mes])
   }
 
+  async rollbackTransaction(queryRunner: QueryRunner) {
+    try {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction()
+    } catch (error2) {
+      return Promise.resolve()
+    }
+}
 }
