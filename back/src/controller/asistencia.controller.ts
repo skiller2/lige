@@ -1880,14 +1880,14 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           //Validación de Personal total de horas por dia
           if (totalhsxdia.length && (totalhsxdia[0][key] + horas) > 24.0) {
             // throw new ClientException(`La cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
-            errores.push(`a cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
+            errores.push(`La cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
           }
 
           //Validación de horas dentro del perido de contrato
           const contrato = periodoContrato.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
           if (!contrato) {
             //throw new ClientException(`El dia ${numdia} no pertenece al periodo del contrato`)
-            errores.push(`El dia${numdia} no pertecese al periodo del contrato`)
+            errores.push(`El dia${numdia} no pertenece al periodo del contrato`)
           }
           if (horas > 24) {
             // throw new ClientException(`La cantidad de horas no puede superar las 24`)
