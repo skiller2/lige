@@ -270,6 +270,10 @@ export class CargaAsistenciaComponent {
                     const response = await this.insertDB(item)
                     if (item.total == 0 && response.deleteRowId)
                         this.angularGridEdit.gridService.deleteItemById(response.deleteRowId)
+                    if (response.categoria) {
+                        item.categoria = response.categoria
+                        this.angularGridEdit.gridService.updateItemById(row.id, item)
+                    }
                     if (response.newRowId && response.newRowId != row.id){
                         this.gridDataInsert.pop()
                         let newData = this.gridDataInsert.map((obj:any)=>{
@@ -301,23 +305,18 @@ export class CargaAsistenciaComponent {
                 }
                 //console.log('this.gridDataInsert', this.gridDataInsert);
             } catch (e:any) {
-                if (e.error?.data?.categoria) {
-                    let item = this.gridDataInsert.find((obj: any) => {
-                        return (obj.id == row.id)
-                    }) 
-
-                    item.categoria = e.error.data.categoria
-                    this.angularGridEdit.gridService.updateItemById(row.id, item)
+                console.log('error', e)
+                // if (e.error.data.categoria) {
+                //     let item = this.gridDataInsert.find((obj: any) => {
+                //         return (obj.id == row.id)
+                //     }) 
+                //     item.categoria = e.error.data.categoria
+                //     this.angularGridEdit.gridService.updateItemById(row.id, item)
                     
-                } else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
-
-                    const curitem = this.angularGridEdit.dataView.getItemById(row.id)
-                    editCommand.editor.applyValue(curitem, editCommand.prevSerializedValue)
-                    this.angularGridEdit.gridService.updateItemById(row.id, curitem)
-                    this.angularGridEdit.slickGrid.updateRow(editCommand.row)
-                    const col:Column= this.angularGridEdit.slickGrid.getColumns()[editCommand.cell]
-                    this.updateTotals(String(col.id),this.angularGridEdit)
-                      
+                // }else 
+                if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
+                    this.angularGridEdit.gridService.updateItemById(row.id, editCommand.editor.args.item)
+                    editCommand.undo();
                 }
             }
         }
