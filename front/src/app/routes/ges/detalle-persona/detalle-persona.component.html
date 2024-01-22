@@ -1,0 +1,62 @@
+<div class="app-foto-container" *ngIf="(personalDetalle$ | async) as imgdata">
+  <img class="app-foto" nz-image [nzSrc]="imgdata.image" nzFallback="./assets/dummy-person-image.jpg" />
+</div>
+
+<nz-divider nzText="Categorías"></nz-divider>
+     
+@if ((personalDetalleCategorias$ | async)?.categorias; as categorias){
+@if (!categorias.length){ <li>Sin datos</li>}
+@for (cat of categorias; track cat.PersonalCategoriaCategoriaPersonalId) {
+<li> {{cat.CategoriaPersonalDescripcion}} {{cat.ValorLiquidacionHoraNormal|currency}}
+  {{(cat.ValorLiquidacionHorasTrabajoHoraNormal>0)?'('+cat.ValorLiquidacionHorasTrabajoHoraNormal+' hs)':''}}
+</li>
+}
+}
+
+<nz-divider nzText="Licencias"></nz-divider>
+@if ((personalDetalleLicencias$ |async)?.licencias; as licencias){
+@if (!licencias.length){<li>Sin datos</li>}
+@for (lic of licencias; track lic.desde) {
+<li> {{lic.desde|date }} {{lic.hasta2|date}}</li>
+}
+}
+@if (personalDetalleSitRevista$ | async; as situacion){
+@if (situacion.length) {<h4>Situacion Revista</h4>}
+@for (sit of situacion; track sit.PersonalSituacionRevistaDesde) {
+<li>{{sit.SituacionRevistaDescripcion}} {{sit.PersonalSituacionRevistaDesde|date }}
+  {{sit.PersonalSituacionRevistaHasta|date}}</li>
+}
+}
+
+<nz-divider nzText="Responsable"></nz-divider>
+@if (personalDetalleResponsables$ | async; as responsables){
+@if (responsables.length) {
+<nz-collapse nzBordered="false" nzGhost="false" class="app-collapse-header">
+<nz-collapse-panel
+    [nzHeader]="tmplHeader">
+    <ng-template #tmplHeader>{{responsables[0]?.tipo}} {{responsables[0]?.detalle}} desde {{ responsables[0]?.desde | date}} <span *ngIf="responsables[0]?.hasta
+      ">hasta</span> {{responsables[0]?.hasta | date}}</ng-template>
+    <ng-container *ngFor="let responsable of responsables">
+        <li *ngIf="responsable.ord !=1" title="{{ responsable.id }}">
+            {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}}
+            <span *ngIf="responsable.hasta
+">hasta</span> {{responsable.hasta | date}}
+        </li>
+    </ng-container>
+</nz-collapse-panel>
+</nz-collapse>
+} @else {
+   <li>Sin datos</li>
+}
+
+}
+
+<nz-divider nzText="Objetivos"></nz-divider>
+@if ((objetivos$ | async)?.asistencia; as objetivos){
+
+@if (!objetivos.length) { <li>Sin datos</li>}
+
+@for (objetivo of objetivos; track objetivo.ObjetivoId) {
+<li title="{{ objetivo.ObjetivoId }}">
+  {{objetivo.ObjetivoCodigo}} {{objetivo.ObjetivoDescripcion}} {{objetivo.totalhorascalc}}hs </li> }
+}

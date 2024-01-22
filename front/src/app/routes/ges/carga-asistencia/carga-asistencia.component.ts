@@ -20,6 +20,7 @@ import { EditorCategoriaComponent } from 'src/app/shared/editor-categoria/editor
 import { LoadingService } from '@delon/abc/loading';
 import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 enum Busqueda {
     Sucursal,
     Objetivo,
@@ -34,7 +35,7 @@ enum Busqueda {
     styleUrls: ['./carga-asistencia.component.less'],
     standalone: true,
     encapsulation: ViewEncapsulation.None,
-    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent],
+    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent,DetallePersonaComponent],
     providers: [AngularUtilService]
 })
 export class CargaAsistenciaComponent {
@@ -62,17 +63,13 @@ export class CargaAsistenciaComponent {
     detailViewRowCount = 1;
     selectedPeriod = { year: 0, month: 0 };
     selectedSucursalId = 0
+    selectedPersonalId = 0
     objetivoData: any
     ObjetivoIdUrl: any
     periodos:any
 
     visibleDrawer: boolean = false
-    personalDetalleCategorias$:Observable<any> | undefined
-    personalDetalleLicencias$:Observable<any> | undefined
-    personalDetalleSitRevista$:Observable<any> | undefined
     personalApellidoNombre: any;
-    personalDetalleResponsables$:Observable<any> | undefined
-    personalDetalle$:Observable<any> | undefined
 
     public get Busqueda() {
         return Busqueda;
@@ -605,17 +602,18 @@ export class CargaAsistenciaComponent {
         const row = this.angularGridEdit.slickGrid.getDataItem(selrows[0])
         if (row.apellidoNombre == '') return
 
-        const PersonalId = row.apellidoNombre.id;
         this.personalApellidoNombre = row.apellidoNombre.fullName    
-
-        this.personalDetalle$             = this.searchService.getPersonalById(PersonalId)
-        this.personalDetalleSitRevista$   = this.apiService.getPersonaSitRevista(PersonalId, this.selectedPeriod.year, this.selectedPeriod.month)
-        this.personalDetalleCategorias$   = this.searchService.getCategoriasPersona(PersonalId, this.selectedPeriod.year, this.selectedPeriod.month, this.selectedSucursalId)
-        this.personalDetalleLicencias$    = this.searchService.getLicenciasPersona(PersonalId, this.selectedPeriod.year, this.selectedPeriod.month)
-        this.personalDetalleResponsables$ = this.apiService.getPersonaResponsables(PersonalId, this.selectedPeriod.year, this.selectedPeriod.month)
-
-
+        this.selectedPersonalId = row.apellidoNombre.id
         this.visibleDrawer = true
+    }
+
+    getPersonalIdFromGrid():number {
+        console.log('getPersonalIdFromGrid')
+        const selrows = this.angularGridEdit.slickGrid.getSelectedRows()
+        if (selrows[0]==undefined) return 0
+        const row = this.angularGridEdit.slickGrid.getDataItem(selrows[0])
+        if (row.apellidoNombre == '') return 0
+        return row.apellidoNombre.id
     }
 
     closeDrawer(): void {
