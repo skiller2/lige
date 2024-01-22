@@ -1011,6 +1011,45 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     return descuentos
   }
 
+
+  async getHabilitacionesPorPersonaQuery(anio: number, mes: number, personalId: number, queryRunner: QueryRunner) {
+    return queryRunner.query(
+      `SELECT DISTINCT
+      per.PersonalId PersonalId,
+      hab.PersonalHabilitacionDesde, hab.PersonalHabilitacionHasta, hab.PersonalHabilitacionLugarHabilitacionId, hab.PersonalHabilitacionPresentacionPapeles,
+      lug.LugarHabilitacionDescripcion,
+      hab.PersonalHabilitacionRechazado, hab.PersonalHabilitacionClase,
+      1   
+          
+   FROM Personal per
+   JOIN PersonalHabilitacion hab ON hab.PersonalId = per.PersonalId hab.PersonalHabilitacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(hab.PersonalHabilitacionHasta,'9999-12-31')>=DATEFROMPARTS(@1,@2,1)
+   JOIN LugarHabilitacion lug ON lug.LugarHabilitacionId = hab.PersonalHabilitacionLugarHabilitacionId
+   WHERE 
+      per.PersonalId = @0
+   `, [personalId, anio, mes])
+
+  }
+
+
+  async getHabilitacionesPorPersona(req: any, res: Response, next: NextFunction) {
+    try {
+      const personalId = req.params.personalId;
+      const anio = req.params.anio;
+      const mes = req.params.mes;
+      const queryRunner = dataSource.createQueryRunner();
+
+      //      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+      //        throw new ClientException(`No tiene permiso para obtener información de categorías de persona`)
+
+      const habiltaciones = await this.getHabilitacionesPorPersonaQuery(anio, mes, personalId, queryRunner)
+      this.jsonRes({ habiltaciones }, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+
+
   async getCategoriasPorPersonaQuery(anio: number, mes: number, personalId: number, SucursalId: number, queryRunner: QueryRunner) {
     return queryRunner.query(
       `SELECT cat.TipoAsociadoId, catrel.PersonalCategoriaCategoriaPersonalId, catrel.PersonalCategoriaPersonalId, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta,

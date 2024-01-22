@@ -21,6 +21,7 @@ export class DetallePersonaComponent {
   personalDetalleResponsables$: Observable<any> | undefined
   personalDetalle$: Observable<any> | undefined
   objetivos$: Observable<any> | undefined
+  habilitaciones$: Observable<any> | undefined
   private searchService = inject(SearchService)
   private apiService = inject(ApiService)
   @Input() anio!: number
@@ -35,6 +36,7 @@ export class DetallePersonaComponent {
     this.personalDetalleLicencias$ = this.searchService.getLicenciasPersona(this.PersonalId, this.anio, this.mes)
     this.personalDetalleResponsables$ = this.apiService.getPersonaResponsables(this.PersonalId, this.anio, this.mes)
     this.objetivos$ = this.searchService.getAsistenciaPersona(this.PersonalId, this.anio, this.mes)
+    this.habilitaciones$ = this.searchService.getHabilitacionesPersona(this.PersonalId, this.anio, this.mes)
   }
 
   ngOnInit(): void {

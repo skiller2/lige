@@ -53,6 +53,17 @@
 
 }
 
+<nz-divider nzText="Habilitaciones"></nz-divider>
+@if ((habilitaciones$ | async)?.habilitaciones; as habilitaciones){
+
+@if (!habilitaciones.length) { <li>Sin datos</li>}
+
+@for (habilitacion of habilitaciones; track habilitacion.PersonalHabilitacionDesde) {
+<li title="{{ habilitacion.PersonalHabilitacionDesde }}">
+  {{habilitacion.LugarHabilitacionDescripcion}} {{habilitacion.PersonalHabilitacionDesde|date}} - {{habilitacion.PersonalHabilitacionHasta|date}} </li> }
+}
+
+
 <nz-divider nzText="Objetivos"></nz-divider>
 @if ((objetivos$ | async)?.asistencia; as objetivos){
 
