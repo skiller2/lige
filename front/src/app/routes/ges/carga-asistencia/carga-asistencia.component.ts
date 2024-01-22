@@ -153,8 +153,13 @@ export class CargaAsistenciaComponent {
                 maxWidth: 250,
                 minWidth: 170,
                 formatter: Formatters.complexObject,
+                exportWithFormatter:true,
                 params: {
                     complexFieldLabel: 'apellidoNombre.fullName',
+                },
+                excelExportOptions: {
+                    autoDetectCellFormat: true,
+                    
                 },
                 editor: {
                     model: CustomInputEditor,
@@ -177,6 +182,7 @@ export class CargaAsistenciaComponent {
                 params: {
                     complexFieldLabel: 'forma.fullName',
                 },
+                exportWithFormatter:true,
 
                 editor: {
                     model: CustomInputEditor,
@@ -198,7 +204,7 @@ export class CargaAsistenciaComponent {
                 params: {
                     complexFieldLabel: 'categoria.fullName',
                 },
-
+                exportWithFormatter:true,
                 editor: {
                     model: CustomInputEditor,
                     collection: [],
