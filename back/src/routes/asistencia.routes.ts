@@ -40,3 +40,4 @@ asistenciaRouter.get('/periodo/:anio/:mes/:ObjetivoId', authMiddleware.verifyTok
 asistenciaRouter.get('/listaperasig/:anio/:mes/:ObjetivoId', authMiddleware.verifyToken, (req, res, next) => {asistenciaController.getListaAsistenciaPersonalAsignado(req, res, next)})
 
 asistenciaRouter.get('/listaperasigant/:anio/:mes/:ObjetivoId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getListaAsistenciaPersonalAsignadoAnterior(req, res, next) })
+asistenciaRouter.post('/validargrilla', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.valGrid(req, res, next) })

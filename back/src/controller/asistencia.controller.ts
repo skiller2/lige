@@ -4,7 +4,7 @@ import { dataSource } from "../data-source";
 import { Any, QueryRunner, QueryRunnerAlreadyReleasedError } from "typeorm";
 import { clienteController } from "./controller.module";
 import { ObjetivoController } from "./objetivo.controller";
-import { toHexString } from "pdf-lib";
+import { error, toHexString } from "pdf-lib";
 import { PersonalController } from "./personal.controller";
 import { exit } from "process";
 
@@ -1629,7 +1629,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const queryRunner = dataSource.createQueryRunner();
 
     try {
-
+      await queryRunner.startTransaction()
       const anio: number = req.body.year
       const mes: number = req.body.month
       const objetivoId: number = req.body.objetivoId
@@ -1640,7 +1640,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       //Validación de los datos ingresados
       if (!req.body.personalId || !req.body.formaLiquidacion || !req.body.categoriaPersonalId || !req.body.tipoAsociadoId)
-        throw new ClientException(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`, 'hola', 999)
+        throw new ClientException(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`)
 
       //Validación de Objetivo
       const valObjetivo = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
@@ -1652,8 +1652,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       //Validación Categoria del Personal
       const valCategoriaPersonal : any = await this.valCategoriaPersonal(req.body, sucursalId, queryRunner)
-      //console.log('VALCategoriaPersonal',valCategoriaPersonal.extended.categoria);
       if (valCategoriaPersonal instanceof ClientException){
+        // console.log('VALCategoriaPersonal', valCategoriaPersonal);
         if(!valCategoriaPersonal.extended.categoria)
           throw valCategoriaPersonal
         req.body.tipoAsociadoId = valCategoriaPersonal.extended.categoria.tipoId
@@ -1754,9 +1754,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           [objetivoId, anioId, mesId, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, req.body.total, personal.id]
         )
       }
-      await queryRunner.commitTransaction()
       if (valCategoriaPersonal instanceof ClientException  && valCategoriaPersonal.extended.categoria)
         result.categoria = valCategoriaPersonal.extended.categoria
+      await queryRunner.commitTransaction()
       return this.jsonRes(result, res);
     } catch (error) {
 
@@ -2121,16 +2121,16 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.startTransaction()
-      const objetivoId = req.params.ObjetivoId
-      const anio = req.params.anio
-      const mes = req.params.mes
-      const gridData = req.params.grid
+      const objetivoId : number = req.body.ObjetivoId
+      const anio : number = req.body.year
+      const mes : number = req.body.month
+      const gridData : any[] = req.body.grid
       let errores : any[] = []
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para ver asistencia`)
-
-      gridData.forEach(async (obj:any)=>{
+      
+      gridData.forEach(async (obj:any, index: number)=>{
         let { apellidoNombre, categoria, forma, ...row } = obj
         const item = {
           ...row,
@@ -2138,60 +2138,59 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           tipoAsociadoId: categoria.tipoId,
           categoriaPersonalId: categoria.id,
           formaLiquidacion: forma.id,
+          objetivoId,
+          anio,
+          mes,
         }
+        console.log('item', item);
+        let error : any[] = []
         //Validación de los datos ingresados
         if (!item.personalId || !item.formaLiquidacion || !item.categoriaPersonalId || !item.tipoAsociadoId){
-          errores.push(new ClientException(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`, 'hola', 999))
-          return
+          error.push(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`)
         }
         //Validación de Objetivo
-        const valObjetivo = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
+        const valObjetivo : any = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
         if (valObjetivo instanceof ClientException){
-          errores.push(valObjetivo)
-          return
+          error.push(valObjetivo.messageArr[0])
         }
-        // const anioId = valObjetivo[0].ObjetivoAsistenciaAnoId
-        // const mesId = valObjetivo[0].ObjetivoAsistenciaAnoMesId
         const sucursalId = valObjetivo[0].SucursalId
 
         //Validación de Personal ya registrado
-        const valPersonalRegistrado = await this.valPersonalRegistrado(item, queryRunner)
+        const valPersonalRegistrado : any = await this.valPersonalRegistrado(item, queryRunner)
         if (valPersonalRegistrado instanceof ClientException){
-          errores.push(valPersonalRegistrado)
-          return
+          error.push(valPersonalRegistrado.messageArr[0])
+        } else if (!valPersonalRegistrado){
+          error.push('La persona aun no fue registrada')
         }
 
-        // let personal: any = valPersonalRegistrado
-
         //Validación Categoria del Personal
-        const valCategoriaPersonal = await this.valCategoriaPersonal(item, sucursalId, queryRunner)
+        const valCategoriaPersonal : any = await this.valCategoriaPersonal(item, sucursalId, queryRunner)
         if (valCategoriaPersonal instanceof ClientException){
-          errores.push(valCategoriaPersonal)
-          return
+          error.push(valCategoriaPersonal.messageArr[0])
         }
 
         //Validaciónes de los días del mes
-        const valsDiasMes = await this.valsDiasMes(item, queryRunner)
+        const valsDiasMes : any = await this.valsDiasMes(item, queryRunner)
         if (valsDiasMes instanceof ClientException) {
-          errores.push(valsDiasMes)
-          return
+          error.push(valsDiasMes.messageArr[0])
+        } else {
+          let totalhs = valsDiasMes.totalhs
+          if (totalhs<1) {
+            error.push(`El total de horas tiene que ser superior o igual a 1`)
+          }
         }
 
-        let totalhs = valsDiasMes.totalhs
-        if (totalhs<1) {
-          // errores.push('')
-          return
+        if (error.length) {
+          errores.push(`Fila ${index+1}:\n${error.join(`\n`)}`)
         }
 
       })
 
-      await queryRunner.commitTransaction()
-
       if (errores.length) {
-        // throw errores
+        throw new ClientException(errores.join(`\n`))
       }
-
-      this.jsonRes('', res);
+      await queryRunner.commitTransaction()
+      return this.jsonRes('', res);
     } catch (error) {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction()
@@ -2202,5 +2201,3 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   }
 
 }
-
-
