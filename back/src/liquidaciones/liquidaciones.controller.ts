@@ -616,7 +616,15 @@ export class LiquidacionesController extends BaseController {
 
   }
 
-  async createPdf(queryRunner:QueryRunner,filesPath:string,persona_id:number,doc_id:number,fechaActual:Date,PersonaNombre:string,Cuit:string,Domicilio:string,periodo_id:number) {
+  async createPdf(queryRunner:QueryRunner,
+                  filesPath:string,
+                  persona_id:number,
+                  doc_id:number,
+                  fechaActual:Date,
+                  PersonaNombre:string,
+                  Cuit:string,
+                  Domicilio:string,
+                  periodo_id:number) {
 
 
        const dia = fechaActual.getDate();
@@ -639,62 +647,71 @@ export class LiquidacionesController extends BaseController {
         const form = pdfDoc.getForm()
 
         const numberField = form.getTextField(`NUMERO`)
-
         numberField.setText(`${doc_id}`)
 
         const dateField = form.getTextField(`FECHA`)
-
         dateField.setText(`${fechaFormateada}`)
 
         const nameField = form.getTextField(`NOMBRE`)
-
         nameField.setText(`${PersonaNombre}`)
 
         const cuitField = form.getTextField(`CUIT`)
-
         cuitField.setText(`${Cuit}`)
 
         const domicilioField = form.getTextField(`DOMICILIO`)
-
         domicilioField.setText(`${Domicilio}`)
 
         const liquidacionInfo = await this.getUsuariosLiquidacionMovimientos(queryRunner,periodo_id,persona_id)
 
-        let ingreso = ""
-        let egreso = ""
+        let ingreso = []
+        let egreso = []
         let neto = 0
         let retribucion = 0
+        let retenciones = 0
+        let deposito = []
 
         for (const liquidacionElement of liquidacionInfo ) {
           
-          if(liquidacionElement.indicador =="D"){
-            egreso += `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte},`
+          if(liquidacionElement.indicador =="R" || liquidacionElement.indicador =="D"){
+            let textEgreso = `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte}`
+            egreso = [...egreso, textEgreso]
             neto = neto + parseFloat(liquidacionElement.SumaImporte)
             retribucion = retribucion + parseFloat(liquidacionElement.SumaImporte)
+
+            if(liquidacionElement.indicador =="D")
+              deposito = [...deposito, liquidacionElement.detalle]
+
           }
 
           if(liquidacionElement.indicador =="I"){
-            ingreso += `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte},`
+            let textIngreso = `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte}`
+            ingreso = [...ingreso, textIngreso]
             neto = neto - parseFloat(liquidacionElement.SumaImporte);
+            retenciones = retenciones + parseFloat(liquidacionElement.SumaImporte)
           }
           
         }
-        const retribucionField = form.getTextField(`RETRIBUCION`)
+        
+        const depositoField = form.getTextField(`DEPOSITO`)
+        depositoField.setText(deposito.join('\n'))
+        depositoField.setMaxLength(undefined)
 
+        const retencionField = form.getTextField(`OTRAS RETENCIONES`)
+        retencionField.setText(`${retenciones.toFixed(2)}`)
+
+        const retribucionField = form.getTextField(`RETRIBUCION`)
         retribucionField.setText(`${retribucion.toFixed(2)}`)
         
         const netoField = form.getTextField(`RETRIBUCION NETA`)
-
         netoField.setText(`${neto.toFixed(2)}`)
 
         const retencionesField = form.getTextField(`DETALLE OTRAS RETENCIONES`)
-
-        retencionesField.setText(`${egreso}`)
+        retencionesField.setText(egreso.join('\n'))
+        retencionesField.setMaxLength(undefined)
 
         const retribucionesField = form.getTextField(`DETALLE DE RETRIBUCIONES`)
-
-        retribucionesField.setText(`${ingreso}`)
-
+        retribucionesField.setText(ingreso.join('\n'))
+        retribucionesField.setMaxLength(undefined)
         // Guardar el PDF en un archivo
         const pdfBytes = await pdfDoc.save();
         await fs.writeFile(filesPath, pdfBytes);
@@ -732,6 +749,7 @@ export class LiquidacionesController extends BaseController {
     liq.persona_id, 
     liq.tipo_movimiento_id, 
     tip.des_movimiento, 
+    liq.detalle,
     SUM(liq.importe) AS SumaImporte, 
     tip.indicador_recibo AS indicador
     FROM  lige.dbo.liqmamovimientos AS liq
@@ -739,6 +757,7 @@ export class LiquidacionesController extends BaseController {
     WHERE  liq.periodo_id = @0 AND  liq.tipocuenta_id = 'G' AND  liq.persona_id = @1
     GROUP BY 
     liq.persona_id, 
+    liq.detalle,
     liq.tipo_movimiento_id, 
     tip.des_movimiento, 
     tip.indicador_recibo;`, [periodo_id,user_id])

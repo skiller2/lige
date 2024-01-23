@@ -55,7 +55,6 @@
 
 <nz-divider nzText="Habilitaciones"></nz-divider>
 @if ((habilitaciones$ | async)?.habilitaciones; as habilitaciones){
-
 @if (!habilitaciones.length) { <li>Sin datos</li>}
 
 @for (habilitacion of habilitaciones; track habilitacion.PersonalHabilitacionDesde) {
