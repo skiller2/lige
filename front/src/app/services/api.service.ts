@@ -594,8 +594,12 @@ export class ApiService {
   }
 
   addAsistencia(asistencia: any) {
-    console.log('asistencia', asistencia);
     return this.http.post<ResponseJSON<any>>(`api/asistencia/agregarasistencia`, asistencia).pipe(map(res => res.data));
+  }
+
+  valGrid(grid: any){
+    console.log('grid', grid)
+    return this.http.post<ResponseJSON<any>>(`api/asistencia/validargrilla`, grid).pipe(map(res => res.data))
   }
 
 }
