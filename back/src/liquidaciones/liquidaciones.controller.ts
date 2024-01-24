@@ -692,9 +692,7 @@ export class LiquidacionesController extends BaseController {
           
         }
         
-        const depositoField = form.getTextField(`DEPOSITO`)
-        depositoField.setText(deposito.join('\n'))
-        depositoField.setMaxLength(undefined)
+        
 
         const retencionField = form.getTextField(`OTRAS RETENCIONES`)
         retencionField.setText(`${retenciones.toFixed(2)}`)
@@ -705,13 +703,54 @@ export class LiquidacionesController extends BaseController {
         const netoField = form.getTextField(`RETRIBUCION NETA`)
         netoField.setText(`${neto.toFixed(2)}`)
 
-        const retencionesField = form.getTextField(`DETALLE OTRAS RETENCIONES`)
-        retencionesField.setText(egreso.join('\n'))
-        retencionesField.setMaxLength(undefined)
+        // const retencionesField = form.getTextField(`DETALLE OTRAS RETENCIONES`)
+        // retencionesField.setText(egreso.join('\n'))
+        // retencionesField.setMaxLength(undefined)
 
-        const retribucionesField = form.getTextField(`DETALLE DE RETRIBUCIONES`)
-        retribucionesField.setText(ingreso.join('\n'))
-        retribucionesField.setMaxLength(undefined)
+        // const retribucionesField = form.getTextField(`DETALLE DE RETRIBUCIONES`)
+        // retribucionesField.setText(ingreso.join('\n'))
+        // retribucionesField.setMaxLength(undefined)
+
+        // const depositoField = form.getTextField(`DEPOSITO`)
+        // depositoField.setText(deposito.join('\n'))
+        // depositoField.setMaxLength(undefined)
+
+         // Crear un campo de opción
+         const page = pdfDoc.getPages()[0];
+
+         // Configurar la fuente y el tamaño de la fuente
+         const fontSize = 7;
+         const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+       
+         // Dibujar el texto en la página
+         page.drawText(deposito.join('\n'), {
+           x: 70,
+           y: 330,
+           size: fontSize,
+           font: timesRomanFont,
+           color: rgb(0, 0, 0),
+         });
+
+         //retribucion 
+         page.drawText(ingreso.join('\n'), {
+          x: 70,
+          y: 230,
+          size: fontSize,
+          font: timesRomanFont,
+          color: rgb(0, 0, 0),
+        });
+
+        // configuracion para retenciones
+         page.drawText(egreso.join('\n'), {
+          x: 70,
+          y: 120,
+          size: fontSize,
+          font: timesRomanFont,
+          color: rgb(0, 0, 0),
+        });
+      
+       
+
         // Guardar el PDF en un archivo
         const pdfBytes = await pdfDoc.save();
         await fs.writeFile(filesPath, pdfBytes);
