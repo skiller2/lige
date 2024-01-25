@@ -11,6 +11,8 @@
             </nz-form-control>
             <nz-form-control [nzSpan]="16" style="text-align: right;" *ngIf="selectedObjetivoId>0">
                 <nz-button-group>
+                    <button nz-button nzType="default" (nzOnConfirm)="exportGrid()"
+                        *ngIf="gridDataInsert.length > 1 "><span nz-icon nzType="download"></span>XLS</button>
                     <button nz-button nzType="default"
                         [routerLink]="['/ges/asistencia_excepcion',{ObjetivoId:this.selectedObjetivoId}]"><span nz-icon
                             nzType="right" nzTheme="outline"></span>Excepción Art14</button>

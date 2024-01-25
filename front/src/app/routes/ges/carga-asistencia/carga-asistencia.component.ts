@@ -3,7 +3,7 @@ import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, i
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType } from 'angular-slickgrid';
 import { BehaviorSubject, Observable, debounceTime, distinctUntilChanged, firstValueFrom, forkJoin, map, merge, mergeAll, of, shareReplay, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
@@ -566,17 +566,23 @@ export class CargaAsistenciaComponent {
         }
     }
 
-    endCargaAsistencia() {
-        // let items = this.angularGridEdit.dataView.getItems()
-        // items.pop()
-        // const data = {
-        //     ObjetivoId : this.selectedObjetivoId,
-        //     ...this.selectedPeriod,
-        //     grid : items
-        // }
-        // const res = firstValueFrom(this.apiService.valGrid(data))
-        const res = firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)
-        ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
+    async endCargaAsistencia() {
+        let items = this.angularGridEdit.dataView.getItems()
+        items.pop()
+        const data = {
+            objetivoId : this.selectedObjetivoId,
+            ...this.selectedPeriod,
+            grid : items
+        }
+        try {
+            await firstValueFrom(this.apiService.valGrid(data))
+            const res = firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)
+            ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
+        } catch (error) {
+            
+        }
+        // const res = firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)
+        // ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
         
     }
 
@@ -646,6 +652,15 @@ export class CargaAsistenciaComponent {
             }
 
         }
-    }    
+    }
+
+    exportGrid() {
+        console.log('Exportar');
+        
+        this.excelExportService.exportToExcel({
+          filename: `${this.selectedPeriod.year}/${this.selectedPeriod.month}/${this.selectedObjetivoId}`,
+          format: FileType.xlsx
+        });
+      }
 
 }

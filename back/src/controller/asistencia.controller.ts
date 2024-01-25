@@ -2121,35 +2121,38 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.startTransaction()
-      const objetivoId : number = req.body.ObjetivoId
-      const anio : number = req.body.year
-      const mes : number = req.body.month
+      const objetivoId : number = req.body.objetivoId
+      const year : number = req.body.year
+      const month : number = req.body.month
       const gridData : any[] = req.body.grid
       let errores : any[] = []
-
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
+      let index : number
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(year, month, res, Number(objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para ver asistencia`)
       
-      gridData.forEach(async (obj:any, index: number)=>{
-        let { apellidoNombre, categoria, forma, ...row } = obj
-        const item = {
+      // gridData.forEach(async (obj:any, index: number)=>{
+      for (index = 0; index < gridData.length; index++) {
+        let { apellidoNombre, categoria, forma, ...row } = gridData[index]
+        let item = {
           ...row,
           personalId: apellidoNombre.id,
           tipoAsociadoId: categoria.tipoId,
           categoriaPersonalId: categoria.id,
           formaLiquidacion: forma.id,
           objetivoId,
-          anio,
-          mes,
+          year,
+          month,
         }
-        console.log('item', item);
+        // console.log('item',index, item);
         let error : any[] = []
         //Validación de los datos ingresados
         if (!item.personalId || !item.formaLiquidacion || !item.categoriaPersonalId || !item.tipoAsociadoId){
           error.push(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`)
+          errores.push(`Fila ${index+1}:\n${error.join(`\n`)}`)
+          continue
         }
         //Validación de Objetivo
-        const valObjetivo : any = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
+        const valObjetivo : any = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, year, month, queryRunner)
         if (valObjetivo instanceof ClientException){
           error.push(valObjetivo.messageArr[0])
         }
@@ -2157,10 +2160,13 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
         //Validación de Personal ya registrado
         const valPersonalRegistrado : any = await this.valPersonalRegistrado(item, queryRunner)
+        // console.log('valPersonalRegistrado',valPersonalRegistrado);
         if (valPersonalRegistrado instanceof ClientException){
           error.push(valPersonalRegistrado.messageArr[0])
         } else if (!valPersonalRegistrado){
-          error.push('La persona aun no fue registrada')
+          error.push('La persona aun no fue registrada en el objetivo')
+          errores.push(`Fila ${index+1}:\n${error.join(`\n`)}`)
+          continue
         }
 
         //Validación Categoria del Personal
@@ -2183,8 +2189,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         if (error.length) {
           errores.push(`Fila ${index+1}:\n${error.join(`\n`)}`)
         }
-
-      })
+      }
+      // })
 
       if (errores.length) {
         throw new ClientException(errores.join(`\n`))

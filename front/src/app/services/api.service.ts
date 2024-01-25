@@ -598,7 +598,6 @@ export class ApiService {
   }
 
   valGrid(grid: any){
-    console.log('grid', grid)
     return this.http.post<ResponseJSON<any>>(`api/asistencia/validargrilla`, grid).pipe(map(res => res.data))
   }
 
