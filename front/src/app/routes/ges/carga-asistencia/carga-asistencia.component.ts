@@ -313,7 +313,7 @@ export class CargaAsistenciaComponent {
                     item.categoria = e.error.data.categoria
                     this.angularGridEdit.gridService.updateItemById(row.id, item)
                     
-                }else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
+                } else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
                     this.angularGridEdit.gridService.updateItemById(row.id, editCommand.editor.args.item)
                     editCommand.undo();
                 }
@@ -568,15 +568,8 @@ export class CargaAsistenciaComponent {
 
     async endCargaAsistencia() {
         let items = this.angularGridEdit.dataView.getItems()
-        items.pop()
-        const data = {
-            objetivoId : this.selectedObjetivoId,
-            ...this.selectedPeriod,
-            grid : items
-        }
         try {
-            await firstValueFrom(this.apiService.valGrid(data))
-            const res = firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)
+            const res = firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, items)
             ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
         } catch (error) {
             

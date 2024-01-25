@@ -20,8 +20,8 @@ export class ApiService {
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
-  endAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number) {
-    return this.http.post<ResponseJSON<any>>('api/asistencia/periodo/fin', { anio, mes, ObjetivoId }).pipe(
+  endAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number, grid:any[]) {
+    return this.http.post<ResponseJSON<any>>('api/asistencia/periodo/fin', { anio, mes, ObjetivoId , grid}).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
     )
   }
@@ -597,9 +597,9 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>(`api/asistencia/agregarasistencia`, asistencia).pipe(map(res => res.data));
   }
 
-  valGrid(grid: any){
-    return this.http.post<ResponseJSON<any>>(`api/asistencia/validargrilla`, grid).pipe(map(res => res.data))
-  }
+  // valGrid(grid: any){
+  //   return this.http.post<ResponseJSON<any>>(`api/asistencia/validargrilla`, grid).pipe(map(res => res.data))
+  // }
 
 }
 
