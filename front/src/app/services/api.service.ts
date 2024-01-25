@@ -598,7 +598,8 @@ export class ApiService {
   }
 
   validaGrilla(anio: number, mes: number, ObjetivoId: number, grid:any[]){
-     return this.http.post<ResponseJSON<any>>(`api/asistencia/validargrilla`, { anio, mes, ObjetivoId , grid}).pipe(map(res => res.data))
+     return this.http.post<ResponseJSON<any>>(`api/asistencia/validargrilla`, { anio, mes, ObjetivoId , grid}).pipe(tap((res: ResponseJSON<any>) => this.response(res)),
+     )
   }
 
 }
