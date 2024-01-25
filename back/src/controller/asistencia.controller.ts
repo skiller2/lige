@@ -133,11 +133,14 @@ export class AsistenciaController extends BaseController {
         throw new ClientException('Objetivo no localizado')
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
-        throw new ClientException(`No tiene permisos para habilitar carga del objetivo, no se encuentra en el grupo liquidaciones o administrativo`)
+        throw new ClientException(`No tiene permisos para finalizar la carga del objetivo, no se encuentra en el grupo liquidaciones o administrativo`)
 
 
       if (cabecera[0].ObjetivoAsistenciaAnoId == null || cabecera[0].ObjetivoAsistenciaAnoMesId == null)
         throw new ClientException('Periodo de carga de asitencia no generado')
+
+      
+      //TODO incorporar validaciones de todo la carga.
 
       if (cabecera[0].ObjetivoAsistenciaAnoMesHasta == null) {
         const result = await queryRunner.query(
