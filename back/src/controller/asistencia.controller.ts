@@ -133,11 +133,14 @@ export class AsistenciaController extends BaseController {
         throw new ClientException('Objetivo no localizado')
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
-        throw new ClientException(`No tiene permisos para habilitar carga del objetivo, no se encuentra en el grupo liquidaciones o administrativo`)
+        throw new ClientException(`No tiene permisos para finalizar la carga del objetivo, no se encuentra en el grupo liquidaciones o administrativo`)
 
 
       if (cabecera[0].ObjetivoAsistenciaAnoId == null || cabecera[0].ObjetivoAsistenciaAnoMesId == null)
         throw new ClientException('Periodo de carga de asitencia no generado')
+
+      
+      //TODO incorporar validaciones de todo la carga.
 
       if (cabecera[0].ObjetivoAsistenciaAnoMesHasta == null) {
         const result = await queryRunner.query(
@@ -1578,9 +1581,11 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       const totalImporte = result.map(row => row.totalminutoscalcimporteconart14).reduce((prev, curr) => prev + curr, 0)
       const totalHoras = result.map(row => row.totalhorascalc).reduce((prev, curr) => prev + curr, 0)
+      const totalHorasN = result.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras=='N')? row.totalhorascalc :0  }).reduce((prev, curr) => prev + curr, 0)
+      const totalHorasC = result.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras=='C')? row.totalhorascalc :0  }).reduce((prev, curr) => prev + curr, 0)
 
 
-      this.jsonRes({ asistencia: result, totalImporte, totalHoras }, res);
+      this.jsonRes({ asistencia: result, totalImporte, totalHoras, totalHorasN, totalHorasC }, res);
 
     } catch (error) {
       this.rollbackTransaction(queryRunner)

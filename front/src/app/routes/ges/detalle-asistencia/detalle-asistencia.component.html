@@ -60,7 +60,7 @@
     <nz-tab>
       <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/objetivo">Objetivo</a>
 
-      <form nz-form #asistenciaObj="ngForm">
+      <form nz-form #asistenciaObj="ngForm" >
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
           <nz-form-control>
@@ -87,12 +87,15 @@
             </ng-container>
           </nz-form-control>
         </nz-form-item>
+        <ng-container *ngIf="$listaAsistencia | async as listaAsistenciaObj ">
+        
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Totales</nz-form-label>
-          <nz-form-control *ngIf="listaAsistenciaObjTotalImporte >0 || listaAsistenciaObjTotalHoras >0 ">
-            <span>{{ listaAsistenciaObjTotalImporte | currency }} </span> <span>, total horas: {{
-              listaAsistenciaObjTotalHoras }}, promedio hora: {{ listaAsistenciaObjTotalImporte /
-              listaAsistenciaObjTotalHoras | currency }}</span>
+          <nz-form-control *ngIf="listaAsistenciaObj.totalImporte >0 || listaAsistenciaObj.totalHoras >0 ">
+            <li><span>{{ listaAsistenciaObj.totalImporte | currency }} </span> <span>, total horas: {{
+              listaAsistenciaObj.totalHoras }}, promedio hora: {{ listaAsistenciaObj.totalImporte /
+                listaAsistenciaObj.totalHoras | currency }}</span></li>
+            <li><span>Horas normales: {{listaAsistenciaObj.totalHorasN}}, Horas capacitación:{{listaAsistenciaObj.totalHorasC}}</span></li>
           </nz-form-control>
         </nz-form-item>
 
@@ -147,7 +150,7 @@
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Asistencia</nz-form-label>
-          <nz-form-control *ngIf="$listaAsistencia | async as listaAsistenciaObj ">
+          <nz-form-control>
             <nz-table #asist [nzData]="listaAsistenciaObj.asistencia" nzSize="small" [nzPageSize]="100000000"
               [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
               <thead>
@@ -203,7 +206,9 @@
               </tbody>
             </nz-table>
           </nz-form-control>
+        
         </nz-form-item>
+      </ng-container>
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Descuentos</nz-form-label>
           <nz-form-control>
