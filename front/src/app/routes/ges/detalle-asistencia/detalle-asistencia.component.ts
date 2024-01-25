@@ -87,11 +87,11 @@ export class DetalleAsistenciaComponent {
   listaIngresosExtraPerTotalG = 0
   listaIngresosExtraPerTotalC = 0
   listaAsistenciaPerTotal = 0
-  listaAsistenciaObjTotalImporte = 0
+  //listaAsistenciaObjTotalImporte = 0
   listaAsistenciaPerTotalHoras = 0
   listaIngresosPerTotalHoras = 0
   listaIngresosExtraPerTotalHoras = 0
-  listaAsistenciaObjTotalHoras = 0
+  //listaAsistenciaObjTotalHoras = 0
   objetivoIdSelected = 0;
 
   $isSucursalOptionsLoading = new BehaviorSubject(false);
@@ -139,12 +139,10 @@ export class DetalleAsistenciaComponent {
         Number(objetivoId),
         this.selectedPeriod.year,
         this.selectedPeriod.month
-      ).pipe(
-        tap(data => { this.listaAsistenciaObjTotalImporte = data.totalImporte, this.listaAsistenciaObjTotalHoras = data.totalHoras })
       )
     )
   )
-
+    
   $listaExcepciones = this.$selectedObjetivoIdChange.pipe(
     debounceTime(50),
     switchMap(objetivoId =>
@@ -374,7 +372,7 @@ export class DetalleAsistenciaComponent {
         this.asistenciaPer.controls['PersonalId'].setValue(Number(this.PersonalId))
       if (this.ObjetivoId)
         this.asistenciaObj.controls['ObjetivoId'].setValue(Number(this.ObjetivoId))
-    }, 1)
+    }, 100)
 
 
 

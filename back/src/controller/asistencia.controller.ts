@@ -1578,9 +1578,11 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       const totalImporte = result.map(row => row.totalminutoscalcimporteconart14).reduce((prev, curr) => prev + curr, 0)
       const totalHoras = result.map(row => row.totalhorascalc).reduce((prev, curr) => prev + curr, 0)
+      const totalHorasN = result.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras=='N')? row.totalhorascalc :0  }).reduce((prev, curr) => prev + curr, 0)
+      const totalHorasC = result.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras=='C')? row.totalhorascalc :0  }).reduce((prev, curr) => prev + curr, 0)
 
 
-      this.jsonRes({ asistencia: result, totalImporte, totalHoras }, res);
+      this.jsonRes({ asistencia: result, totalImporte, totalHoras, totalHorasN, totalHorasC }, res);
 
     } catch (error) {
       this.rollbackTransaction(queryRunner)
