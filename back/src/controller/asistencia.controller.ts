@@ -2137,7 +2137,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       } = req.body;
 
       await this.valGrid(ObjetivoId, anio, mes, grid, queryRunner)
-      this.jsonRes([], res);
+      this.jsonRes([], res,'Todas las personas se validaron correctamente');
     } catch (error) {
       this.rollbackTransaction(queryRunner)
       return next(error)

@@ -581,8 +581,8 @@ export class CargaAsistenciaComponent {
     async validaGrilla() {
         let items = this.angularGridEdit.dataView.getItems()
         try {
-            const res = firstValueFrom(this.apiService.validaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, items)
-            ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
+            const res = firstValueFrom(this.apiService.validaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, items))
+                //finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
         } catch (error) {
 
         }
