@@ -597,9 +597,9 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>(`api/asistencia/agregarasistencia`, asistencia).pipe(map(res => res.data));
   }
 
-  // valGrid(grid: any){
-  //   return this.http.post<ResponseJSON<any>>(`api/asistencia/validargrilla`, grid).pipe(map(res => res.data))
-  // }
+  validaGrilla(anio: number, mes: number, ObjetivoId: number, grid:any[]){
+     return this.http.post<ResponseJSON<any>>(`api/asistencia/validargrilla`, { anio, mes, ObjetivoId , grid}).pipe(map(res => res.data))
+  }
 
 }
 

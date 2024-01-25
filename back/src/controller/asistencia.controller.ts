@@ -141,9 +141,9 @@ export class AsistenciaController extends BaseController {
         throw new ClientException('Periodo de carga de asitencia no generado')
 
       const valGrid = await this.valGrid(ObjetivoId, anio, mes, grid, queryRunner)
-      if (valGrid instanceof ClientException) 
+      if (valGrid instanceof ClientException)
         throw valGrid
-      
+
       //TODO incorporar validaciones de todo la carga.
 
       if (cabecera[0].ObjetivoAsistenciaAnoMesHasta == null) {
@@ -829,7 +829,7 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes(result, res);
     } catch (error) {
-//      this.rollbackTransaction(queryRunner)
+      //      this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1563,7 +1563,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
 
     } catch (error) {
-//      this.rollbackTransaction(queryRunner)
+      //      this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1585,8 +1585,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       const totalImporte = result.map(row => row.totalminutoscalcimporteconart14).reduce((prev, curr) => prev + curr, 0)
       const totalHoras = result.map(row => row.totalhorascalc).reduce((prev, curr) => prev + curr, 0)
-      const totalHorasN = result.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras=='N')? row.totalhorascalc :0  }).reduce((prev, curr) => prev + curr, 0)
-      const totalHorasC = result.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras=='C')? row.totalhorascalc :0  }).reduce((prev, curr) => prev + curr, 0)
+      const totalHorasN = result.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'N') ? row.totalhorascalc : 0 }).reduce((prev, curr) => prev + curr, 0)
+      const totalHorasC = result.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'C') ? row.totalhorascalc : 0 }).reduce((prev, curr) => prev + curr, 0)
 
 
       this.jsonRes({ asistencia: result, totalImporte, totalHoras, totalHorasN, totalHorasC }, res);
@@ -1660,10 +1660,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const sucursalId = valObjetivo[0].SucursalId
 
       //Validación Categoria del Personal
-      const valCategoriaPersonal : any = await this.valCategoriaPersonal(req.body, sucursalId, queryRunner)
-      if (valCategoriaPersonal instanceof ClientException){
+      const valCategoriaPersonal: any = await this.valCategoriaPersonal(req.body, sucursalId, queryRunner)
+      if (valCategoriaPersonal instanceof ClientException) {
         // console.log('VALCategoriaPersonal', valCategoriaPersonal);
-        if(!valCategoriaPersonal.extended.categoria)
+        if (!valCategoriaPersonal.extended.categoria)
           throw valCategoriaPersonal
         req.body.tipoAsociadoId = valCategoriaPersonal.extended.categoria.tipoId
         req.body.categoriaPersonalId = valCategoriaPersonal.extended.categoria.id
@@ -1671,8 +1671,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       //Validación de Personal ya registrado
       const valPersonalRegistrado = await this.valPersonalRegistrado(req.body, queryRunner)
-      if (valPersonalRegistrado instanceof ClientException){
-        if(valCategoriaPersonal instanceof ClientException && valCategoriaPersonal.extended.categoria)
+      if (valPersonalRegistrado instanceof ClientException) {
+        if (valCategoriaPersonal instanceof ClientException && valCategoriaPersonal.extended.categoria)
           valPersonalRegistrado.extended.categoria = {
             fullName: ``,
             id: 0,
@@ -1763,14 +1763,14 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           [objetivoId, anioId, mesId, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, req.body.total, personal.id]
         )
       }
-      if (valCategoriaPersonal instanceof ClientException  && valCategoriaPersonal.extended.categoria)
+      if (valCategoriaPersonal instanceof ClientException && valCategoriaPersonal.extended.categoria)
         result.categoria = valCategoriaPersonal.extended.categoria
       await queryRunner.commitTransaction()
       return this.jsonRes(result, res);
     } catch (error) {
 
       this.rollbackTransaction(queryRunner)
-      
+
       return next(error)
     } finally {
       await queryRunner.release()
@@ -1848,7 +1848,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           }
         }
         return new ClientException(`Se actualizó la categoría de la persona`, data)
- 
+
       }
       return new ClientException(`La categoría no se encuentra habilitada para la persona`, data)
     }
@@ -1973,7 +1973,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   async getListaAsistenciaPersonalAsignado(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
-//      await queryRunner.startTransaction()
+      //      await queryRunner.startTransaction()
       const objetivoId = req.params.ObjetivoId;
       const anio = req.params.anio;
       const mes = req.params.mes;
@@ -1983,7 +1983,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
       // console.log('LISTA',lista);
-//      await queryRunner.commitTransaction()
+      //      await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
     } catch (error) {
       this.rollbackTransaction(queryRunner)
@@ -2031,7 +2031,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const data = personal.map((obj: any, index: number) => {
       const camposDay = Object.keys(obj).filter(clave => clave.startsWith('day'));
       const days = {};
-      let total = hasta? 0 : undefined
+      let total = hasta ? 0 : undefined
       camposDay.forEach(clave => {
         if (String(obj[clave]).indexOf('.') >= 0) {
           const hm = obj[clave].split('.')
@@ -2099,7 +2099,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   async getListaAsistenciaPersonalAsignadoAnterior(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
-//      await queryRunner.startTransaction()
+      //      await queryRunner.startTransaction()
       const objetivoId = req.params.ObjetivoId;
       let anio = req.params.anio;
       let mes = req.params.mes;
@@ -2116,7 +2116,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner, 0)
       // console.log('LISTA', lista);
 
-//      await queryRunner.commitTransaction()
+      //      await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
     } catch (error) {
       this.rollbackTransaction(queryRunner)
@@ -2126,18 +2126,39 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     }
   }
 
+  async validaGrilla(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const {
+        anio,
+        mes,
+        ObjetivoId,
+        grid
+      } = req.body;
+
+      await this.valGrid(ObjetivoId, anio, mes, grid, queryRunner)
+      this.jsonRes([], res);
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+
   async valGrid(objetivoId: number, anio: number, mes: number, grid: any[], queryRunner: QueryRunner) {
-    
-    let ultItem : any = grid[grid.length - 1]
-    if(ultItem.apellidoNombre == '' && ultItem.forma == '' && ultItem.categoria == '')
+
+    let ultItem: any = grid[grid.length - 1]
+    if (ultItem.apellidoNombre == '' && ultItem.forma == '' && ultItem.categoria == '')
       grid.pop()
 
-    const year : number = anio
-    const month : number = mes
-    const gridData : any[] = grid
-    let errores : any[] = []
-    let index : number
-    
+    const year: number = anio
+    const month: number = mes
+    const gridData: any[] = grid
+    let errores: any[] = []
+    let index: number
+
     // gridData.forEach(async (obj:any, index: number)=>{
     for (index = 0; index < gridData.length; index++) {
       let { apellidoNombre, categoria, forma, ...row } = gridData[index]
@@ -2152,50 +2173,50 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         month,
       }
       // console.log('item',index, item);
-      let error : any[] = []
+      let error: any[] = []
       //Validación de los datos ingresados
-      if (!item.personalId || !item.formaLiquidacion || !item.categoriaPersonalId || !item.tipoAsociadoId){
+      if (!item.personalId || !item.formaLiquidacion || !item.categoriaPersonalId || !item.tipoAsociadoId) {
         error.push(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`)
-        errores.push(`Fila ${index+1}:\n${error.join(`\n`)}`)
+        errores.push(`Fila ${index + 1}:\n${error.join(`\n`)}`)
         continue
       }
       //Validación de Objetivo
-      const valObjetivo : any = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, year, month, queryRunner)
-      if (valObjetivo instanceof ClientException){
+      const valObjetivo: any = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, year, month, queryRunner)
+      if (valObjetivo instanceof ClientException) {
         error.push(valObjetivo.messageArr[0])
       }
       const sucursalId = valObjetivo[0].SucursalId
 
       //Validación de Personal ya registrado
-      const valPersonalRegistrado : any = await this.valPersonalRegistrado(item, queryRunner)
+      const valPersonalRegistrado: any = await this.valPersonalRegistrado(item, queryRunner)
       // console.log('valPersonalRegistrado',valPersonalRegistrado);
-      if (valPersonalRegistrado instanceof ClientException){
+      if (valPersonalRegistrado instanceof ClientException) {
         error.push(valPersonalRegistrado.messageArr[0])
-      } else if (!valPersonalRegistrado){
+      } else if (!valPersonalRegistrado) {
         error.push('La persona aun no fue registrada en el objetivo')
-        errores.push(`Fila ${index+1}:\n${error.join(`\n`)}`)
+        errores.push(`Fila ${index + 1}:\n${error.join(`\n`)}`)
         continue
       }
 
       //Validación Categoria del Personal
-      const valCategoriaPersonal : any = await this.valCategoriaPersonal(item, sucursalId, queryRunner)
-      if (valCategoriaPersonal instanceof ClientException){
+      const valCategoriaPersonal: any = await this.valCategoriaPersonal(item, sucursalId, queryRunner)
+      if (valCategoriaPersonal instanceof ClientException) {
         error.push(valCategoriaPersonal.messageArr[0])
       }
 
       //Validaciónes de los días del mes
-      const valsDiasMes : any = await this.valsDiasMes(item, queryRunner)
+      const valsDiasMes: any = await this.valsDiasMes(item, queryRunner)
       if (valsDiasMes instanceof ClientException) {
         error.push(valsDiasMes.messageArr[0])
       } else {
         let totalhs = valsDiasMes.totalhs
-        if (totalhs<1) {
+        if (totalhs < 1) {
           error.push(`El total de horas tiene que ser superior o igual a 1`)
         }
       }
 
       if (error.length) {
-        errores.push(`Fila ${index+1}:\n${error.join(`, `)}`)
+        errores.push(`Fila ${index + 1}:\n${error.join(`, `)}`)
       }
     }
     // })

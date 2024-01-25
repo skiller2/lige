@@ -35,7 +35,7 @@ enum Busqueda {
     styleUrls: ['./carga-asistencia.component.less'],
     standalone: true,
     encapsulation: ViewEncapsulation.None,
-    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent,DetallePersonaComponent],
+    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, DetallePersonaComponent],
     providers: [AngularUtilService]
 })
 export class CargaAsistenciaComponent {
@@ -66,7 +66,7 @@ export class CargaAsistenciaComponent {
     selectedPersonalId = 0
     objetivoData: any
     ObjetivoIdUrl: any
-    periodos:any
+    periodos: any
 
     visibleDrawer: boolean = false
     personalApellidoNombre: any;
@@ -118,8 +118,8 @@ export class CargaAsistenciaComponent {
 
                 this.angularGridEdit.slickGrid.invalidate();
                 this.angularGridEdit.slickGrid.render();
-    
-                this.periodos = data[2] 
+
+                this.periodos = data[2]
                 //this.gridDataInsert = data[3]
                 //data[3].length? this.gridDataInsert = data[3] : this.clearAngularGrid()
                 this.loadingSrv.close()
@@ -153,13 +153,13 @@ export class CargaAsistenciaComponent {
                 maxWidth: 250,
                 minWidth: 170,
                 formatter: Formatters.complexObject,
-                exportWithFormatter:true,
+                exportWithFormatter: true,
                 params: {
                     complexFieldLabel: 'apellidoNombre.fullName',
                 },
                 excelExportOptions: {
                     autoDetectCellFormat: true,
-                    
+
                 },
                 editor: {
                     model: CustomInputEditor,
@@ -182,7 +182,7 @@ export class CargaAsistenciaComponent {
                 params: {
                     complexFieldLabel: 'forma.fullName',
                 },
-                exportWithFormatter:true,
+                exportWithFormatter: true,
 
                 editor: {
                     model: CustomInputEditor,
@@ -204,7 +204,7 @@ export class CargaAsistenciaComponent {
                 params: {
                     complexFieldLabel: 'categoria.fullName',
                 },
-                exportWithFormatter:true,
+                exportWithFormatter: true,
                 editor: {
                     model: CustomInputEditor,
                     collection: [],
@@ -274,13 +274,13 @@ export class CargaAsistenciaComponent {
                         item.categoria = response.categoria
                         this.angularGridEdit.gridService.updateItemById(row.id, item)
                     }
-                    if (response.newRowId && response.newRowId != row.id){
+                    if (response.newRowId && response.newRowId != row.id) {
                         this.gridDataInsert.pop()
-                        let newData = this.gridDataInsert.map((obj:any)=>{
-                            if (obj.id == row.id){
+                        let newData = this.gridDataInsert.map((obj: any) => {
+                            if (obj.id == row.id) {
                                 obj.id = response.newRowId
                                 //this.angularGridEdit.gridService.updateItemById(row.id, obj)
-                            }else if (obj.id == response.newRowId){
+                            } else if (obj.id == response.newRowId) {
                                 obj.id = row.id
                                 //this.angularGridEdit.gridService.updateItemById(response.newRowId, obj)
                             }
@@ -304,15 +304,15 @@ export class CargaAsistenciaComponent {
                     }
                 }
                 //console.log('this.gridDataInsert', this.gridDataInsert);
-            } catch (e:any) {
+            } catch (e: any) {
                 console.log('error', e)
                 if (e.error.data.categoria) {
                     let item = this.gridDataInsert.find((obj: any) => {
                         return (obj.id == row.id)
-                    }) 
+                    })
                     item.categoria = e.error.data.categoria
                     this.angularGridEdit.gridService.updateItemById(row.id, item)
-                    
+
                 } else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
                     this.angularGridEdit.gridService.updateItemById(row.id, editCommand.editor.args.item)
                     editCommand.undo();
@@ -364,10 +364,10 @@ export class CargaAsistenciaComponent {
 
         const x = this
         this.angularGridEdit.slickGrid.onCellChange.subscribe(function (e, args) {
-            x.updateTotals(String(args.column.id),x.angularGridEdit) 
+            x.updateTotals(String(args.column.id), x.angularGridEdit)
         });
 
-        
+
 
 
         this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
@@ -380,7 +380,7 @@ export class CargaAsistenciaComponent {
 
     }
 
-    updateTotals(columnId:string,angularGrid: AngularGridInstance) { 
+    updateTotals(columnId: string, angularGrid: AngularGridInstance) {
         if (columnId.indexOf('day') != -1) columnTotal(columnId, angularGrid)
         totalRecords(angularGrid, 'apellidoNombre')
         columnTotal('total', angularGrid)
@@ -470,7 +470,7 @@ export class CargaAsistenciaComponent {
                         replaceUrl: false,
                     })
                 }
-        
+
                 //                this.router.navigateByUrl('/ges/carga_asistencia', { skipLocationChange: true, state: { 'ObjetivoId': '1' } })
                 //                this.router.navigate([],{relativeTo: this.route, skipLocationChange: true})
                 break;
@@ -572,12 +572,23 @@ export class CargaAsistenciaComponent {
             const res = firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, items)
             ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
         } catch (error) {
-            
+
         }
         // const res = firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)
         // ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
-        
     }
+
+    async validaGrilla() {
+        let items = this.angularGridEdit.dataView.getItems()
+        try {
+            const res = firstValueFrom(this.apiService.validaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, items)
+            ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
+        } catch (error) {
+
+        }
+    }
+
+
 
     setCargaAsistencia() {
         const res = firstValueFrom(this.apiService.addAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)
@@ -609,19 +620,19 @@ export class CargaAsistenciaComponent {
 
     openDrawer(): void {
         const selrows = this.angularGridEdit.slickGrid.getSelectedRows()
-        if (selrows[0]==undefined) return
+        if (selrows[0] == undefined) return
         const row = this.angularGridEdit.slickGrid.getDataItem(selrows[0])
         if (row.apellidoNombre == '') return
 
-        this.personalApellidoNombre = row.apellidoNombre.fullName    
+        this.personalApellidoNombre = row.apellidoNombre.fullName
         this.selectedPersonalId = row.apellidoNombre.id
         this.visibleDrawer = true
     }
 
-    getPersonalIdFromGrid():number {
+    getPersonalIdFromGrid(): number {
         console.log('getPersonalIdFromGrid')
         const selrows = this.angularGridEdit.slickGrid.getSelectedRows()
-        if (selrows[0]==undefined) return 0
+        if (selrows[0] == undefined) return 0
         const row = this.angularGridEdit.slickGrid.getDataItem(selrows[0])
         if (row.apellidoNombre == '') return 0
         return row.apellidoNombre.id
@@ -632,8 +643,8 @@ export class CargaAsistenciaComponent {
     }
 
     async autocomplete() {
-        if(this.selectedPeriod.month && this.selectedSucursalId){
-            const objetivoId = this.selectedObjetivoId 
+        if (this.selectedPeriod.month && this.selectedSucursalId) {
+            const objetivoId = this.selectedObjetivoId
             const anio = this.selectedPeriod.year
             const mes = this.selectedPeriod.month
 
@@ -649,11 +660,11 @@ export class CargaAsistenciaComponent {
 
     exportGrid() {
         console.log('Exportar');
-        
+
         this.excelExportService.exportToExcel({
-          filename: `${this.selectedPeriod.year}/${this.selectedPeriod.month}/${this.selectedObjetivoId}`,
-          format: FileType.xlsx
+            filename: `${this.selectedPeriod.year}/${this.selectedPeriod.month}/${this.selectedObjetivoId}`,
+            format: FileType.xlsx
         });
-      }
+    }
 
 }
