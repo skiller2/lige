@@ -483,7 +483,6 @@ export class CargaAsistenciaComponent {
         this.$isObjetivoDataLoading.next(true);
 
 
-
         this.angularGridEdit.slickGrid.setOptions({ frozenColumn: 2 })
         this.angularGridEdit.slickGrid.reRenderColumns(true)
         this.gridOptionsEdit.params.anio = this.selectedPeriod.year
@@ -579,6 +578,11 @@ export class CargaAsistenciaComponent {
     }
 
     async validaGrilla() {
+        const editable = this.angularGridEdit.slickGrid.getOptions().editable
+        if (editable)
+            this.angularGridEdit.slickGrid.setOptions({ editable: false })
+
+
         let items = this.angularGridEdit.dataView.getItems()
         try {
             const res = firstValueFrom(this.apiService.validaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, items))
@@ -586,6 +590,10 @@ export class CargaAsistenciaComponent {
         } catch (error) {
 
         }
+
+        if (editable)
+            this.angularGridEdit.slickGrid.setOptions({ editable: true })
+
     }
 
 
