@@ -567,9 +567,8 @@ export class CargaAsistenciaComponent {
     }
 
     async endCargaAsistencia() {
-        let items = this.angularGridEdit.dataView.getItems()
         try {
-            const res = firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, items)
+            const res = firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)
             ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
         } catch (error) {
 
@@ -579,9 +578,8 @@ export class CargaAsistenciaComponent {
     }
 
     async validaGrilla() {
-        let items = this.angularGridEdit.dataView.getItems()
         try {
-            const res = firstValueFrom(this.apiService.validaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId, items))
+            const res = firstValueFrom(this.apiService.validaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId))
                 //finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
         } catch (error) {
 

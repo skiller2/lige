@@ -119,8 +119,7 @@ export class AsistenciaController extends BaseController {
     const {
       anio,
       mes,
-      ObjetivoId,
-      grid
+      ObjetivoId
     } = req.body;
 
     const queryRunner = dataSource.createQueryRunner();
@@ -140,7 +139,7 @@ export class AsistenciaController extends BaseController {
       if (cabecera[0].ObjetivoAsistenciaAnoId == null || cabecera[0].ObjetivoAsistenciaAnoMesId == null)
         throw new ClientException('Periodo de carga de asitencia no generado')
 
-      const valGrid = await this.valGrid(ObjetivoId, anio, mes, grid, queryRunner)
+      const valGrid = await this.valGrid(ObjetivoId, anio, mes, queryRunner)
       if (valGrid instanceof ClientException)
         throw valGrid
 
@@ -1809,7 +1808,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const categoriaPersonalId: number = item.categoriaPersonalId
     const formaLiquidacion: number = item.formaLiquidacion
 
-    const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
+    const lista = await this.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
 
     let personal: any = null
     let personaLista: any[] = []
@@ -1833,18 +1832,19 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const categoriaPersonalId: number = item.categoriaPersonalId
 
     const categorias = await this.getCategoriasPorPersonaQuery(anio, mes, personalId, sucursalId, queryRunner)
-    const filterres = categorias.filter((cat: any) => cat.TipoAsociadoId == tipoAsociadoId && cat.PersonalCategoriaCategoriaPersonalId == categoriaPersonalId)
-
+    const filterres = categorias.filter((cat: any) => cat.TipoAsociadoId == tipoAsociadoId && cat.PersonalCategoriaCategoriaPersonalId == categoriaPersonalId && cat.ValorLiquidacionHoraNormal)
+    
     if (filterres.length == 0) {
+      const cateDisponible : any = categorias.find((cat: any) => cat.ValorLiquidacionHoraNormal > 0)
       let data = {}
-      if (categorias.length) {
+      if (categorias.length && cateDisponible) {
         data = {
           categoria: {
-            fullName: `${categorias[0].CategoriaPersonalDescripcion.trim()} ${(categorias[0].ValorLiquidacionHorasTrabajoHoraNormal > 0) ? categorias[0].ValorLiquidacionHorasTrabajoHoraNormal : ''}`,
-            id: categorias[0].PersonalCategoriaCategoriaPersonalId,
-            tipoFullName: categorias[0].TipoAsociadoDescripcion,
-            tipoId: categorias[0].TipoAsociadoId,
-            horasRecomendadas: categorias[0].ValorLiquidacionHorasTrabajoHoraNormal
+            fullName: `${cateDisponible.CategoriaPersonalDescripcion.trim()} ${(cateDisponible.ValorLiquidacionHorasTrabajoHoraNormal > 0) ? cateDisponible.ValorLiquidacionHorasTrabajoHoraNormal : ''}`,
+            id: cateDisponible.PersonalCategoriaCategoriaPersonalId,
+            tipoFullName: cateDisponible.TipoAsociadoDescripcion,
+            tipoId: cateDisponible.TipoAsociadoId,
+            horasRecomendadas: cateDisponible.ValorLiquidacionHorasTrabajoHoraNormal
           }
         }
         return new ClientException(`Se actualizó la categoría de la persona`, data)
@@ -1981,7 +1981,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para ver asistencia`)
 
-      const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
+      const lista = await this.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
       // console.log('LISTA',lista);
       //      await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
@@ -1993,7 +1993,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     }
   }
 
-  static async listaAsistenciaPersonalAsignado(objetivoId: number, anio: number, mes: number, queryRunner: any, hasta: number = 31) {
+  async listaAsistenciaPersonalAsignado(objetivoId: number, anio: number, mes: number, queryRunner: any, hasta: number = 31) {
     let dias = ''
     for (let index = 1; index <= hasta; index++)
       dias = dias + `, TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias${index}Gral) day${index}`
@@ -2113,7 +2113,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       } else {
         mes--
       }
-      const lista = await AsistenciaController.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner, 0)
+      const lista = await this.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner, 0)
       // console.log('LISTA', lista);
 
       //      await queryRunner.commitTransaction()
@@ -2132,11 +2132,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const {
         anio,
         mes,
-        ObjetivoId,
-        grid
+        ObjetivoId
       } = req.body;
 
-      await this.valGrid(ObjetivoId, anio, mes, grid, queryRunner)
+      await this.valGrid(ObjetivoId, anio, mes, queryRunner)
       this.jsonRes([], res,'Todas las personas se validaron correctamente');
     } catch (error) {
       this.rollbackTransaction(queryRunner)
@@ -2147,79 +2146,67 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   }
 
 
-  async valGrid(objetivoId: number, anio: number, mes: number, grid: any[], queryRunner: QueryRunner) {
+  async valGrid(objetivoId: number, anio: number, mes: number, queryRunner: QueryRunner) {
 
-    let ultItem: any = grid[grid.length - 1]
-    if (ultItem.apellidoNombre == '' && ultItem.forma == '' && ultItem.categoria == '')
-      grid.pop()
+    const gridData: any[] = await this.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
 
     const year: number = anio
     const month: number = mes
-    const gridData: any[] = grid
+    // const gridData: any[] = grid
     let errores: any[] = []
     let index: number
 
-    // gridData.forEach(async (obj:any, index: number)=>{
-    for (index = 0; index < gridData.length; index++) {
-      let { apellidoNombre, categoria, forma, ...row } = gridData[index]
-      let item = {
-        ...row,
-        personalId: apellidoNombre.id,
-        tipoAsociadoId: categoria.tipoId,
-        categoriaPersonalId: categoria.id,
-        formaLiquidacion: forma.id,
-        objetivoId,
-        year,
-        month,
-      }
-      // console.log('item',index, item);
-      let error: any[] = []
-      //Validación de los datos ingresados
-      if (!item.personalId || !item.formaLiquidacion || !item.categoriaPersonalId || !item.tipoAsociadoId) {
-        error.push(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`)
-        errores.push(`Fila ${index + 1}:\n${error.join(`\n`)}`)
-        continue
-      }
-      //Validación de Objetivo
-      const valObjetivo: any = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, year, month, queryRunner)
-      if (valObjetivo instanceof ClientException) {
-        error.push(valObjetivo.messageArr[0])
-      }
-      const sucursalId = valObjetivo[0].SucursalId
+    //Validación de Objetivo
+    const valObjetivo: any = await AsistenciaController.getObjetivoAsistenciaCabecera(objetivoId, year, month, queryRunner)
+    if (valObjetivo.length == 0){
+      errores.push(`El objetivo no se localizó`)
+    } else {
+      for (index = 0; index < gridData.length; index++) {
+        let item = gridData[index]
+        // console.log('item',index, item);
+        let error: any[] = []
+        //Validación de los datos ingresados
+        if (!item.personalId || !item.formaLiquidacion || !item.categoriaPersonalId || !item.tipoAsociadoId) {
+          error.push(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`)
+          errores.push(`Fila ${index + 1}:\n${error.join(`\n`)}`)
+          continue
+        }
+        //Validación de Objetivo
+        let sucursalId = valObjetivo[0].SucursalId
 
-      //Validación de Personal ya registrado
-      const valPersonalRegistrado: any = await this.valPersonalRegistrado(item, queryRunner)
-      // console.log('valPersonalRegistrado',valPersonalRegistrado);
-      if (valPersonalRegistrado instanceof ClientException) {
-        error.push(valPersonalRegistrado.messageArr[0])
-      } else if (!valPersonalRegistrado) {
-        error.push('La persona aun no fue registrada en el objetivo')
-        errores.push(`Fila ${index + 1}:\n${error.join(`\n`)}`)
-        continue
-      }
+        //Validación de Personal ya registrado
+        const valPersonalRegistrado: any = await this.valPersonalRegistrado(item, queryRunner)
+        // console.log('valPersonalRegistrado',valPersonalRegistrado);
+        if (valPersonalRegistrado instanceof ClientException) {
+          error.push(valPersonalRegistrado.messageArr[0])
+        } else if (!valPersonalRegistrado) {
+          error.push('La persona no está en el objetivo')
+          errores.push(`Fila ${index + 1}:\n${error.join(`\n`)}`)
+          continue
+        }
 
-      //Validación Categoria del Personal
-      const valCategoriaPersonal: any = await this.valCategoriaPersonal(item, sucursalId, queryRunner)
-      if (valCategoriaPersonal instanceof ClientException) {
-        error.push(valCategoriaPersonal.messageArr[0])
-      }
+        //Validación Categoria del Personal
+        const valCategoriaPersonal: any = await this.valCategoriaPersonal(item, sucursalId, queryRunner)
+        if (valCategoriaPersonal instanceof ClientException) {
+          error.push(`La categoría no se encuentra habilitada para la persona`)
+        }
 
-      //Validaciónes de los días del mes
-      const valsDiasMes: any = await this.valsDiasMes(item, queryRunner)
-      if (valsDiasMes instanceof ClientException) {
-        error.push(valsDiasMes.messageArr[0])
-      } else {
-        let totalhs = valsDiasMes.totalhs
-        if (totalhs < 1) {
-          error.push(`El total de horas tiene que ser superior o igual a 1`)
+        //Validaciónes de los días del mes
+        const valsDiasMes: any = await this.valsDiasMes(item, queryRunner)
+        if (valsDiasMes instanceof ClientException) {
+          error.push(valsDiasMes.messageArr[0])
+        } else {
+          let totalhs = valsDiasMes.totalhs
+          if (totalhs < 1) {
+            error.push(`El total de horas tiene que ser superior o igual a 1`)
+          }
+        }
+
+        if (error.length) {
+          errores.push(`Fila ${index + 1}:\n${error.join(`, `)}`)
         }
       }
-
-      if (error.length) {
-        errores.push(`Fila ${index + 1}:\n${error.join(`, `)}`)
-      }
     }
-    // })
 
     if (errores.length) {
       return new ClientException(errores.join(`\n`))
