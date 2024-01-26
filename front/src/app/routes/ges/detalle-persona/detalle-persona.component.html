@@ -7,7 +7,7 @@
 @if ((personalDetalleCategorias$ | async)?.categorias; as categorias){
 @if (!categorias.length){ <li>Sin datos</li>}
 @for (cat of categorias; track cat.PersonalCategoriaCategoriaPersonalId) {
-<li> {{cat.CategoriaPersonalDescripcion}} {{cat.ValorLiquidacionHoraNormal|currency}}
+<li> {{cat.CategoriaPersonalDescripcion}} {{(cat.ValorLiquidacionHoraNormal>0)?(cat.ValorLiquidacionHoraNormal|currency):'(Sin importe)'}}
   {{(cat.ValorLiquidacionHorasTrabajoHoraNormal>0)?'('+cat.ValorLiquidacionHorasTrabajoHoraNormal+' hs)':''}}
 </li>
 }
