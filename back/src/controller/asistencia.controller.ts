@@ -2180,11 +2180,14 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         errores.push(`Fila ${index + 1}:\n${error.join(`\n`)}`)
         continue
       }
-      //Validación de Objetivo
+      //Obtiene los datos del objetivo
+      //TODO cambiar checkAsistenciaObjetivo por getObjetivoAsistenciaCabecera
       const valObjetivo: any = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, year, month, queryRunner)
       if (valObjetivo instanceof ClientException) {
         error.push(valObjetivo.messageArr[0])
       }
+
+      console.log('valObjetivo',valObjetivo)
       const sucursalId = valObjetivo[0].SucursalId
 
       //Validación de Personal ya registrado
