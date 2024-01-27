@@ -566,14 +566,19 @@ export class CargaAsistenciaComponent {
     }
 
     async endCargaAsistencia() {
+        const editable = this.angularGridEdit.slickGrid.getOptions().editable
+        if (editable)
+            this.angularGridEdit.slickGrid.setOptions({ editable: false })
+
         try {
-            const res = firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)
-            ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
+            const res = await firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId))
+            this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)                
         } catch (error) {
 
         }
-        // const res = firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)
-        // ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
+        if (editable)
+            this.angularGridEdit.slickGrid.setOptions({ editable: true })
+
     }
 
     async validaGrilla() {
