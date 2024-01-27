@@ -2135,7 +2135,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         ObjetivoId
       } = req.body;
 
-      await this.valGrid(ObjetivoId, anio, mes, queryRunner)
+      const valGrid = await this.valGrid(ObjetivoId, anio, mes, queryRunner)
+      if (valGrid instanceof ClientException)
+        throw valGrid
+
       this.jsonRes([], res,'Todas las personas se validaron correctamente');
     } catch (error) {
       this.rollbackTransaction(queryRunner)
@@ -2150,46 +2153,46 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
     const gridData: any[] = await this.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
 
-    const year: number = anio
-    const month: number = mes
-    // const gridData: any[] = grid
     let errores: any[] = []
     let index: number
-
     //Validación de Objetivo
-    const valObjetivo: any = await AsistenciaController.getObjetivoAsistenciaCabecera(objetivoId, year, month, queryRunner)
+    const valObjetivo: any = await AsistenciaController.getObjetivoAsistenciaCabecera(anio,mes,objetivoId, queryRunner)
     if (valObjetivo.length == 0){
       errores.push(`El objetivo no se localizó`)
     } else {
       for (index = 0; index < gridData.length; index++) {
         let item = gridData[index]
+        item.year = anio
+        item.month = mes
+        item.objetivoId = objetivoId
+        item.personalId = item.apellidoNombre.id
+        item.tipoAsociadoId = item.categoria.tipoId
+        item.categoriaPersonalId = item.categoria.id
+        item.formaLiquidacion = item.forma.id
+
+        console.log('item',item)
+
         // console.log('item',index, item);
         let error: any[] = []
         //Validación de los datos ingresados
-        if (!item.personalId || !item.formaLiquidacion || !item.categoriaPersonalId || !item.tipoAsociadoId) {
+        if (!item.apellidoNombre.id || !item.forma.id || !item.categoria.id || !item.categoria.tipoId) {
           error.push(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`)
           errores.push(`Fila ${index + 1}:\n${error.join(`\n`)}`)
           continue
         }
         //Validación de Objetivo
         let sucursalId = valObjetivo[0].SucursalId
-
-        //Validación de Personal ya registrado
-        const valPersonalRegistrado: any = await this.valPersonalRegistrado(item, queryRunner)
-        // console.log('valPersonalRegistrado',valPersonalRegistrado);
-        if (valPersonalRegistrado instanceof ClientException) {
-          error.push(valPersonalRegistrado.messageArr[0])
-        } else if (!valPersonalRegistrado) {
-          error.push('La persona no está en el objetivo')
-          errores.push(`Fila ${index + 1}:\n${error.join(`\n`)}`)
-          continue
-        }
-
+        const cant = gridData.find((i: any) => (i.apellidoNombre.id == item.apellidoNombre.id && i.forma.id == item.forma.id && i.categoria.id == item.categoria.id && i.categoria.tipoId == item.categoria.tipoId))
+        if (cant > 1)
+          error.push(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`)
+        
         //Validación Categoria del Personal
         const valCategoriaPersonal: any = await this.valCategoriaPersonal(item, sucursalId, queryRunner)
         if (valCategoriaPersonal instanceof ClientException) {
-          error.push(`La categoría no se encuentra habilitada para la persona`)
+          error.push(`La categoría ${item.categoria.fullName} no se encuentra habilitada para ${item.apellidoNombre.fullName}`)
         }
+
+    
 
         //Validaciónes de los días del mes
         const valsDiasMes: any = await this.valsDiasMes(item, queryRunner)
