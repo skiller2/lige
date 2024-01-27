@@ -2172,11 +2172,13 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           errores.push(`Fila ${index + 1}:\n${error.join(`\n`)}`)
           continue
         }
-        //Validación de Objetivo
+
+        //Validación que exista la misma persona con la misma categoria y forma
         let sucursalId = valObjetivo[0].SucursalId
-        const cant = gridData.find((i: any) => (i.apellidoNombre.id == item.apellidoNombre.id && i.forma.id == item.forma.id && i.categoria.id == item.categoria.id && i.categoria.tipoId == item.categoria.tipoId))
-        if (cant > 1)
-          error.push(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`)
+        const cant = gridData.find((i: any) => (i.apellidoNombre.id == item.apellidoNombre.id && i.forma.id == item.forma.id && i.categoria.id == item.categoria.id && i.categoria.tipoId == item.categoria.tipoId && i.id != item.id))
+        
+        if (cant)
+          error.push(`La persona ya tiene un registro existente con misma forma y categoría`)
         
         //Validación Categoria del Personal
         const valCategoriaPersonal: any = await this.valCategoriaPersonal(item, sucursalId, queryRunner)
