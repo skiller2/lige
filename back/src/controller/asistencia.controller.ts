@@ -1096,7 +1096,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const anio = req.params.anio;
       const mes = req.params.mes;
       const queryRunner = dataSource.createQueryRunner();
-      console.log('valido permisos')
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
@@ -1661,7 +1660,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       //Validación Categoria del Personal
       const valCategoriaPersonal: any = await this.valCategoriaPersonal(req.body, sucursalId, queryRunner)
       if (valCategoriaPersonal instanceof ClientException) {
-        // console.log('VALCategoriaPersonal', valCategoriaPersonal);
         if (!valCategoriaPersonal.extended.categoria)
           throw valCategoriaPersonal
         req.body.tipoAsociadoId = valCategoriaPersonal.extended.categoria.tipoId
@@ -1982,7 +1980,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         throw new ClientException(`No tiene permisos para ver asistencia`)
 
       const lista = await this.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
-      // console.log('LISTA',lista);
       //      await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
     } catch (error) {
@@ -2027,7 +2024,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       WHERE objp.ObjetivoId = @0
       ORDER BY objp.ObjetivoAsistenciaAnoMesPersonalDiasId
     `, [objetivoId, anio, mes])
-    //console.log('PERSONAL',personal);
     const data = personal.map((obj: any, index: number) => {
       const camposDay = Object.keys(obj).filter(clave => clave.startsWith('day'));
       const days = {};
@@ -2114,7 +2110,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         mes--
       }
       const lista = await this.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner, 0)
-      // console.log('LISTA', lista);
 
       //      await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
@@ -2170,9 +2165,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         item.categoriaPersonalId = item.categoria.id
         item.formaLiquidacion = item.forma.id
 
-        console.log('item',item)
-
-        // console.log('item',index, item);
         let error: any[] = []
         //Validación de los datos ingresados
         if (!item.apellidoNombre.id || !item.forma.id || !item.categoria.id || !item.categoria.tipoId) {
