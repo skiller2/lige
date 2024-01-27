@@ -2203,12 +2203,14 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           errores.push(`Fila ${index + 1}:\n${error.join(`, `)}`)
         }
       }
-    }
 
+    }
+    if (gridData.length == 0) { 
+      errores.push(`El objetivo debe poseer al menos una persona con una hora registrada`)
+    }
     if (errores.length) {
-      return new ClientException(errores.join(`\n`))
+      return new ClientException(errores)
     }
-
   }
 
 }
