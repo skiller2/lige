@@ -679,4 +679,13 @@ export class CargaAsistenciaComponent {
         });
     }
 
+    onBeforeEditCell(_e: any){
+        this.angularGridEdit.resizerService.pauseResizer(false);    
+        this.angularGridEdit.resizerService.resizeGrid();
+    }
+
+    onAfterEditCell(_e: any) {
+        this.angularGridEdit.resizerService.pauseResizer(true);
+        
+    }
 }

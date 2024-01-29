@@ -94,6 +94,8 @@
         <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptionsEdit"
             [dataset]="gridDataInsert || []" (onCellChange)="onCellChanged($event)"
             (onAngularGridCreated)="angularGridReadyEdit($event)">
+            (onBeforeEditCell)="onBeforeEditCell($event)"
+            (onBeforeCellEditorDestroy)="onAfterEditCell($event)"            
             <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
         </angular-slickgrid>
     </div>
@@ -102,4 +104,4 @@
     (nzOnClose)="closeDrawer()">
     <app-detalle-persona *nzDrawerContent [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"
         [SucursalId]="selectedSucursalId" [PersonalId]="selectedPersonalId"></app-detalle-persona>
-</nz-drawer>
+</nz-drawer> 
