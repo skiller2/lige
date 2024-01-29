@@ -600,9 +600,11 @@ export class CargaAsistenciaComponent {
 
 
 
-    setCargaAsistencia() {
-        const res = firstValueFrom(this.apiService.addAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)
-        ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
+    async setCargaAsistencia() {
+        try {
+            await firstValueFrom(this.apiService.addAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId))
+        } catch (_e) { }
+        this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
     }
 
     collapseChange($event: any) {
