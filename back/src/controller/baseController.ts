@@ -166,6 +166,7 @@ export class BaseController {
     for (const row of grupos)
       listGrupos.push(row.GrupoActividadId)
     
+    
     if (listGrupos.length > 0) { 
       let resultAuth = await queryRunner.query(
         `SELECT suc.SucursalId,
@@ -178,15 +179,17 @@ export class BaseController {
       1
       
       FROM Objetivo obj 
-      LEFT JOIN GrupoActividadObjetivo gao ON gao.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND gao.GrupoActividadObjetivoDesde  <= @0 AND ISNULL(gao.GrupoActividadObjetivoHasta,'9999-12-31') >= @0
+      LEFT JOIN GrupoActividadObjetivo gao ON gao.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND gao.GrupoActividadObjetivoDesde  <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(gao.GrupoActividadObjetivoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
       LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
       LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
       
   
-      WHERE obj.ObjetivoId=@1 AND gao.GrupoActividadId IN (${listGrupos})`,
-        [fechaHastaAuth, ObjetivoId]
+      WHERE obj.ObjetivoId=@0 AND gao.GrupoActividadId IN (${listGrupos})`,
+        [ObjetivoId, anio, mes, fechaHastaAuth ]
       );
+
+
       if (resultAuth.length > 0)
         return true
     }
