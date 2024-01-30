@@ -3,6 +3,7 @@ import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, i
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import { ExcelExportOption } from '@slickgrid-universal/common';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType } from 'angular-slickgrid';
 import { BehaviorSubject, Observable, debounceTime, distinctUntilChanged, firstValueFrom, forkJoin, map, merge, mergeAll, of, shareReplay, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
@@ -59,6 +60,7 @@ export class CargaAsistenciaComponent {
     gridDataInsert: any[] = [];
 
     excelExportService = new ExcelExportService()
+    excelExportOption! : ExcelExportOption ;
     angularGridEdit!: AngularGridInstance;
     detailViewRowCount = 1;
     selectedPeriod = { year: 0, month: 0 };
@@ -94,6 +96,19 @@ export class CargaAsistenciaComponent {
                 this.selectedSucursalId = data[1][0]?.SucursalId
                 this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null)
                 this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
+
+                this.excelExportOption.filename = `${this.selectedPeriod.year}/${this.selectedPeriod.month}/${this.selectedObjetivoId}`
+                this.excelExportOption.customExcelHeader = (workbook, sheet) => {
+                    sheet.setRowInstructions(4, { height: 20 })
+                    sheet.data.push(
+                        [{ value: `Año: ${anio}` }], 
+                        [{ value: `Mes: ${mes}` }], 
+                        [{ value: `Numero: ${data[2][0]?.ObjetivoCodigo}` }],
+                        [{ value: `Objetivo: ${data[2][0]?.ObjetivoDescripcion}` }],
+                        []
+                    );
+                }
+                this.gridOptionsEdit.excelExportOptions = this.excelExportOption
 
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
 
@@ -159,7 +174,7 @@ export class CargaAsistenciaComponent {
                 },
                 excelExportOptions: {
                     autoDetectCellFormat: true,
-
+                    width: 55,
                 },
                 editor: {
                     model: CustomInputEditor,
@@ -193,6 +208,9 @@ export class CargaAsistenciaComponent {
                     alwaysSaveOnEnterKey: true,
                     // required: true
                 },
+                excelExportOptions: {
+                    width: 12,
+                },
             },
             {
                 id: 'categoria', name: 'Categoria', field: 'categoria',
@@ -217,10 +235,21 @@ export class CargaAsistenciaComponent {
                     // required: true
                 },
                 // onCellChange: this.categoryChange.bind(this),
+                excelExportOptions: {
+                    width: 14,
+                },
             },
         ]
 
         this.columnas = this.columnDefinitions
+        this.excelExportOption = {
+            filename: `${this.selectedPeriod.year}/${this.selectedPeriod.month}/${this.selectedObjetivoId}`,
+            columnHeaderStyle: {
+                alignment: { horizontal: 'center' },
+                font: { color: 'black' , size: 11, bold: true},
+                fill: { type: 'pattern', patternType: 'solid', fgColor: '6A9BCC' },
+            }
+        }
         this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.grid-container-asis', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptionsEdit.enableRowDetailView = false
         this.gridOptionsEdit.autoEdit = true
@@ -434,6 +463,9 @@ export class CargaAsistenciaComponent {
                 cssClass: 'text-right',
                 editor: { model: Editors.float, decimal: 1 },
                 onCellChange: this.onHoursChange.bind(this),
+                excelExportOptions: {
+                    width: 6,
+                },
             });
         }
 
@@ -446,6 +478,9 @@ export class CargaAsistenciaComponent {
             maxWidth: 50,
             minWidth: 50,
             cssClass: 'text-right',
+            excelExportOptions: {
+                width: 6,
+            },
         });
 
         return columnDays
@@ -671,10 +706,7 @@ export class CargaAsistenciaComponent {
     exportGrid() {
         console.log('Exportar');
 
-        this.excelExportService.exportToExcel({
-            filename: `${this.selectedPeriod.year}/${this.selectedPeriod.month}/${this.selectedObjetivoId}`,
-            format: FileType.xlsx
-        });
+        this.excelExportService.exportToExcel();
     }
 
 }
