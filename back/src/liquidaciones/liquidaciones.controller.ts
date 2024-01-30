@@ -3,8 +3,10 @@ import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Utils } from "./liquidaciones.utils";
+import { promises as fsPromises } from 'fs';
 import { mkdirSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
 import xlsx from 'node-xlsx';
+import puppeteer from 'puppeteer';
 import { isNumberObject } from "util/types";
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -632,30 +634,12 @@ export class LiquidacionesController extends BaseController {
        const anio = fechaActual.getFullYear();
 
        const fechaFormateada = `${dia}/${mes}/${anio}`
-       const basePath = (process.env.PATH_PDFRECIBO) ? process.env.PATH_PDFRECIBO : "./assets/pdf"
-        const formUrl = basePath + "/inaes.pdf"
-        const formPdfBytes = await fs.readFile(formUrl);
-        const pdfDoc = await PDFDocument.load(formPdfBytes)
-        const form = pdfDoc.getForm()
-
-        const numberField = form.getTextField(`NUMERO`)
-        numberField.setText(`${doc_id}`)
-
-        const dateField = form.getTextField(`FECHA`)
-        dateField.setText(`${fechaFormateada}`)
-
-        const nameField = form.getTextField(`NOMBRE`)
-        nameField.setText(`${PersonaNombre}`)
-
-        const cuitField = form.getTextField(`CUIT`)
-        cuitField.setText(`${Cuit}`)
-
-        const domicilioField = form.getTextField(`DOMICILIO`)
-        domicilioField.setText(`${Domicilio}`)
-
-        const liquidacionInfo = await this.getUsuariosLiquidacionMovimientos(queryRunner,periodo_id,persona_id)
-
-        let ingreso = []
+       //const basePath = (process.env.PATH_PDFRECIBO) ? process.env.PATH_PDFRECIBO : "./assets/pdf"
+       //const formUrl = basePath + "/inaes.pdf"
+       const browser = await puppeteer.launch();
+       const page = await browser.newPage();
+      const liquidacionInfo = await this.getUsuariosLiquidacionMovimientos(queryRunner,periodo_id,persona_id)
+       let ingreso = []
         let egreso = []
         let neto = 0
         let retribucion = 0
@@ -683,55 +667,134 @@ export class LiquidacionesController extends BaseController {
           }
           
         }
-        
 
-        const DepositoArry = [" - Detalle deposito", ...deposito];
-        const IngresoArry = [" - Detalle retribucion", ...ingreso];
-        const EgresoArry = [" - Detalle egreso", ...egreso];
-      
-        const combinedArray = [...DepositoArry, ...IngresoArry, ...EgresoArry];
-      
-        const retencionField = form.getTextField(`OTRAS RETENCIONES`)
-        retencionField.setText(`${retenciones.toFixed(2)}`)
-      
-        const retribucionField = form.getTextField(`RETRIBUCION`)
-        retribucionField.setText(`${retribucion.toFixed(2)}`)
-      
-        const netoField = form.getTextField(`RETRIBUCION NETA`)
-        netoField.setText(`${neto.toFixed(2)}`)
-      
+        const imgPath = `${process.env.PATH_ASSETS}icons/icon-lince-96x96.png`
+        const imgBuffer = await fsPromises.readFile(imgPath);
+        const imgBase64 = imgBuffer.toString('base64');
+
+        const imgPathinaes = `${process.env.PATH_ASSETS}icons/inaes.png`
+        const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
+        const imgBase64inaes = imgBufferinaes.toString('base64');
+
+       const htmlContent = `<table width="100%" align="center" style="border: 1px #000000 solid">
+       <tbody>
+         <tr>
+           <td colspan="2">
+                 <div>
+                 <img src="data:image/png;base64,${imgBase64}" style="margin-left: 15%;" alt="texto alternativo" width="ancho" height="alto" style="display:block">
+                 </div>
+                 <div>
+                 <span style="margin-left: 8%;">RECIBO DE RETRIBUCION</span>
+                 </div>
+                 <div style="text-align: end;margin-bottom: 20px;">
+                  <span style="display: block">N°: ${doc_id}</span>
+                  <span style="display: block">fecha: ${fechaFormateada} </span>
+           </div>
+                 </td>
+         </tr>
+         <tr>
+           <td>Razón Social</td>
+           <td> COOP DETRABAJO LINCE SEGURIDAD LTDA</td>
+         </tr>
+         <tr>
+           <td>C.U.I.T</td>
+           <td>3064344510</td>
+         </tr>
+         <tr>
+           <td>Matricula I.N.A.E.S</td>
+           <td>128535</td>
+         </tr>
+         <tr>
+           <td>Domicilio</td>
+           <td></td>
+         </tr>
+         <tr>
+           <td colspan="2" bgcolor="#AAAAAA" style="text-align: CENTER;">DATOS DE PERSONA ASOCIADA</td>
+         </tr>
+         <tr>
+           <td>NOMBRE</td>
+           <td>${PersonaNombre}</td>
+         </tr>
+         <tr>
+           <td>C.U.I.T</td>
+           <td>${Cuit}</td>
+         </tr>
+         <tr>
+           <td>DOMICILIO</td>
+           <td>${Domicilio}</td>
+         </tr>
+         <tr>
+           <td colspan="2" bgcolor="#AAAAAA" style="text-align: CENTER;">DATOS DEL PAGO</td>
+         </tr>
+         <tr>
+           <td>RETRIBUCION</td>
+           <td>${retribucion.toFixed(2)}</td>
+                 
+         </tr>
+         <tr>
+           <td>RETENCIONES</td>
+           <td>${retribucion.toFixed(2)}</td>
+         </tr>
+         <tr>
+           <td  colspan="2" bgcolor="#AAAAAA" >DETALLE DE OTRAS RETENCIONES</td>
+         </tr>
+         <tr>
+           <td> 
+            <div style="margin-bottom: 20px;margin-top: 20px;">${egreso.map(item => item.toString().replace(/,/g, '<br>:')).join('<br>')}
+            </div>
+            </td>
+         </tr>
+         <tr>
+           <td  colspan="2" bgcolor="#AAAAAA">DETALLE DE OTRAS RETRIBUCIONES</td>
+         </tr>
+         <tr>
+           <td colspan="2"> 
+           <div style="margin-bottom: 20px;margin-top: 20px;">${ingreso.map(item => item.toString().replace(/,/g, '<br>:')).join('<br>')}
+           </div>
+           </td>
+         </tr>
+         <tr >
+           <td colspan="2" bgcolor="#AAAAAA">DETALLE DEPOSITO</td>
+         </tr>
+         <tr>
+         <td colspan="2">
+         <div style="margin-bottom: 20px;margin-top: 20px;">
+         ${deposito.map(item => item.toString().replace(/,Banco:/g, '<br>Banco:')).join('<br>')}
+         </div>
+         </td>
+       </tr>
+         <tr style="text-align: center;">
+           <td>
+              <div style="margin-bottom: 20px;margin-top: 30px;">
+                <span style="border-top: 1px black solid;">Firma Tesorera/o</span>
+                </div>
+            </td>
+          <td> 
+                 
+              <div style="margin-bottom: 20px;margin-top: 30px;">
+                <span style="border-top: 1px black solid;">Firma Asociada/o</span>
+                </div>
+              </td>
+         </tr>
+             <tr>
+           <td colspan="2" >
+                 <div style="margin-bottom: 20px">
+                 <img src="data:image/png;base64,${imgBase64inaes}" style="margin-left:70%" alt="texto alternativo" width="200" height="100">
+           </div>
+                 </td>
+         </tr>
+       </tbody>
+     </table>`;
+     
        
-        const fontSize = 7;
-        const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-        let currentPage = pdfDoc.getPages()[0];
-        let currentY = 330;
-
-        for (const line of combinedArray) {
-          const { height } = currentPage.getSize();
-          const interlineadoFactor = 2.5;
-          const textHeight = timesRomanFont.heightAtSize(fontSize) * interlineadoFactor;
-          
-          
-          if (currentY - textHeight < 50) {
-            const newPage = pdfDoc.addPage();
-            currentPage = newPage;
-            currentY = height - 50;
-          }
-
-          currentPage.drawText(line, {
-            x: 70,
-            y: currentY,
-            size: fontSize,
-            font: timesRomanFont,
-            color: rgb(0, 0, 0),
-          });
-      
-          currentY -= textHeight;
-        }
-      
-        // Guardar el PDF en un archivo
-        const pdfBytes = await pdfDoc.save();
-        await fs.writeFile(filesPath, pdfBytes);
+       await page.setContent(htmlContent);
+       await page.pdf({ path: filesPath,  
+        margin: { top: '30px', right: '50px', bottom: '100px', left: '50px' },
+        printBackground: true,
+        format: 'A4', });
+     
+       await browser.close();
+  
   }
 
 
