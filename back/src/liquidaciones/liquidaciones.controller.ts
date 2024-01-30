@@ -631,19 +631,11 @@ export class LiquidacionesController extends BaseController {
        const mes = fechaActual.getMonth() + 1; // Suma 1 ya que los meses van de 0 a 11
        const anio = fechaActual.getFullYear();
 
-      // Formatea la fecha como "dia/mes/año"
-      const fechaFormateada = `${dia}/${mes}/${anio}`
-
-        const basePath = (process.env.PATH_PDFRECIBO) ? process.env.PATH_PDFRECIBO : "./assets/pdf"
-        // Fetch the PDF with form fields
+       const fechaFormateada = `${dia}/${mes}/${anio}`
+       const basePath = (process.env.PATH_PDFRECIBO) ? process.env.PATH_PDFRECIBO : "./assets/pdf"
         const formUrl = basePath + "/inaes.pdf"
-        // const formPdfBytes = await fetch(formUrl).then(res => res.arrayBuffer())
         const formPdfBytes = await fs.readFile(formUrl);
-
-        // Load a PDF with form fields
         const pdfDoc = await PDFDocument.load(formPdfBytes)
-
-        // Get the form containing all the fields
         const form = pdfDoc.getForm()
 
         const numberField = form.getTextField(`NUMERO`)
@@ -692,70 +684,54 @@ export class LiquidacionesController extends BaseController {
           
         }
         
-        
 
+        const DepositoArry = [" - Detalle deposito", ...deposito];
+        const IngresoArry = [" - Detalle retribucion", ...ingreso];
+        const EgresoArry = [" - Detalle egreso", ...egreso];
+      
+        const combinedArray = [...DepositoArry, ...IngresoArry, ...EgresoArry];
+      
         const retencionField = form.getTextField(`OTRAS RETENCIONES`)
         retencionField.setText(`${retenciones.toFixed(2)}`)
-
+      
         const retribucionField = form.getTextField(`RETRIBUCION`)
         retribucionField.setText(`${retribucion.toFixed(2)}`)
-        
+      
         const netoField = form.getTextField(`RETRIBUCION NETA`)
         netoField.setText(`${neto.toFixed(2)}`)
-
-        // const retencionesField = form.getTextField(`DETALLE OTRAS RETENCIONES`)
-        // retencionesField.setText(egreso.join('\n'))
-        // retencionesField.setMaxLength(undefined)
-
-        // const retribucionesField = form.getTextField(`DETALLE DE RETRIBUCIONES`)
-        // retribucionesField.setText(ingreso.join('\n'))
-        // retribucionesField.setMaxLength(undefined)
-
-        // const depositoField = form.getTextField(`DEPOSITO`)
-        // depositoField.setText(deposito.join('\n'))
-        // depositoField.setMaxLength(undefined)
-
-         // Crear un campo de opción
-         const page = pdfDoc.getPages()[0];
-
-         // Configurar la fuente y el tamaño de la fuente
-         const fontSize = 7;
-         const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
-       
-         // Dibujar el texto en la página
-         page.drawText(deposito.join('\n'), {
-           x: 70,
-           y: 330,
-           size: fontSize,
-           font: timesRomanFont,
-           color: rgb(0, 0, 0),
-         });
-
-         //retribucion 
-         page.drawText(ingreso.join('\n'), {
-          x: 70,
-          y: 230,
-          size: fontSize,
-          font: timesRomanFont,
-          color: rgb(0, 0, 0),
-        });
-
-        // configuracion para retenciones
-         page.drawText(egreso.join('\n'), {
-          x: 70,
-          y: 120,
-          size: fontSize,
-          font: timesRomanFont,
-          color: rgb(0, 0, 0),
-        });
       
        
+        const fontSize = 7;
+        const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+        let currentPage = pdfDoc.getPages()[0];
+        let currentY = 330;
 
+        for (const line of combinedArray) {
+          const { height } = currentPage.getSize();
+          const interlineadoFactor = 2.5;
+          const textHeight = timesRomanFont.heightAtSize(fontSize) * interlineadoFactor;
+          
+          
+          if (currentY - textHeight < 50) {
+            const newPage = pdfDoc.addPage();
+            currentPage = newPage;
+            currentY = height - 50;
+          }
+
+          currentPage.drawText(line, {
+            x: 70,
+            y: currentY,
+            size: fontSize,
+            font: timesRomanFont,
+            color: rgb(0, 0, 0),
+          });
+      
+          currentY -= textHeight;
+        }
+      
         // Guardar el PDF en un archivo
         const pdfBytes = await pdfDoc.save();
         await fs.writeFile(filesPath, pdfBytes);
-        
-    
   }
 
 

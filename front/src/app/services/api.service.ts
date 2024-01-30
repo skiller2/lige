@@ -93,7 +93,8 @@ export class ApiService {
         //minHeight: 550,     // defaults to 180
         //minWidth: 250,      // defaults to 300
         //sidePadding: 10,
-        //bottomPadding: 10        
+        //bottomPadding: 10
+        resizeDetection: 'container',
       },
      // gridAutosizeColsMode: GridAutosizeColsMode.fitColsToViewport,
 

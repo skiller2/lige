@@ -261,7 +261,7 @@ export class CargaAsistenciaComponent {
         this.gridOptionsEdit.showFooterRow = true
         this.gridOptionsEdit.createFooterRow = true
 
-        this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand: EditCommand) => {
+        this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
             //            let undoCommandArr:EditCommand[]=[]
             this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
             this.angularGridEdit.slickGrid.invalidate();
@@ -607,7 +607,7 @@ export class CargaAsistenciaComponent {
 
         try {
             const res = await firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId))
-            this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)                
+            this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
         } catch (error) {
 
         }
@@ -623,7 +623,7 @@ export class CargaAsistenciaComponent {
 
         try {
             const res = firstValueFrom(this.apiService.validaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId))
-                //finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
+            //finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
         } catch (error) {
 
         }
@@ -635,9 +635,11 @@ export class CargaAsistenciaComponent {
 
 
 
-    setCargaAsistencia() {
-        const res = firstValueFrom(this.apiService.addAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)
-        ).finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
+    async setCargaAsistencia() {
+        try {
+            await firstValueFrom(this.apiService.addAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId))
+        } catch (_e) { }
+        this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
     }
 
     collapseChange($event: any) {
@@ -708,5 +710,4 @@ export class CargaAsistenciaComponent {
 
         this.excelExportService.exportToExcel();
     }
-
 }
