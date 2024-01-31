@@ -13,13 +13,13 @@ export class TipoDocumentoController extends BaseController {
 
   listaTipoDocumento: any[] = [
     {
-      id: "ID",
-      name: "ID",
-      field: "ID",
+      id: "id",
+      name: "id",
+      field: "id",
       fieldName: "id",
-      type: "string",
+      type: "number",
       sortable: true,
-      hidden: true
+      hidden: false
     },
     {
       name: "Detalle",
@@ -29,16 +29,6 @@ export class TipoDocumentoController extends BaseController {
       fieldName: "tipo.detalle",
       hidden: false,
       searchHidden:false
-    },
-    {
-      name: "Fecha",
-      type: "string",
-      id: "fecha",
-      field: "fecha",
-      fieldName: "fecha",
-      sortable: true,
-      hidden: true,
-      searchHidden: false
     },
     {
       name: "Apellido Nombre",
@@ -62,20 +52,11 @@ export class TipoDocumentoController extends BaseController {
       searchHidden: false
     },
     {
-      name: "Nombre Archivo",
-      type: "string",
-      id: "archivo",
-      field: "archivo",
-      fieldName: "archivo",
-      hidden: false,
-      searchHidden:false
-    },
-    {
-      name: "Path",
-      type: "path",
-      id: "path",
-      field: "path",
-      fieldName: "path",
+      name: "periodo",
+      type: "periodo",
+      id: "periodo",
+      field: "periodo",
+      fieldName: "periodo",
       hidden: false,
       searchHidden:false
     },
@@ -93,10 +74,17 @@ export class TipoDocumentoController extends BaseController {
 
     return dataSource.query(
       `
-      SELECT doc_id AS id, tipo.detalle, fecha, pers.PersonalApellidoNombre, obj.ObjetivoDescripcion, nombre_archivo as archivo, path FROM lige.dbo.docgeneral AS docgeneral 
+      SELECT doc_id AS id, 
+      tipo.detalle, 
+      fecha, 
+      pers.PersonalApellidoNombre,
+      obj.ObjetivoDescripcion,  
+      CONCAT(RTRIM(per.mes), '-', RTRIM(per.anio)) AS periodo
+      FROM lige.dbo.docgeneral AS docgeneral 
       LEFT JOIN lige.dbo.doctipo AS tipo ON docgeneral.doctipo_id = tipo.doctipo_id
-       LEFT JOIN Personal AS pers ON docgeneral.persona_id = pers.PersonalId 
-       LEFT JOIN Objetivo AS obj ON docgeneral.objetivo_id = obj.ObjetivoId WHERE ${filterSql} ${orderBy}
+      LEFT JOIN Personal AS pers ON docgeneral.persona_id = pers.PersonalId 
+      LEFT JOIN Objetivo AS obj ON docgeneral.objetivo_id = obj.ObjetivoId 
+      LEFT JOIN lige.dbo.liqmaperiodo AS per ON docgeneral.periodo = per.periodo_id WHERE ${filterSql} ${orderBy}
     `)
   }
 

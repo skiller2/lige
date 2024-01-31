@@ -97,13 +97,13 @@ export class CargaAsistenciaComponent {
                 this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null)
                 this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
 
-                this.excelExportOption.filename = `${this.selectedPeriod.year}/${this.selectedPeriod.month}/${this.selectedObjetivoId}`
+                this.excelExportOption.filename = `${this.selectedPeriod.year}-${this.selectedPeriod.month}-${data[2][0]?.ObjetivoCodigo}-${data[2][0]?.ObjetivoDescripcion}`
                 this.excelExportOption.customExcelHeader = (workbook, sheet) => {
                     sheet.setRowInstructions(4, { height: 20 })
                     sheet.data.push(
                         [{ value: `Año: ${anio}` }], 
                         [{ value: `Mes: ${mes}` }], 
-                        [{ value: `Numero: ${data[2][0]?.ObjetivoCodigo}` }],
+                        [{ value: `Código: ${data[2][0]?.ObjetivoCodigo}` }],
                         [{ value: `Objetivo: ${data[2][0]?.ObjetivoDescripcion}` }],
                         []
                     );
@@ -209,7 +209,7 @@ export class CargaAsistenciaComponent {
                     // required: true
                 },
                 excelExportOptions: {
-                    width: 12,
+                    width: 10,
                 },
             },
             {
@@ -246,7 +246,7 @@ export class CargaAsistenciaComponent {
             filename: `${this.selectedPeriod.year}/${this.selectedPeriod.month}/${this.selectedObjetivoId}`,
             columnHeaderStyle: {
                 alignment: { horizontal: 'center' },
-                font: { color: 'black' , size: 11, bold: true},
+                font: { color: 'black' , size: 10, bold: true},
                 fill: { type: 'pattern', patternType: 'solid', fgColor: '6A9BCC' },
             }
         }
@@ -449,7 +449,7 @@ export class CargaAsistenciaComponent {
             let name = daysOfWeek[dow];
             columnDays.push({
                 id: `day${index}`,
-                name: `${name} <BR> ${index}`,
+                name: `${name} <BR>${index}`,
                 field: `day${index}`,
                 sortable: true,
                 type: FieldType.float,
@@ -465,7 +465,7 @@ export class CargaAsistenciaComponent {
                 editor: { model: Editors.float, decimal: 1 },
                 onCellChange: this.onHoursChange.bind(this),
                 excelExportOptions: {
-                    width: 6,
+                    width: 5,
                 },
             });
         }
