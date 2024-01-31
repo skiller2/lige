@@ -631,10 +631,7 @@ export class LiquidacionesController extends BaseController {
        const anio = fechaActual.getFullYear();
 
        const fechaFormateada = `${dia}/${mes}/${anio}`
-       //const basePath = (process.env.PATH_PDFRECIBO) ? process.env.PATH_PDFRECIBO : "./assets/pdf"
-       //const formUrl = basePath + "/inaes.pdf"
-       const browser = await puppeteer.launch();
-       const page = await browser.newPage();
+       
       const liquidacionInfo = await this.getUsuariosLiquidacionMovimientos(queryRunner,periodo_id,persona_id)
        let ingreso = []
         let egreso = []
@@ -645,16 +642,18 @@ export class LiquidacionesController extends BaseController {
 
         for (const liquidacionElement of liquidacionInfo ) {
           
-          if(liquidacionElement.indicador =="R" || liquidacionElement.indicador =="D"){
+        
+          if(liquidacionElement.indicador =="R"){
             let textEgreso = `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte}`
             egreso = [...egreso, textEgreso]
             neto = neto + parseFloat(liquidacionElement.SumaImporte)
             retribucion = retribucion + parseFloat(liquidacionElement.SumaImporte)
-
-            if(liquidacionElement.indicador =="D")
-              deposito = [...deposito, liquidacionElement.detalle]
-
           }
+
+          if(liquidacionElement.indicador =="D"){
+            deposito = [...deposito, `${liquidacionElement.detalle} - ${liquidacionElement.SumaImporte}`]
+          }
+            
 
           if(liquidacionElement.indicador =="I"){
             let textIngreso = `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte}`
@@ -672,119 +671,144 @@ export class LiquidacionesController extends BaseController {
         const imgPathinaes = `${process.env.PATH_ASSETS}icons/inaes.png`
         const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
         const imgBase64inaes = imgBufferinaes.toString('base64');
+    //    <tbody>
+    //      <tr>
+    //        <td colspan="2">
+    //              <div>
+    //              <img src="data:image/png;base64,${imgBase64}" style="margin-left: 15%;" alt="texto alternativo" width="ancho" height="alto" style="display:block">
+    //              </div>
+    //              <div>
+    //              <span style="margin-left: 8%;">RECIBO DE RETRIBUCION</span>
+    //              </div>
+    //              <div style="text-align: end;margin-bottom: 20px;">
+    //               <span style="display: block">N°: ${doc_id}</span>
+    //               <span style="display: block">fecha: ${fechaFormateada} </span>
+    //        </div>
+    //              </td>
+    //      </tr>
+    //      <tr>
+    //        <td>Razón Social</td>
+    //        <td> COOP DETRABAJO LINCE SEGURIDAD LTDA</td>
+    //      </tr>
+    //      <tr>
+    //        <td>C.U.I.T</td>
+    //        <td>3064344510</td>
+    //      </tr>
+    //      <tr>
+    //        <td>Matricula I.N.A.E.S</td>
+    //        <td>128535</td>
+    //      </tr>
+    //      <tr>
+    //        <td>Domicilio</td>
+    //        <td></td>
+    //      </tr>
+    //      <tr>
+    //        <td colspan="2" bgcolor="#AAAAAA" style="text-align: CENTER;">DATOS DE PERSONA ASOCIADA</td>
+    //      </tr>
+    //      <tr>
+    //        <td>NOMBRE</td>
+    //        <td>${PersonaNombre}</td>
+    //      </tr>
+    //      <tr>
+    //        <td>C.U.I.T</td>
+    //        <td>${Cuit}</td>
+    //      </tr>
+    //      <tr>
+    //        <td>DOMICILIO</td>
+    //        <td>${Domicilio}</td>
+    //      </tr>
+    //      <tr>
+    //        <td colspan="2" bgcolor="#AAAAAA" style="text-align: CENTER;">DATOS DEL PAGO</td>
+    //      </tr>
+    //      <tr>
+    //        <td>RETRIBUCION</td>
+    //        <td>${retribucion.toFixed(2)}</td>
+                 
+    //      </tr>
+    //      <tr>
+    //        <td>RETENCIONES</td>
+    //        <td>${retribucion.toFixed(2)}</td>
+    //      </tr>
+    //      <tr>
+    //        <td  colspan="2" bgcolor="#AAAAAA" >DETALLE DE OTRAS RETENCIONES</td>
+    //      </tr>
+    //      <tr>
+    //        <td> 
+    //         <div style="margin-bottom: 20px;margin-top: 20px;">${egreso.map(item => item.toString().replace(/,/g, '<br>:')).join('<br>')}
+    //         </div>
+    //         </td>
+    //      </tr>
+    //      <tr>
+    //        <td  colspan="2" bgcolor="#AAAAAA">DETALLE DE OTRAS RETRIBUCIONES</td>
+    //      </tr>
+    //      <tr>
+    //        <td colspan="2"> 
+    //        <div style="margin-bottom: 20px;margin-top: 20px;">${ingreso.map(item => item.toString().replace(/,/g, '<br>:')).join('<br>')}
+    //        </div>
+    //        </td>
+    //      </tr>
+    //      <tr >
+    //        <td colspan="2" bgcolor="#AAAAAA">DETALLE DEPOSITO</td>
+    //      </tr>
+    //      <tr>
+    //      <td colspan="2">
+    //      <div style="margin-bottom: 20px;margin-top: 20px;">
+    //      ${deposito.map(item => item.toString().replace(/,Banco:/g, '<br>Banco:')).join('<br>')}
+    //      </div>
+    //      </td>
+    //    </tr>
+    //      <tr style="text-align: center;">
+    //        <td>
+    //           <div style="margin-bottom: 20px;margin-top: 30px;">
+    //             <span style="border-top: 1px black solid;">Firma Tesorera/o</span>
+    //             </div>
+    //         </td>
+    //       <td> 
+                 
+    //           <div style="margin-bottom: 20px;margin-top: 30px;">
+    //             <span style="border-top: 1px black solid;">Firma Asociada/o</span>
+    //             </div>
+    //           </td>
+    //      </tr>
+    //          <tr>
+    //        <td colspan="2" >
+    //              <div style="margin-bottom: 20px">
+    //              <img src="data:image/png;base64,${imgBase64inaes}" style="margin-left:70%" alt="texto alternativo" width="200" height="100">
+    //        </div>
+    //              </td>
+    //      </tr>
+    //    </tbody>
+    //  </table>`;
 
-       const htmlContent = `<table width="100%" align="center" style="border: 1px #000000 solid">
-       <tbody>
-         <tr>
-           <td colspan="2">
-                 <div>
-                 <img src="data:image/png;base64,${imgBase64}" style="margin-left: 15%;" alt="texto alternativo" width="ancho" height="alto" style="display:block">
-                 </div>
-                 <div>
-                 <span style="margin-left: 8%;">RECIBO DE RETRIBUCION</span>
-                 </div>
-                 <div style="text-align: end;margin-bottom: 20px;">
-                  <span style="display: block">N°: ${doc_id}</span>
-                  <span style="display: block">fecha: ${fechaFormateada} </span>
-           </div>
-                 </td>
-         </tr>
-         <tr>
-           <td>Razón Social</td>
-           <td> COOP DETRABAJO LINCE SEGURIDAD LTDA</td>
-         </tr>
-         <tr>
-           <td>C.U.I.T</td>
-           <td>3064344510</td>
-         </tr>
-         <tr>
-           <td>Matricula I.N.A.E.S</td>
-           <td>128535</td>
-         </tr>
-         <tr>
-           <td>Domicilio</td>
-           <td></td>
-         </tr>
-         <tr>
-           <td colspan="2" bgcolor="#AAAAAA" style="text-align: CENTER;">DATOS DE PERSONA ASOCIADA</td>
-         </tr>
-         <tr>
-           <td>NOMBRE</td>
-           <td>${PersonaNombre}</td>
-         </tr>
-         <tr>
-           <td>C.U.I.T</td>
-           <td>${Cuit}</td>
-         </tr>
-         <tr>
-           <td>DOMICILIO</td>
-           <td>${Domicilio}</td>
-         </tr>
-         <tr>
-           <td colspan="2" bgcolor="#AAAAAA" style="text-align: CENTER;">DATOS DEL PAGO</td>
-         </tr>
-         <tr>
-           <td>RETRIBUCION</td>
-           <td>${retribucion.toFixed(2)}</td>
-                 
-         </tr>
-         <tr>
-           <td>RETENCIONES</td>
-           <td>${retribucion.toFixed(2)}</td>
-         </tr>
-         <tr>
-           <td  colspan="2" bgcolor="#AAAAAA" >DETALLE DE OTRAS RETENCIONES</td>
-         </tr>
-         <tr>
-           <td> 
-            <div style="margin-bottom: 20px;margin-top: 20px;">${egreso.map(item => item.toString().replace(/,/g, '<br>:')).join('<br>')}
-            </div>
-            </td>
-         </tr>
-         <tr>
-           <td  colspan="2" bgcolor="#AAAAAA">DETALLE DE OTRAS RETRIBUCIONES</td>
-         </tr>
-         <tr>
-           <td colspan="2"> 
-           <div style="margin-bottom: 20px;margin-top: 20px;">${ingreso.map(item => item.toString().replace(/,/g, '<br>:')).join('<br>')}
-           </div>
-           </td>
-         </tr>
-         <tr >
-           <td colspan="2" bgcolor="#AAAAAA">DETALLE DEPOSITO</td>
-         </tr>
-         <tr>
-         <td colspan="2">
-         <div style="margin-bottom: 20px;margin-top: 20px;">
-         ${deposito.map(item => item.toString().replace(/,Banco:/g, '<br>Banco:')).join('<br>')}
-         </div>
-         </td>
-       </tr>
-         <tr style="text-align: center;">
-           <td>
-              <div style="margin-bottom: 20px;margin-top: 30px;">
-                <span style="border-top: 1px black solid;">Firma Tesorera/o</span>
-                </div>
-            </td>
-          <td> 
-                 
-              <div style="margin-bottom: 20px;margin-top: 30px;">
-                <span style="border-top: 1px black solid;">Firma Asociada/o</span>
-                </div>
-              </td>
-         </tr>
-             <tr>
-           <td colspan="2" >
-                 <div style="margin-bottom: 20px">
-                 <img src="data:image/png;base64,${imgBase64inaes}" style="margin-left:70%" alt="texto alternativo" width="200" height="100">
-           </div>
-                 </td>
-         </tr>
-       </tbody>
-     </table>`;
+      const htmlFilePath = `${process.env.PATH_ASSETS}html/inaes.html`; 
      
        
-       await page.setContent(htmlContent);
+      let htmlContent = await fsPromises.readFile(htmlFilePath, 'utf-8');
+
+      htmlContent = htmlContent.replace(/\${imgBase64}/g, imgBase64);
+      htmlContent = htmlContent.replace(/\${doc_id}/g, doc_id.toString());
+      htmlContent = htmlContent.replace(/\${fechaFormateada}/g, fechaFormateada);
+      htmlContent = htmlContent.replace(/\${PersonaNombre}/g, PersonaNombre);
+      htmlContent = htmlContent.replace(/\${Cuit}/g, Cuit.toString());
+      htmlContent = htmlContent.replace(/\${Domicilio}/g, Domicilio);
+      htmlContent = htmlContent.replace(/\${retribucion}/g, retribucion.toFixed(2).toString());
+      htmlContent = htmlContent.replace(/\${retenciones}/g, retenciones.toFixed(2).toString());
+
+      let varEgreso = egreso.map(item => item.toString().replace(/,/g, '<br>:')).join('<br>')
+      htmlContent = htmlContent.replace(/\${egreso}/g, varEgreso);
+      let varIngreso = ingreso.map(item => item.toString().replace(/,/g, '<br>:')).join('<br>')
+      htmlContent = htmlContent.replace(/\${ingreso}/g, varIngreso);
+      let varDeposito = deposito.map(item => item.toString().replace(/,Banco:/g, '<br>Banco:')).join('<br>')
+      htmlContent = htmlContent.replace(/\${deposito}/g, varDeposito);
+
+      htmlContent = htmlContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
+  
+      // Inicializa Puppeteer
+      const browser = await puppeteer.launch();
+      const page = await browser.newPage();
+  
+      // Establece el contenido HTML en la página
+      await page.setContent(htmlContent);
        await page.pdf({ path: filesPath,  
         margin: { top: '30px', right: '50px', bottom: '100px', left: '50px' },
         printBackground: true,
@@ -793,7 +817,6 @@ export class LiquidacionesController extends BaseController {
        await browser.close();
   
   }
-
 
   async getUsuariosLiquidacion(queryRunner:QueryRunner,periodo_id: Number) {
    
