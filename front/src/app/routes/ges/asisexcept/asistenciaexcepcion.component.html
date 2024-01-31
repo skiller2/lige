@@ -131,20 +131,29 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
       <nz-form-control>
-        <ng-container *ngFor="let responsable of $personaResponsables | async">
-          <p title="{{ responsable.GrupoActividadId }}">
-            {{ responsable.GrupoActividadNumero }} {{ responsable.GrupoActividadDetalle }} desde
-            {{
-            responsable.GrupoActividadPersonalDesde | date
-            }}
-            <span *ngIf="responsable.GrupoActividadPersonalHasta">
-              hasta
-            </span>
-            {{
-            responsable.GrupoActividadPersonalHasta | date
-            }}
-          </p>
-        </ng-container>
+
+        @if ($personaResponsables | async; as responsables){
+          @if (responsables.length) {
+          <nz-collapse nzBordered="false" nzGhost="false" class="app-collapse-header">
+          <nz-collapse-panel
+              [nzHeader]="tmplHeader">
+              <ng-template #tmplHeader>{{responsables[0]?.tipo}} {{responsables[0]?.detalle}} desde {{ responsables[0]?.desde | date}} <span *ngIf="responsables[0]?.hasta
+                ">hasta</span> {{responsables[0]?.hasta | date}}</ng-template>
+              <ng-container *ngFor="let responsable of responsables">
+                  <li *ngIf="responsable.ord !=1" title="{{ responsable.id }}">
+                      {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}}
+                      <span *ngIf="responsable.hasta
+          ">hasta</span> {{responsable.hasta | date}}
+                  </li>
+              </ng-container>
+          </nz-collapse-panel>
+          </nz-collapse>
+          }
+          
+          }
+          
+
+
       </nz-form-control>
     </nz-form-item>
 
