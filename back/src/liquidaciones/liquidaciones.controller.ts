@@ -7,9 +7,6 @@ import { promises as fsPromises } from 'fs';
 import { mkdirSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
 import xlsx from 'node-xlsx';
 import puppeteer from 'puppeteer';
-import { isNumberObject } from "util/types";
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
 import {
   SendFileToDownload,
   getPeriodoFromRequest,
