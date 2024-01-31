@@ -15,6 +15,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
+import { combineLatest } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
@@ -63,7 +64,8 @@ export class TipoDocumentoComponent {
   selectedTabIndex = 0;
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
-
+  columnDefinitions: Column[] = [];
+  
   columns$ = this.apiService.getCols('/api/tipo-documento/cols').pipe(map((cols) => {
     return cols
   }));
@@ -81,6 +83,8 @@ export class TipoDocumentoComponent {
     extra: null
   }
 
+  
+
   listOptionsChange(options: any) {
     this.listOptions = options;
 
@@ -93,6 +97,8 @@ export class TipoDocumentoComponent {
 
     this.formChange$.next('')
   }
+
+
 
   gridData$ = this.formChange$.pipe(
     debounceTime(500),
@@ -112,6 +118,25 @@ export class TipoDocumentoComponent {
   )
 
   ngOnInit() {
+    this.columnDefinitions = [
+      {
+        id: 'delete',
+        field: 'id',
+        excludeFromHeaderMenu: true,
+        // formatter: Formatters.icon,
+        params: { iconCssClass: 'fa fa-trash pointer' },
+        minWidth: 30,
+        maxWidth: 30,
+        // use onCellClick OR grid.onClick.subscribe which you can see down below
+        // onCellClick: (e: Event, args: OnEventArgs) => {
+        //   console.log(args);
+        //   if (confirm('Are you sure?')) {
+        //     this.angularGrid.gridService.deleteItemById(args.dataContext.id);
+        //   }
+        // }
+      }
+    ]
+   
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
