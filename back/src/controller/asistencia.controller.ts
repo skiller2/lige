@@ -784,7 +784,42 @@ export class AsistenciaController extends BaseController {
     }
   }
 
+  async getExcepAsistenciaPorObjetivoQuery(objetivoId: any, desde: Date, queryRunner: any) {
+    return await queryRunner.query(
+      `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion,
+              suc.SucursalId, 
+              IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde) AS Desde,
+              IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta,
+              art.PersonalArt14ConceptoId,con.ConceptoArt14Descripcion,
+              IIF(art.PersonalArt14FormaArt14='S','Suma fija',IIF(art.PersonalArt14FormaArt14='E','Equivalencia',IIF(art.PersonalArt14FormaArt14='A','Adicional hora',IIF(art.PersonalArt14FormaArt14='H','Horas adicionales','')))) AS FormaDescripcion,
+              1
+              FROM PersonalArt14 art
+              JOIN Personal per ON per.PersonalId = art.PersonalId
+              JOIN Objetivo obj ON obj.ObjetivoId = art.PersonalArt14ObjetivoId
+              LEFT JOIN ConceptoArt14 con ON con.ConceptoArt14Id = art.PersonalArt14ConceptoId
+              LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = art.PersonalArt14TipoAsociadoId  AND cat.CategoriaPersonalId = art.PersonalArt14CategoriaId
+              LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+
+              LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+              LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+              
+              
+              LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+              
+
+
+              WHERE obj.ObjetivoId = @0 
+              -- AND (art.PersonalArt14AutorizadoDesde <= @1 OR art.PersonalArt14AutorizadoDesde IS NULL) AND (art.PersonalArt14Desde <= @1 OR art.PersonalArt14Desde IS NULL) 
+              AND ((art.PersonalArt14AutorizadoDesde <= @1  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= @1)) OR (art.PersonalArt14Autorizado is null AND (art.PersonalArt14Desde <= @1  AND (art.PersonalArt14Hasta >= @1))) )
+              AND art.PersonalArt14Anulacion is null
+
+              `,
+      [objetivoId, desde]
+    );
+  }
+
   async getExcepAsistenciaPorObjetivo(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner()
     try {
       const objetivoId = req.params.objetivoId;
       const anio = req.params.anio;
@@ -794,39 +829,13 @@ export class AsistenciaController extends BaseController {
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), dataSource))
         throw new ClientException(`No tiene permisos para listar asistencia del objetivo`)
 
-      const result = await dataSource.query(
-        `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion,
-                suc.SucursalId, 
-                IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde) AS Desde,
-                IIF(art.PersonalArt14Autorizado ='S',art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta) AS Hasta,
-                art.PersonalArt14ConceptoId,con.ConceptoArt14Descripcion,
-                IIF(art.PersonalArt14FormaArt14='S','Suma fija',IIF(art.PersonalArt14FormaArt14='E','Equivalencia',IIF(art.PersonalArt14FormaArt14='A','Adicional hora',IIF(art.PersonalArt14FormaArt14='H','Horas adicionales','')))) AS FormaDescripcion,
-                1
-                FROM PersonalArt14 art
-                JOIN Personal per ON per.PersonalId = art.PersonalId
-                JOIN Objetivo obj ON obj.ObjetivoId = art.PersonalArt14ObjetivoId
-                LEFT JOIN ConceptoArt14 con ON con.ConceptoArt14Id = art.PersonalArt14ConceptoId
-                LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = art.PersonalArt14TipoAsociadoId  AND cat.CategoriaPersonalId = art.PersonalArt14CategoriaId
-                LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
-                LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-                LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-                
-                
-                LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
-                
+      const result = await this.getExcepAsistenciaPorObjetivoQuery(objetivoId, desde, queryRunner)
 
-
-                WHERE obj.ObjetivoId = @0 
-                -- AND (art.PersonalArt14AutorizadoDesde <= @1 OR art.PersonalArt14AutorizadoDesde IS NULL) AND (art.PersonalArt14Desde <= @1 OR art.PersonalArt14Desde IS NULL) 
-                AND ((art.PersonalArt14AutorizadoDesde <= @1  AND (ISNULL(art.PersonalArt14AutorizadoHasta,'9999-12-31') >= @1)) OR (art.PersonalArt14Autorizado is null AND (art.PersonalArt14Desde <= @1  AND (art.PersonalArt14Hasta >= @1))) )
-                AND art.PersonalArt14Anulacion is null
-
-                `,
-        [objetivoId, desde]
-      );
-
-      this.jsonRes(result, res);
+      await queryRunner.commitTransaction();
+      return this.jsonRes(result, res);
     } catch (error) {
       //      this.rollbackTransaction(queryRunner)
       return next(error)
@@ -1682,7 +1691,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       }
 
       //Validaciónes de los días del mes
-      const valsDiasMes = await this.valsDiasMes(req.body, queryRunner)
+      const valsDiasMes = await this.valsDiasMes(req.body, queryRunner, personal)
+      // const valsDiasMes = await this.valsDiasMes(req.body, queryRunner)
       if (valsDiasMes instanceof ClientException) {
         throw valsDiasMes
       }
@@ -1873,7 +1883,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     return null
   }
 
-  async valsDiasMes(item: any, queryRunner: QueryRunner) {
+  async valsDiasMes(item: any, queryRunner: QueryRunner, comparar:any = null) {
 
     const dateFormatter = new Intl.DateTimeFormat('es-AR', { year: 'numeric', month: 'numeric', day: 'numeric' });
 
@@ -1942,6 +1952,17 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         if (!horas) {
           valueColumnsDays = valueColumnsDays + `, NULL`
         } else {
+          const h = String(Math.trunc(horas))
+          const horafrac = horas - Math.trunc(horas)
+          const m = String(60 * horafrac)
+          valueColumnsDays = valueColumnsDays + `, '${h.padStart(2, '0')}.${m.padStart(2, '0')}'`
+          totalhs = totalhs + horas
+
+          if (comparar && comparar.apellidoNombre.id == personalId && comparar.categoria.id == categoriaPersonalId && comparar.categoria.tipoId == tipoAsociadoId && item[key] == comparar[key]) {
+            continue
+          }
+          //VALIDACIONES
+
           fecha = new Date(`${anio}-${mes}-${numdia} 0:0:0`)
           //Validación Licencia
           const licencia = licencias.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
@@ -1971,15 +1992,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
             // throw new ClientException(`La cantidad de horas no puede superar las 24`)
             errores.push(`La cantidad de horas no puede superar las 24`)
           }
-          const h = String(Math.trunc(horas))
-          const horafrac = horas - Math.trunc(horas)
           if (horafrac != 0 && horafrac != 0.5) {
             // throw new ClientException(`La fracción de hora debe ser .5 únicamente, ej: 0.5; 8.5 `)
             errores.push(`La fracción de hora debe ser .5 únicamente, ej: 0.5; 8.5`)
           }
-          const m = String(60 * horafrac)
-          valueColumnsDays = valueColumnsDays + `, '${h.padStart(2, '0')}.${m.padStart(2, '0')}'`
-          totalhs = totalhs + horas
         }
       }
     }
@@ -2085,7 +2101,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   async getLicenciasPorPersonaQuery(anio: number, mes: number, personalId: number, queryRunner: QueryRunner) {
     return queryRunner.query(
       `
-        SELECT PersonalLicenciaDesde desde, ISNULL( ISNULL(PersonalLicenciaTermina,PersonalLicenciaHasta), '9999-12-31') hasta, ISNULL(PersonalLicenciaTermina,PersonalLicenciaHasta) hasta2 
+        SELECT PersonalLicenciaDesde desde, ISNULL( ISNULL(PersonalLicenciaTermina,PersonalLicenciaHasta), '9999-12-31') hasta
         FROM PersonalLicencia 
         WHERE PersonalId = @0 
         AND PersonalLicenciaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
@@ -2170,11 +2186,16 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
     let errores: any[] = []
     let index: number
+    let desde = new Date(anio, mes - 1, 1)
+
     //Validación de Objetivo
     const valObjetivo: any = await AsistenciaController.getObjetivoAsistenciaCabecera(anio,mes,objetivoId, queryRunner)
     if (valObjetivo.length == 0){
       errores.push(`El objetivo no se localizó`)
     } else {
+      //Validación de Excepción de Asistencia
+      const excepAsistencia = await this.getExcepAsistenciaPorObjetivoQuery(objetivoId, desde, queryRunner)
+      
       for (index = 0; index < gridData.length; index++) {
         let item = gridData[index]
         item.year = anio
@@ -2214,8 +2235,11 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           error.push(valsDiasMes.messageArr[0])
         } else {
           let totalhs = valsDiasMes.totalhs
-          if (totalhs < 1) {
+          if (totalhs < 1)
             error.push(`El total de horas tiene que ser superior o igual a 1`)
+          //Validación de Excepción de Asistencia
+          if (!totalhs && excepAsistencia.length && excepAsistencia.find((obj: any) => { ( obj.PersonalId == item.personalId ) })) {
+            error.push(`La persona tiene Art14 y no tienen horas cargadas`)
           }
         }
 
