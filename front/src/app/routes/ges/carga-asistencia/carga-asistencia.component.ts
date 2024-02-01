@@ -300,8 +300,9 @@ export class CargaAsistenciaComponent {
                     const response = await this.insertDB(item)
                     if (item.total == 0 && response.deleteRowId)
                         this.angularGridEdit.gridService.deleteItemById(response.deleteRowId)
-                    if (response.categoria) {
-                        item.categoria = response.categoria
+                    if (response.categoria || response.forma) {
+                        item.categoria = response.categoria ? response.categoria : item.categoria
+                        item.forma = response.forma ? response.forma : item.forma
                         this.angularGridEdit.gridService.updateItemById(row.id, item)
                     }
                     if (response.newRowId && response.newRowId != row.id) {

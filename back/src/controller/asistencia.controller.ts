@@ -1667,18 +1667,19 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       }
 
       //Validación de Personal ya registrado
+      let personal: any = null
       const valPersonalRegistrado = await this.valPersonalRegistrado(req.body, queryRunner)
       if (valPersonalRegistrado instanceof ClientException) {
-        if (valCategoriaPersonal instanceof ClientException && valCategoriaPersonal.extended.categoria)
-          valPersonalRegistrado.extended.categoria = {
-            fullName: ``,
-            id: 0,
-            tipoFullName: ``,
-            tipoId: 0,
-          }
-        throw valPersonalRegistrado
+        if (!valPersonalRegistrado.extended.forma){
+          if (valCategoriaPersonal instanceof ClientException && valCategoriaPersonal.extended.categoria)
+            valPersonalRegistrado.extended.categoria = valCategoriaPersonal.extended.categoria
+          throw valPersonalRegistrado
+        }
+        req.body.formaLiquidacion = valPersonalRegistrado.extended.forma.id
+        personal = valPersonalRegistrado.extended.personal
+      } else {
+        personal = valPersonalRegistrado
       }
-      let personal: any = valPersonalRegistrado
 
       //Validaciónes de los días del mes
       const valsDiasMes = await this.valsDiasMes(req.body, queryRunner)
@@ -1762,6 +1763,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       }
       if (valCategoriaPersonal instanceof ClientException && valCategoriaPersonal.extended.categoria)
         result.categoria = valCategoriaPersonal.extended.categoria
+      if (valPersonalRegistrado instanceof ClientException && valPersonalRegistrado.extended.forma)
+        result.forma = valPersonalRegistrado.extended.forma
       await queryRunner.commitTransaction()
       return this.jsonRes(result, res);
     } catch (error) {
@@ -1805,19 +1808,37 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const tipoAsociadoId: number = item.tipoAsociadoId
     const categoriaPersonalId: number = item.categoriaPersonalId
     const formaLiquidacion: number = item.formaLiquidacion
+    let formas = ['N','C']
+    let formasEncontradas = []
+    let forma = null
 
     const lista = await this.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
 
     let personal: any = null
-    let personaLista: any[] = []
+    let personalRegistrado: any = null
     lista.forEach((obj: any) => {
       if (obj.id == rowId)
         personal = obj
-      if (obj.id != rowId && obj.apellidoNombre.id == personalId && obj.categoria.id == categoriaPersonalId && obj.categoria.tipoId == tipoAsociadoId && obj.forma.id == formaLiquidacion)
-        personaLista.push(obj)
+      if (obj.id != rowId && obj.apellidoNombre.id == personalId && obj.categoria.id == categoriaPersonalId && obj.categoria.tipoId == tipoAsociadoId){
+        formasEncontradas.push(obj.forma.id)
+        if(obj.forma.id == formaLiquidacion)
+          personalRegistrado = obj
+      }
     })
-    if (personaLista.length) {
-      return new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`, {})
+    if (personalRegistrado) {
+      //return new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`, {})
+      let data = {}
+      forma = formas.find(char => !formasEncontradas.includes(char))
+      if (forma) {
+        data = {
+          personal,
+          forma :{
+            id: forma,
+            fullName: (forma == 'N' ? 'Normal' : 'Capacitación')
+          }
+        }
+      }
+      return new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`, data)
     }
     return personal
   }
@@ -1833,7 +1854,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const filterres = categorias.filter((cat: any) => cat.TipoAsociadoId == tipoAsociadoId && cat.PersonalCategoriaCategoriaPersonalId == categoriaPersonalId && cat.ValorLiquidacionHoraNormal)
     
     if (filterres.length == 0) {
-      const cateDisponible : any = categorias.find((cat: any) => cat.ValorLiquidacionHoraNormal > 0)
+      const cateDisponible : any = categorias.find((cat: any) => cat.ValorLiquidacionHoraNormal)
       let data = {}
       if (categorias.length && cateDisponible) {
         data = {
@@ -1846,7 +1867,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           }
         }
         return new ClientException(`Se actualizó la categoría de la persona`, data)
-
       }
       return new ClientException(`La categoría no se encuentra habilitada para la persona`, data)
     }
