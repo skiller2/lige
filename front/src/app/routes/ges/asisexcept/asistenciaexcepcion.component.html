@@ -59,24 +59,10 @@
 
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
-      <ng-container *ngIf="$objetivoResponsables| async as objetivoDetalle">
-        <nz-form-control [nzSpan]="21">
-          <nz-collapse nzBordered="false" nzGhost="false" class="app-collapse-header"
-            *ngIf="objetivoDetalle.length">
-            <nz-collapse-panel
-              [nzHeader]="objetivoDetalle[0]?.tipo+' '+objetivoDetalle[0]?.detalle"
-              >
-              <ng-container *ngFor="let responsable of objetivoDetalle">
-                <li *ngIf="responsable.ord !=1" title="{{ responsable.id }}">
-                  {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}} <span *ngIf="responsable.hasta
-                    ">hasta</span> {{responsable.hasta | date}}</li>
-              </ng-container>
-            </nz-collapse-panel>
-          </nz-collapse>
-        </nz-form-control>
-
-
-      </ng-container>
+      <nz-form-control [nzSpan]="21">
+        <app-view-responsable *ngIf="$objetivoResponsables| async as objetivoDetalle"
+          [list]="objetivoDetalle"></app-view-responsable>
+      </nz-form-control>
     </nz-form-item>
 
     <nz-form-item>
@@ -131,29 +117,8 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
       <nz-form-control>
-
-        @if ($personaResponsables | async; as responsables){
-          @if (responsables.length) {
-          <nz-collapse nzBordered="false" nzGhost="false" class="app-collapse-header">
-          <nz-collapse-panel
-              [nzHeader]="tmplHeader">
-              <ng-template #tmplHeader>{{responsables[0]?.tipo}} {{responsables[0]?.detalle}} desde {{ responsables[0]?.desde | date}} <span *ngIf="responsables[0]?.hasta
-                ">hasta</span> {{responsables[0]?.hasta | date}}</ng-template>
-              <ng-container *ngFor="let responsable of responsables">
-                  <li *ngIf="responsable.ord !=1" title="{{ responsable.id }}">
-                      {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}}
-                      <span *ngIf="responsable.hasta
-          ">hasta</span> {{responsable.hasta | date}}
-                  </li>
-              </ng-container>
-          </nz-collapse-panel>
-          </nz-collapse>
-          }
-          
-          }
-          
-
-
+        <app-view-responsable *ngIf="$personaResponsables| async as personaDetalle"
+          [list]="personaDetalle"></app-view-responsable>
       </nz-form-control>
     </nz-form-item>
 

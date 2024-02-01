@@ -10,6 +10,7 @@ import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
+import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 
 enum Busqueda {
   Sucursal,
@@ -20,11 +21,11 @@ enum Busqueda {
 }
 
 @Component({
-  selector: 'app-ges-asistenciaexcepcion',
-  templateUrl: './asistenciaexcepcion.component.html',
-  styleUrls: ['./asistenciaexcepcion.component.less'],
-  standalone: true,
-  imports: [...SHARED_IMPORTS,CommonModule,PersonalSearchComponent,ObjetivoSearchComponent],
+    selector: 'app-ges-asistenciaexcepcion',
+    templateUrl: './asistenciaexcepcion.component.html',
+    styleUrls: ['./asistenciaexcepcion.component.less'],
+    standalone: true,
+    imports: [...SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent]
 })
 export class ExcepcionAsistenciaComponent {
   @ViewChild('asistenciaexcepcion', { static: true })
@@ -76,7 +77,6 @@ export class ExcepcionAsistenciaComponent {
           Number(event),
           this.asistenciaexcepcion.form.get('anio')?.value,
           this.asistenciaexcepcion.form.get('mes')?.value,
-          
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),

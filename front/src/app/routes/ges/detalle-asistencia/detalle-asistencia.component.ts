@@ -25,6 +25,7 @@ import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-bui
 import { CommonModule } from '@angular/common';
 import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
+import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 
 enum Busqueda {
   Sucursal,
@@ -34,12 +35,11 @@ enum Busqueda {
 }
 
 @Component({
-  selector: 'app-detalle-asistencia',
-  standalone: true,
-  imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent],
-  templateUrl: './detalle-asistencia.component.html',
-  styleUrls: ['./detalle-asistencia.component.less'],
-
+    selector: 'app-detalle-asistencia',
+    standalone: true,
+    templateUrl: './detalle-asistencia.component.html',
+    styleUrls: ['./detalle-asistencia.component.less'],
+    imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent]
 })
 export class DetalleAsistenciaComponent {
   @ViewChild('asistencia', { static: true }) asistencia: NgForm = new NgForm(

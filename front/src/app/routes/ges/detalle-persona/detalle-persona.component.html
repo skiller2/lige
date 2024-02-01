@@ -33,24 +33,10 @@
 <nz-divider nzText="Responsable"></nz-divider>
 @if (personalDetalleResponsables$ | async; as responsables){
 @if (responsables.length) {
-<nz-collapse nzBordered="false" nzGhost="false" class="app-collapse-header">
-<nz-collapse-panel
-    [nzHeader]="tmplHeader">
-    <ng-template #tmplHeader>{{responsables[0]?.tipo}} {{responsables[0]?.detalle}} desde {{ responsables[0]?.desde | date}} <span *ngIf="responsables[0]?.hasta
-      ">hasta</span> {{responsables[0]?.hasta | date}}</ng-template>
-    <ng-container *ngFor="let responsable of responsables">
-        <li *ngIf="responsable.ord !=1" title="{{ responsable.id }}">
-            {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}}
-            <span *ngIf="responsable.hasta
-">hasta</span> {{responsable.hasta | date}}
-        </li>
-    </ng-container>
-</nz-collapse-panel>
-</nz-collapse>
+  <app-view-responsable [list]="responsables"></app-view-responsable>
 } @else {
    <li>Sin datos</li>
 }
-
 }
 
 <nz-divider nzText="Habilitaciones"></nz-divider>

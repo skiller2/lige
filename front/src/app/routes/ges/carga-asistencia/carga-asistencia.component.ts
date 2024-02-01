@@ -22,6 +22,7 @@ import { LoadingService } from '@delon/abc/loading';
 import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
+import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 enum Busqueda {
     Sucursal,
     Objetivo,
@@ -36,8 +37,8 @@ enum Busqueda {
     styleUrls: ['./carga-asistencia.component.less'],
     standalone: true,
     encapsulation: ViewEncapsulation.None,
-    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, DetallePersonaComponent],
-    providers: [AngularUtilService]
+    providers: [AngularUtilService],
+    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, DetallePersonaComponent, ViewResponsableComponent]
 })
 export class CargaAsistenciaComponent {
     @ViewChild('carasistForm', { static: true }) carasistForm: NgForm =

@@ -72,19 +72,8 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
           <nz-form-control>
-            <ng-container *ngIf="{
-                loading: objetivoResponsablesLoading$ | async
-              } as responsablesContext">
-              <ng-container *ngIf="responsablesContext.loading">
-                <span nz-icon nzType="loading" class="loading-icon"></span>
-                Cargando
-              </ng-container>
-              <ng-container *ngFor="let responsable of $objetivoResponsables | async">
-                <li title="{{ responsable.id }}">
-                  {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}} <span *ngIf="responsable.hasta
-              ">hasta</span> {{responsable.hasta | date}}</li>
-              </ng-container>
-            </ng-container>
+            <app-view-responsable *ngIf="$objetivoResponsables | async as objResp"
+            [list]="objResp"></app-view-responsable>
           </nz-form-control>
         </nz-form-item>
         <ng-container *ngIf="$listaAsistencia | async as listaAsistenciaObj ">
@@ -292,11 +281,8 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
           <nz-form-control>
-            <ng-container *ngFor="let responsable of $personaResponsables | async">
-              <li title="{{ responsable.id }}">
-                {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}} <span *ngIf="responsable.hasta
-            ">hasta</span> {{responsable.hasta | date}}</li>
-            </ng-container>
+            <app-view-responsable *ngIf="$personaResponsables | async as resp"
+            [list]="resp"></app-view-responsable>
           </nz-form-control>
         </nz-form-item>
         <nz-form-item>

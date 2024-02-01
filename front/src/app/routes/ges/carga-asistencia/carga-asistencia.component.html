@@ -53,20 +53,7 @@
             <nz-form-item>
                 <nz-form-label [nzSpan]="3">Responsable</nz-form-label>
                 <nz-form-control [nzSpan]="21">
-                    <nz-collapse nzBordered="false" nzGhost="false" class="app-collapse-header"
-                        *ngIf="objetivoDetalle.responsable.length">
-                        <nz-collapse-panel
-                            [nzHeader]="objetivoDetalle.responsable[0]?.tipo+' '+objetivoDetalle.responsable[0]?.detalle"
-                            (nzActiveChange)="collapseChange($event)">
-                            <ng-container *ngFor="let responsable of objetivoDetalle.responsable">
-                                <li *ngIf="responsable.ord !=1" title="{{ responsable.id }}">
-                                    {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}}
-                                    <span *ngIf="responsable.hasta
-                        ">hasta</span> {{responsable.hasta | date}}
-                                </li>
-                            </ng-container>
-                        </nz-collapse-panel>
-                    </nz-collapse>
+                    <app-view-responsable [list]="objetivoDetalle.responsable"  (changeSize)="collapseChange($event)" ></app-view-responsable>
                 </nz-form-control>
             </nz-form-item>
             <nz-form-item>

@@ -1,0 +1,22 @@
+<nz-collapse nzBordered="false" nzGhost="false" class="app-collapse-header"
+*ngIf="list.length">
+<ng-template #colheader>
+  <ul class="ulheader">
+  @for (det of list; track $index) {
+    @if (det.tipo == 'Grupo') {
+    <li> {{ det.tipo+' '+det.detalle }} desde {{ det.desde | date}} <span *ngIf="det.hasta
+      ">hasta</span> {{det.hasta | date}}</li>
+    }
+  }
+</ul>
+</ng-template>
+<nz-collapse-panel [nzHeader]="colheader" (nzActiveChange)="onChangeSize($event)">
+  <ng-container *ngFor="let responsable of list">
+    <li *ngIf="responsable.ord !=1" title="{{ responsable.id }}">
+      {{responsable.tipo}} {{responsable.detalle}} desde {{ responsable.desde | date}} <span *ngIf="responsable.hasta
+        ">hasta</span> {{responsable.hasta | date}}</li>
+  </ng-container>
+</nz-collapse-panel>
+</nz-collapse>
+
+

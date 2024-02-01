@@ -14,17 +14,17 @@ import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-
 import { CommonModule } from '@angular/common';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 import { SearchService } from 'src/app/services/search.service';
+import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 
 
 
 @Component({
-  selector: 'app-adelanto',
-  templateUrl: './adelanto.component.html',
-  styleUrls: ['./adelanto.component.less'],
-  standalone: true,
-  imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule,PersonalSearchComponent],
-  providers: [AngularUtilService, ExcelExportService]
-
+    selector: 'app-adelanto',
+    templateUrl: './adelanto.component.html',
+    styleUrls: ['./adelanto.component.less'],
+    standalone: true,
+    providers: [AngularUtilService, ExcelExportService],
+    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ViewResponsableComponent]
 })
 export class AdelantoComponent {
   constructor(private settingService: SettingsService, public router: Router, private angularUtilService: AngularUtilService, private excelExportService: ExcelExportService) { }

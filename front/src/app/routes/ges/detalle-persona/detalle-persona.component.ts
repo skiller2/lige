@@ -4,14 +4,14 @@ import { SHARED_IMPORTS } from '@shared';
 import { Observable } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
+import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 
 @Component({
-  selector: 'app-detalle-persona',
-  standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule,],
-  templateUrl: './detalle-persona.component.html',
-  styleUrl: './detalle-persona.component.less',
-
+    selector: 'app-detalle-persona',
+    standalone: true,
+    templateUrl: './detalle-persona.component.html',
+    styleUrl: './detalle-persona.component.less',
+    imports: [...SHARED_IMPORTS, CommonModule, ViewResponsableComponent]
 })
 export class DetallePersonaComponent {
   personalDetalleCategorias$: Observable<any> | undefined
