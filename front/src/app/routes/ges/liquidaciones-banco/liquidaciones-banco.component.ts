@@ -339,11 +339,13 @@ export class LiquidacionesBancoComponent {
 
   }
 
+  /*
   buscarPorPersona(PersonalId: string) {
 //    this.asistenciaPer.controls['PersonalId'].setValue(PersonalId);
 //    this.router.navigate(['/ges/detalle_asistencia/persona', { state: { PersonalId } }])
     this.router.navigateByUrl('/ges/liquidaciones/listado', { state: { PersonalId } });
 
   }
+  */
 
 }
