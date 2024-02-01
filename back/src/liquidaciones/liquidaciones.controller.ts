@@ -662,13 +662,15 @@ export class LiquidacionesController extends BaseController {
             retenciones = retenciones + parseFloat(liquidacionElement.SumaImporte)
           }
           
-        }
+    }
+    
+        const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets' 
 
-        const imgPath = `${process.env.PATH_ASSETS}icons/icon-lince-96x96.png`
+        const imgPath = `${basePath}/icons/icon-lince-96x96.png`
         const imgBuffer = await fsPromises.readFile(imgPath);
         const imgBase64 = imgBuffer.toString('base64');
 
-        const imgPathinaes = `${process.env.PATH_ASSETS}icons/inaes.png`
+        const imgPathinaes = `${basePath}/icons/inaes.png`
         const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
         const imgBase64inaes = imgBufferinaes.toString('base64');
     //    <tbody>
@@ -780,7 +782,7 @@ export class LiquidacionesController extends BaseController {
     //    </tbody>
     //  </table>`;
 
-      const htmlFilePath = `${process.env.PATH_ASSETS}html/inaes.html`; 
+      const htmlFilePath = `${basePath}/html/inaes.html`; 
      
        
       let htmlContent = await fsPromises.readFile(htmlFilePath, 'utf-8');
@@ -804,7 +806,7 @@ export class LiquidacionesController extends BaseController {
       htmlContent = htmlContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
   
       // Inicializa Puppeteer
-      const browser = await puppeteer.launch();
+      const browser = await puppeteer.launch({headless:'new'});
       const page = await browser.newPage();
   
       // Establece el contenido HTML en la página
