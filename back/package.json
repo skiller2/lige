@@ -33,7 +33,6 @@
    },
    "dependencies": {
       "bcryptjs": "^2.4.3",
-      "body-parser": "^1.20.2",
       "dotenv": "^16.3.1",
       "es-dirname": "^0.1.0",
       "exceljs": "^4.3.0",
@@ -53,7 +52,7 @@
       "pdfkit": "^0.14.0",
       "puppeteer": "^21.10.0",
       "remove": "^0.1.5",
-      "typeorm": "^0.3.19"
+      "typeorm": "^0.3.20"
    },
    "scripts": {
       "devold": "npx nodemon ./src/index.ts",

@@ -8,19 +8,7 @@ import { ObjetivoController } from "./controller/objetivo.controller";
 //import packageConfig from "./../package.json" with { type: 'json' }; 
 import dotenv from "dotenv"
 
-//const path = require('path');
 
-
-/*
-import path from 'path';
-import {fileURLToPath} from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-console.log('__filename: ', __filename)
-
-const __dirname = path.dirname(__filename);
-console.log('__dirname: ', __dirname);
-*/
 
 dotenv.config()
 
