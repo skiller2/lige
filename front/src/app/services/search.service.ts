@@ -545,4 +545,15 @@ export class SearchService {
         catchError(() => of([]))
       );
   }
+
+  getTiposHora() {
+    return this.http
+      .get<ResponseJSON<any>>(`api/asistencia/tiposhora`)
+      .pipe(
+        map((res: ResponseJSON<any>) =>
+          res && res.data ? res.data : []
+        ),
+        catchError(() => of([]))
+      );
+  }
 }

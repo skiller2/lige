@@ -1818,7 +1818,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const tipoAsociadoId: number = item.tipoAsociadoId
     const categoriaPersonalId: number = item.categoriaPersonalId
     const formaLiquidacion: number = item.formaLiquidacion
-    let formas = ['N','C']
+    let formas = await this.getTiposHoraQuery()
     let formasEncontradas = []
     let forma = null
 
@@ -1838,13 +1838,13 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     if (personalRegistrado) {
       //return new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`, {})
       let data = {}
-      forma = formas.find(char => !formasEncontradas.includes(char))
+      forma = formas.find((obj : any) => !formasEncontradas.includes(obj.TipoHoraId))
       if (forma) {
         data = {
           personal,
           forma :{
-            id: forma,
-            fullName: (forma == 'N' ? 'Normal' : 'Capacitación')
+            id: forma.TipoHoraId,
+            fullName: forma.Descripcion,
           }
         }
       }
@@ -2060,6 +2060,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       WHERE objp.ObjetivoId = @0
       ORDER BY objp.ObjetivoAsistenciaAnoMesPersonalDiasId
     `, [objetivoId, anio, mes])
+    const formas = await this.getTiposHoraQuery()
     const data = personal.map((obj: any, index: number) => {
       const camposDay = Object.keys(obj).filter(clave => clave.startsWith('day'));
       const days = {};
@@ -2074,6 +2075,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           total += horas
         }
       });
+      let forma = formas.find((objForma : any) => obj.FormaLiquidacion = objForma.TipoHoraId)
       return {
         id: hasta ? obj.id : index + 1,
         apellidoNombre: {
@@ -2088,8 +2090,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           horasRecomendadas: obj.ValorLiquidacionHorasTrabajoHoraNormal
         },
         forma: {
-          id: obj.FormaLiquidacion,
-          fullName: (obj.FormaLiquidacion == 'N' ? 'Normal' : 'Capacitación')
+          id: forma.TipoHoraId,
+          fullName: forma.Descripcion
         },
         ...days,
         total
@@ -2255,6 +2257,19 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     if (errores.length) {
       return new ClientException(errores)
     }
+  }
+
+  async getTiposHoraQuery() {
+    return [
+      {TipoHoraId:'N', Descripcion: 'Normal'},
+      {TipoHoraId:'C', Descripcion: 'Capacitacion'},
+      {TipoHoraId:'A', Descripcion: 'Art42'},
+    ]
+  }
+
+  async getTiposHora(req: any, res: Response, next: NextFunction) {
+    const formas = await this.getTiposHoraQuery()
+    return this.jsonRes(formas, res);
   }
 
 }

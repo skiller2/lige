@@ -41,3 +41,4 @@ asistenciaRouter.get('/listaperasig/:anio/:mes/:ObjetivoId', authMiddleware.veri
 
 asistenciaRouter.get('/listaperasigant/:anio/:mes/:ObjetivoId', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getListaAsistenciaPersonalAsignadoAnterior(req, res, next) })
 asistenciaRouter.post('/validargrilla', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.validaGrilla(req, res, next) })
+asistenciaRouter.get('/tiposhora', authMiddleware.verifyToken, (req, res, next) => { asistenciaController.getTiposHora(req, res, next) })

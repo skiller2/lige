@@ -1,8 +1,9 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Subject, firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
+import { SearchService } from 'src/app/services/search.service';
 
 @Component({
   selector: 'app-tipohora-persona',
@@ -24,8 +25,8 @@ export class EditorTipoHoraComponent {
   collection?: any[]; // this will be filled by the collection of your column definition
   onItemChanged = new Subject<any>();    // object
   valueExtended!: any
-  optionsArray = [{ TipoHoraId: 'N', Descripcion: 'Normal' }, { TipoHoraId: 'C', Descripcion: 'Capacitación' }]
-  constructor(public element: ElementRef) { }
+  optionsArray: any[] = []
+  constructor(public element: ElementRef, private searchService:SearchService) { }
 
   onChange(item: any) {
     this.eto?.focus()  //Al hacer click en el componente hace foco nuevamente
@@ -46,9 +47,13 @@ export class EditorTipoHoraComponent {
   }
 
 
-  ngOnInit() {
+  async ngOnInit() {
     //    this.element.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
     //    this.eto.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
+    
+    const tiposHora = await firstValueFrom(this.searchService.getTiposHora())
+    this.optionsArray = tiposHora
+
     if (this.selectedId == '')
       this.onChange('N')
   }
