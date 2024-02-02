@@ -58,10 +58,12 @@ export class InitController extends BaseController {
 
 
       for (const row of porGrupo) {
-        //console.log('row', row)
         if (row)
           data.push({ x: row.GrupoActividadDetalle, y: row.CantidadObjetivos })
       }
+      data.sort((a, b) => b.y - a.y);
+
+
       this.jsonRes({ objetivosSinAsistencia: data, objetivosSinAsistenciaTotal: total, anio: anio, mes: mes }, res);
     } catch (error) {
       return next(error);
@@ -385,11 +387,11 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         
         WHERE obja.ObjetivoAsistenciaAnoAno = @1
         GROUP BY obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes`,
-        [,anio]
+        [, anio]
       )
       .then((records: Array<any>) => {
         let horasTrabajadas: { x: string; y: any; }[] = []
-//        if (records.length == 0) throw new ClientException('Data not found')
+        //        if (records.length == 0) throw new ClientException('Data not found')
         records.forEach(rec => {
           horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoAno + '-' + rec.ObjetivoAsistenciaAnoMesMes, y: rec.totalhorascalc })
         })
