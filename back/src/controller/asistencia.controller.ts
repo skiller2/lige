@@ -2070,7 +2070,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           total += horas
         }
       });
-      let forma = formas.find((objForma : any) => obj.FormaLiquidacion = objForma.TipoHoraId)
+      let forma = formas.find((objForma : any) => obj.FormaLiquidacion == objForma.TipoHoraId)
       return {
         id: hasta ? obj.id : index + 1,
         apellidoNombre: {
