@@ -235,8 +235,8 @@ export class CategoriasController extends BaseController {
             fechaActual,
             null,
             TipoJornadaId,
-            SucursalId,
-            SucursalAreaId,
+            null,
+            null,
           ]
         );
 

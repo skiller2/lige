@@ -1,12 +1,8 @@
 import { NextFunction, Response } from "express";
 import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
-import { Any, QueryRunner, QueryRunnerAlreadyReleasedError } from "typeorm";
-import { clienteController } from "./controller.module";
+import { QueryRunner } from "typeorm";
 import { ObjetivoController } from "./objetivo.controller";
-import { error, toHexString } from "pdf-lib";
-import { PersonalController } from "./personal.controller";
-import { exit } from "process";
 
 
 export class AsistenciaController extends BaseController {

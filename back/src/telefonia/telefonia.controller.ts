@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response} from "express";
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { QueryFailedError } from "typeorm";
@@ -6,7 +6,7 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { Options } from "../schemas/filtro";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
 import xlsx from 'node-xlsx';
-import { json } from "body-parser";
+//import { json } from "body-parser";
 
 
 export class TelefoniaController extends BaseController {
