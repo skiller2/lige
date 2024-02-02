@@ -7,6 +7,7 @@ import {
   Inject,
   OnInit,
   Renderer2,
+  ViewEncapsulation,
 } from '@angular/core';
 import type { Chart } from '@antv/g2';
 //import { OnboardingConfig, OnboardingService } from '@delon/abc/onboarding';
@@ -21,15 +22,18 @@ import {
   switchMap,
 } from 'rxjs';
 import { G2BarModule } from '@delon/chart/bar';
+import { G2PieModule } from '@delon/chart/pie';
 import { G2MiniBarModule } from '@delon/chart/mini-bar';
 import { G2TimelineModule } from '@delon/chart/timeline';
 
 @Component({
   selector: 'app-init-v1',
   templateUrl: './v1.component.html',
+  styleUrl: './v1.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule, G2TimelineModule, G2BarModule, G2MiniBarModule],
+  imports: [...SHARED_IMPORTS, CommonModule, G2TimelineModule, G2BarModule, G2MiniBarModule, G2PieModule],
+  encapsulation:ViewEncapsulation.None
 })
 export class InitV1Component implements OnInit {
   adelantosPendientes$ = this.http.get('/api/init/stats/adelantospendientes');
