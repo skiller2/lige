@@ -4,7 +4,7 @@ import { DataSource, QueryFailedError } from "typeorm";
 import { existsSync, mkdir, mkdirSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { createServer } from "http";
-import { ClientException } from "./base-controller/baseController";
+import { ClientException } from "./base/base.controller";
 
 import dotenv from "dotenv"
 

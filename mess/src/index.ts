@@ -2,13 +2,7 @@ import { DBServer, WebServer } from "./server";
 import { makeRoutes } from "./routes/routes.module"
 import { dataSource } from "./data-source";
 import { scheduleJob } from "node-schedule"
-import { Response } from "express"
-//import { CategoriasController } from "./categorias-cambio/categorias-cambio.controller";
-//import { ObjetivoController } from "./controller/objetivo.controller";
-//import packageConfig from "./../package.json" with { type: 'json' }; 
 import dotenv from "dotenv"
-
-
 
 dotenv.config()
 
