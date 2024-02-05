@@ -647,13 +647,14 @@ export class LiquidacionesController extends BaseController {
         let retribucion = 0
         let retenciones = 0
         let deposito = []
+        let textDeposito = []
 
         for (const liquidacionElement of liquidacionInfo ) {
           
         
           if(liquidacionElement.indicador =="R"){
 
-            let varEgresoTxt = `${liquidacionElement.des_movimiento},`
+            let varEgresoTxt = `${liquidacionElement.des_movimiento} - ${liquidacionElement.detalle},`
              textegreso = [...textegreso, varEgresoTxt]
             //  `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte}`
             let varEgresoNumber = `${liquidacionElement.SumaImporte},`
@@ -664,12 +665,15 @@ export class LiquidacionesController extends BaseController {
           }
 
           if(liquidacionElement.indicador =="D"){
-            deposito = [...deposito, `${liquidacionElement.detalle} - ${liquidacionElement.SumaImporte}`]
+            let DepositoTxt = `${liquidacionElement.detalle},`
+            textDeposito = [...textDeposito, DepositoTxt]
+
+            deposito = [...deposito, `${liquidacionElement.SumaImporte},`]
           }
             
 
           if(liquidacionElement.indicador =="I"){
-            let varIngresoTxt = `${liquidacionElement.des_movimiento},`
+            let varIngresoTxt = `${liquidacionElement.detalle},`
             textingreso = [...textingreso, varIngresoTxt]
             // let textIngreso = `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte}`
             let varIngresoNumber = `${liquidacionElement.SumaImporte},`
@@ -682,7 +686,7 @@ export class LiquidacionesController extends BaseController {
     
         neto = retenciones - retribucion;
         const textneto: string = await this.convertirNumeroALetras(neto);
-        console.log(textneto)
+        //let textneto = `cien cien cien  `
         const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets' 
 
         const imgPath = `${basePath}/icons/icon-lince-96x96.png`
@@ -716,10 +720,13 @@ export class LiquidacionesController extends BaseController {
       htmlContent = htmlContent.replace(/\${textingreso}/g, varIngresoText);
       let varIngreso = ingreso.map(item => item.toString().replace(/,/g, '<br>')).join().replace(',','')
       htmlContent = htmlContent.replace(/\${ingreso}/g, varIngreso);
-      let varDeposito = deposito.map(item => item.toString().replace(/,Banco:/g, '<br>Banco:')).join('<br>')
+
+      let varDepositoTxt = textDeposito.map(item => item.toString().replace(/,Banco:/g, '<br>Banco')).join('<br>')
+      htmlContent = htmlContent.replace(/\${textDeposito}/g, varDepositoTxt);
+      let varDeposito = deposito.map(item => item.toString().replace(/,/g, '<br>')).join().replace(',','')
       htmlContent = htmlContent.replace(/\${deposito}/g, varDeposito);
 
-      htmlContent = htmlContent.replace(/\${textneto}/g, neto.toString())
+      htmlContent = htmlContent.replace(/\${textneto}/g, textneto.toString())
       htmlContent = htmlContent.replace(/\${neto}/g, neto.toString());
       htmlContent = htmlContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
   
