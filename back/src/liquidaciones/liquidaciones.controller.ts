@@ -7,6 +7,7 @@ import { promises as fsPromises } from 'fs';
 import { mkdirSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
 import xlsx from 'node-xlsx';
 import puppeteer from 'puppeteer';
+import convertirNumeroLetra  from 'numero-a-letras';
 import {
   SendFileToDownload,
   getPeriodoFromRequest,
@@ -615,6 +616,11 @@ export class LiquidacionesController extends BaseController {
 
   }
 
+
+  async convertirNumeroALetras(numero: any) {
+    return convertirNumeroLetra(numero);
+  }
+
   async createPdf(queryRunner:QueryRunner,
                   filesPath:string,
                   persona_id:number,
@@ -635,6 +641,8 @@ export class LiquidacionesController extends BaseController {
       const liquidacionInfo = await this.getUsuariosLiquidacionMovimientos(queryRunner,periodo_id,persona_id)
        let ingreso = []
         let egreso = []
+        let textegreso = []
+        let textingreso = []
         let neto = 0
         let retribucion = 0
         let retenciones = 0
@@ -644,9 +652,14 @@ export class LiquidacionesController extends BaseController {
           
         
           if(liquidacionElement.indicador =="R"){
-            let textEgreso = `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte}`
-            egreso = [...egreso, textEgreso]
-            neto = neto + parseFloat(liquidacionElement.SumaImporte)
+
+            let varEgresoTxt = `${liquidacionElement.des_movimiento},`
+             textegreso = [...textegreso, varEgresoTxt]
+            //  `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte}`
+            let varEgresoNumber = `${liquidacionElement.SumaImporte},`
+              egreso = [...egreso, varEgresoNumber]
+
+            //neto = neto + parseFloat(liquidacionElement.SumaImporte)
             retribucion = retribucion + parseFloat(liquidacionElement.SumaImporte)
           }
 
@@ -656,14 +669,20 @@ export class LiquidacionesController extends BaseController {
             
 
           if(liquidacionElement.indicador =="I"){
-            let textIngreso = `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte}`
-            ingreso = [...ingreso, textIngreso]
-            neto = neto - parseFloat(liquidacionElement.SumaImporte);
+            let varIngresoTxt = `${liquidacionElement.des_movimiento},`
+            textingreso = [...textingreso, varIngresoTxt]
+            // let textIngreso = `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte}`
+            let varIngresoNumber = `${liquidacionElement.SumaImporte},`
+            ingreso = [...ingreso, varIngresoNumber]
+            //neto = neto - parseFloat(liquidacionElement.SumaImporte);
             retenciones = retenciones + parseFloat(liquidacionElement.SumaImporte)
           }
           
-    }
+        }
     
+        neto = retenciones - retribucion;
+        const textneto: string = await this.convertirNumeroALetras(neto);
+        console.log(textneto)
         const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets' 
 
         const imgPath = `${basePath}/icons/icon-lince-96x96.png`
@@ -673,114 +692,7 @@ export class LiquidacionesController extends BaseController {
         const imgPathinaes = `${basePath}/icons/inaes.png`
         const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
         const imgBase64inaes = imgBufferinaes.toString('base64');
-    //    <tbody>
-    //      <tr>
-    //        <td colspan="2">
-    //              <div>
-    //              <img src="data:image/png;base64,${imgBase64}" style="margin-left: 15%;" alt="texto alternativo" width="ancho" height="alto" style="display:block">
-    //              </div>
-    //              <div>
-    //              <span style="margin-left: 8%;">RECIBO DE RETRIBUCION</span>
-    //              </div>
-    //              <div style="text-align: end;margin-bottom: 20px;">
-    //               <span style="display: block">N°: ${doc_id}</span>
-    //               <span style="display: block">fecha: ${fechaFormateada} </span>
-    //        </div>
-    //              </td>
-    //      </tr>
-    //      <tr>
-    //        <td>Razón Social</td>
-    //        <td> COOP DETRABAJO LINCE SEGURIDAD LTDA</td>
-    //      </tr>
-    //      <tr>
-    //        <td>C.U.I.T</td>
-    //        <td>3064344510</td>
-    //      </tr>
-    //      <tr>
-    //        <td>Matricula I.N.A.E.S</td>
-    //        <td>128535</td>
-    //      </tr>
-    //      <tr>
-    //        <td>Domicilio</td>
-    //        <td></td>
-    //      </tr>
-    //      <tr>
-    //        <td colspan="2" bgcolor="#AAAAAA" style="text-align: CENTER;">DATOS DE PERSONA ASOCIADA</td>
-    //      </tr>
-    //      <tr>
-    //        <td>NOMBRE</td>
-    //        <td>${PersonaNombre}</td>
-    //      </tr>
-    //      <tr>
-    //        <td>C.U.I.T</td>
-    //        <td>${Cuit}</td>
-    //      </tr>
-    //      <tr>
-    //        <td>DOMICILIO</td>
-    //        <td>${Domicilio}</td>
-    //      </tr>
-    //      <tr>
-    //        <td colspan="2" bgcolor="#AAAAAA" style="text-align: CENTER;">DATOS DEL PAGO</td>
-    //      </tr>
-    //      <tr>
-    //        <td>RETRIBUCION</td>
-    //        <td>${retribucion.toFixed(2)}</td>
-                 
-    //      </tr>
-    //      <tr>
-    //        <td>RETENCIONES</td>
-    //        <td>${retribucion.toFixed(2)}</td>
-    //      </tr>
-    //      <tr>
-    //        <td  colspan="2" bgcolor="#AAAAAA" >DETALLE DE OTRAS RETENCIONES</td>
-    //      </tr>
-    //      <tr>
-    //        <td> 
-    //         <div style="margin-bottom: 20px;margin-top: 20px;">${egreso.map(item => item.toString().replace(/,/g, '<br>:')).join('<br>')}
-    //         </div>
-    //         </td>
-    //      </tr>
-    //      <tr>
-    //        <td  colspan="2" bgcolor="#AAAAAA">DETALLE DE OTRAS RETRIBUCIONES</td>
-    //      </tr>
-    //      <tr>
-    //        <td colspan="2"> 
-    //        <div style="margin-bottom: 20px;margin-top: 20px;">${ingreso.map(item => item.toString().replace(/,/g, '<br>:')).join('<br>')}
-    //        </div>
-    //        </td>
-    //      </tr>
-    //      <tr >
-    //        <td colspan="2" bgcolor="#AAAAAA">DETALLE DEPOSITO</td>
-    //      </tr>
-    //      <tr>
-    //      <td colspan="2">
-    //      <div style="margin-bottom: 20px;margin-top: 20px;">
-    //      ${deposito.map(item => item.toString().replace(/,Banco:/g, '<br>Banco:')).join('<br>')}
-    //      </div>
-    //      </td>
-    //    </tr>
-    //      <tr style="text-align: center;">
-    //        <td>
-    //           <div style="margin-bottom: 20px;margin-top: 30px;">
-    //             <span style="border-top: 1px black solid;">Firma Tesorera/o</span>
-    //             </div>
-    //         </td>
-    //       <td> 
-                 
-    //           <div style="margin-bottom: 20px;margin-top: 30px;">
-    //             <span style="border-top: 1px black solid;">Firma Asociada/o</span>
-    //             </div>
-    //           </td>
-    //      </tr>
-    //          <tr>
-    //        <td colspan="2" >
-    //              <div style="margin-bottom: 20px">
-    //              <img src="data:image/png;base64,${imgBase64inaes}" style="margin-left:70%" alt="texto alternativo" width="200" height="100">
-    //        </div>
-    //              </td>
-    //      </tr>
-    //    </tbody>
-    //  </table>`;
+ 
 
       const htmlFilePath = `${basePath}/html/inaes.html`; 
      
@@ -794,15 +706,21 @@ export class LiquidacionesController extends BaseController {
       htmlContent = htmlContent.replace(/\${Cuit}/g, Cuit.toString());
       htmlContent = htmlContent.replace(/\${Domicilio}/g, Domicilio);
       htmlContent = htmlContent.replace(/\${retribucion}/g, retribucion.toFixed(2).toString());
-      htmlContent = htmlContent.replace(/\${retenciones}/g, retenciones.toFixed(2).toString());
+      htmlContent = htmlContent.replace(/\${retenciones}/g, retenciones.toFixed(2).toString()); 
 
-      let varEgreso = egreso.map(item => item.toString().replace(/,/g, '<br>:')).join('<br>')
+      let VarEgresoTextForHtml = textegreso.map(item => item.toString().replace(/,/g, '<br>')).join().replace(',','')
+      htmlContent = htmlContent.replace(/\${textegreso}/g, VarEgresoTextForHtml);
+      let varEgreso = egreso.map(item => item.toString().replace(/,/g, '<br>')).join().replace(',','')
       htmlContent = htmlContent.replace(/\${egreso}/g, varEgreso);
-      let varIngreso = ingreso.map(item => item.toString().replace(/,/g, '<br>:')).join('<br>')
+      let varIngresoText = textingreso.map(item => item.toString().replace(/,/g, '<br>')).join().replace(',','')
+      htmlContent = htmlContent.replace(/\${textingreso}/g, varIngresoText);
+      let varIngreso = ingreso.map(item => item.toString().replace(/,/g, '<br>')).join().replace(',','')
       htmlContent = htmlContent.replace(/\${ingreso}/g, varIngreso);
       let varDeposito = deposito.map(item => item.toString().replace(/,Banco:/g, '<br>Banco:')).join('<br>')
       htmlContent = htmlContent.replace(/\${deposito}/g, varDeposito);
 
+      htmlContent = htmlContent.replace(/\${textneto}/g, neto.toString())
+      htmlContent = htmlContent.replace(/\${neto}/g, neto.toString());
       htmlContent = htmlContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
   
       // Inicializa Puppeteer
@@ -820,6 +738,9 @@ export class LiquidacionesController extends BaseController {
   
   }
 
+ 
+
+    
   async getUsuariosLiquidacion(queryRunner:QueryRunner,periodo_id: Number) {
    
     return queryRunner.query( `SELECT DISTINCT
