@@ -1,0 +1,27 @@
+{
+  "name": "mess-backend",
+  "version": "0.0.1",
+  "description": "MessagesLince",
+  "licence": "PROPIETARY",
+  "author": "Cooperativa Lince",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node ./scripts/build.mjs",
+    "start": "npm run dev",
+    "dev": "esbuild-dev --watch src/index.ts"
+  },
+  "keywords": [],
+  "dependencies": {
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "mssql": "^10.0.2",
+    "node-schedule": "^2.1.1",
+    "typeorm": "^0.3.20"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.16",
+    "esbuild": "^0.20.0"
+  }
+}

@@ -45,7 +45,7 @@
         <td>DOMICILIO</td>
         <td>${Domicilio}</td>
       </tr>
-      <tr>
+      <!-- <tr>
         <td colspan="2" bgcolor="#AAAAAA" style="text-align: CENTER;">DATOS DEL PAGO</td>
       </tr>
       <tr>
@@ -56,34 +56,43 @@
       <tr>
         <td>RETENCIONES</td>
         <td>${retenciones}</td>
-      </tr>
-      <tr>
-        <td  colspan="2" bgcolor="#AAAAAA" >DETALLE DE RETENCIONES</td>
-      </tr>
-      <tr>
-        <td> 
-         <div style="margin-bottom: 20px;margin-top: 20px;">${egreso}
-         </div>
-         </td>
-      </tr>
+      </tr> -->
       <tr>
         <td  colspan="2" bgcolor="#AAAAAA">DETALLE DE RETRIBUCIONES</td>
       </tr>
       <tr>
-        <td colspan="2"> 
-        <div style="margin-bottom: 20px;margin-top: 20px;">${ingreso}
-        </div>
+        <td> 
+          <div style="margin-bottom: 20px;margin-top: 20px;">${textingreso}</div>
+         </td>
+         <td><p style="text-align: right;">${ingreso} </p></td> 
+      </tr>
+      <tr>
+       
+        <td  colspan="2" bgcolor="#AAAAAA" >DETALLE DE RETENCIONES</td>
+      </tr>
+      <tr>
+        <td> 
+          <div style="margin-bottom: 20px;margin-top: 20px;">${textegreso} 
+          </div>
         </td>
+        <td><p style="text-align: right;">${egreso} </p></td> 
+      </tr>
+      <tr>
+        <td bgcolor="#AAAAAA">RETRIBUCION NETA</td>
+        <td bgcolor="#AAAAAA"><p style="text-align: right;">${neto} </p></td> 
+      </tr>
+      <tr>
+        <td colspan="2">${textneto}</td>
       </tr>
       <tr >
         <td colspan="2" bgcolor="#AAAAAA">DETALLE DEPOSITO</td>
       </tr>
       <tr>
-      <td colspan="2">
-      <div style="margin-bottom: 20px;margin-top: 20px;">
-      ${deposito}
+      <td >
+      <div style="margin-bottom: 20px;margin-top: 20px;"> ${textDeposito}
       </div>
       </td>
+      <td ><p style="text-align: right;">${deposito} </p></td>
     </tr>
       <tr style="text-align: center;">
         <td>
