@@ -23,6 +23,7 @@ import { LiquidacionesBancoController } from "../liquidaciones/liquidaciones-ban
 import { InformesController } from "../informes/informes.controller";
 import { PendienteController } from "../controller/pendiente.controller"
 import { TipoDocumentoController } from "../tipo-documento/tipo-documento.controller"
+import { RecibosController } from "../recibos/recibos.controller"
 
 
 
@@ -51,5 +52,6 @@ export const liquidacionesBancoController = new LiquidacionesBancoController();
 export const informesController = new InformesController();
 export const pendienteController = new PendienteController();
 export const tipoDocumentoController = new TipoDocumentoController();
+export const recibosController = new RecibosController();
 
 
