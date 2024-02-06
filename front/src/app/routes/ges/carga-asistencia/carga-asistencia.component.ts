@@ -3,7 +3,7 @@ import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, i
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { ExcelExportOption, SortComparers, SortDirectionNumber } from '@slickgrid-universal/common';
+import { ExcelExportOption, SlickGroup, SortComparers, SortDirectionNumber } from '@slickgrid-universal/common';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { BehaviorSubject, Observable, debounceTime, distinctUntilChanged, firstValueFrom, forkJoin, map, merge, mergeAll, of, shareReplay, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
@@ -109,9 +109,7 @@ export class CargaAsistenciaComponent {
                         []
                     );
                 }
-                this.gridOptionsEdit.excelExportOptions = this.excelExportOption
-
-                this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
+                this.gridOptionsEdit.excelExportOptions = this.excelExportOption;
 
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
                 this.angularGridEdit.resizerService.resizeGrid();
@@ -421,6 +419,14 @@ export class CargaAsistenciaComponent {
         columnTotal('total', angularGrid)
     }
 
+    sumTotalsFormatterCustom(totals : any, columnDef : any ) {
+        const val = totals.sum && totals.sum[columnDef.field];
+        if (val != null && totals.group.count > 1) {
+          return val
+        }
+        return '';
+    }
+
     addNewItem(insertPosition?: 'bottom') {
         const newItem1 = this.createNewItem(1);
         this.angularGridEdit.gridService.addItem(newItem1, { position: insertPosition, highlightRow: false, scrollRowIntoView: false, triggerEvent: false });
@@ -472,7 +478,7 @@ export class CargaAsistenciaComponent {
                 excelExportOptions: {
                     width: 5,
                 },
-                groupTotalsFormatter: GroupTotalFormatters.sumTotals,
+                groupTotalsFormatter: this.sumTotalsFormatterCustom,
             });
         }
 
@@ -713,26 +719,30 @@ export class CargaAsistenciaComponent {
     }
 
     async exportGrid() {
-        // console.log('this.gridDataInsert',this.gridDataInsert);
         this.groupByForma()
-        // console.log('getGrouping()',this.angularGridEdit.dataView.getGrouping());
         await this.excelExportService.exportToExcel();
         this.clearGrouping()
     }
 
     groupByForma() {
+        let grandTotal : any
         const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
         if (lastrow && (lastrow.apellidoNombre == '')){
-            this.gridDataInsert.pop()
+            grandTotal = this.gridDataInsert.pop()
             this.angularGridEdit.dataView.setItems(this.gridDataInsert)
+        }else{
+            grandTotal = this.createNewItem(1);
         }
 
         let aggregatorsArray : any[] = []
-        this.columnas.forEach((col : any)=>{
-            if(col.field.startsWith('day'))
+        this.columnas.forEach((col : any, index:number)=>{
+            if(col.field.startsWith('day')){
+                grandTotal[col.field] = this.angularGridEdit.slickGrid.getFooterRowColumn(col.field).innerText
                 aggregatorsArray.push(new Aggregators.Sum(col.field))
+            }
         })
-
+        grandTotal.total = this.angularGridEdit.slickGrid.getFooterRowColumn('total').innerText
+        grandTotal.forma = {fullName :'Total'}
 //        this.angularGridEdit.slickGrid.setOptions({ enableGrouping: true })
         
         this.angularGridEdit.dataView.setGrouping({
@@ -750,9 +760,15 @@ export class CargaAsistenciaComponent {
             aggregateCollapsed: false,
             lazyTotalsCalculation: true,
         });
+        this.angularGridEdit.dataView.addItem(grandTotal)
+        let grupos : SlickGroup[] = this.angularGridEdit.dataView.getGroups()
+        let grupototal : any = grupos.pop()
+        grupototal!.title = ""
+        grupos.push(grupototal)
     }
 
     clearGrouping() {
+        this.gridDataInsert.pop()
         this.angularGridEdit.dataView.setGrouping([]);
         const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
         if (lastrow && (lastrow.apellidoNombre != '')){
