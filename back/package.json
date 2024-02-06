@@ -58,7 +58,7 @@
    },
    "scripts": {
       "devold": "npx nodemon ./src/index.ts",
-      "dev": "tsx watch --tsconfig ./tsconfig.json ./src/index.ts",
+      "dev": "tsx watch --trace-warnings --tsconfig ./tsconfig.json ./src/index.ts",
       "build": "node ./scripts/build.mjs",
       "start": "npm run dev"
    }

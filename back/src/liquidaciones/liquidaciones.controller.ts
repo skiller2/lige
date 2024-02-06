@@ -7,7 +7,8 @@ import { promises as fsPromises } from 'fs';
 import { mkdirSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
 import xlsx from 'node-xlsx';
 import puppeteer from 'puppeteer';
-import convertirNumeroLetra  from 'numero-a-letras';
+import { NumerosALetras } from 'numero-a-letras';
+import {NumeroALetras,setSingular,setPlural, setCentsPlural, setCentsSingular} from "numeros_a_palabras/numero_to_word"
 import {
   SendFileToDownload,
   getPeriodoFromRequest,
@@ -617,8 +618,13 @@ export class LiquidacionesController extends BaseController {
   }
 
 
-  async convertirNumeroALetras(numero: any) {
-    return convertirNumeroLetra(numero);
+  convertirNumeroALetras(numero: any) {
+
+setSingular('peso')
+setPlural('pesos')
+setCentsPlural('centavo')
+setCentsSingular('centavos')
+    return NumeroALetras(numero).toLowerCase()
   }
 
   async createPdf(queryRunner:QueryRunner,
@@ -685,7 +691,7 @@ export class LiquidacionesController extends BaseController {
         }
     
         neto = retenciones - retribucion;
-        const textneto: string = await this.convertirNumeroALetras(neto);
+        const textneto = this.convertirNumeroALetras(neto);
         //let textneto = `cien cien cien  `
         const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets' 
 
