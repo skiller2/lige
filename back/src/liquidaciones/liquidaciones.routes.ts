@@ -169,12 +169,6 @@ liquidacionesRouter.post("/download/banco/", [authMiddleware.verifyToken, authMi
   }
 );
 
-liquidacionesRouter.post("/download/recibos/", [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')],
-  (req, res, next) => {
-    liquidacionesController.downloadArchivoRecibo(req, res, next);
-  }
-);
-
 liquidacionesRouter.post("/elimina/banco/", [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')],
   (req, res, next) => {
     liquidacionesBancoController.eliminaMovimientosBanco(req, res, next);

@@ -67,7 +67,7 @@ export const recibosRouter = Router();
 
 recibosRouter.post("/download/recibos/", [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')],
   (req, res, next) => {
-    liquidacionesController.downloadArchivoRecibo(req, res, next);
+    recibosController.downloadArchivoRecibo(req, res, next);
   }
 );
 
