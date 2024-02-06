@@ -167,6 +167,7 @@ export class ApiService {
       enableAutoTooltip: true,
       enableFiltering: false,
       enableRowSelection: true,
+      enableGrouping: true,
       rowSelectionOptions: {
         selectActiveRow: true
       },
@@ -229,7 +230,6 @@ export class ApiService {
         //rightFooterText:'fin'
 
       },
-      enableGrouping: true
     };
   }
 

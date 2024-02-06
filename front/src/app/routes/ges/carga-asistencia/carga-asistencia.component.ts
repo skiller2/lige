@@ -4,7 +4,7 @@ import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ExcelExportOption } from '@slickgrid-universal/common';
-import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { BehaviorSubject, Observable, debounceTime, distinctUntilChanged, firstValueFrom, forkJoin, map, merge, mergeAll, of, shareReplay, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
@@ -191,12 +191,13 @@ export class CargaAsistenciaComponent {
             {
                 id: 'forma', name: 'Forma', field: 'forma',
                 sortable: true,
-                type: FieldType.string,
+                type: FieldType.object,
                 maxWidth: 50,
                 minWidth: 50,
                 formatter: Formatters.complexObject,
                 params: {
                     complexFieldLabel: 'forma.fullName',
+                    complexField: 'forma.fullName',
                 },
                 exportWithFormatter: true,
 
@@ -261,6 +262,8 @@ export class CargaAsistenciaComponent {
 
         this.gridOptionsEdit.showFooterRow = true
         this.gridOptionsEdit.createFooterRow = true
+
+        this.gridOptionsEdit.enableExcelExport = false
 
         this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
             //            let undoCommandArr:EditCommand[]=[]
@@ -341,7 +344,8 @@ export class CargaAsistenciaComponent {
                     let item = this.gridDataInsert.find((obj: any) => {
                         return (obj.id == row.id)
                     })
-                    item.categoria = e.error.data.categoria
+                    item.categoria = e.error.data.categoria ? e.error.data.categoria : item.categoria
+                    item.forma = e.error.data.forma ? e.error.data.forma : item.forma
                     this.angularGridEdit.gridService.updateItemById(row.id, item)
 
                 } else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
@@ -468,6 +472,7 @@ export class CargaAsistenciaComponent {
                 excelExportOptions: {
                     width: 5,
                 },
+                groupTotalsFormatter: GroupTotalFormatters.sumTotals,
             });
         }
 
@@ -476,7 +481,7 @@ export class CargaAsistenciaComponent {
             name: `Total`,
             field: 'total',
             sortable: true,
-            type: FieldType.number,
+            type: FieldType.float,
             maxWidth: 50,
             minWidth: 50,
             cssClass: 'text-right',
@@ -659,7 +664,7 @@ export class CargaAsistenciaComponent {
             if (typeof previousItemMetadata === 'object')
                 meta = previousItemMetadata(rowNumber)
 
-            if (item.categoria.horasRecomendadas > 0)
+            if (item.categoria?.horasRecomendadas > 0)
                 meta.cssClasses = 'app-horas-fijas'
             else
                 meta.cssClasses = ''
@@ -707,9 +712,47 @@ export class CargaAsistenciaComponent {
         }
     }
 
-    exportGrid() {
-        console.log('Exportar');
+    async exportGrid() {
+        // console.log('this.gridDataInsert',this.gridDataInsert);
+        this.groupByForma()
+        // console.log('getGrouping()',this.angularGridEdit.dataView.getGrouping());
+        await this.excelExportService.exportToExcel();
+        this.clearGrouping()
+    }
 
-        this.excelExportService.exportToExcel();
+    groupByForma() {
+        const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
+        if (lastrow && (lastrow.apellidoNombre == '')){
+            this.gridDataInsert.pop()
+            this.angularGridEdit.dataView.setItems(this.gridDataInsert)
+        }
+
+        let aggregatorsArray : any[] = []
+        this.columnas.forEach((col : any)=>{
+            if(col.field.startsWith('day'))
+                aggregatorsArray.push(new Aggregators.Sum(col.field))
+        })
+        
+        this.angularGridEdit.dataView.setGrouping({
+            getter: 'forma',  // the column `field` to group by
+            formatter: (g) => {
+                console.log('g',g);
+                return `<span style="text-align:star">Forma: ${g.value.fullName}</span>   <span style="color:green" style="text-align:end">[${g.count} filas]</span>`;
+            },
+            aggregators: aggregatorsArray,
+            aggregateCollapsed: false,
+            lazyTotalsCalculation: true,
+            //predefinedValues : [{fullName:'Normal', id:'N'}, {fullName:'Capacitacion', id:'C'}, {fullName:'Art42', id:'A'}]
+            predefinedValues : [{fullName:'Normal'}, {fullName:'Capacitacion'}, {fullName:'Art42'}]
+            // predefinedValues : ['Normal', 'Capacitacion', 'Art42']
+        });
+    }
+
+    clearGrouping() {
+        this.angularGridEdit.dataView.setGrouping([]);
+        const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
+        if (lastrow && (lastrow.apellidoNombre != '')){
+            this.addNewItem("bottom")
+        }
     }
 }

@@ -1835,7 +1835,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       //return new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`, {})
       let data = {}
       forma = formas.find((obj : any) => !formasEncontradas.includes(obj.TipoHoraId))
-      if (forma) {
+      if (forma && !(personal && personal.apellidoNombre.id == personalId && personal.categoria.id == categoriaPersonalId && personal.categoria.tipoId == tipoAsociadoId && !formasEncontradas.includes(personal.forma.id))) {
         data = {
           personal,
           forma :{
