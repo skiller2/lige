@@ -3,7 +3,7 @@ import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, i
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { ExcelExportOption } from '@slickgrid-universal/common';
+import { ExcelExportOption, SortComparers, SortDirectionNumber } from '@slickgrid-universal/common';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { BehaviorSubject, Observable, debounceTime, distinctUntilChanged, firstValueFrom, forkJoin, map, merge, mergeAll, of, shareReplay, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
@@ -732,19 +732,23 @@ export class CargaAsistenciaComponent {
             if(col.field.startsWith('day'))
                 aggregatorsArray.push(new Aggregators.Sum(col.field))
         })
+
+//        this.angularGridEdit.slickGrid.setOptions({ enableGrouping: true })
         
         this.angularGridEdit.dataView.setGrouping({
-            getter: 'forma',  // the column `field` to group by
+            getter: (g) =>  g.forma.fullName,
+           /*
             formatter: (g) => {
-                console.log('g',g);
-                return `<span style="text-align:star">Forma: ${g.value.fullName}</span>   <span style="color:green" style="text-align:end">[${g.count} filas]</span>`;
+                return `<span style="text-align:star">Forma: ${g.value}</span>   <span style="color:green" style="text-align:end">[${g.count} filas]</span>`;
             },
+            
+            comparer: (a, b) => {
+                return SortComparers.numeric(a.value.fullName, b.value.fullName, SortDirectionNumber.desc);
+              },
+              */
             aggregators: aggregatorsArray,
             aggregateCollapsed: false,
             lazyTotalsCalculation: true,
-            //predefinedValues : [{fullName:'Normal', id:'N'}, {fullName:'Capacitacion', id:'C'}, {fullName:'Art42', id:'A'}]
-            predefinedValues : [{fullName:'Normal'}, {fullName:'Capacitacion'}, {fullName:'Art42'}]
-            // predefinedValues : ['Normal', 'Capacitacion', 'Art42']
         });
     }
 
