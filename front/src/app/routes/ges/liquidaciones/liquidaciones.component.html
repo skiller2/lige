@@ -46,13 +46,17 @@
             [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('descuentos')">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Descuentos
           </li>
-          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros ?" [nzBeforeConfirm]=""
+          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros?" [nzBeforeConfirm]=""
             [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('movimientoAcreditacionEnCuenta')">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Movimiento de acreditación en cuenta
           </li>
-          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros ?" [nzBeforeConfirm]=""
+          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros?" [nzBeforeConfirm]=""
             [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('movimientosAutomaticos')">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Carga de movs automático
+          </li>
+          <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Generar recibos?" [nzBeforeConfirm]=""
+            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('generarRecibos')">
+            <span nz-icon nzType="plus" nzTheme="outline"></span> Genera Recibos
           </li>
         </ul>
       </li>
@@ -86,7 +90,7 @@
         <!-- <a [routerLink]="['/', 'ges', 'liquidaciones','cargamanual']">Carga manual</a> -->
         <a [routerLink]="['/', 'ges', 'liquidaciones','importacion']">Importación</a>
       </li>
-
+      <!--
       <li nz-submenu nzTitle="Generacion de Recibos">
         <ul style="width: auto !important">
           <li nz-menu-item app-down-file [httpMethod]="'POST'"
@@ -99,6 +103,7 @@
         </ul>
 
       </li>
+    -->
     </ul>
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">

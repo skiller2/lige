@@ -17,6 +17,7 @@ import { liquidacionesRouter } from "../liquidaciones/liquidaciones.routes";
 import { informesRouter } from "../informes/informes.routes";
 import { pendieteRouter } from "./pendiente.routes";
 import { tipoDocumentoRouter } from "../tipo-documento/tipo-documento.routes";
+import { recibosRouter } from "src/recibos/recibos.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -37,4 +38,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/informes", informesRouter);
   server.setRoute("/api/pendiente", pendieteRouter);
   server.setRoute("/api/tipo-documento", tipoDocumentoRouter);
+  server.setRoute("/api/recibos", recibosRouter);
 }

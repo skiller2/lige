@@ -13,12 +13,10 @@ import {
   SendFileToDownload,
   getPeriodoFromRequest,
 } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.utils";
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 
 import { QueryRunner } from "typeorm";
 
 export class RecibosController extends BaseController {
-  directory = process.env.PATH_LIQUIDACIONES || "tmp";
   
   directoryRecibo = process.env.PATH_RECIBO || "tmp";
   constructor() {
@@ -28,7 +26,7 @@ export class RecibosController extends BaseController {
     }
   }
 
-  async downloadArchivoRecibo(req: Request, res: Response, next: NextFunction) {
+  async generaRecibos(req: Request, res: Response, next: NextFunction) {
 
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
