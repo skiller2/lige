@@ -535,6 +535,16 @@ export class ApiService {
 
   }
 
+  generaRecibos(anio: number, mes: number) {
+    const parameter = { anio, mes }
+    this.notification.success('Respuesta', `Inicio generación de recibos`);
+
+    return this.http.post<ResponseJSON<any>>('/api/recibos/generar', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
+
   confirmaMovimientosBanco() {
     this.notification.success('Respuesta', `Inicio confirmación de movimientos bancarios`);
     const parameter = {}

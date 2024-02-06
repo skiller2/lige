@@ -8,14 +8,6 @@ import xlsx from 'node-xlsx';
 
 export class LiquidacionesController extends BaseController {
   directory = process.env.PATH_LIQUIDACIONES || "tmp";
-  
-  directoryRecibo = process.env.PATH_RECIBO || "tmp";
-  constructor() {
-    super();
-    if (!existsSync(this.directoryRecibo)) {
-      mkdirSync(this.directoryRecibo, { recursive: true });
-    }
-  }
 
   async getTipoMovimientoById(req: Request, res: Response, next: NextFunction) {
 
