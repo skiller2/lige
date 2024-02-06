@@ -14,7 +14,7 @@ import {
   getPeriodoFromRequest,
 } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.utils";
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
-import { promises as fs } from 'fs';
+
 import { QueryRunner } from "typeorm";
 
 export class RecibosController extends BaseController {
