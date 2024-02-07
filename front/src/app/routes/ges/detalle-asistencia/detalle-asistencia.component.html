@@ -276,6 +276,12 @@
                     nz-icon nzType="download"></span>Comprobante
                   {{monotributo.PersonalOtroDescuentoMesesAplica}}/{{monotributo.PersonalOtroDescuentoAnoAplica}}</a></nz-list-item>
             </nz-list>
+            <nz-list nzBordered nzSize="small">
+              <nz-list-item  *ngIf="selectedPersonalId > 0">
+                <a app-down-file
+                  httpUrl="/api/recibos/download/{{selectedPeriod.year}}/{{selectedPeriod.month}}/{{PersonalId}}"><span
+                    nz-icon nzType="download"></span>Recibo</a></nz-list-item>
+            </nz-list>
           </nz-form-control>
         </nz-form-item>
         <nz-form-item>

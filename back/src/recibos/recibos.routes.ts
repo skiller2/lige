@@ -10,6 +10,16 @@ recibosRouter.post("/generar", [authMiddleware.verifyToken, authMiddleware.hasGr
   }
 );
 
+recibosRouter.get("/download/:anio/:mes/:personalIdRel?", (req, res,next) => {
+  recibosController.downloadComprobantesByPeriodo(
+    req.params.anio,
+    req.params.mes,
+    req.params.personalIdRel,
+    res,
+    req,
+    next
+  );
+});
 
 
 

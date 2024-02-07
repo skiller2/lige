@@ -4,10 +4,10 @@ import { dataSource } from "../data-source";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Utils } from "../liquidaciones/liquidaciones.utils";
 import { promises as fsPromises } from 'fs';
+import * as fs from 'fs';
+import express from 'express';
 import { mkdirSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
-import xlsx from 'node-xlsx';
 import puppeteer from 'puppeteer';
-import { NumerosALetras } from 'numero-a-letras';
 import {NumeroALetras,setSingular,setPlural, setCentsPlural, setCentsSingular} from "numeros_a_palabras/numero_to_word"
 import {
   SendFileToDownload,
@@ -49,6 +49,7 @@ export class RecibosController extends BaseController {
       for (const movimiento of movimientosPendientes) {
 
         const filesPath = directorPath + '/' + movimiento.persona_id + '-' + String(periodo.month) +"-"+ String(periodo.year) + ".pdf"
+        let nombre_archivo = movimiento.persona_id + '-' + String(periodo.month) +"-"+ String(periodo.year) + ".pdf"
         var doc_id =  await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
 
         if(movimiento.persona_id != null){
@@ -62,7 +63,7 @@ export class RecibosController extends BaseController {
             fechaActual,
             movimiento.persona_id,
             0,
-            directorPath,
+            nombre_archivo,
             filesPath,
             usuario,
             ip, 
@@ -281,8 +282,8 @@ setCentsSingular('centavos')
     fecha:Date,
     persona_id:number,
     objetivo_id:number,
-    path:string,
     nombre_archivo:string,
+    path:string,
     usuario:string,
     ip:string,
     audfecha: Date,
@@ -308,7 +309,55 @@ setCentsSingular('centavos')
 
   }
 
+  async downloadComprobantesByPeriodo(
+    year: string,
+    month: string,
+    personalIdRel: string,
+    res: Response,
+    req: Request,
+    next:NextFunction
+  ) {
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    const queryRunner = dataSource.createQueryRunner();
+    
+
+    try {
+      let fechaActual = new Date();
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseInt(year), parseInt(month), usuario, ip);
+      const gettmpfilename = await this.getRutaFile(queryRunner,periodo_id, parseInt(personalIdRel))
+      const tmpfilename = gettmpfilename[0]?.path;
+      const responsePDFBuffer = await this.obtenerPDFBuffer(tmpfilename); 
+
+      await fs.promises.writeFile(tmpfilename, responsePDFBuffer);
+      res.download(tmpfilename, gettmpfilename[0]?.nombre_archivo, async (error) => {
+      if (error) {
+        console.error('Error al descargar el archivo:', error);
+        return next(error)
+      }
+    });
+    } catch (error) {
+      return next(error)
+    }
+  }
+
   
+async getRutaFile(queryRunner:QueryRunner,periodo_id:number,personalIdRel:number) {
+
+  return queryRunner.query( `SELECT * from lige.dbo.docgeneral 
+  WHERE periodo = @0 
+  AND persona_id = @1`, [periodo_id,personalIdRel])
+}
+
+
+async obtenerPDFBuffer(tmpfilename:string) {
+  const buffer = fs.readFileSync(tmpfilename);
+  return buffer;
+}
+
 
 }
+
+
+
 
