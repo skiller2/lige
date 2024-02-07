@@ -6,6 +6,7 @@ import { Utils } from "../liquidaciones/liquidaciones.utils";
 import { promises as fsPromises } from 'fs';
 import * as fs from 'fs';
 import express from 'express';
+import path from 'path';
 import { mkdirSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
 import puppeteer from 'puppeteer';
 import {NumeroALetras,setSingular,setPlural, setCentsPlural, setCentsSingular} from "numeros_a_palabras/numero_to_word"
@@ -26,19 +27,40 @@ export class RecibosController extends BaseController {
     }
   }
 
+  async cleanDirectories(queryRunner:QueryRunner,directorPath:string,periodo:number) {
+    try {
+      console.log("limpiando directorio")
+      if (fs.existsSync(directorPath)) {
+        const archivos = fs.readdirSync(directorPath);
+        archivos.forEach(archivo => {
+          const rutaArchivo = path.join(directorPath, archivo);
+          fs.unlinkSync(rutaArchivo);
+        });
+      }
+
+      await this.deleteDirectories(queryRunner,periodo)
+
+    } catch (error) {
+      console.error("Error al limpiar el directorio:", error);
+    }
+  }
+
+  async  deleteDirectories(queryRunner:QueryRunner,periodo:number) {
+    
+    queryRunner.query( `delete from lige.dbo.docgeneral where periodo=@0 ; `, [periodo])
+
+  }
+
   async generaRecibos(req: Request, res: Response, next: NextFunction) {
 
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
     try {
+      
       const periodo = getPeriodoFromRequest(req);
       let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
-      console.log("mes " + periodo.month)
-      console.log("anio " + periodo.year)
-
-      console.log("periodo " + periodo_id)
 
       const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner,periodo_id)
 
@@ -46,6 +68,7 @@ export class RecibosController extends BaseController {
       if (!existsSync(directorPath)) {
         mkdirSync(directorPath, { recursive: true }); 
       }
+      this.cleanDirectories(queryRunner,directorPath,periodo_id)
       for (const movimiento of movimientosPendientes) {
 
         const filesPath = directorPath + '/' + movimiento.persona_id + '-' + String(periodo.month) +"-"+ String(periodo.year) + ".pdf"
