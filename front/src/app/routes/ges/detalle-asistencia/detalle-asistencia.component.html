@@ -512,6 +512,12 @@
               (ngModelChange)="selectedValueChange($event, Busqueda.Responsable)" [(ngModel)]="responsable" />
           </nz-form-control>
         </nz-form-item>
+        <nz-list nzBordered nzSize="small">
+          <nz-list-item >
+            <a app-down-file
+              httpUrl="/api/recibos/downloadfull/{{selectedPeriod.year}}/{{selectedPeriod.month}}"><span
+                nz-icon nzType="download"></span>Recibo Full</a></nz-list-item>
+        </nz-list>
       </form>
 
       <nz-table #listPer [nzData]="($listaPersonal | async)?.persxresp" nzSize="small" [nzPageSize]="100000000"

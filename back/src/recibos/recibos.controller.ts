@@ -4,6 +4,7 @@ import { dataSource } from "../data-source";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Utils } from "../liquidaciones/liquidaciones.utils";
 import { promises as fsPromises } from 'fs';
+import { PDFDocument } from 'pdf-lib';
 import * as fs from 'fs';
 import express from 'express';
 import path from 'path';
@@ -46,7 +47,7 @@ export class RecibosController extends BaseController {
   }
 
   async  deleteDirectories(queryRunner:QueryRunner,periodo:number) {
-    
+
     queryRunner.query( `delete from lige.dbo.docgeneral where periodo=@0 ; `, [periodo])
 
   }
@@ -376,6 +377,65 @@ async getRutaFile(queryRunner:QueryRunner,periodo_id:number,personalIdRel:number
 async obtenerPDFBuffer(tmpfilename:string) {
   const buffer = fs.readFileSync(tmpfilename);
   return buffer;
+}
+
+
+async bindPdf( 
+  year: string,
+  month: string,
+  res: Response,
+  req: Request,
+  next:NextFunction){
+
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    const queryRunner = dataSource.createQueryRunner();
+    
+
+    try {
+      let fechaActual = new Date();
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseInt(year), parseInt(month), usuario, ip);
+      const rutaDirectorio = this.directoryRecibo+ '/' + String(year) + String(month).padStart(2,'0') + '/' + periodo_id;
+      const pdfBytes = await this.joinPDFsOnPath(rutaDirectorio);
+      const rutaPDF = path.join(this.directoryRecibo, `pdf_${year}${month}.pdf`);
+      
+     
+      fs.writeFileSync(rutaPDF, pdfBytes);
+      console.log('PDF guardado en la ruta especificada:', rutaPDF);
+      res.download(rutaPDF, `pdf_${year}${month}.pdf`, async (err) => {
+          if (err) {
+              console.error('Error al descargar el PDF:', err);
+              return next(err);
+          } else {
+              console.log('PDF descargado con éxito');
+              fs.unlinkSync(rutaPDF);
+              console.log('PDF eliminado del servidor');
+          }
+      });
+    } catch (error) {
+    return next(error)
+  }
+
+}
+
+async joinPDFsOnPath (rutaDirectorio) {
+  const archivosPDF = fs.readdirSync(rutaDirectorio).filter(archivo => archivo.toLowerCase().endsWith('.pdf'));
+
+  const pdfFinal = await PDFDocument.create();
+  
+  for (const archivo of archivosPDF) {
+    const contenidoPDF = fs.readFileSync(path.join(rutaDirectorio, archivo));
+    const pdf = await PDFDocument.load(contenidoPDF);
+    const paginas = pdf.getPages();
+
+    for (const pagina of paginas) {
+      const nuevaPagina = await pdfFinal.copyPages(pdf, [pdf.getPages().indexOf(pagina)]);
+      pdfFinal.addPage(nuevaPagina[0]);
+    }
+  }
+
+  const pdfBytes = await pdfFinal.save();
+  return pdfBytes;
 }
 
 
