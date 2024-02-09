@@ -1,13 +1,10 @@
 import { NextFunction, Request, Response} from "express";
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
-import { QueryFailedError } from "typeorm";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
 import xlsx from 'node-xlsx';
-//import { json } from "body-parser";
-
 
 export class TelefoniaController extends BaseController {
   directory = process.env.PATH_TELEFONIA || "tmp";
