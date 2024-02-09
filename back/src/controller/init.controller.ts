@@ -324,7 +324,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
 
         obja.ObjetivoAsistenciaAnoAno, 
         objm.ObjetivoAsistenciaAnoMesMes, 
-        
+		  objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras,
         SUM (
           ((
         ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
@@ -386,14 +386,14 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         
         
         WHERE obja.ObjetivoAsistenciaAnoAno = @1
-        GROUP BY obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes`,
+        GROUP BY obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras`,
         [, anio]
       )
       .then((records: Array<any>) => {
         let horasTrabajadas: { x: string; y: any; }[] = []
         //        if (records.length == 0) throw new ClientException('Data not found')
         records.forEach(rec => {
-          horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoAno + '-' + rec.ObjetivoAsistenciaAnoMesMes, y: rec.totalhorascalc })
+          horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoAno + '-' + rec.ObjetivoAsistenciaAnoMesMes+'-' +rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras , y: rec.totalhorascalc })
         })
 
         this.jsonRes({ horasTrabajadas: horasTrabajadas, anio: anio }, res);
