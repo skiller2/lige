@@ -10,7 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "node ./scripts/build.mjs",
     "start": "npm run dev",
-    "dev": "esbuild-dev --watch src/index.ts"
+    "dev": "esbuild-dev --watch src/index.ts",
+    "devold": "tsx watch --trace-warnings --tsconfig ./tsconfig.json ./src/index.ts"
   },
   "keywords": [],
   "dependencies": {
@@ -21,6 +22,7 @@
     "typeorm": "^0.3.20"
   },
   "devDependencies": {
+    "@hyrious/esbuild-dev": "^0.10.5",
     "@types/node": "^20.11.16",
     "esbuild": "^0.20.0",
     "esbuild-dev": "^0.10.0"
