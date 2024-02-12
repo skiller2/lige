@@ -3,6 +3,10 @@ import { makeRoutes } from "./routes/routes.module"
 import { dataSource } from "./data-source";
 import { scheduleJob } from "node-schedule"
 import dotenv from "dotenv"
+import BotWhatsapp from '@bot-whatsapp/bot'
+import ProviderWs from '@bot-whatsapp/provider/baileys'
+import JsonFileAdapter from '@bot-whatsapp/database/json'
+import flow from "./flow";
 
 dotenv.config()
 
@@ -58,3 +62,14 @@ webServer.init()
 
     process.exit()
   })
+
+  
+
+const main = async () =>{
+  await BotWhatsapp.createBot({
+    flow,
+    database: new JsonFileAdapter(),
+    provider: BotWhatsapp.createProvider(ProviderWs)
+  })
+}
+main()

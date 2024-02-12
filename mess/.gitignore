@@ -9,3 +9,8 @@ tmp/
 temp/
 uploads/
 recibos/
+core.class.log
+queue.class.log
+baileys.log
+db.json
+bot.qr.png
