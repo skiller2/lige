@@ -147,7 +147,8 @@
         Horas trabajadas
         <small class="text-sm font-weight-normal">Se calculan las horas totales ingresadas en la liquidación</small>
       </ng-template>
-      <g2-bar height="275" [data]="horasTrabajadas.data.horasTrabajadas"></g2-bar>
+      <!-- <g2-bar #g2horas height="275" [data]="horasTrabajadas.data.horasTrabajadas" title="hola" autoLabel="true"></g2-bar> -->
+      <g2-custom #g2horascustom height="275" autoLabel="true" (render)="render($event)"></g2-custom>
     </nz-card>
   </div>
 

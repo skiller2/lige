@@ -316,7 +316,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
 
   getHorasTrabajadas(req: Request, res: Response, next: NextFunction) {
     const con = dataSource;
-    const anio = req.params.anio
+    const anio = Number(req.params.anio)
 
     con
       .query(
@@ -385,17 +385,20 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         val.ValorLiquidacionDesde and COALESCE (val.ValorLiquidacionHasta, '9999-01-01')
         
         
-        WHERE obja.ObjetivoAsistenciaAnoAno = @1
-        GROUP BY obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras`,
-        [, anio]
+        WHERE obja.ObjetivoAsistenciaAnoAno = @1 OR obja.ObjetivoAsistenciaAnoAno = @2
+        GROUP BY obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras
+        ORDER BY obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras
+        `,
+        [, anio,anio-1]
       )
       .then((records: Array<any>) => {
-        let horasTrabajadas: { x: string; y: any; }[] = []
-        //        if (records.length == 0) throw new ClientException('Data not found')
+        let horasTrabajadas: any[] = []
+      
         records.forEach(rec => {
-          horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoAno + '-' + rec.ObjetivoAsistenciaAnoMesMes+'-' +rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras , y: rec.totalhorascalc })
+          horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoAno + '-' + rec.ObjetivoAsistenciaAnoMesMes , y: rec.totalhorascalc, type:rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras,color: rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'N' ? '#f50':'#e30',  })
         })
 
+        
         this.jsonRes({ horasTrabajadas: horasTrabajadas, anio: anio }, res);
 
       })
