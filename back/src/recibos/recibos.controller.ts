@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import express from 'express';
 import path from 'path';
 import { mkdirSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
-import puppeteer from 'puppeteer';
+import puppeteer, { Browser } from 'puppeteer';
 import { NumeroALetras, setSingular, setPlural, setCentsPlural, setCentsSingular } from "numeros_a_palabras/numero_to_word"
 import {
   SendFileToDownload,
@@ -71,10 +71,12 @@ export class RecibosController extends BaseController {
       }
       await this.cleanDirectories(queryRunner, directorPath, periodo_id)
 
+      const browser = await puppeteer.launch({ headless: 'new' });
+
       for (const movimiento of movimientosPendientes) {
 
-        const filesPath = directorPath + '/' + movimiento.persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
-        let nombre_archivo = movimiento.persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
+        const filesPath = directorPath + '/' + movimiento.PersonalId + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
+        let nombre_archivo = movimiento.PersonalId + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
         var doc_id = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
 
         await this.setUsuariosLiquidacionDocGeneral(
@@ -96,16 +98,17 @@ export class RecibosController extends BaseController {
         const PersonalNombre = movimiento.PersonalNombre
         const Cuit = movimiento.PersonalCUITCUILCUIT
         const Domicilio = movimiento.DomicilioCompleto
-
-
-        this.createPdf(queryRunner, filesPath, movimiento.PersonalId, doc_id, fechaActual, PersonalNombre, Cuit, Domicilio, periodo_id)
-
-
+    
+        await this.createPdf(queryRunner, filesPath, movimiento.PersonalId, doc_id, fechaActual, PersonalNombre, Cuit, Domicilio, periodo_id, browser)
       }
+      await browser.close();
+
       this.jsonRes([], res, `Se generaron ${movimientosPendientes.length} recibos`);
 
 
     } catch (error) {
+      console.log('error2',error)
+
       this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
@@ -133,7 +136,8 @@ export class RecibosController extends BaseController {
     PersonaNombre: string,
     Cuit: string,
     Domicilio: string,
-    periodo_id: number) {
+    periodo_id: number,
+    browser: Browser) {
 
 
     const dia = fechaActual.getDate();
@@ -235,19 +239,22 @@ export class RecibosController extends BaseController {
     htmlContent = htmlContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
 
     // Inicializa Puppeteer
-    const browser = await puppeteer.launch({ headless: 'new' });
     const page = await browser.newPage();
 
     // Establece el contenido HTML en la página
-    await page.setContent(htmlContent);
-    await page.pdf({
-      path: filesPath,
-      margin: { top: '30px', right: '50px', bottom: '100px', left: '50px' },
-      printBackground: true,
-      format: 'A4',
-    });
+//    try {
+      await page.setContent(htmlContent);
+      await page.pdf({
+        path: filesPath,
+        margin: { top: '30px', right: '50px', bottom: '100px', left: '50px' },
+        printBackground: true,
+        format: 'A4',
+      });
+      await page.close()
+//    } catch (e) {
+//      console.log('atrape',e)
+//    }
 
-    await browser.close();
   }
 
 
