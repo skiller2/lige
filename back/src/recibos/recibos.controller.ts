@@ -206,11 +206,14 @@ setCentsSingular('centavos')
  
 
       const htmlFilePath = `${basePath}/html/inaes.html`; 
-     
-       
-      let htmlContent = await fsPromises.readFile(htmlFilePath, 'utf-8');
+      const headerFilePath = `${basePath}/html/inaes-header.html`;
+      const footerfilePath = `${basePath}/html/inaes-footer.html`;
 
-      htmlContent = htmlContent.replace(/\${imgBase64}/g, imgBase64);
+      let headerContent = await fsPromises.readFile(headerFilePath, 'utf-8');
+      let htmlContent = await fsPromises.readFile(htmlFilePath, 'utf-8');
+      let footerContent = await fsPromises.readFile(footerfilePath, 'utf-8');
+
+      headerContent = headerContent.replace(/\${imgBase64}/g, imgBase64);
       htmlContent = htmlContent.replace(/\${doc_id}/g, doc_id.toString());
       htmlContent = htmlContent.replace(/\${fechaFormateada}/g, fechaFormateada);
       htmlContent = htmlContent.replace(/\${PersonaNombre}/g, PersonaNombre);
@@ -239,18 +242,23 @@ setCentsSingular('centavos')
 
       htmlContent = htmlContent.replace(/\${textneto}/g, textneto.toString())
       htmlContent = htmlContent.replace(/\${neto}/g, neto.toString());
-      htmlContent = htmlContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
+      footerContent = footerContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
+
+      const combinedContent = `${htmlContent}`;
   
       // Inicializa Puppeteer
       const browser = await puppeteer.launch({headless:'new'});
       const page = await browser.newPage();
   
       // Establece el contenido HTML en la página
-      await page.setContent(htmlContent);
+      await page.setContent(combinedContent);
        await page.pdf({ path: filesPath,  
-        margin: { top: '30px', right: '50px', bottom: '100px', left: '50px' },
+        margin: { top: '150px', right: '50px', bottom: '100px', left: '50px' },
         printBackground: true,
-        format: 'A4', });
+        format: 'A4',
+        displayHeaderFooter: true,
+        headerTemplate: headerContent,
+        footerTemplate: footerContent, });
      
        await browser.close();
   
