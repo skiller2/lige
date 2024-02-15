@@ -1701,7 +1701,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const personalId: number = req.body.personalId
       const tipoAsociadoId: number = req.body.tipoAsociadoId
       const categoriaPersonalId: number = req.body.categoriaPersonalId
-      const formaLiquidacion: number = req.body.formaLiquidacion
+      const formaLiquidacion: string = req.body.formaLiquidacion
 
       if (!totalhs && personal?.id) {
         await this.deleteAsistencia(objetivoId, anioId, mesId, personal.id, queryRunner)
@@ -1812,7 +1812,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const personalId: number = item.personalId
     const tipoAsociadoId: number = item.tipoAsociadoId
     const categoriaPersonalId: number = item.categoriaPersonalId
-    const formaLiquidacion: number = item.formaLiquidacion
+    const formaLiquidacion: string = item.formaLiquidacion
     let formas = await this.getTiposHoraQuery()
     let formasEncontradas = []
     let forma = null
@@ -1889,7 +1889,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const personalId: number = item.personalId
     const tipoAsociadoId: number = item.tipoAsociadoId
     const categoriaPersonalId: number = item.categoriaPersonalId
-    const formaLiquidacion: number = item.formaLiquidacion
+    const formaLiquidacion: string = item.formaLiquidacion
     let errores: any[] = []
 
     //Validación de Licencias
@@ -1897,10 +1897,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
     //Validación de Personal Situación de Revista
     const situacionesRevista = await queryRunner.query(`
-    SELECT sit.PersonalSituacionRevistaId, sr.SituacionRevistaDescripcion, sit.PersonalSituacionRevistaDesde desde, ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') hasta
+    SELECT sit.PersonalSituacionRevistaId, sit.PersonalSituacionRevistaSituacionId, sr.SituacionRevistaDescripcion, sit.PersonalSituacionRevistaDesde desde, ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') hasta
     FROM PersonalSituacionRevista sit
     JOIN SituacionRevista sr ON sr.SituacionRevistaId = sit.PersonalSituacionRevistaSituacionId 
-    WHERE sit.PersonalId = @0  AND sit.PersonalSituacionRevistaSituacionId NOT IN (2,4,5,6,9,10,11,12,20,23,26)
+    WHERE sit.PersonalId = @0  AND sit.PersonalSituacionRevistaSituacionId NOT IN (2,4,5,6,10,11,12,20,23,26)
     AND sit.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
     AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
 
@@ -1960,17 +1960,33 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
           fecha = new Date(`${anio}-${mes}-${numdia} 0:0:0`)
           //Validación Licencia
+
+
+          
           const licencia = licencias.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
-          if (licencia) {
+          if (licencia && (formaLiquidacion != 'A')) {
             // throw new ClientException(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta)}. dia:${numdia}`)
             errores.push(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta2)}. dia:${numdia}`)
           }
+
+          if (formaLiquidacion == 'A' && !licencia) { 
+            errores.push(`La persona no se encuentra de licencia. dia:${numdia}`)
+          }
+
           //Validación Situación de Revista
           const situacion = situacionesRevista.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
-          if (situacion) {
+          if (situacion && (formaLiquidacion != 'A')) {
             // throw new ClientException(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
             errores.push(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
           }
+
+          if (formaLiquidacion == 'A') {
+            if (!situacion)
+              errores.push(`La persona no se encuentra en una situación de revista para la forma seleccionada.  dia:${numdia}`)
+            else if (situacion.PersonalSituacionRevistaSituacionId != 9)
+              errores.push(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)} no habilitada para carga de horas. dia:${numdia}`)
+          }
+
           //Validación de Personal total de horas por dia
           if (totalhsxdia.length && (totalhsxdia[0][key] + horas) > 24.0) {
             // throw new ClientException(`La cantidad de horas por dia no puede superar las 24, cargadas previamente ${totalhsxdia[0][key]} horas`)
@@ -2098,7 +2114,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   async getLicenciasPorPersonaQuery(anio: number, mes: number, personalId: number, queryRunner: QueryRunner) {
     return queryRunner.query(
       `
-        SELECT PersonalLicenciaDesde desde, ISNULL( ISNULL(PersonalLicenciaTermina,PersonalLicenciaHasta), '9999-12-31') hasta
+        SELECT PersonalLicenciaDesde desde, ISNULL( ISNULL(PersonalLicenciaTermina,PersonalLicenciaHasta), '9999-12-31') hasta, ISNULL(PersonalLicenciaTermina,PersonalLicenciaHasta) hasta2
         FROM PersonalLicencia 
         WHERE PersonalId = @0 
         AND PersonalLicenciaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 

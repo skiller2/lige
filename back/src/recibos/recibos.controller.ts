@@ -163,8 +163,8 @@ setCentsSingular('centavos')
             let varEgresoTxt = `${liquidacionElement.des_movimiento} - ${liquidacionElement.detalle},`
              textegreso = [...textegreso, varEgresoTxt]
             //  `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte}`
-            let varEgresoNumber = `${liquidacionElement.SumaImporte},`
-              egreso = [...egreso, varEgresoNumber]
+            let varEgresoNumber = `${Number(liquidacionElement.SumaImporte).toFixed(2)}-`;
+            egreso = [...egreso, varEgresoNumber];
 
             //neto = neto + parseFloat(liquidacionElement.SumaImporte)
             retribucion = retribucion + parseFloat(liquidacionElement.SumaImporte)
@@ -174,7 +174,7 @@ setCentsSingular('centavos')
             let DepositoTxt = `${liquidacionElement.detalle},`
             textDeposito = [...textDeposito, DepositoTxt]
 
-            deposito = [...deposito, `${liquidacionElement.SumaImporte},`]
+            deposito = [...deposito, `${Number(liquidacionElement.SumaImporte).toFixed(2)},`]
           }
             
 
@@ -182,15 +182,16 @@ setCentsSingular('centavos')
             let varIngresoTxt = `${liquidacionElement.detalle},`
             textingreso = [...textingreso, varIngresoTxt]
             // let textIngreso = `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte}`
-            let varIngresoNumber = `${liquidacionElement.SumaImporte},`
-            ingreso = [...ingreso, varIngresoNumber]
+            let varIngresoNumber = `${Number(liquidacionElement.SumaImporte).toFixed(2)}-`;
+            ingreso = [...ingreso, varIngresoNumber];
+            
             //neto = neto - parseFloat(liquidacionElement.SumaImporte);
             retenciones = retenciones + parseFloat(liquidacionElement.SumaImporte)
           }
           
         }
     
-        neto = retenciones - retribucion;
+        neto = Number((retenciones - retribucion).toFixed(2));
         const textneto = this.convertirNumeroALetras(neto);
         //let textneto = `cien cien cien  `
         const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets' 
@@ -205,11 +206,14 @@ setCentsSingular('centavos')
  
 
       const htmlFilePath = `${basePath}/html/inaes.html`; 
-     
-       
-      let htmlContent = await fsPromises.readFile(htmlFilePath, 'utf-8');
+      const headerFilePath = `${basePath}/html/inaes-header.html`;
+      const footerfilePath = `${basePath}/html/inaes-footer.html`;
 
-      htmlContent = htmlContent.replace(/\${imgBase64}/g, imgBase64);
+      let headerContent = await fsPromises.readFile(headerFilePath, 'utf-8');
+      let htmlContent = await fsPromises.readFile(htmlFilePath, 'utf-8');
+      let footerContent = await fsPromises.readFile(footerfilePath, 'utf-8');
+
+      headerContent = headerContent.replace(/\${imgBase64}/g, imgBase64);
       htmlContent = htmlContent.replace(/\${doc_id}/g, doc_id.toString());
       htmlContent = htmlContent.replace(/\${fechaFormateada}/g, fechaFormateada);
       htmlContent = htmlContent.replace(/\${PersonaNombre}/g, PersonaNombre);
@@ -218,34 +222,43 @@ setCentsSingular('centavos')
       htmlContent = htmlContent.replace(/\${retribucion}/g, retribucion.toFixed(2).toString());
       htmlContent = htmlContent.replace(/\${retenciones}/g, retenciones.toFixed(2).toString()); 
 
-      let VarEgresoTextForHtml = textegreso.map(item => item.toString().replace(/,/g, '<br>')).join().replace(',','')
+      let VarEgresoTextForHtml = textegreso.map(item => item.toString().replace(/,/g, '<br>')).join().replace(/,/g,'')
       htmlContent = htmlContent.replace(/\${textegreso}/g, VarEgresoTextForHtml);
-      let varEgreso = egreso.map(item => item.toString().replace(/,/g, '<br>')).join().replace(',','')
+
+      let varEgreso = egreso.map(item => item.toString().replace(/-/g, '<br>')).join().replace(/,/g,'')
       htmlContent = htmlContent.replace(/\${egreso}/g, varEgreso);
-      let varIngresoText = textingreso.map(item => item.toString().replace(/,/g, '<br>')).join().replace(',','')
+
+      let varIngresoText = textingreso.map(item => item.toString().replace(/,/g, '<br>')).join().replace(/,/g,'')
       htmlContent = htmlContent.replace(/\${textingreso}/g, varIngresoText);
-      let varIngreso = ingreso.map(item => item.toString().replace(/,/g, '<br>')).join().replace(',','')
+
+      let varIngreso = ingreso.map(item => item.toString().replace(/-/g, '<br>')).join().replace(/,/g,'')
       htmlContent = htmlContent.replace(/\${ingreso}/g, varIngreso);
 
       let varDepositoTxt = textDeposito.map(item => item.toString().replace(/,Banco:/g, '<br>Banco')).join('<br>')
       htmlContent = htmlContent.replace(/\${textDeposito}/g, varDepositoTxt);
-      let varDeposito = deposito.map(item => item.toString().replace(/,/g, '<br>')).join().replace(',','')
+
+      let varDeposito = deposito.map(item => item.toString().replace(/,/g, '<br>')).join().replace(/,/g,'')
       htmlContent = htmlContent.replace(/\${deposito}/g, varDeposito);
 
       htmlContent = htmlContent.replace(/\${textneto}/g, textneto.toString())
       htmlContent = htmlContent.replace(/\${neto}/g, neto.toString());
-      htmlContent = htmlContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
+      footerContent = footerContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
+
+      const combinedContent = `${htmlContent}`;
   
       // Inicializa Puppeteer
       const browser = await puppeteer.launch({headless:'new'});
       const page = await browser.newPage();
   
       // Establece el contenido HTML en la página
-      await page.setContent(htmlContent);
+      await page.setContent(combinedContent);
        await page.pdf({ path: filesPath,  
-        margin: { top: '30px', right: '50px', bottom: '100px', left: '50px' },
+        margin: { top: '150px', right: '50px', bottom: '100px', left: '50px' },
         printBackground: true,
-        format: 'A4', });
+        format: 'A4',
+        displayHeaderFooter: true,
+        headerTemplate: headerContent,
+        footerTemplate: footerContent, });
      
        await browser.close();
   
@@ -383,6 +396,7 @@ async obtenerPDFBuffer(tmpfilename:string) {
 async bindPdf( 
   year: string,
   month: string,
+  arrayPeronalId: string,
   res: Response,
   req: Request,
   next:NextFunction){
@@ -390,32 +404,45 @@ async bindPdf(
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
-    
 
-    try {
+    let perosonalIds = JSON.parse(arrayPeronalId)
+    perosonalIds = arrayPeronalId.split(",")
+    
+    
+   
+
+     try {
       let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseInt(year), parseInt(month), usuario, ip);
+
+      const pathFile = await this.getparthFile(queryRunner,periodo_id,perosonalIds)
+      console.log("pathFile",pathFile)
       const rutaDirectorio = this.directoryRecibo+ '/' + String(year) + String(month).padStart(2,'0') + '/' + periodo_id;
       const pdfBytes = await this.joinPDFsOnPath(rutaDirectorio);
       const rutaPDF = path.join(this.directoryRecibo, `pdf_${year}${month}.pdf`);
       
      
-      fs.writeFileSync(rutaPDF, pdfBytes);
-      console.log('PDF guardado en la ruta especificada:', rutaPDF);
-      res.download(rutaPDF, `pdf_${year}${month}.pdf`, async (err) => {
-          if (err) {
-              console.error('Error al descargar el PDF:', err);
-              return next(err);
-          } else {
-              console.log('PDF descargado con éxito');
-              fs.unlinkSync(rutaPDF);
-              console.log('PDF eliminado del servidor');
-          }
-      });
-    } catch (error) {
-    return next(error)
+      // fs.writeFileSync(rutaPDF, pdfBytes);
+      // console.log('PDF guardado en la ruta especificada:', rutaPDF);
+      // res.download(rutaPDF, `pdf_${year}${month}.pdf`, async (err) => {
+      //     if (err) {
+      //         console.error('Error al descargar el PDF:', err);
+      //         return next(err);
+      //     } else {
+      //         console.log('PDF descargado con éxito');
+      //         fs.unlinkSync(rutaPDF);
+      //         console.log('PDF eliminado del servidor');
+      //     }
+      // });
+     } catch (error) {
+     return next(error)
   }
 
+}
+
+async getparthFile(queryRunner:QueryRunner,periodo_id:number,perosonalIds:any){
+  const personalIdsString = perosonalIds.join(', ');
+  return queryRunner.query( `SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0 AND personal_id IN (${personalIdsString})`, [periodo_id])
 }
 
 async joinPDFsOnPath (rutaDirectorio) {

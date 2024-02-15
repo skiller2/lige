@@ -389,16 +389,23 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         GROUP BY obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras
         ORDER BY obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras
         `,
-        [, anio,anio-1]
+        [, anio, anio - 1]
       )
       .then((records: Array<any>) => {
         let horasTrabajadas: any[] = []
-      
-        records.forEach(rec => {
-          horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoAno + '-' + rec.ObjetivoAsistenciaAnoMesMes , y: rec.totalhorascalc, type:rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras,color: rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'N' ? '#f50':'#e30',  })
-        })
 
-        
+        if (records.length > 0) {
+          const lastrecord = records.slice(-1)[0]  
+          const lastmonth = lastrecord.ObjetivoAsistenciaAnoMesMes
+          const lastyear = lastrecord.ObjetivoAsistenciaAnoAno
+
+
+          records.forEach(rec => {
+            if (rec.ObjetivoAsistenciaAnoAno == lastyear  || (rec.ObjetivoAsistenciaAnoAno < lastyear && rec.ObjetivoAsistenciaAnoMesMes >= lastmonth))
+              horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoAno + '-' + rec.ObjetivoAsistenciaAnoMesMes, y: rec.totalhorascalc, type: rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras, color: rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'N' ? '#f50' : '#e30', })
+          })
+        }
+
         this.jsonRes({ horasTrabajadas: horasTrabajadas, anio: anio }, res);
 
       })
