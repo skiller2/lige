@@ -100,7 +100,7 @@ export class RecibosController extends BaseController {
         const Domicilio = movimiento.DomicilioCompleto
 
 
-        await this.createPdf(queryRunner, filesPath, movimiento.persona_id, doc_id, fechaActual, PersonalNombre, Cuit, Domicilio, periodo_id, browser)
+        await this.createPdf(queryRunner, filesPath, persona_id, doc_id, fechaActual, PersonalNombre, Cuit, Domicilio, periodo_id, browser)
 
       }
       await browser.close();
