@@ -91,9 +91,9 @@ export class RecibosController extends BaseController {
       headerContent = headerContent.replace(/\${imgBase64}/g, imgBase64);
       footerContent = footerContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
 
-      htmlContent = htmlContent.replace(/\${anio}/g, periodo.year.toString());
-      htmlContent = htmlContent.replace(/\${mes}/g, periodo.month.toString());
-      htmlContent = htmlContent.replace(/\${fechaFormateada}/g, this.dateFormatter.format(fechaActual));
+      headerContent = headerContent.replace(/\${anio}/g, periodo.year.toString());
+      headerContent = headerContent.replace(/\${mes}/g, periodo.month.toString());
+      headerContent = headerContent.replace(/\${fechaFormateada}/g, this.dateFormatter.format(fechaActual));
       const htmlContentPre = htmlContent;
 
       const browser = await puppeteer.launch({ headless: 'new' })
@@ -153,11 +153,16 @@ export class RecibosController extends BaseController {
 
   convertirNumeroALetras(numero: any) {
 
-    setSingular('peso')
-    setPlural('pesos')
-    setCentsPlural('centavo')
-    setCentsSingular('centavos')
-    return NumeroALetras(numero).toUpperCase()
+    setSingular('peso');
+    setPlural('pesos');
+    setCentsPlural('centavo');
+    setCentsSingular('centavos');
+  
+    if (numero < 0) {
+      return `MENOS ${NumeroALetras(Math.abs(numero)).toUpperCase()}`;
+    } else {
+      return NumeroALetras(numero).toUpperCase();
+    }
   }
 
   async createPdf(queryRunner: QueryRunner,
@@ -176,7 +181,7 @@ export class RecibosController extends BaseController {
     footerContent: string,
   ) {
 
-    htmlContent = htmlContent.replace(/\${doc_id}/g, doc_id.toString());
+    headerContent = headerContent.replace(/\${doc_id}/g, doc_id.toString());
     htmlContent = htmlContent.replace(/\${PersonaNombre}/g, PersonaNombre);
     htmlContent = htmlContent.replace(/\${Cuit}/g, Cuit.toString());
     htmlContent = htmlContent.replace(/\${Domicilio}/g, Domicilio);
@@ -232,7 +237,7 @@ export class RecibosController extends BaseController {
     await page.setContent(htmlContent);
     await page.pdf({
       path: filesPath,
-      margin: { top: '150px', right: '50px', bottom: '100px', left: '50px' },
+      margin: { top: '200px', right: '50px', bottom: '100px', left: '50px' },
       printBackground: true,
       format: 'A4',
       displayHeaderFooter: true,
