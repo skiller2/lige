@@ -8,7 +8,7 @@ import { PDFDocument } from 'pdf-lib';
 import * as fs from 'fs';
 import path from 'path';
 import { mkdirSync, existsSync } from "fs";
-import puppeteer, { Browser } from 'puppeteer';
+import puppeteer, { Browser, Page } from 'puppeteer';
 import { NumeroALetras, setSingular, setPlural, setCentsPlural, setCentsSingular } from "numeros_a_palabras/numero_to_word"
 import {
   SendFileToDownload,
@@ -97,6 +97,7 @@ export class RecibosController extends BaseController {
       const htmlContentPre = htmlContent;
 
       const browser = await puppeteer.launch({ headless: 'new' })
+      const page = await browser.newPage();
 
       for (const movimiento of movimientosPendientes) {
         const persona_id = movimiento.PersonalId
@@ -126,10 +127,14 @@ export class RecibosController extends BaseController {
         const Asociado = movimiento.PersonalNroLegajo
         const Grupo = (movimiento.GrupoActividadDetalle) ? movimiento.GrupoActividadDetalle : 'Sin asignar' 
 
+
+
         await this.createPdf(queryRunner, filesPath, persona_id, doc_id, PersonalNombre, Cuit, Domicilio, Asociado,
-          Grupo, periodo_id, browser, htmlContentPre, headerContent, footerContent)
+          Grupo, periodo_id, page,htmlContentPre, headerContent, footerContent)
+        
 
       }
+      await page.close()
       await browser.close();
 
       this.jsonRes([], res, `Se generaron ${movimientosPendientes.length} recibos`);
@@ -165,7 +170,7 @@ export class RecibosController extends BaseController {
     Asociado: number,
     Grupo:string,
     periodo_id: number,
-    browser: Browser,
+    page: Page,
     htmlContent: string,
     headerContent: string,
     footerContent: string,
@@ -224,9 +229,6 @@ export class RecibosController extends BaseController {
     htmlContent = htmlContent.replace(/\${asociado}/g, Asociado.toString());
     htmlContent = htmlContent.replace(/\${grupo}/g, Grupo);
 
-    const page = await browser.newPage();
-
-//    await fsPromises.writeFile(filesPath + '.html', htmlContent)
     await page.setContent(htmlContent);
     await page.pdf({
       path: filesPath,
@@ -238,7 +240,6 @@ export class RecibosController extends BaseController {
       footerTemplate: footerContent,
     });
 
-    await page.close()
   }
 
 
