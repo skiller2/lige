@@ -1,10 +1,21 @@
 <table width="100%" align="center" style=" border-bottom: none;font-size: 14px;">
     <tbody>
       <tr>
-            <td colspan="2">
+            <td >
                 <div>
                     <img src="data:image/png;base64,${imgBase64}" style="margin-left: 15%;" alt="texto alternativo" width="ancho" height="alto" style="display:block">
                 </div>
+               
+            </td>
+            <td>
+                <div style="text-align: end;margin-bottom: 20px;margin-right: 15%;">
+                    <span style="display: block">N°: ${doc_id}</span>
+                    <span style="display: block">fecha: ${fechaFormateada} </span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
                 <div style="text-align: center; ">
                     <span>RECIBO DE RETRIBUCIÓN</span>
                    </div>
@@ -12,10 +23,7 @@
                        <span>Período ${mes}/${anio}</span>
                    </div>
        
-                   <div style="text-align: end;margin-bottom: 20px;margin-right: 20px;">
-                       <span style="display: block">N°: ${doc_id}</span>
-                       <span style="display: block">fecha: ${fechaFormateada} </span>
-                   </div>
+                  
             </td>
         </tr>
     </tbody>
