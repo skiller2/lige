@@ -61,7 +61,7 @@ export class RecibosController extends BaseController {
       let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
 
-      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id)
+      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month)
 
       var directorPath = this.directoryRecibo + '/' + String(periodo.year) + String(periodo.month).padStart(2, '0') + '/' + periodo_id
       if (!existsSync(directorPath)) {
@@ -91,22 +91,18 @@ export class RecibosController extends BaseController {
       headerContent = headerContent.replace(/\${imgBase64}/g, imgBase64);
       footerContent = footerContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
 
-      const dia = fechaActual.getDate();
-      const mes = fechaActual.getMonth() + 1; // Suma 1 ya que los meses van de 0 a 11
-      const anio = fechaActual.getFullYear();
-
-      const fechaFormateada = `${dia}/${mes}/${anio}`
-      const htmlContentPre = htmlContent.replace(/\${fechaFormateada}/g, fechaFormateada);
-
-
+      htmlContent = htmlContent.replace(/\${anio}/g, periodo.year.toString());
+      htmlContent = htmlContent.replace(/\${mes}/g, periodo.month.toString());
+      htmlContent = htmlContent.replace(/\${fechaFormateada}/g, this.dateFormatter.format(fechaActual));
+      const htmlContentPre = htmlContent;
 
       const browser = await puppeteer.launch({ headless: 'new' })
 
       for (const movimiento of movimientosPendientes) {
         const persona_id = movimiento.PersonalId
         const filesPath = directorPath + '/' + persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
-        let nombre_archivo = persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
-        var doc_id = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
+        const nombre_archivo = persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
+        const doc_id = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
 
         await this.setUsuariosLiquidacionDocGeneral(
           queryRunner,
@@ -126,9 +122,12 @@ export class RecibosController extends BaseController {
 
         const PersonalNombre = movimiento.PersonalNombre
         const Cuit = movimiento.PersonalCUITCUILCUIT
-        const Domicilio = movimiento.DomicilioCompleto
+        const Domicilio = (movimiento.DomicilioCompleto) ? movimiento.DomicilioCompleto : 'Sin especificar'
+        const Asociado = movimiento.PersonalNroLegajo
+        const Grupo = (movimiento.GrupoActividadDetalle) ? movimiento.GrupoActividadDetalle : 'Sin asignar' 
 
-        await this.createPdf(queryRunner, filesPath, persona_id, doc_id, PersonalNombre, Cuit, Domicilio, periodo_id, browser, htmlContentPre, headerContent,footerContent )
+        await this.createPdf(queryRunner, filesPath, persona_id, doc_id, PersonalNombre, Cuit, Domicilio, Asociado,
+          Grupo, periodo_id, browser, htmlContentPre, headerContent, footerContent)
 
       }
       await browser.close();
@@ -153,7 +152,7 @@ export class RecibosController extends BaseController {
     setPlural('pesos')
     setCentsPlural('centavo')
     setCentsSingular('centavos')
-    return NumeroALetras(numero).toLowerCase()
+    return NumeroALetras(numero).toUpperCase()
   }
 
   async createPdf(queryRunner: QueryRunner,
@@ -163,6 +162,8 @@ export class RecibosController extends BaseController {
     PersonaNombre: string,
     Cuit: string,
     Domicilio: string,
+    Asociado: number,
+    Grupo:string,
     periodo_id: number,
     browser: Browser,
     htmlContent: string,
@@ -185,6 +186,7 @@ export class RecibosController extends BaseController {
     let htmlDeposito = ''
 
     for (const liquidacionElement of liquidacionInfo) {
+
       switch (liquidacionElement.indicador) {
         case "R":
           htmlEgreso += `<tr><td>${liquidacionElement.des_movimiento} - ${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
@@ -209,9 +211,6 @@ export class RecibosController extends BaseController {
 
 
     neto = retenciones - retribucion
-    const textneto = this.convertirNumeroALetras(neto);
-    //let textneto = `cien cien cien  `
-
 
     htmlContent = htmlContent.replace(/\${retribucion}/g, this.currencyPipe.format(retribucion));
     htmlContent = htmlContent.replace(/\${retenciones}/g, this.currencyPipe.format(retenciones));
@@ -220,13 +219,14 @@ export class RecibosController extends BaseController {
     htmlContent = htmlContent.replace(/\${textingreso}/g, htmlIngreso);
     htmlContent = htmlContent.replace(/\${textdeposito}/g, htmlDeposito);
 
-
-    htmlContent = htmlContent.replace(/\${textneto}/g, textneto.toString())
+    htmlContent = htmlContent.replace(/\${textneto}/g, this.convertirNumeroALetras(neto))
     htmlContent = htmlContent.replace(/\${neto}/g, this.currencyPipe.format(neto));
+    htmlContent = htmlContent.replace(/\${asociado}/g, Asociado.toString());
+    htmlContent = htmlContent.replace(/\${grupo}/g, Grupo);
 
     const page = await browser.newPage();
 
-        await fsPromises.writeFile(filesPath+'.html',htmlContent)
+    await fsPromises.writeFile(filesPath + '.html', htmlContent)
     await page.setContent(htmlContent);
     await page.pdf({
       path: filesPath,
@@ -244,29 +244,40 @@ export class RecibosController extends BaseController {
 
 
 
-  async getUsuariosLiquidacion(queryRunner: QueryRunner, periodo_id: Number) {
+  async getUsuariosLiquidacion(queryRunner: QueryRunner, periodo_id: Number, anio:number,mes:number) {
 
-    return queryRunner.query(`SELECT DISTINCT
-    per.PersonalId,
+    return queryRunner.query(`SELECT
+    per.PersonalId, per.PersonalNroLegajo, 
     CONCAT(TRIM(per.PersonalNombre), ' ', TRIM(per.PersonalApellido)) AS PersonalNombre,
   
     cuit.PersonalCUITCUILCUIT,
-    CONCAT(
+    TRIM(CONCAT(
       TRIM(dom.PersonalDomicilioDomCalle), ' ',
       TRIM(dom.PersonalDomicilioDomNro), ' ',
       TRIM(dom.PersonalDomicilioDomPiso), ' ',
       TRIM(dom.PersonalDomicilioDomDpto)
-    ) AS DomicilioCompleto
+    )) AS DomicilioCompleto,
+   act.GrupoActividadNumero,
+   act.GrupoActividadDetalle,
+    1
+    
     FROM Personal per
     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
     LEFT JOIN PersonalDomicilio AS dom ON dom.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1 AND dom.PersonalDomicilioId = ( SELECT MAX(dommax.PersonalDomicilioId) FROM PersonalDomicilio dommax WHERE dommax.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1)
+    
+    
+    LEFT JOIN (SELECT grp.GrupoActividadPersonalPersonalId, MAX(grp.GrupoActividadPersonalDesde) AS GrupoActividadPersonalDesde, MAX(ISNULL(grp.GrupoActividadPersonalHasta,'9999-12-31')) GrupoActividadPersonalHasta FROM GrupoActividadPersonal AS grp WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > grp.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(grp.GrupoActividadPersonalHasta, '9999-12-31') GROUP BY grp.GrupoActividadPersonalPersonalId) as grupodesde ON grupodesde.GrupoActividadPersonalPersonalId = per.PersonalId
+    LEFT JOIN GrupoActividadPersonal grupo ON grupo.GrupoActividadPersonalPersonalId = per.PersonalId AND grupo.GrupoActividadPersonalDesde = grupodesde.GrupoActividadPersonalDesde AND ISNULL(grupo.GrupoActividadPersonalHasta,'9999-12-31') = grupodesde.GrupoActividadPersonalHasta 
+        
+    
+    LEFT JOIN GrupoActividad act ON act.GrupoActividadId= grupo.GrupoActividadId
     WHERE per.PersonalId IN ( 
   
       SELECT DISTINCT liq.persona_id
       FROM lige.dbo.liqmamovimientos liq
-      WHERE liq.tipocuenta_id = 'G' AND liq.periodo_id = @0 
+      WHERE liq.tipocuenta_id = 'G' AND liq.periodo_id = @0
     )
-    ORDER BY per.PersonalId ASC`, [periodo_id])
+    ORDER BY per.PersonalId ASC`, [periodo_id,anio,mes])
   }
 
 

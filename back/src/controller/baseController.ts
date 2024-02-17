@@ -45,6 +45,9 @@ export class BaseController {
     maximumFractionDigits: 2,
   });
 
+  dateFormatter = new Intl.DateTimeFormat('es-AR', { year: 'numeric', month: 'numeric', day: 'numeric' });
+
+
 
   async hasGroup(req:any,group:string) { 
     let inGroup = false
