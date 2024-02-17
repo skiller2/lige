@@ -226,7 +226,7 @@ export class RecibosController extends BaseController {
 
     const page = await browser.newPage();
 
-    await fsPromises.writeFile(filesPath + '.html', htmlContent)
+//    await fsPromises.writeFile(filesPath + '.html', htmlContent)
     await page.setContent(htmlContent);
     await page.pdf({
       path: filesPath,
