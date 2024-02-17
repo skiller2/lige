@@ -1,15 +1,35 @@
-<table width="100%" align="center" style=" border-top: none;">
+<html>
+
+<head>
+  <style>
+    .tb-detalle td:first-child + td {
+      width: 6em;
+      text-align: right;
+    }
+
+    .tb-detalle {
+      width: 100%;
+    }
+
+    .subtotal td {
+      text-align: right;
+    }
+  </style>
+</head>
+
+<body>
+  <table width="100%" align="center" style=" border-top: none;">
     <tbody>
       <tr>
         <td colspan="2">
-              <div style="text-align: center;">
-              <span >RECIBO DE RETRIBUCION</span>
-              </div>
-              <div style="text-align: end;margin-bottom: 20px;">
-               <span style="display: block">N°: ${doc_id}</span>
-               <span style="display: block">fecha: ${fechaFormateada} </span>
-        </div>
-              </td>
+          <div style="text-align: center;">
+            <span>RECIBO DE RETRIBUCION</span>
+          </div>
+          <div style="text-align: end;margin-bottom: 20px;">
+            <span style="display: block">N°: ${doc_id}</span>
+            <span style="display: block">fecha: ${fechaFormateada} </span>
+          </div>
+        </td>
       </tr>
       <tr>
         <td>Razón Social</td>
@@ -55,55 +75,63 @@
         <td>${retenciones}</td>
       </tr> -->
       <tr>
-        <td  colspan="2" bgcolor="#AAAAAA">DETALLE DE RETRIBUCIONES</td>
+        <td colspan="2" bgcolor="#AAAAAA">DETALLE DE RETRIBUCIONES</td>
       </tr>
       <tr>
-        <td> 
-          <div style="margin-bottom: 20px;margin-top: 20px;">${textingreso}</div>
-         </td>
-         <td><p style="text-align: right;">${ingreso} </p></td> 
-      </tr>
-      <tr>
-       
-        <td  colspan="2" bgcolor="#AAAAAA" >DETALLE DE RETENCIONES</td>
-      </tr>
-      <tr>
-        <td> 
-          <div style="margin-bottom: 20px;margin-top: 20px;">${textegreso} 
-          </div>
+        <td colspan="2">
+          <table class="tb-detalle">
+            <tbody>${textingreso}</tbody>
+          </table>
         </td>
-        <td><p style="text-align: right;">${egreso} </p></td> 
+      </tr>
+
+      <tr>
+
+        <td colspan="2" bgcolor="#AAAAAA">DETALLE DE RETENCIONES</td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <table class="tb-detalle">
+            <tbody>${textegreso}</tbody>
+          </table>
+        </td>
       </tr>
       <tr>
         <td bgcolor="#AAAAAA">RETRIBUCION NETA</td>
-        <td bgcolor="#AAAAAA"><p style="text-align: right;">${neto} </p></td> 
+        <td bgcolor="#AAAAAA">
+          <p style="text-align: right;">${neto} </p>
+        </td>
       </tr>
       <tr>
         <td colspan="2">${textneto}</td>
       </tr>
-      <tr >
+      <tr>
         <td colspan="2" bgcolor="#AAAAAA">DETALLE DEPOSITO</td>
       </tr>
       <tr>
-      <td >
-      <div style="margin-bottom: 20px;margin-top: 20px;"> ${textDeposito}
-      </div>
-      </td>
-      <td ><p style="text-align: right;">${deposito} </p></td>
-    </tr>
+        <td colspan="2">
+          <table class="tb-detalle">
+            <tbody>${textdeposito}</tbody>
+          </table>
+        </td>
+      </tr>
+
       <tr style="text-align: center;">
         <td>
-           <div style="margin-bottom: 20px;margin-top: 30px;">
-             <span style="border-top: 1px black solid;">Firma Tesorera/o</span>
-             </div>
-         </td>
-       <td> 
-              
-           <div style="margin-bottom: 20px;margin-top: 30px;">
-             <span style="border-top: 1px black solid;">Firma Asociada/o</span>
-             </div>
-           </td>
+          <div style="margin-bottom: 20px;margin-top: 30px;">
+            <span style="border-top: 1px black solid;">Firma Tesorera/o</span>
+          </div>
+        </td>
+        <td>
+
+          <div style="margin-bottom: 20px;margin-top: 30px;">
+            <span style="border-top: 1px black solid;">Firma Asociada/o</span>
+          </div>
+        </td>
       </tr>
-          
+
     </tbody>
   </table>
+</body>
+
+</html>

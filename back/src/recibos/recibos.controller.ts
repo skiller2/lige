@@ -1,14 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
-import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+
 import { Utils } from "../liquidaciones/liquidaciones.utils";
 import { promises as fsPromises } from 'fs';
 import { PDFDocument } from 'pdf-lib';
 import * as fs from 'fs';
-import express from 'express';
 import path from 'path';
-import { mkdirSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
+import { mkdirSync, existsSync } from "fs";
 import puppeteer, { Browser } from 'puppeteer';
 import { NumeroALetras, setSingular, setPlural, setCentsPlural, setCentsSingular } from "numeros_a_palabras/numero_to_word"
 import {
@@ -19,7 +18,6 @@ import {
 import { QueryRunner } from "typeorm";
 
 export class RecibosController extends BaseController {
-
   directoryRecibo = process.env.PATH_RECIBO || "tmp";
   constructor() {
     super();
@@ -71,6 +69,37 @@ export class RecibosController extends BaseController {
       }
       await this.cleanDirectories(queryRunner, directorPath, periodo_id)
 
+      const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets'
+
+      const imgPath = `${basePath}/icons/icon-lince-96x96.png`
+      const imgBuffer = await fsPromises.readFile(imgPath);
+      const imgBase64 = imgBuffer.toString('base64');
+
+      const imgPathinaes = `${basePath}/icons/inaes.png`
+      const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
+      const imgBase64inaes = imgBufferinaes.toString('base64');
+
+
+      const htmlFilePath = `${basePath}/html/inaes.html`;
+      const headerFilePath = `${basePath}/html/inaes-header.html`;
+      const footerfilePath = `${basePath}/html/inaes-footer.html`;
+
+      let headerContent = await fsPromises.readFile(headerFilePath, 'utf-8');
+      let htmlContent = await fsPromises.readFile(htmlFilePath, 'utf-8');
+      let footerContent = await fsPromises.readFile(footerfilePath, 'utf-8');
+
+      headerContent = headerContent.replace(/\${imgBase64}/g, imgBase64);
+      footerContent = footerContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
+
+      const dia = fechaActual.getDate();
+      const mes = fechaActual.getMonth() + 1; // Suma 1 ya que los meses van de 0 a 11
+      const anio = fechaActual.getFullYear();
+
+      const fechaFormateada = `${dia}/${mes}/${anio}`
+      const htmlContentPre = htmlContent.replace(/\${fechaFormateada}/g, fechaFormateada);
+
+
+
       const browser = await puppeteer.launch({ headless: 'new' })
 
       for (const movimiento of movimientosPendientes) {
@@ -99,8 +128,7 @@ export class RecibosController extends BaseController {
         const Cuit = movimiento.PersonalCUITCUILCUIT
         const Domicilio = movimiento.DomicilioCompleto
 
-
-        await this.createPdf(queryRunner, filesPath, persona_id, doc_id, fechaActual, PersonalNombre, Cuit, Domicilio, periodo_id, browser)
+        await this.createPdf(queryRunner, filesPath, persona_id, doc_id, PersonalNombre, Cuit, Domicilio, periodo_id, browser, htmlContentPre, headerContent,footerContent )
 
       }
       await browser.close();
@@ -132,127 +160,74 @@ export class RecibosController extends BaseController {
     filesPath: string,
     persona_id: number,
     doc_id: number,
-    fechaActual: Date,
     PersonaNombre: string,
     Cuit: string,
     Domicilio: string,
     periodo_id: number,
-    browser: Browser) {
+    browser: Browser,
+    htmlContent: string,
+    headerContent: string,
+    footerContent: string,
+  ) {
 
-
-    const dia = fechaActual.getDate();
-    const mes = fechaActual.getMonth() + 1; // Suma 1 ya que los meses van de 0 a 11
-    const anio = fechaActual.getFullYear();
-
-    const fechaFormateada = `${dia}/${mes}/${anio}`
-
-    const liquidacionInfo = await this.getUsuariosLiquidacionMovimientos(queryRunner, periodo_id, persona_id)
-    let ingreso = []
-    let egreso = []
-    let textegreso = []
-    let textingreso = []
-    let neto = 0
-    let retribucion = 0
-    let retenciones = 0
-    let deposito = []
-    let textDeposito = []
-
-    for (const liquidacionElement of liquidacionInfo) {
-
-
-      if (liquidacionElement.indicador == "R") {
-
-        let varEgresoTxt = `${liquidacionElement.des_movimiento} - ${liquidacionElement.detalle},`
-        textegreso = [...textegreso, varEgresoTxt]
-        //  `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte}`
-        let varEgresoNumber = `${Number(liquidacionElement.SumaImporte).toFixed(2)}-`;
-        egreso = [...egreso, varEgresoNumber];
-
-        //neto = neto + parseFloat(liquidacionElement.SumaImporte)
-        retribucion = retribucion + parseFloat(liquidacionElement.SumaImporte)
-      }
-
-      if (liquidacionElement.indicador == "D") {
-        let DepositoTxt = `${liquidacionElement.detalle},`
-        textDeposito = [...textDeposito, DepositoTxt]
-
-        deposito = [...deposito, `${Number(liquidacionElement.SumaImporte).toFixed(2)},`]
-      }
-
-
-      if (liquidacionElement.indicador == "I") {
-        let varIngresoTxt = `${liquidacionElement.detalle},`
-        textingreso = [...textingreso, varIngresoTxt]
-        // let textIngreso = `${liquidacionElement.des_movimiento}:${liquidacionElement.SumaImporte}`
-        let varIngresoNumber = `${Number(liquidacionElement.SumaImporte).toFixed(2)}-`;
-        ingreso = [...ingreso, varIngresoNumber];
-
-        //neto = neto - parseFloat(liquidacionElement.SumaImporte);
-        retenciones = retenciones + parseFloat(liquidacionElement.SumaImporte)
-      }
-
-    }
-
-    neto = Number((retenciones - retribucion).toFixed(2));
-    const textneto = this.convertirNumeroALetras(neto);
-    //let textneto = `cien cien cien  `
-    const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets'
-
-    const imgPath = `${basePath}/icons/icon-lince-96x96.png`
-    const imgBuffer = await fsPromises.readFile(imgPath);
-    const imgBase64 = imgBuffer.toString('base64');
-
-    const imgPathinaes = `${basePath}/icons/inaes.png`
-    const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
-    const imgBase64inaes = imgBufferinaes.toString('base64');
-
-
-    const htmlFilePath = `${basePath}/html/inaes.html`;
-    const headerFilePath = `${basePath}/html/inaes-header.html`;
-    const footerfilePath = `${basePath}/html/inaes-footer.html`;
-
-    let headerContent = await fsPromises.readFile(headerFilePath, 'utf-8');
-    let htmlContent = await fsPromises.readFile(htmlFilePath, 'utf-8');
-    let footerContent = await fsPromises.readFile(footerfilePath, 'utf-8');
-
-    headerContent = headerContent.replace(/\${imgBase64}/g, imgBase64);
     htmlContent = htmlContent.replace(/\${doc_id}/g, doc_id.toString());
-    htmlContent = htmlContent.replace(/\${fechaFormateada}/g, fechaFormateada);
     htmlContent = htmlContent.replace(/\${PersonaNombre}/g, PersonaNombre);
     htmlContent = htmlContent.replace(/\${Cuit}/g, Cuit.toString());
     htmlContent = htmlContent.replace(/\${Domicilio}/g, Domicilio);
-    htmlContent = htmlContent.replace(/\${retribucion}/g, retribucion.toFixed(2).toString());
-    htmlContent = htmlContent.replace(/\${retenciones}/g, retenciones.toFixed(2).toString());
 
-    let VarEgresoTextForHtml = textegreso.map(item => item.toString().replace(/,/g, '<br>')).join().replace(/,/g, '')
-    htmlContent = htmlContent.replace(/\${textegreso}/g, VarEgresoTextForHtml);
 
-    let varEgreso = egreso.map(item => item.toString().replace(/-/g, '<br>')).join().replace(/,/g, '')
-    htmlContent = htmlContent.replace(/\${egreso}/g, varEgreso);
+    const liquidacionInfo = await this.getUsuariosLiquidacionMovimientos(queryRunner, periodo_id, persona_id)
+    let neto = 0
+    let retribucion = 0
+    let retenciones = 0
+    let htmlEgreso = ''
+    let htmlIngreso = ''
+    let htmlDeposito = ''
 
-    let varIngresoText = textingreso.map(item => item.toString().replace(/,/g, '<br>')).join().replace(/,/g, '')
-    htmlContent = htmlContent.replace(/\${textingreso}/g, varIngresoText);
+    for (const liquidacionElement of liquidacionInfo) {
+      switch (liquidacionElement.indicador) {
+        case "R":
+          htmlEgreso += `<tr><td>${liquidacionElement.des_movimiento} - ${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
+          retribucion += liquidacionElement.SumaImporte
+          break;
+        case "D":
+          htmlDeposito += `<tr><td>${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
+          break
+        case "I":
+          htmlIngreso += `<tr><td>${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
+          retenciones += liquidacionElement.SumaImporte
+          break
+        default:
+          break;
+      }
+    }
 
-    let varIngreso = ingreso.map(item => item.toString().replace(/-/g, '<br>')).join().replace(/,/g, '')
-    htmlContent = htmlContent.replace(/\${ingreso}/g, varIngreso);
+    if (retribucion > 0)
+      htmlEgreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retribucion)}</td></tr>`
+    if (retenciones > 0)
+      htmlIngreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retenciones)}</td></tr>`
 
-    let varDepositoTxt = textDeposito.map(item => item.toString().replace(/,Banco:/g, '<br>Banco')).join('<br>')
-    htmlContent = htmlContent.replace(/\${textDeposito}/g, varDepositoTxt);
 
-    let varDeposito = deposito.map(item => item.toString().replace(/,/g, '<br>')).join().replace(/,/g, '')
-    htmlContent = htmlContent.replace(/\${deposito}/g, varDeposito);
+    neto = retenciones - retribucion
+    const textneto = this.convertirNumeroALetras(neto);
+    //let textneto = `cien cien cien  `
+
+
+    htmlContent = htmlContent.replace(/\${retribucion}/g, this.currencyPipe.format(retribucion));
+    htmlContent = htmlContent.replace(/\${retenciones}/g, this.currencyPipe.format(retenciones));
+
+    htmlContent = htmlContent.replace(/\${textegreso}/g, htmlEgreso);
+    htmlContent = htmlContent.replace(/\${textingreso}/g, htmlIngreso);
+    htmlContent = htmlContent.replace(/\${textdeposito}/g, htmlDeposito);
+
 
     htmlContent = htmlContent.replace(/\${textneto}/g, textneto.toString())
-    htmlContent = htmlContent.replace(/\${neto}/g, neto.toString());
-    footerContent = footerContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
+    htmlContent = htmlContent.replace(/\${neto}/g, this.currencyPipe.format(neto));
 
-    const combinedContent = `${htmlContent}`;
-
-    // Inicializa Puppeteer
     const page = await browser.newPage();
 
-    // Establece el contenido HTML en la página
-    await page.setContent(combinedContent);
+        await fsPromises.writeFile(filesPath+'.html',htmlContent)
+    await page.setContent(htmlContent);
     await page.pdf({
       path: filesPath,
       margin: { top: '150px', right: '50px', bottom: '100px', left: '50px' },

@@ -39,6 +39,13 @@ export class BaseController {
 			req.socket.remoteAddress
   }
 
+
+  currencyPipe = Intl.NumberFormat("de-DE", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+
   async hasGroup(req:any,group:string) { 
     let inGroup = false
     if (req?.groups) {
