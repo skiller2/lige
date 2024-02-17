@@ -103,11 +103,12 @@ export class RecibosController extends BaseController {
         const persona_id = movimiento.PersonalId
         const filesPath = directorPath + '/' + persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
         const nombre_archivo = persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
-        const doc_id = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
+        const docgeneral = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
+        const idrecibo = await this.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
 
         await this.setUsuariosLiquidacionDocGeneral(
           queryRunner,
-          doc_id,
+          docgeneral,
           periodo_id,
           fechaActual,
           persona_id,
@@ -117,7 +118,8 @@ export class RecibosController extends BaseController {
           usuario,
           ip,
           fechaActual,
-          "REC"
+          "REC",
+          idrecibo
 
         )
 
@@ -129,7 +131,7 @@ export class RecibosController extends BaseController {
 
 
 
-        await this.createPdf(queryRunner, filesPath, persona_id, doc_id, PersonalNombre, Cuit, Domicilio, Asociado,
+        await this.createPdf(queryRunner, filesPath, persona_id, idrecibo, PersonalNombre, Cuit, Domicilio, Asociado,
           Grupo, periodo_id, page,htmlContentPre, headerContent, footerContent)
         
 
@@ -168,7 +170,7 @@ export class RecibosController extends BaseController {
   async createPdf(queryRunner: QueryRunner,
     filesPath: string,
     persona_id: number,
-    doc_id: number,
+    idrecibo: number,
     PersonaNombre: string,
     Cuit: string,
     Domicilio: string,
@@ -181,7 +183,7 @@ export class RecibosController extends BaseController {
     footerContent: string,
   ) {
 
-    headerContent = headerContent.replace(/\${doc_id}/g, doc_id.toString());
+    headerContent = headerContent.replace(/\${idrecibo}/g, idrecibo.toString());
     htmlContent = htmlContent.replace(/\${PersonaNombre}/g, PersonaNombre);
     htmlContent = htmlContent.replace(/\${Cuit}/g, Cuit.toString());
     htmlContent = htmlContent.replace(/\${Domicilio}/g, Domicilio);
@@ -311,7 +313,7 @@ export class RecibosController extends BaseController {
 
   async setUsuariosLiquidacionDocGeneral(
     queryRunner: any,
-    doc_id: number,
+    docgeneral: number,
     periodo: number,
     fecha: Date,
     persona_id: number,
@@ -321,15 +323,16 @@ export class RecibosController extends BaseController {
     usuario: string,
     ip: string,
     audfecha: Date,
-    doctipo_id: string
+    doctipo_id: string,
+    idrecibo : number
 
   ) {
 
-    return queryRunner.query(`INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "persona_id", "objetivo_id", "path", "nombre_archivo", "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod", "doctipo_id")
+    return queryRunner.query(`INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "persona_id", "objetivo_id", "path", "nombre_archivo", "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod", "doctipo_id", "idrecibo")
     VALUES
-    (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13);`,
+    (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14);`,
       [
-        doc_id,
+        docgeneral,
         periodo,
         fecha,
         persona_id,
@@ -338,7 +341,7 @@ export class RecibosController extends BaseController {
         nombre_archivo,
         usuario, ip, audfecha,
         usuario, ip, audfecha,
-        doctipo_id
+        doctipo_id,idrecibo
       ])
 
   }
