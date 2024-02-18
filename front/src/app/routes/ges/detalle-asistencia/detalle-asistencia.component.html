@@ -51,9 +51,9 @@
           <span nz-icon nzType="download"></span><span style="white-space: normal;">Banelco</span>
         </li>
         
-        <li nz-menu-item app-down-file [httpMethod]="'POST'"
-        [httpBody]="{'Reporte':'recibo','Formato':'pdf', 'Filtros': {'Anio':selectedPeriod.year,'Mes':selectedPeriod.month, 'Jerarquico':responsable}}"
-        httpUrl="/api/recibos/downloadfull/{{selectedPeriod.year}}/{{selectedPeriod.month}}" notificationMsg="Generando Informe Banelco">
+        <li  *ngIf="personalIdString.length > 0" nz-menu-item app-down-file [httpMethod]="'POST'"
+        [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month, 'lista':personalIdString}"
+        httpUrl="/api/recibos/downloadfull" notificationMsg="Generando Recibos">
         <span nz-icon nzType="download"></span><span style="white-space: normal;">Recibo Full</span>
       </li>
 

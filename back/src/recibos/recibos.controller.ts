@@ -393,47 +393,54 @@ export class RecibosController extends BaseController {
   }
 
 
-  async bindPdf(
-    year: string,
-    month: string,
-    arrayPeronalId: string,
-    res: Response,
-    req: Request,
-    next: NextFunction) {
+  async bindPdf( req: Request, res: Response, next: NextFunction) {
 
-    let usuario = res.locals.userName
+    const queryRunner = dataSource.createQueryRunner()
+    const {
+      Usuario,
+      Anio,
+      Mes,
+      lista
+    } = req.body
+
+    const user = (res.locals.userName)? res.locals.userName : Usuario
+      if (!user)
+        throw new ClientException(`Usuario no identificado`)
+
     let ip = this.getRemoteAddress(req)
-    const queryRunner = dataSource.createQueryRunner();
 
-    let perosonalIds = JSON.parse(arrayPeronalId)
-    perosonalIds = arrayPeronalId.split(",")
+    console.log("lista" , JSON.parse(lista))
+    console.log("Anio" , Anio)
+    console.log("Mes" , Mes)
+    let perosonalIds = JSON.parse(lista)
+    // perosonalIds = arrayPeronalId.split(",")
 
 
 
 
     try {
       let fechaActual = new Date();
-      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseInt(year), parseInt(month), usuario, ip);
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
 
       const pathFile = await this.getparthFile(queryRunner, periodo_id, perosonalIds)
       console.log("pathFile", pathFile)
-      const rutaDirectorio = this.directoryRecibo + '/' + String(year) + String(month).padStart(2, '0') + '/' + periodo_id;
+      const rutaDirectorio = this.directoryRecibo + '/' + String(Anio) + String(Mes).padStart(2, '0') + '/' + periodo_id;
       const pdfBytes = await this.joinPDFsOnPath(rutaDirectorio);
-      const rutaPDF = path.join(this.directoryRecibo, `pdf_${year}${month}.pdf`);
+      const rutaPDF = path.join(this.directoryRecibo, `pdf_${Anio}${Mes}.pdf`);
 
 
-      // fs.writeFileSync(rutaPDF, pdfBytes);
-      // console.log('PDF guardado en la ruta especificada:', rutaPDF);
-      // res.download(rutaPDF, `pdf_${year}${month}.pdf`, async (err) => {
-      //     if (err) {
-      //         console.error('Error al descargar el PDF:', err);
-      //         return next(err);
-      //     } else {
-      //         console.log('PDF descargado con éxito');
-      //         fs.unlinkSync(rutaPDF);
-      //         console.log('PDF eliminado del servidor');
-      //     }
-      // });
+      fs.writeFileSync(rutaPDF, pdfBytes);
+      console.log('PDF guardado en la ruta especificada:', rutaPDF);
+      res.download(rutaPDF, `pdf_${Anio}${Mes}.pdf`, async (err) => {
+          if (err) {
+              console.error('Error al descargar el PDF:', err);
+              return next(err);
+          } else {
+              console.log('PDF descargado con éxito');
+              fs.unlinkSync(rutaPDF);
+              console.log('PDF eliminado del servidor');
+          }
+      });
     } catch (error) {
       return next(error)
     }
@@ -442,7 +449,7 @@ export class RecibosController extends BaseController {
 
   async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: any) {
     const personalIdsString = perosonalIds.join(', ');
-    return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0 AND personal_id IN (${personalIdsString})`, [periodo_id])
+    return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0 AND persona_id IN (${personalIdsString})`, [periodo_id])
   }
 
   async joinPDFsOnPath(rutaDirectorio) {

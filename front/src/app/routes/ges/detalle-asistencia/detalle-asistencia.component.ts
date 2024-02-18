@@ -7,6 +7,7 @@ import {
   Subject,
   catchError,
   debounceTime,
+  elementAt,
   filter,
   of,
   switchMap,
@@ -93,6 +94,9 @@ export class DetalleAsistenciaComponent {
   listaIngresosExtraPerTotalHoras = 0
   //listaAsistenciaObjTotalHoras = 0
   objetivoIdSelected = 0;
+  PersonalIdlist = []
+  personalIdListarray = []
+  personalIdString = ""
 
   $isSucursalOptionsLoading = new BehaviorSubject(false);
 
@@ -276,7 +280,22 @@ export class DetalleAsistenciaComponent {
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
-        (tap(data => { /*this.listaDescuentosPerTotal = data.total*/ })
+        (tap(data => { 
+          this.PersonalIdlist = data.persxresp
+
+          if(this.PersonalIdlist != undefined) {
+
+            for(let personalarray of this.PersonalIdlist){
+
+              this.personalIdListarray.push(personalarray["PersonalId"])
+            }
+
+            this.personalIdString = JSON.stringify(this.personalIdListarray)
+            console.log( this.personalIdString)
+
+          }
+          
+        })
         )))
 
   $personaMonotributo = this.$selectedPersonalIdChange.pipe(
