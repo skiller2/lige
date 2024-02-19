@@ -126,7 +126,7 @@ export class RecibosController extends BaseController {
         const PersonalNombre = movimiento.PersonalNombre
         const Cuit = movimiento.PersonalCUITCUILCUIT
         const Domicilio = (movimiento.DomicilioCompleto) ? movimiento.DomicilioCompleto : 'Sin especificar'
-        const Asociado = movimiento.PersonalNroLegajo
+        const Asociado = (movimiento.PersonalNroLegajo) ? movimiento.PersonalNroLegajo.toString() : 'Pendiente'
         const Grupo = (movimiento.GrupoActividadDetalle) ? movimiento.GrupoActividadDetalle : 'Sin asignar' 
 
 
@@ -174,7 +174,7 @@ export class RecibosController extends BaseController {
     PersonaNombre: string,
     Cuit: string,
     Domicilio: string,
-    Asociado: number,
+    Asociado: string,
     Grupo:string,
     periodo_id: number,
     page: Page,
@@ -233,7 +233,7 @@ export class RecibosController extends BaseController {
 
     htmlContent = htmlContent.replace(/\${textneto}/g, this.convertirNumeroALetras(neto))
     htmlContent = htmlContent.replace(/\${neto}/g, this.currencyPipe.format(neto));
-    htmlContent = htmlContent.replace(/\${asociado}/g, Asociado.toString());
+    htmlContent = htmlContent.replace(/\${asociado}/g, Asociado);
     htmlContent = htmlContent.replace(/\${grupo}/g, Grupo);
 
     await page.setContent(htmlContent);
