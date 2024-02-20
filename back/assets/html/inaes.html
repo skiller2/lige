@@ -1,16 +1,44 @@
-<table width="100%" align="center" style=" border-top: none;">
+<html>
+
+<head>
+  <style>
+    .tb-detalle td:first-child+td {
+      width: 6em;
+      text-align: right;
+      vertical-align: bottom;
+    }
+
+    .tb-detalle {
+      width: 100%;
+    }
+
+    .subtotal td {
+      text-align: right;
+    }
+
+    .firma td {
+      vertical-align: bottom;
+      height: 150px;
+    }
+
+    .firma {
+      text-align: center;
+    }
+
+    .subtitle {
+      background-color: #AAAAAA;
+    }
+
+    .neto {
+      color: #FFFFFF;
+      background-color: #303233;
+    }
+  </style>
+</head>
+
+<body>
+  <table width="100%" align="center" style=" border-top: none;">
     <tbody>
-      <tr>
-        <td colspan="2">
-              <div style="text-align: center;">
-              <span >RECIBO DE RETRIBUCION</span>
-              </div>
-              <div style="text-align: end;margin-bottom: 20px;">
-               <span style="display: block">N°: ${doc_id}</span>
-               <span style="display: block">fecha: ${fechaFormateada} </span>
-        </div>
-              </td>
-      </tr>
       <tr>
         <td>Razón Social</td>
         <td> COOP DETRABAJO LINCE SEGURIDAD LTDA</td>
@@ -28,7 +56,7 @@
         <td></td>
       </tr>
       <tr>
-        <td colspan="2" bgcolor="#AAAAAA" style="text-align: CENTER;">DATOS DE PERSONA ASOCIADA</td>
+        <td colspan="2" class="subtitle" style="text-align: center;">DATOS DE PERSONA ASOCIADA</td>
       </tr>
       <tr>
         <td>NOMBRE</td>
@@ -42,68 +70,77 @@
         <td>DOMICILIO</td>
         <td>${Domicilio}</td>
       </tr>
-      <!-- <tr>
-        <td colspan="2" bgcolor="#AAAAAA" style="text-align: CENTER;">DATOS DEL PAGO</td>
+      <tr>
+        <td>ASOCIADO</td>
+        <td>${asociado}</td>
       </tr>
       <tr>
-        <td>RETRIBUCION</td>
-        <td>${retribucion}</td>
-              
+        <td>GRUPO</td>
+        <td>${grupo}</td>
       </tr>
       <tr>
-        <td>RETENCIONES</td>
-        <td>${retenciones}</td>
-      </tr> -->
-      <tr>
-        <td  colspan="2" bgcolor="#AAAAAA">DETALLE DE RETRIBUCIONES</td>
+        <td colspan="2" class="subtitle">DETALLE DE RETRIBUCIONES</td>
       </tr>
       <tr>
-        <td> 
-          <div style="margin-bottom: 20px;margin-top: 20px;">${textingreso}</div>
-         </td>
-         <td><p style="text-align: right;">${ingreso} </p></td> 
-      </tr>
-      <tr>
-       
-        <td  colspan="2" bgcolor="#AAAAAA" >DETALLE DE RETENCIONES</td>
-      </tr>
-      <tr>
-        <td> 
-          <div style="margin-bottom: 20px;margin-top: 20px;">${textegreso} 
-          </div>
+        <td colspan="2">
+          <table class="tb-detalle">
+            <tbody>${textingreso}</tbody>
+          </table>
         </td>
-        <td><p style="text-align: right;">${egreso} </p></td> 
+      </tr>
+
+      <tr>
+
+        <td colspan="2" class="subtitle">DETALLE DE RETENCIONES</td>
       </tr>
       <tr>
-        <td bgcolor="#AAAAAA">RETRIBUCION NETA</td>
-        <td bgcolor="#AAAAAA"><p style="text-align: right;">${neto} </p></td> 
+        <td colspan="2">
+          <table class="tb-detalle">
+            <tbody>${textegreso}</tbody>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" class="subtitle">RETRIBUCIÓN NETA</td>
       </tr>
       <tr>
         <td colspan="2">${textneto}</td>
       </tr>
-      <tr >
-        <td colspan="2" bgcolor="#AAAAAA">DETALLE DEPOSITO</td>
+      <tr>
+        <td colspan="2">
+          <table class="tb-detalle">
+            <tbody><tr class="subtotal neto"><td>Neto:</td><td>${neto}</td></tr></tbody>
+          </table>
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="2" class="subtitle">DETALLE DEPÓSITO</td>
       </tr>
       <tr>
-      <td >
-      <div style="margin-bottom: 20px;margin-top: 20px;"> ${textDeposito}
-      </div>
-      </td>
-      <td ><p style="text-align: right;">${deposito} </p></td>
-    </tr>
-      <tr style="text-align: center;">
-        <td>
-           <div style="margin-bottom: 20px;margin-top: 30px;">
-             <span style="border-top: 1px black solid;">Firma Tesorera/o</span>
-             </div>
-         </td>
-       <td> 
-              
-           <div style="margin-bottom: 20px;margin-top: 30px;">
-             <span style="border-top: 1px black solid;">Firma Asociada/o</span>
-             </div>
-           </td>
+        <td colspan="2">
+          <table class="tb-detalle">
+            <tbody>${textdeposito}</tbody>
+          </table>
+        </td>
       </tr>
-          
+
+      <tr class="firma">
+        <td>
+          <div style="margin-bottom: 20px;margin-top: 30px;">
+            <span style="border-top: 1px black solid;">Firma Tesorera/o</span>
+          </div>
+        </td>
+        <td>
+
+          <div style="margin-bottom: 20px;margin-top: 30px;">
+            <span style="border-top: 1px black solid;">Firma Asociada/o</span>
+          </div>
+        </td>
+      </tr>
+
     </tbody>
   </table>
+</body>
+
+</html>

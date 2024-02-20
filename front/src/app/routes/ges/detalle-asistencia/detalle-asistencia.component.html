@@ -50,6 +50,12 @@
           httpUrl="api/informes/descarga" notificationMsg="Generando Informe Banelco">
           <span nz-icon nzType="download"></span><span style="white-space: normal;">Banelco</span>
         </li>
+        
+        <li  *ngIf="personalIdString.length > 0" nz-menu-item app-down-file [httpMethod]="'POST'"
+        [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month, 'lista':personalIdString}"
+        httpUrl="/api/recibos/downloadfull" notificationMsg="Generando Recibos">
+        <span nz-icon nzType="download"></span><span style="white-space: normal;">Recibo Full</span>
+      </li>
 
       </ul>
 
@@ -512,12 +518,6 @@
               (ngModelChange)="selectedValueChange($event, Busqueda.Responsable)" [(ngModel)]="responsable" />
           </nz-form-control>
         </nz-form-item>
-        <nz-list nzBordered nzSize="small">
-          <nz-list-item >
-            <a app-down-file
-              httpUrl="/api/recibos/downloadfull/{{selectedPeriod.year}}/{{selectedPeriod.month}}"><span
-                nz-icon nzType="download"></span>Recibo Full</a></nz-list-item>
-        </nz-list>
       </form>
 
       <nz-table #listPer [nzData]="($listaPersonal | async)?.persxresp" nzSize="small" [nzPageSize]="100000000"

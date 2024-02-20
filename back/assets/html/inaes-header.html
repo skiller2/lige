@@ -1,18 +1,30 @@
-<style>
-    /* Estilo para quitar el borde inferior de la última fila */
-    tr:last-child td {
-        border-bottom: none;
-    }
-</style>
-<table width="100%" align="center" style=" border-bottom: none;">
+<table width="100%" align="center" style=" border-bottom: none;font-size: 14px;">
     <tbody>
-        
       <tr>
-        <td colspan="2">
-              <div>
-              <img src="data:image/png;base64,${imgBase64}" style="margin-left: 15%;" alt="texto alternativo" width="ancho" height="alto" style="display:block">
-              </div>
+            <td >
+                <div>
+                    <img src="data:image/png;base64,${imgBase64}" style="margin-left: 15%;" alt="texto alternativo" width="ancho" height="alto" style="display:block">
+                </div>
+               
+            </td>
             <td>
+                <div style="text-align: end;margin-bottom: 20px;margin-right: 15%;">
+                    <span style="display: block">N°: ${idrecibo}</span>
+                    <span style="display: block">fecha: ${fechaFormateada} </span>
+                </div>
+            </td>
+        </tr>
         <tr>
+            <td colspan="2">
+                <div style="text-align: center; ">
+                    <span>RECIBO DE RETRIBUCIÓN</span>
+                   </div>
+                   <div style="text-align: center;">
+                       <span>Período ${mes}/${anio}</span>
+                   </div>
+       
+                  
+            </td>
+        </tr>
     </tbody>
   </table>
