@@ -400,6 +400,7 @@ export class RecibosController extends BaseController {
       Usuario,
       Anio,
       Mes,
+      isfull,
       lista
     } = req.body
 
@@ -408,28 +409,36 @@ export class RecibosController extends BaseController {
         throw new ClientException(`Usuario no identificado`)
 
     let ip = this.getRemoteAddress(req)
+    let perosonalIds
+    let pathFile:any
 
-    console.log("lista" , JSON.parse(lista))
-    console.log("Anio" , Anio)
-    console.log("Mes" , Mes)
-    let perosonalIds = JSON.parse(lista)
-    // perosonalIds = arrayPeronalId.split(",")
-
-
-
-
+    if(lista.length  > 0 )
+      perosonalIds = JSON.parse(lista)
     try {
       let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
 
-      const pathFile = await this.getparthFile(queryRunner, periodo_id, perosonalIds)
-      console.log("pathFile", pathFile)
-      const rutaDirectorio = this.directoryRecibo + '/' + String(Anio) + String(Mes).padStart(2, '0') + '/' + periodo_id;
-      const pdfBytes = await this.joinPDFsOnPath(rutaDirectorio);
+      if(isfull){
+        pathFile = await this.getparthFileFull(queryRunner, periodo_id)
+      }else{
+        pathFile = await this.getparthFile(queryRunner, periodo_id, perosonalIds)
+      }
       const rutaPDF = path.join(this.directoryRecibo, `pdf_${Anio}${Mes}.pdf`);
+      const mergedPdf = await PDFDocument.create();
 
+      for (const filePath of pathFile) {
+        try {
+          const pdfBytes = await fs.promises.readFile(filePath.path);
+          const pdfDoc = await PDFDocument.load(pdfBytes);
+          const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+          copiedPages.forEach((page) => mergedPdf.addPage(page));
+        } catch (error) {
+          console.error(`Error al procesar el archivo ${filePath}:`, error.message);
+        }
+      }
 
-      fs.writeFileSync(rutaPDF, pdfBytes);
+      const mergedPdfBytes = await mergedPdf.save();
+      fs.writeFileSync(rutaPDF, mergedPdfBytes);
       console.log('PDF guardado en la ruta especificada:', rutaPDF);
       res.download(rutaPDF, `pdf_${Anio}${Mes}.pdf`, async (err) => {
           if (err) {
@@ -450,6 +459,10 @@ export class RecibosController extends BaseController {
   async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: any) {
     const personalIdsString = perosonalIds.join(', ');
     return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0 AND persona_id IN (${personalIdsString})`, [periodo_id])
+  }
+
+  async getparthFileFull(queryRunner: QueryRunner, periodo_id: number) {
+    return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0`, [periodo_id])
   }
 
   async joinPDFsOnPath(rutaDirectorio) {
