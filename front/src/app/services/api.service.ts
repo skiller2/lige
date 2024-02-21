@@ -593,6 +593,13 @@ export class ApiService {
       map((res: any) => res.data)
     );
   }
+
+  getUltimoDeposito() {
+    const path = `mess/api/personal/ultDeposito`;
+    return this.http.get(path).pipe(
+      map((res: any) => res.data)
+    );
+  }
   
 
   addAdelanto(adelanto: { PersonalId: string; monto: number }) {

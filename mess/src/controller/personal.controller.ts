@@ -26,7 +26,7 @@ export class PersonalController extends BaseController {
     const cuit = req.params.cuit;
     try {
       const result = await dataSource.query(
-        `SELECT TOP 1 persona_id,periodo_id,importe FROM dbo.liqmamovimientos WHERE persona_id=28748 AND  tipo_movimiento_id=11
+        `SELECT TOP 1 persona_id,periodo_id,importe FROM lige.dbo.liqmamovimientos WHERE persona_id=28748 AND  tipo_movimiento_id=11
         ORDER BY periodo_id DESC ,movimiento_id DESC`
       );
       return this.jsonRes(result, res);

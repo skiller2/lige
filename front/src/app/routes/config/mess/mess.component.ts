@@ -27,6 +27,7 @@ import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row
 })
 export class MessComponent {
   messInfo = signal({'msg':'descansando'})
+  ultimoDeposito = signal({'msg':'descansando'})
   private apiService = inject(ApiService)
   async getMessInfo() {
     try {
@@ -34,6 +35,14 @@ export class MessComponent {
     } catch (e) {
       console.log(e)
       this.messInfo.set({'msg':'error'})
+    }
+  }
+  async getUltimoDeposito() {
+    try {
+      this.ultimoDeposito.set(await firstValueFrom(this.apiService.getUltimoDeposito()))
+    } catch (e) {
+      console.log(e)
+      this.ultimoDeposito.set({'msg':'error'})
     }
   }
 }
