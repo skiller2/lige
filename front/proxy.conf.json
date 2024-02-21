@@ -1,4 +1,14 @@
 {
+  "/mess/api": {
+    "target": "http://localhost:3010/",
+    "secure": false,
+    "pathRewrite": {
+      "^/mess": ""
+    },
+    "logLevel": "debug",
+    "changeOrigin": true
+  
+  },
   "/api": {
     "target": "http://localhost:3000/",
     "secure": false
