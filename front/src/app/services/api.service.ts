@@ -587,6 +587,21 @@ export class ApiService {
 
   }
 
+  getMessInfo() {
+    const path = `mess/api/info/dbstatus`;
+    return this.http.get(path).pipe(
+      map((res: any) => res.data)
+    );
+  }
+
+  getUltimoDeposito() {
+    const path = `mess/api/personal/ultDeposito`;
+    return this.http.get(path).pipe(
+      map((res: any) => res.data)
+    );
+  }
+  
+
   addAdelanto(adelanto: { PersonalId: string; monto: number }) {
     return this.http.post<ResponseJSON<any>>(`api/adelantos`, adelanto).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
   }
@@ -624,3 +639,5 @@ export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T
     });
   };
 }
+
+

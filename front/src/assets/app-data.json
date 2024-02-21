@@ -115,6 +115,11 @@
           "text": "Telefonia",
           "link": "/ges/telefonia",
           "icon": "anticon-profile"
+        },
+        {
+          "text": "Configuración",
+          "link": "/config/mess",
+          "icon": "anticon-info"
         }
       ]
     }

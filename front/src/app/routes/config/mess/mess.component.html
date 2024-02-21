@@ -1,0 +1,15 @@
+<nz-card class="small-margin">
+    <button nz-popconfirm nzType="primary" class="btn-add"
+    nz-button (click)="getMessInfo()">
+    Obtener estado mess
+  </button>
+  <p>{{ messInfo() | json }}</p>
+  <button nz-popconfirm nzType="primary" class="btn-add"
+  nz-button (click)="getUltimoDeposito()">
+  Obtener ultimo depósito
+</button>
+<p>{{ ultimoDeposito() | json }}</p>
+
+
+</nz-card>
+

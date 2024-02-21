@@ -33,6 +33,7 @@ export const routes: Routes = [
 //      { path: 'sys', loadChildren: () => import('./sys/sys.module').then(m => m.SysModule) },
       { path: 'test', loadChildren: () => import('./test/routes').then(m => m.routes) },
       { path: 'ges', loadChildren: () => import('./ges/ges.routes').then(r => r.GesRoutes) },
+      { path: 'config', loadChildren: () => import('./config/config.routes').then(c => c.ConfigRoutes) },
       // { path: 'ges', loadChildren: () => import('./ges/ges.module').then(m => m.GesModule) },
     ],
   },
