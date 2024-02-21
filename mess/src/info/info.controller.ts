@@ -1,4 +1,4 @@
-import { BaseController } from "../base/base.controller";
+import { BaseController } from "../controller/base.controller";
 import { dataSource } from "../data-source";
 import { Request, Response, NextFunction } from "express";
 

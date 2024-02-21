@@ -92,6 +92,7 @@ export class LiquidacionesComponent {
   selectedMovimientoId = '';
   gridDataImportLen = 0
   NotificationIdForDelete = 0;
+  personalIdString = [];
 
   $selectedCuentalIdChange = new BehaviorSubject('');
   $isCuentaDataLoading = new BehaviorSubject(false);
