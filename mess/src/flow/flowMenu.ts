@@ -11,8 +11,8 @@ const flowMenu = addKeyword(EVENTS.ACTION)
         // '3- *Pedido de Licencia*',
         // '4- *Envío de Constancia médica*'
     ], 
-    { capture: true, idle: 1000}, 
-    async (ctx, { flowDynamic, state, fallBack}) => {
+    { capture: true }, 
+    async (ctx, { fallBack }) => {
         const numeros = ['1','2','3','4']
         if (!numeros.includes(ctx.body)) {
             return fallBack()
