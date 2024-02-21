@@ -7,6 +7,7 @@ build/
 dist/
 tmp/
 temp/
+bot_sessions/
 uploads/
 recibos/
 core.class.log

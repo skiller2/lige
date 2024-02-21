@@ -412,7 +412,7 @@ export class RecibosController extends BaseController {
     let perosonalIds
     let pathFile:any
 
-    if(lista.length  > 0 )
+    if(lista && lista.length  > 0 )
       perosonalIds = JSON.parse(lista)
     try {
       let fechaActual = new Date();
@@ -423,7 +423,7 @@ export class RecibosController extends BaseController {
       }else{
         pathFile = await this.getparthFile(queryRunner, periodo_id, perosonalIds)
       }
-      const rutaPDF = path.join(this.directoryRecibo, `pdf_${Anio}${Mes}.pdf`);
+      const rutaPDF = path.join(this.directoryRecibo, `recibos_${Anio}${Mes}.pdf`);
       const mergedPdf = await PDFDocument.create();
 
       for (const filePath of pathFile) {

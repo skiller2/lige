@@ -34,11 +34,11 @@
             [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('Art42')">
             <span nz-icon nzType="plus" nzTheme="outline"></span>Art.42
           </li>
-          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros ?" [nzBeforeConfirm]=""
+          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros?" [nzBeforeConfirm]=""
             [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('ingresosCoordinadorDeCuenta')">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Ingresos por coordinador de cuenta
           </li>
-          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros ?" [nzBeforeConfirm]=""
+          <li *ngIf="false" nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros?" [nzBeforeConfirm]=""
             [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('descuentoPorDeudaAnterior')">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Descuentos por deuda período anterior
           </li>
@@ -58,11 +58,6 @@
             [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('generarRecibos')">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Genera Recibos
           </li>
-          <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month, 'lista':personalIdString,'isfull': true }"
-            httpUrl="/api/recibos/downloadfull" notificationMsg="Generando Recibos">
-            <span nz-icon nzType="download"></span><span style="white-space: normal;">Recibo Full</span>
-          </li>
         </ul>
       </li>
 
@@ -77,6 +72,13 @@
           <li nz-menu-item (click)="exportGrid()">
             <span nz-icon nzType="download"></span><span style="white-space: normal;">Grilla</span>
           </li>
+
+          <li nz-menu-item app-down-file [httpMethod]="'POST'"
+            [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month,'isfull': true }"
+            httpUrl="/api/recibos/downloadfull" notificationMsg="Descaga Recibos">
+            <span nz-icon nzType="download"></span><span style="white-space: normal;">Todos los Recibos en PDF</span>
+          </li>
+
 
         </ul>
 
@@ -149,12 +151,11 @@
 
           <form nz-form #telefonoForm="ngForm">
             <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
-
               <nz-form-item>
                 <nz-form-control [nzSpan]="5">
                   <nz-form-label [nzSpan]="10">Tipo de Cuenta</nz-form-label>
                   <ng-container>
-                    <nz-select #sucursal="ngModel" nzSpan="15" name="SucursalId" [(ngModel)]="selectedCuentalId"
+                    <nz-select #sucursal="ngModel" nzSpan="15" name="SucursalId" (ngModel)="selectedCuentalId"
                       (ngModelChange)="selectedValueChange($event)" nzAllowClear nzPlaceHolder="Cuenta"
                       [nzDropdownMatchSelectWidth]="false" nzShowSearch>
                       <ng-container *ngFor="let option of $optionsCuenta | async">
@@ -170,7 +171,7 @@
                 <nz-form-control [nzSpan]="7">
                   <nz-form-label [nzSpan]="10">Tipo de Movimiento</nz-form-label>
                   <ng-container>
-                    <nz-select #sucursal="ngModel" nzSpan="15" name="MovimientoId" [(ngModel)]="selectedMovimientoId"
+                    <nz-select #sucursal="ngModel" nzSpan="15" name="MovimientoId" (ngModel)="selectedMovimientoId"
                       (ngModelChange)="selectedValueChangeMovimiento($event)" nzAllowClear nzPlaceHolder="Movimiento"
                       [nzDropdownMatchSelectWidth]="false" nzShowSearch>
                       <ng-container *ngFor="let option of $optionsMovimiento | async">
