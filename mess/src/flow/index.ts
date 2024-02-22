@@ -66,7 +66,7 @@ const flowPrincipal = addKeyword(EVENTS.WELCOME)
     //     const deposito = parseFloat(ctx.body)
     //     const myState = state.getMyState()
     //     await flowDynamic(`⏱️ Dame un momento`)
-    //     const res = await personalController.getUltDeposito(myState.personalId)
+    //     let res = await personalController.getUltDepositoQuery(myState.personalId)
     //     if (res.length = 0) {
     //         return gotoFlow(flowMenu)
     //     }
@@ -74,6 +74,10 @@ const flowPrincipal = addKeyword(EVENTS.WELCOME)
     //     if (deposito < ultDeposito - 1 && deposito > ultDeposito + 1 ) {
     //         await flowDynamic(`Valor incorrecto`)
     //         return fallBack()
+    //     }
+    //     res = await personalController.getTelefonoPersonalQuery(myState.personalId)
+    //     if (res.length != 0){
+    //         // await personalController.addTelefonoPersonalQuery()
     //     }
     //     return gotoFlow(flowMenu)
     // })
