@@ -118,8 +118,19 @@
         },
         {
           "text": "Configuración",
-          "link": "/config/mess",
-          "icon": "anticon-info"
+          "icon": "anticon-profile",
+          "children": [
+            {
+              "text": "ChatBot",
+              "link": "/config/mess",
+              "icon": "anticon-info"
+            },
+            {
+              "text": "Recibo",
+              "link": "/config/recibo",
+              "icon": "anticon-profile"
+            }
+          ]
         }
       ]
     }
