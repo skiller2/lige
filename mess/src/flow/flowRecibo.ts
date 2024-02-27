@@ -7,15 +7,14 @@ const { addKeyword } = BotWhatsapp
 
 
 
-const flowMonotributo = addKeyword(['1','monotributo', 'mono', 'm'])
+const flowRecibo = addKeyword(['2','recibo de retiro', 'recibo', 'r'])
     .addAction(async (_, { flowDynamic, state }) => {
         const myState = state.getMyState()
         const fecha = new Date
         const personalId = myState.personalId
         const anio = fecha.getFullYear()
         const mes = fecha.getMonth()+1
-        const cuit = myState.cuit
-        const respuesta = await personalController.downloadComprobanteLinkMonotributo(personalId, cuit, anio, mes)
+        const respuesta = await personalController.downloadComprobanteLinkRecibo(personalId, anio, mes)
         await flowDynamic(`📥 Link de descarga 📥`)
         await flowDynamic(respuesta)
     })
@@ -32,4 +31,4 @@ const flowMonotributo = addKeyword(['1','monotributo', 'mono', 'm'])
         }
     }, [flowEnd])
 
-export default flowMonotributo
+export default flowRecibo
