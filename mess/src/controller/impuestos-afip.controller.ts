@@ -25,16 +25,15 @@ import { tmpName } from "../server";
 
 export class ImpuestosAfipController extends BaseController {
     
-    directory = process.env.PATH_MONOTRIBUTO || "tmp";
+  directory = process.env.PATH_MONOTRIBUTO || "tmp";
     
-    async downloadComprobante(
-    year: string,
-    month: string,
-    cuit: string,
-    personalId: string,
-    res: Response,
-    next: NextFunction
-  ) {
+  async downloadComprobante( req : Request, res: Response, next: NextFunction){
+    
+    const year: string = req.params.anio
+    const month: string = req.params.mes
+    const cuit: string = req.params.CUIT
+    const personalId: string = req.params.PersonalId
+
     const queryRunner = dataSource.createQueryRunner();
 
     const dirtmp = `${process.env.PATH_MONOTRIBUTO}/temp`;
