@@ -50,7 +50,7 @@ export class PersonalController extends BaseController {
   }
     
   async getUltDeposito(req: any, res: Response, next:NextFunction) {
-    const personalId = req.params.personalId;
+    const personalId = req.body.personalId;
     try {
       const result = await this.getUltDepositoQuery(personalId)
       return this.jsonRes(result, res);
