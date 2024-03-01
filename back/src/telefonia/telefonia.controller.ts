@@ -111,6 +111,8 @@ export class TelefoniaController extends BaseController {
     const filterSql = filtrosToSql(options.filtros, this.listaColumnas);
     const orderBy = orderToSQL(options.sort)
 
+    fecha.setHours(0, 0, 0, 0)
+
     return dataSource.query(
       `SELECT tel.TelefoniaId id,tel.TelefoniaId, tel.TelefoniaNro, obj.ObjetivoDescripcion, CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)) ApellidoNombre,
         tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe,
@@ -242,6 +244,11 @@ export class TelefoniaController extends BaseController {
         if (TelefoniaNro === 'undefined')
           continue
 
+        if (telefonos.filter(tel => tel.TelefoniaNro.trim() === TelefoniaNro.trim()).length > 1) {
+          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` se encuentra asignado a mas de una persona` })
+          continue
+        }
+          
         const idx = telefonos.findIndex(tel => tel.TelefoniaNro.trim() === TelefoniaNro.trim())
         const fimpplanvoz = parseFloat(row[1])
         const fserviciosvoz = parseFloat(row[2])
