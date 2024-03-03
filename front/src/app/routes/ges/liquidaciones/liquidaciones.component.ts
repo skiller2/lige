@@ -6,7 +6,7 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
-import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, SlickGrid,OnEventArgs  } from 'angular-slickgrid';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -92,6 +92,9 @@ export class LiquidacionesComponent {
   selectedMovimientoId = '';
   gridDataImportLen = 0
   NotificationIdForDelete = 0;
+  PersonalIdForReceip =  0;
+  PersonalIdUnique = [];
+  PersonalNameForReceip = "";
 
   $selectedCuentalIdChange = new BehaviorSubject('');
   $isCuentaDataLoading = new BehaviorSubject(false);
@@ -251,7 +254,8 @@ export class LiquidacionesComponent {
             // this.gridDataLen = data?.list?.length
             // this.gridDataLen = data.list?.length
             // this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
-
+            this.cleanerVariables();
+            this.PersonalIdUnique = data?.list
             return data?.list
           }),
           doOnSubscribe(() => this.loadingSrv.open()),
@@ -260,6 +264,20 @@ export class LiquidacionesComponent {
     })
   )
 
+  cleanerVariables(){
+    this.PersonalIdForReceip = 0
+    this.PersonalNameForReceip = "" 
+  }
+
+  handleSelectedRowsChanged1(e: any) {
+    if (Array.isArray(e.detail.args.rows)) {
+     
+      let rowValue= e.detail.args.rows
+      this.PersonalIdUnique
+      this.PersonalIdForReceip = this.PersonalIdUnique[rowValue]["persona_id"] 
+      this.PersonalNameForReceip = this.PersonalIdUnique[rowValue]["ApellidoNombre"]   
+    }
+  }
 
 
   dateChange(result: Date): void {
@@ -331,6 +349,7 @@ export class LiquidacionesComponent {
   }));
 
   async liquidacionesAcciones(value:string) {
+    this.cleanerVariables();
     switch (value) {
       case "movimientosAutomaticos":
 
@@ -371,6 +390,11 @@ export class LiquidacionesComponent {
       case "generarRecibos":
 
         firstValueFrom(this.apiService.generaRecibos(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
+        break;
+
+      case "generarReciboUnico":
+
+        firstValueFrom(this.apiService.generaReciboUnico(this.selectedPeriod.year, this.selectedPeriod.month, this.PersonalIdForReceip).pipe(tap(res => this.formChange$.next(''))))
         break;
 
       default:
@@ -513,7 +537,6 @@ export class LiquidacionesComponent {
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsEdit.enableRowDetailView = false
     this.gridOptionsEdit.autoEdit = true
-
 
 
     this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {

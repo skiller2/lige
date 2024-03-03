@@ -152,6 +152,118 @@ export class RecibosController extends BaseController {
 
   }
 
+  async generaReciboUnico(req: Request, res: Response, next: NextFunction) {
+
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+
+     
+      const periodo = getPeriodoFromRequest(req);
+      const personalId = req.body.personalId;
+      let fechaActual = new Date();
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip);
+      const existRecibo = await this.existReciboId(queryRunner, fechaActual, periodo_id,personalId);
+
+      if (existRecibo.length > 0) 
+        throw new ClientException(`Recibo ya existe para el periodo seleccionado`)
+
+      const movimientosPendientes = await this.getUsuariosLiquidacionForUserId(queryRunner, periodo_id, periodo.year, periodo.month,personalId)
+
+      var directorPath = this.directoryRecibo + '/' + String(periodo.year) + String(periodo.month).padStart(2, '0') + '/' + periodo_id
+      if (!existsSync(directorPath)) {
+        mkdirSync(directorPath, { recursive: true });
+      }
+
+      const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets'
+
+      const imgPath = `${basePath}/icons/icon-lince-96x96.png`
+      const imgBuffer = await fsPromises.readFile(imgPath);
+      const imgBase64 = imgBuffer.toString('base64');
+
+      const imgPathinaes = `${basePath}/icons/inaes.png`
+      const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
+      const imgBase64inaes = imgBufferinaes.toString('base64');
+
+
+      const htmlFilePath = `${basePath}/html/inaes.html`;
+      const headerFilePath = `${basePath}/html/inaes-header.html`;
+      const footerfilePath = `${basePath}/html/inaes-footer.html`;
+
+      let headerContent = await fsPromises.readFile(headerFilePath, 'utf-8');
+      let htmlContent = await fsPromises.readFile(htmlFilePath, 'utf-8');
+      let footerContent = await fsPromises.readFile(footerfilePath, 'utf-8');
+
+      headerContent = headerContent.replace(/\${imgBase64}/g, imgBase64);
+      footerContent = footerContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
+
+      headerContent = headerContent.replace(/\${anio}/g, periodo.year.toString());
+      headerContent = headerContent.replace(/\${mes}/g, periodo.month.toString());
+      headerContent = headerContent.replace(/\${fechaFormateada}/g, this.dateFormatter.format(fechaActual));
+      const htmlContentPre = htmlContent;
+
+      const browser = await puppeteer.launch({ headless: 'new' })
+      const page = await browser.newPage();
+
+      for (const movimiento of movimientosPendientes) {
+        const persona_id = movimiento.PersonalId
+        const filesPath = directorPath + '/' + persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
+        const nombre_archivo = persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
+        const docgeneral = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
+        const idrecibo = await this.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
+
+        await this.setUsuariosLiquidacionDocGeneral(
+          queryRunner,
+          docgeneral,
+          periodo_id,
+          fechaActual,
+          persona_id,
+          0,
+          nombre_archivo,
+          filesPath,
+          usuario,
+          ip,
+          fechaActual,
+          "REC",
+          idrecibo
+
+        )
+
+        const PersonalNombre = movimiento.PersonalNombre
+        const Cuit = movimiento.PersonalCUITCUILCUIT
+        const Domicilio = (movimiento.DomicilioCompleto) ? movimiento.DomicilioCompleto : 'Sin especificar'
+        const Asociado = (movimiento.PersonalNroLegajo) ? movimiento.PersonalNroLegajo.toString() : 'Pendiente'
+        const Grupo = (movimiento.GrupoActividadDetalle) ? movimiento.GrupoActividadDetalle : 'Sin asignar' 
+
+
+
+        await this.createPdf(queryRunner, filesPath, persona_id, idrecibo, PersonalNombre, Cuit, Domicilio, Asociado,
+          Grupo, periodo_id, page,htmlContentPre, headerContent, footerContent)
+        
+
+      }
+        
+      
+      await page.close()
+      await browser.close();
+
+      this.jsonRes([], res, `Se generaron ${movimientosPendientes.length} recibos`);
+
+    } catch (error) {
+
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      //   await queryRunner.release();
+    }
+    
+  }
+
+  existReciboId(queryRunner:QueryRunner, fechaActual: Date, periodo_id:number,personalId:number){
+    return queryRunner.query(`SELECT * from lige.dbo.docgeneral WHERE periodo= @0 AND persona_id = @1`, [periodo_id,personalId])
+  }
+
 
   convertirNumeroALetras(numero: any) {
 
@@ -286,6 +398,43 @@ export class RecibosController extends BaseController {
       WHERE liq.tipocuenta_id = 'G' AND liq.periodo_id = @0
     )
     ORDER BY per.PersonalId ASC`, [periodo_id,anio,mes])
+  }
+
+  async getUsuariosLiquidacionForUserId(queryRunner: QueryRunner, periodo_id: Number, anio:number,mes:number,personalId:number) {
+
+    return queryRunner.query(`SELECT
+    per.PersonalId, per.PersonalNroLegajo, 
+    CONCAT(TRIM(per.PersonalNombre), ' ', TRIM(per.PersonalApellido)) AS PersonalNombre,
+  
+    cuit.PersonalCUITCUILCUIT,
+    TRIM(CONCAT(
+      TRIM(dom.PersonalDomicilioDomCalle), ' ',
+      TRIM(dom.PersonalDomicilioDomNro), ' ',
+      TRIM(dom.PersonalDomicilioDomPiso), ' ',
+      TRIM(dom.PersonalDomicilioDomDpto)
+    )) AS DomicilioCompleto,
+   act.GrupoActividadNumero,
+   act.GrupoActividadDetalle,
+    1
+    
+    FROM Personal per
+    LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+    LEFT JOIN PersonalDomicilio AS dom ON dom.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1 AND dom.PersonalDomicilioId = ( SELECT MAX(dommax.PersonalDomicilioId) FROM PersonalDomicilio dommax WHERE dommax.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1)
+    
+    
+    LEFT JOIN (SELECT grp.GrupoActividadPersonalPersonalId, MAX(grp.GrupoActividadPersonalDesde) AS GrupoActividadPersonalDesde, MAX(ISNULL(grp.GrupoActividadPersonalHasta,'9999-12-31')) GrupoActividadPersonalHasta FROM GrupoActividadPersonal AS grp WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > grp.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(grp.GrupoActividadPersonalHasta, '9999-12-31') GROUP BY grp.GrupoActividadPersonalPersonalId) as grupodesde ON grupodesde.GrupoActividadPersonalPersonalId = per.PersonalId
+    LEFT JOIN GrupoActividadPersonal grupo ON grupo.GrupoActividadPersonalPersonalId = per.PersonalId AND grupo.GrupoActividadPersonalDesde = grupodesde.GrupoActividadPersonalDesde AND ISNULL(grupo.GrupoActividadPersonalHasta,'9999-12-31') = grupodesde.GrupoActividadPersonalHasta 
+        
+    
+    LEFT JOIN GrupoActividad act ON act.GrupoActividadId= grupo.GrupoActividadId
+    WHERE per.PersonalId IN ( 
+  
+      SELECT DISTINCT liq.persona_id
+      FROM lige.dbo.liqmamovimientos liq
+      WHERE liq.tipocuenta_id = 'G' AND liq.periodo_id = @0
+      AND per.PersonalId = @3
+    )
+    ORDER BY per.PersonalId ASC`, [periodo_id,anio,mes,personalId])
   }
 
 

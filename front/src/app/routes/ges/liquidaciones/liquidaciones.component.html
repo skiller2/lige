@@ -58,6 +58,11 @@
             [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('generarRecibos')">
             <span nz-icon nzType="plus" nzTheme="outline"></span> Genera Recibos
           </li>
+
+          <li *ngIf="PersonalIdForReceip > 0" nz-menu-item nz-popconfirm nzPopconfirmTitle="Generar recibo de {{PersonalNameForReceip}}" [nzBeforeConfirm]=""
+            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('generarReciboUnico')">
+            <span nz-icon nzType="plus" nzTheme="outline"></span>  Generar recibo de {{PersonalNameForReceip}}
+          </li>
         </ul>
       </li>
 
@@ -120,7 +125,12 @@
           <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
           <div class="gridContainer1 container-fluid">
             <angular-slickgrid gridId="gridLiq" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptions"
-              [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)">
+              [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
+              (onSelectedRowsChanged)="handleSelectedRowsChanged1($event)">
+
+
+              >
+              
             </angular-slickgrid>
           </div>
 
