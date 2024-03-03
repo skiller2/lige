@@ -606,7 +606,8 @@ export class ApiService {
 
   getUltimoDeposito() {
     const path = `mess/api/personal/ultDeposito`;
-    return this.http.get(path).pipe(
+    const personalId = 28748
+    return this.http.get(path, personalId).pipe(
       map((res: any) => res.data)
     );
   }

@@ -1467,6 +1467,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       
       WHERE obja.ObjetivoAsistenciaAnoAno = @1 
       AND objm.ObjetivoAsistenciaAnoMesMes = @2
+      AND objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras IN ('N','C')
       ${extraFiltersStr}
 `,
       [, anio, mes]

@@ -100,36 +100,43 @@
           </table>
         </td>
       </tr>
-      <tr>
-        <td colspan="2" class="subtitle">RETRIBUCIÓN NETA</td>
-      </tr>
-      <tr>
-        <td colspan="2">${textneto}</td>
-      </tr>
-      <tr>
-        <td colspan="2">
-          <table class="tb-detalle">
-            <tbody><tr class="subtotal neto"><td>Neto:</td><td>${neto}</td></tr></tbody>
-          </table>
-        </td>
-      </tr>
-
-      <tr>
-        <td colspan="2" class="subtitle">DETALLE DEPÓSITO</td>
-      </tr>
-      <tr>
-        <td colspan="2">
-          <table class="tb-detalle">
-            <tbody>${textdeposito}</tbody>
-          </table>
-        </td>
-      </tr>
-
+      <div style="break-inside: avoid;">
+        <tr>
+          <td colspan="2" class="subtitle">RETRIBUCIÓN NETA</td>
+        </tr>
+        <tr>
+          <td colspan="2">${textneto}</td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <table class="tb-detalle">
+              <tbody>
+                <tr class="subtotal neto">
+                  <td>Neto:</td>
+                  <td>${neto}</td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </div>
+      <div style="break-inside: avoid;">
+        <tr>
+          <td colspan="2" class="subtitle">DETALLE DEPÓSITO</td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <table class="tb-detalle">
+              <tbody>${textdeposito}</tbody>
+            </table>
+          </td>
+        </tr>
+      </div>
       <tr class="firma">
         <td style="width: 50% ;">
           <div style="margin-top: 50px; text-align: center;">
             <span style="border-top: 1px black solid;">Firma Tesorera/o</span>
-        
+
         </td>
         <td>
           <div style="margin-top: 50px; text-align: center;">

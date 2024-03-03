@@ -347,7 +347,7 @@ export class RecibosController extends BaseController {
     htmlContent = htmlContent.replace(/\${neto}/g, this.currencyPipe.format(neto));
     htmlContent = htmlContent.replace(/\${asociado}/g, Asociado);
     htmlContent = htmlContent.replace(/\${grupo}/g, Grupo);
-
+    await page.emulateMediaType('print');
     await page.setContent(htmlContent);
     await page.pdf({
       path: filesPath,

@@ -28,6 +28,7 @@
     "mime-types": "2.1.35",
     "mssql": "^10.0.2",
     "node-schedule": "^2.1.1",
+    "pdf-lib": "^1.17.1",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.20",
     "wa-sticker-formatter": "4.4.4"

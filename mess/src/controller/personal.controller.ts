@@ -2,9 +2,9 @@ import { BaseController, ClientException } from "./base.controller";
 // import { PersonaObj } from "../schemas/personal.schemas";
 // import fetch, { Request } from "node-fetch";
 import { dataSource } from "../data-source";
-import { Response } from "express-serve-static-core";
+// import { Response } from "express-serve-static-core";
 // import { ParsedQs } from "qs";
-import { NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 
 export class PersonalController extends BaseController {
 
@@ -50,7 +50,7 @@ export class PersonalController extends BaseController {
   }
     
   async getUltDeposito(req: any, res: Response, next:NextFunction) {
-    const personalId = req.params.personalId;
+    const personalId = req.body.personalId;
     try {
       const result = await this.getUltDepositoQuery(personalId)
       return this.jsonRes(result, res);
@@ -85,7 +85,7 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async downloadComprobanteLink(
+  async downloadComprobanteLinkMonotributo(
     personalId: number,
     cuit: number,
     year: number,
@@ -141,4 +141,13 @@ export class PersonalController extends BaseController {
     }
   }
 
+  async downloadComprobanteLinkRecibo(
+    personalId: number,
+    year: number,
+    month: number,
+  ){
+    const result = `https://gestion.linceseguridad.com.ar/ext/api/recibos/download/${year}/${month}/${personalId}`
+    return result
+  }
+  
 }
