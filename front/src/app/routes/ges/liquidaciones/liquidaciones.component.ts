@@ -349,7 +349,6 @@ export class LiquidacionesComponent {
   }));
 
   async liquidacionesAcciones(value:string) {
-    this.cleanerVariables();
     switch (value) {
       case "movimientosAutomaticos":
 

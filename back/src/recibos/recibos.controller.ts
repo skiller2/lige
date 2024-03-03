@@ -166,6 +166,7 @@ export class RecibosController extends BaseController {
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip);
       const existRecibo = await this.existReciboId(queryRunner, fechaActual, periodo_id,personalId);
 
+
       if (existRecibo.length > 0) 
         throw new ClientException(`Recibo ya existe para el periodo seleccionado`)
 
@@ -347,11 +348,11 @@ export class RecibosController extends BaseController {
     htmlContent = htmlContent.replace(/\${neto}/g, this.currencyPipe.format(neto));
     htmlContent = htmlContent.replace(/\${asociado}/g, Asociado);
     htmlContent = htmlContent.replace(/\${grupo}/g, Grupo);
-    await page.emulateMediaType('print');
+
     await page.setContent(htmlContent);
     await page.pdf({
       path: filesPath,
-      margin: { top: '200px', right: '50px', bottom: '100px', left: '50px' },
+      margin: { top: '140px', right: '50px', bottom: '100px', left: '50px' },
       printBackground: true,
       format: 'A4',
       displayHeaderFooter: true,
