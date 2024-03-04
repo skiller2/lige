@@ -306,13 +306,19 @@ export class RecibosController extends BaseController {
     let neto = 0
     let retribucion = 0
     let retenciones = 0
+    let adelanto = 0
     let htmlEgreso = ''
     let htmlIngreso = ''
     let htmlDeposito = ''
+    let htmlAdelanto = ''
 
     for (const liquidacionElement of liquidacionInfo) {
 
       switch (liquidacionElement.indicador) {
+        case "A":
+          htmlAdelanto += `<tr><td>${liquidacionElement.des_movimiento} - ${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
+          adelanto += liquidacionElement.SumaImporte
+          break;
         case "R":
           htmlEgreso += `<tr><td>${liquidacionElement.des_movimiento} - ${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
           retribucion += liquidacionElement.SumaImporte
@@ -321,7 +327,7 @@ export class RecibosController extends BaseController {
           htmlDeposito += `<tr><td>${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
           break
         case "I":
-          htmlIngreso += `<tr><td>${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
+          htmlIngreso += `<tr><td>${liquidacionElement.detalle} ${(liquidacionElement.ClienteId)? liquidacionElement.ClienteId+'/'+liquidacionElement.ClienteElementoDependienteId:''}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
           retenciones += liquidacionElement.SumaImporte
           break
         default:
@@ -329,20 +335,23 @@ export class RecibosController extends BaseController {
       }
     }
 
+    if (adelanto > 0)
+      htmlAdelanto += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(adelanto)}</td></tr>`
     if (retribucion > 0)
       htmlEgreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retribucion)}</td></tr>`
     if (retenciones > 0)
       htmlIngreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retenciones)}</td></tr>`
 
-
-    neto = retenciones - retribucion
+    neto = adelanto + retenciones - retribucion
 
     htmlContent = htmlContent.replace(/\${retribucion}/g, this.currencyPipe.format(retribucion));
     htmlContent = htmlContent.replace(/\${retenciones}/g, this.currencyPipe.format(retenciones));
+    htmlContent = htmlContent.replace(/\${adelanto}/g, this.currencyPipe.format(adelanto));
 
     htmlContent = htmlContent.replace(/\${textegreso}/g, htmlEgreso);
     htmlContent = htmlContent.replace(/\${textingreso}/g, htmlIngreso);
     htmlContent = htmlContent.replace(/\${textdeposito}/g, htmlDeposito);
+    htmlContent = htmlContent.replace(/\${textadelanto}/g, htmlAdelanto);
 
     htmlContent = htmlContent.replace(/\${textneto}/g, this.convertirNumeroALetras(neto))
     htmlContent = htmlContent.replace(/\${neto}/g, this.currencyPipe.format(neto));
@@ -441,22 +450,27 @@ export class RecibosController extends BaseController {
 
   async getUsuariosLiquidacionMovimientos(queryRunner: QueryRunner, periodo_id: Number, user_id: Number) {
 
-    return queryRunner.query(`SELECT 
+    return queryRunner.query(`SELECT
     liq.persona_id, 
     liq.tipo_movimiento_id, 
     tip.des_movimiento, 
     liq.detalle,
+    obj.ClienteId,
+    ISNULL(obj.ClienteElementoDependienteId,0) ClienteElementoDependienteId,
     SUM(liq.importe) AS SumaImporte, 
     tip.indicador_recibo AS indicador
     FROM  lige.dbo.liqmamovimientos AS liq
     JOIN  lige.dbo.liqcotipomovimiento AS tip ON tip.tipo_movimiento_id = liq.tipo_movimiento_id
+    LEFT JOIN Objetivo obj ON obj.ObjetivoId = liq.objetivo_id
     WHERE  liq.periodo_id = @0 AND  liq.tipocuenta_id = 'G' AND  liq.persona_id = @1
     GROUP BY 
     liq.persona_id, 
+	 obj.ClienteId,
+    obj.ClienteElementoDependienteId,
     liq.detalle,
     liq.tipo_movimiento_id, 
     tip.des_movimiento, 
-    tip.indicador_recibo;`, [periodo_id, user_id])
+    tip.indicador_recibo`, [periodo_id, user_id])
 
   }
 
