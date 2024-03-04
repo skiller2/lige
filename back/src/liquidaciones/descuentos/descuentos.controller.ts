@@ -51,38 +51,44 @@ export class DescuentosController extends BaseController {
 
 
       for (const row of result) {
-        let detalle = `${DescuentosController.isEmpty(row.tipomov)?'':String(row.tipomov).trim()} ${DescuentosController.isEmpty(row.desmovimiento2)?'':String(row.desmovimiento2).trim()}`
         let tipo_movimiento_id: number
         switch (row.tipoint) {
           case "DESC":
-            tipo_movimiento_id = 4  
+            tipo_movimiento_id = 4
             break;
           case "OTRO":
             tipo_movimiento_id = 5
             break;
           case "ADEL":
             tipo_movimiento_id = 15
+            row.tipomov = ''
             break;
           case "AYUD":
             tipo_movimiento_id = 7
+            row.tipomov = ''
             break;
           case "PREP":
             tipo_movimiento_id = 14
+            row.tipomov = ''
             break;
           case "RENT":
             tipo_movimiento_id = 6
+            row.tipomov = ''
             break;
           case "DDJJ":
             tipo_movimiento_id = 16
+            row.tipomov = ''
             break;
           case "TELE":
             tipo_movimiento_id = 17
+            row.tipomov = ''
             break;
 
           default:
             throw new ClientException(`Identificador de descuento ${row.tipoint} desconocido`)
             break;
         }
+        let detalle = `${DescuentosController.isEmpty(row.tipomov)?'':String(row.tipomov).trim()} ${DescuentosController.isEmpty(row.desmovimiento2)?'':String(row.desmovimiento2).trim()}`
 
         if (row.cantcuotas > 1)
           detalle += ` cuota ${row.cuotanro}/${row.cantcuotas}, total $ ${row.importetotal} `

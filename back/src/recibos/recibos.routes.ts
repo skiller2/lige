@@ -10,6 +10,12 @@ recibosRouter.post("/generar", [authMiddleware.verifyToken, authMiddleware.hasGr
   }
 );
 
+recibosRouter.post("/generarunico", [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')],
+  (req, res, next) => {
+    recibosController.generaReciboUnico(req, res, next);
+  }
+);
+
 recibosRouter.get("/download/:anio/:mes/:personalIdRel?", (req, res,next) => {
   recibosController.downloadComprobantesByPeriodo(
     req.params.anio,
