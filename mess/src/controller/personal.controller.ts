@@ -22,7 +22,7 @@ export class PersonalController extends BaseController {
       ON cuit.PersonalId = per.PersonalId 
       AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) 
       FROM PersonalCUITCUIL cuitmax 
-      WHERE cuitmax.PersonalId = per.PersonalId) 
+      WHERE cuitmax.PersonalId = per.PersonalId)
       WHERE cuit.PersonalCUITCUILCUIT LIKE '%${cuit}%'`
     );
     return result
@@ -42,15 +42,16 @@ export class PersonalController extends BaseController {
     const result = await dataSource.query(
       `SELECT TOP 1 persona_id, periodo_id, importe 
       FROM lige.dbo.liqmamovimientos 
-      WHERE persona_id=${personalId} 
+      WHERE persona_id = @0 
       AND  tipo_movimiento_id=11
-      ORDER BY periodo_id DESC ,movimiento_id DESC`
+      ORDER BY periodo_id DESC ,movimiento_id DESC`,
+      [ personalId ]
     );
     return result
   }
     
   async getUltDeposito(req: any, res: Response, next:NextFunction) {
-    const personalId = req.body.personalId;
+    const personalId = req.params.personalId;
     try {
       const result = await this.getUltDepositoQuery(personalId)
       return this.jsonRes(result, res);
@@ -85,35 +86,25 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async downloadComprobanteLinkMonotributo(
-    personalId: number,
-    cuit: number,
-    year: number,
-    month: number,
-  ){
-    const result = `https://gestion.linceseguridad.com.ar/ext/api/impuestos_afip/${year}/${month}/${cuit}/${personalId}`
-    return result
-  }
-
-  async addTelefonoPersonalQuery( personalId : number, telefono : number, usuario : string , fecha : Date, ip : string){
-    let reg_id = await dataSource.query(`SELECT MAX(reg_id) max_reg_id FROM lige.dbo.regtelefonopersonal`)
-    reg_id = (reg_id[0].max_reg_id != undefined) ? reg_id[0].max_reg_id : 0
+  async addTelefonoPersonalQuery( personalId : number, telefono : string, usuario : string, ip : string){
+    const fecha = new Date
+    const reg_id = await dataSource.query(`SELECT MAX(reg_id) max_reg_id FROM lige.dbo.regtelefonopersonal`)
+    let max_reg_id = (reg_id[0].max_reg_id != undefined) ? reg_id[0].max_reg_id : 0
     const result = await dataSource.query(
       `INSERT INTO lige.dbo.regtelefonopersonal (reg_id, personal_id, telefono, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod) 
       VALUES(@0,@1,@2,@3,@4,@5,@3,@4,@5)`,
-      [++reg_id, personalId, telefono, usuario, ip, fecha ]
+      [++max_reg_id, personalId, telefono, usuario, ip, fecha ]
     );
-    return
+    return result
   }
 
   async addTelefonoPersonal(req: any, res: Response, next:NextFunction) {
     const personalId = req.params.personalId;
     const telefono = req.params.telefono;
     const usuario = req.params.usuario;
-    const fecha = new Date
     const ip = this.getRemoteAddress(req)
     try {
-      const result = await this.addTelefonoPersonalQuery(personalId, telefono, usuario, fecha, ip)
+      const result = await this.addTelefonoPersonalQuery(personalId, telefono, usuario, ip)
 
       return this.jsonRes(result, res);
     } catch (error) {
@@ -121,32 +112,34 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async getTelefonoPersonalQuery( personalId : number ){
+  async getPersonalfromTelefonoQuery( telefono : string ){
     const result = await dataSource.query(
-      `SELECT reg_id, personal_id, telefono, aud_usuario_mod
-      FROM lige.dbo.regtelefonopersonal 
-      WHERE personal_id = @0`,
-      [ personalId ]
+      `SELECT reg.reg_id, reg.personal_id personalId, reg.telefono, reg.aud_usuario_mod name, per.PersonalCUITCUILCUIT cuit
+      FROM lige.dbo.regtelefonopersonal reg
+      LEFT JOIN PersonalCUITCUIL per 
+      ON per.PersonalId = reg.personal_id
+      WHERE reg.telefono = @0`,
+      [ telefono ]
     );
     return result
   }
 
-  async getTelefonoPersonal(req: any, res: Response, next:NextFunction) {
-    const personalId = req.params.personalId;
+  async getPersonalfromTelefono(req: any, res: Response, next:NextFunction) {
+    const telefono = req.params.telefono;
     try {
-      const result = await this.getTelefonoPersonalQuery( personalId )
+      const result = await this.getPersonalfromTelefonoQuery( telefono )
       return this.jsonRes(result, res);
     } catch (error) {
       return next(error)
     }
   }
 
-  async downloadComprobanteLinkRecibo(
+  async linkDownloadComprobanteRecibo(
     personalId: number,
     year: number,
     month: number,
   ){
-    const result = `https://gestion.linceseguridad.com.ar/ext/api/recibos/download/${year}/${month}/${personalId}`
+    const result = `http://localhost:3010/api/recibos/download/${year}/${month}/${personalId}`
     return result
   }
   

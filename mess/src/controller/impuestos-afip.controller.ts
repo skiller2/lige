@@ -24,6 +24,17 @@ import {
 import { tmpName } from "../server";
 
 export class ImpuestosAfipController extends BaseController {
+
+  async linkDownloadComprobanteMonotributo(
+    personalId: number,
+    cuit: number
+  ){
+    const date = new Date
+    const year = date.getFullYear()
+    const month = date.getMonth()+1
+    const result = `http://localhost:3010/api/impuestos_afip/${year}/${month}/${cuit}/${personalId}`
+    return result
+  }
     
   directory = process.env.PATH_MONOTRIBUTO || "tmp";
     

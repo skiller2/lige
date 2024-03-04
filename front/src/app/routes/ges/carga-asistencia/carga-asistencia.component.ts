@@ -494,6 +494,7 @@ export class CargaAsistenciaComponent {
             excelExportOptions: {
                 width: 6,
             },
+            groupTotalsFormatter: this.sumTotalsFormatterCustom,
         });
 
         return columnDays
@@ -740,9 +741,12 @@ export class CargaAsistenciaComponent {
                 grandTotal[col.field] = this.angularGridEdit.slickGrid.getFooterRowColumn(col.field).innerText
                 aggregatorsArray.push(new Aggregators.Sum(col.field))
             }
+            if(col.field.startsWith('total')){
+                aggregatorsArray.push(new Aggregators.Sum(col.field))
+            }
         })
         grandTotal.total = this.angularGridEdit.slickGrid.getFooterRowColumn('total').innerText
-        grandTotal.forma = {fullName :'Total'}
+        grandTotal.forma = {fullName :'Totales'}
 //        this.angularGridEdit.slickGrid.setOptions({ enableGrouping: true })
         
         this.angularGridEdit.dataView.setGrouping({

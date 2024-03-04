@@ -11,6 +11,16 @@ import { Utils } from "./util";
 
 export class RecibosController extends BaseController {
 
+  async linkDownloadComprobanteRecibo(
+    personalId: number
+  ){
+    const date = new Date
+    const year = date.getFullYear()
+    const month = date.getMonth()+1
+    const result = `http://localhost:3010/api/recibos/download/${year}/${month}/${personalId}`
+    return result
+  }
+
   async downloadComprobantesByPeriodo(
     req: Request,
     res: Response,
