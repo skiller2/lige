@@ -12,7 +12,7 @@ const flowMenu = addKeyword(EVENTS.ACTION)
         // '3- *Pedido de Licencia*',
         // '4- *Envío de Constancia médica*'
     ], 
-    { capture: true }, 
+    { capture: true , delay: 500}, 
     async (ctx, { fallBack }) => {
         const numeros = ['1','2','3','4']
         if (!numeros.includes(ctx.body)) {

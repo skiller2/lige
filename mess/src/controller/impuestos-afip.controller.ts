@@ -25,25 +25,23 @@ import { tmpName } from "../server";
 
 export class ImpuestosAfipController extends BaseController {
 
-  async linkDownloadComprobanteMonotributo(
-    personalId: number,
-    cuit: number
-  ){
-    const date = new Date
-    const year = date.getFullYear()
-    const month = date.getMonth()+1
-    const result = `http://localhost:3010/api/impuestos_afip/${year}/${month}/${cuit}/${personalId}`
-    return result
-  }
+  // async linkDownloadComprobanteMonotributo(
+  //   personalId: number,
+  //   cuit: number
+  // ){
+  //   const date = new Date
+  //   const year = date.getFullYear()
+  //   const month = date.getMonth()+1
+  //   const result = `http://localhost:3010/api/impuestos_afip/${year}/${month}/${cuit}/${personalId}`
+  //   return result
+  // }
     
   directory = process.env.PATH_MONOTRIBUTO || "tmp";
     
-  async downloadComprobante( req : Request, res: Response, next: NextFunction){
-    
-    const year: string = req.params.anio
-    const month: string = req.params.mes
-    const cuit: string = req.params.CUIT
-    const personalId: string = req.params.PersonalId
+  async downloadComprobante( personalId: number){
+    const date = new Date
+    const year = date.getFullYear()
+    const month = date.getMonth()+1
 
     const queryRunner = dataSource.createQueryRunner();
 
@@ -67,7 +65,7 @@ export class ImpuestosAfipController extends BaseController {
       const personalID = personalQuery.PersonalId;
       const cuit = personalQuery.CUIT;
 
-      const filename = `${year}-${month.padStart(
+      const filename = `${year}-${month.toString().padStart(
         2,
         "0"
       )}-${cuit}-${personalId}.pdf`;
@@ -89,11 +87,13 @@ export class ImpuestosAfipController extends BaseController {
         GrupoActividadDetalle
       );
       writeFileSync(tmpfilename, buffer);
-      res.download(tmpfilename, filename, (msg) => {
-        unlinkSync(tmpfilename);
-      });
+
+      await queryRunner.commitTransaction()
+      
+      return tmpfilename
     } catch (error) {
-      return next(error)
+      this.rollbackTransaction(queryRunner)
+      return error
     }
   }
 

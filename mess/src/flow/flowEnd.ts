@@ -3,9 +3,10 @@ import BotWhatsapp from '@bot-whatsapp/bot'
 const { addKeyword } = BotWhatsapp
 
 const flowEnd = addKeyword(['no'])
-    .addAction(async (_, { flowDynamic, endFlow, state }) => {
+    .addAnswer(['Gracias por su tiempo',' Hasta luego 👋'], 
+    {delay: 500},
+    async (_, { endFlow, state }) => {
         await state.clear()
-        await flowDynamic(['Gracias por su tiempo',' Hasta luego 👋'])
         return endFlow()
     })
 

@@ -114,10 +114,10 @@ export class PersonalController extends BaseController {
 
   async getPersonalfromTelefonoQuery( telefono : string ){
     const result = await dataSource.query(
-      `SELECT reg.reg_id, reg.personal_id personalId, reg.telefono, reg.aud_usuario_mod name, per.PersonalCUITCUILCUIT cuit
+      `SELECT reg.reg_id, reg.personal_id personalId, reg.telefono, per.PersonalNombre name, cuit.PersonalCUITCUILCUIT cuit
       FROM lige.dbo.regtelefonopersonal reg
-      LEFT JOIN PersonalCUITCUIL per 
-      ON per.PersonalId = reg.personal_id
+      LEFT JOIN Personal per ON per.PersonalId = reg.personal_id
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = reg.personal_id
       WHERE reg.telefono = @0`,
       [ telefono ]
     );

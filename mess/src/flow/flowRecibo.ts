@@ -5,20 +5,21 @@ import flowEnd from './flowEnd'
 
 const { addKeyword } = BotWhatsapp
 
-
-
 const flowRecibo = addKeyword(['2','recibo de retiro', 'recibo', 'r'])
     .addAction(async (_, { flowDynamic, state }) => {
+        await flowDynamic([{body:`⏱️ Dame un momento`}])
         const myState = state.getMyState()
         const personalId = myState.personalId
-        const respuesta = await recibosController.linkDownloadComprobanteRecibo(personalId)
-        await flowDynamic(`📥 Link de descarga 📥`)
-        await flowDynamic(respuesta)
+        const date = new Date();
+        const year = date.getFullYear()
+        const month = date.getMonth() + 1
+        const pdf = await recibosController.downloadComprobantesByPeriodo(personalId, month, year)
+        await flowDynamic([ { media: pdf, delay: 500 } ]) 
     })
     .addAnswer([
         '¿Desea consulta algo mas?', 
         'Responda "Si" o "No"'
-    ], { capture: true },  
+    ], { capture: true, delay: 500 },  
     async (ctx , { gotoFlow, fallBack }) => {
         const respuesta = ctx.body
         if (respuesta == 'Si' || respuesta == 'si' || respuesta == 'SI') {
