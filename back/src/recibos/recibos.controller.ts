@@ -587,7 +587,7 @@ export class RecibosController extends BaseController {
       }else{
         pathFile = await this.getparthFile(queryRunner, periodo_id, perosonalIds)
       }
-      const rutaPDF = path.join(this.directoryRecibo, `recibos_${Anio}${Mes}.pdf`);
+      const rutaPDF = path.join(this.directoryRecibo, `Recibos-${Anio}-${Mes}.pdf`);
       const mergedPdf = await PDFDocument.create();
 
       for (const filePath of pathFile) {
@@ -604,7 +604,7 @@ export class RecibosController extends BaseController {
       const mergedPdfBytes = await mergedPdf.save();
       fs.writeFileSync(rutaPDF, mergedPdfBytes);
       console.log('PDF guardado en la ruta especificada:', rutaPDF);
-      res.download(rutaPDF, `pdf_${Anio}${Mes}.pdf`, async (err) => {
+      res.download(rutaPDF, `Recibos-${Anio}-${Mes}.pdf`, async (err) => {
           if (err) {
               console.error('Error al descargar el PDF:', err);
               return next(err);
