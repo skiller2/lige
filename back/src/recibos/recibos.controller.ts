@@ -525,8 +525,8 @@ export class RecibosController extends BaseController {
 
     try {
       let fechaActual = new Date();
-      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseInt(year), parseInt(month), usuario, ip);
-      const gettmpfilename = await this.getRutaFile(queryRunner, periodo_id, parseInt(personalIdRel))
+      // const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseInt(year), parseInt(month), usuario, ip);
+      const gettmpfilename = await this.getRutaFile(queryRunner, parseInt(year), parseInt(month), parseInt(personalIdRel))
       const tmpfilename = gettmpfilename[0]?.path;
       const responsePDFBuffer = await this.obtenerPDFBuffer(tmpfilename);
 
@@ -543,11 +543,12 @@ export class RecibosController extends BaseController {
   }
 
 
-  async getRutaFile(queryRunner: QueryRunner, periodo_id: number, personalIdRel: number) {
-
-    return queryRunner.query(`SELECT * from lige.dbo.docgeneral 
-  WHERE periodo = @0 
-  AND persona_id = @1`, [periodo_id, personalIdRel])
+  async getRutaFile(queryRunner: QueryRunner, year: number, month: number, personalIdRel: number) {
+    return queryRunner.query(`SELECT * from lige.dbo.docgeneral doc
+      JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
+      WHERE per.anio =@0 AND per.mes=@1 AND doc.persona_id = @2 AND doctipo_id = 'REC'`, 
+      [year, month, personalIdRel]
+    )
   }
 
 
