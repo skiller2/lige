@@ -226,6 +226,7 @@ export class LiquidacionesComponent {
   }
 
   async angularGridReadyEdit(angularGrid: any) {
+    this.cleanerVariables();
     this.angularGridEdit = angularGrid.detail
     this.gridObjEdit = angularGrid.detail.slickGrid;
 

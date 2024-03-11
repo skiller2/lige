@@ -80,8 +80,8 @@
 
           <li nz-menu-item app-down-file [httpMethod]="'POST'"
             [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month,'isfull': true }"
-            httpUrl="/api/recibos/downloadfull" notificationMsg="Descaga Recibos">
-            <span nz-icon nzType="download"></span><span style="white-space: normal;">Todos los Recibos en PDF</span>
+            httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado">
+            <span nz-icon nzType="download"></span><span style="white-space: normal;">Todos los recibos {{selectedPeriod.month}}/{{selectedPeriod.year}}</span>
           </li>
 
 

@@ -55,11 +55,18 @@ export class RecibosController extends BaseController {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
+
+
     try {
 
       const periodo = getPeriodoFromRequest(req);
       let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
+
+      const getRecibosGenerados = await this.getRecibosGenerados(queryRunner,periodo_id)
+      
+      if(!getRecibosGenerados)
+      throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
       const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month)
 
@@ -136,6 +143,8 @@ export class RecibosController extends BaseController {
         
 
       }
+
+      await this.updateTablePeriodo(queryRunner,periodo_id)
       await page.close()
       await browser.close();
 
@@ -149,7 +158,30 @@ export class RecibosController extends BaseController {
       //   await queryRunner.release();
     }
 
+  }
 
+  async updateTablePeriodo(queryRunner:QueryRunner,periodo_id:number){
+    try {
+      queryRunner.query(
+        `UPDATE lige.dbo.liqmaperiodo
+         SET ind_recibos_generados = 'T'
+         WHERE periodo_id = @0;`,
+        [periodo_id]
+      );
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+    }
+  }
+
+  async getRecibosGenerados(queryRunner:QueryRunner,periodo_id:number){
+    try {
+      return queryRunner.query(
+        `SELECT ind_recibos_generados FROM dbo.liqmaperiodo WHERE periodo_id = @0`,
+        [periodo_id]
+      );
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+    }
   }
 
   async generaReciboUnico(req: Request, res: Response, next: NextFunction) {
@@ -525,8 +557,8 @@ export class RecibosController extends BaseController {
 
     try {
       let fechaActual = new Date();
-      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseInt(year), parseInt(month), usuario, ip);
-      const gettmpfilename = await this.getRutaFile(queryRunner, periodo_id, parseInt(personalIdRel))
+      // const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseInt(year), parseInt(month), usuario, ip);
+      const gettmpfilename = await this.getRutaFile(queryRunner, parseInt(year), parseInt(month), parseInt(personalIdRel))
       const tmpfilename = gettmpfilename[0]?.path;
       const responsePDFBuffer = await this.obtenerPDFBuffer(tmpfilename);
 
@@ -543,11 +575,12 @@ export class RecibosController extends BaseController {
   }
 
 
-  async getRutaFile(queryRunner: QueryRunner, periodo_id: number, personalIdRel: number) {
-
-    return queryRunner.query(`SELECT * from lige.dbo.docgeneral 
-  WHERE periodo = @0 
-  AND persona_id = @1`, [periodo_id, personalIdRel])
+  async getRutaFile(queryRunner: QueryRunner, year: number, month: number, personalIdRel: number) {
+    return queryRunner.query(`SELECT * from lige.dbo.docgeneral doc
+      JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
+      WHERE per.anio =@0 AND per.mes=@1 AND doc.persona_id = @2 AND doctipo_id = 'REC'`, 
+      [year, month, personalIdRel]
+    )
   }
 
 
@@ -587,7 +620,7 @@ export class RecibosController extends BaseController {
       }else{
         pathFile = await this.getparthFile(queryRunner, periodo_id, perosonalIds)
       }
-      const rutaPDF = path.join(this.directoryRecibo, `recibos_${Anio}${Mes}.pdf`);
+      const rutaPDF = path.join(this.directoryRecibo, `Recibos-${Anio}-${Mes}.pdf`);
       const mergedPdf = await PDFDocument.create();
 
       for (const filePath of pathFile) {
@@ -604,7 +637,7 @@ export class RecibosController extends BaseController {
       const mergedPdfBytes = await mergedPdf.save();
       fs.writeFileSync(rutaPDF, mergedPdfBytes);
       console.log('PDF guardado en la ruta especificada:', rutaPDF);
-      res.download(rutaPDF, `pdf_${Anio}${Mes}.pdf`, async (err) => {
+      res.download(rutaPDF, `Recibos-${Anio}-${Mes}.pdf`, async (err) => {
           if (err) {
               console.error('Error al descargar el PDF:', err);
               return next(err);
