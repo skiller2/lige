@@ -57,5 +57,22 @@ export class RecibosController extends BaseController {
     const buffer = fs.readFileSync(tmpfilename);
     return buffer;
   }
+
+  async getLastPeriodoOfComprobantes( personalId: number, cant: number ) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const respuesta = queryRunner.query(`
+        SELECT TOP ${cant} per.periodo_id, per.anio, per.mes from lige.dbo.liqmaperiodo per
+        JOIN lige.dbo.docgeneral doc ON per.periodo_id = doc.periodo
+        WHERE doc.persona_id = @0 AND doctipo_id = 'REC'      
+        ORDER BY per.anio DESC,per.mes DESC`, 
+        [personalId])
+
+      return respuesta
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return error
+    }
+  }
       
 }
