@@ -164,8 +164,8 @@ export class RecibosController extends BaseController {
     try {
       queryRunner.query(
         `UPDATE lige.dbo.liqmaperiodo
-         SET ind_recibos_generados = 'T'
-         WHERE periodo_id = @0;`,
+         SET ind_recibos_generados = 1
+         WHERE periodo_id = @0`,
         [periodo_id]
       );
     } catch (error) {

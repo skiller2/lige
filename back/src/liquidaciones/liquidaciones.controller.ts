@@ -333,7 +333,6 @@ export class LiquidacionesController extends BaseController {
     let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
 
-    console.log("periodo", req.body)
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
