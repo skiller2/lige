@@ -46,7 +46,7 @@ export class RecibosController extends BaseController {
 
   async deleteDirectories(queryRunner: QueryRunner, periodo: number) {
 
-    queryRunner.query(`delete from lige.dbo.docgeneral where periodo=@0 ; `, [periodo])
+    await queryRunner.query(`delete from lige.dbo.docgeneral where periodo=@0 ; `, [periodo])
 
   }
 
@@ -176,7 +176,7 @@ export class RecibosController extends BaseController {
   async getRecibosGenerados(queryRunner:QueryRunner,periodo_id:number){
     try {
       return queryRunner.query(
-        `SELECT ind_recibos_generados FROM dbo.liqmaperiodo WHERE periodo_id = @0`,
+        `SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`,
         [periodo_id]
       );
     } catch (error) {
