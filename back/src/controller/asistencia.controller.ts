@@ -2259,7 +2259,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         }
 
         if (error.length) {
-          errores.push(`Fila ${index + 1}:\n${error.join(`, `)}`)
+          errores.push(`Fila ${index + 1} [${gridData[index].apellidoNombre.fullName}]:\n${error.join(`, `)}`)
         }
       }
 

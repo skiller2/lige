@@ -82,6 +82,7 @@ export class CargaAsistenciaComponent {
     $selectedObjetivoIdChange = new BehaviorSubject(0);
     $formChange = new BehaviorSubject({});
     objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
+    isLoading = false;
 
     getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
         this.loadingSrv.open({ type: 'spin', text: '' })
@@ -631,13 +632,14 @@ export class CargaAsistenciaComponent {
     }
 
     async validaGrilla() {
+        this.isLoading = true
         const editable = this.angularGridEdit.slickGrid.getOptions().editable
         if (editable)
             this.angularGridEdit.slickGrid.setOptions({ editable: false })
 
         try {
-            const res = firstValueFrom(this.apiService.validaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId))
-            //finally(() => { this.$selectedObjetivoIdChange.next(this.selectedObjetivoId) })
+            const res = firstValueFrom(this.apiService.validaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
+            finally(() => { this.isLoading = false })
         } catch (error) {
 
         }
