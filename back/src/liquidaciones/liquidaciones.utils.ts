@@ -26,12 +26,13 @@ export class Utils {
       periodo_id++
 
       await queryRunner.query(
-        `INSERT INTO lige.dbo.liqmaperiodo (periodo_id, anio, mes, version, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-            VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9) `,
+        `INSERT INTO lige.dbo.liqmaperiodo (periodo_id, anio, mes, version, ind_recibos_generados, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+            VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10) `,
         [
           periodo_id,
           anio,
           mes,
+          0,
           0,
           usuario,
           ip,
