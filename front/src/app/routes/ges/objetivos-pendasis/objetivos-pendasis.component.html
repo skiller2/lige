@@ -20,8 +20,10 @@
       <nz-tabset nzCentered [(nzSelectedIndex)]="selectedTabIndex" class="hide-ant-tabs-nav">
         <nz-tab [nzForceRender]="false">
           <ng-template nz-tab>
+            <div style="display:inline">
             <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
-
+            <button>Ver todos</button>
+            </div>
             <div class="gridContainer container-fluid" *ngIf="(columns$|async) as columnas">
               <angular-slickgrid gridId="gridOPA" class="" [columnDefinitions]="columnas | colsFilter"
                 [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"

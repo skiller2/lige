@@ -148,8 +148,10 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
 
 const getOptionsFromRequest = (req: Request): Options => {
   const _options = req.body.options;
+  const _todos = (req.body.options.todos)?true:false
   if (!isOptions(_options)) throw new ClientException("Bad Input. Options");
   _options.filtros = getFiltrosFromOptions(_options);
+  _options.todos = _todos
   return _options;
 };
 

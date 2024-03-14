@@ -118,11 +118,13 @@ export class ObjetivosPendasisController extends BaseController {
     this.jsonRes(columnasGrilla, res);
   }
 
-  static async listObjetivosPendAsis(
+  static async listObjetivosAsis(
     options: any
   ) {
     const filtros = options.filtros;
-    const filterSql = filtrosToSql(filtros,columnasGrilla);
+    const filterSql = filtrosToSql(filtros, columnasGrilla);
+
+    const filterPendientes = (options.todos) ? '':' (obj.ObjetivoId IS NULL OR objm.ObjetivoAsistenciaAnoMesHasta IS NULL) AND '
 
     const anio:number = filtros.filter((x: { index: string; }) => x.index === "anio")[0]?.valor;
     const mes:number = filtros.filter((x: { index: string; }) => x.index === "mes")[0]?.valor;
@@ -265,7 +267,7 @@ AS gas ON gas.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
       LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
        
       WHERE 
-      (obj.ObjetivoId IS NULL OR objm.ObjetivoAsistenciaAnoMesHasta IS NULL) AND
+      ${filterPendientes}
       ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) IS NOT NULL
 
      AND (${filterSql})
@@ -283,7 +285,7 @@ AS gas ON gas.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
   ) {
     const options = getOptionsFromRequest(req);
     try {
-      const pendCambioCategoria = await ObjetivosPendasisController.listObjetivosPendAsis(options)
+      const pendCambioCategoria = await ObjetivosPendasisController.listObjetivosAsis(options)
       this.jsonRes({ list: pendCambioCategoria }, res);
     } catch (error) {
       return next(error)
