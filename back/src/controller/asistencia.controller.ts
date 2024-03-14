@@ -4,6 +4,12 @@ import { dataSource } from "../data-source";
 import { QueryRunner } from "typeorm";
 import { ObjetivoController } from "./objetivo.controller";
 
+class ClientExceptionArt14 extends ClientException {
+  constructor(metodo: string) {
+    const etiqueta = AsistenciaController.getMetodologias().find(val => val.metodo == metodo).etiqueta
+    super(`Existe un art14 ${etiqueta} para la persona`);
+  }
+}
 
 export class AsistenciaController extends BaseController {
   async addAsistenciaPeriodoResJson(req: any, res: Response, next: NextFunction) {
@@ -345,6 +351,7 @@ export class AsistenciaController extends BaseController {
   }
 
 
+
   async setExcepcion(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     let ConceptoId: number | null = null
@@ -387,14 +394,14 @@ export class AsistenciaController extends BaseController {
         throw new ClientException("Debe seleccionar un objetivo")
 
       switch (metodo) {
-        case "E":
-          if (!Equivalencia.TipoAsociadoId)
-            throw new ClientException("Debe seleccionar una categoria");
-
-          break;
         case "S":
           if (!SumaFija)
             throw new ClientException("Debe ingresar una monto");
+
+          break;
+        case "E":
+          if (!Equivalencia.TipoAsociadoId)
+            throw new ClientException("Debe seleccionar una categoria");
 
           break;
         case "H":
@@ -513,17 +520,17 @@ export class AsistenciaController extends BaseController {
           PersonalArt14AdicionalHora == AdicionalHora &&
           PersonalArt14Horas == Horas
         ) {
-          throw new ClientException("Ya se encuentra cargada la información")
+          throw new ClientException("Ya se encuentra registrado el art14")
         }
-
-
-
 
         let hasta: Date = new Date(fechaDesde);
         hasta.setDate(fechaDesde.getDate() - 1);
 
         switch (metodo) {
           case "A":
+            if (PersonalArt14FormaArt14 == "E" || PersonalArt14FormaArt14 == "H")
+              throw new ClientExceptionArt14(PersonalArt14FormaArt14)
+
             if (PersonalArt14FormaArt14 == "E") {
               await queryRunner.query(
                 `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2
@@ -533,6 +540,9 @@ export class AsistenciaController extends BaseController {
             }
             break;
           case "E":
+            if (PersonalArt14FormaArt14 == "A" || PersonalArt14FormaArt14 == "H")
+            throw new ClientExceptionArt14(PersonalArt14FormaArt14)
+
             if (PersonalArt14FormaArt14 == "A") {
               await queryRunner.query(
                 `UPDATE PersonalArt14 SET PersonalArt14AutorizadoHasta=@2
@@ -540,6 +550,11 @@ export class AsistenciaController extends BaseController {
                 [row["PersonalArt14Id"], PersonalId, hasta]
               );
             }
+            break;
+          case "H":
+            if (PersonalArt14FormaArt14 == "A" || PersonalArt14FormaArt14 == "E")
+            throw new ClientExceptionArt14(PersonalArt14FormaArt14)
+
             break;
 
           default:
@@ -577,6 +592,9 @@ export class AsistenciaController extends BaseController {
         //Borro los registros que no están autorizados.
         switch (metodo) {
           case "A":
+            if (PersonalArt14FormaArt14 == "H" || PersonalArt14FormaArt14 == "E")
+            throw new ClientExceptionArt14(PersonalArt14FormaArt14)
+
             if (PersonalArt14FormaArt14 == "E") {
               await queryRunner.query(
                 `DELETE FROM PersonalArt14 
@@ -586,6 +604,9 @@ export class AsistenciaController extends BaseController {
             }
             break;
           case "E":
+            if (PersonalArt14FormaArt14 == "A" || PersonalArt14FormaArt14 == "H")
+            throw new ClientExceptionArt14(PersonalArt14FormaArt14)
+
             if (PersonalArt14FormaArt14 == "A") {
               await queryRunner.query(
                 `DELETE FROM PersonalArt14 
@@ -594,6 +615,10 @@ export class AsistenciaController extends BaseController {
               );
             }
             break;
+          case "H":
+            if (PersonalArt14FormaArt14 == "A" || PersonalArt14FormaArt14 == "E")
+            throw new ClientExceptionArt14(PersonalArt14FormaArt14)
+
 
           default:
             break;
@@ -672,6 +697,7 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes([], res);
     } catch (error) {
+      console.log('pase por aca',error);
       this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
@@ -1602,7 +1628,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     }
   }
 
-  async getMetodologia(req: any, res: Response, next: NextFunction) {
+  static getMetodologias() {
     const recordSet = new Array();
     recordSet.push({
       id: "F",
@@ -1635,8 +1661,11 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       descripcion: "Se suman a las cargadas",
       etiqueta: "Horas adicionales",
     });
+    return recordSet
+  }
 
-    this.jsonRes(recordSet, res);
+  async getMetodologia(req: any, res: Response, next: NextFunction) {
+    this.jsonRes(AsistenciaController.getMetodologias(), res);
   }
 
   async addAsistencia(req: any, res: Response, next: NextFunction) {
@@ -1677,7 +1706,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       let personal: any = null
       const valPersonalRegistrado = await this.valPersonalRegistrado(req.body, queryRunner)
       if (valPersonalRegistrado instanceof ClientException) {
-        if (!valPersonalRegistrado.extended.forma){
+        if (!valPersonalRegistrado.extended.forma) {
           if (valCategoriaPersonal instanceof ClientException && valCategoriaPersonal.extended.categoria)
             valPersonalRegistrado.extended.categoria = valCategoriaPersonal.extended.categoria
           throw valPersonalRegistrado
@@ -1826,20 +1855,20 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     lista.forEach((obj: any) => {
       if (obj.id == rowId)
         personal = obj
-      if (obj.id != rowId && obj.apellidoNombre.id == personalId && obj.categoria.id == categoriaPersonalId && obj.categoria.tipoId == tipoAsociadoId){
+      if (obj.id != rowId && obj.apellidoNombre.id == personalId && obj.categoria.id == categoriaPersonalId && obj.categoria.tipoId == tipoAsociadoId) {
         formasEncontradas.push(obj.forma.id)
-        if(obj.forma.id == formaLiquidacion)
+        if (obj.forma.id == formaLiquidacion)
           personalRegistrado = obj
       }
     })
     if (personalRegistrado) {
       //return new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`, {})
       let data = {}
-      forma = formas.find((obj : any) => !formasEncontradas.includes(obj.TipoHoraId))
+      forma = formas.find((obj: any) => !formasEncontradas.includes(obj.TipoHoraId))
       if (forma && !(personal && personal.apellidoNombre.id == personalId && personal.categoria.id == categoriaPersonalId && personal.categoria.tipoId == tipoAsociadoId && !formasEncontradas.includes(personal.forma.id))) {
         data = {
           personal,
-          forma :{
+          forma: {
             id: forma.TipoHoraId,
             fullName: forma.Descripcion,
           }
@@ -1859,9 +1888,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
     const categorias = await this.getCategoriasPorPersonaQuery(anio, mes, personalId, sucursalId, queryRunner)
     const filterres = categorias.filter((cat: any) => cat.TipoAsociadoId == tipoAsociadoId && cat.PersonalCategoriaCategoriaPersonalId == categoriaPersonalId && cat.ValorLiquidacionHoraNormal)
-    
+
     if (filterres.length == 0) {
-      const cateDisponible : any = categorias.find((cat: any) => cat.ValorLiquidacionHoraNormal)
+      const cateDisponible: any = categorias.find((cat: any) => cat.ValorLiquidacionHoraNormal)
       let data = {}
       if (categorias.length && cateDisponible) {
         data = {
@@ -1880,7 +1909,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     return null
   }
 
-  async valsDiasMes(item: any, queryRunner: QueryRunner, comparar:any = null) {
+  async valsDiasMes(item: any, queryRunner: QueryRunner, comparar: any = null) {
 
     const dateFormatter = new Intl.DateTimeFormat('es-AR', { year: 'numeric', month: 'numeric', day: 'numeric' });
 
@@ -1964,14 +1993,14 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           //Validación Licencia
 
 
-          
+
           const licencia = licencias.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
           if (licencia && (formaLiquidacion != 'A')) {
             // throw new ClientException(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta)}. dia:${numdia}`)
             errores.push(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta2)}. dia:${numdia}`)
           }
 
-          if (formaLiquidacion == 'A' && !licencia) { 
+          if (formaLiquidacion == 'A' && !licencia) {
             errores.push(`La persona no se encuentra de licencia. dia:${numdia}`)
           }
 
@@ -2088,7 +2117,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           total += horas
         }
       });
-      let forma = formas.find((objForma : any) => obj.FormaLiquidacion == objForma.TipoHoraId)
+      let forma = formas.find((objForma: any) => obj.FormaLiquidacion == objForma.TipoHoraId)
       return {
         id: hasta ? obj.id : index + 1,
         apellidoNombre: {
@@ -2185,7 +2214,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       if (valGrid instanceof ClientException)
         throw valGrid
 
-      this.jsonRes([], res,'Todas las personas se validaron correctamente');
+      this.jsonRes([], res, 'Todas las personas se validaron correctamente');
     } catch (error) {
       this.rollbackTransaction(queryRunner)
       return next(error)
@@ -2204,13 +2233,13 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     let desde = new Date(anio, mes - 1, 1)
 
     //Validación de Objetivo
-    const valObjetivo: any = await AsistenciaController.getObjetivoAsistenciaCabecera(anio,mes,objetivoId, queryRunner)
-    if (valObjetivo.length == 0){
+    const valObjetivo: any = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, objetivoId, queryRunner)
+    if (valObjetivo.length == 0) {
       errores.push(`El objetivo no se localizó`)
     } else {
       //Validación de Excepción de Asistencia
       const excepAsistencia = await this.getExcepAsistenciaPorObjetivoQuery(objetivoId, desde, queryRunner)
-      
+
       for (index = 0; index < gridData.length; index++) {
         let item = gridData[index]
         item.year = anio
@@ -2232,17 +2261,17 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         //Validación que exista la misma persona con la misma categoria y forma
         let sucursalId = valObjetivo[0].SucursalId
         const cant = gridData.find((i: any) => (i.apellidoNombre.id == item.apellidoNombre.id && i.forma.id == item.forma.id && i.categoria.id == item.categoria.id && i.categoria.tipoId == item.categoria.tipoId && i.id != item.id))
-        
+
         if (cant)
           error.push(`La persona ya tiene un registro existente con misma forma y categoría`)
-        
+
         //Validación Categoria del Personal
         const valCategoriaPersonal: any = await this.valCategoriaPersonal(item, sucursalId, queryRunner)
         if (valCategoriaPersonal instanceof ClientException) {
           error.push(`La categoría ${item.categoria.fullName} no se encuentra habilitada para ${item.apellidoNombre.fullName}`)
         }
 
-    
+
 
         //Validaciónes de los días del mes
         const valsDiasMes: any = await this.valsDiasMes(item, queryRunner)
@@ -2253,7 +2282,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           if (totalhs < 1)
             error.push(`El total de horas tiene que ser superior o igual a 1`)
           //Validación de Excepción de Asistencia
-          if (!totalhs && excepAsistencia.length && excepAsistencia.find((obj: any) => { ( obj.PersonalId == item.personalId ) })) {
+          if (!totalhs && excepAsistencia.length && excepAsistencia.find((obj: any) => { (obj.PersonalId == item.personalId) })) {
             error.push(`La persona tiene Art14 y no tienen horas cargadas`)
           }
         }
@@ -2264,7 +2293,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       }
 
     }
-    if (gridData.length == 0) { 
+    if (gridData.length == 0) {
       errores.push(`El objetivo debe poseer al menos una persona con una hora registrada`)
     }
     if (errores.length) {
@@ -2274,9 +2303,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
   async getTiposHoraQuery() {
     return [
-      {TipoHoraId:'N', Descripcion: 'Normal'},
-      {TipoHoraId:'C', Descripcion: 'Capacitacion'},
-      {TipoHoraId:'A', Descripcion: 'Art42'},
+      { TipoHoraId: 'N', Descripcion: 'Normal' },
+      { TipoHoraId: 'C', Descripcion: 'Capacitacion' },
+      { TipoHoraId: 'A', Descripcion: 'Art42' },
     ]
   }
 
