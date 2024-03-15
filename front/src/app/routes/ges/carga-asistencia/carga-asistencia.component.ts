@@ -287,17 +287,6 @@ export class CargaAsistenciaComponent {
                 const item = this.gridDataInsert.find((obj: any) => {
                     return (obj.id == row.id)
                 })
-                // console.log(item.apellidoNombre.id, item.categoria.id, item.forma.id, item.tipo.id, item.total)
-                // if(item.apellidoNombre.id && item.categoria.id && item.forma.id && item.tipo.id && item.total != undefined){
-                //     const copia = this.gridDataInsert.find((obj:any)=>{
-                //         return (obj.id != item.id && obj.apellidoNombre.id == item.apellidoNombre.id && obj.categoria.id == item.categoria.id && obj.forma.id == item.forma.id)
-                //     })
-                //     if (!copia) {
-                //         const response = await this.insertDB(item)
-                //         if(item.total == 0 && response.row?.id)
-                //             this.angularGridEdit.gridService.deleteItemById(response.row.id)
-                //     }
-                // }
                 if (item.total != undefined) {
                     const response = await this.insertDB(item)
                     if (item.total == 0 && response.deleteRowId)
@@ -308,35 +297,35 @@ export class CargaAsistenciaComponent {
                         this.angularGridEdit.gridService.updateItemById(row.id, item)
                     }
                     if (response.newRowId && response.newRowId != row.id) {
+                        /*
+                        //Metodo 1
                         this.gridDataInsert.pop()
                         let newData = this.gridDataInsert.map((obj: any) => {
                             if (obj.id == row.id) {
                                 obj.id = response.newRowId
-                                //this.angularGridEdit.gridService.updateItemById(row.id, obj)
                             } else if (obj.id == response.newRowId) {
                                 obj.id = row.id
-                                //this.angularGridEdit.gridService.updateItemById(response.newRowId, obj)
                             }
                             return obj
                         })
                         this.angularGridEdit.dataView.setItems(newData)
                         this.gridDataInsert = newData
                         this.addNewItem("bottom")
+                        */
+                        
+                        //Metodo 2
+                        const newData = this.angularGridEdit.dataView.getItems().map((obj: any) => {
+                            if (obj.id == row.id) {
+                                obj.id = response.newRowId
+                            } else if (obj.id == response.newRowId) {
+                                obj.id = row.id
+                            }
+                            return obj
+                        })
+                        this.angularGridEdit.dataView.setItems(newData)
 
-                        // this.gridDataInsert.pop()
-                        // let updateItem1 = this.angularGridEdit.dataView.getItemById(row.id)
-                        // let updateItem2 = this.angularGridEdit.dataView.getItemById(response.newRowId)
-                        // console.log('item2',updateItem2);
-                        // updateItem1.id = response.newRowId
-                        // if(updateItem2){
-                        //     updateItem2.id = row.id
-                        //     this.angularGridEdit.dataView.updateItems([row.id, response.newRowId], [updateItem2, updateItem1])
-                        // } else
-                        //     this.angularGridEdit.dataView.updateItem(row.id, updateItem1)
-                        // this.addNewItem("bottom")
                     }
                 }
-                //console.log('this.gridDataInsert', this.gridDataInsert);
             } catch (e: any) {
                 console.log('error', e)
                 if (e.error.data.categoria) {

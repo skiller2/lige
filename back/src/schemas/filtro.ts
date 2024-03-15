@@ -11,6 +11,7 @@ export interface CustomSort {
 }
 
 export interface Options {
-  filtros: Filtro[];
-  sort: CustomSort[] | null;
+  todos:boolean| null
+  filtros: Filtro[]
+  sort: CustomSort[] | null
 }

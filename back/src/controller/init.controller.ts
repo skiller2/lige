@@ -34,7 +34,7 @@ export class InitController extends BaseController {
     const mes = req.params.mes
 
     try {
-      const result = await ObjetivosPendasisController.listObjetivosPendAsis({
+      const result = await ObjetivosPendasisController.listObjetivosAsis({
         filtros: [
           { index: 'anio', operador: '=', condition: 'AND', valor: anio },
           { index: 'mes', operador: '=', condition: 'AND', valor: mes }
