@@ -2,27 +2,32 @@ import { recibosController } from "../controller/controller.module";
 import BotWhatsapp from '@bot-whatsapp/bot'
 import flowMenu from './flowMenu'
 import flowEnd from './flowEnd'
+import { ClientException } from "src/controller/base.controller";
 
 const { addKeyword } = BotWhatsapp
 
 const flowRecibo = addKeyword(['2','recibo de retiro', 'recibo', 'r'])
-    .addAction(async (_, { flowDynamic, state, fallBack }) => {
+    .addAction(async (_, { flowDynamic, state, gotoFlow }) => {
         await flowDynamic([{ body:`⏱️ Dame un momento`, delay: 500 }])
         const myState = state.getMyState()
         const personalId = myState.personalId
         const periodosArray : any[] = await recibosController.getLastPeriodoOfComprobantes(personalId, 3).then(array =>{return array})
         // console.log('periodos', periodosArray);
         let resPeriodos = ''
-        periodosArray.forEach((obj : any) => {
-            if (obj.mes < 10) 
-                resPeriodos += `0${obj.mes}/${obj.anio}\n`
-            else
-                resPeriodos += `${obj.mes}/${obj.anio}\n`
-        })
-        await state.update({recibo:{ periodosArray, periodosString: resPeriodos }})
-        
+        if (periodosArray.length) {
+            periodosArray.forEach((obj : any) => {
+                if (obj.mes < 10) 
+                    resPeriodos += `0${obj.mes}/${obj.anio}\n`
+                else
+                    resPeriodos += `${obj.mes}/${obj.anio}\n`
+            })
+        } else {
+            await flowDynamic([{ body:`No hay comprobantes`, delay: 500 }])
+            return gotoFlow(flowMenu)
+        }
+        await state.update({recibo:{ periodosArray, periodosString: resPeriodos }}) 
     })
-    .addAnswer('Ingrese una fecha (MM/AAAA) de la lista',
+    .addAnswer('Ingrese una fecha (MM/AAAA) de la lista 📝',
     { delay: 500 },
     async (_, { flowDynamic, state }) => {
         const myState = state.getMyState()
@@ -47,9 +52,13 @@ const flowRecibo = addKeyword(['2','recibo de retiro', 'recibo', 'r'])
         if (!obj.length)
             return fallBack('La fecha ingresada no aparece en la lista\nIngrese una fecha de la lista')
         const personalId = myState.personalId
-        const pdf = await recibosController.downloadComprobantesByPeriodo(personalId, mes, anio).then(data => { return data })
-        // console.log('pdf', typeof pdf);
-        await flowDynamic([ { media: pdf, delay: 500 } ]) 
+        // await flowDynamic([{ body:`⏱️ Dame un momento`, delay: 500 }])
+        const reciboPdf = await recibosController.downloadComprobantesByPeriodo(personalId, anio, mes).then(data => { return data })
+        // console.log('reciboPdf -->', reciboPdf);
+        if (reciboPdf instanceof ClientException)
+            await flowDynamic([{ body:`Error. Avisé al administrador`, delay:500 }])
+        else
+            await flowDynamic([ { media: reciboPdf, delay: 500 } ]) 
     })
     .addAnswer([
         '¿Desea consulta algo mas?', 
