@@ -429,7 +429,12 @@ export class RecibosController extends BaseController {
       let fechaActual = new Date();
       // const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseInt(year), parseInt(month), usuario, ip);
       const gettmpfilename = await this.getRutaFile(queryRunner, parseInt(year), parseInt(month), parseInt(personalIdRel))
-      const tmpfilename = gettmpfilename[0]?.path;
+      let tmpfilename;
+      if (gettmpfilename[0] && typeof gettmpfilename[0].path === 'string') {
+          tmpfilename = gettmpfilename[0].path;
+      } else {
+        throw new ClientException(`Recibo no generado`)
+      }
       const responsePDFBuffer = await this.obtenerPDFBuffer(tmpfilename);
 
       await fs.promises.writeFile(tmpfilename, responsePDFBuffer);
@@ -489,6 +494,9 @@ export class RecibosController extends BaseController {
 
       const rutaPDF = path.join(this.directoryRecibo, `Recibos-${Anio}-${Mes}.pdf`);
       const mergedPdf = await PDFDocument.create();
+
+      if(pathFile == "")
+        throw new ClientException(`Recibos no generados para el periodo seleccionado`)
 
       for (const filePath of pathFile) {
         try {
