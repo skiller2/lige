@@ -23,15 +23,22 @@ export class RecibosController extends BaseController {
 
   async downloadComprobantesByPeriodo(
     personalId: number,
-    month: number,
     year: number,
+    month: number,
   ) {
 
     const queryRunner = dataSource.createQueryRunner();
     
     try {
-      const gettmpfilename = await this.getRutaFile(queryRunner, year, month, personalId)
+      await queryRunner.startTransaction()
+      const gettmpfilename = await this.getRutaFile(queryRunner, personalId, year, month)
+      console.log('gettmpfilename', gettmpfilename);
+      
       const tmpfilename = gettmpfilename[0]?.path;
+
+      if (!fs.existsSync(tmpfilename))
+        throw new ClientException(`El archivo no existe (${tmpfilename}).`);
+
       const responsePDFBuffer = await this.obtenerPDFBuffer(tmpfilename);
       
       await queryRunner.commitTransaction()
@@ -44,12 +51,12 @@ export class RecibosController extends BaseController {
     }
   }
 
-  async getRutaFile(queryRunner: QueryRunner, year: number, month: number, personalIdRel: number) {
+  async getRutaFile(queryRunner: QueryRunner, personalIdRel: number, year: number, month: number) {
     return queryRunner.query(`
       SELECT * from lige.dbo.docgeneral doc
       JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
-      WHERE per.anio =@0 AND per.mes=@1 AND doc.persona_id = @2  AND doctipo_id = 'REC'`, 
-      [year, month, personalIdRel]
+      WHERE per.anio =@1 AND per.mes=@2 AND doc.persona_id = @0  AND doctipo_id = 'REC'`,
+      [personalIdRel, year, month]
     )
   }
 
@@ -61,16 +68,17 @@ export class RecibosController extends BaseController {
   async getLastPeriodoOfComprobantes( personalId: number, cant: number ) {
     const queryRunner = dataSource.createQueryRunner();
     try {
+      // await queryRunner.startTransaction()
       const respuesta = queryRunner.query(`
         SELECT TOP ${cant} per.periodo_id, per.anio, per.mes from lige.dbo.liqmaperiodo per
         JOIN lige.dbo.docgeneral doc ON per.periodo_id = doc.periodo
         WHERE doc.persona_id = @0 AND doctipo_id = 'REC'      
         ORDER BY per.anio DESC,per.mes DESC`, 
         [personalId])
-
+      // await queryRunner.commitTransaction()
       return respuesta
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      // this.rollbackTransaction(queryRunner)
       return error
     }
   }

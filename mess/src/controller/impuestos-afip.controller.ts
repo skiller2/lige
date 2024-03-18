@@ -38,48 +38,38 @@ export class ImpuestosAfipController extends BaseController {
     
   directory = process.env.PATH_MONOTRIBUTO || "tmp";
     
-  async downloadComprobante( personalId: number){
-    const date = new Date
-    const year = date.getFullYear()
-    const month = date.getMonth()+1
-
+  async downloadComprobante( personalId: number, year: number, month: number,){
     const queryRunner = dataSource.createQueryRunner();
 
     const dirtmp = `${process.env.PATH_MONOTRIBUTO}/temp`;
     const tmpfilename = `${dirtmp}/${tmpName(dirtmp)}`;
     try {
-      const [personalQuery] = await queryRunner.query(
-        `SELECT DISTINCT
-        per.PersonalId PersonalId, cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
-        ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
-        1
-        FROM Personal per
-        LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-        LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
-        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
-      
-        
-        WHERE per.PersonalId = @0`,
+      await queryRunner.startTransaction()
+      const [comprobante] = await queryRunner.query(
+        `SELECT des.PersonalId, cuit.PersonalCUITCUILCUIT cuit, des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoAnoAplica, CONCAT('/',des.PersonalOtroDescuentoAnoAplica,'/',des.PersonalOtroDescuentoAnoAplica,'-',FORMAT(des.PersonalOtroDescuentoMesesAplica,'00'),'-',cuit.PersonalCUITCUILCUIT,'-',des.PersonalId,'.pdf') path,
+        CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre, ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle
+        FROM PersonalOtroDescuento des 
+        JOIN Personal per ON per.PersonalId = des.PersonalId
+        JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = des.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = des.PersonalId)
+        JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = des.PersonalId
+        JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
+        WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = 31 AND des.PersonalOtroDescuentoAnoAplica = @1 AND des.PersonalOtroDescuentoMesesAplica = @2
+        `,
         [personalId, year, month]
       );
-      const personalID = personalQuery.PersonalId;
-      const cuit = personalQuery.CUIT;
+      if (!comprobante)
+        throw new ClientException(`No se pudo encontrar el comprobante`);
 
-      const filename = `${year}-${month.toString().padStart(
-        2,
-        "0"
-      )}-${cuit}-${personalId}.pdf`;
-      const downloadPath = `${this.directory}/${year}/${filename}`;
+      const filename = comprobante.path
+      const downloadPath = `${this.directory}/${filename}`;
 
       if (!existsSync(downloadPath))
         throw new ClientException(`El archivo no existe (${downloadPath}).`);
 
       const uint8Array = readFileSync(downloadPath);
 
-      if (!personalID)
-        throw new ClientException(`No se pudo encontrar la persona ${personalId}`);
-      const ApellidoNombre = personalQuery.ApellidoNombre;
-      const GrupoActividadDetalle = personalQuery.GrupoActividadDetalle;
+      const ApellidoNombre = comprobante.ApellidoNombre;
+      const GrupoActividadDetalle = comprobante.GrupoActividadDetalle;
 
       const buffer = await this.alterPDF(
         uint8Array,
@@ -234,6 +224,26 @@ export class ImpuestosAfipController extends BaseController {
     });
 
     return newPdf.save();
+  }
+
+  async getLastPeriodosOfComprobantes( personalId: number, cant: number ) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      // await queryRunner.startTransaction()
+      const respuesta = queryRunner.query(`
+        SELECT TOP ${cant} des.PersonalId, des.PersonalOtroDescuentoMesesAplica mes, des.PersonalOtroDescuentoAnoAplica anio
+        FROM PersonalOtroDescuento des 
+        WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = 31
+        ORDER BY des.PersonalOtroDescuentoAnoAplica DESC, des.PersonalOtroDescuentoMesesAplica DESC`, 
+        [personalId])
+      // await queryRunner.commitTransaction()
+      console.log('Periodos', respuesta);
+      
+      return respuesta
+    } catch (error) {
+      // this.rollbackTransaction(queryRunner)
+      return error
+    }
   }
 
 }
