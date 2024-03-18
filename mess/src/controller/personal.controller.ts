@@ -73,16 +73,23 @@ export class PersonalController extends BaseController {
     return result
   }
 
-  async getPersonalMonotributo(req: any, res: Response, next:NextFunction) {
-    const personalId = req.params.personalId;
-    const anio = req.params.anio;
-    const mes = req.params.mes;
+  async checkTelefonoPersonal( personalId : number, telefono : string, usuario : string, ip : string){
     try {
-      const result = await this.getPersonalMonotributoQuery(personalId, anio, mes)
-
-      return this.jsonRes(result, res);
+      let result : any
+      const [telefonoPersonal] = await dataSource.query(
+        `SELECT reg.reg_id id, reg.personal_id personalId, reg.telefono
+        FROM lige.dbo.regtelefonopersonal reg
+        WHERE reg.personal_id = @0`,
+        [ personalId ]
+      );
+      if (telefonoPersonal) {
+        result = await this.updateTelefonoPersonalQuery(telefonoPersonal.id, personalId, telefono, usuario, ip)
+      } else {
+        result = await this.addTelefonoPersonalQuery(personalId, telefono, usuario, ip)
+      }
+      return result
     } catch (error) {
-      return next(error)
+      return error
     }
   }
 
@@ -96,20 +103,6 @@ export class PersonalController extends BaseController {
       [++max_reg_id, personalId, telefono, usuario, ip, fecha ]
     );
     return result
-  }
-
-  async addTelefonoPersonal(req: any, res: Response, next:NextFunction) {
-    const personalId = req.params.personalId;
-    const telefono = req.params.telefono;
-    const usuario = req.params.usuario;
-    const ip = this.getRemoteAddress(req)
-    try {
-      const result = await this.addTelefonoPersonalQuery(personalId, telefono, usuario, ip)
-
-      return this.jsonRes(result, res);
-    } catch (error) {
-      return next(error)
-    }
   }
 
   async getPersonalfromTelefonoQuery( telefono : string ){
@@ -143,4 +136,13 @@ export class PersonalController extends BaseController {
     return result
   }
   
+  async updateTelefonoPersonalQuery( id : number, personalId : number, telefono : string, usuario : string, ip : string){
+    const fecha = new Date
+    const result = await dataSource.query(
+      `UPDATE lige.dbo.regtelefonopersonal SET telefono = @2, aud_usuario_mod = @3, aud_ip_mod= @4, aud_fecha_mod = @5
+      WHERE reg_id = @0 AND personal_id = @1`,
+      [ id, personalId, telefono, usuario, ip, fecha ]
+    );
+    return result
+  }
 }

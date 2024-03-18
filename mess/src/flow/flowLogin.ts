@@ -74,7 +74,7 @@ const flowLogin = addKeyword(EVENTS.WELCOME)
         if (deposito < ultDeposito - 1 || deposito > ultDeposito + 1 ) {
             return fallBack(`Valor incorrecto\n¿Cuanto fue el importe de tu ultimo deposito?`)
         }
-        await personalController.addTelefonoPersonalQuery(personalId, telefono, 'Bot', '')
+        await personalController.checkTelefonoPersonal(personalId, telefono, 'Bot', '')
         return gotoFlow(flowMenu)
     })
 
