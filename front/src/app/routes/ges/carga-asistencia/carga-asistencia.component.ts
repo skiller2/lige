@@ -82,7 +82,7 @@ export class CargaAsistenciaComponent {
     $selectedObjetivoIdChange = new BehaviorSubject(0);
     $formChange = new BehaviorSubject({});
     objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
-    isLoading = false;
+    isLoadingCheck = false;
 
     getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
         this.loadingSrv.open({ type: 'spin', text: '' })
@@ -288,6 +288,7 @@ export class CargaAsistenciaComponent {
                     return (obj.id == row.id)
                 })
                 if (item.total != undefined) {
+                    // this.angularGridEdit
                     const response = await this.insertDB(item)
                     if (item.total == 0 && response.deleteRowId)
                         this.angularGridEdit.gridService.deleteItemById(response.deleteRowId)
@@ -325,6 +326,8 @@ export class CargaAsistenciaComponent {
                         this.angularGridEdit.dataView.setItems(newData)
 
                     }
+                    console.log('Valores de la grilla', this.angularGridEdit.dataView.getItems());
+                    
                 }
             } catch (e: any) {
                 console.log('error', e)
@@ -605,12 +608,14 @@ export class CargaAsistenciaComponent {
     }
 
     async endCargaAsistencia() {
+        this.isLoadingCheck = true
         const editable = this.angularGridEdit.slickGrid.getOptions().editable
         if (editable)
             this.angularGridEdit.slickGrid.setOptions({ editable: false })
 
         try {
-            const res = await firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId))
+            const res = await firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
+            finally(() => { this.isLoadingCheck = false })
             this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
         } catch (error) {
 
@@ -621,14 +626,14 @@ export class CargaAsistenciaComponent {
     }
 
     async validaGrilla() {
-        this.isLoading = true
+        this.isLoadingCheck = true
         const editable = this.angularGridEdit.slickGrid.getOptions().editable
         if (editable)
             this.angularGridEdit.slickGrid.setOptions({ editable: false })
 
         try {
             const res = firstValueFrom(this.apiService.validaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
-            finally(() => { this.isLoading = false })
+            finally(() => { this.isLoadingCheck = false })
         } catch (error) {
 
         }
