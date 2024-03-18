@@ -124,7 +124,7 @@ export class ObjetivosPendasisController extends BaseController {
     const filtros = options.filtros;
     const filterSql = filtrosToSql(filtros, columnasGrilla);
 
-    const filterPendientes = (options.todos) ? '':' (obj.ObjetivoId IS NULL OR objm.ObjetivoAsistenciaAnoMesHasta IS NULL) AND '
+    const filterPendientes = (options.extra && options.extra.todos) ? '':' (obj.ObjetivoId IS NULL OR objm.ObjetivoAsistenciaAnoMesHasta IS NULL) AND '
 
     const anio:number = filtros.filter((x: { index: string; }) => x.index === "anio")[0]?.valor;
     const mes:number = filtros.filter((x: { index: string; }) => x.index === "mes")[0]?.valor;
@@ -132,15 +132,10 @@ export class ObjetivosPendasisController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     await queryRunner.connect();
 
-
-    //const result = await AsistenciaController.getObjetivoAsistencia(anio,mes,[filterSql],queryRunner)
     const objetivos = await ObjetivoController.getObjetivoContratos(0, anio, mes, queryRunner)
     let arrObjetivos = [] 
     for (const objetivo of objetivos)
       arrObjetivos.push(objetivo.ObjetivoId)
-    
-
-
 
     return queryRunner.query(
       `SELECT DISTINCT suc.SucursalId, 

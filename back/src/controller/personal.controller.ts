@@ -7,7 +7,7 @@ import { ParsedQs } from "qs";
 import { NextFunction } from "express";
 
 export class PersonalController extends BaseController {
-  async getPersonalMonotributo(req: any, res: Response, next:NextFunction) {
+  async getPersonalMonotributo(req: any, res: Response, next: NextFunction) {
     const personalId = req.params.personalId;
     const anio = req.params.anio;
     const mes = req.params.mes;
@@ -23,7 +23,7 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async getNameFromId(PersonalId, res: Response, next:NextFunction) {
+  async getNameFromId(PersonalId, res: Response, next: NextFunction) {
     try {
       const result = await dataSource.query(
         `SELECT per.PersonalId personalId, cuit.PersonalCUITCUILCUIT cuit,
@@ -41,7 +41,7 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async getPersonalResponsables(req: any, res: Response, next:NextFunction) {
+  async getPersonalResponsables(req: any, res: Response, next: NextFunction) {
     const personalId = req.params.personalId;
     const anio = req.params.anio;
     const mes = req.params.mes;
@@ -94,7 +94,7 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async getPersonalSitRevista(req: any, res: Response, next:NextFunction) {
+  async getPersonalSitRevista(req: any, res: Response, next: NextFunction) {
     const personalId = req.params.personalId;
     const anio = req.params.anio;
     const mes = req.params.mes;
@@ -108,25 +108,44 @@ export class PersonalController extends BaseController {
         LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
         WHERE per.PersonalId=@0
         ORDER BY sitrev.PersonalSituacionRevistaDesde, hastafull`, [personalId, anio, mes])
-        
+
       this.jsonRes(responsables, res);
     } catch (error) {
       return next(error)
     }
   }
 
-  getById(PersonalId: string, res: Response, next:NextFunction) {
+  getById(PersonalId: string, res: Response, next: NextFunction) {
+    const fechaActual = new Date();
+    //    const dia = fechaActual.getDate();
+    const mes = fechaActual.getMonth() + 1; // Agrega 1 porque los meses se indexan desde 0 (0 = enero)
+    const anio = fechaActual.getFullYear();
+
     dataSource
       .query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
-        per.PersonalNombre, per.PersonalApellido
+        per.PersonalNombre, per.PersonalApellido,
+        TRIM(CONCAT(
+          TRIM(dom.PersonalDomicilioDomCalle), ' ',
+          TRIM(dom.PersonalDomicilioDomNro), ' ',
+          TRIM(dom.PersonalDomicilioDomPiso), ' ',
+          TRIM(dom.PersonalDomicilioDomDpto)
+        )) AS DomicilioCompleto,
+       act.GrupoActividadNumero,
+       act.GrupoActividadDetalle        
         FROM Personal per
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId
         LEFT JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = per.PersonalId AND cat.PersonalCategoriaId = per.PersonalCategoriaUltNro
         LEFT JOIN CategoriaPersonal categ ON categ.TipoAsociadoId = cat.PersonalCategoriaTipoAsociadoId AND categ.CategoriaPersonalId = cat.PersonalCategoriaCategoriaPersonalId
+        LEFT JOIN PersonalDomicilio AS dom ON dom.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1 AND dom.PersonalDomicilioId = ( SELECT MAX(dommax.PersonalDomicilioId) FROM PersonalDomicilio dommax WHERE dommax.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1)
+
+        LEFT JOIN (SELECT grp.GrupoActividadPersonalPersonalId, MAX(grp.GrupoActividadPersonalDesde) AS GrupoActividadPersonalDesde, MAX(ISNULL(grp.GrupoActividadPersonalHasta,'9999-12-31')) GrupoActividadPersonalHasta FROM GrupoActividadPersonal AS grp WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > grp.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(grp.GrupoActividadPersonalHasta, '9999-12-31') GROUP BY grp.GrupoActividadPersonalPersonalId) as grupodesde ON grupodesde.GrupoActividadPersonalPersonalId = per.PersonalId
+        LEFT JOIN GrupoActividadPersonal grupo ON grupo.GrupoActividadPersonalPersonalId = per.PersonalId AND grupo.GrupoActividadPersonalDesde = grupodesde.GrupoActividadPersonalDesde AND ISNULL(grupo.GrupoActividadPersonalHasta,'9999-12-31') = grupodesde.GrupoActividadPersonalHasta 
+        LEFT JOIN GrupoActividad act ON act.GrupoActividadId= grupo.GrupoActividadId
+
         WHERE per.PersonalId = @0`,
-        [PersonalId]
+        [PersonalId, anio, mes]
       )
       .then((records: Array<PersonaObj>) => {
         if (records.length != 1) throw new ClientException("Person not found");
@@ -154,8 +173,8 @@ export class PersonalController extends BaseController {
           : "";
         const imageUrl = personaData.DocumentoImagenFotoBlobNombreArchivo
           ? imageFotoPath.concat(
-              personaData.DocumentoImagenFotoBlobNombreArchivo
-            )
+            personaData.DocumentoImagenFotoBlobNombreArchivo
+          )
           : "";
         if (imageUrl != "") {
           fetch(imageUrl)
@@ -179,7 +198,40 @@ export class PersonalController extends BaseController {
       });
   }
 
-  search(req: any, res: Response, next:NextFunction) {
+  async getTelefonosPorPersona(PersonalId: string, res: Response, next: NextFunction) {
+    try {
+      const result = await dataSource.query(
+        `SELECT tel.PersonalId, tip.TipoTelefonoDescripcion, tel.PersonalTelefonoNro
+        FROM PersonalTelefono tel 
+        JOIN TipoTelefono tip ON tip.TipoTelefonoId = tel.TipoTelefonoId
+        WHERE (tel.PersonalTelefonoInactivo IS NULL OR tel.PersonalTelefonoInactivo =0) AND tel.PersonalId=@0`,
+        [PersonalId]
+      );
+
+      this.jsonRes(result, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getCuentasBancoPorPersona(PersonalId: string, res: Response, next: NextFunction) {
+    try {
+      const stmactual = new Date();
+      const result = await dataSource.query(
+        `SELECT cue.PersonalId, ban.BancoDescripcion, cue.PersonalBancoCBU, cue.PersonalBancoDesde, cue.PersonalBancoHasta
+        FROM PersonalBanco cue
+        JOIN Banco ban ON ban.BancoId = cue.PersonalBancoId
+        WHERE cue.PersonalBancoDesde <= @1 AND ISNULL(cue.PersonalBancoHasta,'9999-12-31')>= @1 AND cue.PersonalId=@0`,
+        [PersonalId,stmactual]
+      )
+
+      this.jsonRes(result, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  search(req: any, res: Response, next: NextFunction) {
     const { fieldName, value } = req.body;
 
     let buscar = false;

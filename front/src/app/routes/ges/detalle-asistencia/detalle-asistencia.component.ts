@@ -27,6 +27,7 @@ import { CommonModule } from '@angular/common';
 import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
+import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 
 enum Busqueda {
   Sucursal,
@@ -36,11 +37,11 @@ enum Busqueda {
 }
 
 @Component({
-    selector: 'app-detalle-asistencia',
-    standalone: true,
-    templateUrl: './detalle-asistencia.component.html',
-    styleUrls: ['./detalle-asistencia.component.less'],
-    imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent]
+  selector: 'app-detalle-asistencia',
+  standalone: true,
+  templateUrl: './detalle-asistencia.component.html',
+  styleUrls: ['./detalle-asistencia.component.less'],
+  imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent, DetallePersonaComponent]
 })
 export class DetalleAsistenciaComponent {
   @ViewChild('asistencia', { static: true }) asistencia: NgForm = new NgForm(
@@ -146,7 +147,7 @@ export class DetalleAsistenciaComponent {
       )
     )
   )
-    
+
   $listaExcepciones = this.$selectedObjetivoIdChange.pipe(
     debounceTime(50),
     switchMap(objetivoId =>
@@ -280,21 +281,21 @@ export class DetalleAsistenciaComponent {
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
-        (tap(data => { 
+        (tap(data => {
           this.PersonalIdlist = data.persxresp
 
-          if(this.PersonalIdlist != undefined) {
+          if (this.PersonalIdlist != undefined) {
 
-            for(let personalarray of this.PersonalIdlist){
+            for (let personalarray of this.PersonalIdlist) {
 
               this.personalIdListarray.push(personalarray["PersonalId"])
             }
 
             this.personalIdString = JSON.stringify(this.personalIdListarray)
-            console.log( this.personalIdString)
+            console.log(this.personalIdString)
 
           }
-          
+
         })
         )))
 
@@ -475,4 +476,16 @@ export class DetalleAsistenciaComponent {
     this.destroy$.next('');
     this.destroy$.complete();
   }
+
+  visibleDrawer = false
+
+  closeDrawer(): void {
+    this.visibleDrawer = false;
+  }
+
+
+  openDrawer(): void {
+    this.visibleDrawer = true
+  }
+
 }

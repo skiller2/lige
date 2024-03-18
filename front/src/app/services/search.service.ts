@@ -515,6 +515,28 @@ export class SearchService {
       );
   }
   
+  getTelefonosPersona(id: number): Observable<any> {
+    if (!id) return of([]);    
+    return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/telefonos/${id}`).pipe(
+        map(res => res.data),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+  
+  getCuentasBancoPersona(id: number): Observable<any> {
+    if (!id) return of([]);    
+    return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/banco/${id}`).pipe(
+        map(res => res.data),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+  
   getLicenciasPersona(
     personalId: number,
     anio: number,

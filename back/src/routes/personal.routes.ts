@@ -20,6 +20,16 @@ personalRouter.get(`${base}/:id`, authMiddleware.verifyToken, (req, res, next) =
   personalController.getById(req.params.id, res, next);
 });
 
+personalRouter.get(`${base}/telefonos/:id`, authMiddleware.verifyToken, (req, res, next) => {
+  //personalRouter.get(`${base}/:id`,  (req, res) => {
+  personalController.getTelefonosPorPersona(req.params.id, res, next);
+});
+
+personalRouter.get(`${base}/banco/:id`, authMiddleware.verifyToken, (req, res, next) => {
+  //personalRouter.get(`${base}/:id`,  (req, res) => {
+  personalController.getCuentasBancoPorPersona(req.params.id, res, next);
+});
+
 
 personalRouter.get(
   `${base}/responsables/:personalId/:anio/:mes`,

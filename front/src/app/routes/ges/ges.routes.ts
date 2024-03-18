@@ -6,10 +6,6 @@ export const GesRoutes: Routes = [
     loadComponent: () => import('./carga-asistencia/carga-asistencia.component').then(c => c.CargaAsistenciaComponent),
   },
   {
-    path: 'objetivos_pendasis',
-    loadComponent: () => import('./objetivos-pendasis/objetivos-pendasis.component').then(c => c.ObjetivosPendAsisComponent),
-  },
-  {
     path: 'detalle_asistencia',
     redirectTo: 'detalle_asistencia/objetivo'
   },
@@ -52,6 +48,11 @@ export const GesRoutes: Routes = [
   {
     path: 'cambio_categoria',
     loadComponent: () => import('./categorias-cambio/categorias-cambio.component').then(c => c.CategoriasCambioComponent),
+  },
+  { path: 'objetivos_pendasis', redirectTo: 'objetivos_pendasis/pendientes' },
+  {
+    path: 'objetivos_pendasis/:tab',
+    loadComponent: () => import('./objetivos-pendasis/objetivos-pendasis.component').then(c => c.ObjetivosPendAsisComponent),
   },
 
   { path: 'liquidaciones', redirectTo: 'liquidaciones/listado' },

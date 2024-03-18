@@ -1,13 +1,34 @@
-<div class="app-foto-container" *ngIf="(personalDetalle$ | async) as imgdata">
-  <img class="app-foto" nz-image [nzSrc]="imgdata.image" nzFallback="./assets/dummy-person-image.jpg" />
+@if ((personalDetalle$ | async); as personalDetalle){
+<div nz-row>
+  <div nz-col nzFlex="100px" class="app-foto-container">
+    <img class="app-foto" nz-image [nzSrc]="personalDetalle.image" nzFallback="./assets/dummy-person-image.jpg" />
+  </div>
+  <div nz-col nzFlex="200px" class="app-info-pers">
+    <li><span class="app-bold-text">{{personalDetalle.PersonalApellido}}, {{personalDetalle.PersonalNombre}}</span></li>
+    <li><span class="app-bold-text">CUIT:</span> {{personalDetalle.PersonalCUITCUILCUIT}}</li>
+    <li><span class="app-bold-text">Domicilio:</span> {{personalDetalle.DomicilioCompleto}}</li>
+    <!-- <li><span class="ant-divider-horizontal.ant-divider-with-text">DNI</span> {{personalDetalle.DomicilioCompleto}}</li> -->
+  </div>
 </div>
+
+
+}
+
+<nz-divider nzText="Teléfonos"></nz-divider>
+@if ((telefonos$ | async); as telefonos){
+
+  @if (!telefonos.length) { <li>Sin datos</li>}
+  @for (tel of telefonos; track tel.PersonalTelefonoNro) {
+    <li title="">
+       {{tel.TipoTelefonoDescripcion}} {{ tel.PersonalTelefonoNro }} </li> }
+}
 
 <nz-divider nzText="Categorías"></nz-divider>
      
 @if ((personalDetalleCategorias$ | async)?.categorias; as categorias){
 @if (!categorias.length){ <li>Sin datos</li>}
 @for (cat of categorias; track cat.PersonalCategoriaCategoriaPersonalId) {
-<li> {{cat.CategoriaPersonalDescripcion}} {{(cat.ValorLiquidacionHoraNormal>0)?(cat.ValorLiquidacionHoraNormal|currency):'(Sin importe)'}}
+<li> {{cat.CategoriaPersonalDescripcion}} @if ( cat.ValorLiquidacionHoraNormal>0 && cat.ValorLiquidacionSucursalId){ {{(cat.ValorLiquidacionHoraNormal>0)?(cat.ValorLiquidacionHoraNormal|currency):'(Sin importe)'}}    }   
   {{(cat.ValorLiquidacionHorasTrabajoHoraNormal>0)?'('+cat.ValorLiquidacionHorasTrabajoHoraNormal+' hs)':''}}
 </li>
 }
@@ -58,3 +79,15 @@
 <li title="{{ objetivo.ObjetivoId }}">
   {{objetivo.ObjetivoCodigo}} {{objetivo.ObjetivoDescripcion}} {{objetivo.totalhorascalc}}hs ({{objetivo.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras}})</li> }
 }
+
+<nz-divider nzText="Cuentas"></nz-divider>
+@if ((banco$ | async); as bancos){
+
+  @if (!bancos.length) { <li>Sin datos</li>}
+  @for (banco of bancos; track banco.PersonalBancoCBU) {
+    <li title="{{ banco.PersonalBancoCBU }}">
+      {{banco.BancoDescripcion}} CBU {{banco.PersonalBancoCBU}} </li> }
+}
+    
+
+

@@ -1,12 +1,20 @@
 <nz-card class="small-margin">
   <form nz-form #objpendForm="ngForm">
     <ng-container>
+      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
+      <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
+
       <ul nz-menu nzMode="horizontal">
-        <li nz-menu-item nzSelected (click)="selectedTabIndex = 0">
+        <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          Objetivos Pendientes
+          <a [routerLink]="['/', 'ges', 'objetivos_pendasis','pendientes']">Pendientes</a>
         </li>
-        <li nz-submenu nzTitle="Acciones" *ngIf="selectedTabIndex == 0">
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'objetivos_pendasis','todos']">Todos</a>
+        </li>
+
+        <li nz-submenu nzTitle="Acciones">
           <ul>
             <li nz-menu-item (click)="exportGrid()">
               <span nz-icon nzType="download"></span>XLS
@@ -15,15 +23,10 @@
         </li>
       </ul>
 
-      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
-
-      <nz-tabset nzCentered [(nzSelectedIndex)]="selectedTabIndex" class="hide-ant-tabs-nav">
+      <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [nzSelectedIndex]="SelectedTabIndex">
         <nz-tab [nzForceRender]="false">
+          <a nz-tab-link routerLink="/ges/objetivos_pendasis/pendientes">Pendientes</a>
           <ng-template nz-tab>
-            <div style="display:inline">
-            <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
-            <button>Ver todos</button>
-            </div>
             <div class="gridContainer container-fluid" *ngIf="(columns$|async) as columnas">
               <angular-slickgrid gridId="gridOPA" class="" [columnDefinitions]="columnas | colsFilter"
                 [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
@@ -32,8 +35,19 @@
             </div>
           </ng-template>
         </nz-tab>
-        <nz-tab>
+
+        <nz-tab [nzForceRender]="false">
+          <a nz-tab-link routerLink="/ges/objetivos_pendasis/todos">Todos</a>
+          <ng-template nz-tab>
+            <div class="gridContainer container-fluid" *ngIf="(columns$|async) as columnas">
+              <angular-slickgrid gridId="gridOPAT" class="" [columnDefinitions]="columnas | colsFilter"
+                [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+                (onAngularGridCreated)="angularGridReady($event)">
+              </angular-slickgrid>
+            </div>
+          </ng-template>
         </nz-tab>
+
 
       </nz-tabset>
     </ng-container>
