@@ -3,7 +3,7 @@ import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, i
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { ExcelExportOption, SlickGroup, SortComparers, SortDirectionNumber } from '@slickgrid-universal/common';
+import { EditController, ExcelExportOption, SlickGroup, SortComparers, SortDirectionNumber } from '@slickgrid-universal/common';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { BehaviorSubject, Observable, debounceTime, distinctUntilChanged, firstValueFrom, forkJoin, map, merge, mergeAll, of, shareReplay, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
@@ -61,7 +61,7 @@ export class CargaAsistenciaComponent {
     gridDataInsert: any[] = [];
 
     excelExportService = new ExcelExportService()
-    excelExportOption! : ExcelExportOption ;
+    excelExportOption!: ExcelExportOption;
     angularGridEdit!: AngularGridInstance;
     detailViewRowCount = 1;
     selectedPeriod = { year: 0, month: 0 };
@@ -103,8 +103,8 @@ export class CargaAsistenciaComponent {
                 this.excelExportOption.customExcelHeader = (workbook, sheet) => {
                     sheet.setRowInstructions(4, { height: 20 })
                     sheet.data.push(
-                        [{ value: `Año: ${anio}` }], 
-                        [{ value: `Mes: ${mes}` }], 
+                        [{ value: `Año: ${anio}` }],
+                        [{ value: `Mes: ${mes}` }],
                         [{ value: `Código: ${data[2][0]?.ObjetivoCodigo}` }],
                         [{ value: `Objetivo: ${data[2][0]?.ObjetivoDescripcion}` }],
                         []
@@ -156,6 +156,15 @@ export class CargaAsistenciaComponent {
                 );
         })
     );
+
+    sumdays(row: any) {
+        let sum = 0
+        for (const day in row) {
+            if (day.indexOf('day')!= -1)
+                sum += Number(row[day])
+        }
+        return sum
+    }
 
     async ngOnInit() {
 
@@ -240,6 +249,9 @@ export class CargaAsistenciaComponent {
                     width: 14,
                 },
             },
+            {
+                id: 'dbid', name: 'dbid', field: 'dbid',
+            }
         ]
 
         this.columnas = this.columnDefinitions
@@ -247,7 +259,7 @@ export class CargaAsistenciaComponent {
             filename: `${this.selectedPeriod.year}/${this.selectedPeriod.month}/${this.selectedObjetivoId}`,
             columnHeaderStyle: {
                 alignment: { horizontal: 'center' },
-                font: { color: 'black' , size: 10, bold: true},
+                font: { color: 'black', size: 10, bold: true },
                 fill: { type: 'pattern', patternType: 'solid', fgColor: '6A9BCC' },
             }
         }
@@ -269,11 +281,12 @@ export class CargaAsistenciaComponent {
             this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
             this.angularGridEdit.slickGrid.invalidate();
 
-            const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
-            if (lastrow && (lastrow.apellidoNombre)) {
+            const emptyrows = this.angularGridEdit.dataView.getItems().filter(row => (!row.apellidoNombre.id))
+
+            if (emptyrows.length == 0) {
                 this.addNewItem("bottom")
-            } else if (!row.apellidoNombre.id && (row.id != lastrow.id)) {
-                this.angularGridEdit.gridService.deleteItemById(row.id)
+            } else if (emptyrows.length > 1) {
+                this.angularGridEdit.gridService.deleteItemById(emptyrows[0].id)
             }
             //Intento grabar si tiene error hago undo
 
@@ -284,19 +297,27 @@ export class CargaAsistenciaComponent {
 
                 if (editCommand.serializedValue === editCommand.prevSerializedValue) return
                 editCommand.execute()
-                const item = this.gridDataInsert.find((obj: any) => {
-                    return (obj.id == row.id)
-                })
-                if (item.total != undefined) {
+                const totalhs = this.sumdays(row)
+                const item = row
+
+                if (totalhs == 0 && item.apellidoNombre.id>0 && item.categoria.id>0 && item.forma.id!='' ) { 
                     const response = await this.insertDB(item)
-                    if (item.total == 0 && response.deleteRowId)
+                    if (response.deleteRowId)
                         this.angularGridEdit.gridService.deleteItemById(response.deleteRowId)
+                }
+
+                if (totalhs >0) {
+                    const response = await this.insertDB(item)
+
                     if (response.categoria || response.forma) {
                         item.categoria = response.categoria ? response.categoria : item.categoria
                         item.forma = response.forma ? response.forma : item.forma
                         this.angularGridEdit.gridService.updateItemById(row.id, item)
                     }
-                    if (response.newRowId && response.newRowId != row.id) {
+
+                    if (response.newRowId) {
+                        item.dbid = response.newRowId
+                        this.angularGridEdit.gridService.updateItemById(row.id, item)
                         /*
                         //Metodo 1
                         this.gridDataInsert.pop()
@@ -312,8 +333,9 @@ export class CargaAsistenciaComponent {
                         this.gridDataInsert = newData
                         this.addNewItem("bottom")
                         */
-                        
-                        //Metodo 2
+
+                    //Metodo 2 
+                    /*
                         const newData = this.angularGridEdit.dataView.getItems().map((obj: any) => {
                             if (obj.id == row.id) {
                                 obj.id = response.newRowId
@@ -323,7 +345,7 @@ export class CargaAsistenciaComponent {
                             return obj
                         })
                         this.angularGridEdit.dataView.setItems(newData)
-
+                    */
                     }
                 }
             } catch (e: any) {
@@ -409,10 +431,10 @@ export class CargaAsistenciaComponent {
         columnTotal('total', angularGrid)
     }
 
-    sumTotalsFormatterCustom(totals : any, columnDef : any ) {
+    sumTotalsFormatterCustom(totals: any, columnDef: any) {
         const val = totals.sum && totals.sum[columnDef.field];
         if (val != null && totals.group.count > 1) {
-          return val
+            return val
         }
         return '';
     }
@@ -628,7 +650,7 @@ export class CargaAsistenciaComponent {
 
         try {
             const res = firstValueFrom(this.apiService.validaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
-            finally(() => { this.isLoading = false })
+                finally(() => { this.isLoading = false })
         } catch (error) {
 
         }
@@ -717,47 +739,47 @@ export class CargaAsistenciaComponent {
     }
 
     groupByForma() {
-        let grandTotal : any
+        let grandTotal: any
         const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
-        if (lastrow && (lastrow.apellidoNombre == '')){
+        if (lastrow && (lastrow.apellidoNombre == '')) {
             grandTotal = this.gridDataInsert.pop()
             this.angularGridEdit.dataView.setItems(this.gridDataInsert)
-        }else{
+        } else {
             grandTotal = this.createNewItem(1);
         }
 
-        let aggregatorsArray : any[] = []
-        this.columnas.forEach((col : any, index:number)=>{
-            if(col.field.startsWith('day')){
+        let aggregatorsArray: any[] = []
+        this.columnas.forEach((col: any, index: number) => {
+            if (col.field.startsWith('day')) {
                 grandTotal[col.field] = this.angularGridEdit.slickGrid.getFooterRowColumn(col.field).innerText
                 aggregatorsArray.push(new Aggregators.Sum(col.field))
             }
-            if(col.field.startsWith('total')){
+            if (col.field.startsWith('total')) {
                 aggregatorsArray.push(new Aggregators.Sum(col.field))
             }
         })
         grandTotal.total = this.angularGridEdit.slickGrid.getFooterRowColumn('total').innerText
-        grandTotal.forma = {fullName :'Totales'}
-//        this.angularGridEdit.slickGrid.setOptions({ enableGrouping: true })
-        
+        grandTotal.forma = { fullName: 'Totales' }
+        //        this.angularGridEdit.slickGrid.setOptions({ enableGrouping: true })
+
         this.angularGridEdit.dataView.setGrouping({
-            getter: (g) =>  g.forma.fullName,
-           /*
-            formatter: (g) => {
-                return `<span style="text-align:star">Forma: ${g.value}</span>   <span style="color:green" style="text-align:end">[${g.count} filas]</span>`;
-            },
-            
-            comparer: (a, b) => {
-                return SortComparers.numeric(a.value.fullName, b.value.fullName, SortDirectionNumber.desc);
-              },
-              */
+            getter: (g) => g.forma.fullName,
+            /*
+             formatter: (g) => {
+                 return `<span style="text-align:star">Forma: ${g.value}</span>   <span style="color:green" style="text-align:end">[${g.count} filas]</span>`;
+             },
+             
+             comparer: (a, b) => {
+                 return SortComparers.numeric(a.value.fullName, b.value.fullName, SortDirectionNumber.desc);
+               },
+               */
             aggregators: aggregatorsArray,
             aggregateCollapsed: false,
             lazyTotalsCalculation: true,
         });
         this.angularGridEdit.dataView.addItem(grandTotal)
-        let grupos : SlickGroup[] = this.angularGridEdit.dataView.getGroups()
-        let grupototal : any = grupos.pop()
+        let grupos: SlickGroup[] = this.angularGridEdit.dataView.getGroups()
+        let grupototal: any = grupos.pop()
         grupototal!.title = ""
         grupos.push(grupototal)
     }
@@ -766,7 +788,7 @@ export class CargaAsistenciaComponent {
         this.gridDataInsert.pop()
         this.angularGridEdit.dataView.setGrouping([]);
         const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
-        if (lastrow && (lastrow.apellidoNombre != '')){
+        if (lastrow && (lastrow.apellidoNombre != '')) {
             this.addNewItem("bottom")
         }
     }

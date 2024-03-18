@@ -1728,7 +1728,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       let valueColumnsDays = valsDiasMes.valueColumnsDays
       let totalhs = valsDiasMes.totalhs
 
-      const rowId: number = req.body.id
+      const girdId: number = req.body.id
       const personalId: number = req.body.personalId
       const tipoAsociadoId: number = req.body.tipoAsociadoId
       const categoriaPersonalId: number = req.body.categoriaPersonalId
@@ -1737,7 +1737,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       if (!totalhs && personal?.id) {
         await this.deleteAsistencia(objetivoId, anioId, mesId, personal.id, queryRunner)
         await queryRunner.commitTransaction()
-        return this.jsonRes({ deleteRowId: rowId }, res);
+        return this.jsonRes({ deleteRowId: girdId }, res);
       }
 
       let num = Math.round(totalhs % 1 * 60)
@@ -1839,7 +1839,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const anio: number = item.year
     const mes: number = item.month
     const objetivoId: number = item.objetivoId
-    const rowId: number = item.id
+    const rowId: number = item.dbid
     const personalId: number = item.personalId
     const tipoAsociadoId: number = item.tipoAsociadoId
     const categoriaPersonalId: number = item.categoriaPersonalId
@@ -1916,7 +1916,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const anio: number = item.year
     const mes: number = item.month
     const objetivoId: number = item.objetivoId
-    const rowId: number = item.id
+    const rowId: number = item.dbid
     const personalId: number = item.personalId
     const tipoAsociadoId: number = item.tipoAsociadoId
     const categoriaPersonalId: number = item.categoriaPersonalId
@@ -2075,6 +2075,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
     let personal = await queryRunner.query(`
       SELECT objp.ObjetivoAsistenciaAnoMesPersonalDiasId id,
+        objp.ObjetivoAsistenciaAnoMesPersonalDiasId dbid,
         objp.ObjetivoAsistenciaMesPersonalId PersonalId,
         CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName,
         objp.ObjetivoAsistenciaTipoAsociadoId TipoAsociadoId,
@@ -2120,6 +2121,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       let forma = formas.find((objForma: any) => obj.FormaLiquidacion == objForma.TipoHoraId)
       return {
         id: hasta ? obj.id : index + 1,
+        dbid: obj.dbid,
         apellidoNombre: {
           fullName: obj.fullName,
           id: obj.PersonalId
@@ -2190,9 +2192,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         mes--
       }
       const lista = await this.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner, 0)
-
+      const listares = lista.map(r => { r.dbid = null; return r })
       //      await queryRunner.commitTransaction()
-      this.jsonRes(lista, res);
+      this.jsonRes(listares, res);
     } catch (error) {
       this.rollbackTransaction(queryRunner)
       return next(error)

@@ -65,24 +65,23 @@ export class RecibosController extends BaseController {
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
       let persona_id = 0
 
-      if(!isUnique){
+      if (!isUnique) {
 
         // codigo para cuenado es recibo general
-      const getRecibosGenerados = await this.getRecibosGenerados(queryRunner,periodo_id)
+        const getRecibosGenerados = await this.getRecibosGenerados(queryRunner, periodo_id)
+        if (getRecibosGenerados[0].ind_recibos_generados == 1)
+          throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
-      if(getRecibosGenerados == 1 )
-      throw new ClientException(`Los recibos para este periodo ya se generaron`)
+      } else {
 
-      }else{
+        // codigo para cuenado es unico recibo bebe validar que el recibo exista para poder regenerarlo, caso contrario arrojar error
+        const existRecibo = await this.existReciboId(queryRunner, fechaActual, periodo_id, personalId);
 
-        // codigo para cuenado es unico recibo
-        const existRecibo = await this.existReciboId(queryRunner, fechaActual, periodo_id,personalId);
-
-        if (existRecibo.length > 0) 
+        if (existRecibo.length > 0)
           throw new ClientException(`Recibo ya existe para el periodo seleccionado`)
       }
 
-      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month,personalId)
+      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, personalId)
 
       var directorPath = this.directoryRecibo + '/' + String(periodo.year) + String(periodo.month).padStart(2, '0') + '/' + periodo_id
       if (!existsSync(directorPath)) {
@@ -90,7 +89,7 @@ export class RecibosController extends BaseController {
       }
 
       // codigo para cuenado es recibo general
-      if(!isUnique)
+      if (!isUnique)
         await this.cleanDirectories(queryRunner, directorPath, periodo_id)
 
       const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets'
@@ -151,18 +150,18 @@ export class RecibosController extends BaseController {
         const Cuit = movimiento.PersonalCUITCUILCUIT
         const Domicilio = (movimiento.DomicilioCompleto) ? movimiento.DomicilioCompleto : 'Sin especificar'
         const Asociado = (movimiento.PersonalNroLegajo) ? movimiento.PersonalNroLegajo.toString() : 'Pendiente'
-        const Grupo = (movimiento.GrupoActividadDetalle) ? movimiento.GrupoActividadDetalle : 'Sin asignar' 
+        const Grupo = (movimiento.GrupoActividadDetalle) ? movimiento.GrupoActividadDetalle : 'Sin asignar'
 
 
 
         await this.createPdf(queryRunner, filesPath, persona_id, idrecibo, PersonalNombre, Cuit, Domicilio, Asociado,
-          Grupo, periodo_id, page,htmlContentPre, headerContent, footerContent)
-        
+          Grupo, periodo_id, page, htmlContentPre, headerContent, footerContent)
+
 
       }
 
-      if(!isUnique)
-      await this.updateTablePeriodo(queryRunner,periodo_id,usuario,ip,fechaActual)
+      if (!isUnique)
+        await this.updateTablePeriodo(queryRunner, periodo_id, usuario, ip, fechaActual)
 
       await page.close()
       await browser.close();
@@ -179,25 +178,25 @@ export class RecibosController extends BaseController {
 
   }
 
-  async updateTablePeriodo(queryRunner:QueryRunner,periodo_id:number,usuario: string,ip: string,audfecha: Date,){
-      queryRunner.query(
-        `UPDATE lige.dbo.liqmaperiodo
+  async updateTablePeriodo(queryRunner: QueryRunner, periodo_id: number, usuario: string, ip: string, audfecha: Date,) {
+    return queryRunner.query(
+      `UPDATE lige.dbo.liqmaperiodo
          SET ind_recibos_generados = 1,aud_usuario_mod = @1,aud_ip_mod = @2,aud_fecha_mod = @3
          WHERE periodo_id = @0`,
-        [periodo_id,usuario,ip,audfecha]
-      );
+      [periodo_id, usuario, ip, audfecha]
+    );
   }
 
-  async getRecibosGenerados(queryRunner:QueryRunner,periodo_id:number){
-      return queryRunner.query(
-        `SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`,
-        [periodo_id]
-      );
+  async getRecibosGenerados(queryRunner: QueryRunner, periodo_id: number) {
+    return queryRunner.query(
+      `SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`,
+      [periodo_id]
+    );
   }
 
 
-  existReciboId(queryRunner:QueryRunner, fechaActual: Date, periodo_id:number,personalId:number){
-    return queryRunner.query(`SELECT * from lige.dbo.docgeneral WHERE periodo= @0 AND persona_id = @1`, [periodo_id,personalId])
+  existReciboId(queryRunner: QueryRunner, fechaActual: Date, periodo_id: number, personalId: number) {
+    return queryRunner.query(`SELECT * from lige.dbo.docgeneral WHERE periodo= @0 AND persona_id = @1`, [periodo_id, personalId])
   }
 
 
@@ -207,7 +206,7 @@ export class RecibosController extends BaseController {
     setPlural('pesos');
     setCentsPlural('centavo');
     setCentsSingular('centavos');
-  
+
     if (numero < 0) {
       return `MENOS ${NumeroALetras(Math.abs(numero)).toUpperCase()}`;
     } else {
@@ -223,7 +222,7 @@ export class RecibosController extends BaseController {
     Cuit: string,
     Domicilio: string,
     Asociado: string,
-    Grupo:string,
+    Grupo: string,
     periodo_id: number,
     page: Page,
     htmlContent: string,
@@ -262,7 +261,7 @@ export class RecibosController extends BaseController {
           htmlDeposito += `<tr><td>${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
           break
         case "I":
-          htmlIngreso += `<tr><td>${liquidacionElement.detalle} ${(liquidacionElement.ClienteId)? liquidacionElement.ClienteId+'/'+liquidacionElement.ClienteElementoDependienteId:''}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
+          htmlIngreso += `<tr><td>${liquidacionElement.detalle} ${(liquidacionElement.ClienteId) ? liquidacionElement.ClienteId + '/' + liquidacionElement.ClienteElementoDependienteId : ''}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
           retenciones += liquidacionElement.SumaImporte
           break
         default:
@@ -309,7 +308,7 @@ export class RecibosController extends BaseController {
 
 
 
-  async getUsuariosLiquidacion(queryRunner: QueryRunner, periodo_id: Number, anio:number,mes:number,personalId:number) {
+  async getUsuariosLiquidacion(queryRunner: QueryRunner, periodo_id: Number, anio: number, mes: number, personalId: number) {
 
     let createSelect = `SELECT
     per.PersonalId, per.PersonalNroLegajo, 
@@ -342,12 +341,12 @@ export class RecibosController extends BaseController {
       FROM lige.dbo.liqmamovimientos liq
       WHERE liq.tipocuenta_id = 'G' AND liq.periodo_id = @0`
 
-    if(personalId != 0 && personalId != undefined)
+    if (personalId != 0 && personalId != undefined)
       createSelect += ` AND per.PersonalId = @3`
 
-      createSelect +=  `)ORDER BY per.PersonalId ASC`  
+    createSelect += `)ORDER BY per.PersonalId ASC`
 
-    return queryRunner.query(createSelect, [periodo_id,anio,mes,personalId])
+    return queryRunner.query(createSelect, [periodo_id, anio, mes, personalId])
   }
 
   async getUsuariosLiquidacionMovimientos(queryRunner: QueryRunner, periodo_id: Number, user_id: Number) {
@@ -390,7 +389,7 @@ export class RecibosController extends BaseController {
     ip: string,
     audfecha: Date,
     doctipo_id: string,
-    idrecibo : number
+    idrecibo: number
 
   ) {
 
@@ -407,7 +406,7 @@ export class RecibosController extends BaseController {
         nombre_archivo,
         usuario, ip, audfecha,
         usuario, ip, audfecha,
-        doctipo_id,idrecibo
+        doctipo_id, idrecibo
       ])
 
   }
@@ -431,7 +430,7 @@ export class RecibosController extends BaseController {
       const gettmpfilename = await this.getRutaFile(queryRunner, parseInt(year), parseInt(month), parseInt(personalIdRel))
       let tmpfilename;
       if (gettmpfilename[0] && typeof gettmpfilename[0].path === 'string') {
-          tmpfilename = gettmpfilename[0].path;
+        tmpfilename = gettmpfilename[0].path;
       } else {
         throw new ClientException(`Recibo no generado`)
       }
@@ -453,7 +452,7 @@ export class RecibosController extends BaseController {
   async getRutaFile(queryRunner: QueryRunner, year: number, month: number, personalIdRel: number) {
     return queryRunner.query(`SELECT * from lige.dbo.docgeneral doc
       JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
-      WHERE per.anio =@0 AND per.mes=@1 AND doc.persona_id = @2 AND doctipo_id = 'REC'`, 
+      WHERE per.anio =@0 AND per.mes=@1 AND doc.persona_id = @2 AND doctipo_id = 'REC'`,
       [year, month, personalIdRel]
     )
   }
@@ -465,7 +464,7 @@ export class RecibosController extends BaseController {
   }
 
 
-  async bindPdf( req: Request, res: Response, next: NextFunction) {
+  async bindPdf(req: Request, res: Response, next: NextFunction) {
 
     const queryRunner = dataSource.createQueryRunner()
     const {
@@ -476,26 +475,26 @@ export class RecibosController extends BaseController {
       lista
     } = req.body
 
-    const user = (res.locals.userName)? res.locals.userName : Usuario
-      if (!user)
-        throw new ClientException(`Usuario no identificado`)
+    const user = (res.locals.userName) ? res.locals.userName : Usuario
+    if (!user)
+      throw new ClientException(`Usuario no identificado`)
 
     let ip = this.getRemoteAddress(req)
     let perosonalIds
-    let pathFile:any
+    let pathFile: any
 
-    if(lista && lista.length  > 0 )
+    if (lista && lista.length > 0)
       perosonalIds = JSON.parse(lista)
     try {
       let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
 
-      pathFile = await this.getparthFile(queryRunner, periodo_id, perosonalIds,isfull)
+      pathFile = await this.getparthFile(queryRunner, periodo_id, perosonalIds, isfull)
 
       const rutaPDF = path.join(this.directoryRecibo, `Recibos-${Anio}-${Mes}.pdf`);
       const mergedPdf = await PDFDocument.create();
 
-      if(pathFile == "")
+      if (pathFile == "")
         throw new ClientException(`Recibos no generados para el periodo seleccionado`)
 
       for (const filePath of pathFile) {
@@ -513,14 +512,14 @@ export class RecibosController extends BaseController {
       fs.writeFileSync(rutaPDF, mergedPdfBytes);
       console.log('PDF guardado en la ruta especificada:', rutaPDF);
       res.download(rutaPDF, `Recibos-${Anio}-${Mes}.pdf`, async (err) => {
-          if (err) {
-              console.error('Error al descargar el PDF:', err);
-              return next(err);
-          } else {
-              console.log('PDF descargado con éxito');
-              fs.unlinkSync(rutaPDF);
-              console.log('PDF eliminado del servidor');
-          }
+        if (err) {
+          console.error('Error al descargar el PDF:', err);
+          return next(err);
+        } else {
+          console.log('PDF descargado con éxito');
+          fs.unlinkSync(rutaPDF);
+          console.log('PDF eliminado del servidor');
+        }
       });
     } catch (error) {
       return next(error)
@@ -528,14 +527,14 @@ export class RecibosController extends BaseController {
 
   }
 
-  async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: any,isfull: any) {
-    if(isfull){
+  async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: any, isfull: any) {
+    if (isfull) {
       return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0 AND doctipo_id = 'REC'`, [periodo_id])
-    }else{
+    } else {
       const personalIdsString = perosonalIds.join(', ');
       return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0 AND doctipo_id = 'REC' AND persona_id IN (${personalIdsString})`, [periodo_id])
     }
-    
+
   }
 
   async joinPDFsOnPath(rutaDirectorio) {
