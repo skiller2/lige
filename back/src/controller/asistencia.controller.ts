@@ -1092,7 +1092,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     return queryRunner.query(
       `SELECT cat.TipoAsociadoId, catrel.PersonalCategoriaCategoriaPersonalId, catrel.PersonalCategoriaPersonalId, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta,
         TRIM(tip.TipoAsociadoDescripcion) as TipoAsociadoDescripcion ,TRIM(cat.CategoriaPersonalDescripcion) as CategoriaPersonalDescripcion ,
-        val.ValorLiquidacionHoraNormal, val.ValorLiquidacionHorasTrabajoHoraNormal
+        val.ValorLiquidacionHoraNormal, val.ValorLiquidacionHorasTrabajoHoraNormal, val.ValorLiquidacionSucursalId
                   FROM PersonalCategoria catrel
                     JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = catrel.PersonalCategoriaTipoAsociadoId AND cat.CategoriaPersonalId = catrel.PersonalCategoriaCategoriaPersonalId
                    JOIN TipoAsociado tip ON tip.TipoAsociadoId = cat.TipoAsociadoId

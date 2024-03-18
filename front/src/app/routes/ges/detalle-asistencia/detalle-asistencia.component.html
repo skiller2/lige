@@ -6,7 +6,7 @@
         <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)"
           [nzAllowClear]="false" />
       </nz-form-control>
-      <nz-form-control [nzSpan]="14" style="text-align: right;" >
+      <nz-form-control [nzSpan]="14" style="text-align: right;">
         <nz-button-group>
           <button *ngIf="objetivoIdSelected" nz-button nzType="default"
             [routerLink]="['/', 'ges', 'carga_asistencia',{ ObjetivoId:objetivoIdSelected }]">Asistencia diaria</button>
@@ -50,23 +50,23 @@
           httpUrl="api/informes/descarga" notificationMsg="Generando Informe Banelco">
           <span nz-icon nzType="download"></span><span style="white-space: normal;">Banelco</span>
         </li>
-        
-        <li  *ngIf="personalIdString.length > 0" nz-menu-item app-down-file [httpMethod]="'POST'"
-        [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month, 'lista':personalIdString,'isfull': false }"
-        httpUrl="/api/recibos/downloadfull" notificationMsg="Generando Recibos">
-        <span nz-icon nzType="download"></span><span style="white-space: normal;">Recibo Full</span>
-      </li>
+
+        <li *ngIf="personalIdString.length > 0" nz-menu-item app-down-file [httpMethod]="'POST'"
+          [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month, 'lista':personalIdString,'isfull': false }"
+          httpUrl="/api/recibos/downloadfull" notificationMsg="Generando Recibos">
+          <span nz-icon nzType="download"></span><span style="white-space: normal;">Recibo Full</span>
+        </li>
 
       </ul>
 
     </li>
   </ul>
 
-  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" >
+  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
     <nz-tab>
       <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/objetivo">Objetivo</a>
 
-      <form nz-form #asistenciaObj="ngForm" >
+      <form nz-form #asistenciaObj="ngForm">
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
           <nz-form-control>
@@ -79,131 +79,134 @@
           <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
           <nz-form-control>
             <app-view-responsable *ngIf="$objetivoResponsables | async as objResp"
-            [list]="objResp"></app-view-responsable>
+              [list]="objResp"></app-view-responsable>
           </nz-form-control>
         </nz-form-item>
         <ng-container *ngIf="$listaAsistencia | async as listaAsistenciaObj ">
-        
-        <nz-form-item>
-          <nz-form-label [nzSpan]="5">Totales</nz-form-label>
-          <nz-form-control *ngIf="listaAsistenciaObj.totalImporte >0 || listaAsistenciaObj.totalHoras >0 ">
-            <li><span>{{ listaAsistenciaObj.totalImporte | currency }} </span> <span>, total horas: {{
-              listaAsistenciaObj.totalHoras }}, promedio hora: {{ listaAsistenciaObj.totalImporte /
-                listaAsistenciaObj.totalHoras | currency }}</span></li>
-            <li><span>Horas normales: {{listaAsistenciaObj.totalHorasN}}, Horas capacitación:{{listaAsistenciaObj.totalHorasC}}</span></li>
-          </nz-form-control>
-        </nz-form-item>
 
-        <nz-form-item>
-          <nz-form-label [nzSpan]="5">Art14</nz-form-label>
-          <nz-form-control>
-            <nz-table #excep [nzData]="$listaExcepciones | async" nzSize="small" [nzPageSize]="100000000"
-              [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
-              <thead>
-                <tr>
-                  <th>CUIT</th>
-                  <th>Apellido y Nombre</th>
-                  <th>Autorizado</th>
-                  <th>Detalle</th>
-                  <th>Desde</th>
-                  <th>Hasta</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let data of excep.data" class="">
-                  <td title="{{ data.PersonalId }}">
-                    {{ data.PersonalCUITCUILCUIT }}
-                  </td>
-                  <td>
-                    <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]" [textContent]="data.ApellidoNombre"></a>
-                  </td>
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">Totales</nz-form-label>
+            <nz-form-control *ngIf="listaAsistenciaObj.totalImporte >0 || listaAsistenciaObj.totalHoras >0 ">
+              <li><span>{{ listaAsistenciaObj.totalImporte | currency }} </span> <span>, total horas: {{
+                  listaAsistenciaObj.totalHoras }}, promedio hora: {{ listaAsistenciaObj.totalImporte /
+                  listaAsistenciaObj.totalHoras | currency }}</span></li>
+              <li><span>Horas normales: {{listaAsistenciaObj.totalHorasN}}, Horas
+                  capacitación:{{listaAsistenciaObj.totalHorasC}}</span></li>
+            </nz-form-control>
+          </nz-form-item>
 
-                  <td>{{ data.PersonalArt14Autorizado }}</td>
-                  <td>
-                    <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}</span>
-                    <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | currency }}</span>
-                    <span *ngIf="data.PersonalArt14FormaArt14=='H'">{{data.PersonalArt14Horas}}</span>
-                    <span *ngIf="data.PersonalArt14FormaArt14=='E'">{{data.CategoriaPersonalDescripcion}}</span>
-                    <span *ngIf="data.PersonalArt14FormaArt14=='A'">{{data.PersonalArt14AdicionalHora |
-                      currency:'$'}}</span>
-                  </td>
-                  <td>{{ data.Desde | date }}</td>
-                  <td>{{ data.Hasta | date }}</td>
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">Art14</nz-form-label>
+            <nz-form-control>
+              <nz-table #excep [nzData]="$listaExcepciones | async" nzSize="small" [nzPageSize]="100000000"
+                [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
+                <thead>
+                  <tr>
+                    <th>CUIT</th>
+                    <th>Apellido y Nombre</th>
+                    <th>Autorizado</th>
+                    <th>Detalle</th>
+                    <th>Desde</th>
+                    <th>Hasta</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let data of excep.data" class="">
+                    <td title="{{ data.PersonalId }}">
+                      {{ data.PersonalCUITCUILCUIT }}
+                    </td>
+                    <td>
+                      <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]"
+                        [textContent]="data.ApellidoNombre"></a>
+                    </td>
 
-                  <td></td>
+                    <td>{{ data.PersonalArt14Autorizado }}</td>
+                    <td>
+                      <span>{{data.ConceptoArt14Descripcion}} {{data.FormaDescripcion}}</span>
+                      <span *ngIf="data.PersonalArt14FormaArt14=='S'">{{data.PersonalArt14SumaFija | currency }}</span>
+                      <span *ngIf="data.PersonalArt14FormaArt14=='H'">{{data.PersonalArt14Horas}}</span>
+                      <span *ngIf="data.PersonalArt14FormaArt14=='E'">{{data.CategoriaPersonalDescripcion}}</span>
+                      <span *ngIf="data.PersonalArt14FormaArt14=='A'">{{data.PersonalArt14AdicionalHora |
+                        currency:'$'}}</span>
+                    </td>
+                    <td>{{ data.Desde | date }}</td>
+                    <td>{{ data.Hasta | date }}</td>
 
-                  <!-- td>
+                    <td></td>
+
+                    <!-- td>
               <a>Action 一 {{data.name}}</a>
               <nz-divider nzType="vertical"></nz-divider>
               <a>Delete</a>
             </td -->
-                </tr>
-              </tbody>
-            </nz-table>
-          </nz-form-control>
-        </nz-form-item>
+                  </tr>
+                </tbody>
+              </nz-table>
+            </nz-form-control>
+          </nz-form-item>
 
-        <nz-form-item>
-          <nz-form-label [nzSpan]="5">Asistencia</nz-form-label>
-          <nz-form-control>
-            <nz-table #asist [nzData]="listaAsistenciaObj.asistencia" nzSize="small" [nzPageSize]="100000000"
-              [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
-              <thead>
-                <tr>
-                  <th>CUIT</th>
-                  <th>Apellido y Nombre</th>
-                  <th>Situación Revista</th>
-                  <th>Categoría</th>
-                  <th>Horas</th>
-                  <th>Valor Hora</th>
-                  <th>Art14</th>
-                  <th>Importe Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let data of asist.data" class="">
-                  <td title="{{ data.PersonalId }}">
-                    {{ data.PersonalCUITCUILCUIT }}
-                  </td>
-                  <td>
-                    <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]" [textContent]="data.PersonaDes"></a>
-                  </td>
-                  <td> N/A</td>
-                  <td>{{ data.CategoriaPersonalDescripcion }}</td>
-                  <td>{{ data.totalhorascalc }}</td>
-                  <td>
-                    <span *ngIf="data.ValorHoraArt14Categoria < 1">{{
-                      data.ValorHoraNorm | currency
-                      }}</span>
-                  </td>
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">Asistencia</nz-form-label>
+            <nz-form-control>
+              <nz-table #asist [nzData]="listaAsistenciaObj.asistencia" nzSize="small" [nzPageSize]="100000000"
+                [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+                <thead>
+                  <tr>
+                    <th>CUIT</th>
+                    <th>Apellido y Nombre</th>
+                    <th>Situación Revista</th>
+                    <th>Categoría</th>
+                    <th>Horas</th>
+                    <th>Valor Hora</th>
+                    <th>Art14</th>
+                    <th>Importe Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let data of asist.data" class="">
+                    <td title="{{ data.PersonalId }}">
+                      {{ data.PersonalCUITCUILCUIT }}
+                    </td>
+                    <td>
+                      <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]"
+                        [textContent]="data.PersonaDes"></a>
+                    </td>
+                    <td> N/A</td>
+                    <td>{{ data.CategoriaPersonalDescripcion }}</td>
+                    <td>{{ data.totalhorascalc }}</td>
+                    <td>
+                      <span *ngIf="data.ValorHoraArt14Categoria < 1">{{
+                        data.ValorHoraNorm | currency
+                        }}</span>
+                    </td>
 
-                  <td>
-                    <span class="inline-block" *ngIf="data.PersonalArt14SumaFija">Suma fija {{
-                      data.PersonalArt14SumaFija | currency
-                      }}</span>
-                    <span class="inline-block" *ngIf="data.PersonalArt14Horas">Horas {{ data.PersonalArt14Horas
-                      }}</span>
-                    <span class="inline-block" *ngIf="data.art14CategoriaDescripcion">Equivalencia {{
-                      data.art14CategoriaDescripcion }}
-                      {{ data.ValorHoraArt14Categoria | currency }}
-                    </span>
-                    <span class="inline-block" *ngIf="data.PersonalArt14AdicionalHora">Adicional Hora
-                      {{ data.PersonalArt14AdicionalHora | currency }}</span>
-                  </td>
-                  <td>{{ data.totalminutoscalcimporteconart14 | currency }}</td>
+                    <td>
+                      <span class="inline-block" *ngIf="data.PersonalArt14SumaFija">Suma fija {{
+                        data.PersonalArt14SumaFija | currency
+                        }}</span>
+                      <span class="inline-block" *ngIf="data.PersonalArt14Horas">Horas {{ data.PersonalArt14Horas
+                        }}</span>
+                      <span class="inline-block" *ngIf="data.art14CategoriaDescripcion">Equivalencia {{
+                        data.art14CategoriaDescripcion }}
+                        {{ data.ValorHoraArt14Categoria | currency }}
+                      </span>
+                      <span class="inline-block" *ngIf="data.PersonalArt14AdicionalHora">Adicional Hora
+                        {{ data.PersonalArt14AdicionalHora | currency }}</span>
+                    </td>
+                    <td>{{ data.totalminutoscalcimporteconart14 | currency }}</td>
 
-                  <!-- td>
+                    <!-- td>
               <a>Action 一 {{data.name}}</a>
               <nz-divider nzType="vertical"></nz-divider>
               <a>Delete</a>
             </td -->
-                </tr>
-              </tbody>
-            </nz-table>
-          </nz-form-control>
-        
-        </nz-form-item>
-      </ng-container>
+                  </tr>
+                </tbody>
+              </nz-table>
+            </nz-form-control>
+
+          </nz-form-item>
+        </ng-container>
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Descuentos</nz-form-label>
           <nz-form-control>
@@ -223,7 +226,8 @@
                 <tr *ngFor="let data of descObj.data" class="">
                   <td>{{ data.PersonalCUITCUILCUIT }}</td>
                   <td>
-                    <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]" [textContent]="data.ApellidoNombre"></a>
+                    <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]"
+                      [textContent]="data.ApellidoNombre"></a>
                   </td>
                   <td>{{ data.tipomov }}</td>
                   <td>{{ data.desmovimiento }}</td>
@@ -245,9 +249,16 @@
       <form nz-form #asistenciaPer="ngForm">
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Persona</nz-form-label>
-          <nz-form-control nzHasFeedback>
-            <app-personal-search name="PersonalId" [(ngModel)]="selectedPersonalId"  (ngModelChange)="selectedValueChange($event, Busqueda.Personal)"
-              ngModel />
+
+          <nz-form-control [nzSpan]="19">
+            <ng-template #suffixReloadTpl>
+                <a (click)="openDrawer()"><span nz-icon nzType="user"
+                  nzTheme="outline"></span></a>
+            </ng-template>
+            <nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="width: 100%">
+              <app-personal-search name="PersonalId" [(ngModel)]="selectedPersonalId"
+                (ngModelChange)="selectedValueChange($event, Busqueda.Personal)" ngModel />
+            </nz-input-group>
           </nz-form-control>
         </nz-form-item>
         <nz-form-item
@@ -283,7 +294,7 @@
                   {{monotributo.PersonalOtroDescuentoMesesAplica}}/{{monotributo.PersonalOtroDescuentoAnoAplica}}</a></nz-list-item>
             </nz-list>
             <nz-list nzBordered nzSize="small">
-              <nz-list-item  *ngIf="selectedPersonalId > 0">
+              <nz-list-item *ngIf="selectedPersonalId > 0">
                 <a app-down-file
                   httpUrl="/api/recibos/download/{{selectedPeriod.year}}/{{selectedPeriod.month}}/{{PersonalId}}"><span
                     nz-icon nzType="download"></span>Recibo</a></nz-list-item>
@@ -293,8 +304,7 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
           <nz-form-control>
-            <app-view-responsable *ngIf="$personaResponsables | async as resp"
-            [list]="resp"></app-view-responsable>
+            <app-view-responsable *ngIf="$personaResponsables | async as resp" [list]="resp"></app-view-responsable>
           </nz-form-control>
         </nz-form-item>
         <nz-form-item>
@@ -342,7 +352,8 @@
                     {{ data.ObjetivoCodigo }}
                   </td>
                   <td>
-                    <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:data.ObjetivoId }]" [textContent]="data.ObjetivoDescripcion">
+                    <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:data.ObjetivoId }]"
+                      [textContent]="data.ObjetivoDescripcion">
                     </a>
                   </td>
                   <td>{{ data.PersonalArt14Autorizado }}</td>
@@ -390,7 +401,8 @@
                     {{ data.ObjetivoCodigo }}
                   </td>
                   <td>
-                    <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:data.ObjetivoId }]" [textContent]="data.ObjetivoDescripcion">
+                    <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:data.ObjetivoId }]"
+                      [textContent]="data.ObjetivoDescripcion">
                     </a>
                   </td>
                   <td>{{ data.CategoriaPersonalDescripcion }}</td>
@@ -541,7 +553,8 @@
                 {{ data.PersonalCUITCUILCUIT }}
               </td>
               <td>
-                <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]" [textContent]="data.PersonaDes"></a>
+                <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]"
+                  [textContent]="data.PersonaDes"></a>
               </td>
               <td> N/A</td>
               <td>{{ data.ingresosG_importe | currency }}</td>
@@ -556,7 +569,8 @@
                 {{ data.PersonalCUITCUILCUIT }}
               </td>
               <td>
-                <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]" [textContent]="data.PersonaDes"></a>
+                <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]"
+                  [textContent]="data.PersonaDes"></a>
               </td>
               <td> N/A</td>
               <td>{{ data.ingresosC_importe | currency }}</td>
@@ -581,3 +595,9 @@
     Loading Data...
   </nz-option>
 </ng-template>
+
+<nz-drawer [nzClosable]="true" [nzVisible]="visibleDrawer" [nzPlacement]="'left'" [nzTitle]=""
+  (nzOnClose)="closeDrawer()" >
+  <app-detalle-persona *nzDrawerContent [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="0"
+    [PersonalId]="selectedPersonalId"></app-detalle-persona>
+</nz-drawer>

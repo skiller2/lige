@@ -655,7 +655,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         anio: year,
         mes: month,
         descuentoId: descuentoId,
-        options: { filtros:filtros, sort: [] , todos:true},
+        options: { filtros:filtros, sort: [],extra:null }
       });
 
       const files = descuentos
