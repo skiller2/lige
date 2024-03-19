@@ -8,9 +8,6 @@ import { AlainThemeModule } from '@delon/theme';
 
 import { SHARED_DELON_MODULES } from './shared-delon.module';
 import { SHARED_ZORRO_MODULES } from './shared-zorro.module';
-import { AppDownFileDirective } from './down-file/down-file.directive';
-import { CUITPipe } from './utils/cuit-pipe';
-import { AppFilterPipe, ColsFilterPipe } from './utils/filter-type';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';

@@ -84,8 +84,5 @@
         </angular-slickgrid>
     </div>
 </nz-card>
-<nz-drawer [nzClosable]="true" [nzVisible]="visibleDrawer" [nzPlacement]="'left'" [nzTitle]="personalApellidoNombre"
-    (nzOnClose)="closeDrawer()">
-    <app-detalle-persona *nzDrawerContent [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"
-        [SucursalId]="selectedSucursalId" [PersonalId]="selectedPersonalId"></app-detalle-persona>
-</nz-drawer> 
+<app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"
+[SucursalId]="selectedSucursalId" [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>

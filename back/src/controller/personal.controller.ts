@@ -124,7 +124,7 @@ export class PersonalController extends BaseController {
     dataSource
       .query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
-        per.PersonalNombre, per.PersonalApellido,
+        per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, per.PersonalFechaIngreso, per.PersonalNroLegajo,
         TRIM(CONCAT(
           TRIM(dom.PersonalDomicilioDomCalle), ' ',
           TRIM(dom.PersonalDomicilioDomNro), ' ',
@@ -211,7 +211,7 @@ export class PersonalController extends BaseController {
                   JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  foto.DocumentoImagenParametroId
                   JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
                   
-                  -- WHERE per.PersonalId = @0`,
+                  WHERE per.PersonalId = @0`,
           [PersonalId, fechaActual]
         )
 

@@ -1,17 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { Observable } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
+import { AGEPipe } from "../../../shared/utils/age-pipe";
 
 @Component({
     selector: 'app-detalle-persona',
     standalone: true,
     templateUrl: './detalle-persona.component.html',
     styleUrl: './detalle-persona.component.less',
-    imports: [...SHARED_IMPORTS, CommonModule, ViewResponsableComponent]
+    imports: [...SHARED_IMPORTS, CommonModule, ViewResponsableComponent, AGEPipe]
 })
 export class DetallePersonaComponent {
   personalDetalleCategorias$: Observable<any> | undefined
@@ -26,11 +27,28 @@ export class DetallePersonaComponent {
   banco$: Observable<any> | undefined
   private searchService = inject(SearchService)
   private apiService = inject(ApiService)
+  visibleDrawer: boolean = false
+  
+  @Output() onClose = new EventEmitter<boolean>();
+
+    
+  @Input()
+  set visible(value: boolean) {
+    this.visibleDrawer = value;
+    if (this.visibleDrawer)
+      this.load()
+  }
+
+  get visible(): boolean {
+    return this.visibleDrawer
+  }
+
+
   @Input() anio!: number
   @Input() mes!: number
   @Input() SucursalId!: number
   @Input() PersonalId!: number
-
+  
   load(): void {
     this.personalDetalle$ = this.searchService.getPersonalById(this.PersonalId)
     this.personalDetalleSitRevista$ = this.apiService.getPersonaSitRevista(this.PersonalId, this.anio, this.mes)
@@ -44,8 +62,11 @@ export class DetallePersonaComponent {
   }
 
   ngOnInit(): void {
-    this.load()
+//    this.load()
   }
 
-
+  closeDrawer(): void {
+    this.visible = false
+    this.onClose.emit(this.visibleDrawer)
+  }
 }

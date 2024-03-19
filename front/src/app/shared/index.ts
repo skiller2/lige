@@ -4,6 +4,7 @@
 export * from './utils/yuan';
 
 export * from './utils/cuit-pipe';
+export * from './utils/age-pipe';
 export * from './utils/filter-type';
 export * from './down-file/down-file.directive'
 

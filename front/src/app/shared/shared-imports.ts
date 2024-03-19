@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SHARED_DELON_MODULES } from './shared-delon.module';
 import { SHARED_ZORRO_MODULES } from './shared-zorro.module';
 import { CUITPipe } from './utils/cuit-pipe';
+import { AGEPipe } from './utils/age-pipe';
 import { ImageCropperModule } from 'ngx-image-cropper';
 import { AppDownFileDirective } from './down-file/down-file.directive';
 import { AngularSlickgridModule } from 'angular-slickgrid';
@@ -42,6 +43,7 @@ export const SHARED_IMPORTS = [
   I18nPipe,
   DatePipe,
   CUITPipe,
+  AGEPipe,
   AppFilterPipe,
   AppDownFileDirective,
   ColsFilterPipe,

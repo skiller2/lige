@@ -596,8 +596,5 @@
   </nz-option>
 </ng-template>
 
-<nz-drawer [nzClosable]="true" [nzVisible]="visibleDrawer" [nzPlacement]="'left'" [nzTitle]=""
-  (nzOnClose)="closeDrawer()" >
-  <app-detalle-persona *nzDrawerContent [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="0"
-    [PersonalId]="selectedPersonalId"></app-detalle-persona>
-</nz-drawer>
+<app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"
+[SucursalId]="0" [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>
