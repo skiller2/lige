@@ -57,7 +57,7 @@ export class TestComponent {
   private modalService = inject(NzModalService);
   private el = inject(ElementRef);
   private document = inject(DOCUMENT)
-
+  nacimiento: Date = new Date('1973-05-24')
 
   onChange(evt: any) {
     console.log('onChange',evt)

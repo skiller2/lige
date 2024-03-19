@@ -21,6 +21,12 @@
   <nz-date-picker nzMode="month" name="periodo1" />
 </nz-card>
 
+<nz-card>
+
+  <nz-date-picker [(ngModel)]="nacimiento" />
+<p>{{nacimiento|date}} {{ nacimiento|AGE }}</p>
+</nz-card>
+
 
 
 
