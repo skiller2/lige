@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { EditController, ExcelExportOption, SlickGroup, SortComparers, SortDirectionNumber } from '@slickgrid-universal/common';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
-import { BehaviorSubject, Observable, debounceTime, distinctUntilChanged, firstValueFrom, forkJoin, map, merge, mergeAll, of, shareReplay, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, debounceTime, distinctUntilChanged, firstValueFrom, forkJoin, map, merge, mergeAll, of, shareReplay, switchMap, tap, timer } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
@@ -73,6 +73,7 @@ export class CargaAsistenciaComponent {
 
     visibleDrawer: boolean = false
     personalApellidoNombre: any;
+    rowLocked: boolean = false;
 
     public get Busqueda() {
         return Busqueda;
@@ -249,9 +250,9 @@ export class CargaAsistenciaComponent {
                     width: 14,
                 },
             },
-            {
+            /*{
                 id: 'dbid', name: 'dbid', field: 'dbid',
-            }
+            }*/
         ]
 
         this.columnas = this.columnDefinitions
@@ -297,69 +298,46 @@ export class CargaAsistenciaComponent {
 
                 if (editCommand.serializedValue === editCommand.prevSerializedValue) return
                 editCommand.execute()
-                const totalhs = this.sumdays(row)
-                const item = row
+                while (this.rowLocked) await firstValueFrom(timer(500));
+                row = this.angularGridEdit.dataView.getItemById(row.id)
 
-                if (totalhs == 0 && item.apellidoNombre.id>0 && item.categoria.id>0 && item.forma.id!='' ) { 
-                    const response = await this.insertDB(item)
+                const totalhs = this.sumdays(row)
+
+                if (row.apellidoNombre.id > 0 && row.categoria.id > 0 && row.forma.id != '' && (row.dbid > 0 || totalhs > 0)) {
+                    if (!row.dbid)  
+                        this.rowLocked = true                        
+                
+                    const response = await this.insertDB(row)
                     if (response.deleteRowId)
                         this.angularGridEdit.gridService.deleteItemById(response.deleteRowId)
-                }
+                    else {
 
-                if (totalhs >0) {
-                    const response = await this.insertDB(item)
+                        if (response.categoria || response.forma) {
+                            const item = this.angularGridEdit.dataView.getItemById(row.id)
+                            item.categoria = response.categoria ? response.categoria : row.categoria
+                            item.forma = response.forma ? response.forma : row.forma
+                            this.angularGridEdit.gridService.updateItemById(row.id, item)
+                        }
+                        if (response.newRowId) {
+                            const item = this.angularGridEdit.dataView.getItemById(row.id)
+                            console.log('item',item)
+                            item.dbid = response.newRowId
+                            this.angularGridEdit.gridService.updateItemById(row.id, item)
+                        }
 
-                    if (response.categoria || response.forma) {
-                        item.categoria = response.categoria ? response.categoria : item.categoria
-                        item.forma = response.forma ? response.forma : item.forma
-                        this.angularGridEdit.gridService.updateItemById(row.id, item)
                     }
+                    this.rowLocked = false                        
 
-                    if (response.newRowId) {
-                        item.dbid = response.newRowId
-                        this.angularGridEdit.gridService.updateItemById(row.id, item)
-                        /*
-                        //Metodo 1
-                        this.gridDataInsert.pop()
-                        let newData = this.gridDataInsert.map((obj: any) => {
-                            if (obj.id == row.id) {
-                                obj.id = response.newRowId
-                            } else if (obj.id == response.newRowId) {
-                                obj.id = row.id
-                            }
-                            return obj
-                        })
-                        this.angularGridEdit.dataView.setItems(newData)
-                        this.gridDataInsert = newData
-                        this.addNewItem("bottom")
-                        */
-
-                    //Metodo 2 
-                    /*
-                        const newData = this.angularGridEdit.dataView.getItems().map((obj: any) => {
-                            if (obj.id == row.id) {
-                                obj.id = response.newRowId
-                            } else if (obj.id == response.newRowId) {
-                                obj.id = row.id
-                            }
-                            return obj
-                        })
-                        this.angularGridEdit.dataView.setItems(newData)
-                    */
-                    }
-                    console.log('Valores de la grilla', this.angularGridEdit.dataView.getItems());
-                    
                 }
+   
             } catch (e: any) {
+                this.rowLocked = false
                 console.log('error', e)
-                if (e.error.data.categoria) {
-                    let item = this.gridDataInsert.find((obj: any) => {
-                        return (obj.id == row.id)
-                    })
-                    item.categoria = e.error.data.categoria ? e.error.data.categoria : item.categoria
-                    item.forma = e.error.data.forma ? e.error.data.forma : item.forma
+                if (e.error.data.categoria || e.error.data.forma) {
+                    const item = this.angularGridEdit.dataView.getItemById(row.id)
+                    item.categoria = e.error.data.categoria ? e.error.data.categoria : row.categoria
+                    item.forma = e.error.data.forma ? e.error.data.forma : row.forma
                     this.angularGridEdit.gridService.updateItemById(row.id, item)
-
                 } else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
                     this.angularGridEdit.gridService.updateItemById(row.id, editCommand.editor.args.item)
                     editCommand.undo();

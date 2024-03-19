@@ -1702,14 +1702,19 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         req.body.categoriaPersonalId = valCategoriaPersonal.extended.categoria.id
       }
 
+
+
       //Validación de Personal ya registrado
       let personal: any = null
       const valPersonalRegistrado = await this.valPersonalRegistrado(req.body, queryRunner)
+
+
       if (valPersonalRegistrado instanceof ClientException) {
         if (!valPersonalRegistrado.extended.forma) {
           if (valCategoriaPersonal instanceof ClientException && valCategoriaPersonal.extended.categoria)
             valPersonalRegistrado.extended.categoria = valCategoriaPersonal.extended.categoria
           throw valPersonalRegistrado
+
         }
         req.body.formaLiquidacion = valPersonalRegistrado.extended.forma.id
         personal = valPersonalRegistrado.extended.personal
@@ -1728,7 +1733,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       let valueColumnsDays = valsDiasMes.valueColumnsDays
       let totalhs = valsDiasMes.totalhs
 
-      const girdId: number = req.body.id
+      const gridId: number = req.body.id
       const personalId: number = req.body.personalId
       const tipoAsociadoId: number = req.body.tipoAsociadoId
       const categoriaPersonalId: number = req.body.categoriaPersonalId
@@ -1737,8 +1742,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       if (!totalhs && personal?.id) {
         await this.deleteAsistencia(objetivoId, anioId, mesId, personal.id, queryRunner)
         await queryRunner.commitTransaction()
-        return this.jsonRes({ deleteRowId: girdId }, res);
+        return this.jsonRes({ deleteRowId: gridId }, res);
       }
+
 
       let num = Math.round(totalhs % 1 * 60)
       let min = ''
@@ -1783,6 +1789,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         )
         result.newRowId = newAsistenciaPersonalDiasId
       } else {
+
         await this.deleteAsistencia(objetivoId, anioId, mesId, personal.id, queryRunner)
         await queryRunner.query(`
           INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id)
@@ -1868,10 +1875,12 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       if (forma && !(personal && personal.apellidoNombre.id == personalId && personal.categoria.id == categoriaPersonalId && personal.categoria.tipoId == tipoAsociadoId && !formasEncontradas.includes(personal.forma.id))) {
         data = {
           personal,
+          /*
           forma: {
             id: forma.TipoHoraId,
             fullName: forma.Descripcion,
           }
+          */
         }
       }
       return new ClientException(`La persona ya tiene un registro existente en el objetivo con misma forma y categoría`, data)
