@@ -310,28 +310,19 @@ export class CargaAsistenciaComponent {
                     const response = await this.insertDB(row)
                     if (response.deleteRowId)
                         this.angularGridEdit.gridService.deleteItemById(response.deleteRowId)
-                    else {
-
-                        if (response.categoria || response.forma) {
+                    else if (response.categoria || response.forma || response.newRowId) {
                             const item = this.angularGridEdit.dataView.getItemById(row.id)
-                            item.categoria = response.categoria ? response.categoria : row.categoria
-                            item.forma = response.forma ? response.forma : row.forma
+                            item.categoria = response.categoria ? response.categoria : item.categoria
+                            item.forma = response.forma ? response.forma : item.forma
+                            item.dbid = response.newRowId ? response.newRowId :  item.dbid
                             this.angularGridEdit.gridService.updateItemById(row.id, item)
-                        }
-                        if (response.newRowId) {
-                            const item = this.angularGridEdit.dataView.getItemById(row.id)
-                            console.log('item',item)
-                            item.dbid = response.newRowId
-                            this.angularGridEdit.gridService.updateItemById(row.id, item)
-                        }
-
                     }
                     this.rowLocked = false                        
 
                 }
    
             } catch (e: any) {
-                this.rowLocked = false
+                const item = this.angularGridEdit.dataView.getItemById(row.id)
                 console.log('error', e)
                 if (e.error.data.categoria || e.error.data.forma) {
                     const item = this.angularGridEdit.dataView.getItemById(row.id)
@@ -339,9 +330,12 @@ export class CargaAsistenciaComponent {
                     item.forma = e.error.data.forma ? e.error.data.forma : row.forma
                     this.angularGridEdit.gridService.updateItemById(row.id, item)
                 } else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
-                    this.angularGridEdit.gridService.updateItemById(row.id, editCommand.editor.args.item)
+                    const fld = editCommand.editor.args.column.field
                     editCommand.undo();
+                    item[fld] = editCommand.editor.args.item[fld]
                 }
+                this.angularGridEdit.gridService.updateItemById(row.id, item)
+                this.rowLocked = false
             }
         }
     }
