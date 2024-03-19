@@ -1,7 +1,8 @@
 @if ((personalDetalle$ | async); as personalDetalle){
 <div nz-row>
   <div nz-col nzFlex="100px" class="app-foto-container">
-    <img class="app-foto" nz-image [nzSrc]="personalDetalle.image" nzFallback="./assets/dummy-person-image.jpg" />
+    <!-- img class="app-foto" nz-image [nzSrc]="personalDetalle.image" nzFallback="./assets/dummy-person-image.jpg" /-->
+    <img class="app-foto" nz-image nzSrc="api/personal/downloadImagen/{{PersonalId}}" nzFallback="./assets/dummy-person-image.jpg" />
   </div>
   <div nz-col nzFlex="200px" class="app-info-pers">
     <li><span class="app-bold-text">{{personalDetalle.PersonalApellido}}, {{personalDetalle.PersonalNombre}}</span></li>
@@ -89,5 +90,5 @@
       {{banco.BancoDescripcion}} CBU {{banco.PersonalBancoCBU}} </li> }
 }
     
-
-
+<nz-divider nzText="Documentación"></nz-divider>
+<a app-down-file httpUrl="/api/impuestos_afip/downloadF184/{{PersonalId}}"><span nz-icon nzType="download"></span>AFIP F184</a>

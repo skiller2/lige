@@ -123,11 +123,19 @@ impuestosAfipRouter.post("/forzado", authMiddleware.verifyToken, (req, res, next
   });
 });
 
-impuestosAfipRouter.get("/download/:anio/:mes/:personalIdRel?", (req, res,next) => {
+impuestosAfipRouter.get("/download/:anio/:mes/:personalIdRel?",authMiddleware.verifyToken, (req, res,next) => {
   impuestosAfipController.downloadComprobantesByPeriodo(
     req.params.anio,
     req.params.mes,
     req.params.personalIdRel,
+    res,
+    next
+  );
+});
+
+impuestosAfipRouter.get("/downloadF184/:personalId?", authMiddleware.verifyToken,(req, res,next) => {
+  impuestosAfipController.downloadPersonaF184(
+    Number(req.params.personalId),
     res,
     next
   );

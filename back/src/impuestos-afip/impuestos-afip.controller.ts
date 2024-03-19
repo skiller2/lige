@@ -77,29 +77,29 @@ export class ImpuestosAfipController extends BaseController {
     }
   }
 
-  async handleDownloadInformeByFiltro(req: Request, res: Response, next:NextFunction) {
+  async handleDownloadInformeByFiltro(req: Request, res: Response, next: NextFunction) {
     try {
       const periodo = getPeriodoFromRequest(req);
       const filtro = getFiltroFromRequest(req);
 
-      const filesPath = this.directory+'/'+ String(periodo.year)
+      const filesPath = this.directory + '/' + String(periodo.year)
     } catch (error) {
       return next(error)
     }
   }
 
-  async handleDownloadComprobantesByFiltro(req: Request, res: Response, next:NextFunction) {
+  async handleDownloadComprobantesByFiltro(req: Request, res: Response, next: NextFunction) {
     try {
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
-      req.body.options.sort= [{ fieldName: 'ApellidoNombre',direction:'ASC' }] 
+      req.body.options.sort = [{ fieldName: 'ApellidoNombre', direction: 'ASC' }]
 
       const periodo = getPeriodoFromRequest(req);
       const options = getOptionsFromRequest(req);
       const cantxpag = req.body.cantxpag
 
       const formattedMonth = String(periodo.month).padStart(2, "0");
-      const filesPath = this.directory+'/'+String(periodo.year)
+      const filesPath = this.directory + '/' + String(periodo.year)
 
       const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
         anio: String(periodo.year),
@@ -137,7 +137,7 @@ export class ImpuestosAfipController extends BaseController {
 
     const filtros = params.options.filtros;
 
-    
+
     const orderBy = orderToSQL(params.options.sort)
 
     let filtrosConsulta1 = [], filtrosConsulta2 = [];
@@ -148,11 +148,11 @@ export class ImpuestosAfipController extends BaseController {
           filtrosConsulta1.push(element);
           filter1IsActive = true;
           break;
-          case "GrupoDetalleOBJ":
+        case "GrupoDetalleOBJ":
           filtrosConsulta1.push(element);
           filter1IsActive = true;
           break;
-          case "ClienteId":
+        case "ClienteId":
           filtrosConsulta1.push(element);
           filter1IsActive = true;
           break;
@@ -161,15 +161,15 @@ export class ImpuestosAfipController extends BaseController {
           break;
       }
     });
-    
+
     /*
       Separar filtros en 2 arreglos basándose en el fieldName.  Si fieldName corresponde a consulta1 debería ir a filtrosConsulta1 caso contrario ir a filtrosConsulta2     
     */
 
     let filterSql1 = filtrosToSql(filtrosConsulta1, listaColumnas);
-    let filterSql2 = filtrosToSql(filtrosConsulta2,listaColumnas);
+    let filterSql2 = filtrosToSql(filtrosConsulta2, listaColumnas);
 
-    
+
     if (filter1IsActive) {
       const personalIdArr = await dataSource.query(`SELECT 
       suc.SucursalId, 
@@ -203,9 +203,9 @@ export class ImpuestosAfipController extends BaseController {
       LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01')  BETWEEN gap.GrupoActividadObjetivoDesde  AND ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31')
       LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
     
-      WHERE obja.ObjetivoAsistenciaAnoAno = @1 AND objm.ObjetivoAsistenciaAnoMesMes = @2 AND ${filterSql1} `,[,params.anio,params.mes] )
+      WHERE obja.ObjetivoAsistenciaAnoAno = @1 AND objm.ObjetivoAsistenciaAnoMesMes = @2 AND ${filterSql1} `, [, params.anio, params.mes])
       let listPersonalId = ''
-    
+
       personalIdArr.forEach(row => {
         listPersonalId += row.PersonalId + ','
       });
@@ -308,7 +308,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     this.jsonRes(listaColumnas, res);
   }
 
-  async getDescuentosGridList(req: Request, res: Response, next:NextFunction) {
+  async getDescuentosGridList(req: Request, res: Response, next: NextFunction) {
     const anio = String(req.body.anio);
     const mes = String(req.body.mes);
     const options: Options = isOptions(req.body.options)
@@ -337,7 +337,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     }
   }
 
-  async handleGetDescuentos(req: Request, res: Response, next:NextFunction) {
+  async handleGetDescuentos(req: Request, res: Response, next: NextFunction) {
     const anio = req.params.anio;
     const mes = req.params.mes;
     const GrupoActividadId = req.params.GrupoActividadId;
@@ -466,7 +466,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     }
   }
 
-  async handlePDFUpload(req: Request, res: Response, next:NextFunction, forzado: boolean) {
+  async handlePDFUpload(req: Request, res: Response, next: NextFunction, forzado: boolean) {
     const file = req.file;
     const anioRequest: number = req.body.anio;
     const mesRequest: number = req.body.mes;
@@ -529,7 +529,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           let [, periodoAnio, periodoMes] = this.getByRegexText(
             textdocument,
             periodoRegex,
-            new ClientException("No se pudo encontrar el periodo.",textdocument)
+            new ClientException("No se pudo encontrar el periodo.", textdocument)
           );
 
           [, CUIT] = this.getByRegexText(
@@ -638,24 +638,24 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     month: string,
     personalIdRel: string,
     res: Response,
-    next:NextFunction
+    next: NextFunction
   ) {
     try {
       const formattedMonth = month.padStart(2, "0");
-      const filesPath = this.directory+'/'+year
+      const filesPath = this.directory + '/' + year
 
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
       let filtros: Filtro[] = []
-      
-      if (personalIdRel != '') 
+
+      if (personalIdRel != '')
         filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: [personalIdRel] })
 
       const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
         anio: year,
         mes: month,
         descuentoId: descuentoId,
-        options: { filtros:filtros, sort: [],extra:null }
+        options: { filtros: filtros, sort: [], extra: null }
       });
 
       const files = descuentos
@@ -702,14 +702,14 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     let lastPage: PDFPage;
 
     for (const [index, file] of files.entries()) {
-      const locationIndex = (cantxpag==4)?index % 4 :0
+      const locationIndex = (cantxpag == 4) ? index % 4 : 0
       currentFileBuffer = null;
       currentFilePDF = null;
       currentFilePDFPage = null;
 
       if (locationIndex === 0) lastPage = newDocument.addPage(PageSizes.A4);
 
-      const filePath = filesPath+'/'+file.name
+      const filePath = filesPath + '/' + file.name
       const fileExists = existsSync(filePath);
 
       const pageWidth = lastPage.getWidth();
@@ -722,7 +722,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
         let embeddedPage: PDFEmbeddedPage = null;
         let origenComprobante = "";
-  
+
         if (
           currentFilePDFPage.getWidth() == 595.276 &&
           currentFilePDFPage.getHeight() == 841.89
@@ -751,7 +751,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         ) {
           origenComprobante = "MANUAL"
           embeddedPage = await newDocument.embedPage(currentFilePDFPage, {
-             top: 830, bottom: 450, left: 167, right: 430 },
+            top: 830, bottom: 450, left: 167, right: 430
+          },
           );
         } else {
           embeddedPage = await newDocument.embedPage(currentFilePDFPage);
@@ -868,6 +869,39 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     return newDocument.save();
   }
 
+
+  async downloadPersonaF184(PersonalId: number, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
+    try {
+      const fechaActual = new Date();
+      const ds = await queryRunner
+        .query(
+          `SELECT mono.PersonalId, mono.PersonalImpuestoAFIPDesde, mono.PersonalImpuestoAFIPHasta, dir.DocumentoImagenParametroDirectorioPath, pdf.DocumentoImagenImpuestoAFIPBlobNombreArchivo FROM PersonalImpuestoAFIP mono
+        JOIN DocumentoImagenImpuestoAFIP pdf ON pdf.PersonalId = mono.PersonalId AND pdf.DocumentoImagenImpuestoAFIPId = mono.PersonalImpuestoAFIPDocumentoF184Id
+        JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = pdf.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  pdf.DocumentoImagenParametroId
+        JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = pdf.DocumentoImagenParametroId
+        WHERE mono.PersonalId = @0 AND mono.PersonalImpuestoAFIPDesde<=@1 AND ISNULL(mono.PersonalImpuestoAFIPHasta,'9999-12-31') >= @1`,
+          [PersonalId, fechaActual]
+        )
+
+      if (ds.length == 0)
+        throw new ClientException(`Documento no existe para la persona`);
+
+      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo}`;
+
+      if (!existsSync(downloadPath))
+        throw new ClientException(`El archivo F184 no existe`,{'path':downloadPath});
+
+      res.download(downloadPath, ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo, (msg) => {});
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+
+
   async downloadComprobante(
     year: string,
     month: string,
@@ -947,7 +981,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     let embededPages = null;
     let origenComprobante = "";
 
-  
+
 
     TODO://Detectar el espacio vacío alrededor del comprobante de manera automática
     if (page0.getWidth() == 595.276 && page0.getHeight() == 841.89) {

@@ -30,6 +30,14 @@ personalRouter.get(`${base}/banco/:id`, authMiddleware.verifyToken, (req, res, n
   personalController.getCuentasBancoPorPersona(req.params.id, res, next);
 });
 
+personalRouter.get(`${base}/downloadImagen/:personalId`, (req, res,next) => {
+  personalController.downloadPersonaImagen(
+    Number(req.params.personalId),
+    res,
+    next
+  );
+});
+
 
 personalRouter.get(
   `${base}/responsables/:personalId/:anio/:mes`,

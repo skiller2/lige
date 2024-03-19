@@ -3,8 +3,8 @@ import { PersonaObj } from "../schemas/personal.schemas";
 import fetch, { Request } from "node-fetch";
 import { dataSource } from "../data-source";
 import { Response } from "express-serve-static-core";
-import { ParsedQs } from "qs";
 import { NextFunction } from "express";
+import { existsSync } from "fs";
 
 export class PersonalController extends BaseController {
   async getPersonalMonotributo(req: any, res: Response, next: NextFunction) {
@@ -197,6 +197,39 @@ export class PersonalController extends BaseController {
         return next(error)
       });
   }
+
+  async downloadPersonaImagen(PersonalId: number, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
+    try {
+      const fechaActual = new Date();
+      const ds = await queryRunner
+        .query(
+          `SELECT per.PersonalId, foto.DocumentoImagenFotoBlobNombreArchivo, dir.DocumentoImagenParametroDirectorioPath
+          FROM Personal per
+                  JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId 
+                  JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  foto.DocumentoImagenParametroId
+                  JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+                  
+                  -- WHERE per.PersonalId = @0`,
+          [PersonalId, fechaActual]
+        )
+
+      if (ds.length == 0)
+        throw new ClientException(`Documento no existe para la persona`);
+
+      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${ds[0].DocumentoImagenFotoBlobNombreArchivo}`;
+
+      if (!existsSync(downloadPath))
+        throw new ClientException(`El archivo Imagen no existe`,{'path':downloadPath});
+
+      res.download(downloadPath, ds[0].DocumentoImagenFotoBlobNombreArchivo, (msg) => {});
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
 
   async getTelefonosPorPersona(PersonalId: string, res: Response, next: NextFunction) {
     try {
