@@ -188,6 +188,9 @@ export class TelefoniaController extends BaseController {
     }
     */
     try {
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') )
+      throw new ClientException(`No tiene permisos para ver listado de teléfonos`)
+
       const telefonos = await this.getTelefonos(fecha, anio, mes, req.body.options)
 
       this.jsonRes({ list: telefonos }, res);

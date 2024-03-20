@@ -152,6 +152,11 @@ export class CategoriasController extends BaseController {
   ) {
     const options = getOptionsFromRequest(req);
     try {
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo')  )
+      throw new ClientException(`No tiene permisos para ver listado`)
+
+
+
       const pendCambioCategoria = await CategoriasController.listCambiosPendCategoria(options)
       this.jsonRes({ list: pendCambioCategoria }, res);
     } catch (error) {
@@ -172,6 +177,11 @@ export class CategoriasController extends BaseController {
 
     try {
       await queryRunner.connect();
+
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo')  )
+      throw new ClientException(`No tiene permisos para ver listado`)
+
+
       await queryRunner.startTransaction();
 
 //            throw new ClientException("Ups")

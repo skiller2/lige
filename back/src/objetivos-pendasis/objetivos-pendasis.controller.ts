@@ -279,7 +279,12 @@ AS gas ON gas.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
     next:NextFunction
   ) {
     const options = getOptionsFromRequest(req);
+
+
     try {
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasGroup(req, 'responsables') )
+      throw new ClientException(`No tiene permisos para ver listado de objetivos`)
+
       const pendCambioCategoria = await ObjetivosPendasisController.listObjetivosAsis(options)
       this.jsonRes({ list: pendCambioCategoria }, res);
     } catch (error) {
