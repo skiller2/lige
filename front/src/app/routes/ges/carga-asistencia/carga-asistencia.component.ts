@@ -636,8 +636,6 @@ export class CargaAsistenciaComponent {
 
     }
 
-
-
     async setCargaAsistencia() {
         try {
             await firstValueFrom(this.apiService.addAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId))

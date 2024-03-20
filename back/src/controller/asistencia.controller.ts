@@ -1677,7 +1677,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const mes: number = req.body.month
       const objetivoId: number = req.body.objetivoId
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(req.body.objetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(req.body.objetivoId), queryRunner) && !await this.hasAuthCargaDirecta(anio, mes, res, Number(req.body.objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para grabar/modificar asistencia`)
 
 
@@ -2063,7 +2063,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const anio = req.params.anio;
       const mes = req.params.mes;
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner) && 
+        !await this.hasAuthCargaDirecta(anio, mes, res, Number(objetivoId), queryRunner) )
         throw new ClientException(`No tiene permisos para ver asistencia`)
 
       const lista = await this.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
@@ -2191,7 +2192,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       let anio = req.params.anio;
       let mes = req.params.mes;
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner) && 
+      !await this.hasAuthCargaDirecta(anio, mes, res, Number(req.body.objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para ver asistencia`)
 
       if (mes == 1) {
