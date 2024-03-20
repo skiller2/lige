@@ -115,7 +115,7 @@ export class ImpuestosAfipController extends BaseController {
           return {
             name: `${periodo.year}-${formattedMonth}-${descuento.CUIT}-${descuento.PersonalId}.pdf`,
             apellidoNombre: descuento.ApellidoNombre,
-            apellidoNombreJ: descuento.ApellidoNombreJ,
+            GrupoActividadDetalle: descuento.GrupoActividadDetalle,
           };
         });
 
@@ -648,8 +648,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       let filtros: Filtro[] = []
 
-      if (personalIdRel != '')
-        filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: [personalIdRel] })
+//      if (personalIdRel != '')
+//        filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: [personalIdRel] })
 
       const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
         anio: year,
@@ -666,7 +666,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           return {
             name: `${year}-${formattedMonth}-${descuento.CUIT}-${descuento.PersonalId}.pdf`,
             apellidoNombre: descuento.ApellidoNombre,
-            apellidoNombreJ: descuento.ApellidoNombreJ,
+            GrupoActividadDetalle: descuento.GrupoActividadDetalle,
           };
         });
 
@@ -690,7 +690,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     files: {
       name: string;
       apellidoNombre: string;
-      apellidoNombreJ: string;
+      GrupoActividadDetalle: string;
     }[],
     filesPath: string,
     cantxpag: number
@@ -783,7 +783,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         switch (origenComprobante) {
           case "AFIP":
             lastPage.drawText(
-              `Responsable: ${file.apellidoNombreJ}`,
+              `Grupo: ${file.GrupoActividadDetalle}`,
               {
                 x: positionFromIndex.x + 22,
                 y: positionFromIndex.y + 25,
@@ -823,7 +823,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           case "PAGO":
           case "MANUAL":
             lastPage.drawText(
-              `${file.apellidoNombre}\n\nResponsable: ${file.apellidoNombreJ}`,
+              `${file.apellidoNombre}\n\Grupo: ${file.GrupoActividadDetalle}`,
               {
                 x: positionFromIndex.x + 22,
                 y: positionFromIndex.y + 60,
@@ -837,7 +837,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             break
           default:
             lastPage.drawText(
-              `${file.apellidoNombre}\n\nResponsable: ${file.apellidoNombreJ}`,
+              `${file.apellidoNombre}\n\Grupo: ${file.GrupoActividadDetalle}`,
               {
                 x: positionFromIndex.x + 22,
                 y: positionFromIndex.y + 60,

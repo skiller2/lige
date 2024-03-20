@@ -33,6 +33,7 @@ import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-deta
 import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
 import { CommonModule, NgIf } from '@angular/common';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
+import { SettingsService } from '@delon/theme';
 
 @Component({
   standalone: true,
@@ -72,11 +73,12 @@ export class CustomDescargaComprobanteComponent {
 export class ImpuestoAfipComponent {
   @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm =
     new NgForm([], []);
-  constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService) { }
+  constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService,private settingService: SettingsService) { }
   url = '/api/impuestos_afip';
   url_forzado = '/api/impuestos_afip/forzado';
   toggle = false;
-
+  @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
+  
   files: NzUploadFile[] = [];
   anio = 0
   mes = 0
@@ -224,6 +226,18 @@ export class ImpuestoAfipComponent {
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
   }
+
+  ngAfterContentInit(): void {
+    const user: any = this.settingService.getUser()
+    const gruposActividadList = user.GrupoActividad
+
+    setTimeout(() => {
+      if (gruposActividadList.length > 0)
+        this.sharedFiltroBuilder.addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'))  //Ej 548
+    }, 3000);
+
+  }
+
 
   ngAfterViewInit(): void {
     setTimeout(() => {

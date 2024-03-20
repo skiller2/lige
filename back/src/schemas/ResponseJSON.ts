@@ -8,9 +8,7 @@ export interface DescuentoJSON {
   PersonalId: number;
   CUIT: number;
   ApellidoNombre: string;
-  PersonalIdJ: number;
-  CUITJ: number;
-  ApellidoNombreJ: string;
+  GrupoActividadDetalle: string;
   monto: null | number;
   PersonalOtroDescuentoAnoAplica: null | number;
   PersonalOtroDescuentoMesesAplica: null | number;
