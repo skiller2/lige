@@ -62,14 +62,17 @@ const storage = multer.diskStorage({
 
 export const telefoniaRouter = Router();
 
+/*
 telefoniaRouter.post('', authMiddleware.verifyToken, (req, res, next) => {
     telefoniaController.setAdelanto(req.body.PersonalId, req.body.monto, req.socket.remoteAddress, res, next)
 })
+*/
+
 telefoniaRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
     telefoniaController.getTelefonosCols(req, res);
 });
 
-telefoniaRouter.post("/list", authMiddleware.verifyToken, (req, res, next) => {
+telefoniaRouter.post("/list", [authMiddleware.verifyToken,authMiddleware.hasGroup(['liquidaciones','administrativo'])], (req, res, next) => {
     telefoniaController.getTelefonosList(req, res, next);
 });
 

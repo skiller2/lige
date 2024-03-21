@@ -9,6 +9,6 @@ tipoDocumentoRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
     tipoDocumentoController.getGridCols(req, res);
   });
 
-  tipoDocumentoRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup('Liquidaciones')], (req, res, next) => {
+  tipoDocumentoRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
     tipoDocumentoController.getdocgenralList(req, res, next)
 })

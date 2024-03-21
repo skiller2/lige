@@ -318,9 +318,6 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
     try {
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo')  )
-      throw new ClientException(`No tiene permisos para ver listado`)
-
       const listaDescuentos = await this.DescuentosByPeriodo({
         anio,
         mes,

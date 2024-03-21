@@ -2173,10 +2173,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const anio = req.params.anio;
       const mes = req.params.mes;
       const queryRunner = dataSource.createQueryRunner();
-
-      //      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
-      //        throw new ClientException(`No tiene permiso para obtener información de categorías de persona`)
-
       const licencias = await this.getLicenciasPorPersonaQuery(anio, mes, personalId, queryRunner)
       this.jsonRes({ licencias }, res);
     } catch (error) {

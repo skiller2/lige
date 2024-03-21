@@ -34,20 +34,22 @@ export class AuthMiddleware {
     });
   };
 
-  hasGroup = (group: string) => {
+  hasGroup = (group: string[]) => {
     return (req, res, next) => {
       let inGroup = false
       if (req?.groups) {
         for (const rowgroup of req?.groups) {
-          if (rowgroup.toLowerCase().indexOf(group.toLowerCase()) != -1)
-            inGroup = true
+          for (const grp of group) {
+            if (rowgroup.toLowerCase().indexOf(grp.toLowerCase()) != -1)
+              inGroup = true
+          }
         }
       }
       if (inGroup)
       return next()
       else { 
         const stopTime = performance.now()
-        res.status(409).json({ msg: `Requiere ser miembro del grupo ${group}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
+        res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join()}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
       }
     }
   }
