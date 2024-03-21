@@ -76,7 +76,7 @@ telefoniaRouter.post("/list", [authMiddleware.verifyToken,authMiddleware.hasGrou
     telefoniaController.getTelefonosList(req, res, next);
 });
 
-telefoniaRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) => {
+telefoniaRouter.post("/upload", [authMiddleware.verifyToken,authMiddleware.hasGroup(['liquidaciones','administrativo'])], (req, res, next) => {
     uploadXLS(req, res, (err) => {
 
 

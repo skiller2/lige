@@ -22,10 +22,10 @@ export class AuthMiddleware {
       if (err) return this.catchError(err, res);
       req.decoded_token = decoded;
       req.persona_cuit = (decoded.description != undefined) ? decoded.description : "";
-//      req.PersonalId = (decoded.PersonalId != undefined) ? decoded.PersonalId : 0;
-      res.locals.PersonalId= (decoded.PersonalId != undefined) ? decoded.PersonalId : 0;
+      //      req.PersonalId = (decoded.PersonalId != undefined) ? decoded.PersonalId : 0;
+      res.locals.PersonalId = (decoded.PersonalId != undefined) ? decoded.PersonalId : 0;
       res.locals.persona_cuit = (decoded.description != undefined) ? decoded.description : "";
-      res.locals.userName =decoded.userName
+      res.locals.userName = decoded.userName
       if (typeof decoded.groups === "string")
         req.groups = [decoded.groups]
       else
@@ -41,16 +41,13 @@ export class AuthMiddleware {
         for (const rowgroup of req?.groups) {
           for (const grp of group) {
             if (rowgroup.toLowerCase().indexOf(grp.toLowerCase()) != -1)
-              inGroup = true
+              return next()
           }
         }
       }
-      if (inGroup)
-      return next()
-      else { 
-        const stopTime = performance.now()
-        res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join()}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
-      }
+      const stopTime = performance.now()
+      return res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join()}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
+
     }
   }
 
