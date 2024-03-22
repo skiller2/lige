@@ -152,6 +152,9 @@ export class CategoriasController extends BaseController {
   ) {
     const options = getOptionsFromRequest(req);
     try {
+
+
+
       const pendCambioCategoria = await CategoriasController.listCambiosPendCategoria(options)
       this.jsonRes({ list: pendCambioCategoria }, res);
     } catch (error) {

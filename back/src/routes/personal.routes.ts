@@ -64,7 +64,7 @@ personalRouter.get(
 );
 
 
-personalRouter.get(`${base}/name/:personalId`, (req, res, next) => {
+personalRouter.get(`${base}/name/:personalId`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getNameFromId(req.params.personalId, res, next);
 });
 

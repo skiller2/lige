@@ -8,6 +8,6 @@ objetivosPendasisRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
     objetivosPendasisController.getGridCols(req, res);
   });
 
-objetivosPendasisRouter.post('/list', authMiddleware.verifyToken, (req, res, next) => {
+objetivosPendasisRouter.post('/list', [authMiddleware.verifyToken,authMiddleware.hasGroup(['liquidaciones','administrativo','responsables'])], (req, res, next) => {
     objetivosPendasisController.getObjetivosPendAsis(req, res, next)
 })

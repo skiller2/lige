@@ -241,6 +241,23 @@ export class BaseController {
 
     return false
   }
+  async hasAuthCargaDirecta(anio: number, mes: number, res: any, ObjetivoId: number, queryRunner: DataSource | QueryRunner) {
+
+    const PersonalId = res.locals.PersonalId
+
+    if (PersonalId == "") return false
+
+    let resultAuth = await queryRunner.query(
+      `SELECT aut.* FROM lige.dbo.percargadirecta aut 
+        WHERE aut.persona_id = @0 AND aut.objetivo_id = @1`,
+      [PersonalId,ObjetivoId]
+    );
+
+    if (resultAuth.length > 0)
+      return true
+
+    return false
+  }
 
 
   async getProxNumero(queryRunner: any, den_numerador: String, usuario: string, ip: string) {
@@ -276,7 +293,7 @@ export class BaseController {
     }
   }
 
-  static isEmpty(value:any) {
+  static isEmpty(value: any) {
     return (value == null || (typeof value === "string" && value.trim().length === 0));
   }
 

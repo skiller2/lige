@@ -960,10 +960,6 @@ export class LiquidacionesBancoController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
 
     try {
-
-      if (!await this.hasGroup(req, 'liquidaciones'))
-        throw new ClientException(`No tiene permisos para eliminar registro`)
-
       if (persona_id == null)
         throw new ClientException(`Debe seleccionar una persona`)
 

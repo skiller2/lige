@@ -8,12 +8,12 @@ categoriasRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
     categoriasController.getGridCols(req, res);
   });
 
-categoriasRouter.post('/list',authMiddleware.verifyToken, (req, res, next) => {
+categoriasRouter.post('/list',[authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
     categoriasController.getCambiosPendCategoria(req, res, next)
 })
 
 
 
-categoriasRouter.post('/cambiarCategorias', [authMiddleware.verifyToken, authMiddleware.hasGroup('Administrativo')], async (req, res, next) => {
+categoriasRouter.post('/cambiarCategorias', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], async (req, res, next) => {
     categoriasController.procesaCambios(req, res, next)
 })

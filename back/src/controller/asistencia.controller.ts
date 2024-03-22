@@ -91,7 +91,7 @@ export class AsistenciaController extends BaseController {
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
         throw new ClientException(`No tiene permisos para habilitar carga`)
       const result = await queryRunner.query(
-        ` UPDATE ObjetivoAsistenciaAnoMes SET ObjetivoAsistenciaAnoMesHasta = NULL WHERE ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
+        `UPDATE ObjetivoAsistenciaAnoMes SET ObjetivoAsistenciaAnoMesHasta = NULL WHERE ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
           `, [cabecera[0].ObjetivoId, cabecera[0].ObjetivoAsistenciaAnoId, cabecera[0].ObjetivoAsistenciaAnoMesId]
       );
     }
@@ -1677,7 +1677,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const mes: number = req.body.month
       const objetivoId: number = req.body.objetivoId
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(req.body.objetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(req.body.objetivoId), queryRunner) && !await this.hasAuthCargaDirecta(anio, mes, res, Number(req.body.objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para grabar/modificar asistencia`)
 
 
@@ -2063,7 +2063,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const anio = req.params.anio;
       const mes = req.params.mes;
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner) && 
+        !await this.hasAuthCargaDirecta(anio, mes, res, Number(objetivoId), queryRunner) )
         throw new ClientException(`No tiene permisos para ver asistencia`)
 
       const lista = await this.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
@@ -2172,10 +2173,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const anio = req.params.anio;
       const mes = req.params.mes;
       const queryRunner = dataSource.createQueryRunner();
-
-      //      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
-      //        throw new ClientException(`No tiene permiso para obtener información de categorías de persona`)
-
       const licencias = await this.getLicenciasPorPersonaQuery(anio, mes, personalId, queryRunner)
       this.jsonRes({ licencias }, res);
     } catch (error) {
@@ -2191,7 +2188,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       let anio = req.params.anio;
       let mes = req.params.mes;
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner) && 
+      !await this.hasAuthCargaDirecta(anio, mes, res, Number(req.body.objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para ver asistencia`)
 
       if (mes == 1) {

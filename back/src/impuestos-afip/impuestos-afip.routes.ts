@@ -60,7 +60,7 @@ const upload = multer({
 
 export const impuestosAfipRouter = Router();
 
-impuestosAfipRouter.post("", authMiddleware.verifyToken, (req, res, next) => {
+impuestosAfipRouter.post("", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   upload(req, res, (err) => {
     // FILE SIZE ERROR
     if (err instanceof multer.MulterError) {
@@ -91,7 +91,7 @@ impuestosAfipRouter.post("", authMiddleware.verifyToken, (req, res, next) => {
     }
   });
 });
-impuestosAfipRouter.post("/forzado", authMiddleware.verifyToken, (req, res, next) => {
+impuestosAfipRouter.post("/forzado", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   upload(req, res, (err) => {
     // FILE SIZE ERROR
     if (err instanceof multer.MulterError) {
@@ -176,13 +176,13 @@ impuestosAfipRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
   impuestosAfipController.getDescuentosGridCols(req, res);
 });
 
-impuestosAfipRouter.post("/list", authMiddleware.verifyToken, (req, res, next) => {
+impuestosAfipRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo','responsables'])], (req, res, next) => {
   impuestosAfipController.getDescuentosGridList(req, res, next);
 });
 
 impuestosAfipRouter.post(
   "/download/informe",
-  authMiddleware.verifyToken,
+  [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo','responsables'])],
   (req, res, next) => {
     impuestosAfipController.handleDownloadInformeByFiltro(req, res, next);
   }
