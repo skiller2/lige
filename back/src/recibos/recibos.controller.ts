@@ -14,7 +14,7 @@ import {
   SendFileToDownload,
   getPeriodoFromRequest,
 } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.utils";
-
+import moment from 'moment';
 import { QueryRunner } from "typeorm";
 
 export class RecibosController extends BaseController {
@@ -26,27 +26,34 @@ export class RecibosController extends BaseController {
     }
   }
 
-  async cleanDirectories(queryRunner: QueryRunner, directorPath: string, periodo: number) {
+  async cleanDirectories(queryRunner: QueryRunner, directorPath: string, periodo: number, isUnique:any, directorPathUnique:string,idrecibo:number) {
     try {
-      console.log("limpiando directorio")
-      if (fs.existsSync(directorPath)) {
-        const archivos = fs.readdirSync(directorPath);
-        archivos.forEach(archivo => {
-          const rutaArchivo = path.join(directorPath, archivo);
-          fs.unlinkSync(rutaArchivo);
-        });
+
+      if(isUnique){
+        fs.unlinkSync(directorPathUnique);
+      }else{
+        console.log("limpiando directorio")
+        if (fs.existsSync(directorPath)) {
+          const archivos = fs.readdirSync(directorPath);
+          archivos.forEach(archivo => {
+            const rutaArchivo = path.join(directorPath, archivo);
+            fs.unlinkSync(rutaArchivo);
+          });
+        }
       }
-
-      await this.deleteDirectories(queryRunner, periodo)
-
+      await this.deleteDirectories(queryRunner, periodo,isUnique,idrecibo)
     } catch (error) {
       console.error("Error al limpiar el directorio:", error);
     }
   }
 
-  async deleteDirectories(queryRunner: QueryRunner, periodo: number) {
+  async deleteDirectories(queryRunner: QueryRunner, periodo: number, isUnique:any, idrecibo:number) {
 
-    await queryRunner.query(`delete from lige.dbo.docgeneral where periodo=@0 ; `, [periodo])
+    if(isUnique){
+      await queryRunner.query(`delete from lige.dbo.docgeneral where idrecibo=@0 ; `, [idrecibo])
+    }else{
+      await queryRunner.query(`delete from lige.dbo.docgeneral where periodo=@0 ; `, [periodo])
+    }
 
   }
 
@@ -55,30 +62,43 @@ export class RecibosController extends BaseController {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     let isUnique = req.body.isUnique
-    const personalId = req.body?.personalId;
-    const queryRunner = dataSource.createQueryRunner();
+    const personalId = req.body?.personalId
+    const queryRunner = dataSource.createQueryRunner()
+    let persona_id = 0
+      //estas  variables se usan solo si el recibo previamente ya existe 
+    let fechaReciboExiste:Date
+    let docgeneral:number
+    let idrecibo:number
+    let directorPathUnique = ""
+    let fechaActual = new Date();
 
     try {
 
       const periodo = getPeriodoFromRequest(req);
-      let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
-      let persona_id = 0
-
+      
       if (!isUnique) {
 
         // codigo para cuenado es recibo general
         const getRecibosGenerados = await this.getRecibosGenerados(queryRunner, periodo_id)
         if (getRecibosGenerados[0].ind_recibos_generados == 1)
           throw new ClientException(`Los recibos para este periodo ya se generaron`)
-
       } else {
 
         // codigo para cuenado es unico recibo bebe validar que el recibo exista para poder regenerarlo, caso contrario arrojar error
         const existRecibo = await this.existReciboId(queryRunner, fechaActual, periodo_id, personalId);
 
-        if (existRecibo.length > 0)
-          throw new ClientException(`Recibo ya existe para el periodo seleccionado`)
+        if (existRecibo.length <=  0)
+          throw new ClientException(`Recibo no existe para el periodo seleccionado`)
+
+
+        let formatFecha= existRecibo[0].fecha 
+        const fechaMoment = moment(formatFecha, 'YYYY-MM-DD HH:mm:ss.SSS');
+        fechaReciboExiste = fechaMoment.toDate();
+        idrecibo = existRecibo[0].idrecibo
+        docgeneral = existRecibo[0].docgeneral
+        directorPathUnique = existRecibo[0].path
+        
       }
 
       const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, personalId)
@@ -88,9 +108,7 @@ export class RecibosController extends BaseController {
         mkdirSync(directorPath, { recursive: true });
       }
 
-      // codigo para cuenado es recibo general
-      if (!isUnique)
-        await this.cleanDirectories(queryRunner, directorPath, periodo_id)
+      await this.cleanDirectories(queryRunner, directorPath, periodo_id, isUnique, directorPathUnique,idrecibo)
 
       const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets'
 
@@ -126,25 +144,33 @@ export class RecibosController extends BaseController {
         persona_id = movimiento.PersonalId
         const filesPath = directorPath + '/' + persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
         const nombre_archivo = persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
-        const docgeneral = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
-        const idrecibo = await this.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
+        docgeneral = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
 
-        await this.setUsuariosLiquidacionDocGeneral(
-          queryRunner,
-          docgeneral,
-          periodo_id,
-          fechaActual,
-          persona_id,
-          0,
-          nombre_archivo,
-          filesPath,
-          usuario,
-          ip,
-          fechaActual,
-          "REC",
-          idrecibo
+        if(!isUnique)
+          idrecibo = await this.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
+        
 
-        )
+        let FechaModificacion = isUnique ? fechaReciboExiste : fechaActual
+           
+           await this.setUsuariosLiquidacionDocGeneral(
+            queryRunner,
+            docgeneral,
+            periodo_id,
+            FechaModificacion,
+            persona_id,
+            0,
+            nombre_archivo,
+            filesPath,
+            usuario,
+            ip,
+            fechaActual,
+            "REC",
+            idrecibo
+  
+          )
+        
+
+       
 
         const PersonalNombre = movimiento.PersonalNombre
         const Cuit = movimiento.PersonalCUITCUILCUIT
@@ -375,6 +401,20 @@ export class RecibosController extends BaseController {
 
   }
 
+  // async updateUsuariosLiquidacionDocGeneral(
+  //   queryRunner: any,
+  //   usuario: string,
+  //   ip: string,
+  //   audfecha: Date,
+  //   idrecibo: number,
+  //   persona_id: number, )
+  // {
+  //   return queryRunner.query(`UPDATE lige.dbo.docgeneral
+  //   SET aud_ip_mod= @1, aud_fecha_mod=@2
+  //   WHERE persona_id =@3 AND idrecibo=@4 `,
+  //     [usuario, ip, audfecha,persona_id,idrecibo ])
+
+  // }
 
   async setUsuariosLiquidacionDocGeneral(
     queryRunner: any,
@@ -404,7 +444,7 @@ export class RecibosController extends BaseController {
         objetivo_id,
         path,
         nombre_archivo,
-        usuario, ip, audfecha,
+        usuario, ip, fecha,
         usuario, ip, audfecha,
         doctipo_id, idrecibo
       ])

@@ -2358,7 +2358,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         }
 
         if (error.length) {
-          errores.push(`Fila ${index + 1} [${gridData[index].apellidoNombre.fullName}]:\n${error.join(`, `)}`)
+          let fullName = gridData[index].apellidoNombre.fullName
+          let ultimaComa = fullName.lastIndexOf(" ");
+          errores.push(`${fullName.substring(0, ultimaComa)} [Fila ${index + 1}]:\n${error.join(`, `)}`)
         }
       }
 

@@ -23,6 +23,7 @@ import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-s
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
+import { toNumber } from '@delon/util';
 enum Busqueda {
     Sucursal,
     Objetivo,
@@ -84,6 +85,7 @@ export class CargaAsistenciaComponent {
     $formChange = new BehaviorSubject({});
     objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
     isLoadingCheck = false;
+    customHeaderExcel : any[] = []
 
     getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
         this.loadingSrv.open({ type: 'spin', text: '' })
@@ -99,21 +101,14 @@ export class CargaAsistenciaComponent {
                 this.selectedSucursalId = data[1][0]?.SucursalId
                 this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null)
                 this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
-
+                // const totalesHeader = this.totalesHeader()
                 this.excelExportOption.filename = `${this.selectedPeriod.year}-${this.selectedPeriod.month}-${data[2][0]?.ObjetivoCodigo}-${data[2][0]?.ObjetivoDescripcion}`
-                this.excelExportOption.customExcelHeader = (workbook, sheet) => {
-                    sheet.setRowInstructions(4, { height: 20 })
-                    sheet.data.push(
-                        [{ value: `Año: ${anio}` }],
-                        [{ value: `Mes: ${mes}` }],
-                        [{ value: `Código: ${data[2][0]?.ObjetivoCodigo}` }],
-                        [{ value: `Objetivo: ${data[2][0]?.ObjetivoDescripcion}` }],
-                        []
-                    );
-                }
-                this.gridOptionsEdit.excelExportOptions = this.excelExportOption;
-
-                this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
+                this.customHeaderExcel = [[{ value: `Año: ${anio}` }],
+                [{ value: `Mes: ${mes}` }],
+                [{ value: `Código: ${data[2][0]?.ObjetivoCodigo}` }],
+                [{ value: `Objetivo: ${data[2][0]?.ObjetivoDescripcion}` }],
+                []]
+                
                 this.angularGridEdit.resizerService.resizeGrid();
 
                 //console.log('data[3]',data[3]);
@@ -406,7 +401,7 @@ export class CargaAsistenciaComponent {
     }
 
     sumTotalsFormatterCustom(totals: any, columnDef: any) {
-        const val = totals.sum && totals.sum[columnDef.field];
+        const val = totals.sum && totals.sum[columnDef.field]
         if (val != null && totals.group.count > 1) {
             return val
         }
@@ -678,7 +673,7 @@ export class CargaAsistenciaComponent {
     }
 
     getPersonalIdFromGrid(): number {
-        console.log('getPersonalIdFromGrid')
+        // console.log('getPersonalIdFromGrid')
         const selrows = this.angularGridEdit.slickGrid.getSelectedRows()
         if (selrows[0] == undefined) return 0
         const row = this.angularGridEdit.slickGrid.getDataItem(selrows[0])
@@ -708,6 +703,7 @@ export class CargaAsistenciaComponent {
 
     async exportGrid() {
         this.groupByForma()
+        await this.addCustomHeader()
         await this.excelExportService.exportToExcel();
         this.clearGrouping()
     }
@@ -717,7 +713,9 @@ export class CargaAsistenciaComponent {
         const lastrow: any = this.gridDataInsert[this.gridDataInsert.length - 1];
         if (lastrow && (lastrow.apellidoNombre == '')) {
             grandTotal = this.gridDataInsert.pop()
+            // this.gridDataInsert.pop()
             this.angularGridEdit.dataView.setItems(this.gridDataInsert)
+        // }
         } else {
             grandTotal = this.createNewItem(1);
         }
@@ -734,7 +732,6 @@ export class CargaAsistenciaComponent {
         })
         grandTotal.total = this.angularGridEdit.slickGrid.getFooterRowColumn('total').innerText
         grandTotal.forma = { fullName: 'Totales' }
-        //        this.angularGridEdit.slickGrid.setOptions({ enableGrouping: true })
 
         this.angularGridEdit.dataView.setGrouping({
             getter: (g) => g.forma.fullName,
@@ -751,11 +748,22 @@ export class CargaAsistenciaComponent {
             aggregateCollapsed: false,
             lazyTotalsCalculation: true,
         });
+
         this.angularGridEdit.dataView.addItem(grandTotal)
-        let grupos: SlickGroup[] = this.angularGridEdit.dataView.getGroups()
+        let grupos: SlickGroup[]= this.angularGridEdit.dataView.getGroups()
         let grupototal: any = grupos.pop()
         grupototal!.title = ""
         grupos.push(grupototal)
+
+        // let grupos: SlickGroup[] = this.angularGridEdit.dataView.getGroups()
+        // if (grupos.length > 1) {
+        //     this.angularGridEdit.dataView.addItem(grandTotal)
+        //     grupos= this.angularGridEdit.dataView.getGroups()
+        //     let grupototal: any = grupos.pop()
+        //     grupototal!.title = ""
+        //     grupos.push(grupototal)
+        // }
+        
     }
 
     clearGrouping() {
@@ -765,5 +773,104 @@ export class CargaAsistenciaComponent {
         if (lastrow && (lastrow.apellidoNombre != '')) {
             this.addNewItem("bottom")
         }
+    }
+    addCustomHeader(){
+        let totalHeader: any[] = []
+        let totalHoras = 0
+        const cantCeldas = 4
+        const columnaInicial = 'E'
+        const fila = 4
+        //Cantidad de celdas que se van a fusionadar
+        let arrayRango: any[] = []
+        for (let index = 0; index < cantCeldas; index++) {
+            arrayRango.push({})
+        }
+
+        // //Armar los totales de horas
+        // let grupos: any[]= this.angularGridEdit.dataView.getGroups()
+        // grupos.forEach(( obj, index, arr) => {
+        //     // if (obj.value != "Totales") {
+        //         totalHoras += obj.totals.sum.total
+        //         totalHeader = totalHeader.concat([{ value: `Horas de ${obj.value}:` }, ...arrayRango,{ value: obj.totals.sum.total },])
+        //         delete arr[index].totals.sum.total
+        //     // }
+        // })
+        // totalHeader = totalHeader.concat([{ value: `Total de Horas:`}, ...arrayRango,{ value: totalHoras }])
+        // //Sumar a la fila del encabezado los totales de horas
+        // const rowNum = this.customHeaderExcel.length-2
+        // this.customHeaderExcel[rowNum] = this.customHeaderExcel[rowNum].concat({},{},{},totalHeader)
+
+        //Crear el encabezado del Excel
+        this.excelExportOption.customExcelHeader = (workbook, sheet) => {
+            const stylesheet = workbook.getStyleSheet();
+            const aFormatDefn = {
+                'font': { 'size': 12, 'fontName': 'Calibri', 'bold': true },
+                'fill': {
+                    'type': 'pattern',
+                    'patternType': 'solid',
+                    'fgColor': 'FF7AB573',
+                },
+                'alignment': {
+                    'horizontal': 'center',
+                }
+            };
+            const bFormatDefn = {'font': { 'bold': true }, }
+            // const bFormatDefn = { }
+            const titleId = stylesheet.createFormat(aFormatDefn);
+            const totalId = stylesheet.createFormat(bFormatDefn);
+            //Armar los totales de horas
+            let grupos: any[]= this.angularGridEdit.dataView.getGroups()
+            grupos.forEach(( obj, index, arr) => {
+                if (obj.value != "Totales") {
+                totalHoras += obj.totals.sum.total
+                totalHeader = totalHeader.concat([{ value: `Horas de ${obj.value}:`, metadata: { style: titleId.id } }, ...arrayRango,{ value: obj.totals.sum.total, metadata: { style: totalId.id } }, {}])
+                delete arr[index].totals.sum.total
+                }
+            })
+            totalHeader = totalHeader.concat([{ value: `Total de Horas:`, metadata: { style: titleId.id } }, ...arrayRango,{ value: totalHoras, metadata: { style: totalId.id } }])
+            //Sumar a la fila del encabezado los totales de horas
+            const rowNum = this.customHeaderExcel.length-2
+            let auxCustomHeaderExcel = [...this.customHeaderExcel]
+            auxCustomHeaderExcel[rowNum] = this.customHeaderExcel[rowNum].concat({},{},{},totalHeader)
+
+            sheet.mergeCells('A4', 'B4');
+
+            let colA = columnaInicial
+            let colB = columnaInicial
+            for (let index = 0; index < grupos.length; index++) {
+                colB = this.saltarLetra(colA, cantCeldas)
+                sheet.mergeCells(`${colA}${fila}`, `${colB}${fila}`);
+                colA = this.saltarLetra(colB, 3)
+            }
+            
+            sheet.setRowInstructions(4, { height: 20 })
+            sheet.data = auxCustomHeaderExcel;
+            
+        }
+        this.gridOptionsEdit.excelExportOptions = this.excelExportOption;
+
+        this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
+    }
+
+    saltarLetra(entrada: string, salto: number) {
+        const base = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        let result = ''
+        let carry = 0
+        for (let i = entrada.length - 1; i >= 0; i--) {
+            const char = entrada[i]
+            const pos = base.indexOf(char)
+            let newPos = pos + carry
+            if (i == entrada.length - 1) 
+                newPos += salto;
+            if (newPos >= base.length) {
+                newPos -= base.length
+                carry = 1
+            } else 
+                carry = 0
+            result = base[newPos] + result
+        }
+        if (carry) 
+            result = 'A'+ result
+        return result
     }
 }
