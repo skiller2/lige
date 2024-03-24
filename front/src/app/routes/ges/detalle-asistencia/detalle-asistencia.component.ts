@@ -9,6 +9,7 @@ import {
   debounceTime,
   elementAt,
   filter,
+  map,
   of,
   switchMap,
   takeUntil,
@@ -18,7 +19,7 @@ import { SearchService } from '../../../services/search.service';
 import { NgForm } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
-import { SHARED_IMPORTS } from '@shared';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { CurrencyPipeModule } from '@delon/util';
 import { NzResizableModule } from 'ng-zorro-antd/resizable';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
@@ -28,6 +29,11 @@ import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
+import { AngularGridInstance, AngularUtilService, Column, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
+import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
+import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
+
 
 enum Busqueda {
   Sucursal,
@@ -41,7 +47,8 @@ enum Busqueda {
   standalone: true,
   templateUrl: './detalle-asistencia.component.html',
   styleUrls: ['./detalle-asistencia.component.less'],
-  imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent, DetallePersonaComponent]
+  providers: [AngularUtilService, ExcelExportService],
+  imports: [...SHARED_IMPORTS, NzResizableModule, FiltroBuilderComponent, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent, DetallePersonaComponent]
 })
 export class DetalleAsistenciaComponent {
   @ViewChild('asistencia', { static: true }) asistencia: NgForm = new NgForm(
@@ -67,6 +74,8 @@ export class DetalleAsistenciaComponent {
     private router: Router,
     private route: ActivatedRoute,
     private settingService: SettingsService,
+    private excelExportService: ExcelExportService,
+    private angularUtilService: AngularUtilService
   ) { }
 
   private destroy$ = new Subject();
@@ -110,6 +119,14 @@ export class DetalleAsistenciaComponent {
   $optionsMetodologia = this.searchService.getMetodologia();
   $optionsSucursales = this.searchService.getSucursales();
   $optionsCategoria = this.searchService.getCategorias();
+
+
+  listOptionsPersonal: listOptionsT = {
+    filtros: [],
+    sort: null,
+  };
+
+
 
   objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
   $objetivoResponsables = this.$selectedObjetivoIdChange.pipe(
@@ -445,8 +462,14 @@ export class DetalleAsistenciaComponent {
     if (!event) return;
     this.$searchObjetivoChange.next(event);
   }
-
+  gridOptionsPersonal!: GridOption
+  
   ngOnInit(): void {
+    this.gridOptionsPersonal = this.apiService.getDefaultGridOptions('.gridContainer', 9, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptionsPersonal.enableRowDetailView = this.apiService.isMobile()
+    this.gridOptionsPersonal.showFooterRow = true
+    this.gridOptionsPersonal.createFooterRow = true
+
   }
 
   onTabsetChange(_event: any) {
@@ -487,5 +510,68 @@ export class DetalleAsistenciaComponent {
   openDrawer(): void {
     this.visibleDrawer = true
   }
+
+  angularGridPersonal!: AngularGridInstance;
+  gridObjPersonal!: SlickGrid;
+
+  columnsPersonal$ = this.apiService.getCols('/api/asistencia/personalxresp/cols').pipe(map((cols) => {
+    let mapped = cols.map((col: Column) => {
+      return col
+    });
+    return mapped
+  }));
+
+
+  async angularGridReady(angularGrid: any) {
+
+    this.angularGridPersonal = angularGrid.detail
+    this.gridObjPersonal = angularGrid.detail.slickGrid;
+
+    if (this.apiService.isMobile())
+      this.angularGridPersonal.gridService.hideColumnByIds(['CUIT'])
+
+    this.angularGridPersonal.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGridPersonal)
+      columnTotal('PersonalAdelantoMonto', this.angularGridPersonal)
+    })
+      
+  }
+
+  exportGrid() {
+    this.excelExportService.exportToExcel({
+      filename: 'adelantos-listado',
+      format: FileType.xlsx
+    });
+  }
+
+  listOptionsChange(options: any) {
+    this.listOptionsPersonal = options;
+//    this.formChange$.next('');
+
+  }
+  tableLoading$ = new BehaviorSubject(false);
+
+
+
+  
+  gridDataPersonal$ = this.$selectedResponsablePersonalIdChange.pipe(
+    debounceTime(500),
+    switchMap((PersonalId) => {
+      return this.apiService
+        .getPersonasResponsable(
+          { options: this.listOptionsPersonal, PersonalId :Number(PersonalId), anio: this.selectedPeriod.year, mes: this.selectedPeriod.month}
+        )
+        .pipe(
+          map(data => {
+            return data.persxresp
+
+          }),
+          doOnSubscribe(() => this.tableLoading$.next(true)),
+          tap({ complete: () => this.tableLoading$.next(false) })
+        )
+    })
+  )
+
+
 
 }

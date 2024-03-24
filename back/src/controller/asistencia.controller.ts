@@ -11,6 +11,63 @@ class ClientExceptionArt14 extends ClientException {
   }
 }
 
+const columnasPersonalxResponsable: any[] = [
+  {
+    id: "CUIT",
+    name: "PersonalCUITCUILCUIT",
+    field: "PersonalCUITCUILCUIT",
+    fieldName: "cuit.PersonalCUITCUILCUIT",
+    type: "number",
+    sortable: true,
+  },
+  {
+    name: "Apellido Nombre",
+    type: "string",
+    id: "PersonaDes",
+    field: "PersonaDes",
+    fieldName: "PersonaDes",
+    sortable: true,
+    customTooltip: {
+      useRegularTooltip: true, // note regular tooltip will try to find a "title" attribute in the cell formatter (it won't work without a cell formatter)
+    },
+  },
+  {
+    name: "Ingresos",
+    type: "currency",
+    id: "ingresosG_importe",
+    field: "ingresosG_importe",
+    fieldName: "ingresosG_importe",
+    sortable: true,
+  },
+  {
+    name: "Horas",
+    type: "number",
+    id: "ingresos_horas",
+    field: "ingresos_horas",
+    fieldName: "ingresos_horas",
+    sortable: true,
+  },
+  {
+    name: "Descuentos",
+    type: "currency",
+    id: "egresosG_importe",
+    field: "egresosG_importe",
+    fieldName: "egresosG_importe",
+    sortable: true,
+    hidden: false
+  },
+  {
+    name: "Retiro",
+    type: "currency",
+    id: "anios",
+    field: "anios",
+    fieldName: "anios",
+    sortable: false,
+    hidden: false
+  },
+];
+
+
 export class AsistenciaController extends BaseController {
   async addAsistenciaPeriodoResJson(req: any, res: Response, next: NextFunction) {
     const {
@@ -1150,12 +1207,16 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     }
   }
 
+  async getPersonalxResponsableCols(req: any, res: Response, next: NextFunction) { 
+      this.jsonRes(columnasPersonalxResponsable, res);
+  }
   async getPersonalxResponsable(req: any, res: Response, next: NextFunction) {
     //ACA
     try {
-      const personalId = req.params.personalId;
-      const anio = req.params.anio;
-      const mes = req.params.mes;
+      const personalId = req.body.PersonalId;
+      const anio = req.body.anio;
+      const mes = req.body.mes;
+
       const queryRunner = dataSource.createQueryRunner();
       if (!await this.hasGroup(req, 'liquidaciones') && res.locals.PersonalId != req.params.personalId)
         throw new ClientException(`No tiene permisos para listar la información`)
@@ -1163,7 +1224,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       //Busco la lista de PersonalId que le corresponde al responsable
       let personalIdList: number[] = []
       const personal = await queryRunner.query(
-        `SELECT 0,0,'', per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS PersonaDes,
+        `SELECT 0,0,'', per.PersonalId, per.PersonalId id, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS PersonaDes,
         cuit.PersonalCUITCUILCUIT,
         0 as ingresosG_importe,
         0 as ingresosC_importe,

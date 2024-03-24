@@ -252,8 +252,7 @@
 
           <nz-form-control [nzSpan]="19">
             <ng-template #suffixReloadTpl>
-                <a (click)="openDrawer()"><span nz-icon nzType="user"
-                  nzTheme="outline"></span></a>
+              <a (click)="openDrawer()"><span nz-icon nzType="user" nzTheme="outline"></span></a>
             </ng-template>
             <nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="width: 100%">
               <app-personal-search name="PersonalId" [(ngModel)]="selectedPersonalId"
@@ -522,15 +521,30 @@
     </nz-tab>
     <nz-tab>
       <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/listado-personas">Listado Personas</a>
-      <form nz-form #listadoPer="ngForm">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
-          <nz-form-control nzHasFeedback>
-            <app-personal-search name="persona_id_responsable"
-              (ngModelChange)="selectedValueChange($event, Busqueda.Responsable)" [(ngModel)]="responsable" />
-          </nz-form-control>
-        </nz-form-item>
-      </form>
+
+      <ng-template nz-tab *ngIf="(columnsPersonal$|async) as columnas">
+        <form nz-form #listadoPer="ngForm">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
+            <nz-form-control nzHasFeedback>
+              <app-personal-search name="persona_id_responsable"
+                (ngModelChange)="selectedValueChange($event, Busqueda.Responsable)" [(ngModel)]="responsable" />
+            </nz-form-control>
+          </nz-form-item>
+        </form>
+
+
+        <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
+        <div class="gridContainer container-fluid">
+          <angular-slickgrid gridId="gridPersonalGrupo" class="" [columnDefinitions]="columnas | colsFilter"
+            [gridOptions]="gridOptionsPersonal" [dataset]="(gridDataPersonal$ | async) || []"
+            (onAngularGridCreated)="angularGridReady($event)">
+          </angular-slickgrid>
+        </div>
+      </ng-template>
+
+
+
 
       <nz-table #listPer [nzData]="($listaPersonal | async)?.persxresp" nzSize="small" [nzPageSize]="100000000"
         [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
@@ -596,5 +610,5 @@
   </nz-option>
 </ng-template>
 
-<app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"
-[SucursalId]="0" [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>
+<app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="0"
+  [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>

@@ -384,6 +384,17 @@ export class ApiService {
 
   }
 
+  getPersonasResponsable(filters: any) {
+    const parameter = filters
+
+    return this.http.post<ResponseJSON<any>>('/api/asistencia/personalxresp/list', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+  }
+
+
   getPersonasAdelanto(filters: any) {
     const parameter = filters
 
