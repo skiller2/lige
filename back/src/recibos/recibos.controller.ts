@@ -14,7 +14,7 @@ import {
   SendFileToDownload,
   getPeriodoFromRequest,
 } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.utils";
-import moment from 'moment';
+//import moment from 'moment';
 import { QueryRunner } from "typeorm";
 
 export class RecibosController extends BaseController {
@@ -66,11 +66,11 @@ export class RecibosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner()
     let persona_id = 0
       //estas  variables se usan solo si el recibo previamente ya existe 
-    let fechaReciboExiste:Date
+    let fechaRecibo:Date
     let docgeneral:number
     let idrecibo:number
     let directorPathUnique = ""
-    let fechaActual = new Date();
+    const fechaActual = new Date();
 
     try {
 
@@ -83,6 +83,7 @@ export class RecibosController extends BaseController {
         const getRecibosGenerados = await this.getRecibosGenerados(queryRunner, periodo_id)
         if (getRecibosGenerados[0].ind_recibos_generados == 1)
           throw new ClientException(`Los recibos para este periodo ya se generaron`)
+        fechaRecibo = fechaActual
       } else {
 
         // codigo para cuenado es unico recibo bebe validar que el recibo exista para poder regenerarlo, caso contrario arrojar error
@@ -91,14 +92,10 @@ export class RecibosController extends BaseController {
         if (existRecibo.length <=  0)
           throw new ClientException(`Recibo no existe para el periodo seleccionado`)
 
-
-        let formatFecha= existRecibo[0].fecha 
-        const fechaMoment = moment(formatFecha, 'YYYY-MM-DD HH:mm:ss.SSS');
-        fechaReciboExiste = fechaMoment.toDate();
+        fechaRecibo = existRecibo[0].fecha;
         idrecibo = existRecibo[0].idrecibo
         docgeneral = existRecibo[0].docgeneral
         directorPathUnique = existRecibo[0].path
-        
       }
 
       const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, personalId)
@@ -134,7 +131,10 @@ export class RecibosController extends BaseController {
 
       headerContent = headerContent.replace(/\${anio}/g, periodo.year.toString());
       headerContent = headerContent.replace(/\${mes}/g, periodo.month.toString());
-      headerContent = headerContent.replace(/\${fechaFormateada}/g, this.dateFormatter.format(fechaActual));
+
+
+
+      headerContent = headerContent.replace(/\${fechaFormateada}/g, this.dateFormatter.format(fechaRecibo));
       const htmlContentPre = htmlContent;
 
       const browser = await puppeteer.launch({ headless: 'new' })
@@ -150,13 +150,13 @@ export class RecibosController extends BaseController {
           idrecibo = await this.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
         
 
-        let FechaModificacion = isUnique ? fechaReciboExiste : fechaActual
-           
+
+
            await this.setUsuariosLiquidacionDocGeneral(
             queryRunner,
             docgeneral,
             periodo_id,
-            FechaModificacion,
+            fechaRecibo,
             persona_id,
             0,
             nombre_archivo,
