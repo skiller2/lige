@@ -13,12 +13,22 @@ class ClientExceptionArt14 extends ClientException {
 
 const columnasPersonalxResponsable: any[] = [
   {
-    id: "CUIT",
-    name: "PersonalCUITCUILCUIT",
+    name: "CUIT",
+    id: "PersonalCUITCUILCUIT",
     field: "PersonalCUITCUILCUIT",
     fieldName: "cuit.PersonalCUITCUILCUIT",
     type: "number",
     sortable: true,
+
+  },
+  {
+    name: "PersonalId",
+    id: "PersonalId",
+    field: "PersonalId",
+    fieldName: "per.PersonalId",
+    type: "number",
+    sortable: true,
+    hidden: true
   },
   {
     name: "Apellido Nombre",
@@ -59,9 +69,9 @@ const columnasPersonalxResponsable: any[] = [
   {
     name: "Retiro",
     type: "currency",
-    id: "anios",
-    field: "anios",
-    fieldName: "anios",
+    id: "retiroG_importe",
+    field: "retiroG_importe",
+    fieldName: "retiroG_importe",
     sortable: false,
     hidden: false
   },
@@ -1213,9 +1223,12 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   async getPersonalxResponsable(req: any, res: Response, next: NextFunction) {
     //ACA
     try {
-      const personalId = req.body.PersonalId;
-      const anio = req.body.anio;
-      const mes = req.body.mes;
+      const personalId = Number(req.body.PersonalId);
+      const anio = Number(req.body.anio);
+      const mes = Number(req.body.mes);
+
+      if (!anio || !mes || !personalId)
+        return this.jsonRes({ persxresp: [], total: 0 }, res);
 
       const queryRunner = dataSource.createQueryRunner();
       if (!await this.hasGroup(req, 'liquidaciones') && res.locals.PersonalId != req.params.personalId)

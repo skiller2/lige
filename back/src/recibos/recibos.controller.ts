@@ -520,22 +520,19 @@ export class RecibosController extends BaseController {
       throw new ClientException(`Usuario no identificado`)
 
     let ip = this.getRemoteAddress(req)
-    let perosonalIds
     let pathFile: any
 
-    if (lista && lista.length > 0)
-      perosonalIds = JSON.parse(lista)
     try {
       let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
 
-      pathFile = await this.getparthFile(queryRunner, periodo_id, perosonalIds, isfull)
+      pathFile = await this.getparthFile(queryRunner, periodo_id, lista, isfull)
 
       const rutaPDF = path.join(this.directoryRecibo, `Recibos-${Anio}-${Mes}.pdf`);
       const mergedPdf = await PDFDocument.create();
 
       if (pathFile == "")
-        throw new ClientException(`Recibos no generados para el periodo seleccionado`)
+        throw new ClientException(`Recibo/s no generado/s para el periodo seleccionado`)
 
       for (const filePath of pathFile) {
         try {
@@ -567,7 +564,7 @@ export class RecibosController extends BaseController {
 
   }
 
-  async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: any, isfull: any) {
+  async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: number[], isfull: any) {
     if (isfull) {
       return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0 AND doctipo_id = 'REC'`, [periodo_id])
     } else {

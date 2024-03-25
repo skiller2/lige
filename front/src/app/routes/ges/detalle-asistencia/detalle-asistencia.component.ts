@@ -29,11 +29,6 @@ import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
-import { AngularGridInstance, AngularUtilService, Column, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
-import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
-import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-
 
 enum Busqueda {
   Sucursal,
@@ -47,7 +42,6 @@ enum Busqueda {
   standalone: true,
   templateUrl: './detalle-asistencia.component.html',
   styleUrls: ['./detalle-asistencia.component.less'],
-  providers: [AngularUtilService, ExcelExportService],
   imports: [...SHARED_IMPORTS, NzResizableModule, FiltroBuilderComponent, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent, DetallePersonaComponent]
 })
 export class DetalleAsistenciaComponent {
@@ -74,8 +68,6 @@ export class DetalleAsistenciaComponent {
     private router: Router,
     private route: ActivatedRoute,
     private settingService: SettingsService,
-    private excelExportService: ExcelExportService,
-    private angularUtilService: AngularUtilService
   ) { }
 
   private destroy$ = new Subject();
@@ -104,29 +96,18 @@ export class DetalleAsistenciaComponent {
   listaIngresosExtraPerTotalHoras = 0
   //listaAsistenciaObjTotalHoras = 0
   objetivoIdSelected = 0;
-  PersonalIdlist = []
-  personalIdListarray = []
-  personalIdString = ""
-
+  personalIdlist : number[] = []
+  
   $isSucursalOptionsLoading = new BehaviorSubject(false);
 
   $selectedObjetivoIdChange = new BehaviorSubject('');
   $selectedPersonalIdChange = new BehaviorSubject('');
-  $selectedResponsablePersonalIdChange = new BehaviorSubject('');
 
   $searchObjetivoChange = new BehaviorSubject('');
 
   $optionsMetodologia = this.searchService.getMetodologia();
   $optionsSucursales = this.searchService.getSucursales();
   $optionsCategoria = this.searchService.getCategorias();
-
-
-  listOptionsPersonal: listOptionsT = {
-    filtros: [],
-    sort: null,
-  };
-
-
 
   objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
   $objetivoResponsables = this.$selectedObjetivoIdChange.pipe(
@@ -287,6 +268,7 @@ export class DetalleAsistenciaComponent {
 
         )))
 
+  /*
   $listaPersonal = this.$selectedResponsablePersonalIdChange.pipe(
     debounceTime(500),
     switchMap(PersonalId =>
@@ -315,7 +297,7 @@ export class DetalleAsistenciaComponent {
 
         })
         )))
-
+*/
   $personaMonotributo = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
     switchMap(() =>
@@ -362,8 +344,7 @@ export class DetalleAsistenciaComponent {
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
         //          tap({ complete: () => this.tableLoading$.next(false) })
         ()
-    )
-  );
+    ));
 
   $listaExcepcionesPer = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
@@ -379,7 +360,6 @@ export class DetalleAsistenciaComponent {
   $isSucursalDataLoading = new BehaviorSubject(false);
   $isObjetivoDataLoading = new BehaviorSubject(false);
   $isPersonalDataLoading = new BehaviorSubject(false);
-  $isResponsableDataLoading = new BehaviorSubject(false);
 
 
 
@@ -451,25 +431,12 @@ export class DetalleAsistenciaComponent {
           })
 
         return;
-      case Busqueda.Responsable:
-        this.$selectedResponsablePersonalIdChange.next(event);
-        this.$isResponsableDataLoading.next(true);
-        return;
     }
   }
 
   searchObjetivo(event: string) {
     if (!event) return;
     this.$searchObjetivoChange.next(event);
-  }
-  gridOptionsPersonal!: GridOption
-  
-  ngOnInit(): void {
-    this.gridOptionsPersonal = this.apiService.getDefaultGridOptions('.gridContainer', 9, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
-    this.gridOptionsPersonal.enableRowDetailView = this.apiService.isMobile()
-    this.gridOptionsPersonal.showFooterRow = true
-    this.gridOptionsPersonal.createFooterRow = true
-
   }
 
   onTabsetChange(_event: any) {
@@ -510,68 +477,4 @@ export class DetalleAsistenciaComponent {
   openDrawer(): void {
     this.visibleDrawer = true
   }
-
-  angularGridPersonal!: AngularGridInstance;
-  gridObjPersonal!: SlickGrid;
-
-  columnsPersonal$ = this.apiService.getCols('/api/asistencia/personalxresp/cols').pipe(map((cols) => {
-    let mapped = cols.map((col: Column) => {
-      return col
-    });
-    return mapped
-  }));
-
-
-  async angularGridReady(angularGrid: any) {
-
-    this.angularGridPersonal = angularGrid.detail
-    this.gridObjPersonal = angularGrid.detail.slickGrid;
-
-    if (this.apiService.isMobile())
-      this.angularGridPersonal.gridService.hideColumnByIds(['CUIT'])
-
-    this.angularGridPersonal.dataView.onRowsChanged.subscribe((e, arg) => {
-      totalRecords(this.angularGridPersonal)
-      columnTotal('PersonalAdelantoMonto', this.angularGridPersonal)
-    })
-      
-  }
-
-  exportGrid() {
-    this.excelExportService.exportToExcel({
-      filename: 'adelantos-listado',
-      format: FileType.xlsx
-    });
-  }
-
-  listOptionsChange(options: any) {
-    this.listOptionsPersonal = options;
-//    this.formChange$.next('');
-
-  }
-  tableLoading$ = new BehaviorSubject(false);
-
-
-
-  
-  gridDataPersonal$ = this.$selectedResponsablePersonalIdChange.pipe(
-    debounceTime(500),
-    switchMap((PersonalId) => {
-      return this.apiService
-        .getPersonasResponsable(
-          { options: this.listOptionsPersonal, PersonalId :Number(PersonalId), anio: this.selectedPeriod.year, mes: this.selectedPeriod.month}
-        )
-        .pipe(
-          map(data => {
-            return data.persxresp
-
-          }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
-        )
-    })
-  )
-
-
-
 }

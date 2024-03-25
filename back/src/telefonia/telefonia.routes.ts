@@ -72,7 +72,7 @@ telefoniaRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
     telefoniaController.getTelefonosCols(req, res);
 });
 
-telefoniaRouter.post("/list", [authMiddleware.verifyToken,authMiddleware.hasGroup(['liquidaciones','administrativo'])], (req, res, next) => {
+telefoniaRouter.post("/list", [authMiddleware.verifyToken,authMiddleware.hasGroup(['liquidaciones','administrativo','responsables'])], (req, res, next) => {
     telefoniaController.getTelefonosList(req, res, next);
 });
 
