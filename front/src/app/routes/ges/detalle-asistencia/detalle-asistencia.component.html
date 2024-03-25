@@ -51,10 +51,16 @@
           <span nz-icon nzType="download"></span><span style="white-space: normal;">Banelco</span>
         </li>
 
-        <li *ngIf="personalIdString.length > 0" nz-menu-item app-down-file [httpMethod]="'POST'"
-          [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month, 'lista':personalIdString,'isfull': false }"
-          httpUrl="/api/recibos/downloadfull" notificationMsg="Generando Recibos">
-          <span nz-icon nzType="download"></span><span style="white-space: normal;">Recibo Full</span>
+        <li *ngIf="personalIdlist.length > 0" nz-menu-item app-down-file [httpMethod]="'POST'"
+          [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month, 'lista':personalIdlist,'isfull': false }"
+          httpUrl="/api/recibos/downloadfull" notificationMsg="Descarga Recibos Listado">
+          <span nz-icon nzType="download"></span><span style="white-space: normal;">Descarga Recibos</span>
+        </li>
+
+        <li *ngIf="selectedPersonalId > 0" nz-menu-item app-down-file [httpMethod]="'POST'"
+          [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month, 'lista':[selectedPersonalId],'isfull': false }"
+          httpUrl="/api/recibos/downloadfull" notificationMsg="Descarga Recibo de persona">
+          <span nz-icon nzType="download"></span><span style="white-space: normal;">Descarga recibo</span>
         </li>
 
       </ul>
@@ -252,8 +258,7 @@
 
           <nz-form-control [nzSpan]="19">
             <ng-template #suffixReloadTpl>
-                <a (click)="openDrawer()"><span nz-icon nzType="user"
-                  nzTheme="outline"></span></a>
+              <a (click)="openDrawer()"><span nz-icon nzType="user" nzTheme="outline"></span></a>
             </ng-template>
             <nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="width: 100%">
               <app-personal-search name="PersonalId" [(ngModel)]="selectedPersonalId"
@@ -522,67 +527,7 @@
     </nz-tab>
     <nz-tab>
       <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/listado-personas">Listado Personas</a>
-      <form nz-form #listadoPer="ngForm">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
-          <nz-form-control nzHasFeedback>
-            <app-personal-search name="persona_id_responsable"
-              (ngModelChange)="selectedValueChange($event, Busqueda.Responsable)" [(ngModel)]="responsable" />
-          </nz-form-control>
-        </nz-form-item>
-      </form>
-
-      <nz-table #listPer [nzData]="($listaPersonal | async)?.persxresp" nzSize="small" [nzPageSize]="100000000"
-        [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
-        <thead>
-          <tr>
-            <th>CUIT</th>
-            <th>Apellido Nombre</th>
-            <th>Situcación Revista</th>
-            <th>Ingresos</th>
-            <th>Horas</th>
-            <th>Descuentos</th>
-            <th>Retiro</th>
-          </tr>
-        </thead>
-        <tbody>
-          <ng-container *ngFor="let data of listPer.data" class="">
-            <!-- <tr *ngIf="data.ingresosG_importe || data.egresosG_importe "> -->
-            <tr>
-              <td title="{{ data.PersonalId }}">
-                {{ data.PersonalCUITCUILCUIT }}
-              </td>
-              <td>
-                <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]"
-                  [textContent]="data.PersonaDes"></a>
-              </td>
-              <td> N/A</td>
-              <td>{{ data.ingresosG_importe | currency }}</td>
-              <td>{{ data.ingresos_horas }}</td>
-              <td>{{ data.egresosG_importe | currency }}</td>
-              <td>{{ data.retiroG_importe | currency }}</td>
-
-            </tr>
-            <tr *ngIf="data.ingresosC_importe != 0 || data.egresosC_importe != 0">
-
-              <td title="{{ data.PersonalId }}">
-                {{ data.PersonalCUITCUILCUIT }}
-              </td>
-              <td>
-                <a [routerLink]="['/', 'ges', 'detalle_asistencia','persona',{ PersonalId:data.PersonalId }]"
-                  [textContent]="data.PersonaDes"></a>
-              </td>
-              <td> N/A</td>
-              <td>{{ data.ingresosC_importe | currency }}</td>
-              <td></td>
-              <td>{{ data.egresosC_importe | currency }}</td>
-              <td>{{ data.retiroC_importe | currency }}</td>
-            </tr>
-
-          </ng-container>
-        </tbody>
-      </nz-table>
-
+      <app-descuentos nz-tab></app-descuentos>
     </nz-tab>
   </nz-tabset>
 
@@ -596,5 +541,5 @@
   </nz-option>
 </ng-template>
 
-<app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"
-[SucursalId]="0" [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>
+<app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="0"
+  [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>

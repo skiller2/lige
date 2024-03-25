@@ -9,6 +9,7 @@ import {
   debounceTime,
   elementAt,
   filter,
+  map,
   of,
   switchMap,
   takeUntil,
@@ -18,7 +19,7 @@ import { SearchService } from '../../../services/search.service';
 import { NgForm } from '@angular/forms';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
-import { SHARED_IMPORTS } from '@shared';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { CurrencyPipeModule } from '@delon/util';
 import { NzResizableModule } from 'ng-zorro-antd/resizable';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
@@ -41,7 +42,7 @@ enum Busqueda {
   standalone: true,
   templateUrl: './detalle-asistencia.component.html',
   styleUrls: ['./detalle-asistencia.component.less'],
-  imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent, DetallePersonaComponent]
+  imports: [...SHARED_IMPORTS, NzResizableModule, FiltroBuilderComponent, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent, DetallePersonaComponent]
 })
 export class DetalleAsistenciaComponent {
   @ViewChild('asistencia', { static: true }) asistencia: NgForm = new NgForm(
@@ -95,15 +96,12 @@ export class DetalleAsistenciaComponent {
   listaIngresosExtraPerTotalHoras = 0
   //listaAsistenciaObjTotalHoras = 0
   objetivoIdSelected = 0;
-  PersonalIdlist = []
-  personalIdListarray = []
-  personalIdString = ""
-
+  personalIdlist : number[] = []
+  
   $isSucursalOptionsLoading = new BehaviorSubject(false);
 
   $selectedObjetivoIdChange = new BehaviorSubject('');
   $selectedPersonalIdChange = new BehaviorSubject('');
-  $selectedResponsablePersonalIdChange = new BehaviorSubject('');
 
   $searchObjetivoChange = new BehaviorSubject('');
 
@@ -270,6 +268,7 @@ export class DetalleAsistenciaComponent {
 
         )))
 
+  /*
   $listaPersonal = this.$selectedResponsablePersonalIdChange.pipe(
     debounceTime(500),
     switchMap(PersonalId =>
@@ -298,7 +297,7 @@ export class DetalleAsistenciaComponent {
 
         })
         )))
-
+*/
   $personaMonotributo = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
     switchMap(() =>
@@ -345,8 +344,7 @@ export class DetalleAsistenciaComponent {
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
         //          tap({ complete: () => this.tableLoading$.next(false) })
         ()
-    )
-  );
+    ));
 
   $listaExcepcionesPer = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
@@ -362,7 +360,6 @@ export class DetalleAsistenciaComponent {
   $isSucursalDataLoading = new BehaviorSubject(false);
   $isObjetivoDataLoading = new BehaviorSubject(false);
   $isPersonalDataLoading = new BehaviorSubject(false);
-  $isResponsableDataLoading = new BehaviorSubject(false);
 
 
 
@@ -434,19 +431,12 @@ export class DetalleAsistenciaComponent {
           })
 
         return;
-      case Busqueda.Responsable:
-        this.$selectedResponsablePersonalIdChange.next(event);
-        this.$isResponsableDataLoading.next(true);
-        return;
     }
   }
 
   searchObjetivo(event: string) {
     if (!event) return;
     this.$searchObjetivoChange.next(event);
-  }
-
-  ngOnInit(): void {
   }
 
   onTabsetChange(_event: any) {
@@ -487,5 +477,4 @@ export class DetalleAsistenciaComponent {
   openDrawer(): void {
     this.visibleDrawer = true
   }
-
 }
