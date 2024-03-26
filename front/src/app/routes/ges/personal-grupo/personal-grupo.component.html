@@ -7,10 +7,11 @@
           (ngModelChange)="selectedValueChange($event)" [(ngModel)]="responsable" />
       </nz-form-control>
     </nz-form-item>
+    <!-- <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" /> -->
+ 
   </form>
 
 
-  <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
   <div class="gridContainer container-fluid">
     <angular-slickgrid gridId="gridPersonalGrupo" class="" [columnDefinitions]="columnas | colsFilter"
       [gridOptions]="gridOptionsPersonal" [dataset]="(gridDataPersonal$ | async) || []"

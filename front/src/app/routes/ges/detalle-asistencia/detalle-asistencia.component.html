@@ -527,15 +527,16 @@
           </nz-form-control>
         </nz-form-item>
 
-      </form> <nz-tab>
-        <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/listado-personas">Listado Personas</a>
-        <ng-template nz-tab>
-          <app-personal-grupo [periodo]="selectedPeriod()" [responsable]="responsable()"
-            [(personalIdlist)]="personalIdlist"></app-personal-grupo>
-        </ng-template>
-      </nz-tab>
-
+      </form>
     </nz-tab>
+    <nz-tab>
+      <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/listado-personas">Listado Personas</a>
+      <ng-template nz-tab>
+        <app-personal-grupo [periodo]="selectedPeriod()" [responsable]="responsable()"
+          [(personalIdlist)]="personalIdlist"></app-personal-grupo>
+      </ng-template>
+    </nz-tab>
+
     <nz-tab>
       <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/listado-descuentos">Listado Descuentos</a>
       <ng-template nz-tab>

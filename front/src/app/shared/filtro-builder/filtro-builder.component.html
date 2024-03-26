@@ -34,7 +34,7 @@
     </nz-select>
     -->
 
-    <div nz-col [nzSpan]="5" *ngIf="selections.field.name"
+    <div nz-col [nzSpan]="5" *ngIf="selections.field.name" class="input-search"
       style="text-align: center; display:inline-block; width: 100%">
 
       <input *ngIf="!selections.field.searchComponent" placeholder="Valor" #inputElement nz-input type="text"

@@ -1,5 +1,6 @@
 import {
   Component,
+  ElementRef,
   EventEmitter,
   Input,
   Output,
@@ -76,7 +77,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
 
   constructor(
-    private searchService: SearchService
+    private searchService: SearchService,private elRef:ElementRef
   ) { }
   //
   // Tags
@@ -173,7 +174,10 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
     this.resetSelections();
     this.isFiltroBuilder = false;
-    let inputSearch: HTMLElement = document.getElementsByTagName("nz-select-clear")[0] as HTMLElement;
+
+    let inputSearch: HTMLElement = this.elRef.nativeElement.querySelector('nz-select-clear');
+    //    let inputSearch: HTMLElement = document.getElementsByTagName("nz-select-clear")[0] as HTMLElement;
+
     if (inputSearch)
       inputSearch.click()
   }

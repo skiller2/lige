@@ -102,7 +102,7 @@ export class PersonalGrupoComponent {
 
   listOptionsChange(options: any) {
     this.listOptionsPersonal = options;
-    //    this.formChange$.next('');
+    this.selectedValueChange(this.responsable())
 
   }
 
@@ -112,6 +112,7 @@ export class PersonalGrupoComponent {
   gridDataPersonal$ = this.$selectedResponsablePersonalIdChange.pipe(
     debounceTime(50),
     switchMap((PersonalId) => {
+      console.log('trigeado',PersonalId)
       return this.apiService
         .getPersonasResponsable(
           { options: this.listOptionsPersonal, PersonalId: Number(PersonalId), anio: this.periodo().year, mes: this.periodo().month }
@@ -146,6 +147,7 @@ export class PersonalGrupoComponent {
 
     runInInjectionContext(this.#injector, () => {
       effect(() => {
+        this.periodo()
         this.selectedValueChange(this.responsable())
       });
     })

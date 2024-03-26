@@ -141,8 +141,7 @@ export class TelefoniaController extends BaseController {
 
         WHERE @0 >= tel.TelefoniaDesde AND @0 <= ISNULL(tel.TelefoniaHasta,'9999-12-31')
         
-       AND (${filterSql}) 
-       ${orderBy}`,
+       AND (${filterSql}) ${orderBy}`,
       [fecha, anio, mes])
 
   }

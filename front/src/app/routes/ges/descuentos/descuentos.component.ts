@@ -59,7 +59,7 @@ export class DescuentosComponent {
   renderAngularComponent(cellNode: HTMLElement, _row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
     switch (colDef.id) {
-      case 'PersonaDes':
+      case 'ApellidoNombre':
         Object.assign(componentOutput.componentRef.instance, {
           link: '/ges/detalle_asistencia/persona', params: { PersonalId: dataContext.PersonalId }, detail: cellNode.innerText
         })
@@ -103,7 +103,7 @@ export class DescuentosComponent {
   listOptionsChange(options: any) {
     this.listOptionsPersonal = options;
     //    this.formChange$.next('');
-
+    this.selectedValueChange(this.responsable())
   }
 
 
@@ -147,6 +147,7 @@ export class DescuentosComponent {
 
     runInInjectionContext(this.#injector, () => {
       effect(() => {
+        this.periodo()
         this.selectedValueChange(this.responsable())
       })
     })

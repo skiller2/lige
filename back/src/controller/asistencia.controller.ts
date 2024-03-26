@@ -3,6 +3,7 @@ import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
 import { QueryRunner } from "typeorm";
 import { ObjetivoController } from "./objetivo.controller";
+import { filtrosToSql, orderToSQL } from "src/impuestos-afip/filtros-utils/filtros";
 
 class ClientExceptionArt14 extends ClientException {
   constructor(metodo: string) {
@@ -99,45 +100,43 @@ const columnasPersonalxResponsableDesc: any[] = [
   {
     name: "Apellido Nombre",
     type: "string",
-    id: "PersonaDes",
-    field: "PersonaDes",
-    fieldName: "PersonaDes",
+    id: "ApellidoNombre",
+    field: "ApellidoNombre",
+    fieldName: "ApellidoNombre",
     sortable: true,
     customTooltip: {
       useRegularTooltip: true, // note regular tooltip will try to find a "title" attribute in the cell formatter (it won't work without a cell formatter)
     },
   },
   {
-    name: "Ingresos",
-    type: "currency",
-    id: "ingresosG_importe",
-    field: "ingresosG_importe",
-    fieldName: "ingresosG_importe",
+    name: "Tipo",
+    type: "string",
+    id: "tipomov",
+    field: "tipomov",
+    fieldName: "tipomov",
     sortable: true,
+    customTooltip: {
+      useRegularTooltip: true, // note regular tooltip will try to find a "title" attribute in the cell formatter (it won't work without a cell formatter)
+    },
   },
   {
-    name: "Horas",
-    type: "number",
-    id: "ingresos_horas",
-    field: "ingresos_horas",
-    fieldName: "ingresos_horas",
+    name: "Detalle",
+    type: "string",
+    id: "desmovimiento",
+    field: "desmovimiento",
+    fieldName: "desmovimiento",
     sortable: true,
+    customTooltip: {
+      useRegularTooltip: true, // note regular tooltip will try to find a "title" attribute in the cell formatter (it won't work without a cell formatter)
+    },
   },
+  
   {
-    name: "Descuentos",
+    name: "Importe",
     type: "currency",
-    id: "egresosG_importe",
-    field: "egresosG_importe",
-    fieldName: "egresosG_importe",
-    sortable: true,
-    hidden: false
-  },
-  {
-    name: "Retiro",
-    type: "currency",
-    id: "retiroG_importe",
-    field: "retiroG_importe",
-    fieldName: "retiroG_importe",
+    id: "importe",
+    field: "importe",
+    fieldName: "importe",
     sortable: false,
     hidden: false
   },
@@ -1002,7 +1001,7 @@ export class AsistenciaController extends BaseController {
 
     let descuentos = await dataSource.query(
       `             
-      SELECT gap.GrupoActividadId, 0 as ObjetivoId,per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT CONCAT('ADE',ade.PersonalAdelantoId,'-',ade.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId,per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, 'Adelanto' AS tipomov,
       '' AS desmovimiento,
       '' AS desmovimiento2,
@@ -1017,7 +1016,7 @@ export class AsistenciaController extends BaseController {
       
       UNION
              
-      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT CONCAT('cuo',cuo.PersonalOtroDescuentoCuotaId,'-',cuo.PersonalOtroDescuentoId,'-',cuo.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov,
       des.PersonalOtroDescuentoDetalle AS desmovimiento, 
       des.PersonalOtroDescuentoDetalle AS desmovimiento2, 
@@ -1034,7 +1033,7 @@ export class AsistenciaController extends BaseController {
       
       UNION
              
-      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT CONCAT('efe',cuo.PersonalDescuentoCuotaId,'-',cuo.PersonalDescuentoId,'-',cuo.PersonalDescuentoPersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, 'Efecto' AS tipomov, 
       efe.EfectoDescripcion AS desmovimiento,
       efe.EfectoDescripcion AS desmovimiento2, 'DESC' tipoint,
@@ -1050,7 +1049,7 @@ export class AsistenciaController extends BaseController {
       
       UNION
       
-      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT CONCAT('ayu',cuo.PersonalPrestamoCuotaId,'-',cuo.PersonalPrestamoId,'-',cuo.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, 'Ayuda Asistencial' AS tipomov, 
       '' AS desmovimiento, 
       '' AS desmovimiento2, 'AYUD' tipoint,
@@ -1066,7 +1065,7 @@ export class AsistenciaController extends BaseController {
       
       UNION
       
-      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT CONCAT('pre',dis.PersonalPrepagaDescuentoDiscriminadoId,'-',dis.PersonalPrepagaDescuentoId,'-',dis.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       -- pre.PrepagaDescripcion, pla.PrepagaPlanDescripcion, dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL,  dis.PersonalPrepagaDescuentoDiscriminadoGravado, dis.PersonalPrepagaDescuentoDiscriminadoExento, dis.PersonalPrepagaDescuentoDiscriminadoTipo,
       
       @1 AS anio, @2 AS mes, 'Prepaga' AS tipomov, 
@@ -1089,7 +1088,7 @@ export class AsistenciaController extends BaseController {
 
       UNION
 
-      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT CONCAT('ren',ren.PersonalRentasPagosId,ren.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       -- pre.PrepagaDescripcion, pla.PrepagaPlanDescripcion, dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL,  dis.PersonalPrepagaDescuentoDiscriminadoGravado, dis.PersonalPrepagaDescuentoDiscriminadoExento, dis.PersonalPrepagaDescuentoDiscriminadoTipo,
       
       @1 AS anio, @2 AS mes, 'Rentas' AS tipomov, 
@@ -1107,7 +1106,7 @@ export class AsistenciaController extends BaseController {
 
       UNION
 
-      SELECT gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT CONCAT('ddjj',ren.PersonalRentasPagosId,ren.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       
       @1 AS anio, @2 AS mes, 'Honorarios DDJJ' AS tipomov, 
       '' AS desmovimiento, 
@@ -1125,7 +1124,7 @@ export class AsistenciaController extends BaseController {
 
       UNION
 
-      SELECT gap.GrupoActividadId, des.ObjetivoId, per.PersonalId, IIF(des.ObjetivoId>0,'C','G') tipocuenta_id,   cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
+      SELECT CONCAT('otr2',cuo.ObjetivoDescuentoCuotaId,'-',cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id, gap.GrupoActividadId, des.ObjetivoId, per.PersonalId, IIF(des.ObjetivoId>0,'C','G') tipocuenta_id,   cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
 @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov, 
 CONCAT(des.ObjetivoDescuentoDetalle,' ',CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',obj.ObjetivoDescripcion)) AS desmovimiento, 
 '' AS desmovimiento2, 'OTRO' tipoint,
@@ -1146,7 +1145,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       UNION
 
-      SELECT gap.GrupoActividadId, obj.ObjetivoId, per.PersonalId, IIF(obj.ObjetivoId>0,'C','G') tipocuenta_id,
+      SELECT CONCAT('tel',con.ConsumoTelefoniaAnoMesTelefonoConsumoId,'-',con.ConsumoTelefoniaAnoMesTelefonoAsignadoId,'-',con.ConsumoTelefoniaAnoMesId,'-',con.ConsumoTelefoniaAnoId) id, gap.GrupoActividadId, obj.ObjetivoId, per.PersonalId, IIF(obj.ObjetivoId>0,'C','G') tipocuenta_id,
       cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       anio.ConsumoTelefoniaAnoAno, mes.ConsumoTelefoniaAnoMesMes, 'Telefonía' AS tipomov,
       CONCAT(TRIM(tel.TelefoniaNro), IIF(TRIM(tel.TelefoniaObservacion)>'',CONCAT(' ',tel.TelefoniaObservacion),''),IIF(tel.TelefoniaObjetivoId>0,CONCAT(' ',obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',obj.ObjetivoDescripcion),'')) AS desmovimiento,
@@ -1297,6 +1296,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const personalId = Number(req.body.PersonalId);
       const anio = Number(req.body.anio);
       const mes = Number(req.body.mes);
+      const options = req.body.options;
 
       if (!anio || !mes || !personalId)
         return this.jsonRes({ persxresp: [], total: 0 }, res);
@@ -1307,6 +1307,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       //Busco la lista de PersonalId que le corresponde al responsable
       let personalIdList: number[] = []
+      const filterSql = filtrosToSql(options.filtros, columnasPersonalxResponsable);
+      const orderBy = orderToSQL(options.sort)
+  
       const personal = await queryRunner.query(
         `SELECT 0,0,'', per.PersonalId, per.PersonalId id, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS PersonaDes,
         cuit.PersonalCUITCUILCUIT,
@@ -1333,6 +1336,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           UNION
           SELECT @0
         )
+
+        -- AND (${filterSql}) ${orderBy}
         ORDER BY PersonaDes
          `, [personalId, anio, mes])
 
