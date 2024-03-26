@@ -1302,7 +1302,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         return this.jsonRes({ persxresp: [], total: 0 }, res);
 
       const queryRunner = dataSource.createQueryRunner();
-      if (!await this.hasGroup(req, 'liquidaciones') && res.locals.PersonalId != req.params.personalId)
+      if (!await this.hasGroup(req, 'liquidaciones') && res.locals.PersonalId != personalId)
         throw new ClientException(`No tiene permisos para listar la información`)
 
       //Busco la lista de PersonalId que le corresponde al responsable
@@ -1403,12 +1403,13 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const personalId = Number(req.body.PersonalId);
       const anio = Number(req.body.anio);
       const mes = Number(req.body.mes);
+      const options = req.body.options;
 
       if (!anio || !mes || !personalId)
         return this.jsonRes({ persxresp: [], total: 0 }, res);
 
       const queryRunner = dataSource.createQueryRunner();
-      if (!await this.hasGroup(req, 'liquidaciones') && res.locals.PersonalId != req.params.personalId)
+      if (!await this.hasGroup(req, 'liquidaciones') && res.locals.PersonalId != personalId)
         throw new ClientException(`No tiene permisos para listar la información`)
 
       //Busco la lista de PersonalId que le corresponde al responsable
@@ -1445,6 +1446,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       for (let ds of personal)
         personalIdList.push(ds.PersonalId)
 
+      const filterSql = filtrosToSql(options.filtros, columnasPersonalxResponsable);
+      const orderBy = orderToSQL(options.sort)
+        
       const resDescuentos = await AsistenciaController.getDescuentos(anio, mes, personalIdList)
 
       this.jsonRes({ descuentos: resDescuentos, total: 0 }, res);

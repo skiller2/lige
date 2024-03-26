@@ -44,7 +44,7 @@ export class DescuentosComponent {
 
   columnsPersonal$ = this.apiService.getCols('/api/asistencia/personalxrespdesc/cols').pipe(map((cols: Column[]) => {
     let mapped = cols.map((col: Column) => {
-      if (col.id == "PersonaDes")
+      if (col.id == "ApellidoNombre")
         col.asyncPostRender = this.renderAngularComponent.bind(this)
       return col
     });
