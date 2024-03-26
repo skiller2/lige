@@ -129,7 +129,7 @@ export class CargaAsistenciaComponent {
 
                 this.angularGridEdit.slickGrid.invalidate();
                 this.angularGridEdit.slickGrid.render();
-
+                this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
                 this.periodos = data[2]
                 //this.gridDataInsert = data[3]
                 //data[3].length? this.gridDataInsert = data[3] : this.clearAngularGrid()
@@ -615,6 +615,8 @@ export class CargaAsistenciaComponent {
 
     async validaGrilla() {
         this.isLoadingCheck = true
+
+
         const editable = this.angularGridEdit.slickGrid.getOptions().editable
         if (editable)
             this.angularGridEdit.slickGrid.setOptions({ editable: false })
