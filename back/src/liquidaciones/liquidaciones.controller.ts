@@ -5,6 +5,9 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { Utils } from "./liquidaciones.utils";
 import { mkdirSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
 import xlsx from 'node-xlsx';
+import { RecibosController } from "../recibos/recibos.controller"
+import { recibosController } from "src/controller/controller.module";
+import { QueryRunner } from "typeorm";
 
 export class LiquidacionesController extends BaseController {
   directory = process.env.PATH_LIQUIDACIONES || "tmp";
@@ -288,42 +291,55 @@ export class LiquidacionesController extends BaseController {
     this.jsonRes(this.listaColumnas, res);
   }
 
+  async setDeeleteimportacionesQuerys(queryRunner: QueryRunner, deleteId:any, res: Response){
+    if (deleteId != null) {
+
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      await queryRunner.query(
+        `UPDATE lige.dbo.convalorimpoexpo SET ind_eliminado = 1 WHERE impoexpo_id = @0`,
+        [deleteId]
+      );
+      await queryRunner.query(
+        `DELETE FROM lige.dbo.liqmamovimientos WHERE impoexpo_id = @0`,
+        [deleteId]
+      );
+
+      await queryRunner.commitTransaction();
+
+      this.jsonRes({ list: [] }, res, `Se eliminaron con exito los registros `);
+    }
+  }
+
   async setDeleteImportaciones(req: Request, res: Response, next: NextFunction) {
 
-    let deleteId = req.body.deleteId
-    console.log("deleteId " + deleteId)
-
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    let periodo = req.body[1].split('/');
+    let fechaActual = new Date()
+    let deleteId = req.body[0].deleteId
     const queryRunner = dataSource.createQueryRunner();
 
-    try {
+    const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseFloat(periodo[1]), parseFloat(periodo[0]), usuario, ip)
+    console.log("periodo_id" + periodo_id)
+    const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
 
-      if (deleteId != null) {
-
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
-        await queryRunner.query(
-          `UPDATE lige.dbo.convalorimpoexpo SET ind_eliminado = 1 WHERE impoexpo_id = @0`,
-          [deleteId]
-        );
-        await queryRunner.query(
-          `DELETE FROM lige.dbo.liqmamovimientos WHERE impoexpo_id = @0`,
-          [deleteId]
-        );
-
-        await queryRunner.commitTransaction();
-
-        this.jsonRes({ list: [] }, res, `Se eliminaron con exito los registros `);
+    console.log("estan generados ? " + getRecibosGenerados[0].ind_recibos_generados  )
+    if (getRecibosGenerados[0].ind_recibos_generados == 1){
+      this.jsonRes({ list: [] }, res, `Los recibos para este periodo ya se generaron, no se pueden eliminar `);
+    }else{
+      try {
+        await this.setDeeleteimportacionesQuerys(queryRunner,deleteId,res)
+      } catch (error) {
+        this.rollbackTransaction(queryRunner)
+        return next(error)
+      } finally {
+        //   await queryRunner.release();
       }
 
-    } catch (error) {
-      this.rollbackTransaction(queryRunner)
-      return next(error)
-    } finally {
-      //   await queryRunner.release();
     }
-
-
+         
   }
 
 
@@ -332,6 +348,14 @@ export class LiquidacionesController extends BaseController {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
+    let fechaActual = new Date()
+    const periodo = req.body[0].split('/');
+    const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseFloat(periodo[1]), parseFloat(periodo[0]), usuario, ip)
+
+    const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+          throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
     try {
       await queryRunner.connect();
@@ -342,7 +366,6 @@ export class LiquidacionesController extends BaseController {
 
         let tipo_movimiento_id = row.des_movimiento.id
         let tipocuenta_id = row.des_cuenta.id
-        let fechaActual = new Date()
         let detalle = row.detalle
         let objetivo_id = row.ObjetivoDescripcion?.id == undefined ? null : row.ObjetivoDescripcion?.id
         let persona_id = row.ApellidoNombre?.id == undefined ? null : row.ApellidoNombre.id
@@ -353,12 +376,6 @@ export class LiquidacionesController extends BaseController {
 
 
         let movimiento_id = await Utils.getMovimientoId(queryRunner)
-
-        const periodo = req.body[0].split('/');
-        const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseFloat(periodo[1]), parseFloat(periodo[0]), usuario, ip)
-
-
-
 
         await queryRunner.query(
           `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,

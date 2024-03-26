@@ -683,9 +683,14 @@ export class LiquidacionesComponent {
   }
 
   confirmDeleteImportacion() {
+    const periodo = this.liquidacionesForm.form.get('periodo')?.value
+    let periodoM = periodo.getMonth() + 1;
+    let periodoY = periodo.getFullYear();
+    const valuePeriodo = periodoM + "/" + periodoY;
+    console.log("periodo" + valuePeriodo );
     if ( this.NotificationIdForDelete > 0) {
       (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
-      this.apiService.setDeleteImportacion({deleteId: this.NotificationIdForDelete}).subscribe(evt => {
+      this.apiService.setDeleteImportacion({deleteId: this.NotificationIdForDelete}, valuePeriodo).subscribe(evt => {
         this.formChange$.next('')
       });
     }

@@ -451,8 +451,8 @@ export class ApiService {
 
   }
 
-  setDeleteImportacion(deleteId: any) {
-    const parameter = deleteId
+  setDeleteImportacion(deleteId: any, valuePeriodo:any) {
+    const parameter = [deleteId,valuePeriodo]
     this.notification.success('Respuesta', `Inicio Borrado `);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/delete', parameter).pipe(
