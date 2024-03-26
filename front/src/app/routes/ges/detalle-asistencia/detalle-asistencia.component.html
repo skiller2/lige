@@ -42,23 +42,27 @@
       <span nz-icon nzType=""></span>
       <a [routerLink]="['/', 'ges', 'detalle_asistencia','listado-personas']">Listado</a>
     </li>
+    <li nz-menu-item nzMatchRouter>
+      <span nz-icon nzType=""></span>
+      <a [routerLink]="['/', 'ges', 'detalle_asistencia','listado-descuentos']">Descuentos</a>
+    </li>
 
     <li nz-submenu nzTitle="Informes">
       <ul style="width: auto !important">
         <li nz-menu-item app-down-file [httpMethod]="'POST'"
-          [httpBody]="{'Reporte':'Banelco','Formato':'EXCEL', 'Filtros': {'Anio':selectedPeriod.year,'Mes':selectedPeriod.month, 'Jerarquico':responsable}}"
+          [httpBody]="{'Reporte':'Banelco','Formato':'EXCEL', 'Filtros': {'Anio':selectedPeriod().year,'Mes':selectedPeriod().month, 'Jerarquico':responsable}}"
           httpUrl="api/informes/descarga" notificationMsg="Generando Informe Banelco">
           <span nz-icon nzType="download"></span><span style="white-space: normal;">Banelco</span>
         </li>
 
-        <li *ngIf="personalIdlist.length > 0" nz-menu-item app-down-file [httpMethod]="'POST'"
-          [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month, 'lista':personalIdlist,'isfull': false }"
+        <li *ngIf="personalIdlist().length > 0" nz-menu-item app-down-file [httpMethod]="'POST'"
+          [httpBody]="{'Anio':selectedPeriod().year,'Mes':selectedPeriod().month, 'lista':personalIdlist(),'isfull': false }"
           httpUrl="/api/recibos/downloadfull" notificationMsg="Descarga Recibos Listado">
           <span nz-icon nzType="download"></span><span style="white-space: normal;">Descarga Recibos</span>
         </li>
 
         <li *ngIf="selectedPersonalId > 0" nz-menu-item app-down-file [httpMethod]="'POST'"
-          [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month, 'lista':[selectedPersonalId],'isfull': false }"
+          [httpBody]="{'Anio':selectedPeriod().year,'Mes':selectedPeriod().month, 'lista':[selectedPersonalId],'isfull': false }"
           httpUrl="/api/recibos/downloadfull" notificationMsg="Descarga Recibo de persona">
           <span nz-icon nzType="download"></span><span style="white-space: normal;">Descarga recibo</span>
         </li>
@@ -301,7 +305,7 @@
             <nz-list nzBordered nzSize="small">
               <nz-list-item *ngIf="selectedPersonalId > 0">
                 <a app-down-file
-                  httpUrl="/api/recibos/download/{{selectedPeriod.year}}/{{selectedPeriod.month}}/{{PersonalId}}"><span
+                  httpUrl="/api/recibos/download/{{selectedPeriod().year}}/{{selectedPeriod().month}}/{{PersonalId}}"><span
                     nz-icon nzType="download"></span>Recibo</a></nz-list-item>
             </nz-list>
           </nz-form-control>
@@ -523,12 +527,23 @@
           </nz-form-control>
         </nz-form-item>
 
-      </form>
+      </form> <nz-tab>
+        <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/listado-personas">Listado Personas</a>
+        <ng-template nz-tab>
+          <app-personal-grupo [periodo]="selectedPeriod()" [responsable]="responsable()"
+            [(personalIdlist)]="personalIdlist"></app-personal-grupo>
+        </ng-template>
+      </nz-tab>
+
     </nz-tab>
     <nz-tab>
-      <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/listado-personas">Listado Personas</a>
-      <app-descuentos nz-tab></app-descuentos>
+      <a *nzTabLink nz-tab-link routerLink="/ges/detalle_asistencia/listado-descuentos">Listado Descuentos</a>
+      <ng-template nz-tab>
+        <app-descuentos [periodo]="selectedPeriod()" [responsable]="responsable()"
+          [(personalIdlist)]="personalIdlist"></app-descuentos>
+      </ng-template>
     </nz-tab>
+
   </nz-tabset>
 
 
@@ -541,5 +556,5 @@
   </nz-option>
 </ng-template>
 
-<app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="0"
+<app-detalle-persona [anio]="selectedPeriod().year" [mes]="selectedPeriod().month" [SucursalId]="0"
   [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>

@@ -174,7 +174,7 @@ export class ApiService {
       enableRowDetailView: true,
       rowDetailView: {
         // optionally change the column index position of the icon (defaults to 0)
-        columnIndexPosition: 0,
+        //columnIndexPosition: 0,
 
         // We can load the "process" asynchronously in 2 different ways (httpClient OR even Promise)
         process: (item: any) => { return new Promise((resolve) => { setTimeout(() => { resolve(item) }, 0) }) },
@@ -388,6 +388,16 @@ export class ApiService {
     const parameter = filters
 
     return this.http.post<ResponseJSON<any>>('/api/asistencia/personalxresp/list', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+  }
+
+  getPersonasResponsableDesc(filters: any) {
+    const parameter = filters
+
+    return this.http.post<ResponseJSON<any>>('/api/asistencia/personalxrespdesc/list', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );

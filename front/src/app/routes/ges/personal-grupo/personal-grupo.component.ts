@@ -1,4 +1,4 @@
-import { Component, inject, input, effect, ChangeDetectionStrategy,  model } from '@angular/core';
+import { Component, inject, input, effect, ChangeDetectionStrategy, InputSignal, model } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
 import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
@@ -14,23 +14,23 @@ import { runInInjectionContext } from '@angular/core';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 
 @Component({
-  selector: 'app-descuentos',
+  selector: 'app-personal-grupo',
   standalone: true,
   imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent],
-  templateUrl: './descuentos.component.html',
+  templateUrl: './personal-grupo.component.html',
   providers: [AngularUtilService, ExcelExportService],
-  styleUrl: './descuentos.component.less',
+  styleUrl: './personal-grupo.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 
-export class DescuentosComponent {
+export class PersonalGrupoComponent {
   angularGridPersonal!: AngularGridInstance;
   gridObjPersonal!: SlickGrid;
   tableLoading$ = new BehaviorSubject(false);
   gridOptionsPersonal!: GridOption
   $selectedResponsablePersonalIdChange = new BehaviorSubject(0);
   $isResponsableDataLoading = new BehaviorSubject(false);
-  personalIdlist = model<number[]>([])
+  
 
   //  private searchService = inject(SearchService)
   private apiService = inject(ApiService)
@@ -40,9 +40,9 @@ export class DescuentosComponent {
   periodo = input({year:0,month:0});
   responsable = model(0)
   #injector = inject(Injector);
+  personalIdlist = model<number[]>([])
 
-
-  columnsPersonal$ = this.apiService.getCols('/api/asistencia/personalxrespdesc/cols').pipe(map((cols: Column[]) => {
+  columnsPersonal$ = this.apiService.getCols('/api/asistencia/personalxresp/cols').pipe(map((cols: Column[]) => {
     let mapped = cols.map((col: Column) => {
       if (col.id == "PersonaDes")
         col.asyncPostRender = this.renderAngularComponent.bind(this)
@@ -84,18 +84,18 @@ export class DescuentosComponent {
     this.gridObjPersonal = angularGrid.detail.slickGrid;
 
     if (this.apiService.isMobile())
-      this.angularGridPersonal.gridService.hideColumnByIds(['CUIT'])
+      this.angularGridPersonal.gridService.hideColumnByIds(['CUIT','ingresosG_importe','ingresos_horas','egresosG_importe'])
 
     this.angularGridPersonal.dataView.onRowsChanged.subscribe((_e: any, _arg: any) => {
       totalRecords(this.angularGridPersonal)
-      //columnTotal('PersonalAdelantoMonto', this.angularGridPersonal)
+//      columnTotal('PersonalAdelantoMonto', this.angularGridPersonal)
     })
 
   }
 
   exportGrid() {
     this.excelExportService.exportToExcel({
-      filename: 'listado-personal',
+      filename: 'personal-responsable',
       format: FileType.xlsx
     });
   }
@@ -113,19 +113,18 @@ export class DescuentosComponent {
     debounceTime(50),
     switchMap((PersonalId) => {
       return this.apiService
-        .getPersonasResponsableDesc(
+        .getPersonasResponsable(
           { options: this.listOptionsPersonal, PersonalId: Number(PersonalId), anio: this.periodo().year, mes: this.periodo().month }
         )
         .pipe(
           map(data => {
             const lista = []
             
-            for (const row of data.descuentos)
+            for (const row of data.persxresp)
               lista.push(row.PersonalId)
             
             this.personalIdlist.set(lista)
-            return data.descuentos
-
+            return data.persxresp
 
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -148,7 +147,10 @@ export class DescuentosComponent {
     runInInjectionContext(this.#injector, () => {
       effect(() => {
         this.selectedValueChange(this.responsable())
-      })
+      });
     })
+
+
   }
+
 }

@@ -30,6 +30,7 @@ import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row
 import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { Options } from 'src/app/shared/schemas/filtro';
 import { Directionality } from '@angular/cdk/bidi';
+import { DescuentosComponent } from '../../ges/descuentos/descuentos.component';
 
 /** config ng-zorro-antd i18n **/
 
@@ -38,7 +39,7 @@ import { Directionality } from '@angular/cdk/bidi';
   templateUrl: './test.component.html',
   styleUrls: ['./test.component.less'],
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, PersonalSearchComponent, AngularSlickgridModule],
+  imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, PersonalSearchComponent, AngularSlickgridModule,DescuentosComponent],
   providers:[        ContainerService,  ],
 
 })
@@ -58,7 +59,7 @@ export class TestComponent {
   private el = inject(ElementRef);
   private document = inject(DOCUMENT)
   nacimiento: Date = new Date('1973-05-24')
-
+  periodo1 = {year:2024,month:3}
   onChange(evt: any) {
     console.log('onChange',evt)
   }
@@ -108,7 +109,7 @@ export class TestComponent {
 
     this.nzpc.hide()
     this.nzpc.show()
-
+    this.periodo1 = {year:2023,month:3}
   }
 
   click2(): void {

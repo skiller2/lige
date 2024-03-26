@@ -1,5 +1,5 @@
 import {
-  Component, Injector, Input, ViewChild
+  Component, Injector, Input, ViewChild, signal
 } from '@angular/core';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import {
@@ -29,12 +29,13 @@ import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
+import { DescuentosComponent } from '../descuentos/descuentos.component';
+import { PersonalGrupoComponent } from '../personal-grupo/personal-grupo.component';
 
 enum Busqueda {
   Sucursal,
   Objetivo,
-  Personal,
-  Responsable
+  Personal
 }
 
 @Component({
@@ -42,7 +43,7 @@ enum Busqueda {
   standalone: true,
   templateUrl: './detalle-asistencia.component.html',
   styleUrls: ['./detalle-asistencia.component.less'],
-  imports: [...SHARED_IMPORTS, NzResizableModule, FiltroBuilderComponent, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent, DetallePersonaComponent]
+  imports: [...SHARED_IMPORTS, NzResizableModule, FiltroBuilderComponent, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent, DetallePersonaComponent, DescuentosComponent,PersonalGrupoComponent]
 })
 export class DetalleAsistenciaComponent {
   @ViewChild('asistencia', { static: true }) asistencia: NgForm = new NgForm(
@@ -72,11 +73,11 @@ export class DetalleAsistenciaComponent {
 
   private destroy$ = new Subject();
 
-  responsable = 0
+  responsable = signal(0)
 
 
   selectedDate = null;
-  selectedPeriod = { year: 0, month: 0 };
+  selectedPeriod = signal({ year: 0, month: 0 });
 
   //  selectedSucursalId = '';
   selectedObjetivoId = 0;
@@ -96,7 +97,9 @@ export class DetalleAsistenciaComponent {
   listaIngresosExtraPerTotalHoras = 0
   //listaAsistenciaObjTotalHoras = 0
   objetivoIdSelected = 0;
-  personalIdlist : number[] = []
+
+  personalIdlist = signal([])
+  
   
   $isSucursalOptionsLoading = new BehaviorSubject(false);
 
@@ -117,8 +120,8 @@ export class DetalleAsistenciaComponent {
       return this.searchService
         .getObjetivoResponsables(
           Number(objetivoId),
-          this.selectedPeriod.year,
-          this.selectedPeriod.month
+          this.selectedPeriod().year,
+          this.selectedPeriod().month
         )
         .pipe(
           doOnSubscribe(() => {
@@ -140,8 +143,8 @@ export class DetalleAsistenciaComponent {
     switchMap(objetivoId =>
       this.searchService.getAsistenciaObjetivo(
         Number(objetivoId),
-        this.selectedPeriod.year,
-        this.selectedPeriod.month
+        this.selectedPeriod().year,
+        this.selectedPeriod().month
       )
     )
   )
@@ -151,8 +154,8 @@ export class DetalleAsistenciaComponent {
     switchMap(objetivoId =>
       this.searchService.getExcepxObjetivo(
         Number(objetivoId),
-        this.selectedPeriod.year,
-        this.selectedPeriod.month
+        this.selectedPeriod().year,
+        this.selectedPeriod().month
       )
     )
   );
@@ -162,8 +165,8 @@ export class DetalleAsistenciaComponent {
     switchMap(objetivoId =>
       this.searchService.getDescuentosObjetivo(
         Number(objetivoId),
-        this.selectedPeriod.year,
-        this.selectedPeriod.month
+        this.selectedPeriod().year,
+        this.selectedPeriod().month
       )
     )
   );
@@ -189,8 +192,8 @@ export class DetalleAsistenciaComponent {
       this.searchService
         .getAsistenciaPersona(
           Number(PersonalId),
-          this.selectedPeriod.year,
-          this.selectedPeriod.month
+          this.selectedPeriod().year,
+          this.selectedPeriod().month
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -208,8 +211,8 @@ export class DetalleAsistenciaComponent {
       this.searchService
         .getIngresosPersona(
           Number(PersonalId),
-          this.selectedPeriod.year,
-          this.selectedPeriod.month
+          this.selectedPeriod().year,
+          this.selectedPeriod().month
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -224,8 +227,8 @@ export class DetalleAsistenciaComponent {
       this.searchService
         .getIngresosExtraPersona(
           Number(PersonalId),
-          this.selectedPeriod.year,
-          this.selectedPeriod.month
+          this.selectedPeriod().year,
+          this.selectedPeriod().month
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -241,8 +244,8 @@ export class DetalleAsistenciaComponent {
       this.searchService
         .getDescuentosPersona(
           Number(PersonalId),
-          this.selectedPeriod.year,
-          this.selectedPeriod.month
+          this.selectedPeriod().year,
+          this.selectedPeriod().month
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -257,8 +260,8 @@ export class DetalleAsistenciaComponent {
       this.searchService
         .getCategoriasPersona(
           Number(PersonalId),
-          this.selectedPeriod.year,
-          this.selectedPeriod.month,
+          this.selectedPeriod().year,
+          this.selectedPeriod().month,
           0
         )
         .pipe
@@ -268,43 +271,13 @@ export class DetalleAsistenciaComponent {
 
         )))
 
-  /*
-  $listaPersonal = this.$selectedResponsablePersonalIdChange.pipe(
-    debounceTime(500),
-    switchMap(PersonalId =>
-      this.searchService
-        .getPersonalxResponsable(
-          Number(PersonalId),
-          this.selectedPeriod.year,
-          this.selectedPeriod.month
-        )
-        .pipe
-        //          doOnSubscribe(() => this.tableLoading$.next(true)),
-        (tap(data => {
-          this.PersonalIdlist = data.persxresp
-
-          if (this.PersonalIdlist != undefined) {
-
-            for (let personalarray of this.PersonalIdlist) {
-
-              this.personalIdListarray.push(personalarray["PersonalId"])
-            }
-
-            this.personalIdString = JSON.stringify(this.personalIdListarray)
-            console.log(this.personalIdString)
-
-          }
-
-        })
-        )))
-*/
   $personaMonotributo = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
     switchMap(() =>
       this.apiService
         .getPersonaMonotributo(
-          this.selectedPeriod.year,
-          this.selectedPeriod.month,
+          this.selectedPeriod().year,
+          this.selectedPeriod().month,
           Number(this.asistenciaPer.controls['PersonalId'].value)
         )
         .pipe
@@ -320,8 +293,8 @@ export class DetalleAsistenciaComponent {
       this.apiService
         .getPersonaSitRevista(
           Number(this.asistenciaPer.controls['PersonalId'].value),
-          this.selectedPeriod.year,
-          this.selectedPeriod.month
+          this.selectedPeriod().year,
+          this.selectedPeriod().month
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -337,8 +310,8 @@ export class DetalleAsistenciaComponent {
       this.apiService
         .getPersonaResponsables(
           Number(this.asistenciaPer.controls['PersonalId'].value),
-          this.selectedPeriod.year,
-          this.selectedPeriod.month
+          this.selectedPeriod().year,
+          this.selectedPeriod().month
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -351,8 +324,8 @@ export class DetalleAsistenciaComponent {
     switchMap(PersonalId =>
       this.searchService.getExcepxPersona(
         Number(PersonalId),
-        this.selectedPeriod.year,
-        this.selectedPeriod.month
+        this.selectedPeriod().year,
+        this.selectedPeriod().month
       )
     )
   );
@@ -366,9 +339,7 @@ export class DetalleAsistenciaComponent {
   ngAfterContentInit(): void {
     const now = new Date(); //date
     const user: any = this.settingService.getUser()
-    setTimeout(() => {
-      this.responsable = user.PersonalId
-    }, 100)
+    this.responsable.set(user.PersonalId)
 
     setTimeout(() => {
       const anio =
@@ -447,11 +418,10 @@ export class DetalleAsistenciaComponent {
   }
 
   dateChange(result: Date): void {
-    this.selectedPeriod.year = result.getFullYear();
-    this.selectedPeriod.month = result.getMonth() + 1;
+    this.selectedPeriod.set({year:result.getFullYear(),month:result.getMonth() + 1}) 
 
-    localStorage.setItem('anio', String(this.selectedPeriod.year));
-    localStorage.setItem('mes', String(this.selectedPeriod.month));
+    localStorage.setItem('anio', String(this.selectedPeriod().year));
+    localStorage.setItem('mes', String(this.selectedPeriod().month));
 
     this.$selectedObjetivoIdChange.next(
       this.asistenciaObj.controls['ObjetivoId'].value
