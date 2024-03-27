@@ -465,6 +465,12 @@ export class CargaAsistenciaComponent {
                     width: 5,
                 },
                 groupTotalsFormatter: this.sumTotalsFormatterCustom,
+                groupTotalsExcelExportOptions: {
+                    style: {
+                        font: { bold: true, size: 10 },
+                        alignment: { horizontal: 'center' },
+                    },
+                },
             });
         }
 
@@ -481,6 +487,12 @@ export class CargaAsistenciaComponent {
                 width: 6,
             },
             groupTotalsFormatter: this.sumTotalsFormatterCustom,
+            groupTotalsExcelExportOptions: {
+                style: {
+                    font: { bold: true, size: 10 },
+                    alignment: { horizontal: 'center' },
+                },
+            },
         });
 
         return columnDays
@@ -790,7 +802,7 @@ export class CargaAsistenciaComponent {
         //Cantidad de celdas que se van a fusionadar
         let arrayRango: any[] = []
         for (let index = 0; index < cantCeldas; index++) {
-            arrayRango.push({})
+            arrayRango.push({value:''})
         }
 
         // //Armar los totales de horas
@@ -813,9 +825,9 @@ export class CargaAsistenciaComponent {
             const aFormatDefn = {
                 font: { 'size': 12, 'fontName': 'Calibri', 'bold': true },
                 fills: [{
-                    'type': 'pattern',
-                    'patternType': 'solid',
-                    'fgColor': 'FF7AB573',
+                    // 'type': 'pattern',
+                    // 'patternType': 'solid',
+                    // 'fgColor': 'FF7AB573',
                 }],
                 alignment: {
 //                    horizontal: ExcelAlignmentStyle. center,
@@ -823,7 +835,6 @@ export class CargaAsistenciaComponent {
 
             };
             const bFormatDefn = {font: { bold: true }, }
-            // const bFormatDefn = { }
             const titleId = stylesheet.createFormat(aFormatDefn);
             const totalId = stylesheet.createFormat(bFormatDefn);
             //Armar los totales de horas
@@ -831,7 +842,7 @@ export class CargaAsistenciaComponent {
             grupos.forEach(( obj, index, arr) => {
                 if (obj.value != "Totales") {
                 totalHoras += obj.totals.sum.total
-                totalHeader = totalHeader.concat([{ value: `Horas de ${obj.value}:`, metadata: { style: titleId.id } }, ...arrayRango,{ value: obj.totals.sum.total, metadata: { style: totalId.id } }, {}])
+                totalHeader = totalHeader.concat([{ value: `Horas de ${obj.value}:`, metadata: { style: titleId.id } }, ...arrayRango,{ value: obj.totals.sum.total, metadata: { style: totalId.id } }, {value:''}])
                 delete arr[index].totals.sum.total
                 }
             })
@@ -839,7 +850,7 @@ export class CargaAsistenciaComponent {
             //Sumar a la fila del encabezado los totales de horas
             const rowNum = this.customHeaderExcel.length-2
             let auxCustomHeaderExcel = [...this.customHeaderExcel]
-            auxCustomHeaderExcel[rowNum] = this.customHeaderExcel[rowNum].concat({},{},{},totalHeader)
+            auxCustomHeaderExcel[rowNum] = this.customHeaderExcel[rowNum].concat({value:''},{value:''},{value:''},totalHeader)
 
             sheet.mergeCells('A4', 'B4');
 
