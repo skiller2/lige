@@ -112,7 +112,6 @@ export class PersonalGrupoComponent {
   gridDataPersonal$ = this.$selectedResponsablePersonalIdChange.pipe(
     debounceTime(50),
     switchMap((PersonalId) => {
-      console.log('trigeado',PersonalId)
       return this.apiService
         .getPersonasResponsable(
           { options: this.listOptionsPersonal, PersonalId: Number(PersonalId), anio: this.periodo().year, mes: this.periodo().month }

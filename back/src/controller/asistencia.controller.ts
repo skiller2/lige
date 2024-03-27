@@ -120,6 +120,14 @@ const columnasPersonalxResponsableDesc: any[] = [
     },
   },
   {
+    name: "Cuenta",
+    type: "string",
+    id: "tipocuenta_id",
+    field: "tipocuenta_id",
+    fieldName: "tipocuenta_id",
+    sortable: true,
+  },
+  {
     name: "Detalle",
     type: "string",
     id: "desmovimiento",
@@ -1298,7 +1306,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const mes = Number(req.body.mes);
       const options = req.body.options;
 
-      if (!anio || !mes || !personalId)
+      if (!anio || !mes)
         return this.jsonRes({ persxresp: [], total: 0 }, res);
 
       const queryRunner = dataSource.createQueryRunner();
@@ -1405,8 +1413,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const mes = Number(req.body.mes);
       const options = req.body.options;
 
-      if (!anio || !mes || !personalId)
-        return this.jsonRes({ persxresp: [], total: 0 }, res);
+      if (!anio || !mes )
+        return this.jsonRes({ descuentos: [], total: 0 }, res);
 
       const queryRunner = dataSource.createQueryRunner();
       if (!await this.hasGroup(req, 'liquidaciones') && res.locals.PersonalId != personalId)
