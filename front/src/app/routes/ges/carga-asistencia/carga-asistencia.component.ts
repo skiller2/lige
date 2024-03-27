@@ -71,6 +71,7 @@ export class CargaAsistenciaComponent {
     objetivoData: any
     ObjetivoIdUrl: any
     periodos: any
+    contratos: any[] = []
 
     visibleDrawer: boolean = false
     personalApellidoNombre: any;
@@ -99,7 +100,6 @@ export class CargaAsistenciaComponent {
             map((data: any[]) => {
                 // console.log('DATA',data);
                 this.selectedSucursalId = data[1][0]?.SucursalId
-                this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null)
                 this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
                 // const totalesHeader = this.totalesHeader()
                 this.excelExportOption.filename = `${this.selectedPeriod.year}-${this.selectedPeriod.month}-${data[2][0]?.ObjetivoCodigo}-${data[2][0]?.ObjetivoDescripcion}`
@@ -111,7 +111,6 @@ export class CargaAsistenciaComponent {
                 
                 this.angularGridEdit.resizerService.resizeGrid();
 
-                //console.log('data[3]',data[3]);
                 if (data[3].length) {
                     this.angularGridEdit.dataView.setItems(data[3])
                     this.gridDataInsert = this.angularGridEdit.dataView.getItems()
@@ -120,13 +119,16 @@ export class CargaAsistenciaComponent {
                     this.clearAngularGrid()
                 }
 
+                this.periodos = data[2]
+                this.contratos = data[1]
+                this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null && this.contratos.length>0)
 
                 this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
 
                 this.angularGridEdit.slickGrid.invalidate();
                 this.angularGridEdit.slickGrid.render();
                 this.angularGridEdit.slickGrid.setOptions(this.gridOptionsEdit);
-                this.periodos = data[2]
+                
                 //this.gridDataInsert = data[3]
                 //data[3].length? this.gridDataInsert = data[3] : this.clearAngularGrid()
 
