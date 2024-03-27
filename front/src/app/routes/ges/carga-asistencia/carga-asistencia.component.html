@@ -60,8 +60,8 @@
             <nz-form-item>
                 <nz-form-label [nzSpan]="3">Contrato</nz-form-label>
                 <nz-form-control [nzSpan]="10">
-                    @if (objetivoDetalle.contratos.length==0) { <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert> }
-                    <ng-container *ngFor="let contrato of objetivoDetalle.contratos">
+                    @if (contratos.length==0) { <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert> }
+                    <ng-container *ngFor="let contrato of contratos">
                         <li>Desde {{contrato.ContratoFechaDesde | date}} <span
                                 *ngIf="contrato.ContratoFechaHasta">hasta</span>
                             {{ contrato.ContratoFechaHasta | date}} </li>
