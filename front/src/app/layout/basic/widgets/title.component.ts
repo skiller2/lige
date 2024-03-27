@@ -10,7 +10,6 @@ import {
   Renderer2
 } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
-import { ReuseTabService } from '@delon/abc/reuse-tab';
 import { SettingsService, MenuService, AlainI18NService, TitleService, ALAIN_I18N_TOKEN, Menu } from '@delon/theme';
 import { AlainConfigService } from '@delon/util';
 import { NzBreadCrumbModule } from 'ng-zorro-antd/breadcrumb';
@@ -56,7 +55,7 @@ export class HeaderTitleComponent implements AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   
-  constructor(private settings: SettingsService, private renderer: Renderer2, private router: Router, private menuSrv: MenuService, private titleSrv: TitleService, private reuseSrv: ReuseTabService, private cdr: ChangeDetectorRef, private configSrv: AlainConfigService, @Optional() @Inject(ALAIN_I18N_TOKEN) private i18nSrv: AlainI18NService,) { 
+  constructor(private settings: SettingsService, private renderer: Renderer2, private router: Router, private menuSrv: MenuService, private titleSrv: TitleService, private cdr: ChangeDetectorRef, private configSrv: AlainConfigService, @Optional() @Inject(ALAIN_I18N_TOKEN) private i18nSrv: AlainI18NService,) { 
 
     merge(menuSrv.change, router.events.pipe(filter(ev => ev instanceof NavigationEnd)), i18nSrv.change)
       .pipe(

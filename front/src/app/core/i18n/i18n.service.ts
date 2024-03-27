@@ -5,7 +5,7 @@ import ngEn from '@angular/common/locales/en';
 import ngEs from '@angular/common/locales/es';
 import ngZh from '@angular/common/locales/zh';
 import ngZhTw from '@angular/common/locales/zh-Hant';
-import { Injectable} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import {
   DelonLocaleService,
   en_US as delonEnUS,
@@ -22,8 +22,6 @@ import { NzSafeAny } from 'ng-zorro-antd/core/types';
 import { en_US as zorroEnUS, NzI18nService, zh_CN as zorroZhCN, zh_TW as zorroZhTW, es_ES as zorroEsES, NZ_DATE_LOCALE } from 'ng-zorro-antd/i18n';
 import { Observable } from 'rxjs';
 
-
-
 interface LangConfigData {
   abbr: string;
   text: string;
@@ -33,7 +31,7 @@ interface LangConfigData {
   delon: NzSafeAny;
 }
 
-const DEFAULT = 'es-ES';
+const DEFAULT = 'zh-CN';
 const LANGS: { [key: string]: LangConfigData } = {
   'es-ES': {
     text: 'Español',
@@ -71,20 +69,19 @@ const LANGS: { [key: string]: LangConfigData } = {
 
 @Injectable({ providedIn: 'root' })
 export class I18NService extends AlainI18nBaseService {
+  private readonly http = inject(_HttpClient);
+  private readonly settings = inject(SettingsService);
+  private readonly nzI18nService = inject(NzI18nService);
+  private readonly delonLocaleService = inject(DelonLocaleService);
+  private readonly platform = inject(Platform);
+
   protected override _defaultLang = DEFAULT;
   private _langs = Object.keys(LANGS).map(code => {
     const item = LANGS[code];
     return { code, text: item.text, abbr: item.abbr };
   });
 
-  constructor(
-    private http: _HttpClient,
-    private settings: SettingsService,
-    private nzI18nService: NzI18nService,
-    private delonLocaleService: DelonLocaleService,
-    private platform: Platform,
-    cogSrv: AlainConfigService
-  ) {
+  constructor(cogSrv: AlainConfigService) {
     super(cogSrv);
 
     const defaultLang = this.getDefaultLang();
@@ -104,7 +101,7 @@ export class I18NService extends AlainI18nBaseService {
   }
 
   loadLangData(lang: string): Observable<NzSafeAny> {
-    return this.http.get(`assets/tmp/i18n/${lang}.json`);
+    return this.http.get(`./assets/tmp/i18n/${lang}.json`);
   }
 
   use(lang: string, data: Record<string, unknown>): void {
@@ -113,17 +110,13 @@ export class I18NService extends AlainI18nBaseService {
     this._data = this.flatData(data, []);
 
     const item = LANGS[lang];
-
-    registerLocaleData(item.ng, item.abbr);
+    registerLocaleData(item.ng);
     this.nzI18nService.setLocale(item.zorro);
     this.nzI18nService.setDateLocale(item.date);
     this.delonLocaleService.setLocale(item.delon);
-
     this._currentLang = lang;
 
     this._change$.next(lang);
-
-
   }
 
   getLangs(): Array<{ code: string; text: string; abbr: string }> {

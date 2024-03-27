@@ -811,17 +811,18 @@ export class CargaAsistenciaComponent {
         this.excelExportOption.customExcelHeader = (workbook, sheet) => {
             const stylesheet = workbook.getStyleSheet();
             const aFormatDefn = {
-                'font': { 'size': 12, 'fontName': 'Calibri', 'bold': true },
-                'fill': {
+                font: { 'size': 12, 'fontName': 'Calibri', 'bold': true },
+                fills: [{
                     'type': 'pattern',
                     'patternType': 'solid',
                     'fgColor': 'FF7AB573',
-                },
-                'alignment': {
-                    'horizontal': 'center',
+                }],
+                alignment: {
+//                    horizontal: ExcelAlignmentStyle. center,
                 }
+
             };
-            const bFormatDefn = {'font': { 'bold': true }, }
+            const bFormatDefn = {font: { bold: true }, }
             // const bFormatDefn = { }
             const titleId = stylesheet.createFormat(aFormatDefn);
             const totalId = stylesheet.createFormat(bFormatDefn);

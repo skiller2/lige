@@ -1,8 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { APP_INITIALIZER, Injectable, Provider, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ACLService } from '@delon/acl';
-import { DA_SERVICE_TOKEN, ITokenService, JWTTokenModel, TokenService } from '@delon/auth';
+import { ALLOW_ANONYMOUS, DA_SERVICE_TOKEN, ITokenService, JWTTokenModel, TokenService } from '@delon/auth';
 import { ALAIN_I18N_TOKEN, MenuService, SettingsService, TitleService } from '@delon/theme';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
 import { NzIconService } from 'ng-zorro-antd/icon';
@@ -42,27 +42,12 @@ export class StartupService {
   private i18n = inject<I18NService>(ALAIN_I18N_TOKEN);
   private tokenService = inject(DA_SERVICE_TOKEN)
 
-
-
-/*
-  constructor(
-    iconSrv: NzIconService,
-    private menuService: MenuService,
-    @Inject(ALAIN_I18N_TOKEN) private i18n: I18NService,
-    private settingService: SettingsService,
-    private aclService: ACLService,
-    private titleService: TitleService,
-    @Inject(DA_SERVICE_TOKEN) private tokenService: ITokenService,
-
-    private httpClient: HttpClient,
-    private router: Router
-  ) {
-    iconSrv.addIcon(...ICONS_AUTO, ...ICONS);
-  }
-*/
   load(): Observable<void> {
     const defaultLang = this.i18n.defaultLang;
-    return zip(this.i18n.loadLangData(defaultLang), this.httpClient.get('assets/app-data.json')).pipe(
+    // If http request allows anonymous access, you need to add `ALLOW_ANONYMOUS`:
+    // this.httpClient.get('/app', { context: new HttpContext().set(ALLOW_ANONYMOUS, true) })
+    return zip(this.i18n.loadLangData(defaultLang), this.httpClient.get('./assets/app-data.json')).pipe(
+//    return zip(this.i18n.loadLangData(defaultLang), this.httpClient.get('assets/app-data.json')).pipe(
       // 接收其他拦截器后产生的异常消息
       catchError(res => {
         console.warn(`StartupService.load: Network request failed`, res);

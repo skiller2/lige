@@ -1248,7 +1248,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const personalId = req.params.personalId;
       const anio = req.params.anio;
       const mes = req.params.mes;
-      const SucursalId = req.params.SucursalId;
+      const SucursalId = Number(req.params.SucursalId);
       const queryRunner = dataSource.createQueryRunner();
 
       //      if (!await this.hasGroup(req, 'liquidaciones') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)

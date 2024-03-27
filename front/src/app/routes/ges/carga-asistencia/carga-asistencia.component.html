@@ -53,12 +53,14 @@
             <nz-form-item>
                 <nz-form-label [nzSpan]="3">Responsable</nz-form-label>
                 <nz-form-control [nzSpan]="21">
+                    @if (objetivoDetalle.responsable.length==0) { <nz-alert nzShowIcon nzType="error" nzMessage="Sin grupo" class="app-small"></nz-alert> }
                     <app-view-responsable [list]="objetivoDetalle.responsable"  (changeSize)="collapseChange($event)" ></app-view-responsable>
                 </nz-form-control>
             </nz-form-item>
             <nz-form-item>
                 <nz-form-label [nzSpan]="3">Contrato</nz-form-label>
                 <nz-form-control [nzSpan]="10">
+                    @if (objetivoDetalle.contratos.length==0) { <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert> }
                     <ng-container *ngFor="let contrato of objetivoDetalle.contratos">
                         <li>Desde {{contrato.ContratoFechaDesde | date}} <span
                                 *ngIf="contrato.ContratoFechaHasta">hasta</span>

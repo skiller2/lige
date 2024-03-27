@@ -7,6 +7,7 @@ import {
   Inject,
   OnDestroy,
   Optional,
+  inject,
 } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -44,19 +45,15 @@ import {
   imports: [...SHARED_IMPORTS,CommonModule]
 })
 export class UserLoginComponent implements OnDestroy {
-  constructor(
-    private fb: FormBuilder,
-    private router: Router,
-    private settingsService: SettingsService,
-    private socialService: SocialService,
-    @Optional()
-    @Inject(ReuseTabService)
-    private reuseTabService: ReuseTabService,
-    @Inject(DA_SERVICE_TOKEN) private tokenService: ITokenService,
-    private startupSrv: StartupService,
-    private http: _HttpClient,
-    private cdr: ChangeDetectorRef
-  ) {}
+  private readonly router = inject(Router);
+  private readonly settingsService = inject(SettingsService);
+  private readonly socialService = inject(SocialService);
+  private readonly reuseTabService = inject(ReuseTabService, { optional: true });
+  private readonly tokenService = inject(DA_SERVICE_TOKEN);
+  private readonly startupSrv = inject(StartupService);
+  private readonly http = inject(_HttpClient);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly fb = inject(FormBuilder);
 
   // #region fields
 
@@ -139,22 +136,24 @@ export class UserLoginComponent implements OnDestroy {
     this.loading = true;
     this.cdr.detectChanges();
     this.http
-      .post(
-        'api/auth/login',
-        {
-          type: this.type,
-          userName: this.form.value.userName,
-          password: this.form.value.password,
-        },
-        null,
-        {
-          context: new HttpContext().set(ALLOW_ANONYMOUS, false),
-        }
-      )
-      .pipe(
+    .post(
+//      '/login/account',
+      '/api/auth/login',
+      {
+        type: this.type,
+        userName: this.form.value.userName,
+        password: this.form.value.password
+      },
+      null,
+      {
+        context: new HttpContext().set(ALLOW_ANONYMOUS, true)
+      }
+    )
+    .pipe(
         take(1),
         catchError(err => {
-          this.error = err.error.msg;
+          console.log('error',err)
+          this.error = err.error?.msg;
           return of();
         }),
         finalize(() => {
@@ -164,13 +163,12 @@ export class UserLoginComponent implements OnDestroy {
       )
       .subscribe(res => {
         // 清空路由复用信息
-        this.reuseTabService.clear();
+        this.reuseTabService?.clear();
         // 设置用户Token信息
         // TODO: Mock expired value
         //res.user.expired = +new Date() + 1000 * 60 * 5;
         //this.tokenService.set(res.user);
 
-        this.reuseTabService.clear();
 
         const tokenTmp: ITokenModel = {
           expired: 0,
