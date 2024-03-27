@@ -120,10 +120,6 @@ export class CargaAsistenciaComponent {
                     this.clearAngularGrid()
                 }
 
-                for (const col of this.angularGridEdit.slickGrid.getColumns())
-                    if (String(col.id).indexOf('day') != -1) columnTotal(String(col.id), this.angularGridEdit)
-                totalRecords(this.angularGridEdit, 'apellidoNombre')
-                columnTotal('total', this.angularGridEdit)
 
                 this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
 
@@ -133,6 +129,12 @@ export class CargaAsistenciaComponent {
                 this.periodos = data[2]
                 //this.gridDataInsert = data[3]
                 //data[3].length? this.gridDataInsert = data[3] : this.clearAngularGrid()
+
+                for (const col of this.angularGridEdit.slickGrid.getColumns())
+                    if (String(col.id).indexOf('day') != -1) columnTotal(String(col.id), this.angularGridEdit)
+                totalRecords(this.angularGridEdit, 'apellidoNombre')
+                columnTotal('total', this.angularGridEdit)
+
                 this.loadingSrv.close()
                 return { responsable: data[0], contratos: data[1], periodo: data[2] };
             })
@@ -377,21 +379,24 @@ export class CargaAsistenciaComponent {
             this.angularGridEdit.gridService.hideColumnByIds([])
 
         const x = this
+
         this.angularGridEdit.slickGrid.onCellChange.subscribe(function (e, args) {
             x.updateTotals(String(args.column.id), x.angularGridEdit)
         });
-
-
-
-
-        this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
-            //            console.log('arg',arg)
-            //            totalRecords(this.angularGridEdit)
-            //            columnTotal('day1', this.angularGridEdit)
-            //            columnTotal('total', this.angularGridEdit)
+/*
+        this.angularGridEdit.dataView.onSetItemsCalled.subscribe((e, arg) => { 
+            x.updateTotals('', x.angularGridEdit)
 
         })
 
+        this.angularGridEdit.dataView.onRowsOrCountChanged.subscribe((e, arg) => {
+            //            totalRecords(this.angularGridEdit)
+            //            columnTotal('day1', this.angularGridEdit)
+            //            columnTotal('total', this.angularGridEdit)
+            //x.updateTotals('', x.angularGridEdit)
+
+        })
+*/
     }
 
     updateTotals(columnId: string, angularGrid: AngularGridInstance) {
