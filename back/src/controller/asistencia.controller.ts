@@ -1230,7 +1230,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
   async getCategoriasPorPersonaQuery(anio: number, mes: number, personalId: number, SucursalId: number, queryRunner: QueryRunner) {
     return queryRunner.query(
-      `SELECT cat.TipoAsociadoId, catrel.PersonalCategoriaCategoriaPersonalId, catrel.PersonalCategoriaPersonalId, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta,
+      `SELECT cat.TipoAsociadoId, catrel.PersonalCategoriaCategoriaPersonalId, catrel.PersonalCategoriaPersonalId, CONCAT(cat.TipoAsociadoId, '-',catrel.PersonalCategoriaCategoriaPersonalId) AS id, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta,
         TRIM(tip.TipoAsociadoDescripcion) as TipoAsociadoDescripcion ,TRIM(cat.CategoriaPersonalDescripcion) as CategoriaPersonalDescripcion ,
         val.ValorLiquidacionHoraNormal, val.ValorLiquidacionHorasTrabajoHoraNormal, val.ValorLiquidacionSucursalId
                   FROM PersonalCategoria catrel
@@ -2357,10 +2357,11 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         },
         categoria: {
           fullName: `${obj.CategoriaDescripcion.trim()} ${(obj.ValorLiquidacionHorasTrabajoHoraNormal > 0) ? obj.ValorLiquidacionHorasTrabajoHoraNormal : ''}`,
-          id: obj.CategoriaId,
+          id: `${obj.TipoAsociadoId}-${obj.CategoriaId}`,
           tipoId: obj.TipoAsociadoId,
           tipoFullName: obj.TipoAsociadoDescripcion,
-          horasRecomendadas: obj.ValorLiquidacionHorasTrabajoHoraNormal
+          horasRecomendadas: obj.ValorLiquidacionHorasTrabajoHoraNormal,
+          categoriaId: obj.CategoriaId
         },
         forma: {
           id: forma.TipoHoraId,

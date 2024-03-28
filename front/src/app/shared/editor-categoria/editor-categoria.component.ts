@@ -30,14 +30,14 @@ export class EditorCategoriaComponent {
   optionsArray: any 
   constructor(public element: ElementRef, private searchService:SearchService) { }
 
-  onChange(item: any) {
+  onChange(key: any) {
     this.eto.focus()  //Al hacer click en el componente hace foco nuevamente
-    const selopt: any = this.optionsArray.filter((v:any) => v.PersonalCategoriaCategoriaPersonalId == item)
-    this.selectedId = item
+    const selopt: any = this.optionsArray.filter((v:any) => v.id == key)
+    this.selectedId = key
     if (selopt[0])
-      this.selectedItem = { id: item, fullName: `${selopt[0]?.CategoriaPersonalDescripcion.trim()} ${(selopt[0]?.ValorLiquidacionHorasTrabajoHoraNormal > 0) ? selopt[0].ValorLiquidacionHorasTrabajoHoraNormal : ''}`, tipoId: selopt[0]?.TipoAsociadoId, tipoFullname: selopt[0]?.TipoAsociadoDescripcion, horasRecomendadas:selopt[0]?.ValorLiquidacionHorasTrabajoHoraNormal }
+      this.selectedItem = { id: key, fullName: `${selopt[0]?.CategoriaPersonalDescripcion.trim()} ${(selopt[0]?.ValorLiquidacionHorasTrabajoHoraNormal > 0) ? selopt[0].ValorLiquidacionHorasTrabajoHoraNormal : ''}`, tipoId: selopt[0]?.TipoAsociadoId, tipoFullname: selopt[0]?.TipoAsociadoDescripcion, horasRecomendadas:selopt[0]?.ValorLiquidacionHorasTrabajoHoraNormal, categoriaId:selopt[0]?.PersonalCategoriaCategoriaPersonalId }
     else
-      this.selectedItem = { id: null, fullName: '', tipoId: null, tipoFullName: '', horasRecomendadas:0 }
+      this.selectedItem = { id: null, fullName: '', tipoId: null, categoriaId: null,tipoFullName: '', horasRecomendadas: 0 }
   }
 
   focus() {
@@ -60,7 +60,7 @@ export class EditorCategoriaComponent {
       
       this.optionsArray = (this.params?.SucursalId > 0) ? categorias.categorias?.filter((f:any)=>f.ValorLiquidacionHoraNormal >0) : categorias.categorias
       if (this.selectedId==0 && this.optionsArray.length>0)
-        this.onChange(this.optionsArray[0].PersonalCategoriaCategoriaPersonalId)
+        this.onChange(this.optionsArray[0].id)
     }
   }
 

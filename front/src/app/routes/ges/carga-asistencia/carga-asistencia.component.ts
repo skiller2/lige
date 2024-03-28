@@ -302,7 +302,7 @@ export class CargaAsistenciaComponent {
 
                 const totalhs = this.sumdays(row)
 
-                if (row.apellidoNombre.id > 0 && row.categoria.id > 0 && row.forma.id != '' && (row.dbid > 0 || totalhs > 0)) {
+                if (row.apellidoNombre.id > 0 && row.categoria.id && row.forma.id != '' && (row.dbid > 0 || totalhs > 0)) {
                     if (!row.dbid)  
                         this.rowLocked = true                        
                 
@@ -599,17 +599,17 @@ export class CargaAsistenciaComponent {
     async insertDB(item: any) {
         if (this.selectedObjetivoId) {
             let { apellidoNombre, categoria, forma, ...row } = item
-
+console.log('item',item)
             const outItem = {
                 ...row,
                 ...this.selectedPeriod,
                 objetivoId: this.selectedObjetivoId,
                 personalId: apellidoNombre.id,
                 tipoAsociadoId: categoria.tipoId,
-                categoriaPersonalId: categoria.id,
+                categoriaPersonalId: categoria.categoriaId,
                 formaLiquidacion: forma.id,
             }
-
+console.log('outitem',outItem)
             return firstValueFrom(this.apiService.addAsistencia(outItem))
         }
     }
