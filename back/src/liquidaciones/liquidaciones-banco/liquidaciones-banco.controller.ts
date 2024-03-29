@@ -5,6 +5,7 @@ import { LiqBanco } from "../../schemas/ResponseJSON";
 import { Filtro, Options } from "../../schemas/filtro";
 import xlsx, { WorkSheet } from 'node-xlsx';
 import Excel from 'exceljs';
+import { recibosController } from "src/controller/controller.module";
 
 
 //import path from "path";
@@ -521,10 +522,20 @@ export class LiquidacionesBancoController extends BaseController {
     const fechaActual = new Date()
     const ip = this.getRemoteAddress(req)
     const usuario = res.locals.userName
+    let anio = Number(req.body.selectedPeriod.year)
+    let mes = Number(req.body.selectedPeriod.month)
 
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
+
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+          throw new ClientException(`Los recibos para este periodo ya se generaron`)
+
       const liqmvbanco = await queryRunner.query('SELECT mv.*, ban.BancoDescripcion, per.anio, per.mes FROM lige.dbo.liqmvbanco mv JOIN Banco ban ON ban.BancoId = mv.banco_id JOIN lige.dbo.liqmaperiodo per ON per.periodo_id=mv.periodo_id', [])
 
 
@@ -592,7 +603,7 @@ export class LiquidacionesBancoController extends BaseController {
             ])
 
 
-        }
+       }
 
       }
 

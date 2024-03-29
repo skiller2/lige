@@ -324,7 +324,7 @@ export class LiquidacionesBancoComponent {
 
   async confirmaMovimientosBanco(e: any) {
     try {
-      await firstValueFrom(this.apiService.confirmaMovimientosBanco().pipe(tap(res => this.formChange$.next(''))))
+      await firstValueFrom(this.apiService.confirmaMovimientosBanco(this.selectedPeriod).pipe(tap(res => this.formChange$.next(''))))
     } catch (e) {
 
     }

@@ -432,10 +432,15 @@ export class LiquidacionesController extends BaseController {
       if (!mes) throw new ClientException("Faltó indicar el mes");
       if (!tipocuenta_id) new ClientException("No se especificó el tipo de cuenta")
       if (!tipo_movimiento_id) new ClientException("No se especificó el movimiento")
-
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
+
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+          throw new ClientException(`Los recibos para este periodo ya se generaron`)
       //const importeRequest = req.body.monto;
       //const cuitRequest = req.body.cuit;
 
@@ -449,7 +454,7 @@ export class LiquidacionesController extends BaseController {
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
       const convalorimpoexpo_id = await this.getProxNumero(queryRunner, `convalorimpoexpo`, usuario, ip)
-      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+      
       let contador = 0
 
       newFilePath = `${this.directory

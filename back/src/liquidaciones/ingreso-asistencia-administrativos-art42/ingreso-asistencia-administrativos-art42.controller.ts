@@ -5,6 +5,7 @@ import { NextFunction, Request, Response } from "express";
 import { ParsedQs } from "qs";
 import { Utils } from "../liquidaciones.utils";
 import { AsistenciaController } from "../../controller/asistencia.controller";
+import { recibosController } from "src/controller/controller.module";
 
 
 export class IngresoAsistenciaAdministrativosArt42Controller extends BaseController {
@@ -23,6 +24,14 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
     const queryRunner = dataSource.createQueryRunner();
 
     try {
+
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+          throw new ClientException(`Los recibos para este periodo ya se generaron`)
+
       if (tipo_movimiento_id_normadmi == 0 || Number.isNaN(tipo_movimiento_id_normadmi))
         throw new ClientException("Tipo de monvimiento 'MOV_ASISTENCIA_ADMINISTRA' no definindo en .env ")
       if (tipo_movimiento_id_art42vigi == 0 || Number.isNaN(tipo_movimiento_id_art42vigi))
@@ -44,7 +53,6 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
 
       await queryRunner.query(
         `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `,[ periodo_id, tipo_movimiento_id_normadmi ])

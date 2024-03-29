@@ -578,9 +578,9 @@ export class ApiService {
 
   }
 
-  confirmaMovimientosBanco() {
+  confirmaMovimientosBanco(selectedPeriod:any) {
     this.notification.success('Respuesta', `Inicio confirmación de movimientos bancarios`);
-    const parameter = {}
+    const parameter = {selectedPeriod}
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/confirmaMovimientosBanco', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
