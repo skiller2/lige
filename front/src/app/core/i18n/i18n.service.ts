@@ -31,7 +31,7 @@ interface LangConfigData {
   delon: NzSafeAny;
 }
 
-const DEFAULT = 'zh-CN';
+const DEFAULT = 'es-ES';
 const LANGS: { [key: string]: LangConfigData } = {
   'es-ES': {
     text: 'Español',

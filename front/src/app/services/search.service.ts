@@ -10,6 +10,8 @@ import {
   map,
   Observable,
   of,
+  share,
+  shareReplay
 } from 'rxjs';
 import {
   PersonaObj,
@@ -572,10 +574,13 @@ export class SearchService {
     return this.http
       .get<ResponseJSON<any>>(`api/asistencia/tiposhora`)
       .pipe(
+        
         map((res: ResponseJSON<any>) =>
           res && res.data ? res.data : []
         ),
         catchError(() => of([]))
-      );
+      )
   }
 }
+
+
