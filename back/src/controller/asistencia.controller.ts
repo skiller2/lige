@@ -2476,7 +2476,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         item.objetivoId = objetivoId
         item.personalId = item.apellidoNombre.id
         item.tipoAsociadoId = item.categoria.tipoId
-        item.categoriaPersonalId = item.categoria.id
+        item.categoriaPersonalId = item.categoria.categoriaId
         item.formaLiquidacion = item.forma.id
 
         let error: any[] = []

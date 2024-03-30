@@ -61,8 +61,8 @@ export class ObjetivoController extends BaseController {
           1
           
           FROM Objetivo obj 
-          LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >=   gap.GrupoActividadObjetivoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31') 
-        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+           JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >=   gap.GrupoActividadObjetivoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31') 
+         JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
           WHERE  obj.ObjetivoId = @0
     UNION
     SELECT 2, obj.ObjetivoId, 'Coordinador' tipo,

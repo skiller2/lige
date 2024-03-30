@@ -4,6 +4,15 @@
   "dataGroups":
   [
     {
+      "name": "stats",
+      "urls": ["./api/init/stats/**"],
+      "cacheConfig": {
+        "maxSize": 100,
+        "maxAge": "1h",
+        "strategy": "performance"
+      }
+    },
+    {
       "name": "api",
       "urls": ["./api/**"],
       "cacheConfig": {
