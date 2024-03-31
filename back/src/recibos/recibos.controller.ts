@@ -526,22 +526,71 @@ export class RecibosController extends BaseController {
       let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
 
-      pathFile = await this.getparthFile(queryRunner, periodo_id, lista, isfull)
 
+     pathFile = isfull 
+     ? await this.getGrupFilterDowload(queryRunner,periodo_id) 
+     : await this.getparthFile(queryRunner, periodo_id, lista, isfull)
+      
       const rutaPDF = path.join(this.directoryRecibo, `Recibos-${Anio}-${Mes}.pdf`);
       const mergedPdf = await PDFDocument.create();
 
-      if (pathFile == "")
-        throw new ClientException(`Recibo/s no generado/s para el periodo seleccionado`)
+      let urlForValidation = ""
+      console.log("pathFile " + pathFile.length)
+      
+      if (pathFile == undefined || pathFile == "")
+        throw new ClientException(`Recibo/s no generado/s para el periodo seleccionado`);
 
-      for (const filePath of pathFile) {
+        for (const filterDowload of pathFile) {
+
         try {
-          const pdfBytes = await fs.promises.readFile(filePath.path);
-          const pdfDoc = await PDFDocument.load(pdfBytes);
-          const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+      
+          if(isfull){
+            urlForValidation = `${process.env.PATH_RECIBO}/${Anio}${Mes}/${periodo_id}/${filterDowload.PersonalId}-${Mes}-${Anio}.pdf`
+           
+            if (!fs.existsSync(urlForValidation))
+              throw new ClientException(`Error al generar el recibo unificado`);
+
+          }
+            let pdfBytes : any 
+            let pdfDoc : any
+            let copiedPages: any
+
+          if(isfull) {
+             pdfBytes = await fs.promises.readFile(urlForValidation.trim());
+             pdfDoc = await PDFDocument.load(pdfBytes);
+          } else {
+             pdfBytes = await fs.promises.readFile(filterDowload.path);
+             pdfDoc = await PDFDocument.load(pdfBytes);
+          }
+
+            copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+            copiedPages.forEach((page) => mergedPdf.addPage(page));
+            
+
+         // se crea el otro pdf
+         if(isfull) {
+            const pdfBytesCopie = await fs.promises.readFile(urlForValidation.trim());
+            const pdfDocCopie = await PDFDocument.load(pdfBytesCopie);
+            const headerText = "DUPLICADO";
+            const pages = pdfDocCopie.getPages();
+
+          for (let i = 0; i < pages.length; i++) {
+              const { width, height } = pages[i].getSize();
+              const fontSize = 12;
+
+              // Agregar encabezado - para center colocar 260 
+              pages[i].drawText(headerText, {
+                  x: 500,
+                  y: height - 30,
+                  size: fontSize,
+              });
+          }
+
+          copiedPages = await mergedPdf.copyPages(pdfDocCopie, pdfDocCopie.getPageIndices());
           copiedPages.forEach((page) => mergedPdf.addPage(page));
+          }
         } catch (error) {
-          console.error(`Error al procesar el archivo ${filePath}:`, error.message);
+          console.error(`Error al procesar el archivo ${urlForValidation}:`, error.message);
         }
       }
 
@@ -562,6 +611,19 @@ export class RecibosController extends BaseController {
       return next(error)
     }
 
+  }
+
+  async getGrupFilterDowload(queryRunner: QueryRunner,periodo_id: number,){
+    return queryRunner.query(`SELECT DISTINCT g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId as PersonalId
+    FROM lige.dbo.docgeneral doc 
+    JOIN Personal per ON per.PersonalId=doc.persona_id
+    LEFT JOIN GrupoActividadPersonal gaprel
+     ON gaprel.GrupoActividadPersonalPersonalId = per.PersonalId 
+     AND doc.fecha > gaprel.GrupoActividadPersonalDesde 
+     AND doc.fecha < ISNULL(gaprel.GrupoActividadPersonalHasta , '9999-12-31')
+    LEFT JOIN GrupoActividad g ON g.GrupoActividadId = gaprel.GrupoActividadId           
+    WHERE doc.periodo =  @0 AND doc.doctipo_id = 'REC'
+    ORDER BY g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId;`, [periodo_id])
   }
 
   async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: number[], isfull: any) {
