@@ -9,7 +9,12 @@ export class ObjetivoController extends BaseController {
   async ObjetivoInfoFromId(objetivoId: string, res, next: NextFunction) {
     try {
       const result: ObjetivoInfo[] = await dataSource.query(
-        `SELECT obj.ObjetivoId objetivoId, obj.ClienteId clienteId, obj.ClienteElementoDependienteId elementoDependienteId, obj.ObjetivoDescripcion descripcion FROM Objetivo obj WHERE obj.ObjetivoId = @0`,
+        `SELECT obj.ObjetivoId objetivoId, obj.ClienteId clienteId, obj.ClienteElementoDependienteId elementoDependienteId, obj.ObjetivoDescripcion descripcion, 
+        ISNULL(ISNULL(ele.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId
+        FROM Objetivo obj 
+        JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+        LEFT JOIN ClienteElementoDependiente ele ON ele.ElementoDependienteId = obj.ClienteElementoDependienteId AND ele.ClienteId = obj.ClienteId
+        WHERE obj.ObjetivoId = @0`,
         [objetivoId]
       );
       const info = result[0];

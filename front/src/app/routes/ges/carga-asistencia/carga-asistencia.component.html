@@ -44,7 +44,7 @@
                 </ng-template>
                 <nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="width: 100%">
                     <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
-                        (ngModelChange)="formChange($event, Busqueda.Objetivo)" ngModel />
+                        (ngModelChange)="formChange($event, Busqueda.Objetivo)" [(valueExtended)]="objetivoInfo" ngModel />
 
                 </nz-input-group>
             </nz-form-control>

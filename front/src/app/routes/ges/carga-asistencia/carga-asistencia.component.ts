@@ -76,6 +76,7 @@ export class CargaAsistenciaComponent {
     visibleDrawer: boolean = false
     personalApellidoNombre: any;
     rowLocked: boolean = false;
+    objetivoInfo: any = {}
 
     public get Busqueda() {
         return Busqueda;
@@ -86,7 +87,7 @@ export class CargaAsistenciaComponent {
     $formChange = new BehaviorSubject({});
     objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
     isLoadingCheck = false;
-    customHeaderExcel : any[] = []
+    customHeaderExcel: any[] = []
 
     getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
         this.loadingSrv.open({ type: 'spin', text: '' })
@@ -99,7 +100,8 @@ export class CargaAsistenciaComponent {
         ]).pipe(
             map((data: any[]) => {
                 // console.log('DATA',data);
-                this.selectedSucursalId = data[1][0]?.SucursalId
+                //this.selectedSucursalId = this.objetivoInfo?.SucursalId
+                //this.selectedSucursalId = data[1][0]?.SucursalId
                 this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
                 // const totalesHeader = this.totalesHeader()
                 this.excelExportOption.filename = `${this.selectedPeriod.year}-${this.selectedPeriod.month}-${data[2][0]?.ObjetivoCodigo}-${data[2][0]?.ObjetivoDescripcion}`
@@ -121,7 +123,7 @@ export class CargaAsistenciaComponent {
 
                 this.periodos = data[2]
                 this.contratos = data[1]
-                this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null && this.contratos.length>0)
+                this.gridOptionsEdit.editable = (data[2][0]?.ObjetivoAsistenciaAnoMesDesde != null && data[2][0]?.ObjetivoAsistenciaAnoMesHasta == null && this.contratos.length > 0)
 
                 this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
 
@@ -160,7 +162,7 @@ export class CargaAsistenciaComponent {
     sumdays(row: any) {
         let sum = 0
         for (const day in row) {
-            if (day.indexOf('day')!= -1)
+            if (day.indexOf('day') != -1)
                 sum += Number(row[day])
         }
         return sum
@@ -303,22 +305,21 @@ export class CargaAsistenciaComponent {
                 const totalhs = this.sumdays(row)
 
                 if ((row.apellidoNombre.id > 0 && row.categoria.id != '' && row.forma.id != '' && row.dbid > 0) ||
-                (totalhs > 0))
-                {
-                    if (!row.dbid)  
-                        this.rowLocked = true                        
+                    (totalhs > 0)) {
+                    if (!row.dbid)
+                        this.rowLocked = true
                 
                     const response = await this.insertDB(row)
                     if (response.deleteRowId)
                         this.angularGridEdit.gridService.deleteItemById(response.deleteRowId)
                     else if (response.categoria || response.forma || response.newRowId) {
-                            const item = this.angularGridEdit.dataView.getItemById(row.id)
-                            item.categoria = response.categoria ? response.categoria : item.categoria
-                            item.forma = response.forma ? response.forma : item.forma
-                            item.dbid = response.newRowId ? response.newRowId :  item.dbid
-                            this.angularGridEdit.gridService.updateItemById(row.id, item)
+                        const item = this.angularGridEdit.dataView.getItemById(row.id)
+                        item.categoria = response.categoria ? response.categoria : item.categoria
+                        item.forma = response.forma ? response.forma : item.forma
+                        item.dbid = response.newRowId ? response.newRowId : item.dbid
+                        this.angularGridEdit.gridService.updateItemById(row.id, item)
                     }
-                    this.rowLocked = false                        
+                    this.rowLocked = false
 
                 }
    
@@ -387,20 +388,20 @@ export class CargaAsistenciaComponent {
         this.angularGridEdit.slickGrid.onCellChange.subscribe(function (e, args) {
             x.updateTotals(String(args.column.id), x.angularGridEdit)
         });
-/*
-        this.angularGridEdit.dataView.onSetItemsCalled.subscribe((e, arg) => { 
-            x.updateTotals('', x.angularGridEdit)
-
-        })
-
-        this.angularGridEdit.dataView.onRowsOrCountChanged.subscribe((e, arg) => {
-            //            totalRecords(this.angularGridEdit)
-            //            columnTotal('day1', this.angularGridEdit)
-            //            columnTotal('total', this.angularGridEdit)
-            //x.updateTotals('', x.angularGridEdit)
-
-        })
-*/
+        /*
+                this.angularGridEdit.dataView.onSetItemsCalled.subscribe((e, arg) => { 
+                    x.updateTotals('', x.angularGridEdit)
+        
+                })
+        
+                this.angularGridEdit.dataView.onRowsOrCountChanged.subscribe((e, arg) => {
+                    //            totalRecords(this.angularGridEdit)
+                    //            columnTotal('day1', this.angularGridEdit)
+                    //            columnTotal('total', this.angularGridEdit)
+                    //x.updateTotals('', x.angularGridEdit)
+        
+                })
+        */
     }
 
     updateTotals(columnId: string, angularGrid: AngularGridInstance) {
@@ -520,6 +521,7 @@ export class CargaAsistenciaComponent {
                         skipLocationChange: false,
                         replaceUrl: false,
                     })
+                    this.selectedSucursalId = this.objetivoInfo?.SucursalId
                 }
 
                 //                this.router.navigateByUrl('/ges/carga_asistencia', { skipLocationChange: true, state: { 'ObjetivoId': '1' } })
@@ -622,7 +624,7 @@ export class CargaAsistenciaComponent {
 
         try {
             const res = await firstValueFrom(this.apiService.endAsistenciaPeriodo(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
-            finally(() => { this.isLoadingCheck = false })
+                finally(() => { this.isLoadingCheck = false })
             this.$selectedObjetivoIdChange.next(this.selectedObjetivoId)
         } catch (error) {
 
@@ -642,7 +644,7 @@ export class CargaAsistenciaComponent {
 
         try {
             const res = firstValueFrom(this.apiService.validaGrilla(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId)).
-            finally(() => { this.isLoadingCheck = false })
+                finally(() => { this.isLoadingCheck = false })
         } catch (error) {
 
         }
@@ -736,7 +738,7 @@ export class CargaAsistenciaComponent {
             grandTotal = this.gridDataInsert.pop()
             // this.gridDataInsert.pop()
             this.angularGridEdit.dataView.setItems(this.gridDataInsert)
-        // }
+            // }
         } else {
             grandTotal = this.createNewItem(1);
         }
@@ -771,7 +773,7 @@ export class CargaAsistenciaComponent {
         });
 
         this.angularGridEdit.dataView.addItem(grandTotal)
-        let grupos: SlickGroup[]= this.angularGridEdit.dataView.getGroups()
+        let grupos: SlickGroup[] = this.angularGridEdit.dataView.getGroups()
         let grupototal: any = grupos.pop()
         grupototal!.title = ""
         grupos.push(grupototal)
@@ -795,7 +797,7 @@ export class CargaAsistenciaComponent {
             this.addNewItem("bottom")
         }
     }
-    addCustomHeader(){
+    addCustomHeader() {
         let totalHeader: any[] = []
         let totalHoras = 0
         const cantCeldas = 4
@@ -804,7 +806,7 @@ export class CargaAsistenciaComponent {
         //Cantidad de celdas que se van a fusionadar
         let arrayRango: any[] = []
         for (let index = 0; index < cantCeldas; index++) {
-            arrayRango.push({value:''})
+            arrayRango.push({ value: '' })
         }
 
         // //Armar los totales de horas
@@ -832,27 +834,27 @@ export class CargaAsistenciaComponent {
                     // 'fgColor': 'FF7AB573',
                 }],
                 alignment: {
-//                    horizontal: ExcelAlignmentStyle. center,
+                    //                    horizontal: ExcelAlignmentStyle. center,
                 }
 
             };
-            const bFormatDefn = {font: { bold: true }, }
+            const bFormatDefn = { font: { bold: true }, }
             const titleId = stylesheet.createFormat(aFormatDefn);
             const totalId = stylesheet.createFormat(bFormatDefn);
             //Armar los totales de horas
-            let grupos: any[]= this.angularGridEdit.dataView.getGroups()
-            grupos.forEach(( obj, index, arr) => {
+            let grupos: any[] = this.angularGridEdit.dataView.getGroups()
+            grupos.forEach((obj, index, arr) => {
                 if (obj.value != "Totales") {
-                totalHoras += obj.totals.sum.total
-                totalHeader = totalHeader.concat([{ value: `Horas de ${obj.value}:`, metadata: { style: titleId.id } }, ...arrayRango,{ value: obj.totals.sum.total, metadata: { style: totalId.id } }, {value:''}])
-                delete arr[index].totals.sum.total
+                    totalHoras += obj.totals.sum.total
+                    totalHeader = totalHeader.concat([{ value: `Horas de ${obj.value}:`, metadata: { style: titleId.id } }, ...arrayRango, { value: obj.totals.sum.total, metadata: { style: totalId.id } }, { value: '' }])
+                    delete arr[index].totals.sum.total
                 }
             })
-            totalHeader = totalHeader.concat([{ value: `Total de Horas:`, metadata: { style: titleId.id } }, ...arrayRango,{ value: totalHoras, metadata: { style: totalId.id } }])
+            totalHeader = totalHeader.concat([{ value: `Total de Horas:`, metadata: { style: titleId.id } }, ...arrayRango, { value: totalHoras, metadata: { style: totalId.id } }])
             //Sumar a la fila del encabezado los totales de horas
-            const rowNum = this.customHeaderExcel.length-2
+            const rowNum = this.customHeaderExcel.length - 2
             let auxCustomHeaderExcel = [...this.customHeaderExcel]
-            auxCustomHeaderExcel[rowNum] = this.customHeaderExcel[rowNum].concat({value:''},{value:''},{value:''},totalHeader)
+            auxCustomHeaderExcel[rowNum] = this.customHeaderExcel[rowNum].concat({ value: '' }, { value: '' }, { value: '' }, totalHeader)
 
             sheet.mergeCells('A4', 'B4');
 
@@ -881,17 +883,18 @@ export class CargaAsistenciaComponent {
             const char = entrada[i]
             const pos = base.indexOf(char)
             let newPos = pos + carry
-            if (i == entrada.length - 1) 
+            if (i == entrada.length - 1)
                 newPos += salto;
             if (newPos >= base.length) {
                 newPos -= base.length
                 carry = 1
-            } else 
+            } else
                 carry = 0
             result = base[newPos] + result
         }
-        if (carry) 
-            result = 'A'+ result
+        if (carry)
+            result = 'A' + result
         return result
     }
+    
 }
