@@ -49,6 +49,7 @@ const columnasGrilla: any[] = [
     field: "codObjetivo",
     fieldName: "CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0))",
     sortable: true,
+    maxWidth:55
   },
   {
     name: "Grupo Objetivo",

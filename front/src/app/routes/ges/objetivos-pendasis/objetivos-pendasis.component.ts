@@ -211,9 +211,7 @@ export class ObjetivosPendAsisComponent {
     this.gridObj = angularGrid.detail.slickGrid;
 
     if (this.apiService.isMobile())
-      this.angularGrid.gridService.hideColumnByIds(['SucurladId'])
-
-    
+      this.angularGrid.gridService.hideColumnByIds(['SucursalDescripcion','GrupoActividadNumero','AsistenciaHoras'])
 
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGrid)
