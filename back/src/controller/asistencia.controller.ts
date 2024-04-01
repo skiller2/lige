@@ -138,7 +138,7 @@ const columnasPersonalxResponsableDesc: any[] = [
       useRegularTooltip: true, // note regular tooltip will try to find a "title" attribute in the cell formatter (it won't work without a cell formatter)
     },
   },
-  
+
   {
     name: "Importe",
     type: "currency",
@@ -681,7 +681,7 @@ export class AsistenciaController extends BaseController {
             break;
           case "E":
             if (PersonalArt14FormaArt14 == "A" || PersonalArt14FormaArt14 == "H")
-            throw new ClientExceptionArt14(PersonalArt14FormaArt14)
+              throw new ClientExceptionArt14(PersonalArt14FormaArt14)
 
             if (PersonalArt14FormaArt14 == "A") {
               await queryRunner.query(
@@ -693,7 +693,7 @@ export class AsistenciaController extends BaseController {
             break;
           case "H":
             if (PersonalArt14FormaArt14 == "A" || PersonalArt14FormaArt14 == "E")
-            throw new ClientExceptionArt14(PersonalArt14FormaArt14)
+              throw new ClientExceptionArt14(PersonalArt14FormaArt14)
 
             break;
 
@@ -733,7 +733,7 @@ export class AsistenciaController extends BaseController {
         switch (metodo) {
           case "A":
             if (PersonalArt14FormaArt14 == "H" || PersonalArt14FormaArt14 == "E")
-            throw new ClientExceptionArt14(PersonalArt14FormaArt14)
+              throw new ClientExceptionArt14(PersonalArt14FormaArt14)
 
             if (PersonalArt14FormaArt14 == "E") {
               await queryRunner.query(
@@ -745,7 +745,7 @@ export class AsistenciaController extends BaseController {
             break;
           case "E":
             if (PersonalArt14FormaArt14 == "A" || PersonalArt14FormaArt14 == "H")
-            throw new ClientExceptionArt14(PersonalArt14FormaArt14)
+              throw new ClientExceptionArt14(PersonalArt14FormaArt14)
 
             if (PersonalArt14FormaArt14 == "A") {
               await queryRunner.query(
@@ -757,7 +757,7 @@ export class AsistenciaController extends BaseController {
             break;
           case "H":
             if (PersonalArt14FormaArt14 == "A" || PersonalArt14FormaArt14 == "E")
-            throw new ClientExceptionArt14(PersonalArt14FormaArt14)
+              throw new ClientExceptionArt14(PersonalArt14FormaArt14)
 
 
           default:
@@ -837,7 +837,7 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes([], res);
     } catch (error) {
-      console.log('pase por aca',error);
+      console.log('pase por aca', error);
       this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
@@ -1291,12 +1291,12 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     }
   }
 
-  async getPersonalxResponsableCols(req: any, res: Response, next: NextFunction) { 
-      this.jsonRes(columnasPersonalxResponsable, res);
+  async getPersonalxResponsableCols(req: any, res: Response, next: NextFunction) {
+    this.jsonRes(columnasPersonalxResponsable, res);
   }
-  
-  async getPersonalxResponsableDescCols(req: any, res: Response, next: NextFunction) { 
-      this.jsonRes(columnasPersonalxResponsableDesc, res);
+
+  async getPersonalxResponsableDescCols(req: any, res: Response, next: NextFunction) {
+    this.jsonRes(columnasPersonalxResponsableDesc, res);
   }
 
   async getPersonalxResponsable(req: any, res: Response, next: NextFunction) {
@@ -1318,7 +1318,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       let personalIdList: number[] = []
       const filterSql = filtrosToSql(options.filtros, columnasPersonalxResponsable);
       const orderBy = orderToSQL(options.sort)
-  
+
       const personal = await queryRunner.query(
         `SELECT 0,0,'', per.PersonalId, per.PersonalId id, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS PersonaDes,
         cuit.PersonalCUITCUILCUIT,
@@ -1350,8 +1350,13 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         ORDER BY PersonaDes
          `, [personalId, anio, mes])
 
+      if (personal.length==0)
+        return this.jsonRes({ persxresp: [], total: 0 }, res);
+      
       for (let ds of personal)
         personalIdList.push(ds.PersonalId)
+
+
 
       const resDescuentos = await AsistenciaController.getDescuentos(anio, mes, personalIdList)
 
@@ -1364,38 +1369,49 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       for (const row of resAsisObjetiv) {
         const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
-        personal[key].ingresosG_importe += row.totalminutoscalcimporteconart14
-        personal[key].ingresos_horas += row.totalhorascalc
-        personal[key].retiroG_importe = personal[key].ingresosG_importe
+        if (key>0) {
+          personal[key].ingresosG_importe += row.totalminutoscalcimporteconart14
+          personal[key].ingresos_horas += row.totalhorascalc
+          personal[key].retiroG_importe = personal[key].ingresosG_importe
+        }
       }
 
       for (const row of resAsisAdmArt42) {
         const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
-        personal[key].ingresosG_importe += row.total
-        personal[key].ingresos_horas += row.horas
-        personal[key].retiroG_importe = personal[key].ingresosG_importe
+        if (key>0) {
+          personal[key].ingresosG_importe += row.total
+          personal[key].ingresos_horas += row.horas
+          personal[key].retiroG_importe = personal[key].ingresosG_importe
+        }
+
       }
 
       for (const row of resIngreExtra) {
         const key = personal.findIndex(i => i.PersonalId == row.persona_id)
-        personal[key].ingresos_horas += 0
-        if (row.tipocuenta_id == 'C') {
-          personal[key].ingresosC_importe += row.importe
-          personal[key].retiroC_importe = personal[key].ingresosC_importe - personal[key].egresosC_importe
-        } else if (row.tipocuenta_id == 'G') {
-          personal[key].ingresosG_importe += row.importe
-          personal[key].retiroG_importe = personal[key].ingresosG_importe - personal[key].egresosG_importe
+        if (key>0) {
+
+          personal[key].ingresos_horas += 0
+          if (row.tipocuenta_id == 'C') {
+            personal[key].ingresosC_importe += row.importe
+            personal[key].retiroC_importe = personal[key].ingresosC_importe - personal[key].egresosC_importe
+          } else if (row.tipocuenta_id == 'G') {
+            personal[key].ingresosG_importe += row.importe
+            personal[key].retiroG_importe = personal[key].ingresosG_importe - personal[key].egresosG_importe
+          }
         }
       }
 
       for (const row of resDescuentos) {
         const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
-        if (row.tipocuenta_id == 'C') {
-          personal[key].egresosC_importe += row.importe
-          personal[key].retiroC_importe = personal[key].ingresosC_importe - personal[key].egresosC_importe
-        } else if (row.tipocuenta_id == 'G') {
-          personal[key].egresosG_importe += row.importe
-          personal[key].retiroG_importe = personal[key].ingresosG_importe - personal[key].egresosG_importe
+        if (key>0) {
+
+          if (row.tipocuenta_id == 'C') {
+            personal[key].egresosC_importe += row.importe
+            personal[key].retiroC_importe = personal[key].ingresosC_importe - personal[key].egresosC_importe
+          } else if (row.tipocuenta_id == 'G') {
+            personal[key].egresosG_importe += row.importe
+            personal[key].retiroG_importe = personal[key].ingresosG_importe - personal[key].egresosG_importe
+          }
         }
       }
 
@@ -1414,7 +1430,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const mes = Number(req.body.mes);
       const options = req.body.options;
 
-      if (!anio || !mes )
+      if (!anio || !mes)
         return this.jsonRes({ descuentos: [], total: 0 }, res);
 
       const queryRunner = dataSource.createQueryRunner();
@@ -1457,7 +1473,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       const filterSql = filtrosToSql(options.filtros, columnasPersonalxResponsable);
       const orderBy = orderToSQL(options.sort)
-        
+
       const resDescuentos = await AsistenciaController.getDescuentos(anio, mes, personalIdList)
 
       this.jsonRes({ descuentos: resDescuentos, total: 0 }, res);
@@ -1561,7 +1577,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   }
 
   static async getObjetivoAsistencia(anio: number, mes: number, extraFilters: string[], queryRunner: any) {
-    const extraFiltersStr = `${(extraFilters.length > 0) ? 'AND' : ''} ${extraFilters.join(' AND ')}`
+    const cleanFilters = extraFilters.filter(r => r != '')
+    const extraFiltersStr = `${(cleanFilters.length > 0) ? 'AND' : ''} ${cleanFilters.join(' AND ')}`
+
     const result = await queryRunner.query(
       `
       SELECT DISTINCT suc.SucursalId, obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
@@ -2283,8 +2301,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const anio = req.params.anio;
       const mes = req.params.mes;
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner) && 
-        !await this.hasAuthCargaDirecta(anio, mes, res, Number(objetivoId), queryRunner) )
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner) &&
+        !await this.hasAuthCargaDirecta(anio, mes, res, Number(objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para ver asistencia`)
 
       const lista = await this.listaAsistenciaPersonalAsignado(objetivoId, anio, mes, queryRunner)
@@ -2409,8 +2427,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       let anio = req.params.anio;
       let mes = req.params.mes;
 
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner) && 
-      !await this.hasAuthCargaDirecta(anio, mes, res, Number(req.body.objetivoId), queryRunner))
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner) &&
+        !await this.hasAuthCargaDirecta(anio, mes, res, Number(req.body.objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para ver asistencia`)
 
       if (mes == 1) {
