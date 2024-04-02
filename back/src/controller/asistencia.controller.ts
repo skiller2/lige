@@ -1669,11 +1669,11 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias29Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias29Gral),2) AS INT),0)+
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias30Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias30Gral),2) AS INT),0)+
       ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0) 
-      ) / CAST(60 AS FLOAT) + ISNULL(art14H.PersonalArt14Horas,0)) * (COALESCE (valart14cat.ValorLiquidacionHoraNormal, val.ValorLiquidacionHoraNormal)+ ISNULL(art14A.PersonalArt14AdicionalHora,0)) + 
-		ISNULL(art14S.PersonalArt14SumaFija,0)
+      ) / CAST(60 AS FLOAT) + IIF(objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras='N',ISNULL(art14H.PersonalArt14Horas,0),0)) * (COALESCE (valart14cat.ValorLiquidacionHoraNormal, val.ValorLiquidacionHoraNormal)+ ISNULL(art14A.PersonalArt14AdicionalHora,0)) + 
+		IIF(objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras='N',ISNULL(art14S.PersonalArt14SumaFija,0),0)
       AS totalminutoscalcimporteconart14,
-      art14S.PersonalArt14SumaFija,
-      art14H.PersonalArt14Horas,
+      IIF(objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras='N',ISNULL(art14S.PersonalArt14SumaFija,0),0) AS PersonalArt14SumaFija,
+      IIF(objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras='N',ISNULL(art14H.PersonalArt14Horas,0),0) AS PersonalArt14Horas,
       art14A.PersonalArt14AdicionalHora,
       art14E.PersonalArt14TipoAsociadoId,
       art14E.PersonalArt14CategoriaId,
@@ -1731,13 +1731,13 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       WHERE obja.ObjetivoAsistenciaAnoAno = @1 
       AND objm.ObjetivoAsistenciaAnoMesMes = @2
       AND objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras IN ('N','C')
+
       ${extraFiltersStr}
 `,
       [, anio, mes]
     );
 
     for (const row of result) {
-      //totalminutoscalcimporteconart14
     }
     return result
   }

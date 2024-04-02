@@ -57,7 +57,7 @@ export class IngresoCoordinadorCuentaController extends BaseController {
             detalle,
             row.ObjetivoId,
             row.PersonalId,
-            row.totalminutoscalcimporteconart14,
+            0,
             usuario, ip, fechaActual, usuario, ip, fechaActual,
           ]
         );
