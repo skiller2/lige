@@ -1345,7 +1345,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           UNION
           SELECT @0
         )
-
         -- AND (${filterSql}) ${orderBy}
         ORDER BY PersonaDes
          `, [personalId, anio, mes])
@@ -1357,7 +1356,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         personalIdList.push(ds.PersonalId)
 
 
-
       const resDescuentos = await AsistenciaController.getDescuentos(anio, mes, personalIdList)
 
       const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, personalIdList)
@@ -1365,11 +1363,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const resAsisAdmArt42 = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, personalIdList)
       const resIngreExtra = await AsistenciaController.getIngresosExtra(anio, mes, queryRunner, personalIdList)
 
-
-
       for (const row of resAsisObjetiv) {
         const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
-        if (key>0) {
+        if (key>=0) {
           personal[key].ingresosG_importe += row.totalminutoscalcimporteconart14
           personal[key].ingresos_horas += row.totalhorascalc
           personal[key].retiroG_importe = personal[key].ingresosG_importe
@@ -1378,7 +1374,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       for (const row of resAsisAdmArt42) {
         const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
-        if (key>0) {
+        if (key>=0) {
           personal[key].ingresosG_importe += row.total
           personal[key].ingresos_horas += row.horas
           personal[key].retiroG_importe = personal[key].ingresosG_importe
@@ -1388,7 +1384,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       for (const row of resIngreExtra) {
         const key = personal.findIndex(i => i.PersonalId == row.persona_id)
-        if (key>0) {
+        if (key>=0) {
 
           personal[key].ingresos_horas += 0
           if (row.tipocuenta_id == 'C') {
@@ -1403,7 +1399,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       for (const row of resDescuentos) {
         const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
-        if (key>0) {
+        if (key>=0) {
 
           if (row.tipocuenta_id == 'C') {
             personal[key].egresosC_importe += row.importe
