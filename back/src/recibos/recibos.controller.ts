@@ -512,7 +512,8 @@ export class RecibosController extends BaseController {
       Anio,
       Mes,
       isfull,
-      lista
+      lista,
+      isDuplicate
     } = req.body
 
     const user = (res.locals.userName) ? res.locals.userName : Usuario
@@ -525,7 +526,6 @@ export class RecibosController extends BaseController {
     try {
       let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
-
 
      pathFile = isfull 
      ? await this.getGrupFilterDowload(queryRunner,periodo_id) 
@@ -568,19 +568,19 @@ export class RecibosController extends BaseController {
             
 
          // se crea el otro pdf
-         if(isfull) {
+         if(isfull && isDuplicate) {
             const pdfBytesCopie = await fs.promises.readFile(urlForValidation.trim());
             const pdfDocCopie = await PDFDocument.load(pdfBytesCopie);
             const headerText = "DUPLICADO";
             const pages = pdfDocCopie.getPages();
 
           for (let i = 0; i < pages.length; i++) {
-              const { width, height } = pages[i].getSize();
+              const { height } = pages[i].getSize();
               const fontSize = 12;
 
               // Agregar encabezado - para center colocar 260 
               pages[i].drawText(headerText, {
-                  x: 500,
+                  x: 478,
                   y: height - 30,
                   size: fontSize,
               });
