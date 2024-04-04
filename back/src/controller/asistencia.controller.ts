@@ -1584,8 +1584,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
       obj.ObjetivoDescripcion,
 
-      ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
-      gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
+--      ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
+--      gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
                       
       objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras,
       cat.CategoriaPersonalDescripcion,
@@ -1703,9 +1703,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,1)BETWEEN 
           val.ValorLiquidacionDesde AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31')
       
-      LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'28')  BETWEEN gap.GrupoActividadObjetivoDesde AND ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31')
+--      LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND  DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'28')  BETWEEN gap.GrupoActividadObjetivoDesde AND ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31')
 
-      LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+--      LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
 
       LEFT JOIN (
 		SELECT art14SX.PersonalArt14ObjetivoId, art14SX.PersonalId, SUM(art14SX.PersonalArt14SumaFija) PersonalArt14SumaFija FROM 
@@ -1887,12 +1887,14 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       descripcion: "Monto adicional por hora",
       etiqueta: "Imp. Adicional Hora",
     });
+    /*
     recordSet.push({
       id: "H",
       metodo: "H",
       descripcion: "Se suman a las cargadas",
       etiqueta: "Horas adicionales",
     });
+    */
     return recordSet
   }
 
