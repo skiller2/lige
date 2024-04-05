@@ -5,7 +5,6 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { Utils } from "./liquidaciones.utils";
 import { mkdirSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
 import xlsx from 'node-xlsx';
-import { RecibosController } from "../recibos/recibos.controller"
 import { recibosController } from "src/controller/controller.module";
 import { QueryRunner } from "typeorm";
 
