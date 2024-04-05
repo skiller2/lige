@@ -89,7 +89,6 @@ export class CategoriasCambioComponent {
       type: "float",
       id: "monto",
       field: "monto",
-//      fieldName: "des.PersonalOtroDescuentoImporteVariable",
       sortable: true,
 //      formatter: () => '...',
       asyncPostRender: this.renderAngularComponent.bind(this),

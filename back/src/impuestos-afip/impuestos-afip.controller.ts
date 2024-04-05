@@ -378,8 +378,13 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     pagenum
   ) {
     const [personalIDQuery] = await queryRunner.query(
-      "SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro OtroDescuentoId, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre FROM PersonalCUITCUIL cuit JOIN Personal per ON per.PersonalId = cuit.PersonalId WHERE cuit.PersonalCUITCUILCUIT = @0",
-      [Number(CUIT)]
+      `SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro, per.PersonalComprobantePagoAFIPUltNro, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre, excep.PersonalExencionCUIT 
+      FROM PersonalCUITCUIL cuit 
+      JOIN Personal per ON per.PersonalId = cuit.PersonalId
+      LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
+ 
+      WHERE cuit.PersonalCUITCUILCUIT = @0`,
+      [Number(CUIT),anioRequest,mesRequest]
     );
 
     if (!personalIDQuery.PersonalId)
@@ -387,23 +392,27 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
     const personalID = personalIDQuery.PersonalId;
 
-    const ApellidoNombre = personalIDQuery.ApellidoNombre;
+    const PersonalExencionCUIT = personalIDQuery.PersonalExencionCUIT;
+    let PersonalComprobantePagoAFIPUltNro = Number(personalIDQuery.PersonalComprobantePagoAFIPUltNro);
+    let PersonalOtroDescuentoUltNro = Number(personalIDQuery.PersonalOtroDescuentoUltNro);
 
     const alreadyExists = await queryRunner.query(
-      `SELECT * FROM PersonalOtroDescuento des WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = @1 AND des.PersonalOtroDescuentoAnoAplica = @2 AND des.PersonalOtroDescuentoMesesAplica = @3`,
+//      `SELECT * FROM PersonalOtroDescuento des WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = @1 AND des.PersonalOtroDescuentoAnoAplica = @2 AND des.PersonalOtroDescuentoMesesAplica = @3`,
+      `SELECT pag.PersonalComprobantePagoAFIPId  FROM PersonalComprobantePagoAFIP pag WHERE pag.PersonalId = @0 AND pag.PersonalComprobantePagoAFIPAno = @1 AND pag.PersonalComprobantePagoAFIPMes = @2`,
       [
         personalID,
-        Number(process.env.OTRO_DESCUENTO_ID),
         anioRequest,
         mesRequest,
       ]
     );
 
     if (alreadyExists.length > 0) {
+      /*
       if (alreadyExists[0].PersonalOtroDescuentoImporteVariable != importeMonto)
         throw new ClientException(
           `Ya existe un descuento para el periodo ${anioRequest}-${mesRequest} y el CUIT ${CUIT} con importe ${alreadyExists[0].PersonalOtroDescuentoImporteVariable} distinto al cargado`
         );
+      */
     }
 
     mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
@@ -418,35 +427,54 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
     if (alreadyExists.length == 0) {
       const now = new Date();
+      await queryRunner.startTransaction()
+
+      PersonalComprobantePagoAFIPUltNro++
       await queryRunner.query(
-        `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas, PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle, PersonalOtroDescuentoPuesto, PersonalOtroDescuentoUsuarioId, PersonalOtroDescuentoDia, PersonalOtroDescuentoTiempo)
-      VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18)`,
+        `INSERT INTO PersonalComprobantePagoAFIP (PersonalComprobantePagoAFIPId, PersonalId, PersonalComprobantePagoAFIPAno,PersonalComprobantePagoAFIPMes)
+      VALUES (@0, @1, @2, @3)`,
         [
-          personalIDQuery.OtroDescuentoId + 1,
+          PersonalComprobantePagoAFIPUltNro,
           personalID,
-          Number(process.env.OTRO_DESCUENTO_ID),
           anioRequest,
           mesRequest,
-          mesRequest,
-          1,
-          1,
-          importeMonto,
-          now,
-          0,
-          0,
-          null,
-          "",
-          `${mesRequest}/${anioRequest}`, //detalle
-          null,
-          null,
-          null,
-          null
         ]
       );
+
+      if (PersonalExencionCUIT != 1) {
+        PersonalOtroDescuentoUltNro++
+        await queryRunner.query(
+          `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica, PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas, PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas, PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle, PersonalOtroDescuentoPuesto, PersonalOtroDescuentoUsuarioId, PersonalOtroDescuentoDia, PersonalOtroDescuentoTiempo)
+      VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18)`,
+          [
+            PersonalOtroDescuentoUltNro,
+            personalID,
+            Number(process.env.OTRO_DESCUENTO_ID),
+            anioRequest,
+            mesRequest,
+            mesRequest,
+            1,
+            1,
+            importeMonto,
+            now,
+            0,
+            0,
+            null,
+            "",
+            `${mesRequest}/${anioRequest}`, //detalle
+            null,
+            null,
+            null,
+            null
+          ]
+        );
+      }
       await queryRunner.query(
-        `UPDATE Personal SET PersonalOtroDescuentoUltNro = @0 WHERE PersonalId = @1`,
-        [personalIDQuery.OtroDescuentoId + 1, personalID]
+        `UPDATE Personal SET PersonalOtroDescuentoUltNro = @0, PersonalComprobantePagoAFIPUltNro=@1 WHERE PersonalId = @2`,
+        [PersonalOtroDescuentoUltNro, PersonalComprobantePagoAFIPUltNro,personalID]
       );
+      await queryRunner.commitTransaction()
+
     }
 
     if (pagenum == null) {

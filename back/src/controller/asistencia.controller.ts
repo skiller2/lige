@@ -1887,14 +1887,14 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       descripcion: "Monto adicional por hora",
       etiqueta: "Imp. Adicional Hora",
     });
-    /*
+    
     recordSet.push({
       id: "H",
       metodo: "H",
       descripcion: "Se suman a las cargadas",
       etiqueta: "Horas adicionales",
     });
-    */
+    
     return recordSet
   }
 
