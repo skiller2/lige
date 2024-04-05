@@ -22,7 +22,6 @@ import {
   throttleTime,
 } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
-import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { Options } from 'src/app/shared/schemas/filtro';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
@@ -73,12 +72,12 @@ export class CustomDescargaComprobanteComponent {
 export class ImpuestoAfipComponent {
   @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm =
     new NgForm([], []);
-  constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService,private settingService: SettingsService) { }
+  constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService, private settingService: SettingsService) { }
   url = '/api/impuestos_afip';
   url_forzado = '/api/impuestos_afip/forzado';
   toggle = false;
   @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
-  
+
   files: NzUploadFile[] = [];
   anio = 0
   mes = 0
@@ -92,7 +91,7 @@ export class ImpuestoAfipComponent {
   gridDataLen = 0
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
-    if (colDef.params.component && dataContext.monto > 0) {
+    if (colDef.params.component && (dataContext.monto > 0 )) {
       const componentOutput = this.angularUtilService.createAngularComponent(colDef.params.component)
       Object.assign(componentOutput.componentRef.instance, { item: dataContext, anio: this.anio, mes: this.mes })
       cellNode.append(componentOutput.domElement)
@@ -110,27 +109,29 @@ export class ImpuestoAfipComponent {
       sortable: true,
       //      formatter: () => '...',
       asyncPostRender: this.renderAngularComponent.bind(this),
-      formatter : Formatters.multiple,
+      //      formatter : Formatters.multiple,
       params: {
-        formatters: [Formatters.currency],
-        thousandSeparator: '.',
-        decimalSeparator: ',',
+        //        formatters: [Formatters.currency],
+        //        thousandSeparator: '.',
+        //        decimalSeparator: ',',
         component: CustomDescargaComprobanteComponent,
         angularUtilService: this.angularUtilService,
         //complexFieldLabel: 'assignee.name' // for the exportCustomFormatter
       },
-      cssClass: 'text-right',
+      //cssClass: 'text-right',
 
     }
 
     let mapped = cols.map((col: any) => {
-      if (col.id == 'monto'){
-        //console.log('Pase'); 
-        col = colmonto
+      if (col.id == 'monto') {
+        col.formatter = Formatters.multiple
+        col.asyncPostRender = this.renderAngularComponent.bind(this)
+        col.params.formatters= [Formatters.currency]
+        col.params.component= CustomDescargaComprobanteComponent
+        col.params.angularUtilService = this.angularUtilService
       }
       return col
     });
-    console.log('mapped',mapped); 
     return mapped
   }));
   excelExportService = new ExcelExportService()
@@ -174,7 +175,7 @@ export class ImpuestoAfipComponent {
             // this.gridObj.getFooterRowColumn(1).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
             // console.log(gridDataTotalImporte);
             // console.log(this.gridDataLen);
-            
+
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -213,12 +214,12 @@ export class ImpuestoAfipComponent {
     this.resizeSubscription$ = this.resizeObservable$
       .pipe(debounceTime(500))
       .subscribe(evt => {
-//        this.angularGrid.slickGrid.invalidate();
-//        this.angularGrid.slickGrid.reRenderColumns(true)
-//        this.angularGrid.slickGrid.render()
+        //        this.angularGrid.slickGrid.invalidate();
+        //        this.angularGrid.slickGrid.reRenderColumns(true)
+        //        this.angularGrid.slickGrid.render()
       });
 
-   
+
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
 
@@ -314,9 +315,10 @@ export class ImpuestoAfipComponent {
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
-      this.angularGrid.dataView.onRowsChanged.subscribe((e, arg)=>{
-        totalRecords(this.angularGrid)
-        columnTotal('monto', this.angularGrid)
+    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGrid)
+      columnTotal('monto', this.angularGrid)
+      columnTotal('montodescuento', this.angularGrid)
     })
   }
 
@@ -329,9 +331,9 @@ export class ImpuestoAfipComponent {
 
   metrics: any
   refreshMetrics(e: any) {
-    
+
     this.gridOptions.customFooterOptions!.rightFooterText = 'update'
-    this.angularGrid.slickGrid.setOptions({ customFooterOptions: { rightFooterText: 'update'} },)
+    this.angularGrid.slickGrid.setOptions({ customFooterOptions: { rightFooterText: 'update' } },)
 
 
 

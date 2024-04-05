@@ -46,14 +46,14 @@ export class ImpuestosAfipController extends BaseController {
     try {
       await queryRunner.startTransaction()
       const [comprobante] = await queryRunner.query(
-        `SELECT des.PersonalId, cuit.PersonalCUITCUILCUIT cuit, des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoAnoAplica, CONCAT('/',des.PersonalOtroDescuentoAnoAplica,'/',des.PersonalOtroDescuentoAnoAplica,'-',FORMAT(des.PersonalOtroDescuentoMesesAplica,'00'),'-',cuit.PersonalCUITCUILCUIT,'-',des.PersonalId,'.pdf') path,
+        `SELECT des.PersonalId, cuit.PersonalCUITCUILCUIT cuit, des.PersonalComprobantePagoAFIPMes,des.PersonalComprobantePagoAFIPAno, CONCAT('/',des.PersonalComprobantePagoAFIPAno,'/',des.PersonalComprobantePagoAFIPAno,'-',FORMAT(des.PersonalComprobantePagoAFIPMes,'00'),'-',cuit.PersonalCUITCUILCUIT,'-',des.PersonalId,'.pdf') path,
         CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre, ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle
-        FROM PersonalOtroDescuento des 
+        FROM PersonalComprobantePagoAFIP des 
         JOIN Personal per ON per.PersonalId = des.PersonalId
         JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = des.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = des.PersonalId)
         JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = des.PersonalId
         JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
-        WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = 31 AND des.PersonalOtroDescuentoAnoAplica = @1 AND des.PersonalOtroDescuentoMesesAplica = @2
+        WHERE des.PersonalId = @0 AND des.PersonalComprobantePagoAFIPAno = @1 AND des.PersonalComprobantePagoAFIPMes = @2
         `,
         [personalId, year, month]
       );
@@ -229,15 +229,12 @@ export class ImpuestosAfipController extends BaseController {
   async getLastPeriodosOfComprobantes( personalId: number, cant: number ) {
     const queryRunner = dataSource.createQueryRunner();
     try {
-      // await queryRunner.startTransaction()
       const respuesta = queryRunner.query(`
-        SELECT TOP ${cant} des.PersonalId, des.PersonalOtroDescuentoMesesAplica mes, des.PersonalOtroDescuentoAnoAplica anio
-        FROM PersonalOtroDescuento des 
-        WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = 31
-        ORDER BY des.PersonalOtroDescuentoAnoAplica DESC, des.PersonalOtroDescuentoMesesAplica DESC`, 
+      SELECT TOP ${cant} des.PersonalId, des.PersonalComprobantePagoAFIPMes mes, des.PersonalComprobantePagoAFIPAno anio
+      FROM PersonalComprobantePagoAFIP des 
+      WHERE des.PersonalId = @0
+      ORDER BY des.PersonalComprobantePagoAFIPAno DESC, des.PersonalComprobantePagoAFIPMes DESC`, 
         [personalId])
-      // await queryRunner.commitTransaction()
-      console.log('Periodos', respuesta);
       
       return respuesta
     } catch (error) {

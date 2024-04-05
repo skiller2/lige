@@ -11,10 +11,14 @@ export class PersonalController extends BaseController {
     const personalId = req.params.personalId;
     const anio = req.params.anio;
     const mes = req.params.mes;
+    
     try {
       const result = await dataSource.query(
-        `SELECT des.PersonalId,des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoAnoAplica FROM PersonalOtroDescuento des WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = @1 AND des.PersonalOtroDescuentoAnoAplica = @2 AND des.PersonalOtroDescuentoMesesAplica = @3`,
-        [personalId, Number(process.env.OTRO_DESCUENTO_ID), anio, mes]
+        `SELECT com.PersonalId, com.PersonalComprobantePagoAFIPAno, com.PersonalComprobantePagoAFIPMes
+        FROM PersonalComprobantePagoAFIP com 
+        WHERE com.PersonalId = @0 AND com.PersonalComprobantePagoAFIPAno = @1 AND com.PersonalComprobantePagoAFIPMes = @2
+        `,
+        [personalId, anio, mes]
       );
 
       this.jsonRes(result, res);

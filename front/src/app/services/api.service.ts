@@ -1,10 +1,8 @@
 import { Inject, Injectable, Injector, LOCALE_ID } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
-import { DescuentoJSON, ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON';
+import {  ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON';
 import { Observable, catchError, combineLatest, debounceTime, defer, filter, map, of, tap, throwError } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { error } from 'pdf-lib';
-import { DownloadService } from './download.service';
 import { formatNumber } from '@angular/common';
 import { ExternalResource, Formatters } from '@slickgrid-universal/common';
 import { AngularUtilService, Column, GridOption } from 'angular-slickgrid';

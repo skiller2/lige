@@ -37,6 +37,16 @@ const listaColumnas: any[] = [
     type: "currency",
     id: "monto",
     field: "monto",
+    fieldName: "com.PersonalComprobantePagoAFIPImporte",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
+    name: "Importe descuento",
+    type: "currency",
+    id: "montodescuento",
+    field: "montodescuento",
     fieldName: "des.PersonalOtroDescuentoImporteVariable",
     sortable: true,
     searchHidden: false,
@@ -72,27 +82,7 @@ const listaColumnas: any[] = [
     searchHidden: false,
     hidden:true
   },
-  {
-    name: "ID Descuento",
-    field: "descuento",
-    type: "number",
-    id: "PersonalOtroDescuentoId",
-    sortable: true,
-    hidden: true,
-    searchHidden: false
-  },
-  /*
-  {
-    name: "PersonalIdJ",
-    type: "string",
-    id: "PersonalIdJ",
-    field: "PersonalIdJ",
-    fieldName: "perrel.PersonalCategoriaPersonalId",
-    sortable: false,
-    hidden: true,
-    searchHidden: false
-  },
-  */
+
   {
     name: "Cliente",
     type: "string",

@@ -13,9 +13,9 @@ export interface DescuentoJSON {
   CUITJ: number;
   ApellidoNombreJ: string;
   monto: null | number;
-  PersonalOtroDescuentoAnoAplica: null | number;
-  PersonalOtroDescuentoMesesAplica: null | number;
-  PersonalOtroDescuentoDescuentoId: null | number;
+  PersonalComprobantePagoAFIPAno: null | number;
+  PersonalComprobantePagoAFIPMes: null | number;
+  PersonalComprobantePagoAFIPId: null | number;
   clicked?: boolean;
 }
 
