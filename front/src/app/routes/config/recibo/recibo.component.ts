@@ -4,10 +4,12 @@ import {
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { BehaviorSubject} from 'rxjs';
-import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { SHARED_IMPORTS } from '@shared';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PersonalGrupoComponent } from '../../ges/personal-grupo/personal-grupo.component';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
+import { NzMessageModule,NzMessageService } from 'ng-zorro-antd/message';
+import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 
 
 
@@ -21,7 +23,10 @@ enum Busqueda {
   imports: [
     NzInputModule,
     NzDatePickerModule,
-    SHARED_IMPORTS,PersonalGrupoComponent,PersonalSearchComponent],
+    SHARED_IMPORTS,
+    PersonalGrupoComponent,
+    PersonalSearchComponent,
+    NzMessageModule],
   templateUrl: './recibo.component.html',
   styleUrl: './recibo.component.less'
 })
@@ -34,8 +39,10 @@ export class ReciboComponent {
 
   
   constructor(
+    public apiService: ApiService,
     private router: Router,
     private route: ActivatedRoute,
+    private message: NzMessageService
   ) { }
 
   @Input('PersonalId') PersonalId: number | undefined
@@ -45,6 +52,9 @@ export class ReciboComponent {
   selectedPeriod = { year: 0, month: 0 };
   selectedPersonalId = 0;
   $isPersonalDataLoading = new BehaviorSubject(false);
+  headUpdate = "";
+  bodyUpdate = "";
+  footerUpdate = "";
 
   dateChange(result: Date): void {
     this.selectedPeriod.year = result.getFullYear();
@@ -54,6 +64,8 @@ export class ReciboComponent {
     localStorage.setItem('mes', String(this.selectedPeriod.month));
 
     this.formChange('');
+
+    
   }
 
   formChange(event: any) {
@@ -75,6 +87,23 @@ export class ReciboComponent {
 
         return;
     }
+  }
+
+  generateRecibo(isTest:boolean){
+
+    
+     
+    if(this.selectedPeriod.month == 0 ){
+      this.message.create("error", `Debe seleccionar una fecha`);
+      return
+    }
+    // if(this.selectedPersonalId == 0 ){
+    //   this.message.create("error", `Debe seleccionar una persona`);
+    //   return
+    // }
+    this.selectedPersonalId= 111
+    this.apiService.updateRecibo(isTest,this.selectedPersonalId,this.selectedPeriod.month,this.selectedPeriod.year, this.headUpdate, this.bodyUpdate, this.footerUpdate)
+     
   }
 
   

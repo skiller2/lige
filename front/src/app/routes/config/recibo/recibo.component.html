@@ -70,16 +70,23 @@
     <nz-form-control style="display: flex; justify-content: center; align-items: center;">
 
       <button  nz-popconfirm nzType="primary" class="btn-add"
-        nzPopconfirmTitle="Confirmar genear prueba?" nzPopconfirmPlacement="topLeft"
+        nzPopconfirmTitle="Confirmar genear prueba?" (nzOnConfirm)="generateRecibo(true)" nzPopconfirmPlacement="topLeft"
         nz-button>
         Generar Prueba
       </button>
 
       <button  nz-popconfirm nzType="primary" class="btn-add"
-      nzPopconfirmTitle="Confirmar guardar cambios?" nzPopconfirmPlacement="topLeft"
+      nzPopconfirmTitle="Confirmar guardar cambios?" (nzOnConfirm)="generateRecibo(false)"  nzPopconfirmPlacement="topLeft"
       nz-button>
       Guardar Cambios
     </button>
+
+
+    <li app-down-file [httpMethod]="'POST'"
+        [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month}"
+        httpUrl="/api/recibos/recibosconfig" notificationMsg="test">
+        <span nz-icon nzType="download"></span><span style="white-space: normal;">test</span>
+      </li>
 
     </nz-form-control>
   </nz-form-item>

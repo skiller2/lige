@@ -1,7 +1,7 @@
 import { AuthController } from "./auth.controller";
 import { InfoController } from "./info.controller";
 import { PersonalController } from "./personal.controller";
-import { ClienteController } from "./cliente.controller";
+import { ClienteController } from "./cliente.Controller";
 import { InitController } from "./init.controller";
 import { SucursalController } from "./sucursal.controller";
 import { ObjetivoController } from "./objetivo.controller";
@@ -24,6 +24,8 @@ import { InformesController } from "../informes/informes.controller";
 import { PendienteController } from "../controller/pendiente.controller"
 import { TipoDocumentoController } from "../tipo-documento/tipo-documento.controller"
 import { RecibosController } from "../recibos/recibos.controller"
+import { RecibosConfigController } from "../recibos/recibos-config.controller"
+
 
 
 
@@ -53,5 +55,6 @@ export const informesController = new InformesController();
 export const pendienteController = new PendienteController();
 export const tipoDocumentoController = new TipoDocumentoController();
 export const recibosController = new RecibosController();
+export const recibosConfigController = new RecibosConfigController();
 
 
