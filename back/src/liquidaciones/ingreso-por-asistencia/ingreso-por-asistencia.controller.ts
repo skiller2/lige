@@ -6,6 +6,7 @@ import { ParsedQs } from "qs";
 import { Client } from "ldapts";
 import { Utils } from "../liquidaciones.utils";
 import { AsistenciaController } from "src/controller/asistencia.controller";
+import { recibosController } from "src/controller/controller.module";
 
 
 export class IngresoPorAsistenciaController extends BaseController {
@@ -21,6 +22,14 @@ export class IngresoPorAsistenciaController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
 
     try {
+
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+          throw new ClientException(`Los recibos para este periodo ya se generaron`)
+
       if (tipo_movimiento_id == 0 || Number.isNaN(tipo_movimiento_id))
         throw new ClientException("Tipo de monvimiento 'MOV_ASISTENCIA_VIGILANCIA' no definindo en .env ")
 
@@ -39,9 +48,6 @@ export class IngresoPorAsistenciaController extends BaseController {
       await queryRunner.startTransaction();
 
       const result = await AsistenciaController.getObjetivoAsistencia(anio,mes,[],queryRunner)
-
-
-      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
 
       await queryRunner.query(
         `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `,[ periodo_id, tipo_movimiento_id ])

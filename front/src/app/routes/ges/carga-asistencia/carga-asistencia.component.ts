@@ -263,7 +263,8 @@ export class CargaAsistenciaComponent {
                 alignment: { horizontal: 'center' },
                 font: { color: 'black', size: 10, bold: true },
                 fill: { type: 'pattern', patternType: 'solid', fgColor: '6A9BCC' },
-            }
+            },
+            exportWithFormatter : true
         }
         this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.grid-container-asis', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptionsEdit.enableRowDetailView = false
@@ -472,10 +473,11 @@ export class CargaAsistenciaComponent {
                 groupTotalsFormatter: this.sumTotalsFormatterCustom,
                 groupTotalsExcelExportOptions: {
                     style: {
-                        font: { bold: true, size: 10 },
+                        font: { bold: true },
                         alignment: { horizontal: 'center' },
                     },
                 },
+                // exportWithFormatter: true,
             });
         }
 
@@ -489,15 +491,20 @@ export class CargaAsistenciaComponent {
             minWidth: 50,
             cssClass: 'text-right',
             excelExportOptions: {
+                style: { 
+                    font: { bold: true },
+                    fill: { type: 'pattern', patternType: 'solid', fgColor: 'ffd5d5d5',}
+                },
                 width: 6,
             },
             groupTotalsFormatter: this.sumTotalsFormatterCustom,
             groupTotalsExcelExportOptions: {
                 style: {
-                    font: { bold: true, size: 10 },
+                    font: { bold: true },
                     alignment: { horizontal: 'center' },
                 },
             },
+            // exportWithFormatter: true,
         });
 
         return columnDays
@@ -581,10 +588,6 @@ export class CargaAsistenciaComponent {
         //        item.tipo = ''
         //        this.angularGridEdit.gridService.updateItemById(item.id, item)
     }
-
-    // categoryChange(e: Event, args: any) {
-    //     console.log('HUBO CAMBIO DE CATEGORIA');
-    // }
 
     editColumnSelectOptions(column: string, array: Object[], campo: string, columns: any) {
         const idColumn = this.angularGridEdit.slickGrid.getColumnIndex(column)
@@ -696,7 +699,6 @@ export class CargaAsistenciaComponent {
     }
 
     getPersonalIdFromGrid(): number {
-        // console.log('getPersonalIdFromGrid')
         const selrows = this.angularGridEdit.slickGrid.getSelectedRows()
         if (selrows[0] == undefined) return 0
         const row = this.angularGridEdit.slickGrid.getDataItem(selrows[0])
@@ -754,19 +756,10 @@ export class CargaAsistenciaComponent {
             }
         })
         grandTotal.total = this.angularGridEdit.slickGrid.getFooterRowColumn('total').innerText
-        grandTotal.forma = { fullName: 'Totales' }
+        grandTotal.forma = { fullName: 'TOTALES' }
 
         this.angularGridEdit.dataView.setGrouping({
             getter: (g) => g.forma.fullName,
-            /*
-             formatter: (g) => {
-                 return `<span style="text-align:star">Forma: ${g.value}</span>   <span style="color:green" style="text-align:end">[${g.count} filas]</span>`;
-             },
-             
-             comparer: (a, b) => {
-                 return SortComparers.numeric(a.value.fullName, b.value.fullName, SortDirectionNumber.desc);
-               },
-               */
             aggregators: aggregatorsArray,
             aggregateCollapsed: false,
             lazyTotalsCalculation: true,
@@ -826,17 +819,17 @@ export class CargaAsistenciaComponent {
         //Crear el encabezado del Excel
         this.excelExportOption.customExcelHeader = (workbook, sheet) => {
             const stylesheet = workbook.getStyleSheet();
+            
             const aFormatDefn = {
                 font: { 'size': 12, 'fontName': 'Calibri', 'bold': true },
-                fills: [{
-                    // 'type': 'pattern',
-                    // 'patternType': 'solid',
-                    // 'fgColor': 'FF7AB573',
-                }],
-                alignment: {
-                    //                    horizontal: ExcelAlignmentStyle. center,
-                }
-
+                fill: {
+                    type: 'pattern' as const,
+                    patternType: 'solid',
+                    fgColor: 'FF7AB573',
+                },
+                alignment: { 
+                    horizontal: 'center' as const, // Forzar el tipo a "center"
+                },
             };
             const bFormatDefn = { font: { bold: true }, }
             const titleId = stylesheet.createFormat(aFormatDefn);
@@ -844,7 +837,7 @@ export class CargaAsistenciaComponent {
             //Armar los totales de horas
             let grupos: any[] = this.angularGridEdit.dataView.getGroups()
             grupos.forEach((obj, index, arr) => {
-                if (obj.value != "Totales") {
+                if (obj.value != "TOTALES") {
                     totalHoras += obj.totals.sum.total
                     totalHeader = totalHeader.concat([{ value: `Horas de ${obj.value}:`, metadata: { style: titleId.id } }, ...arrayRango, { value: obj.totals.sum.total, metadata: { style: totalId.id } }, { value: '' }])
                     delete arr[index].totals.sum.total
