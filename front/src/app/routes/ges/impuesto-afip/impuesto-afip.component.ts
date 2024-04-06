@@ -33,6 +33,7 @@ import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row
 import { CommonModule, NgIf } from '@angular/common';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';
+import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
 
 @Component({
   standalone: true,
@@ -54,20 +55,21 @@ export class CustomDescargaComprobanteComponent {
 
 
 @Component({
-  selector: 'app-impuesto-afip',
-  templateUrl: './impuesto-afip.component.html',
-  standalone: true,
-  imports: [
-    CommonModule,
-    SHARED_IMPORTS,
-    NzAffixModule,
-    FiltroBuilderComponent,
-    RowPreloadDetailComponent,
-    RowDetailViewComponent,
-    NzUploadModule
-  ],
-  styleUrls: ['./impuesto-afip.component.less'],
-  providers: [AngularUtilService]
+    selector: 'app-impuesto-afip',
+    templateUrl: './impuesto-afip.component.html',
+    standalone: true,
+    styleUrls: ['./impuesto-afip.component.less'],
+    providers: [AngularUtilService],
+    imports: [
+        CommonModule,
+        SHARED_IMPORTS,
+        NzAffixModule,
+        FiltroBuilderComponent,
+        RowPreloadDetailComponent,
+        RowDetailViewComponent,
+        NzUploadModule,
+        DetallePersonaComponent
+    ]
 })
 export class ImpuestoAfipComponent {
   @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm =
@@ -81,7 +83,7 @@ export class ImpuestoAfipComponent {
   files: NzUploadFile[] = [];
   anio = 0
   mes = 0
-  selectedPersonalId = null;
+  selectedPersonalId:number=0;
   formChange$ = new BehaviorSubject('');
   filesChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
@@ -89,6 +91,7 @@ export class ImpuestoAfipComponent {
   columnDefinitions: Column[] = []
   gridOptions!: GridOption;
   gridDataLen = 0
+  visibleDrawer = false
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && (dataContext.monto > 0 )) {
@@ -101,27 +104,6 @@ export class ImpuestoAfipComponent {
 
 
   columns$ = this.apiService.getCols('/api/impuestos_afip/cols').pipe(map((cols) => {
-    const colmonto: Column = {
-      name: "Importe",
-      type: "float",
-      id: "monto",
-      field: "monto",
-      sortable: true,
-      //      formatter: () => '...',
-      asyncPostRender: this.renderAngularComponent.bind(this),
-      //      formatter : Formatters.multiple,
-      params: {
-        //        formatters: [Formatters.currency],
-        //        thousandSeparator: '.',
-        //        decimalSeparator: ',',
-        component: CustomDescargaComprobanteComponent,
-        angularUtilService: this.angularUtilService,
-        //complexFieldLabel: 'assignee.name' // for the exportCustomFormatter
-      },
-      //cssClass: 'text-right',
-
-    }
-
     let mapped = cols.map((col: any) => {
       if (col.id == 'monto') {
         col.formatter = Formatters.multiple
@@ -233,7 +215,9 @@ export class ImpuestoAfipComponent {
 
     setTimeout(() => {
       if (gruposActividadList.length > 0)
-        this.sharedFiltroBuilder.addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'))  //Ej 548
+        this.sharedFiltroBuilder.addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'))
+      this.sharedFiltroBuilder.addFilter('PersonalExencionCUIT', 'AND', '=', 'null')
+      this.sharedFiltroBuilder.addFilter('monto', 'AND', '=', 'null')
     }, 3000);
 
   }
@@ -352,5 +336,19 @@ export class ImpuestoAfipComponent {
       });
     }
   }
+
+  closeDrawer(): void {
+    this.visibleDrawer = false;
+  }
+
+
+  openDrawer(): void {
+    const PersonalId=this.angularGrid.dataView.getAllSelectedItems()[0]?.PersonalId
+    if (PersonalId) {
+      this.selectedPersonalId = PersonalId
+      this.visibleDrawer = true
+    }
+  }
+
 
 }

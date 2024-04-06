@@ -8,7 +8,6 @@ import { ExternalResource, Formatters } from '@slickgrid-universal/common';
 import { AngularUtilService, Column, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 
-
 @Injectable({
   providedIn: 'root',
 })
@@ -671,5 +670,3 @@ export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T
     });
   };
 }
-
-

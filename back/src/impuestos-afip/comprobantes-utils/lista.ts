@@ -116,6 +116,18 @@ const listaColumnas: any[] = [
     hidden: false,
     searchHidden: false
   },
+  {
+    name: "PersonalId",
+    type: "number",
+    id: "PersonalId",
+    field: "PersonalId",
+    fieldName: "PersonalId",
+    searchType:"number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+
 
 ];
 

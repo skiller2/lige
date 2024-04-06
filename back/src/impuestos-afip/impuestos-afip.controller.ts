@@ -246,7 +246,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 --     AND excep.PersonalExencionCUIT IS NULL
 
 	-- AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
-  AND sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26)
+  AND (sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26) OR com.PersonalComprobantePagoAFIPId is not null)
     AND (${filterSql2}) 
     ${orderBy}
    `,
@@ -254,7 +254,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     );
   }
 
-  getDescuentosByPeriodo(options: {
+  getMonotributosByPeriodo(options: {
     anio: string;
     mes: string;
     descuentoId: string;
@@ -296,7 +296,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
    1=1
 
    AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
-     AND excep.PersonalExencionCUIT IS NULL
+     AND excep.PersonalExencionCUIT IS NULL 
 
 	-- AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
   AND sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26)
@@ -348,7 +348,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
     try {
-      const result: DescuentoJSON[] = await this.getDescuentosByPeriodo({
+      const result: DescuentoJSON[] = await this.getMonotributosByPeriodo({
         anio,
         mes,
         descuentoId,
@@ -356,9 +356,10 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       });
       const sincomprobante = result.reduce(
         (total, item: any) =>
-          item.PersonalOtroDescuentoDescuentoId == null ? total + 1 : total,
+          (item.PersonalComprobantePagoAFIPId == null) ? total + 1 : total,
         0
       );
+      
       this.jsonRes(
         {
           RegistrosConComprobantes: result.length - sincomprobante,
@@ -377,24 +378,30 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     CUIT,
     anioRequest,
     mesRequest,
-    importeMonto:number,
+    importeMonto: number,
     file,
     pagenum
   ) {
     const [personalIDQuery] = await queryRunner.query(
-      `SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro, per.PersonalComprobantePagoAFIPUltNro, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre, excep.PersonalExencionCUIT 
+      `SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro, per.PersonalComprobantePagoAFIPUltNro, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre,
+      excep.PersonalExencionCUIT, imp.PersonalImpuestoAFIPId
       FROM PersonalCUITCUIL cuit 
       JOIN Personal per ON per.PersonalId = cuit.PersonalId
+      LEFT JOIN PersonalImpuestoAFIP imp ON imp.PersonalId=per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
+
       LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
  
       WHERE cuit.PersonalCUITCUILCUIT = @0`,
-      [Number(CUIT),anioRequest,mesRequest]
+      [Number(CUIT), anioRequest, mesRequest]
     );
 
     if (!personalIDQuery.PersonalId)
       throw new ClientException(`No se pudo encontrar el CUIT ${CUIT}`);
 
-    if (importeMonto<1000)
+    if (!personalIDQuery.PersonalImpuestoAFIPId)
+      throw new ClientException(`El CUIT ${CUIT} no tiene alta en Impuesto AFIP`);
+
+    if (importeMonto < 1000)
       throw new ClientException(`El importe no es válido`);
 
     const personalID = personalIDQuery.PersonalId;
@@ -413,12 +420,12 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     );
 
     if (alreadyExists.length > 0) {
-      
+
       if (alreadyExists[0].PersonalComprobantePagoAFIPImporte != importeMonto)
         throw new ClientException(
           `Ya existe un descuento para el periodo ${anioRequest}-${mesRequest} y el CUIT ${CUIT} con importe ${alreadyExists[0].PersonalComprobantePagoAFIPImporte} distinto al cargado`
         );
-      
+
     }
 
     mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
@@ -478,7 +485,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       }
       await queryRunner.query(
         `UPDATE Personal SET PersonalOtroDescuentoUltNro = @0, PersonalComprobantePagoAFIPUltNro=@1 WHERE PersonalId = @2`,
-        [PersonalOtroDescuentoUltNro, PersonalComprobantePagoAFIPUltNro,personalID]
+        [PersonalOtroDescuentoUltNro, PersonalComprobantePagoAFIPUltNro, personalID]
       );
       await queryRunner.commitTransaction()
 
@@ -683,8 +690,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       let filtros: Filtro[] = []
 
-//      if (personalIdRel != '')
-//        filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: [personalIdRel] })
+      //      if (personalIdRel != '')
+      //        filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: [personalIdRel] })
 
       const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
         anio: year,
@@ -907,7 +914,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
   async downloadPersonaF184(PersonalId: number, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
+    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     try {
       const fechaActual = new Date();
       const ds = await queryRunner
@@ -923,12 +930,12 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       if (ds.length == 0)
         throw new ClientException(`Documento no existe para la persona`);
 
-      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo}`;
+      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo}`;
 
       if (!existsSync(downloadPath))
-        throw new ClientException(`El archivo F184 no existe`,{'path':downloadPath});
+        throw new ClientException(`El archivo F184 no existe`, { 'path': downloadPath });
 
-      res.download(downloadPath, ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo, (msg) => {});
+      res.download(downloadPath, ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo, (msg) => { });
 
     } catch (error) {
       return next(error)

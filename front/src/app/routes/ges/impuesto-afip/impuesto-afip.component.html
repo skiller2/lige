@@ -1,7 +1,7 @@
 <nz-card class="small-margin">
   <form nz-form #impuestoForm="ngForm">
     <ul nz-menu nzMode="horizontal">
-      <li nz-menu-item nzMatchRouter >
+      <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'impuesto_afip','listado']">Listado</a>
       </li>
@@ -15,7 +15,7 @@
           <li nz-menu-item app-down-file [httpMethod]="'POST'"
             [httpBody]="{anio, mes, options: listOptions, cantxpag:4}"
             httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
-            <span nz-icon nzType="download"></span><span style="white-space: normal;">Comp 4 x páginas</span> 
+            <span nz-icon nzType="download"></span><span style="white-space: normal;">Comp 4 x páginas</span>
           </li>
           <li nz-menu-item app-down-file [httpMethod]="'POST'"
             [httpBody]="{anio, mes, options: listOptions, cantxpag:1}"
@@ -31,20 +31,21 @@
     </ul>
 
     <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
+    <nz-button-group style="float: right;">
+      <button nz-button nzType="default" (click)="openDrawer()"><span nz-icon nzType="user"
+          nzTheme="outline"></span></button>
+    </nz-button-group>
+
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
-      <nz-tab >
+      <nz-tab>
         <a nz-tab-link routerLink="/ges/impuesto_afip/listado">Listado</a>
         <ng-template nz-tab *ngIf="(columns$|async) as columnas">
           <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
-          <div class="gridContainer container-fluid" >
-            <angular-slickgrid gridId="grid22" class="" 
-              [columnDefinitions]="columnas | colsFilter"
-              [gridOptions]="gridOptions" 
-              [dataset]="(gridData$ | async) || []"
-              (onAngularGridCreated)="angularGridReady($event)"
-              (onRowCountChanged)="refreshMetrics($event)"
-              >
+          <div class="gridContainer container-fluid">
+            <angular-slickgrid gridId="grid22" class="" [columnDefinitions]="columnas | colsFilter"
+              [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+              (onAngularGridCreated)="angularGridReady($event)" (onRowCountChanged)="refreshMetrics($event)">
             </angular-slickgrid>
           </div>
           <!-- <div>Registros: {{ gridDataLen }}</div> -->
@@ -102,3 +103,5 @@
     </nz-tabset>
   </form>
 </nz-card>
+<app-detalle-persona [anio]="anio" [mes]="mes" [SucursalId]="0" [PersonalId]="selectedPersonalId"
+  [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>
