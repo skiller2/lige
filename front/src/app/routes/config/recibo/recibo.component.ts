@@ -18,18 +18,12 @@ import { NgForm } from '@angular/forms';
     NzDatePickerModule,
     SHARED_IMPORTS, PersonalGrupoComponent, PersonalSearchComponent],
   templateUrl: './recibo.component.html',
-  styleUrl: './recibo.component.less'
+  styleUrl: './recibo.component.less',
+  
 })
 export class ReciboComponent {
   ngForm = viewChild.required(NgForm);
   @Input('PersonalId') PersonalId: number | undefined
-
-  constructor(
-    private router: Router,
-    private route: ActivatedRoute,
-
-  ) {
-  }
 
   ngOnInit() {
     setTimeout(() => {
@@ -38,7 +32,6 @@ export class ReciboComponent {
       const mes = Number(localStorage.getItem('mes')) > 0 ? Number(localStorage.getItem('mes')) : now.getMonth() + 1;
       this.ngForm().controls['periodo']?.setValue(new Date(anio, mes - 1, 1))
 
-//      this.ngForm().controls['PersonalId'].setValue(this.PersonalId);
     }, 0);
 
   }
