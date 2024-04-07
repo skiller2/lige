@@ -1,87 +1,66 @@
-<!-- 
-<nz-form-item>
-    <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
-    <nz-form-control>
-     
-    </nz-form-control>
-  </nz-form-item> -->
-  
-  <nz-form-item >
-    <nz-form-label [nzSpan]="3">Fecha</nz-form-label>
-    <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
-  </nz-form-item>
+<nz-card class="small-margin">
+  <form nz-form ngForm (change)="formChange($event)">
 
-  <nz-form-item>
-    
-    <nz-form-label [nzSpan]="3">Persona</nz-form-label>
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Período</nz-form-label>
+      <nz-form-control [nzSpan]="5">
 
-    <nz-form-control [nzSpan]="17">
-      <ng-template>
-        <a (click)="openDrawer()"><span nz-icon nzType="user" nzTheme="outline"></span></a>
-      </ng-template>
-      <nz-input-group style="width: 100%">
-        <app-personal-search name="PersonalId" [(ngModel)]="selectedPersonalId"
-          (ngModelChange)="selectedValueChange($event, Busqueda.Personal)" ngModel />
-      </nz-input-group>
-    </nz-form-control>
-  </nz-form-item>
-
-  <nz-form-item>
-    <nz-form-label [nzSpan]="3">Header</nz-form-label>
-
-    <nz-form-control [nzSpan]="17">
-        <textarea rows="3" nz-input ></textarea> 
+        <nz-date-picker nzMode="month" name="periodo" nzFormat="MM/yyyy" ngModel/>
       </nz-form-control>
-      <nz-form-control [nzSpan]="17" >
-        <h4 style="font-size: 11px !important; margin-left:20%">*IMPORTANTE: variables necesarias en el HTML - MES: (mes) AÑO: (anio) Id del recibo: (idrecibo) Fecha: (fechaFormateada) </h4>
-    </nz-form-control>
+    </nz-form-item>
 
-
-  </nz-form-item>
-
-  <nz-form-item>
-    <nz-form-label [nzSpan]="3">Body</nz-form-label>
-
-    <nz-form-control [nzSpan]="17">
-        <textarea rows="3" nz-input ></textarea> 
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Persona</nz-form-label>
+      <nz-form-control [nzSpan]="17">
+        <nz-input-group style="width: 100%">
+          <app-personal-search name="PersonalId" />
+        </nz-input-group>
       </nz-form-control>
+    </nz-form-item>
 
-      <nz-form-control [nzSpan]="17" >
-        <h4 style="font-size: 11px !important; margin-left:20%">*IMPORTANTE: variables necesarias en el HTML - Nombre: (PersonaNombre) Cuit: (Cuit) Domicilio: (Domicilio) Asociado: (asociado)
-        Grupo: (grupo) Detalle Adelanto: (textadelanto) Detalle Retribucion: (textingreso) Detalle retencion: (textegreso) 
-        Retribucion neta: (textneto) (neto) Detalle deposito (textdeposito) </h4>
-    </nz-form-control>
-  </nz-form-item>
-
-  <nz-form-item>
-    <nz-form-label [nzSpan]="3">Footer</nz-form-label>
-
-    <nz-form-control [nzSpan]="17">
-        <textarea rows="3" nz-input ></textarea> 
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Cabecera</nz-form-label>
+      <nz-form-control [nzSpan]="17">
+        <textarea rows="3" nz-input name="header" ngModel></textarea>
+        <h4 style="font-size: 11px !important">*IMPORTANTE: variables necesarias en el HTML - MES:
+          (mes) AÑO: (anio) Id del recibo: (idrecibo) Fecha: (fechaFormateada) </h4>
       </nz-form-control>
+    </nz-form-item>
 
-      <nz-form-control [nzSpan]="17" >
-        <h4 style="font-size: 11px !important; margin-left:20%">*IMPORTANTE: variables necesarias en el HTML - Imagen: (imgBase64inaes) </h4>
-    </nz-form-control>
-  </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Cuerpo</nz-form-label>
+      <nz-form-control [nzSpan]="17">
+        <textarea rows="3" nz-input name="body" ngModel></textarea>
+        <h4 style="font-size: 11px !important">*IMPORTANTE: variables necesarias en el HTML - Nombre:
+          (PersonaNombre) Cuit: (Cuit) Domicilio: (Domicilio) Asociado: (asociado)
+          Grupo: (grupo) Detalle Adelanto: (textadelanto) Detalle Retribucion: (textingreso) Detalle retencion:
+          (textegreso)
+          Retribucion neta: (textneto) (neto) Detalle deposito (textdeposito) </h4>
+      </nz-form-control>
+    </nz-form-item>
 
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Pie</nz-form-label>
+      <nz-form-control [nzSpan]="17">
+        <textarea rows="3" nz-input name="footer" ngModel></textarea>
+        <h4 style="font-size: 11px !important">*IMPORTANTE: variables necesarias en el HTML - Imagen:
+          (imgBase64inaes) </h4>
+      </nz-form-control>
+    </nz-form-item>
 
-  <nz-form-item>
-    <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+    <nz-form-item>
+      <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+        <button nz-popconfirm nzType="primary" class="btn-add" nzPopconfirmTitle="Confirmar genear prueba?"
+          nzPopconfirmPlacement="topLeft"  nz-button (nzOnConfirm)="runtest()">
+          Generar Prueba
+        </button>
 
-      <button  nz-popconfirm nzType="primary" class="btn-add"
-        nzPopconfirmTitle="Confirmar genear prueba?" nzPopconfirmPlacement="topLeft"
-        nz-button>
-        Generar Prueba
-      </button>
+        <button nz-popconfirm nzType="primary" class="btn-add" nzPopconfirmTitle="Confirmar guardar cambios?"
+          nzPopconfirmPlacement="topLeft" nz-button (nzOnConfirm)="save()">
+          Guardar Cambios
+        </button>
 
-      <button  nz-popconfirm nzType="primary" class="btn-add"
-      nzPopconfirmTitle="Confirmar guardar cambios?" nzPopconfirmPlacement="topLeft"
-      nz-button>
-      Guardar Cambios
-    </button>
-
-    </nz-form-control>
-  </nz-form-item>
-
-
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+</nz-card>

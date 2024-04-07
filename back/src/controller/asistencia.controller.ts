@@ -162,6 +162,12 @@ export class AsistenciaController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
 
     try {
+      const check = await queryRunner.query(`SELECT peri.anio, peri.mes, peri.periodo_id, peri.ind_recibos_generados FROM lige.dbo.liqmaperiodo peri WHERE peri.anio=@1 AND peri.mes=@2 `, [,anio,mes])
+      const ind_recibos_generados = (check[0]?.ind_recibos_generados == 1) ? true : false
+      
+      if (ind_recibos_generados)
+        throw new ClientException(`No se puede habilitar la carga porque ya existen recibos generados`)
+
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para habilitar carga`)
 

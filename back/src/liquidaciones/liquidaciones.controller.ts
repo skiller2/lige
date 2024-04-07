@@ -17,7 +17,7 @@ export class LiquidacionesController extends BaseController {
     try {
       let tipoMovimiento
       if (TipoMovimientoFilter == 'all') {
-        
+
         tipoMovimiento = await dataSource.query(
           `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo, tipo.tipo_movimiento FROM lige.dbo.liqcotipomovimiento AS tipo`
         )
@@ -79,7 +79,7 @@ export class LiquidacionesController extends BaseController {
 
       const finalurl = `${this.directory}/${document[0]["path"]}`
       if (!existsSync(finalurl))
-        throw new ClientException(`Archivo ${document[0]["name"]} no localizado`, {path:finalurl})
+        throw new ClientException(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
 
       res.download(finalurl, document[0]["name"])
 
@@ -290,7 +290,7 @@ export class LiquidacionesController extends BaseController {
     this.jsonRes(this.listaColumnas, res);
   }
 
-  async setDeeleteimportacionesQuerys(queryRunner: QueryRunner, deleteId:any, res: Response){
+  async setDeeleteimportacionesQuerys(queryRunner: QueryRunner, deleteId: any, res: Response) {
     if (deleteId != null) {
 
       await queryRunner.connect();
@@ -324,12 +324,12 @@ export class LiquidacionesController extends BaseController {
     console.log("periodo_id" + periodo_id)
     const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
 
-    console.log("estan generados ? " + getRecibosGenerados[0].ind_recibos_generados  )
-    if (getRecibosGenerados[0].ind_recibos_generados == 1){
+    console.log("estan generados ? " + getRecibosGenerados[0].ind_recibos_generados)
+    if (getRecibosGenerados[0].ind_recibos_generados == 1) {
       this.jsonRes({ list: [] }, res, `Los recibos para este periodo ya se generaron, no se pueden eliminar `);
-    }else{
+    } else {
       try {
-        await this.setDeeleteimportacionesQuerys(queryRunner,deleteId,res)
+        await this.setDeeleteimportacionesQuerys(queryRunner, deleteId, res)
       } catch (error) {
         this.rollbackTransaction(queryRunner)
         return next(error)
@@ -338,7 +338,7 @@ export class LiquidacionesController extends BaseController {
       }
 
     }
-         
+
   }
 
 
@@ -353,8 +353,8 @@ export class LiquidacionesController extends BaseController {
 
     const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
 
-      if (getRecibosGenerados[0].ind_recibos_generados == 1)
-          throw new ClientException(`Los recibos para este periodo ya se generaron`)
+    if (getRecibosGenerados[0].ind_recibos_generados == 1)
+      throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
     try {
       await queryRunner.connect();
@@ -439,7 +439,7 @@ export class LiquidacionesController extends BaseController {
       const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
 
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
-          throw new ClientException(`Los recibos para este periodo ya se generaron`)
+        throw new ClientException(`Los recibos para este periodo ya se generaron`)
       //const importeRequest = req.body.monto;
       //const cuitRequest = req.body.cuit;
 
@@ -453,7 +453,7 @@ export class LiquidacionesController extends BaseController {
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
       const convalorimpoexpo_id = await this.getProxNumero(queryRunner, `convalorimpoexpo`, usuario, ip)
-      
+
       let contador = 0
 
       newFilePath = `${this.directory
@@ -550,5 +550,40 @@ export class LiquidacionesController extends BaseController {
 
     }
   }
+
+  async getPeriodoStatus(
+    req: any,
+    res: Response, next: NextFunction
+  ) {
+    let anio = Number(req.body.anio)
+    let mes = Number(req.body.mes)
+    let result = null
+    try {
+      if (anio || mes)
+
+        result = await dataSource.query(
+          `SELECT peri.anio, peri.mes, peri.periodo_id, peri.ind_recibos_generados, peri.aud_fecha_mod FROM lige.dbo.liqmaperiodo  peri WHERE peri.anio = @1 AND peri.mes = @2`,
+          [, anio, mes])
+      else
+        result = await dataSource.query(
+          `SELECT TOP 1 peri.anio, peri.mes, peri.periodo_id, peri.ind_recibos_generados, peri.aud_fecha_mod FROM lige.dbo.liqmaperiodo  peri WHERE peri.ind_recibos_generados=1
+      ORDER BY peri.anio DESC, peri.mes DESC`)
+
+      if (result.length == 0)
+        throw new ClientException(`No se encontró el período ${mes}/${anio}`)
+
+
+      const ind_recibos_generados = (result[0]?.ind_recibos_generados == 1) ? 1 : 0
+      const stm_recibos_generados = (result[0]?.ind_recibos_generados == 1) ? result[0]?.aud_fecha_mod : null
+      anio = result[0]?.anio
+      mes = result[0]?.mes
+      this.jsonRes({ anio, mes, ind_recibos_generados, stm_recibos_generados }, res)
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+
 }
 
