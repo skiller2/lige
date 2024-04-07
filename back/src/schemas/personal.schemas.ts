@@ -11,6 +11,7 @@ export interface PersonaObj {
     CategoriaPersonalDescripcion: string,
     FechaDesde: Date,
     FechaHasta: Date
+    mails: string[]
 }
 
 export interface ResponseBySearch {

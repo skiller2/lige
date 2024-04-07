@@ -115,12 +115,12 @@ export class PersonalController extends BaseController {
     }
   }
 
-  getById(PersonalId: string, res: Response, next: NextFunction) {
+  async getById(PersonalId: string, res: Response, next: NextFunction) {
     const fechaActual = new Date();
     //    const dia = fechaActual.getDate();
     const mes = fechaActual.getMonth() + 1; // Agrega 1 porque los meses se indexan desde 0 (0 = enero)
     const anio = fechaActual.getFullYear();
-
+    const mails = await dataSource.query('SELECT ema.PersonalEmailEmail, ema.PersonalId FROM PersonalEmail ema WHERE ema.PersonalEmailInactivo <> 1 AND ema.PersonalId=@0',[PersonalId])
     dataSource
       .query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
@@ -176,6 +176,8 @@ export class PersonalController extends BaseController {
             personaData.DocumentoImagenFotoBlobNombreArchivo
           )
           : "";
+        personaData.image = "";
+        personaData.mails = mails;
         if (imageUrl != "") {
           fetch(imageUrl)
             .then((imageUrlRes) => imageUrlRes.buffer())
@@ -183,15 +185,13 @@ export class PersonalController extends BaseController {
               const bufferStr = buffer.toString("base64");
               personaData.image = "data:image/jpeg;base64, " + bufferStr;
 
-              this.jsonRes(personaData, res);
             })
             .catch((reason) => {
               throw new ClientException("Image not found");
             });
-        } else {
-          personaData.image = "";
-          this.jsonRes(personaData, res);
         }
+        this.jsonRes(personaData, res);
+        
       })
       .catch((error) => {
         return next(error)

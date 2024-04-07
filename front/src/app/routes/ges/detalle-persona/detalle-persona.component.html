@@ -17,6 +17,10 @@
         <li><span class="app-bold-text">Edad:</span> {{personalDetalle.PersonalFechaNacimiento|AGE}},
           {{personalDetalle.PersonalFechaNacimiento|date}}</li>
         <li><span class="app-bold-text">Socio:</span> {{personalDetalle.PersonalNroLegajo }}</li>
+        @for (mail of personalDetalle.mails; track mail.PersonalEmailEmail) {
+          <li><span class="app-bold-text">Mail:</span> {{mail.PersonalEmailEmail}}</li> 
+        }
+        
         <!-- <li><span class="ant-divider-horizontal.ant-divider-with-text">DNI</span> {{personalDetalle.DomicilioCompleto}}</li> -->
       </div>
     </div>
