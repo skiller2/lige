@@ -662,16 +662,21 @@ export class ApiService {
   }
 
   
-  updateRecibo(isTest: boolean,selectedPersonalId: number,month: number,year: number, headUpdate: string, bodyUpdate: string, footerUpdate: string) {
-    const parameter = { isTest,selectedPersonalId,month,year, headUpdate, bodyUpdate, footerUpdate }
-    this.notification.success('Respuesta', `Inicio la creacion de recibo`);
-    console.log("estoy--------")
-
-    return this.http.post<ResponseJSON<any>>('/api/recibos/recibosconfig', parameter).pipe(
+  setRecibo(parameter: any) {
+    console.log('parameters',parameter)
+    return this.http.post<ResponseJSON<any>>('/api/recibos/config', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
-  } 
+  }
+
+  downloadReciboPrueba(parameter:any) {
+    return this.http.post<ResponseJSON<any>>('/api/recibos/prueba', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
+
 
 
 }

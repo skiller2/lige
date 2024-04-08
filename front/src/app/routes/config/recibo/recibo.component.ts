@@ -1,21 +1,12 @@
-import {
-  Component, Injector, Input, ViewChild, signal
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, model, viewChild } from '@angular/core';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
-import { BehaviorSubject} from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
-import { ActivatedRoute, Router } from '@angular/router';
 import { PersonalGrupoComponent } from '../../ges/personal-grupo/personal-grupo.component';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
-import { NzMessageModule,NzMessageService } from 'ng-zorro-antd/message';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
-
-
-
-enum Busqueda {
-  Personal
-}
+import { NgForm } from '@angular/forms';
+import { ApiService } from 'src/app/services/api.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-recibo',
@@ -23,96 +14,40 @@ enum Busqueda {
   imports: [
     NzInputModule,
     NzDatePickerModule,
-    SHARED_IMPORTS,
-    PersonalGrupoComponent,
-    PersonalSearchComponent,
-    NzMessageModule],
+    SHARED_IMPORTS, PersonalGrupoComponent, PersonalSearchComponent],
   templateUrl: './recibo.component.html',
-  styleUrl: './recibo.component.less'
+  styleUrl: './recibo.component.less',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
 })
 export class ReciboComponent {
+  ngForm = viewChild.required(NgForm);
+  private apiService = inject(ApiService)
+  PersonalId = model.required()
 
-
-  public get Busqueda() {
-    return Busqueda;
+  constructor() {
+    effect(() => { this.ngForm().controls['PersonalId']?.setValue(Number(this.PersonalId())) });
   }
 
-  
-  constructor(
-    public apiService: ApiService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private message: NzMessageService
-  ) { }
+  ngOnInit() {
+    //this.ngForm().form.patchValue
+    setTimeout(() => {
+      const now = new Date()
+      const anio = Number(localStorage.getItem('anio')) > 0 ? Number(localStorage.getItem('anio')) : now.getFullYear();
+      const mes = Number(localStorage.getItem('mes')) > 0 ? Number(localStorage.getItem('mes')) : now.getMonth() + 1;
+      this.ngForm().controls['periodo']?.setValue(new Date(anio, mes - 1, 1))
+    }, 0);
 
-  @Input('PersonalId') PersonalId: number | undefined
-
-  formChange$ = new BehaviorSubject('');
-  $selectedPersonalIdChange = new BehaviorSubject('');
-  selectedPeriod = { year: 0, month: 0 };
-  selectedPersonalId = 0;
-  $isPersonalDataLoading = new BehaviorSubject(false);
-  headUpdate = "";
-  bodyUpdate = "";
-  footerUpdate = "";
-
-  dateChange(result: Date): void {
-    this.selectedPeriod.year = result.getFullYear();
-    this.selectedPeriod.month = result.getMonth() + 1;
-
-    localStorage.setItem('anio', String(this.selectedPeriod.year));
-    localStorage.setItem('mes', String(this.selectedPeriod.month));
-
-    this.formChange('');
-
-    
   }
 
-  formChange(event: any) {
-    this.formChange$.next(event);
+
+  async save() {
+    const res = await firstValueFrom(this.apiService.setRecibo(this.ngForm().value))
   }
 
-  
-  selectedValueChange(event: string, busqueda: Busqueda): void {
-    switch (busqueda) {
-      case Busqueda.Personal:
-        this.$selectedPersonalIdChange.next(event);
-        this.$isPersonalDataLoading.next(true);
-        if (Number(event) > 0)
-          this.router.navigate(['.', { PersonalId: event }], {
-            relativeTo: this.route,
-            skipLocationChange: false,
-            replaceUrl: false,
-          })
-
-        return;
-    }
+  async runtest() {
+    const res = await firstValueFrom(this.apiService.downloadReciboPrueba(this.ngForm().value))
   }
 
-  generateRecibo(isTest:boolean){
-
-    
-     
-    if(this.selectedPeriod.month == 0 ){
-      this.message.create("error", `Debe seleccionar una fecha`);
-      return
-    }
-    // if(this.selectedPersonalId == 0 ){
-    //   this.message.create("error", `Debe seleccionar una persona`);
-    //   return
-    // }
-    this.selectedPersonalId= 111
-    this.apiService.updateRecibo(isTest,this.selectedPersonalId,this.selectedPeriod.month,this.selectedPeriod.year, this.headUpdate, this.bodyUpdate, this.footerUpdate)
-     
-  }
-
-  
-  visibleDrawer = false
-
-  closeDrawer(): void {
-    this.visibleDrawer = false;
-  }
-  openDrawer(): void {
-    this.visibleDrawer = true
-  }
 }
+

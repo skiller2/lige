@@ -656,6 +656,40 @@ export class RecibosController extends BaseController {
     return pdfBytes;
   }
 
+  async setReciboConfig(req: Request, res: Response, next: NextFunction) {
+    const header = req.body.header
+    const body = req.body.body
+    const footer = req.body.footer
+
+    try {
+      //Aca hacer todo el proceso de grabación
+      throw new ClientException(`Falta guardar los datos header:${header}`)
+      
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async downloadReciboPRueba(req: Request, res: Response, next: NextFunction) {
+    const header = req.body.header
+    const body = req.body.body
+    const footer = req.body.footer
+    const PersonalId = Number(req.body.PersonalId)
+    const periodo = req.body.periodo
+
+    try {
+      if (!PersonalId) {
+        throw new ClientException(`Debe selccionar persona`)
+      }
+
+      //Aca hacer todo el proceso de generarion  de prueba
+      throw new ClientException(`Falta generar recibo prueba`)
+      
+    } catch (error) {
+      return next(error)
+    }
+  }
+
 
 }
 

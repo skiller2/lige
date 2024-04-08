@@ -1,6 +1,6 @@
 import { Request, Router } from "express"
 import { authMiddleware } from "../middlewares/middleware.module";
-import { recibosController,recibosConfigController } from "../controller/controller.module";
+import { recibosController } from "../controller/controller.module";
 
 export const recibosRouter = Router();
 
@@ -32,9 +32,14 @@ recibosRouter.post('/downloadfull', [authMiddleware.verifyToken, authMiddleware.
   await recibosController.bindPdf(req, res, next)
 })
 
-recibosRouter.post("/recibosconfig", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])],
+recibosRouter.post("/config", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])],
   (req, res, next) => {
-    console.log("estoy 2......")
-    recibosConfigController.generaReciboConfig(req, res, next);
+    recibosController.setReciboConfig(req, res, next);
+  }
+);
+
+recibosRouter.post("/prueba", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])],
+  (req, res, next) => {
+    recibosController.downloadReciboPRueba(req, res, next);
   }
 );
