@@ -46,16 +46,16 @@ export class ImpuestosAfipController extends BaseController {
     try {
       await queryRunner.startTransaction()
       const [comprobante] = await queryRunner.query(
-        `SELECT des.PersonalId, cuit.PersonalCUITCUILCUIT cuit, des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoAnoAplica, CONCAT('/',des.PersonalOtroDescuentoAnoAplica,'/',des.PersonalOtroDescuentoAnoAplica,'-',FORMAT(des.PersonalOtroDescuentoMesesAplica,'00'),'-',cuit.PersonalCUITCUILCUIT,'-',des.PersonalId,'.pdf') path,
-        CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre, ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle
-        FROM PersonalOtroDescuento des 
-        JOIN Personal per ON per.PersonalId = des.PersonalId
-        JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = des.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = des.PersonalId)
-        JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = des.PersonalId
-        JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
-        WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = 31 AND des.PersonalOtroDescuentoAnoAplica = @1 AND des.PersonalOtroDescuentoMesesAplica = @2
-        `,
-        [personalId, year, month]
+        `SELECT DISTINCT
+        per.PersonalId PersonalId, cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
+        ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
+        1
+        FROM Personal per
+        JOIN PersonalComprobantePagoAFIP com ON com.PersonalId=per.PersonalId AND com.PersonalComprobantePagoAFIPAno = @1 AND com.PersonalComprobantePagoAFIPMes = @2
+        LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+        LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+        WHERE per.PersonalId = @0`,[personalId, year, month]
       );
       if (!comprobante)
         throw new ClientException(`No se pudo encontrar el comprobante`);
