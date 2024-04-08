@@ -24,14 +24,14 @@ const flowMonotributo = addKeyword(['1','monotributo', 'mono', 'm'])
         const myState = state.getMyState()
         const personalId = myState.personalId
         const periodosArray : any[] = await impuestosAfipController.getLastPeriodosOfComprobantes(personalId, 3).then(array =>{return array})
-        console.log('periodos', periodosArray);
+        // console.log('periodos', periodosArray);
         let resPeriodos = ''
         if (periodosArray.length) {
-            periodosArray.forEach((obj : any) => {
+            periodosArray.forEach((obj : any, index: number) => {
                 if (obj.mes < 10) 
-                    resPeriodos += `0${obj.mes}/${obj.anio}\n`
+                    resPeriodos += `${index+1}- *0${obj.mes}/${obj.anio}*\n`
                 else
-                    resPeriodos += `${obj.mes}/${obj.anio}\n`
+                    resPeriodos += `${index+1}- *${obj.mes}/${obj.anio}*\n`
             })
         } else {
             await flowDynamic([{ body:`No hay comprobantes`, delay: 500 }])
@@ -40,7 +40,7 @@ const flowMonotributo = addKeyword(['1','monotributo', 'mono', 'm'])
         
         await state.update({recibo:{ periodosArray, periodosString: resPeriodos }}) 
     })
-    .addAnswer('Ingrese una fecha (MM/AAAA) de la lista 📝',
+    .addAnswer('Ingrese el numero correspondiente a una fecha de la lista 📝',
     { delay: 500 },
     async (_, { flowDynamic, state }) => {
         const myState = state.getMyState()
@@ -52,18 +52,11 @@ const flowMonotributo = addKeyword(['1','monotributo', 'mono', 'm'])
         const myState = state.getMyState()
         const periodosArray : any[] = myState.recibo.periodosArray
         const msj = ctx.body
-        const regex = /^(0[1-9]|1[0-2])\/(19|20)\d{2}$/
-        if (!regex.test(msj)) {
-            return fallBack('Ingrese el periodo con el formato MM/AAAA \nEj: 8/2023')
+        if (parseInt(msj) > periodosArray.length) {
+            return fallBack('El numero ingresado no aparece en la lista  📝\nIngrese otro')
         }
-        const date = msj.split('/')
-        const mes = parseInt(date[0])
-        const anio = parseInt(date[1])
-        const obj = periodosArray.filter(( obj: any) => {
-            return (obj.anio == anio && obj.mes == mes)
-        })
-        if (!obj.length)
-            return fallBack('La fecha ingresada no aparece en la lista\nIngrese una fecha de la lista')
+        const mes = periodosArray[parseInt(msj)-1].mes
+        const anio = periodosArray[parseInt(msj)-1].anio
         const personalId = myState.personalId
         // await flowDynamic([{ body:`⏱️ Dame un momento`, delay: 500 }])
         const monotributoPdf = await impuestosAfipController.downloadComprobante(personalId, anio, mes).then(data => { return data })
@@ -77,7 +70,12 @@ const flowMonotributo = addKeyword(['1','monotributo', 'mono', 'm'])
         '¿Desea consulta algo mas?', 
         'Responda "Si" o "No"'
     ], { capture: true, delay: 500 },  
-    async (ctx , { gotoFlow, fallBack }) => {
+    async (ctx , { gotoFlow, fallBack, state }) => {
+        let myState = state.getMyState()
+        delete myState.recibo
+        await state.update(myState)
+        console.log('state.getMyState()', state.getMyState());
+        
         const respuesta = ctx.body
         if (respuesta == 'Si' || respuesta == 'si' || respuesta == 'SI') {
             return gotoFlow(flowMenu)

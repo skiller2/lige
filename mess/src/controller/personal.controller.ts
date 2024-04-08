@@ -77,13 +77,13 @@ export class PersonalController extends BaseController {
     try {
       let result : any
       const [telefonoPersonal] = await dataSource.query(
-        `SELECT reg.reg_id id, reg.personal_id personalId, reg.telefono
+        `SELECT reg.personal_id personalId, reg.telefono
         FROM lige.dbo.regtelefonopersonal reg
         WHERE reg.personal_id = @0`,
         [ personalId ]
       );
       if (telefonoPersonal) {
-        result = await this.updateTelefonoPersonalQuery(telefonoPersonal.id, personalId, telefono, usuario, ip)
+        result = await this.updateTelefonoPersonalQuery(personalId, telefono, usuario, ip)
       } else {
         result = await this.addTelefonoPersonalQuery(personalId, telefono, usuario, ip)
       }
@@ -95,19 +95,17 @@ export class PersonalController extends BaseController {
 
   async addTelefonoPersonalQuery( personalId : number, telefono : string, usuario : string, ip : string){
     const fecha = new Date
-    const reg_id = await dataSource.query(`SELECT MAX(reg_id) max_reg_id FROM lige.dbo.regtelefonopersonal`)
-    let max_reg_id = (reg_id[0].max_reg_id != undefined) ? reg_id[0].max_reg_id : 0
     const result = await dataSource.query(
-      `INSERT INTO lige.dbo.regtelefonopersonal (reg_id, personal_id, telefono, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod) 
-      VALUES(@0,@1,@2,@3,@4,@5,@3,@4,@5)`,
-      [++max_reg_id, personalId, telefono, usuario, ip, fecha ]
+      `INSERT INTO lige.dbo.regtelefonopersonal (personal_id, telefono, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod) 
+      VALUES(@0,@1,@2,@3,@4,@2,@3,@4)`,
+      [personalId, telefono, usuario, ip, fecha ]
     );
     return result
   }
 
   async getPersonalfromTelefonoQuery( telefono : string ){
     const result = await dataSource.query(
-      `SELECT reg.reg_id, reg.personal_id personalId, reg.telefono, per.PersonalNombre name, cuit.PersonalCUITCUILCUIT cuit
+      `SELECT reg.personal_id personalId, reg.telefono, per.PersonalNombre name, cuit.PersonalCUITCUILCUIT cuit
       FROM lige.dbo.regtelefonopersonal reg
       LEFT JOIN Personal per ON per.PersonalId = reg.personal_id
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = reg.personal_id
@@ -136,12 +134,12 @@ export class PersonalController extends BaseController {
     return result
   }
   
-  async updateTelefonoPersonalQuery( id : number, personalId : number, telefono : string, usuario : string, ip : string){
+  async updateTelefonoPersonalQuery( personalId : number, telefono : string, usuario : string, ip : string){
     const fecha = new Date
     const result = await dataSource.query(
-      `UPDATE lige.dbo.regtelefonopersonal SET telefono = @2, aud_usuario_mod = @3, aud_ip_mod= @4, aud_fecha_mod = @5
-      WHERE reg_id = @0 AND personal_id = @1`,
-      [ id, personalId, telefono, usuario, ip, fecha ]
+      `UPDATE lige.dbo.regtelefonopersonal SET telefono = @1, aud_usuario_mod = @2, aud_ip_mod= @3, aud_fecha_mod = @4
+      WHERE AND personal_id = @0`,
+      [ personalId, telefono, usuario, ip, fecha ]
     );
     return result
   }

@@ -237,7 +237,6 @@ export class ImpuestosAfipController extends BaseController {
         ORDER BY des.PersonalOtroDescuentoAnoAplica DESC, des.PersonalOtroDescuentoMesesAplica DESC`, 
         [personalId])
       // await queryRunner.commitTransaction()
-      console.log('Periodos', respuesta);
       
       return respuesta
     } catch (error) {

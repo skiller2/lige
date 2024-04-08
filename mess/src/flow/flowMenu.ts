@@ -1,13 +1,14 @@
 import BotWhatsapp from '@bot-whatsapp/bot'
 import flowMonotributo from './flowMonotributo'
 import flowRecibo from './flowRecibo'
+import flowConstMedica from './flowConstMedica'
 import flowEnd from './flowEnd'
 
 const { addKeyword, EVENTS } = BotWhatsapp
 
 const flowMenu = addKeyword(EVENTS.ACTION)
     .addAnswer([
-        'Escribe el numero del tema a consultar',
+        'Ingrese el numero del tema a consultar',
         '1- *Monotributo*',
         '2- *Recibo de Retiro*',
         // '3- *Pedido de Licencia*',
@@ -21,6 +22,6 @@ const flowMenu = addKeyword(EVENTS.ACTION)
         if (!numeros.includes(ctx.body)) {
             return fallBack()
         }
-    }, [flowMonotributo, flowRecibo, flowEnd])
+    }, [flowMonotributo, flowRecibo, flowConstMedica, flowEnd])
 
 export default flowMenu

@@ -31,14 +31,14 @@ export class RecibosController extends BaseController {
     
     try {
       await queryRunner.startTransaction()
-      const gettmpfilename = await this.getRutaFile(queryRunner, personalId, year, month)
-      console.log('gettmpfilename', gettmpfilename);
       
-      const tmpfilename = gettmpfilename[0]?.path;
-
-      if (!fs.existsSync(tmpfilename))
-        throw new ClientException(`El archivo no existe (${tmpfilename}).`);
-
+      const gettmpfilename = await this.getRutaFile(queryRunner, personalId, year, month)
+      let tmpfilename = ''
+      if (gettmpfilename[0] && typeof gettmpfilename[0].path === 'string') {
+        tmpfilename = gettmpfilename[0].path;
+      } else {
+        throw new ClientException(`Recibo no generado`)
+      }
       const responsePDFBuffer = await this.obtenerPDFBuffer(tmpfilename);
       
       await queryRunner.commitTransaction()
@@ -70,7 +70,7 @@ export class RecibosController extends BaseController {
     try {
       // await queryRunner.startTransaction()
       const respuesta = queryRunner.query(`
-        SELECT TOP ${cant} per.periodo_id, per.anio, per.mes from lige.dbo.liqmaperiodo per
+        SELECT TOP ${cant} per.periodo_id, per.anio, per.mes FROM lige.dbo.liqmaperiodo per
         JOIN lige.dbo.docgeneral doc ON per.periodo_id = doc.periodo
         WHERE doc.persona_id = @0 AND doctipo_id = 'REC'      
         ORDER BY per.anio DESC,per.mes DESC`, 
