@@ -1,1 +1,65 @@
-<p>recibo works!</p>
+<nz-card class="small-margin">
+  <form nz-form ngForm>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Período</nz-form-label>
+      <nz-form-control [nzSpan]="5">
+
+        <nz-date-picker nzMode="month" name="periodo" nzFormat="MM/yyyy" ngModel/>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Persona</nz-form-label>
+      <nz-form-control [nzSpan]="19">
+        <nz-input-group style="width: 100%">
+          <app-personal-search name="PersonalId" ngModel/>
+        </nz-input-group>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Cabecera</nz-form-label>
+      <nz-form-control [nzSpan]="19">
+        <textarea rows="3" nz-input name="header" ngModel></textarea>
+        <h4 style="font-size: 11px !important">*IMPORTANTE: variables necesarias en el HTML - MES:
+          (mes) AÑO: (anio) Id del recibo: (idrecibo) Fecha: (fechaFormateada) </h4>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Cuerpo</nz-form-label>
+      <nz-form-control [nzSpan]="19">
+        <textarea rows="3" nz-input name="body" ngModel></textarea>
+        <h4 style="font-size: 11px !important">*IMPORTANTE: variables necesarias en el HTML - Nombre:
+          (PersonaNombre) Cuit: (Cuit) Domicilio: (Domicilio) Asociado: (asociado)
+          Grupo: (grupo) Detalle Adelanto: (textadelanto) Detalle Retribucion: (textingreso) Detalle retencion:
+          (textegreso)
+          Retribucion neta: (textneto) (neto) Detalle deposito (textdeposito) </h4>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Pie</nz-form-label>
+      <nz-form-control [nzSpan]="19">
+        <textarea rows="3" nz-input name="footer" ngModel></textarea>
+        <h4 style="font-size: 11px !important">*IMPORTANTE: variables necesarias en el HTML - Imagen:
+          (imgBase64inaes) </h4>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+        <button nz-popconfirm nzType="primary" nz-button app-down-file [httpMethod]="'POST'"
+          [httpBody]="ngForm().value" httpUrl="api/recibos/prueba">
+          Descarga Recibo Prueba
+        </button>
+
+        <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar guardar cambios?" nz-button (nzOnConfirm)="save()">
+          Guardar Cambios
+        </button>
+
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+</nz-card>

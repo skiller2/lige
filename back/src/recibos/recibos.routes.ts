@@ -31,3 +31,15 @@ recibosRouter.get("/download/:anio/:mes/:personalIdRel?", [authMiddleware.verify
 recibosRouter.post('/downloadfull', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], async (req, res, next) => {
   await recibosController.bindPdf(req, res, next)
 })
+
+recibosRouter.post("/config", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])],
+  (req, res, next) => {
+    recibosController.setReciboConfig(req, res, next);
+  }
+);
+
+recibosRouter.post("/prueba", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])],
+  (req, res, next) => {
+    recibosController.downloadReciboPRueba(req, res, next);
+  }
+);

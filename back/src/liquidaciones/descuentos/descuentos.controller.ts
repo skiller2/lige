@@ -5,6 +5,7 @@ import { NextFunction, Request, Response } from "express";
 import { ParsedQs } from "qs";
 import { Utils } from "../liquidaciones.utils";
 import { AsistenciaController } from "../../controller/asistencia.controller";
+import { recibosController } from "src/controller/controller.module";
 
 
 export class DescuentosController extends BaseController {
@@ -20,6 +21,14 @@ export class DescuentosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
 
     try {
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+          throw new ClientException(`Los recibos para este periodo ya se generaron`)
+
+      
       //if (tipo_movimiento_id == 0 || Number.isNaN(tipo_movimiento_id))
       //  throw new ClientException("Tipo de monvimiento 'MOV_DESCUENTO' no definindo en .env ")
 
@@ -38,7 +47,7 @@ export class DescuentosController extends BaseController {
 
       const result = await AsistenciaController.getDescuentos(anio, mes, [])
 
-      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+      
 
       await queryRunner.query(
         `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id IN (4,5,15,7,14,6,16,17) `, [periodo_id])

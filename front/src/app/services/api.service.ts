@@ -373,7 +373,6 @@ export class ApiService {
     );
   }
 
-
   getDescuentosMonotributo(filters: any) {
     const parameter = filters
 
@@ -661,6 +660,24 @@ export class ApiService {
      return this.http.post<ResponseJSON<any>>(`api/asistencia/validargrilla`, { anio, mes, ObjetivoId }).pipe(tap((res: ResponseJSON<any>) => this.response(res)),
      )
   }
+
+  
+  setRecibo(parameter: any) {
+    console.log('parameters',parameter)
+    return this.http.post<ResponseJSON<any>>('/api/recibos/config', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
+
+  downloadReciboPrueba(parameter:any) {
+    return this.http.post<ResponseJSON<any>>('/api/recibos/prueba', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
+
+
 
 }
 

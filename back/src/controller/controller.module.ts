@@ -27,6 +27,7 @@ import { RecibosController } from "../recibos/recibos.controller"
 
 
 
+
 export const infoController = new InfoController();
 export const authController = new AuthController();
 export const personalController = new PersonalController();
