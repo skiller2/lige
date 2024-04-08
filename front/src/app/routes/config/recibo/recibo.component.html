@@ -50,8 +50,8 @@
 
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-        <button nz-popconfirm nzType="primary" class="btn-add" nzPopconfirmTitle="Confirmar genear prueba?"
-          nzPopconfirmPlacement="topLeft"  nz-button (nzOnConfirm)="runtest()">
+        <button nz-popconfirm nzType="primary" class="btn-add" nz-button app-down-file [httpMethod]="'POST'"
+          [httpBody]="ngForm().value" httpUrl="api/recibos/prueba">
           Generar Prueba
         </button>
 

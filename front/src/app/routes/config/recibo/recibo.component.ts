@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, effect, inject, model, viewChild } 
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { SHARED_IMPORTS } from '@shared';
-import { PersonalGrupoComponent } from '../../ges/personal-grupo/personal-grupo.component';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 import { NgForm } from '@angular/forms';
 import { ApiService } from 'src/app/services/api.service';
@@ -14,7 +13,7 @@ import { firstValueFrom } from 'rxjs';
   imports: [
     NzInputModule,
     NzDatePickerModule,
-    SHARED_IMPORTS, PersonalGrupoComponent, PersonalSearchComponent],
+    SHARED_IMPORTS, PersonalSearchComponent],
   templateUrl: './recibo.component.html',
   styleUrl: './recibo.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,7 +29,6 @@ export class ReciboComponent {
   }
 
   ngOnInit() {
-    //this.ngForm().form.patchValue
     setTimeout(() => {
       const now = new Date()
       const anio = Number(localStorage.getItem('anio')) > 0 ? Number(localStorage.getItem('anio')) : now.getFullYear();
@@ -40,13 +38,8 @@ export class ReciboComponent {
 
   }
 
-
   async save() {
     const res = await firstValueFrom(this.apiService.setRecibo(this.ngForm().value))
-  }
-
-  async runtest() {
-    const res = await firstValueFrom(this.apiService.downloadReciboPrueba(this.ngForm().value))
   }
 
 }
