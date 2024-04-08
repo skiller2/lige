@@ -11,7 +11,7 @@
 
     <nz-form-item>
       <nz-form-label [nzSpan]="3">Persona</nz-form-label>
-      <nz-form-control [nzSpan]="17">
+      <nz-form-control [nzSpan]="19">
         <nz-input-group style="width: 100%">
           <app-personal-search name="PersonalId" ngModel/>
         </nz-input-group>
@@ -20,7 +20,7 @@
 
     <nz-form-item>
       <nz-form-label [nzSpan]="3">Cabecera</nz-form-label>
-      <nz-form-control [nzSpan]="17">
+      <nz-form-control [nzSpan]="19">
         <textarea rows="3" nz-input name="header" ngModel></textarea>
         <h4 style="font-size: 11px !important">*IMPORTANTE: variables necesarias en el HTML - MES:
           (mes) AÑO: (anio) Id del recibo: (idrecibo) Fecha: (fechaFormateada) </h4>
@@ -29,7 +29,7 @@
 
     <nz-form-item>
       <nz-form-label [nzSpan]="3">Cuerpo</nz-form-label>
-      <nz-form-control [nzSpan]="17">
+      <nz-form-control [nzSpan]="19">
         <textarea rows="3" nz-input name="body" ngModel></textarea>
         <h4 style="font-size: 11px !important">*IMPORTANTE: variables necesarias en el HTML - Nombre:
           (PersonaNombre) Cuit: (Cuit) Domicilio: (Domicilio) Asociado: (asociado)
@@ -41,7 +41,7 @@
 
     <nz-form-item>
       <nz-form-label [nzSpan]="3">Pie</nz-form-label>
-      <nz-form-control [nzSpan]="17">
+      <nz-form-control [nzSpan]="19">
         <textarea rows="3" nz-input name="footer" ngModel></textarea>
         <h4 style="font-size: 11px !important">*IMPORTANTE: variables necesarias en el HTML - Imagen:
           (imgBase64inaes) </h4>
@@ -50,13 +50,12 @@
 
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-        <button nz-popconfirm nzType="primary" class="btn-add" nz-button app-down-file [httpMethod]="'POST'"
+        <button nz-popconfirm nzType="primary" nz-button app-down-file [httpMethod]="'POST'"
           [httpBody]="ngForm().value" httpUrl="api/recibos/prueba">
-          Generar Prueba
+          Descarga Recibo Prueba
         </button>
 
-        <button nz-popconfirm nzType="primary" class="btn-add" nzPopconfirmTitle="Confirmar guardar cambios?"
-          nzPopconfirmPlacement="topLeft" nz-button (nzOnConfirm)="save()">
+        <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar guardar cambios?" nz-button (nzOnConfirm)="save()">
           Guardar Cambios
         </button>
 
