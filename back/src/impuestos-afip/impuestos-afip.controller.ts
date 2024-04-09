@@ -216,7 +216,7 @@ export class ImpuestosAfipController extends BaseController {
 
     return dataSource.query(
       `SELECT DISTINCT 
-      CONCAT(per.PersonalId,'-',des.PersonalOtroDescuentoId,'-',com.PersonalComprobantePagoAFIPId) id,
+      CONCAT(per.PersonalId,'-',com.PersonalComprobantePagoAFIPId,'-',des.PersonalOtroDescuentoId) id,
       per.PersonalId PersonalId,
       
       cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
@@ -281,9 +281,9 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     1
      FROM PersonalImpuestoAFIP imp
 
-      JOIN Personal per ON per.PersonalId = imp.PersonalId
+    JOIN Personal per ON per.PersonalId = imp.PersonalId
+     JOIN PersonalComprobantePagoAFIP com ON com.PersonalId = per.PersonalId AND com.PersonalComprobantePagoAFIPAno =@1 AND com.PersonalComprobantePagoAFIPMes=@2
      LEFT JOIN PersonalOtroDescuento des ON des.PersonalId = imp.PersonalId AND des.PersonalOtroDescuentoDescuentoId=@3 AND des.PersonalOtroDescuentoAnoAplica = @1 AND des.PersonalOtroDescuentoMesesAplica = @2
-     LEFT JOIN PersonalComprobantePagoAFIP com ON com.PersonalId = per.PersonalId AND com.PersonalComprobantePagoAFIPAno =@1 AND com.PersonalComprobantePagoAFIPMes=@2
  
      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = imp.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
 	  LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
@@ -296,12 +296,6 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
    1=1
 
    AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
-     AND excep.PersonalExencionCUIT IS NULL
-
-	-- AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
-  AND sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26)
-
-
      ${extrafilter} 
    `,
       [, options.anio, options.mes, options.descuentoId, options.GrupoActividadId]
