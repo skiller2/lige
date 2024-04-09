@@ -246,7 +246,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 --     AND excep.PersonalExencionCUIT IS NULL
 
 	-- AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
-  AND sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26)
+  AND (sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26) OR com.PersonalComprobantePagoAFIPId IS NOT NULL)
     AND (${filterSql2}) 
     ${orderBy}
    `,
@@ -953,6 +953,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       const [comprobante] = await queryRunner.query(
         `SELECT DISTINCT
         per.PersonalId PersonalId, cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
+        com.PersonalComprobantePagoAFIPAno,com.PersonalComprobantePagoAFIPMes,com.PersonalComprobantePagoAFIPImporte,
         ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         1
         FROM Personal per

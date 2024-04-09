@@ -48,6 +48,7 @@ export class ImpuestosAfipController extends BaseController {
       const [comprobante] = await queryRunner.query(
         `SELECT DISTINCT
         per.PersonalId PersonalId, cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
+        com.PersonalComprobantePagoAFIPAno,com.PersonalComprobantePagoAFIPMes,com.PersonalComprobantePagoAFIPImporte,
         ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         1
         FROM Personal per
