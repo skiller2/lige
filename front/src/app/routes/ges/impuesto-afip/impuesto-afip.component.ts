@@ -120,7 +120,7 @@ export class ImpuestoAfipComponent {
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   gridObj!: SlickGrid;
-
+  startFilters: { field: string; condition: string; operator: string; value: string; }[]=[]
 
   listOptions: listOptionsT = {
     filtros: [],
@@ -184,13 +184,12 @@ export class ImpuestoAfipComponent {
 
     const user: any = this.settingService.getUser()
     const gruposActividadList = user.GrupoActividad
+    this.startFilters = [
+      { field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: gruposActividadList.join(';') },
+      { field: 'PersonalExencionCUIT', condition: 'AND', operator: '=', value: 'null' },
+      { field: 'monto', condition: 'AND', operator: '=', value: 'null' }
+    ]
 
-      setTimeout(() => {
-        if (gruposActividadList.length > 0)
-          this.sharedFiltroBuilder().addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'))  //Ej 548
-        this.sharedFiltroBuilder().addFilter('PersonalExencionCUIT', 'AND', '=', 'null')  //Ej 548
-        this.sharedFiltroBuilder().addFilter('monto', 'AND', '=', 'null')  //Ej 548
-      }, 3000);
 
   }
 

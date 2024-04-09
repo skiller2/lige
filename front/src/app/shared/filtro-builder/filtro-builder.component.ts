@@ -5,6 +5,7 @@ import {
   Input,
   Output,
   forwardRef,
+  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Filtro, Options } from '../schemas/filtro';
@@ -42,6 +43,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   providers: [CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR],
 })
 export class FiltroBuilderComponent implements ControlValueAccessor {
+  //readonly startFilters = signal<any[]>([])
 
   @Input() set fieldsToSelect(value: any[]) {
     this._fieldsToSelect = value;
@@ -49,6 +51,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   @Input() conditionsToSelect = ['AND', 'OR'];
   @Input() operatorsToSelect = ['LIKE', '>', '<', '>=', '<=', '!=', '<>', '='];
+  @Input() startFilters:any[]=[]
+
 
   @Output() optionsChange = new EventEmitter<Options>();
   _fieldsToSelect: Array<any> = []
@@ -83,6 +87,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   // Tags
   //
   ngOnInit(): void {
+    for (const filter of this.startFilters) {
+      this.addFilter(filter.field, filter.condition, filter.operator, filter.value)
+    }
   }
 
   addTag() {
