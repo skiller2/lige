@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   ViewChild,
+  viewChild,
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
@@ -73,12 +74,14 @@ export class CustomDescargaComprobanteComponent {
 export class ImpuestoAfipComponent {
   @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm =
     new NgForm([], []);
-  constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService,private settingService: SettingsService) { }
+  constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService, private settingService: SettingsService) { }
   url = '/api/impuestos_afip';
   url_forzado = '/api/impuestos_afip/forzado';
   toggle = false;
-  @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
-  
+  //  @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
+//  sharedFiltroBuilder = viewChild.required(FiltroBuilderComponent);
+  sharedFiltroBuilder = viewChild.required<FiltroBuilderComponent>('sfb');
+
   files: NzUploadFile[] = [];
   anio = 0
   mes = 0
@@ -102,43 +105,21 @@ export class ImpuestoAfipComponent {
 
 
   columns$ = this.apiService.getCols('/api/impuestos_afip/cols').pipe(map((cols) => {
-    const colmonto: Column = {
-      name: "Importe",
-      type: "float",
-      id: "monto",
-      field: "monto",
-      sortable: true,
-      //      formatter: () => '...',
-      asyncPostRender: this.renderAngularComponent.bind(this),
-      formatter : Formatters.multiple,
-      params: {
-        formatters: [Formatters.currency],
-        thousandSeparator: '.',
-        decimalSeparator: ',',
-        component: CustomDescargaComprobanteComponent,
-        angularUtilService: this.angularUtilService,
-        //complexFieldLabel: 'assignee.name' // for the exportCustomFormatter
-      },
-      cssClass: 'text-right',
-
-    }
-
     let mapped = cols.map((col: any) => {
-      if (col.id == 'monto'){
-        //console.log('Pase'); 
-        col = colmonto
+      if (col.id == 'monto') {
+        col.formatter = Formatters.multiple
+        col.asyncPostRender = this.renderAngularComponent.bind(this)
+        col.params.formatters = [Formatters.currency]
+        col.params.component = CustomDescargaComprobanteComponent
+        col.params.angularUtilService = this.angularUtilService
       }
       return col
     });
-    console.log('mapped',mapped); 
     return mapped
   }));
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   gridObj!: SlickGrid;
-
-
-
 
 
   listOptions: listOptionsT = {
@@ -163,18 +144,6 @@ export class ImpuestoAfipComponent {
         )
         .pipe(
           map(data => {
-            // this.gridDataLen = data.list.length 
-
-            // let gridDataTotalImporte = 0
-            // for (let index = 0; index < data.list.length; index++) {
-            //   if(data.list[index].importe)
-            //     gridDataTotalImporte += data.list[index].importe
-            // }
-            // this.gridObj.getFooterRowColumn('monto').innerHTML = 'Total: '+ gridDataTotalImporte.toFixed(2)
-            // this.gridObj.getFooterRowColumn(1).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
-            // console.log(gridDataTotalImporte);
-            // console.log(this.gridDataLen);
-            
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -205,37 +174,24 @@ export class ImpuestoAfipComponent {
     })
   );
 
-  resizeObservable$: Observable<Event> | undefined;
-  resizeSubscription$: Subscription | undefined;
-
   async ngOnInit() {
-    this.resizeObservable$ = fromEvent(window, 'resize');
-    this.resizeSubscription$ = this.resizeObservable$
-      .pipe(debounceTime(500))
-      .subscribe(evt => {
-//        this.angularGrid.slickGrid.invalidate();
-//        this.angularGrid.slickGrid.reRenderColumns(true)
-//        this.angularGrid.slickGrid.render()
-      });
-
-   
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
 
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
-  }
 
-  ngAfterContentInit(): void {
+
     const user: any = this.settingService.getUser()
     const gruposActividadList = user.GrupoActividad
 
     setTimeout(() => {
       if (gruposActividadList.length > 0)
-        this.sharedFiltroBuilder.addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'))  //Ej 548
-      this.sharedFiltroBuilder.addFilter('PersonalExencionCUIT', 'AND', '=', 'null')  //Ej 548
-      this.sharedFiltroBuilder.addFilter('monto', 'AND', '=', 'null')  //Ej 548
+        this.sharedFiltroBuilder().addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'))  //Ej 548
+      this.sharedFiltroBuilder().addFilter('PersonalExencionCUIT', 'AND', '=', 'null')  //Ej 548
+      this.sharedFiltroBuilder().addFilter('monto', 'AND', '=', 'null')  //Ej 548
     }, 3000);
+  
 
   }
 
@@ -293,32 +249,17 @@ export class ImpuestoAfipComponent {
     }
   }
 
-  // formChanged(_event: any) {
-  //   this.listOptions.filtros=this.listOptions.filtros.filter((fil: any) => {
-  //     return (fil.index!='PersonalIdJ')? true : false
-  //   })
-
-  //   if (Number(this.selectedPersonalId)>0)
-  //     this.listOptions.filtros.push({ index: 'PersonalIdJ', operador: '=', condition: 'AND', valor: this.selectedPersonalId })
-
-
-  //   this.formChange$.next('');
-  // }
-
-  ngOnDestroy() {
-    this.resizeSubscription$!.unsubscribe();
-  }
 
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
-    //console.log('this.angularGrid',this.angularGrid); 
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
-      this.angularGrid.dataView.onRowsChanged.subscribe((e, arg)=>{
-        totalRecords(this.angularGrid)
-        columnTotal('monto', this.angularGrid)
+    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGrid)
+      columnTotal('monto', this.angularGrid)
+      columnTotal('montodescuento', this.angularGrid)
     })
   }
 
@@ -327,30 +268,6 @@ export class ImpuestoAfipComponent {
       filename: 'monotributos-listado',
       format: FileType.xlsx
     });
-  }
-
-  metrics: any
-  refreshMetrics(e: any) {
-    
-    this.gridOptions.customFooterOptions!.rightFooterText = 'update'
-    this.angularGrid.slickGrid.setOptions({ customFooterOptions: { rightFooterText: 'update'} },)
-
-
-
-    let _e = e.detail.eventData
-    let args = e.detail.args
-    if (args && args.current >= 0) {
-      setTimeout(() => {
-        this.metrics = {
-          startTime: new Date(),
-          endTime: new Date(),
-          //itemCount: args && args.current || 0,
-          itemCount: 10,
-          //totalItemCount: this.dataset.length || 0
-          totalItemCount: 10
-        };
-      });
-    }
   }
 
 }
