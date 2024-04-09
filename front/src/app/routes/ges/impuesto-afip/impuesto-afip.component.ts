@@ -233,6 +233,8 @@ export class ImpuestoAfipComponent {
     setTimeout(() => {
       if (gruposActividadList.length > 0)
         this.sharedFiltroBuilder.addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'))  //Ej 548
+      this.sharedFiltroBuilder.addFilter('PersonalExencionCUIT', 'AND', '=', 'null')  //Ej 548
+      this.sharedFiltroBuilder.addFilter('monto', 'AND', '=', 'null')  //Ej 548
     }, 3000);
 
   }

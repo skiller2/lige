@@ -230,11 +230,11 @@ export class ImpuestosAfipController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     try {
       // await queryRunner.startTransaction()
-      const respuesta = queryRunner.query(`
-        SELECT TOP ${cant} des.PersonalId, des.PersonalOtroDescuentoMesesAplica mes, des.PersonalOtroDescuentoAnoAplica anio
-        FROM PersonalOtroDescuento des 
-        WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = 31
-        ORDER BY des.PersonalOtroDescuentoAnoAplica DESC, des.PersonalOtroDescuentoMesesAplica DESC`, 
+      const respuesta = await queryRunner.query(`
+        SELECT TOP ${cant} des.PersonalId, des.PersonalComprobantePagoAFIPMes mes, des.PersonalComprobantePagoAFIPAno anio
+        FROM PersonalComprobantePagoAFIP  des 
+        WHERE des.PersonalId = @0 
+        ORDER BY des.PersonalComprobantePagoAFIPAno DESC, des.PersonalComprobantePagoAFIPMes DESC`, 
         [personalId])
       // await queryRunner.commitTransaction()
       

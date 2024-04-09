@@ -7,14 +7,25 @@ import { NextFunction } from "express";
 import { existsSync } from "fs";
 
 export class PersonalController extends BaseController {
+
   async getPersonalMonotributo(req: any, res: Response, next: NextFunction) {
     const personalId = req.params.personalId;
     const anio = req.params.anio;
     const mes = req.params.mes;
+
     try {
       const result = await dataSource.query(
-        `SELECT des.PersonalId,des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoAnoAplica FROM PersonalOtroDescuento des WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = @1 AND des.PersonalOtroDescuentoAnoAplica = @2 AND des.PersonalOtroDescuentoMesesAplica = @3`,
-        [personalId, Number(process.env.OTRO_DESCUENTO_ID), anio, mes]
+        `SELECT DISTINCT
+        per.PersonalId PersonalId, cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
+        ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
+        1
+        FROM Personal per
+        JOIN PersonalComprobantePagoAFIP com ON com.PersonalId=per.PersonalId AND com.PersonalComprobantePagoAFIPAno = @1 AND com.PersonalComprobantePagoAFIPMes = @2
+        LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+        LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+        WHERE per.PersonalId = @0`,
+        [personalId, anio, mes]
       );
 
       this.jsonRes(result, res);

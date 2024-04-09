@@ -109,7 +109,7 @@ export class ImpuestosAfipController extends BaseController {
       });
       const files = descuentos
         .filter(
-          (descuento) => descuento.PersonalOtroDescuentoDescuentoId !== null
+          (descuento) => descuento.PersonalComprobantePagoAFIPId !== null
         )
         .map((descuento, index) => {
           return {
@@ -216,15 +216,15 @@ export class ImpuestosAfipController extends BaseController {
 
     return dataSource.query(
       `SELECT DISTINCT 
-      CONCAT(per.PersonalId,'-',des.PersonalOtroDescuentoId) id,
+      CONCAT(per.PersonalId,'-',des.PersonalOtroDescuentoId,'-',com.PersonalComprobantePagoAFIPId) id,
       per.PersonalId PersonalId,
-      des.PersonalOtroDescuentoId,
+      
       cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
 
 ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
-
-
-      des.PersonalOtroDescuentoImporteVariable monto, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, des.PersonalOtroDescuentoDescuentoId,
+     
+      com.PersonalComprobantePagoAFIPId, com.PersonalComprobantePagoAFIPAno, com.PersonalComprobantePagoAFIPMes, com.PersonalComprobantePagoAFIPImporte monto,
+      des.PersonalOtroDescuentoImporteVariable montodescuento, 
     excep.PersonalExencionCUIT, 
 -- 	 sitrev.PersonalSituacionRevistaMotivo, sit.SituacionRevistaId, sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
     1
@@ -232,16 +232,17 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       JOIN Personal per ON per.PersonalId = imp.PersonalId
      LEFT JOIN PersonalOtroDescuento des ON des.PersonalId = imp.PersonalId AND des.PersonalOtroDescuentoDescuentoId=@3 AND des.PersonalOtroDescuentoAnoAplica = @1 AND des.PersonalOtroDescuentoMesesAplica = @2
-	LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = imp.PersonalId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+     LEFT JOIN PersonalComprobantePagoAFIP com ON com.PersonalId = per.PersonalId AND com.PersonalComprobantePagoAFIPAno =@1 AND com.PersonalComprobantePagoAFIPMes=@2
+	LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = imp.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
 	LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
      LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-     LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
-     LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) >  sitrev.PersonalSituacionRevistaDesde AND  DATEFROMPARTS(@1,@2,1) < ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')
+     LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
+     LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) >  sitrev.PersonalSituacionRevistaDesde AND  DATEFROMPARTS(@1,@2,1) < ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')
      LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
      WHERE
    1=1
 
-   AND DATEFROMPARTS(@1,@2,28) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
+   AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
 --     AND excep.PersonalExencionCUIT IS NULL
 
 	-- AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
@@ -267,12 +268,14 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     return dataSource.query(
       `SELECT DISTINCT
       per.PersonalId PersonalId,
-      des.PersonalOtroDescuentoId,
+      
       cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
 
 		ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
-      des.PersonalOtroDescuentoImporteVariable monto, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, des.PersonalOtroDescuentoDescuentoId,
+    com.PersonalComprobantePagoAFIPId, com.PersonalComprobantePagoAFIPAno, com.PersonalComprobantePagoAFIPMes, com.PersonalComprobantePagoAFIPImporte monto,
+    des.PersonalOtroDescuentoImporteVariable montodescuento, 
+
     excep.PersonalExencionCUIT, 
 -- 	 sitrev.PersonalSituacionRevistaMotivo, sit.SituacionRevistaId, sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
     1
@@ -280,18 +283,19 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       JOIN Personal per ON per.PersonalId = imp.PersonalId
      LEFT JOIN PersonalOtroDescuento des ON des.PersonalId = imp.PersonalId AND des.PersonalOtroDescuentoDescuentoId=@3 AND des.PersonalOtroDescuentoAnoAplica = @1 AND des.PersonalOtroDescuentoMesesAplica = @2
+     LEFT JOIN PersonalComprobantePagoAFIP com ON com.PersonalId = per.PersonalId AND com.PersonalComprobantePagoAFIPAno =@1 AND com.PersonalComprobantePagoAFIPMes=@2
  
-     LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = imp.PersonalId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+     LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = imp.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
 	  LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
   
      LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-     LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
-     LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) >  sitrev.PersonalSituacionRevistaDesde AND  DATEFROMPARTS(@1,@2,1) < ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')
+     LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
+     LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) >  sitrev.PersonalSituacionRevistaDesde AND  DATEFROMPARTS(@1,@2,1) < ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')
      LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
      WHERE
    1=1
 
-   AND DATEFROMPARTS(@1,@2,28) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
+   AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
      AND excep.PersonalExencionCUIT IS NULL
 
 	-- AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
@@ -352,7 +356,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       });
       const sincomprobante = result.reduce(
         (total, item: any) =>
-          item.PersonalOtroDescuentoDescuentoId == null ? total + 1 : total,
+          item.PersonalComprobantePagoAFIPId == null ? total + 1 : total,
         0
       );
       this.jsonRes(
@@ -373,7 +377,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     CUIT,
     anioRequest,
     mesRequest,
-    importeMonto,
+    importeMonto:number,
     file,
     pagenum
   ) {
@@ -381,14 +385,17 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       `SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro, per.PersonalComprobantePagoAFIPUltNro, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre, excep.PersonalExencionCUIT 
       FROM PersonalCUITCUIL cuit 
       JOIN Personal per ON per.PersonalId = cuit.PersonalId
-      LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
+      LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
  
       WHERE cuit.PersonalCUITCUILCUIT = @0`,
       [Number(CUIT),anioRequest,mesRequest]
     );
 
-    if (!personalIDQuery.PersonalId)
+    if (!personalIDQuery?.PersonalId)
       throw new ClientException(`No se pudo encontrar el CUIT ${CUIT}`);
+
+    if (importeMonto<1000)
+      throw new ClientException(`El importe no es válido`);
 
     const personalID = personalIDQuery.PersonalId;
 
@@ -397,8 +404,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     let PersonalOtroDescuentoUltNro = Number(personalIDQuery.PersonalOtroDescuentoUltNro);
 
     const alreadyExists = await queryRunner.query(
-//      `SELECT * FROM PersonalOtroDescuento des WHERE des.PersonalId = @0 AND des.PersonalOtroDescuentoDescuentoId = @1 AND des.PersonalOtroDescuentoAnoAplica = @2 AND des.PersonalOtroDescuentoMesesAplica = @3`,
-      `SELECT pag.PersonalComprobantePagoAFIPId  FROM PersonalComprobantePagoAFIP pag WHERE pag.PersonalId = @0 AND pag.PersonalComprobantePagoAFIPAno = @1 AND pag.PersonalComprobantePagoAFIPMes = @2`,
+      `SELECT pag.PersonalComprobantePagoAFIPId, pag.PersonalComprobantePagoAFIPImporte  FROM PersonalComprobantePagoAFIP pag WHERE pag.PersonalId = @0 AND pag.PersonalComprobantePagoAFIPAno = @1 AND pag.PersonalComprobantePagoAFIPMes = @2`,
       [
         personalID,
         anioRequest,
@@ -407,12 +413,12 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     );
 
     if (alreadyExists.length > 0) {
-      /*
-      if (alreadyExists[0].PersonalOtroDescuentoImporteVariable != importeMonto)
+      
+      if (alreadyExists[0].PersonalComprobantePagoAFIPImporte != importeMonto)
         throw new ClientException(
-          `Ya existe un descuento para el periodo ${anioRequest}-${mesRequest} y el CUIT ${CUIT} con importe ${alreadyExists[0].PersonalOtroDescuentoImporteVariable} distinto al cargado`
+          `Ya existe un descuento para el periodo ${anioRequest}-${mesRequest} y el CUIT ${CUIT} con importe ${alreadyExists[0].PersonalComprobantePagoAFIPImporte} distinto al cargado`
         );
-      */
+      
     }
 
     mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
@@ -431,13 +437,14 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       PersonalComprobantePagoAFIPUltNro++
       await queryRunner.query(
-        `INSERT INTO PersonalComprobantePagoAFIP (PersonalComprobantePagoAFIPId, PersonalId, PersonalComprobantePagoAFIPAno,PersonalComprobantePagoAFIPMes)
-      VALUES (@0, @1, @2, @3)`,
+        `INSERT INTO PersonalComprobantePagoAFIP (PersonalComprobantePagoAFIPId, PersonalId, PersonalComprobantePagoAFIPAno,PersonalComprobantePagoAFIPMes,PersonalComprobantePagoAFIPImporte)
+      VALUES (@0, @1, @2, @3, @4)`,
         [
           PersonalComprobantePagoAFIPUltNro,
           personalID,
           anioRequest,
           mesRequest,
+          importeMonto
         ]
       );
 
@@ -688,7 +695,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       const files = descuentos
         .filter(
-          (descuento) => descuento.PersonalOtroDescuentoDescuentoId !== null
+          (descuento) => descuento.PersonalComprobantePagoAFIPId !== null
         )
         .map((descuento, index) => {
           return {
@@ -943,7 +950,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     const dirtmp = `${process.env.PATH_MONOTRIBUTO}/temp`;
     const tmpfilename = `${dirtmp}/${tmpName(dirtmp)}`;
     try {
-      const [personalQuery] = await queryRunner.query(
+      const [comprobante] = await queryRunner.query(
         `SELECT DISTINCT
         per.PersonalId PersonalId, cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
         ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
@@ -956,11 +963,11 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         WHERE per.PersonalId = @0`,
         [personalId, year, month]
       );
-      if (!personalQuery)
-        throw new ClientException(`No se encuentra registrado el comprobante`);
+      if (!comprobante)
+        throw new ClientException(`No se pudo encontrar el comprobante`);
 
-      const personalID = personalQuery.PersonalId;
-      const cuit = personalQuery.CUIT;
+      const personalID = comprobante.PersonalId;
+      const cuit = comprobante.CUIT;
 
       const filename = `${year}-${month.padStart(
         2,
@@ -975,8 +982,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
       if (!personalID)
         throw new ClientException(`No se pudo encontrar la persona ${personalId}`);
-      const ApellidoNombre = personalQuery.ApellidoNombre;
-      const GrupoActividadDetalle = personalQuery.GrupoActividadDetalle;
+      const ApellidoNombre = comprobante.ApellidoNombre;
+      const GrupoActividadDetalle = comprobante.GrupoActividadDetalle;
 
       const buffer = await this.alterPDF(
         uint8Array,

@@ -10,9 +10,9 @@ export interface DescuentoJSON {
   ApellidoNombre: string;
   GrupoActividadDetalle: string;
   monto: null | number;
-  PersonalOtroDescuentoAnoAplica: null | number;
-  PersonalOtroDescuentoMesesAplica: null | number;
-  PersonalOtroDescuentoDescuentoId: null | number;
+  PersonalComprobantePagoAFIPAno: null | number;
+  PersonalComprobantePagoAFIPMes: null | number;
+  PersonalComprobantePagoAFIPId: null | number;
   clicked?: boolean;
 }
 
