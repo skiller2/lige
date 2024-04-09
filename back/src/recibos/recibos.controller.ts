@@ -86,7 +86,7 @@ export class RecibosController extends BaseController {
         fechaRecibo = fechaActual
       } else {
 
-        // codigo para cuenado es unico recibo bebe validar que el recibo exista para poder regenerarlo, caso contrario arrojar error
+        // codigo para cuando es unico recibo bebe validar que el recibo exista para poder regenerarlo, caso contrario arrojar error
         const existRecibo = await this.existReciboId(queryRunner, fechaActual, periodo_id, personalId);
 
         if (existRecibo.length <=  0)
@@ -676,14 +676,104 @@ export class RecibosController extends BaseController {
     const footer = req.body.footer
     const PersonalId = Number(req.body.PersonalId)
     const periodo = req.body.periodo
-
+    const queryRunner = dataSource.createQueryRunner()
+    const fechaActual = new Date();
+    let persona_id = 0
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    let filesPath = ""
+    
     try {
+
       if (!PersonalId) {
         throw new ClientException(`Debe selccionar persona`)
       }
+      let year = periodo.split("-")[0];
+      let month =  periodo.split("-")[1];
 
-      //Aca hacer todo el proceso de generarion  de prueba
-      throw new ClientException(`Falta generar recibo prueba`)
+  
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, year, month, usuario, ip)
+      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, PersonalId)
+
+      const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets'
+      const footerTest = `${process.env.PATH_RECIBO_TEST}/test.html`;
+      let testText = await fsPromises.readFile(footerTest, 'utf-8');
+
+      let headerContent =  testText + header;
+      let htmlContent =  body;
+      let footerContent = footer + testText ;
+
+
+      const imgPath = `${basePath}/icons/icon-lince-96x96.png`
+      const imgBuffer = await fsPromises.readFile(imgPath);
+      const imgBase64 = imgBuffer.toString('base64');
+
+      const imgPathinaes = `${basePath}/icons/inaes.png`
+      const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
+      const imgBase64inaes = imgBufferinaes.toString('base64');
+    
+      headerContent = headerContent.replace(/\${imgBase64}/g, imgBase64);
+      footerContent = footerContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
+
+      headerContent = headerContent.replace(/\${anio}/g, year.toString());
+      headerContent = headerContent.replace(/\${mes}/g, month.toString());
+
+      headerContent = headerContent.replace(/\${fechaFormateada}/g, this.dateFormatter.format(fechaActual));
+      const htmlContentPre = htmlContent;
+
+      const browser = await puppeteer.launch({ headless: 'new' })
+      const page = await browser.newPage();
+
+      for (const movimiento of movimientosPendientes) {
+        persona_id = movimiento.PersonalId
+        
+         filesPath = process.env.PATH_RECIBO_TEST + '/' + persona_id + '-' + String(month) + "-" + String(year) + ".pdf"
+        //const nombre_archivo = persona_id + '-' + String(month) + "-" + String(year) + ".pdf"
+      
+
+        const PersonalNombre = movimiento.PersonalNombre
+        const Cuit = movimiento.PersonalCUITCUILCUIT
+        const Domicilio = (movimiento.DomicilioCompleto) ? movimiento.DomicilioCompleto : 'Sin especificar'
+        const Asociado = (movimiento.PersonalNroLegajo) ? movimiento.PersonalNroLegajo.toString() : 'Pendiente'
+        const Grupo = (movimiento.GrupoActividadDetalle) ? movimiento.GrupoActividadDetalle : 'Sin asignar'
+
+        const idreciboRandom = Math.floor(10000 + Math.random() * 90000);
+
+         await this.createPdf(queryRunner, filesPath, persona_id, idreciboRandom, PersonalNombre, Cuit, Domicilio, Asociado,
+           Grupo, periodo_id, page, htmlContentPre, headerContent, footerContent)
+
+        
+           const filePathReplace = [
+            {
+                filePath: `${process.env.PATH_RECIBO_TEST}/inaes-header.html`,
+                htmlContent: header
+            },
+            {
+                filePath: `${process.env.PATH_RECIBO_TEST}/inaes.html`,
+                htmlContent: body
+            },
+            {
+              filePath: `${process.env.PATH_RECIBO_TEST}/inaes-footer.html`,
+              htmlContent: footer
+          }
+        ];
+
+        this.replaceHtml(filePathReplace)
+      }
+      
+      await page.close()
+      await browser.close();
+
+      res.download(filesPath, `ReciboTest-${year}-${month}.pdf`, async (err) => {
+        if (err) {
+          console.error('Error al descargar el PDF:', err);
+          return next(err);
+        } else {
+          console.log('PDF descargado con éxito');
+          fs.unlinkSync(filesPath);
+          console.log('PDF eliminado del servidor');
+        }
+      });
       
     } catch (error) {
       return next(error)
@@ -691,6 +781,28 @@ export class RecibosController extends BaseController {
   }
 
 
+  async replaceHtml(filePathReplace:any){
+
+      filePathReplace.forEach((item, index) => {
+        
+        const { filePath, htmlContent } = item;
+
+          fs.unlink(filePath, (err) => {
+            if (err && err.code !== 'ENOENT') {
+                console.error(`Error al eliminar el archivo ${filePath}:`, err);
+                return;
+          }
+
+          fs.writeFile(filePath, htmlContent, (err) => {
+              if (err) {
+                  console.error(`Error al escribir el archivo ${filePath}:`, err);
+                  return;
+              }
+              console.log(`El archivo HTML ${filePath} se ha creado correctamente.`);
+          });
+      });
+    });
+  }
 }
 
 
