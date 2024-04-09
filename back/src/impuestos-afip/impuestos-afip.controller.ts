@@ -257,7 +257,6 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
   getDescuentosByPeriodo(options: {
     anio: string;
     mes: string;
-    descuentoId: string;
     GrupoActividadId: string;
   }) {
     const extrafilter =
@@ -282,7 +281,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
      FROM PersonalImpuestoAFIP imp
 
     JOIN Personal per ON per.PersonalId = imp.PersonalId
-     JOIN PersonalComprobantePagoAFIP com ON com.PersonalId = per.PersonalId AND com.PersonalComprobantePagoAFIPAno =@1 AND com.PersonalComprobantePagoAFIPMes=@2
+     LEFT JOIN PersonalComprobantePagoAFIP com ON com.PersonalId = per.PersonalId AND com.PersonalComprobantePagoAFIPAno =@1 AND com.PersonalComprobantePagoAFIPMes=@2
      LEFT JOIN PersonalOtroDescuento des ON des.PersonalId = imp.PersonalId AND des.PersonalOtroDescuentoDescuentoId=@3 AND des.PersonalOtroDescuentoAnoAplica = @1 AND des.PersonalOtroDescuentoMesesAplica = @2
  
      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = imp.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
@@ -296,9 +295,11 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
    1=1
 
    AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
+   AND excep.PersonalExencionCUIT IS null
+   AND sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26)
      ${extrafilter} 
    `,
-      [, options.anio, options.mes, options.descuentoId, options.GrupoActividadId]
+      [, options.anio, options.mes, process.env.OTRO_DESCUENTO_ID, options.GrupoActividadId]
     );
   }
 
@@ -339,13 +340,11 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     const anio = req.params.anio;
     const mes = req.params.mes;
     const GrupoActividadId = req.params.GrupoActividadId;
-    const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
     try {
       const result: DescuentoJSON[] = await this.getDescuentosByPeriodo({
         anio,
         mes,
-        descuentoId,
         GrupoActividadId,
       });
       const sincomprobante = result.reduce(

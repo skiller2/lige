@@ -185,13 +185,12 @@ export class ImpuestoAfipComponent {
     const user: any = this.settingService.getUser()
     const gruposActividadList = user.GrupoActividad
 
-    setTimeout(() => {
-      if (gruposActividadList.length > 0)
-        this.sharedFiltroBuilder().addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'))  //Ej 548
-      this.sharedFiltroBuilder().addFilter('PersonalExencionCUIT', 'AND', '=', 'null')  //Ej 548
-      this.sharedFiltroBuilder().addFilter('monto', 'AND', '=', 'null')  //Ej 548
-    }, 3000);
-  
+      setTimeout(() => {
+        if (gruposActividadList.length > 0)
+          this.sharedFiltroBuilder().addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'))  //Ej 548
+        this.sharedFiltroBuilder().addFilter('PersonalExencionCUIT', 'AND', '=', 'null')  //Ej 548
+        this.sharedFiltroBuilder().addFilter('monto', 'AND', '=', 'null')  //Ej 548
+      }, 3000);
 
   }
 
