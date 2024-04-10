@@ -191,6 +191,12 @@ export class AsistenciaController extends BaseController {
     if (contratos.length == 0)
       throw new ClientException(`No tiene contrato vigente para el período ${anio}/${mes}`)
 
+    const checkrecibos = await queryRunner.query(
+      `SELECT per.ind_recibos_generados FROM lige.dbo.liqmaperiodo per WHERE per.anio=@1 AND per.mes=@2`, [,anio, mes]
+    );
+
+    if (checkrecibos[0].ind_recibos_generados ==1)
+      throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
 
     let ObjetivoAsistenciaAnoUltNro = cabecera[0].ObjetivoAsistenciaAnoId
 
