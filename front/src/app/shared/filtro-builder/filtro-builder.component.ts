@@ -5,7 +5,9 @@ import {
   Input,
   Output,
   forwardRef,
-  signal,
+  inject,
+  input,
+  model,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Filtro, Options } from '../schemas/filtro';
@@ -43,19 +45,21 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   providers: [CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR],
 })
 export class FiltroBuilderComponent implements ControlValueAccessor {
-  //readonly startFilters = signal<any[]>([])
+  readonly startFilters = input<any[]>([])
+  readonly fieldsToSelect = input<any[]>([])
 
-  @Input() set fieldsToSelect(value: any[]) {
-    this._fieldsToSelect = value;
-  }
-
-  @Input() conditionsToSelect = ['AND', 'OR'];
-  @Input() operatorsToSelect = ['LIKE', '>', '<', '>=', '<=', '!=', '<>', '='];
-  @Input() startFilters:any[]=[]
+  private searchService = inject(SearchService)
+  private elRef = inject(ElementRef)
 
 
+  //conditionsToSelect = ['AND', 'OR'];
+  //operatorsToSelect = ['LIKE', '>', '<', '>=', '<=', '!=', '<>', '='];
+  
   @Output() optionsChange = new EventEmitter<Options>();
-  _fieldsToSelect: Array<any> = []
+  //options = model<Options>({
+//    filtros: [],
+//    sort: null
+//  })
   formChange$ = new BehaviorSubject('');
   
   $optionsSucursales = this.searchService.getSucursales();
@@ -64,7 +68,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     filtros: [],
     sort: null,
   };
-
 
 
   isFiltroBuilder = false;
@@ -79,15 +82,11 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   valueExtended = { fullName:''}
 
-
-  constructor(
-    private searchService: SearchService,private elRef:ElementRef
-  ) { }
   //
   // Tags
   //
   ngOnInit(): void {
-    for (const filter of this.startFilters) {
+    for (const filter of this.startFilters()) {
       this.addFilter(filter.field, filter.condition, filter.operator, filter.value)
     }
   }
@@ -204,14 +203,16 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       operador: selections.operator,
       valor: valueToFilter,
     };
-    this.options.filtros.push(filtro);
-    this.optionsChange.emit(this.options);
+    this.localoptions.filtros.push(filtro);
+    this.optionsChange.emit(this.localoptions);
+//    this.options.set(this.localoptions);
     return filtro;
   }
 
   removeFiltro(indexToRemove: number) {
-    this.options.filtros.splice(indexToRemove, 1);
-    this.optionsChange.emit(this.options);
+    this.localoptions.filtros.splice(indexToRemove, 1);
+    this.optionsChange.emit(this.localoptions);
+//    this.options.set(this.localoptions);
   }
 
   resetSelections() {
@@ -235,12 +236,12 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   private onChangeCallback: (_: any) => void = noop;
 
   //get accessor
-  get options(): Options {
+  get localoptions(): Options {
     return this._options;
   }
 
   //set accessor including call the onchange callback
-  set options(v: any) {
+  set localoptions(v: any) {
     if (v !== this._options) {
       this._options = v;
       this.onChangeCallback(v);
@@ -289,7 +290,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   async addFilter(field: string, condition: string, operator: string, value: string) {
-    const fieldObj: any = this._fieldsToSelect.filter(x => x.field === field)[0]
+    const fieldObj: any = this.fieldsToSelect().filter(x => x.field === field)[0]
     if (!fieldObj)
       return
     let label = ''
