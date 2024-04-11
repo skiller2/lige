@@ -43,3 +43,9 @@ recibosRouter.post("/prueba", [authMiddleware.verifyToken, authMiddleware.hasGro
     recibosController.downloadReciboPRueba(req, res, next);
   }
 );
+
+recibosRouter.get("/getvaluesrecibo", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])],
+  (req, res, next) => {
+    recibosController.getvaluesrecibo(req, res, next);
+  }
+);

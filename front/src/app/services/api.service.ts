@@ -670,7 +670,18 @@ export class ApiService {
 
   }
 
+  getValuesRecibo() {
+    let parameter=""
+    return this.http.get<ResponseJSON<any>>('/api/recibos/getvaluesrecibo',parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([])),
+      
+    )
+
+  }
+  
   downloadReciboPrueba(parameter:any) {
+    console.log('parameters',parameter)
     return this.http.post<ResponseJSON<any>>('/api/recibos/prueba', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
