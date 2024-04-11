@@ -159,7 +159,7 @@ export class PersonalController extends BaseController {
         WHERE per.PersonalId = @0`,
         [PersonalId, anio, mes]
       )
-      .then((records: Array<PersonaObj>) => {
+      .then(async (records: Array<PersonaObj>) => {
         if (records.length != 1) throw new ClientException("Person not found");
 
         let FechaHasta = new Date();
@@ -188,22 +188,17 @@ export class PersonalController extends BaseController {
             personaData.DocumentoImagenFotoBlobNombreArchivo
           )
           : "";
-        personaData.image = "";
+//        personaData.image = "";
         personaData.mails = mails;
-        if (imageUrl != "") {
-          fetch(imageUrl)
-            .then((imageUrlRes) => imageUrlRes.buffer())
-            .then((buffer) => {
-              const bufferStr = buffer.toString("base64");
-              personaData.image = "data:image/jpeg;base64, " + bufferStr;
 
-            })
-            .catch((reason) => {
-              throw new ClientException("Image not found");
-            });
+        if (imageUrl != "") {
+          const res = await fetch(imageUrl)
+          const buffer = await res.arrayBuffer()
+          const bufferStr = Buffer.from(buffer).toString('base64')
+          personaData.image = "data:image/jpeg;base64, " + bufferStr;
         }
+
         this.jsonRes(personaData, res);
-        
       })
       .catch((error) => {
         return next(error)
