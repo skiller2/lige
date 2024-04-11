@@ -86,7 +86,7 @@ export class RecibosController extends BaseController {
         fechaRecibo = fechaActual
       } else {
 
-        // codigo para cuenado es unico recibo bebe validar que el recibo exista para poder regenerarlo, caso contrario arrojar error
+        // codigo para cuando es unico recibo bebe validar que el recibo exista para poder regenerarlo, caso contrario arrojar error
         const existRecibo = await this.existReciboId(queryRunner, fechaActual, periodo_id, personalId);
 
         if (existRecibo.length <=  0)
@@ -597,16 +597,10 @@ export class RecibosController extends BaseController {
       const mergedPdfBytes = await mergedPdf.save();
       fs.writeFileSync(rutaPDF, mergedPdfBytes);
       console.log('PDF guardado en la ruta especificada:', rutaPDF);
-      res.download(rutaPDF, `Recibos-${Anio}-${Mes}.pdf`, async (err) => {
-        if (err) {
-          console.error('Error al descargar el PDF:', err);
-          return next(err);
-        } else {
-          console.log('PDF descargado con éxito');
-          fs.unlinkSync(rutaPDF);
-          console.log('PDF eliminado del servidor');
-        }
-      });
+      
+      let nameFile = `Recibos-${Anio}-${Mes}.pdf`
+      await this.dowloadPdfBrowser(res,next,rutaPDF,Anio,Mes,nameFile)
+
     } catch (error) {
       return next(error)
     }
@@ -660,14 +654,80 @@ export class RecibosController extends BaseController {
     const header = req.body.header
     const body = req.body.body
     const footer = req.body.footer
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    const queryRunner = dataSource.createQueryRunner();
+    const fechaActual = new Date();
 
     try {
-      //Aca hacer todo el proceso de grabación
-      throw new ClientException(`Falta guardar los datos header:${header}`)
+
+      if (body == "") 
+        throw new ClientException(`El cuerpo no puede estar vacio`)
+
+      if (header == "") 
+        throw new ClientException(`La cabecera no puede estar vacia`)
+
+      const filePathReplace = [
+        {
+            filePath: `${process.env.PATH_RECIBO_HTML}/inaes-header.html`,
+            htmlContent: header,
+            update: "header"
+        },
+        {
+            filePath: `${process.env.PATH_RECIBO_HTML}/inaes.html`,
+            htmlContent: body,
+            update: "body"
+        },
+        {
+          filePath: `${process.env.PATH_RECIBO_HTML}/inaes-footer.html`,
+          htmlContent: footer,
+          update: "footer"
+      }
+    ];
+
+    this.replaceHtml(filePathReplace)
+
+    await this.procesarFilePathReplace(queryRunner,filePathReplace,usuario, ip,fechaActual)
+
+    this.jsonRes([], res, `Se guardo el nuevo formato de recibo`);
       
     } catch (error) {
       return next(error)
     }
+  }
+
+  async procesarFilePathReplace(queryRunner:QueryRunner,filePathReplace:any,usuario:any, ip:any,fechaActual:any) {
+    try {
+        for (const item of filePathReplace) {
+            const { filePath, htmlContent, update } = item;
+            const idupdaterecibo = await this.getProxNumero(queryRunner, 'idupdaterecibo', usuario, ip);
+            
+            await this.updateHistoryRecibo(
+                queryRunner,
+                idupdaterecibo,
+                htmlContent.replace(/"/g, '\\"'),
+                update,
+                usuario,
+                ip,
+                fechaActual
+            );
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+  async updateHistoryRecibo( 
+    queryRunner: QueryRunner,
+    idupdaterecibo,
+    htmlContent:any,
+    update:any,
+    usuario:any,
+    ip:any,
+    fechaActual:any ){
+
+    return queryRunner.query(`INSERT INTO lige.dbo.conupdaterecibo (id,html,html_update,fecha,aud_usuario_ins,aud_ip_ins,aud_fecha_ins,aud_usuario_mod,aud_ip_mod,aud_fecha_mod)
+    VALUES (@0,@1,@2,@3,@4,@5,@3,@4,@5,@3); `, [idupdaterecibo,htmlContent,update,fechaActual,usuario,ip ])
   }
 
   async downloadReciboPRueba(req: Request, res: Response, next: NextFunction) {
@@ -676,20 +736,165 @@ export class RecibosController extends BaseController {
     const footer = req.body.footer
     const PersonalId = Number(req.body.PersonalId)
     const periodo = req.body.periodo
-
+    const queryRunner = dataSource.createQueryRunner()
+    const fechaActual = new Date();
+    let persona_id = 0
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    let filesPath = ""
+    
     try {
+
       if (!PersonalId) {
         throw new ClientException(`Debe selccionar persona`)
       }
+      let year = periodo.split("-")[0];
+      let month =  periodo.split("-")[1];
 
-      //Aca hacer todo el proceso de generarion  de prueba
-      throw new ClientException(`Falta generar recibo prueba`)
+  
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, year, month, usuario, ip)
+      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, PersonalId)
+
+      const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets'
+
+      let headerContent =  header;
+      let htmlContent =  body;
+      let footerContent = footer  ;
+
+
+      const imgPath = `${basePath}/icons/icon-lince-96x96.png`
+      const imgBuffer = await fsPromises.readFile(imgPath);
+      const imgBase64 = imgBuffer.toString('base64');
+
+      const imgPathinaes = `${basePath}/icons/inaes.png`
+      const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
+      const imgBase64inaes = imgBufferinaes.toString('base64');
+    
+      headerContent = headerContent.replace(/\${imgBase64}/g, imgBase64);
+      footerContent = footerContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
+
+      headerContent = headerContent.replace(/\${anio}/g, year.toString());
+      headerContent = headerContent.replace(/\${mes}/g, month.toString());
+
+      headerContent = headerContent.replace(/\${fechaFormateada}/g, this.dateFormatter.format(fechaActual));
+      const htmlContentPre = htmlContent;
+
+      const browser = await puppeteer.launch({ headless: 'new' })
+      const page = await browser.newPage();
+
+      for (const movimiento of movimientosPendientes) {
+        persona_id = movimiento.PersonalId
+        
+         filesPath = process.env.PATH_RECIBO_HTML_TEST + '/' + persona_id + '-' + String(month) + "-" + String(year) + ".pdf"
+
+        const PersonalNombre = movimiento.PersonalNombre
+        const Cuit = movimiento.PersonalCUITCUILCUIT
+        const Domicilio = (movimiento.DomicilioCompleto) ? movimiento.DomicilioCompleto : 'Sin especificar'
+        const Asociado = (movimiento.PersonalNroLegajo) ? movimiento.PersonalNroLegajo.toString() : 'Pendiente'
+        const Grupo = (movimiento.GrupoActividadDetalle) ? movimiento.GrupoActividadDetalle : 'Sin asignar'
+
+        const idreciboRandom = Math.floor(10000 + Math.random() * 90000);
+
+         await this.createPdf(queryRunner, filesPath, persona_id, idreciboRandom, PersonalNombre, Cuit, Domicilio, Asociado,
+           Grupo, periodo_id, page, htmlContentPre, headerContent, footerContent)
+
+        
+           const filePathReplace = [
+            {
+                filePath: `${process.env.PATH_RECIBO_HTML_TEST}/inaes-header.html`,
+                htmlContent: header
+            },
+            {
+                filePath: `${process.env.PATH_RECIBO_HTML_TEST}/inaes.html`,
+                htmlContent: body
+            },
+            {
+              filePath: `${process.env.PATH_RECIBO_HTML_TEST}/inaes-footer.html`,
+              htmlContent: footer
+          }
+        ];
+
+        this.replaceHtml(filePathReplace)
+      }
+
+      const headerText = 'TEST'; 
+      await this.agregarEncabezadoAlPDF(filesPath, headerText);
+      
+      await page.close();
+      await browser.close();
+
+      let nameFile = `ReciboTest-${year}-${month}.pdf`
+      await this.dowloadPdfBrowser(res,next,filesPath,year,month,nameFile)
       
     } catch (error) {
       return next(error)
     }
   }
 
+  async dowloadPdfBrowser (res: Response,next: NextFunction, filesPath:any, year:any, month:any,nameFile:any){
+    res.download(filesPath, nameFile, async (err) => {
+      if (err) {
+        console.error('Error al descargar el PDF:', err);
+        return next(err);
+      } else {
+        //console.log('PDF descargado con éxito');
+        fs.unlinkSync(filesPath);
+        // console.log('PDF eliminado del servidor');
+      }
+    });
+  }
+
+
+  async replaceHtml(filePathReplace:any){
+
+      filePathReplace.forEach((item, index) => {
+        
+        const { filePath, htmlContent } = item;
+
+          fs.unlink(filePath, (err) => {
+            if (err && err.code !== 'ENOENT') {
+                console.error(`Error al eliminar el archivo ${filePath}:`, err);
+                return;
+          }
+
+          fs.writeFile(filePath, htmlContent, (err) => {
+              if (err) {
+                  console.error(`Error al escribir el archivo ${filePath}:`, err);
+                  return;
+              }
+          });
+      });
+    });
+  }
+
+  async  agregarEncabezadoAlPDF(filePath, Text) {
+    try {
+
+        const pdfBytes = await fs.promises.readFile(filePath.trim());
+        const pdfDoc = await PDFDocument.load(pdfBytes);
+
+        const pages = pdfDoc.getPages();
+        for (let i = 0; i < pages.length; i++) {
+            const { height } = pages[i].getSize();
+            const fontSize = 12;
+
+            pages[i].drawText(Text, {
+                x: 270, 
+                y: height - 30, 
+                size: fontSize,
+            });
+            pages[i].drawText(Text, {
+              x: 560 / 2 - Text.length * fontSize / 4,
+              y: 10, 
+              size: fontSize,
+          });
+        }
+        const pdfBytesModificado = await pdfDoc.save();
+        await fs.promises.writeFile(filePath, pdfBytesModificado);
+    } catch (error) {
+        console.error('Error al agregar el encabezado al PDF:', error);
+    }
+  }
 
 }
 
