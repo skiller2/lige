@@ -109,7 +109,8 @@ export class RecibosController extends BaseController {
 
       const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets'
 
-      const imgPath = `${basePath}/icons/icon-lince-96x96.png`
+//      const imgPath = `${basePath}/icons/icon-lince-96x96.png`
+      const imgPath = `${basePath}/logo-lince-full.svg`
       const imgBuffer = await fsPromises.readFile(imgPath);
       const imgBase64 = imgBuffer.toString('base64');
 
