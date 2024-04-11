@@ -19,7 +19,7 @@
 
     <nz-select [nzDropdownMatchSelectWidth]="false" [nzPlaceHolder]="'Columna'" [(ngModel)]="selections.field"
       (ngModelChange)="onOptionChange()" #fieldSelector>
-      <ng-container *ngFor="let field of _fieldsToSelect">
+      <ng-container *ngFor="let field of fieldsToSelect()">
         <nz-option *ngIf="field.searchHidden!=true" [nzLabel]="field.name" [nzValue]="field">
         </nz-option>
 
