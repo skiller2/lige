@@ -730,6 +730,32 @@ export class RecibosController extends BaseController {
     return queryRunner.query(`INSERT INTO lige.dbo.conupdaterecibo (id,html,html_update,fecha,aud_usuario_ins,aud_ip_ins,aud_fecha_ins,aud_usuario_mod,aud_ip_mod,aud_fecha_mod)
     VALUES (@0,@1,@2,@3,@4,@5,@3,@4,@5,@3); `, [idupdaterecibo,htmlContent,update,fechaActual,usuario,ip ])
   }
+  async getvaluesrecibo(req: Request, res: Response, next: NextFunction){
+
+    try {
+      const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets'
+
+      const htmlFilePath = `${basePath}/html/inaes.html`;
+      const headerFilePath = `${basePath}/html/inaes-header.html`;
+      const footerfilePath = `${basePath}/html/inaes-footer.html`;
+
+      let headerContent = await fsPromises.readFile(headerFilePath, 'utf-8');
+      let htmlContent = await fsPromises.readFile(htmlFilePath, 'utf-8');
+      let footerContent = await fsPromises.readFile(footerfilePath, 'utf-8');
+
+      this.jsonRes(
+        {
+          header: headerContent,
+          body: htmlContent,
+          footer: footerContent
+        },
+        res
+      );
+      
+    } catch (error) {
+      return next(error)
+    }
+  }
 
   async downloadReciboPRueba(req: Request, res: Response, next: NextFunction) {
     const header = req.body.header
@@ -760,8 +786,7 @@ export class RecibosController extends BaseController {
 
       let headerContent =  header;
       let htmlContent =  body;
-      let footerContent = footer  ;
-
+      let footerContent = footer;
 
       const imgPath = `${basePath}/icons/icon-lince-96x96.png`
       const imgBuffer = await fsPromises.readFile(imgPath);

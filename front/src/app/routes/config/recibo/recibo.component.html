@@ -21,7 +21,7 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="3">Cabecera</nz-form-label>
       <nz-form-control [nzSpan]="19">
-        <textarea rows="3" nz-input name="header" ngModel></textarea>
+        <textarea rows="3" nz-input name="header"  [(ngModel)]="header"></textarea>
         <h4 style="font-size: 11px !important">*IMPORTANTE: variables necesarias en el HTML - MES:
           (mes) AÑO: (anio) Id del recibo: (idrecibo) Fecha: (fechaFormateada) </h4>
       </nz-form-control>
@@ -30,7 +30,7 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="3">Cuerpo</nz-form-label>
       <nz-form-control [nzSpan]="19">
-        <textarea rows="3" nz-input name="body" ngModel></textarea>
+        <textarea rows="3" nz-input name="body" [(ngModel)]="boddy"></textarea>
         <h4 style="font-size: 11px !important">*IMPORTANTE: variables necesarias en el HTML - Nombre:
           (PersonaNombre) Cuit: (Cuit) Domicilio: (Domicilio) Asociado: (asociado)
           Grupo: (grupo) Detalle Adelanto: (textadelanto) Detalle Retribucion: (textingreso) Detalle retencion:
@@ -42,7 +42,7 @@
     <nz-form-item>
       <nz-form-label [nzSpan]="3">Pie</nz-form-label>
       <nz-form-control [nzSpan]="19">
-        <textarea rows="3" nz-input name="footer" ngModel></textarea>
+        <textarea rows="3" nz-input name="footer" [(ngModel)]="footer" ></textarea>
         <h4 style="font-size: 11px !important">*IMPORTANTE: variables necesarias en el HTML - Imagen:
           (imgBase64inaes) </h4>
       </nz-form-control>
