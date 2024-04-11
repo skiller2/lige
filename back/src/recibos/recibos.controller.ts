@@ -597,16 +597,10 @@ export class RecibosController extends BaseController {
       const mergedPdfBytes = await mergedPdf.save();
       fs.writeFileSync(rutaPDF, mergedPdfBytes);
       console.log('PDF guardado en la ruta especificada:', rutaPDF);
-      res.download(rutaPDF, `Recibos-${Anio}-${Mes}.pdf`, async (err) => {
-        if (err) {
-          console.error('Error al descargar el PDF:', err);
-          return next(err);
-        } else {
-          console.log('PDF descargado con éxito');
-          fs.unlinkSync(rutaPDF);
-          console.log('PDF eliminado del servidor');
-        }
-      });
+      
+      let nameFile = `Recibos-${Anio}-${Mes}.pdf`
+      await this.dowloadPdfBrowser(res,next,rutaPDF,Anio,Mes,nameFile)
+
     } catch (error) {
       return next(error)
     }
@@ -660,14 +654,80 @@ export class RecibosController extends BaseController {
     const header = req.body.header
     const body = req.body.body
     const footer = req.body.footer
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    const queryRunner = dataSource.createQueryRunner();
+    const fechaActual = new Date();
 
     try {
-      //Aca hacer todo el proceso de grabación
-      throw new ClientException(`Falta guardar los datos header:${header}`)
+
+      if (body == "") 
+        throw new ClientException(`El cuerpo no puede estar vacio`)
+
+      if (header == "") 
+        throw new ClientException(`La cabecera no puede estar vacia`)
+
+      const filePathReplace = [
+        {
+            filePath: `${process.env.PATH_RECIBO_HTML}/inaes-header.html`,
+            htmlContent: header,
+            update: "header"
+        },
+        {
+            filePath: `${process.env.PATH_RECIBO_HTML}/inaes.html`,
+            htmlContent: body,
+            update: "body"
+        },
+        {
+          filePath: `${process.env.PATH_RECIBO_HTML}/inaes-footer.html`,
+          htmlContent: footer,
+          update: "footer"
+      }
+    ];
+
+    this.replaceHtml(filePathReplace)
+
+    await this.procesarFilePathReplace(queryRunner,filePathReplace,usuario, ip,fechaActual)
+
+    this.jsonRes([], res, `Se guardo el nuevo formato de recibo`);
       
     } catch (error) {
       return next(error)
     }
+  }
+
+  async procesarFilePathReplace(queryRunner:QueryRunner,filePathReplace:any,usuario:any, ip:any,fechaActual:any) {
+    try {
+        for (const item of filePathReplace) {
+            const { filePath, htmlContent, update } = item;
+            const idupdaterecibo = await this.getProxNumero(queryRunner, 'idupdaterecibo', usuario, ip);
+            
+            await this.updateHistoryRecibo(
+                queryRunner,
+                idupdaterecibo,
+                htmlContent.replace(/"/g, '\\"'),
+                update,
+                usuario,
+                ip,
+                fechaActual
+            );
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+  async updateHistoryRecibo( 
+    queryRunner: QueryRunner,
+    idupdaterecibo,
+    htmlContent:any,
+    update:any,
+    usuario:any,
+    ip:any,
+    fechaActual:any ){
+
+    return queryRunner.query(`INSERT INTO lige.dbo.conupdaterecibo (id,html,html_update,fecha,aud_usuario_ins,aud_ip_ins,aud_fecha_ins,aud_usuario_mod,aud_ip_mod,aud_fecha_mod)
+    VALUES (@0,@1,@2,@3,@4,@5,@3,@4,@5,@3); `, [idupdaterecibo,htmlContent,update,fechaActual,usuario,ip ])
   }
 
   async downloadReciboPRueba(req: Request, res: Response, next: NextFunction) {
@@ -696,12 +756,10 @@ export class RecibosController extends BaseController {
       const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, PersonalId)
 
       const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets'
-      const footerTest = `${process.env.PATH_RECIBO_TEST}/test.html`;
-      let testText = await fsPromises.readFile(footerTest, 'utf-8');
 
-      let headerContent =  testText + header;
+      let headerContent =  header;
       let htmlContent =  body;
-      let footerContent = footer + testText ;
+      let footerContent = footer  ;
 
 
       const imgPath = `${basePath}/icons/icon-lince-96x96.png`
@@ -727,9 +785,7 @@ export class RecibosController extends BaseController {
       for (const movimiento of movimientosPendientes) {
         persona_id = movimiento.PersonalId
         
-         filesPath = process.env.PATH_RECIBO_TEST + '/' + persona_id + '-' + String(month) + "-" + String(year) + ".pdf"
-        //const nombre_archivo = persona_id + '-' + String(month) + "-" + String(year) + ".pdf"
-      
+         filesPath = process.env.PATH_RECIBO_HTML_TEST + '/' + persona_id + '-' + String(month) + "-" + String(year) + ".pdf"
 
         const PersonalNombre = movimiento.PersonalNombre
         const Cuit = movimiento.PersonalCUITCUILCUIT
@@ -745,39 +801,47 @@ export class RecibosController extends BaseController {
         
            const filePathReplace = [
             {
-                filePath: `${process.env.PATH_RECIBO_TEST}/inaes-header.html`,
+                filePath: `${process.env.PATH_RECIBO_HTML_TEST}/inaes-header.html`,
                 htmlContent: header
             },
             {
-                filePath: `${process.env.PATH_RECIBO_TEST}/inaes.html`,
+                filePath: `${process.env.PATH_RECIBO_HTML_TEST}/inaes.html`,
                 htmlContent: body
             },
             {
-              filePath: `${process.env.PATH_RECIBO_TEST}/inaes-footer.html`,
+              filePath: `${process.env.PATH_RECIBO_HTML_TEST}/inaes-footer.html`,
               htmlContent: footer
           }
         ];
 
         this.replaceHtml(filePathReplace)
       }
+
+      const headerText = 'TEST'; 
+      await this.agregarEncabezadoAlPDF(filesPath, headerText);
       
-      await page.close()
+      await page.close();
       await browser.close();
 
-      res.download(filesPath, `ReciboTest-${year}-${month}.pdf`, async (err) => {
-        if (err) {
-          console.error('Error al descargar el PDF:', err);
-          return next(err);
-        } else {
-          console.log('PDF descargado con éxito');
-          fs.unlinkSync(filesPath);
-          console.log('PDF eliminado del servidor');
-        }
-      });
+      let nameFile = `ReciboTest-${year}-${month}.pdf`
+      await this.dowloadPdfBrowser(res,next,filesPath,year,month,nameFile)
       
     } catch (error) {
       return next(error)
     }
+  }
+
+  async dowloadPdfBrowser (res: Response,next: NextFunction, filesPath:any, year:any, month:any,nameFile:any){
+    res.download(filesPath, nameFile, async (err) => {
+      if (err) {
+        console.error('Error al descargar el PDF:', err);
+        return next(err);
+      } else {
+        //console.log('PDF descargado con éxito');
+        fs.unlinkSync(filesPath);
+        // console.log('PDF eliminado del servidor');
+      }
+    });
   }
 
 
@@ -798,11 +862,40 @@ export class RecibosController extends BaseController {
                   console.error(`Error al escribir el archivo ${filePath}:`, err);
                   return;
               }
-              console.log(`El archivo HTML ${filePath} se ha creado correctamente.`);
           });
       });
     });
   }
+
+  async  agregarEncabezadoAlPDF(filePath, Text) {
+    try {
+
+        const pdfBytes = await fs.promises.readFile(filePath.trim());
+        const pdfDoc = await PDFDocument.load(pdfBytes);
+
+        const pages = pdfDoc.getPages();
+        for (let i = 0; i < pages.length; i++) {
+            const { height } = pages[i].getSize();
+            const fontSize = 12;
+
+            pages[i].drawText(Text, {
+                x: 270, 
+                y: height - 30, 
+                size: fontSize,
+            });
+            pages[i].drawText(Text, {
+              x: 560 / 2 - Text.length * fontSize / 4,
+              y: 10, 
+              size: fontSize,
+          });
+        }
+        const pdfBytesModificado = await pdfDoc.save();
+        await fs.promises.writeFile(filePath, pdfBytesModificado);
+    } catch (error) {
+        console.error('Error al agregar el encabezado al PDF:', error);
+    }
+  }
+
 }
 
 
