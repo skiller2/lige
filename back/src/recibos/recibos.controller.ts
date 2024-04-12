@@ -57,6 +57,43 @@ export class RecibosController extends BaseController {
 
   }
 
+  async getReciboHtmlContentGeneral(fechaRecibo:Date, anio:number,mes:number,header:string="",body:string="",footer:string="") {
+
+    const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets'
+
+    const imgPath = `${basePath}/logo-lince-full.svg`
+    const imgBuffer = await fsPromises.readFile(imgPath);
+    const imgBase64 = imgBuffer.toString('base64');
+
+    const imgBufferFirma = await fsPromises.readFile(`${basePath}/logo-lince-full.svg`);
+    const imgBase64Firma = imgBufferFirma.toString('base64');
+
+
+    const imgPathinaes = `${basePath}/icons/inaes.png`
+    const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
+    const imgBase64inaes = imgBufferinaes.toString('base64');
+
+
+    const htmlFilePath = `${basePath}/html/inaes.html`;
+    const headerFilePath = `${basePath}/html/inaes-header.html`;
+    const footerfilePath = `${basePath}/html/inaes-footer.html`;
+
+    header = (header)?header: await fsPromises.readFile(headerFilePath, 'utf-8');
+    body = (body)?body:await fsPromises.readFile(htmlFilePath, 'utf-8');
+    footer = (footer)?footer:await fsPromises.readFile(footerfilePath, 'utf-8');
+
+    header = header.replace(/\${imgBase64}/g, imgBase64);
+    footer = footer.replace(/\${imgBase64inaes}/g, imgBase64inaes);
+    footer = footer.replace(/\${imgBase64Firma}/g, imgBase64Firma);
+
+    header = header.replace(/\${anio}/g, anio.toString());
+    header = header.replace(/\${mes}/g, mes.toString());
+    header = header.replace(/\${fechaFormateada}/g, this.dateFormatter.format(fechaRecibo));
+    
+    return {header, body, footer}
+  }
+
+
   async generaRecibos(req: Request, res: Response, next: NextFunction) {
 
     let usuario = res.locals.userName
@@ -107,36 +144,7 @@ export class RecibosController extends BaseController {
 
       await this.cleanDirectories(queryRunner, directorPath, periodo_id, isUnique, directorPathUnique,idrecibo)
 
-      const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets'
-
-//      const imgPath = `${basePath}/icons/icon-lince-96x96.png`
-      const imgPath = `${basePath}/logo-lince-full.svg`
-      const imgBuffer = await fsPromises.readFile(imgPath);
-      const imgBase64 = imgBuffer.toString('base64');
-
-      const imgPathinaes = `${basePath}/icons/inaes.png`
-      const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
-      const imgBase64inaes = imgBufferinaes.toString('base64');
-
-
-      const htmlFilePath = `${basePath}/html/inaes.html`;
-      const headerFilePath = `${basePath}/html/inaes-header.html`;
-      const footerfilePath = `${basePath}/html/inaes-footer.html`;
-
-      let headerContent = await fsPromises.readFile(headerFilePath, 'utf-8');
-      let htmlContent = await fsPromises.readFile(htmlFilePath, 'utf-8');
-      let footerContent = await fsPromises.readFile(footerfilePath, 'utf-8');
-
-      headerContent = headerContent.replace(/\${imgBase64}/g, imgBase64);
-      footerContent = footerContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
-
-      headerContent = headerContent.replace(/\${anio}/g, periodo.year.toString());
-      headerContent = headerContent.replace(/\${mes}/g, periodo.month.toString());
-
-
-
-      headerContent = headerContent.replace(/\${fechaFormateada}/g, this.dateFormatter.format(fechaRecibo));
-      const htmlContentPre = htmlContent;
+      const htmlContent = await this.getReciboHtmlContentGeneral(fechaRecibo, periodo.year, periodo.month)
 
       const browser = await puppeteer.launch({ headless: 'new' })
       const page = await browser.newPage();
@@ -169,22 +177,9 @@ export class RecibosController extends BaseController {
             idrecibo
   
           )
-        
 
-       
-
-        const PersonalNombre = movimiento.PersonalNombre
-        const Cuit = movimiento.PersonalCUITCUILCUIT
-        const Domicilio = (movimiento.DomicilioCompleto) ? movimiento.DomicilioCompleto : 'Sin especificar'
-        const Asociado = (movimiento.PersonalNroLegajo) ? movimiento.PersonalNroLegajo.toString() : 'Pendiente'
-        const Grupo = (movimiento.GrupoActividadDetalle) ? movimiento.GrupoActividadDetalle : 'Sin asignar'
-
-
-
-        await this.createPdf(queryRunner, filesPath, persona_id, idrecibo, PersonalNombre, Cuit, Domicilio, Asociado,
-          Grupo, periodo_id, page, htmlContentPre, headerContent, footerContent)
-
-
+        await this.createPdf(queryRunner, filesPath, persona_id, idrecibo, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.PersonalNroLegajo,
+          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body, htmlContent.header, htmlContent.footer)
       }
 
       if (!isUnique)
@@ -257,6 +252,10 @@ export class RecibosController extends BaseController {
     footerContent: string,
   ) {
 
+    Domicilio = (Domicilio) ? Domicilio : 'Sin especificar'
+    Asociado = (Asociado) ? Asociado.toString() : 'Pendiente'
+    Grupo = (Grupo) ? Grupo : 'Sin asignar'
+
     headerContent = headerContent.replace(/\${idrecibo}/g, idrecibo.toString());
     htmlContent = htmlContent.replace(/\${PersonaNombre}/g, PersonaNombre);
     htmlContent = htmlContent.replace(/\${Cuit}/g, Cuit.toString());
@@ -322,7 +321,7 @@ export class RecibosController extends BaseController {
     await page.setContent(htmlContent);
     await page.pdf({
       path: filesPath,
-      margin: { top: '140px', right: '50px', bottom: '100px', left: '50px' },
+//      margin: { top: '140px', right: '50px', bottom: '100px', left: '50px' },
       printBackground: true,
       format: 'A4',
       displayHeaderFooter: true,
@@ -762,7 +761,7 @@ export class RecibosController extends BaseController {
     const body = req.body.body
     const footer = req.body.footer
     const PersonalId = Number(req.body.PersonalId)
-    const periodo = req.body.periodo
+    const periodo = new Date(req.body.periodo)
     const queryRunner = dataSource.createQueryRunner()
     const fechaActual = new Date();
     let persona_id = 0
@@ -770,87 +769,36 @@ export class RecibosController extends BaseController {
     let ip = this.getRemoteAddress(req)
     let filesPath = ""
     
+    const anio = periodo.getFullYear()
+    const mes = periodo.getMonth()+1
     try {
-
-      if (!PersonalId) {
+      if (!PersonalId)
         throw new ClientException(`Debe selccionar persona`)
-      }
-      let year = periodo.split("-")[0];
-      let month =  periodo.split("-")[1];
-
   
-      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, year, month, usuario, ip)
-      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, PersonalId)
+      const waterMark=`<div style="position: fixed; bottom: 500px; left: 50px; z-index: 10000; font-size:200px; color: red; transform:rotate(-60deg);
+                        opacity: 0.6;">PRUEBA</div>`
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, anio, mes, PersonalId)
 
-      const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets'
-
-      let headerContent =  header;
-      let htmlContent =  body;
-      let footerContent = footer;
-
-      const imgPath = `${basePath}/icons/icon-lince-96x96.png`
-      const imgBuffer = await fsPromises.readFile(imgPath);
-      const imgBase64 = imgBuffer.toString('base64');
-
-      const imgPathinaes = `${basePath}/icons/inaes.png`
-      const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
-      const imgBase64inaes = imgBufferinaes.toString('base64');
-    
-      headerContent = headerContent.replace(/\${imgBase64}/g, imgBase64);
-      footerContent = footerContent.replace(/\${imgBase64inaes}/g, imgBase64inaes);
-
-      headerContent = headerContent.replace(/\${anio}/g, year.toString());
-      headerContent = headerContent.replace(/\${mes}/g, month.toString());
-
-      headerContent = headerContent.replace(/\${fechaFormateada}/g, this.dateFormatter.format(fechaActual));
-      const htmlContentPre = htmlContent;
+      const htmlContent = await this.getReciboHtmlContentGeneral(fechaActual, anio, mes, header,body,footer)
 
       const browser = await puppeteer.launch({ headless: 'new' })
       const page = await browser.newPage();
 
       for (const movimiento of movimientosPendientes) {
         persona_id = movimiento.PersonalId
-        
-         filesPath = process.env.PATH_RECIBO_HTML_TEST + '/' + persona_id + '-' + String(month) + "-" + String(year) + ".pdf"
-
-        const PersonalNombre = movimiento.PersonalNombre
-        const Cuit = movimiento.PersonalCUITCUILCUIT
-        const Domicilio = (movimiento.DomicilioCompleto) ? movimiento.DomicilioCompleto : 'Sin especificar'
-        const Asociado = (movimiento.PersonalNroLegajo) ? movimiento.PersonalNroLegajo.toString() : 'Pendiente'
-        const Grupo = (movimiento.GrupoActividadDetalle) ? movimiento.GrupoActividadDetalle : 'Sin asignar'
-
-        const idreciboRandom = Math.floor(10000 + Math.random() * 90000);
-
-         await this.createPdf(queryRunner, filesPath, persona_id, idreciboRandom, PersonalNombre, Cuit, Domicilio, Asociado,
-           Grupo, periodo_id, page, htmlContentPre, headerContent, footerContent)
-
-        
-           const filePathReplace = [
-            {
-                filePath: `${process.env.PATH_RECIBO_HTML_TEST}/inaes-header.html`,
-                htmlContent: header
-            },
-            {
-                filePath: `${process.env.PATH_RECIBO_HTML_TEST}/inaes.html`,
-                htmlContent: body
-            },
-            {
-              filePath: `${process.env.PATH_RECIBO_HTML_TEST}/inaes-footer.html`,
-              htmlContent: footer
-          }
-        ];
-
-        this.replaceHtml(filePathReplace)
+        filesPath = (process.env.PATH_RECIBO_HTML_TEST)?process.env.PATH_RECIBO_HTML_TEST:'tmp' + '/' + persona_id + '-' + String(anio) + "-" + String(mes) + ".pdf"
+        const idrecibo = Math.floor(10000 + Math.random() * 90000);
+        await this.createPdf(queryRunner, filesPath, persona_id, idrecibo, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.PersonalNroLegajo,
+          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body+waterMark, htmlContent.header, htmlContent.footer)
       }
 
-      const headerText = 'TEST'; 
-      await this.agregarEncabezadoAlPDF(filesPath, headerText);
       
       await page.close();
       await browser.close();
 
-      let nameFile = `ReciboTest-${year}-${month}.pdf`
-      await this.dowloadPdfBrowser(res,next,filesPath,year,month,nameFile)
+      let nameFile = `ReciboTest-${anio}-${mes}.pdf`
+      await this.dowloadPdfBrowser(res,next,filesPath,anio,mes,nameFile)
       
     } catch (error) {
       return next(error)
@@ -892,36 +840,6 @@ export class RecibosController extends BaseController {
       });
     });
   }
-
-  async  agregarEncabezadoAlPDF(filePath, Text) {
-    try {
-
-        const pdfBytes = await fs.promises.readFile(filePath.trim());
-        const pdfDoc = await PDFDocument.load(pdfBytes);
-
-        const pages = pdfDoc.getPages();
-        for (let i = 0; i < pages.length; i++) {
-            const { height } = pages[i].getSize();
-            const fontSize = 12;
-
-            pages[i].drawText(Text, {
-                x: 270, 
-                y: height - 30, 
-                size: fontSize,
-            });
-            pages[i].drawText(Text, {
-              x: 560 / 2 - Text.length * fontSize / 4,
-              y: 10, 
-              size: fontSize,
-          });
-        }
-        const pdfBytesModificado = await pdfDoc.save();
-        await fs.promises.writeFile(filePath, pdfBytesModificado);
-    } catch (error) {
-        console.error('Error al agregar el encabezado al PDF:', error);
-    }
-  }
-
 }
 
 

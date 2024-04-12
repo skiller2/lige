@@ -10,6 +10,7 @@
 
     .tb-detalle {
       width: 100%;
+      font-size: 10px;
     }
 
     .subtotal td {
@@ -27,20 +28,18 @@
 
     .subtitle {
       background-color: #AAAAAA;
+      font-size: 14px;
     }
 
     .neto {
       color: #FFFFFF;
       background-color: #303233;
     }
-    body {
-      font-size: 12px;
-    }
   </style>
 </head>
 
-<body >
-  <table  width="100%" align="center" style=" border-top: none;">
+<body style="top: 80px; position: relative;">
+  <table width="100%" align="center" style="border:0; padding: 0 10px; font-size: 14px;">
     <tbody>
       <tr>
         <td>Razón Social</td>
@@ -59,7 +58,7 @@
         <td>Blanco Encalada 3202 (C.A.B.A.)</td>
       </tr>
       <tr>
-        <td colspan="2" class="subtitle" style="text-align: center;">DATOS DE PERSONA ASOCIADA</td>
+        <td colspan="2" class="subtitle">DATOS DE PERSONA ASOCIADA</td>
       </tr>
       <tr>
         <td>NOMBRE</td>
@@ -80,18 +79,22 @@
       <tr>
         <td>GRUPO</td>
         <td>${grupo}</td>
-        <tr>
-          <td colspan="2" class="subtitle">DETALLE ANTICIPOS</td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            <table class="tb-detalle">
-              <tbody>${textadelanto}</tbody>
-            </table>
-          </td>
-        </tr>
-  
       </tr>
+    </tbody>
+  </table>
+  <table width="100%" align="center" style="border:0; padding: 0 10px; font-size: 10px;">
+    <tbody>
+      <tr>
+        <td colspan="2" class="subtitle">DETALLE ANTICIPOS</td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <table class="tb-detalle">
+            <tbody>${textadelanto}</tbody>
+          </table>
+        </td>
+      </tr>
+
       <tr>
         <td colspan="2" class="subtitle">DETALLE RETRIBUCIONES</td>
       </tr>
@@ -147,10 +150,11 @@
         </tr>
       </div>
       <tr class="firma">
-        <td style="width: 50% ;">
-          <div style="margin-top: 50px; text-align: center;">
+        <td style="width: 50% ;  position: relative;">
+          <div style="margin-top: 50px; text-align: center; margin-top: 140px;">
+            <img src="data:image/svg+xml;base64,${imgBase64Firma}" style="width: 135px; top:29; left:144px; position:absolute;" alt="texto alternativo" width="ancho" height="alto" style="display:block">  
             <span style="border-top: 1px black solid;">Firma Tesorera/o</span>
-
+          </div>
         </td>
         <td>
           <div style="margin-top: 50px; text-align: center;">
