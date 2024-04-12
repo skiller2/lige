@@ -23,32 +23,20 @@ export class ReciboComponent {
   ngForm = viewChild.required(NgForm);
   private apiService = inject(ApiService)
   PersonalId = model.required()
-  footer: string = "";
-  boddy: string = "";
-  header: string = "";
-
-
 
   constructor() {
     effect(() => { this.ngForm().controls['PersonalId']?.setValue(Number(this.PersonalId())) });
   }
 
   ngOnInit() {
-    setTimeout(() => {
+    setTimeout(async () => {
       const now = new Date()
       const anio = Number(localStorage.getItem('anio')) > 0 ? Number(localStorage.getItem('anio')) : now.getFullYear();
       const mes = Number(localStorage.getItem('mes')) > 0 ? Number(localStorage.getItem('mes')) : now.getMonth() + 1;
       this.ngForm().controls['periodo']?.setValue(new Date(anio, mes - 1, 1))
-    }, 0);
-    
-    this.apiService.getValuesRecibo().subscribe((data: any[]) => {
 
-      this.header = data["header" as keyof typeof data].trim();
-      this.boddy = data["body" as keyof typeof data].trim();
-      this.footer = data["footer" as keyof typeof data].trim();
-      console.log("header", this.header)
-    });
-    
+      this.ngForm().form.patchValue(await firstValueFrom(this.apiService.getValuesRecibo()))
+    }, 0);
   }
 
   async save() {
