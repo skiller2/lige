@@ -65,7 +65,7 @@ export class RecibosController extends BaseController {
     const imgBuffer = await fsPromises.readFile(imgPath);
     const imgBase64 = imgBuffer.toString('base64');
 
-    const imgBufferFirma = await fsPromises.readFile(`${basePath}/logo-lince-full.svg`);
+    const imgBufferFirma = await fsPromises.readFile(`${basePath}/firma_tesorero.svg`);
     const imgBase64Firma = imgBufferFirma.toString('base64');
 
 
@@ -84,7 +84,7 @@ export class RecibosController extends BaseController {
 
     header = header.replace(/\${imgBase64}/g, imgBase64);
     footer = footer.replace(/\${imgBase64inaes}/g, imgBase64inaes);
-    footer = footer.replace(/\${imgBase64Firma}/g, imgBase64Firma);
+    body = body.replace(/\${imgBase64Firma}/g, imgBase64Firma);
 
     header = header.replace(/\${anio}/g, anio.toString());
     header = header.replace(/\${mes}/g, mes.toString());
