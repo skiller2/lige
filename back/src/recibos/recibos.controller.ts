@@ -140,12 +140,12 @@ export class RecibosController extends BaseController {
 
       const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, personalId)
 
-      var directorPath = this.directoryRecibo + '/' + String(periodo.year) + String(periodo.month).padStart(2, '0') + '/' + periodo_id
-      if (!existsSync(directorPath)) {
-        mkdirSync(directorPath, { recursive: true });
+      var directorPath =  String(periodo.year) + String(periodo.month).padStart(2, '0') + '/' + periodo_id
+      if (!existsSync(this.directoryRecibo + '/' + directorPath)) {
+        mkdirSync(this.directoryRecibo + '/' + directorPath, { recursive: true });
       }
 
-      await this.cleanDirectories(queryRunner, directorPath, periodo_id, isUnique, directorPathUnique, idrecibo)
+      await this.cleanDirectories(queryRunner, this.directoryRecibo + '/' + directorPath, periodo_id, isUnique, directorPathUnique, idrecibo)
 
       const htmlContent = await this.getReciboHtmlContentGeneral(fechaRecibo, periodo.year, periodo.month)
 
@@ -181,7 +181,7 @@ export class RecibosController extends BaseController {
 
         )
 
-        await this.createPdf(queryRunner, filesPath, persona_id, idrecibo, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.PersonalNroLegajo,
+        await this.createPdf(queryRunner, this.directoryRecibo + '/' +filesPath, persona_id, idrecibo, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.PersonalNroLegajo,
           movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body, htmlContent.header, htmlContent.footer)
       }
 
