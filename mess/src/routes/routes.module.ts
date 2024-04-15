@@ -3,10 +3,12 @@ import { WebServer } from "../server";
 import { personalRouter } from "./personal.routes";
 import { recibosRouter } from "./recibos.routes";
 import { impuestosAfipRouter } from "./impuestos-afip.routes";
+import { chatBotRouter } from "./chatBot.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
   server.setRoute("/api/personal", personalRouter);
   server.setRoute("/api/recibos", recibosRouter);
   server.setRoute("/api/impuestos_afip", impuestosAfipRouter);
+  server.setRoute("/api/chatbot", chatBotRouter);
 }

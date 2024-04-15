@@ -1,8 +1,10 @@
+import { chatBotController } from "../controller/controller.module";
 import BotWhatsapp from '@bot-whatsapp/bot'
 import flowMenu from './flowMenu'
 import { personalController } from "../controller/controller.module";
 
 const { addKeyword, EVENTS } = BotWhatsapp
+const delay = chatBotController.getDelay() || 500
 
 // const flowPedidosDeLicencia = addKeyword(['3', 'pedidos de licencia', 'pedido de licencia', 'pedido', 'licencia', ])
 //     .addAnswer('Area en mantenimiento')
@@ -21,6 +23,8 @@ const { addKeyword, EVENTS } = BotWhatsapp
 const flowLogin = addKeyword(EVENTS.WELCOME)
     .addAction(async(ctx, {state, gotoFlow, flowDynamic}) => {
         const telefono = ctx.from
+        console.log('state', state.getMyState());
+        
         const res = await personalController.getPersonalfromTelefonoQuery(telefono)
         if (res.length) {
             await state.update({ personalId: res[0].personalId })
@@ -30,7 +34,7 @@ const flowLogin = addKeyword(EVENTS.WELCOME)
             return gotoFlow(flowMenu)
         }
     })
-    .addAnswer('Hola y bienvenido al área de consultas de Lince Seguridad', {delay: 500})
+    .addAnswer('Hola y bienvenido al área de consultas de Lince Seguridad', {delay: delay})
     // .addAnswer('¿Cual es tu nombre?', 
     // { capture: true }, 
     // async (ctx, { flowDynamic, state, fallBack }) => {
@@ -42,7 +46,7 @@ const flowLogin = addKeyword(EVENTS.WELCOME)
     //     return await flowDynamic(`Gracias por tu nombre! ${ctx.body}`)
     // })
     .addAnswer('¿Cual es tu CUIT?', 
-    { capture: true, delay: 500 },  
+    { capture: true, delay: delay },  
     async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
         const cuit = ctx.body
         if (cuit.length != 11) {
@@ -58,7 +62,7 @@ const flowLogin = addKeyword(EVENTS.WELCOME)
         await state.update({ cuit: ctx.body })
     })
     .addAnswer('¿Cuanto fue el importe de tu ultimo deposito?', 
-    { capture: true, delay: 500 },  
+    { capture: true, delay: delay },  
     async (ctx, { state, gotoFlow, fallBack }) => {
         const deposito = parseFloat(ctx.body)
         const myState = state.getMyState()

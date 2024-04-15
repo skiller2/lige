@@ -1,3 +1,4 @@
+// import { botController } from "../controller/controller.module";
 import BotWhatsapp from '@bot-whatsapp/bot'
 import flowMonotributo from './flowMonotributo'
 import flowRecibo from './flowRecibo'
@@ -5,6 +6,7 @@ import flowConstMedica from './flowConstMedica'
 import flowEnd from './flowEnd'
 
 const { addKeyword, EVENTS } = BotWhatsapp
+const delay = 500
 
 const flowMenu = addKeyword(EVENTS.ACTION)
     .addAnswer([
@@ -15,11 +17,10 @@ const flowMenu = addKeyword(EVENTS.ACTION)
         // '4- *Envío de Constancia médica*'
         '0- Si no desea consultar nada más'
     ], 
-    { capture: true , delay: 500}, 
+    { capture: true , delay: delay}, 
     async (ctx, { fallBack }) => {
-        // const numeros = ['0','1','2','3','4']
-        const numeros = ['0','1','2']
-        if (!numeros.includes(ctx.body)) {
+        const tema = parseInt(ctx.body)
+        if (tema<0 || tema>2) {
             return fallBack()
         }
     }, [flowMonotributo, flowRecibo, flowConstMedica, flowEnd])

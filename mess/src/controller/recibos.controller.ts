@@ -1,5 +1,4 @@
 import { BaseController, ClientException } from "./base.controller";
-// import { PersonaObj } from "../schemas/personal.schemas";
 // import fetch, { Request } from "node-fetch";
 import { dataSource } from "../data-source";
 // import { Response } from "express-serve-static-core";

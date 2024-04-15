@@ -1,3 +1,4 @@
+// import { botController } from "../controller/controller.module";
 import { recibosController } from "../controller/controller.module";
 import BotWhatsapp from '@bot-whatsapp/bot'
 import flowMenu from './flowMenu'
@@ -5,10 +6,11 @@ import flowEnd from './flowEnd'
 import { ClientException } from "src/controller/base.controller";
 
 const { addKeyword } = BotWhatsapp
+const delay = 500
 
 const flowRecibo = addKeyword(['2','recibo de retiro', 'recibo', 'r'])
     .addAction(async (_, { flowDynamic, state, gotoFlow }) => {
-        await flowDynamic([{ body:`⏱️ Dame un momento`, delay: 500 }])
+        await flowDynamic([{ body:`⏱️ Dame un momento`, delay: delay }])
         const myState = state.getMyState()
         const personalId = myState.personalId
         const periodosArray : any[] = await recibosController.getLastPeriodoOfComprobantes(personalId, 3).then(array =>{return array})
@@ -22,19 +24,19 @@ const flowRecibo = addKeyword(['2','recibo de retiro', 'recibo', 'r'])
                     resPeriodos += `${index+1}- *${obj.mes}/${obj.anio}*\n`
             })
         } else {
-            await flowDynamic([{ body:`No hay comprobantes`, delay: 500 }])
+            await flowDynamic([{ body:`No hay comprobantes`, delay: delay }])
             return gotoFlow(flowMenu)
         }
         await state.update({recibo:{ periodosArray, periodosString: resPeriodos }}) 
     })
     .addAnswer('Ingrese el numero correspondiente al periodo del Recibo que deseas consultar:',
-    { delay: 500 },
+    { delay: delay },
     async (_, { flowDynamic, state }) => {
         const myState = state.getMyState()
         const resPeriodos = myState.recibo.periodosString
         await flowDynamic([{ body: resPeriodos}])
     })
-    .addAction({ capture: true, delay: 500 },
+    .addAction({ capture: true, delay: delay },
     async (ctx, { flowDynamic, state, fallBack }) => {
         const myState = state.getMyState()
         const periodosArray : any[] = myState.recibo.periodosArray
@@ -45,17 +47,17 @@ const flowRecibo = addKeyword(['2','recibo de retiro', 'recibo', 'r'])
         const mes = periodosArray[parseInt(msj)-1].mes
         const anio = periodosArray[parseInt(msj)-1].anio
         const personalId = myState.personalId
-        // await flowDynamic([{ body:`⏱️ Dame un momento`, delay: 500 }])
+        // await flowDynamic([{ body:`⏱️ Dame un momento`, delay: delay }])
         const reciboPdf = await recibosController.downloadComprobantesByPeriodo(personalId, anio, mes).then(data => { return data })
         if (reciboPdf instanceof ClientException)
-            await flowDynamic([{ body:`Error. Avisé al administrador`, delay:500 }])
+            await flowDynamic([{ body:`Error. Avisé al administrador`, delay:delay }])
         else
             await flowDynamic([ { body:``, media: reciboPdf } ]) 
     })
     .addAnswer([
         '¿Desea consulta algo mas?', 
         'Responda "Si" o "No"'
-    ], { capture: true, delay: 500 },  
+    ], { capture: true, delay: delay },  
     async (ctx , { gotoFlow, fallBack, state }) => {
         let myState = state.getMyState()
         delete myState.recibo

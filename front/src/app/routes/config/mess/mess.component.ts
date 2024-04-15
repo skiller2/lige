@@ -28,6 +28,8 @@ import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row
 export class MessComponent {
   messInfo = signal({'msg':'descansando'})
   ultimoDeposito = signal({'msg':'descansando'})
+  imagenUrl: string = ''
+  miliseg: number = 500
   private apiService = inject(ApiService)
   async getMessInfo() {
     try {
@@ -43,6 +45,13 @@ export class MessComponent {
     } catch (e) {
       console.log(e)
       this.ultimoDeposito.set({'msg':'error'})
+    }
+  }
+  async getQR() {
+    try {
+      this.imagenUrl = await firstValueFrom(this.apiService.getChatBotQR())
+    } catch (e) {
+      console.log(e)
     }
   }
 }

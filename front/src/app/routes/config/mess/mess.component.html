@@ -9,7 +9,30 @@
   Obtener ultimo depósito
 </button>
 <p>{{ ultimoDeposito() | json }}</p>
-
+<br>
+<h3>Parametros ChatBot WhatsApp</h3>  
+<h4>Tiempos entre mensajes</h4>
+<input
+      #inputElement
+      style="width: 120px"
+      nz-input
+      nz-tooltip
+      nzOverlayClassName="numeric-input"
+      [ngModel]="miliseg"
+      placeholder="Input a number"
+  />
+<button nz-popconfirm nzType="primary" class="btn-add"
+  nz-button>
+  Cambiar
+</button>
+<br>
+<button nz-popconfirm nzType="primary" class="btn-add"
+  nz-button (click)="getQR()">
+  QR
+</button>
+<div *ngIf="imagenUrl">
+  <img [src]="imagenUrl" alt="Imagen recibida">
+</div>
 
 </nz-card>
 

@@ -633,7 +633,15 @@ export class ApiService {
       map((res: any) => res.data)
     );
   }
-  
+
+  getChatBotQR() {
+    const path = `mess/api/chatbot/qr`;
+    return this.http.get(path).pipe(
+      map((res: any) => {
+        console.log('res',res);
+        return res.data})
+    );
+  }
 
   addAdelanto(adelanto: { PersonalId: string; monto: number }) {
     return this.http.post<ResponseJSON<any>>(`api/adelantos`, adelanto).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
