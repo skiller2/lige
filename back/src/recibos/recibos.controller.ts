@@ -544,10 +544,10 @@ export class RecibosController extends BaseController {
       for (const filterDowload of pathFile) {
 
         try {
-            if (!fs.existsSync(filterDowload.path))
+            if (!fs.existsSync(this.directoryRecibo +'/'+ filterDowload.path))
               throw new ClientException(`Error al generar el recibo unificado`);
 
-          const pdfBytes = await fs.promises.readFile(filterDowload.path);
+          const pdfBytes = await fs.promises.readFile(this.directoryRecibo +'/'+filterDowload.path);
           const pdfDoc = await PDFDocument.load(pdfBytes);
           const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
           copiedPages.forEach((page) => mergedPdf.addPage(page));
