@@ -321,9 +321,11 @@ export class RecibosController extends BaseController {
     htmlContent = htmlContent.replace(/\${grupo}/g, Grupo);
 
     await page.setContent(htmlContent);
+
+    //fs.writeFileSync("./full.html",htmlContent)
     await page.pdf({
       path: filesPath,
-      margin: { top: '70px', right: '0px', bottom: '50px', left: '0px' },
+      margin: { top: '80px', right: '0px', bottom: '50px', left: '0px' },
       printBackground: true,
       format: 'A4',
       displayHeaderFooter: true,
