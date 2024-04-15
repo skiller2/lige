@@ -670,9 +670,9 @@ export class ApiService {
 
   }
 
-  getValuesRecibo() {
+  getValuesRecibo(prev:boolean) {
     let parameter=""
-    return this.http.get<ResponseJSON<any>>('/api/recibos/getvaluesrecibo',parameter).pipe(
+    return this.http.get<ResponseJSON<any>>(`/api/recibos/config/${prev}`,parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([])),
       

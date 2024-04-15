@@ -35,8 +35,12 @@ export class ReciboComponent {
       const mes = Number(localStorage.getItem('mes')) > 0 ? Number(localStorage.getItem('mes')) : now.getMonth() + 1;
       this.ngForm().controls['periodo']?.setValue(new Date(anio, mes - 1, 1))
 
-      this.ngForm().form.patchValue(await firstValueFrom(this.apiService.getValuesRecibo()))
+      this.load(false)
     }, 0);
+  }
+
+  async load(prev: boolean) {
+    this.ngForm().form.patchValue(await firstValueFrom(this.apiService.getValuesRecibo(prev)))
   }
 
   async save() {

@@ -225,6 +225,9 @@ liquidacionesRouter.post("/downloadImportacion", [authMiddleware.verifyToken, au
   await liquidacionesController.getByDownloadDocument(req, res, next);
 });
 
+liquidacionesRouter.post("/periodo",  async (req, res, next) => {
+  await liquidacionesController.getPeriodoStatus(req, res, next);
+});
 
 
 

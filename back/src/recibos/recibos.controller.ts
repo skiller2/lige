@@ -11,11 +11,19 @@ import { mkdirSync, existsSync } from "fs";
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { NumeroALetras, setSingular, setPlural, setCentsPlural, setCentsSingular } from "numeros_a_palabras/numero_to_word"
 import {
-  SendFileToDownload,
   getPeriodoFromRequest,
 } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.utils";
 //import moment from 'moment';
 import { QueryRunner } from "typeorm";
+
+const PathReciboTemplate = {
+  header: ((process.env.PATH_RECIBO) ? process.env.PATH_RECIBO : './recibo')+'/config/recibo-header.html',
+  body: ((process.env.PATH_RECIBO) ? process.env.PATH_RECIBO : './recibo')+'/config/recibo-body.html' ,
+  footer: ((process.env.PATH_RECIBO) ? process.env.PATH_RECIBO : './recibo')+'/config/recibo-footer.html',
+  headerDef: './assets/recibo/recibo-header.def.html',
+  bodyDef: './assets/recibo/recibo-body.def.html' ,
+  footerDef: './assets/recibo/recibo-footer.def.html'
+}
 
 export class RecibosController extends BaseController {
   directoryRecibo = process.env.PATH_RECIBO || "tmp";
@@ -26,12 +34,13 @@ export class RecibosController extends BaseController {
     }
   }
 
-  async cleanDirectories(queryRunner: QueryRunner, directorPath: string, periodo: number, isUnique:any, directorPathUnique:string,idrecibo:number) {
+
+  async cleanDirectories(queryRunner: QueryRunner, directorPath: string, periodo: number, isUnique: any, directorPathUnique: string, idrecibo: number) {
     try {
 
-      if(isUnique){
+      if (isUnique) {
         fs.unlinkSync(directorPathUnique);
-      }else{
+      } else {
         console.log("limpiando directorio")
         if (fs.existsSync(directorPath)) {
           const archivos = fs.readdirSync(directorPath);
@@ -41,56 +50,49 @@ export class RecibosController extends BaseController {
           });
         }
       }
-      await this.deleteDirectories(queryRunner, periodo,isUnique,idrecibo)
+      await this.deleteDirectories(queryRunner, periodo, isUnique, idrecibo)
     } catch (error) {
       console.error("Error al limpiar el directorio:", error);
     }
   }
 
-  async deleteDirectories(queryRunner: QueryRunner, periodo: number, isUnique:any, idrecibo:number) {
+  async deleteDirectories(queryRunner: QueryRunner, periodo: number, isUnique: any, idrecibo: number) {
 
-    if(isUnique){
+    if (isUnique) {
       await queryRunner.query(`delete from lige.dbo.docgeneral where idrecibo=@0 ; `, [idrecibo])
-    }else{
+    } else {
       await queryRunner.query(`delete from lige.dbo.docgeneral where periodo=@0 ; `, [periodo])
     }
 
   }
 
-  async getReciboHtmlContentGeneral(fechaRecibo:Date, anio:number,mes:number,header:string="",body:string="",footer:string="") {
+  async getReciboHtmlContentGeneral(fechaRecibo: Date, anio: number, mes: number, header: string = "", body: string = "", footer: string = "", raw:boolean=false, prev:boolean=false) {
 
-    const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets'
-
-    const imgPath = `${basePath}/logo-lince-full.svg`
+    const imgPath = `./assets/logo-lince-full.svg`
     const imgBuffer = await fsPromises.readFile(imgPath);
     const imgBase64 = imgBuffer.toString('base64');
 
-    const imgBufferFirma = await fsPromises.readFile(`${basePath}/firma_tesorero.svg`);
+    const imgBufferFirma = await fsPromises.readFile(`./assets/firma_tesorero.svg`);
     const imgBase64Firma = imgBufferFirma.toString('base64');
 
-
-    const imgPathinaes = `${basePath}/icons/inaes.png`
+    const imgPathinaes = `./assets/icons/inaes.png`
     const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
     const imgBase64inaes = imgBufferinaes.toString('base64');
-
-
-    const htmlFilePath = `${basePath}/html/inaes.html`;
-    const headerFilePath = `${basePath}/html/inaes-header.html`;
-    const footerfilePath = `${basePath}/html/inaes-footer.html`;
-
-    header = (header)?header: await fsPromises.readFile(headerFilePath, 'utf-8');
-    body = (body)?body:await fsPromises.readFile(htmlFilePath, 'utf-8');
-    footer = (footer)?footer:await fsPromises.readFile(footerfilePath, 'utf-8');
-
-    header = header.replace(/\${imgBase64}/g, imgBase64);
-    footer = footer.replace(/\${imgBase64inaes}/g, imgBase64inaes);
-    body = body.replace(/\${imgBase64Firma}/g, imgBase64Firma);
-
-    header = header.replace(/\${anio}/g, anio.toString());
-    header = header.replace(/\${mes}/g, mes.toString());
-    header = header.replace(/\${fechaFormateada}/g, this.dateFormatter.format(fechaRecibo));
     
-    return {header, body, footer}
+    header = (header) ? header : (fs.existsSync(PathReciboTemplate.header) ? fs.readFileSync(PathReciboTemplate.header+((prev)?'.old':''), 'utf-8') : fs.readFileSync(PathReciboTemplate.headerDef, 'utf-8'))
+    body = (body) ? body : (fs.existsSync(PathReciboTemplate.body) ? fs.readFileSync(PathReciboTemplate.body+((prev)?'.old':''), 'utf-8') : fs.readFileSync(PathReciboTemplate.bodyDef, 'utf-8'))
+    footer = (footer) ? footer : (fs.existsSync(PathReciboTemplate.footer) ? fs.readFileSync(PathReciboTemplate.footer+((prev)?'.old':''), 'utf-8') : fs.readFileSync(PathReciboTemplate.footerDef, 'utf-8'))
+
+    if (!raw) {
+      header = header.replace(/\${imgBase64}/g, imgBase64);
+      footer = footer.replace(/\${imgBase64inaes}/g, imgBase64inaes);
+      body = body.replace(/\${imgBase64Firma}/g, imgBase64Firma);
+
+      header = header.replace(/\${anio}/g, anio.toString());
+      header = header.replace(/\${mes}/g, mes.toString());
+      header = header.replace(/\${fechaFormateada}/g, this.dateFormatter.format(fechaRecibo));
+    }
+    return { header, body, footer }
   }
 
 
@@ -102,10 +104,10 @@ export class RecibosController extends BaseController {
     const personalId = req.body?.personalId
     const queryRunner = dataSource.createQueryRunner()
     let persona_id = 0
-      //estas  variables se usan solo si el recibo previamente ya existe 
-    let fechaRecibo:Date
-    let docgeneral:number
-    let idrecibo:number
+    //estas  variables se usan solo si el recibo previamente ya existe 
+    let fechaRecibo: Date
+    let docgeneral: number
+    let idrecibo: number
     let directorPathUnique = ""
     const fechaActual = new Date();
 
@@ -113,7 +115,7 @@ export class RecibosController extends BaseController {
 
       const periodo = getPeriodoFromRequest(req);
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
-      
+
       if (!isUnique) {
 
         // codigo para cuenado es recibo general
@@ -126,7 +128,7 @@ export class RecibosController extends BaseController {
         // codigo para cuando es unico recibo bebe validar que el recibo exista para poder regenerarlo, caso contrario arrojar error
         const existRecibo = await this.existReciboId(queryRunner, fechaActual, periodo_id, personalId);
 
-        if (existRecibo.length <=  0)
+        if (existRecibo.length <= 0)
           throw new ClientException(`Recibo no existe para el periodo seleccionado`)
 
         fechaRecibo = existRecibo[0].fecha;
@@ -142,7 +144,7 @@ export class RecibosController extends BaseController {
         mkdirSync(directorPath, { recursive: true });
       }
 
-      await this.cleanDirectories(queryRunner, directorPath, periodo_id, isUnique, directorPathUnique,idrecibo)
+      await this.cleanDirectories(queryRunner, directorPath, periodo_id, isUnique, directorPathUnique, idrecibo)
 
       const htmlContent = await this.getReciboHtmlContentGeneral(fechaRecibo, periodo.year, periodo.month)
 
@@ -155,28 +157,28 @@ export class RecibosController extends BaseController {
         const nombre_archivo = persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
         docgeneral = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
 
-        if(!isUnique)
+        if (!isUnique)
           idrecibo = await this.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
-        
 
 
 
-           await this.setUsuariosLiquidacionDocGeneral(
-            queryRunner,
-            docgeneral,
-            periodo_id,
-            fechaRecibo,
-            persona_id,
-            0,
-            nombre_archivo,
-            filesPath,
-            usuario,
-            ip,
-            fechaActual,
-            "REC",
-            idrecibo
-  
-          )
+
+        await this.setUsuariosLiquidacionDocGeneral(
+          queryRunner,
+          docgeneral,
+          periodo_id,
+          fechaRecibo,
+          persona_id,
+          0,
+          nombre_archivo,
+          filesPath,
+          usuario,
+          ip,
+          fechaActual,
+          "REC",
+          idrecibo
+
+        )
 
         await this.createPdf(queryRunner, filesPath, persona_id, idrecibo, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.PersonalNroLegajo,
           movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body, htmlContent.header, htmlContent.footer)
@@ -321,7 +323,7 @@ export class RecibosController extends BaseController {
     await page.setContent(htmlContent);
     await page.pdf({
       path: filesPath,
-//      margin: { top: '140px', right: '50px', bottom: '100px', left: '50px' },
+      margin: { top: '70px', right: '0px', bottom: '50px', left: '0px' },
       printBackground: true,
       format: 'A4',
       displayHeaderFooter: true,
@@ -527,67 +529,67 @@ export class RecibosController extends BaseController {
       let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
 
-     pathFile = isfull 
-     ? await this.getGrupFilterDowload(queryRunner,periodo_id) 
-     : await this.getparthFile(queryRunner, periodo_id, lista, isfull)
-      
+      pathFile = isfull
+        ? await this.getGrupFilterDowload(queryRunner, periodo_id)
+        : await this.getparthFile(queryRunner, periodo_id, lista, isfull)
+
       const rutaPDF = path.join(this.directoryRecibo, `Recibos-${Anio}-${Mes}.pdf`);
       const mergedPdf = await PDFDocument.create();
 
       let urlForValidation = ""
       console.log("pathFile " + pathFile.length)
-      
+
       if (pathFile == undefined || pathFile == "")
         throw new ClientException(`Recibo/s no generado/s para el periodo seleccionado`);
 
-        for (const filterDowload of pathFile) {
+      for (const filterDowload of pathFile) {
 
         try {
-      
-          if(isfull){
+
+          if (isfull) {
             urlForValidation = `${process.env.PATH_RECIBO}/${Anio}${Mes}/${periodo_id}/${filterDowload.PersonalId}-${Mes}-${Anio}.pdf`
-           
+
             if (!fs.existsSync(urlForValidation))
               throw new ClientException(`Error al generar el recibo unificado`);
 
           }
-            let pdfBytes : any 
-            let pdfDoc : any
-            let copiedPages: any
+          let pdfBytes: any
+          let pdfDoc: any
+          let copiedPages: any
 
-          if(isfull) {
-             pdfBytes = await fs.promises.readFile(urlForValidation.trim());
-             pdfDoc = await PDFDocument.load(pdfBytes);
+          if (isfull) {
+            pdfBytes = await fs.promises.readFile(urlForValidation.trim());
+            pdfDoc = await PDFDocument.load(pdfBytes);
           } else {
-             pdfBytes = await fs.promises.readFile(filterDowload.path);
-             pdfDoc = await PDFDocument.load(pdfBytes);
+            pdfBytes = await fs.promises.readFile(filterDowload.path);
+            pdfDoc = await PDFDocument.load(pdfBytes);
           }
 
-            copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
-            copiedPages.forEach((page) => mergedPdf.addPage(page));
-            
+          copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+          copiedPages.forEach((page) => mergedPdf.addPage(page));
 
-         // se crea el otro pdf
-         if(isfull && isDuplicate) {
+
+          // se crea el otro pdf
+          if (isfull && isDuplicate) {
             const pdfBytesCopie = await fs.promises.readFile(urlForValidation.trim());
             const pdfDocCopie = await PDFDocument.load(pdfBytesCopie);
             const headerText = "DUPLICADO";
             const pages = pdfDocCopie.getPages();
 
-          for (let i = 0; i < pages.length; i++) {
+            for (let i = 0; i < pages.length; i++) {
               const { height } = pages[i].getSize();
               const fontSize = 12;
 
               // Agregar encabezado - para center colocar 260 
               pages[i].drawText(headerText, {
-                  x: 478,
-                  y: height - 30,
-                  size: fontSize,
+                x: 478,
+                y: height - 30,
+                size: fontSize,
               });
-          }
+            }
 
-          copiedPages = await mergedPdf.copyPages(pdfDocCopie, pdfDocCopie.getPageIndices());
-          copiedPages.forEach((page) => mergedPdf.addPage(page));
+            copiedPages = await mergedPdf.copyPages(pdfDocCopie, pdfDocCopie.getPageIndices());
+            copiedPages.forEach((page) => mergedPdf.addPage(page));
           }
         } catch (error) {
           console.error(`Error al procesar el archivo ${urlForValidation}:`, error.message);
@@ -597,9 +599,9 @@ export class RecibosController extends BaseController {
       const mergedPdfBytes = await mergedPdf.save();
       fs.writeFileSync(rutaPDF, mergedPdfBytes);
       console.log('PDF guardado en la ruta especificada:', rutaPDF);
-      
+
       let nameFile = `Recibos-${Anio}-${Mes}.pdf`
-      await this.dowloadPdfBrowser(res,next,rutaPDF,Anio,Mes,nameFile)
+      await this.dowloadPdfBrowser(res, next, rutaPDF, Anio, Mes, nameFile)
 
     } catch (error) {
       return next(error)
@@ -607,7 +609,7 @@ export class RecibosController extends BaseController {
 
   }
 
-  async getGrupFilterDowload(queryRunner: QueryRunner,periodo_id: number,){
+  async getGrupFilterDowload(queryRunner: QueryRunner, periodo_id: number,) {
     return queryRunner.query(`SELECT DISTINCT g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId as PersonalId
     FROM lige.dbo.docgeneral doc 
     JOIN Personal per ON per.PersonalId=doc.persona_id
@@ -654,103 +656,40 @@ export class RecibosController extends BaseController {
     const header = req.body.header
     const body = req.body.body
     const footer = req.body.footer
-    let usuario = res.locals.userName
-    let ip = this.getRemoteAddress(req)
-    const queryRunner = dataSource.createQueryRunner();
-    const fechaActual = new Date();
 
     try {
 
-      if (body == "") 
+      if (body == "")
         throw new ClientException(`El cuerpo no puede estar vacio`)
 
-      if (header == "") 
+      if (header == "")
         throw new ClientException(`La cabecera no puede estar vacia`)
+    
+      try {
+        fs.renameSync(PathReciboTemplate.header, PathReciboTemplate.header+'.old')
+        fs.renameSync(PathReciboTemplate.body, PathReciboTemplate.body+'.old')
+        fs.renameSync(PathReciboTemplate.footer, PathReciboTemplate.footer+'.old')
+      } catch (_e) { }
 
-      const filePathReplace = [
-        {
-            filePath: `${process.env.PATH_RECIBO_HTML}/inaes-header.html`,
-            htmlContent: header,
-            update: "header"
-        },
-        {
-            filePath: `${process.env.PATH_RECIBO_HTML}/inaes.html`,
-            htmlContent: body,
-            update: "body"
-        },
-        {
-          filePath: `${process.env.PATH_RECIBO_HTML}/inaes-footer.html`,
-          htmlContent: footer,
-          update: "footer"
-      }
-    ];
+      fs.mkdirSync(path.dirname(PathReciboTemplate.header),{recursive:true})
+      fs.writeFileSync(PathReciboTemplate.header, header)
+      fs.writeFileSync(PathReciboTemplate.body, body)
+      fs.writeFileSync(PathReciboTemplate.footer, footer)
 
-    this.replaceHtml(filePathReplace)
+      this.jsonRes([], res, `Se guardo el nuevo formato de recibo`);
 
-    await this.procesarFilePathReplace(queryRunner,filePathReplace,usuario, ip,fechaActual)
-
-    this.jsonRes([], res, `Se guardo el nuevo formato de recibo`);
-      
     } catch (error) {
+      console.log('capturo',error)
       return next(error)
     }
   }
 
-  async procesarFilePathReplace(queryRunner:QueryRunner,filePathReplace:any,usuario:any, ip:any,fechaActual:any) {
+  async getReciboConfig(req: Request, res: Response, next: NextFunction) {
+    const prev:boolean = (req.params.prev==='true')
     try {
-        for (const item of filePathReplace) {
-            const { filePath, htmlContent, update } = item;
-            const idupdaterecibo = await this.getProxNumero(queryRunner, 'idupdaterecibo', usuario, ip);
-            
-            await this.updateHistoryRecibo(
-                queryRunner,
-                idupdaterecibo,
-                htmlContent.replace(/"/g, '\\"'),
-                update,
-                usuario,
-                ip,
-                fechaActual
-            );
-        }
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
+      const htmlContent = await this.getReciboHtmlContentGeneral(new Date(), 0, 0, '', '', '', true, prev)
+      this.jsonRes({header:htmlContent.header,body:htmlContent.body,footer:htmlContent.footer}, res);
 
-  async updateHistoryRecibo( 
-    queryRunner: QueryRunner,
-    idupdaterecibo,
-    htmlContent:any,
-    update:any,
-    usuario:any,
-    ip:any,
-    fechaActual:any ){
-
-    return queryRunner.query(`INSERT INTO lige.dbo.conupdaterecibo (id,html,html_update,fecha,aud_usuario_ins,aud_ip_ins,aud_fecha_ins,aud_usuario_mod,aud_ip_mod,aud_fecha_mod)
-    VALUES (@0,@1,@2,@3,@4,@5,@3,@4,@5,@3); `, [idupdaterecibo,htmlContent,update,fechaActual,usuario,ip ])
-  }
-  async getvaluesrecibo(req: Request, res: Response, next: NextFunction){
-
-    try {
-      const basePath = (process.env.PATH_ASSETS) ? process.env.PATH_ASSETS : './assets'
-
-      const htmlFilePath = `${basePath}/html/inaes.html`;
-      const headerFilePath = `${basePath}/html/inaes-header.html`;
-      const footerfilePath = `${basePath}/html/inaes-footer.html`;
-
-      let headerContent = await fsPromises.readFile(headerFilePath, 'utf-8');
-      let htmlContent = await fsPromises.readFile(htmlFilePath, 'utf-8');
-      let footerContent = await fsPromises.readFile(footerfilePath, 'utf-8');
-
-      this.jsonRes(
-        {
-          header: headerContent,
-          body: htmlContent,
-          footer: footerContent
-        },
-        res
-      );
-      
     } catch (error) {
       return next(error)
     }
@@ -768,44 +707,44 @@ export class RecibosController extends BaseController {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     let filesPath = ""
-    
+
     const anio = periodo.getFullYear()
-    const mes = periodo.getMonth()+1
+    const mes = periodo.getMonth() + 1
     try {
       if (!PersonalId)
         throw new ClientException(`Debe selccionar persona`)
-  
-      const waterMark=`<div style="position: fixed; bottom: 500px; left: 50px; z-index: 10000; font-size:200px; color: red; transform:rotate(-60deg);
+
+      const waterMark = `<div style="position: fixed; bottom: 500px; left: 50px; z-index: 10000; font-size:200px; color: red; transform:rotate(-60deg);
                         opacity: 0.6;">PRUEBA</div>`
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
       const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, anio, mes, PersonalId)
 
-      const htmlContent = await this.getReciboHtmlContentGeneral(fechaActual, anio, mes, header,body,footer)
+      const htmlContent = await this.getReciboHtmlContentGeneral(fechaActual, anio, mes, header, body, footer)
 
       const browser = await puppeteer.launch({ headless: 'new' })
       const page = await browser.newPage();
 
       for (const movimiento of movimientosPendientes) {
         persona_id = movimiento.PersonalId
-        filesPath = (process.env.PATH_RECIBO_HTML_TEST)?process.env.PATH_RECIBO_HTML_TEST:'tmp' + '/' + persona_id + '-' + String(anio) + "-" + String(mes) + ".pdf"
+        filesPath = (process.env.PATH_RECIBO_HTML_TEST) ? process.env.PATH_RECIBO_HTML_TEST : 'tmp' + '/' + persona_id + '-' + String(anio) + "-" + String(mes) + ".pdf"
         const idrecibo = Math.floor(10000 + Math.random() * 90000);
         await this.createPdf(queryRunner, filesPath, persona_id, idrecibo, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.PersonalNroLegajo,
-          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body+waterMark, htmlContent.header, htmlContent.footer)
+          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body + waterMark, htmlContent.header, htmlContent.footer)
       }
 
-      
+
       await page.close();
       await browser.close();
 
       let nameFile = `ReciboTest-${anio}-${mes}.pdf`
-      await this.dowloadPdfBrowser(res,next,filesPath,anio,mes,nameFile)
-      
+      await this.dowloadPdfBrowser(res, next, filesPath, anio, mes, nameFile)
+
     } catch (error) {
       return next(error)
     }
   }
 
-  async dowloadPdfBrowser (res: Response,next: NextFunction, filesPath:any, year:any, month:any,nameFile:any){
+  async dowloadPdfBrowser(res: Response, next: NextFunction, filesPath: any, year: any, month: any, nameFile: any) {
     res.download(filesPath, nameFile, async (err) => {
       if (err) {
         console.error('Error al descargar el PDF:', err);
@@ -815,29 +754,6 @@ export class RecibosController extends BaseController {
         fs.unlinkSync(filesPath);
         // console.log('PDF eliminado del servidor');
       }
-    });
-  }
-
-
-  async replaceHtml(filePathReplace:any){
-
-      filePathReplace.forEach((item, index) => {
-        
-        const { filePath, htmlContent } = item;
-
-          fs.unlink(filePath, (err) => {
-            if (err && err.code !== 'ENOENT') {
-                console.error(`Error al eliminar el archivo ${filePath}:`, err);
-                return;
-          }
-
-          fs.writeFile(filePath, htmlContent, (err) => {
-              if (err) {
-                  console.error(`Error al escribir el archivo ${filePath}:`, err);
-                  return;
-              }
-          });
-      });
     });
   }
 }
