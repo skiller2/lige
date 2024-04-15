@@ -467,22 +467,12 @@ export class RecibosController extends BaseController {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
-
-
     try {
-      let fechaActual = new Date();
-      // const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseInt(year), parseInt(month), usuario, ip);
       const gettmpfilename = await this.getRutaFile(queryRunner, parseInt(year), parseInt(month), parseInt(personalIdRel))
-      let tmpfilename;
-      if (gettmpfilename[0] && typeof gettmpfilename[0].path === 'string') {
-        tmpfilename = gettmpfilename[0].path;
-      } else {
+      if (!gettmpfilename[0])
         throw new ClientException(`Recibo no generado`)
-      }
-      const responsePDFBuffer = await this.obtenerPDFBuffer(tmpfilename);
 
-      await fs.promises.writeFile(tmpfilename, responsePDFBuffer);
-      res.download(tmpfilename, gettmpfilename[0]?.nombre_archivo, async (error) => {
+      res.download(this.directoryRecibo+'/'+ gettmpfilename[0].path, gettmpfilename[0].nombre_archivo, async (error) => {
         if (error) {
           console.error('Error al descargar el archivo:', error);
           return next(error)
@@ -501,13 +491,6 @@ export class RecibosController extends BaseController {
       [year, month, personalIdRel]
     )
   }
-
-
-  async obtenerPDFBuffer(tmpfilename: string) {
-    const buffer = fs.readFileSync(tmpfilename);
-    return buffer;
-  }
-
 
   async bindPdf(req: Request, res: Response, next: NextFunction) {
 
