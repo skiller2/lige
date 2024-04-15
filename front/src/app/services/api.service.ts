@@ -555,9 +555,10 @@ export class ApiService {
 
   }
 
-  generaRecibos(anio: number, mes: number) {
-    let isUnique = false
-    const parameter = { anio, mes, isUnique }
+  generaRecibos(anio: number, mes: number, fechaRecibo: Date) {
+    const isUnique = false
+    const parameter = { anio, mes, isUnique, fechaRecibo }
+    console.log('parameter',parameter)
     this.notification.success('Respuesta', `Inicio generación de recibos`);
 
     return this.http.post<ResponseJSON<any>>('/api/recibos/generar', parameter).pipe(

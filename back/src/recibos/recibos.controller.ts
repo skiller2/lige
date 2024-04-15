@@ -106,24 +106,22 @@ export class RecibosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner()
     let persona_id = 0
     //estas  variables se usan solo si el recibo previamente ya existe 
-    let fechaRecibo: Date
+    let fechaRecibo = new Date(req.body.fechaRecibo) 
     let docgeneral: number
     let idrecibo: number
     let directorPathUnique = ""
     const fechaActual = new Date();
 
     try {
-
       const periodo = getPeriodoFromRequest(req);
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
 
       if (!isUnique) {
-
         // codigo para cuenado es recibo general
         const getRecibosGenerados = await this.getRecibosGenerados(queryRunner, periodo_id)
         if (getRecibosGenerados[0].ind_recibos_generados == 1)
           throw new ClientException(`Los recibos para este periodo ya se generaron`)
-        fechaRecibo = fechaActual
+
       } else {
 
         // codigo para cuando es unico recibo bebe validar que el recibo exista para poder regenerarlo, caso contrario arrojar error
@@ -138,7 +136,7 @@ export class RecibosController extends BaseController {
         directorPathUnique = existRecibo[0].path
       }
 
-      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, personalId, fechaActual)
+      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, personalId, fechaRecibo)
 
       var directorPath =  String(periodo.year) + String(periodo.month).padStart(2, '0') + '/' + periodo_id
       if (!existsSync(this.directoryRecibo + '/' + directorPath)) {
