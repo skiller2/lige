@@ -138,7 +138,7 @@ export class RecibosController extends BaseController {
         directorPathUnique = existRecibo[0].path
       }
 
-      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, personalId)
+      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, personalId, fechaActual)
 
       var directorPath =  String(periodo.year) + String(periodo.month).padStart(2, '0') + '/' + periodo_id
       if (!existsSync(this.directoryRecibo + '/' + directorPath)) {
@@ -339,7 +339,7 @@ export class RecibosController extends BaseController {
 
 
 
-  async getUsuariosLiquidacion(queryRunner: QueryRunner, periodo_id: Number, anio: number, mes: number, personalId: number) {
+  async getUsuariosLiquidacion(queryRunner: QueryRunner, periodo_id: Number, anio: number, mes: number, personalId: number, fecha: Date) {
 
     let createSelect = `SELECT
     per.PersonalId, per.PersonalNroLegajo, 
@@ -361,7 +361,7 @@ export class RecibosController extends BaseController {
     LEFT JOIN PersonalDomicilio AS dom ON dom.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1 AND dom.PersonalDomicilioId = ( SELECT MAX(dommax.PersonalDomicilioId) FROM PersonalDomicilio dommax WHERE dommax.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1)
     
     
-    LEFT JOIN (SELECT grp.GrupoActividadPersonalPersonalId, MAX(grp.GrupoActividadPersonalDesde) AS GrupoActividadPersonalDesde, MAX(ISNULL(grp.GrupoActividadPersonalHasta,'9999-12-31')) GrupoActividadPersonalHasta FROM GrupoActividadPersonal AS grp WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > grp.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(grp.GrupoActividadPersonalHasta, '9999-12-31') GROUP BY grp.GrupoActividadPersonalPersonalId) as grupodesde ON grupodesde.GrupoActividadPersonalPersonalId = per.PersonalId
+    LEFT JOIN (SELECT grp.GrupoActividadPersonalPersonalId, MAX(grp.GrupoActividadPersonalDesde) AS GrupoActividadPersonalDesde, MAX(ISNULL(grp.GrupoActividadPersonalHasta,'9999-12-31')) GrupoActividadPersonalHasta FROM GrupoActividadPersonal AS grp WHERE @4 >= grp.GrupoActividadPersonalDesde AND @4 <= ISNULL(grp.GrupoActividadPersonalHasta, '9999-12-31') GROUP BY grp.GrupoActividadPersonalPersonalId) as grupodesde ON grupodesde.GrupoActividadPersonalPersonalId = per.PersonalId
     LEFT JOIN GrupoActividadPersonal grupo ON grupo.GrupoActividadPersonalPersonalId = per.PersonalId AND grupo.GrupoActividadPersonalDesde = grupodesde.GrupoActividadPersonalDesde AND ISNULL(grupo.GrupoActividadPersonalHasta,'9999-12-31') = grupodesde.GrupoActividadPersonalHasta 
         
     
@@ -377,7 +377,7 @@ export class RecibosController extends BaseController {
 
     createSelect += `)ORDER BY per.PersonalId ASC`
 
-    return queryRunner.query(createSelect, [periodo_id, anio, mes, personalId])
+    return queryRunner.query(createSelect, [periodo_id, anio, mes, personalId,fecha])
   }
 
   async getUsuariosLiquidacionMovimientos(queryRunner: QueryRunner, periodo_id: Number, user_id: Number) {
@@ -509,13 +509,12 @@ export class RecibosController extends BaseController {
       throw new ClientException(`Usuario no identificado`)
 
     let ip = this.getRemoteAddress(req)
-    let pathFile: any
 
     try {
       let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
 
-      pathFile = isfull
+      let pathFile = isfull
         ? await this.getGrupFilterDowload(queryRunner, periodo_id)
         : await this.getparthFile(queryRunner, periodo_id, lista, isfull)
 
@@ -524,6 +523,7 @@ export class RecibosController extends BaseController {
       if (pathFile.length==0)
         throw new ClientException(`Recibo/s no generado/s para el periodo seleccionado`);
 
+//      pathFile= [pathFile[0]]
       for (const filterDowload of pathFile) {
 
         try {
@@ -533,7 +533,9 @@ export class RecibosController extends BaseController {
           const pdfBytes = await fs.promises.readFile(this.directoryRecibo +'/'+filterDowload.path);
           const pdfDoc = await PDFDocument.load(pdfBytes);
           const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
-          copiedPages.forEach((page) => mergedPdf.addPage(page));
+
+          for (const pg of copiedPages) mergedPdf.addPage(pg)
+//          copiedPages.forEach((page) => mergedPdf.addPage(page));
 
           if (isDuplicate) {
             const headerText = "DUPLICADO";
@@ -551,7 +553,8 @@ export class RecibosController extends BaseController {
             }
 
             const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
-            copiedPages.forEach((page) => mergedPdf.addPage(page));
+            for (const pg of copiedPages) mergedPdf.addPage(pg)
+//            copiedPages.forEach((page) => mergedPdf.addPage(page));
 
           }
 
@@ -584,7 +587,7 @@ export class RecibosController extends BaseController {
      AND doc.fecha < ISNULL(gaprel.GrupoActividadPersonalHasta , '9999-12-31')
     LEFT JOIN GrupoActividad g ON g.GrupoActividadId = gaprel.GrupoActividadId           
     WHERE doc.periodo =  @0 AND doc.doctipo_id = 'REC'
-    ORDER BY g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId;`, [periodo_id])
+    ORDER BY g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`, [periodo_id])
   }
 
   async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: number[], isfull: any) {
@@ -682,7 +685,7 @@ export class RecibosController extends BaseController {
       const waterMark = `<div style="position: fixed; bottom: 500px; left: 50px; z-index: 10000; font-size:200px; color: red; transform:rotate(-60deg);
                         opacity: 0.6;">PRUEBA</div>`
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
-      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, anio, mes, PersonalId)
+      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, anio, mes, PersonalId,fechaActual)
 
       const htmlContent = await this.getReciboHtmlContentGeneral(fechaActual, anio, mes, header, body, footer)
 
