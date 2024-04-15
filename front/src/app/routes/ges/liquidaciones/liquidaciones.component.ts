@@ -1,4 +1,4 @@
-import { Component, ViewChild, Injector, inject, TemplateRef, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, Injector, inject, TemplateRef, ChangeDetectorRef, model } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { NgForm } from '@angular/forms';
@@ -6,7 +6,7 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
-import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, SlickGrid,OnEventArgs  } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, SlickGrid, OnEventArgs } from 'angular-slickgrid';
 import { CommonModule, NgIf } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -15,8 +15,8 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { NzModalService, NzModalModule } from "ng-zorro-antd/modal";
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
-import {EditorTipoMovimientoComponent} from '../../../shared/editor-tipomovimiento/editor-tipomovimiento.component';
-import {EditorTipoCuentaComponent} from '../../../shared/editor-tipocuenta/editor-tipocuenta.component';
+import { EditorTipoMovimientoComponent } from '../../../shared/editor-tipomovimiento/editor-tipomovimiento.component';
+import { EditorTipoCuentaComponent } from '../../../shared/editor-tipocuenta/editor-tipocuenta.component';
 import { NzMessageService } from 'ng-zorro-antd/message';
 
 
@@ -56,12 +56,12 @@ import { LoadingService } from '@delon/abc/loading';
   ],
   providers: [AngularUtilService]
 })
-  
+
 export class LiquidacionesComponent {
   @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =
     new NgForm([], [])
   @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent
-  
+
   public apiService = inject(ApiService);
   public router = inject(Router);
   public route = inject(ActivatedRoute);
@@ -80,6 +80,7 @@ export class LiquidacionesComponent {
   gridDataLen = 0
   anio = 0
   mes = 0
+  fechaRecibo = model(new Date())
   saveLoading$ = new BehaviorSubject(false);
   filesChange$ = new BehaviorSubject('');
   gridOptions!: GridOption;
@@ -92,7 +93,7 @@ export class LiquidacionesComponent {
   selectedMovimientoId = '';
   gridDataImportLen = 0
   NotificationIdForDelete = 0;
-  PersonalIdForReceip =  0;
+  PersonalIdForReceip = 0;
   PersonalIdUnique = [];
   PersonalNameForReceip = "";
 
@@ -113,16 +114,16 @@ export class LiquidacionesComponent {
   $importacionesAnteriores = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
-        const periodo = this.liquidacionesForm.form.get('periodo')?.value
+      const periodo = this.liquidacionesForm.form.get('periodo')?.value
       return this.apiService
         .getImportacionesAnteriores(
-          periodo.getFullYear(),periodo.getMonth() + 1
+          periodo.getFullYear(), periodo.getMonth() + 1
         )
         .pipe(
-          //map(data => {return data}),
-          //doOnSubscribe(() => this.tableLoading$.next(true)),
-          //tap({ complete: () => this.tableLoading$.next(false) })
-        )
+        //map(data => {return data}),
+        //doOnSubscribe(() => this.tableLoading$.next(true)),
+        //tap({ complete: () => this.tableLoading$.next(false) })
+      )
     })
   )
 
@@ -130,21 +131,22 @@ export class LiquidacionesComponent {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
     switch (colDef.id) {
       case 'ApellidoNombre':
-        Object.assign(componentOutput.componentRef.instance, { link: '/ges/detalle_asistencia/persona', params: {PersonalId:dataContext.persona_id}, detail:cellNode.innerText
-       })
-        
+        Object.assign(componentOutput.componentRef.instance, {
+          link: '/ges/detalle_asistencia/persona', params: { PersonalId: dataContext.persona_id }, detail: cellNode.innerText
+        })
+
         break;
       case 'ObjetivoDescripcion':
-        Object.assign(componentOutput.componentRef.instance, { link: '/ges/detalle_asistencia/objetivo', params: {ObjetivoId:dataContext.objetivo_id}, detail: cellNode.innerText })
-        
+        Object.assign(componentOutput.componentRef.instance, { link: '/ges/detalle_asistencia/objetivo', params: { ObjetivoId: dataContext.objetivo_id }, detail: cellNode.innerText })
+
         break;
-    
+
       default:
         break;
     }
 
     cellNode.replaceChildren(componentOutput.domElement)
-}
+  }
 
 
 
@@ -201,7 +203,7 @@ export class LiquidacionesComponent {
     }, 1);
 
     const PersonalId = Number(this.route.snapshot.paramMap.get('PersonalId'))
-    const tipocuenta_id:string = String(this.route.snapshot.paramMap.get('tipocuenta_id'))
+    const tipocuenta_id: string = String(this.route.snapshot.paramMap.get('tipocuenta_id'))
 
     setTimeout(() => {
       if (PersonalId > 0) {
@@ -265,18 +267,18 @@ export class LiquidacionesComponent {
     })
   )
 
-  cleanerVariables(){
+  cleanerVariables() {
     this.PersonalIdForReceip = 0
-    this.PersonalNameForReceip = "" 
+    this.PersonalNameForReceip = ""
   }
 
   handleSelectedRowsChanged1(e: any) {
     if (Array.isArray(e.detail.args.rows)) {
-     
-      let rowValue= e.detail.args.rows
+
+      let rowValue = e.detail.args.rows
       this.PersonalIdUnique
-      this.PersonalIdForReceip = this.PersonalIdUnique[rowValue]["persona_id"] 
-      this.PersonalNameForReceip = this.PersonalIdUnique[rowValue]["ApellidoNombre"]   
+      this.PersonalIdForReceip = this.PersonalIdUnique[rowValue]["persona_id"]
+      this.PersonalNameForReceip = this.PersonalIdUnique[rowValue]["ApellidoNombre"]
     }
   }
 
@@ -343,13 +345,13 @@ export class LiquidacionesComponent {
   }
 
   columns$ = this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols) => {
-    cols[7].asyncPostRender= this.renderAngularComponent.bind(this)
-    cols[6].asyncPostRender= this.renderAngularComponent.bind(this)
+    cols[7].asyncPostRender = this.renderAngularComponent.bind(this)
+    cols[6].asyncPostRender = this.renderAngularComponent.bind(this)
 
     return cols
   }));
 
-  async liquidacionesAcciones(value:string) {
+  async liquidacionesAcciones(value: string) {
     switch (value) {
       case "movimientosAutomaticos":
 
@@ -389,7 +391,7 @@ export class LiquidacionesComponent {
 
       case "generarRecibos":
 
-        firstValueFrom(this.apiService.generaRecibos(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.generaRecibos(this.selectedPeriod.year, this.selectedPeriod.month, this.fechaRecibo()).pipe(tap(res => this.formChange$.next(''))))
         break;
 
       case "generarReciboUnico":
@@ -408,7 +410,7 @@ export class LiquidacionesComponent {
   resizeSubscription$: Subscription | undefined;
 
   async ngOnInit() {
-
+    this.fechaRecibo.set(new Date())
     this.columnDefinitions = [
       {
         id: 'delete',
@@ -425,7 +427,7 @@ export class LiquidacionesComponent {
         width: 0, minWidth: 0, maxWidth: 0, cssClass: "reallyHidden", headerCssClass: "reallyHidden"
 
       },
-       {
+      {
         id: 'des_movimiento', name: 'Tipo Movimiento', field: 'des_movimiento',
         sortable: true,
         type: FieldType.string,
@@ -442,7 +444,7 @@ export class LiquidacionesComponent {
             component: EditorTipoMovimientoComponent,
           },
           alwaysSaveOnEnterKey: true,
-        
+
           // required: true
         },
       },
@@ -463,7 +465,7 @@ export class LiquidacionesComponent {
             component: EditorTipoCuentaComponent,
           },
           alwaysSaveOnEnterKey: true,
-        
+
           // required: true
         },
       },
@@ -675,7 +677,7 @@ export class LiquidacionesComponent {
     let periodoY = periodo.getFullYear();
     const valuePeriodo = periodoM + "/" + periodoY;
     if (altas.length > 0) {
-      this.apiService.setAgregarRegistros({ gridDataInsert: altas} , valuePeriodo).subscribe(evt => {
+      this.apiService.setAgregarRegistros({ gridDataInsert: altas }, valuePeriodo).subscribe(evt => {
         this.formChange$.next('')
         this.cleanTable()
       });
@@ -687,10 +689,10 @@ export class LiquidacionesComponent {
     let periodoM = periodo.getMonth() + 1;
     let periodoY = periodo.getFullYear();
     const valuePeriodo = periodoM + "/" + periodoY;
-    console.log("periodo" + valuePeriodo );
-    if ( this.NotificationIdForDelete > 0) {
+    console.log("periodo" + valuePeriodo);
+    if (this.NotificationIdForDelete > 0) {
       (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
-      this.apiService.setDeleteImportacion({deleteId: this.NotificationIdForDelete}, valuePeriodo).subscribe(evt => {
+      this.apiService.setDeleteImportacion({ deleteId: this.NotificationIdForDelete }, valuePeriodo).subscribe(evt => {
         this.formChange$.next('')
       });
     }
@@ -802,7 +804,7 @@ export class LiquidacionesComponent {
     };
   }
 
- 
+
 
 }
 
