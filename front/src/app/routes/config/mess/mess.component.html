@@ -30,9 +30,9 @@
   nz-button (click)="getQR()">
   QR
 </button>
-<div *ngIf="imagenUrl">
-  <img [src]="imagenUrl" alt="Imagen recibida">
-</div>
+
+  <img [src]="imagenUrl()" alt="Imagen recibida">
+
 
 </nz-card>
 

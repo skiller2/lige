@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzModalModule } from 'ng-zorro-antd/modal';
@@ -28,7 +28,7 @@ import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row
 export class MessComponent {
   messInfo = signal({'msg':'descansando'})
   ultimoDeposito = signal({'msg':'descansando'})
-  imagenUrl: string = ''
+  imagenUrl = signal('')
   miliseg: number = 500
   private apiService = inject(ApiService)
   async getMessInfo() {
@@ -53,5 +53,11 @@ export class MessComponent {
     } catch (e) {
       console.log(e)
     }
+  }
+
+
+  ngOnInit() {
+    let imagenCount = 0
+    setInterval(() => {this.imagenUrl.set(`/mess/api/chatbot/qr/${imagenCount++}`)},3000)
   }
 }
