@@ -15,13 +15,14 @@ import {
 } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.utils";
 //import moment from 'moment';
 import { QueryRunner } from "typeorm";
+import { Readable } from "typeorm/platform/PlatformTools.js";
 
 const PathReciboTemplate = {
-  header: ((process.env.PATH_RECIBO) ? process.env.PATH_RECIBO : './recibo')+'/config/recibo-header.html',
-  body: ((process.env.PATH_RECIBO) ? process.env.PATH_RECIBO : './recibo')+'/config/recibo-body.html' ,
-  footer: ((process.env.PATH_RECIBO) ? process.env.PATH_RECIBO : './recibo')+'/config/recibo-footer.html',
+  header: ((process.env.PATH_RECIBO) ? process.env.PATH_RECIBO : './recibo') + '/config/recibo-header.html',
+  body: ((process.env.PATH_RECIBO) ? process.env.PATH_RECIBO : './recibo') + '/config/recibo-body.html',
+  footer: ((process.env.PATH_RECIBO) ? process.env.PATH_RECIBO : './recibo') + '/config/recibo-footer.html',
   headerDef: './assets/recibo/recibo-header.def.html',
-  bodyDef: './assets/recibo/recibo-body.def.html' ,
+  bodyDef: './assets/recibo/recibo-body.def.html',
   footerDef: './assets/recibo/recibo-footer.def.html'
 }
 
@@ -66,7 +67,7 @@ export class RecibosController extends BaseController {
 
   }
 
-  async getReciboHtmlContentGeneral(fechaRecibo: Date, anio: number, mes: number, header: string = "", body: string = "", footer: string = "", raw:boolean=false, prev:boolean=false) {
+  async getReciboHtmlContentGeneral(fechaRecibo: Date, anio: number, mes: number, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
 
     const imgPath = `./assets/logo-lince-full.svg`
     const imgBuffer = await fsPromises.readFile(imgPath);
@@ -78,10 +79,10 @@ export class RecibosController extends BaseController {
     const imgPathinaes = `./assets/icons/inaes.png`
     const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
     const imgBase64inaes = imgBufferinaes.toString('base64');
-    
-    header = (header) ? header : (fs.existsSync(PathReciboTemplate.header) ? fs.readFileSync(PathReciboTemplate.header+((prev)?'.old':''), 'utf-8') : fs.readFileSync(PathReciboTemplate.headerDef, 'utf-8'))
-    body = (body) ? body : (fs.existsSync(PathReciboTemplate.body) ? fs.readFileSync(PathReciboTemplate.body+((prev)?'.old':''), 'utf-8') : fs.readFileSync(PathReciboTemplate.bodyDef, 'utf-8'))
-    footer = (footer) ? footer : (fs.existsSync(PathReciboTemplate.footer) ? fs.readFileSync(PathReciboTemplate.footer+((prev)?'.old':''), 'utf-8') : fs.readFileSync(PathReciboTemplate.footerDef, 'utf-8'))
+
+    header = (header) ? header : (fs.existsSync(PathReciboTemplate.header) ? fs.readFileSync(PathReciboTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(PathReciboTemplate.headerDef, 'utf-8'))
+    body = (body) ? body : (fs.existsSync(PathReciboTemplate.body) ? fs.readFileSync(PathReciboTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(PathReciboTemplate.bodyDef, 'utf-8'))
+    footer = (footer) ? footer : (fs.existsSync(PathReciboTemplate.footer) ? fs.readFileSync(PathReciboTemplate.footer + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(PathReciboTemplate.footerDef, 'utf-8'))
 
     if (!raw) {
       header = header.replace(/\${imgBase64}/g, imgBase64);
@@ -535,75 +536,54 @@ export class RecibosController extends BaseController {
         ? await this.getGrupFilterDowload(queryRunner, periodo_id)
         : await this.getparthFile(queryRunner, periodo_id, lista, isfull)
 
-      const rutaPDF = path.join(this.directoryRecibo, `Recibos-${Anio}-${Mes}.pdf`);
       const mergedPdf = await PDFDocument.create();
 
-      let urlForValidation = ""
-      console.log("pathFile " + pathFile.length)
-
-      if (pathFile == undefined || pathFile == "")
+      if (pathFile.length==0)
         throw new ClientException(`Recibo/s no generado/s para el periodo seleccionado`);
 
       for (const filterDowload of pathFile) {
 
         try {
-
-          if (isfull) {
-            urlForValidation = `${process.env.PATH_RECIBO}/${Anio}${Mes}/${periodo_id}/${filterDowload.PersonalId}-${Mes}-${Anio}.pdf`
-
-            if (!fs.existsSync(urlForValidation))
+            if (!fs.existsSync(filterDowload.path))
               throw new ClientException(`Error al generar el recibo unificado`);
 
-          }
-          let pdfBytes: any
-          let pdfDoc: any
-          let copiedPages: any
-
-          if (isfull) {
-            pdfBytes = await fs.promises.readFile(urlForValidation.trim());
-            pdfDoc = await PDFDocument.load(pdfBytes);
-          } else {
-            pdfBytes = await fs.promises.readFile(filterDowload.path);
-            pdfDoc = await PDFDocument.load(pdfBytes);
-          }
-
-          copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+          const pdfBytes = await fs.promises.readFile(filterDowload.path);
+          const pdfDoc = await PDFDocument.load(pdfBytes);
+          const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
           copiedPages.forEach((page) => mergedPdf.addPage(page));
 
-
-          // se crea el otro pdf
-          if (isfull && isDuplicate) {
-            const pdfBytesCopie = await fs.promises.readFile(urlForValidation.trim());
-            const pdfDocCopie = await PDFDocument.load(pdfBytesCopie);
+          if (isDuplicate) {
             const headerText = "DUPLICADO";
-            const pages = pdfDocCopie.getPages();
-
+            const pages = pdfDoc.getPages();
             for (let i = 0; i < pages.length; i++) {
               const { height } = pages[i].getSize();
               const fontSize = 12;
 
               // Agregar encabezado - para center colocar 260 
               pages[i].drawText(headerText, {
-                x: 478,
+                x: 400,
                 y: height - 30,
                 size: fontSize,
               });
             }
 
-            copiedPages = await mergedPdf.copyPages(pdfDocCopie, pdfDocCopie.getPageIndices());
+            const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
             copiedPages.forEach((page) => mergedPdf.addPage(page));
+
           }
+
         } catch (error) {
-          console.error(`Error al procesar el archivo ${urlForValidation}:`, error.message);
+          console.error(`Error al procesar el archivo ${filterDowload.path}:`, error.message);
         }
       }
 
-      const mergedPdfBytes = await mergedPdf.save();
-      fs.writeFileSync(rutaPDF, mergedPdfBytes);
-      console.log('PDF guardado en la ruta especificada:', rutaPDF);
 
-      let nameFile = `Recibos-${Anio}-${Mes}.pdf`
-      await this.dowloadPdfBrowser(res, next, rutaPDF, Anio, Mes, nameFile)
+      const resBuffer = Buffer.from(await mergedPdf.save());
+
+      res.attachment(`Recibos-${Anio}-${Mes}.pdf`);      
+      res.setHeader('Content-Length', resBuffer.length);
+      res.write(resBuffer, 'binary');
+      res.end();
 
     } catch (error) {
       return next(error)
@@ -612,7 +592,7 @@ export class RecibosController extends BaseController {
   }
 
   async getGrupFilterDowload(queryRunner: QueryRunner, periodo_id: number,) {
-    return queryRunner.query(`SELECT DISTINCT g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId as PersonalId
+    return queryRunner.query(`SELECT DISTINCT g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId, doc.path
     FROM lige.dbo.docgeneral doc 
     JOIN Personal per ON per.PersonalId=doc.persona_id
     LEFT JOIN GrupoActividadPersonal gaprel
@@ -666,14 +646,14 @@ export class RecibosController extends BaseController {
 
       if (header == "")
         throw new ClientException(`La cabecera no puede estar vacia`)
-    
+
       try {
-        fs.renameSync(PathReciboTemplate.header, PathReciboTemplate.header+'.old')
-        fs.renameSync(PathReciboTemplate.body, PathReciboTemplate.body+'.old')
-        fs.renameSync(PathReciboTemplate.footer, PathReciboTemplate.footer+'.old')
+        fs.renameSync(PathReciboTemplate.header, PathReciboTemplate.header + '.old')
+        fs.renameSync(PathReciboTemplate.body, PathReciboTemplate.body + '.old')
+        fs.renameSync(PathReciboTemplate.footer, PathReciboTemplate.footer + '.old')
       } catch (_e) { }
 
-      fs.mkdirSync(path.dirname(PathReciboTemplate.header),{recursive:true})
+      fs.mkdirSync(path.dirname(PathReciboTemplate.header), { recursive: true })
       fs.writeFileSync(PathReciboTemplate.header, header)
       fs.writeFileSync(PathReciboTemplate.body, body)
       fs.writeFileSync(PathReciboTemplate.footer, footer)
@@ -681,16 +661,16 @@ export class RecibosController extends BaseController {
       this.jsonRes([], res, `Se guardo el nuevo formato de recibo`);
 
     } catch (error) {
-      console.log('capturo',error)
+      console.log('capturo', error)
       return next(error)
     }
   }
 
   async getReciboConfig(req: Request, res: Response, next: NextFunction) {
-    const prev:boolean = (req.params.prev==='true')
+    const prev: boolean = (req.params.prev === 'true')
     try {
       const htmlContent = await this.getReciboHtmlContentGeneral(new Date(), 0, 0, '', '', '', true, prev)
-      this.jsonRes({header:htmlContent.header,body:htmlContent.body,footer:htmlContent.footer}, res);
+      this.jsonRes({ header: htmlContent.header, body: htmlContent.body, footer: htmlContent.footer }, res);
 
     } catch (error) {
       return next(error)
