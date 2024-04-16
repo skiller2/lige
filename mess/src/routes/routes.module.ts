@@ -3,7 +3,7 @@ import { WebServer } from "../server";
 import { personalRouter } from "./personal.routes";
 import { recibosRouter } from "./recibos.routes";
 import { impuestosAfipRouter } from "./impuestos-afip.routes";
-import { chatBotRouter } from "./chatBot.routes";
+import { chatBotRouter } from "./chatbot.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);

@@ -1,10 +1,10 @@
-import { chatBotController } from "../controller/controller.module";
 import BotWhatsapp from '@bot-whatsapp/bot'
 import flowMenu from './flowMenu'
 import { personalController } from "../controller/controller.module";
+import { chatBotController } from "../controller/controller.module";
 
 const { addKeyword, EVENTS } = BotWhatsapp
-const delay = chatBotController.getDelay() || 500
+const delay = chatBotController.getDelay()
 
 // const flowPedidosDeLicencia = addKeyword(['3', 'pedidos de licencia', 'pedido de licencia', 'pedido', 'licencia', ])
 //     .addAnswer('Area en mantenimiento')

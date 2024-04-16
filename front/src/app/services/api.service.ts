@@ -635,13 +635,15 @@ export class ApiService {
     );
   }
 
-  getChatBotQR() {
-    const path = `mess/api/chatbot/qr`;
+  getChatBotDelay() {
+    const path = `mess/api/chatbot/delay`;
     return this.http.get(path).pipe(
-      map((res: any) => {
-        console.log('res',res);
-        return res.data})
+      map((res: any) => res.data)
     );
+  }
+
+  setChatBotDelay(ms: number) {
+    return this.http.post<ResponseJSON<any>>(`mess/api/chatbot/delay`, {ms}).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
   }
 
   addAdelanto(adelanto: { PersonalId: string; monto: number }) {

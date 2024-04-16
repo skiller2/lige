@@ -29,7 +29,7 @@ export class MessComponent {
   messInfo = signal({'msg':'descansando'})
   ultimoDeposito = signal({'msg':'descansando'})
   imagenUrl = signal('')
-  miliseg: number = 500
+  ms = signal(0)
   private apiService = inject(ApiService)
   async getMessInfo() {
     try {
@@ -47,17 +47,27 @@ export class MessComponent {
       this.ultimoDeposito.set({'msg':'error'})
     }
   }
-  async getQR() {
+
+  msChange(result: number): void {
+    this.ms.set(result)
+  }
+
+  async setMs(){
     try {
-      this.imagenUrl = await firstValueFrom(this.apiService.getChatBotQR())
+      await firstValueFrom(this.apiService.setChatBotDelay(this.ms()))
     } catch (e) {
       console.log(e)
+      this.ultimoDeposito.set({'msg':'error'})
     }
   }
 
-
-  ngOnInit() {
-    let imagenCount = 0
-    setInterval(() => {this.imagenUrl.set(`/mess/api/chatbot/qr/${imagenCount++}`)},3000)
+  async ngOnInit() {
+    try {
+      this.ms.set(await firstValueFrom(this.apiService.getChatBotDelay()))
+      let imagenCount = 0
+      setInterval(() => {this.imagenUrl.set(`/mess/api/chatbot/qr/${imagenCount++}`)},3000)
+    } catch (error) {
+      console.log(error)
+    }
   }
 }

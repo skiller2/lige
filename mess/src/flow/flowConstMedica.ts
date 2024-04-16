@@ -1,10 +1,10 @@
 import BotWhatsapp from '@bot-whatsapp/bot'
 import flowMenu from './flowMenu'
 import flowEnd from './flowEnd'
-// import { botController } from "../controller/controller.module";
+import { chatBotController } from "../controller/controller.module";
 
 const { addKeyword } = BotWhatsapp
-const delay = 500
+const delay = chatBotController.getDelay()
 
 const flowConstMedica = addKeyword(['4','constancia','constancia médica','constancia medica'])
     .addAnswer([

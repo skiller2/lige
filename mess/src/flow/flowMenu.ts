@@ -1,12 +1,12 @@
-// import { botController } from "../controller/controller.module";
 import BotWhatsapp from '@bot-whatsapp/bot'
 import flowMonotributo from './flowMonotributo'
 import flowRecibo from './flowRecibo'
 import flowConstMedica from './flowConstMedica'
 import flowEnd from './flowEnd'
+import { chatBotController } from "../controller/controller.module";
 
 const { addKeyword, EVENTS } = BotWhatsapp
-const delay = 500
+const delay = chatBotController.getDelay()
 
 const flowMenu = addKeyword(EVENTS.ACTION)
     .addAnswer([
@@ -17,7 +17,7 @@ const flowMenu = addKeyword(EVENTS.ACTION)
         // '4- *Envío de Constancia médica*'
         '0- Si no desea consultar nada más'
     ], 
-    { capture: true , delay: delay}, 
+    { capture: true , delay }, 
     async (ctx, { fallBack }) => {
         const tema = parseInt(ctx.body)
         if (tema<0 || tema>2) {

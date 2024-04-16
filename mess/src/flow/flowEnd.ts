@@ -1,5 +1,5 @@
-import { chatBotController } from "../controller/controller.module";
 import BotWhatsapp from '@bot-whatsapp/bot'
+import { chatBotController } from "../controller/controller.module";
 
 const { addKeyword } = BotWhatsapp
 const delay = chatBotController.getDelay() || 500
