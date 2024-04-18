@@ -690,6 +690,15 @@ export class ApiService {
     )
 
   }
+
+  getValuePersonalObjetivo(user:number) {
+    return this.http.get<ResponseJSON<any>>(`/api/personalobjetivo/getpersonalObjetivo/${user}`).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+      catchError(() => of([])),
+      
+    )
+
+  }
   
   downloadReciboPrueba(parameter:any) {
     console.log('parameters',parameter)
