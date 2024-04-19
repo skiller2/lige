@@ -74,5 +74,9 @@ export const GesRoutes: Routes = [
     path: 'tipo_documento',
     loadComponent: () => import('./tipo-documento/tipo-documento.component').then(c => c.TipoDocumentoComponent),
   },
-  
+  { path: 'cust', redirectTo: 'cust/objetivos' },
+  {
+    path: 'cust/:tab',
+    loadComponent: () => import('./custodias/custodias.component').then(c => c.CustodiaComponent),
+  },
 ];

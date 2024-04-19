@@ -131,6 +131,11 @@
               "icon": "anticon-profile"
             }
           ]
+        },
+        {
+          "text": "Custodias",
+          "link": "/ges/cust",
+          "icon": "anticon-profile"
         }
       ]
     }
