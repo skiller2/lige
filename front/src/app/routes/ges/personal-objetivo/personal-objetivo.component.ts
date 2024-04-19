@@ -41,15 +41,24 @@ export class PersonalObjetivoComponnet {
       {name:'Los Angeles battles huge wildfires.', id:1}
       
     ];
+
   
 
-  PersonaChange(result: any): void {
-   
-    console.log("voy", result)
+  async PersonaChange(result: any): Promise<void> {
 
-    let resultDataEmpleados = this.apiService.getValuePersonalObjetivo(result)
-    //this.dataEmpleados.set(resultDataEmpleados)
-    //this.formChange('');
+//    this.ngForm().valueChanges
+   
+
+    let resultDataEmpleados = await firstValueFrom(this.apiService.getValuePersonalObjetivo(result))
+    //Deberías usar this.ngForm().form.patchValue(await this.apiService.getValuePersonalObjetivo(result))) 
+
+    console.log("PersonaChange", result, resultDataEmpleados)
+
+
+    //    this.ngForm().form.patchValue(await firstValueFrom(this.apiService.getValuesRecibo(prev)))
+//    const res = await firstValueFrom(this.apiService.setRecibo(this.ngForm().value))
+
+
   }
 
   testbtn(){

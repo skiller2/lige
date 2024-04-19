@@ -20,8 +20,10 @@ console.log("estoy en el back")
     // } else {
     //   await queryRunner.query(`delete from lige.dbo.docgeneral where periodo=@0 ; `, [periodo])
     // }
+    this.jsonRes({ recordsArray:[] }, res);
 
-  }
+  }        
+
 }
 
 
