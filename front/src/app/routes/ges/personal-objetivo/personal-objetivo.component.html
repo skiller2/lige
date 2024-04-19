@@ -1,0 +1,76 @@
+
+<nz-card class="small-margin">
+  <form nz-form #personalObjetivosForm="ngForm">
+
+    
+    <ul nz-menu nzMode="horizontal">
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'personal_objetivo','persona']">Persona</a>
+      </li>
+
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'personal_objetivo','objetivo']">Objetivo</a>
+      </li>
+    </ul>
+
+    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/personal_objetivo/persona">Persona</a>
+        <ng-template nz-tab>
+          <!-- <nz-form-item>
+            <nz-form-label [nzSpan]="3">Período</nz-form-label>
+            <nz-form-control [nzSpan]="5">
+      
+              <nz-date-picker nzMode="month" name="periodo" nzFormat="MM/yyyy" ngModel/>
+            </nz-form-control> 
+          </nz-form-item> -->
+      
+          <nz-form-item>
+            <nz-form-label [nzSpan]="3">Persona</nz-form-label>
+            <nz-form-control [nzSpan]="19">
+              <nz-input-group style="width: 100%">
+                <app-personal-search name="PersonalId" ngModel (ngModelChange)="PersonaChange($event)"/>
+              </nz-input-group>
+            </nz-form-control>
+          </nz-form-item>
+
+          <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar guardar cambios?" nz-button (nzOnConfirm)="testbtn()">
+            test
+          </button>
+          
+          <ul nz-list [nzDataSource]="dataEmpleados()" nzBordered nzSize="large">
+            <nz-list-header>Cantidad : 151</nz-list-header>
+            @for (item of dataEmpleados(); track item) {
+              <li nz-list-item nzNoFlex>
+                <ul nz-list-item-actions>
+                  <nz-list-item-action>
+                    <a> {{ item.id }}edit</a>
+                  </nz-list-item-action>
+                </ul>
+                {{ item.name }}
+              </li>
+            }
+          </ul>
+
+        </ng-template>
+      </nz-tab>
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/personal_objetivo/objetivo">Objetivo</a>
+        <ng-template nz-tab >
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
+            <nz-form-control>
+              <app-objetivo-search name="ObjetivoId" ngModel />
+  
+            </nz-form-control>
+          </nz-form-item>
+        </ng-template>
+      </nz-tab>
+    
+    </nz-tabset>
+
+
+  </form>
+</nz-card>

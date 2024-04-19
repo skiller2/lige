@@ -96,6 +96,11 @@
           ]
         },
         {
+          "text": "Objetivo",
+          "link": "/ges/personal_objetivo",
+          "icon": "anticon-profile"
+        },
+        {
           "text": "Tipo Documento",
           "link": "/ges/tipo_documento",
           "icon": "anticon-profile"

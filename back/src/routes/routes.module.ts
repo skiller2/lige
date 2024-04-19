@@ -18,6 +18,7 @@ import { informesRouter } from "../informes/informes.routes";
 import { pendieteRouter } from "./pendiente.routes";
 import { tipoDocumentoRouter } from "../tipo-documento/tipo-documento.routes";
 import { recibosRouter } from "src/recibos/recibos.routes";
+import { personalObjetivoRouter } from "src/personal-objetivo/personal-objetivo.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -39,4 +40,6 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/pendiente", pendieteRouter);
   server.setRoute("/api/tipo-documento", tipoDocumentoRouter);
   server.setRoute("/api/recibos", recibosRouter);
+  server.setRoute("/api/personalobjetivo", personalObjetivoRouter);
+  
 }
