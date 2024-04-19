@@ -1,0 +1,71 @@
+<nz-card class="small-margin">
+  <ul nz-menu nzMode="horizontal">
+    <li nz-menu-item nzMatchRouter>
+      <span nz-icon nzType=""></span>
+      <a [routerLink]="['/', 'ges', 'cust','objetivos']">Objetivos</a>
+    </li>
+    <li nz-menu-item nzMatchRouter>
+      <span nz-icon nzType=""></span>
+      <a [routerLink]="['/', 'ges', 'cust','cargamanual']">Carga manual</a>
+    </li>
+  </ul>
+  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/cust/objetivos">Listado</a>
+      <ng-template nz-tab>
+        <div class="gridListContainer container-fluid">
+          <angular-slickgrid gridId="gridLista" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptionsLista"
+            [dataset]="gridDataInsertLista || []" (onAngularGridCreated)="angularGridReadyLista($event)">
+            <!-- (onSelectedRowsChanged)="handleSelectedRowsChanged1($event)"> -->
+          </angular-slickgrid>
+        </div>
+      </ng-template>
+    </nz-tab>
+
+    <nz-tab>
+
+      <a nz-tab-link routerLink="/ges/cust/cargamanual">Carga Manual</a>
+      <ng-template nz-tab>
+        <div class="gridLoadContainer container-fluid">
+          <angular-slickgrid gridId="gridCarga" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptionsCarga"
+              [dataset]="gridDataInsertCarga || []" (onAngularGridCreated)="angularGridReadyCarga($event)">
+              <!-- (onCellChange)="onCellChanged($event)"> -->
+          </angular-slickgrid>
+        </div>
+        <nz-list nzItemLayout="horizontal" [nzLoading]="loading">
+          @for (item of personalCarga; track item) {
+            <nz-list-item>
+              @if (item.title == 'Agregar') {
+                  <nz-list-item-meta
+                nzAvatar="./assets/dummy-person-image.jpg"
+                nzDescription="Ingrese el personal de custodia"
+              >
+                <nz-list-item-meta-title>
+                  <button> {{ item.title }} </button>
+                </nz-list-item-meta-title>
+              </nz-list-item-meta>
+              } @else {
+              <nz-list-item-meta
+                nzAvatar="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
+                nzDescription="Ant Design, a design language for background applications, is refined by Ant UED Team"
+              >
+                <nz-list-item-meta-title>
+                  {{ item.title }}
+                </nz-list-item-meta-title>
+              </nz-list-item-meta>
+              }
+            </nz-list-item>
+          }
+          @if (personalCarga.length === 0) {
+            <nz-list-empty />
+          }
+        </nz-list>
+      </ng-template>
+    </nz-tab>
+
+  </nz-tabset>
+
+    
+  
+</nz-card>

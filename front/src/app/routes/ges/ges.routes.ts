@@ -80,5 +80,9 @@ export const GesRoutes: Routes = [
     loadComponent: () => import('./personal-objetivo/personal-objetivo.component').then(c => c.PersonalObjetivoComponnet),
   },
   
-  
+  { path: 'cust', redirectTo: 'cust/objetivos' },
+  {
+    path: 'cust/:tab',
+    loadComponent: () => import('./custodias/custodias.component').then(c => c.CustodiaComponent),
+  },
 ];
