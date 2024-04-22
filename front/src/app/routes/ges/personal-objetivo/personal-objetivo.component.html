@@ -25,7 +25,7 @@
             </nz-form-control> 
           </nz-form-item> -->
       
-          <nz-form-item>
+          <nz-form-item class="marginElement">
             <nz-form-label [nzSpan]="3">Persona</nz-form-label>
             <nz-form-control [nzSpan]="19">
               <nz-input-group style="width: 100%">
@@ -33,21 +33,19 @@
               </nz-input-group>
             </nz-form-control>
           </nz-form-item>
-
-          <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar guardar cambios?" nz-button (nzOnConfirm)="testbtn()">
-            test
-          </button>
           
           <ul nz-list [nzDataSource]="dataEmpleados()" nzBordered nzSize="large">
-            <nz-list-header>Cantidad : 151</nz-list-header>
+            <nz-list-header class="quantities">Cantidad : {{dataEmpleados().length}}</nz-list-header>
             @for (item of dataEmpleados(); track item) {
               <li nz-list-item nzNoFlex>
                 <ul nz-list-item-actions>
                   <nz-list-item-action>
-                    <a> {{ item.id }}edit</a>
+                    <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar Borrado del objetivo  {{ item.Descripcion }}" nz-button (nzOnConfirm)="groupDelete(item.id)">
+                      Borrar
+                    </button>
                   </nz-list-item-action>
                 </ul>
-                {{ item.name }}
+                {{ item.Descripcion }}
               </li>
             }
           </ul>
@@ -57,13 +55,28 @@
       <nz-tab>
         <a nz-tab-link routerLink="/ges/personal_objetivo/objetivo">Objetivo</a>
         <ng-template nz-tab >
-          <nz-form-item>
-            <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
-            <nz-form-control>
-              <app-objetivo-search name="ObjetivoId" ngModel />
+          <nz-form-item class="marginElement">
+            <nz-form-label [nzSpan]="3">Objetivo</nz-form-label>
+            <nz-form-control [nzSpan]="19">
+              <app-objetivo-search name="ObjetivoId" ngModel (ngModelChange)="ObjtivoChange($event)" />
   
             </nz-form-control>
           </nz-form-item>
+          <ul nz-list [nzDataSource]="dataGrupos()" nzBordered nzSize="large">
+            <nz-list-header class="quantities">Cantidad : {{dataGrupos().length}}</nz-list-header>
+            @for (item of dataGrupos(); track item) {
+              <li nz-list-item nzNoFlex>
+                <ul nz-list-item-actions>
+                  <nz-list-item-action>
+                    <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar Borrado del Usuario  {{ item.Descripcion }}" nz-button (nzOnConfirm)="UserDelete(item.id)">
+                      Borrar
+                    </button>
+                  </nz-list-item-action>
+                </ul>
+                {{ item.Descripcion }}
+              </li>
+            }
+          </ul>
         </ng-template>
       </nz-tab>
     

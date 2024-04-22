@@ -691,13 +691,29 @@ export class ApiService {
 
   }
 
-  getValuePersonalObjetivo(user:number) {
-    return this.http.get<ResponseJSON<any>>(`/api/personalobjetivo/getpersonalObjetivo/${user}`).pipe(
+  setPersonalAndGroupDelete(userId: any,ObjetivoId: any) {
+    let parameter = {userId,ObjetivoId}
+    return this.http.post<ResponseJSON<any>>('/api/personalobjetivo/setPersonalAndGroupDelete', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
+  
+
+  getValuePersona(objetivo:number) {
+    return this.http.get<ResponseJSON<any>>(`/api/personalobjetivo/getpersonal/${objetivo}`).pipe(
+      map((res: { data: any; }) => res.data.recordsArray),
       catchError(() => of([])),
       
     )
+  }
 
+  getValueObjetivo(user:number) {
+    return this.http.get<ResponseJSON<any>>(`/api/personalobjetivo/getObjetivo/${user}`).pipe(
+      map((res: { data: any; }) => res.data.recordsArray),
+      catchError(() => of([])),
+      
+    )
   }
   
   downloadReciboPrueba(parameter:any) {

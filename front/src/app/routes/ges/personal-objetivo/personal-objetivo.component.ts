@@ -27,42 +27,59 @@ export class PersonalObjetivoComponnet {
   private apiService = inject(ApiService)
   PersonalId = model.required()
   tabIndex = 0
-
-  dataSignal = [ { name: "", id: 0 }];
-
-  dataEmpleados = signal(this.dataSignal);
-
+  userId = 0
+  ObjetivoId = 0
   
+  valuesMapObjetivo = []
+  valuesMapPersonal = []
 
-  data = [
-      {name:'Racing car sprays burning fuel into crowd.', id:1},
-      {name:'Japanese princess to wed commoner.', id:2},
-      {name:'Australian walks 100km after outback crash.', id:1},
-      {name:'Los Angeles battles huge wildfires.', id:1}
-      
-    ];
-
-  
+  data: { id: number; Descripcion: string }[] = [];
+  dataGrupos = signal(this.data);
+  dataEmpleados = signal(this.data);
 
   async PersonaChange(result: any): Promise<void> {
 
-//    this.ngForm().valueChanges
+    this.userId = result
+    let newValues = await firstValueFrom(this.apiService.getValueObjetivo(this.userId));
+    this.valuesMapObjetivo  = newValues[0].map((valor: any) => ({
+      id: valor.id,
+      Descripcion: valor.Descripcion
+    }));
+    this.dataEmpleados.set(this.valuesMapObjetivo)
+  
+  }
+
+  async ObjtivoChange(result: any): Promise<void> {
    
-
-    let resultDataEmpleados = await firstValueFrom(this.apiService.getValuePersonalObjetivo(result))
-    //Deberías usar this.ngForm().form.patchValue(await this.apiService.getValuePersonalObjetivo(result))) 
-
-    console.log("PersonaChange", result, resultDataEmpleados)
-
-
-    //    this.ngForm().form.patchValue(await firstValueFrom(this.apiService.getValuesRecibo(prev)))
-//    const res = await firstValueFrom(this.apiService.setRecibo(this.ngForm().value))
-
+    this.ObjetivoId = result
+    let newValues = await firstValueFrom(this.apiService.getValuePersona(this.ObjetivoId ));
+    this.valuesMapPersonal  = newValues[0].map((valor: any) => ({
+      id: valor.id,
+      Descripcion: valor.Descripcion
+    }));
+    this.dataGrupos.set(this.valuesMapPersonal)
 
   }
 
-  testbtn(){
-    const res = this.apiService.getValuePersonalObjetivo(111)
+  async setValueObjetivo(newValues:any){
+    this.valuesMapObjetivo  = newValues[0].map((valor: any) => ({
+      id: valor.id,
+      Descripcion: valor.Descripcion
+    }));
+  }
+
+  async groupDelete(ObjetivoId:any): Promise<void> {
+
+    await firstValueFrom(this.apiService.setPersonalAndGroupDelete(this.userId,ObjetivoId))
+    let newResult = this.valuesMapObjetivo.filter((item: any) => item.id !== ObjetivoId)
+    this.dataEmpleados.set(newResult)
+  }
+
+  async UserDelete(userid:any): Promise<void> {
+    
+    await firstValueFrom(this.apiService.setPersonalAndGroupDelete(userid,this.ObjetivoId))
+    let newResult = this.valuesMapPersonal.filter((item: any) => item.id !== userid)
+    this.dataGrupos.set(newResult)
   }
 
   
