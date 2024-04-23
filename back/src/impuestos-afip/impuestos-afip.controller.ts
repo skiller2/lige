@@ -60,6 +60,7 @@ const periodoRegex = [
   /^Fecha Retención\/Percepción\n\d{2}\/(\d{2})\/(\d{4})$/m,
   /PERIODO: (\d{2})\/(\d{4})$/m,
   /PERIODO\nFISCAL\n(\d{4})\/(\d{2})$/m,
+  
 ];
 const importeMontoRegex = [
   /^\$[\s*](([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))?$/m,
@@ -547,11 +548,15 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             textContent.items.filter(function (value: any, index, arr) {
               return value.str.trim() != "";
             });
-
+          
           let textdocument = "";
 
           textContent.items.forEach((item: TextItem) => {
-            if (item.str.trim() != "") textdocument += item.str.trim() + "\n";
+            textdocument+=item.str+'\n'
+          });
+
+          textContent.items.forEach((item: TextItem) => {
+            textdocument+=item.str + ((item.hasEOL)?'\n':'')
           });
 
           let [, periodoAnio, periodoMes] = this.getByRegexText(
@@ -563,7 +568,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           [, CUIT] = this.getByRegexText(
             textdocument,
             cuitRegex,
-            new ClientException("No se pudo encontrar el CUIT.")
+            new ClientException("No se pudo encontrar el CUIT.", textdocument)
           );
 
           const [, importeMontoTemp] = this.getByRegexText(
