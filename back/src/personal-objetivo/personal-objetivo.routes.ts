@@ -19,3 +19,10 @@ personalObjetivoRouter.post("/setPersonalAndGroupDelete", [authMiddleware.verify
     personalObjetivosController.setPersonalAndGroupDelete(req, res, next);
   }
 );
+personalObjetivoRouter.post("/setPersonaAndGroup", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])],
+  (req, res, next) => {
+    personalObjetivosController.setPersonaAndGroup(req, res, next);
+  }
+);
+
+
