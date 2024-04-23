@@ -698,7 +698,13 @@ export class ApiService {
     )
 
   }
-  
+  setPersonaAndGroup(userId: any,ObjetivoId: any) {
+    let parameter = {userId,ObjetivoId}
+    return this.http.post<ResponseJSON<any>>('/api/personalobjetivo/setPersonaAndGroup', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
 
   getValuePersona(objetivo:number) {
     return this.http.get<ResponseJSON<any>>(`/api/personalobjetivo/getpersonal/${objetivo}`).pipe(
