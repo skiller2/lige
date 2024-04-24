@@ -12,7 +12,7 @@
   <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
 
     <nz-tab>
-      <a nz-tab-link routerLink="/ges/cust/objetivos">Listado</a>
+      <a nz-tab-link routerLink="/ges/cust/objetivos">Objetivos</a>
       <ng-template nz-tab>
         <div class="gridListContainer container-fluid">
           <angular-slickgrid gridId="gridLista" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptionsLista"
@@ -47,8 +47,8 @@
               </nz-list-item-meta>
               } @else {
               <nz-list-item-meta
-                nzAvatar="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
-                nzDescription="Ant Design, a design language for background applications, is refined by Ant UED Team"
+                nzAvatar="./assets/dummy-person-image.jpg"
+                nzDescription=""
               >
                 <nz-list-item-meta-title>
                   {{ item.title }}
