@@ -1,0 +1,9 @@
+<nz-date-picker
+    #fhsc
+    [(ngModel)]="selectedId"
+    (ngModelChange)="onChange($event)"
+    [nzShowTime]="{ nzFormat: 'HH:mm' }"
+    nzFormat="yyyy-MM-dd HH:mm"
+    [nzShowNow] = "false"
+    style="width:100%"
+/>

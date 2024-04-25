@@ -9,6 +9,11 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
+// import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
+import { EditorClienteComponent } from '../../../shared/editor-cliente/editor-cliente.component';
+import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
+import { FechaHoraSelectComponent } from '../../../shared/fecha-hora-select/fecha-hora-select.component';
 
 @Component({
     selector: 'app-custodias',
@@ -17,7 +22,7 @@ import { ActivatedRoute, Router } from '@angular/router';
     standalone: true,
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS]
+    imports: [SHARED_IMPORTS, ClienteSearchComponent]
 })
 export class CustodiaComponent {
     @ViewChild('custodiasForm', { static: true }) liquidacionesForm: NgForm =
@@ -52,7 +57,7 @@ export class CustodiaComponent {
                 id:'responsable' , name:'Responsable' , field:'responsable',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 250,
+                maxWidth: 240,
                 minWidth: 170,
             },
             {
@@ -61,41 +66,86 @@ export class CustodiaComponent {
                 type: FieldType.string,
                 maxWidth: 200,
                 minWidth: 150,
+                formatter: Formatters.complexObject,
+                exportWithFormatter: true,
+                params: {
+                    complexFieldLabel: 'cliente.fullName',
+                },
+                editor: {
+                    model: CustomInputEditor,
+                    collection: [],
+                    params: {
+                        component: EditorClienteComponent,
+                    },
+                    alwaysSaveOnEnterKey: true,
+                    // required: true
+                },
             },
             {
                 id:'descripcion' , name:'Descripcion' , field:'descripcion',
                 sortable: true,
                 type: FieldType.text,
-                maxWidth: 300,
-                minWidth: 170,
+                maxWidth: 400,
+                minWidth: 250,
+                editor: {
+                    model: Editors.longText,
+                    alwaysSaveOnEnterKey: true,
+                    // required: true
+                },
             },
             {
-                id:'fechaA' , name:'Fecha Hora Inicio' , field:'fechaA',
+                id:'fechaI' , name:'Fecha Inicio' , field:'fechaI',
                 sortable: true,
                 type: FieldType.dateTimeShortUs,
-                maxWidth: 130,
-                minWidth: 110,
+                maxWidth: 170,
+                minWidth: 130,
+                params: {
+                    complexFieldLabel: 'fechaI.date',
+                    complexField: 'fechaI.date',
+                },
+                editor: {
+                    model: CustomInputEditor,
+                    collection: [],
+                    params: {
+                        component: FechaHoraSelectComponent,
+                    },
+                    alwaysSaveOnEnterKey: true,
+                    // required: true
+                },
             },
             {
                 id:'origen' , name:'Origen' , field:'origen',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 190,
-                minWidth: 140,
+                maxWidth: 210,
+                minWidth: 160,
             },
             {
-                id:'fechaB' , name:'Fecha Hora Final' , field:'fechaB',
+                id:'fechaF' , name:'Fecha Final' , field:'fechaB',
                 sortable: true,
                 type: FieldType.dateTimeShortUs,
-                maxWidth: 130,
-                minWidth: 110,
+                maxWidth: 170,
+                minWidth: 130,
+                params: {
+                    complexFieldLabel: 'fechaF.date',
+                    complexField: 'fechaF.date',
+                },
+                editor: {
+                    model: CustomInputEditor,
+                    collection: [],
+                    params: {
+                        component: FechaHoraSelectComponent,
+                    },
+                    alwaysSaveOnEnterKey: true,
+                    // required: true
+                },
             },
             {
                 id:'destino' , name:'Destino' , field:'destino',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 190,
-                minWidth: 140,
+                maxWidth: 210,
+                minWidth: 170,
             },
             {
                 id:'estado' , name:'Estado' , field:'estado',
@@ -115,6 +165,22 @@ export class CustodiaComponent {
         this.gridOptionsCarga.showFooterRow = true
         this.gridOptionsCarga.createFooterRow = true
         this.gridOptionsCarga.enableExcelExport = false
+        this.gridOptionsCarga.editable = true
+        this.gridOptionsCarga.enableCellNavigation = true
+
+        this.gridOptionsCarga.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
+            //            let undoCommandArr:EditCommand[]=[]
+            this.angularGridCarga.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridCarga.dataView.getItemMetadata)
+            this.angularGridCarga.slickGrid.invalidate();
+
+            const emptyrows = this.angularGridCarga.dataView.getItems().filter(row => (!row.cliente.id))
+
+            if (emptyrows.length == 0) {
+                this.addNewItem("bottom")
+            } else if (emptyrows.length > 1) {
+                this.angularGridCarga.gridService.deleteItemById(emptyrows[0].id)
+            }
+        }
     }
 
     async angularGridReadyLista(angularGrid: any) {
@@ -141,6 +207,18 @@ export class CustodiaComponent {
     onCellChanged(e: any) {
         console.log(this.gridDataInsertCarga);
         
+    }
+
+    updateItemMetadata(previousItemMetadata: any) {
+        return (rowNumber: number) => {
+            const item = this.angularGridCarga.dataView.getItem(rowNumber)
+            let meta = { cssClasses: '' }
+
+            if (typeof previousItemMetadata === 'object')
+                meta = previousItemMetadata(rowNumber)
+
+            return meta
+        }
     }
 
     addNewItem(insertPosition?: 'bottom') {
