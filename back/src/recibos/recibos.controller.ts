@@ -179,7 +179,7 @@ export class RecibosController extends BaseController {
 
         )
 
-        await this.createPdf(queryRunner, this.directoryRecibo + '/' +filesPath, persona_id, idrecibo, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.PersonalNroLegajo,
+        await this.createPdf(queryRunner, this.directoryRecibo + '/' +filesPath, persona_id, idrecibo, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
           movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body, htmlContent.header, htmlContent.footer)
       }
 
@@ -244,6 +244,7 @@ export class RecibosController extends BaseController {
     PersonaNombre: string,
     Cuit: string,
     Domicilio: string,
+    SucursalPrincipal: string,
     Asociado: string,
     Grupo: string,
     periodo_id: number,
@@ -261,6 +262,7 @@ export class RecibosController extends BaseController {
     htmlContent = htmlContent.replace(/\${PersonaNombre}/g, PersonaNombre);
     htmlContent = htmlContent.replace(/\${Cuit}/g, Cuit.toString());
     htmlContent = htmlContent.replace(/\${Domicilio}/g, Domicilio);
+    htmlContent = htmlContent.replace(/\${SucursalPrincipal}/g, SucursalPrincipal);
 
 
     const liquidacionInfo = await this.getUsuariosLiquidacionMovimientos(queryRunner, periodo_id, persona_id)
@@ -348,17 +350,23 @@ export class RecibosController extends BaseController {
       TRIM(dom.PersonalDomicilioDomCalle), ' ',
       TRIM(dom.PersonalDomicilioDomNro), ' ',
       TRIM(dom.PersonalDomicilioDomPiso), ' ',
-      TRIM(dom.PersonalDomicilioDomDpto)
+      TRIM(dom.PersonalDomicilioDomDpto), ' (',
+      TRIM(dom.PersonalDomicilioCodigoPostal), ') ',
+      TRIM(loc.LocalidadDescripcion), ' ',
+      IIF((loc.LocalidadDescripcion!=pro.ProvinciaDescripcion),TRIM(pro.ProvinciaDescripcion),''), ' '
     )) AS DomicilioCompleto,
    act.GrupoActividadNumero,
    act.GrupoActividadDetalle,
+   suc.SucursalDescripcion,
     1
     
     FROM Personal per
     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
     LEFT JOIN PersonalDomicilio AS dom ON dom.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1 AND dom.PersonalDomicilioId = ( SELECT MAX(dommax.PersonalDomicilioId) FROM PersonalDomicilio dommax WHERE dommax.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1)
-    
-    
+    LEFT JOIN Localidad loc ON loc.LocalidadId  =  dom.PersonalDomicilioLocalidadId AND loc.PaisId = dom.PersonalDomicilioPaisId AND loc.ProvinciaId = dom.PersonalDomicilioProvinciaId
+    LEFT JOIN Provincia pro ON pro.ProvinciaId  =  dom.PersonalDomicilioProvinciaId AND pro.PaisId = dom.PersonalDomicilioPaisId
+    LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId
+    LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
     LEFT JOIN (SELECT grp.GrupoActividadPersonalPersonalId, MAX(grp.GrupoActividadPersonalDesde) AS GrupoActividadPersonalDesde, MAX(ISNULL(grp.GrupoActividadPersonalHasta,'9999-12-31')) GrupoActividadPersonalHasta FROM GrupoActividadPersonal AS grp WHERE @4 >= grp.GrupoActividadPersonalDesde AND @4 <= ISNULL(grp.GrupoActividadPersonalHasta, '9999-12-31') GROUP BY grp.GrupoActividadPersonalPersonalId) as grupodesde ON grupodesde.GrupoActividadPersonalPersonalId = per.PersonalId
     LEFT JOIN GrupoActividadPersonal grupo ON grupo.GrupoActividadPersonalPersonalId = per.PersonalId AND grupo.GrupoActividadPersonalDesde = grupodesde.GrupoActividadPersonalDesde AND ISNULL(grupo.GrupoActividadPersonalHasta,'9999-12-31') = grupodesde.GrupoActividadPersonalHasta 
         
@@ -576,16 +584,18 @@ export class RecibosController extends BaseController {
   }
 
   async getGrupFilterDowload(queryRunner: QueryRunner, periodo_id: number,) {
-    return queryRunner.query(`SELECT DISTINCT g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId, doc.path
+    return queryRunner.query(`SELECT DISTINCT i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId, doc.path
     FROM lige.dbo.docgeneral doc 
     JOIN Personal per ON per.PersonalId=doc.persona_id
     LEFT JOIN GrupoActividadPersonal gaprel
      ON gaprel.GrupoActividadPersonalPersonalId = per.PersonalId 
      AND doc.fecha > gaprel.GrupoActividadPersonalDesde 
      AND doc.fecha < ISNULL(gaprel.GrupoActividadPersonalHasta , '9999-12-31')
-    LEFT JOIN GrupoActividad g ON g.GrupoActividadId = gaprel.GrupoActividadId           
+    LEFT JOIN GrupoActividad g ON g.GrupoActividadId = gaprel.GrupoActividadId
+    LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalSucursalPrincipalId = per.PersonalId
+    LEFT JOIN Sucursal i ON i.SucursalId = ISNULL(h.PersonalSucursalPrincipalSucursalId,1)
     WHERE doc.periodo =  @0 AND doc.doctipo_id = 'REC'
-    ORDER BY g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`, [periodo_id])
+    ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`, [periodo_id])
   }
 
   async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: number[], isfull: any) {
@@ -690,11 +700,15 @@ export class RecibosController extends BaseController {
       const browser = await puppeteer.launch({ headless: 'new' })
       const page = await browser.newPage();
 
+      if (movimientosPendientes.length == 0)
+        throw new ClientException(`La persona seleccionada no tiene datos en el período seleccionado`)
+
+
       for (const movimiento of movimientosPendientes) {
         persona_id = movimiento.PersonalId
         filesPath = (process.env.PATH_RECIBO_HTML_TEST) ? process.env.PATH_RECIBO_HTML_TEST : 'tmp' + '/' + persona_id + '-' + String(anio) + "-" + String(mes) + ".pdf"
         const idrecibo = Math.floor(10000 + Math.random() * 90000);
-        await this.createPdf(queryRunner, filesPath, persona_id, idrecibo, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.PersonalNroLegajo,
+        await this.createPdf(queryRunner, filesPath, persona_id, idrecibo, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
           movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body + waterMark, htmlContent.header, htmlContent.footer)
       }
 
@@ -703,6 +717,7 @@ export class RecibosController extends BaseController {
       await browser.close();
 
       let nameFile = `ReciboTest-${anio}-${mes}.pdf`
+      console.log('filesPath',filesPath)
       await this.dowloadPdfBrowser(res, next, filesPath, anio, mes, nameFile)
 
     } catch (error) {
@@ -713,7 +728,7 @@ export class RecibosController extends BaseController {
   async dowloadPdfBrowser(res: Response, next: NextFunction, filesPath: any, year: any, month: any, nameFile: any) {
     res.download(filesPath, nameFile, async (err) => {
       if (err) {
-        console.error('Error al descargar el PDF:', err);
+        console.error(`Error al descargar el PDF: ${filesPath}`, err);
         return next(err);
       } else {
         //console.log('PDF descargado con éxito');
