@@ -52,19 +52,19 @@ GlobalWorkerOptions.workerSrc = pdfWorker
 const cuitRegex = [
   /:\d{2}\n(\d{11})$/m,
   /control\n(\d{11})$/m,
-  /CUIT\/CUIL\/CDI\n(\d{11})/m,
+  /CUIT\/CUIL\/CDI\s(\d{11})/m,
   /^CUIT: (\d{11})$/m,
 ];
 const periodoRegex = [
   /PERIODO FISCAL (\d*)\/(\d*)/m,
-  /^Fecha Retención\/Percepción\n\d{2}\/(\d{2})\/(\d{4})$/m,
+  /^Fecha Retención\/Percepción[\s]\d{2}\/(\d{2})\/(\d{4})$/m,
   /PERIODO: (\d{2})\/(\d{4})$/m,
   /PERIODO\nFISCAL\n(\d{4})\/(\d{2})$/m,
   
 ];
 const importeMontoRegex = [
   /^\$[\s*](([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))?$/m,
-  /Monto de la Retenci.n\/Percepci.n\n(\d*.\d{2})/m,
+  /Monto de la Retención\/Percepción[\s](\d*.\d{2})/m,
   /^IMPORTE: \$(([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))$/m,
   /^Importe\n\$\n(([0-9]{1,3}[,|.]([0-9]{3}[,|.])*[0-9]{3}|[0-9]+)([.|,][0-9][0-9]))$/m,
 ];
