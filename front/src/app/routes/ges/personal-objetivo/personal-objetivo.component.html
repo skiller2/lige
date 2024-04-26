@@ -27,12 +27,12 @@
               </nz-input-group>
             </nz-form-control>
             @if (addMoreGroup) {
-              <button nz-button nzType="default" nzShape="circle" class="btnPadding" (click)="addMoreGroupid = true"><span nz-icon nzType="plus"></span></button>
+              <button nz-button nzType="default" nzShape="circle" class="btnPadding"><span nz-icon nzType="plus"></span></button>
             }
            
           </nz-form-item>
 
-          @if (addMoreGroupid) {
+          
             <nz-form-item class="marginElement">
               <nz-form-label [nzSpan]="3">Objetivo</nz-form-label>
               <nz-form-control [nzSpan]="17">
@@ -46,8 +46,6 @@
                 </button>
               </nz-form-control>
             </nz-form-item>
-            
-          }
           
           
           <ul nz-list [nzDataSource]="dataEmpleados()" nzBordered nzSize="large">
@@ -77,11 +75,11 @@
               <app-objetivo-search name="ObjetivoId" ngModel (ngModelChange)="ObjtivoChange($event)" />
             </nz-form-control>
             @if (addMoreUser) {
-              <button nz-button nzType="default" nzShape="circle" class="btnPadding" (click)="addMoreUserid = true"><span nz-icon nzType="plus"></span></button>
+              <button nz-button nzType="default" nzShape="circle" class="btnPadding"><span nz-icon nzType="plus"></span></button>
             }
           </nz-form-item>
 
-          @if (addMoreUserid) {
+          
             <nz-form-item class="marginElement">
               <nz-form-label [nzSpan]="3">Persona</nz-form-label>
               <nz-form-control [nzSpan]="17">
@@ -95,7 +93,7 @@
               </nz-form-control>
             </nz-form-item>
             
-          }
+          
           <ul nz-list [nzDataSource]="dataGrupos()" nzBordered nzSize="large">
             <nz-list-header class="quantities">Cantidad : {{dataGrupos().length}}</nz-list-header>
             @for (item of dataGrupos(); track item) {
