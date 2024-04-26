@@ -46,10 +46,10 @@ export class PersonalObjetivosController extends BaseController {
       const queryRunner = dataSource.createQueryRunner();
 
       if(userId == 0)
-        throw new ClientException(`Usuario no identificado`)
+        throw new ClientException(`Debe seleccionar un cliente`)
 
       if(ObjetivoId == 0)
-        throw new ClientException(`Cliente no identificado`)
+        throw new ClientException(`Debe seleccionar un objetivo`)
 
 
       await this.AddPersonaAndGroup(queryRunner,userId,ObjetivoId,usuario,ip,fechaActual)
@@ -102,10 +102,10 @@ export class PersonalObjetivosController extends BaseController {
     try {
 
       if(userId == 0)
-        throw new ClientException(`Usuario no identificado`)
+        throw new ClientException(`Debe seleccionar un cliente`)
 
       if(ObjetivoId == 0)
-        throw new ClientException(`Cliente no identificado`) 
+        throw new ClientException(`Debe seleccionar un objetivo`) 
 
       await queryRunner.connect();
       await queryRunner.startTransaction();

@@ -30,9 +30,7 @@ export class PersonalObjetivoComponnet {
   userId = 0
   ObjetivoId = 0
   addMoreGroup: boolean = false;
-  addMoreGroupid : boolean = false;
   addMoreUser: boolean = false;
-  addMoreUserid : boolean = false;
   valuesMapObjetivo = []
   valuesMapPersonal = []
   ObjetivoIdForAdd = 0
@@ -108,13 +106,11 @@ export class PersonalObjetivoComponnet {
 
   async restarVariablesPersona() {
     this.addMoreGroup = false;
-    this.addMoreGroupid  = false;
     this.dataEmpleados.set(this.data)
   }
   
   async restarVariablesGroup() {
     this.addMoreUser = false;
-    this.addMoreUserid = false;
     this.dataGrupos.set(this.data)
   }
 
