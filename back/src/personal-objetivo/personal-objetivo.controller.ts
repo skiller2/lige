@@ -45,6 +45,9 @@ export class PersonalObjetivosController extends BaseController {
       let fechaActual = new Date();
       const queryRunner = dataSource.createQueryRunner();
 
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
+        throw new ClientException(`No tiene permisos para realizar la carga, no se encuentra en el grupo liquidaciones o administrativo`)
+
       if(userId == 0)
         throw new ClientException(`Debe seleccionar un cliente`)
 
@@ -100,6 +103,9 @@ export class PersonalObjetivosController extends BaseController {
     //await this.deletePersonaAndGroup(queryRunner,userId,ObjetivoId)
 
     try {
+
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
+        throw new ClientException(`No tiene permisos para realizar la carga, no se encuentra en el grupo liquidaciones o administrativo`)
 
       if(userId == 0)
         throw new ClientException(`Debe seleccionar un cliente`)
