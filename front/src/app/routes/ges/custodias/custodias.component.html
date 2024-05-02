@@ -15,7 +15,7 @@
       <a nz-tab-link routerLink="/ges/cust/objetivos">Objetivos</a>
       <ng-template nz-tab>
         <div class="gridListContainer container-fluid">
-          <angular-slickgrid gridId="gridLista" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptionsLista"
+          <angular-slickgrid gridId="gridLista" [columnDefinitions]="columnasLista" [gridOptions]="gridOptionsLista"
             [dataset]="gridDataInsertLista || []" (onAngularGridCreated)="angularGridReadyLista($event)">
             <!-- (onSelectedRowsChanged)="handleSelectedRowsChanged1($event)"> -->
           </angular-slickgrid>
@@ -28,38 +28,47 @@
       <a nz-tab-link routerLink="/ges/cust/cargamanual">Carga Manual</a>
       <ng-template nz-tab>
         <div class="gridLoadContainer container-fluid">
-          <angular-slickgrid gridId="gridCarga" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptionsCarga"
+          <angular-slickgrid gridId="gridCarga" [columnDefinitions]="columnasCarga" [gridOptions]="gridOptionsCarga"
               [dataset]="gridDataInsertCarga || []" (onAngularGridCreated)="angularGridReadyCarga($event)">
               <!-- (onCellChange)="onCellChanged($event)"> -->
           </angular-slickgrid>
         </div>
+        <br>
         <nz-list nzItemLayout="horizontal" [nzLoading]="loading">
-          @for (item of personalCarga; track item) {
+          <nz-list-item *ngIf="agregarPersonal">
+            <nz-list-item-meta nzAvatar="./assets/dummy-person-image.jpg" nzDescription="Ingrese los datos">
+              <nz-list-item-meta-title>
+                <nz-select ngModel="custodia">
+                  <nz-option nzValue="custodia" nzLabel="Custodia"></nz-option>
+                  <nz-option nzValue="efectos" nzLabel="Efectos"></nz-option>
+                </nz-select>
+              </nz-list-item-meta-title>
+            </nz-list-item-meta>
+          </nz-list-item>
+          <ng-container *ngFor="let item of personalCarga">
+            <ng-container *ngIf="item.title == 'Agregar'; then thenBlock else elseBlock"></ng-container>
+
+            <ng-template #thenBlock>
             <nz-list-item>
-              @if (item.title == 'Agregar') {
-                  <nz-list-item-meta
-                nzAvatar="./assets/dummy-person-image.jpg"
-                nzDescription="Ingrese el personal de custodia"
-              >
+              <nz-list-item-meta nzAvatar="./assets/dummy-person-image.jpg" nzDescription="Ingrese el personal de custodia">
                 <nz-list-item-meta-title>
-                  <button> {{ item.title }} </button>
+                  <button nz-button nzType="default" nz-popconfirm
+                  nzPopconfirmTitle="Agregar personal de custodia?" (nzOnConfirm)="setAgregarPersonal()">
+                    {{ item.title }}
+                  </button>
                 </nz-list-item-meta-title>
               </nz-list-item-meta>
-              } @else {
-              <nz-list-item-meta
-                nzAvatar="./assets/dummy-person-image.jpg"
-                nzDescription=""
-              >
-                <nz-list-item-meta-title>
-                  {{ item.title }}
-                </nz-list-item-meta-title>
-              </nz-list-item-meta>
-              }
             </nz-list-item>
-          }
-          @if (personalCarga.length === 0) {
-            <nz-list-empty />
-          }
+            </ng-template>
+          
+            <ng-template #elseBlock>
+              <nz-list-item>
+                <nz-list-item-meta nzAvatar="./assets/dummy-person-image.jpg" nzDescription="">
+                  <nz-list-item-meta-title>{{ item.title }}</nz-list-item-meta-title>
+                </nz-list-item-meta>
+              </nz-list-item>
+            </ng-template>
+          </ng-container>
         </nz-list>
       </ng-template>
     </nz-tab>
