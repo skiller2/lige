@@ -115,6 +115,7 @@ export class InitV1Component implements OnInit {
   horasTrabajadas$ = this.statshorastrabajadas();
   objetivosSinAsistencia$ = this.statssinAsistencia();
   objetivosSinAsistenciaCur$ = this.statssinAsistenciaCur();
+  licenciasInconsistentes$ = this.statsLicenciasInconsistentes()
 
   webSite!: any[];
   salesData!: any[];
@@ -162,6 +163,20 @@ export class InitV1Component implements OnInit {
       `/api/init/stats/objetivossinasistencia/${anio}/${mes}`
     );
   }
+
+
+  statsLicenciasInconsistentes(): Observable<any> {
+    const stmactual = new Date();
+    stmactual.setMonth(stmactual.getMonth() - 1)
+
+    const mes = stmactual.getMonth() + 1;
+    const anio = stmactual.getFullYear();
+
+    return this.http.get(
+      `/api/init/stats/licenciasinconsistentes/${anio}/${mes}`
+    );
+  }
+
 
   statssinAsistenciaCur(): Observable<any> {
     const stmactual = new Date();

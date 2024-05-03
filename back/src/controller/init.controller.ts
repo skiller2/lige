@@ -5,6 +5,7 @@ import { CategoriasController } from "../categorias-cambio/categorias-cambio.con
 import { objetivosPendasisController } from "./controller.module";
 import { ObjetivosPendasisController } from "src/objetivos-pendasis/objetivos-pendasis.controller";
 import { isNumberObject } from "util/types";
+import { AsistenciaController } from "./asistencia.controller";
 
 export class InitController extends BaseController {
   getCategoriasPendientes(req: Request, res: Response, next: NextFunction) {
@@ -311,6 +312,16 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       .catch((error) => {
         return next(error);
       });
+  }
+
+  async getLicenciasInconsistentes(req: Request, res: Response, next: NextFunction) {
+    const anio = Number(req.params.anio)
+    const mes = Number(req.params.mes)
+    const queryRunner = dataSource.createQueryRunner();
+
+    const licencias = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [])
+    const licerror =  licencias.filter((r:any)=>r.PersonalLicenciaSePaga ==null || (r.PersonalLicenciaSePaga =='S' && Number(r.horas) ==0))
+    this.jsonRes({ total: licerror.length, anio,mes }, res);
   }
 
 
