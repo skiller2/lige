@@ -268,7 +268,7 @@ export class PersonalController extends BaseController {
       const result = await dataSource.query(
         `SELECT cue.PersonalId, ban.BancoDescripcion, cue.PersonalBancoCBU, cue.PersonalBancoDesde, cue.PersonalBancoHasta
         FROM PersonalBanco cue
-        JOIN Banco ban ON ban.BancoId = cue.PersonalBancoId
+        JOIN Banco ban ON ban.BancoId = cue.PersonalBancoBancoId
         WHERE cue.PersonalBancoDesde <= @1 AND ISNULL(cue.PersonalBancoHasta,'9999-12-31')>= @1 AND cue.PersonalId=@0`,
         [PersonalId,stmactual]
       )
