@@ -1412,7 +1412,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       for (const row of resAsisAdmArt42) {
         const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
-        if (key>=0) {
+        if (key>=0 && row.total>0) {
           personal[key].ingresosG_importe += row.total
           personal[key].ingresos_horas += row.horas
           personal[key].retiroG_importe = personal[key].ingresosG_importe
