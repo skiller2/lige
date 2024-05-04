@@ -446,15 +446,15 @@
         </nz-form-item>
 
         <nz-form-item>
-          <nz-form-label [nzSpan]="5">Art42</nz-form-label>
+          <nz-form-label [nzSpan]="5">Licencias</nz-form-label>
           <nz-form-control>
             <nz-table #art42adminPer [nzData]="($listaIngresosPer | async)?.ingresos" nzSize="small"
               [nzPageSize]="100000000" [nzShowPagination]="false" [nzScroll]="{ x: '600px' }">
               <thead>
                 <tr>
-                  <th>Código</th>
-                  <th>Objetivo</th>
+                  <th>Sucursal</th>
                   <th>Categoría</th>
+                  <th>Descripción</th>
                   <th>Horas</th>
                   <th>Valor Hora</th>
                   <th>Importe Total</th>
@@ -462,11 +462,9 @@
               </thead>
               <tbody>
                 <tr *ngFor="let data of art42adminPer.data" class="">
-                  <td title="{{ data.SucursalId }}">{{ data.SucursalId }}</td>
                   <td>{{ data.SucursalDescripcion}}</td>
-                  <td>{{ (data.SucursalAsistenciaAnoMesPersonalDiasCualArt42>0)? "ART42
-                    AP"+data.SucursalAsistenciaAnoMesPersonalDiasCualArt42:"" }} {{ data.CategoriaPersonalDescripcion }}
-                  </td>
+                  <td>{{ data.CategoriaPersonalDescripcion}}</td>
+                  <td>{{ data.TipoInasistenciaDescripcion}}</td>
                   <td>{{ data.horas }}</td>
                   <td>{{ data.ValorLiquidacionHoraNormal | currency}}</td>
                   <td>{{ data.total | currency}}</td>

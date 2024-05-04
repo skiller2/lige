@@ -326,6 +326,37 @@ export class AsistenciaController extends BaseController {
   static async getAsistenciaAdminArt42(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[]) {
     const listPersonaId = (personalId.length == 0) ? '' : 'AND persona.PersonalId IN (' + personalId.join(',') + ')'
 
+    return await queryRunner.query(`    SELECT suc.SucursalId, suc.SucursalDescripcion, licimp.PersonalLicenciaAplicaPeriodoAplicaEl,
+    @1 anio, @2 mes,
+    persona.PersonalId, persona.PersonalApellido, persona.PersonalNombre, 
+
+    licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,
+   (ROUND(CAST(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales AS FLOAT),0,0) *60+ PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1))/60 AS horas,
+   val.ValorLiquidacionHoraNormal,
+   (ROUND(CAST(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales AS FLOAT),0,0) *60+ PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1))/60 * val.ValorLiquidacionHoraNormal AS total,
+   lic.PersonalLicenciaSePaga,
+   tli.TipoInasistenciaDescripcion,
+   tli.TipoInasistenciaApartado,
+	lic.PersonalLicenciaDesde,
+	lic.PersonalLicenciaHasta,
+	lic.PersonalLicenciaTermina,
+   cat.CategoriaPersonalDescripcion,
+	lic.PersonalLicenciaObservacion,
+	med.PersonalLicenciaDiagnosticoMedicoDiagnostico,
+	med.PersonalLicenciaDiagnosticoMedicoFechaDiagnostico,
+    1
+    FROM PersonalLicencia lic 
+    JOIN Personal persona ON persona.PersonalId = lic.PersonalId
+    JOIN TipoInasistencia tli ON tli.TipoInasistenciaId = lic.PersonalTipoInasistenciaId
+    LEFT JOIN PersonalSucursalPrincipal sucpri ON sucpri.PersonalId = persona.PersonalId 
+    LEFT JOIN PersonalLicenciaAplicaPeriodo licimp ON lic.PersonalId = licimp.PersonalId AND lic.PersonalLicenciaId = licimp.PersonalLicenciaId AND licimp.PersonalLicenciaAplicaPeriodoAplicaEl = CONCAT(RIGHT('  '+CAST(@2 AS VARCHAR(2)),2),'/',@1)
+    LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(licimp.PersonalLicenciaAplicaPeriodoSucursalId,sucpri.PersonalSucursalPrincipalSucursalId),1)
+    LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND cat.CategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId
+    LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = licimp.PersonalLicenciaAplicaPeriodoSucursalId AND val.ValorLiquidacionTipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+    LEFT JOIN PersonalLicenciaDiagnosticoMedico med ON med.PersonalId=persona.PersonalId AND med.PersonalLicenciaId = lic.PersonalLicenciaId
+    WHERE lic.PersonalLicenciaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(ISNULL(lic.PersonalLicenciaTermina,lic.PersonalLicenciaHasta),'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+    ${listPersonaId} `, [, anio, mes])
+/*
     let asisadmin = await queryRunner.query(`
     SELECT suc.SucursalId, suc.SucursalDescripcion, 
     asisa.SucursalAsistenciaAnoAno, asism.SucursalAsistenciaAnoMesMes, 
@@ -431,6 +462,7 @@ export class AsistenciaController extends BaseController {
     WHERE asisa.SucursalAsistenciaAnoAno = @1 AND asism.SucursalAsistenciaAnoMesMes = @2 ${listPersonaId} `, [, anio, mes])
 
     return asisadmin
+    */
   }
   async getCategoria(req: any, res: Response, next: NextFunction) {
     try {
@@ -1380,7 +1412,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       for (const row of resAsisAdmArt42) {
         const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
-        if (key>=0) {
+        if (key>=0 && row.total>0) {
           personal[key].ingresosG_importe += row.total
           personal[key].ingresos_horas += row.horas
           personal[key].retiroG_importe = personal[key].ingresosG_importe
