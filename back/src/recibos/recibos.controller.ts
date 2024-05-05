@@ -587,29 +587,21 @@ export class RecibosController extends BaseController {
 
   async getGrupFilterDowload(queryRunner: QueryRunner, periodo_id: number,ObjetivoIdWithSearch:number) {
 
-    let createSelect = `SELECT DISTINCT i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId, doc.path
-    FROM lige.dbo.docgeneral doc JOIN Personal per ON per.PersonalId=doc.persona_id `
-
-    if (ObjetivoIdWithSearch > 0 )
-    createSelect += `JOIN PersonalObjetivoPrincipal perObj ON perObj.PersonalId=doc.persona_id `
-
-    createSelect += `LEFT JOIN GrupoActividadPersonal gaprel
-     ON gaprel.GrupoActividadPersonalPersonalId = per.PersonalId 
-     AND doc.fecha > gaprel.GrupoActividadPersonalDesde 
-     AND doc.fecha < ISNULL(gaprel.GrupoActividadPersonalHasta , '9999-12-31')
-    LEFT JOIN GrupoActividad g ON g.GrupoActividadId = gaprel.GrupoActividadId
-    LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalSucursalPrincipalId = per.PersonalId
-    LEFT JOIN Sucursal i ON i.SucursalId = ISNULL(h.PersonalSucursalPrincipalSucursalId,1)
-    WHERE doc.periodo =  @0 AND doc.doctipo_id = 'REC' `
-
-    if (ObjetivoIdWithSearch > 0 )
-      createSelect += `AND perObj.PersonalObjetivoPrincipalObjetivoId = @1 `
-
-
-    createSelect += `ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`
-
+    let filterExtraIN = 'SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov WHERE mov.periodo_id=@0'
     
-    return queryRunner.query(createSelect, [periodo_id,ObjetivoIdWithSearch])
+    if (ObjetivoIdWithSearch > 0) 
+      filterExtraIN='SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov WHERE mov.periodo_id=@0 AND mov.objetivo_id=@1'
+      
+    return queryRunner.query(`
+    SELECT DISTINCT i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId, doc.path
+        FROM lige.dbo.docgeneral doc 
+       JOIN Personal per ON per.PersonalId=doc.persona_id 
+       LEFT JOIN GrupoActividadPersonal gaprel ON gaprel.GrupoActividadPersonalPersonalId = per.PersonalId  AND doc.fecha > gaprel.GrupoActividadPersonalDesde  AND doc.fecha < ISNULL(gaprel.GrupoActividadPersonalHasta , '9999-12-31')
+        LEFT JOIN GrupoActividad g ON g.GrupoActividadId = gaprel.GrupoActividadId
+        LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalSucursalPrincipalId = per.PersonalId
+        LEFT JOIN Sucursal i ON i.SucursalId = ISNULL(h.PersonalSucursalPrincipalSucursalId,1)
+        WHERE doc.periodo =  @0 AND doc.doctipo_id = 'REC' AND per.PersonalId IN (${filterExtraIN})
+    ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`, [periodo_id,ObjetivoIdWithSearch])
   }
 
   async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: number[], isfull: any,objetivoId:number) {
