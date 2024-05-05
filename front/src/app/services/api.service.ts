@@ -487,7 +487,7 @@ export class ApiService {
   }
 
   setmovimientosAutomaticos(anio: number, mes: number) {
-    const parameter = { anio, mes }
+    const parameter = { anio, mes}
     this.notification.success('Respuesta', `Inicio Carga Mov Automatico`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/movimientosAutomaticos', parameter).pipe(
@@ -495,6 +495,7 @@ export class ApiService {
     )
 
   }
+  
 
   setingresoPorAsistencia(anio: number, mes: number) {
     const parameter = { anio, mes }

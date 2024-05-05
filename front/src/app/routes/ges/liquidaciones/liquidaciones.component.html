@@ -1,4 +1,49 @@
 <nz-card class="small-margin">
+
+  <!-- <ng-template #customTemplate>
+    <div>
+      <app-objetivo-search name="ObjetivoIdAdd" ngModel (ngModelChange)="ObjetivoIdWithSearch = $event" />
+    </div>
+    <div>
+      <li  app-down-file [httpMethod]="'POST'"
+      [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month,'isfull': true, 'isDuplicate': true }"
+      httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado">
+      <span style="white-space: normal;">Aceptar</span>
+    </li>
+    </div>
+  </ng-template> -->
+
+  <nz-modal [(nzVisible)]="isVisible" (nzOnCancel)="handleCancel()">
+    
+     <div *nzModalTitle>
+      @if (isWithDuplicado) {
+        Todos los recibos (con duplicado)
+       }@else{
+         Todos los recibos
+       }
+      </div>
+    
+    <ng-container *nzModalContent>
+      <app-objetivo-search name="ObjetivoIdAdd" [(ngModel)]="ObjetivoIdWithSearch" (ngModelChange)="ObjetivoIdWithSearch = $event"></app-objetivo-search>
+    </ng-container>
+    <div *nzModalFooter style="text-align: right;">
+      <button nz-button (click)="handleCancel()">Cancelar</button>
+      @if (isWithDuplicado) {
+        
+        <a nz-button nzType="primary" app-down-file [httpMethod]="'POST'"
+           [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month,'isfull': true, 'isDuplicate': true, 'ObjetivoIdWithSearch':ObjetivoIdWithSearch }"
+           httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado" (click)="handleOk()">Aceptar</a>
+    
+      }@else{
+        <a nz-button nzType="primary" app-down-file [httpMethod]="'POST'"
+           [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month,'isfull': true, 'isDuplicate': false, 'ObjetivoIdWithSearch':ObjetivoIdWithSearch }"
+           httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado" (click)="handleOk()">Aceptar</a>
+      
+      }
+    </div>
+  </nz-modal>
+
+
   <form nz-form #liquidacionesForm="ngForm">
 
     <nz-form-item>
@@ -83,17 +128,27 @@
             <span nz-icon nzType="download"></span><span style="white-space: normal;">Grilla</span>
           </li>
 
-          <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month,'isfull': true, 'isDuplicate': false }"
-            httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado">
-            <span nz-icon nzType="download"></span><span style="white-space: normal;">Todos los recibos {{selectedPeriod.month}}/{{selectedPeriod.year}}</span>
+          
+          <!-- <li>
+            <button 
+            nz-popconfirm 
+            [nzPopconfirmTitle]="customTemplate" 
+            nzPopconfirmPlacement="topRight" 
+            (nzOnConfirm)="genrarTodosLosRecibos('todos')"
+            nz-button nzType="text">
+            <i nz-icon nzType="download"></i> Todos los recibos {{selectedPeriod.month}}/{{selectedPeriod.year}}
+          </button>
+          </li> -->
+
+          <li nz-menu-item (click)="showModal(false)">
+            <span nz-icon nzType="download"></span><span style="white-space: normal;">Todos los recibos</span>
           </li>
 
-          <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month,'isfull': true, 'isDuplicate': true }"
-            httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado">
-            <span nz-icon nzType="download"></span><span style="white-space: normal;">Todos los recibos (con duplicado) {{selectedPeriod.month}}/{{selectedPeriod.year}}</span>
+          <li nz-menu-item (click)="showModal(true)">
+            <span nz-icon nzType="download"></span><span style="white-space: normal;">Todos los recibos (con duplicado)</span>
           </li>
+
+          
 
 
         </ul>
@@ -268,5 +323,6 @@
         </div>
       </div>
     </ng-template>
+ 
   </form>
 </nz-card>

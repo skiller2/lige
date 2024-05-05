@@ -18,6 +18,8 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { EditorTipoMovimientoComponent } from '../../../shared/editor-tipomovimiento/editor-tipomovimiento.component';
 import { EditorTipoCuentaComponent } from '../../../shared/editor-tipocuenta/editor-tipocuenta.component';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
+
 
 
 
@@ -52,7 +54,8 @@ import { LoadingService } from '@delon/abc/loading';
     FiltroBuilderComponent,
     RowPreloadDetailComponent,
     RowDetailViewComponent,
-    NzUploadModule
+    NzUploadModule,
+    ObjetivoSearchComponent
   ],
   providers: [AngularUtilService]
 })
@@ -96,6 +99,9 @@ export class LiquidacionesComponent {
   PersonalIdForReceip = 0;
   PersonalIdUnique = [];
   PersonalNameForReceip = "";
+  ObjetivoIdWithSearch = 0;
+  isVisible = false;
+  isWithDuplicado = false;
 
   $selectedCuentalIdChange = new BehaviorSubject('');
   $isCuentaDataLoading = new BehaviorSubject(false);
@@ -350,6 +356,7 @@ export class LiquidacionesComponent {
 
     return cols
   }));
+  
 
   async liquidacionesAcciones(value: string) {
     switch (value) {
@@ -802,6 +809,23 @@ export class LiquidacionesComponent {
       detalle: ""
 
     };
+  }
+
+  showModal(value:boolean): void {
+
+    this.isWithDuplicado = value
+    this.isVisible = true;
+    this.ObjetivoIdWithSearch = 0
+
+  }
+
+  handleOk(): void {
+    this.isVisible = false;
+    this.ObjetivoIdWithSearch = 0
+  }
+
+  handleCancel(): void {
+    this.isVisible = false;
   }
 
 
