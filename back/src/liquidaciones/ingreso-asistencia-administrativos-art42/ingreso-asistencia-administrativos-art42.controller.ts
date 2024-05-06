@@ -69,7 +69,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
 
       for (const row of result) {
-        if (row.total == 0)
+        if (Number(row.total) == 0)
                   continue 
         
         tipo_movimiento_id = tipo_movimiento_id_normadmi 
@@ -92,7 +92,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
             fechaActual,
             detalle,
             null,
-            row.SucursalAsistenciaMesPersonalId,
+            row.PersonalId,
             Number(row.total),
             row.horas,
             usuario, ip, fechaActual, usuario, ip, fechaActual,
