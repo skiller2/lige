@@ -24,6 +24,14 @@
       </div>
     
     <ng-container *nzModalContent>
+      <nz-list-item-meta-title>
+        <nz-select [ngModel]="selectedOption" nzPlaceHolder="Selecciona una opción" (ngModelChange)="handleOptionChange($event)">
+          <nz-option [nzLabel]="'Todos'" [nzValue]="'Todos'"></nz-option>
+          <nz-option [nzLabel]="'Objetivo'" [nzValue]="'Objetivo'"></nz-option>
+          <nz-option [nzLabel]="'Cliente'" [nzValue]="'Cliente'"></nz-option>
+          <nz-option [nzLabel]="'Sucursal'" [nzValue]="'Sucursal'"></nz-option>
+        </nz-select>
+      </nz-list-item-meta-title>
       <app-objetivo-search name="ObjetivoIdAdd" [(ngModel)]="ObjetivoIdWithSearch" (ngModelChange)="ObjetivoIdWithSearch = $event"></app-objetivo-search>
     </ng-container>
     <div *nzModalFooter style="text-align: right;">

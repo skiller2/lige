@@ -19,6 +19,10 @@ import { EditorTipoMovimientoComponent } from '../../../shared/editor-tipomovimi
 import { EditorTipoCuentaComponent } from '../../../shared/editor-tipocuenta/editor-tipocuenta.component';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+
+
+
 
 
 
@@ -47,6 +51,7 @@ import { LoadingService } from '@delon/abc/loading';
   styleUrls: ['./liquidaciones.component.less'],
   standalone: true,
   imports: [
+    NzSelectModule,
     NzModalModule,
     CommonModule,
     SHARED_IMPORTS,
@@ -102,6 +107,9 @@ export class LiquidacionesComponent {
   ObjetivoIdWithSearch = 0;
   isVisible = false;
   isWithDuplicado = false;
+  selectedOption: string = ''; 
+
+
 
   $selectedCuentalIdChange = new BehaviorSubject('');
   $isCuentaDataLoading = new BehaviorSubject(false);
@@ -828,7 +836,9 @@ export class LiquidacionesComponent {
     this.isVisible = false;
   }
 
-
+  handleOptionChange(value: string) {
+    this.selectedOption = value
+  }
 
 }
 
