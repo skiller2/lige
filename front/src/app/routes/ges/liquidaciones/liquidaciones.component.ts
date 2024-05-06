@@ -1,4 +1,4 @@
-import { Component, ViewChild, Injector, inject, TemplateRef, ChangeDetectorRef, model } from '@angular/core';
+import { Component, ViewChild, Injector, inject, TemplateRef, ChangeDetectorRef, model,signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { NgForm } from '@angular/forms';
@@ -18,6 +18,12 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { EditorTipoMovimientoComponent } from '../../../shared/editor-tipomovimiento/editor-tipomovimiento.component';
 import { EditorTipoCuentaComponent } from '../../../shared/editor-tipocuenta/editor-tipocuenta.component';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+
+
+
+
 
 
 
@@ -45,6 +51,7 @@ import { LoadingService } from '@delon/abc/loading';
   styleUrls: ['./liquidaciones.component.less'],
   standalone: true,
   imports: [
+    NzSelectModule,
     NzModalModule,
     CommonModule,
     SHARED_IMPORTS,
@@ -52,7 +59,8 @@ import { LoadingService } from '@delon/abc/loading';
     FiltroBuilderComponent,
     RowPreloadDetailComponent,
     RowDetailViewComponent,
-    NzUploadModule
+    NzUploadModule,
+    ObjetivoSearchComponent
   ],
   providers: [AngularUtilService]
 })
@@ -96,6 +104,12 @@ export class LiquidacionesComponent {
   PersonalIdForReceip = 0;
   PersonalIdUnique = [];
   PersonalNameForReceip = "";
+  ObjetivoIdWithSearch = 0;
+  isVisible = false;
+  isWithDuplicado = false;
+  selectedOption = signal("");
+
+
 
   $selectedCuentalIdChange = new BehaviorSubject('');
   $isCuentaDataLoading = new BehaviorSubject(false);
@@ -350,6 +364,7 @@ export class LiquidacionesComponent {
 
     return cols
   }));
+  
 
   async liquidacionesAcciones(value: string) {
     switch (value) {
@@ -363,7 +378,7 @@ export class LiquidacionesComponent {
         firstValueFrom(this.apiService.setingresoPorAsistencia(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next('')))) //.subscribe(evt => {this.formChange$.next('')});
         break;
 
-      case "Art42":
+      case "Licencias":
 
         firstValueFrom(this.apiService.setingresoPorAsistenciaAdministrativosArt42(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
         break;
@@ -804,7 +819,27 @@ export class LiquidacionesComponent {
     };
   }
 
+  showModal(value:boolean): void {
 
+    this.isWithDuplicado = value
+    this.isVisible = true;
+    this.ObjetivoIdWithSearch = 0
+
+  }
+
+  handleOk(): void {
+    this.isVisible = false;
+    this.ObjetivoIdWithSearch = 0
+  }
+
+  handleCancel(): void {
+    this.isVisible = false;
+  }
+
+  handleOptionChange(value: string) {
+
+    this.selectedOption.set(value)
+  }
 
 }
 

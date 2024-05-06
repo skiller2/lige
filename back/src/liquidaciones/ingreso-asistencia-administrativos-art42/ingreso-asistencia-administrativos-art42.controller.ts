@@ -69,27 +69,17 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
 
       for (const row of result) {
-//        if (row.total == 0)
-//          continue 
+        if (Number(row.total) == 0)
+                  continue 
         
-        switch (row.SucursalAsistenciaAnoMesPersonalDiasCualArt42) {
-          case "0":
-          case "":
-            tipo_movimiento_id = tipo_movimiento_id_normadmi 
-            break;
-          case "4":
-            tipo_movimiento_id = tipo_movimiento_id_art42vigi 
-            break;
-          case "5":
-            tipo_movimiento_id = tipo_movimiento_id_art42admi
-            break;
-          
-          default:
-            throw new ClientException(`Tipo SucursalAsistenciaAnoMesPersonalDiasCualArt42=${row.SucursalAsistenciaAnoMesPersonalDiasCualArt42} no válido `)
-            break;
-        }
+        tipo_movimiento_id = tipo_movimiento_id_normadmi 
+        if (row.TipoInasistenciaApartado.indexOf('5'))
+          tipo_movimiento_id = tipo_movimiento_id_art42admi
+        else if (row.TipoInasistenciaApartado.indexOf('4'))
+          tipo_movimiento_id = tipo_movimiento_id_art42vigi
 
-        const detalle= ((row.ValorLiquidacionSumaFija>0)? `Suma Fija `: `Art42 horas ${row.horas} `) + `Categoría ${row.CategoriaPersonalDescripcion.trim()} ${(row.SucursalAsistenciaAnoMesPersonalDiasCualArt42>0)? 'AP'+row.SucursalAsistenciaAnoMesPersonalDiasCualArt42:''} ` 
+        const detalle = `Art42 horas ${row.horas}, Categoría ${row.CategoriaPersonalDescripcion.trim()}, ${row.TipoInasistenciaDescripcion.trim()} `
+
         await queryRunner.query(
           `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe, horas,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
@@ -102,7 +92,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
             fechaActual,
             detalle,
             null,
-            row.SucursalAsistenciaMesPersonalId,
+            row.PersonalId,
             Number(row.total),
             row.horas,
             usuario, ip, fechaActual, usuario, ip, fechaActual,

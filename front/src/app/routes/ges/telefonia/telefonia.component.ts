@@ -113,23 +113,13 @@ export class TelefoniaComponent {
     debounceTime(500),
     switchMap(() => {
       //const periodo = this.telefonoForm.form.get('periodo')?.value
+      this.angularGrid.dataView.setItems([])
       return this.apiService
         .getTelefonos(
           { anio: this.anio, mes: this.mes, fecha: this.fecha, options: this.listOptions, toggle: this.toggle }
         )
-        .pipe(
-          map(data => {
-            // this.gridDataLen = data.list?.length
-            // this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
-            //console.log('data:',data);
-            return data.list
-          }),
-        );
     })
   );
-
-
-
 
   ngOnInit(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -184,8 +174,8 @@ export class TelefoniaComponent {
     
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
-
-    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg)=>{
+    
+    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
         totalRecords(this.angularGrid)
         columnTotal('importe', this.angularGrid)
     })

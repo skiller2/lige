@@ -28,6 +28,18 @@
       </div>
     </div>
   </ng-container>
+  <ng-container *ngIf="licenciasInconsistentes$ | async as licenciasInconsistentes">
+    <div *ngIf="licenciasInconsistentes.data.total >0" nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+      <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
+        <div nz-col nzSpan="12" class="p-md text-white ">
+          <div class="h2 mt0">{{ licenciasInconsistentes.data.total }}</div>
+          <a href="#/ges"><p class="text-nowrap mb0">{{ licenciasInconsistentes.data.mes }}/{{ licenciasInconsistentes.data.anio }} Licencias inconsistentes</p></a>
+
+        </div>
+
+      </div>
+    </div>
+  </ng-container>
 
 
   <ng-container *ngIf="excepcionesPendientes$ | async as excepcionesPendientes">

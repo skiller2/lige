@@ -478,7 +478,7 @@ export class RecibosController extends BaseController {
       if (!gettmpfilename[0])
         throw new ClientException(`Recibo no generado`)
 
-      res.download(this.directoryRecibo+'/'+ gettmpfilename[0].path, gettmpfilename[0].nombre_archivo, async (error) => {
+      res.download(gettmpfilename[0].path, gettmpfilename[0].nombre_archivo, async (error) => {
         if (error) {
           console.error('Error al descargar el archivo:', error);
           return next(error)
@@ -507,8 +507,10 @@ export class RecibosController extends BaseController {
       Mes,
       isfull,
       lista,
-      isDuplicate
+      isDuplicate,
+      ObjetivoIdWithSearch
     } = req.body
+
 
     const user = (res.locals.userName) ? res.locals.userName : Usuario
     if (!user)
@@ -521,8 +523,8 @@ export class RecibosController extends BaseController {
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
 
       let pathFile = isfull
-        ? await this.getGrupFilterDowload(queryRunner, periodo_id)
-        : await this.getparthFile(queryRunner, periodo_id, lista, isfull)
+        ? await this.getGrupFilterDowload(queryRunner, periodo_id,ObjetivoIdWithSearch)
+        : await this.getparthFile(queryRunner, periodo_id, lista, isfull,ObjetivoIdWithSearch)
 
       const mergedPdf = await PDFDocument.create();
 
@@ -533,10 +535,11 @@ export class RecibosController extends BaseController {
       for (const filterDowload of pathFile) {
 
         try {
-            if (!fs.existsSync(this.directoryRecibo +'/'+ filterDowload.path))
+
+            if (!fs.existsSync(filterDowload.path))
               throw new ClientException(`Error al generar el recibo unificado`);
 
-          const pdfBytes = await fs.promises.readFile(this.directoryRecibo +'/'+filterDowload.path);
+          const pdfBytes = await fs.promises.readFile(filterDowload.path);
           const pdfDoc = await PDFDocument.load(pdfBytes);
           const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
 
@@ -576,31 +579,44 @@ export class RecibosController extends BaseController {
       res.setHeader('Content-Length', resBuffer.length);
       res.write(resBuffer, 'binary');
       res.end();
-
     } catch (error) {
       return next(error)
     }
 
   }
 
-  async getGrupFilterDowload(queryRunner: QueryRunner, periodo_id: number,) {
-    return queryRunner.query(`SELECT DISTINCT i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId, doc.path
-    FROM lige.dbo.docgeneral doc 
-    JOIN Personal per ON per.PersonalId=doc.persona_id
-    LEFT JOIN GrupoActividadPersonal gaprel
-     ON gaprel.GrupoActividadPersonalPersonalId = per.PersonalId 
-     AND doc.fecha > gaprel.GrupoActividadPersonalDesde 
-     AND doc.fecha < ISNULL(gaprel.GrupoActividadPersonalHasta , '9999-12-31')
-    LEFT JOIN GrupoActividad g ON g.GrupoActividadId = gaprel.GrupoActividadId
-    LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalSucursalPrincipalId = per.PersonalId
-    LEFT JOIN Sucursal i ON i.SucursalId = ISNULL(h.PersonalSucursalPrincipalSucursalId,1)
-    WHERE doc.periodo =  @0 AND doc.doctipo_id = 'REC'
-    ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`, [periodo_id])
+  async getGrupFilterDowload(queryRunner: QueryRunner, periodo_id: number,ObjetivoIdWithSearch:number) {
+
+    let filterExtraIN = 'SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov WHERE mov.periodo_id=@0'
+    
+    if (ObjetivoIdWithSearch > 0) 
+      filterExtraIN='SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov WHERE mov.periodo_id=@0 AND mov.objetivo_id=@1'
+      
+    return queryRunner.query(`
+    SELECT DISTINCT i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId, doc.path
+        FROM lige.dbo.docgeneral doc 
+       JOIN Personal per ON per.PersonalId=doc.persona_id 
+       LEFT JOIN GrupoActividadPersonal gaprel ON gaprel.GrupoActividadPersonalPersonalId = per.PersonalId  AND doc.fecha > gaprel.GrupoActividadPersonalDesde  AND doc.fecha < ISNULL(gaprel.GrupoActividadPersonalHasta , '9999-12-31')
+        LEFT JOIN GrupoActividad g ON g.GrupoActividadId = gaprel.GrupoActividadId
+        LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalSucursalPrincipalId = per.PersonalId
+        LEFT JOIN Sucursal i ON i.SucursalId = ISNULL(h.PersonalSucursalPrincipalSucursalId,1)
+        WHERE doc.periodo =  @0 AND doc.doctipo_id = 'REC' AND per.PersonalId IN (${filterExtraIN})
+    ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`, [periodo_id,ObjetivoIdWithSearch])
   }
 
-  async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: number[], isfull: any) {
+  async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: number[], isfull: any,objetivoId:number) {
     if (isfull) {
-      return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0 AND doctipo_id = 'REC'`, [periodo_id])
+      if(objetivoId > 0){
+        return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral AS  doc
+        JOIN PersonalObjetivoPrincipal per ON per.PersonalId=doc.persona_id 
+        WHERE periodo = @0
+        AND PersonalObjetivoPrincipalObjetivoId = @1  AND doctipo_id = 'REC'`, [periodo_id,objetivoId])
+
+      }else {
+
+        return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0 AND doctipo_id = 'REC'`, [periodo_id])
+      }
+    
     } else {
       const personalIdsString = perosonalIds.join(', ');
       return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0 AND doctipo_id = 'REC' AND persona_id IN (${personalIdsString})`, [periodo_id])

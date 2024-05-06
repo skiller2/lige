@@ -96,11 +96,6 @@
           ]
         },
         {
-          "text": "Objetivo",
-          "link": "/ges/personal_objetivo",
-          "icon": "anticon-profile"
-        },
-        {
           "text": "Tipo Documento",
           "link": "/ges/tipo_documento",
           "icon": "anticon-profile"
@@ -120,6 +115,17 @@
           "text": "Telefonia",
           "link": "/ges/telefonia",
           "icon": "anticon-profile"
+        },
+        {
+          "text": "Permisos",
+          "icon": "anticon-profile",
+          "children": [
+            {
+              "text": "Permisos carga Objetivos",
+              "link": "/ges/personal_objetivo",
+              "icon": "anticon-profile"
+            }
+          ]
         },
         {
           "text": "Configuración",
