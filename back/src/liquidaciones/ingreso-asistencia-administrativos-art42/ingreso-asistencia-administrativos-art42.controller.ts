@@ -64,14 +64,14 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
       
       
       const result = await AsistenciaController.getAsistenciaAdminArt42(anio,mes,queryRunner,[])
-
+      let cntLincencias = 0
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
 
       for (const row of result) {
         if (Number(row.total) == 0)
                   continue 
-        
+        cntLincencias++
         tipo_movimiento_id = tipo_movimiento_id_normadmi 
         if (row.TipoInasistenciaApartado.indexOf('5'))
           tipo_movimiento_id = tipo_movimiento_id_art42admi
@@ -101,7 +101,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
       }
 
       await queryRunner.commitTransaction();
-      this.jsonRes({ list: [] }, res, `Se procesaron ${result.length} registros `);
+      this.jsonRes({ list: [] }, res, `Se procesaron ${cntLincencias} licencias `);
     } catch (error) {
       this.rollbackTransaction(queryRunner)
       return next(error)
