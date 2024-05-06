@@ -32,7 +32,24 @@
           <nz-option [nzLabel]="'Sucursal'" [nzValue]="'Sucursal'"></nz-option>
         </nz-select>
       </nz-list-item-meta-title>
-      <app-objetivo-search name="ObjetivoIdAdd" [(ngModel)]="ObjetivoIdWithSearch" (ngModelChange)="ObjetivoIdWithSearch = $event"></app-objetivo-search>
+
+      @switch (selectedOption()) {
+
+        @case ("'Objetivo'") {
+          <app-objetivo-search name="ObjetivoIdAdd" [(ngModel)]="ObjetivoIdWithSearch" (ngModelChange)="ObjetivoIdWithSearch = $event"></app-objetivo-search>
+        }
+        @case ("'Cliente'") {
+          
+        }
+        @case ("'Sucursal'") {
+          <!-- <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Sucursal" nzShowSearch
+        (ngModelChange)="selectedValueSucursal($event)" [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+        <ng-container *ngFor="let option of $optionsSucursales | async">
+          <nz-option [nzValue]="option" [nzLabel]="option.SucursalDescripcion"></nz-option>
+        </ng-container>
+        </nz-select> -->
+        }
+      }
     </ng-container>
     <div *nzModalFooter style="text-align: right;">
       <button nz-button (click)="handleCancel()">Cancelar</button>

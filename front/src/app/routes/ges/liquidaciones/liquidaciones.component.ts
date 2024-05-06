@@ -1,4 +1,4 @@
-import { Component, ViewChild, Injector, inject, TemplateRef, ChangeDetectorRef, model } from '@angular/core';
+import { Component, ViewChild, Injector, inject, TemplateRef, ChangeDetectorRef, model,signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { NgForm } from '@angular/forms';
@@ -107,7 +107,7 @@ export class LiquidacionesComponent {
   ObjetivoIdWithSearch = 0;
   isVisible = false;
   isWithDuplicado = false;
-  selectedOption: string = ''; 
+  selectedOption = signal("");
 
 
 
@@ -837,7 +837,8 @@ export class LiquidacionesComponent {
   }
 
   handleOptionChange(value: string) {
-    this.selectedOption = value
+
+    this.selectedOption.set(value)
   }
 
 }
