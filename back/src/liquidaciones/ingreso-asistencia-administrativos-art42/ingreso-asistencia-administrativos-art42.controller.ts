@@ -101,7 +101,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
       }
 
       await queryRunner.commitTransaction();
-      this.jsonRes({ list: [] }, res, `Se procesaron ${cntLincencias} licencias `);
+      this.jsonRes({ list: [] }, res, `Se procesaron ${cntLincencias} licencias de ${result.length} `);
     } catch (error) {
       this.rollbackTransaction(queryRunner)
       return next(error)
