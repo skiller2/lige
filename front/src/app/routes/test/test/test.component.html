@@ -1,5 +1,12 @@
 <nz-card>
   <p>Hola prueba {{ 4044.3 | currency }}</p>
+
+  <nz-select ngModel="lucy" [nzDropdownMatchSelectWidth]="false" >
+    <nz-option nzValue="jack" nzLabel="Jack"></nz-option>
+    <nz-option nzValue="lucy" nzLabel="Lucy"></nz-option>
+    <nz-option nzValue="disabled" nzLabel="Disabled" nzDisabled></nz-option>
+  </nz-select>
+
 </nz-card>
 
 <nz-card>

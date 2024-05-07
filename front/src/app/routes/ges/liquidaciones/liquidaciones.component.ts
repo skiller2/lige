@@ -44,6 +44,8 @@ import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-pe
 import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-objetivo.component';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { LoadingService } from '@delon/abc/loading';
+import { ClienteSearchComponent } from 'src/app/shared/cliente-search/cliente-search.component';
+import { SearchService } from 'src/app/services/search.service';
 
 @Component({
   selector: 'app-liquidaciones',
@@ -60,7 +62,8 @@ import { LoadingService } from '@delon/abc/loading';
     RowPreloadDetailComponent,
     RowDetailViewComponent,
     NzUploadModule,
-    ObjetivoSearchComponent
+    ObjetivoSearchComponent,
+    ClienteSearchComponent
   ],
   providers: [AngularUtilService]
 })
@@ -73,6 +76,7 @@ export class LiquidacionesComponent {
   public apiService = inject(ApiService);
   public router = inject(Router);
   public route = inject(ActivatedRoute);
+  public searchService = inject(SearchService);
   private angularUtilService = inject(AngularUtilService);
   private notification = inject(NzNotificationService);
   private readonly loadingSrv = inject(LoadingService);
@@ -104,10 +108,13 @@ export class LiquidacionesComponent {
   PersonalIdForReceip = 0;
   PersonalIdUnique = [];
   PersonalNameForReceip = "";
-  ObjetivoIdWithSearch = 0;
+
   isVisible = false;
   isWithDuplicado = false;
-  selectedOption = signal("");
+  selectedOption = model("");
+  ObjetivoIdWithSearch = model(0);
+  ClienteIdWithSearch = model(0);
+  SucursalIdWithSearch = model(0);
 
 
 
@@ -124,6 +131,8 @@ export class LiquidacionesComponent {
   gridObj!: SlickGrid;
   gridObjEdit!: SlickGrid;
   $optionsCuenta = this.apiService.getTipoCuenta();
+  $optionsSucursales = this.searchService.getSucursales();
+
   $optionsMovimiento = this.apiService.getTipoMovimiento("I");
   $importacionesAnteriores = this.formChange$.pipe(
     debounceTime(500),
@@ -647,8 +656,6 @@ export class LiquidacionesComponent {
     };
   }
 
-
-
   addNewItem(insertPosition?: 'bottom') {
     const newItem1 = this.createNewItem(1);
     this.angularGridEdit.gridService.addItem(newItem1, { position: insertPosition, highlightRow: false, scrollRowIntoView: false, triggerEvent: false });
@@ -819,27 +826,12 @@ export class LiquidacionesComponent {
     };
   }
 
-  showModal(value:boolean): void {
-
-    this.isWithDuplicado = value
+  showModal(): void {
+    this.selectedOption.set('T')
+    this.ObjetivoIdWithSearch.set(0)
+    this.ClienteIdWithSearch.set(0)
+    this.SucursalIdWithSearch.set(0)
     this.isVisible = true;
-    this.ObjetivoIdWithSearch = 0
-
-  }
-
-  handleOk(): void {
-    this.isVisible = false;
-    this.ObjetivoIdWithSearch = 0
-  }
-
-  handleCancel(): void {
-    this.isVisible = false;
-  }
-
-  handleOptionChange(value: string) {
-
-    this.selectedOption.set(value)
   }
 
 }
-

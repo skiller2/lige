@@ -508,7 +508,7 @@ export class ApiService {
   }
   setingresoPorAsistenciaAdministrativosArt42(anio: number, mes: number) {
     const parameter = { anio, mes }
-    this.notification.success('Respuesta', `Inicio Ingreso por Asistencia Administrativos`);
+    this.notification.success('Respuesta', `Inicio Ingreso por Licencias`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresoPorAsistenciaAdministrativosArt42', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
