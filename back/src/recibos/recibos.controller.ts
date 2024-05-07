@@ -508,7 +508,9 @@ export class RecibosController extends BaseController {
       isfull,
       lista,
       isDuplicate,
-      ObjetivoIdWithSearch
+      ObjetivoIdWithSearch,
+      ClienteIdWithSearch,
+      SucursalIdWithSearch,
     } = req.body
 
 
@@ -523,8 +525,8 @@ export class RecibosController extends BaseController {
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
 
       let pathFile = isfull
-        ? await this.getGrupFilterDowload(queryRunner, periodo_id,ObjetivoIdWithSearch)
-        : await this.getparthFile(queryRunner, periodo_id, lista, isfull,ObjetivoIdWithSearch)
+        ? await this.getGrupFilterDowload(queryRunner, periodo_id,ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch)
+        : await this.getparthFile(queryRunner, periodo_id, lista)
 
       const mergedPdf = await PDFDocument.create();
 
@@ -585,13 +587,22 @@ export class RecibosController extends BaseController {
 
   }
 
-  async getGrupFilterDowload(queryRunner: QueryRunner, periodo_id: number,ObjetivoIdWithSearch:number) {
+  async getGrupFilterDowload(queryRunner: QueryRunner, periodo_id: number,ObjetivoIdWithSearch:number,ClienteIdWithSearch:number, SucursalIdWithSearch:number) {
 
     let filterExtraIN = 'SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov WHERE mov.periodo_id=@0'
     
     if (ObjetivoIdWithSearch > 0) 
       filterExtraIN='SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov WHERE mov.periodo_id=@0 AND mov.objetivo_id=@1'
-      
+
+    if (ClienteIdWithSearch > 0) 
+      filterExtraIN='SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov JOIN Objetivo obj ON obj.ObjetivoId = mov.objetivo_id WHERE mov.periodo_id=@0 AND obj.ClienteId = @1'
+
+    if (SucursalIdWithSearch > 0) 
+      filterExtraIN=`SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov 
+        LEFT JOIN PersonalSucursalPrincipal suc ON suc.PersonalId = mov.persona_id
+        JOIN Sucursal i ON i.SucursalId = ISNULL(suc.PersonalSucursalPrincipalSucursalId,1)
+        WHERE mov.periodo_id=@0 AND i.SucursalId = @1`
+
     return queryRunner.query(`
     SELECT DISTINCT i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId, doc.path
         FROM lige.dbo.docgeneral doc 
@@ -604,24 +615,9 @@ export class RecibosController extends BaseController {
     ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`, [periodo_id,ObjetivoIdWithSearch])
   }
 
-  async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: number[], isfull: any,objetivoId:number) {
-    if (isfull) {
-      if(objetivoId > 0){
-        return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral AS  doc
-        JOIN PersonalObjetivoPrincipal per ON per.PersonalId=doc.persona_id 
-        WHERE periodo = @0
-        AND PersonalObjetivoPrincipalObjetivoId = @1  AND doctipo_id = 'REC'`, [periodo_id,objetivoId])
-
-      }else {
-
-        return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0 AND doctipo_id = 'REC'`, [periodo_id])
-      }
-    
-    } else {
+  async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: number[]) {
       const personalIdsString = perosonalIds.join(', ');
       return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0 AND doctipo_id = 'REC' AND persona_id IN (${personalIdsString})`, [periodo_id])
-    }
-
   }
 
   async joinPDFsOnPath(rutaDirectorio) {
