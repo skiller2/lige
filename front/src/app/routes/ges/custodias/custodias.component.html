@@ -26,14 +26,15 @@
     <nz-tab>
 
       <a nz-tab-link routerLink="/ges/cust/cargamanual">Carga Manual</a>
-      <ng-template nz-tab>
+        <form nz-form ngForm>
+
         <br>
         <nz-form-item class="marginElement">
           <nz-form-label [nzSpan]="3">Cliente</nz-form-label>
         
           <nz-form-control [nzSpan]="17">
             <nz-input-group style="width: 100%">
-              <app-cliente-search name="ClienteId" ngModel (ngModelChange)="clienteChange($event)"/>
+              <app-cliente-search name="ClienteId" ngModel />
             </nz-input-group>
           </nz-form-control>
         </nz-form-item>
@@ -43,7 +44,7 @@
         
           <nz-form-control [nzSpan]="17">
             <nz-input-group style="width: 100%">
-              <textarea rows="5" nz-input [(ngModel)]="inputValue"></textarea>
+              <textarea rows="5" nz-input name="inputValue" ngModel></textarea>
             </nz-input-group>
           </nz-form-control>
         </nz-form-item>
@@ -55,9 +56,8 @@
             <nz-input-group style="width: 100%">
               <nz-date-picker
                 [nzShowTime]="{ nzFormat: 'HH:mm' }"
-                nzFormat="yyyy-MM-dd HH:mm"
                 ngModel
-                (ngModelChange)="onChangeDateI($event)"
+                name ="fechaInicial"
               ></nz-date-picker>
             </nz-input-group>
           </nz-form-control>
@@ -68,7 +68,7 @@
         
           <nz-form-control [nzSpan]="17">
             <nz-input-group style="width: 100%">
-              <input nz-input placeholder="Direccion" [(ngModel)]="origen" type="text" />
+              <input nz-input placeholder="Direccion" ngModel name="origen" type="text" />
             </nz-input-group>
           </nz-form-control>
         </nz-form-item>
@@ -80,9 +80,8 @@
             <nz-input-group style="width: 100%">
               <nz-date-picker
                 [nzShowTime]="{ nzFormat: 'HH:mm' }"
-                nzFormat="yyyy-MM-dd HH:mm"
                 ngModel
-                (ngModelChange)="onChangeDateF($event)"
+                name="fechaFinal"
               ></nz-date-picker>
             </nz-input-group>
           </nz-form-control>
@@ -93,7 +92,7 @@
         
           <nz-form-control [nzSpan]="17">
             <nz-input-group style="width: 100%">
-              <input nz-input placeholder="Direccion" [(ngModel)]="destino" type="text" />
+              <input nz-input placeholder="Direccion" ngModel name="destino" type="text" />
             </nz-input-group>
           </nz-form-control>
         </nz-form-item>
@@ -103,17 +102,17 @@
         
           <nz-form-control [nzSpan]="17">
             <nz-input-group style="width: 100%">
-              <input nz-input placeholder="Kilometros" [(ngModel)]="kilometros" type="number" />
+              <input nz-input placeholder="Kilometros" ngModel name="kilometros" type="number" />
             </nz-input-group>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item class="marginElement">
-          <nz-form-label [nzSpan]="3">Importe</nz-form-label>
+          <nz-form-label [nzSpan]="3">Importe a Facturar</nz-form-label>
         
           <nz-form-control [nzSpan]="17">
             <nz-input-group style="width: 100%">
-              <input nz-input placeholder="" [(ngModel)]="facturacion" type="number" />
+              <input nz-input placeholder="" ngModel name="facturacion" type="number" />
             </nz-input-group>
           </nz-form-control>
         </nz-form-item>
@@ -131,8 +130,15 @@
           }
          
         </nz-form-item> -->
-
-      </ng-template>
+        <nz-form-item>
+          <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
+            <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar guardar cambios?" nz-button (nzOnConfirm)="save()">
+              Guardar Cambios
+            </button>
+          </nz-form-control>
+        </nz-form-item>
+    
+        </form>
     </nz-tab>
 
   </nz-tabset>

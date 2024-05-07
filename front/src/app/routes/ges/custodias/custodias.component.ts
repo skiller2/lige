@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject } from '@angular/core';
+import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { SHARED_IMPORTS } from '@shared';
 // import { Observable } from 'rxjs';
@@ -12,6 +12,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
     selector: 'app-custodias',
@@ -20,31 +21,23 @@ import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-s
     standalone: true,
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent]
+    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+
 })
 export class CustodiaComponent {
-    @ViewChild('custodiasForm', { static: true }) liquidacionesForm: NgForm =
-    new NgForm([], [])
+    ngForm = viewChild.required(NgForm);
     public router = inject(Router);
     public route = inject(ActivatedRoute);
 
     angularGridLista!: AngularGridInstance;
     gridOptionsLista!: GridOption;
     gridDataInsertLista: any[] = [];
-    personalLista = [];
     agregarPersonal = false
     columnasLista: Column[] = [];
     detailViewRowCount = 1;
     excelExportService = new ExcelExportService()
 
-    clienteId = 0
-    inputValue: string = ''
-    fechaInicial! : Date
-    fechaFinal! : Date
-    origen : string = ''
-    destino : string = ''
-    kilometros! : number
-    facturacion! : number
     estado : number = 0
 
     private angularUtilService = inject(AngularUtilService)
@@ -144,21 +137,11 @@ export class CustodiaComponent {
             this.angularGridLista.gridService.hideColumnByIds([])
     }
 
-    async clienteChange(result: any): Promise<void> {
-        console.log('result',result);
-        this.clienteId = result
-        // this.personalMap()
-        // this.addMoreGroup = true
+    async save() {
+        console.log('graba',this.ngForm().value)
+//        const res = await firstValueFrom(this.apiService.setCustodia(this.ngForm().value))
     }
-
-    async onChangeDateI(result: Date){
-        console.log('Selected Time: ', result);
-        this.fechaInicial = result;
-    }
-
-    async onChangeDateF(result: Date){
-        console.log('Selected Time: ', result);
-        this.fechaFinal = result;
-    }
+    
+    
 
 }
