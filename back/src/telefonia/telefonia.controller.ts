@@ -646,7 +646,7 @@ export class TelefoniaController extends BaseController {
         `SELECT doc_id AS id, path, 
         nombre_archivo AS nombre, path, 
         FORMAT(aud_fecha_ins, 'yyyy-MM-dd') AS fecha 
-        FROM lige.dbo.docgeneral WHERE periodo=@0 doc_tipoid = 'TEL'`,
+        FROM lige.dbo.docgeneral WHERE periodo=@0 AND doc_tipoid = 'TEL'`,
         [periodo_id])
 
       this.jsonRes(
