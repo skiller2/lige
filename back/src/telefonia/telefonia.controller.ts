@@ -5,6 +5,8 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { Options } from "../schemas/filtro";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
 import xlsx from 'node-xlsx';
+import { Utils } from "../liquidaciones/liquidaciones.utils";
+import { recibosController } from "src/controller/controller.module";
 
 export class TelefoniaController extends BaseController {
   directory = process.env.PATH_TELEFONIA || "tmp";
@@ -203,10 +205,23 @@ export class TelefoniaController extends BaseController {
     const fechaRequest = new Date(req.body.fecha);
     const queryRunner = dataSource.createQueryRunner();
 
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    let fechaActual = new Date()
+
+    const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
+
+
     try {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio");
       if (!mesRequest) throw new ClientException("Faltó indicar el mes");
       if (!fechaRequest) throw new ClientException("Faltó indicar fecha de aplicación");
+
+
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+        throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -219,14 +234,15 @@ export class TelefoniaController extends BaseController {
       let datasetid = 0
 
 
-
+      let docgeneral = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
+      let idTelefonia = await this.getProxNumero(queryRunner, `idtelefonia`, usuario, ip)
 
 
       mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
       const newFilePath = `${this.directory
         }/${anioRequest}/${anioRequest}-${mesRequest
           .toString()
-          .padStart(2, "0")}.xls`;
+          .padStart(2, "0")}-${docgeneral}.xls`;
 
       if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
       const now = fechaRequest
@@ -577,6 +593,25 @@ export class TelefoniaController extends BaseController {
       //      throw new ClientException(`OKA`)
 
       //   copyFileSync(file.path, newFilePath);
+      let nombre_archivo = `${anioRequest}-${mesRequest.toString().padStart(2, "0")}-${docgeneral}.xls`
+
+
+      queryRunner.query(`INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "persona_id", "objetivo_id", "path", "nombre_archivo", "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod", "doctipo_id", "idrecibo")
+      VALUES
+      (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14);`,
+        [
+          docgeneral,
+          periodo_id,
+          fechaActual,
+          0,
+          0,
+          newFilePath,
+          nombre_archivo,
+          usuario, ip, fechaActual,
+          usuario, ip, fechaActual,
+          "TEL", idTelefonia
+        ])
+
       await queryRunner.commitTransaction();
 
       this.jsonRes({}, res, "XLS Recibido y procesado!");
@@ -586,6 +621,45 @@ export class TelefoniaController extends BaseController {
     } finally {
       await queryRunner.release();
       unlinkSync(file.path);
+    }
+  }
+
+  async getImportacionesTelefoniaAnteriores(
+    Anio: string,
+    Mes: string,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+
+    try {
+
+      let usuario = res.locals.userName
+      let ip = this.getRemoteAddress(req)
+      let fechaActual = new Date()
+      const queryRunner = dataSource.createQueryRunner();
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Number(Anio), Number(Mes), usuario, ip)
+
+
+      const importacionesAnteriores = await dataSource.query(
+
+        `SELECT doc_id AS id, path, 
+        nombre_archivo AS nombre, path, 
+        FORMAT(aud_fecha_ins, 'yyyy-MM-dd') AS fecha 
+        FROM lige.dbo.docgeneral WHERE periodo=@0 doc_tipoid = 'TEL'`,
+        [periodo_id])
+
+      this.jsonRes(
+        {
+          total: importacionesAnteriores.length,
+          list: importacionesAnteriores,
+        },
+
+        res
+      );
+
+    } catch (error) {
+      return next(error)
     }
   }
 

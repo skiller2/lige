@@ -149,6 +149,22 @@ export class TelefoniaComponent {
     }, 1);
   }
 
+  $importacionesAnteriores = this.formChange$.pipe(
+    debounceTime(500),
+    switchMap(() => {
+      const periodo = this.telefonoForm.form.get('periodo')?.value
+      return this.apiService
+        .getImportacionesTelefoniaAnteriores(
+          periodo.getFullYear(), periodo.getMonth() + 1
+        )
+        .pipe(
+        //map(data => {return data}),
+        //doOnSubscribe(() => this.tableLoading$.next(true)),
+        //tap({ complete: () => this.tableLoading$.next(false) })
+      )
+    })
+  )
+
   onChange(_e: any): void {
     this.anio = this.periodo.getFullYear();
     this.mes = this.periodo.getMonth() + 1;

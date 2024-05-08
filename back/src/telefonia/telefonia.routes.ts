@@ -76,6 +76,10 @@ telefoniaRouter.post("/list", [authMiddleware.verifyToken,authMiddleware.hasGrou
     telefoniaController.getTelefonosList(req, res, next);
 });
 
+telefoniaRouter.get('/importaciones_anteriores/:anio/:mes', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+  telefoniaController.getImportacionesTelefoniaAnteriores(req.params.anio, req.params.mes, req, res, next)
+});
+
 telefoniaRouter.post("/upload", [authMiddleware.verifyToken,authMiddleware.hasGroup(['liquidaciones','administrativo'])], (req, res, next) => {
     uploadXLS(req, res, (err) => {
 
