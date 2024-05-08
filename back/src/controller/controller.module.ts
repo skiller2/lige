@@ -25,6 +25,7 @@ import { PendienteController } from "../controller/pendiente.controller"
 import { TipoDocumentoController } from "../tipo-documento/tipo-documento.controller"
 import { RecibosController } from "../recibos/recibos.controller"
 import { PersonalObjetivosController } from "../personal-objetivo/personal-objetivo.controller"
+import { CustodiaController } from "./custodia.controller";
 
 
 
@@ -55,5 +56,5 @@ export const pendienteController = new PendienteController();
 export const tipoDocumentoController = new TipoDocumentoController();
 export const recibosController = new RecibosController();
 export const personalObjetivosController = new PersonalObjetivosController();
-
+export const custodiaController = new CustodiaController();
 
