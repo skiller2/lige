@@ -152,10 +152,9 @@ export class TelefoniaComponent {
   $importacionesAnteriores = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
-      const periodo = this.telefonoForm.form.get('periodo')?.value
       return this.apiService
         .getImportacionesTelefoniaAnteriores(
-          periodo.getFullYear(), periodo.getMonth() + 1
+          this.anio, this.mes
         )
         .pipe(
         //map(data => {return data}),
