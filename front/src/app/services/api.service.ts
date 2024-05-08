@@ -731,7 +731,11 @@ export class ApiService {
 
   }
 
-
+  addObjetivoCustodia(custodias:any) {
+    return this.http.post<ResponseJSON<any>>('/api/custodia/addobjetivo', custodias).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
 
 }
 

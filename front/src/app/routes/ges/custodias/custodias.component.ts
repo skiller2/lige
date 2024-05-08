@@ -38,7 +38,7 @@ export class CustodiaComponent {
     detailViewRowCount = 1;
     excelExportService = new ExcelExportService()
 
-    estado : number = 0
+    // estado : number = 0
 
     private angularUtilService = inject(AngularUtilService)
     public apiService = inject(ApiService)
@@ -139,7 +139,7 @@ export class CustodiaComponent {
 
     async save() {
         console.log('graba',this.ngForm().value)
-//        const res = await firstValueFrom(this.apiService.setCustodia(this.ngForm().value))
+        // const res = await firstValueFrom(this.apiService.addObjetivoCustodia(this.ngForm().value))
     }
     
     
