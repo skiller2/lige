@@ -595,13 +595,13 @@ export class RecibosController extends BaseController {
       filterExtraIN='SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov WHERE mov.periodo_id=@0 AND mov.objetivo_id=@1'
 
     if (ClienteIdWithSearch > 0) 
-      filterExtraIN='SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov JOIN Objetivo obj ON obj.ObjetivoId = mov.objetivo_id WHERE mov.periodo_id=@0 AND obj.ClienteId = @1'
+      filterExtraIN='SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov JOIN Objetivo obj ON obj.ObjetivoId = mov.objetivo_id WHERE mov.periodo_id=@0 AND obj.ClienteId = @2'
 
     if (SucursalIdWithSearch > 0) 
       filterExtraIN=`SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov 
         LEFT JOIN PersonalSucursalPrincipal suc ON suc.PersonalId = mov.persona_id
         JOIN Sucursal i ON i.SucursalId = ISNULL(suc.PersonalSucursalPrincipalSucursalId,1)
-        WHERE mov.periodo_id=@0 AND i.SucursalId = @1`
+        WHERE mov.periodo_id=@0 AND i.SucursalId = @3`
 
     return queryRunner.query(`
     SELECT DISTINCT i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId, doc.path
@@ -612,7 +612,7 @@ export class RecibosController extends BaseController {
         LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalSucursalPrincipalId = per.PersonalId
         LEFT JOIN Sucursal i ON i.SucursalId = ISNULL(h.PersonalSucursalPrincipalSucursalId,1)
         WHERE doc.periodo =  @0 AND doc.doctipo_id = 'REC' AND per.PersonalId IN (${filterExtraIN})
-    ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`, [periodo_id,ObjetivoIdWithSearch])
+    ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`, [periodo_id,ObjetivoIdWithSearch,ClienteIdWithSearch,SucursalIdWithSearch])
   }
 
   async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: number[]) {
