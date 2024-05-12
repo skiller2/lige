@@ -1,15 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { SHARED_IMPORTS } from '@shared';
 // import { Observable } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
-// import { SearchService } from 'src/app/services/search.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { firstValueFrom } from 'rxjs';
@@ -139,9 +137,29 @@ export class CustodiaComponent {
 
     async save() {
         console.log('graba',this.ngForm().value)
-        // const res = await firstValueFrom(this.apiService.addObjetivoCustodia(this.ngForm().value))
+        const res = await firstValueFrom(this.apiService.addObjetivoCustodia(this.ngForm().value))
     }
     
-    
+    listInputPersonal: Array<{ id: number }> = [];
+
+    addField(e?: MouseEvent): void {
+        e?.preventDefault();
+        const id = this.listInputPersonal.length > 0 ? this.listInputPersonal[this.listInputPersonal.length - 1].id + 1 : 0;
+        const control = {
+            id,
+        };
+        this.listInputPersonal.push(control);
+        // console.log(this.listInputPersonal[this.listInputPersonal.length - 1]);
+    }
+
+    removeField(i: { id: number }, e: MouseEvent): void {
+        e.preventDefault();
+        if (this.listInputPersonal.length > 1) {
+            const index = this.listInputPersonal.indexOf(i);
+            this.listInputPersonal.splice(index, 1);
+            console.log(this.listInputPersonal);
+        }
+    }
+
 
 }

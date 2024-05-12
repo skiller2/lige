@@ -117,19 +117,36 @@
           </nz-form-control>
         </nz-form-item>
 
-        <!-- <nz-form-item class="marginElement">
-          <nz-form-label [nzSpan]="3">Persona</nz-form-label>
-        
-          <nz-form-control [nzSpan]="17">
-            <nz-input-group style="width: 100%">
-              <app-personal-search name="PersonalId" ngModel (ngModelChange)="PersonaChange($event)"/>
-            </nz-input-group>
+        @for (control of listInputPersonal; track control; let i = $index) {
+          <nz-form-item class="marginElement">
+            <nz-form-label  [nzSpan]="3"> Personal </nz-form-label>
+            <nz-form-control [nzSpan]="8">
+              <nz-input-group style="width: 100%">
+                <app-personal-search ngModel name={{i}}personalId />
+              </nz-input-group>
+            </nz-form-control>
+            <nz-form-label  [nzSpan]="2"> Importe </nz-form-label>
+            <nz-form-control [nzSpan]="6">
+              <nz-input-group style="width: 100%">
+                <input nz-input placeholder="" ngModel name={{i}}importePersonal type="number" />
+              </nz-input-group>
+            </nz-form-control>
+            <nz-form-control [nzSpan]="1" style="text-align: right;">
+              <span nz-icon nzType="delete" nzTheme="outline" (click)="removeField(control, $event)"></span>
+            </nz-form-control>
+          </nz-form-item>
+          
+        }
+  
+        <nz-form-item>
+          <nz-form-control [nzXs]="{ span: 24, offset: 0 }" [nzSm]="{ span: 20, offset: 4 }">
+            <button nz-button nzType="dashed" class="add-button" (click)="addField($event)">
+              <span nz-icon nzType="plus"></span>
+              Agregar Personal
+            </button>
           </nz-form-control>
-          @if (addMoreGroup) {
-            <button nz-button nzType="default" nzShape="circle" class="btnPadding"><span nz-icon nzType="plus"></span></button>
-          }
-         
-        </nz-form-item> -->
+        </nz-form-item>
+
         <nz-form-item>
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
             <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar guardar cambios?" nz-button (nzOnConfirm)="save()">
@@ -138,7 +155,7 @@
           </nz-form-control>
         </nz-form-item>
     
-        </form>
+      </form>
     </nz-tab>
 
   </nz-tabset>
