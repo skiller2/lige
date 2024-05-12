@@ -19,7 +19,7 @@
           <nz-select nzAllowClear style="width:100%" nzPlaceHolder="Sucursal" nzShowSearch
            [nzDropdownMatchSelectWidth]="false" [(ngModel)]="SucursalIdWithSearch">
           <ng-container *ngFor="let option of $optionsSucursales | async">
-            <nz-option [nzValue]="option" [nzLabel]="option.SucursalDescripcion"></nz-option>
+            <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
           </ng-container>
           </nz-select>
         }
