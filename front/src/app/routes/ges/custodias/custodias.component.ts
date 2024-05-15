@@ -36,7 +36,8 @@ export class CustodiaComponent {
     detailViewRowCount = 1;
     excelExportService = new ExcelExportService()
 
-    // estado : number = 0
+    listInputPersonal: Array<{ id: number }> = [];
+    listInputVehiculo: Array<{ id: number }> = [];
 
     private angularUtilService = inject(AngularUtilService)
     public apiService = inject(ApiService)
@@ -139,10 +140,8 @@ export class CustodiaComponent {
         console.log('graba',this.ngForm().value)
         const res = await firstValueFrom(this.apiService.addObjetivoCustodia(this.ngForm().value))
     }
-    
-    listInputPersonal: Array<{ id: number }> = [];
 
-    addField(e?: MouseEvent): void {
+    addPersonal(e?: MouseEvent): void {
         e?.preventDefault();
         const id = this.listInputPersonal.length > 0 ? this.listInputPersonal[this.listInputPersonal.length - 1].id + 1 : 0;
         const control = {
@@ -152,14 +151,32 @@ export class CustodiaComponent {
         // console.log(this.listInputPersonal[this.listInputPersonal.length - 1]);
     }
 
-    removeField(i: { id: number }, e: MouseEvent): void {
+    addVehiculo(e?: MouseEvent): void {
+        e?.preventDefault();
+        const id = this.listInputVehiculo.length > 0 ? this.listInputVehiculo[this.listInputVehiculo.length - 1].id + 1 : 0;
+        const control = {
+            id,
+        };
+        this.listInputVehiculo.push(control);
+        // console.log(this.listInputVehiculo[this.listInputVehiculo.length - 1]);
+    }
+
+    removePersonal(i: { id: number }, e: MouseEvent): void {
         e.preventDefault();
         if (this.listInputPersonal.length > 1) {
             const index = this.listInputPersonal.indexOf(i);
             this.listInputPersonal.splice(index, 1);
-            console.log(this.listInputPersonal);
+            // console.log(this.listInputPersonal);
         }
     }
 
+    removeVehiculo(i: { id: number }, e: MouseEvent): void {
+        e.preventDefault();
+        if (this.listInputPersonal.length > 1) {
+            const index = this.listInputPersonal.indexOf(i);
+            this.listInputPersonal.splice(index, 1);
+            // console.log(this.listInputPersonal);
+        }
+    }
 
 }
