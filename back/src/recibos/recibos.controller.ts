@@ -535,13 +535,13 @@ export class RecibosController extends BaseController {
 
 //      pathFile= [pathFile[0]]
       for (const filterDowload of pathFile) {
-
+        let origpath = ''
         try {
+            origpath = this.directoryRecibo+'/'+filterDowload.path
+            if (!fs.existsSync(origpath))
+              throw new ClientException(`Error al generar el recibo unificado ${origpath}`);
 
-            if (!fs.existsSync(filterDowload.path))
-              throw new ClientException(`Error al generar el recibo unificado`);
-
-          const pdfBytes = await fs.promises.readFile(filterDowload.path);
+          const pdfBytes = await fs.promises.readFile(origpath);
           const pdfDoc = await PDFDocument.load(pdfBytes);
           const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
 
@@ -570,7 +570,7 @@ export class RecibosController extends BaseController {
           }
 
         } catch (error) {
-          console.error(`Error al procesar el archivo ${filterDowload.path}:`, error.message);
+          console.error(`Error al procesar el archivo ${origpath}:`, error.message);
         }
       }
 
