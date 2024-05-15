@@ -5,3 +5,4 @@ import { custodiaController } from "../controller/controller.module"
 export const custodiaRouter = Router()
 
 custodiaRouter.post('/addobjetivo', authMiddleware.verifyToken, (req, res, next) => { custodiaController.addObjetivoCustodia(req, res, next) } )
+custodiaRouter.post('/list', authMiddleware.verifyToken, (req, res, next) => { custodiaController.listObjetivoCustodiaByResponsable(req, res, next) } )

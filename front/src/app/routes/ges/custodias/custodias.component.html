@@ -15,8 +15,8 @@
       <a nz-tab-link routerLink="/ges/cust/objetivos">Objetivos</a>
       <ng-template nz-tab>
         <div class="gridListContainer container-fluid">
-          <angular-slickgrid gridId="gridLista" [columnDefinitions]="columnasLista" [gridOptions]="gridOptionsLista"
-            [dataset]="gridDataInsertLista || []" (onAngularGridCreated)="angularGridReadyLista($event)">
+          <angular-slickgrid gridId="grid" [columnDefinitions]="columnas" [gridOptions]="gridOptions"
+            [dataset]="gridDataInsert || []" (onAngularGridCreated)="angularGridReady($event)">
             <!-- (onSelectedRowsChanged)="handleSelectedRowsChanged1($event)"> -->
           </angular-slickgrid>
         </div>
