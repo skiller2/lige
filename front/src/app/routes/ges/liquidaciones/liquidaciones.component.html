@@ -7,6 +7,7 @@
           <nz-option [nzLabel]="'Objetivo'" nzValue="O"></nz-option>
           <nz-option [nzLabel]="'Cliente'" nzValue="C"></nz-option>
           <nz-option [nzLabel]="'Sucursal'" nzValue="S"></nz-option>
+          <nz-option [nzLabel]="'Persona'" nzValue="P"></nz-option>
         </nz-select>
       @switch (selectedOption()) {
         @case ("O") {
@@ -14,6 +15,9 @@
         }
         @case ("C") {
           <app-cliente-search [(ngModel)]="ClienteIdWithSearch"></app-cliente-search>
+        }
+        @case ("P") {
+          <app-personal-search [(ngModel)]="PersonalIdWithSearch"></app-personal-search>
         }
         @case ("S") {
           <nz-select nzAllowClear style="width:100%" nzPlaceHolder="Sucursal" nzShowSearch
@@ -29,7 +33,7 @@
     </div>
     <div *nzModalFooter style="text-align: right;">
       <a nz-button nzType="primary" app-down-file [httpMethod]="'POST'"
-        [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month,'isfull': true, 'isDuplicate': isWithDuplicado, 'ObjetivoIdWithSearch':ObjetivoIdWithSearch(),'ClienteIdWithSearch':ClienteIdWithSearch(),'SucursalIdWithSearch':SucursalIdWithSearch() }"
+        [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month,'isfull': true, 'isDuplicate': isWithDuplicado, 'ObjetivoIdWithSearch':ObjetivoIdWithSearch(),'ClienteIdWithSearch':ClienteIdWithSearch(),'SucursalIdWithSearch':SucursalIdWithSearch(),'PersonalIdWithSearch':PersonalIdWithSearch() }"
         httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado" (click)="isVisible=false">Aceptar</a>
     </div>
   </nz-modal>

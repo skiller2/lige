@@ -46,6 +46,7 @@ import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.com
 import { LoadingService } from '@delon/abc/loading';
 import { ClienteSearchComponent } from 'src/app/shared/cliente-search/cliente-search.component';
 import { SearchService } from 'src/app/services/search.service';
+import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 
 @Component({
   selector: 'app-liquidaciones',
@@ -63,7 +64,8 @@ import { SearchService } from 'src/app/services/search.service';
     RowDetailViewComponent,
     NzUploadModule,
     ObjetivoSearchComponent,
-    ClienteSearchComponent
+    ClienteSearchComponent,
+    PersonalSearchComponent
   ],
   providers: [AngularUtilService]
 })
@@ -115,6 +117,7 @@ export class LiquidacionesComponent {
   ObjetivoIdWithSearch = model(0);
   ClienteIdWithSearch = model(0);
   SucursalIdWithSearch = model(0);
+  PersonalIdWithSearch = model(0);
 
 
 
@@ -831,6 +834,7 @@ export class LiquidacionesComponent {
     this.ObjetivoIdWithSearch.set(0)
     this.ClienteIdWithSearch.set(0)
     this.SucursalIdWithSearch.set(0)
+    this.PersonalIdWithSearch.set(0)
     this.isVisible = true;
   }
 

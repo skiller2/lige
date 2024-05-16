@@ -465,7 +465,7 @@ export class RecibosController extends BaseController {
   async downloadComprobantesByPeriodo(
     year: string,
     month: string,
-    personalIdRel: string,
+    PersonalId: string,
     res: Response,
     req: Request,
     next: NextFunction
@@ -474,11 +474,16 @@ export class RecibosController extends BaseController {
     let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
     try {
-      const gettmpfilename = await this.getRutaFile(queryRunner, parseInt(year), parseInt(month), parseInt(personalIdRel))
-      if (!gettmpfilename[0])
+      const data =await queryRunner.query(`SELECT doc.path, doc.nombre_archivo from lige.dbo.docgeneral doc
+      JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
+      WHERE per.anio =@0 AND per.mes=@1 AND doc.persona_id = @2 AND doctipo_id = 'REC'`,
+      [year, month, PersonalId]
+      )
+
+      if (!data[0])
         throw new ClientException(`Recibo no generado`)
 
-      res.download(gettmpfilename[0].path, gettmpfilename[0].nombre_archivo, async (error) => {
+      res.download(this.directoryRecibo+'/'+ data[0].path, data[0].nombre_archivo, async (error) => {
         if (error) {
           console.error('Error al descargar el archivo:', error);
           return next(error)
@@ -489,14 +494,6 @@ export class RecibosController extends BaseController {
     }
   }
 
-
-  async getRutaFile(queryRunner: QueryRunner, year: number, month: number, personalIdRel: number) {
-    return queryRunner.query(`SELECT * from lige.dbo.docgeneral doc
-      JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
-      WHERE per.anio =@0 AND per.mes=@1 AND doc.persona_id = @2 AND doctipo_id = 'REC'`,
-      [year, month, personalIdRel]
-    )
-  }
 
   async bindPdf(req: Request, res: Response, next: NextFunction) {
 
@@ -511,6 +508,7 @@ export class RecibosController extends BaseController {
       ObjetivoIdWithSearch,
       ClienteIdWithSearch,
       SucursalIdWithSearch,
+      PersonalIdWithSearch
     } = req.body
 
 
@@ -525,7 +523,7 @@ export class RecibosController extends BaseController {
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
 
       let pathFile = isfull
-        ? await this.getGrupFilterDowload(queryRunner, periodo_id,ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch)
+        ? await this.getGrupFilterDowload(queryRunner, periodo_id,ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch)
         : await this.getparthFile(queryRunner, periodo_id, lista)
 
       const mergedPdf = await PDFDocument.create();
@@ -587,7 +585,8 @@ export class RecibosController extends BaseController {
 
   }
 
-  async getGrupFilterDowload(queryRunner: QueryRunner, periodo_id: number,ObjetivoIdWithSearch:number,ClienteIdWithSearch:number, SucursalIdWithSearch:number) {
+  async getGrupFilterDowload(queryRunner: QueryRunner, periodo_id: number, ObjetivoIdWithSearch: number, ClienteIdWithSearch: number, SucursalIdWithSearch: number, PersonalIdWithSearch: number
+  ) {
 
     let filterExtraIN = 'SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov WHERE mov.periodo_id=@0'
     
@@ -596,6 +595,9 @@ export class RecibosController extends BaseController {
 
     if (ClienteIdWithSearch > 0) 
       filterExtraIN='SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov JOIN Objetivo obj ON obj.ObjetivoId = mov.objetivo_id WHERE mov.periodo_id=@0 AND obj.ClienteId = @2'
+
+    if (PersonalIdWithSearch > 0) 
+      filterExtraIN='SELECT @4'
 
     if (SucursalIdWithSearch > 0) 
       filterExtraIN=`SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov 
@@ -612,7 +614,7 @@ export class RecibosController extends BaseController {
         LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalSucursalPrincipalId = per.PersonalId
         LEFT JOIN Sucursal i ON i.SucursalId = ISNULL(h.PersonalSucursalPrincipalSucursalId,1)
         WHERE doc.periodo =  @0 AND doc.doctipo_id = 'REC' AND per.PersonalId IN (${filterExtraIN})
-    ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`, [periodo_id,ObjetivoIdWithSearch,ClienteIdWithSearch,SucursalIdWithSearch])
+    ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`, [periodo_id,ObjetivoIdWithSearch,ClienteIdWithSearch,SucursalIdWithSearch,PersonalIdWithSearch])
   }
 
   async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: number[]) {
