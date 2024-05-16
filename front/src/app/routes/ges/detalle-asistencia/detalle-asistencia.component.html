@@ -56,13 +56,13 @@
         </li>
 
         <li *ngIf="personalIdlist().length > 0" nz-menu-item app-down-file [httpMethod]="'POST'"
-          [httpBody]="{'Anio':selectedPeriod().year,'Mes':selectedPeriod().month, 'lista':personalIdlist(),'isfull': false }"
+          [httpBody]="{'Anio':selectedPeriod().year,'Mes':selectedPeriod().month, 'lista':personalIdlist() }"
           httpUrl="/api/recibos/downloadfull" notificationMsg="Descarga Recibos Listado">
           <span nz-icon nzType="download"></span><span style="white-space: normal;">Descarga Recibos</span>
         </li>
 
         <li *ngIf="selectedPersonalId > 0" nz-menu-item app-down-file [httpMethod]="'POST'"
-          [httpBody]="{'Anio':selectedPeriod().year,'Mes':selectedPeriod().month, 'lista':[selectedPersonalId],'isfull': false }"
+          [httpBody]="{'Anio':selectedPeriod().year,'Mes':selectedPeriod().month, 'lista':[selectedPersonalId] }"
           httpUrl="/api/recibos/downloadfull" notificationMsg="Descarga Recibo de persona">
           <span nz-icon nzType="download"></span><span style="white-space: normal;">Descarga recibo</span>
         </li>
