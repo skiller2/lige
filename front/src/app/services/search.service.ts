@@ -581,6 +581,15 @@ export class SearchService {
         catchError(() => of([]))
       )
   }
+
+  getListaObjetivoCustodia(){
+    return this.http
+      .get<ResponseJSON<any>>(`api/custodia/list`)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
 }
 
 

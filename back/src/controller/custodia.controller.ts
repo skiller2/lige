@@ -74,6 +74,58 @@ export class CustodiaController extends BaseController {
         [patente])
     }
 
+    async listObjetivoCustodiaByResponsableQuery(queryRunner: any, responsableId:number){
+        return await queryRunner.query(`
+        SELECT obj.objetivo_custodia_id id, obj.responsable_id responsableId, 
+        obj.cliente_id clienteId, obj.descripcion, obj.fecha_inicio, 
+        obj.origen, obj.fecha_fin, obj.destino, obj.estado, cli.ClienteApellidoNombre
+        FROM lige.dbo.objetivocustodia obj
+        INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
+        WHERE obj.responsable_id = @0`, 
+        [responsableId])
+    }
+
+    async updateObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia:any, usuario:any, ip:any){
+        const objetivo_custodia_id = objetivoCustodia.objetivoCustodiaId
+        const descripcion = objetivoCustodia.descripcion? objetivoCustodia.descripcion : null
+        const fecha_inicio = objetivoCustodia.fechaInicio
+        const origen = objetivoCustodia.origen
+        const fecha_fin = objetivoCustodia.fechaFinal
+        const destino = objetivoCustodia.destino
+        const monto_facturacion_cliente = objetivoCustodia.facturacion
+        const kilometros = objetivoCustodia.kilometros
+        const fechaActual = new Date()
+        return await queryRunner.query(`
+        UPDATE lige.dbo.objetivocustodia 
+        SET descripcion = @1, fecha_inicio = @2, origen = @3, fecha_fin = @4, 
+        destino = @5, monto_facturacion_cliente = @6, kilometros = @7, 
+        aud_usuario_mod = @8, aud_ip_mod = @9, aud_fecha_mod = @10
+        WHERE objetivo_custodia_id = @0`, 
+        [objetivo_custodia_id, descripcion, fecha_inicio, origen, fecha_fin, destino, monto_facturacion_cliente, kilometros, usuario, ip, fechaActual])
+    }
+
+    async updateRegistroPersonalCustodiaQuery(queryRunner: any, infoPersonal:any, usuario:any, ip:any){
+        const personal_id = infoPersonal.personalId
+        const objetivo_custodia_id = infoPersonal.objetivoCustodiaId
+        const monto_paga_personal = infoPersonal.monto? infoPersonal.monto : null
+        const fechaActual = new Date()
+        return await queryRunner.query(`UPDATE lige.dbo.regpersonalcustodia
+        SET personal_id = @1, monto_paga_personal =@2, aud_usuario_mod = @3, aud_ip_mod = @4, aud_fecha_mod = @5
+        WHERE objetivo_custodia_id = @0`, 
+        [objetivo_custodia_id, personal_id, monto_paga_personal, usuario, ip, fechaActual])
+    }
+
+    async updateRegistroVehiculoCustodiaQuery(queryRunner: any, infoVehiculo:any, usuario:any, ip:any){
+        const objetivo_custodia_id = infoVehiculo.objetivoCustodiaId
+        const patente = infoVehiculo.patente
+        const monto_paga_vehiculo = infoVehiculo.monto? infoVehiculo.monto : null
+        const fechaActual = new Date()
+        return await queryRunner.query(`UPDATE lige.dbo.regvehiculocustodia
+        SET patente = @1, monto_paga_vehiculo = @2, aud_usuario_mod = @3, aud_ip_mod = @4, aud_fecha_mod = @5
+        WHERE objetivo_custodia_id = @0`, 
+        [objetivo_custodia_id, patente, monto_paga_vehiculo, usuario, ip, fechaActual])
+    }
+
     async addObjetivoCustodia(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
     
@@ -86,11 +138,13 @@ export class CustodiaController extends BaseController {
             const ip = this.getRemoteAddress(req)
             // const responsableId = 1
             const responsableId = res.locals.PersonalId
+            if (responsableId) 
+                throw new ClientException(`No se a encontrado al personal responsable`)
             const objetivoCustodiaId = await this.getProxNumero(queryRunner, `objetivocustodia`, usuario, ip)
-            console.log('usuario', usuario, 'ip', ip, 'responsableId', responsableId, 'objetivoCustodiaId', objetivoCustodiaId);
+            // console.log('usuario', usuario, 'ip', ip, 'responsableId', responsableId, 'objetivoCustodiaId', objetivoCustodiaId);
 
             const objetivoCustodia = {...req.body, responsableId, objetivoCustodiaId}
-            console.log('objetivoCustodia', objetivoCustodia);
+            // console.log('objetivoCustodia', objetivoCustodia);
             await this.addObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
             let cantPersonal = 0
@@ -100,7 +154,7 @@ export class CustodiaController extends BaseController {
                     let i = parseInt(key)
                     let keyImporte = i.toString() + 'importePersonal'
                     let infoPersonal = {personalId: req.body[key], monto: req.body[keyImporte] , objetivoCustodiaId}
-                    console.log('infoPersonal'+i, infoPersonal);
+                    // console.log('infoPersonal'+i, infoPersonal);
                     await this.addRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
                     cantPersonal++
                 }
@@ -111,7 +165,7 @@ export class CustodiaController extends BaseController {
                     let keyDueno = i.toString() + 'duenoId'
                     if (req.body[keyDueno]) {
                         let infoVehiculo = {patente: req.body[key], monto: req.body[keyImporte] , duenoId:req.body[keyDueno], objetivoCustodiaId}
-                        console.log('infoVehiculo'+i, infoVehiculo);
+                        // console.log('infoVehiculo'+i, infoVehiculo);
                         let result = await this.getVehiculoByPatenteQuery(queryRunner, req.body[key])
                         if (!result.length) {
                             await this.addVehiculoQuery(queryRunner, infoVehiculo.patente, infoVehiculo.duenoId, usuario, ip)
@@ -136,4 +190,33 @@ export class CustodiaController extends BaseController {
         }
     }
 
+    async listObjetivoCustodiaByResponsable(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        try{
+            await queryRunner.startTransaction()
+            const responsableId = res.locals.PersonalId
+            let result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, responsableId)
+            const estados= ['Pendiente', 'Finalizado', 'Cancelado']
+            let list = result.map((obj : any) => {
+                return {
+                    id: obj.id,
+                    responsable:{ id: responsableId},
+                    cliente:{ id: obj.clienteId, fullName: obj.ClienteApellidoNombre},
+                    descripcion: obj.descripcion,
+                    fechaI: obj.fecha_inicio,
+                    origen: obj.origen,
+                    fechaF: obj.fecha_fin,
+                    destino: obj.destino,
+                    estado: { tipo: obj.estado, descripcion: estados[obj.estado] }
+                }
+            })
+            await queryRunner.commitTransaction()
+            return list
+        }catch (error) {
+            this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
 }

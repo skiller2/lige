@@ -11,6 +11,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { firstValueFrom } from 'rxjs';
+import { SearchService } from 'src/app/services/search.service';
 
 @Component({
     selector: 'app-custodias',
@@ -28,11 +29,11 @@ export class CustodiaComponent {
     public router = inject(Router);
     public route = inject(ActivatedRoute);
 
-    angularGridLista!: AngularGridInstance;
-    gridOptionsLista!: GridOption;
-    gridDataInsertLista: any[] = [];
+    angularGrid!: AngularGridInstance;
+    gridOptions!: GridOption;
+    gridDataInsert: any[] = [];
     agregarPersonal = false
-    columnasLista: Column[] = [];
+    columnas: Column[] = [];
     detailViewRowCount = 1;
     excelExportService = new ExcelExportService()
 
@@ -40,29 +41,34 @@ export class CustodiaComponent {
     listInputVehiculo: Array<{ id: number }> = [];
 
     private angularUtilService = inject(AngularUtilService)
+    private searchService = inject(SearchService)
     public apiService = inject(ApiService)
 
     async ngOnInit(){
-        this.columnasLista = [
-            {
-                id:'responsable' , name:'Responsable' , field:'responsable',
-                sortable: true,
-                type: FieldType.string,
-                maxWidth: 100,
-                minWidth: 150,
-            },
+        this.columnas = [
+            // {
+            //     id:'responsable' , name:'Responsable' , field:'responsable',
+            //     sortable: true,
+            //     type: FieldType.string,
+            //     maxWidth: 100,
+            //     minWidth: 150,
+            // },
             {
                 id:'cliente' , name:'Cliente' , field:'cliente',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 170,
+                formatter: Formatters.complexObject,
+                params: {
+                    complexFieldLabel: 'cliente.fullName',
+                },
+                // maxWidth: 170,
                 minWidth: 140,
             },
             {
                 id:'descripcion' , name:'Descripcion' , field:'descripcion',
                 sortable: true,
                 type: FieldType.text,
-                maxWidth: 300,
+                // maxWidth: 300,
                 minWidth: 230,
             },
             {
@@ -76,11 +82,11 @@ export class CustodiaComponent {
                 id:'origen' , name:'Origen' , field:'origen',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 180,
+                // maxWidth: 180,
                 minWidth: 140,
             },
             {
-                id:'fechaF' , name:'Fecha Final' , field:'fechaB',
+                id:'fechaF' , name:'Fecha Final' , field:'fechaF',
                 sortable: true,
                 type: FieldType.dateTimeShortUs,
                 maxWidth: 150,
@@ -90,7 +96,7 @@ export class CustodiaComponent {
                 id:'destino' , name:'Destino' , field:'destino',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 180,
+                // maxWidth: 180,
                 minWidth: 140,
             },
             // {
@@ -118,22 +124,26 @@ export class CustodiaComponent {
                 id:'estado' , name:'Estado' , field:'estado',
                 sortable: true,
                 type: FieldType.string,
-                maxWidth: 90,
-                minWidth: 70,
+                formatter: Formatters.complexObject,
+                params: {
+                    complexFieldLabel: 'estado.descripcion',
+                },
+                maxWidth: 180,
+                minWidth: 130,
             },
         ]
 
-        this.gridOptionsLista = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+        this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     }
     ngAfterViewInit(): void {
     }
 
-    async angularGridReadyLista(angularGrid: any) {
-        this.angularGridLista = angularGrid.detail
+    async angularGridReady(angularGrid: any) {
+        this.angularGrid = angularGrid.detail
         //this.gridObjEdit = angularGrid.detail.slickGrid;
 
         if (this.apiService.isMobile())
-            this.angularGridLista.gridService.hideColumnByIds([])
+            this.angularGrid.gridService.hideColumnByIds([])
     }
 
     async save() {
