@@ -12,9 +12,9 @@ export class CustodiaController extends BaseController {
         const responsable_id = objetivoCustodia.responsableId
         const cliente_id = objetivoCustodia.clienteId
         const descripcion = objetivoCustodia.descripcion? objetivoCustodia.descripcion : null
-        const fecha_inicio = objetivoCustodia.fechaInicio
+        const fecha_inicio = objetivoCustodia.fechaInicio.slice(0, 19).replace('T', ' ')
         const origen = objetivoCustodia.origen
-        const fecha_fin = objetivoCustodia.fechaFinal? objetivoCustodia.fechaFinal : null
+        const fecha_fin = objetivoCustodia.fechaFinal? objetivoCustodia.fechaFinal.slice(0, 19).replace('T', ' ') : null
         const destino = objetivoCustodia.destino? objetivoCustodia.destino :null
         const monto_facturacion_cliente = objetivoCustodia.facturacion? objetivoCustodia.facturacion : null
         const kilometros = objetivoCustodia.kilometros
@@ -78,7 +78,7 @@ export class CustodiaController extends BaseController {
         return await queryRunner.query(`
         SELECT obj.objetivo_custodia_id id, obj.responsable_id responsableId, 
         obj.cliente_id clienteId, obj.descripcion, obj.fecha_inicio, 
-        obj.origen, obj.fecha_fin, obj.destino, obj.estado, cli.ClienteApellidoNombre
+        obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente
         FROM lige.dbo.objetivocustodia obj
         INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
         WHERE obj.responsable_id = @0`, 
@@ -88,9 +88,9 @@ export class CustodiaController extends BaseController {
     async updateObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia:any, usuario:any, ip:any){
         const objetivo_custodia_id = objetivoCustodia.objetivoCustodiaId
         const descripcion = objetivoCustodia.descripcion? objetivoCustodia.descripcion : null
-        const fecha_inicio = objetivoCustodia.fechaInicio
+        const fecha_inicio = objetivoCustodia.fechaInicio.slice(0, 19).replace('T', ' ')
         const origen = objetivoCustodia.origen
-        const fecha_fin = objetivoCustodia.fechaFinal
+        const fecha_fin = objetivoCustodia.fechaFinal? objetivoCustodia.fechaFinal.slice(0, 19).replace('T', ' ') : null
         const destino = objetivoCustodia.destino
         const monto_facturacion_cliente = objetivoCustodia.facturacion
         const kilometros = objetivoCustodia.kilometros
@@ -109,7 +109,8 @@ export class CustodiaController extends BaseController {
         const objetivo_custodia_id = infoPersonal.objetivoCustodiaId
         const monto_paga_personal = infoPersonal.monto? infoPersonal.monto : null
         const fechaActual = new Date()
-        return await queryRunner.query(`UPDATE lige.dbo.regpersonalcustodia
+        return await queryRunner.query(`
+        UPDATE lige.dbo.regpersonalcustodia
         SET personal_id = @1, monto_paga_personal =@2, aud_usuario_mod = @3, aud_ip_mod = @4, aud_fecha_mod = @5
         WHERE objetivo_custodia_id = @0`, 
         [objetivo_custodia_id, personal_id, monto_paga_personal, usuario, ip, fechaActual])
@@ -120,10 +121,62 @@ export class CustodiaController extends BaseController {
         const patente = infoVehiculo.patente
         const monto_paga_vehiculo = infoVehiculo.monto? infoVehiculo.monto : null
         const fechaActual = new Date()
-        return await queryRunner.query(`UPDATE lige.dbo.regvehiculocustodia
+        return await queryRunner.query(`
+        UPDATE lige.dbo.regvehiculocustodia
         SET patente = @1, monto_paga_vehiculo = @2, aud_usuario_mod = @3, aud_ip_mod = @4, aud_fecha_mod = @5
         WHERE objetivo_custodia_id = @0`, 
         [objetivo_custodia_id, patente, monto_paga_vehiculo, usuario, ip, fechaActual])
+    }
+
+    async getObjetivoCustodiaQuery(queryRunner: any, custodiaId: any){
+        // return await queryRunner.query(`
+        // SELECT obj.objetivo_custodia_id id, obj.responsable_id responsableId, 
+        // obj.cliente_id clienteId, obj.descripcion, obj.fecha_inicio, obj.origen, 
+        // obj.fecha_fin, obj.destino, obj.monto_facturacion_cliente facturacion, 
+        // obj.kilometros, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente
+        // FROM lige.dbo.objetivocustodia obj
+        // INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
+        // WHERE objetivo_custodia_id = @0`, 
+        // [custodiaId])
+        return await queryRunner.query(`
+        SELECT obj.cliente_id clienteId, obj.descripcion, obj.fecha_inicio fechaInicio, obj.origen, 
+        obj.fecha_fin fechaFinal, obj.destino, obj.monto_facturacion_cliente facturacion, obj.kilometros
+        FROM lige.dbo.objetivocustodia obj
+        INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
+        WHERE objetivo_custodia_id = @0`, 
+        [custodiaId])
+    }
+
+    async getRegPersonalObjCustodiaQuery(queryRunner: any, custodiaId: any){
+        // return await queryRunner.query(`
+        // SELECT reg.personal_id personalId, TRIM(per.PersonalApellidoNombre) fullName, reg.monto_paga_personal importePersonal
+        // FROM lige.dbo.regpersonalcustodia reg
+        // INNER JOIN Personal per ON per.PersonalId = reg.personal_id
+        // WHERE objetivo_custodia_id = @0`, 
+        // [custodiaId])
+        return await queryRunner.query(`
+        SELECT reg.personal_id personalId, reg.monto_paga_personal importePersonal
+        FROM lige.dbo.regpersonalcustodia reg
+        INNER JOIN Personal per ON per.PersonalId = reg.personal_id
+        WHERE objetivo_custodia_id = @0`, 
+        [custodiaId])
+    }
+
+    async getRegVehiculoObjCustodiaQuery(queryRunner: any, custodiaId: any){
+        // return await queryRunner.query(`
+        // SELECT reg.patente , reg.monto_paga_vehiculo importeVehiculo, ve.dueno_id, TRIM(per.PersonalApellidoNombre) dueno 
+        // FROM lige.dbo.regvehiculocustodia reg
+        // INNER JOIN lige.dbo.vehiculo ve ON ve.patente = reg.patente
+        // INNER JOIN Personal per ON per.PersonalId = ve.dueno_id
+        // WHERE objetivo_custodia_id = @0`, 
+        // [custodiaId])
+        return await queryRunner.query(`
+        SELECT reg.patente , reg.monto_paga_vehiculo importeVehiculo, ve.dueno_id duenoId
+        FROM lige.dbo.regvehiculocustodia reg
+        INNER JOIN lige.dbo.vehiculo ve ON ve.patente = reg.patente
+        INNER JOIN Personal per ON per.PersonalId = ve.dueno_id
+        WHERE objetivo_custodia_id = @0`, 
+        [custodiaId])
     }
 
     async addObjetivoCustodia(req: any, res: Response, next: NextFunction) {
@@ -131,7 +184,7 @@ export class CustodiaController extends BaseController {
     
         try {
             await queryRunner.startTransaction()
-            if (!req.body.clienteId || !req.body.fechaInicial || !req.body.origen)
+            if (!req.body.clienteId || !req.body.fechaInicio || !req.body.origen)
                 throw new ClientException(`Los campos de Cliente, Fecha Inicial y Origen NO pueden estar vacios`)
 
             const usuario = res.locals.userName
@@ -177,7 +230,7 @@ export class CustodiaController extends BaseController {
                 
             }
             if (cantVehiculo == 0 && cantPersonal == 0) {
-                throw new ClientException(`Debe de haber por lo menos una persona y un vehículo (Patente y Dueño)`)
+                throw new ClientException(`Debe de haber por lo menos una persona y un vehículo (Patente y Dueño) por custodia`)
             }
             
             await queryRunner.commitTransaction()
@@ -194,7 +247,8 @@ export class CustodiaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try{
             await queryRunner.startTransaction()
-            const responsableId = res.locals.PersonalId
+            // const responsableId = res.locals.PersonalId
+            const responsableId = 1
             let result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, responsableId)
             const estados= ['Pendiente', 'Finalizado', 'Cancelado']
             let list = result.map((obj : any) => {
@@ -203,15 +257,15 @@ export class CustodiaController extends BaseController {
                     responsable:{ id: responsableId},
                     cliente:{ id: obj.clienteId, fullName: obj.ClienteApellidoNombre},
                     descripcion: obj.descripcion,
-                    fechaI: obj.fecha_inicio,
+                    fechaI: obj.fecha_inicio.toISOString().slice(0, 19).replace('T', ' '),
                     origen: obj.origen,
-                    fechaF: obj.fecha_fin,
+                    fechaF: obj.fecha_fin? obj.fecha_fin.toISOString().slice(0, 19).replace('T', ' ') : null,
                     destino: obj.destino,
                     estado: { tipo: obj.estado, descripcion: estados[obj.estado] }
                 }
             })
             await queryRunner.commitTransaction()
-            return list
+            return this.jsonRes(list, res)
         }catch (error) {
             this.rollbackTransaction(queryRunner)
             return next(error)
@@ -219,4 +273,50 @@ export class CustodiaController extends BaseController {
             await queryRunner.release()
         }
     }
+
+    async infoObjCustodia(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        try{
+            await queryRunner.startTransaction()
+            const custodiaId = req.params.custodiaid
+            let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, custodiaId)
+            let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, custodiaId)
+            let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
+
+            infoCustodia= infoCustodia[0]
+            let listInputPersonal = []
+            let listInputVehiculo = []
+            listPersonal.forEach((obj:any, index:any)=>{
+                const keys = Object.keys(obj)
+                keys.forEach((key:any)=>{
+                    let newKey = (index+1)+key
+                    infoCustodia[newKey] = obj[key]
+                })
+                listInputPersonal.push(index+1)
+            })
+            listVehiculo.forEach((obj:any, index:any)=>{
+                const keys = Object.keys(obj)
+                keys.forEach((key:any)=>{
+                    let newKey = (index+1)+key
+                    infoCustodia[newKey] = obj[key]
+                })
+                listInputVehiculo.push(index+1)
+            })
+            
+            let respuesta = {
+                form:infoCustodia, 
+                vehiculoLength:listInputPersonal, 
+                personalLength:listInputVehiculo
+            }
+            // console.log('respuesta', respuesta);
+            await queryRunner.commitTransaction()
+            return this.jsonRes(respuesta, res)
+        }catch (error) {
+            this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+    
 }

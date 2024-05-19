@@ -590,6 +590,15 @@ export class SearchService {
         catchError(() => of([]))
       );
   }
+
+  getInfoObjCustodia(objCustodiaId: number){
+    return this.http
+      .get<ResponseJSON<any>>(`api/custodia/${objCustodiaId}`)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
 }
 
 

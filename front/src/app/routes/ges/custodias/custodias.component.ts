@@ -13,6 +13,7 @@ import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-s
 import { firstValueFrom } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 
+
 @Component({
     selector: 'app-custodias',
     templateUrl: './custodias.component.html',
@@ -35,10 +36,11 @@ export class CustodiaComponent {
     agregarPersonal = false
     columnas: Column[] = [];
     detailViewRowCount = 1;
+    editCustodiaId = 0;
     excelExportService = new ExcelExportService()
 
-    listInputPersonal: Array<{ id: number }> = [];
-    listInputVehiculo: Array<{ id: number }> = [];
+    listInputPersonal: Array<number> = [1];
+    listInputVehiculo: Array<number> = [1];
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
@@ -132,9 +134,19 @@ export class CustodiaComponent {
                 minWidth: 130,
             },
         ]
-
+        
+        
         this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+        this.gridOptions.enableRowDetailView = false
+        this.gridOptions.editable = false
+        this.gridOptions.autoEdit = true
+        this.gridOptions.enableAutoSizeColumns = true
+        this.gridOptions.fullWidthRows = true
+        this.gridOptions.enableExcelExport = false
+        this.gridDataInsert = await firstValueFrom(this.searchService.getListaObjetivoCustodia())
+        // console.log('this.gridDataInsert', this.gridDataInsert);
     }
+
     ngAfterViewInit(): void {
     }
 
@@ -147,46 +159,67 @@ export class CustodiaComponent {
     }
 
     async save() {
-        console.log('graba',this.ngForm().value)
-        const res = await firstValueFrom(this.apiService.addObjetivoCustodia(this.ngForm().value))
+        // console.log('editCustodiaId',this.editCustodiaId)
+        // console.log('graba',this.ngForm().value)
+        if (this.editCustodiaId) {
+            // const res = await firstValueFrom(this.apiService.addObjetivoCustodia(this.ngForm().value))
+        } else {
+            // const res = await firstValueFrom(this.apiService.addObjetivoCustodia(this.ngForm().value))
+        }
+        this.ngForm().onReset()
     }
 
     addPersonal(e?: MouseEvent): void {
         e?.preventDefault();
-        const id = this.listInputPersonal.length > 0 ? this.listInputPersonal[this.listInputPersonal.length - 1].id + 1 : 0;
-        const control = {
-            id,
-        };
-        this.listInputPersonal.push(control);
-        // console.log(this.listInputPersonal[this.listInputPersonal.length - 1]);
+        const id = this.listInputPersonal.length > 0 ? this.listInputPersonal[this.listInputPersonal.length - 1] + 1 : 0;
+        this.listInputPersonal.push(id);
     }
 
     addVehiculo(e?: MouseEvent): void {
         e?.preventDefault();
-        const id = this.listInputVehiculo.length > 0 ? this.listInputVehiculo[this.listInputVehiculo.length - 1].id + 1 : 0;
-        const control = {
-            id,
-        };
-        this.listInputVehiculo.push(control);
-        // console.log(this.listInputVehiculo[this.listInputVehiculo.length - 1]);
+        const id = this.listInputVehiculo.length > 0 ? this.listInputVehiculo[this.listInputVehiculo.length - 1] + 1 : 0;
+        this.listInputVehiculo.push(id);
     }
 
-    removePersonal(i: { id: number }, e: MouseEvent): void {
+    removePersonal(i: number, e: MouseEvent): void {
         e.preventDefault();
         if (this.listInputPersonal.length > 1) {
             const index = this.listInputPersonal.indexOf(i);
             this.listInputPersonal.splice(index, 1);
-            // console.log(this.listInputPersonal);
         }
     }
 
-    removeVehiculo(i: { id: number }, e: MouseEvent): void {
+    removeVehiculo(i: number, e: MouseEvent): void {
         e.preventDefault();
         if (this.listInputPersonal.length > 1) {
             const index = this.listInputPersonal.indexOf(i);
             this.listInputPersonal.splice(index, 1);
-            // console.log(this.listInputPersonal);
         }
+    }
+
+    handleSelectedRowsChanged(): void {
+        const selrows = this.angularGrid.slickGrid.getSelectedRows()
+        if (selrows[0] == undefined) return
+        const row = this.angularGrid.slickGrid.getDataItem(selrows[0])
+        if (row.id == undefined) return
+        this.editCustodiaId = row.id
+        // console.log('editCustodiaId', this.editCustodiaId);
+    }
+
+    resetObjCustodiaId(): void {
+        this.editCustodiaId = 0
+        this.ngForm().onReset()
+        // console.log('editCustodiaId', this.editCustodiaId);
+        // console.log('graba',this.ngForm().value)
+    }
+
+    async getObjCustodiaId(){
+        // console.log('graba',this.ngForm().value)
+        const res = await firstValueFrom(this.searchService.getInfoObjCustodia(this.editCustodiaId))
+        // console.log('res', res);
+        this.listInputPersonal = res.personalLength
+        this.listInputVehiculo = res.vehiculoLength
+        this.ngForm().setValue(res.form)
     }
 
 }
