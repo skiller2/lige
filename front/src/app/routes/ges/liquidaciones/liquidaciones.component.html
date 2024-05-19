@@ -33,7 +33,7 @@
     </div>
     <div *nzModalFooter style="text-align: right;">
       <a nz-button nzType="primary" app-down-file [httpMethod]="'POST'"
-        [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month,'isfull': true, 'isDuplicate': isWithDuplicado, 'ObjetivoIdWithSearch':ObjetivoIdWithSearch(),'ClienteIdWithSearch':ClienteIdWithSearch(),'SucursalIdWithSearch':SucursalIdWithSearch(),'PersonalIdWithSearch':PersonalIdWithSearch() }"
+        [httpBody]="{'Anio':selectedPeriod.year,'Mes':selectedPeriod.month,'isDuplicate': isWithDuplicado, 'ObjetivoIdWithSearch':ObjetivoIdWithSearch(),'ClienteIdWithSearch':ClienteIdWithSearch(),'SucursalIdWithSearch':SucursalIdWithSearch(),'PersonalIdWithSearch':PersonalIdWithSearch(),'SeachField':selectedOption() }"
         httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado" (click)="isVisible=false">Aceptar</a>
     </div>
   </nz-modal>

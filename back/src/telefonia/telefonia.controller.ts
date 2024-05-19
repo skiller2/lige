@@ -638,16 +638,24 @@ export class TelefoniaController extends BaseController {
       let ip = this.getRemoteAddress(req)
       let fechaActual = new Date()
       const queryRunner = dataSource.createQueryRunner();
-      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Number(Anio), Number(Mes), usuario, ip)
+      //const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Number(Anio), Number(Mes), usuario, ip)
 
 
       const importacionesAnteriores = await dataSource.query(
 
-        `SELECT doc_id AS id, path, 
-        nombre_archivo AS nombre, path, 
-        FORMAT(aud_fecha_ins, 'yyyy-MM-dd') AS fecha 
-        FROM lige.dbo.docgeneral WHERE periodo=@0 AND doc_tipoid = 'TEL'`,
-        [periodo_id])
+        `SELECT 
+        doc.doc_id AS id, doc.path, 
+        doc.nombre_archivo AS nombre, 
+        doc.path, 
+        FORMAT(doc.aud_fecha_ins, 'yyyy-MM-dd') AS fecha,
+        per.periodo_id,per.anio,per.mes
+        FROM lige.dbo.docgeneral doc
+        JOIN lige.dbo.liqmaperiodo per ON doc.periodo = per.periodo_id
+        WHERE 
+        per.anio = @0 
+        AND per.mes = @1 
+        AND doc.doctipo_id = 'TEL'`,
+      [ Number(Anio), Number(Mes)])
 
       this.jsonRes(
         {

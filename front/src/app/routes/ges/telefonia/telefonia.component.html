@@ -75,7 +75,7 @@
           <nz-form-label class="inputText" >Importaciones anteriores</nz-form-label>
           <nz-form-control>
             <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
-              <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{movimiento.nombre}}>
+              <div class="containerAnterioresTelefonia" nz-tooltip nzTooltipTitle={{movimiento.nombre}}>
                 <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
                 <span> ID: {{movimiento.id}} - Fecha: {{movimiento.fecha}} </span>
               </div>

@@ -106,7 +106,7 @@ export class RecibosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner()
     let persona_id = 0
     //estas  variables se usan solo si el recibo previamente ya existe 
-    let fechaRecibo = new Date(req.body.fechaRecibo) 
+    let fechaRecibo = new Date(req.body.fechaRecibo)
     let docgeneral: number
     let idrecibo: number
     let directorPathUnique = ""
@@ -138,7 +138,7 @@ export class RecibosController extends BaseController {
 
       const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, personalId, fechaRecibo)
 
-      var directorPath =  String(periodo.year) + String(periodo.month).padStart(2, '0') + '/' + periodo_id
+      var directorPath = String(periodo.year) + String(periodo.month).padStart(2, '0') + '/' + periodo_id
       if (!existsSync(this.directoryRecibo + '/' + directorPath)) {
         mkdirSync(this.directoryRecibo + '/' + directorPath, { recursive: true });
       }
@@ -179,7 +179,7 @@ export class RecibosController extends BaseController {
 
         )
 
-        await this.createPdf(queryRunner, this.directoryRecibo + '/' +filesPath, persona_id, idrecibo, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
+        await this.createPdf(queryRunner, this.directoryRecibo + '/' + filesPath, persona_id, idrecibo, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
           movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body, htmlContent.header, htmlContent.footer)
       }
 
@@ -383,7 +383,7 @@ export class RecibosController extends BaseController {
 
     createSelect += `)ORDER BY per.PersonalId ASC`
 
-    return queryRunner.query(createSelect, [periodo_id, anio, mes, personalId,fecha])
+    return queryRunner.query(createSelect, [periodo_id, anio, mes, personalId, fecha])
   }
 
   async getUsuariosLiquidacionMovimientos(queryRunner: QueryRunner, periodo_id: Number, user_id: Number) {
@@ -474,16 +474,16 @@ export class RecibosController extends BaseController {
     let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
     try {
-      const data =await queryRunner.query(`SELECT doc.path, doc.nombre_archivo from lige.dbo.docgeneral doc
+      const data = await queryRunner.query(`SELECT doc.path, doc.nombre_archivo from lige.dbo.docgeneral doc
       JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
       WHERE per.anio =@0 AND per.mes=@1 AND doc.persona_id = @2 AND doctipo_id = 'REC'`,
-      [year, month, PersonalId]
+        [year, month, PersonalId]
       )
 
       if (!data[0])
         throw new ClientException(`Recibo no generado`)
 
-      res.download(this.directoryRecibo+'/'+ data[0].path, data[0].nombre_archivo, async (error) => {
+      res.download(this.directoryRecibo + '/' + data[0].path, data[0].nombre_archivo, async (error) => {
         if (error) {
           console.error('Error al descargar el archivo:', error);
           return next(error)
@@ -508,7 +508,8 @@ export class RecibosController extends BaseController {
       ObjetivoIdWithSearch,
       ClienteIdWithSearch,
       SucursalIdWithSearch,
-      PersonalIdWithSearch
+      PersonalIdWithSearch,
+      SeachField
     } = req.body
 
 
@@ -522,29 +523,29 @@ export class RecibosController extends BaseController {
       let fechaActual = new Date();
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
 
-      let pathFile = isfull
-        ? await this.getGrupFilterDowload(queryRunner, periodo_id,ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch)
-        : await this.getparthFile(queryRunner, periodo_id, lista)
+      let pathFile = (lista)
+        ? await this.getparthFile(queryRunner, periodo_id, lista)
+        : await this.getGrupFilterDowload(queryRunner, periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch, SeachField)
 
       const mergedPdf = await PDFDocument.create();
 
-      if (pathFile.length==0)
+      if (pathFile.length == 0)
         throw new ClientException(`Recibo/s no generado/s para el periodo seleccionado`);
 
-//      pathFile= [pathFile[0]]
+      //      pathFile= [pathFile[0]]
       for (const filterDowload of pathFile) {
         let origpath = ''
         try {
-            origpath = this.directoryRecibo+'/'+filterDowload.path
-            if (!fs.existsSync(origpath))
-              throw new ClientException(`Error al generar el recibo unificado ${origpath}`);
+          origpath = this.directoryRecibo + '/' + filterDowload.path
+          if (!fs.existsSync(origpath))
+            throw new ClientException(`Error al generar el recibo unificado ${origpath}`);
 
           const pdfBytes = await fs.promises.readFile(origpath);
           const pdfDoc = await PDFDocument.load(pdfBytes);
           const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
 
           for (const pg of copiedPages) mergedPdf.addPage(pg)
-//          copiedPages.forEach((page) => mergedPdf.addPage(page));
+          //          copiedPages.forEach((page) => mergedPdf.addPage(page));
 
           if (isDuplicate) {
             const headerText = "DUPLICADO";
@@ -563,7 +564,7 @@ export class RecibosController extends BaseController {
 
             const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
             for (const pg of copiedPages) mergedPdf.addPage(pg)
-//            copiedPages.forEach((page) => mergedPdf.addPage(page));
+            //            copiedPages.forEach((page) => mergedPdf.addPage(page));
 
           }
 
@@ -575,7 +576,7 @@ export class RecibosController extends BaseController {
 
       const resBuffer = Buffer.from(await mergedPdf.save());
 
-      res.attachment(`Recibos-${Anio}-${Mes}.pdf`);      
+      res.attachment(`Recibos-${Anio}-${Mes}.pdf`);
       res.setHeader('Content-Length', resBuffer.length);
       res.write(resBuffer, 'binary');
       res.end();
@@ -585,25 +586,40 @@ export class RecibosController extends BaseController {
 
   }
 
-  async getGrupFilterDowload(queryRunner: QueryRunner, periodo_id: number, ObjetivoIdWithSearch: number, ClienteIdWithSearch: number, SucursalIdWithSearch: number, PersonalIdWithSearch: number
+  async getGrupFilterDowload(queryRunner: QueryRunner, periodo_id: number, ObjetivoIdWithSearch: number, ClienteIdWithSearch: number, SucursalIdWithSearch: number, PersonalIdWithSearch: number, SeachField: string
   ) {
 
     let filterExtraIN = 'SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov WHERE mov.periodo_id=@0'
-    
-    if (ObjetivoIdWithSearch > 0) 
-      filterExtraIN='SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov WHERE mov.periodo_id=@0 AND mov.objetivo_id=@1'
 
-    if (ClienteIdWithSearch > 0) 
-      filterExtraIN='SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov JOIN Objetivo obj ON obj.ObjetivoId = mov.objetivo_id WHERE mov.periodo_id=@0 AND obj.ClienteId = @2'
+    switch (SeachField) {
+      case 'T':
 
-    if (PersonalIdWithSearch > 0) 
-      filterExtraIN='SELECT @4'
+        break;
+      case 'P':
+        filterExtraIN = 'SELECT @4'
 
-    if (SucursalIdWithSearch > 0) 
-      filterExtraIN=`SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov 
+        break;
+      case 'S':
+        filterExtraIN = `SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov 
         LEFT JOIN PersonalSucursalPrincipal suc ON suc.PersonalId = mov.persona_id
         JOIN Sucursal i ON i.SucursalId = ISNULL(suc.PersonalSucursalPrincipalSucursalId,1)
         WHERE mov.periodo_id=@0 AND i.SucursalId = @3`
+
+        break;
+      case 'O':
+        filterExtraIN = 'SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov WHERE mov.periodo_id=@0 AND mov.objetivo_id=@1'
+
+        break;
+      case 'C':
+        filterExtraIN = 'SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov JOIN Objetivo obj ON obj.ObjetivoId = mov.objetivo_id WHERE mov.periodo_id=@0 AND obj.ClienteId = @2'
+
+        break;
+
+      default:
+        break;
+    }
+
+
 
     return queryRunner.query(`
     SELECT DISTINCT i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId, doc.path
@@ -611,15 +627,15 @@ export class RecibosController extends BaseController {
        JOIN Personal per ON per.PersonalId=doc.persona_id 
        LEFT JOIN GrupoActividadPersonal gaprel ON gaprel.GrupoActividadPersonalPersonalId = per.PersonalId  AND doc.fecha > gaprel.GrupoActividadPersonalDesde  AND doc.fecha < ISNULL(gaprel.GrupoActividadPersonalHasta , '9999-12-31')
         LEFT JOIN GrupoActividad g ON g.GrupoActividadId = gaprel.GrupoActividadId
-        LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalSucursalPrincipalId = per.PersonalId
+        LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalId = per.PersonalId
         LEFT JOIN Sucursal i ON i.SucursalId = ISNULL(h.PersonalSucursalPrincipalSucursalId,1)
         WHERE doc.periodo =  @0 AND doc.doctipo_id = 'REC' AND per.PersonalId IN (${filterExtraIN})
-    ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`, [periodo_id,ObjetivoIdWithSearch,ClienteIdWithSearch,SucursalIdWithSearch,PersonalIdWithSearch])
+    ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`, [periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch])
   }
 
   async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: number[]) {
-      const personalIdsString = perosonalIds.join(', ');
-      return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0 AND doctipo_id = 'REC' AND persona_id IN (${personalIdsString})`, [periodo_id])
+    const personalIdsString = perosonalIds.join(', ');
+    return queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE periodo = @0 AND doctipo_id = 'REC' AND persona_id IN (${personalIdsString})`, [periodo_id])
   }
 
   async joinPDFsOnPath(rutaDirectorio) {
@@ -707,7 +723,7 @@ export class RecibosController extends BaseController {
       const waterMark = `<div style="position: fixed; bottom: 500px; left: 50px; z-index: 10000; font-size:200px; color: red; transform:rotate(-60deg);
                         opacity: 0.6;">PRUEBA</div>`
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
-      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, anio, mes, PersonalId,fechaActual)
+      const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, anio, mes, PersonalId, fechaActual)
 
       const htmlContent = await this.getReciboHtmlContentGeneral(fechaActual, anio, mes, header, body, footer)
 
@@ -731,7 +747,7 @@ export class RecibosController extends BaseController {
       await browser.close();
 
       let nameFile = `ReciboTest-${anio}-${mes}.pdf`
-      console.log('filesPath',filesPath)
+      console.log('filesPath', filesPath)
       await this.dowloadPdfBrowser(res, next, filesPath, anio, mes, nameFile)
 
     } catch (error) {

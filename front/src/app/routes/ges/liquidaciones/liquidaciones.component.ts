@@ -113,7 +113,7 @@ export class LiquidacionesComponent {
 
   isVisible = false;
   isWithDuplicado = false;
-  selectedOption = model("");
+  selectedOption = model("T");
   ObjetivoIdWithSearch = model(0);
   ClienteIdWithSearch = model(0);
   SucursalIdWithSearch = model(0);
@@ -830,11 +830,6 @@ export class LiquidacionesComponent {
   }
 
   showModal(): void {
-    this.selectedOption.set('T')
-    this.ObjetivoIdWithSearch.set(0)
-    this.ClienteIdWithSearch.set(0)
-    this.SucursalIdWithSearch.set(0)
-    this.PersonalIdWithSearch.set(0)
     this.isVisible = true;
   }
 
