@@ -741,8 +741,14 @@ export class ApiService {
 
   }
 
-  addObjetivoCustodia(custodias:any) {
-    return this.http.post<ResponseJSON<any>>('/api/custodia/addobjetivo', custodias).pipe(
+  addObjCustodia(custodia:any) {
+    return this.http.post<ResponseJSON<any>>('/api/custodia/add', custodia).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  updateObjCustodia(custodia:any, custodiaId:any) {
+    return this.http.post<ResponseJSON<any>>(`/api/custodia/update/${custodiaId}`, custodia).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }

@@ -18,7 +18,7 @@ export class CustodiaController extends BaseController {
         const destino = objetivoCustodia.destino? objetivoCustodia.destino :null
         const monto_facturacion_cliente = objetivoCustodia.facturacion? objetivoCustodia.facturacion : null
         const kilometros = objetivoCustodia.kilometros
-        const estado = 0
+        const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
         return await queryRunner.query(`
             INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, descripcion, fecha_inicio, origen, fecha_fin, destino, monto_facturacion_cliente, kilometros, estado, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
@@ -129,22 +129,22 @@ export class CustodiaController extends BaseController {
     }
 
     async getObjetivoCustodiaQuery(queryRunner: any, custodiaId: any){
-        // return await queryRunner.query(`
-        // SELECT obj.objetivo_custodia_id id, obj.responsable_id responsableId, 
-        // obj.cliente_id clienteId, obj.descripcion, obj.fecha_inicio, obj.origen, 
-        // obj.fecha_fin, obj.destino, obj.monto_facturacion_cliente facturacion, 
-        // obj.kilometros, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente
-        // FROM lige.dbo.objetivocustodia obj
-        // INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
-        // WHERE objetivo_custodia_id = @0`, 
-        // [custodiaId])
         return await queryRunner.query(`
-        SELECT obj.cliente_id clienteId, obj.descripcion, obj.fecha_inicio fechaInicio, obj.origen, 
-        obj.fecha_fin fechaFinal, obj.destino, obj.monto_facturacion_cliente facturacion, obj.kilometros
+        SELECT obj.objetivo_custodia_id id, obj.responsable_id responsableId, 
+        obj.cliente_id clienteId, obj.descripcion, obj.fecha_inicio fechaInicio, obj.origen, 
+        obj.fecha_fin fechaFinal, obj.destino, obj.monto_facturacion_cliente facturacion, 
+        obj.kilometros, obj.estado
         FROM lige.dbo.objetivocustodia obj
         INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
         WHERE objetivo_custodia_id = @0`, 
         [custodiaId])
+        // return await queryRunner.query(`
+        // SELECT obj.cliente_id clienteId, obj.descripcion, obj.fecha_inicio fechaInicio, obj.origen, 
+        // obj.fecha_fin fechaFinal, obj.destino, obj.monto_facturacion_cliente facturacion, obj.kilometros
+        // FROM lige.dbo.objetivocustodia obj
+        // INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
+        // WHERE objetivo_custodia_id = @0`, 
+        // [custodiaId])
     }
 
     async getRegPersonalObjCustodiaQuery(queryRunner: any, custodiaId: any){
@@ -177,6 +177,22 @@ export class CustodiaController extends BaseController {
         INNER JOIN Personal per ON per.PersonalId = ve.dueno_id
         WHERE objetivo_custodia_id = @0`, 
         [custodiaId])
+    }
+
+    async deleteRegPersonalObjCustodiaQuery(queryRunner: any, custodiaId: any, personalId:any){
+        return await queryRunner.query(`
+        DELETE lige.dbo.regpersonalcustodia 
+        WHERE objetivo_custodia_id = @0
+        AND personal_id = @1`, 
+        [custodiaId, personalId])
+    }
+
+    async deleteRegVehiculoObjCustodiaQuery(queryRunner: any, custodiaId: any, patente:any){
+        return await queryRunner.query(`
+        DELETE lige.dbo.regvehiculocustodia 
+        WHERE objetivo_custodia_id = @0
+        AND patente = @1`, 
+        [custodiaId, patente])
     }
 
     async addObjetivoCustodia(req: any, res: Response, next: NextFunction) {
@@ -284,6 +300,10 @@ export class CustodiaController extends BaseController {
             let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
 
             infoCustodia= infoCustodia[0]
+            delete infoCustodia.id
+            delete infoCustodia.responsableId
+            delete infoCustodia.estado
+
             let listInputPersonal = []
             let listInputVehiculo = []
             listPersonal.forEach((obj:any, index:any)=>{
@@ -311,6 +331,122 @@ export class CustodiaController extends BaseController {
             // console.log('respuesta', respuesta);
             await queryRunner.commitTransaction()
             return this.jsonRes(respuesta, res)
+        }catch (error) {
+            this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+
+    async updateObjetivoCustodia(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+    
+        try {
+            await queryRunner.startTransaction()
+            const usuario = res.locals.userName
+            const ip = this.getRemoteAddress(req)
+            // const responsableId = 1
+            const responsableId = res.locals.PersonalId
+            if (responsableId) 
+                throw new ClientException(`No se a encontrado al personal responsable`)
+            const custodiaId = req.params.id
+            let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, custodiaId)
+            infoCustodia= infoCustodia[0]
+
+            if (responsableId != infoCustodia.responsableId) {
+                throw new ClientException(`No eres el responsable de la custodia`)
+            }
+
+            if (!req.body.clienteId || !req.body.fechaInicio || !req.body.origen)
+                throw new ClientException(`Los campos de Cliente, Fecha Inicial y Origen NO pueden estar vacios`)
+            
+            let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, custodiaId)
+            let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
+
+            const objetivoCustodia = {...req.body }
+            infoCustodia.fechaInicio = infoCustodia.fechaInicio.toISOString()
+            infoCustodia.fechaFinal = infoCustodia.fechaFinal? infoCustodia.fechaFinal.toISOString() : infoCustodia.fechaFinal
+            let cantPersonal = 0
+            let cantVehiculo = 0
+            let cantCambios = 0
+            // console.log( 'objetivoCustodia:', objetivoCustodia );
+            // console.log( 'infoCustodia:', infoCustodia );
+            console.log( 'listPersonal:', listPersonal );
+            console.log( 'listVehiculo:', listVehiculo );
+            for (const key in objetivoCustodia) {
+                //Verifico si hubo cambios
+                if (infoCustodia[key] != objetivoCustodia[key])
+                    cantCambios++
+                //Si hubo un cambio en regpersonalcustodia ACTUALIZA
+                if( key.endsWith('personalId') && objetivoCustodia[key]){
+                    let i = parseInt(key)
+                    let keyImporte = i.toString() + 'importePersonal'
+                    let infoPersonal = {personalId: objetivoCustodia[key], monto: objetivoCustodia[keyImporte] , objetivoCustodiaId: custodiaId}
+                    let persona = null
+                    for (let index = 0; index < listPersonal.length; index++) {
+                        console.log(listPersonal[index].personalId == infoPersonal.personalId)
+                        if(listPersonal[index].personalId == infoPersonal.personalId){
+                            persona = listPersonal[index]
+                            listPersonal = listPersonal.splice(i, 1)
+                            break
+                        }
+                    }
+                    if (!persona) { //Si el personal es nuevo AGREGAR
+                        await this.addRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
+                    } else if (persona.importePersonal != infoPersonal.monto) { //Si hubo un cambio en regpersonalcustodia ACTUALIZA
+                        await this.updateRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
+                    }
+                    cantPersonal++
+                }
+                //Si hubo un cambio en regvehiculocustodia ACTUALIZA
+                if( key.endsWith('patente') && objetivoCustodia[key]){
+                    let i = parseInt(key)
+                    let keyImporte = i.toString() + 'importeVehiculo'
+                    let keyDueno = i.toString() + 'duenoId'
+                    if (objetivoCustodia[keyDueno]) {
+                        let infoVehiculo = {patente: objetivoCustodia[key], monto: objetivoCustodia[keyImporte] , duenoId: objetivoCustodia[keyDueno], objetivoCustodiaId: custodiaId}
+                        let vehiculo
+                        for (let index = 0; index < listVehiculo.length; index++) {
+                            if(listVehiculo[index].patente == infoVehiculo.patente){
+                                vehiculo = listVehiculo[index]
+                                listVehiculo = listVehiculo.splice(i, 1)
+                                break
+                            }
+                        }
+                        if (!vehiculo) {
+                            let result = await this.getVehiculoByPatenteQuery(queryRunner, objetivoCustodia[key])
+                            if (!result.length) {
+                                await this.addVehiculoQuery(queryRunner, infoVehiculo.patente, infoVehiculo.duenoId, usuario, ip)
+                            }
+                            await this.addRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
+                        } else if (vehiculo.importePersonal != vehiculo.monto){
+                            await this.updateRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
+                        }
+                        cantVehiculo++
+                    }
+                }
+            }
+            if (cantVehiculo == 0 && cantPersonal == 0) {
+                throw new ClientException(`Debe de haber por lo menos una persona y un vehículo (Patente y Dueño) por custodia`)
+            }
+
+            //Si hubo un cambio en objetivocustodia ACTUALIZA
+            if (cantCambios) {
+                await this.updateObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
+            }
+
+            //Elimino los vehiculos y el personal que ya no pertenecen a este objetivo custodia
+            for (const obj of listPersonal) {
+                await this.deleteRegPersonalObjCustodiaQuery(queryRunner, custodiaId, obj.personalId)
+            }
+            for (const obj of listVehiculo) {
+                await this.deleteRegVehiculoObjCustodiaQuery(queryRunner, custodiaId, obj.patente)
+            }
+            
+            await queryRunner.commitTransaction()
+            return this.jsonRes([], res, 'Carga Exitosa');
         }catch (error) {
             this.rollbackTransaction(queryRunner)
             return next(error)

@@ -162,9 +162,9 @@ export class CustodiaComponent {
         // console.log('editCustodiaId',this.editCustodiaId)
         // console.log('graba',this.ngForm().value)
         if (this.editCustodiaId) {
-            // const res = await firstValueFrom(this.apiService.addObjetivoCustodia(this.ngForm().value))
+            const res = await firstValueFrom(this.apiService.updateObjCustodia(this.ngForm().value, this.editCustodiaId))
         } else {
-            // const res = await firstValueFrom(this.apiService.addObjetivoCustodia(this.ngForm().value))
+            const res = await firstValueFrom(this.apiService.addObjCustodia(this.ngForm().value))
         }
         this.ngForm().onReset()
     }
