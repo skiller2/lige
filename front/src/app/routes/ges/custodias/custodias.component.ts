@@ -166,7 +166,17 @@ export class CustodiaComponent {
         } else {
             const res = await firstValueFrom(this.apiService.addObjCustodia(this.ngForm().value))
         }
-        this.ngForm().onReset()
+        this.gridDataInsert = await firstValueFrom(this.searchService.getListaObjetivoCustodia())
+        // this.ngForm().onReset()
+    }
+
+    async setEstado(estado:number) {
+        if (this.editCustodiaId) {
+            let form = this.ngForm().value
+            form.estado = estado
+            const res = await firstValueFrom(this.apiService.updateObjCustodia(form, this.editCustodiaId))
+            this.gridDataInsert = await firstValueFrom(this.searchService.getListaObjetivoCustodia())
+        }
     }
 
     addPersonal(e?: MouseEvent): void {
@@ -202,6 +212,7 @@ export class CustodiaComponent {
         if (selrows[0] == undefined) return
         const row = this.angularGrid.slickGrid.getDataItem(selrows[0])
         if (row.id == undefined) return
+        if (row.estado.tipo) return
         this.editCustodiaId = row.id
         // console.log('editCustodiaId', this.editCustodiaId);
     }
