@@ -53,12 +53,6 @@
               <app-objetivo-search name="ObjetivoIdAdd" ngModel (ngModelChange)="ObjetivoIdForAdd = $event" />
            
             </nz-form-control>
-            <nz-form-control [nzSpan]="2">
-              
-              <button nz-popconfirm nzType="primary"  class="btnPadding" nzPopconfirmTitle="Confirma que desea agregar el grupo?" nz-button (nzOnConfirm)="addgroup()">
-                Agregar
-              </button>
-            </nz-form-control>
           </nz-form-item>
 
         </ng-template>
@@ -69,12 +63,37 @@
           <nz-form-item class="marginElement">
             <nz-form-label [nzSpan]="3">Objetivo</nz-form-label>
             <nz-form-control [nzSpan]="17">
-              <app-objetivo-search name="ObjetivoId" ngModel (ngModelChange)="ObjtivoChange($event)" />
+              <app-objetivo-search name="ObjetivoId" ngModel  (ngModelChange)="ObjtivoChange($event)" />
             </nz-form-control>
-            @if (addMoreUser) {
+            <!-- @if (addMoreUser) {
               <button nz-button nzType="default" nzShape="circle" class="btnPadding"><span nz-icon nzType="plus"></span></button>
-            }
+            } -->
+            
           </nz-form-item>
+          <ng-container *ngIf="$objetivoDetalle| async as objetivoDetalle">
+            <nz-form-item>
+                <nz-form-label [nzSpan]="3">Responsable</nz-form-label>
+                <nz-form-control [nzSpan]="21">
+                    @if (objetivoDetalle.responsable.length==0 && ObjetivoIdForAdd>0) { <nz-alert nzShowIcon nzType="error" nzMessage="Sin grupo" class="app-small"></nz-alert> }
+                    <app-view-responsable [list]="objetivoDetalle.responsable"></app-view-responsable>
+                </nz-form-control>
+            </nz-form-item>
+            <nz-form-item>
+                <nz-form-label [nzSpan]="3">Contrato</nz-form-label>
+                <nz-form-control [nzSpan]="10">
+                    @if (contratos.length==0 && ObjetivoIdForAdd>0) { <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert> }
+                    <ng-container *ngFor="let contrato of contratos">
+                        <li>Desde {{contrato.ContratoFechaDesde | date}} <span
+                                *ngIf="contrato.ContratoFechaHasta">hasta</span>
+                            {{ contrato.ContratoFechaHasta | date }} </li>
+                    </ng-container>
+                </nz-form-control>
+                <nz-form-control [nzSpan]="11" style="text-align: right;">
+        
+                </nz-form-control>
+
+            </nz-form-item>
+        </ng-container>
           
           <ul class="scrollMargin" nz-list [nzDataSource]="dataGrupos()" nzBordered nzSize="large">
             <nz-list-header class="quantities">Cantidad : {{dataGrupos().length}}</nz-list-header>
