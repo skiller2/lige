@@ -6,8 +6,14 @@ import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal
 import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NgForm } from '@angular/forms';
-import { ApiService } from 'src/app/services/api.service';
-import { firstValueFrom,BehaviorSubject, } from 'rxjs';
+import { ApiService,doOnSubscribe } from 'src/app/services/api.service';
+import { firstValueFrom,BehaviorSubject,debounceTime,switchMap,tap,Observable,map,forkJoin } from 'rxjs';
+import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
+import { LoadingService } from '@delon/abc/loading';
+import { SearchService } from 'src/app/services/search.service';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+
 
 @Component({
   selector: 'app-personal-objetivo',
@@ -15,7 +21,7 @@ import { firstValueFrom,BehaviorSubject, } from 'rxjs';
   imports: [
     NzInputModule,
     NzDatePickerModule,
-    SHARED_IMPORTS, PersonalSearchComponent,ObjetivoSearchComponent],
+    SHARED_IMPORTS, PersonalSearchComponent,ObjetivoSearchComponent,ViewResponsableComponent,CommonModule],
   templateUrl: './personal-objetivo.component.html',
   styleUrl: './personal-objetivo.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,7 +41,20 @@ export class PersonalObjetivoComponnet {
   valuesMapPersonal = []
   ObjetivoIdForAdd = 0
   PersonaIdForAdd = 0
+  $selectedObjetivoIdChange = new BehaviorSubject(0);
+  objetivoResponsablesLoading$ = new BehaviorSubject<boolean | null>(null);
+  contratos: any[] = []
+  objetivoInfo: any = {}
+  selectedSucursalId = 0
 
+  fechaActual = new Date();
+  mes = this.fechaActual.getMonth() + 1; // Agrega 1 porque los meses se indexan desde 0 (0 = enero)
+  anio = this.fechaActual.getFullYear();
+  
+  private readonly route = inject(ActivatedRoute);
+  public router = inject(Router)
+  private readonly loadingSrv = inject(LoadingService);
+  private searchService = inject(SearchService)
   data: { id: number; Descripcion: string }[] = [];
   dataGrupos = signal(this.data);
   dataEmpleados = signal(this.data);
@@ -62,6 +81,18 @@ export class PersonalObjetivoComponnet {
     this.ObjetivoId = result
     this.groupMap()
     this.addMoreUser = true
+
+    if (this.ObjetivoId > 0) {
+      this.router.navigate(['.', { ObjetivoId: this.ObjetivoId }], {
+          relativeTo: this.route,
+          skipLocationChange: false,
+          replaceUrl: false,
+      })
+      this.selectedSucursalId = this.objetivoInfo?.SucursalId
+    }
+
+  this.$selectedObjetivoIdChange.next(this.ObjetivoId);
+  //this.$isObjetivoDataLoading.next(true);
 
   }
 
@@ -120,7 +151,33 @@ export class PersonalObjetivoComponnet {
     this.groupMap()
 
   }
-  
+
+  $objetivoDetalle = this.$selectedObjetivoIdChange.pipe(
+    debounceTime(50),
+    switchMap(objetivoId => {
+        return this.getObjetivoDetalle(objetivoId, this.anio, this.mes)
+            .pipe(
+                doOnSubscribe(() => this.objetivoResponsablesLoading$.next(true)),
+                tap({
+                    complete: () => { this.objetivoResponsablesLoading$.next(false) },
+                })
+            );
+    })
+  );
+
+  getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      return forkJoin([
+          this.searchService.getObjetivoResponsables(objetivoId, anio, mes),
+          this.searchService.getObjetivoContratos(objetivoId, anio, mes),
+      ]).pipe(
+          map((data: any[]) => {
+              this.loadingSrv.close()
+              this.contratos = data[1]
+              return { responsable: data[0], contratos: data[1], periodo: data[2] };
+          })
+      );
+    }
   
 }
 
