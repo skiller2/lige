@@ -6,18 +6,31 @@
     </li>
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'cust','cargamanual']">Carga manual</a>
+      <a [routerLink]="['/', 'ges', 'cust','cargamanual']" (click)="resetObjCustodiaId()">Carga manual</a>
     </li>
   </ul>
   <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/cust/objetivos">Objetivos</a>
+
+      
+
       <ng-template nz-tab>
+        
+        <nz-form-control [nzSpan]="3">
+          <button nz-button nzType="default" (click)="getObjCustodiaId()" *ngIf="editCustodiaId">
+            <a [routerLink]="['/', 'ges', 'cust','cargamanual']" >
+              <span nz-icon nzType="edit" nzTheme="outline"></span>
+            </a>
+          </button>
+        </nz-form-control>
+        
+
         <div class="gridListContainer container-fluid">
           <angular-slickgrid gridId="grid" [columnDefinitions]="columnas" [gridOptions]="gridOptions"
-            [dataset]="gridDataInsert || []" (onAngularGridCreated)="angularGridReady($event)">
-            <!-- (onSelectedRowsChanged)="handleSelectedRowsChanged1($event)"> -->
+            [dataset]="gridDataInsert || []" (onAngularGridCreated)="angularGridReady($event)"
+            (onSelectedRowsChanged)="handleSelectedRowsChanged()">
           </angular-slickgrid>
         </div>
       </ng-template>
@@ -57,7 +70,7 @@
               <nz-date-picker
                 [nzShowTime]="{ nzFormat: 'HH:mm' }"
                 ngModel
-                name ="fechaInicial"
+                name ="fechaInicio"
               ></nz-date-picker>
             </nz-input-group>
           </nz-form-control>
@@ -122,13 +135,13 @@
             <nz-form-label  [nzSpan]="3"> Personal </nz-form-label>
             <nz-form-control [nzSpan]="8">
               <nz-input-group style="width: 100%">
-                <app-personal-search ngModel name={{i}}personalId />
+                <app-personal-search ngModel name={{i+1}}personalId />
               </nz-input-group>
             </nz-form-control>
             <nz-form-label  [nzSpan]="2"> Importe </nz-form-label>
             <nz-form-control [nzSpan]="6">
               <nz-input-group style="width: 100%">
-                <input nz-input placeholder="" ngModel name={{i}}importePersonal type="number" />
+                <input nz-input placeholder="" ngModel name={{i+1}}importePersonal type="number" />
               </nz-input-group>
             </nz-form-control>
             <nz-form-control [nzSpan]="1" style="text-align: right;">
@@ -152,19 +165,19 @@
             <nz-form-label  [nzSpan]="3"> Patente </nz-form-label>
             <nz-form-control [nzSpan]="3">
               <nz-input-group style="width: 100%">
-                <input nz-input placeholder="" ngModel name={{i}}patente type="text"/>
+                <input nz-input placeholder="" ngModel name={{i+1}}patente type="text"/>
               </nz-input-group>
             </nz-form-control>
             <nz-form-label  [nzSpan]="2"> Dueño </nz-form-label>
             <nz-form-control [nzSpan]="6">
               <nz-input-group style="width: 100%">
-                <app-personal-search ngModel name={{i}}duenoId />
+                <app-personal-search ngModel name={{i+1}}duenoId />
               </nz-input-group>
             </nz-form-control>
             <nz-form-label  [nzSpan]="2"> Importe </nz-form-label>
             <nz-form-control [nzSpan]="3">
               <nz-input-group style="width: 100%">
-                <input nz-input placeholder="" ngModel name={{i}}importeVehiculo type="number" />
+                <input nz-input placeholder="" ngModel name={{i+1}}importeVehiculo type="number" />
               </nz-input-group>
             </nz-form-control>
             <nz-form-control [nzSpan]="1" style="text-align: right;">
@@ -187,6 +200,16 @@
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
             <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar guardar cambios?" nz-button (nzOnConfirm)="save()">
               Guardar Cambios
+            </button>
+          </nz-form-control>
+          <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
+            <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar accion?" nz-button *ngIf="editCustodiaId">
+              Finalizar
+            </button>
+          </nz-form-control>
+          <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
+            <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar accion?" nz-button *ngIf="editCustodiaId">
+              Cancelar
             </button>
           </nz-form-control>
         </nz-form-item>
