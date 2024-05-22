@@ -79,11 +79,13 @@ export class ClienteSearchComponent implements ControlValueAccessor {
 
   set selectedId(val: string) {
     val = (val === null || val === undefined) ? '' : val
-    if (val !== this._selectedId) {
+    
+    if (val !== this._selectedId) {     
       this._selectedId = val
 
-      if (!this._selectedId && this._selectedId !== null) {
-        this.valueExtendedEmitter.emit(null)
+      if (this._selectedId == '' || this._selectedId == '0') {
+        this.valueExtendedEmitter.emit({})
+        this._selected = ''
         this.propagateChange(this._selectedId)
         return
       }

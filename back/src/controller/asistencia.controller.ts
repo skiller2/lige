@@ -2407,8 +2407,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         id: hasta ? obj.id : index + 1,
         dbid: obj.dbid,
         apellidoNombre: {
-          fullName: obj.fullName,
-          id: obj.PersonalId
+          id: obj.PersonalId,          
+          fullName: obj.fullName
         },
         categoria: {
           fullName: `${obj.CategoriaDescripcion.trim()} ${(obj.ValorLiquidacionHorasTrabajoHoraNormal > 0) ? obj.ValorLiquidacionHorasTrabajoHoraNormal : ''}`,
