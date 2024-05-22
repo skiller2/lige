@@ -137,7 +137,6 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
 
   writeValue(value: any) {
-    console.log('writeValue',value)
     if (value !== this._selectedId) {
       this.selectedId = value
     }
