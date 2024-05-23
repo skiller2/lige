@@ -297,8 +297,8 @@ export class CargaAsistenciaComponent {
                 //                undoCommandArr.push(editCommand)
                 if (column.type == FieldType.number || column.type == FieldType.float)
                     editCommand.serializedValue = Number(editCommand.serializedValue)
-
-                if (editCommand.serializedValue === editCommand.prevSerializedValue) return
+                if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
+//                editCommand.serializedValue == editCommand.prevSerializedValue) return
                 editCommand.execute()
                 while (this.rowLocked) await firstValueFrom(timer(500));
                 row = this.angularGridEdit.dataView.getItemById(row.id)

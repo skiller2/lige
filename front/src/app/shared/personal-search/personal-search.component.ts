@@ -103,15 +103,25 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   set selectedId(val: string) {
     this.psc?.focus()
     val = (val === null || val === undefined) ? '' : val
+
     if (val !== this._selectedId) {
       this._selectedId = val
+
+      if (this._selectedId == '' || this._selectedId == '0') {
+        this.valueExtendedEmitter.emit({})
+        this._selected = ''
+        this.propagateChange(this._selectedId)
+        return
+      }
+  
+/*
 
       if (!this._selectedId && this._selectedId !== null) {
         this.valueExtendedEmitter.emit({})
         this.propagateChange(this._selectedId)
         return
       }
-
+*/
       firstValueFrom(
         this.searchService
           .getPersonFromName('PersonalId', this._selectedId)
