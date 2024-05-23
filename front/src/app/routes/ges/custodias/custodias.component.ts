@@ -39,8 +39,9 @@ export class CustodiaComponent {
     editCustodiaId = 0;
     excelExportService = new ExcelExportService()
 
-    listInputPersonal: Array<number> = [1];
-    listInputVehiculo: Array<number> = [1];
+    cantInputs : Array<number> = [1,2,3,4,5]
+    listInputPersonal: Array<number> = this.cantInputs;
+    listInputVehiculo: Array<number> = this.cantInputs;
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
@@ -219,9 +220,16 @@ export class CustodiaComponent {
 
     resetObjCustodiaId(): void {
         this.editCustodiaId = 0
-        this.ngForm().onReset()
-        // console.log('editCustodiaId', this.editCustodiaId);
-        // console.log('graba',this.ngForm().value)
+        this.ngForm().reset()
+        this.listInputPersonal = [1]
+        this.listInputVehiculo = [1]
+    }
+
+    resetForm(): void {
+        this.editCustodiaId = 0
+        this.listInputPersonal = this.cantInputs
+        this.listInputVehiculo = this.cantInputs
+        this.ngForm().reset()
     }
 
     async getObjCustodiaId(){
@@ -230,7 +238,7 @@ export class CustodiaComponent {
         // console.log('res', res);
         this.listInputPersonal = res.personalLength
         this.listInputVehiculo = res.vehiculoLength
-        this.ngForm().setValue(res.form)
+        this.ngForm().reset(res.form)
     }
 
 }

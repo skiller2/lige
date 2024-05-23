@@ -206,8 +206,8 @@ export class CustodiaController extends BaseController {
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            // const responsableId = 1
-            const responsableId = res.locals.PersonalId
+            const responsableId = 699
+            // const responsableId = res.locals.PersonalId
             if (!responsableId) 
                 throw new ClientException(`No se a encontrado al personal responsable`)
             const objetivoCustodiaId = await this.getProxNumero(queryRunner, `objetivocustodia`, usuario, ip)
@@ -264,8 +264,8 @@ export class CustodiaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try{
             await queryRunner.startTransaction()
-            // const responsableId = 1
-            const responsableId = res.locals.PersonalId
+            const responsableId = 699
+            // const responsableId = res.locals.PersonalId
             let result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, responsableId)
             const estados= ['Pendiente', 'Finalizado', 'Cancelado']
             let list = result.map((obj : any) => {
@@ -325,9 +325,9 @@ export class CustodiaController extends BaseController {
             })
             
             let respuesta = {
-                form:infoCustodia, 
-                vehiculoLength:listInputPersonal, 
-                personalLength:listInputVehiculo
+                form: infoCustodia, 
+                vehiculoLength: listInputVehiculo, 
+                personalLength: listInputPersonal
             }
             // console.log('respuesta', respuesta);
             await queryRunner.commitTransaction()
@@ -348,8 +348,8 @@ export class CustodiaController extends BaseController {
             await queryRunner.startTransaction()
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            // const responsableId = 1
-            const responsableId = res.locals.PersonalId
+            const responsableId = 699
+            // const responsableId = res.locals.PersonalId
             const custodiaId = req.params.id
             const objetivoCustodia = {...req.body }
             let errores = []
