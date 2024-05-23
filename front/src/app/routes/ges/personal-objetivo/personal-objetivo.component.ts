@@ -13,6 +13,8 @@ import { LoadingService } from '@delon/abc/loading';
 import { SearchService } from 'src/app/services/search.service';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
+
 
 
 @Component({
@@ -21,7 +23,7 @@ import { ActivatedRoute, Router } from '@angular/router';
   imports: [
     NzInputModule,
     NzDatePickerModule,
-    SHARED_IMPORTS, PersonalSearchComponent,ObjetivoSearchComponent,ViewResponsableComponent,CommonModule],
+    SHARED_IMPORTS, PersonalSearchComponent,ObjetivoSearchComponent,ViewResponsableComponent,CommonModule,DetallePersonaComponent],
   templateUrl: './personal-objetivo.component.html',
   styleUrl: './personal-objetivo.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,6 +48,7 @@ export class PersonalObjetivoComponnet {
   contratos: any[] = []
   objetivoInfo: any = {}
   selectedSucursalId = 0
+  visibleDrawer: boolean = false
 
   fechaActual = new Date();
   mes = this.fechaActual.getMonth() + 1; // Agrega 1 porque los meses se indexan desde 0 (0 = enero)
@@ -178,6 +181,17 @@ export class PersonalObjetivoComponnet {
           })
       );
     }
+
+    openDrawer(): void {
+     
+      if (this.userId == 0) return
+      this.visibleDrawer = true
+  }
+
+  closeDrawer(): void {
+    this.visibleDrawer = false;
+}
+
   
 }
 
