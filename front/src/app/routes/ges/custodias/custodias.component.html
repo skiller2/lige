@@ -203,12 +203,12 @@
             </button>
           </nz-form-control>
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
-            <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar accion?" nz-button *ngIf="editCustodiaId">
+            <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar accion?" nz-button *ngIf="editCustodiaId" (nzOnConfirm)="setEstado(1)">
               Finalizar
             </button>
           </nz-form-control>
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
-            <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar accion?" nz-button *ngIf="editCustodiaId">
+            <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar accion?" nz-button *ngIf="editCustodiaId" (nzOnConfirm)="setEstado(2)">
               Cancelar
             </button>
           </nz-form-control>
