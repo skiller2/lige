@@ -30,11 +30,11 @@ const flowLogin = addKeyword(EVENTS.WELCOME)
             await state.update({ personalId: res[0].personalId })
             await state.update({ cuit: res[0].cuit })
             await state.update({ name: res[0].name.trim() })
-            await flowDynamic(`Hola ${res[0].name.trim()} y bienvenido al área de consultas de Lince Seguridad`)
+            await flowDynamic(`Hola ${res[0].name.trim()}, bienvenido al área de consultas de Lince Seguridad`)
             return gotoFlow(flowMenu)
         }
     })
-    .addAnswer('Hola y bienvenido al área de consultas de Lince Seguridad', {delay: delay})
+    .addAnswer('Bienvenido al área de consultas de Lince Seguridad', {delay: delay})
     // .addAnswer('¿Cual es tu nombre?', 
     // { capture: true }, 
     // async (ctx, { flowDynamic, state, fallBack }) => {
@@ -61,22 +61,32 @@ const flowLogin = addKeyword(EVENTS.WELCOME)
         await state.update({ personalId: res[0].PersonalId })
         await state.update({ cuit: ctx.body })
     })
-    .addAnswer('¿Cuanto fue el importe de tu ultimo deposito?', 
+    .addAnswer('¿Cuánto fue el importe de tu último deposito realizado?', 
     { capture: true, delay: delay },  
-    async (ctx, { state, gotoFlow, fallBack }) => {
-        const deposito = parseFloat(ctx.body)
-        const myState = state.getMyState()
+        async (ctx, { state, gotoFlow, fallBack,flowDynamic, endFlow }) => {
+        const tempInput = String(ctx.body).replace(/\,|\./gi,'')
+        const deposito = (Number(tempInput))?Number(tempInput) /100:0
+            const myState = state.getMyState()
+            console.log('myState',myState)
         const personalId = myState.personalId
         const telefono = ctx.from
-        // await flowDynamic([{body:`⏱️ Dame un momento`}])
-        const res = await personalController.getUltDepositoQuery(personalId)
-        console.log(res);
-        const ultDeposito = res[0].importe
-        if (res.length = 0) {
-            return gotoFlow(flowMenu)
+
+        if (deposito < 1000) {
+            return endFlow(`El importe ingresado no es correcto`)
         }
+
+        await flowDynamic([{ body: `Valor ingresado ${deposito} \n⏱️ Dame un momento` }])
+        const res = await personalController.getUltDepositoQuery(personalId)
+
+            
+        if (res.length == 0) {
+
+            return endFlow(`No se puede verificar la información en este momento.  Debe comunicarse con personal`)
+        }
+        const ultDeposito = res[0].importe
+
         if (deposito < ultDeposito - 1 || deposito > ultDeposito + 1 ) {
-            return fallBack(`Valor incorrecto\n¿Cuanto fue el importe de tu ultimo deposito?`)
+            return fallBack(`Valor ${deposito} incorrecto\n¿Cuanto fue el importe de tu ultimo deposito?`)
         }
         await personalController.checkTelefonoPersonal(personalId, telefono, 'Bot', '')
         return gotoFlow(flowMenu)

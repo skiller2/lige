@@ -40,11 +40,12 @@ export class PersonalController extends BaseController {
 
   async getUltDepositoQuery(personalId: number){
     const result = await dataSource.query(
-      `SELECT TOP 1 persona_id, periodo_id, importe 
-      FROM lige.dbo.liqmamovimientos 
-      WHERE persona_id = @0 
+      `SELECT TOP 1 mov.persona_id, mov.periodo_id, mov.importe, per.anio, per.mes
+      FROM lige.dbo.liqmamovimientos mov
+      JOIN lige.dbo.liqmaperiodo per ON per.periodo_id=mov.periodo_id
+      WHERE persona_id = @0
       AND  tipo_movimiento_id=11
-      ORDER BY periodo_id DESC ,movimiento_id DESC`,
+      ORDER BY per.anio DESC, per.mes DESC, mov.movimiento_id DESC`,
       [ personalId ]
     );
     return result
@@ -64,11 +65,12 @@ export class PersonalController extends BaseController {
     try {
       let result : any
       const [telefonoPersonal] = await dataSource.query(
-        `SELECT reg.personal_id personalId, reg.telefono
+        `SELECT reg.personal_id personalId, reg.telefono telefonoPersonal
         FROM lige.dbo.regtelefonopersonal reg
         WHERE reg.personal_id = @0`,
         [ personalId ]
       );
+
       if (telefonoPersonal) {
         result = await this.updateTelefonoPersonalQuery(personalId, telefono, usuario, ip)
       } else {
@@ -125,7 +127,7 @@ export class PersonalController extends BaseController {
     const fecha = new Date
     const result = await dataSource.query(
       `UPDATE lige.dbo.regtelefonopersonal SET telefono = @1, aud_usuario_mod = @2, aud_ip_mod= @3, aud_fecha_mod = @4
-      WHERE AND personal_id = @0`,
+      WHERE personal_id = @0`,
       [ personalId, telefono, usuario, ip, fecha ]
     );
     return result

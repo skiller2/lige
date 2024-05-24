@@ -6,7 +6,6 @@ import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import * as fs from 'fs';
 import { QueryRunner } from "typeorm";
-import { Utils } from "./util";
 
 export class RecibosController extends BaseController {
 
@@ -19,8 +18,43 @@ export class RecibosController extends BaseController {
   //   const result = `http://localhost:3010/api/recibos/download/${year}/${month}/${personalId}`
   //   return result
   // }
+  directoryRecibo = process.env.PATH_RECIBO || "tmp";
+  apiPath = process.env.URL_API_RECIBO || "http://localhost:4200/mess/api";
 
-  async downloadComprobantesByPeriodo(
+
+  async downloadRecibo(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    const doc_id = req.params.doc_id
+
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const data = await queryRunner.query(`SELECT doc.path, doc.nombre_archivo from lige.dbo.docgeneral doc
+      JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
+      WHERE doctipo_id = 'REC' AND doc.doc_id=@0`,
+        [doc_id]
+      )
+
+      if (!data[0])
+        throw new ClientException(`Recibo no generado`)
+
+      res.download(this.directoryRecibo + '/' + data[0].path, data[0].nombre_archivo, async (error) => {
+        if (error) {
+          console.error('Error al descargar el archivo:', error);
+          return next(error)
+        }
+      });
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+
+  async getURLDocRecibo(
     personalId: number,
     year: number,
     month: number,
@@ -32,18 +66,13 @@ export class RecibosController extends BaseController {
       await queryRunner.startTransaction()
       
       const gettmpfilename = await this.getRutaFile(queryRunner, personalId, year, month)
-      let tmpfilename = ''
-      if (gettmpfilename[0] && typeof gettmpfilename[0].path === 'string') {
-        tmpfilename = gettmpfilename[0].path;
+      let tmpURL = ''
+      if (gettmpfilename[0] && gettmpfilename[0].doc_id ) {
+        tmpURL = `${this.apiPath}/recibos/download/${gettmpfilename[0].doc_id}`;
       } else {
         throw new ClientException(`Recibo no generado`)
       }
-      const responsePDFBuffer = await this.obtenerPDFBuffer(tmpfilename);
-      
-      await queryRunner.commitTransaction()
-
-      await fs.promises.writeFile(tmpfilename, responsePDFBuffer);
-      return tmpfilename
+      return tmpURL
     } catch (error) {
       this.rollbackTransaction(queryRunner)
       return error

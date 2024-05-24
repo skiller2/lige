@@ -3,6 +3,6 @@ import { recibosController } from "../controller/controller.module";
 
 export const recibosRouter = Router();
 
-// recibosRouter.get("/download/:anio/:mes/:personalIdRel?", (req, res, next) => {
-//   recibosController.downloadComprobantesByPeriodo(req, res, next);
-// });
+recibosRouter.get("/download/:doc_id?", (req, res, next) => {
+  recibosController.downloadRecibo(req, res, next);
+});
