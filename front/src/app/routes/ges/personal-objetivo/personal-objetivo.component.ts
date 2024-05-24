@@ -14,6 +14,7 @@ import { SearchService } from 'src/app/services/search.service';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
+import { ListaPermisocargaComponent } from '../../../shared/lista-permisocarga/lista-permisocarga.component'
 
 
 
@@ -23,7 +24,13 @@ import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.comp
   imports: [
     NzInputModule,
     NzDatePickerModule,
-    SHARED_IMPORTS, PersonalSearchComponent,ObjetivoSearchComponent,ViewResponsableComponent,CommonModule,DetallePersonaComponent],
+    SHARED_IMPORTS, 
+    PersonalSearchComponent,
+    ObjetivoSearchComponent,
+    ViewResponsableComponent,
+    CommonModule,
+    DetallePersonaComponent,
+    ListaPermisocargaComponent],
   templateUrl: './personal-objetivo.component.html',
   styleUrl: './personal-objetivo.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,

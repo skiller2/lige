@@ -19,6 +19,7 @@ import { pendieteRouter } from "./pendiente.routes";
 import { tipoDocumentoRouter } from "../tipo-documento/tipo-documento.routes";
 import { recibosRouter } from "src/recibos/recibos.routes";
 import { personalObjetivoRouter } from "src/personal-objetivo/personal-objetivo.routes";
+import { listaPersmisoCargaRouter } from "src/lista-permisocarga/lista-permisocarga.controller.routes";
 import { custodiaRouter } from "./custodia.routes"
 
 export function makeRoutes(server: WebServer) {
@@ -43,5 +44,6 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/recibos", recibosRouter);
   server.setRoute("/api/personalobjetivo", personalObjetivoRouter);
   server.setRoute("/api/custodia", custodiaRouter);
-
+  server.setRoute("/api/lista-permisocarga", listaPersmisoCargaRouter);
+  
 }
