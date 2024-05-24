@@ -14,6 +14,7 @@ dotenv.config()
 // Init App
 const dbServer = new DBServer(5, 2000, dataSource)
 const webServer = new WebServer(Number(process.env.SERVER_API_PORT))
+
 //const categoriasController = new CategoriasController()
 //const objetivoController = new ObjetivoController()
 
@@ -63,12 +64,14 @@ webServer.init()
 
     process.exit()
   })
-
-const botLince = async () =>{
-  await BotWhatsapp.createBot({
+let globalState:any
+const botInit = async () =>{
+    return await BotWhatsapp.createBot({
     flow,
     database: new JsonFileAdapter(),
     provider: BotWhatsapp.createProvider(ProviderWs)
-  })
+  },{delay:1000})
 }
-botLince()
+
+const {globalStateHandler} = await botInit()
+console.log('bot',globalStateHandler)

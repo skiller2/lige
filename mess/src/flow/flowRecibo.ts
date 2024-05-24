@@ -47,11 +47,14 @@ const flowRecibo = addKeyword(['2','recibo de retiro', 'recibo', 'r'])
         const anio = periodosArray[parseInt(msj)-1].anio
         const personalId = myState.personalId
         // await flowDynamic([{ body:`⏱️ Dame un momento`, delay: delay }])
-        const reciboPdf = await recibosController.downloadComprobantesByPeriodo(personalId, anio, mes).then(data => { return data })
-        if (reciboPdf instanceof ClientException)
-            await flowDynamic([{ body:`Error. Avisé al administrador`, delay }])
+        const urlDocRecibo = await recibosController.getURLDocRecibo(personalId, anio, mes)
+
+        console.log('reciboPdf',urlDocRecibo)
+        if (urlDocRecibo instanceof Error)
+            await flowDynamic([{ body:`Error, no se encontró el recibo correspondiente`, delay }])
         else
-            await flowDynamic([ { body:``, media: reciboPdf } ]) 
+            await flowDynamic([ { body:`Recibo`, media:urlDocRecibo } ]) 
+//            await flowDynamic([ { body:`Rec`, media:"https://i.imgur.com/0HpzsEm.png" } ]) 
     })
     .addAnswer([
         '¿Desea consulta algo mas?', 
