@@ -82,7 +82,6 @@ export class TableAbmLicenciaComponent {
  mes = input<number>();
 
   ngOnChanges(changes: SimpleChanges) {
-    debugger
     this.formChange$.next("");
   }
 
@@ -93,10 +92,11 @@ export class TableAbmLicenciaComponent {
       return (fil.index != 'anio' && fil.index != 'mes') ? true : false
     })
 
-    this.listOptions.filtros.push({ index: 'anio', operador: '=', condition: 'AND', valor: localStorage.getItem('anio') })
-    this.listOptions.filtros.push({ index: 'mes', operador: '=', condition: 'AND', valor: localStorage.getItem('mes') })
+    // this.listOptions.filtros.push({ index: 'anio', operador: '=', condition: 'AND', valor: localStorage.getItem('anio') })
+    // this.listOptions.filtros.push({ index: 'mes', operador: '=', condition: 'AND', valor: localStorage.getItem('mes') })
 
     this.formChange$.next('')
+    console.log(this.listOptions)
   }
 
   gridData$ = this.formChange$.pipe(
