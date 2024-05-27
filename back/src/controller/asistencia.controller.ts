@@ -357,7 +357,7 @@ export class AsistenciaController extends BaseController {
     WHERE lic.PersonalLicenciaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(ISNULL(lic.PersonalLicenciaTermina,lic.PersonalLicenciaHasta),'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
     ${listPersonaId} ` 
     
-    if(filterSql.length > 0)
+    if(filterSql && filterSql.length > 0)
       selectquery += `AND ${filterSql}`
 
     return await queryRunner.query(selectquery, [, anio, mes]) 
