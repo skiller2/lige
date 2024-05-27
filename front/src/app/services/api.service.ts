@@ -741,6 +741,13 @@ export class ApiService {
 
   }
 
+  getColumnsCustodia() {
+    return this.http.get<ResponseJSON<any>>('/api/custodia/cols').pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([])),
+    )
+  }
+
   addObjCustodia(custodia:any) {
     return this.http.post<ResponseJSON<any>>('/api/custodia/add', custodia).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),

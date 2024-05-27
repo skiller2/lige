@@ -10,8 +10,9 @@ import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
+import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 
 
 @Component({
@@ -21,7 +22,7 @@ import { SearchService } from 'src/app/services/search.service';
     standalone: true,
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent],
+    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 
 })
@@ -38,6 +39,9 @@ export class CustodiaComponent {
     detailViewRowCount = 1;
     editCustodiaId = 0;
     excelExportService = new ExcelExportService()
+    visibleDrawer: boolean = false
+    periodo = signal({ year: 0, month: 0 });
+    personalId = signal(0);
 
     cantInputs : Array<number> = [1,2,3,4,5]
     listInputPersonal: Array<number> = this.cantInputs;
@@ -46,6 +50,19 @@ export class CustodiaComponent {
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
     public apiService = inject(ApiService)
+
+    columns$ = this.apiService.getColumnsCustodia().pipe(map((cols) => {
+        let mapped = cols.map((col:any) => {
+            let item = col
+            if(col.type)
+                item = {...item, type : FieldType[col.type as keyof typeof FieldType]}
+            if(col.formatter = 'complexObject')
+                item = {...item, formatter: Formatters.complexObject}
+            return item
+        });
+        // console.log('mapped', mapped);
+        return mapped
+      }));
 
     async ngOnInit(){
         this.columnas = [
@@ -223,6 +240,7 @@ export class CustodiaComponent {
         this.ngForm().reset()
         this.listInputPersonal = [1]
         this.listInputVehiculo = [1]
+        this.periodo.set({ year: 0, month: 0 })
     }
 
     resetForm(): void {
@@ -236,9 +254,35 @@ export class CustodiaComponent {
         // console.log('graba',this.ngForm().value)
         const res = await firstValueFrom(this.searchService.getInfoObjCustodia(this.editCustodiaId))
         // console.log('res', res);
+        res.form.fechaInicio = new Date(res.form.fechaInicio)
+        if(res.form.fechaFinal)
+            res.form.fechaFinal = new Date(res.form.fechaFinal)
         this.listInputPersonal = res.personalLength
         this.listInputVehiculo = res.vehiculoLength
         this.ngForm().reset(res.form)
+    }
+
+    openDrawer(key:any): void {
+        const personalId = this.ngForm().value[key]
+        if (!personalId) return
+        this.personalId.set(personalId)
+        this.visibleDrawer = true
+        // console.log('personalId', personalId);
+        // console.log('this.periodo().year', this.periodo().year);
+        // console.log('this.periodo().month', this.periodo().month);
+    }
+
+    closeDrawer(): void {
+        this.visibleDrawer = false;
+        this.personalId.set(0)
+    }
+
+    onChangePeriodo(result: Date): void {
+        if (result) {
+            const year = result.getFullYear()
+            const month = result.getMonth()+1
+            this.periodo.set({ year, month })
+        }
     }
 
 }

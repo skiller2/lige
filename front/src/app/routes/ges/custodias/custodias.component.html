@@ -26,9 +26,8 @@
           </button>
         </nz-form-control>
         
-
-        <div class="gridListContainer container-fluid">
-          <angular-slickgrid gridId="grid" [columnDefinitions]="columnas" [gridOptions]="gridOptions"
+        <div class="gridListContainer container-fluid" *ngIf="(columns$|async) as cols">
+          <angular-slickgrid gridId="grid" [columnDefinitions]="cols" [gridOptions]="gridOptions"
             [dataset]="gridDataInsert || []" (onAngularGridCreated)="angularGridReady($event)"
             (onSelectedRowsChanged)="handleSelectedRowsChanged()">
           </angular-slickgrid>
@@ -71,6 +70,7 @@
                 [nzShowTime]="{ nzFormat: 'HH:mm' }"
                 ngModel
                 name ="fechaInicio"
+                (ngModelChange)="onChangePeriodo($event)"
               ></nz-date-picker>
             </nz-input-group>
           </nz-form-control>
@@ -111,16 +111,6 @@
         </nz-form-item>
 
         <nz-form-item class="marginElement">
-          <nz-form-label [nzSpan]="3">Distancia - km</nz-form-label>
-        
-          <nz-form-control [nzSpan]="17">
-            <nz-input-group style="width: 100%">
-              <input nz-input placeholder="Kilometros" ngModel name="kilometros" type="number" />
-            </nz-input-group>
-          </nz-form-control>
-        </nz-form-item>
-
-        <nz-form-item class="marginElement">
           <nz-form-label [nzSpan]="3">Importe a Facturar</nz-form-label>
         
           <nz-form-control [nzSpan]="17">
@@ -133,13 +123,16 @@
         @for (control of listInputPersonal; track control; let i = $index) {
           <nz-form-item class="marginElement">
             <nz-form-label  [nzSpan]="3"> Personal </nz-form-label>
-            <nz-form-control [nzSpan]="8">
+            <nz-form-control [nzSpan]="7">
               <nz-input-group style="width: 100%">
                 <app-personal-search ngModel name={{i+1}}personalId />
               </nz-input-group>
             </nz-form-control>
+            <nz-form-control [nzSpan]="1" style="text-align: center;">
+              <a (click)="openDrawer(i+1+'personalId')"><span nz-icon nzType="user" nzTheme="outline"></span></a>
+            </nz-form-control>
             <nz-form-label  [nzSpan]="2"> Importe </nz-form-label>
-            <nz-form-control [nzSpan]="6">
+            <nz-form-control [nzSpan]="5">
               <nz-input-group style="width: 100%">
                 <input nz-input placeholder="" ngModel name={{i+1}}importePersonal type="number" />
               </nz-input-group>
@@ -213,12 +206,30 @@
             </button>
           </nz-form-control>
         </nz-form-item>
-    
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzSpan]="3">Horas a Facturar</nz-form-label>
+        
+          <nz-form-control [nzSpan]="17">
+            <nz-input-group style="width: 100%">
+              <input nz-input placeholder="" ngModel name="horasFacturar" type="number" />
+            </nz-input-group>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzSpan]="3">Distancia - km</nz-form-label>
+        
+          <nz-form-control [nzSpan]="17">
+            <nz-input-group style="width: 100%">
+              <input nz-input placeholder="Kilometros" ngModel name="kilometros" type="number" />
+            </nz-input-group>
+          </nz-form-control>
+        </nz-form-item>
+
       </form>
     </nz-tab>
-
   </nz-tabset>
-
-    
-  
 </nz-card>
+<app-detalle-persona [anio]="periodo().year" [mes]="periodo().month" [SucursalId]="0"
+  [PersonalId]="personalId()" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>

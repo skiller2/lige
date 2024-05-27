@@ -586,14 +586,17 @@ export class SearchService {
     return this.http
       .get<ResponseJSON<any>>(`api/custodia/list`)
       .pipe(
-        map(res => res.data),
+        map(res => {
+          console.log('res.data', res.data);
+          
+          return res.data}),
         catchError(() => of([]))
       );
   }
 
   getInfoObjCustodia(objCustodiaId: number){
     return this.http
-      .get<ResponseJSON<any>>(`api/custodia/${objCustodiaId}`)
+      .get<ResponseJSON<any>>(`api/custodia/obj/${objCustodiaId}`)
       .pipe(
         map(res => res.data),
         catchError(() => of([]))

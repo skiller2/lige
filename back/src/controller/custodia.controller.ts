@@ -5,6 +5,94 @@ import { QueryRunner } from "typeorm";
 import { ObjetivoController } from "./objetivo.controller";
 import { filtrosToSql, orderToSQL } from "src/impuestos-afip/filtros-utils/filtros";
 
+const columnsObjCustodia: any[] = [
+    {
+        id:'id' , name:'Codigo' , field:'id',
+        sortable: true,
+        type: 'number',
+        maxWidth: 100,
+        // minWidth: 10,
+    },
+    {
+        id:'cliente' , name:'Cliente' , field:'cliente',
+        sortable: true,
+        type: 'string',
+        formatter: 'complexObject',
+        params: {
+            complexFieldLabel: 'cliente.fullName',
+        },
+        // maxWidth: 170,
+        minWidth: 140,
+    },
+    {
+        id:'descripcion' , name:'Descripcion' , field:'descripcion',
+        sortable: true,
+        type: 'text',
+        // maxWidth: 300,
+        minWidth: 230,
+    },
+    {
+        id:'fechaI' , name:'Fecha Inicio' , field:'fechaI',
+        sortable: true,
+        type: 'dateTimeShortUs',
+        maxWidth: 150,
+        minWidth: 110,
+    },
+    {
+        id:'origen' , name:'Origen' , field:'origen',
+        sortable: true,
+        type: 'string',
+        // maxWidth: 180,
+        minWidth: 140,
+    },
+    {
+        id:'fechaF' , name:'Fecha Final' , field:'fechaF',
+        sortable: true,
+        type: 'dateTimeShortUs',
+        maxWidth: 150,
+        minWidth: 110,
+    },
+    {
+        id:'destino' , name:'Destino' , field:'destino',
+        sortable: true,
+        type: 'string',
+        // maxWidth: 180,
+        minWidth: 140,
+    },
+    // {
+    //     id:'montopersonal' , name:'Monto Personal' , field:'montopersonal',
+    //     sortable: true,
+    //     type: FieldType.string,
+    //     maxWidth: 150,
+    //     minWidth: 110,
+    // },
+    // {
+    //     id:'montovehiculo' , name:'Monto Vehiculo' , field:'montovehiculo',
+    //     sortable: true,
+    //     type: FieldType.string,
+    //     maxWidth: 150,
+    //     minWidth: 110,
+    // },
+    // {
+    //     id:'importe' , name:'Importe' , field:'importe',
+    //     sortable: true,
+    //     type: FieldType.string,
+    //     maxWidth: 150,
+    //     minWidth: 110,
+    // },
+    {
+        id:'estado' , name:'Estado' , field:'estado',
+        sortable: true,
+        type: 'string',
+        formatter: 'complexObject',
+        params: {
+            complexFieldLabel: 'estado.descripcion',
+        },
+        maxWidth: 180,
+        minWidth: 130,
+    },
+]
+
 export class CustodiaController extends BaseController {
 
     async addObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia:any, usuario: any, ip: any){
@@ -206,8 +294,8 @@ export class CustodiaController extends BaseController {
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            const responsableId = 699
-            // const responsableId = res.locals.PersonalId
+            // const responsableId = 699
+            const responsableId = res.locals.PersonalId
             if (!responsableId) 
                 throw new ClientException(`No se a encontrado al personal responsable`)
             const objetivoCustodiaId = await this.getProxNumero(queryRunner, `objetivocustodia`, usuario, ip)
@@ -264,15 +352,15 @@ export class CustodiaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try{
             await queryRunner.startTransaction()
-            const responsableId = 699
-            // const responsableId = res.locals.PersonalId
+            // const responsableId = 699
+            const responsableId = res.locals.PersonalId
             let result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, responsableId)
             const estados= ['Pendiente', 'Finalizado', 'Cancelado']
             let list = result.map((obj : any) => {
                 return {
                     id: obj.id,
                     responsable:{ id: responsableId},
-                    cliente:{ id: obj.clienteId, fullName: obj.ClienteApellidoNombre},
+                    cliente:{ id: obj.clienteId, fullName: obj.cliente},
                     descripcion: obj.descripcion,
                     fechaI: obj.fecha_inicio.toISOString().slice(0, 19).replace('T', ' '),
                     origen: obj.origen,
@@ -348,8 +436,8 @@ export class CustodiaController extends BaseController {
             await queryRunner.startTransaction()
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            const responsableId = 699
-            // const responsableId = res.locals.PersonalId
+            // const responsableId = 699
+            const responsableId = res.locals.PersonalId
             const custodiaId = req.params.id
             const objetivoCustodia = {...req.body }
             let errores = []
@@ -486,6 +574,10 @@ export class CustodiaController extends BaseController {
         } finally {
             await queryRunner.release()
         }
+    }
+
+    async getGridColumns(req: any, res: Response, next: NextFunction) {
+        return this.jsonRes(columnsObjCustodia, res)
     }
     
 }
