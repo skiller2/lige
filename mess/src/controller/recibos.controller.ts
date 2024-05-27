@@ -19,7 +19,7 @@ export class RecibosController extends BaseController {
   //   return result
   // }
   directoryRecibo = process.env.PATH_RECIBO || "tmp";
-  apiPath = process.env.URL_API_RECIBO || "http://localhost:4200/mess/api";
+  apiPath = process.env.URL_API || "http://localhost:4200/mess/api";
 
 
   async downloadRecibo(
@@ -86,11 +86,6 @@ export class RecibosController extends BaseController {
       WHERE per.anio =@1 AND per.mes=@2 AND doc.persona_id = @0  AND doctipo_id = 'REC'`,
       [personalIdRel, year, month]
     )
-  }
-
-  async obtenerPDFBuffer(tmpfilename: string) {
-    const buffer = fs.readFileSync(tmpfilename);
-    return buffer;
   }
 
   async getLastPeriodoOfComprobantes( personalId: number, cant: number ) {
