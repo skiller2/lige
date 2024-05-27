@@ -27,6 +27,8 @@ import { RecibosController } from "../recibos/recibos.controller"
 import { PersonalObjetivosController } from "../personal-objetivo/personal-objetivo.controller"
 import { CustodiaController } from "./custodia.controller";
 import { ListaPermisoCargaController } from "../lista-permisocarga/lista-permisocarga.controller";
+import { CargaLicenciaController } from "..//carga-licencia/carga-licencia.controller";
+
 
 
 export const infoController = new InfoController();
@@ -58,5 +60,6 @@ export const recibosController = new RecibosController();
 export const personalObjetivosController = new PersonalObjetivosController();
 export const custodiaController = new CustodiaController();
 export const listaPermisoCargaController = new ListaPermisoCargaController();
+export const cargaLicenciaController = new CargaLicenciaController();
 
 

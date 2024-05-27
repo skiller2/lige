@@ -326,7 +326,7 @@ export class AsistenciaController extends BaseController {
   static async getAsistenciaAdminArt42(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[]) {
     const listPersonaId = (personalId.length == 0) ? '' : 'AND persona.PersonalId IN (' + personalId.join(',') + ')'
 
-    return await queryRunner.query(`    SELECT suc.SucursalId, suc.SucursalDescripcion, licimp.PersonalLicenciaAplicaPeriodoAplicaEl,
+    return await queryRunner.query(`    SELECT ROW_NUMBER() OVER (ORDER BY suc.SucursalId) AS id,suc.SucursalId, suc.SucursalDescripcion, licimp.PersonalLicenciaAplicaPeriodoAplicaEl,
     @1 anio, @2 mes,
     persona.PersonalId, persona.PersonalApellido, persona.PersonalNombre, 
 
