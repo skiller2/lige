@@ -117,6 +117,11 @@
           "icon": "anticon-profile"
         },
         {
+          "text": "Carga de Licencias",
+          "link": "/ges/carga_licencias",
+          "icon": "anticon-profile"
+        },
+        {
           "text": "Permisos",
           "icon": "anticon-profile",
           "children": [

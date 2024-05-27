@@ -22,6 +22,7 @@ import {
 } from "pdf-lib";
 
 import { tmpName } from "../server";
+import { QueryRunner } from "typeorm";
 
 export class ImpuestosAfipController extends BaseController {
 
@@ -37,6 +38,45 @@ export class ImpuestosAfipController extends BaseController {
   // }
     
   directory = process.env.PATH_MONOTRIBUTO || "tmp";
+  apiPath = process.env.URL_API || "http://localhost:4200/mess/api";
+
+
+
+  async getURLDocComprobante(
+    personalId: number,
+    year: number,
+    month: number,
+  ) {
+
+    const queryRunner = dataSource.createQueryRunner();
+    
+    try {
+      await queryRunner.startTransaction()
+      
+      const gettmpfilename = await this.getRutaFile(queryRunner, personalId, year, month)
+      let tmpURL = ''
+      if (gettmpfilename[0] && gettmpfilename[0].doc_id ) {
+        tmpURL = `${this.apiPath}/impuestos_afip/download/${gettmpfilename[0].doc_id}`;
+      } else {
+        throw new ClientException(`Recibo no generado`)
+      }
+      return tmpURL
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return error
+    }
+  }
+
+  async getRutaFile(queryRunner: QueryRunner, personalIdRel: number, year: number, month: number) {
+    return queryRunner.query(`
+      SELECT * from lige.dbo.docgeneral doc
+      JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
+      WHERE per.anio =@1 AND per.mes=@2 AND doc.persona_id = @0  AND doctipo_id = 'REC'`,
+      [personalIdRel, year, month]
+    )
+  }
+
+
     
   async downloadComprobante( personalId: number, year: number, month: number,){
     const queryRunner = dataSource.createQueryRunner();
@@ -88,151 +128,12 @@ export class ImpuestosAfipController extends BaseController {
     }
   }
 
-  async alterPDF(
-    bufferPDF: Uint8Array,
-    ApellidoNombre: string,
-    GrupoActividadDetalle: string
-  ) {
-    if (bufferPDF.length == 0) return;
-    const originPDF = await PDFDocument.load(bufferPDF);
-    const originPDFPages = originPDF.getPages();
-    if (originPDFPages.length == 0) return;
-
-    const newPdf = await PDFDocument.create();
-
-    let currentPage: PDFPage;
-
-    const page0 = originPDFPages[0];
-
-    let embededPages = null;
-    let origenComprobante = "";
-
-  
-
-    TODO://Detectar el espacio vacío alrededor del comprobante de manera automática
-    if (page0.getWidth() == 595.276 && page0.getHeight() == 841.89) {
-      origenComprobante = "PAGO"
-      embededPages = await newPdf.embedPages(originPDFPages, [
-        { top: 790, bottom: 410, left: 53, right: 307 },
-      ]);
-    } else if (page0.getWidth() == 598 && page0.getHeight() == 845) {  //Comprobante AFIP
-      origenComprobante = "AFIP"
-      embededPages = await newPdf.embedPages(originPDFPages, [
-        { top: 808, bottom: 385, left: 37, right: 560 },
-      ]);
-    } else if (page0.getWidth() == 595.32001 && page0.getHeight() == 841.92004) {  //Comprobante Manual
-      origenComprobante = "MANUAL"
-      embededPages = await newPdf.embedPages(originPDFPages, [
-        { top: 830, bottom: 450, left: 167, right: 430 },
-      ]);
-    } else {
-      embededPages = await newPdf.embedPages(originPDFPages);
-    }
-
-    //    const image = await fetch('assets/pdf/firma_recibo.png').then(res => res.arrayBuffer())
-    //    const embededImage = await newPdf.embedPng(image)
-    //    const scaleImage = embededImage.scale(1/20)
-
-    embededPages.forEach((embPage, index) => {
-      const embPageSize = embPage.scale(1);
-      const margin = 20;
-
-      currentPage = newPdf.addPage([
-        embPageSize.width + margin,
-        embPageSize.height + margin,
-      ]);
-      const pageRatio = currentPage.getWidth() / currentPage.getHeight();
-
-      //      currentPage.drawPage(embPage, { x: (currentPage.getWidth() - embPage.width) / 2, y: currentPage.getHeight() / 2 * ((index+1) % 2) })
-      //      const posy =
-      //        index % 2 == 0 ? 0 + 20 : (currentPage.getHeight() / 2) * -1 + 20;
-
-      currentPage.drawPage(embPage, {
-        x: (currentPage.getWidth() - embPageSize.width) / 2,
-        y: (currentPage.getHeight() - embPageSize.height) / 2,
-        width: embPageSize.width,
-        height: embPageSize.height,
-      });
-
-      //      currentPage.drawImage(embededImage, { x: 210, y: (((index) % 2 == 0) ? currentPage.getHeight() / 2: 0)  + 90, width: scaleImage.width, height: scaleImage.height })
-
-      switch (origenComprobante) {
-        case "AFIP":
-          currentPage.drawText(
-            `352-CONTRIBUCIONES OBRA SOCIAL`,
-            {
-              x: 241,
-              y: 187,
-              size: 9,
-              color: rgb(0, 0, 0),
-              lineHeight: 6,
-              //opacity: 0.75,
-            }
-          );
-
-          currentPage.drawText(
-            `COMPROBANTE DE PAGO`,
-            {
-              x: 256,
-              y: 418,
-              size: 16,
-              color: rgb(0, 0, 0),
-              lineHeight: 6,
-              //opacity: 0.75,
-            }
-          );
-          currentPage.drawText(
-            `Grupo: ${GrupoActividadDetalle}`,
-            {
-              x: 33,
-              y: 59,
-              size: 10,
-              color: rgb(0, 0, 0),
-              lineHeight: 6,
-              //opacity: 0.75,
-            }
-          );
-          break;
-        case "PAGO":
-        case "MANUAL":
-          currentPage.drawText(
-            `${ApellidoNombre}\n\nGrupo: ${GrupoActividadDetalle}`,
-            {
-              x: 33,
-              y: 70,
-              size: 10,
-              color: rgb(0, 0, 0),
-              lineHeight: 6,
-              //opacity: 0.75,
-            }
-          );
-          break;
-        default:
-          currentPage.drawText(
-            `${ApellidoNombre}\n\nGrupo: ${GrupoActividadDetalle}`,
-            {
-              x: 33,
-              y: 70,
-              size: 10,
-              color: rgb(0, 0, 0),
-              lineHeight: 6,
-              //opacity: 0.75,
-            }
-          );
-
-          break;
-      }
-    });
-
-    return newPdf.save();
-  }
-
   async getLastPeriodosOfComprobantes( personalId: number, cant: number ) {
     const queryRunner = dataSource.createQueryRunner();
     try {
       // await queryRunner.startTransaction()
       const respuesta = await queryRunner.query(`
-        SELECT TOP ${cant} des.PersonalId, des.PersonalComprobantePagoAFIPMes mes, des.PersonalComprobantePagoAFIPAno anio
+        SELECT TOP ${cant} des.PersonalId, des.PersonalComprobantePagoAFIPId, des.PersonalComprobantePagoAFIPMes mes, des.PersonalComprobantePagoAFIPAno anio
         FROM PersonalComprobantePagoAFIP  des 
         WHERE des.PersonalId = @0 
         ORDER BY des.PersonalComprobantePagoAFIPAno DESC, des.PersonalComprobantePagoAFIPMes DESC`, 

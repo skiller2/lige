@@ -441,6 +441,24 @@ export class ApiService {
 
   }
 
+  getListObjetivoCarga(filters: any) {
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>('/api/lista-permisocarga/list', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+  }
+
+  getListCargaLicencia(filters: any, anio:any,mes:any) {
+    const parameter = [filters,anio,mes]
+    return this.http.post<ResponseJSON<any>>('/api/carga-licencia/list', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+  }
+
   getTipoDocumentos(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/tipo-documento/list', parameter).pipe(

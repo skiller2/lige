@@ -66,7 +66,7 @@ const flowMonotributo = addKeyword(['1','monotributo', 'mono', 'm'])
         if (monotributoPdf instanceof ClientException)
             await flowDynamic([{ body:`Error. Avisé al administrador`, delay }])
         else
-            await flowDynamic([ { media: monotributoPdf, delay } ]) 
+            await flowDynamic([ { body:'Monotributo', media: monotributoPdf, delay } ]) 
     })
     .addAnswer([
         '¿Desea consulta algo mas?', 

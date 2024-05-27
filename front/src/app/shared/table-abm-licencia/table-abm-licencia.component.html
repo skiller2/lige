@@ -1,0 +1,16 @@
+<nz-card class="small-margin">
+    <form nz-form #objpendForm="ngForm">
+      <ng-container>
+       <!-- <span>este es el valor del padre {{anio()}} y  {{mes()}}</span> -->
+        <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
+  
+        <div class="gridContainer container-fluid" *ngIf="(columns$|async) as columnas">
+            <angular-slickgrid gridId="grid" class="" [columnDefinitions]="columnas | colsFilter"
+              [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+              (onAngularGridCreated)="angularGridReady($event)">
+            </angular-slickgrid>
+          </div>
+      </ng-container>
+    </form>
+  </nz-card>
+
