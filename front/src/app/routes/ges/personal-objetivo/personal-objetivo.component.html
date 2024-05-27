@@ -11,6 +11,11 @@
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'personal_objetivo','objetivo']" (click)="restarVariablesPersona()">Objetivo</a>
       </li>
+
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'personal_objetivo','lista']" (click)="restarVariablesPersona()">lista</a>
+      </li>
     </ul>
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
@@ -124,6 +129,14 @@
               </button>
             </nz-form-control>
           </nz-form-item>
+        </ng-template>
+      </nz-tab>
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/personal_objetivo/lista">Lista</a>
+        <ng-template nz-tab>
+      
+        <app-lista-permisocarga></app-lista-permisocarga>
+
         </ng-template>
       </nz-tab>
     
