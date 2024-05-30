@@ -26,8 +26,8 @@
           </button>
         </nz-form-control>
         
-        <div class="gridListContainer container-fluid" *ngIf="(columns$|async) as cols">
-          <angular-slickgrid gridId="grid" [columnDefinitions]="cols" [gridOptions]="gridOptions"
+        <div class="gridListContainer container-fluid" >
+          <angular-slickgrid gridId="grid" [columnDefinitions]="columns$ | async | colsFilter" [gridOptions]="gridOptions"
             [dataset]="gridDataInsert || []" (onAngularGridCreated)="angularGridReady($event)"
             (onSelectedRowsChanged)="handleSelectedRowsChanged()">
           </angular-slickgrid>
@@ -55,7 +55,7 @@
           <nz-form-label [nzSpan]="3">Solicitado por</nz-form-label>
           <nz-form-control [nzSpan]="17">
             <nz-input-group style="width: 100%">
-              <input nz-input placeholder="Kilometros" ngModel name="desc_requirente" type="number" />
+              <input nz-input placeholder="" ngModel name="descRequirente" type="text" />
             </nz-input-group>
           </nz-form-control>
         </nz-form-item>
@@ -122,54 +122,48 @@
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzSpan]="3">Cant. módulos</nz-form-label>
-                  <nz-form-control [nzSpan]="17">
+          <nz-form-control [nzSpan]="7">
             <nz-input-group style="width: 100%">
-              <input nz-input placeholder="" ngModel name="cant_modulos" type="number" />
+              <input nz-input placeholder="" ngModel name="cantModulos" type="number" />
             </nz-input-group>
           </nz-form-control>
-        </nz-form-item>
 
-        <nz-form-item class="marginElement">
           <nz-form-label [nzSpan]="3">Importe módulo</nz-form-label>
-                  <nz-form-control [nzSpan]="17">
+          <nz-form-control [nzSpan]="7">
             <nz-input-group style="width: 100%">
-              <input nz-input placeholder="" ngModel name="importe_modulos" type="number" />
+              <input nz-input placeholder="" ngModel name="importeModulos" type="number" />
             </nz-input-group>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzSpan]="3">Cant. Horas excedentes</nz-form-label>
-          <nz-form-control [nzSpan]="17">
+          <nz-form-control [nzSpan]="7">
             <nz-input-group style="width: 100%">
-              <input nz-input placeholder="Kilometros" ngModel name="cant_horas_exced" type="number" />
+              <input nz-input placeholder="" ngModel name="cantHorasExced" type="number" />
             </nz-input-group>
           </nz-form-control>
-        </nz-form-item>
 
-        <nz-form-item class="marginElement">
           <nz-form-label [nzSpan]="3">Importe hora excedente</nz-form-label>
-          <nz-form-control [nzSpan]="17">
+          <nz-form-control [nzSpan]="7">
             <nz-input-group style="width: 100%">
-              <input nz-input placeholder="Kilometros" ngModel name="impo_horas_exced" type="number" />
+              <input nz-input placeholder="" ngModel name="impoHorasExced" type="number" />
             </nz-input-group>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzSpan]="3">Cant. Km excedentes</nz-form-label>
-          <nz-form-control [nzSpan]="17">
+          <nz-form-control [nzSpan]="7">
             <nz-input-group style="width: 100%">
-              <input nz-input placeholder="Kilometros" ngModel name="cant_km_exced" type="number" />
+              <input nz-input placeholder="" ngModel name="cantKmExced" type="number" />
             </nz-input-group>
           </nz-form-control>
-        </nz-form-item>
 
-        <nz-form-item class="marginElement">
           <nz-form-label [nzSpan]="3">Importe Km excedente</nz-form-label>
-          <nz-form-control [nzSpan]="17">
+          <nz-form-control [nzSpan]="7">
             <nz-input-group style="width: 100%">
-              <input nz-input placeholder="Kilometros" ngModel name="impo_km_exced" type="number" />
+              <input nz-input placeholder="" ngModel name="impoKmExced" type="number" />
             </nz-input-group>
           </nz-form-control>
         </nz-form-item>
@@ -178,7 +172,7 @@
           <nz-form-label [nzSpan]="3">Importe Peajes</nz-form-label>
           <nz-form-control [nzSpan]="17">
             <nz-input-group style="width: 100%">
-              <input nz-input placeholder="Kilometros" ngModel name="impo_peaje" type="number" />
+              <input nz-input placeholder="" ngModel name="impoPeaje" type="number" />
             </nz-input-group>
           </nz-form-control>
         </nz-form-item>
@@ -223,14 +217,14 @@
 
         @for (control of listInputVehiculo; track control; let i = $index) {
           <nz-form-item class="marginElement">
-            <nz-form-label  [nzSpan]="3"> Patente </nz-form-label>
+            <nz-form-label  [nzSpan]="2"> Patente </nz-form-label>
             <nz-form-control [nzSpan]="3">
               <nz-input-group style="width: 100%">
                 <input nz-input placeholder="" ngModel name={{i+1}}patente type="text"/>
               </nz-input-group>
             </nz-form-control>
             <nz-form-label  [nzSpan]="2"> Dueño </nz-form-label>
-            <nz-form-control [nzSpan]="6">
+            <nz-form-control [nzSpan]="5">
               <nz-input-group style="width: 100%">
                 <app-personal-search ngModel name={{i+1}}duenoId />
               </nz-input-group>
@@ -242,13 +236,13 @@
               </nz-input-group>
             </nz-form-control>
             <nz-form-label  [nzSpan]="2">Peaje</nz-form-label>
-            <nz-form-control [nzSpan]="3">
+            <nz-form-control [nzSpan]="2">
               <nz-input-group style="width: 100%">
                 <input nz-input placeholder="" ngModel name={{i+1}}peajeVehiculo type="number" />
               </nz-input-group>
             </nz-form-control>
 
-            <nz-form-control [nzSpan]="1" style="text-align: right;">
+            <nz-form-control [nzSpan]="1" style="text-align: center;">
               <span nz-icon nzType="delete" nzTheme="outline" (click)="removeVehiculo(control, $event)"></span>
             </nz-form-control>
           </nz-form-item>
@@ -261,6 +255,26 @@
               <span nz-icon nzType="plus"></span>
               Agregar Vehículo
             </button>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzSpan]="3">Cant. Horas a Facturar</nz-form-label>
+        
+          <nz-form-control [nzSpan]="17">
+            <nz-input-group style="width: 100%">
+              <input nz-input placeholder="" ngModel name="cantHoras" type="number" />
+            </nz-input-group>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzSpan]="3">Cant Km</nz-form-label>
+        
+          <nz-form-control [nzSpan]="17">
+            <nz-input-group style="width: 100%">
+              <input nz-input placeholder="Kilometros" ngModel name="kilometros" type="number" />
+            </nz-input-group>
           </nz-form-control>
         </nz-form-item>
 
@@ -279,26 +293,6 @@
             <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar accion?" nz-button *ngIf="editCustodiaId" (nzOnConfirm)="setEstado(2)">
               Cancelar
             </button>
-          </nz-form-control>
-        </nz-form-item>
-
-        <nz-form-item class="marginElement">
-          <nz-form-label [nzSpan]="3">Horas a Facturar</nz-form-label>
-        
-          <nz-form-control [nzSpan]="17">
-            <nz-input-group style="width: 100%">
-              <input nz-input placeholder="" ngModel name="horasFacturar" type="number" />
-            </nz-input-group>
-          </nz-form-control>
-        </nz-form-item>
-
-        <nz-form-item class="marginElement">
-          <nz-form-label [nzSpan]="3">Distancia - km</nz-form-label>
-        
-          <nz-form-control [nzSpan]="17">
-            <nz-input-group style="width: 100%">
-              <input nz-input placeholder="Kilometros" ngModel name="kilometros" type="number" />
-            </nz-input-group>
           </nz-form-control>
         </nz-form-item>
 
