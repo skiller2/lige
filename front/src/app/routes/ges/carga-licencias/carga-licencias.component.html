@@ -9,6 +9,8 @@
         </nz-form-control>
       </nz-form-item>
 
+      <button nz-button nzType="primary" (click)="openDrawer()">Open</button>
+
       <ul nz-menu nzMode="horizontal">
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
@@ -21,7 +23,7 @@
           <a nz-tab-link routerLink="/ges/carga_licencias/AltaLicencia">Alta de licencia</a>
           <ng-template nz-tab>
             
-            <app-table-abm-licencia [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"></app-table-abm-licencia>
+            <app-table-abm-licencia gridId="gridEdit" [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"></app-table-abm-licencia>
   
           </ng-template>
         </nz-tab>
@@ -37,4 +39,6 @@
   
     </form>
   </nz-card>
+  
+<app-licencia-drawer [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-licencia-drawer>
   

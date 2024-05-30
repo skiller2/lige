@@ -62,6 +62,8 @@ export class TableAbmLicenciaComponent {
 
 
   columns$ = this.apiService.getCols('/api/carga-licencia/cols').pipe(map((cols) => {
+    
+    //cols[8].asyncPostRender = this.renderAngularComponent.bind(this)
     return cols
   }));
 
@@ -84,6 +86,7 @@ export class TableAbmLicenciaComponent {
   ngOnChanges(changes: SimpleChanges) {
     this.formChange$.next("");
   }
+
 
   listOptionsChange(options: any) {
     this.listOptions = options;
@@ -122,8 +125,11 @@ export class TableAbmLicenciaComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
-
+    
+    
   }
+
+  
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
@@ -154,4 +160,6 @@ export class TableAbmLicenciaComponent {
       format: FileType.xlsx
     });
   }
+
+ 
 }
