@@ -586,10 +586,7 @@ export class SearchService {
     return this.http
       .get<ResponseJSON<any>>(`api/custodia/list`)
       .pipe(
-        map(res => {
-          console.log('res.data', res.data);
-          
-          return res.data}),
+        map(res => res.data),
         catchError(() => of([]))
       );
   }

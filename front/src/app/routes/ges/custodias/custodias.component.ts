@@ -35,7 +35,6 @@ export class CustodiaComponent {
     gridOptions!: GridOption;
     gridDataInsert: any[] = [];
     agregarPersonal = false
-    columnas: Column[] = [];
     detailViewRowCount = 1;
     editCustodiaId = 0;
     excelExportService = new ExcelExportService()
@@ -44,8 +43,8 @@ export class CustodiaComponent {
     personalId = signal(0);
 
     cantInputs : Array<number> = [1,2,3,4,5]
-    listInputPersonal: Array<number> = this.cantInputs;
-    listInputVehiculo: Array<number> = this.cantInputs;
+    listInputPersonal: Array<number> = this.cantInputs.slice();
+    listInputVehiculo: Array<number> = this.cantInputs.slice();
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
@@ -65,95 +64,6 @@ export class CustodiaComponent {
       }));
 
     async ngOnInit(){
-        this.columnas = [
-            // {
-            //     id:'responsable' , name:'Responsable' , field:'responsable',
-            //     sortable: true,
-            //     type: FieldType.string,
-            //     maxWidth: 100,
-            //     minWidth: 150,
-            // },
-            {
-                id:'cliente' , name:'Cliente' , field:'cliente',
-                sortable: true,
-                type: FieldType.string,
-                formatter: Formatters.complexObject,
-                params: {
-                    complexFieldLabel: 'cliente.fullName',
-                },
-                // maxWidth: 170,
-                minWidth: 140,
-            },
-            {
-                id:'descripcion' , name:'Descripcion' , field:'descripcion',
-                sortable: true,
-                type: FieldType.text,
-                // maxWidth: 300,
-                minWidth: 230,
-            },
-            {
-                id:'fechaI' , name:'Fecha Inicio' , field:'fechaI',
-                sortable: true,
-                type: FieldType.dateTimeShortUs,
-                maxWidth: 150,
-                minWidth: 110,
-            },
-            {
-                id:'origen' , name:'Origen' , field:'origen',
-                sortable: true,
-                type: FieldType.string,
-                // maxWidth: 180,
-                minWidth: 140,
-            },
-            {
-                id:'fechaF' , name:'Fecha Final' , field:'fechaF',
-                sortable: true,
-                type: FieldType.dateTimeShortUs,
-                maxWidth: 150,
-                minWidth: 110,
-            },
-            {
-                id:'destino' , name:'Destino' , field:'destino',
-                sortable: true,
-                type: FieldType.string,
-                // maxWidth: 180,
-                minWidth: 140,
-            },
-            // {
-            //     id:'montopersonal' , name:'Monto Personal' , field:'montopersonal',
-            //     sortable: true,
-            //     type: FieldType.string,
-            //     maxWidth: 150,
-            //     minWidth: 110,
-            // },
-            // {
-            //     id:'montovehiculo' , name:'Monto Vehiculo' , field:'montovehiculo',
-            //     sortable: true,
-            //     type: FieldType.string,
-            //     maxWidth: 150,
-            //     minWidth: 110,
-            // },
-            // {
-            //     id:'importe' , name:'Importe' , field:'importe',
-            //     sortable: true,
-            //     type: FieldType.string,
-            //     maxWidth: 150,
-            //     minWidth: 110,
-            // },
-            {
-                id:'estado' , name:'Estado' , field:'estado',
-                sortable: true,
-                type: FieldType.string,
-                formatter: Formatters.complexObject,
-                params: {
-                    complexFieldLabel: 'estado.descripcion',
-                },
-                maxWidth: 180,
-                minWidth: 130,
-            },
-        ]
-        
-        
         this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptions.enableRowDetailView = false
         this.gridOptions.editable = false
@@ -170,7 +80,6 @@ export class CustodiaComponent {
 
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
-        //this.gridObjEdit = angularGrid.detail.slickGrid;
 
         if (this.apiService.isMobile())
             this.angularGrid.gridService.hideColumnByIds([])
@@ -178,7 +87,7 @@ export class CustodiaComponent {
 
     async save() {
         // console.log('editCustodiaId',this.editCustodiaId)
-        // console.log('graba',this.ngForm().value)
+        console.log('graba',this.ngForm().value)
         if (this.editCustodiaId) {
             const res = await firstValueFrom(this.apiService.updateObjCustodia(this.ngForm().value, this.editCustodiaId))
         } else {
@@ -219,9 +128,9 @@ export class CustodiaComponent {
 
     removeVehiculo(i: number, e: MouseEvent): void {
         e.preventDefault();
-        if (this.listInputPersonal.length > 1) {
-            const index = this.listInputPersonal.indexOf(i);
-            this.listInputPersonal.splice(index, 1);
+        if (this.listInputVehiculo.length > 1) {
+            const index = this.listInputVehiculo.indexOf(i);
+            this.listInputVehiculo.splice(index, 1);
         }
     }
 
@@ -245,8 +154,8 @@ export class CustodiaComponent {
 
     resetForm(): void {
         this.editCustodiaId = 0
-        this.listInputPersonal = this.cantInputs
-        this.listInputVehiculo = this.cantInputs
+        this.listInputPersonal = this.cantInputs.slice()
+        this.listInputVehiculo = this.cantInputs.slice()
         this.ngForm().reset()
     }
 

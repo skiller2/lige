@@ -99,40 +99,62 @@ export class CustodiaController extends BaseController {
         const objetivo_custodia_id = objetivoCustodia.objetivoCustodiaId
         const responsable_id = objetivoCustodia.responsableId
         const cliente_id = objetivoCustodia.clienteId
+        const desc_requirente = objetivoCustodia.descRequirente? objetivoCustodia.descRequirente : null
         const descripcion = objetivoCustodia.descripcion? objetivoCustodia.descripcion : null
         const fecha_inicio = objetivoCustodia.fechaInicio.slice(0, 19).replace('T', ' ')
         const origen = objetivoCustodia.origen
         const fecha_fin = objetivoCustodia.fechaFinal? objetivoCustodia.fechaFinal.slice(0, 19).replace('T', ' ') : null
-        const destino = objetivoCustodia.destino? objetivoCustodia.destino :null
-        const monto_facturacion_cliente = objetivoCustodia.facturacion? objetivoCustodia.facturacion : null
+        const destino = objetivoCustodia.destino? objetivoCustodia.destino : null
+        const cant_modulos = objetivoCustodia.cant_modulos? objetivoCustodia.cant_modulos : null
+        const importe_modulos = objetivoCustodia.importeModulos? objetivoCustodia.importeModulos : null
+        const cant_horas_exced = objetivoCustodia.cantHorasExced? objetivoCustodia.cantHorasExced : null
+        const impo_horas_exced = objetivoCustodia.impoHorasExced? objetivoCustodia.impoHorasExced : null
+        const cant_km_exced = objetivoCustodia.cantKmExced? objetivoCustodia.cantKmExced : null
+        const impo_km_exced = objetivoCustodia.impoKmExced? objetivoCustodia.impoKmExced : null
+        const impo_peaje = objetivoCustodia.impoPeaje? objetivoCustodia.impoPeaje : null
+        const cant_horas = objetivoCustodia.cant_horas? objetivoCustodia.cant_horas : null
+        const impo_facturar= objetivoCustodia.facturacion? objetivoCustodia.facturacion : null
         const kilometros = objetivoCustodia.kilometros
         const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
         return await queryRunner.query(`
-            INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, descripcion, fecha_inicio, origen, fecha_fin, destino, monto_facturacion_cliente, kilometros, estado, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-            VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @11, @12, @13)`, 
-            [objetivo_custodia_id, responsable_id, cliente_id, descripcion, fecha_inicio, origen, fecha_fin, destino, monto_facturacion_cliente, kilometros, estado, usuario, ip, fechaActual]
+            INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, 
+                descripcion, fecha_inicio, origen, fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced,
+                impo_horas_exced, cant_km_exced, impo_km_exced, impo_peaje, cant_horas, impo_facturar, kilometros, 
+                estado, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+            VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @22, @20, @21, @22)`, 
+            [objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, descripcion, fecha_inicio, origen, 
+                fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced, impo_horas_exced, 
+                cant_km_exced, impo_km_exced, impo_peaje, cant_horas, impo_facturar, kilometros, estado, 
+                usuario, ip, fechaActual]
         )
     }
 
     async addRegistroPersonalCustodiaQuery(queryRunner: any, infoPersonal:any, usuario:any, ip:any){
         const personal_id = infoPersonal.personalId
         const objetivo_custodia_id = infoPersonal.objetivoCustodiaId
-        const monto_paga_personal = infoPersonal.monto? infoPersonal.monto : null
+        const importe_personal = infoPersonal.monto? infoPersonal.monto : null
         const fechaActual = new Date()
-        return await queryRunner.query(`INSERT lige.dbo.regpersonalcustodia(personal_id, objetivo_custodia_id, monto_paga_personal, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+        return await queryRunner.query(`INSERT lige.dbo.regpersonalcustodia(
+            personal_id, objetivo_custodia_id, importe_personal, 
+            aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod
+        )
         VALUES (@0, @1, @2, @3, @4, @5, @3, @4, @5)`, 
-        [personal_id, objetivo_custodia_id, monto_paga_personal, usuario, ip, fechaActual])
+        [personal_id, objetivo_custodia_id, importe_personal, usuario, ip, fechaActual])
     }
 
     async addRegistroVehiculoCustodiaQuery(queryRunner: any, infoVehiculo:any, usuario:any, ip:any){
         const objetivo_custodia_id = infoVehiculo.objetivoCustodiaId
         const patente = infoVehiculo.patente
-        const monto_paga_vehiculo = infoVehiculo.monto? infoVehiculo.monto : null
+        const importe_vehiculo = infoVehiculo.importe? infoVehiculo.importe : null
+        const peaje_vehiculo = infoVehiculo.peaje? infoVehiculo.peaje : null
         const fechaActual = new Date()
-        return await queryRunner.query(`INSERT lige.dbo.regvehiculocustodia(objetivo_custodia_id, patente, monto_paga_vehiculo, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-        VALUES (@0, @1, @2, @3, @4, @5, @3, @4, @5)`, 
-        [objetivo_custodia_id, patente, monto_paga_vehiculo, usuario, ip, fechaActual])
+        return await queryRunner.query(`INSERT lige.dbo.regvehiculocustodia(
+            objetivo_custodia_id, patente, importe_vehiculo, peaje_vehiculo, 
+            aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod
+        )
+        VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)`, 
+        [objetivo_custodia_id, patente, importe_vehiculo, peaje_vehiculo, usuario, ip, fechaActual])
     }
 
     async addRegistroArmaCustodiaQuery(queryRunner: any, arma_id:any, objetivoCustodiaId: any){
@@ -174,77 +196,84 @@ export class CustodiaController extends BaseController {
     }
 
     async updateObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia:any, usuario:any, ip:any){
+        console.log('objetivoCustodia', objetivoCustodia);
+        
         const objetivo_custodia_id = objetivoCustodia.objetivoCustodiaId
+        const cliente_id = objetivoCustodia.clienteId
+        const desc_requirente = objetivoCustodia.descRequirente? objetivoCustodia.descRequirente : null
         const descripcion = objetivoCustodia.descripcion? objetivoCustodia.descripcion : null
         const fecha_inicio = objetivoCustodia.fechaInicio.slice(0, 19).replace('T', ' ')
         const origen = objetivoCustodia.origen
         const fecha_fin = objetivoCustodia.fechaFinal? objetivoCustodia.fechaFinal.slice(0, 19).replace('T', ' ') : null
         const destino = objetivoCustodia.destino
-        const monto_facturacion_cliente = objetivoCustodia.facturacion
+        const cant_modulos = objetivoCustodia.cantModulos? objetivoCustodia.cantModulos : null
+        const importe_modulos = objetivoCustodia.importeModulos? objetivoCustodia.importeModulos  :null
+        const cant_horas_exced = objetivoCustodia.cantHorasExced? objetivoCustodia.cantHorasExced : null
+        const impo_horas_exced = objetivoCustodia.impoHorasExced? objetivoCustodia.impoHorasExced : null
+        const cant_km_exced = objetivoCustodia.cantKmExced? objetivoCustodia.cantKmExced : null
+        const impo_km_exced = objetivoCustodia.impoKmExced? objetivoCustodia.impoKmExced : null
+        const impo_peaje = objetivoCustodia.impoPeaje? objetivoCustodia.impoPeaje : null
+        const cant_horas = objetivoCustodia.cantHoras? objetivoCustodia.cantHoras : null
+        const impo_facturar= objetivoCustodia.facturacion? objetivoCustodia.facturacion : null
         const kilometros = objetivoCustodia.kilometros
         const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
         return await queryRunner.query(`
         UPDATE lige.dbo.objetivocustodia 
-        SET descripcion = @1, fecha_inicio = @2, origen = @3, fecha_fin = @4, 
-        destino = @5, monto_facturacion_cliente = @6, kilometros = @7, estado = @8,
-        aud_usuario_mod = @9, aud_ip_mod = @10, aud_fecha_mod = @11
+        SET cliente_id = @1, desc_requirente = @2, descripcion = @3, fecha_inicio = @4, origen = @5, 
+        fecha_fin = @6, destino = @7, cant_modulos = @8, importe_modulos = @9, cant_horas_exced = @10, 
+        impo_horas_exced = @11, cant_km_exced = @12, impo_km_exced = @13, impo_peaje = @14, cant_horas = @15, 
+        impo_facturar = @16, kilometros = @17, estado = @18, 
+        aud_usuario_mod = @19, aud_ip_mod = @20, aud_fecha_mod = @21
         WHERE objetivo_custodia_id = @0`, 
-        [objetivo_custodia_id, descripcion, fecha_inicio, origen, fecha_fin, destino, monto_facturacion_cliente, kilometros, estado, usuario, ip, fechaActual])
+        [objetivo_custodia_id, cliente_id, desc_requirente, descripcion, fecha_inicio, origen, fecha_fin, destino, 
+            cant_modulos, importe_modulos, cant_horas_exced, impo_horas_exced, cant_km_exced, impo_km_exced, 
+            impo_peaje, cant_horas, impo_facturar, kilometros, estado, usuario, ip, fechaActual
+        ])
     }
 
     async updateRegistroPersonalCustodiaQuery(queryRunner: any, infoPersonal:any, usuario:any, ip:any){
         const personal_id = infoPersonal.personalId
         const objetivo_custodia_id = infoPersonal.objetivoCustodiaId
-        const monto_paga_personal = infoPersonal.monto? infoPersonal.monto : null
+        const importe_personal = infoPersonal.importe? infoPersonal.importe : null
         const fechaActual = new Date()
         return await queryRunner.query(`
         UPDATE lige.dbo.regpersonalcustodia
-        SET personal_id = @1, monto_paga_personal =@2, aud_usuario_mod = @3, aud_ip_mod = @4, aud_fecha_mod = @5
+        SET personal_id = @1, importe_personal =@2, aud_usuario_mod = @3, aud_ip_mod = @4, aud_fecha_mod = @5
         WHERE objetivo_custodia_id = @0`, 
-        [objetivo_custodia_id, personal_id, monto_paga_personal, usuario, ip, fechaActual])
+        [objetivo_custodia_id, personal_id, importe_personal, usuario, ip, fechaActual])
     }
 
     async updateRegistroVehiculoCustodiaQuery(queryRunner: any, infoVehiculo:any, usuario:any, ip:any){
         const objetivo_custodia_id = infoVehiculo.objetivoCustodiaId
         const patente = infoVehiculo.patente
-        const monto_paga_vehiculo = infoVehiculo.monto? infoVehiculo.monto : null
+        const importe_vehiculo = infoVehiculo.monto? infoVehiculo.monto : null
+        const peaje_vehiculo = infoVehiculo.peaje? infoVehiculo.peaje : null
         const fechaActual = new Date()
         return await queryRunner.query(`
         UPDATE lige.dbo.regvehiculocustodia
-        SET patente = @1, monto_paga_vehiculo = @2, aud_usuario_mod = @3, aud_ip_mod = @4, aud_fecha_mod = @5
+        SET patente = @1, importe_vehiculo = @2, peaje_vehiculo = @3, aud_usuario_mod = @4, aud_ip_mod = @5, aud_fecha_mod = @6
         WHERE objetivo_custodia_id = @0`, 
-        [objetivo_custodia_id, patente, monto_paga_vehiculo, usuario, ip, fechaActual])
+        [objetivo_custodia_id, patente, importe_vehiculo, peaje_vehiculo, usuario, ip, fechaActual])
     }
 
     async getObjetivoCustodiaQuery(queryRunner: any, custodiaId: any){
         return await queryRunner.query(`
         SELECT obj.objetivo_custodia_id id, obj.responsable_id responsableId, 
-        obj.cliente_id clienteId, obj.descripcion, obj.fecha_inicio fechaInicio, obj.origen, 
-        obj.fecha_fin fechaFinal, obj.destino, obj.monto_facturacion_cliente facturacion, 
-        obj.kilometros, obj.estado
+        obj.cliente_id clienteId, obj.desc_requirente descRequirente, obj.descripcion, obj.fecha_inicio fechaInicio, obj.origen, 
+        obj.fecha_fin fechaFinal, obj.destino, obj.cant_modulos cantModulos, obj.importe_modulos importeModulos, 
+        obj.cant_horas_exced cantHorasExced, obj.impo_horas_exced impoHorasExced, obj.cant_km_exced cantKmExced, 
+        obj.impo_km_exced impoKmExced, obj.impo_peaje impoPeaje , obj.cant_horas cantHoras, obj.kilometros, 
+        obj.impo_facturar facturacion, obj.estado
         FROM lige.dbo.objetivocustodia obj
         INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
         WHERE objetivo_custodia_id = @0`, 
         [custodiaId])
-        // return await queryRunner.query(`
-        // SELECT obj.cliente_id clienteId, obj.descripcion, obj.fecha_inicio fechaInicio, obj.origen, 
-        // obj.fecha_fin fechaFinal, obj.destino, obj.monto_facturacion_cliente facturacion, obj.kilometros
-        // FROM lige.dbo.objetivocustodia obj
-        // INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
-        // WHERE objetivo_custodia_id = @0`, 
-        // [custodiaId])
     }
 
     async getRegPersonalObjCustodiaQuery(queryRunner: any, custodiaId: any){
-        // return await queryRunner.query(`
-        // SELECT reg.personal_id personalId, TRIM(per.PersonalApellidoNombre) fullName, reg.monto_paga_personal importePersonal
-        // FROM lige.dbo.regpersonalcustodia reg
-        // INNER JOIN Personal per ON per.PersonalId = reg.personal_id
-        // WHERE objetivo_custodia_id = @0`, 
-        // [custodiaId])
         return await queryRunner.query(`
-        SELECT reg.personal_id personalId, reg.monto_paga_personal importePersonal
+        SELECT reg.personal_id personalId, reg.importe_personal importePersonal
         FROM lige.dbo.regpersonalcustodia reg
         INNER JOIN Personal per ON per.PersonalId = reg.personal_id
         WHERE objetivo_custodia_id = @0`, 
@@ -252,15 +281,8 @@ export class CustodiaController extends BaseController {
     }
 
     async getRegVehiculoObjCustodiaQuery(queryRunner: any, custodiaId: any){
-        // return await queryRunner.query(`
-        // SELECT reg.patente , reg.monto_paga_vehiculo importeVehiculo, ve.dueno_id, TRIM(per.PersonalApellidoNombre) dueno 
-        // FROM lige.dbo.regvehiculocustodia reg
-        // INNER JOIN lige.dbo.vehiculo ve ON ve.patente = reg.patente
-        // INNER JOIN Personal per ON per.PersonalId = ve.dueno_id
-        // WHERE objetivo_custodia_id = @0`, 
-        // [custodiaId])
         return await queryRunner.query(`
-        SELECT reg.patente , reg.monto_paga_vehiculo importeVehiculo, ve.dueno_id duenoId
+        SELECT reg.patente , reg.importe_vehiculo importeVehiculo, reg.peaje_vehiculo peajeVehiculo, ve.dueno_id duenoId
         FROM lige.dbo.regvehiculocustodia reg
         INNER JOIN lige.dbo.vehiculo ve ON ve.patente = reg.patente
         INNER JOIN Personal per ON per.PersonalId = ve.dueno_id
@@ -294,7 +316,7 @@ export class CustodiaController extends BaseController {
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            // const responsableId = 699
+            // const responsableId = 1
             const responsableId = res.locals.PersonalId
             if (!responsableId) 
                 throw new ClientException(`No se a encontrado al personal responsable`)
@@ -311,8 +333,11 @@ export class CustodiaController extends BaseController {
                 if( key.endsWith('personalId') && req.body[key]){
                     let i = parseInt(key)
                     let keyImporte = i.toString() + 'importePersonal'
-                    let infoPersonal = {personalId: req.body[key], monto: req.body[keyImporte] , objetivoCustodiaId}
-                    // console.log('infoPersonal'+i, infoPersonal);
+                    let infoPersonal = {
+                        personalId: req.body[key], 
+                        importe: req.body[keyImporte], 
+                        objetivoCustodiaId
+                    }
                     await this.addRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
                     cantPersonal++
                 }
@@ -320,10 +345,16 @@ export class CustodiaController extends BaseController {
                 if( key.endsWith('patente') && req.body[key]){
                     let i = parseInt(key)
                     let keyImporte = i.toString() + 'importeVehiculo'
+                    let keyPeaje = i.toString() + 'peajeVehiculo'
                     let keyDueno = i.toString() + 'duenoId'
                     if (req.body[keyDueno]) {
-                        let infoVehiculo = {patente: req.body[key], monto: req.body[keyImporte] , duenoId:req.body[keyDueno], objetivoCustodiaId}
-                        // console.log('infoVehiculo'+i, infoVehiculo);
+                        let infoVehiculo = {
+                            patente: req.body[key], 
+                            importe: req.body[keyImporte], 
+                            peaje: req.body[keyPeaje],
+                            duenoId:req.body[keyDueno], 
+                            objetivoCustodiaId
+                        }
                         let result = await this.getVehiculoByPatenteQuery(queryRunner, req.body[key])
                         if (!result.length) {
                             await this.addVehiculoQuery(queryRunner, infoVehiculo.patente, infoVehiculo.duenoId, usuario, ip)
@@ -352,7 +383,7 @@ export class CustodiaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try{
             await queryRunner.startTransaction()
-            // const responsableId = 699
+            // const responsableId = 1
             const responsableId = res.locals.PersonalId
             let result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, responsableId)
             const estados= ['Pendiente', 'Finalizado', 'Cancelado']
@@ -436,7 +467,7 @@ export class CustodiaController extends BaseController {
             await queryRunner.startTransaction()
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            // const responsableId = 699
+            // const responsableId = 1
             const responsableId = res.locals.PersonalId
             const custodiaId = req.params.id
             const objetivoCustodia = {...req.body }
@@ -449,14 +480,17 @@ export class CustodiaController extends BaseController {
             if (responsableId != infoCustodia.responsableId) {
                 throw new ClientException(`No eres el responsable de la custodia`)
             }
-
-            if (!objetivoCustodia.clienteId || !objetivoCustodia.fechaInicio || !objetivoCustodia.origen)
+            
+            if (!objetivoCustodia.clienteId || !objetivoCustodia.fechaInicio || !objetivoCustodia.origen){
                 throw new ClientException(`Los campos de Cliente, Fecha Inicial y Origen NO pueden estar vacios`)
-
-            //En caso de FINALIZAR custodia verificar los campos
-            if(objetivoCustodia.estado == 1 && (!objetivoCustodia.facturacion || !objetivoCustodia.fechaFinal || !objetivoCustodia.destino)){
-                errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios`)
             }
+            //En caso de FINALIZAR custodia verificar los campos
+            if(objetivoCustodia.estado == 1 && ( !objetivoCustodia.fechaFinal || !objetivoCustodia.destino)){
+                errores.push(`Los campos de Destino y Fecha Final NO pueden estar vacios`)
+            }
+            // if(objetivoCustodia.estado == 1 && (!objetivoCustodia.facturacion || !objetivoCustodia.fechaFinal || !objetivoCustodia.destino)){
+            //     errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios`)
+            // }
             
             let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, custodiaId)
             let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
@@ -482,9 +516,13 @@ export class CustodiaController extends BaseController {
                 if( key.endsWith('personalId') && objetivoCustodia[key]){
                     let i = parseInt(key)
                     let keyImporte = i.toString() + 'importePersonal'
-                    let infoPersonal = {personalId: objetivoCustodia[key], monto: objetivoCustodia[keyImporte] , objetivoCustodiaId: custodiaId}
+                    let infoPersonal = {
+                        personalId: objetivoCustodia[key], 
+                        importe: objetivoCustodia[keyImporte] , 
+                        objetivoCustodiaId: custodiaId
+                    }
                     //En caso de FINALIZAR custodia verificar los campos Importe de Personal
-                    if(objetivoCustodia.estado == 1 && !infoPersonal.monto){
+                    if(objetivoCustodia.estado == 1 && !infoPersonal.importe){
                         personalError++
                     }
                     let persona = null
@@ -497,7 +535,7 @@ export class CustodiaController extends BaseController {
                     }
                     if (!persona) { //Si el personal es nuevo AGREGAR
                         await this.addRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
-                    } else if (persona.importePersonal != infoPersonal.monto) { //Si hubo un cambio en regpersonalcustodia ACTUALIZA
+                    } else if (persona.importePersonal != infoPersonal.importe) { //Si hubo un cambio en regpersonalcustodia ACTUALIZA
                         await this.updateRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
                     }
                     cantPersonal++
@@ -506,9 +544,16 @@ export class CustodiaController extends BaseController {
                 if( key.endsWith('patente') && objetivoCustodia[key]){
                     let i = parseInt(key)
                     let keyImporte = i.toString() + 'importeVehiculo'
+                    let keyPeaje = i.toString() + 'peajeVehiculo'
                     let keyDueno = i.toString() + 'duenoId'
                     if (objetivoCustodia[keyDueno]) {
-                        let infoVehiculo = {patente: objetivoCustodia[key], monto: objetivoCustodia[keyImporte] , duenoId: objetivoCustodia[keyDueno], objetivoCustodiaId: custodiaId}
+                        let infoVehiculo = {
+                            patente: objetivoCustodia[key], 
+                            importe: objetivoCustodia[keyImporte], 
+                            peaje: objetivoCustodia[keyPeaje], 
+                            duenoId: objetivoCustodia[keyDueno], 
+                            objetivoCustodiaId: custodiaId
+                        }
                         let vehiculo
                         for (let index = 0; index < listVehiculo.length; index++) {
                             if(listVehiculo[index].patente == infoVehiculo.patente){
@@ -525,12 +570,12 @@ export class CustodiaController extends BaseController {
                                 errores.push(`La patente ${infoVehiculo.patente} pertenece a otra persona`)
                             }
                             await this.addRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
-                        } else if (vehiculo.importeVehiculo != infoVehiculo.monto){
+                        } else if (vehiculo.importeVehiculo != infoVehiculo.importe){
                             await this.updateRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
                         }
                         
                         //En caso de FINALIZAR custodia verificar los campos Importe de Vehiculos
-                        if(objetivoCustodia.estado == 1 && !infoVehiculo.monto){
+                        if(objetivoCustodia.estado == 1 && !infoVehiculo.importe){
                             vehiculoError++
                         }
                         cantVehiculo++
