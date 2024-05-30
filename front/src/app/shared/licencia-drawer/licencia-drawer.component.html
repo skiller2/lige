@@ -4,12 +4,34 @@
     [nzClosable]="false"
     [nzVisible]="visible"
     [nzPlacement]="placement"
-    nzTitle="Basic Drawer"
+    [nzWidth]="640"
     (nzOnClose)="closeDrawer()"
   >
-    <ng-container *nzDrawerContent>
-      <p>Some contents...</p>
-      <p>Some contents...</p>
-      <p>Some contents...</p>
-    </ng-container>
+  <ng-container *nzDrawerContent>
+    <form nz-form ngForm>
+    
+        <!-- <nz-form-item>
+          <nz-form-label [nzSpan]="3">Persona</nz-form-label>
+          <nz-form-control [nzSpan]="19">
+            <nz-input-group style="width: 100%">
+              <app-personal-search name="PersonalId" ngModel/>
+            </nz-input-group>
+          </nz-form-control>
+        </nz-form-item> -->
+    
+        <nz-form-item>
+          <nz-form-label [nzSpan]="3">Nombre</nz-form-label>
+          <nz-form-control [nzSpan]="19">
+            <textarea rows="3" nz-input name="nombre" ngModel></textarea>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item>
+            <nz-form-label [nzSpan]="3">Apellido</nz-form-label>
+            <nz-form-control [nzSpan]="19">
+              <textarea rows="3" nz-input name="apellido" ngModel></textarea>
+            </nz-form-control>
+          </nz-form-item>
+    
+      </form>
+       </ng-container>
   </nz-drawer>

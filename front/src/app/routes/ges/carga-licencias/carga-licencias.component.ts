@@ -8,6 +8,8 @@ import {
 } from 'rxjs';
 import { NgForm } from '@angular/forms';
 import { LicenciaDrawerComponent } from  '../../../shared/licencia-drawer/licencia-drawer.component'
+import { AngularGridInstance } from 'angular-slickgrid';
+
 
 
 @Component({
@@ -23,6 +25,8 @@ export class CargaLicenciasComponent {
   selectedPeriod = { year: 0, month: 0 };
   formChange$ = new BehaviorSubject('');
   visibleDrawer: boolean = false
+  angularGridEdit!: AngularGridInstance;
+  dataDrawer = []
 
   dateChange(result: Date): void {
     this.selectedPeriod.year = result.getFullYear();
@@ -55,10 +59,13 @@ export class CargaLicenciasComponent {
     this.formChange$.next(event);
   }
 
+  actualizarValorDrawer(event: any){
+    this.dataDrawer = event
+  }
+
   openDrawer(): void {
-     
-    //if (this.userId == 0) return
     this.visibleDrawer = true
+
 }
 
   closeDrawer(): void {

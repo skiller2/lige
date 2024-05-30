@@ -23,7 +23,7 @@
           <a nz-tab-link routerLink="/ges/carga_licencias/AltaLicencia">Alta de licencia</a>
           <ng-template nz-tab>
             
-            <app-table-abm-licencia gridId="gridEdit" [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"></app-table-abm-licencia>
+            <app-table-abm-licencia gridId="gridEdit" (valueGridEvent)="actualizarValorDrawer($event)" [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"></app-table-abm-licencia>
   
           </ng-template>
         </nz-tab>
@@ -40,5 +40,5 @@
     </form>
   </nz-card>
   
-<app-licencia-drawer [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-licencia-drawer>
+<app-licencia-drawer [visible]="visibleDrawer" [data]="dataDrawer" (onClose)="closeDrawer()"></app-licencia-drawer>
   
