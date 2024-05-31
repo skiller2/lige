@@ -10,10 +10,7 @@
 </nz-card>
 
 <nz-card>
-  <nz-popconfirm #nzpc ></nz-popconfirm>
-
-  <p>Trigger popover</p>
-  <a #btntest (click)="clickTest()" >HOLA</a>
+  <zxing-scanner [formats]="allowedBarCodeFormats" style="width:100px;height: 100px;" (scanComplete)="scanComplete($event)"  (scanSuccess)="scanSuccess($event)"></zxing-scanner>
 
   <button (click)="click1($event)" >nzpc</button>
   <button (click)="click2()" >otro</button>

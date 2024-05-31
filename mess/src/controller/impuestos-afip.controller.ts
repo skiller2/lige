@@ -112,12 +112,6 @@ export class ImpuestosAfipController extends BaseController {
       const ApellidoNombre = comprobante.ApellidoNombre;
       const GrupoActividadDetalle = comprobante.GrupoActividadDetalle;
 
-      const buffer = await this.alterPDF(
-        uint8Array,
-        ApellidoNombre,
-        GrupoActividadDetalle
-      );
-      writeFileSync(tmpfilename, buffer);
 
       await queryRunner.commitTransaction()
       

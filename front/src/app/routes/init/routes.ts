@@ -5,10 +5,12 @@ import { Routes } from '@angular/router';
 //import { DashboardV1Component } from './v1/v1.component';
 //import { DashboardWorkplaceComponent } from './workplace/workplace.component';
 import { InitV1Component } from './v1/v1.component';
+import { IdentComponent } from './ident/ident.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'v1', pathMatch: 'full' },
   { path: 'v1', component: InitV1Component },
+  { path: 'ident', component: IdentComponent },
 //  { path: 'analysis', component: DashboardAnalysisComponent },
 //  { path: 'monitor', component: DashboardMonitorComponent },
 //  { path: 'workplace', component: DashboardWorkplaceComponent }

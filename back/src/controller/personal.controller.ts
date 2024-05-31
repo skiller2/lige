@@ -279,6 +279,7 @@ export class PersonalController extends BaseController {
     }
   }
 
+
   search(req: any, res: Response, next: NextFunction) {
     const { fieldName, value } = req.body;
 

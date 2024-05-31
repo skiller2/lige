@@ -31,6 +31,8 @@ import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
 import { Options } from 'src/app/shared/schemas/filtro';
 import { Directionality } from '@angular/cdk/bidi';
 import { DescuentosComponent } from '../../ges/descuentos/descuentos.component';
+import { ZXingScannerModule } from '@zxing/ngx-scanner';
+import { BarcodeFormat } from '@zxing/library';
 
 /** config ng-zorro-antd i18n **/
 
@@ -39,7 +41,7 @@ import { DescuentosComponent } from '../../ges/descuentos/descuentos.component';
   templateUrl: './test.component.html',
   styleUrls: ['./test.component.less'],
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, PersonalSearchComponent, AngularSlickgridModule,DescuentosComponent],
+  imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, PersonalSearchComponent, AngularSlickgridModule,DescuentosComponent,ZXingScannerModule],
   providers:[        ContainerService,  ],
 
 })
@@ -59,6 +61,7 @@ export class TestComponent {
   private el = inject(ElementRef);
   private document = inject(DOCUMENT)
   nacimiento: Date = new Date('1973-05-24')
+  allowedBarCodeFormats = [BarcodeFormat.PDF_417,BarcodeFormat.QR_CODE]
   periodo1 = {year:2024,month:3}
   onChange(evt: any) {
     console.log('onChange',evt)
@@ -121,6 +124,13 @@ export class TestComponent {
 
   clickTest(): void {
     console.log('curr this.confirmation', this.confirmation)
+  }
+
+  scanComplete(e:any) {
+    console.log('scanComplete',e)
+  }
+  scanSuccess(e: string) {
+    
   }
 
 }
