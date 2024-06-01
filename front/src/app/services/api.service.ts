@@ -338,6 +338,13 @@ export class ApiService {
     );
   }
 
+  getIdentCode(identData: string,encTelNro:string): Observable<unknown> {
+    return this.http.get<ResponseJSON<any>>(`api/personal/ident`, {identData,encTelNro}).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+
   getLiquidaciones(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/list', parameter).pipe(

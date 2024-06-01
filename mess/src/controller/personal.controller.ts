@@ -5,6 +5,7 @@ import { dataSource } from "../data-source";
 // import { Response } from "express-serve-static-core";
 // import { ParsedQs } from "qs";
 import { NextFunction, Request, Response } from "express";
+import * as CryptoJS from 'crypto-js';
 
 export class PersonalController extends BaseController {
 
@@ -132,4 +133,81 @@ export class PersonalController extends BaseController {
     );
     return result
   }
+
+
+  async genTelCode(telNro:string) {
+    //const stmactual = new Date();
+    //const usuario = 'anon'
+    //const ip = 'localhost'
+    //const queryRunner = dataSource.createQueryRunner();
+    
+    try {
+      
+      const _key = CryptoJS.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
+      const _iv = CryptoJS.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
+      const encrypted = CryptoJS.AES.encrypt(
+        JSON.stringify(telNro), _key, {
+          keySize: 16,
+          iv: _iv,
+          mode: CryptoJS.mode.ECB,
+          padding: CryptoJS.pad.Pkcs7
+        });
+      return {encTelNro:encrypted.toString()}
+    } catch (error) {
+      throw new Error('Error encodeando string')
+    }
+  }  
+
+  async getIdentCode(req:any, res: Response, next: NextFunction) {
+    const identData = req.params.identData
+    const encTelNro = req.params.encTelNro
+    const stmactual = new Date();
+    const usuario = 'anon'
+    const ip = this.getRemoteAddress(req)
+    const cuit = '20148145610'
+    const queryRunner = dataSource.createQueryRunner();
+    
+    try {
+      
+      const _key = CryptoJS.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
+      const _iv = CryptoJS.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
+      const decrypted = CryptoJS.AES.decrypt(
+        JSON.stringify(encTelNro), _key, {
+          keySize: 16,
+          iv: _iv,
+          mode: CryptoJS.mode.ECB,
+          padding: CryptoJS.pad.Pkcs7
+        });
+            
+      const telNro = decrypted.toString()
+
+      await queryRunner.startTransaction()
+
+      const result = await queryRunner.query(
+        `SELECT DISTINCT
+        per.PersonalId, cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
+        1
+        FROM Personal per
+        JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+        WHERE cuit2.PersonalCUITCUILCUIT = @0`,
+        [cuit]
+      )
+      if (result.length == 0) 
+        throw new ClientException('No se pudo verificar el documento, contáctese con personal')
+      const PersonalId = result[0].PersonalId
+      const codigo = Math.floor(Math.random() * (999999 - 100000) + 100000)
+
+      await queryRunner.query(
+        `IF EXISTS(select * from lige.dbo.regtelefonopersonal where personal_id=@0) UPDATE lige.dbo.regtelefonopersonal SET codigo=@1, telefono=@2, aud_usuario_mod=@3, aud_ip_mod=@4, aud_fecha_mod=@5 WHERE personal_id=@0 ELSE INSERT INTO lige.dbo.regtelefonopersonal (personal_id, codigo, telefono, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod) values(@0,@1,@2,@3,@4,@5,@3,@4,@5)   `,
+        [PersonalId, codigo, telNro, usuario, ip, stmactual]
+      )
+
+      await queryRunner.commitTransaction()
+      this.jsonRes({codigo}, res);
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    }
+  }
+
 }

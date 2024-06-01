@@ -15,10 +15,6 @@ personalRouter.post(
 
 
 
-personalRouter.get(`${base}/:id`, authMiddleware.verifyToken, (req, res, next) => {
-  //personalRouter.get(`${base}/:id`,  (req, res) => {
-  personalController.getById(req.params.id, res, next);
-});
 
 personalRouter.get(`${base}/telefonos/:id`, authMiddleware.verifyToken, (req, res, next) => {
   //personalRouter.get(`${base}/:id`,  (req, res) => {
@@ -63,8 +59,12 @@ personalRouter.get(
   }
 );
 
-
 personalRouter.get(`${base}/name/:personalId`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getNameFromId(req.params.personalId, res, next);
+});
+
+
+personalRouter.get(`${base}/:id`, authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getById(req.params.id, res, next);
 });
 
