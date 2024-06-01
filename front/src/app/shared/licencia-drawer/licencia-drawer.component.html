@@ -5,10 +5,11 @@
     [nzVisible]="visible"
     [nzPlacement]="placement"
     [nzWidth]="640"
+    [nzTitle]="tituloDrawer"
     (nzOnClose)="closeDrawer()"
   >
   <ng-container *nzDrawerContent>
-    <form nz-form ngForm>
+    <form nz-form [formGroup]="formulario">
     
         <!-- <nz-form-item>
           <nz-form-label [nzSpan]="3">Persona</nz-form-label>
@@ -20,17 +21,71 @@
         </nz-form-item> -->
     
         <nz-form-item>
-          <nz-form-label [nzSpan]="3">Nombre</nz-form-label>
-          <nz-form-control [nzSpan]="19">
-            <textarea rows="3" nz-input name="nombre" ngModel></textarea>
+          <nz-form-label [nzSpan]="5">Nombre </nz-form-label>
+          <nz-form-control >
+            <input nz-input formControlName="nombre"   />
+            <!-- <textarea rows="3" nz-input name="nombre" ngModel></textarea> -->
           </nz-form-control>
         </nz-form-item>
         <nz-form-item>
-            <nz-form-label [nzSpan]="3">Apellido</nz-form-label>
-            <nz-form-control [nzSpan]="19">
-              <textarea rows="3" nz-input name="apellido" ngModel></textarea>
+            <nz-form-label [nzSpan]="5">Apellido </nz-form-label>
+            <nz-form-control>
+                <input nz-input formControlName="apellido"  />
+              <!-- <textarea rows="3" nz-input name="apellido" ngModel></textarea> -->
             </nz-form-control>
           </nz-form-item>
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">Desde: </nz-form-label>
+            <nz-form-control  [nzXs]="24">
+                <nz-date-picker formControlName="datePickerDesde" ngModel ></nz-date-picker>
+              </nz-form-control>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">Hasta </nz-form-label>
+            <nz-form-control  >
+                <nz-date-picker formControlName="datePickerHasta" ngModel></nz-date-picker>
+              </nz-form-control>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">tipo de licencia </nz-form-label>
+            <nz-form-control >
+                <input nz-input formControlName="tipoLincencia" ngModel  />
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">Clase </nz-form-label>
+            <nz-form-control>
+                <input nz-input formControlName="clase" ngModel  />
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">Categoría </nz-form-label>
+            <nz-form-control >
+                <app-categoria-persona
+                 [sucursalid]="sucursalid"
+                  [NombreApellidoId]="NombreApellidoId" 
+                  [selectedPeriod]="selectedPeriod"></app-categoria-persona>
+                <!-- <input nz-input formControlName="categoria" ngModel  /> -->
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">Horas Mensuales </nz-form-label>
+            <nz-form-control >
+                <input nz-input formControlName="horasMensuales" ngModel  />
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">Observación </nz-form-label>
+            <nz-form-control >
+                <input nz-input formControlName="observacion" ngModel  />
+            </nz-form-control>
+          </nz-form-item>
+
+            -Carga de Documentos.
+
+
+            <button nz-button nzType="primary">Guardar</button>
+            <button nz-button nzType="primary" nzDanger>Eliminar</button>
     
       </form>
        </ng-container>

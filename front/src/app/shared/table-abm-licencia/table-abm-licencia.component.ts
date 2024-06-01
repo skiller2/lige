@@ -38,6 +38,15 @@ type listOptionsT = {
 interface PersonalLicencia {
   PersonalId: number;
   PersonalLicenciaId: number;
+  PersonalApellido: string;
+  PersonalNombre: string;
+  PersonalLicenciaDesde: Date;
+  PersonalLicenciaHasta: Date;
+  TipoInasistenciaDescripcion: string; 
+  CategoriaPersonalDescripcion: string;
+  PersonalLicenciaHorasMensuales: string;
+  PersonalLicenciaObservacion: string;
+
 }
 
 @Component({
@@ -167,9 +176,7 @@ export class TableAbmLicenciaComponent {
     this.angularGridEdit.slickGrid.onClick.subscribe((e, args)=> {
       this.personalLicencias = []
       var data = this.dataAngularGrid[args.row]
-      let PersonalId = data.PersonalId
-      let PersonalLicenciaId = data.PersonalLicenciaId
-      this.personalLicencias.push({ PersonalId, PersonalLicenciaId });
+      this.personalLicencias.push(data);
       this.valueGridEvent.emit(this.personalLicencias)
     });
     

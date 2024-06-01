@@ -9,7 +9,14 @@
         </nz-form-control>
       </nz-form-item>
 
-      <button nz-button nzType="primary" (click)="openDrawer()">Open</button>
+      <nz-form-control style="text-align: right;">
+        <nz-button-group>
+            <button nz-button nzType="default" (click)="openDrawer()"><span nz-icon nzType="user"
+                    nzTheme="outline"></span></button>
+            <!-- <button nz-button nzType="default" (click)="validaGrilla()" [disabled]="isLoadingCheck"><span nz-icon [nzType]="isLoadingCheck ? 'loading' : 'check'" 
+                    nzTheme="outline"></span></button> -->
+        </nz-button-group>
+    </nz-form-control>
 
       <ul nz-menu nzMode="horizontal">
         <li nz-menu-item nzMatchRouter>
@@ -40,5 +47,5 @@
     </form>
   </nz-card>
   
-<app-licencia-drawer [visible]="visibleDrawer" [data]="dataDrawer" (onClose)="closeDrawer()"></app-licencia-drawer>
+<app-licencia-drawer [selectedPeriod]="selectedPeriod" [visible]="visibleDrawer" [data]="dataDrawer" (onClose)="closeDrawer()"></app-licencia-drawer>
   
