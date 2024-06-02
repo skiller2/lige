@@ -22,6 +22,7 @@ import { personalObjetivoRouter } from "src/personal-objetivo/personal-objetivo.
 import { listaPersmisoCargaRouter } from "src/lista-permisocarga/lista-permisocarga.controller.routes";
 import { custodiaRouter } from "./custodia.routes";
 import { CargaLicenciaCargaRouter } from "../carga-licencia/carga-licencia.controller.routes"
+import { inasistenciaRouter } from "../routes/inasistencia.routes"
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -47,4 +48,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/custodia", custodiaRouter);
   server.setRoute("/api/lista-permisocarga", listaPersmisoCargaRouter);
   server.setRoute("/api/carga-licencia", CargaLicenciaCargaRouter);
+  server.setRoute("/api/inasistencia", inasistenciaRouter);
 }

@@ -8,13 +8,14 @@ import { firstValueFrom } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { EditorCategoriaComponent } from 'src/app/shared/editor-categoria/editor-categoria.component';
+import { InasistenciaSearchComponent } from 'src/app/shared/inasistencia-search/inasistencia-search.component';
 
 
 
 @Component({
   selector: 'app-licencia-drawer',
   standalone: true,
-  imports: [SHARED_IMPORTS,NzDescriptionsModule,ReactiveFormsModule,EditorCategoriaComponent],
+  imports: [SHARED_IMPORTS,NzDescriptionsModule,ReactiveFormsModule,EditorCategoriaComponent,InasistenciaSearchComponent],
   templateUrl: './licencia-drawer.component.html',
   styleUrl: './licencia-drawer.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,6 +28,7 @@ export class LicenciaDrawerComponent {
   visibleDrawer: boolean = false
   sucursalid = 0
   NombreApellidoId = 0
+  inasistenciaid = 0
  
 
   @Output() onClose = new EventEmitter<boolean>();
@@ -73,6 +75,7 @@ export class LicenciaDrawerComponent {
 
       this.sucursalid = this.data[0]["SucursalId"]
       this.NombreApellidoId = this.data[0]["PersonalId"]
+      this.inasistenciaid = this.data[0]["PersonalLicenciaId"]
     }, 0);
     
      
@@ -87,5 +90,6 @@ export class LicenciaDrawerComponent {
         this.onClose.emit(this.visibleDrawer)
         this.sucursalid = 0
         this.NombreApellidoId = 0
+        this.inasistenciaid = 0
       }
 }

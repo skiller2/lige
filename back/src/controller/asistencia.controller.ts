@@ -335,6 +335,7 @@ export class AsistenciaController extends BaseController {
    val.ValorLiquidacionHoraNormal,
    (ROUND(CAST(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales AS FLOAT),0,0) *60+ PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1))/60 * val.ValorLiquidacionHoraNormal AS total,
    lic.PersonalLicenciaSePaga,
+   tli.TipoInasistenciaId,
    tli.TipoInasistenciaDescripcion,
    tli.TipoInasistenciaApartado,
 	lic.PersonalLicenciaDesde,

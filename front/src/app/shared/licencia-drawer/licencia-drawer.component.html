@@ -47,9 +47,10 @@
               </nz-form-control>
           </nz-form-item>
           <nz-form-item>
-            <nz-form-label [nzSpan]="5">tipo de licencia </nz-form-label>
+            <nz-form-label [nzSpan]="5">tipo de Inasistencia </nz-form-label>
             <nz-form-control >
-                <input nz-input formControlName="tipoLincencia" ngModel  />
+                <!-- <input nz-input formControlName="tipoLincencia" ngModel  /> -->
+                <app-inasistencia-search [inasistenciaid]="inasistenciaid"></app-inasistencia-search>
             </nz-form-control>
           </nz-form-item>
           <nz-form-item>

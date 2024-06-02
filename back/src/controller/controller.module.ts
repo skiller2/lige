@@ -28,6 +28,8 @@ import { PersonalObjetivosController } from "../personal-objetivo/personal-objet
 import { CustodiaController } from "./custodia.controller";
 import { ListaPermisoCargaController } from "../lista-permisocarga/lista-permisocarga.controller";
 import { CargaLicenciaController } from "../carga-licencia/carga-licencia.controller";
+import { InasistenciaController } from "../controller/inasistencia.controller";
+
 
 
 
@@ -61,5 +63,5 @@ export const personalObjetivosController = new PersonalObjetivosController();
 export const custodiaController = new CustodiaController();
 export const listaPermisoCargaController = new ListaPermisoCargaController();
 export const cargaLicenciaController = new CargaLicenciaController();
-
+export const inasistenciaController = new InasistenciaController();
 
