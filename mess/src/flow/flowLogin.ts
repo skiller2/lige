@@ -41,10 +41,10 @@ const flowLogin = addKeyword(EVENTS.WELCOME)
             const telefono = ctx.from
             const respSINO = ctx.body
             if (respSINO == 'S') {
-                const encTelNro = personalController.genTelCode(telefono)
-                await flowDynamic(`Para continuar vaya a https://gestion.linceseguridad.com.ar/ext/ident;encTelNro=${encTelNro}`, {delay: delay})
+                const ret = await personalController.genTelCode(telefono)
+                await flowDynamic(`Para continuar vaya a https://gestion.linceseguridad.com.ar/ext/init/ident;encTelNro=${ret.encTelNro}`, {delay: delay})
 
-                await state.update({ encTelNro})                
+                await state.update({ encTelNro:ret.encTelNro})                
             } else {
                 return endFlow(`Hasta la próxima`,{delay})
             }

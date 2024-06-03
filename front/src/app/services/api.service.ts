@@ -339,7 +339,13 @@ export class ApiService {
   }
 
   getIdentCode(identData: string,encTelNro:string): Observable<unknown> {
-    return this.http.get<ResponseJSON<any>>(`api/personal/ident`, {identData,encTelNro}).pipe(
+    return this.http.get<ResponseJSON<any>>(`mess/api/personal/ident`, {identData,encTelNro}).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  genIdentCode(data: string): Observable<unknown> {
+    return this.http.get<ResponseJSON<any>>(`mess/api/personal/encode`, {data}).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }

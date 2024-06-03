@@ -38,6 +38,19 @@ export class IdentComponent {
     this.lastScan = e
   }
 
+  async encode(e: string) {
+    if (e == this.lastScan)
+      return
+    Crypto.arguments
+
+
+    const res: any = await firstValueFrom(this.apiService.genIdentCode(e));
+
+    this.codGenerado.set(String(res?.data?.codigo))
+
+    console.log('scanComplete',e)
+    this.lastScan = e
+  }
   
 
 }
