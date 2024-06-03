@@ -254,6 +254,26 @@ export class CargaLicenciaController extends BaseController {
     }
   }
 
+  async listforedit(req: Request, res: Response, next: NextFunction) {
+    console.log("estoy en el back")
+    //const prev: boolean = (req.params.prev === 'true')
+    try {
+       const htmlContent = await this.getReciboHtmlContentGeneral()
+       this.jsonRes({ nombre: htmlContent.name, apellido: htmlContent.apellido }, res);
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+
+  async getReciboHtmlContentGeneral(){
+
+    let name =  "felipe"
+   let apellido = "hernandez"
+    return { name, apellido }
+  }
+
  
 
 }

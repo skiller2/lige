@@ -5,7 +5,7 @@ import {
   Inject,
   LOCALE_ID,
   ViewChild,
-  inject,input,SimpleChanges,EventEmitter
+  inject,input,SimpleChanges,EventEmitter,Output
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
@@ -19,7 +19,7 @@ import {
 import { ApiService, doOnSubscribe } from '../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FiltroBuilderComponent } from '../../shared/filtro-builder/filtro-builder.component';
-import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
+import { Column, FileType, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, OnClickEventArgs } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { CommonModule, formatDate } from '@angular/common';
 import { SearchService } from '../../services/search.service';
@@ -33,6 +33,20 @@ type listOptionsT = {
   filtros: any[],
   extra: any,
   sort: any,
+}
+
+interface PersonalLicencia {
+  PersonalId: number;
+  PersonalLicenciaId: number;
+  PersonalApellido: string;
+  PersonalNombre: string;
+  PersonalLicenciaDesde: Date;
+  PersonalLicenciaHasta: Date;
+  TipoInasistenciaDescripcion: string; 
+  CategoriaPersonalDescripcion: string;
+  PersonalLicenciaHorasMensuales: string;
+  PersonalLicenciaObservacion: string;
+
 }
 
 @Component({
@@ -54,6 +68,8 @@ export class TableAbmLicenciaComponent {
   @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
   private readonly route = inject(ActivatedRoute);
 
+  @Output()valueGridEvent = new EventEmitter();
+
 
   constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService:SearchService) { }
   formChange$ = new BehaviorSubject('');
@@ -62,11 +78,13 @@ export class TableAbmLicenciaComponent {
 
 
   columns$ = this.apiService.getCols('/api/carga-licencia/cols').pipe(map((cols) => {
+    
+    //cols[8].asyncPostRender = this.renderAngularComponent.bind(this)
     return cols
   }));
 
   excelExportService = new ExcelExportService()
-  angularGrid!: AngularGridInstance;
+  angularGridEdit!: AngularGridInstance;
   gridObj!: SlickGrid;
   detailViewRowCount = 9
   gridOptions!: GridOption
@@ -77,6 +95,9 @@ export class TableAbmLicenciaComponent {
     sort: null,
     extra: null,
   }
+  dataAngularGrid:any
+  personalLicencias: PersonalLicencia[] = [];
+
 
  anio = input<number>();
  mes = input<number>();
@@ -84,6 +105,7 @@ export class TableAbmLicenciaComponent {
   ngOnChanges(changes: SimpleChanges) {
     this.formChange$.next("");
   }
+
 
   listOptionsChange(options: any) {
     this.listOptions = options;
@@ -109,6 +131,7 @@ export class TableAbmLicenciaComponent {
         )
         .pipe(
           map(data => {
+            this.dataAngularGrid = data.list
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -122,8 +145,10 @@ export class TableAbmLicenciaComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
-
+ 
   }
+
+  
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
@@ -137,15 +162,29 @@ export class TableAbmLicenciaComponent {
 
   ngOnDestroy() {
   }
+  
 
   angularGridReady(angularGrid: any) {
 
-    this.angularGrid = angularGrid.detail
+    this.angularGridEdit = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
 
-    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-      totalRecords(this.angularGrid)
-    })    
+    this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGridEdit)
+    })   
+
+    this.angularGridEdit.slickGrid.onClick.subscribe((e, args)=> {
+      this.personalLicencias = []
+      var data = this.dataAngularGrid[args.row]
+      this.personalLicencias.push(data);
+      this.valueGridEvent.emit(this.personalLicencias)
+    });
+    
+   
+  }
+
+  valueRowSelectes(value:number){
+    this.dataAngularGrid
   }
 
   exportGrid() {
@@ -154,4 +193,8 @@ export class TableAbmLicenciaComponent {
       format: FileType.xlsx
     });
   }
+
+ 
 }
+ 
+
