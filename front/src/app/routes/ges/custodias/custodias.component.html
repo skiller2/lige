@@ -16,7 +16,7 @@
 
       
 
-      <ng-template nz-tab>
+      <ng-template nz-tab *ngIf="(columns$|async) as columnas">
         
         <nz-form-control [nzSpan]="3">
           <button nz-button nzType="default" (click)="getObjCustodiaId()" *ngIf="editCustodiaId">
@@ -25,10 +25,10 @@
             </a>
           </button>
         </nz-form-control>
-        
+        <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
         <div class="gridListContainer container-fluid" >
-          <angular-slickgrid gridId="grid" [columnDefinitions]="columns$ | async | colsFilter" [gridOptions]="gridOptions"
-            [dataset]="gridDataInsert || []" (onAngularGridCreated)="angularGridReady($event)"
+          <angular-slickgrid gridId="grid" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptions"
+            [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
             (onSelectedRowsChanged)="handleSelectedRowsChanged()">
           </angular-slickgrid>
         </div>

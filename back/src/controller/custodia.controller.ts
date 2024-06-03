@@ -3,11 +3,13 @@ import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
 import { QueryRunner } from "typeorm";
 import { ObjetivoController } from "./objetivo.controller";
-import { filtrosToSql, orderToSQL } from "src/impuestos-afip/filtros-utils/filtros";
+import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+import { Options } from "../schemas/filtro";
 
 const columnsObjCustodia: any[] = [
     {
         id:'id' , name:'Codigo' , field:'id',
+        fieldName: "obj.objetivo_custodia_id",
         sortable: true,
         type: 'number',
         maxWidth: 100,
@@ -15,6 +17,7 @@ const columnsObjCustodia: any[] = [
     },
     {
         id:'cliente' , name:'Cliente' , field:'cliente',
+        fieldName: "cli.ClienteId",
         sortable: true,
         type: 'string',
         formatter: 'complexObject',
@@ -26,6 +29,7 @@ const columnsObjCustodia: any[] = [
     },
     {
         id:'descripcion' , name:'Descripcion' , field:'descripcion',
+        fieldName: "obj.descripcion",
         sortable: true,
         type: 'text',
         // maxWidth: 300,
@@ -33,13 +37,15 @@ const columnsObjCustodia: any[] = [
     },
     {
         id:'fechaI' , name:'Fecha Inicio' , field:'fechaI',
+        fieldName: "obj.fecha_inicio",
         sortable: true,
-        type: 'dateTimeShortUs',
+        type: 'date',
         maxWidth: 150,
         minWidth: 110,
     },
     {
         id:'origen' , name:'Origen' , field:'origen',
+        fieldName: "obj.origen",
         sortable: true,
         type: 'string',
         // maxWidth: 180,
@@ -47,13 +53,15 @@ const columnsObjCustodia: any[] = [
     },
     {
         id:'fechaF' , name:'Fecha Final' , field:'fechaF',
+        fieldName: "obj.fecha_fin",
         sortable: true,
-        type: 'dateTimeShortUs',
+        type: 'date',
         maxWidth: 150,
         minWidth: 110,
     },
     {
         id:'destino' , name:'Destino' , field:'destino',
+        fieldName: "obj.destino",
         sortable: true,
         type: 'string',
         // maxWidth: 180,
@@ -82,6 +90,7 @@ const columnsObjCustodia: any[] = [
     // },
     {
         id:'estado' , name:'Estado' , field:'estado',
+        fieldName: "obj.estado",
         sortable: true,
         type: 'string',
         formatter: 'complexObject',
@@ -184,14 +193,15 @@ export class CustodiaController extends BaseController {
         [patente])
     }
 
-    async listObjetivoCustodiaByResponsableQuery(queryRunner: any, responsableId:number){
+    async listObjetivoCustodiaByResponsableQuery(queryRunner:any, responsableId:number, filterSql:any, orderBy:any){
         return await queryRunner.query(`
         SELECT obj.objetivo_custodia_id id, obj.responsable_id responsableId, 
         obj.cliente_id clienteId, obj.descripcion, obj.fecha_inicio, 
         obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente
         FROM lige.dbo.objetivocustodia obj
         INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
-        WHERE obj.responsable_id = @0`, 
+        WHERE obj.responsable_id = @0 AND (${filterSql}) 
+        ${orderBy}`, 
         [responsableId])
     }
 
@@ -385,7 +395,12 @@ export class CustodiaController extends BaseController {
             await queryRunner.startTransaction()
             // const responsableId = 1
             const responsableId = res.locals.PersonalId
-            let result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, responsableId)
+            const options: Options = isOptions(req.body.options)? req.body.options : { filtros: [], sort: null };
+            
+            const filterSql = filtrosToSql(options.filtros, columnsObjCustodia);
+            const orderBy = orderToSQL(options.sort)
+            
+            let result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, responsableId, filterSql, orderBy)
             const estados= ['Pendiente', 'Finalizado', 'Cancelado']
             let list = result.map((obj : any) => {
                 return {
