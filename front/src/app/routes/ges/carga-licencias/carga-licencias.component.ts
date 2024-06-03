@@ -7,11 +7,15 @@ import {
   BehaviorSubject,
 } from 'rxjs';
 import { NgForm } from '@angular/forms';
+import { LicenciaDrawerComponent } from  '../../../shared/licencia-drawer/licencia-drawer.component'
+import { AngularGridInstance } from 'angular-slickgrid';
+
+
 
 @Component({
   selector: 'app-carga-licencias',
   standalone: true,
-  imports: [SHARED_IMPORTS,CommonModule,TableAbmLicenciaComponent],
+  imports: [SHARED_IMPORTS,CommonModule,TableAbmLicenciaComponent,LicenciaDrawerComponent],
   templateUrl: './carga-licencias.component.html',
   styleUrl: './carga-licencias.component.less'
 })
@@ -20,6 +24,9 @@ export class CargaLicenciasComponent {
   tabIndex = 0
   selectedPeriod = { year: 0, month: 0 };
   formChange$ = new BehaviorSubject('');
+  visibleDrawer: boolean = false
+  angularGridEdit!: AngularGridInstance;
+  dataDrawer = []
 
   dateChange(result: Date): void {
     this.selectedPeriod.year = result.getFullYear();
@@ -30,6 +37,7 @@ export class CargaLicenciasComponent {
 
     this.formChange('');
   }
+  
 
   ngAfterViewInit(): void {
     const now = new Date(); //date
@@ -50,5 +58,18 @@ export class CargaLicenciasComponent {
   formChange(event: any) {
     this.formChange$.next(event);
   }
+
+  actualizarValorDrawer(event: any){
+    this.dataDrawer = event
+  }
+
+  openDrawer(): void {
+    this.visibleDrawer = true
+
+}
+
+  closeDrawer(): void {
+    this.visibleDrawer = false;
+}
 
 }

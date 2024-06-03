@@ -733,6 +733,17 @@ export class ApiService {
 
   }
 
+  getValuesdrawerLicencia(PersonalId:number,PersonalLicenciaId:number) {
+    let parameter = ""
+    console.log("voy al back")
+    return this.http.get<ResponseJSON<any>>(`/api/carga-licencia/listforedit/${PersonalId}/${PersonalLicenciaId}`,parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([])),
+      
+    )
+
+  }
+
   setPersonalAndGroupDelete(userId: any,ObjetivoId: any) {
     let parameter = {userId,ObjetivoId}
     return this.http.post<ResponseJSON<any>>('/api/personalobjetivo/setPersonalAndGroupDelete', parameter).pipe(

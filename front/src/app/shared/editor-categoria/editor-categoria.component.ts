@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, SimpleChanges, ViewChild } from '@angular/core';
 import { Subject, firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
@@ -30,6 +30,10 @@ export class EditorCategoriaComponent {
   optionsArray: any
   constructor(public element: ElementRef, private searchService: SearchService) { }
 
+  @Input() selectedPeriod = { year: 0, month: 0 };
+  @Input() sucursalid = 0
+  @Input() NombreApellidoId = 0
+
   onChange(key: any) {
     this.eto.focus()  //Al hacer click en el componente hace foco nuevamente
     const selopt: any = this.optionsArray.filter((v: any) => v.id == key)
@@ -51,15 +55,23 @@ export class EditorCategoriaComponent {
     }
   }
 
+  
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['sucursalid']) {
+      // Detect change in sucursalid input
+      this.ngOnInit();
+    }
+  }
+
 
   async ngOnInit() {
     //    this.element.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
     //    this.eto.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
 
-    if (this.item.categoria.id)
+    if (this.item?.categoria.id)
       this.optionsArray = [this.item.categoria]
 
-    if (this.item.apellidoNombre.id) {
+    if (this.item?.apellidoNombre.id) {
       const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(Number(this.item.apellidoNombre.id), this.params?.anio, this.params?.mes, this.params?.SucursalId))
 
       this.optionsArray = (this.params?.SucursalId > 0) ? categorias.categorias?.filter((f: any) => f.ValorLiquidacionHoraNormal > 0) : categorias.categorias
@@ -67,6 +79,13 @@ export class EditorCategoriaComponent {
         this.onChange(this.optionsArray[0].id)
     }
 
+    if(this.sucursalid > 0 && this.NombreApellidoId > 0 && this.selectedPeriod.month > 0 && this.selectedPeriod.year > 0){
+      const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(Number(this.NombreApellidoId), this.selectedPeriod.year, this.selectedPeriod.month, this.sucursalid))
+
+      this.optionsArray = (this.sucursalid > 0) ? categorias.categorias?.filter((f: any) => f.ValorLiquidacionHoraNormal > 0) : categorias.categorias
+      if (this.selectedId == 0 && this.optionsArray.length > 0)
+        this.onChange(this.optionsArray[0].id)
+    }
 
 
   }

@@ -5,7 +5,7 @@
         <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
   
         <div class="gridContainer container-fluid" *ngIf="(columns$|async) as columnas">
-            <angular-slickgrid gridId="grid" class="" [columnDefinitions]="columnas | colsFilter"
+            <angular-slickgrid gridId="gridEdit" class="" [columnDefinitions]="columnas | colsFilter"
               [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
               (onAngularGridCreated)="angularGridReady($event)">
             </angular-slickgrid>
