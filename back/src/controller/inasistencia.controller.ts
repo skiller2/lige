@@ -8,20 +8,15 @@ import { NextFunction } from "express";
 export class InasistenciaController extends BaseController {
   
   search(req: any, res: Response, next:NextFunction) {
-
-    console.log("estoy ava............................................................")
-   
     const { fieldName, value } = req.body;
-    console.log(fieldName)
-    console.log(value)
     let buscar = false;
-    let query: string = `SELECT TipoInasistenciaId, TipoInasistenciaDescripcion FROM TipoInasistencia WHERE ReciboRetiroId IS NOT null`;
+    let query: string = `SELECT TipoInasistenciaId, TipoInasistenciaDescripcion FROM TipoInasistencia WHERE 1=1 AND `;
     switch (fieldName) {
       case "TipoInasistenciaDescripcion":
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
-          if (element.trim().length > 1) {
-            query += ` AND TipoInasistenciaDescripcion LIKE '%${element.trim()}%' AND `;
+          if (element.trim().length >= 1) {
+            query += ` TipoInasistenciaDescripcion LIKE '%${element.trim()}%' AND `;
             //query += `(CONCAT(CLienteDenominacion, ClienteNombreFantasia, ClienteApellidoNombre) LIKE '%${element.trim()}%') AND `;
             buscar = true;
           }
@@ -29,7 +24,7 @@ export class InasistenciaController extends BaseController {
         break;
       case "TipoInasistenciaId":
         if (value > 0) {
-          query += ` AND TipoInasistenciaId = '${value}' AND `;
+          query += ` TipoInasistenciaId = '${value}' AND `;
           buscar = true;
         }
         break;

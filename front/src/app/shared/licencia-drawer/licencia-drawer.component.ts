@@ -60,13 +60,12 @@ export class LicenciaDrawerComponent {
 
     setTimeout(async () => {
      
- 
       this.formulario.patchValue({
         nombre: this.data[0]["PersonalNombre"],
         apellido: this.data[0]["PersonalApellido"],
         datePickerDesde: this.data[0]["PersonalLicenciaDesde"],
         datePickerHasta: this.data[0]["PersonalLicenciaHasta"],
-        tipoLincencia: this.data[0]["TipoInasistenciaDescripcion"],
+        tipoLincencia: this.data[0]["PersonalLicenciaId"],
         clase: "",
         categoria: this.data[0]["CategoriaPersonalDescripcion"],
         horasMensuales: this.data[0]["PersonalLicenciaHorasMensuales"],

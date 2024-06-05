@@ -52,5 +52,7 @@ export class IdentComponent {
     this.lastScan = e
   }
   
-
+  ngOnInit() {
+    
+  }
 }

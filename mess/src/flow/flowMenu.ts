@@ -1,11 +1,10 @@
-import BotWhatsapp from '@bot-whatsapp/bot'
+import { EVENTS, addKeyword } from "@builderbot/bot";
 import flowMonotributo from './flowMonotributo'
 import flowRecibo from './flowRecibo'
 import flowConstMedica from './flowConstMedica'
 import flowEnd from './flowEnd'
 import { chatBotController } from "../controller/controller.module";
 
-const { addKeyword, EVENTS } = BotWhatsapp
 const delay = chatBotController.getDelay()
 
 const flowMenu = addKeyword(EVENTS.ACTION)

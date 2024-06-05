@@ -47,16 +47,9 @@
               </nz-form-control>
           </nz-form-item>
           <nz-form-item>
-            <nz-form-label [nzSpan]="5">tipo de Inasistencia </nz-form-label>
+            <nz-form-label [nzSpan]="5">Tipo Inasistencia </nz-form-label>
             <nz-form-control >
-                <!-- <input nz-input formControlName="tipoLincencia" ngModel  /> -->
-                <app-inasistencia-search [inasistenciaid]="inasistenciaid"></app-inasistencia-search>
-            </nz-form-control>
-          </nz-form-item>
-          <nz-form-item>
-            <nz-form-label [nzSpan]="5">Clase </nz-form-label>
-            <nz-form-control>
-                <input nz-input formControlName="clase" ngModel  />
+                <app-inasistencia-search formControlName="tipoLincencia" ngModel></app-inasistencia-search>
             </nz-form-control>
           </nz-form-item>
           <nz-form-item>

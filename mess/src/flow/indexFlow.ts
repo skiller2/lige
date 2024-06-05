@@ -1,10 +1,12 @@
-import BotWhatsapp from '@bot-whatsapp/bot'
+import { createFlow } from '@builderbot/bot'
 import flowLogin from './flowLogin'
+import flujoUsuariosNORegistrados from './flowLogin'
 import flowMenu from './flowMenu'
 
-export default BotWhatsapp.createFlow(
+export default createFlow(
     [
         flowLogin,
         flowMenu,
+        flujoUsuariosNORegistrados
     ]
 )

@@ -1,11 +1,10 @@
-import BotWhatsapp from '@bot-whatsapp/bot'
+import { addKeyword } from "@builderbot/bot";
 import flowMenu from './flowMenu'
 import flowEnd from './flowEnd'
 import { recibosController } from "../controller/controller.module";
 import { ClientException } from "src/controller/base.controller";
 import { chatBotController } from "../controller/controller.module";
 
-const { addKeyword } = BotWhatsapp
 const delay = chatBotController.getDelay()
 
 const flowRecibo = addKeyword(['2','recibo de retiro', 'recibo', 'r'])

@@ -1,7 +1,6 @@
-import BotWhatsapp from '@bot-whatsapp/bot'
+import { addKeyword } from "@builderbot/bot";
 import { chatBotController } from "../controller/controller.module";
 
-const { addKeyword } = BotWhatsapp
 const delay = chatBotController.getDelay() || 500
 
 const flowEnd = addKeyword(['no', '0'])

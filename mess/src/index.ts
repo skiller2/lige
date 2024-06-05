@@ -3,11 +3,12 @@ import { makeRoutes } from "./routes/routes.module"
 import { dataSource } from "./data-source";
 import { scheduleJob } from "node-schedule"
 import dotenv from "dotenv"
-import BotWhatsapp from '@bot-whatsapp/bot'
-import ProviderWs from '@bot-whatsapp/provider/baileys'
-import JsonFileAdapter from '@bot-whatsapp/database/json'
 import flow from "./flow/indexFlow";
-// import QRPortalWeb from '@bot-whatsapp/portal'
+
+import { createBot, createProvider, createFlow, addKeyword, utils } from '@builderbot/bot'
+import { JsonFileDB as Database } from '@builderbot/database-json'
+import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
+import flowLogin from "./flow/flowLogin";
 
 dotenv.config()
 
@@ -20,8 +21,8 @@ const webServer = new WebServer(Number(process.env.SERVER_API_PORT))
 
 
 scheduleJob('*/1 * * * *', async function (fireDate) {
-//  const ret = await categoriasController.procesaCambios(null, res, (ret: any) => ret)
-//  console.log(`job run at ${fireDate}, response: ${ret}`, ret);
+  //  const ret = await categoriasController.procesaCambios(null, res, (ret: any) => ret)
+  //  console.log(`job run at ${fireDate}, response: ${ret}`, ret);
 });
 
 
@@ -64,14 +65,22 @@ webServer.init()
 
     process.exit()
   })
-let globalState:any
-const botInit = async () =>{
-    return await BotWhatsapp.createBot({
-    flow,
-    database: new JsonFileAdapter(),
-    provider: BotWhatsapp.createProvider(ProviderWs)
-  },{delay:1000})
+const botInit = async () => {
+  const adapterFlow = createFlow(flowLogin)
+  const adapterProvider = createProvider(Provider)
+  const adapterDB = new Database({ filename: 'db.json' })
+
+  const { handleCtx,httpServer } = await createBot({
+    flow: adapterFlow,
+    provider: adapterProvider,
+    database: adapterDB,
+
+  })
+  httpServer(3008)
+  return handleCtx
 }
 
-const {globalStateHandler} = await botInit()
-console.log('bot',globalStateHandler)
+const h = await botInit()
+console.log('bot', h)
+
+
