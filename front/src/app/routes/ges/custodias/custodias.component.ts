@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
-import { SHARED_IMPORTS } from '@shared';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
 // import { Observable } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -10,9 +10,10 @@ import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
-import { firstValueFrom, map } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
+import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 
 
 @Component({
@@ -22,7 +23,7 @@ import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.comp
     standalone: true,
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent],
+    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, FiltroBuilderComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 
 })
@@ -45,6 +46,12 @@ export class CustodiaComponent {
     cantInputs : Array<number> = [1,2,3,4,5]
     listInputPersonal: Array<number> = this.cantInputs.slice();
     listInputVehiculo: Array<number> = this.cantInputs.slice();
+    formChange$ = new BehaviorSubject('');
+
+    listOptions: listOptionsT = {
+        filtros: [],
+        sort: null,
+      };
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
@@ -59,9 +66,16 @@ export class CustodiaComponent {
                 item = {...item, formatter: Formatters.complexObject}
             return item
         });
-        // console.log('mapped', mapped);
         return mapped
-      }));
+    }));
+
+    gridData$ = this.formChange$.pipe(
+        debounceTime(500),
+        switchMap(() => {
+          return this.searchService.getListaObjetivoCustodia({ options: this.listOptions })
+            .pipe(map(data => { return data }))
+        })
+      )
 
     async ngOnInit(){
         this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -71,7 +85,6 @@ export class CustodiaComponent {
         this.gridOptions.enableAutoSizeColumns = true
         this.gridOptions.fullWidthRows = true
         this.gridOptions.enableExcelExport = false
-        this.gridDataInsert = await firstValueFrom(this.searchService.getListaObjetivoCustodia())
         // console.log('this.gridDataInsert', this.gridDataInsert);
     }
 
@@ -87,13 +100,12 @@ export class CustodiaComponent {
 
     async save() {
         // console.log('editCustodiaId',this.editCustodiaId)
-        console.log('graba',this.ngForm().value)
+        // console.log('graba',this.ngForm().value)
         if (this.editCustodiaId) {
             const res = await firstValueFrom(this.apiService.updateObjCustodia(this.ngForm().value, this.editCustodiaId))
         } else {
             const res = await firstValueFrom(this.apiService.addObjCustodia(this.ngForm().value))
         }
-        this.gridDataInsert = await firstValueFrom(this.searchService.getListaObjetivoCustodia())
         // this.ngForm().onReset()
     }
 
@@ -102,7 +114,6 @@ export class CustodiaComponent {
             let form = this.ngForm().value
             form.estado = estado
             const res = await firstValueFrom(this.apiService.updateObjCustodia(form, this.editCustodiaId))
-            this.gridDataInsert = await firstValueFrom(this.searchService.getListaObjetivoCustodia())
         }
     }
 
@@ -194,4 +205,8 @@ export class CustodiaComponent {
         }
     }
 
+    listOptionsChange(options: any) {
+        this.listOptions = options;
+        this.formChange$.next('');
+    }
 }
