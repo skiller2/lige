@@ -254,26 +254,50 @@ export class CargaLicenciaController extends BaseController {
     }
   }
 
-  async listforedit(req: Request, res: Response, next: NextFunction) {
-    console.log("estoy en el back")
-    //const prev: boolean = (req.params.prev === 'true')
-    try {
-       const htmlContent = await this.getReciboHtmlContentGeneral()
-       this.jsonRes({ nombre: htmlContent.name, apellido: htmlContent.apellido }, res);
+  async getLicencia(req: Request, res: Response, next: NextFunction) {
+    const PersonalId = Number(req.params.PersonalId)
+    const  PersonalLicenciaId = Number(req.params.PersonalLicenciaId)
+    const  anio = Number(req.params.anio)
+    const  mes = Number(req.params.mes)
+    const queryRunner = dataSource.createQueryRunner();
 
+    try {
+      let selectquery = `SELECT suc.SucursalId, suc.SucursalDescripcion,
+      persona.PersonalId,lic.PersonalLicenciaId, persona.PersonalApellido, persona.PersonalNombre, 
+--       licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,
+--     (ROUND(CAST(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales AS FLOAT),0,0) *60+ PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1))/60 AS horas,
+     val.ValorLiquidacionHoraNormal,
+--     (ROUND(CAST(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales AS FLOAT),0,0) *60+ PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1))/60 * val.ValorLiquidacionHoraNormal AS total,
+     lic.PersonalLicenciaSePaga,
+     tli.TipoInasistenciaId,
+     tli.TipoInasistenciaDescripcion,
+     tli.TipoInasistenciaApartado,
+    lic.PersonalLicenciaDesde,
+    lic.PersonalLicenciaHasta,
+    lic.PersonalLicenciaTermina,
+     cat.CategoriaPersonalDescripcion,
+    lic.PersonalLicenciaObservacion,
+    lic.PersonalLicenciaTipoAsociadoId,
+    lic.PersonalLicenciaCategoriaPersonalId,
+    lic.PersonalLicenciaHorasMensuales,
+    med.PersonalLicenciaDiagnosticoMedicoDiagnostico,
+    med.PersonalLicenciaDiagnosticoMedicoFechaDiagnostico,
+      1
+      FROM PersonalLicencia lic 
+      JOIN Personal persona ON persona.PersonalId = lic.PersonalId
+      JOIN TipoInasistencia tli ON tli.TipoInasistenciaId = lic.PersonalTipoInasistenciaId
+      LEFT JOIN PersonalSucursalPrincipal sucpri ON sucpri.PersonalId = persona.PersonalId 
+      LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(sucpri.PersonalSucursalPrincipalSucursalId,1)
+      LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND cat.CategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId
+      LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = suc.SucursalId AND val.ValorLiquidacionTipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+      LEFT JOIN PersonalLicenciaDiagnosticoMedico med ON med.PersonalId=persona.PersonalId AND med.PersonalLicenciaId = lic.PersonalLicenciaId
+      WHERE lic.PersonalId=@3 AND lic.PersonalLicenciaId=@4 ` 
+      
+      const result = await queryRunner.query(selectquery, [,anio,mes,PersonalId,PersonalLicenciaId]) 
+      this.jsonRes(result[0], res);
     } catch (error) {
       return next(error)
     }
   }
-
-
-  async getReciboHtmlContentGeneral(){
-
-    let name =  "felipe"
-   let apellido = "hernandez"
-    return { name, apellido }
-  }
-
- 
 
 }

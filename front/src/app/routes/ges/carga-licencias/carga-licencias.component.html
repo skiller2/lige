@@ -42,10 +42,8 @@
         </nz-tab> -->
       
       </nz-tabset>
-  
-  
     </form>
   </nz-card>
   
-<app-licencia-drawer [selectedPeriod]="selectedPeriod" [visible]="visibleDrawer" [data]="dataDrawer" (onClose)="closeDrawer()"></app-licencia-drawer>
+<app-licencia-drawer [selectedPeriod]="selectedPeriod" [(visible)]="visibleDrawer" [PersonalId]="PersonalId" [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
   

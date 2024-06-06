@@ -1,94 +1,48 @@
-
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy,effect,EventEmitter, model,Input, Output, inject, viewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, inject, viewChild } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
-import { FormBuilder, FormGroup, NgForm, FormControl } from '@angular/forms';
+import { NgForm } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { EditorCategoriaComponent } from 'src/app/shared/editor-categoria/editor-categoria.component';
 import { InasistenciaSearchComponent } from 'src/app/shared/inasistencia-search/inasistencia-search.component';
-
-
+import { PersonalSearchComponent } from '../personal-search/personal-search.component';
 
 @Component({
   selector: 'app-licencia-drawer',
   standalone: true,
-  imports: [SHARED_IMPORTS,NzDescriptionsModule,ReactiveFormsModule,EditorCategoriaComponent,InasistenciaSearchComponent],
+  imports: [SHARED_IMPORTS, NzDescriptionsModule, ReactiveFormsModule, EditorCategoriaComponent, InasistenciaSearchComponent, PersonalSearchComponent],
   templateUrl: './licencia-drawer.component.html',
   styleUrl: './licencia-drawer.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
 export class LicenciaDrawerComponent {
+  ngForm = viewChild.required(NgForm);
+  PersonalId = input.required<number>()
+  PersonalLicenciaId = input.required<number>()
+  selectedPeriod = input.required<any>()
+  private apiService = inject(ApiService)
 
-  //ngForm = viewChild.required(NgForm);
   placement: NzDrawerPlacement = 'left';
-  visibleDrawer: boolean = false
-  sucursalid = 0
-  NombreApellidoId = 0
-  inasistenciaid = 0
- 
-
-  @Output() onClose = new EventEmitter<boolean>();
-  @Input() data = [];
-  @Input() selectedPeriod = { year: 0, month: 0 };
-  //private apiService = inject(ApiService)
+  visible = model<boolean>(false)
   tituloDrawer = "Modificación de Licencia"
-    
-  @Input()
-  set visible(value: boolean) {
-    this.visibleDrawer = value;
-    if (this.visibleDrawer)
-      this.load()
+
+  async onVisibleChange(vis: boolean) {
+    if (vis) {
+      const vals = await firstValueFrom(this.apiService.getLicencia(this.selectedPeriod().year,this.selectedPeriod().month, this.PersonalId(), this.PersonalLicenciaId()));
+      console.log('valores', vals)
+      this.ngForm().form.patchValue(vals)
+    }
   }
 
-  formulario = new FormGroup({
-    nombre: new FormControl({ value: '', disabled: true }),
-    apellido: new FormControl({ value: '', disabled: true }),
-    datePickerDesde: new FormControl(''),
-    datePickerHasta: new FormControl(''),
-    tipoLincencia: new FormControl(''),
-    clase: new FormControl(''),
-    categoria: new FormControl(''),
-    horasMensuales: new FormControl(''),
-    observacion: new FormControl(''),
-
-  });
-  async load() {
-
-    setTimeout(async () => {
-     
-      this.formulario.patchValue({
-        nombre: this.data[0]["PersonalNombre"],
-        apellido: this.data[0]["PersonalApellido"],
-        datePickerDesde: this.data[0]["PersonalLicenciaDesde"],
-        datePickerHasta: this.data[0]["PersonalLicenciaHasta"],
-        tipoLincencia: this.data[0]["PersonalLicenciaId"],
-        clase: "",
-        categoria: this.data[0]["CategoriaPersonalDescripcion"],
-        horasMensuales: this.data[0]["PersonalLicenciaHorasMensuales"],
-        observacion: this.data[0]["PersonalLicenciaObservacion"],
-      });
-
-      this.sucursalid = this.data[0]["SucursalId"]
-      this.NombreApellidoId = this.data[0]["PersonalId"]
-      this.inasistenciaid = this.data[0]["PersonalLicenciaId"]
-    }, 0);
-    
-     
+  async ngOnInit() {
   }
 
-  get visible(): boolean {
-    return this.visibleDrawer
+  async save() {
+    const res = await firstValueFrom(this.apiService.setLicencia(this.ngForm().value))
   }
-    
-  closeDrawer(): void {
-        this.visible = false
-        this.onClose.emit(this.visibleDrawer)
-        this.sucursalid = 0
-        this.NombreApellidoId = 0
-        this.inasistenciaid = 0
-      }
-}
+
+  }
