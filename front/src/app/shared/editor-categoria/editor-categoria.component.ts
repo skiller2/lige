@@ -1,15 +1,23 @@
-import { Component, ElementRef, Input, SimpleChanges, ViewChild } from '@angular/core';
-import { Subject, firstValueFrom } from 'rxjs';
+import { Component, ElementRef, Input, SimpleChanges, ViewChild,forwardRef } from '@angular/core';
+import { Subject, firstValueFrom,noop } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 import { SearchService } from 'src/app/services/search.service';
+import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
 
 @Component({
   selector: 'app-categoria-persona',
   templateUrl: './editor-categoria.component.html',
   styleUrls: ['./editor-categoria.component.less'],
   standalone: true,
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => EditorCategoriaComponent),
+      multi: true,
+    },
+  ],  
   imports: [
     ...SHARED_IMPORTS,
     CommonModule,
@@ -42,6 +50,9 @@ export class EditorCategoriaComponent {
       this.selectedItem = { id: key, fullName: `${selopt[0]?.CategoriaPersonalDescripcion.trim()} ${(selopt[0]?.ValorLiquidacionHorasTrabajoHoraNormal > 0) ? selopt[0].ValorLiquidacionHorasTrabajoHoraNormal : ''}`, tipoId: selopt[0]?.TipoAsociadoId, tipoFullname: selopt[0]?.TipoAsociadoDescripcion, horasRecomendadas: selopt[0]?.ValorLiquidacionHorasTrabajoHoraNormal, categoriaId: selopt[0]?.PersonalCategoriaCategoriaPersonalId }
     else
       this.selectedItem = { id: null, fullName: '', tipoId: null, categoriaId: null, tipoFullName: '', horasRecomendadas: 0 }
+
+    this.propagateChange(this.selectedItem)
+    
   }
 
   focus() {
@@ -57,7 +68,7 @@ export class EditorCategoriaComponent {
 
   
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['sucursalid']) {
+    if (changes['sucursalid'] || changes['selectedPeriod'] || changes['NombreApellidoId'] ) {
       // Detect change in sucursalid input
       this.ngOnInit();
     }
@@ -78,13 +89,21 @@ export class EditorCategoriaComponent {
       if (this.selectedId == 0 && this.optionsArray.length > 0)
         this.onChange(this.optionsArray[0].id)
     }
-
+//console.log('categoria',this.NombreApellidoId,this.sucursalid,this.selectedPeriod)
     if(this.sucursalid > 0 && this.NombreApellidoId > 0 && this.selectedPeriod.month > 0 && this.selectedPeriod.year > 0){
       const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(Number(this.NombreApellidoId), this.selectedPeriod.year, this.selectedPeriod.month, this.sucursalid))
 
       this.optionsArray = (this.sucursalid > 0) ? categorias.categorias?.filter((f: any) => f.ValorLiquidacionHoraNormal > 0) : categorias.categorias
+      
       if (this.selectedId == 0 && this.optionsArray.length > 0)
         this.onChange(this.optionsArray[0].id)
+
+      if (this.selectedId != 0 ) {
+        if (this.optionsArray.filter((f: any) => f.id == this.selectedId).length == 0)
+          this.onChange((this.optionsArray.length == 0 )? 0:this.optionsArray[0].id )
+      }
+
+
     }
 
 
@@ -103,6 +122,25 @@ export class EditorCategoriaComponent {
       this.eto.focus()  //Al hacer click en el componente hace foco
 
     }, 1);
+  }
+
+
+  private propagateTouched: () => void = noop
+  private propagateChange: (_: any) => void = noop
+
+  registerOnChange(fn: any) {
+
+    this.propagateChange = fn
+  }
+
+  registerOnTouched(fn: any) {
+    this.propagateTouched = fn
+  }
+
+  writeValue(value: any) {
+    if (value !== this.selectedId) {
+      this.selectedId = value
+    }
   }
 
 

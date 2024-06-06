@@ -16,3 +16,6 @@ CargaLicenciaCargaRouter.get("/:anio/:mes/:PersonalId/:PersonalLicenciaId", auth
     cargaLicenciaController.getLicencia(req, res, next);
 });
   
+CargaLicenciaCargaRouter.post("/", authMiddleware.verifyToken, (req, res, next) => {
+  cargaLicenciaController.setLicencia(req, res, next);
+});

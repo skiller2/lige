@@ -254,6 +254,19 @@ export class CargaLicenciaController extends BaseController {
     }
   }
 
+  async setLicencia(req: Request, res: Response, next: NextFunction) {
+    console.log('parammetros', req.body)
+    const queryRunner = dataSource.createQueryRunner();
+
+    try {
+      //const result = await queryRunner.query(selectquery, [,anio,mes,PersonalId,PersonalLicenciaId]) 
+      this.jsonRes({}, res);
+    } catch (error) {
+      return next(error)
+    }
+
+  }
+
   async getLicencia(req: Request, res: Response, next: NextFunction) {
     const PersonalId = Number(req.params.PersonalId)
     const  PersonalLicenciaId = Number(req.params.PersonalLicenciaId)
