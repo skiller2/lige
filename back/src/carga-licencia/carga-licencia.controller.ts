@@ -254,26 +254,139 @@ export class CargaLicenciaController extends BaseController {
     }
   }
 
-  async listforedit(req: Request, res: Response, next: NextFunction) {
-    console.log("estoy en el back")
-    //const prev: boolean = (req.params.prev === 'true')
+  async setLicencia(req: Request, res: Response, next: NextFunction) {
+    
+    console.log('parammetros', req.body.vals)
+    const {
+      SucursalId,
+      PersonalLicenciaId,
+      PersonalId,
+      PersonalLicenciaDesde,
+      PersonalLicenciaHasta,
+      TipoInasistenciaId,
+      categoria,
+      PersonalLicenciaSePaga,
+      PersonalLicenciaHorasMensuales,
+      PersonalLicenciaObservacion,
+      PersonalLicenciaTipoAsociadoId,
+      PersonalLicenciaCategoriaPersonalId,
+      IsEdit
+    } = req.body.vals
+    const queryRunner = dataSource.createQueryRunner();
     try {
-       const htmlContent = await this.getReciboHtmlContentGeneral()
-       this.jsonRes({ nombre: htmlContent.name, apellido: htmlContent.apellido }, res);
 
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      if(IsEdit){
+        const result = await queryRunner.query(`UPDATE PersonalLicencia
+          SET PersonalLicenciaDesde = @0, PersonalLicenciaHasta = @1, PersonalLicenciaTermina = @1, 
+              PersonalTipoInasistenciaId = @2, PersonalLicenciaSePaga = @3, PersonalLicenciaHorasMensuales = @4,
+              PersonalLicenciaObservacion = @5, PersonalLicenciaCategoriaPersonalId = @6,PersonalLicenciaTipoAsociadoId = @7
+          WHERE PersonalId = @8 AND PersonalLicenciaId = @9;`
+          , [PersonalLicenciaDesde,PersonalLicenciaHasta,TipoInasistenciaId,PersonalLicenciaSePaga,PersonalLicenciaHorasMensuales,
+            PersonalLicenciaObservacion,PersonalLicenciaCategoriaPersonalId,PersonalLicenciaTipoAsociadoId,PersonalId,PersonalLicenciaId
+          ]) 
+
+          this.jsonRes({ list: [] }, res, `se Actualizó con exito el registro`);
+      }else{
+
+        let PersonalLicenciaSelect = await queryRunner.query(` SELECT PersonalLicenciaUltNro from Personal WHERE PersonalId = @0`, [27,]) 
+        let {PersonalLicenciaUltNro} = PersonalLicenciaSelect[0]
+        PersonalLicenciaUltNro += 1
+        let PersonalLicenciaUpdate = await queryRunner.query(` UPDATE Personal SET PersonalLicenciaUltNro = @1, where PersonalId = @0 `, [PersonalId,PersonalLicenciaUltNro]) 
+
+        const result = await queryRunner.query(`INSERT INTO PersonalLicencia
+        VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19)`
+          , [PersonalId,PersonalLicenciaUltNro,null,null,'N', PersonalLicenciaDesde,
+            PersonalLicenciaHasta,null,null,null,PersonalLicenciaObservacion,null,null,
+            TipoInasistenciaId,PersonalLicenciaSePaga,PersonalLicenciaHorasMensuales,PersonalLicenciaTipoAsociadoId,
+            PersonalLicenciaCategoriaPersonalId,null,null]) 
+             
+        this.jsonRes({ list: [] }, res, `se Agrego con exito el registro`);
+      }
+
+      await queryRunner.commitTransaction();
+      
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    }
+
+  }
+
+  async deleteLincencia(req: Request, res: Response, next: NextFunction) {
+    
+    console.log('parammetros para borrar', req.body.vals)
+    const {
+      SucursalId,
+      PersonalLicenciaId,
+      PersonalId
+    } = req.body.vals
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+       const result = await queryRunner.query(`select * from PersonalLicenciaAplicaPeriodo where PersonalId=@0 and PersonalLicenciaId=@1 `
+        , [PersonalId,PersonalLicenciaId]) 
+
+        console.log(result.length)
+        if(result.length > 0) {
+          const result = await queryRunner.query(` DELETE FROM PersonalLicencia WHERE PersonalId = @0 and PersonalLicenciaId =@1`
+            , [PersonalId,PersonalLicenciaId]) 
+        }else{
+          this.jsonRes({ list: [] }, res, `No se puede eliminar la licencia`);
+        }
+
+      this.jsonRes({}, res);
+    } catch (error) {
+      return next(error)
+    }
+
+  }
+
+  async getLicencia(req: Request, res: Response, next: NextFunction) {
+    const PersonalId = Number(req.params.PersonalId)
+    const  PersonalLicenciaId = Number(req.params.PersonalLicenciaId)
+    const  anio = Number(req.params.anio)
+    const  mes = Number(req.params.mes)
+    const queryRunner = dataSource.createQueryRunner();
+
+    try {
+      let selectquery = `SELECT suc.SucursalId, suc.SucursalDescripcion,
+      persona.PersonalId,lic.PersonalLicenciaId, persona.PersonalApellido, persona.PersonalNombre, 
+--       licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,
+--     (ROUND(CAST(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales AS FLOAT),0,0) *60+ PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1))/60 AS horas,
+     val.ValorLiquidacionHoraNormal,
+--     (ROUND(CAST(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales AS FLOAT),0,0) *60+ PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1))/60 * val.ValorLiquidacionHoraNormal AS total,
+     lic.PersonalLicenciaSePaga,
+     tli.TipoInasistenciaId,
+     tli.TipoInasistenciaDescripcion,
+     tli.TipoInasistenciaApartado,
+    lic.PersonalLicenciaDesde,
+    lic.PersonalLicenciaHasta,
+    lic.PersonalLicenciaTermina,
+     cat.CategoriaPersonalDescripcion,
+    lic.PersonalLicenciaObservacion,
+    lic.PersonalLicenciaTipoAsociadoId,
+    lic.PersonalLicenciaCategoriaPersonalId,
+    lic.PersonalLicenciaHorasMensuales,
+    med.PersonalLicenciaDiagnosticoMedicoDiagnostico,
+    med.PersonalLicenciaDiagnosticoMedicoFechaDiagnostico,
+      1
+      FROM PersonalLicencia lic 
+      JOIN Personal persona ON persona.PersonalId = lic.PersonalId
+      JOIN TipoInasistencia tli ON tli.TipoInasistenciaId = lic.PersonalTipoInasistenciaId
+      LEFT JOIN PersonalSucursalPrincipal sucpri ON sucpri.PersonalId = persona.PersonalId 
+      LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(sucpri.PersonalSucursalPrincipalSucursalId,1)
+      LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND cat.CategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId
+      LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = suc.SucursalId AND val.ValorLiquidacionTipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+      LEFT JOIN PersonalLicenciaDiagnosticoMedico med ON med.PersonalId=persona.PersonalId AND med.PersonalLicenciaId = lic.PersonalLicenciaId
+      WHERE lic.PersonalId=@3 AND lic.PersonalLicenciaId=@4 ` 
+      
+      const result = await queryRunner.query(selectquery, [,anio,mes,PersonalId,PersonalLicenciaId]) 
+      this.jsonRes(result[0], res);
     } catch (error) {
       return next(error)
     }
   }
-
-
-  async getReciboHtmlContentGeneral(){
-
-    let name =  "felipe"
-   let apellido = "hernandez"
-    return { name, apellido }
-  }
-
- 
 
 }

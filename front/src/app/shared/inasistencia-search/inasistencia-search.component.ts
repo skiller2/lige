@@ -37,9 +37,8 @@ export class InasistenciaSearchComponent implements ControlValueAccessor {
 
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
-  @ViewChild("psc") psc!: NzSelectComponent
-  @Input() inasistenciaid = 0
-
+  @ViewChild("isc") isc!: NzSelectComponent
+  
 
   $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
@@ -61,20 +60,8 @@ export class InasistenciaSearchComponent implements ControlValueAccessor {
   }
 
   onChange() {
-    console.log('onChange',this.psc)
-//    this.psc?.focus()
+//    this.isc?.focus()
 
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['inasistenciaid']) {
-      console.log(changes['inasistenciaid'].currentValue)
-      // Detect change in sucursalid input
-    
-      if( changes['inasistenciaid'].currentValue > 0)
-          this.selectedId = this.inasistenciaid.toString()
-            
-    }
   }
 
   onRemove() {
@@ -86,7 +73,7 @@ export class InasistenciaSearchComponent implements ControlValueAccessor {
   }
 
   ngOnDestroy() { 
-    this.psc?.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
+    this.isc?.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
   }
 
   onKeydown(event: KeyboardEvent) {
@@ -101,8 +88,8 @@ export class InasistenciaSearchComponent implements ControlValueAccessor {
 
   ngAfterViewInit() {
     setTimeout(() => {
-      this.psc?.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-      this.psc?.focus()  //Al hacer click en el componente hace foco
+      this.isc?.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
+      this.isc?.focus()  //Al hacer click en el componente hace foco
      
     }, 1);
   }
@@ -113,8 +100,8 @@ export class InasistenciaSearchComponent implements ControlValueAccessor {
   }
 
   set selectedId(val: string) {
-    console.log("voy")
-    this.psc?.focus()
+
+    this.isc?.focus()
     val = (val === null || val === undefined) ? '' : val
 
     if (val !== this._selectedId) {
@@ -140,7 +127,6 @@ export class InasistenciaSearchComponent implements ControlValueAccessor {
           .getInasistenciaFromName('TipoInasistenciaId', this._selectedId)
           .pipe(tap(res => {
             if (res[0]?.TipoInasistenciaId)
-              console.log(res[0])
             this.extendedOption = res[0]
             this._selected = this._selectedId
             this.valueExtendedEmitter.emit(this.extendedOption)

@@ -12,7 +12,14 @@ CargaLicenciaCargaRouter.post("/list", authMiddleware.verifyToken, (req, res, ne
     cargaLicenciaController.list(req, res, next);
   });
 
-CargaLicenciaCargaRouter.get("/listforedit/:PersonalId/:PersonalLicenciaId", authMiddleware.verifyToken, (req, res, next) => {
-    cargaLicenciaController.listforedit(req, res, next);
+CargaLicenciaCargaRouter.get("/:anio/:mes/:PersonalId/:PersonalLicenciaId", authMiddleware.verifyToken, (req, res, next) => {
+    cargaLicenciaController.getLicencia(req, res, next);
 });
   
+CargaLicenciaCargaRouter.post("/", authMiddleware.verifyToken, (req, res, next) => {
+  cargaLicenciaController.setLicencia(req, res, next);
+});
+
+CargaLicenciaCargaRouter.post("/delete", authMiddleware.verifyToken, (req, res, next) => {
+  cargaLicenciaController.deleteLincencia(req, res, next);
+});

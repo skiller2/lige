@@ -1,9 +1,9 @@
-<nz-select #osc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }" 
+<nz-select #isc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }" 
   (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Inasistencia, Código"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
   <ng-container *ngFor="let option of $optionsArray | async">
     <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.TipoInasistenciaId"
-      nzLabel="{{ option.TipoInasistenciaId }}/{{option.TipoInasistenciaDescripcion | nzSafeNull : '0' }} {{ option.TipoInasistenciaDescripcion }} ({{option.TipoInasistenciaId}})" />
+      nzLabel="{{ option.TipoInasistenciaDescripcion }} ({{option.TipoInasistenciaId}})" />
   </ng-container>
   <nz-option *ngIf="extendedOption.TipoInasistenciaId > 0" [nzValue]="extendedOption.TipoInasistenciaId"
     [nzLabel]="extendedOption.TipoInasistenciaDescripcion" />

@@ -406,28 +406,11 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       ]
     );
 
-    if (alreadyExists.length > 0) {
-      
-      if (alreadyExists[0].PersonalComprobantePagoAFIPImporte != importeMonto)
-        throw new ClientException(
-          `Ya existe un descuento para el periodo ${anioRequest}-${mesRequest} y el CUIT ${CUIT} con importe ${alreadyExists[0].PersonalComprobantePagoAFIPImporte} distinto al cargado`
-        );
-      
-    }
 
-    mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
-    const newFilePath = `${this.directory
-      }/${anioRequest}/${anioRequest}-${mesRequest
-        .toString()
-        .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
-
-    if (existsSync(newFilePath)) {
-      unlinkSync(newFilePath)
-    }
+    await queryRunner.startTransaction()
 
     if (alreadyExists.length == 0) {
       const now = new Date();
-      await queryRunner.startTransaction()
 
       PersonalComprobantePagoAFIPUltNro++
       await queryRunner.query(
@@ -474,8 +457,31 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         `UPDATE Personal SET PersonalOtroDescuentoUltNro = @0, PersonalComprobantePagoAFIPUltNro=@1 WHERE PersonalId = @2`,
         [PersonalOtroDescuentoUltNro, PersonalComprobantePagoAFIPUltNro,personalID]
       );
-      await queryRunner.commitTransaction()
 
+    } else {
+      if (PersonalExencionCUIT != 1) { 
+        throw new ClientException(
+          `Ya existe un descuento para el periodo ${anioRequest}-${mesRequest} y el CUIT ${CUIT} con importe ${alreadyExists[0].PersonalComprobantePagoAFIPImporte} distinto al cargado`
+        );
+      }
+
+      const PersonalComprobantePagoAFIPId = alreadyExists[0].updPersonalComprobantePagoAFIPId    
+
+      await queryRunner.query(
+        `UPDATE PersonalComprobantePagoAFIP SET PersonalComprobantePagoAFIPImporte=@2 WHERE PersonalComprobantePagoAFIPId = @0 AND PersonalId = @1`,
+        [PersonalComprobantePagoAFIPId,personalID,importeMonto]
+      );
+
+    }
+    await queryRunner.commitTransaction()
+    mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
+    const newFilePath = `${this.directory
+      }/${anioRequest}/${anioRequest}-${mesRequest
+        .toString()
+        .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
+
+    if (existsSync(newFilePath)) {
+      unlinkSync(newFilePath)
     }
 
     if (pagenum == null) {

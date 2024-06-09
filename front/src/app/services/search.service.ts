@@ -166,6 +166,11 @@ export class SearchService {
       );
   }
 
+  getInasistenciaFromName(fieldName: string, values: string): Observable<SearchInasistencia[]> {
+    return this.getInasistenciaSearch(fieldName, values)
+  }
+
+
   getPersonFromName(fieldName: string, values: string): Observable<Search[]> {
     if (!values || values == '') {
       return of([]);
@@ -187,27 +192,7 @@ export class SearchService {
       );
   }
 
-  getInasistenciaFromName(fieldName: string, values: string): Observable<SearchInasistencia[]> {
-    if (!values || values == '') {
-      return of([]);
-    }
-    return this.http
-      .post<ResponseJSON<ResponseBySearchInasistencia>>('api/inasistencia/search', {
-        fieldName: fieldName,
-        value: values,
-      })
-      .pipe(
-        map(res => {
-          if (res.data.recordsArray) return res.data.recordsArray;
-          else return [];
-        }),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
-  }
-
+  
   getGrupoActividad(fieldName: string, values: string): Observable<SearchGrup[]> {
 
     

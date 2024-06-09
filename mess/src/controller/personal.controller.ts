@@ -6,6 +6,7 @@ import { dataSource } from "../data-source";
 // import { ParsedQs } from "qs";
 import { NextFunction, Request, Response } from "express";
 import * as CryptoJS from 'crypto-js';
+import { isNumberObject } from "node:util/types";
 
 export class PersonalController extends BaseController {
 
@@ -95,7 +96,7 @@ export class PersonalController extends BaseController {
 
   async getPersonalfromTelefonoQuery(telefono: string) {
     const result = await dataSource.query(
-      `SELECT reg.personal_id personalId, reg.telefono, per.PersonalNombre name, cuit.PersonalCUITCUILCUIT cuit
+      `SELECT reg.personal_id personalId, reg.telefono, per.PersonalNombre name, cuit.PersonalCUITCUILCUIT cuit, codigo
       FROM lige.dbo.regtelefonopersonal reg
       LEFT JOIN Personal per ON per.PersonalId = reg.personal_id
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = reg.personal_id
@@ -145,7 +146,7 @@ export class PersonalController extends BaseController {
       const _key = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
       const _iv = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
       const encrypted = CryptoJS.default.AES.encrypt(
-        JSON.stringify(telNro), _key, {
+        telNro, _key, {
         keySize: 16,
         iv: _iv,
         mode: CryptoJS.default.mode.ECB,
@@ -159,10 +160,9 @@ export class PersonalController extends BaseController {
   }
 
   async getIdentCode(req: any, res: Response, next: NextFunction) {
-    const identData = req.query.identData
+    const des_doc_ident = req.query.identData
     const encTelNro = req.query.encTelNro
 
-//    console.log('encTelNro',req)
     const stmactual = new Date();
     const usuario = 'anon'
     const ip = this.getRemoteAddress(req)
@@ -181,7 +181,11 @@ export class PersonalController extends BaseController {
         padding: CryptoJS.default.pad.Pkcs7
       });
 
-      const telNro = decrypted.toString()
+      const telNro = decrypted.toString(CryptoJS.default.enc.Utf8)
+
+      const valid = /^\d+$/.test(telNro);
+      if (!valid || telNro.length < 8)
+        throw new ClientException('No se puede verificar el número de teléfono')
 
       await queryRunner.startTransaction()
 
@@ -200,8 +204,8 @@ export class PersonalController extends BaseController {
       const codigo = Math.floor(Math.random() * (999999 - 100000) + 100000)
 
       await queryRunner.query(
-        `IF EXISTS(select * from lige.dbo.regtelefonopersonal where personal_id=@0) UPDATE lige.dbo.regtelefonopersonal SET codigo=@1, telefono=@2, aud_usuario_mod=@3, aud_ip_mod=@4, aud_fecha_mod=@5 WHERE personal_id=@0 ELSE INSERT INTO lige.dbo.regtelefonopersonal (personal_id, codigo, telefono, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod) values(@0,@1,@2,@3,@4,@5,@3,@4,@5)   `,
-        [PersonalId, codigo, telNro, usuario, ip, stmactual]
+        `IF EXISTS(select * from lige.dbo.regtelefonopersonal where personal_id=@0) UPDATE lige.dbo.regtelefonopersonal SET codigo=@1, telefono=@2, des_doc_ident=@6, aud_usuario_mod=@3, aud_ip_mod=@4, aud_fecha_mod=@5 WHERE personal_id=@0 ELSE INSERT INTO lige.dbo.regtelefonopersonal (personal_id, codigo, telefono, des_doc_ident, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod) values(@0,@1,@2,@6,@3,@4,@5,@3,@4,@5)   `,
+        [PersonalId, codigo, telNro, usuario, ip, stmactual,des_doc_ident]
       )
 
       await queryRunner.commitTransaction()

@@ -12,6 +12,7 @@ export interface PersonaObj {
     FechaDesde: Date,
     FechaHasta: Date
     mails: string[]
+    estudios: string
 }
 
 export interface ResponseBySearch {

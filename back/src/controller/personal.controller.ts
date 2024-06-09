@@ -133,6 +133,10 @@ export class PersonalController extends BaseController {
     const mes = fechaActual.getMonth() + 1; // Agrega 1 porque los meses se indexan desde 0 (0 = enero)
     const anio = fechaActual.getFullYear();
     const mails = await dataSource.query('SELECT ema.PersonalEmailEmail, ema.PersonalId FROM PersonalEmail ema WHERE ema.PersonalEmailInactivo <> 1 AND ema.PersonalId=@0',[PersonalId])
+    const estudios = await dataSource.query(`SELECT TOP 1 tip.TipoEstudioId, tip.TipoEstudioDescripcion, est.PersonalEstudioTitulo FROM PersonalEstudio est 
+      JOIN TipoEstudio tip ON tip.TipoEstudioId = est.TipoEstudioId
+      WHERE est.PersonalId=@0 AND est.EstadoEstudioId = 2
+      ORDER BY tip.TipoEstudioId DESC `,[PersonalId])
     dataSource
       .query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
@@ -198,7 +202,7 @@ export class PersonalController extends BaseController {
           : "";
 //        personaData.image = "";
         personaData.mails = mails;
-
+        personaData.estudios = (estudios[0])? `${estudios[0].TipoEstudioDescripcion.trim()} ${estudios[0].PersonalEstudioTitulo.trim()}`: 'Sin registro'
         if (imageUrl != "") {
           const res = await fetch(imageUrl)
           const buffer = await res.arrayBuffer()

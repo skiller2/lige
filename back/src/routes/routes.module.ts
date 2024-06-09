@@ -21,7 +21,7 @@ import { recibosRouter } from "src/recibos/recibos.routes";
 import { personalObjetivoRouter } from "src/personal-objetivo/personal-objetivo.routes";
 import { listaPersmisoCargaRouter } from "src/lista-permisocarga/lista-permisocarga.controller.routes";
 import { custodiaRouter } from "./custodia.routes";
-import { CargaLicenciaCargaRouter } from "../carga-licencia/carga-licencia.controller.routes"
+import { CargaLicenciaCargaRouter } from "../carga-licencia/carga-licencia.routes"
 import { inasistenciaRouter } from "../routes/inasistencia.routes"
 
 export function makeRoutes(server: WebServer) {

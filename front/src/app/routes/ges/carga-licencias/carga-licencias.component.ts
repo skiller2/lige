@@ -1,4 +1,4 @@
-import { Component,ViewChild} from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -7,7 +7,7 @@ import {
   BehaviorSubject,
 } from 'rxjs';
 import { NgForm } from '@angular/forms';
-import { LicenciaDrawerComponent } from  '../../../shared/licencia-drawer/licencia-drawer.component'
+import { LicenciaDrawerComponent } from '../../../shared/licencia-drawer/licencia-drawer.component'
 import { AngularGridInstance } from 'angular-slickgrid';
 
 
@@ -15,7 +15,7 @@ import { AngularGridInstance } from 'angular-slickgrid';
 @Component({
   selector: 'app-carga-licencias',
   standalone: true,
-  imports: [SHARED_IMPORTS,CommonModule,TableAbmLicenciaComponent,LicenciaDrawerComponent],
+  imports: [SHARED_IMPORTS, CommonModule, TableAbmLicenciaComponent, LicenciaDrawerComponent],
   templateUrl: './carga-licencias.component.html',
   styleUrl: './carga-licencias.component.less'
 })
@@ -26,7 +26,10 @@ export class CargaLicenciasComponent {
   formChange$ = new BehaviorSubject('');
   visibleDrawer: boolean = false
   angularGridEdit!: AngularGridInstance;
-  dataDrawer = []
+  PersonalId = 0
+  PersonalLicenciaId = 0
+  IsEdit: boolean = false
+
 
   dateChange(result: Date): void {
     this.selectedPeriod.year = result.getFullYear();
@@ -37,7 +40,7 @@ export class CargaLicenciasComponent {
 
     this.formChange('');
   }
-  
+
 
   ngAfterViewInit(): void {
     const now = new Date(); //date
@@ -59,17 +62,24 @@ export class CargaLicenciasComponent {
     this.formChange$.next(event);
   }
 
-  actualizarValorDrawer(event: any){
-    this.dataDrawer = event
+  actualizarValorDrawer(event: any) {
+    this.PersonalId = event[0].PersonalId
+    this.PersonalLicenciaId = event[0].PersonalLicenciaId
   }
 
   openDrawer(): void {
+
+    if(this.PersonalId > 0 && this.PersonalLicenciaId > 0){
+      this.visibleDrawer = true
+      this.IsEdit = true
+    }
+    
+  }
+
+  openDrawerforNew(): void {
     this.visibleDrawer = true
+    this.IsEdit = false
+  }
 
-}
-
-  closeDrawer(): void {
-    this.visibleDrawer = false;
-}
 
 }

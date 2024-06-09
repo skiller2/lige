@@ -13,8 +13,8 @@
         <nz-button-group>
             <button nz-button nzType="default" (click)="openDrawer()"><span nz-icon nzType="user"
                     nzTheme="outline"></span></button>
-            <!-- <button nz-button nzType="default" (click)="validaGrilla()" [disabled]="isLoadingCheck"><span nz-icon [nzType]="isLoadingCheck ? 'loading' : 'check'" 
-                    nzTheme="outline"></span></button> -->
+            <button nz-button nzType="default" (click)="openDrawerforNew()"><span nz-icon nzType="plus"
+                    nzTheme="outline"></span></button>
         </nz-button-group>
     </nz-form-control>
 
@@ -42,10 +42,8 @@
         </nz-tab> -->
       
       </nz-tabset>
-  
-  
     </form>
   </nz-card>
   
-<app-licencia-drawer [selectedPeriod]="selectedPeriod" [visible]="visibleDrawer" [data]="dataDrawer" (onClose)="closeDrawer()"></app-licencia-drawer>
+<app-licencia-drawer [selectedPeriod]="selectedPeriod" [(visible)]="visibleDrawer" [IsEdit]="IsEdit" [PersonalId]="PersonalId" [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
   

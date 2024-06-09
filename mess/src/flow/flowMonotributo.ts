@@ -1,11 +1,10 @@
 import { impuestosAfipController } from "../controller/controller.module";
-import BotWhatsapp from '@bot-whatsapp/bot'
+import { addKeyword } from "@builderbot/bot";
 import flowMenu from './flowMenu'
 import flowEnd from './flowEnd'
 import { ClientException } from "src/controller/base.controller";
 import { chatBotController } from "../controller/controller.module";
 
-const { addKeyword } = BotWhatsapp
 const delay = chatBotController.getDelay()
 
 const flowMonotributo = addKeyword(['1','monotributo', 'mono', 'm'])
