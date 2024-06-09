@@ -792,7 +792,10 @@ export class ApiService {
 
   addObjCustodia(custodia:any) {
     return this.http.post<ResponseJSON<any>>('/api/custodia/add', custodia).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
+      tap((res: ResponseJSON<any>) => {
+        console.log('res',res);
+        
+        return this.response(res)}),
     )
   }
 

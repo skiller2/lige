@@ -326,8 +326,8 @@ export class CustodiaController extends BaseController {
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            // const responsableId = 1
-            const responsableId = res.locals.PersonalId
+            const responsableId = 1
+            // const responsableId = res.locals.PersonalId
             if (!responsableId) 
                 throw new ClientException(`No se a encontrado al personal responsable`)
             const objetivoCustodiaId = await this.getProxNumero(queryRunner, `objetivocustodia`, usuario, ip)
@@ -380,7 +380,7 @@ export class CustodiaController extends BaseController {
             }
             
             await queryRunner.commitTransaction()
-            return this.jsonRes([], res, 'Carga Exitosa');
+            return this.jsonRes({ custodiaId: objetivoCustodiaId }, res, 'Carga Exitosa');
         }catch (error) {
             this.rollbackTransaction(queryRunner)
             return next(error)
@@ -393,8 +393,8 @@ export class CustodiaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try{
             await queryRunner.startTransaction()
-            // const responsableId = 1
-            const responsableId = res.locals.PersonalId
+            const responsableId = 1
+            // const responsableId = res.locals.PersonalId
             const options: Options = isOptions(req.body.options)? req.body.options : { filtros: [], sort: null };
             
             const filterSql = filtrosToSql(options.filtros, columnsObjCustodia);
@@ -482,8 +482,8 @@ export class CustodiaController extends BaseController {
             await queryRunner.startTransaction()
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            // const responsableId = 1
-            const responsableId = res.locals.PersonalId
+            const responsableId = 1
+            // const responsableId = res.locals.PersonalId
             const custodiaId = req.params.id
             const objetivoCustodia = {...req.body }
             let errores = []
@@ -500,12 +500,12 @@ export class CustodiaController extends BaseController {
                 throw new ClientException(`Los campos de Cliente, Fecha Inicial y Origen NO pueden estar vacios`)
             }
             //En caso de FINALIZAR custodia verificar los campos
-            if(objetivoCustodia.estado == 1 && ( !objetivoCustodia.fechaFinal || !objetivoCustodia.destino)){
-                errores.push(`Los campos de Destino y Fecha Final NO pueden estar vacios`)
-            }
-            // if(objetivoCustodia.estado == 1 && (!objetivoCustodia.facturacion || !objetivoCustodia.fechaFinal || !objetivoCustodia.destino)){
-            //     errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios`)
+            // if(objetivoCustodia.estado == 1 && ( !objetivoCustodia.fechaFinal || !objetivoCustodia.destino)){
+            //     errores.push(`Los campos de Destino y Fecha Final NO pueden estar vacios`)
             // }
+            if(objetivoCustodia.estado == 1 && (!objetivoCustodia.facturacion || !objetivoCustodia.fechaFinal || !objetivoCustodia.destino)){
+                errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios`)
+            }
             
             let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, custodiaId)
             let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
