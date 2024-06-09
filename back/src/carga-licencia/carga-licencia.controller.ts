@@ -255,11 +255,87 @@ export class CargaLicenciaController extends BaseController {
   }
 
   async setLicencia(req: Request, res: Response, next: NextFunction) {
-    console.log('parammetros', req.body)
+    
+    console.log('parammetros', req.body.vals)
+    const {
+      SucursalId,
+      PersonalLicenciaId,
+      PersonalId,
+      PersonalLicenciaDesde,
+      PersonalLicenciaHasta,
+      TipoInasistenciaId,
+      categoria,
+      PersonalLicenciaSePaga,
+      PersonalLicenciaHorasMensuales,
+      PersonalLicenciaObservacion,
+      PersonalLicenciaTipoAsociadoId,
+      PersonalLicenciaCategoriaPersonalId,
+      IsEdit
+    } = req.body.vals
     const queryRunner = dataSource.createQueryRunner();
-
     try {
-      //const result = await queryRunner.query(selectquery, [,anio,mes,PersonalId,PersonalLicenciaId]) 
+
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      if(IsEdit){
+        const result = await queryRunner.query(`UPDATE PersonalLicencia
+          SET PersonalLicenciaDesde = @0, PersonalLicenciaHasta = @1, PersonalLicenciaTermina = @1, 
+              PersonalTipoInasistenciaId = @2, PersonalLicenciaSePaga = @3, PersonalLicenciaHorasMensuales = @4,
+              PersonalLicenciaObservacion = @5, PersonalLicenciaCategoriaPersonalId = @6,PersonalLicenciaTipoAsociadoId = @7
+          WHERE PersonalId = @8 AND PersonalLicenciaId = @9;`
+          , [PersonalLicenciaDesde,PersonalLicenciaHasta,TipoInasistenciaId,PersonalLicenciaSePaga,PersonalLicenciaHorasMensuales,
+            PersonalLicenciaObservacion,PersonalLicenciaCategoriaPersonalId,PersonalLicenciaTipoAsociadoId,PersonalId,PersonalLicenciaId
+          ]) 
+
+          this.jsonRes({ list: [] }, res, `se Actualizó con exito el registro`);
+      }else{
+
+        let PersonalLicenciaSelect = await queryRunner.query(` SELECT PersonalLicenciaUltNro from Personal WHERE PersonalId = @0`, [27,]) 
+        let {PersonalLicenciaUltNro} = PersonalLicenciaSelect[0]
+        PersonalLicenciaUltNro += 1
+        let PersonalLicenciaUpdate = await queryRunner.query(` UPDATE Personal SET PersonalLicenciaUltNro = @1, where PersonalId = @0 `, [PersonalId,PersonalLicenciaUltNro]) 
+
+        const result = await queryRunner.query(`INSERT INTO PersonalLicencia
+        VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19)`
+          , [PersonalId,PersonalLicenciaUltNro,null,null,'N', PersonalLicenciaDesde,
+            PersonalLicenciaHasta,null,null,null,PersonalLicenciaObservacion,null,null,
+            TipoInasistenciaId,PersonalLicenciaSePaga,PersonalLicenciaHorasMensuales,PersonalLicenciaTipoAsociadoId,
+            PersonalLicenciaCategoriaPersonalId,null,null]) 
+             
+        this.jsonRes({ list: [] }, res, `se Agrego con exito el registro`);
+      }
+
+      await queryRunner.commitTransaction();
+      
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    }
+
+  }
+
+  async deleteLincencia(req: Request, res: Response, next: NextFunction) {
+    
+    console.log('parammetros para borrar', req.body.vals)
+    const {
+      SucursalId,
+      PersonalLicenciaId,
+      PersonalId
+    } = req.body.vals
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+       const result = await queryRunner.query(`select * from PersonalLicenciaAplicaPeriodo where PersonalId=@0 and PersonalLicenciaId=@1 `
+        , [PersonalId,PersonalLicenciaId]) 
+
+        console.log(result.length)
+        if(result.length > 0) {
+          const result = await queryRunner.query(` DELETE FROM PersonalLicencia WHERE PersonalId = @0 and PersonalLicenciaId =@1`
+            , [PersonalId,PersonalLicenciaId]) 
+        }else{
+          this.jsonRes({ list: [] }, res, `No se puede eliminar la licencia`);
+        }
+
       this.jsonRes({}, res);
     } catch (error) {
       return next(error)

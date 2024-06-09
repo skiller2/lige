@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, SimpleChanges, ViewChild,forwardRef } from '@angular/core';
+import { Component, ElementRef, Input, SimpleChanges, ViewChild,forwardRef, input } from '@angular/core';
 import { Subject, firstValueFrom,noop } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
@@ -41,6 +41,8 @@ export class EditorCategoriaComponent {
   @Input() selectedPeriod = { year: 0, month: 0 };
   @Input() sucursalid = 0
   @Input() NombreApellidoId = 0
+  IsEdit = input.required<boolean>()
+
 
   onChange(key: any) {
     this.eto.focus()  //Al hacer click en el componente hace foco nuevamente
@@ -90,6 +92,7 @@ export class EditorCategoriaComponent {
         this.onChange(this.optionsArray[0].id)
     }
 //console.log('categoria',this.NombreApellidoId,this.sucursalid,this.selectedPeriod)
+
     if(this.sucursalid > 0 && this.NombreApellidoId > 0 && this.selectedPeriod.month > 0 && this.selectedPeriod.year > 0){
       const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(Number(this.NombreApellidoId), this.selectedPeriod.year, this.selectedPeriod.month, this.sucursalid))
 
@@ -103,9 +106,27 @@ export class EditorCategoriaComponent {
           this.onChange((this.optionsArray.length == 0 )? 0:this.optionsArray[0].id )
       }
 
+      this.element.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
 
-    }
+    } 
 
+    if(!this.IsEdit() && this.sucursalid > 0){
+      
+      const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(Number(this.NombreApellidoId), this.selectedPeriod.year, this.selectedPeriod.month, this.sucursalid))
+
+      if(categorias.length > 0){
+        this.optionsArray = (this.sucursalid > 0) ? categorias.categorias?.filter((f: any) => f.ValorLiquidacionHoraNormal > 0) : categorias.categorias
+      
+        if (this.selectedId == 0 && this.optionsArray.length > 0)
+          this.onChange(this.optionsArray[0].id)
+  
+        if (this.selectedId != 0 ) {
+          if (this.optionsArray.filter((f: any) => f.id == this.selectedId).length == 0)
+            this.onChange((this.optionsArray.length == 0 )? 0:this.optionsArray[0].id )
+        }
+      }
+     
+    } 
 
   }
 

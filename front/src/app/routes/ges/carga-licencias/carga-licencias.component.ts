@@ -28,6 +28,7 @@ export class CargaLicenciasComponent {
   angularGridEdit!: AngularGridInstance;
   PersonalId = 0
   PersonalLicenciaId = 0
+  IsEdit: boolean = false
 
 
   dateChange(result: Date): void {
@@ -67,7 +68,18 @@ export class CargaLicenciasComponent {
   }
 
   openDrawer(): void {
-    this.visibleDrawer = true
+
+    if(this.PersonalId > 0 && this.PersonalLicenciaId > 0){
+      this.visibleDrawer = true
+      this.IsEdit = true
+    }
+    
   }
+
+  openDrawerforNew(): void {
+    this.visibleDrawer = true
+    this.IsEdit = false
+  }
+
 
 }
