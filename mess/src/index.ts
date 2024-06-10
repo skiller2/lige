@@ -1,21 +1,15 @@
 import { DBServer, WebServer } from "./server";
+import { BotServer } from "./bot-server";
 import { makeRoutes } from "./routes/routes.module"
 import { dataSource } from "./data-source";
 import { scheduleJob } from "node-schedule"
 import dotenv from "dotenv"
-import flow from "./flow/indexFlow";
-
-import { createBot, createProvider, createFlow, addKeyword, utils } from '@builderbot/bot'
-import { JsonFileDB as Database } from '@builderbot/database-json'
-import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
-import flowLogin from "./flow/flowLogin";
-
 dotenv.config()
 
 // Init App
 const dbServer = new DBServer(5, 2000, dataSource)
 const webServer = new WebServer(Number(process.env.SERVER_API_PORT))
-
+export const botServer = new BotServer()
 //const categoriasController = new CategoriasController()
 //const objetivoController = new ObjetivoController()
 
@@ -65,22 +59,8 @@ webServer.init()
 
     process.exit()
   })
-const botInit = async () => {
-  const adapterFlow = createFlow(flowLogin)
-  const adapterProvider = createProvider(Provider)
-  const adapterDB = new Database({ filename: 'db.json' })
 
-  const { handleCtx,httpServer } = await createBot({
-    flow: adapterFlow,
-    provider: adapterProvider,
-    database: adapterDB,
+await botServer.init()
 
-  })
-  httpServer(3008)
-  return handleCtx
-}
-
-const h = await botInit()
-console.log('bot', h)
-
-
+//const cnv = new Canvas(1, 1)
+//const shp = new Sharp()

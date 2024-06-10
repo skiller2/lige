@@ -6,9 +6,17 @@ import { dataSource } from "../data-source";
 // import { ParsedQs } from "qs";
 import { NextFunction, Request, Response } from "express";
 import * as CryptoJS from 'crypto-js';
-import { isNumberObject } from "node:util/types";
+import { botServer } from "src";
 
 export class PersonalController extends BaseController {
+  async delTelefonoPersona(telefono: string) {
+
+      const result = await dataSource.query(
+        `DELETE FROM lige.dbo.regtelefonopersonal WHERE telefono=@0`,
+        [telefono]
+      );
+      return result
+  }
 
   getRemoteAddress(req: any) {
     return req.headers['x-origin-ip'] ??
@@ -209,6 +217,11 @@ export class PersonalController extends BaseController {
       )
 
       await queryRunner.commitTransaction()
+
+
+      botServer.sendMsg(telNro,'Su número ha sido registrado correctamente')
+
+
       this.jsonRes({ codigo }, res);
     } catch (error) {
       this.rollbackTransaction(queryRunner)
