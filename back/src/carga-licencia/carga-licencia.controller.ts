@@ -256,7 +256,6 @@ export class CargaLicenciaController extends BaseController {
 
   async setLicencia(req: Request, res: Response, next: NextFunction) {
     
-    console.log('parammetros', req.body.vals)
     const {
       SucursalId,
       PersonalLicenciaId,
@@ -272,23 +271,24 @@ export class CargaLicenciaController extends BaseController {
       PersonalLicenciaCategoriaPersonalId,
       IsEdit
     } = req.body.vals
+
     const queryRunner = dataSource.createQueryRunner();
     try {
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if(IsEdit){
+      if (PersonalLicenciaId>0) {
+        
         const result = await queryRunner.query(`UPDATE PersonalLicencia
           SET PersonalLicenciaDesde = @0, PersonalLicenciaHasta = @1, PersonalLicenciaTermina = @1, 
               PersonalTipoInasistenciaId = @2, PersonalLicenciaSePaga = @3, PersonalLicenciaHorasMensuales = @4,
-              PersonalLicenciaObservacion = @5, PersonalLicenciaCategoriaPersonalId = @6,PersonalLicenciaTipoAsociadoId = @7
+              PersonalLicenciaObservacion = @5, PersonalLicenciaTipoAsociadoId = @6,PersonalLicenciaCategoriaPersonalId = @7
           WHERE PersonalId = @8 AND PersonalLicenciaId = @9;`
           , [PersonalLicenciaDesde,PersonalLicenciaHasta,TipoInasistenciaId,PersonalLicenciaSePaga,PersonalLicenciaHorasMensuales,
             PersonalLicenciaObservacion,PersonalLicenciaCategoriaPersonalId,PersonalLicenciaTipoAsociadoId,PersonalId,PersonalLicenciaId
           ]) 
 
-          this.jsonRes({ list: [] }, res, `se Actualizó con exito el registro`);
       }else{
 
         let PersonalLicenciaSelect = await queryRunner.query(` SELECT PersonalLicenciaUltNro from Personal WHERE PersonalId = @0`, [27,]) 
@@ -303,10 +303,10 @@ export class CargaLicenciaController extends BaseController {
             TipoInasistenciaId,PersonalLicenciaSePaga,PersonalLicenciaHorasMensuales,PersonalLicenciaTipoAsociadoId,
             PersonalLicenciaCategoriaPersonalId,null,null]) 
              
-        this.jsonRes({ list: [] }, res, `se Agrego con exito el registro`);
       }
 
       await queryRunner.commitTransaction();
+      this.jsonRes({ list: [] }, res, (PersonalLicenciaId)? `se Actualizó con exito el registro`:`se Agregó con exito el registro`);
       
     } catch (error) {
       this.rollbackTransaction(queryRunner)
