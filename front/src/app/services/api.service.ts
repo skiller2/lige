@@ -753,6 +753,16 @@ export class ApiService {
 
   }
 
+  deleteLicencia(vals: any) {
+
+    return this.http.post<ResponseJSON<any>>(`/api/carga-licencia/delete`, { vals }).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([])),
+
+    )
+
+  }
+
   setPersonalAndGroupDelete(userId: any, ObjetivoId: any) {
     let parameter = { userId, ObjetivoId }
     return this.http.post<ResponseJSON<any>>('/api/personalobjetivo/setPersonalAndGroupDelete', parameter).pipe(
@@ -801,7 +811,10 @@ export class ApiService {
 
   addObjCustodia(custodia: any) {
     return this.http.post<ResponseJSON<any>>('/api/custodia/add', custodia).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
+      tap((res: ResponseJSON<any>) => {
+        console.log('res',res);
+        
+        return this.response(res)}),
     )
   }
 

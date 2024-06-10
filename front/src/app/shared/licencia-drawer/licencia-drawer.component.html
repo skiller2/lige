@@ -43,11 +43,25 @@
           <app-inasistencia-search name="TipoInasistenciaId" ngModel></app-inasistencia-search>
         </nz-form-control>
       </nz-form-item>
+      @if (!IsEdit()) {
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Sucursal</nz-form-label>
+        <nz-form-control>
+          <nz-select nzSpan="19" name="SucursalId" [(ngModel)]="selectedSucursalId" [nzDropdownMatchSelectWidth]="false"
+            (ngModelChange)="selectedValueChange($event)" nzAllowClear nzPlaceHolder="Sucursal"
+            nzShowSearch>
+            <ng-container *ngFor="let option of $optionsSucursales | async">
+              <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
+            </ng-container>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      }
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Categoría </nz-form-label>
         <nz-form-control>
           
-          <app-categoria-persona [sucursalid]="ngForm().value?.SucursalId" [NombreApellidoId]="ngForm().value?.PersonalId"
+          <app-categoria-persona [IsEdit]="IsEdit()" [sucursalid]="ngForm().value?.SucursalId" [NombreApellidoId]="ngForm().value?.PersonalId"
             [selectedPeriod]="selectedPeriod()" name="categoria" ngModel></app-categoria-persona> 
         </nz-form-control>
       </nz-form-item>
@@ -76,9 +90,13 @@
 
       -Carga de Documentos.
 
-
-      <button nz-button nzType="primary" (click)="save()">Guardar</button>
-      <button nz-button nzType="primary" nzDanger>Eliminar</button>
+      @if (IsEdit()) {
+        <button nz-button nzType="primary" (click)="save(true)">Guardar</button>
+      }@else{
+        <button nz-button nzType="primary" (click)="save(false)">Guardar</button>
+      }
+     
+      <button nz-button nzType="primary" (click)="deletelicencia()" nzDanger>Eliminar</button>
 
     </form>
     <p>Debug Valores: {{ngForm().value | json }}</p>

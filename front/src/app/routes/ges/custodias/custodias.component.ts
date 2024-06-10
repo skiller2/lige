@@ -10,10 +10,11 @@ import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
+import { CustodiaFormComponent } from "../custodias-form/custodias-form.component";
 
 
 @Component({
@@ -23,7 +24,7 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
     standalone: true,
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, FiltroBuilderComponent],
+    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, FiltroBuilderComponent, CustodiaFormComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 
 })
@@ -55,7 +56,7 @@ export class CustodiaComponent {
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
-    public apiService = inject(ApiService)
+    private apiService = inject(ApiService)
 
     columns$ = this.apiService.getColumnsCustodia().pipe(map((cols) => {
         let mapped = cols.map((col:any) => {
@@ -109,13 +110,13 @@ export class CustodiaComponent {
         // this.ngForm().onReset()
     }
 
-    async setEstado(estado:number) {
-        if (this.editCustodiaId) {
-            let form = this.ngForm().value
-            form.estado = estado
-            const res = await firstValueFrom(this.apiService.updateObjCustodia(form, this.editCustodiaId))
-        }
-    }
+    // async setEstado(estado:number) {
+    //     if (this.editCustodiaId) {
+    //         let form = this.ngForm().value
+    //         form.estado = estado
+    //         const res = await firstValueFrom(this.apiService.updateObjCustodia(form, this.editCustodiaId))
+    //     }
+    // }
 
     addPersonal(e?: MouseEvent): void {
         e?.preventDefault();
