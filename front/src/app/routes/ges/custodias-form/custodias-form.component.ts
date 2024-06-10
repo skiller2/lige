@@ -36,13 +36,13 @@ export class CustodiaFormComponent {
     visibleDrawer: boolean = false
     periodo = signal({ year: 0, month: 0 });
     personalId = signal(0);
-    editCustodiaId : number = 0;
+    editCustodiaId = signal(0);
     private apiService = inject(ApiService)
     private searchService = inject(SearchService)
 
     @Input() set custodia(value: number) {
-        this.editCustodiaId = value;
-        if (this.editCustodiaId){
+        this.editCustodiaId.set(value);
+        if (this.editCustodiaId()){
           this.load()
         } else {
             this.listInputPersonal = this.cantInputs.slice()
@@ -54,7 +54,7 @@ export class CustodiaFormComponent {
     @Input() edit: boolean = false
 
     async load() {
-        const res = await firstValueFrom(this.searchService.getInfoObjCustodia(this.editCustodiaId))
+        const res = await firstValueFrom(this.searchService.getInfoObjCustodia(this.editCustodiaId()))
         res.form.fechaInicio = new Date(res.form.fechaInicio)
         if(res.form.fechaFinal)
             res.form.fechaFinal = new Date(res.form.fechaFinal)
@@ -112,30 +112,16 @@ export class CustodiaFormComponent {
     }
 
     async save(estado:number) {
-        if (this.editCustodiaId) {
+        if (this.editCustodiaId()) {
             let form = this.ngForm().value
             form.estado = estado
-            await firstValueFrom(this.apiService.updateObjCustodia(form, this.editCustodiaId))
+            await firstValueFrom(this.apiService.updateObjCustodia(form, this.editCustodiaId()))
         } else {
             const res = await firstValueFrom(this.apiService.addObjCustodia(this.ngForm().value))
-            if (res.data.custodiaId)
-                this.editCustodiaId = res.data.custodiaId
+            if (res.data.custodiaId){
+                this.editCustodiaId.set(res.data.custodiaId)
+            }
         }
     }
 
-    // async setEstado(estado:number) {
-    //     if (this.editCustodiaId) {
-    //         let form = this.ngForm().value
-    //         form.estado = estado
-    //         await firstValueFrom(this.apiService.updateObjCustodia(form, this.editCustodiaId))
-    //     }
-    // }
-
-    resetForm(): void {
-        this.editCustodiaId = 0
-        this.listInputPersonal = this.cantInputs.slice()
-        this.listInputVehiculo = this.cantInputs.slice()
-        this.periodo.set({ year: 0, month: 0 })
-        this.ngForm().reset()
-    }
 }

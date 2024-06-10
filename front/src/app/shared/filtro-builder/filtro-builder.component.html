@@ -60,7 +60,7 @@
         [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForTipoMovimientoSearch'"
         (keydown.enter)="handleInputConfirm()" />
 
-        <app-fecha-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      <app-fecha-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
         [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForFechaSearch'"
         (keydown.enter)="handleInputConfirm()" />
 
@@ -72,6 +72,13 @@
         </ng-container>
       </nz-select>
 
+      <nz-select ngModel nzAllowClear style="width:100%"
+        *ngIf="selections.field.searchComponent=='inpurForEstadoCustSearch'" nzPlaceHolder="Estado" nzShowSearch
+        (ngModelChange)="selectedValueEstado($event)" [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+        <ng-container *ngFor="let option of $optionsEstadoCust | async">
+          <nz-option [nzValue]="option" [nzLabel]="option.descripcion"></nz-option>
+        </ng-container>
+      </nz-select>
 
     </div>
 

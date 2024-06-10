@@ -62,6 +62,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 //  })
   formChange$ = new BehaviorSubject('');
   
+  $optionsEstadoCust = this.searchService.getEstadoCustodia();
+
   $optionsSucursales = this.searchService.getSucursales();
   tags: string[] = [];
   private _options: Options = {
@@ -287,6 +289,17 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       this.selections.value = val.SucursalId;
       this.valueExtended = { fullName: val.SucursalDescripcion };
     }
+  }
+
+  selectedValueEstado(val: any) {
+    console.log('val', val);
+    
+    if (val) {
+      this.selections.value = val.tipo;
+      this.valueExtended = { fullName: val.descripcion };
+    }
+    console.log('this.selections', this.selections);
+    console.log('this.valueExtended', this.valueExtended);
   }
 
   async addFilter(field: string, condition: string, operator: string, value: string) {
