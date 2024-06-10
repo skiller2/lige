@@ -112,16 +112,27 @@ export class CustodiaFormComponent {
     }
 
     async save(estado:number) {
+        let form = this.ngForm().value
         if (this.editCustodiaId()) {
-            let form = this.ngForm().value
             form.estado = estado
             await firstValueFrom(this.apiService.updateObjCustodia(form, this.editCustodiaId()))
         } else {
-            const res = await firstValueFrom(this.apiService.addObjCustodia(this.ngForm().value))
+            const res = await firstValueFrom(this.apiService.addObjCustodia(form))
             if (res.data.custodiaId){
                 this.editCustodiaId.set(res.data.custodiaId)
             }
         }
+    }
+
+    onChangeImpo(){
+        const form = this.ngForm().value
+        let facturacion : number = 0
+        for (const key in form) {
+            if (key.includes('impo') && form[key]) {
+                facturacion += form[key];
+            }
+        }
+        this.ngForm().controls['facturacion'].setValue(facturacion)
     }
 
 }

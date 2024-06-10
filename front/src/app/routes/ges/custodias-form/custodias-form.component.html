@@ -92,7 +92,7 @@
       <nz-form-label [nzSpan]="3">Importe módulo</nz-form-label>
       <nz-form-control [nzSpan]="7">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="importeModulos" type="number" />
+          <input nz-input placeholder="" ngModel name="importeModulos" type="number" (ngModelChange)="onChangeImpo()" />
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -108,7 +108,7 @@
       <nz-form-label [nzSpan]="3">Importe hora excedente</nz-form-label>
       <nz-form-control [nzSpan]="7">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="impoHorasExced" type="number" />
+          <input nz-input placeholder="" ngModel name="impoHorasExced" type="number" (ngModelChange)="onChangeImpo()" />
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -124,7 +124,7 @@
       <nz-form-label [nzSpan]="3">Importe Km excedente</nz-form-label>
       <nz-form-control [nzSpan]="7">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="impoKmExced" type="number" />
+          <input nz-input placeholder="" ngModel name="impoKmExced" type="number" (ngModelChange)="onChangeImpo()" />
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -133,7 +133,7 @@
       <nz-form-label [nzSpan]="3">Importe Peajes</nz-form-label>
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="impoPeaje" type="number" />
+          <input nz-input placeholder="" ngModel name="impoPeaje" type="number" (ngModelChange)="onChangeImpo()" />
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -161,7 +161,7 @@
         <nz-form-label  [nzSpan]="2"> Importe </nz-form-label>
         <nz-form-control [nzSpan]="5">
           <nz-input-group style="width: 100%">
-            <input nz-input placeholder="" ngModel name={{i+1}}importePersonal type="number" />
+            <input nz-input placeholder="" ngModel name={{i+1}}importePersonal type="number" (ngModelChange)="onChangeImpo()" />
           </nz-input-group>
         </nz-form-control>
         <nz-form-control [nzSpan]="1" style="text-align: right;">
@@ -197,7 +197,7 @@
         <nz-form-label  [nzSpan]="2"> Importe </nz-form-label>
         <nz-form-control [nzSpan]="3">
           <nz-input-group style="width: 100%">
-            <input nz-input placeholder="" ngModel name={{i+1}}importeVehiculo type="number" />
+            <input nz-input placeholder="" ngModel name={{i+1}}importeVehiculo type="number" (ngModelChange)="onChangeImpo()" />
           </nz-input-group>
         </nz-form-control>
         <nz-form-label  [nzSpan]="2">Peaje</nz-form-label>
