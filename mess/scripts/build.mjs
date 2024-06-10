@@ -9,7 +9,7 @@ const buildOptions = {
   platform: "node",
   logLevel: "info",
   loader:{'.node':'copy'},
-
+  external: ['sharp'],
   banner: {
     js: `
     import { createRequire as topLevelCreateRequire } from 'module'

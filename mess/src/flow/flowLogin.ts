@@ -1,81 +1,41 @@
-import { createBot, createProvider, createFlow, addKeyword, utils, EVENTS } from '@builderbot/bot'
+import { addKeyword, utils, EVENTS } from '@builderbot/bot'
 import flowMenu from './flowMenu'
 import { chatBotController, personalController } from "../controller/controller.module";
-import flowMonotributo from './flowMonotributo';
-import flowRecibo from './flowRecibo';
 import flowEnd from './flowEnd';
-
-//const { addKeyword, EVENTS } = ChatBot
 
 const delay = chatBotController.getDelay()
 
-// const flowPedidosDeLicencia = addKeyword(['3', 'pedidos de licencia', 'pedido de licencia', 'pedido', 'licencia', ])
-//     .addAnswer('Area en mantenimiento')
-//     .addAnswer(
-//         'Fin del flujo',
-//         { capture: false },
-//         async (ctx, { flowDynamic, gotoFlow }) => {
-//             await flowDynamic(`Yendo al menu`)
-//             gotoFlow(flowMenu)
-//         })
 
-// const flowConstanciasMédicas = addKeyword(['4', 'constancias médicas', 'constancias medicas', 'constancia médica', 'constancias médica', 'constancia']).addAnswer(
-//     ['Fin del flujo']
-// )
-
-
-    const flujoUsuariosNORegistrados = addKeyword(utils.setEvent('REGISTER_FLOW'))
-    .addAnswer('¿Cual es tu email?',{capture:true},async(ctx, {flowDynamic, gotoFlow}) => {
-    
-//        const numero = ctx.from
-    
-        console.log(`registramos en base de datos el numero... ${ctx.body}`)
-    
-        await flowDynamic(`Ya te registramos..`)
-        await gotoFlow(flowMenu)
-    })
-    
-
-
-const flowRegister = addKeyword("REGISTRO_FINAL")
+export const flowValidateCode = addKeyword("REGISTRO_FINAL")
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => { 
-        console.log('act',state)
-        const data = state.getMyState()
-        console.log('act', data)
 
     })
-    .addAnswer([`Ingrese el código`], { capture: true,delay: delay },
+    .addAnswer([`Ingrese el código proporcionado durante la verificación de DNI`], { capture: true,delay: delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
-            console.log('ingrese')
+            const data = state.getMyState()
+            const telefono = ctx.from
 
+            if (data.codigo == ctx.body) {
+                await flowDynamic(`identidad verificada`, { delay: delay })
+                return gotoFlow(flowMenu)
+            } else {
+                const reintento = (data.reintento)?data.reintento:0
+                if (reintento > 3) {
+                    const res = await personalController.delTelefonoPersona(telefono)
+                    return endFlow('Demasiados reintentos, hasta la próxima')
+                }
+
+                await state.update({ reintento: reintento + 1 })    
+                return fallBack('Código ingresado incorrecto, reintente')
+            }
         })
-    .addAnswer([`Ya fue`], { capture: false,delay: delay })
 
 
-    const flowLogin = addKeyword('hola')
-    .addAnswer('Bievenido!', null, async (ctx,{gotoFlow}) => {
-    
-        const numero = ctx.from
-        console.log('consultando en base de datos si existe el numero registrado....')
-    
-        const ifExist = false
-        if(ifExist){
-            // Si existe lo enviamos al flujo de regostrados..
-            gotoFlow(flowEnd)
-        }else{
-            // Si NO existe lo enviamos al flujo de NO registrados..
-            gotoFlow(flujoUsuariosNORegistrados)
-        }
-    
-    })
-    
-
-
-const flowLogin1 = addKeyword(EVENTS.WELCOME)
+export const flowLogin = addKeyword(EVENTS.WELCOME)
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
         const telefono = ctx.from
-        console.log('state', state.getMyState());
-
+//        console.log('state', state.getMyState());
+        await flowDynamic(`Bienvenido al área de consultas de la Cooperativa Lince Seguridad`, { delay: delay })
         const res = await personalController.getPersonalfromTelefonoQuery(telefono)
         if (res.length) {
             await state.update({ personalId: res[0].personalId })
@@ -85,38 +45,30 @@ const flowLogin1 = addKeyword(EVENTS.WELCOME)
 
 
             if (res[0].codigo) {
-                //return gotoFlow(flowRegister)
-                return gotoFlow(flujoUsuariosNORegistrados)
+                //Código pendiente de ingreso
+                return gotoFlow(flowValidateCode)
+            } else {
+                return gotoFlow(flowMenu)
             }
 
-        } else {
-            await flowDynamic(`Bienvenido al área de consultas de Lince Seguridad`, { delay: delay })
         }
     })
-    .addAnswer('El teléfono ingresado no se encuentra registrado.  Desea registrarlo?', { delay: delay, capture: true },
+    .addAnswer('El teléfono ingresado no lo pude localizar.  Desea registrarlo?', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             const telefono = ctx.from
             const respSINO = ctx.body
             if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
                 const ret = await personalController.genTelCode(telefono)
-                await flowDynamic(`Para continuar vaya a https://gestion.linceseguridad.com.ar/ext/init/ident;encTelNro=${ret.encTelNro}`, { delay: delay })
-
+                await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${ret.encTelNro}`, { delay: delay })
+//                await flowDynamic(`E`, { delay: delay })
                 await state.update({ encTelNro: ret.encTelNro })
+                return endFlow()
             } else {
                 return endFlow(`Hasta la próxima`)
             }
 
         })
-    // .addAnswer('¿Cual es tu nombre?', 
-    // { capture: true }, 
-    // async (ctx, { flowDynamic, state, fallBack }) => {
-    //     const name = ctx.body
-    //     if (name.length <= 2) {
-    //         return fallBack()
-    //     }
-    //     await state.update({ name: ctx.body })
-    //     return await flowDynamic(`Gracias por tu nombre! ${ctx.body}`)
-    // })
+    /*
     .addAnswer('¿Cual es tu CUIT?',
         { capture: true, delay: delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
@@ -163,5 +115,5 @@ const flowLogin1 = addKeyword(EVENTS.WELCOME)
             await personalController.checkTelefonoPersonal(personalId, telefono, 'Bot', '')
             return gotoFlow(flowMenu)
         })
-
-export default [flowLogin,flujoUsuariosNORegistrados]
+*/
+//export default [flowLogin,flowValidateCode]

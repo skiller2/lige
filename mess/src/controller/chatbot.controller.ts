@@ -6,7 +6,7 @@ import { existsSync, readFileSync } from "fs";
 
 
 export class ChatBotController extends BaseController {
-    delay : number = 500
+    delay : number = 1000
 
     getDelay(){
         return this.delay
