@@ -744,11 +744,9 @@ export class ApiService {
   }
 
   setLicencia(vals: any) {
-
-    return this.http.post<ResponseJSON<any>>(`/api/carga-licencia`, { vals }).pipe(
-      map((res: { data: any; }) => res.data),
+    return this.http.post<ResponseJSON<any>>(`/api/carga-licencia`, vals).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
       catchError(() => of([])),
-
     )
 
   }
