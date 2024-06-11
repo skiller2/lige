@@ -276,8 +276,7 @@ export class CargaLicenciaController extends BaseController {
     PersonalLicenciaDesde = this.formatDateToCustomFormat(PersonalLicenciaDesde);
     PersonalLicenciaHasta = this.formatDateToCustomFormat(PersonalLicenciaHasta);
 
-    console.log(PersonalLicenciaDesde)
-    console.log(PersonalLicenciaHasta)
+
     const queryRunner = dataSource.createQueryRunner();
 
     try {
@@ -299,11 +298,9 @@ export class CargaLicenciaController extends BaseController {
           SET PersonalLicenciaDesde = @0, PersonalLicenciaHasta = @1, PersonalLicenciaTermina = @1, 
               PersonalTipoInasistenciaId = @2, PersonalLicenciaSePaga = @3, PersonalLicenciaHorasMensuales = @4,
               PersonalLicenciaObservacion = @5, PersonalLicenciaTipoAsociadoId = @6,PersonalLicenciaCategoriaPersonalId = @7
-              PersonalLicenciaCategoriaPersonalId = @10
           WHERE PersonalId = @8 AND PersonalLicenciaId = @9;`
           , [PersonalLicenciaDesde,PersonalLicenciaHasta,TipoInasistenciaId,PersonalLicenciaSePaga,PersonalLicenciaHorasMensuales,
-            PersonalLicenciaObservacion,PersonalLicenciaCategoriaPersonalId,PersonalLicenciaTipoAsociadoId,PersonalId,PersonalLicenciaId,
-            categoria.categoriaId]) 
+            PersonalLicenciaObservacion,PersonalLicenciaCategoriaPersonalId,PersonalLicenciaTipoAsociadoId,PersonalId,PersonalLicenciaId]) 
 
       }else{
 
