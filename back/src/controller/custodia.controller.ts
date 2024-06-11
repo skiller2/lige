@@ -97,9 +97,39 @@ const columnsObjCustodia: any[] = [
         params: {
             complexFieldLabel: 'estado.descripcion',
         },
+        searchComponent:"inpurForEstadoCustSearch",
+        searchType:"number",
         maxWidth: 180,
         minWidth: 130,
     },
+    {
+        name: "Apellido Nombre",
+        type: "string",
+        id: "ApellidoNombre",
+        field: "ApellidoNombre",
+        fieldName: "regper.personal_id",
+        searchComponent:"inpurForPersonalSearch",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Patente",
+        type: "string",
+        id: "Patente",
+        field: "Patente",
+        fieldName: "regveh.patente",
+        // searchComponent:"inpurForPatenteSearch",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+]
+
+const estados : any[] = [
+    { tipo: 0, descripcion: 'Pendiente' },
+    { tipo: 1, descripcion: 'Finalizado' },
+    { tipo: 2, descripcion: 'Cancelado' },
 ]
 
 export class CustodiaController extends BaseController {
@@ -200,14 +230,14 @@ export class CustodiaController extends BaseController {
         obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente
         FROM lige.dbo.objetivocustodia obj
         INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
+        INNER JOIN lige.dbo.regvehiculocustodia regveh ON regveh.objetivo_custodia_id = obj.objetivo_custodia_id
+        INNER JOIN lige.dbo.regpersonalcustodia regper ON regper.objetivo_custodia_id = obj.objetivo_custodia_id
         WHERE obj.responsable_id = @0 AND (${filterSql}) 
         ${orderBy}`, 
         [responsableId])
     }
 
     async updateObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia:any, usuario:any, ip:any){
-        console.log('objetivoCustodia', objetivoCustodia);
-        
         const objetivo_custodia_id = objetivoCustodia.objetivoCustodiaId
         const cliente_id = objetivoCustodia.clienteId
         const desc_requirente = objetivoCustodia.descRequirente? objetivoCustodia.descRequirente : null
@@ -326,15 +356,13 @@ export class CustodiaController extends BaseController {
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            const responsableId = 1
-            // const responsableId = res.locals.PersonalId
+            // const responsableId = 1
+            const responsableId = res.locals.PersonalId
             if (!responsableId) 
                 throw new ClientException(`No se a encontrado al personal responsable`)
             const objetivoCustodiaId = await this.getProxNumero(queryRunner, `objetivocustodia`, usuario, ip)
-            // console.log('usuario', usuario, 'ip', ip, 'responsableId', responsableId, 'objetivoCustodiaId', objetivoCustodiaId);
 
             const objetivoCustodia = {...req.body, responsableId, objetivoCustodiaId}
-            // console.log('objetivoCustodia', objetivoCustodia);
             await this.addObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
             let cantPersonal = 0
@@ -393,15 +421,15 @@ export class CustodiaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try{
             await queryRunner.startTransaction()
-            const responsableId = 1
-            // const responsableId = res.locals.PersonalId
+            // const responsableId = 1
+            const responsableId = res.locals.PersonalId
             const options: Options = isOptions(req.body.options)? req.body.options : { filtros: [], sort: null };
             
             const filterSql = filtrosToSql(options.filtros, columnsObjCustodia);
             const orderBy = orderToSQL(options.sort)
             
             let result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, responsableId, filterSql, orderBy)
-            const estados= ['Pendiente', 'Finalizado', 'Cancelado']
+
             let list = result.map((obj : any) => {
                 return {
                     id: obj.id,
@@ -412,7 +440,7 @@ export class CustodiaController extends BaseController {
                     origen: obj.origen,
                     fechaF: obj.fecha_fin? obj.fecha_fin.toISOString().slice(0, 19).replace('T', ' ') : null,
                     destino: obj.destino,
-                    estado: { tipo: obj.estado, descripcion: estados[obj.estado] }
+                    estado: estados[obj.estado]
                 }
             })
             await queryRunner.commitTransaction()
@@ -463,7 +491,6 @@ export class CustodiaController extends BaseController {
                 vehiculoLength: listInputVehiculo, 
                 personalLength: listInputPersonal
             }
-            // console.log('respuesta', respuesta);
             await queryRunner.commitTransaction()
             return this.jsonRes(respuesta, res)
         }catch (error) {
@@ -482,8 +509,8 @@ export class CustodiaController extends BaseController {
             await queryRunner.startTransaction()
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            const responsableId = 1
-            // const responsableId = res.locals.PersonalId
+            // const responsableId = 1
+            const responsableId = res.locals.PersonalId
             const custodiaId = req.params.id
             const objetivoCustodia = {...req.body }
             let errores = []
@@ -518,10 +545,6 @@ export class CustodiaController extends BaseController {
             let personalError = 0
             let vehiculoError = 0
             
-            // console.log( 'objetivoCustodia:', objetivoCustodia );
-            // console.log( 'infoCustodia:', infoCustodia );
-            // console.log( 'listPersonal:', listPersonal );
-            // console.log( 'listVehiculo:', listVehiculo );
             for (const key in objetivoCustodia) {
                 //Verifico si hubo cambios
                 if (infoCustodia[key] != objetivoCustodia[key]){
@@ -638,6 +661,10 @@ export class CustodiaController extends BaseController {
 
     async getGridColumns(req: any, res: Response, next: NextFunction) {
         return this.jsonRes(columnsObjCustodia, res)
+    }
+
+    async getEstados(req: any, res: Response, next: NextFunction) {
+        return this.jsonRes(estados, res)
     }
     
 }

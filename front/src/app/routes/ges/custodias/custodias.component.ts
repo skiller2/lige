@@ -99,53 +99,6 @@ export class CustodiaComponent {
             this.angularGrid.gridService.hideColumnByIds([])
     }
 
-    async save() {
-        // console.log('editCustodiaId',this.editCustodiaId)
-        // console.log('graba',this.ngForm().value)
-        if (this.editCustodiaId) {
-            const res = await firstValueFrom(this.apiService.updateObjCustodia(this.ngForm().value, this.editCustodiaId))
-        } else {
-            const res = await firstValueFrom(this.apiService.addObjCustodia(this.ngForm().value))
-        }
-        // this.ngForm().onReset()
-    }
-
-    // async setEstado(estado:number) {
-    //     if (this.editCustodiaId) {
-    //         let form = this.ngForm().value
-    //         form.estado = estado
-    //         const res = await firstValueFrom(this.apiService.updateObjCustodia(form, this.editCustodiaId))
-    //     }
-    // }
-
-    addPersonal(e?: MouseEvent): void {
-        e?.preventDefault();
-        const id = this.listInputPersonal.length > 0 ? this.listInputPersonal[this.listInputPersonal.length - 1] + 1 : 0;
-        this.listInputPersonal.push(id);
-    }
-
-    addVehiculo(e?: MouseEvent): void {
-        e?.preventDefault();
-        const id = this.listInputVehiculo.length > 0 ? this.listInputVehiculo[this.listInputVehiculo.length - 1] + 1 : 0;
-        this.listInputVehiculo.push(id);
-    }
-
-    removePersonal(i: number, e: MouseEvent): void {
-        e.preventDefault();
-        if (this.listInputPersonal.length > 1) {
-            const index = this.listInputPersonal.indexOf(i);
-            this.listInputPersonal.splice(index, 1);
-        }
-    }
-
-    removeVehiculo(i: number, e: MouseEvent): void {
-        e.preventDefault();
-        if (this.listInputVehiculo.length > 1) {
-            const index = this.listInputVehiculo.indexOf(i);
-            this.listInputVehiculo.splice(index, 1);
-        }
-    }
-
     handleSelectedRowsChanged(): void {
         const selrows = this.angularGrid.slickGrid.getSelectedRows()
         if (selrows[0] == undefined) return
@@ -156,54 +109,11 @@ export class CustodiaComponent {
         // console.log('editCustodiaId', this.editCustodiaId);
     }
 
-    resetObjCustodiaId(): void {
-        this.editCustodiaId = 0
-        this.ngForm().reset()
-        this.listInputPersonal = [1]
-        this.listInputVehiculo = [1]
-        this.periodo.set({ year: 0, month: 0 })
-    }
-
     resetForm(): void {
         this.editCustodiaId = 0
         this.listInputPersonal = this.cantInputs.slice()
         this.listInputVehiculo = this.cantInputs.slice()
         this.ngForm().reset()
-    }
-
-    async getObjCustodiaId(){
-        // console.log('graba',this.ngForm().value)
-        const res = await firstValueFrom(this.searchService.getInfoObjCustodia(this.editCustodiaId))
-        // console.log('res', res);
-        res.form.fechaInicio = new Date(res.form.fechaInicio)
-        if(res.form.fechaFinal)
-            res.form.fechaFinal = new Date(res.form.fechaFinal)
-        this.listInputPersonal = res.personalLength
-        this.listInputVehiculo = res.vehiculoLength
-        this.ngForm().reset(res.form)
-    }
-
-    openDrawer(key:any): void {
-        const personalId = this.ngForm().value[key]
-        if (!personalId) return
-        this.personalId.set(personalId)
-        this.visibleDrawer = true
-        // console.log('personalId', personalId);
-        // console.log('this.periodo().year', this.periodo().year);
-        // console.log('this.periodo().month', this.periodo().month);
-    }
-
-    closeDrawer(): void {
-        this.visibleDrawer = false;
-        this.personalId.set(0)
-    }
-
-    onChangePeriodo(result: Date): void {
-        if (result) {
-            const year = result.getFullYear()
-            const month = result.getMonth()+1
-            this.periodo.set({ year, month })
-        }
     }
 
     listOptionsChange(options: any) {

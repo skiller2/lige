@@ -627,6 +627,15 @@ export class SearchService {
         catchError(() => of([]))
       );
   }
+
+  getEstadoCustodia(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/custodia/estados`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }
-
-
