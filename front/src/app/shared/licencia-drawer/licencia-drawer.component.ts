@@ -59,7 +59,25 @@ export class LicenciaDrawerComponent {
     vals.PersonalLicenciaTipoAsociadoId=vals.categoria.categoriaId
     vals.PersonalLicenciaCategoriaPersonalId=vals.categoria.tipoId
     vals.IsEdit=IsEdit
+    vals.PersonalLicenciaHorasMensuales = this.formatHours(vals.PersonalLicenciaHorasMensuales)
     const res = await firstValueFrom(this.apiService.setLicencia(vals))
+  }
+
+  formatHours(hours:any) {
+
+    if (!hours) return;
+
+    let [integerPart, decimalPart] = hours.split(',');
+    decimalPart = decimalPart ? decimalPart.padEnd(2, '0') : '00';
+    let minutes = Math.round(parseFloat('0.' + decimalPart) * 60);
+
+    if (minutes >= 60) {
+      integerPart = (parseInt(integerPart) + 1).toString();
+      minutes -= 60;
+    }
+    decimalPart = minutes.toString().padStart(2, '0');
+
+    return hours = `${integerPart}.${decimalPart}`;
   }
 
   async deletelicencia() {

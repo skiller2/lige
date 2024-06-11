@@ -256,7 +256,7 @@ export class CargaLicenciaController extends BaseController {
 
   async setLicencia(req: Request, res: Response, next: NextFunction) {
     
-    const {
+    let {
       SucursalId,
       PersonalLicenciaId,
       PersonalId,
@@ -270,40 +270,63 @@ export class CargaLicenciaController extends BaseController {
       PersonalLicenciaTipoAsociadoId,
       PersonalLicenciaCategoriaPersonalId,
       IsEdit
-    } = req.body.vals
+    } = req.body
 
+    console.log("...." , req.body)
+    PersonalLicenciaDesde = this.formatDateToCustomFormat(PersonalLicenciaDesde);
+    PersonalLicenciaHasta = this.formatDateToCustomFormat(PersonalLicenciaHasta);
+
+    console.log(PersonalLicenciaDesde)
+    console.log(PersonalLicenciaHasta)
     const queryRunner = dataSource.createQueryRunner();
+
     try {
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (PersonalLicenciaId>0) {
-        
+      if(PersonalLicenciaSePaga ==  "S"){
+          if(categoria.length == 0)
+            throw new ClientException(`Error en la categoria`)
+      }
+
+      // if (TipoInasistenciaId != "") {
+      if (IsEdit) {
+
+        console.log("voy a editar.....")
+
         const result = await queryRunner.query(`UPDATE PersonalLicencia
           SET PersonalLicenciaDesde = @0, PersonalLicenciaHasta = @1, PersonalLicenciaTermina = @1, 
               PersonalTipoInasistenciaId = @2, PersonalLicenciaSePaga = @3, PersonalLicenciaHorasMensuales = @4,
               PersonalLicenciaObservacion = @5, PersonalLicenciaTipoAsociadoId = @6,PersonalLicenciaCategoriaPersonalId = @7
+              PersonalLicenciaCategoriaPersonalId = @10
           WHERE PersonalId = @8 AND PersonalLicenciaId = @9;`
           , [PersonalLicenciaDesde,PersonalLicenciaHasta,TipoInasistenciaId,PersonalLicenciaSePaga,PersonalLicenciaHorasMensuales,
-            PersonalLicenciaObservacion,PersonalLicenciaCategoriaPersonalId,PersonalLicenciaTipoAsociadoId,PersonalId,PersonalLicenciaId
-          ]) 
+            PersonalLicenciaObservacion,PersonalLicenciaCategoriaPersonalId,PersonalLicenciaTipoAsociadoId,PersonalId,PersonalLicenciaId,
+            categoria.categoriaId]) 
 
       }else{
+
+        console.log("voy a agregar uno nuevo.....")
+
+        if (TipoInasistenciaId == "") 
+          throw new ClientException(`Tipo de Inasistencia no seleccionada`)
 
         let PersonalLicenciaSelect = await queryRunner.query(` SELECT PersonalLicenciaUltNro from Personal WHERE PersonalId = @0`, [27,]) 
         let {PersonalLicenciaUltNro} = PersonalLicenciaSelect[0]
         PersonalLicenciaUltNro += 1
-        let PersonalLicenciaUpdate = await queryRunner.query(` UPDATE Personal SET PersonalLicenciaUltNro = @1, where PersonalId = @0 `, [PersonalId,PersonalLicenciaUltNro]) 
+        let PersonalLicenciaUpdate = await queryRunner.query(` UPDATE Personal SET PersonalLicenciaUltNro = @1 where PersonalId = @0 `, [PersonalId,PersonalLicenciaUltNro]) 
 
         const result = await queryRunner.query(`INSERT INTO PersonalLicencia
         VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19)`
           , [PersonalId,PersonalLicenciaUltNro,null,null,'N', PersonalLicenciaDesde,
             PersonalLicenciaHasta,null,null,null,PersonalLicenciaObservacion,null,null,
             TipoInasistenciaId,PersonalLicenciaSePaga,PersonalLicenciaHorasMensuales,PersonalLicenciaTipoAsociadoId,
-            PersonalLicenciaCategoriaPersonalId,null,null]) 
+            categoria.categoriaId,null,null]) 
              
       }
+
+      
 
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, (PersonalLicenciaId)? `se Actualizó con exito el registro`:`se Agregó con exito el registro`);
@@ -315,14 +338,25 @@ export class CargaLicenciaController extends BaseController {
 
   }
 
+  formatDateToCustomFormat(dateString: string): string {
+    const date = new Date(dateString);
+    
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    
+    const formattedDate = `${year}-${month}-${day} 00:00:00.000`;
+    
+    return formattedDate;
+  }
+
   async deleteLincencia(req: Request, res: Response, next: NextFunction) {
     
-    console.log('parammetros para borrar', req.body.vals)
     const {
       SucursalId,
       PersonalLicenciaId,
       PersonalId
-    } = req.body.vals
+    } = req.query
     const queryRunner = dataSource.createQueryRunner();
     try {
        const result = await queryRunner.query(`select * from PersonalLicenciaAplicaPeriodo where PersonalId=@0 and PersonalLicenciaId=@1 `
@@ -333,10 +367,10 @@ export class CargaLicenciaController extends BaseController {
           const result = await queryRunner.query(` DELETE FROM PersonalLicencia WHERE PersonalId = @0 and PersonalLicenciaId =@1`
             , [PersonalId,PersonalLicenciaId]) 
         }else{
-          this.jsonRes({ list: [] }, res, `No se puede eliminar la licencia`);
+          throw new ClientException(`No se puede eliminar la licencia`)
         }
 
-      this.jsonRes({}, res);
+        this.jsonRes({ list: [] }, res, `Licencia borrada con exito`);
     } catch (error) {
       return next(error)
     }

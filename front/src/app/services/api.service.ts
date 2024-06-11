@@ -752,9 +752,9 @@ export class ApiService {
   }
 
   deleteLicencia(vals: any) {
-
-    return this.http.post<ResponseJSON<any>>(`/api/carga-licencia/delete`, { vals }).pipe(
-      map((res: { data: any; }) => res.data),
+console.log(vals)
+    return this.http.delete<ResponseJSON<any>>(`/api/carga-licencia`,  vals ).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
       catchError(() => of([])),
 
     )

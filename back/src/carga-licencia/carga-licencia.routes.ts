@@ -20,6 +20,6 @@ CargaLicenciaCargaRouter.post("/", authMiddleware.verifyToken, (req, res, next) 
   cargaLicenciaController.setLicencia(req, res, next);
 });
 
-CargaLicenciaCargaRouter.post("/delete", authMiddleware.verifyToken, (req, res, next) => {
+CargaLicenciaCargaRouter.delete("/", authMiddleware.verifyToken, (req, res, next) => {
   cargaLicenciaController.deleteLincencia(req, res, next);
 });
