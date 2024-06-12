@@ -24,6 +24,8 @@ const columnsObjCustodia: any[] = [
         params: {
             complexFieldLabel: 'cliente.fullName',
         },
+        searchComponent:"inpurForClientSearch",
+        searchType:"number",
         // maxWidth: 170,
         minWidth: 140,
     },
@@ -151,20 +153,18 @@ export class CustodiaController extends BaseController {
         const cant_km_exced = objetivoCustodia.cantKmExced? objetivoCustodia.cantKmExced : null
         const impo_km_exced = objetivoCustodia.impoKmExced? objetivoCustodia.impoKmExced : null
         const impo_peaje = objetivoCustodia.impoPeaje? objetivoCustodia.impoPeaje : null
-        const cant_horas = objetivoCustodia.cant_horas? objetivoCustodia.cant_horas : null
         const impo_facturar= objetivoCustodia.facturacion? objetivoCustodia.facturacion : null
-        const kilometros = objetivoCustodia.kilometros
         const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
         return await queryRunner.query(`
             INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, 
                 descripcion, fecha_inicio, origen, fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced,
-                impo_horas_exced, cant_km_exced, impo_km_exced, impo_peaje, cant_horas, impo_facturar, kilometros, 
-                estado, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-            VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @22, @20, @21, @22)`, 
+                impo_horas_exced, cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, estado, 
+                aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+            VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @18, @19, @20)`, 
             [objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, descripcion, fecha_inicio, origen, 
                 fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced, impo_horas_exced, 
-                cant_km_exced, impo_km_exced, impo_peaje, cant_horas, impo_facturar, kilometros, estado, 
+                cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, estado, 
                 usuario, ip, fechaActual]
         )
     }
@@ -253,22 +253,20 @@ export class CustodiaController extends BaseController {
         const cant_km_exced = objetivoCustodia.cantKmExced? objetivoCustodia.cantKmExced : null
         const impo_km_exced = objetivoCustodia.impoKmExced? objetivoCustodia.impoKmExced : null
         const impo_peaje = objetivoCustodia.impoPeaje? objetivoCustodia.impoPeaje : null
-        const cant_horas = objetivoCustodia.cantHoras? objetivoCustodia.cantHoras : null
         const impo_facturar= objetivoCustodia.facturacion? objetivoCustodia.facturacion : null
-        const kilometros = objetivoCustodia.kilometros
         const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
         return await queryRunner.query(`
         UPDATE lige.dbo.objetivocustodia 
         SET cliente_id = @1, desc_requirente = @2, descripcion = @3, fecha_inicio = @4, origen = @5, 
         fecha_fin = @6, destino = @7, cant_modulos = @8, importe_modulos = @9, cant_horas_exced = @10, 
-        impo_horas_exced = @11, cant_km_exced = @12, impo_km_exced = @13, impo_peaje = @14, cant_horas = @15, 
-        impo_facturar = @16, kilometros = @17, estado = @18, 
-        aud_usuario_mod = @19, aud_ip_mod = @20, aud_fecha_mod = @21
+        impo_horas_exced = @11, cant_km_exced = @12, impo_km_exced = @13, impo_peaje = @14,  
+        impo_facturar = @15, estado = @16, 
+        aud_usuario_mod = @17, aud_ip_mod = @18, aud_fecha_mod = @19
         WHERE objetivo_custodia_id = @0`, 
         [objetivo_custodia_id, cliente_id, desc_requirente, descripcion, fecha_inicio, origen, fecha_fin, destino, 
             cant_modulos, importe_modulos, cant_horas_exced, impo_horas_exced, cant_km_exced, impo_km_exced, 
-            impo_peaje, cant_horas, impo_facturar, kilometros, estado, usuario, ip, fechaActual
+            impo_peaje, impo_facturar, estado, usuario, ip, fechaActual
         ])
     }
 
@@ -303,8 +301,7 @@ export class CustodiaController extends BaseController {
         obj.cliente_id clienteId, obj.desc_requirente descRequirente, obj.descripcion, obj.fecha_inicio fechaInicio, obj.origen, 
         obj.fecha_fin fechaFinal, obj.destino, obj.cant_modulos cantModulos, obj.importe_modulos importeModulos, 
         obj.cant_horas_exced cantHorasExced, obj.impo_horas_exced impoHorasExced, obj.cant_km_exced cantKmExced, 
-        obj.impo_km_exced impoKmExced, obj.impo_peaje impoPeaje , obj.cant_horas cantHoras, obj.kilometros, 
-        obj.impo_facturar facturacion, obj.estado
+        obj.impo_km_exced impoKmExced, obj.impo_peaje impoPeaje, obj.impo_facturar facturacion, obj.estado
         FROM lige.dbo.objetivocustodia obj
         INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
         WHERE objetivo_custodia_id = @0`, 

@@ -139,10 +139,10 @@
     </nz-form-item>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzSpan]="3">Importe a Facturar Calcularlo</nz-form-label>
-      <nz-form-control [nzSpan]="17">
+      <nz-form-label [nzSpan]="3">Importe a Facturar</nz-form-label>
+      <nz-form-control [nzSpan]="7">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="facturacion" type="number" />
+          <input nz-input placeholder="" ngModel name="facturacion" type="number" disabled />
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -150,7 +150,7 @@
     @for (control of listInputPersonal; track control; let i = $index) {
       <nz-form-item class="marginElement">
         <nz-form-label  [nzSpan]="3"> Personal </nz-form-label>
-        <nz-form-control [nzSpan]="7">
+        <nz-form-control [nzSpan]="6">
           <nz-input-group style="width: 100%">
             <app-personal-search ngModel name={{i+1}}personalId />
           </nz-input-group>
@@ -158,90 +158,65 @@
         <nz-form-control [nzSpan]="1" style="text-align: center;">
           <a (click)="openDrawer(i+1+'personalId')"><span nz-icon nzType="user" nzTheme="outline"></span></a>
         </nz-form-control>
-        <nz-form-label  [nzSpan]="2"> Importe </nz-form-label>
+        <nz-form-label  [nzSpan]="1"> Importe </nz-form-label>
         <nz-form-control [nzSpan]="5">
           <nz-input-group style="width: 100%">
             <input nz-input placeholder="" ngModel name={{i+1}}importePersonal type="number" (ngModelChange)="onChangeImpo()" />
           </nz-input-group>
         </nz-form-control>
-        <nz-form-control [nzSpan]="1" style="text-align: right;">
+
+        <nz-form-control [nzSpan]="3" style="text-align: right;">
+          <button nz-button nzType="dashed" class="add-button" (click)="addPersonal($event)">
+            <span nz-icon nzType="plus"></span>
+            Agregar Personal
+          </button>
+        </nz-form-control>
+        <nz-form-control [nzSpan]="1" style="text-align: center;">
           <span nz-icon nzType="delete" nzTheme="outline" (click)="removePersonal(control, $event)"></span>
         </nz-form-control>
       </nz-form-item>
       
     }
 
-    <nz-form-item>
-      <nz-form-control [nzXs]="{ span: 24, offset: 0 }" [nzSm]="{ span: 20, offset: 4 }">
-        <button nz-button nzType="dashed" class="add-button" (click)="addPersonal($event)">
-          <span nz-icon nzType="plus"></span>
-          Agregar Personal
-        </button>
-      </nz-form-control>
-    </nz-form-item>
-
     @for (control of listInputVehiculo; track control; let i = $index) {
       <nz-form-item class="marginElement">
         <nz-form-label  [nzSpan]="2"> Patente </nz-form-label>
-        <nz-form-control [nzSpan]="3">
+        <nz-form-control [nzSpan]="2">
           <nz-input-group style="width: 100%">
             <input nz-input placeholder="" ngModel name={{i+1}}patente type="text"/>
           </nz-input-group>
         </nz-form-control>
-        <nz-form-label  [nzSpan]="2"> Dueño </nz-form-label>
-        <nz-form-control [nzSpan]="5">
+        <nz-form-label  [nzSpan]="1"> Dueño </nz-form-label>
+        <nz-form-control [nzSpan]="6">
           <nz-input-group style="width: 100%">
             <app-personal-search ngModel name={{i+1}}duenoId />
           </nz-input-group>
         </nz-form-control>
-        <nz-form-label  [nzSpan]="2"> Importe </nz-form-label>
+        <nz-form-label  [nzSpan]="1"> Importe </nz-form-label>
         <nz-form-control [nzSpan]="3">
           <nz-input-group style="width: 100%">
             <input nz-input placeholder="" ngModel name={{i+1}}importeVehiculo type="number" (ngModelChange)="onChangeImpo()" />
           </nz-input-group>
         </nz-form-control>
-        <nz-form-label  [nzSpan]="2">Peaje</nz-form-label>
+        <nz-form-label  [nzSpan]="1">Peaje</nz-form-label>
         <nz-form-control [nzSpan]="2">
           <nz-input-group style="width: 100%">
             <input nz-input placeholder="" ngModel name={{i+1}}peajeVehiculo type="number" />
           </nz-input-group>
         </nz-form-control>
 
+        <nz-form-control [nzSpan]="3" style="text-align: right;">
+          <button nz-button nzType="dashed" class="add-button" (click)="addVehiculo($event)">
+            <span nz-icon nzType="plus"></span>
+            Agregar Vehículo
+          </button>
+        </nz-form-control>
         <nz-form-control [nzSpan]="1" style="text-align: center;">
           <span nz-icon nzType="delete" nzTheme="outline" (click)="removeVehiculo(control, $event)"></span>
         </nz-form-control>
       </nz-form-item>
       
     }
-
-    <nz-form-item>
-      <nz-form-control [nzXs]="{ span: 24, offset: 0 }" [nzSm]="{ span: 20, offset: 4 }">
-        <button nz-button nzType="dashed" class="add-button" (click)="addVehiculo($event)">
-          <span nz-icon nzType="plus"></span>
-          Agregar Vehículo
-        </button>
-      </nz-form-control>
-    </nz-form-item>
-
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzSpan]="3">Cant. Horas a Facturar</nz-form-label>
-    
-      <nz-form-control [nzSpan]="17">
-        <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="cantHoras" type="number" />
-        </nz-input-group>
-      </nz-form-control>
-    </nz-form-item>
-
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzSpan]="3">Cant Km</nz-form-label>
-    
-      <nz-form-control [nzSpan]="17">
-        <nz-input-group style="width: 100%">
-          <input nz-input placeholder="Kilometros" ngModel name="kilometros" type="number" />
-        </nz-input-group>
-      </nz-form-control>
-    </nz-form-item>
 
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
