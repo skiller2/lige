@@ -1,5 +1,5 @@
-<nz-drawer [nzClosable]="false" [(nzVisible)]="visible" [nzPlacement]="placement" [nzWidth]="640" [nzTitle]="tituloDrawer"
-  (nzOnClose)="visible.set(false)">
+<nz-drawer [nzClosable]="false" [(nzVisible)]="visible" [nzPlacement]="placement" [nzWidth]="640"
+  [nzTitle]="tituloDrawer" (nzOnClose)="visible.set(false)">
   <ng-container *nzDrawerContent>
     @if (cambios()|async) {}
     <form nz-form ngForm>
@@ -20,11 +20,11 @@
         <nz-form-label [nzSpan]="5">Persona</nz-form-label>
         <nz-form-control>
           <nz-input-group style="width: 100%">
-            <app-personal-search name="PersonalId" ngModel/>
+            <app-personal-search name="PersonalId" ngModel />
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
-  
+
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Desde: </nz-form-label>
         <nz-form-control [nzXs]="24">
@@ -43,36 +43,23 @@
           <app-inasistencia-search name="TipoInasistenciaId" ngModel></app-inasistencia-search>
         </nz-form-control>
       </nz-form-item>
-      @if (!IsEdit()) {
-      <nz-form-item>
-        <nz-form-label [nzSpan]="5">Sucursal</nz-form-label>
-        <nz-form-control>
-          <nz-select nzSpan="19" name="SucursalId" [(ngModel)]="selectedSucursalId" [nzDropdownMatchSelectWidth]="false"
-            (ngModelChange)="selectedValueChange($event)" nzAllowClear nzPlaceHolder="Sucursal"
-            nzShowSearch>
-            <ng-container *ngFor="let option of $optionsSucursales | async">
-              <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
-            </ng-container>
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
-      }
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Categoría </nz-form-label>
         <nz-form-control>
-          
-          <app-categoria-persona [IsEdit]="IsEdit()" [sucursalid]="ngForm().value?.SucursalId" [NombreApellidoId]="ngForm().value?.PersonalId"
-            [selectedPeriod]="selectedPeriod()" name="categoria" ngModel></app-categoria-persona> 
+
+          <app-categoria-persona [sucursalid]="ngForm().value?.SucursalId" [PersonalId]="ngForm().value?.PersonalId"
+            [selectedPeriod]="selectedPeriod()" name="categoria" ngModel></app-categoria-persona>
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Se paga</nz-form-label>
         <nz-form-control>
-          <nz-select nzShowSearch nzAllowClear nzPlaceHolder="" name="PersonalLicenciaSePaga" ngModel [nzDropdownMatchSelectWidth]="false">
+          <nz-select nzShowSearch nzAllowClear nzPlaceHolder="" name="PersonalLicenciaSePaga" ngModel
+            [nzDropdownMatchSelectWidth]="false">
             <nz-option nzLabel="Si" nzValue="S"></nz-option>
             <nz-option nzLabel="No" nzValue="N"></nz-option>
             <nz-option nzLabel="Indeterminado" nzValue=""></nz-option>
-          </nz-select>          
+          </nz-select>
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
@@ -90,12 +77,8 @@
 
       -Carga de Documentos.
 
-      @if (IsEdit()) {
-        <button nz-button nzType="primary" (click)="save(true)">Guardar</button>
-      }@else{
-        <button nz-button nzType="primary" (click)="save(false)">Guardar</button>
-      }
-     
+      <button nz-button nzType="primary" (click)="save()">Guardar</button>
+
       <button nz-button nzType="primary" (click)="deletelicencia()" nzDanger>Eliminar</button>
 
     </form>

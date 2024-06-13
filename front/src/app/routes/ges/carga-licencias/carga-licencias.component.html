@@ -1,18 +1,16 @@
 
 <nz-card class="small-margin">
-    <form nz-form #LicenciaForm="ngForm">
-        
     <nz-form-item>
         <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
         <nz-form-control>
-          <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
+          <nz-date-picker nzMode="month"  [(ngModel)]="periodo" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-control style="text-align: right;">
         <nz-button-group>
-            <button nz-button nzType="default" (click)="openDrawer()"><span nz-icon nzType="user"
-                    nzTheme="outline"></span></button>
+            <button nz-button nzType="default" (click)="visibleDrawer=true" [disabled]="!(PersonalLicenciaId>0)" ><span nz-icon nzType="user"
+                    nzTheme="outline" ></span></button>
             <button nz-button nzType="default" (click)="openDrawerforNew()"><span nz-icon nzType="plus"
                     nzTheme="outline"></span></button>
         </nz-button-group>
@@ -30,7 +28,7 @@
           <a nz-tab-link routerLink="/ges/carga_licencias/AltaLicencia">Alta de licencia</a>
           <ng-template nz-tab>
             
-            <app-table-abm-licencia gridId="gridEdit" (valueGridEvent)="actualizarValorDrawer($event)" [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"></app-table-abm-licencia>
+            <app-table-abm-licencia gridId="gridEdit" (valueGridEvent)="actualizarValorDrawer($event)" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-table-abm-licencia>
   
           </ng-template>
         </nz-tab>
@@ -42,8 +40,6 @@
         </nz-tab> -->
       
       </nz-tabset>
-    </form>
   </nz-card>
-  
-<app-licencia-drawer [selectedPeriod]="selectedPeriod" [(visible)]="visibleDrawer" [IsEdit]="IsEdit" [PersonalId]="PersonalId" [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
+<app-licencia-drawer [selectedPeriod]="selectedPeriod()" [(visible)]="visibleDrawer" [PersonalId]="PersonalId" [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
   
