@@ -4,6 +4,8 @@ import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-u
 import { NextFunction, Request, Response } from "express";
 import { ObjetivoController } from "src/controller/objetivo.controller";
 import { AsistenciaController } from "../controller/asistencia.controller";
+import { mkdirSync, renameSync ,existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
+import { Utils } from "./../liquidaciones/liquidaciones.utils";
 
 const columnasGrilla: any[] = [
   
@@ -419,6 +421,95 @@ export class CargaLicenciaController extends BaseController {
     } catch (error) {
       return next(error)
     }
+  }
+  directory = process.env.PATH_LIQUIDACIONES || "tmp";
+
+  async handlePDFUpload(req: Request, res: Response, next: NextFunction) {
+    const file = req.file;
+    const anioRequest = Number(req.body.anio)
+    const mesRequest = Number(req.body.mes)
+    const fechaRequest = new Date(req.body.fecha);
+    const queryRunner = dataSource.createQueryRunner();
+
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    let fechaActual = new Date()
+
+
+    console.log("file ", file)
+    const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
+
+    console.log("estoy en al back para guardar el archivo")
+    try {
+      if (!anioRequest) throw new ClientException("Faltó indicar el anio");
+      if (!mesRequest) throw new ClientException("Faltó indicar el mes");
+      if (!fechaRequest) throw new ClientException("Faltó indicar fecha de aplicación");
+
+
+      
+      //const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+
+      // if (getRecibosGenerados[0].ind_recibos_generados == 1)
+      //   throw new ClientException(`Los recibos para este periodo ya se generaron`)
+
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+      //const importeRequest = req.body.monto;
+      //const cuitRequest = req.body.cuit;
+
+      //if (!importeRequest) throw new ClientException("Faltó indicar el importe.");
+
+      let dataset = []
+      let datasetid = 0
+
+
+      // let docgeneral = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
+      // let idTelefonia = await this.getProxNumero(queryRunner, `idtelefonia`, usuario, ip)
+
+
+      // if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
+      // const now = fechaRequest
+      
+      this.moveFile(file.filename,periodo_id,anioRequest,mesRequest)
+        
+
+      // const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
+      // const sheet1 = workSheetsFromBuffer[0];
+      //      console.log('telefonos', telefonos)
+
+     
+      await queryRunner.commitTransaction();
+
+      this.jsonRes({}, res, "PDF guardado con exito!");
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release();
+      //unlinkSync(file.path);
+    }
+  }
+
+
+  moveFile(filename:any,periodo_id:any,anioRequest:any,mesRequest:any){
+    const originalFilePath = `${process.env.PATH_LICENCIA}/temp/${filename}`;
+      const dirtmp = `${process.env.PATH_LICENCIA}/${periodo_id}`;
+
+      if (!existsSync(dirtmp)) {
+        mkdirSync(dirtmp, { recursive: true });
+      }
+
+      const newFilePath = `${dirtmp}/${anioRequest}-${mesRequest
+        .toString()
+        .padStart(2, "0")}.pdf`;
+
+
+        try {
+          renameSync(originalFilePath, newFilePath);
+        } catch (error) {
+          console.error('Error moviendo el archivo:', error);
+        }
+
   }
 
 }

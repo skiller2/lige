@@ -83,6 +83,25 @@
       <button nz-button nzType="primary" (click)="deletelicencia()" nzDanger>Eliminar</button>
 
     </form>
-    <p>Debug Valores: {{ngForm().value | json }}</p>
+
+    <nz-form-item>
+      <nz-form-control>
+        <nz-form-label [nzSpan]="5">Archivo liquidaciones</nz-form-label>
+        <ng-container>
+          <nz-upload nzAccept="application/pdf" nzAction="/api/carga-licencia/upload" [nzData]="{
+      tipocuenta:1,
+      movimiento:1,
+      anio:2022, 
+      mes:1
+    }" nzName="pdf" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
+            <button nz-button>
+              <span nz-icon nzType="upload"></span>
+              Subir PDF
+            </button>
+          </nz-upload>
+        </ng-container>
+      </nz-form-control>
+    </nz-form-item>
+    <!-- <p>Debug Valores: {{ngForm().value | json }}</p> -->
   </ng-container>
 </nz-drawer>

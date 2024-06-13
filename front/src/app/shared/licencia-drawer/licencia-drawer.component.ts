@@ -3,6 +3,7 @@ import { SHARED_IMPORTS } from '@shared';
 import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NgForm } from '@angular/forms';
+import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -16,7 +17,7 @@ import { SearchService } from '../../services/search.service';
 @Component({
   selector: 'app-licencia-drawer',
   standalone: true,
-  imports: [SHARED_IMPORTS, NzDescriptionsModule, ReactiveFormsModule, EditorCategoriaComponent, InasistenciaSearchComponent, PersonalSearchComponent, CommonModule],
+  imports: [SHARED_IMPORTS,NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, EditorCategoriaComponent, InasistenciaSearchComponent, PersonalSearchComponent, CommonModule],
   templateUrl: './licencia-drawer.component.html',
   styleUrl: './licencia-drawer.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,7 +33,7 @@ export class LicenciaDrawerComponent {
   placement: NzDrawerPlacement = 'left';
   visible = model<boolean>(false)
   tituloDrawer = "Modificación de Licencia"
-
+  uploading$ = new BehaviorSubject({loading:false,event:null});
   constructor(
     private searchService: SearchService
   ) { }
@@ -79,5 +80,31 @@ export class LicenciaDrawerComponent {
   async deletelicencia() {
     let vals = this.ngForm().value
     const res = await firstValueFrom(this.apiService.deleteLicencia(vals))
+  }
+
+  uploadChange(event: any) {
+    switch (event.type) {
+      case 'start':
+        this.uploading$.next({ loading: true, event })
+    
+        break;
+      case 'progress':
+
+        break;
+      case 'error':
+        const Error = event.file.error
+        if (Error.error.data?.list) {
+        }
+        this.uploading$.next({ loading:false,event })
+        break;
+      case 'success':
+        const Response = event.file.response
+        this.uploading$.next({ loading: false, event })
+        this.apiService.response(Response)        
+        break
+      default:
+        break;
+    }
+
   }
 }
