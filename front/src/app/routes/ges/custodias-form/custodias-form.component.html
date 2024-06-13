@@ -151,73 +151,78 @@
       <nz-form-item class="marginElement">
         <nz-form-label  [nzSpan]="3"> Personal </nz-form-label>
         <nz-form-control [nzSpan]="7">
-          <nz-input-group style="width: 100%">
             <app-personal-search ngModel name={{i+1}}personalId />
-          </nz-input-group>
         </nz-form-control>
-        <nz-form-control [nzSpan]="1" style="text-align: center;">
-          <a (click)="openDrawer(i+1+'personalId')"><span nz-icon nzType="user" nzTheme="outline"></span></a>
-        </nz-form-control>
-        <nz-form-label  [nzSpan]="1"> Importe </nz-form-label>
+        
+        <nz-form-label  [nzSpan]="2"> Importe </nz-form-label>
         <nz-form-control [nzSpan]="6">
           <nz-input-group style="width: 100%">
             <input nz-input placeholder="" ngModel name={{i+1}}importePersonal type="number" (ngModelChange)="onChangeImpo()" />
           </nz-input-group>
         </nz-form-control>
-
-        <nz-form-control [nzSpan]="1" style="text-align: right;">
+        
+        <nz-form-control [nzSpan]="3" name="buttons" style="text-align: center;">
+            <button nz-button nzType="dashed" (click)="openDrawer(i+1+'personalId')">
+              <span nz-icon nzType="user" nzTheme="outline"></span>
+            </button>
+            <button nz-button nzType="primary" class="add-button" (click)="addPersonal($event)">
+              <span nz-icon nzType="plus"></span>
+            </button>
+            <button nz-button nzType="default" (click)="removePersonal(control, $event)">
+              <span nz-icon nzType="delete" nzTheme="outline" ></span>
+            </button>
+        </nz-form-control>
+        <!-- <nz-form-control [nzSpan]="1" style="text-align: right;">
           <button nz-button nzType="dashed" class="add-button" (click)="addPersonal($event)">
             <span nz-icon nzType="plus"></span>
-            <!-- Agregar Personal -->
           </button>
         </nz-form-control>
         <nz-form-control [nzSpan]="1" style="text-align: center;">
           <span nz-icon nzType="delete" nzTheme="outline" (click)="removePersonal(control, $event)"></span>
-        </nz-form-control>
+        </nz-form-control> -->
       </nz-form-item>
       
     }
     <br>
     @for (control of listInputVehiculo; track control; let i = $index) {
       <nz-form-item class="marginElement">
-        <nz-form-label  [nzSpan]="3"> Patente </nz-form-label>
+        <nz-form-label  [nzSpan]="2"> Patente </nz-form-label>
         <nz-form-control [nzSpan]="2">
           <nz-input-group style="width: 100%">
             <input nz-input placeholder="" ngModel name={{i+1}}patente type="text"/>
           </nz-input-group>
         </nz-form-control>
-        <nz-form-label  [nzSpan]="1"> Dueño </nz-form-label>
+        <nz-form-label  [nzSpan]="2"> Dueño </nz-form-label>
         <nz-form-control [nzSpan]="6">
           <nz-input-group style="width: 100%">
             <app-personal-search ngModel name={{i+1}}duenoId />
           </nz-input-group>
         </nz-form-control>
-        <nz-form-label  [nzSpan]="1"> Importe </nz-form-label>
-        <nz-form-control [nzSpan]="3">
+        <nz-form-label  [nzSpan]="2"> Importe </nz-form-label>
+        <nz-form-control [nzSpan]="2">
           <nz-input-group style="width: 100%">
             <input nz-input placeholder="" ngModel name={{i+1}}importeVehiculo type="number" (ngModelChange)="onChangeImpo()" />
           </nz-input-group>
         </nz-form-control>
-        <nz-form-label  [nzSpan]="1">Peaje</nz-form-label>
+        <nz-form-label  [nzSpan]="2">Peaje</nz-form-label>
         <nz-form-control [nzSpan]="2">
           <nz-input-group style="width: 100%">
             <input nz-input placeholder="" ngModel name={{i+1}}peajeVehiculo type="number" />
           </nz-input-group>
         </nz-form-control>
-
-        <nz-form-control [nzSpan]="1" style="text-align: right;">
-          <button nz-button nzType="dashed" class="add-button" (click)="addVehiculo($event)">
+        
+        <nz-form-control [nzSpan]="2" name="buttons" style="text-align: center;">
+          <button nz-button nzType="primary" class="add-button" (click)="addVehiculo($event)">
             <span nz-icon nzType="plus"></span>
-            <!-- Agregar Vehículo -->
           </button>
-        </nz-form-control>
-        <nz-form-control [nzSpan]="1" style="text-align: center;">
-          <span nz-icon nzType="delete" nzTheme="outline" (click)="removeVehiculo(control, $event)"></span>
+          <button nz-button nzType="default" (click)="removeVehiculo(control, $event)">
+            <span nz-icon nzType="delete" nzTheme="outline" ></span>
+          </button>
         </nz-form-control>
       </nz-form-item>
       
     }
-
+    <br>
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
         <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar guardar cambios?" nz-button *ngIf="edit" (nzOnConfirm)="save(0)">
