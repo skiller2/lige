@@ -388,10 +388,11 @@ export class LiquidacionesController extends BaseController {
 
     const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
 
-    if (getRecibosGenerados[0].ind_recibos_generados == 1)
-      throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
     try {
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+        throw new ClientException(`Los recibos para este periodo ya se generaron`)
+  
       await queryRunner.connect();
       await queryRunner.startTransaction();
 

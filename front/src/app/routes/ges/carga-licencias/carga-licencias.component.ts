@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, computed, model } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -20,65 +20,51 @@ import { AngularGridInstance } from 'angular-slickgrid';
   styleUrl: './carga-licencias.component.less'
 })
 export class CargaLicenciasComponent {
-  @ViewChild('LicenciaForm', { static: true }) LicenciaForm: NgForm = new NgForm([], []);
+  //  @ViewChild('LicenciaForm', { static: true }) LicenciaForm: NgForm = new NgForm([], []);
   tabIndex = 0
-  selectedPeriod = { year: 0, month: 0 };
-  formChange$ = new BehaviorSubject('');
+  periodo = model(new Date())
+  //  formChange$ = new BehaviorSubject('');
   visibleDrawer: boolean = false
   angularGridEdit!: AngularGridInstance;
   PersonalId = 0
   PersonalLicenciaId = 0
-  IsEdit: boolean = false
 
-
-  dateChange(result: Date): void {
-    this.selectedPeriod.year = result.getFullYear();
-    this.selectedPeriod.month = result.getMonth() + 1;
-
-    localStorage.setItem('anio', String(this.selectedPeriod.year));
-    localStorage.setItem('mes', String(this.selectedPeriod.month));
-
-    this.formChange('');
-  }
+  selectedPeriod = computed(() => {
+    const per = this.periodo()
+    if (per) {
+      localStorage.setItem('anio', String(per.getFullYear()));
+      localStorage.setItem('mes', String(per.getMonth() + 1));
+      return { year: per.getFullYear(), month: per.getMonth() + 1 }
+    } else
+      return { year: 0, month: 0 }
+  })
 
 
   ngAfterViewInit(): void {
     const now = new Date(); //date
-    setTimeout(() => {
-      const anio =
-        Number(localStorage.getItem('anio')) > 0
-          ? Number(localStorage.getItem('anio'))
-          : now.getFullYear();
-      const mes =
-        Number(localStorage.getItem('mes')) > 0
-          ? Number(localStorage.getItem('mes'))
-          : now.getMonth() + 1;
 
-      this.LicenciaForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
-    }, 1);
+    const anio =
+      Number(localStorage.getItem('anio')) > 0
+        ? Number(localStorage.getItem('anio'))
+        : now.getFullYear();
+    const mes =
+      Number(localStorage.getItem('mes')) > 0
+        ? Number(localStorage.getItem('mes'))
+        : now.getMonth() + 1;
+
+    this.periodo.set(new Date(anio, mes - 1, 1))
   }
 
-  formChange(event: any) {
-    this.formChange$.next(event);
-  }
 
   actualizarValorDrawer(event: any) {
     this.PersonalId = event[0].PersonalId
     this.PersonalLicenciaId = event[0].PersonalLicenciaId
   }
 
-  openDrawer(): void {
-
-    if(this.PersonalId > 0 && this.PersonalLicenciaId > 0){
-      this.visibleDrawer = true
-      this.IsEdit = true
-    }
-    
-  }
-
   openDrawerforNew(): void {
+    this.PersonalLicenciaId = 0
     this.visibleDrawer = true
-    this.IsEdit = false
+
   }
 
 

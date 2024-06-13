@@ -1,5 +1,5 @@
-import { Component, ElementRef, Input, SimpleChanges, ViewChild,forwardRef, input } from '@angular/core';
-import { Subject, firstValueFrom,noop } from 'rxjs';
+import { Component, ElementRef, Input, SimpleChanges, ViewChild, computed, forwardRef, input, model } from '@angular/core';
+import { Subject, firstValueFrom, noop } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
@@ -17,7 +17,7 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
       useExisting: forwardRef(() => EditorCategoriaComponent),
       multi: true,
     },
-  ],  
+  ],
   imports: [
     ...SHARED_IMPORTS,
     CommonModule,
@@ -28,33 +28,28 @@ import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
 export class EditorCategoriaComponent {
   @ViewChild("eto") eto!: NzSelectComponent
 
-  selectedId: number = 0; //Lo utiliza la grilla para pasar el valor
-  selectedItem: any;
+  selectedId: string = ''; //Lo utiliza la grilla para pasar el valor
+  selectedItem: any;//Lo utiliza la grilla
   collection?: any[]; // this will be filled by the collection of your column definition
-  item?: any
-  params?: any
+  item?: any //Lo utiliza la grilla
+  params?: any //Lo utiliza la grilla
+
   onItemChanged = new Subject<any>();    // object
   valueExtended!: any
-  optionsArray: any
+  optionsArray: any[] = [];
   constructor(public element: ElementRef, private searchService: SearchService) { }
 
-  @Input() selectedPeriod = { year: 0, month: 0 };
-  @Input() sucursalid = 0
-  @Input() NombreApellidoId = 0
-  IsEdit = input.required<boolean>()
-
+  selectedPeriod = model({ year: 0, month: 0 });
+  sucursalid = model(0)
+  PersonalId = model(0)
 
   onChange(key: any) {
-    this.eto.focus()  //Al hacer click en el componente hace foco nuevamente
-    const selopt: any = this.optionsArray.filter((v: any) => v.id == key)
-    this.selectedId = key
-    if (selopt[0])
-      this.selectedItem = { id: key, fullName: `${selopt[0]?.CategoriaPersonalDescripcion.trim()} ${(selopt[0]?.ValorLiquidacionHorasTrabajoHoraNormal > 0) ? selopt[0].ValorLiquidacionHorasTrabajoHoraNormal : ''}`, tipoId: selopt[0]?.TipoAsociadoId, tipoFullname: selopt[0]?.TipoAsociadoDescripcion, horasRecomendadas: selopt[0]?.ValorLiquidacionHorasTrabajoHoraNormal, categoriaId: selopt[0]?.PersonalCategoriaCategoriaPersonalId }
-    else
-      this.selectedItem = { id: null, fullName: '', tipoId: null, categoriaId: null, tipoFullName: '', horasRecomendadas: 0 }
-
-    this.propagateChange(this.selectedItem)
     
+    this.eto.focus()  //Al hacer click en el componente hace foco nuevamente
+
+    this.selectedId = key;
+    this.internalRefresh()
+
   }
 
   focus() {
@@ -68,65 +63,43 @@ export class EditorCategoriaComponent {
     }
   }
 
-  
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['sucursalid'] || changes['selectedPeriod'] || changes['NombreApellidoId'] ) {
-      // Detect change in sucursalid input
-      this.ngOnInit();
+    if (changes['sucursalid'] || changes['selectedPeriod'] || changes['PersonalId']) {
+      this.optionsArray = []
+      this.internalRefresh();
     }
   }
 
+  async internalRefresh() {
+    if (this.PersonalId() && this.optionsArray.length == 0) {
+      const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(this.PersonalId(), this.selectedPeriod().year, this.selectedPeriod().month, this.sucursalid()))
+      this.optionsArray = (this.params?.SucursalId > 0) ? categorias.categorias?.filter((f: any) => f.ValorLiquidacionHoraNormal > 0) : categorias.categorias
+    }
+    
+    let selopt = this.optionsArray.filter((f: any) => f.id == this.selectedId)
+    let propagate = { id: '', fullName: '', tipoId: null, categoriaId: null, tipoFullName: '', horasRecomendadas: 0 }
+
+    if (selopt[0]) {
+      propagate = { id: this.selectedId, fullName: `${selopt[0]?.CategoriaPersonalDescripcion.trim()} ${(selopt[0]?.ValorLiquidacionHorasTrabajoHoraNormal > 0) ? selopt[0].ValorLiquidacionHorasTrabajoHoraNormal : ''}`, tipoId: selopt[0]?.TipoAsociadoId, tipoFullName: selopt[0].TipoAsociadoDescripcion, horasRecomendadas: selopt[0]?.ValorLiquidacionHorasTrabajoHoraNormal, categoriaId: selopt[0]?.PersonalCategoriaCategoriaPersonalId }
+    } else if (this.optionsArray[0]) {
+      this.selectedId = this.optionsArray[0].id
+      propagate = { id: this.selectedId, fullName: `${this.optionsArray[0]?.CategoriaPersonalDescripcion.trim()} ${(this.optionsArray[0]?.ValorLiquidacionHorasTrabajoHoraNormal > 0) ? this.optionsArray[0].ValorLiquidacionHorasTrabajoHoraNormal : ''}`, tipoId: this.optionsArray[0]?.TipoAsociadoId, tipoFullName: this.optionsArray[0]?.TipoAsociadoDescripcion, horasRecomendadas: this.optionsArray[0]?.ValorLiquidacionHorasTrabajoHoraNormal, categoriaId: this.optionsArray[0]?.PersonalCategoriaCategoriaPersonalId }
+    }
+
+    this.selectedItem = propagate
+    this.propagateChange(propagate)
+  }
 
   async ngOnInit() {
-    //    this.element.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-    //    this.eto.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
+    if (this.params?.anio && this.params?.mes)
+      this.selectedPeriod.set({ year: this.params?.anio, month: this.params?.mes })
+    if (this.params?.SucursalId)
+      this.sucursalid.set(this.params?.SucursalId)
+    if (this.item?.apellidoNombre.id)
+      this.PersonalId.set(this.item?.apellidoNombre.id)
+    this.internalRefresh()
 
-    if (this.item?.categoria.id)
-      this.optionsArray = [this.item.categoria]
-
-    if (this.item?.apellidoNombre.id) {
-      const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(Number(this.item.apellidoNombre.id), this.params?.anio, this.params?.mes, this.params?.SucursalId))
-
-      this.optionsArray = (this.params?.SucursalId > 0) ? categorias.categorias?.filter((f: any) => f.ValorLiquidacionHoraNormal > 0) : categorias.categorias
-      if (this.selectedId == 0 && this.optionsArray.length > 0)
-        this.onChange(this.optionsArray[0].id)
-    }
-//console.log('categoria',this.NombreApellidoId,this.sucursalid,this.selectedPeriod)
-
-    if(this.sucursalid > 0 && this.NombreApellidoId > 0 && this.selectedPeriod.month > 0 && this.selectedPeriod.year > 0){
-      const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(Number(this.NombreApellidoId), this.selectedPeriod.year, this.selectedPeriod.month, this.sucursalid))
-
-      this.optionsArray = (this.sucursalid > 0) ? categorias.categorias?.filter((f: any) => f.ValorLiquidacionHoraNormal > 0) : categorias.categorias
-      
-      if (this.selectedId == 0 && this.optionsArray.length > 0)
-        this.onChange(this.optionsArray[0].id)
-
-      if (this.selectedId != 0 ) {
-        if (this.optionsArray.filter((f: any) => f.id == this.selectedId).length == 0)
-          this.onChange((this.optionsArray.length == 0 )? 0:this.optionsArray[0].id )
-      }
-
-      this.element.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-
-    } 
-
-    if(!this.IsEdit() && this.sucursalid > 0){
-      
-      const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(Number(this.NombreApellidoId), this.selectedPeriod.year, this.selectedPeriod.month, this.sucursalid))
-
-      if(categorias.length > 0){
-        this.optionsArray = (this.sucursalid > 0) ? categorias.categorias?.filter((f: any) => f.ValorLiquidacionHoraNormal > 0) : categorias.categorias
-      
-        if (this.selectedId == 0 && this.optionsArray.length > 0)
-          this.onChange(this.optionsArray[0].id)
-  
-        if (this.selectedId != 0 ) {
-          if (this.optionsArray.filter((f: any) => f.id == this.selectedId).length == 0)
-            this.onChange((this.optionsArray.length == 0 )? 0:this.optionsArray[0].id )
-        }
-      }
-     
-    } 
+    this.element.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
 
   }
 
@@ -159,8 +132,10 @@ export class EditorCategoriaComponent {
   }
 
   writeValue(value: any) {
-    if (value !== this.selectedId) {
-      this.selectedId = value
+    const tmp = (value?.id)?value.id:value
+    if (tmp !== this.selectedId) {
+      this.selectedId = tmp
+      this.internalRefresh()
     }
   }
 

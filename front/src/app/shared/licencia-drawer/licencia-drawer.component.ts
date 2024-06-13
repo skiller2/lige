@@ -16,7 +16,7 @@ import { SearchService } from '../../services/search.service';
 @Component({
   selector: 'app-licencia-drawer',
   standalone: true,
-  imports: [SHARED_IMPORTS, NzDescriptionsModule, ReactiveFormsModule, EditorCategoriaComponent, InasistenciaSearchComponent, PersonalSearchComponent,CommonModule],
+  imports: [SHARED_IMPORTS, NzDescriptionsModule, ReactiveFormsModule, EditorCategoriaComponent, InasistenciaSearchComponent, PersonalSearchComponent, CommonModule],
   templateUrl: './licencia-drawer.component.html',
   styleUrl: './licencia-drawer.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,42 +28,38 @@ export class LicenciaDrawerComponent {
   PersonalLicenciaId = input.required<number>()
   selectedPeriod = input.required<any>()
   private apiService = inject(ApiService)
-  IsEdit = input.required<boolean>()
-  selectedSucursalId = '';
-  $selectedSucursalIdChange = new BehaviorSubject('');
-  $isSucursalDataLoading = new BehaviorSubject(false);
-  $optionsSucursales = this.searchService.getSucursales();
-
+ 
   placement: NzDrawerPlacement = 'left';
   visible = model<boolean>(false)
   tituloDrawer = "Modificación de Licencia"
 
   constructor(
     private searchService: SearchService
-  ) {}
+  ) { }
 
-  cambios =  computed(async() => {
+  cambios = computed(async () => {
     const visible = this.visible()
+    this.ngForm().form.reset()
     if (visible) {
-      let vals = await firstValueFrom(this.apiService.getLicencia(this.selectedPeriod().year, this.selectedPeriod().month, this.PersonalId(), this.PersonalLicenciaId()));
-      // if(vals?.categoria != undefined){
+      const per = this.selectedPeriod()
+      if (this.PersonalLicenciaId()) {
+        let vals = await firstValueFrom(this.apiService.getLicencia(per.year, per.month, this.PersonalId(), this.PersonalLicenciaId()));
         vals.categoria = { id: `${vals.PersonalLicenciaTipoAsociadoId}-${vals.PersonalLicenciaCategoriaPersonalId}` }
         this.ngForm().form.patchValue(vals)
-      //}
+      }
     }
     return true
   })
 
-  async save(IsEdit:boolean) {
+  async save() {
     let vals = this.ngForm().value
-    vals.PersonalLicenciaTipoAsociadoId=vals.categoria.categoriaId
-    vals.PersonalLicenciaCategoriaPersonalId=vals.categoria.tipoId
-    vals.IsEdit=IsEdit
+    vals.PersonalLicenciaTipoAsociadoId = vals.categoria.categoriaId
+    vals.PersonalLicenciaCategoriaPersonalId = vals.categoria.tipoId
     vals.PersonalLicenciaHorasMensuales = this.formatHours(vals.PersonalLicenciaHorasMensuales)
     const res = await firstValueFrom(this.apiService.setLicencia(vals))
   }
 
-  formatHours(hours:any) {
+  formatHours(hours: any) {
 
     if (!hours) return;
 
@@ -82,21 +78,6 @@ export class LicenciaDrawerComponent {
 
   async deletelicencia() {
     let vals = this.ngForm().value
-    vals.PersonalLicenciaTipoAsociadoId=vals.categoria.categoriaId
-    vals.PersonalLicenciaCategoriaPersonalId=vals.categoria.tipoId
     const res = await firstValueFrom(this.apiService.deleteLicencia(vals))
   }
-
-  selectedValueChange(event: any): void {
-    //   this.asistenciaexcepcion.controls['anio'].setValue(2023);
-    //    this.asistenciaexcepcion.controls['mes'].setValue(3);
-
-
-        this.$selectedSucursalIdChange.next(event);
-        this.$isSucursalDataLoading.next(true);
-
-        return; 
-    }
-  }
-
-  
+}

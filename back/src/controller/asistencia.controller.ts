@@ -2417,10 +2417,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           fullName: obj.fullName
         },
         categoria: {
-          fullName: `${obj.CategoriaDescripcion.trim()} ${(obj.ValorLiquidacionHorasTrabajoHoraNormal > 0) ? obj.ValorLiquidacionHorasTrabajoHoraNormal : ''}`,
           id: `${obj.TipoAsociadoId}-${obj.CategoriaId}`,
+          fullName: `${obj.CategoriaDescripcion.trim()} ${(obj.ValorLiquidacionHorasTrabajoHoraNormal > 0) ? obj.ValorLiquidacionHorasTrabajoHoraNormal : ''}`,
           tipoId: obj.TipoAsociadoId,
-          tipoFullName: obj.TipoAsociadoDescripcion,
+          tipoFullName: obj.TipoAsociadoDescripcion.trim(),
           horasRecomendadas: obj.ValorLiquidacionHorasTrabajoHoraNormal,
           categoriaId: obj.CategoriaId
         },
