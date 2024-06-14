@@ -59,6 +59,16 @@ export class ApiService {
     );
   }
 
+  getLicenciasArchivosAnteriores(anio: number, mes: number,PersonalId:number,PersonalLicenciaId:number) {
+    return this.http.get(`/api/carga-licencia/licencia_anteriores/${anio}/${mes}/${PersonalId}/${PersonalLicenciaId}`).pipe(
+      map((res: any) => res.data.list),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getImportacionesTelefoniaAnteriores(anio: number, mes: number) {
     return this.http.get(`/api/telefonia/importaciones_anteriores/${anio}/${mes}`).pipe(
       map((res: any) => res.data.list),

@@ -4,7 +4,7 @@ import { Component, ChangeDetectionStrategy, model, input, computed, inject, vie
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NgForm } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
-import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { EditorCategoriaComponent } from 'src/app/shared/editor-categoria/editor-categoria.component';
@@ -29,7 +29,22 @@ export class LicenciaDrawerComponent {
   PersonalLicenciaId = input.required<number>()
   selectedPeriod = input.required<any>()
   private apiService = inject(ApiService)
- 
+  formChange$ = new BehaviorSubject('');
+  $ArchivosLicencias = this.formChange$.pipe(
+    debounceTime(500),
+    switchMap(() => {
+      const periodo = this.selectedPeriod()
+      return this.apiService
+        .getLicenciasArchivosAnteriores(
+          periodo.year, periodo.month, this.PersonalId(), this.PersonalLicenciaId()
+        )
+        .pipe(
+        //map(data => {return data}),
+        //doOnSubscribe(() => this.tableLoading$.next(true)),
+        //tap({ complete: () => this.tableLoading$.next(false) })
+      )
+    })
+  )
   placement: NzDrawerPlacement = 'left';
   visible = model<boolean>(false)
   tituloDrawer = "Modificación de Licencia"
@@ -38,10 +53,13 @@ export class LicenciaDrawerComponent {
     private searchService: SearchService
   ) { }
 
+
+
   cambios = computed(async () => {
     const visible = this.visible()
     this.ngForm().form.reset()
     if (visible) {
+      console.log(this.selectedPeriod().year)
       const per = this.selectedPeriod()
       if (this.PersonalLicenciaId()) {
         let vals = await firstValueFrom(this.apiService.getLicencia(per.year, per.month, this.PersonalId(), this.PersonalLicenciaId()));

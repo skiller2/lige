@@ -74,6 +74,13 @@ CargaLicenciaCargaRouter.delete("/", authMiddleware.verifyToken, (req, res, next
   cargaLicenciaController.deleteLincencia(req, res, next);
 });
 
+CargaLicenciaCargaRouter.get('/licencia_anteriores/:anio/:mes/:PersonalId/:PersonalLicenciaId', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+  cargaLicenciaController.getLicenciaAnteriores(req.params.anio, req.params.mes, req.params.PersonalId, req.params.PersonalLicenciaId, req, res, next)
+});
+
+CargaLicenciaCargaRouter.post("/downloadLicencia", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], async (req, res, next) => {
+  await cargaLicenciaController.getByDownLicencia(req, res, next);
+});
 
 CargaLicenciaCargaRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) => {
   uploadPdf(req, res, (err) => {

@@ -76,32 +76,50 @@
         </nz-form-control>
       </nz-form-item>
 
-      -Carga de Documentos.
+      <nz-form-item>
+        <nz-form-control>
+          <nz-form-label [nzSpan]="5">Archivos anteriores</nz-form-label>
+          <ng-container *ngFor="let licencia of $ArchivosLicencias | async">
+            <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{licencia.nombre}}>
+              <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
+              <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
+                class="download-color" app-down-file [httpMethod]="'POST'"
+                [httpBody]="{'documentId': licencia.id}" httpUrl="api/carga-licencia/downloadLicencia"></a>
+              <span> {{licencia.id}}-{{licencia.nombre}} </span>
+            </div>
+          </ng-container>
+        </nz-form-control>
+      </nz-form-item>
 
-      <button nz-button nzType="primary" (click)="save()">Guardar</button>
+      
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Archivos</nz-form-label>
+        <nz-form-control>
+          <ng-container>
+            <nz-upload nzAccept="application/pdf" nzAction="/api/carga-licencia/upload" [nzData]="{
+              anio:this.selectedPeriod().year, 
+              mes:this.selectedPeriod().month,
+              personaid: this.PersonalId(),
+              personalcicenciaid: this.PersonalLicenciaId(),
+            }" nzName="pdf" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
+              <button nz-button>
+                <span nz-icon nzType="upload"></span>
+                Subir PDF
+              </button>
+            </nz-upload>
+          </ng-container>
+        </nz-form-control>
+      </nz-form-item>
 
-      <button nz-button nzType="primary" (click)="deletelicencia()" nzDanger>Eliminar</button>
+      <nz-form-item class="btnCenter">
+          <button nz-button nzType="primary" (click)="save()">Guardar</button>
+          <button nz-button nzType="primary" (click)="deletelicencia()" nzDanger>Eliminar</button>
+      </nz-form-item>
+     
 
     </form>
 
-    <nz-form-item>
-      <nz-form-control>
-        <nz-form-label [nzSpan]="5">Archivo liquidaciones</nz-form-label>
-        <ng-container>
-          <nz-upload nzAccept="application/pdf" nzAction="/api/carga-licencia/upload" [nzData]="{
-      tipocuenta:1,
-      movimiento:1,
-      anio:2022, 
-      mes:1
-    }" nzName="pdf" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
-            <button nz-button>
-              <span nz-icon nzType="upload"></span>
-              Subir PDF
-            </button>
-          </nz-upload>
-        </ng-container>
-      </nz-form-control>
-    </nz-form-item>
+    
     <!-- <p>Debug Valores: {{ngForm().value | json }}</p> -->
   </ng-container>
 </nz-drawer>

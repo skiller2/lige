@@ -428,44 +428,52 @@ export class CargaLicenciaController extends BaseController {
     const file = req.file;
     const anioRequest = Number(req.body.anio)
     const mesRequest = Number(req.body.mes)
-    const fechaRequest = new Date(req.body.fecha);
+    const persona_id = Number(req.body.personaid)
+    const PersonalLicenciaId = Number(req.body.personalcicenciaid)
     const queryRunner = dataSource.createQueryRunner();
-
+    
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     let fechaActual = new Date()
 
-
-    console.log("file ", file)
+    console.log("persona_id ", persona_id)
+    console.log("anioRequest ", anioRequest)
+    console.log("mesRequest ", mesRequest)
+    console.log("PersonalLicenciaId ", PersonalLicenciaId)
+    // console.log("file ", file)
     const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
 
-    console.log("estoy en al back para guardar el archivo")
     try {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio");
       if (!mesRequest) throw new ClientException("Faltó indicar el mes");
-      if (!fechaRequest) throw new ClientException("Faltó indicar fecha de aplicación");
-
-      
-      //const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
-
-      // if (getRecibosGenerados[0].ind_recibos_generados == 1)
-      //   throw new ClientException(`Los recibos para este periodo ya se generaron`)
+      if (!persona_id) throw new ClientException("Faltó indicar el persona_id");
+      if (!PersonalLicenciaId) throw new ClientException("Faltó indicar el PersonalLicenciaId");
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
-      //const importeRequest = req.body.monto;
-      //const cuitRequest = req.body.cuit;
 
+      let docgeneral = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
+      const dirtmp = `${process.env.PATH_LICENCIA}/${periodo_id}`;
+      const newFilePath = `${dirtmp}/${docgeneral}-${persona_id}-${PersonalLicenciaId}.pdf`;
 
-      let dataset = []
-      let datasetid = 0
+      this.moveFile(file.filename,periodo_id,anioRequest,mesRequest,newFilePath,dirtmp)
 
+      await this.setLicenciaDocGeneral(
+        queryRunner,
+        docgeneral,
+        periodo_id,
+        fechaActual,
+        persona_id,
+        0,
+        file.filename,
+        newFilePath,
+        usuario,
+        ip,
+        fechaActual,
+        "LIC",
+        PersonalLicenciaId
 
-      // let docgeneral = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
-      // let idTelefonia = await this.getProxNumero(queryRunner, `idtelefonia`, usuario, ip)
-
-      
-      this.moveFile(file.filename,periodo_id,anioRequest,mesRequest)
+      )
         
      
       await queryRunner.commitTransaction();
@@ -481,24 +489,114 @@ export class CargaLicenciaController extends BaseController {
   }
 
 
-  moveFile(filename:any,periodo_id:any,anioRequest:any,mesRequest:any){
+  moveFile(filename:any,periodo_id:any,anioRequest:any,mesRequest:any, newFilePath:any,dirtmp:any){
     const originalFilePath = `${process.env.PATH_LICENCIA}/temp/${filename}`;
-      const dirtmp = `${process.env.PATH_LICENCIA}/${periodo_id}`;
+      
 
       if (!existsSync(dirtmp)) {
         mkdirSync(dirtmp, { recursive: true });
       }
-
-      const newFilePath = `${dirtmp}/${anioRequest}-${mesRequest
-        .toString()
-        .padStart(2, "0")}.pdf`;
-
-
         try {
           renameSync(originalFilePath, newFilePath);
         } catch (error) {
           console.error('Error moviendo el archivo:', error);
         }
+
+  }
+
+  async setLicenciaDocGeneral(
+    queryRunner: any,
+    docgeneral: number,
+    periodo: number,
+    fecha: Date,
+    persona_id: number,
+    objetivo_id: number,
+    nombre_archivo: string,
+    path: string,
+    usuario: string,
+    ip: string,
+    audfecha: Date,
+    doctipo_id: string,
+    den_documento: number
+
+  ) {
+
+    return queryRunner.query(`INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "persona_id", "objetivo_id", "path", "nombre_archivo", "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod", "doctipo_id", "den_documento")
+    VALUES
+    (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14);`,
+      [
+        docgeneral,
+        periodo,
+        fecha,
+        persona_id,
+        objetivo_id,
+        path,
+        nombre_archivo,
+        usuario, ip, fecha,
+        usuario, ip, audfecha,
+        doctipo_id, den_documento
+      ])
+
+  }
+
+  async getLicenciaAnteriores(
+    Anio: string,
+    Mes: string,
+    PersonalId: string,
+    PersonalLicenciaId: string,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+
+    try {
+      const queryRunner = dataSource.createQueryRunner();
+      let usuario = res.locals.userName
+      let ip = this.getRemoteAddress(req)
+      let fechaActual = new Date()
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Number(Anio), Number(Mes), usuario, ip)
+
+      const importacionesAnteriores = await dataSource.query(
+
+        `SELECT doc_id AS id, path, nombre_archivo AS nombre,  FORMAT(aud_fecha_ins, 'yyyy-MM-dd') AS fecha FROM lige.dbo.docgeneral WHERE periodo = @0 AND persona_id = @1 AND den_documento = @2`,
+        [periodo_id,Number(PersonalId),Number(PersonalLicenciaId)])
+
+      this.jsonRes(
+        {
+          total: importacionesAnteriores.length,
+          list: importacionesAnteriores,
+        },
+
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getByDownLicencia(req: any, res: Response, next: NextFunction) {
+    const documentId = Number(req.body.documentId);
+    try {
+
+      const document = await this.getLicenciatInfo(documentId);
+
+      const finalurl = `${document[0]["path"]}`
+      if (!existsSync(finalurl))
+        throw new ClientException(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
+
+      res.download(finalurl, document[0]["name"])
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getLicenciatInfo(documentId: Number) {
+
+
+    return dataSource.query(
+      `SELECT doc_id AS id, path, nombre_archivo AS name FROM lige.dbo.docgeneral WHERE doc_id = @0`, [documentId])
 
   }
 
