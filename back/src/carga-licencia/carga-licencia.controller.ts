@@ -445,7 +445,6 @@ export class CargaLicenciaController extends BaseController {
       if (!mesRequest) throw new ClientException("Faltó indicar el mes");
       if (!fechaRequest) throw new ClientException("Faltó indicar fecha de aplicación");
 
-
       
       //const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
 
@@ -457,7 +456,6 @@ export class CargaLicenciaController extends BaseController {
       //const importeRequest = req.body.monto;
       //const cuitRequest = req.body.cuit;
 
-      //if (!importeRequest) throw new ClientException("Faltó indicar el importe.");
 
       let dataset = []
       let datasetid = 0
@@ -466,17 +464,9 @@ export class CargaLicenciaController extends BaseController {
       // let docgeneral = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
       // let idTelefonia = await this.getProxNumero(queryRunner, `idtelefonia`, usuario, ip)
 
-
-      // if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
-      // const now = fechaRequest
       
       this.moveFile(file.filename,periodo_id,anioRequest,mesRequest)
         
-
-      // const workSheetsFromBuffer = xlsx.parse(readFileSync(file.path))
-      // const sheet1 = workSheetsFromBuffer[0];
-      //      console.log('telefonos', telefonos)
-
      
       await queryRunner.commitTransaction();
 
