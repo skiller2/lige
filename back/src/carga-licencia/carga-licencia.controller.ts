@@ -6,6 +6,7 @@ import { ObjetivoController } from "src/controller/objetivo.controller";
 import { AsistenciaController } from "../controller/asistencia.controller";
 import { mkdirSync, renameSync ,existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
 import { Utils } from "./../liquidaciones/liquidaciones.utils";
+import { IsNull } from "typeorm";
 
 const columnasGrilla: any[] = [
   
@@ -276,7 +277,7 @@ export class CargaLicenciaController extends BaseController {
 
 
     const queryRunner = dataSource.createQueryRunner();
-
+console.log(req.body)
     try {
 
       await queryRunner.connect();
@@ -290,10 +291,20 @@ export class CargaLicenciaController extends BaseController {
       if (!TipoInasistenciaId) 
         throw new ClientException(`Debe seleccionar Tipo de Inasistencia`)
 
+     
+      if(PersonalLicenciaSePaga == "")
+         PersonalLicenciaSePaga=null
+      
+      if(PersonalLicenciaDesde != null){
+        PersonalLicenciaDesde = this.formatDateToCustomFormat(PersonalLicenciaDesde)
+        }else{
+          throw new ClientException(`Debe seleccionar la fecha desde`)
+        }
+        
+      if(PersonalLicenciaHasta != null)
+        PersonalLicenciaHasta = this.formatDateToCustomFormat(PersonalLicenciaHasta)
 
       if (PersonalLicenciaId) {  //UPDATE
-
-        console.log("voy a editar.....")
 
         const result = await queryRunner.query(`UPDATE PersonalLicencia
           SET PersonalLicenciaDesde = @0, PersonalLicenciaHasta = @1, PersonalLicenciaTermina = @1, 
@@ -305,29 +316,57 @@ export class CargaLicenciaController extends BaseController {
 
       }else{  //INSERT
 
-        console.log("voy a agregar uno nuevo.....")
 
-
-        let PersonalLicenciaSelect = await queryRunner.query(` SELECT PersonalLicenciaUltNro from Personal WHERE PersonalId = @0`, [27,]) 
+        let PersonalLicenciaSelect = await queryRunner.query(` SELECT PersonalLicenciaUltNro from Personal WHERE PersonalId = @0`, [PersonalId,]) 
         let {PersonalLicenciaUltNro} = PersonalLicenciaSelect[0]
         PersonalLicenciaUltNro += 1
         await queryRunner.query(` UPDATE Personal SET PersonalLicenciaUltNro = @1 where PersonalId = @0 `, [PersonalId,PersonalLicenciaUltNro]) 
 
-        const result = await queryRunner.query(`INSERT INTO PersonalLicencia (PersonalId, PersonalLicenciaId, PersonalLicenciaHistorica, TipoLicenciaId, PersonalLicenciaContraRenuncia, 
-          PersonalLicenciaDesde, PersonalLicenciaHasta, PersonalLicenciaTermina, PersonalLicenciaDesdeConsejo, PersonalLicenciaHastaConsejo, 
-          PersonalLicenciaTerminaConsejo, PersonalLicenciaObservacion, PersonalLicenciaDiagnosticoMedicoUltNro, PersonalLicenciaLiquidacionUltNro, PersonalTipoInasistenciaId, 
-          PersonalLicenciaSePaga, PersonalLicenciaHorasMensuales, PersonalLicenciaTipoAsociadoId, PersonalLicenciaCategoriaPersonalId, PersonalLicenciaAplicaPeriodoUltNro, 
+        const result = await queryRunner.query(`INSERT INTO PersonalLicencia (
+          PersonalId, 
+          PersonalLicenciaId, 
+          PersonalLicenciaHistorica, 
+          TipoLicenciaId, 
+          PersonalLicenciaContraRenuncia, 
+          PersonalLicenciaDesde, 
+          PersonalLicenciaHasta, 
+          PersonalLicenciaTermina, 
+          PersonalLicenciaDesdeConsejo,
+          PersonalLicenciaHastaConsejo, 
+          PersonalLicenciaTerminaConsejo, 
+          PersonalLicenciaObservacion,
+          PersonalLicenciaDiagnosticoMedicoUltNro, 
+          PersonalLicenciaLiquidacionUltNro,
+          PersonalTipoInasistenciaId, 
+          PersonalLicenciaSePaga, 
+          PersonalLicenciaHorasMensuales, 
+          PersonalLicenciaTipoAsociadoId, 
+          PersonalLicenciaCategoriaPersonalId,
+           PersonalLicenciaAplicaPeriodoUltNro, 
           PersonalLicenciaSituacionRevistaId)
           VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19)`
-          , [PersonalId, PersonalLicenciaUltNro, null, null, 'N',
-            PersonalLicenciaDesde, PersonalLicenciaHasta, PersonalLicenciaHasta, null, null,
-            null, PersonalLicenciaObservacion, null, null, TipoInasistenciaId,
-            PersonalLicenciaSePaga,  PersonalLicenciaHorasMensuales, PersonalLicenciaTipoAsociadoId, PersonalLicenciaCategoriaPersonalId,null]) 
+          , [PersonalId,
+            PersonalLicenciaUltNro,
+            null,
+            null, 
+            'N',
+            PersonalLicenciaDesde, 
+            PersonalLicenciaHasta,
+            PersonalLicenciaHasta,
+            null, 
+            null, 
+            PersonalLicenciaObservacion,
+            null, 
+            null, 
+            TipoInasistenciaId,
+            PersonalLicenciaSePaga, 
+            PersonalLicenciaHorasMensuales, 
+            PersonalLicenciaCategoriaPersonalId,
+            PersonalLicenciaTipoAsociadoId, 
+            null,
+            null]) 
              
       }
-
-      
-
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, (PersonalLicenciaId)? `se Actualizó con exito el registro`:`se Agregó con exito el registro`);
       
@@ -359,13 +398,17 @@ export class CargaLicenciaController extends BaseController {
     } = req.query
     const queryRunner = dataSource.createQueryRunner();
     try {
-       const result = await queryRunner.query(`select * from PersonalLicenciaAplicaPeriodo where PersonalId=@0 and PersonalLicenciaId=@1 `
+       const result = await queryRunner.query(`select * from PersonalLicencia where PersonalId=@0 and PersonalLicenciaId=@1 `
         , [PersonalId,PersonalLicenciaId]) 
 
         console.log(result.length)
         if(result.length > 0) {
-          const result = await queryRunner.query(` DELETE FROM PersonalLicencia WHERE PersonalId = @0 and PersonalLicenciaId =@1`
+           await queryRunner.query(` DELETE FROM PersonalLicencia WHERE PersonalId = @0 and PersonalLicenciaId =@1`
             , [PersonalId,PersonalLicenciaId]) 
+            
+          await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE Persona_id = @0 AND doctipo_id = 'LIC' AND den_documento = @1`
+            ,[PersonalId,PersonalLicenciaId])
+
         }else{
           throw new ClientException(`No se puede eliminar la licencia`)
         }

@@ -21,8 +21,12 @@
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'ges', 'carga_licencias','AltaLicencia']" >Alta de licencia</a>
         </li>
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'carga_licencias','horasLicencia']" >Horas de licencia</a>
+        </li>
       </ul>
-  
+      
       <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
         <nz-tab>
           <a nz-tab-link routerLink="/ges/carga_licencias/AltaLicencia">Alta de licencia</a>
@@ -32,12 +36,13 @@
   
           </ng-template>
         </nz-tab>
-        <!-- <nz-tab>
-          <a nz-tab-link routerLink="/ges/carga_licencias/lista">Lista</a>
+        <nz-tab>
+          <a nz-tab-link routerLink="/ges/carga_licencias/horasLicencia">Horas de licencia</a>
           <ng-template nz-tab>
-
+            
+            test
           </ng-template>
-        </nz-tab> -->
+        </nz-tab>
       
       </nz-tabset>
   </nz-card>

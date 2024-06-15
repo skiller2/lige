@@ -66,7 +66,7 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Horas Mensuales </nz-form-label>
         <nz-form-control>
-          <input nz-input name="PersonalLicenciaHorasMensuales" ngModel />
+          <input nz-input type="number" name="PersonalLicenciaHorasMensuales" ngModel />
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
@@ -75,7 +75,7 @@
           <input nz-input name="PersonalLicenciaObservacion" ngModel />
         </nz-form-control>
       </nz-form-item>
-
+      @if (this.ngForm().value.PersonalLicenciaId>0) {
       <nz-form-item>
         <nz-form-control>
           <nz-form-label [nzSpan]="5">Archivos anteriores</nz-form-label>
@@ -93,14 +93,14 @@
 
       
       <nz-form-item>
-        <nz-form-label [nzSpan]="5">Archivos</nz-form-label>
+        <nz-form-label [nzSpan]="5">Archivos {{this.ngForm().value.PersonalLicenciaId}} </nz-form-label>
         <nz-form-control>
           <ng-container>
             <nz-upload nzAccept="application/pdf" nzAction="/api/carga-licencia/upload" [nzData]="{
               anio:this.selectedPeriod().year, 
               mes:this.selectedPeriod().month,
-              personaid: this.PersonalId(),
-              personalcicenciaid: this.PersonalLicenciaId(),
+              personaid:this.ngForm().value.PersonalId,
+              personalcicenciaid: this.ngForm().value.PersonalLicenciaId,
             }" nzName="pdf" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
               <button nz-button>
                 <span nz-icon nzType="upload"></span>
@@ -110,7 +110,7 @@
           </ng-container>
         </nz-form-control>
       </nz-form-item>
-
+    }
       <nz-form-item class="btnCenter">
           <button nz-button nzType="primary" (click)="save()">Guardar</button>
           <button nz-button nzType="primary" (click)="deletelicencia()" nzDanger>Eliminar</button>
