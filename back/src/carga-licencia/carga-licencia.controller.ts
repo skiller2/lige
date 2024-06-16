@@ -7,6 +7,7 @@ import { AsistenciaController } from "../controller/asistencia.controller";
 import { mkdirSync, renameSync ,existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
 import { Utils } from "./../liquidaciones/liquidaciones.utils";
 import { IsNull } from "typeorm";
+import { QueryRunner } from "typeorm";
 
 const columnasGrilla: any[] = [
   
@@ -223,12 +224,14 @@ const columnasGrilla: any[] = [
   }
 ];
 
+
 export class CargaLicenciaController extends BaseController {
 
 
   async getGridCols(req, res) {
     this.jsonRes(columnasGrilla, res);
   }
+
 
   async list(
     req: any,
@@ -257,6 +260,62 @@ export class CargaLicenciaController extends BaseController {
     }
   }
 
+  async listHoras(
+    req: any,
+    res: Response,
+    next:NextFunction
+  ) {
+   
+    const filterSql = filtrosToSql(req.body[0]["options"].filtros, columnasGrilla);
+    //const orderBy = orderToSQL(req.body.options.sort)
+    const anio = Number( req.body[1])
+    const mes = Number(req.body[2])
+    
+    try {
+      let queryRunner = dataSource.createQueryRunner();
+      const listHorasLicencia = await CargaLicenciaController.getLicenciaHoras(anio,mes,queryRunner,filterSql)
+
+      
+      this.jsonRes(
+        {
+          total: listHorasLicencia.length,
+          list: listHorasLicencia,
+        },
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  static async getLicenciaHoras(anio: number, mes: number, queryRunner: QueryRunner,filterSql:any) {
+    
+
+    let selectquery = `SELECT 
+    ROW_NUMBER() OVER (ORDER BY per.PersonalLicenciaAplicaPeriodoId) AS id, 
+    per.PersonalId as PersonalId, 
+    persona.PersonalApellido as PersonalApellido, 
+    persona.PersonalNombre as PersonalNombre,
+    per.PersonalLicenciaId as PersonalLicenciaId,
+    per.PersonalLicenciaAplicaPeriodoHorasMensuales as PersonalLicenciaAplicaPeriodoHorasMensuales, 
+    per.PersonalLicenciaAplicaPeriodoAplicaEl as PersonalLicenciaAplicaPeriodoAplicaEl,
+    per.PersonalLicenciaAplicaPeriodoSucursalId as PersonalLicenciaAplicaPeriodoSucursalId, 
+    lic.PersonalLicenciaSePaga as PersonalLicenciaSePaga,
+    tli.TipoInasistenciaId as TipoInasistenciaId,
+    tli.TipoInasistenciaDescripcion as TipoInasistenciaDescripcion
+    FROM  PersonalLicenciaAplicaPeriodo AS per
+    JOIN Personal persona ON persona.PersonalId = per.PersonalId
+    LEFT JOIN PersonalLicencia lic ON lic.PersonalId = per.PersonalId AND lic.PersonalLicenciaId = per.PersonalLicenciaId
+    JOIN TipoInasistencia tli ON tli.TipoInasistenciaId = lic.PersonalTipoInasistenciaId
+    WHERE lic.PersonalLicenciaSePaga = 'S' AND PersonalLicenciaAplicaPeriodoAplicaEl LIKE '%${mes}/${anio}%'` 
+    
+    if(filterSql && filterSql.length > 0)
+      selectquery += `AND ${filterSql}`
+
+    return await queryRunner.query(selectquery) 
+  }
+
   async setLicencia(req: Request, res: Response, next: NextFunction) {
     
     let {
@@ -277,7 +336,6 @@ export class CargaLicenciaController extends BaseController {
 
 
     const queryRunner = dataSource.createQueryRunner();
-console.log(req.body)
     try {
 
       await queryRunner.connect();
@@ -310,7 +368,7 @@ console.log(req.body)
           SET PersonalLicenciaDesde = @0, PersonalLicenciaHasta = @1, PersonalLicenciaTermina = @1, 
               PersonalTipoInasistenciaId = @2, PersonalLicenciaSePaga = @3, PersonalLicenciaHorasMensuales = @4,
               PersonalLicenciaObservacion = @5, PersonalLicenciaTipoAsociadoId = @6,PersonalLicenciaCategoriaPersonalId = @7
-          WHERE PersonalId = @8 AND PersonalLicenciaId = @9;`
+          WHERE PersonalId = @8 AND PersonalLicenciaId = @9`
           , [PersonalLicenciaDesde,PersonalLicenciaHasta,TipoInasistenciaId,PersonalLicenciaSePaga,PersonalLicenciaHorasMensuales,
             PersonalLicenciaObservacion,PersonalLicenciaCategoriaPersonalId,PersonalLicenciaTipoAsociadoId,PersonalId,PersonalLicenciaId]) 
 

@@ -40,7 +40,7 @@
           <a nz-tab-link routerLink="/ges/carga_licencias/horasLicencia">Horas de licencia</a>
           <ng-template nz-tab>
             
-            test
+            <app-table-horas-licencia gridId="gridEdit" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-table-horas-licencia>
           </ng-template>
         </nz-tab>
       
