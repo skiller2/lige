@@ -74,7 +74,7 @@ export class LicenciaDrawerComponent {
     let vals = this.ngForm().value
     vals.PersonalLicenciaTipoAsociadoId = vals.categoria.categoriaId
     vals.PersonalLicenciaCategoriaPersonalId = vals.categoria.tipoId
-    vals.PersonalLicenciaHorasMensuales = this.formatHours(vals.PersonalLicenciaHorasMensuales)
+    vals.PersonalLicenciaHorasMensuales = Number(this.formatHours(vals.PersonalLicenciaHorasMensuales))
     const res = await firstValueFrom(this.apiService.setLicencia(vals))
   }
 
@@ -82,6 +82,7 @@ export class LicenciaDrawerComponent {
 
     if (!hours) return;
 
+     hours = hours.toString().replace('.', ',');
     let [integerPart, decimalPart] = hours.split(',');
     decimalPart = decimalPart ? decimalPart.padEnd(2, '0') : '00';
     let minutes = Math.round(parseFloat('0.' + decimalPart) * 60);
@@ -97,7 +98,8 @@ export class LicenciaDrawerComponent {
 
   async deletelicencia() {
     let vals = this.ngForm().value
-    const res = await firstValueFrom(this.apiService.deleteLicencia(vals))
+    let res = await firstValueFrom(this.apiService.deleteLicencia(vals))
+    this.visible.set(false)
   }
 
   uploadChange(event: any) {
@@ -118,7 +120,8 @@ export class LicenciaDrawerComponent {
       case 'success':
         const Response = event.file.response
         this.uploading$.next({ loading: false, event })
-        this.apiService.response(Response)        
+        this.apiService.response(Response)  
+        this.formChange$.next('');      
         break
       default:
         break;
