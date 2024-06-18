@@ -30,6 +30,14 @@ const columnsObjCustodia: any[] = [
         minWidth: 140,
     },
     {
+        id:'requirente' , name:'Solicitado por' , field:'requirente',
+        fieldName: "obj.desc_requirente",
+        sortable: true,
+        type: 'string',
+        // maxWidth: 150,
+        minWidth: 120,
+    },
+    {
         id:'descripcion' , name:'Descripcion' , field:'descripcion',
         fieldName: "obj.descripcion",
         sortable: true,
@@ -132,6 +140,7 @@ const estados : any[] = [
     { tipo: 0, descripcion: 'Pendiente' },
     { tipo: 1, descripcion: 'Finalizado' },
     { tipo: 2, descripcion: 'Cancelado' },
+    { tipo: 3, descripcion: 'A facturar' },
 ]
 
 export class CustodiaController extends BaseController {
@@ -225,8 +234,8 @@ export class CustodiaController extends BaseController {
 
     async listObjetivoCustodiaByResponsableQuery(queryRunner:any, responsableId:number, filterSql:any, orderBy:any){
         return await queryRunner.query(`
-        SELECT obj.objetivo_custodia_id id, obj.responsable_id responsableId, 
-        obj.cliente_id clienteId, obj.descripcion, obj.fecha_inicio, 
+        SELECT DISTINCT obj.objetivo_custodia_id id, obj.responsable_id responsableId, 
+        obj.cliente_id clienteId, obj.desc_requirente, obj.descripcion, obj.fecha_inicio, 
         obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente
         FROM lige.dbo.objetivocustodia obj
         INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
@@ -353,13 +362,19 @@ export class CustodiaController extends BaseController {
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            // const responsableId = 1
+            // const responsableId = 699
             const responsableId = res.locals.PersonalId
             if (!responsableId) 
                 throw new ClientException(`No se a encontrado al personal responsable`)
+
+            const valCustodiaForm = this.valCustodiaForm(req.body)
+            if (valCustodiaForm instanceof ClientException)
+                throw valCustodiaForm
+
             const objetivoCustodiaId = await this.getProxNumero(queryRunner, `objetivocustodia`, usuario, ip)
 
             const objetivoCustodia = {...req.body, responsableId, objetivoCustodiaId}
+            
             await this.addObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
             let cantPersonal = 0
@@ -418,7 +433,7 @@ export class CustodiaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try{
             await queryRunner.startTransaction()
-            // const responsableId = 1
+            // const responsableId = 699
             const responsableId = res.locals.PersonalId
             const options: Options = isOptions(req.body.options)? req.body.options : { filtros: [], sort: null };
             
@@ -432,6 +447,7 @@ export class CustodiaController extends BaseController {
                     id: obj.id,
                     responsable:{ id: responsableId},
                     cliente:{ id: obj.clienteId, fullName: obj.cliente},
+                    requirente: obj.desc_requirente,
                     descripcion: obj.descripcion,
                     fechaI: obj.fecha_inicio.toISOString().slice(0, 19).replace('T', ' '),
                     origen: obj.origen,
@@ -440,6 +456,7 @@ export class CustodiaController extends BaseController {
                     estado: estados[obj.estado]
                 }
             })
+            console.log('list', list);
             await queryRunner.commitTransaction()
             return this.jsonRes(list, res)
         }catch (error) {
@@ -506,11 +523,11 @@ export class CustodiaController extends BaseController {
             await queryRunner.startTransaction()
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            // const responsableId = 1
+            // const responsableId = 699
             const responsableId = res.locals.PersonalId
             const custodiaId = req.params.id
             const objetivoCustodia = {...req.body }
-            let errores = []
+            
             if (!responsableId) 
                 throw new ClientException(`No se a encontrado al personal responsable`)
             let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, custodiaId)
@@ -519,17 +536,9 @@ export class CustodiaController extends BaseController {
             if (responsableId != infoCustodia.responsableId) {
                 throw new ClientException(`No eres el responsable de la custodia`)
             }
-            
-            if (!objetivoCustodia.clienteId || !objetivoCustodia.fechaInicio || !objetivoCustodia.origen){
-                throw new ClientException(`Los campos de Cliente, Fecha Inicial y Origen NO pueden estar vacios`)
-            }
-            //En caso de FINALIZAR custodia verificar los campos
-            // if(objetivoCustodia.estado == 1 && ( !objetivoCustodia.fechaFinal || !objetivoCustodia.destino)){
-            //     errores.push(`Los campos de Destino y Fecha Final NO pueden estar vacios`)
-            // }
-            if(objetivoCustodia.estado == 1 && (!objetivoCustodia.facturacion || !objetivoCustodia.fechaFinal || !objetivoCustodia.destino)){
-                errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios`)
-            }
+            const valCustodiaForm = this.valCustodiaForm(objetivoCustodia)
+            if (valCustodiaForm instanceof ClientException)
+                throw valCustodiaForm
             
             let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, custodiaId)
             let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
@@ -541,10 +550,11 @@ export class CustodiaController extends BaseController {
             let cantCambios = 0
             let personalError = 0
             let vehiculoError = 0
+            let errores = []
             
             for (const key in objetivoCustodia) {
                 //Verifico si hubo cambios
-                if (infoCustodia[key] != objetivoCustodia[key]){
+                if ( infoCustodia[key] !== undefined && (infoCustodia[key] != objetivoCustodia[key])){
                     cantCambios++
                 }
                 //Si hubo un cambio ACTUALIZA regpersonalcustodia 
@@ -662,6 +672,30 @@ export class CustodiaController extends BaseController {
 
     async getEstados(req: any, res: Response, next: NextFunction) {
         return this.jsonRes(estados, res)
+    }
+
+    valCustodiaForm(custodiaForm: any){
+        let errores : any[] = []
+        if (!custodiaForm.clienteId || !custodiaForm.fechaInicio || !custodiaForm.origen){
+            errores.push(`Los campos de Cliente, Fecha Inicial y Origen NO pueden estar vacios`)
+        }
+        if ((!custodiaForm.cantModulos && custodiaForm.importeModulos) || (custodiaForm.cantModulos && !custodiaForm.importeModulos)) {
+            errores.push(`Los campos pares Cant. e Importe de Modulos deben de llenarse al mismo tiempo`)
+        }
+        if ((!custodiaForm.cantHorasExced && custodiaForm.impoHorasExced) || (custodiaForm.cantHorasExced && !custodiaForm.impoHorasExced)) {
+            errores.push(`Los campos pares Cant. e Importe de Horas Excedentes deben de llenarse al mismo tiempo`)
+        }
+        if ((!custodiaForm.cantKmExced && custodiaForm.impoKmExced) || (custodiaForm.cantKmExced && !custodiaForm.impoKmExced)) {
+            errores.push(`Los campos pares Cant. e Importe de Km Excedentes deben de llenarse al mismo tiempo`)
+        }
+        //En caso de FINALIZAR custodia verificar los campos
+        if(custodiaForm.estado == 1 && (!custodiaForm.facturacion || !custodiaForm.fechaFinal || !custodiaForm.destino)){
+            errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios`)
+        }
+
+        if (errores.length) {
+            return new ClientException(errores.join(`\n`))
+        }
     }
     
 }
