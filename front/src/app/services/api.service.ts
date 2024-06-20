@@ -492,6 +492,18 @@ export class ApiService {
 
   }
 
+  setchangehours(gridDataInsert: any) {
+    const parameter = [ gridDataInsert]
+    this.notification.success('Respuesta', `Inicio Modificación `);
+
+    return this.http.post<ResponseJSON<any>>('/api/carga-licencia/changehours', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  
+
+  }
+
   getTipoDocumentos(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/tipo-documento/list', parameter).pipe(
@@ -546,6 +558,8 @@ export class ApiService {
     )
 
   }
+
+  
 
   setmovimientosAutomaticos(anio: number, mes: number) {
     const parameter = { anio, mes }

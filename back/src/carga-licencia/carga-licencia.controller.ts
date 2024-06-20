@@ -8,6 +8,8 @@ import { mkdirSync, renameSync ,existsSync, readFileSync, unlinkSync, copyFileSy
 import { Utils } from "./../liquidaciones/liquidaciones.utils";
 import { IsNull } from "typeorm";
 import { QueryRunner } from "typeorm";
+import * as fs from 'fs';
+import * as path from 'path';
 
 const columnasGrilla: any[] = [
   
@@ -303,7 +305,8 @@ export class CargaLicenciaController extends BaseController {
     per.PersonalLicenciaAplicaPeriodoSucursalId as PersonalLicenciaAplicaPeriodoSucursalId, 
     lic.PersonalLicenciaSePaga as PersonalLicenciaSePaga,
     tli.TipoInasistenciaId as TipoInasistenciaId,
-    tli.TipoInasistenciaDescripcion as TipoInasistenciaDescripcion
+    tli.TipoInasistenciaDescripcion as TipoInasistenciaDescripcion,
+    per.PersonalLicenciaAplicaPeriodoId as PersonalLicenciaAplicaPeriodoId
     FROM  PersonalLicenciaAplicaPeriodo AS per
     JOIN Personal persona ON persona.PersonalId = per.PersonalId
     LEFT JOIN PersonalLicencia lic ON lic.PersonalId = per.PersonalId AND lic.PersonalLicenciaId = per.PersonalLicenciaId
@@ -331,10 +334,14 @@ export class CargaLicenciaController extends BaseController {
       PersonalLicenciaObservacion,
       PersonalLicenciaTipoAsociadoId,
       PersonalLicenciaCategoriaPersonalId,
-      IsEdit
+      IsEdit,
+      anioRequest,
+      mesRequest
+     
     } = req.body
 
-
+    PersonalLicenciaHorasMensuales = Number(this.formatHours(PersonalLicenciaHorasMensuales))
+    console.log(req.body)
     const queryRunner = dataSource.createQueryRunner();
     try {
 
@@ -425,6 +432,9 @@ export class CargaLicenciaController extends BaseController {
             null]) 
              
       }
+
+     this.handlePDFUpload(anioRequest,mesRequest,PersonalId,PersonalLicenciaId,res,req)
+
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, (PersonalLicenciaId)? `se Actualizó con exito el registro`:`se Agregó con exito el registro`);
       
@@ -518,71 +528,102 @@ export class CargaLicenciaController extends BaseController {
       WHERE lic.PersonalId=@3 AND lic.PersonalLicenciaId=@4 ` 
       
       const result = await queryRunner.query(selectquery, [,anio,mes,PersonalId,PersonalLicenciaId]) 
+
+
+      const dirtmp = `${process.env.PATH_LICENCIA}/temp/${anio}-${mes}-${PersonalId}`;
+       await this.deleteFolderRecursive(dirtmp)
+
       this.jsonRes(result[0], res);
     } catch (error) {
       return next(error)
     }
   }
-  directory = process.env.PATH_LIQUIDACIONES || "tmp";
 
-  async handlePDFUpload(req: Request, res: Response, next: NextFunction) {
+  async deleteFolderRecursive(directoryPath) {
+    if (fs.existsSync(directoryPath)) {
+      fs.readdirSync(directoryPath).forEach((file, index) => {
+        const curPath = path.join(directoryPath, file);
+        if (fs.lstatSync(curPath).isDirectory()) { 
+          this.deleteFolderRecursive(curPath);
+        } else { // Delete file
+          fs.unlinkSync(curPath);
+        }
+      });
+      fs.rmdirSync(directoryPath);
+    } else {
+      console.log(`Directorio ${directoryPath} no existe`);
+    }
+  }
+
+  //directory = process.env.PATH_LIQUIDACIONES || "tmp";
+
+  async handlePDFUpload(
+    anioRequest:number, 
+    mesRequest:number, 
+    persona_id:number,
+    PersonalLicenciaId:number,
+    res:Response,
+    req:Request) {
+   
     const file = req.file;
-    const anioRequest = Number(req.body.anio)
-    const mesRequest = Number(req.body.mes)
-    const persona_id = Number(req.body.personaid)
-    const PersonalLicenciaId = Number(req.body.personalcicenciaid)
+    
     const queryRunner = dataSource.createQueryRunner();
     
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     let fechaActual = new Date()
 
-    console.log("persona_id ", persona_id)
-    console.log("anioRequest ", anioRequest)
-    console.log("mesRequest ", mesRequest)
-    console.log("PersonalLicenciaId ", PersonalLicenciaId)
-    // console.log("file ", file)
     const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
 
     try {
-      if (!anioRequest) throw new ClientException("Faltó indicar el anio");
-      if (!mesRequest) throw new ClientException("Faltó indicar el mes");
-      if (!persona_id) throw new ClientException("Faltó indicar el persona_id");
-      if (!PersonalLicenciaId) throw new ClientException("Faltó indicar el PersonalLicenciaId");
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
+      const dirtmp = `${process.env.PATH_LICENCIA}/temp/${anioRequest}-${mesRequest}-${persona_id}-${PersonalLicenciaId}`;
+      
+      fs.readdir(dirtmp, (err, files) => {
+        if (err) {
+          return console.error(`Error al leer el directorio: ${err}`);
+        }
 
-      let docgeneral = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
-      const dirtmp = `${process.env.PATH_LICENCIA}/${periodo_id}`;
-      const newFilePath = `${dirtmp}/${docgeneral}-${persona_id}-${PersonalLicenciaId}.pdf`;
+        files.forEach(file => {
 
-      this.moveFile(file.filename,periodo_id,anioRequest,mesRequest,newFilePath,dirtmp)
+          console.log(`Found file: ${file}`);
 
-      await this.setLicenciaDocGeneral(
-        queryRunner,
-        docgeneral,
-        periodo_id,
-        fechaActual,
-        persona_id,
-        0,
-        file.filename,
-        newFilePath,
-        usuario,
-        ip,
-        fechaActual,
-        "LIC",
-        PersonalLicenciaId
+          let docgeneral =  this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
+          
+          const newFilePath = `${dirtmp}/${docgeneral}-${persona_id}.pdf`;
 
-      )
+          this.moveFile(file,periodo_id,anioRequest,mesRequest,newFilePath,dirtmp)
+
+           this.setLicenciaDocGeneral(
+            queryRunner,
+            Number(docgeneral),
+            periodo_id,
+            fechaActual,
+            persona_id,
+            0,
+            file,
+            newFilePath,
+            usuario,
+            ip,
+            fechaActual,
+            "LIC",
+            PersonalLicenciaId
+
+           )
+        });
+      });
+
+      
         
-     
-      await queryRunner.commitTransaction();
+      
+      // await queryRunner.commitTransaction();
 
       this.jsonRes({}, res, "PDF guardado con exito!");
     } catch (error) {
       this.rollbackTransaction(queryRunner)
-      return next(error)
+      //return next(error)
     } finally {
       await queryRunner.release();
       //unlinkSync(file.path);
@@ -699,6 +740,50 @@ export class CargaLicenciaController extends BaseController {
     return dataSource.query(
       `SELECT doc_id AS id, path, nombre_archivo AS name FROM lige.dbo.docgeneral WHERE doc_id = @0`, [documentId])
 
+  }
+
+  async changehours(req: any, res: Response, next: NextFunction) {
+    
+    const queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    let horas =  Number(this.formatHours(req.body.PersonalLicenciaAplicaPeriodoHorasMensuales));
+    let PersonalId = req.body.PersonalId;
+    let PersonalLicenciaAplicaPeriodoId = req.body.PersonalLicenciaAplicaPeriodoId
+
+    const result = await queryRunner.query(`UPDATE PersonalLicenciaAplicaPeriodo
+    SET PersonalLicenciaAplicaPeriodoHorasMensuales = @0
+    WHERE PersonalId = 30  AND PersonalLicenciaId = @1 AND PersonalLicenciaAplicaPeriodoId = @2`,
+    [horas,PersonalId,PersonalLicenciaAplicaPeriodoId]);
+
+    await queryRunner.commitTransaction();
+    console.log(req.body)
+    this.jsonRes({}, res, "Modificación con exito!");
+    try {
+      return next(`Se procesaron cambios `)
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      //return next(error)
+    return next(`Se procesaron cambios `)
+    } 
+  }
+
+  formatHours(hours: any) {
+
+    if (!hours) return;
+
+     hours = hours.toString().replace('.', ',');
+    let [integerPart, decimalPart] = hours.split(',');
+    decimalPart = decimalPart ? decimalPart.padEnd(2, '0') : '00';
+    let minutes = Math.round(parseFloat('0.' + decimalPart) * 60);
+
+    if (minutes >= 60) {
+      integerPart = (parseInt(integerPart) + 1).toString();
+      minutes -= 60;
+    }
+    decimalPart = minutes.toString().padStart(2, '0');
+
+    return hours = `${integerPart}.${decimalPart}`;
   }
 
 }

@@ -71,30 +71,33 @@ export class LicenciaDrawerComponent {
   })
 
   async save() {
+    const periodo = this.selectedPeriod()
     let vals = this.ngForm().value
     vals.PersonalLicenciaTipoAsociadoId = vals.categoria.categoriaId
     vals.PersonalLicenciaCategoriaPersonalId = vals.categoria.tipoId
-    vals.PersonalLicenciaHorasMensuales = Number(this.formatHours(vals.PersonalLicenciaHorasMensuales))
+    vals.anioRequest = periodo.year
+    vals.mesRequest = periodo.month
+    //vals.PersonalLicenciaHorasMensuales = Number(this.formatHours(vals.PersonalLicenciaHorasMensuales))
     const res = await firstValueFrom(this.apiService.setLicencia(vals))
   }
 
-  formatHours(hours: any) {
+  // formatHours(hours: any) {
 
-    if (!hours) return;
+  //   if (!hours) return;
 
-     hours = hours.toString().replace('.', ',');
-    let [integerPart, decimalPart] = hours.split(',');
-    decimalPart = decimalPart ? decimalPart.padEnd(2, '0') : '00';
-    let minutes = Math.round(parseFloat('0.' + decimalPart) * 60);
+  //    hours = hours.toString().replace('.', ',');
+  //   let [integerPart, decimalPart] = hours.split(',');
+  //   decimalPart = decimalPart ? decimalPart.padEnd(2, '0') : '00';
+  //   let minutes = Math.round(parseFloat('0.' + decimalPart) * 60);
 
-    if (minutes >= 60) {
-      integerPart = (parseInt(integerPart) + 1).toString();
-      minutes -= 60;
-    }
-    decimalPart = minutes.toString().padStart(2, '0');
+  //   if (minutes >= 60) {
+  //     integerPart = (parseInt(integerPart) + 1).toString();
+  //     minutes -= 60;
+  //   }
+  //   decimalPart = minutes.toString().padStart(2, '0');
 
-    return hours = `${integerPart}.${decimalPart}`;
-  }
+  //   return hours = `${integerPart}.${decimalPart}`;
+  // }
 
   async deletelicencia() {
     let vals = this.ngForm().value

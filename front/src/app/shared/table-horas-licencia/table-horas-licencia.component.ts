@@ -62,13 +62,6 @@ export class TableHorasLicenciaComponent {
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
   
-  
-
-  // columns$ = this.apiService.getCols('/api/carga-licencia/colshoras').pipe(map((cols) => {
-    
-  //   //cols[8].asyncPostRender = this.renderAngularComponent.bind(this)
-  //   return cols
-  // }));
   columnDefinitions: Column[] = [];
   columnas: Column[] = [];
 
@@ -228,7 +221,7 @@ export class TableHorasLicenciaComponent {
     },
     {
       name: "Tipo Inasistencia",
-      type: FieldType.string,
+      type: "string",
       id: "TipoInasistenciaDescripcion",
       field: "TipoInasistenciaDescripcion",
       params: {
@@ -236,13 +229,23 @@ export class TableHorasLicenciaComponent {
       },
       hidden: false,
     },
+    {
+      name: "PersonalLicenciaAplicaPeriodo",
+      type: "number",
+      id: "PersonalLicenciaAplicaPeriodo",
+      field: "PersonalLicenciaAplicaPeriodo",
+      params: {
+        complexFieldLabel: 'PersonalLicenciaAplicaPeriodo',
+      },
+      hidden: true,
+    },
    
   ];
     
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsEdit.enableRowDetailView = this.apiService.isMobile()
-    // this.gridOptionsEdit.showFooterRow = true
-    // this.gridOptionsEdit.createFooterRow = true
+    this.gridOptionsEdit.showFooterRow = true
+    this.gridOptionsEdit.createFooterRow = true
  
   }
 
@@ -251,18 +254,10 @@ export class TableHorasLicenciaComponent {
 
   onHoursChange(e: Event, args: any) {
     const item = args.dataContext
-    console.log("voy a editar",item )
-    // const keysDays = Object.keys(item).filter(key => key.startsWith("day"))
-    // const total = keysDays.reduce((acc, key) => {
-    //     const value = parseFloat(item[key]);
-    //     return isNaN(value) ? acc : acc + value;
-    // }, 0);
 
-    // const idItemGrid = args.dataContext.id
-    // const updateItem = {
-    //     ...args.dataContext,
-    //     total: total
-    // }
+    this.apiService.setchangehours({ item: item }).subscribe(evt => {
+      this.formChange$.next('')
+    });
    
   }
 
@@ -278,21 +273,6 @@ export class TableHorasLicenciaComponent {
 
   ngOnDestroy() {
   }
-  
-
-  // angularGridReadyEdit(angularGrid: any) {
-    
-  //   this.angularGridEdit = angularGrid.detail
-  //   this.gridObjEdit = angularGrid.detail.slickGrid;
-
-   
-  //     this.angularGridEdit.gridService.hideColumnByIds(['PeriodoSucursalId'])
-
-  //   this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
-  //     totalRecords(this.angularGridEdit)
-  //   }) 
-    
-  // }
 
   async angularGridReadyEdit(angularGrid: any) {
 

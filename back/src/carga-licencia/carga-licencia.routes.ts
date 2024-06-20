@@ -1,4 +1,4 @@
-import { Request, Router } from "express"
+import { Request, Router, request, response } from "express"
 import { authMiddleware } from "../middlewares/middleware.module";
 import { cargaLicenciaController } from "../controller/controller.module";
 import multer, { FileFilterCallback } from "multer";
@@ -21,9 +21,8 @@ const storage = multer.diskStorage({
       file: Express.Multer.File,
       callback: DestinationCallback
     ) => {
-      return callback(null, dirtmp);
+      return callback(null, `${dirtmp}/${req.body.anio}-${req.body.mes}-${req.body.PersonalId}`);
     },
-  
     filename: (
       req: Request,
       file: Express.Multer.File,
@@ -40,10 +39,18 @@ const storage = multer.diskStorage({
     file: Express.Multer.File,
     callback: FileFilterCallback
   ): void => {
+
     if (file.mimetype !== "application/pdf") {
       callback(new ClientException("El archivo no es del tipo PDF."));
       return;
     }
+  
+    const dirtmpUrl = `${process.env.PATH_LICENCIA}/temp/${request.body.anio}-${request.body.mes}-${request.body.PersonalId}`;
+    
+    if (!existsSync(dirtmpUrl)) {
+      mkdirSync(dirtmpUrl, { recursive: true });
+    }
+
     callback(null, true);
   };
   
@@ -75,6 +82,10 @@ CargaLicenciaCargaRouter.post("/", authMiddleware.verifyToken, (req, res, next) 
   cargaLicenciaController.setLicencia(req, res, next);
 });
 
+CargaLicenciaCargaRouter.post('/changehours', authMiddleware.verifyToken, (req, res, next) => {
+  cargaLicenciaController.changehours(req, res, next);
+})
+
 CargaLicenciaCargaRouter.delete("/", authMiddleware.verifyToken, (req, res, next) => {
   cargaLicenciaController.deleteLincencia(req, res, next);
 });
@@ -87,11 +98,12 @@ CargaLicenciaCargaRouter.post("/downloadLicencia", [authMiddleware.verifyToken, 
   await cargaLicenciaController.getByDownLicencia(req, res, next);
 });
 
+
 CargaLicenciaCargaRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) => {
+  
   uploadPdf(req, res, (err) => {
 
     
-  
     // FILE SIZE ERROR
     if (err instanceof multer.MulterError) {
       return res.status(409).json({
@@ -100,23 +112,21 @@ CargaLicenciaCargaRouter.post("/upload", authMiddleware.verifyToken, (req, res, 
         stamp: new Date(),
       });
     }
-
+  
     else if (err) {
       return res
         .status(409)
         .json({ msg: err.message, data: [], stamp: new Date() });
     }
-
+  
     else if (!req.file) {
       return res
         .status(409)
         .json({ msg: "File is required!", data: [], stamp: new Date() });
     }
-
-    else {
-      cargaLicenciaController.handlePDFUpload(req, res, next);
-    }
   });
 });
+
+
 
 
