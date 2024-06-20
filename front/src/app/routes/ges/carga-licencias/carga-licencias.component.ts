@@ -30,6 +30,7 @@ export class CargaLicenciasComponent {
   angularGridEdit!: AngularGridInstance;
   PersonalId = 0
   PersonalLicenciaId = 0
+  tituloDrawer = ""
 
   selectedPeriod = computed(() => {
     const per = this.periodo()
@@ -66,8 +67,11 @@ export class CargaLicenciasComponent {
   openDrawerforNew(): void {
     this.PersonalLicenciaId = 0
     this.visibleDrawer = true
-
+    this.tituloDrawer = "Nueva Licencia"
   }
-
-
+  openDrawerforEdit(): void {
+    this.visibleDrawer = true
+    this.tituloDrawer = "Editar Licencia"
+  }
+  
 }

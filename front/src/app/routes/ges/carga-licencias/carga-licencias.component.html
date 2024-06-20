@@ -9,7 +9,7 @@
 
       <nz-form-control style="text-align: right;">
         <nz-button-group>
-            <button nz-button nzType="default" (click)="visibleDrawer=true" [disabled]="!(PersonalLicenciaId>0)" ><span nz-icon nzType="user"
+            <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalLicenciaId>0)" ><span nz-icon nzType="user"
                     nzTheme="outline" ></span></button>
             <button nz-button nzType="default" (click)="openDrawerforNew()"><span nz-icon nzType="plus"
                     nzTheme="outline"></span></button>
@@ -46,5 +46,5 @@
       
       </nz-tabset>
   </nz-card>
-<app-licencia-drawer [selectedPeriod]="selectedPeriod()" [(visible)]="visibleDrawer" [PersonalId]="PersonalId" [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
+<app-licencia-drawer [selectedPeriod]="selectedPeriod()" [tituloDrawer] = "tituloDrawer" [(visible)]="visibleDrawer" [PersonalId]="PersonalId" [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
   

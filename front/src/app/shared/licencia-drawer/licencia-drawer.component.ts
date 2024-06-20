@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NgForm } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -28,6 +28,8 @@ export class LicenciaDrawerComponent {
   PersonalId = input.required<number>()
   PersonalLicenciaId = input.required<number>()
   selectedPeriod = input.required<any>()
+  ArchivosLicenciasAdd: any[] = [];
+  tituloDrawer = input.required<string>()
   private apiService = inject(ApiService)
   formChange$ = new BehaviorSubject('');
   $ArchivosLicencias = this.formChange$.pipe(
@@ -47,7 +49,7 @@ export class LicenciaDrawerComponent {
   )
   placement: NzDrawerPlacement = 'left';
   visible = model<boolean>(false)
-  tituloDrawer = "Modificación de Licencia"
+  
   uploading$ = new BehaviorSubject({loading:false,event:null});
   constructor(
     private searchService: SearchService
@@ -108,6 +110,9 @@ export class LicenciaDrawerComponent {
   uploadChange(event: any) {
     switch (event.type) {
       case 'start':
+       
+        this.ArchivosLicenciasAdd =[ ...this.ArchivosLicenciasAdd, event.file]
+        console.log(this.ArchivosLicenciasAdd)
         this.uploading$.next({ loading: true, event })
     
         break;
