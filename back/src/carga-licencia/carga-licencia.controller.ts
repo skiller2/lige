@@ -4,6 +4,12 @@ import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-u
 import { NextFunction, Request, Response } from "express";
 import { ObjetivoController } from "src/controller/objetivo.controller";
 import { AsistenciaController } from "../controller/asistencia.controller";
+import { mkdirSync, renameSync ,existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
+import { Utils } from "./../liquidaciones/liquidaciones.utils";
+import { IsNull } from "typeorm";
+import { QueryRunner } from "typeorm";
+import * as fs from 'fs';
+import * as path from 'path';
 
 const columnasGrilla: any[] = [
   
@@ -220,12 +226,14 @@ const columnasGrilla: any[] = [
   }
 ];
 
+
 export class CargaLicenciaController extends BaseController {
 
 
   async getGridCols(req, res) {
     this.jsonRes(columnasGrilla, res);
   }
+
 
   async list(
     req: any,
@@ -254,6 +262,63 @@ export class CargaLicenciaController extends BaseController {
     }
   }
 
+  async listHoras(
+    req: any,
+    res: Response,
+    next:NextFunction
+  ) {
+   
+    const filterSql = filtrosToSql(req.body[0]["options"].filtros, columnasGrilla);
+    //const orderBy = orderToSQL(req.body.options.sort)
+    const anio = Number( req.body[1])
+    const mes = Number(req.body[2])
+    
+    try {
+      let queryRunner = dataSource.createQueryRunner();
+      const listHorasLicencia = await CargaLicenciaController.getLicenciaHoras(anio,mes,queryRunner,filterSql)
+
+      
+      this.jsonRes(
+        {
+          total: listHorasLicencia.length,
+          list: listHorasLicencia,
+        },
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  static async getLicenciaHoras(anio: number, mes: number, queryRunner: QueryRunner,filterSql:any) {
+    
+
+    let selectquery = `SELECT 
+    ROW_NUMBER() OVER (ORDER BY per.PersonalLicenciaAplicaPeriodoId) AS id, 
+    per.PersonalId as PersonalId, 
+    persona.PersonalApellido as PersonalApellido, 
+    persona.PersonalNombre as PersonalNombre,
+    per.PersonalLicenciaId as PersonalLicenciaId,
+    per.PersonalLicenciaAplicaPeriodoHorasMensuales as PersonalLicenciaAplicaPeriodoHorasMensuales, 
+    per.PersonalLicenciaAplicaPeriodoAplicaEl as PersonalLicenciaAplicaPeriodoAplicaEl,
+    per.PersonalLicenciaAplicaPeriodoSucursalId as PersonalLicenciaAplicaPeriodoSucursalId, 
+    lic.PersonalLicenciaSePaga as PersonalLicenciaSePaga,
+    tli.TipoInasistenciaId as TipoInasistenciaId,
+    tli.TipoInasistenciaDescripcion as TipoInasistenciaDescripcion,
+    per.PersonalLicenciaAplicaPeriodoId as PersonalLicenciaAplicaPeriodoId
+    FROM  PersonalLicenciaAplicaPeriodo AS per
+    JOIN Personal persona ON persona.PersonalId = per.PersonalId
+    LEFT JOIN PersonalLicencia lic ON lic.PersonalId = per.PersonalId AND lic.PersonalLicenciaId = per.PersonalLicenciaId
+    JOIN TipoInasistencia tli ON tli.TipoInasistenciaId = lic.PersonalTipoInasistenciaId
+    WHERE lic.PersonalLicenciaSePaga = 'S' AND PersonalLicenciaAplicaPeriodoAplicaEl LIKE '%${mes}/${anio}%'` 
+    
+    if(filterSql && filterSql.length > 0)
+      selectquery += `AND ${filterSql}`
+
+    return await queryRunner.query(selectquery) 
+  }
+
   async setLicencia(req: Request, res: Response, next: NextFunction) {
     
     let {
@@ -269,12 +334,15 @@ export class CargaLicenciaController extends BaseController {
       PersonalLicenciaObservacion,
       PersonalLicenciaTipoAsociadoId,
       PersonalLicenciaCategoriaPersonalId,
-      IsEdit
+      IsEdit,
+      anioRequest,
+      mesRequest
+     
     } = req.body
 
-
+    PersonalLicenciaHorasMensuales = Number(this.formatHours(PersonalLicenciaHorasMensuales))
+    console.log(req.body)
     const queryRunner = dataSource.createQueryRunner();
-
     try {
 
       await queryRunner.connect();
@@ -288,43 +356,84 @@ export class CargaLicenciaController extends BaseController {
       if (!TipoInasistenciaId) 
         throw new ClientException(`Debe seleccionar Tipo de Inasistencia`)
 
+     
+      if(PersonalLicenciaSePaga == "")
+         PersonalLicenciaSePaga=null
+      
+      if(PersonalLicenciaDesde != null){
+        PersonalLicenciaDesde = this.formatDateToCustomFormat(PersonalLicenciaDesde)
+        }else{
+          throw new ClientException(`Debe seleccionar la fecha desde`)
+        }
+        
+      if(PersonalLicenciaHasta != null)
+        PersonalLicenciaHasta = this.formatDateToCustomFormat(PersonalLicenciaHasta)
 
       if (PersonalLicenciaId) {  //UPDATE
-
-        console.log("voy a editar.....")
 
         const result = await queryRunner.query(`UPDATE PersonalLicencia
           SET PersonalLicenciaDesde = @0, PersonalLicenciaHasta = @1, PersonalLicenciaTermina = @1, 
               PersonalTipoInasistenciaId = @2, PersonalLicenciaSePaga = @3, PersonalLicenciaHorasMensuales = @4,
               PersonalLicenciaObservacion = @5, PersonalLicenciaTipoAsociadoId = @6,PersonalLicenciaCategoriaPersonalId = @7
-          WHERE PersonalId = @8 AND PersonalLicenciaId = @9;`
+          WHERE PersonalId = @8 AND PersonalLicenciaId = @9`
           , [PersonalLicenciaDesde,PersonalLicenciaHasta,TipoInasistenciaId,PersonalLicenciaSePaga,PersonalLicenciaHorasMensuales,
             PersonalLicenciaObservacion,PersonalLicenciaCategoriaPersonalId,PersonalLicenciaTipoAsociadoId,PersonalId,PersonalLicenciaId]) 
 
       }else{  //INSERT
 
-        console.log("voy a agregar uno nuevo.....")
 
-
-        let PersonalLicenciaSelect = await queryRunner.query(` SELECT PersonalLicenciaUltNro from Personal WHERE PersonalId = @0`, [27,]) 
+        let PersonalLicenciaSelect = await queryRunner.query(` SELECT PersonalLicenciaUltNro from Personal WHERE PersonalId = @0`, [PersonalId,]) 
         let {PersonalLicenciaUltNro} = PersonalLicenciaSelect[0]
         PersonalLicenciaUltNro += 1
         await queryRunner.query(` UPDATE Personal SET PersonalLicenciaUltNro = @1 where PersonalId = @0 `, [PersonalId,PersonalLicenciaUltNro]) 
 
-        const result = await queryRunner.query(`INSERT INTO PersonalLicencia (PersonalId, PersonalLicenciaId, PersonalLicenciaHistorica, TipoLicenciaId, PersonalLicenciaContraRenuncia, 
-          PersonalLicenciaDesde, PersonalLicenciaHasta, PersonalLicenciaTermina, PersonalLicenciaDesdeConsejo, PersonalLicenciaHastaConsejo, 
-          PersonalLicenciaTerminaConsejo, PersonalLicenciaObservacion, PersonalLicenciaDiagnosticoMedicoUltNro, PersonalLicenciaLiquidacionUltNro, PersonalTipoInasistenciaId, 
-          PersonalLicenciaSePaga, PersonalLicenciaHorasMensuales, PersonalLicenciaTipoAsociadoId, PersonalLicenciaCategoriaPersonalId, PersonalLicenciaAplicaPeriodoUltNro, 
+        const result = await queryRunner.query(`INSERT INTO PersonalLicencia (
+          PersonalId, 
+          PersonalLicenciaId, 
+          PersonalLicenciaHistorica, 
+          TipoLicenciaId, 
+          PersonalLicenciaContraRenuncia, 
+          PersonalLicenciaDesde, 
+          PersonalLicenciaHasta, 
+          PersonalLicenciaTermina, 
+          PersonalLicenciaDesdeConsejo,
+          PersonalLicenciaHastaConsejo, 
+          PersonalLicenciaTerminaConsejo, 
+          PersonalLicenciaObservacion,
+          PersonalLicenciaDiagnosticoMedicoUltNro, 
+          PersonalLicenciaLiquidacionUltNro,
+          PersonalTipoInasistenciaId, 
+          PersonalLicenciaSePaga, 
+          PersonalLicenciaHorasMensuales, 
+          PersonalLicenciaTipoAsociadoId, 
+          PersonalLicenciaCategoriaPersonalId,
+           PersonalLicenciaAplicaPeriodoUltNro, 
           PersonalLicenciaSituacionRevistaId)
           VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19)`
-          , [PersonalId, PersonalLicenciaUltNro, null, null, 'N',
-            PersonalLicenciaDesde, PersonalLicenciaHasta, PersonalLicenciaHasta, null, null,
-            null, PersonalLicenciaObservacion, null, null, TipoInasistenciaId,
-            PersonalLicenciaSePaga,  PersonalLicenciaHorasMensuales, PersonalLicenciaTipoAsociadoId, PersonalLicenciaCategoriaPersonalId,null]) 
+          , [PersonalId,
+            PersonalLicenciaUltNro,
+            null,
+            null, 
+            'N',
+            PersonalLicenciaDesde, 
+            PersonalLicenciaHasta,
+            PersonalLicenciaHasta,
+            null, 
+            null, 
+            PersonalLicenciaObservacion,
+            null, 
+            null, 
+            TipoInasistenciaId,
+            PersonalLicenciaSePaga, 
+            PersonalLicenciaHorasMensuales, 
+            PersonalLicenciaCategoriaPersonalId,
+            PersonalLicenciaTipoAsociadoId, 
+            null,
+            null]) 
              
       }
 
-      
+     this.handlePDFUpload(anioRequest,mesRequest,PersonalId,PersonalLicenciaId,res,req)
 
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, (PersonalLicenciaId)? `se Actualizó con exito el registro`:`se Agregó con exito el registro`);
@@ -357,13 +466,17 @@ export class CargaLicenciaController extends BaseController {
     } = req.query
     const queryRunner = dataSource.createQueryRunner();
     try {
-       const result = await queryRunner.query(`select * from PersonalLicenciaAplicaPeriodo where PersonalId=@0 and PersonalLicenciaId=@1 `
+       const result = await queryRunner.query(`select * from PersonalLicencia where PersonalId=@0 and PersonalLicenciaId=@1 `
         , [PersonalId,PersonalLicenciaId]) 
 
         console.log(result.length)
         if(result.length > 0) {
-          const result = await queryRunner.query(` DELETE FROM PersonalLicencia WHERE PersonalId = @0 and PersonalLicenciaId =@1`
+           await queryRunner.query(` DELETE FROM PersonalLicencia WHERE PersonalId = @0 and PersonalLicenciaId =@1`
             , [PersonalId,PersonalLicenciaId]) 
+            
+          await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE Persona_id = @0 AND doctipo_id = 'LIC' AND den_documento = @1`
+            ,[PersonalId,PersonalLicenciaId])
+
         }else{
           throw new ClientException(`No se puede eliminar la licencia`)
         }
@@ -415,10 +528,262 @@ export class CargaLicenciaController extends BaseController {
       WHERE lic.PersonalId=@3 AND lic.PersonalLicenciaId=@4 ` 
       
       const result = await queryRunner.query(selectquery, [,anio,mes,PersonalId,PersonalLicenciaId]) 
+
+
+      const dirtmp = `${process.env.PATH_LICENCIA}/temp/${anio}-${mes}-${PersonalId}`;
+       await this.deleteFolderRecursive(dirtmp)
+
       this.jsonRes(result[0], res);
     } catch (error) {
       return next(error)
     }
+  }
+
+  async deleteFolderRecursive(directoryPath) {
+    if (fs.existsSync(directoryPath)) {
+      fs.readdirSync(directoryPath).forEach((file, index) => {
+        const curPath = path.join(directoryPath, file);
+        if (fs.lstatSync(curPath).isDirectory()) { 
+          this.deleteFolderRecursive(curPath);
+        } else { // Delete file
+          fs.unlinkSync(curPath);
+        }
+      });
+      fs.rmdirSync(directoryPath);
+    } else {
+      console.log(`Directorio ${directoryPath} no existe`);
+    }
+  }
+
+  //directory = process.env.PATH_LIQUIDACIONES || "tmp";
+
+  async handlePDFUpload(
+    anioRequest:number, 
+    mesRequest:number, 
+    persona_id:number,
+    PersonalLicenciaId:number,
+    res:Response,
+    req:Request) {
+   
+    const file = req.file;
+    
+    const queryRunner = dataSource.createQueryRunner();
+    
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    let fechaActual = new Date()
+
+    const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
+
+    try {
+
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+      const dirtmp = `${process.env.PATH_LICENCIA}/temp/${anioRequest}-${mesRequest}-${persona_id}-${PersonalLicenciaId}`;
+      
+      fs.readdir(dirtmp, (err, files) => {
+        if (err) {
+          return console.error(`Error al leer el directorio: ${err}`);
+        }
+
+        files.forEach(file => {
+
+          console.log(`Found file: ${file}`);
+
+          let docgeneral =  this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
+          
+          const newFilePath = `${dirtmp}/${docgeneral}-${persona_id}.pdf`;
+
+          this.moveFile(file,periodo_id,anioRequest,mesRequest,newFilePath,dirtmp)
+
+           this.setLicenciaDocGeneral(
+            queryRunner,
+            Number(docgeneral),
+            periodo_id,
+            fechaActual,
+            persona_id,
+            0,
+            file,
+            newFilePath,
+            usuario,
+            ip,
+            fechaActual,
+            "LIC",
+            PersonalLicenciaId
+
+           )
+        });
+      });
+
+      
+        
+      
+      // await queryRunner.commitTransaction();
+
+      this.jsonRes({}, res, "PDF guardado con exito!");
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      //return next(error)
+    } finally {
+      await queryRunner.release();
+      //unlinkSync(file.path);
+    }
+  }
+
+
+  moveFile(filename:any,periodo_id:any,anioRequest:any,mesRequest:any, newFilePath:any,dirtmp:any){
+    const originalFilePath = `${process.env.PATH_LICENCIA}/temp/${filename}`;
+      
+
+      if (!existsSync(dirtmp)) {
+        mkdirSync(dirtmp, { recursive: true });
+      }
+        try {
+          renameSync(originalFilePath, newFilePath);
+        } catch (error) {
+          console.error('Error moviendo el archivo:', error);
+        }
+
+  }
+
+  async setLicenciaDocGeneral(
+    queryRunner: any,
+    docgeneral: number,
+    periodo: number,
+    fecha: Date,
+    persona_id: number,
+    objetivo_id: number,
+    nombre_archivo: string,
+    path: string,
+    usuario: string,
+    ip: string,
+    audfecha: Date,
+    doctipo_id: string,
+    den_documento: number
+
+  ) {
+
+    return queryRunner.query(`INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "persona_id", "objetivo_id", "path", "nombre_archivo", "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod", "doctipo_id", "den_documento")
+    VALUES
+    (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14);`,
+      [
+        docgeneral,
+        periodo,
+        fecha,
+        persona_id,
+        objetivo_id,
+        path,
+        nombre_archivo,
+        usuario, ip, fecha,
+        usuario, ip, audfecha,
+        doctipo_id, den_documento
+      ])
+
+  }
+
+  async getLicenciaAnteriores(
+    Anio: string,
+    Mes: string,
+    PersonalId: string,
+    PersonalLicenciaId: string,
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+
+    try {
+      const queryRunner = dataSource.createQueryRunner();
+      let usuario = res.locals.userName
+      let ip = this.getRemoteAddress(req)
+      let fechaActual = new Date()
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Number(Anio), Number(Mes), usuario, ip)
+
+      const importacionesAnteriores = await dataSource.query(
+
+        `SELECT doc_id AS id, path, nombre_archivo AS nombre,  FORMAT(aud_fecha_ins, 'yyyy-MM-dd') AS fecha FROM lige.dbo.docgeneral WHERE periodo = @0 AND persona_id = @1 AND den_documento = @2`,
+        [periodo_id,Number(PersonalId),Number(PersonalLicenciaId)])
+
+      this.jsonRes(
+        {
+          total: importacionesAnteriores.length,
+          list: importacionesAnteriores,
+        },
+
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getByDownLicencia(req: any, res: Response, next: NextFunction) {
+    const documentId = Number(req.body.documentId);
+    try {
+
+      const document = await this.getLicenciatInfo(documentId);
+
+      const finalurl = `${document[0]["path"]}`
+      if (!existsSync(finalurl))
+        throw new ClientException(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
+
+      res.download(finalurl, document[0]["name"])
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getLicenciatInfo(documentId: Number) {
+
+
+    return dataSource.query(
+      `SELECT doc_id AS id, path, nombre_archivo AS name FROM lige.dbo.docgeneral WHERE doc_id = @0`, [documentId])
+
+  }
+
+  async changehours(req: any, res: Response, next: NextFunction) {
+    
+    const queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    let horas =  Number(this.formatHours(req.body.PersonalLicenciaAplicaPeriodoHorasMensuales));
+    let PersonalId = req.body.PersonalId;
+    let PersonalLicenciaAplicaPeriodoId = req.body.PersonalLicenciaAplicaPeriodoId
+
+    const result = await queryRunner.query(`UPDATE PersonalLicenciaAplicaPeriodo
+    SET PersonalLicenciaAplicaPeriodoHorasMensuales = @0
+    WHERE PersonalId = 30  AND PersonalLicenciaId = @1 AND PersonalLicenciaAplicaPeriodoId = @2`,
+    [horas,PersonalId,PersonalLicenciaAplicaPeriodoId]);
+
+    await queryRunner.commitTransaction();
+    console.log(req.body)
+    this.jsonRes({}, res, "Modificación con exito!");
+    try {
+      return next(`Se procesaron cambios `)
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      //return next(error)
+    return next(`Se procesaron cambios `)
+    } 
+  }
+
+  formatHours(hours: any) {
+
+    if (!hours) return;
+
+     hours = hours.toString().replace('.', ',');
+    let [integerPart, decimalPart] = hours.split(',');
+    decimalPart = decimalPart ? decimalPart.padEnd(2, '0') : '00';
+    let minutes = Math.round(parseFloat('0.' + decimalPart) * 60);
+
+    if (minutes >= 60) {
+      integerPart = (parseInt(integerPart) + 1).toString();
+      minutes -= 60;
+    }
+    decimalPart = minutes.toString().padStart(2, '0');
+
+    return hours = `${integerPart}.${decimalPart}`;
   }
 
 }

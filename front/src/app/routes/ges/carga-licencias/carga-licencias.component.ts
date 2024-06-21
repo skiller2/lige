@@ -3,6 +3,8 @@ import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TableAbmLicenciaComponent } from '../../../shared/table-abm-licencia/table-abm-licencia.component'
+import { TableHorasLicenciaComponent } from '../../../shared/table-horas-licencia/table-horas-licencia.component'
+
 import {
   BehaviorSubject,
 } from 'rxjs';
@@ -15,7 +17,7 @@ import { AngularGridInstance } from 'angular-slickgrid';
 @Component({
   selector: 'app-carga-licencias',
   standalone: true,
-  imports: [SHARED_IMPORTS, CommonModule, TableAbmLicenciaComponent, LicenciaDrawerComponent],
+  imports: [SHARED_IMPORTS, CommonModule, TableHorasLicenciaComponent,TableAbmLicenciaComponent, LicenciaDrawerComponent],
   templateUrl: './carga-licencias.component.html',
   styleUrl: './carga-licencias.component.less'
 })
@@ -28,6 +30,7 @@ export class CargaLicenciasComponent {
   angularGridEdit!: AngularGridInstance;
   PersonalId = 0
   PersonalLicenciaId = 0
+  tituloDrawer = ""
 
   selectedPeriod = computed(() => {
     const per = this.periodo()
@@ -64,8 +67,11 @@ export class CargaLicenciasComponent {
   openDrawerforNew(): void {
     this.PersonalLicenciaId = 0
     this.visibleDrawer = true
-
+    this.tituloDrawer = "Nueva Licencia"
   }
-
-
+  openDrawerforEdit(): void {
+    this.visibleDrawer = true
+    this.tituloDrawer = "Editar Licencia"
+  }
+  
 }

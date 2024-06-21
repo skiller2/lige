@@ -1,5 +1,5 @@
 <nz-drawer [nzClosable]="false" [(nzVisible)]="visible" [nzPlacement]="placement" [nzWidth]="640"
-  [nzTitle]="tituloDrawer" (nzOnClose)="visible.set(false)">
+  [nzTitle]="tituloDrawer()" (nzOnClose)="visible.set(false)">
   <ng-container *nzDrawerContent>
     @if (cambios()|async) {}
     <form nz-form ngForm>
@@ -66,7 +66,7 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Horas Mensuales </nz-form-label>
         <nz-form-control>
-          <input nz-input name="PersonalLicenciaHorasMensuales" ngModel />
+          <input nz-input type="number" name="PersonalLicenciaHorasMensuales" ngModel />
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
@@ -75,14 +75,67 @@
           <input nz-input name="PersonalLicenciaObservacion" ngModel />
         </nz-form-control>
       </nz-form-item>
+      @if (this.ngForm().value.PersonalId>0) {
+         
+      <nz-form-item>
+        <nz-form-control>
+          <nz-form-label [nzSpan]="5">Archivos anteriores</nz-form-label>
+          <ng-container *ngFor="let licencia of $ArchivosLicencias | async">
+            <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{licencia.nombre}}>
+              <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
+              <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
+                class="download-color" app-down-file [httpMethod]="'POST'"
+                [httpBody]="{'documentId': licencia.id}" httpUrl="api/carga-licencia/downloadLicencia"></a>
+              <span> {{licencia.id}}-{{licencia.nombre}} </span>
+            </div>
+          </ng-container>
+        </nz-form-control>
+      </nz-form-item>
 
-      -Carga de Documentos.
+      
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Archivos: </nz-form-label>
+        <nz-form-control>
+          <ng-container>
+            <nz-upload nzAccept="application/pdf" nzAction="/api/carga-licencia/upload" [nzData]="{
+              anio:this.selectedPeriod().year, 
+              mes:this.selectedPeriod().month,
+              PersonalId:this.ngForm().value.PersonalId,
+              PersonalLicenciaId: this.ngForm().value.PersonalLicenciaId,
+            }" nzName="pdf" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
+              <button nz-button>
+                <span nz-icon nzType="upload"></span>
+                Subir PDF
+              </button>
+            </nz-upload>
+          </ng-container>
+        </nz-form-control>
+      </nz-form-item>
 
-      <button nz-button nzType="primary" (click)="save()">Guardar</button>
-
-      <button nz-button nzType="primary" (click)="deletelicencia()" nzDanger>Eliminar</button>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Archivos </nz-form-label>
+        <nz-form-control>
+          
+          <ng-container *ngFor="let licenciaAdd of ArchivosLicenciasAdd">
+            <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{licenciaAdd.name}}>
+              <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
+              <span> {{licenciaAdd.name}} </span>
+            </div>
+          </ng-container>
+        </nz-form-control>
+      </nz-form-item>
+    }
+      <nz-form-item class="btnCenter">
+          <button nz-button nzType="primary" (click)="save()">Guardar</button>
+          @if (this.ngForm().value.PersonalLicenciaId>0) {
+          <button nz-button nzType="primary" (click)="deletelicencia()" nzDanger>Eliminar</button>
+        }
+      </nz-form-item>
+     
 
     </form>
-    <p>Debug Valores: {{ngForm().value | json }}</p>
+
+    
+    <!-- <p>Debug Valores: {{ngForm().value | json }}</p> -->
   </ng-container>
 </nz-drawer>

@@ -9,7 +9,7 @@
 
       <nz-form-control style="text-align: right;">
         <nz-button-group>
-            <button nz-button nzType="default" (click)="visibleDrawer=true" [disabled]="!(PersonalLicenciaId>0)" ><span nz-icon nzType="user"
+            <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalLicenciaId>0)" ><span nz-icon nzType="user"
                     nzTheme="outline" ></span></button>
             <button nz-button nzType="default" (click)="openDrawerforNew()"><span nz-icon nzType="plus"
                     nzTheme="outline"></span></button>
@@ -21,8 +21,12 @@
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'ges', 'carga_licencias','AltaLicencia']" >Alta de licencia</a>
         </li>
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'carga_licencias','horasLicencia']" >Horas de licencia</a>
+        </li>
       </ul>
-  
+      
       <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
         <nz-tab>
           <a nz-tab-link routerLink="/ges/carga_licencias/AltaLicencia">Alta de licencia</a>
@@ -32,14 +36,15 @@
   
           </ng-template>
         </nz-tab>
-        <!-- <nz-tab>
-          <a nz-tab-link routerLink="/ges/carga_licencias/lista">Lista</a>
+        <nz-tab>
+          <a nz-tab-link routerLink="/ges/carga_licencias/horasLicencia">Horas de licencia</a>
           <ng-template nz-tab>
-
+            
+            <app-table-horas-licencia gridId="gridEdit" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-table-horas-licencia>
           </ng-template>
-        </nz-tab> -->
+        </nz-tab>
       
       </nz-tabset>
   </nz-card>
-<app-licencia-drawer [selectedPeriod]="selectedPeriod()" [(visible)]="visibleDrawer" [PersonalId]="PersonalId" [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
+<app-licencia-drawer [selectedPeriod]="selectedPeriod()" [tituloDrawer] = "tituloDrawer" [(visible)]="visibleDrawer" [PersonalId]="PersonalId" [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
   

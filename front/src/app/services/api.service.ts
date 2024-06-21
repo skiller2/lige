@@ -59,6 +59,16 @@ export class ApiService {
     );
   }
 
+  getLicenciasArchivosAnteriores(anio: number, mes: number,PersonalId:number,PersonalLicenciaId:number) {
+    return this.http.get(`/api/carga-licencia/licencia_anteriores/${anio}/${mes}/${PersonalId}/${PersonalLicenciaId}`).pipe(
+      map((res: any) => res.data.list),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getImportacionesTelefoniaAnteriores(anio: number, mes: number) {
     return this.http.get(`/api/telefonia/importaciones_anteriores/${anio}/${mes}`).pipe(
       map((res: any) => res.data.list),
@@ -472,6 +482,28 @@ export class ApiService {
 
   }
 
+  
+  getListHorasLicencia(filters: any, anio: any, mes: any) {
+    const parameter = [filters, anio, mes]
+    return this.http.post<ResponseJSON<any>>('/api/carga-licencia/listhoras', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+  }
+
+  setchangehours(gridDataInsert: any) {
+    const parameter = [ gridDataInsert]
+    this.notification.success('Respuesta', `Inicio Modificación `);
+
+    return this.http.post<ResponseJSON<any>>('/api/carga-licencia/changehours', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  
+
+  }
+
   getTipoDocumentos(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/tipo-documento/list', parameter).pipe(
@@ -526,6 +558,8 @@ export class ApiService {
     )
 
   }
+
+  
 
   setmovimientosAutomaticos(anio: number, mes: number) {
     const parameter = { anio, mes }

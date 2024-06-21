@@ -51,7 +51,7 @@ export class CustodiaFormComponent {
         }
     }
 
-    @Input() edit: boolean = false
+    @Input() edit: boolean = true
 
     async load() {
         const res = await firstValueFrom(this.searchService.getInfoObjCustodia(this.editCustodiaId()))
