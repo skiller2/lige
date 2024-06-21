@@ -25,6 +25,7 @@
     "mime-types": "2.1.35",
     "mssql": "^10.0.2",
     "node-schedule": "^2.1.1",
+    "parcel": "^2.12.0",
     "sharp": "^0.33.4",
     "typeorm": "^0.3.20",
     "wa-sticker-formatter": "^1.6.0"

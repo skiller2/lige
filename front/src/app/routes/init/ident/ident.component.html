@@ -1,6 +1,7 @@
 <nz-card>
   <h1>Muestre DNI ante la cámara</h1>
-  <zxing-scanner [formats]="allowedBarCodeFormats" style="width:90vw;" (scanComplete)="scanComplete($event)"  (scanSuccess)="scanSuccess($event)"></zxing-scanner>
+  <zxing-scanner [formats]="allowedBarCodeFormats" style="width:90vw;" (scanComplete)="scanComplete($event)"  (scanSuccess)="scanSuccess($event)" (camerasFound)="camerasFoundHandler($event)" [device]="camdevice"></zxing-scanner>
+  <button (click)="cambioCam()" >Cambiar cámara</button>
 
   <h1>Código de acceso</h1>
   <h1> {{ codGenerado() }}</h1>

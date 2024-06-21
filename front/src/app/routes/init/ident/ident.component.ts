@@ -19,7 +19,9 @@ export class IdentComponent {
   identData = model('A@B@C@23329580')
   lastScan = ''
   private apiService = inject(ApiService)
-  
+  camdevice = undefined
+  cams:any = []
+  curcam = 0
   scanComplete(e:any) {
 //    console.log('scanComplete',e)
   }
@@ -55,4 +57,20 @@ export class IdentComponent {
   ngOnInit() {
     
   }
+
+  camerasFoundHandler(cams: any) {
+    console.log('cameras', cams)
+    this.cams = cams
+  }
+
+  cambioCam() {
+    this.curcam++
+    if (this.curcam >= this.cams.length)
+      this.curcam = this.cams.length - 1
+    console.log('cambio a ',this.cams[this.curcam])
+    this.camdevice = this.cams[this.curcam].deviceId
+    
+    
+  }
+
 }

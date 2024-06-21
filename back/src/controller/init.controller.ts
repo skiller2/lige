@@ -319,7 +319,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
     const mes = Number(req.params.mes)
     const queryRunner = dataSource.createQueryRunner();
 
-    const licencias = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [])
+    const licencias = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [],null)
     const licerror =  licencias.filter((r:any)=>r.PersonalLicenciaSePaga ==null || (r.PersonalLicenciaSePaga =='S' && Number(r.horas) ==0))
     this.jsonRes({ total: licerror.length, anio,mes }, res);
   }
