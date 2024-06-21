@@ -4,8 +4,8 @@
        <!-- <span>este es el valor del padre {{anio()}} y  {{mes()}}</span> -->
         <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
   
-        <div class="gridContainer container-fluid" *ngIf="(columns$|async) as columnas">
-            <angular-slickgrid gridId="gridEdit" class="" [columnDefinitions]="columnas | colsFilter"
+        <div class="gridContainer1 container-fluid" *ngIf="(columns$|async) as columnas">
+            <angular-slickgrid gridId="gridEdit1" class="" [columnDefinitions]="columnas | colsFilter"
               [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
               (onAngularGridCreated)="angularGridReady($event)">
             </angular-slickgrid>

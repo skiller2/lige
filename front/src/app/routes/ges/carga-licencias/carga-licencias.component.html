@@ -32,7 +32,7 @@
           <a nz-tab-link routerLink="/ges/carga_licencias/AltaLicencia">Alta de licencia</a>
           <ng-template nz-tab>
             
-            <app-table-abm-licencia gridId="gridEdit" (valueGridEvent)="actualizarValorDrawer($event)" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-table-abm-licencia>
+            <app-table-abm-licencia gridId="gridEdit1" (valueGridEvent)="actualizarValorDrawer($event)" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-table-abm-licencia>
   
           </ng-template>
         </nz-tab>
@@ -40,7 +40,7 @@
           <a nz-tab-link routerLink="/ges/carga_licencias/horasLicencia">Horas de licencia</a>
           <ng-template nz-tab>
             
-            <app-table-horas-licencia gridId="gridEdit" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-table-horas-licencia>
+            <app-table-horas-licencia gridId="gridEdit2" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-table-horas-licencia>
           </ng-template>
         </nz-tab>
       
