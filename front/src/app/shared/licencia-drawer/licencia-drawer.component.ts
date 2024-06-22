@@ -40,11 +40,6 @@ export class LicenciaDrawerComponent {
         .getLicenciasArchivosAnteriores(
           periodo.year, periodo.month, this.PersonalId(), this.PersonalLicenciaId()
         )
-        .pipe(
-        //map(data => {return data}),
-        //doOnSubscribe(() => this.tableLoading$.next(true)),
-        //tap({ complete: () => this.tableLoading$.next(false) })
-      )
     })
   )
   placement: NzDrawerPlacement = 'left';
@@ -79,27 +74,10 @@ export class LicenciaDrawerComponent {
     vals.PersonalLicenciaCategoriaPersonalId = vals.categoria.tipoId
     vals.anioRequest = periodo.year
     vals.mesRequest = periodo.month
+    vals.Archivos = this.ArchivosLicenciasAdd
     //vals.PersonalLicenciaHorasMensuales = Number(this.formatHours(vals.PersonalLicenciaHorasMensuales))
     const res = await firstValueFrom(this.apiService.setLicencia(vals))
   }
-
-  // formatHours(hours: any) {
-
-  //   if (!hours) return;
-
-  //    hours = hours.toString().replace('.', ',');
-  //   let [integerPart, decimalPart] = hours.split(',');
-  //   decimalPart = decimalPart ? decimalPart.padEnd(2, '0') : '00';
-  //   let minutes = Math.round(parseFloat('0.' + decimalPart) * 60);
-
-  //   if (minutes >= 60) {
-  //     integerPart = (parseInt(integerPart) + 1).toString();
-  //     minutes -= 60;
-  //   }
-  //   decimalPart = minutes.toString().padStart(2, '0');
-
-  //   return hours = `${integerPart}.${decimalPart}`;
-  // }
 
   async deletelicencia() {
     let vals = this.ngForm().value
@@ -110,14 +88,12 @@ export class LicenciaDrawerComponent {
   uploadChange(event: any) {
     switch (event.type) {
       case 'start':
-       
-        this.ArchivosLicenciasAdd =[ ...this.ArchivosLicenciasAdd, event.file]
-        console.log(this.ArchivosLicenciasAdd)
+        
         this.uploading$.next({ loading: true, event })
     
         break;
       case 'progress':
-
+        debugger
         break;
       case 'error':
         const Error = event.file.error
@@ -127,9 +103,13 @@ export class LicenciaDrawerComponent {
         break;
       case 'success':
         const Response = event.file.response
+       
+        this.ArchivosLicenciasAdd = [ ...this.ArchivosLicenciasAdd, Response.data[0] ]
+        console.log(this.ArchivosLicenciasAdd)
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response)  
-        this.formChange$.next('');      
+        this.formChange$.next('');     
+        this.ArchivosLicenciasAdd
         break
       default:
         break;

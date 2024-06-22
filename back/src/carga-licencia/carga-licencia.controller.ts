@@ -79,20 +79,11 @@ const columnasGrilla: any[] = [
     searchHidden:false
   },
   {
-    name: "Personal Apellido",
+    name: "Nombre y Apellido",
     type: "string",
-    id: "PersonalApellido",
-    field: "PersonalApellido",
-    fieldName: "persona.PersonalApellido",
-    hidden: false,
-    searchHidden:true
-  },
-  {
-    name: "Personal Nombre",
-    type: "string",
-    id: "PersonalNombre",
-    field: "PersonalNombre",
-    fieldName: "persona.PersonalNombre",
+    id: "NombreCompleto",
+    field: "NombreCompleto",
+    fieldName: "NombreCompleto",
     hidden: false,
     searchHidden:true
   },
@@ -299,6 +290,7 @@ export class CargaLicenciaController extends BaseController {
     per.PersonalId as PersonalId, 
     persona.PersonalApellido as PersonalApellido, 
     persona.PersonalNombre as PersonalNombre,
+    CONCAT(persona.PersonalApellido, ' ', persona.PersonalNombre) AS NombreCompleto,
     per.PersonalLicenciaId as PersonalLicenciaId,
     per.PersonalLicenciaAplicaPeriodoHorasMensuales as PersonalLicenciaAplicaPeriodoHorasMensuales, 
     per.PersonalLicenciaAplicaPeriodoAplicaEl as PersonalLicenciaAplicaPeriodoAplicaEl,
@@ -336,7 +328,8 @@ export class CargaLicenciaController extends BaseController {
       PersonalLicenciaCategoriaPersonalId,
       IsEdit,
       anioRequest,
-      mesRequest
+      mesRequest,
+      Archivos
      
     } = req.body
 
@@ -433,7 +426,7 @@ export class CargaLicenciaController extends BaseController {
              
       }
 
-     this.handlePDFUpload(anioRequest,mesRequest,PersonalId,PersonalLicenciaId,res,req)
+     await this.handlePDFUpload(anioRequest,mesRequest,PersonalId,PersonalLicenciaId,res,req,Archivos)
 
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, (PersonalLicenciaId)? `se Actualizó con exito el registro`:`se Agregó con exito el registro`);
@@ -529,111 +522,70 @@ export class CargaLicenciaController extends BaseController {
       
       const result = await queryRunner.query(selectquery, [,anio,mes,PersonalId,PersonalLicenciaId]) 
 
-
-      const dirtmp = `${process.env.PATH_LICENCIA}/temp/${anio}-${mes}-${PersonalId}`;
-       await this.deleteFolderRecursive(dirtmp)
-
       this.jsonRes(result[0], res);
     } catch (error) {
       return next(error)
     }
   }
 
-  async deleteFolderRecursive(directoryPath) {
-    if (fs.existsSync(directoryPath)) {
-      fs.readdirSync(directoryPath).forEach((file, index) => {
-        const curPath = path.join(directoryPath, file);
-        if (fs.lstatSync(curPath).isDirectory()) { 
-          this.deleteFolderRecursive(curPath);
-        } else { // Delete file
-          fs.unlinkSync(curPath);
-        }
-      });
-      fs.rmdirSync(directoryPath);
-    } else {
-      console.log(`Directorio ${directoryPath} no existe`);
-    }
-  }
-
-  //directory = process.env.PATH_LIQUIDACIONES || "tmp";
-
   async handlePDFUpload(
-    anioRequest:number, 
-    mesRequest:number, 
-    persona_id:number,
-    PersonalLicenciaId:number,
-    res:Response,
-    req:Request) {
-   
+    anioRequest: number, 
+    mesRequest: number, 
+    persona_id: number,
+    PersonalLicenciaId: number,
+    res: Response,
+    req: Request,
+    Archivo: any
+  ) {
     const file = req.file;
-    
     const queryRunner = dataSource.createQueryRunner();
-    
-    let usuario = res.locals.userName
-    let ip = this.getRemoteAddress(req)
-    let fechaActual = new Date()
-
-    const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
-
+    let usuario = res.locals.userName;
+    let ip = this.getRemoteAddress(req);
+    let fechaActual = new Date();
+  
+    const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip);
+  
     try {
-
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
-      const dirtmp = `${process.env.PATH_LICENCIA}/temp/${anioRequest}-${mesRequest}-${persona_id}-${PersonalLicenciaId}`;
+      const dirtmp = `${process.env.PATH_LICENCIA}/temp`;
+      const dirtmpNew = `${process.env.PATH_LICENCIA}/${periodo_id}`;
+  
+      for (const file of Archivo) {
+        let docgeneral = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
+        const newFilePath = `${dirtmpNew}/${docgeneral}-${persona_id}.pdf`;
+        this.moveFile(`${file.fieldname}.pdf`, newFilePath, dirtmpNew);
+  
+        await this.setLicenciaDocGeneral(
+          queryRunner,
+          Number(docgeneral),
+          periodo_id,
+          fechaActual,
+          persona_id,
+          0,
+          file.originalname,
+          newFilePath,
+          usuario,
+          ip,
+          fechaActual,
+          'LIC',
+          PersonalLicenciaId
+        );
+      }
       
-      fs.readdir(dirtmp, (err, files) => {
-        if (err) {
-          return console.error(`Error al leer el directorio: ${err}`);
-        }
-
-        files.forEach(file => {
-
-          console.log(`Found file: ${file}`);
-
-          let docgeneral =  this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
-          
-          const newFilePath = `${dirtmp}/${docgeneral}-${persona_id}.pdf`;
-
-          this.moveFile(file,periodo_id,anioRequest,mesRequest,newFilePath,dirtmp)
-
-           this.setLicenciaDocGeneral(
-            queryRunner,
-            Number(docgeneral),
-            periodo_id,
-            fechaActual,
-            persona_id,
-            0,
-            file,
-            newFilePath,
-            usuario,
-            ip,
-            fechaActual,
-            "LIC",
-            PersonalLicenciaId
-
-           )
-        });
-      });
-
-      
-        
-      
-      // await queryRunner.commitTransaction();
-
-      this.jsonRes({}, res, "PDF guardado con exito!");
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
-      //return next(error)
+      await queryRunner.rollbackTransaction();
+      console.error('Error processing files:', error);
+      // Manejar el error adecuadamente, puedes llamar a next(error) si estás en un middleware de Express
     } finally {
-      await queryRunner.release();
-      //unlinkSync(file.path);
+      //await queryRunner.release();
+      this.jsonRes({}, res, 'PDF guardado con exito!');
+      // unlinkSync(file.path); // Si necesitas eliminar el archivo subido
     }
   }
 
-
-  moveFile(filename:any,periodo_id:any,anioRequest:any,mesRequest:any, newFilePath:any,dirtmp:any){
+  moveFile(filename:any, newFilePath:any,dirtmp:any){
     const originalFilePath = `${process.env.PATH_LICENCIA}/temp/${filename}`;
-      
+      console.log("originalFilePath ", originalFilePath)
+      console.log("newFilePath ", newFilePath)
 
       if (!existsSync(dirtmp)) {
         mkdirSync(dirtmp, { recursive: true });

@@ -137,22 +137,12 @@ export class TableHorasLicenciaComponent {
       hidden: true,
     },
     {
-      name: "Personal Apellido",
+      name: "Nombre y Apellido",
       type: "string",
-      id: "PersonalApellido",
-      field: "PersonalApellido",
+      id: "NombreCompleto",
+      field: "NombreCompleto",
       params: {
-        complexFieldLabel: 'PersonalApellido',
-      },
-      hidden: false,
-    },
-    {
-      name: "Personal Nombre",
-      type: "string",
-      id: "PersonalNombre",
-      field: "PersonalNombre",
-      params: {
-        complexFieldLabel: 'PersonalNombre',
+        complexFieldLabel: 'NombreCompleto',
       },
       hidden: false,
     },

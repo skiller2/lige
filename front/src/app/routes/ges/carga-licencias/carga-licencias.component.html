@@ -19,7 +19,7 @@
       <ul nz-menu nzMode="horizontal">
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'carga_licencias','AltaLicencia']" >Alta de licencia</a>
+          <a [routerLink]="['/', 'ges', 'carga_licencias','Licencias']" >Licencias</a>
         </li>
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
@@ -29,7 +29,7 @@
       
       <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
         <nz-tab>
-          <a nz-tab-link routerLink="/ges/carga_licencias/AltaLicencia">Alta de licencia</a>
+          <a nz-tab-link routerLink="/ges/carga_licencias/Licencias">Alta de licencia</a>
           <ng-template nz-tab>
             
             <app-table-abm-licencia gridId="gridEdit1" (valueGridEvent)="actualizarValorDrawer($event)" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-table-abm-licencia>

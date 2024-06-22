@@ -329,7 +329,7 @@ export class AsistenciaController extends BaseController {
     let selectquery = `    SELECT ROW_NUMBER() OVER (ORDER BY suc.SucursalId) AS id,suc.SucursalId, suc.SucursalDescripcion, licimp.PersonalLicenciaAplicaPeriodoAplicaEl,
     @1 anio, @2 mes,
     persona.PersonalId,lic.PersonalLicenciaId, persona.PersonalApellido, persona.PersonalNombre, 
-
+    CONCAT(persona.PersonalApellido, ' ', persona.PersonalNombre) AS NombreCompleto,
     licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,
    (ROUND(CAST(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales AS FLOAT),0,0) *60+ PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1))/60 AS horas,
    val.ValorLiquidacionHoraNormal,

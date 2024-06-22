@@ -14,6 +14,19 @@ const dirtmp = `${process.env.PATH_LICENCIA}/temp`;
 if (!existsSync(dirtmp)) {
   mkdirSync(dirtmp, { recursive: true });
 }
+
+function generateRandomDigitNumber() {
+
+  let randomNumber = Math.random();
+  randomNumber *= Math.pow(10, 15);
+  randomNumber = Math.floor(randomNumber);
+
+  if (randomNumber < Math.pow(10, 14)) {
+    randomNumber += Math.pow(10, 14);
+  }
+
+  return randomNumber;
+}
   
 const storage = multer.diskStorage({
     destination: (
@@ -21,16 +34,20 @@ const storage = multer.diskStorage({
       file: Express.Multer.File,
       callback: DestinationCallback
     ) => {
-      return callback(null, `${dirtmp}/${req.body.anio}-${req.body.mes}-${req.body.PersonalId}`);
+      return callback(null, dirtmp);
     },
     filename: (
       req: Request,
       file: Express.Multer.File,
       callback: DestinationCallback
     ) => {
-     
-      const originalname = file.originalname;
-      callback(null, originalname);
+      
+      const originalname = generateRandomDigitNumber();
+      file.fieldname = originalname.toString()
+      
+      //const originalname = file.uid;
+      console.log(file)
+      callback(null, `${originalname}.pdf`);
     },
   });
   
@@ -43,12 +60,6 @@ const storage = multer.diskStorage({
     if (file.mimetype !== "application/pdf") {
       callback(new ClientException("El archivo no es del tipo PDF."));
       return;
-    }
-  
-    const dirtmpUrl = `${process.env.PATH_LICENCIA}/temp/${request.body.anio}-${request.body.mes}-${request.body.PersonalId}`;
-    
-    if (!existsSync(dirtmpUrl)) {
-      mkdirSync(dirtmpUrl, { recursive: true });
     }
 
     callback(null, true);
@@ -123,7 +134,13 @@ CargaLicenciaCargaRouter.post("/upload", authMiddleware.verifyToken, (req, res, 
       return res
         .status(409)
         .json({ msg: "File is required!", data: [], stamp: new Date() });
+    }else{
+      return res
+        .status(200)
+        .json({ msg: "archivo subido con exito!", data: [req.file], stamp: new Date() });
     }
+
+    
   });
 });
 
