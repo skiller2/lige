@@ -323,7 +323,7 @@ export class AsistenciaController extends BaseController {
   }
 
 
-  static async getAsistenciaAdminArt42(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[],filterSql:any) {
+  static async getAsistenciaAdminArt42(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[],filterSql:any,PersonalLicenciaSePaga:boolean) {
     const listPersonaId = (personalId.length == 0) ? '' : 'AND persona.PersonalId IN (' + personalId.join(',') + ')'
 
     let selectquery = `    SELECT ROW_NUMBER() OVER (ORDER BY suc.SucursalId) AS id,suc.SucursalId, suc.SucursalDescripcion, licimp.PersonalLicenciaAplicaPeriodoAplicaEl,
@@ -360,6 +360,10 @@ export class AsistenciaController extends BaseController {
     
     if(filterSql && filterSql.length > 0)
       selectquery += `AND ${filterSql}`
+
+    if(PersonalLicenciaSePaga)
+      selectquery += ` AND lic.PersonalLicenciaSePaga = 'S'`
+
 
     return await queryRunner.query(selectquery, [, anio, mes]) 
 /*
@@ -1404,7 +1408,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, personalIdList)
 
-      const resAsisAdmArt42 = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, personalIdList,[])
+      const resAsisAdmArt42 = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, personalIdList,[],false)
       const resIngreExtra = await AsistenciaController.getIngresosExtra(anio, mes, queryRunner, personalIdList)
 
       for (const row of resAsisObjetiv) {
@@ -1532,7 +1536,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de ingresos`)
 
-      const result = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [personalId],[])
+      const result = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [personalId],[],false)
 
       const total = result.map(row => row.total).reduce((prev, curr) => prev + curr, 0)
       const totalHoras = result.map(row => row.horas).reduce((prev, curr) => prev + curr, 0)
