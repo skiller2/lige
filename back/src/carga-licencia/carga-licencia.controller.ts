@@ -239,7 +239,7 @@ export class CargaLicenciaController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     try {
 
-      const listCargaLicencia = await AsistenciaController.getAsistenciaAdminArt42(anio,mes,queryRunner, [],filterSql)
+      const listCargaLicencia = await AsistenciaController.getAsistenciaAdminArt42(anio,mes,queryRunner, [],filterSql,true)
       this.jsonRes(
         {
           total: listCargaLicencia.length,
@@ -265,9 +265,9 @@ export class CargaLicenciaController extends BaseController {
     const mes = Number(req.body[2])
     
     try {
-      let queryRunner = dataSource.createQueryRunner();
-      const listHorasLicencia = await CargaLicenciaController.getLicenciaHoras(anio,mes,queryRunner,filterSql)
 
+      let queryRunner = dataSource.createQueryRunner();
+      const listHorasLicencia = await AsistenciaController.getAsistenciaAdminArt42(anio,mes,queryRunner, [],filterSql,true)
       
       this.jsonRes(
         {
@@ -280,35 +280,6 @@ export class CargaLicenciaController extends BaseController {
     } catch (error) {
       return next(error)
     }
-  }
-
-  static async getLicenciaHoras(anio: number, mes: number, queryRunner: QueryRunner,filterSql:any) {
-    
-
-    let selectquery = `SELECT 
-    ROW_NUMBER() OVER (ORDER BY per.PersonalLicenciaAplicaPeriodoId) AS id, 
-    per.PersonalId as PersonalId, 
-    persona.PersonalApellido as PersonalApellido, 
-    persona.PersonalNombre as PersonalNombre,
-    CONCAT(persona.PersonalApellido, ' ', persona.PersonalNombre) AS NombreCompleto,
-    per.PersonalLicenciaId as PersonalLicenciaId,
-    per.PersonalLicenciaAplicaPeriodoHorasMensuales as PersonalLicenciaAplicaPeriodoHorasMensuales, 
-    per.PersonalLicenciaAplicaPeriodoAplicaEl as PersonalLicenciaAplicaPeriodoAplicaEl,
-    per.PersonalLicenciaAplicaPeriodoSucursalId as PersonalLicenciaAplicaPeriodoSucursalId, 
-    lic.PersonalLicenciaSePaga as PersonalLicenciaSePaga,
-    tli.TipoInasistenciaId as TipoInasistenciaId,
-    tli.TipoInasistenciaDescripcion as TipoInasistenciaDescripcion,
-    per.PersonalLicenciaAplicaPeriodoId as PersonalLicenciaAplicaPeriodoId
-    FROM  PersonalLicenciaAplicaPeriodo AS per
-    JOIN Personal persona ON persona.PersonalId = per.PersonalId
-    LEFT JOIN PersonalLicencia lic ON lic.PersonalId = per.PersonalId AND lic.PersonalLicenciaId = per.PersonalLicenciaId
-    JOIN TipoInasistencia tli ON tli.TipoInasistenciaId = lic.PersonalTipoInasistenciaId
-    WHERE lic.PersonalLicenciaSePaga = 'S' AND PersonalLicenciaAplicaPeriodoAplicaEl LIKE '%${mes}/${anio}%'` 
-    
-    if(filterSql && filterSql.length > 0)
-      selectquery += `AND ${filterSql}`
-
-    return await queryRunner.query(selectquery) 
   }
 
   async setLicencia(req: Request, res: Response, next: NextFunction) {
@@ -364,7 +335,18 @@ export class CargaLicenciaController extends BaseController {
 
       if (PersonalLicenciaId) {  //UPDATE
 
-        const result = await queryRunner.query(`UPDATE PersonalLicencia
+        let valueAplicaPeriodo = await queryRunner.query(`select * from PersonalLicenciaAplicaPeriodo WHERE PersonalId = @0 AND PersonalLicenciaId = @1`,
+          [PersonalId,PersonalLicenciaId]
+        )
+
+        let isEditOrNew = valueAplicaPeriodo.length == 0 && PersonalLicenciaSePaga ==  "S" ?  true : false
+
+        if(valueAplicaPeriodo.length > 0 && PersonalLicenciaSePaga ==  "N")
+          throw new ClientException(`No se puede actualizar el registro a se paga NO ya que tiene horas cargadas`)
+
+         await this.AplicaPeriodoCreateOrUpdate(PersonalId,PersonalLicenciaId,PersonalLicenciaHorasMensuales,`${mesRequest}/${anioRequest}`,isEditOrNew)
+        
+         await queryRunner.query(`UPDATE PersonalLicencia
           SET PersonalLicenciaDesde = @0, PersonalLicenciaHasta = @1, PersonalLicenciaTermina = @1, 
               PersonalTipoInasistenciaId = @2, PersonalLicenciaSePaga = @3, PersonalLicenciaHorasMensuales = @4,
               PersonalLicenciaObservacion = @5, PersonalLicenciaTipoAsociadoId = @6,PersonalLicenciaCategoriaPersonalId = @7
@@ -380,7 +362,7 @@ export class CargaLicenciaController extends BaseController {
         PersonalLicenciaUltNro += 1
         await queryRunner.query(` UPDATE Personal SET PersonalLicenciaUltNro = @1 where PersonalId = @0 `, [PersonalId,PersonalLicenciaUltNro]) 
 
-        const result = await queryRunner.query(`INSERT INTO PersonalLicencia (
+         await queryRunner.query(`INSERT INTO PersonalLicencia (
           PersonalId, 
           PersonalLicenciaId, 
           PersonalLicenciaHistorica, 
@@ -423,10 +405,14 @@ export class CargaLicenciaController extends BaseController {
             PersonalLicenciaTipoAsociadoId, 
             null,
             null]) 
-             
+
+            if(PersonalLicenciaSePaga == "S"){
+             await this.AplicaPeriodoCreateOrUpdate(PersonalId,PersonalLicenciaId,PersonalLicenciaHorasMensuales,`${mesRequest}/${anioRequest}`,true)
+          }
       }
 
-     await this.handlePDFUpload(anioRequest,mesRequest,PersonalId,PersonalLicenciaId,res,req,Archivos)
+      
+      await this.handlePDFUpload(anioRequest,mesRequest,PersonalId,PersonalLicenciaId,res,req,Archivos,next)
 
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, (PersonalLicenciaId)? `se Actualizó con exito el registro`:`se Agregó con exito el registro`);
@@ -528,6 +514,81 @@ export class CargaLicenciaController extends BaseController {
     }
   }
 
+  async AplicaPeriodoCreateOrUpdate(
+    PersonalId:any,
+    PersonalLicenciaId:any,
+    PersonalLicenciaHorasMensuales:any,
+    fecha:any,
+    isNew: boolean){
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      
+    console.log( "isNew", isNew )
+    let PersonalLicencia = await queryRunner.query(`SELECT PersonalLicenciaAplicaPeriodoUltNro FROM PersonalLicencia WHERE PersonalId = @0 AND  PersonalLicenciaId = @1`,
+      [PersonalId,PersonalLicenciaId])
+
+    let PersonalPeriodo = await queryRunner.query(`SELECT PersonalSucursalPrincipalSucursalId FROM PersonalSucursalPrincipal WHERE personalId = @0`,
+      [PersonalId])
+
+    if(!isNew){
+
+    let personalLicenciaIncrement = 
+    PersonalLicencia[0].PersonalLicenciaAplicaPeriodoUltNro != undefined 
+    ? PersonalLicencia[0].PersonalLicenciaAplicaPeriodoUltNro + 1 
+    : 0
+
+    await queryRunner.query(`UPDATE PersonalLicencia SET PersonalLicenciaAplicaPeriodoUltNro = @2 WHERE PersonalId = @0 AND  PersonalLicenciaId = @1`,
+      [PersonalId,PersonalLicenciaId,personalLicenciaIncrement])
+
+       
+    let PersonalPeriodo = await queryRunner.query(`SELECT PersonalSucursalPrincipalSucursalId FROM PersonalSucursalPrincipal WHERE personalId = @0`,
+      [PersonalId]
+    )
+
+      await queryRunner.query(`INSERT INTO PersonalLicenciaAplicaPeriodo (
+        PersonalLicenciaAplicaPeriodoId, 
+        PersonalId, 
+        PersonalLicenciaId, 
+        PersonalLicenciaHorasMensuales, 
+        fecha, 
+        PersonalPeriodoAplicaPeriodoSucursalId, 
+        )
+        VALUES (@0,@1,@2,@3,@4,@5)`
+        , [personalLicenciaIncrement,
+          PersonalId,
+          PersonalLicenciaId,
+          PersonalLicenciaHorasMensuales, 
+          fecha,
+          PersonalPeriodo[0].PersonalSucursalPrincipalSucursalId
+          ]) 
+    }else{
+
+      await queryRunner.query(`INSERT INTO PersonalLicenciaAplicaPeriodo (
+        PersonalLicenciaAplicaPeriodoId, 
+        PersonalId, 
+        PersonalLicenciaId, 
+        PersonalLicenciaHorasMensuales, 
+        fecha, 
+        PersonalPeriodoAplicaPeriodoSucursalId, 
+        )
+        VALUES (@0,@1,@2,@3,@4,@5)`
+        , [PersonalLicencia[0].PersonalLicenciaAplicaPeriodoUltNro,
+          PersonalId,
+          PersonalLicenciaId,
+          PersonalLicenciaHorasMensuales, 
+          fecha,
+          PersonalPeriodo[0].PersonalSucursalPrincipalSucursalId
+          ]) 
+
+    }
+
+
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+       //return next('Error processing files:'+ error)
+    }
+  }
+
   async handlePDFUpload(
     anioRequest: number, 
     mesRequest: number, 
@@ -535,7 +596,7 @@ export class CargaLicenciaController extends BaseController {
     PersonalLicenciaId: number,
     res: Response,
     req: Request,
-    Archivo: any
+    Archivo: any,next: NextFunction
   ) {
     const file = req.file;
     const queryRunner = dataSource.createQueryRunner();
@@ -570,15 +631,11 @@ export class CargaLicenciaController extends BaseController {
           PersonalLicenciaId
         );
       }
-      
+      //this.jsonRes({}, res, 'PDF guardado con exito!');
     } catch (error) {
-      await queryRunner.rollbackTransaction();
-      console.error('Error processing files:', error);
-      // Manejar el error adecuadamente, puedes llamar a next(error) si estás en un middleware de Express
-    } finally {
-      //await queryRunner.release();
-      this.jsonRes({}, res, 'PDF guardado con exito!');
-      // unlinkSync(file.path); // Si necesitas eliminar el archivo subido
+      this.rollbackTransaction(queryRunner)
+      //return next(error)
+       return next('Error processing files:'+ error)
     }
   }
 
@@ -695,47 +752,64 @@ export class CargaLicenciaController extends BaseController {
   }
 
   async changehours(req: any, res: Response, next: NextFunction) {
-    
+
     const queryRunner = dataSource.createQueryRunner();
+    try {
+      
     await queryRunner.connect();
     await queryRunner.startTransaction();
-    let horas =  Number(this.formatHours(req.body.PersonalLicenciaAplicaPeriodoHorasMensuales));
-    let PersonalId = req.body.PersonalId;
-    let PersonalLicenciaAplicaPeriodoId = req.body.PersonalLicenciaAplicaPeriodoId
+    let horaSinProcesar = req.body[0].PersonalLicenciaAplicaPeriodoHorasMensuales
+    // let horas =  horaSinProcesar == 0 ? horaSinProcesar : parseFloat(this.formatHours(horaSinProcesar).toString()).toFixed(2);
+    let horas =  horaSinProcesar == 0 ? horaSinProcesar : this.formatHours(horaSinProcesar);
+    let PersonalId = req.body[0].PersonalId;
+    let PersonalLicenciaId = req.body[0].PersonalLicenciaId
 
-    const result = await queryRunner.query(`UPDATE PersonalLicenciaAplicaPeriodo
-    SET PersonalLicenciaAplicaPeriodoHorasMensuales = @0
-    WHERE PersonalId = 30  AND PersonalLicenciaId = @1 AND PersonalLicenciaAplicaPeriodoId = @2`,
-    [horas,PersonalId,PersonalLicenciaAplicaPeriodoId]);
+    console.log("PersonalId ", PersonalId)
+    console.log("horas ",horas)
+    console.log("PersonalLicenciaId ",PersonalLicenciaId)
 
+    if(horas != 0){
+       await queryRunner.query(`UPDATE PersonalLicenciaAplicaPeriodo
+        SET PersonalLicenciaAplicaPeriodoHorasMensuales = @0
+        WHERE PersonalId = @1  AND PersonalLicenciaId = @2 `,
+        [horas,PersonalId,PersonalLicenciaId]);
+    
+     }else{
+
+       await queryRunner.query(`DELETE FROM  PersonalLicenciaAplicaPeriodo
+        WHERE PersonalId = @0  AND PersonalLicenciaId = @1`,
+        [PersonalId,PersonalLicenciaId]);
+    }
+
+    
     await queryRunner.commitTransaction();
+
     console.log(req.body)
     this.jsonRes({}, res, "Modificación con exito!");
-    try {
-      return next(`Se procesaron cambios `)
+     
     } catch (error) {
       this.rollbackTransaction(queryRunner)
       //return next(error)
-    return next(`Se procesaron cambios `)
+       return next(`Error Procesando Cambios `)
     } 
   }
 
-  formatHours(hours: any) {
-
+  formatHours(hours:any) {
     if (!hours) return;
 
-     hours = hours.toString().replace('.', ',');
+    hours = hours.toString().replace('.', ',');
+
+    if (hours === "0" || hours === "0,0") return 0;
     let [integerPart, decimalPart] = hours.split(',');
     decimalPart = decimalPart ? decimalPart.padEnd(2, '0') : '00';
     let minutes = Math.round(parseFloat('0.' + decimalPart) * 60);
-
     if (minutes >= 60) {
-      integerPart = (parseInt(integerPart) + 1).toString();
-      minutes -= 60;
+        integerPart = (parseInt(integerPart) + 1).toString();
+        minutes -= 60;
     }
-    decimalPart = minutes.toString().padStart(2, '0');
 
-    return hours = `${integerPart}.${decimalPart}`;
+    decimalPart = minutes.toString().padStart(2, '0');
+    return `${integerPart}.${decimalPart}`;
   }
 
 }
