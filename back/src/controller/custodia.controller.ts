@@ -362,8 +362,8 @@ export class CustodiaController extends BaseController {
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            // const responsableId = 699
-            const responsableId = res.locals.PersonalId
+            const responsableId = 699
+            // const responsableId = res.locals.PersonalId
             if (!responsableId) 
                 throw new ClientException(`No se a encontrado al personal responsable`)
 
@@ -433,8 +433,8 @@ export class CustodiaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try{
             await queryRunner.startTransaction()
-            // const responsableId = 699
-            const responsableId = res.locals.PersonalId
+            const responsableId = 699
+            // const responsableId = res.locals.PersonalId
             const options: Options = isOptions(req.body.options)? req.body.options : { filtros: [], sort: null };
             
             const filterSql = filtrosToSql(options.filtros, columnsObjCustodia);
@@ -523,8 +523,8 @@ export class CustodiaController extends BaseController {
             await queryRunner.startTransaction()
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            // const responsableId = 699
-            const responsableId = res.locals.PersonalId
+            const responsableId = 699
+            // const responsableId = res.locals.PersonalId
             const custodiaId = req.params.id
             const objetivoCustodia = {...req.body }
             
@@ -698,4 +698,20 @@ export class CustodiaController extends BaseController {
         }
     }
     
+    async searhPatente(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const patente = req.body.patente
+            const list = await queryRunner.query(`
+                SELECT veh.patente, veh.dueno_id duenoId
+                FROM lige.dbo.vehiculo veh
+                WHERE patente LIKE '%${patente}%'`)
+        return this.jsonRes(list, res);
+        } catch (error) {
+            this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
 }

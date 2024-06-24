@@ -10,6 +10,7 @@ import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
+import { PatenteSearchComponent } from '../../../shared/patente-search/patente-search.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
@@ -23,7 +24,7 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
     standalone: true,
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, FiltroBuilderComponent],
+    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, FiltroBuilderComponent, PatenteSearchComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 
 })
@@ -113,15 +114,17 @@ export class CustodiaFormComponent {
 
     async save(estado:number) {
         let form = this.ngForm().value
-        if (this.editCustodiaId()) {
-            form.estado = estado
-            await firstValueFrom(this.apiService.updateObjCustodia(form, this.editCustodiaId()))
-        } else {
-            const res = await firstValueFrom(this.apiService.addObjCustodia(form))
-            if (res.data.custodiaId){
-                this.editCustodiaId.set(res.data.custodiaId)
-            }
-        }
+        console.log('form',form);
+        
+        // if (this.editCustodiaId()) {
+        //     form.estado = estado
+        //     await firstValueFrom(this.apiService.updateObjCustodia(form, this.editCustodiaId()))
+        // } else {
+        //     const res = await firstValueFrom(this.apiService.addObjCustodia(form))
+        //     if (res.data.custodiaId){
+        //         this.editCustodiaId.set(res.data.custodiaId)
+        //     }
+        // }
     }
 
     onChangeImpo(){
