@@ -210,6 +210,16 @@ export class TableHorasLicenciaComponent {
       onCellChange: this.onHoursChange.bind(this),
     },
     {
+      name: "Total Valor Liquidacion",
+      id: "total",
+      field: "total",
+      params: {
+        complexFieldLabel: 'total',
+      },
+      hidden: false,
+      onCellChange: this.onHoursChange.bind(this),
+    },
+    {
       name: "Tipo Inasistencia",
       type: "string",
       id: "TipoInasistenciaDescripcion",
@@ -245,7 +255,7 @@ export class TableHorasLicenciaComponent {
   onHoursChange(e: Event, args: any) {
     const item = args.dataContext
 
-    this.apiService.setchangehours({ item: item }).subscribe(evt => {
+    this.apiService.setchangehours(item).subscribe(evt => {
       this.formChange$.next('')
     });
    

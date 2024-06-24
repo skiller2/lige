@@ -61,6 +61,7 @@ export class LicenciaDrawerComponent {
       if (this.PersonalLicenciaId()) {
         let vals = await firstValueFrom(this.apiService.getLicencia(per.year, per.month, this.PersonalId(), this.PersonalLicenciaId()));
         vals.categoria = { id: `${vals.PersonalLicenciaTipoAsociadoId}-${vals.PersonalLicenciaCategoriaPersonalId}` }
+        console.log( "vals ", vals )
         this.ngForm().form.patchValue(vals)
       }
     }
@@ -77,6 +78,8 @@ export class LicenciaDrawerComponent {
     vals.Archivos = this.ArchivosLicenciasAdd
     //vals.PersonalLicenciaHorasMensuales = Number(this.formatHours(vals.PersonalLicenciaHorasMensuales))
     const res = await firstValueFrom(this.apiService.setLicencia(vals))
+    this.ArchivosLicenciasAdd = []
+    this.formChange$.next('');  
   }
 
   async deletelicencia() {
@@ -108,8 +111,6 @@ export class LicenciaDrawerComponent {
         console.log(this.ArchivosLicenciasAdd)
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response)  
-        this.formChange$.next('');     
-        this.ArchivosLicenciasAdd
         break
       default:
         break;
