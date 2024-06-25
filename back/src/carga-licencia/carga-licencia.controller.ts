@@ -317,6 +317,9 @@ export class CargaLicenciaController extends BaseController {
             throw new ClientException(`Debe seleccionar categoría`)
       }
 
+      if(PersonalId  == "")
+        throw new ClientException(`Debe seleccionar una persona`)
+
       if (!TipoInasistenciaId) 
         throw new ClientException(`Debe seleccionar Tipo de Inasistencia`)
 
@@ -329,6 +332,7 @@ export class CargaLicenciaController extends BaseController {
         }else{
           throw new ClientException(`Debe seleccionar la fecha desde`)
         }
+     
         
       if(PersonalLicenciaHasta != null)
         PersonalLicenciaHasta = this.formatDateToCustomFormat(PersonalLicenciaHasta)
@@ -522,15 +526,13 @@ export class CargaLicenciaController extends BaseController {
     isNew: boolean){
     const queryRunner = dataSource.createQueryRunner();
     try {
-      
-    console.log( "isNew", isNew )
+  
     let PersonalLicencia = await queryRunner.query(`SELECT PersonalLicenciaAplicaPeriodoUltNro FROM PersonalLicencia WHERE PersonalId = @0 AND  PersonalLicenciaId = @1`,
       [PersonalId,PersonalLicenciaId])
 
     let PersonalPeriodo = await queryRunner.query(`SELECT PersonalSucursalPrincipalSucursalId FROM PersonalSucursalPrincipal WHERE personalId = @0`,
       [PersonalId])
 
-    if(!isNew){
 
     let personalLicenciaIncrement = 
     PersonalLicencia[0].PersonalLicenciaAplicaPeriodoUltNro != undefined 
@@ -539,11 +541,6 @@ export class CargaLicenciaController extends BaseController {
 
     await queryRunner.query(`UPDATE PersonalLicencia SET PersonalLicenciaAplicaPeriodoUltNro = @2 WHERE PersonalId = @0 AND  PersonalLicenciaId = @1`,
       [PersonalId,PersonalLicenciaId,personalLicenciaIncrement])
-
-       
-    let PersonalPeriodo = await queryRunner.query(`SELECT PersonalSucursalPrincipalSucursalId FROM PersonalSucursalPrincipal WHERE personalId = @0`,
-      [PersonalId]
-    )
 
       await queryRunner.query(`INSERT INTO PersonalLicenciaAplicaPeriodo (
         PersonalLicenciaAplicaPeriodoId, 
@@ -561,27 +558,6 @@ export class CargaLicenciaController extends BaseController {
           fecha,
           PersonalPeriodo[0].PersonalSucursalPrincipalSucursalId
           ]) 
-    }else{
-
-      await queryRunner.query(`INSERT INTO PersonalLicenciaAplicaPeriodo (
-        PersonalLicenciaAplicaPeriodoId, 
-        PersonalId, 
-        PersonalLicenciaId, 
-        PersonalLicenciaHorasMensuales, 
-        fecha, 
-        PersonalPeriodoAplicaPeriodoSucursalId, 
-        )
-        VALUES (@0,@1,@2,@3,@4,@5)`
-        , [PersonalLicencia[0].PersonalLicenciaAplicaPeriodoUltNro,
-          PersonalId,
-          PersonalLicenciaId,
-          PersonalLicenciaHorasMensuales, 
-          fecha,
-          PersonalPeriodo[0].PersonalSucursalPrincipalSucursalId
-          ]) 
-
-    }
-
 
     } catch (error) {
       this.rollbackTransaction(queryRunner)
@@ -709,7 +685,7 @@ export class CargaLicenciaController extends BaseController {
 
       const importacionesAnteriores = await dataSource.query(
 
-        `SELECT doc_id AS id, path, nombre_archivo AS nombre,  FORMAT(aud_fecha_ins, 'yyyy-MM-dd') AS fecha FROM lige.dbo.docgeneral WHERE periodo = @0 AND persona_id = @1 AND den_documento = @2`,
+        `SELECT doc_id AS id, path, nombre_archivo AS nombre,  aud_fecha_ins AS fecha FROM lige.dbo.docgeneral WHERE periodo = @0 AND persona_id = @1 AND den_documento = @2`,
         [periodo_id,Number(PersonalId),Number(PersonalLicenciaId)])
 
       this.jsonRes(
