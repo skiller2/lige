@@ -33,6 +33,7 @@ function refreshTokenRequest(injector: Injector): Observable<any> {
  */
 export function tryRefreshToken(injector: Injector, ev: HttpResponseBase, req: HttpRequest<any>, next: HttpHandlerFn): Observable<any> {
   // 1、若请求为刷新Token请求，表示来自刷新Token可以直接跳转登录页
+
   if ([`/api/auth/refresh`].some(url => req.url.includes(url))) {
     toLogin(injector);
     return throwError(() => ev);
@@ -60,7 +61,7 @@ export function tryRefreshToken(injector: Injector, ev: HttpResponseBase, req: H
       return next(reAttachToken(injector, req));
     }),
     catchError(err => {
-      refreshToking = false;
+      refreshToking = false;      
       toLogin(injector);
       return throwError(() => err);
     })
@@ -69,6 +70,9 @@ export function tryRefreshToken(injector: Injector, ev: HttpResponseBase, req: H
 
 function buildAuthRefresh(injector: Injector) {
   const tokenSrv = injector.get(DA_SERVICE_TOKEN);
+  if (!(tokenSrv.get()?.token))
+    return
+
   tokenSrv.refresh
     .pipe(
       filter(() => !refreshToking),

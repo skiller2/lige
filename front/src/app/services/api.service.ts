@@ -9,6 +9,8 @@ import { formatNumber } from '@angular/common';
 import { ExternalResource, Formatters } from '@slickgrid-universal/common';
 import { AngularUtilService, Column, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
+import { HttpContext } from '@angular/common/http';
+import { ALLOW_ANONYMOUS } from '@delon/auth';
 
 
 @Injectable({
@@ -349,7 +351,7 @@ export class ApiService {
   }
 
   getIdentCode(identData: string, encTelNro: string): Observable<unknown> {
-    return this.http.get<ResponseJSON<any>>(`mess/api/personal/ident`, { identData, encTelNro }).pipe(
+    return this.http.get<ResponseJSON<any>>(`mess/api/personal/ident`, { identData, encTelNro },{observe:'body', context: new HttpContext().set(ALLOW_ANONYMOUS, true)}).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }

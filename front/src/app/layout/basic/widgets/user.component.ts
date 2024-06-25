@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { I18nPipe, SettingsService, User } from '@delon/theme';
@@ -6,6 +6,7 @@ import { NzAvatarModule } from 'ng-zorro-antd/avatar';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { goTo } from 'src/app/core/net/helper';
 
 @Component({
   selector: 'header-user',
@@ -50,6 +51,6 @@ export class HeaderUserComponent {
 
   logout(): void {
     this.tokenService.clear();
-    this.router.navigateByUrl(this.tokenService.login_url!);
+    goTo(inject(Injector),this.tokenService.login_url!)
   }
 }
