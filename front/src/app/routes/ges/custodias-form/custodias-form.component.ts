@@ -10,7 +10,6 @@ import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
-import { PatenteSearchComponent } from '../../../shared/patente-search/patente-search.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
@@ -24,7 +23,7 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
     standalone: true,
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, FiltroBuilderComponent, PatenteSearchComponent],
+    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, FiltroBuilderComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
 
 })
@@ -32,7 +31,7 @@ export class CustodiaFormComponent {
     ngForm = viewChild.required(NgForm);
     cantInputs : Array<number> = [1,2,3,4,5]
     listInputPersonal: Array<number> = this.cantInputs.slice();
-    listInputVehiculo: Array<number> = this.cantInputs.slice();
+    listInputVehiculo: Array<number> = this.cantInputs.slice(0,2);
 
     visibleDrawer: boolean = false
     periodo = signal({ year: 0, month: 0 });
@@ -47,7 +46,7 @@ export class CustodiaFormComponent {
           this.load()
         } else {
             this.listInputPersonal = this.cantInputs.slice()
-            this.listInputVehiculo = this.cantInputs.slice()
+            this.listInputVehiculo = this.cantInputs.slice(0,2)
             this.ngForm().reset()
         }
     }
@@ -136,6 +135,17 @@ export class CustodiaFormComponent {
             }
         }
         this.ngForm().controls['facturacion'].setValue(facturacion)
+    }
+
+    async searchDueno(index: number){
+        const keyDueno = index + 'duenoId'
+        const patente = this.ngForm().value['1patente']
+        if (patente.length > 5) {
+            const res = await firstValueFrom(this.searchService.getLastPersonalByPatente(patente))
+            if (res) {
+                this.ngForm().controls[keyDueno].setValue(res.duenoId)
+            }
+        }
     }
 
 }
