@@ -562,7 +562,7 @@ export class LiquidacionesBancoController extends BaseController {
               usuario, ip, fechaActual, usuario, ip, fechaActual,
             ])
         } else if (row.ind_imputacion == 'PRE') {
-          await queryRunner.query(`UPDATE PersonalPrestamo SET PersonalPrestamoLiquidoFinanzas=1 WHERE PersonalId = @0 AND PersonalPrestamoMontoAutorizado = @1 AND PersonalPrestamoAplicaEl = @2 AND ISNULL(PersonalPrestamoLiquidoFinanzas,0) =0`,
+          await queryRunner.query(`UPDATE PersonalPrestamo SET PersonalPrestamoLiquidoFinanzas=1 WHERE PersonalId = @0 AND PersonalPrestamoMonto = @1 AND PersonalPrestamoAplicaEl = @2 AND ISNULL(PersonalPrestamoLiquidoFinanzas,0) =0`,
             [row.persona_id,
             row.importe,
             row.mes.toString().padStart(2, '0') + '/' + row.anio.toString()
