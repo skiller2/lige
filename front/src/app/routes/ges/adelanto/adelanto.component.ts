@@ -233,8 +233,11 @@ export class AdelantoComponent {
   }
 
   SaveForm() {
+    const vals = this.adelanto.value
+    vals.anio = this.selectedPeriod.year
+    vals.mes = this.selectedPeriod.month
     this.apiService
-      .addAdelanto(this.adelanto.value)
+      .addAdelanto(vals)
       .pipe(
         doOnSubscribe(() => this.saveLoading$.next(true)),
         tap({
