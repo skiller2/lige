@@ -62,9 +62,9 @@ export class AdelantosController extends BaseController {
     {
       name: "Fecha Solicitud",
       type: "date",
-      id: "CUITJPersonalPrestamoFechaSolicitud",
-      field: "PersonalPrestamoFechaSolicitud",
-      fieldName: "pre.PersonalPrestamoFechaSolicitud",
+      id: "PersonalPrestamoDia",
+      field: "PersonalPrestamoDia",
+      fieldName: "pre.PersonalPrestamoDia",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -168,7 +168,7 @@ export class AdelantosController extends BaseController {
     }
   }
 
-  async setAdelanto(personalId: number, monto: number, ip, res: Response, next: NextFunction) {
+  async setAdelanto(anio:number, mes:number, personalId: number, monto: number, ip, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.connect();
@@ -177,6 +177,15 @@ export class AdelantosController extends BaseController {
       if (!personalId) throw new ClientException("Falta cargar la persona.");
       if (!monto) throw new ClientException("Falta cargar el monto.");
 
+      const checkrecibos = await queryRunner.query(
+        `SELECT per.ind_recibos_generados FROM lige.dbo.liqmaperiodo per WHERE per.anio=@1 AND per.mes=@2`, [,anio, mes]
+      );
+  
+      if (checkrecibos[0]?.ind_recibos_generados ==1)
+        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede generar adelantos para el período`)
+  
+
+      const aplicaEl = `${String(mes).padStart(2,'0')}/${String(anio).padStart(4,'0')}`
       const adelantoExistente = await queryRunner.query(
         `DELETE From PersonalPrestamo 
                 WHERE (PersonalPrestamoAprobado IS NULL)
@@ -184,12 +193,13 @@ export class AdelantosController extends BaseController {
         [personalId]
       );
       const now = new Date()
+      const hora = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
       let today = now
       today.setHours(0, 0, 0, 0)
 
       if (monto > 0) {
 
-        const adelantoId =
+        const prestamoId =
           Number((
             await queryRunner.query(
               `
@@ -202,36 +212,41 @@ export class AdelantosController extends BaseController {
 
         const result = await queryRunner.query(
           `INSERT INTO PersonalPrestamo(
-                    PersonalPrestamoId, PersonalId, PersonalPrestamoMonto, PersonalPrestamoFechaSolicitud, 
+                    PersonalPrestamoId, PersonalId, PersonalPrestamoMonto, FormaPrestamoId, 
                     PersonalPrestamoAprobado, PersonalPrestamoFechaAprobacion, PersonalPrestamoCantidadCuotas, PersonalPrestamoAplicaEl, 
                     PersonalPrestamoLiquidoFinanzas, PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCuotaUltNro, PersonalPrestamoMontoAutorizado, 
-                    PersonalPrestamoJerarquicoId, PersonalPrestamoPuesto, PersonalPrestamoUsuarioId, PersonalPrestamoDia, 
-                    PersonalPrestamoTiempo)
+                    -- PersonalPrestamoJerarquicoId, PersonalPrestamoPuesto, PersonalPrestamoUsuarioId,
+                    PersonalPrestamoDia, PersonalPrestamoTiempo)
                     VALUES(
-                    @0, @1, @2, @3, 
-                    @4, @5, @6, @7, 
-                    @8, @9, @10, @11, 
-                    @12, @13, @14, @15, 
-                    @16)
+                    @0, @1, @2, @3,
+                    @4, @5, @6, @7,
+                    @8, @9, @10, @11,
+                    -- @12, @13, @14,
+                    @15, @16)
                 `,
           [
-            adelantoId, //PersonalPrestamoId
+            prestamoId, //PersonalPrestamoId
             personalId, //PersonalId
             monto, //PersonalPrestamoMonto
-            today, //PersonalPrestamoFechaSolicitud
+            7, //FormaPrestamoId = 7 Adelanto
+
             null, //PersonalPrestamoAprobado
             null, //PersonalPrestamoFechaAprobacion
-            0,  //PersonalPrestamoCantidadCuotas
-            null, //PersonalPrestamoAplicaEl
+            1,  //PersonalPrestamoCantidadCuotas
+            aplicaEl, //PersonalPrestamoAplicaEl
+
             null, //PersonalPrestamoLiquidoFinanzas
             "", //PersonalPrestamoUltimaLiquidacion
             null, //PersonalPrestamoCuotaUltNro
-            0, //PersonalPrestamoMontoAutorizado
+            0, //PersonalPrestamoMonto
+
             null, //PersonalPrestamoJerarquicoId
             ip, //PersonalPrestamoPuesto
             null, //PersonalPrestamoUsuarioId
+
             today, //PersonalPrestamoDia
-            0 //PersonalPrestamoTiempo  now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds(),
+            hora, //PersonalPrestamoTiempo  
+
           ]
         );
 
@@ -239,7 +254,7 @@ export class AdelantosController extends BaseController {
           `UPDATE Personal SET PersonalPrestamoUltNro=@1 WHERE PersonalId=@0 `,
           [
             personalId,
-            adelantoId,
+            prestamoId,
           ]
         );
 
@@ -249,7 +264,7 @@ export class AdelantosController extends BaseController {
       this.jsonRes({
         personalId, //PersonalId
         PersonalPrestamoMonto: monto, //PersonalPrestamoMonto
-        PersonalPrestamoFechaSolicitud: today, //PersonalPrestamoFechaSolicitud
+        PersonalPrestamoDia: today, //PersonalPrestamoDia
       }, res, "Ayuda Asistencial añadido.");
     } catch (error) {
       this.rollbackTransaction(queryRunner)
@@ -302,13 +317,14 @@ export class AdelantosController extends BaseController {
 
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
-//TODO Ver como no mostras los adelantos pendientes en un mes viejo
     try {
       const adelantos = await dataSource.query(
         `SELECT DISTINCT CONCAT(per.PersonalId,'-',pre.PersonalPrestamoId,'-',g.GrupoActividadId) id,
         per.PersonalId, cuit.PersonalCUITCUILCUIT CUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
         g.GrupoActividadId, g.GrupoActividadNumero, g.GrupoActividadDetalle,
-        pre.PersonalPrestamoId, pre.PersonalPrestamoMonto, pre.PersonalPrestamoFechaSolicitud, pre.PersonalPrestamoAprobado, pre.PersonalPrestamoFechaAprobacion, pre.PersonalPrestamoCantidadCuotas, pre.PersonalPrestamoAplicaEl, pre.PersonalPrestamoLiquidoFinanzas, pre.PersonalPrestamoUltimaLiquidacion, pre.PersonalPrestamoCuotaUltNro, pre.PersonalPrestamoMontoAutorizado, pre.PersonalPrestamoJerarquicoId, pre.PersonalPrestamoPuesto, pre.PersonalPrestamoUsuarioId, pre.PersonalPrestamoDia, pre.PersonalPrestamoTiempo
+        pre.PersonalPrestamoId, pre.PersonalPrestamoMonto, pre.PersonalPrestamoAprobado, pre.PersonalPrestamoFechaAprobacion, pre.PersonalPrestamoCantidadCuotas, pre.PersonalPrestamoAplicaEl, pre.PersonalPrestamoLiquidoFinanzas, pre.PersonalPrestamoUltimaLiquidacion, pre.PersonalPrestamoCuotaUltNro,
+        -- pre.PersonalPrestamoJerarquicoId, pre.PersonalPrestamoPuesto, pre.PersonalPrestamoUsuarioId,
+        pre.PersonalPrestamoDia, pre.PersonalPrestamoTiempo
       
         FROM Personal per
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
@@ -317,7 +333,7 @@ export class AdelantosController extends BaseController {
         LEFT JOIN GrupoActividad g ON g.GrupoActividadId = ga.GrupoActividadId           
      
         LEFT JOIN PersonalPrestamo pre ON pre.PersonalId = per.PersonalId
-               -- AND DATEPART(YEAR,pre.PersonalPrestamoFechaSolicitud) = @1 AND DATEPART(MONTH,pre.PersonalPrestamoFechaSolicitud) = @2
+               -- AND DATEPART(YEAR,pre.PersonalPrestamoDia) = @1 AND DATEPART(MONTH,pre.PersonalPrestamoDia) = @2
                -- pre.PersonalPrestamoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1)
         AND (pre.PersonalPrestamoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) OR (pre.PersonalPrestamoAplicaEl IS NULL AND pre.PersonalPrestamoAprobado IS NULL)) 
         WHERE (1=1) 

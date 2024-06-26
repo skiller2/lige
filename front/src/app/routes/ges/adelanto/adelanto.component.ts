@@ -112,13 +112,13 @@ export class AdelantoComponent {
         if (item.PersonalPrestamoMonto == 0) {
           const res = await firstValueFrom(this.apiService
             .delAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto }))
-          item.PersonalPrestamoFechaSolicitud = null
+          item.PersonalPrestamoDia = null
           item.PersonalPrestamoMonto = null
         } else if (item.PersonalPrestamoMonto > 0) {
           const res: any = await firstValueFrom(this.apiService
-            .addAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto }))
+            .addAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto, anio:this.selectedPeriod.year, mes:this.selectedPeriod.month }))
 
-          item.PersonalPrestamoFechaSolicitud = res.data.PersonalPrestamoFechaSolicitud
+          item.PersonalPrestamoDia = res.data.PersonalPrestamoDia
         }
       } catch (err) {
         editCommand.undo()

@@ -724,7 +724,7 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>(`mess/api/chatbot/delay`, { ms }).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
   }
 
-  addAdelanto(adelanto: { PersonalId: string; monto: number }) {
+  addAdelanto(adelanto: { PersonalId: string; monto: number, anio:number,mes:number }) {
     return this.http.post<ResponseJSON<any>>(`api/adelantos`, adelanto).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
   }
 
