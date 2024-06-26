@@ -20,55 +20,50 @@ export const tmpName = (dir: string) => {
 
 export class BotServer {
   private adapterProvider: Provider
+  private botHandle:any
 
-  public async sendMsg(telNro: string, message: string) {
-    await this.adapterProvider.sendMessage(telNro,message,{})
+  public sendMsg(telNro: string, message: string) {
+    return this.adapterProvider.sendMessage(telNro, message, {})
   }
 
-  public async runFlow(telNro: string,flow: string, ) {
-    this.adapterProvider.emit('DISPATCH',{ from: '5491144050522', name: 'EVENT_REGISTER'})
+  public runFlow(from: string, name: string) {
+    return this.adapterProvider.emit('message', {
+      ...{from,name},
+      body: utils.encryptData(`_event_custom_${name}_`),
+      name,
+      from,
+  });
+
+
   }
 
   public async init() {
 
-  const adapterFlow = createFlow([flowLogin, flowValidateCode])
-  this.adapterProvider = createProvider(Provider)
-  const adapterDB = new Database({ filename: 'db.json' })
+    const adapterFlow = createFlow([flowLogin, flowValidateCode])
+    this.adapterProvider = createProvider(Provider)
+    const adapterDB = new Database({ filename: 'db.json' })
 
-  const { handleCtx, httpServer } = await createBot({
-    flow: adapterFlow,
-    provider: this.adapterProvider,
-    database: adapterDB,
+    this.botHandle = await createBot({
+      flow: adapterFlow,
+      provider: this.adapterProvider,
+      database: adapterDB,
 
-  })
-    this.adapterProvider.on('ready', handleCtx(async (bot) => { 
-      console.log('ready')
-//      await bot.dispatch('EVENT_REGISTER', { from: '5491144050522', name })
+    })
 
-    }))
-
-    this.adapterProvider.on('DISPATCH', handleCtx(async (params) => { 
-      console.log('dispatch',params)
-      //      await bot.dispatch('EVENT_REGISTER', { from: '5491144050522', name })
-/*      
-      this.adapterProvider.server.post('/v1/register', handleCtx(async (bot, req, res) => {
-        const { number, name } = req.body
-  
-        await bot.dispatch('EVENT_REGISTER', { from: number, name })
-        return res.end('trigger')
-    }))    
-  */
-
-    }))
-
-    httpServer(3008)
+    this.adapterProvider.on('ready',  () => {
+      console.log('ready' )
+    })
 
 
-    this.adapterProvider.server.post('/v1/register', handleCtx(async (bot, req, res) => {
+    this.botHandle.httpServer(3008)
+
+
+    this.adapterProvider.server.post('/v1/register', this.botHandle.handleCtx(async (bot, req, res) => {
       const { number, name } = req.body
-
-      await bot.dispatch('EVENT_REGISTER', { from: number, name })
+      console.log('quetiene',bot)
+      //await bot.dispatch('EVENT_REGISTER', { from: number, name })
+      //await this.botHandle.dispatch('EVENT_REGISTER', { from: number, name })
       return res.end('trigger')
-  }))    
-}
+    }))
+  }
 }

@@ -17,45 +17,26 @@ export class IdentComponent {
   codGenerado = model('')
   encTelNro = input('')
   identData = model('A@B@C@23329580')
-  lastScan = ''
+
   private apiService = inject(ApiService)
   camdevice = undefined
   cams:any = []
   curcam = 0
+  scannerEnabled = model(false)
   scanComplete(e:any) {
 //    console.log('scanComplete',e)
   }
 
   async scanSuccess(e: string) {
-    if (e == this.lastScan)
-      return
-    Crypto.arguments
-
-
+    this.scannerEnabled.set(false)
     const res: any = await firstValueFrom(this.apiService.getIdentCode(e,this.encTelNro()));
 
     this.codGenerado.set(String(res?.data?.codigo))
-
-    console.log('scanComplete',e)
-    this.lastScan = e
-  }
-
-  async encode(e: string) {
-    if (e == this.lastScan)
-      return
-    Crypto.arguments
-
-
-    const res: any = await firstValueFrom(this.apiService.genIdentCode(e));
-
-    this.codGenerado.set(String(res?.data?.codigo))
-
-    console.log('scanComplete',e)
-    this.lastScan = e
   }
   
   ngOnInit() {
-    
+    if (this.encTelNro())
+      this.scannerEnabled.set(true)
   }
 
   camerasFoundHandler(cams: any) {

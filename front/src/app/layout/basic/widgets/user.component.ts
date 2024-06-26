@@ -44,6 +44,7 @@ import { goTo } from 'src/app/core/net/helper';
 export class HeaderUserComponent {
   private readonly settings = inject(SettingsService);
   private readonly router = inject(Router);
+  private readonly injector = inject(Injector);
   private readonly tokenService = inject(DA_SERVICE_TOKEN);
   get user(): User {
     return this.settings.user;
@@ -51,6 +52,6 @@ export class HeaderUserComponent {
 
   logout(): void {
     this.tokenService.clear();
-    goTo(inject(Injector),this.tokenService.login_url!)
+    goTo(this.injector,this.tokenService.login_url!)
   }
 }

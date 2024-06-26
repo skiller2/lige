@@ -3,15 +3,17 @@ import flowMonotributo from './flowMonotributo'
 import flowRecibo from './flowRecibo'
 import flowConstMedica from './flowConstMedica'
 import flowEnd from './flowEnd'
+import flowRemoveTel from './flowRemoveTel'
 import { chatBotController } from "../controller/controller.module";
 
 const delay = chatBotController.getDelay()
 
 const flowMenu = addKeyword(EVENTS.ACTION)
     .addAnswer([
-        'Ingrese el numero del tema a consultar',
+        'Ingrese el número del tema a consultar',
         '1- *Monotributo*',
         '2- *Recibo de Retiro*',
+        '9- *Desvincular teléfono*',
         // '3- *Pedido de Licencia*',
         // '4- *Envío de Constancia médica*'
         '0- Si no desea consultar nada más'
@@ -19,9 +21,9 @@ const flowMenu = addKeyword(EVENTS.ACTION)
     { capture: true , delay }, 
     async (ctx, { fallBack }) => {
         const tema = parseInt(ctx.body)
-        if (tema<0 || tema>2) {
+        if (tema<0 || tema>9) {
             return fallBack()
         }
-    }, [flowMonotributo, flowRecibo, flowConstMedica, flowEnd])
+    }, [flowMonotributo, flowRecibo, flowRemoveTel, flowEnd])
 
 export default flowMenu
