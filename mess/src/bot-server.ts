@@ -9,6 +9,9 @@ import { createBot, createProvider, createFlow, addKeyword, utils } from '@build
 import { JsonFileDB as Database } from '@builderbot/database-json'
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
 import { flowLogin, flowValidateCode } from "./flow/flowLogin";
+import flowRecibo from "./flow/flowRecibo";
+import flowMonotributo from "./flow/flowMonotributo";
+import flowMenu from "./flow/flowMenu";
 
 dotenv.config()
 export const tmpName = (dir: string) => {
@@ -39,7 +42,7 @@ export class BotServer {
 
   public async init() {
 
-    const adapterFlow = createFlow([flowLogin, flowValidateCode])
+    const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode,flowRecibo,flowMonotributo])
     this.adapterProvider = createProvider(Provider)
     const adapterDB = new Database({ filename: 'db.json' })
 

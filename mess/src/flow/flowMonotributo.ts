@@ -1,5 +1,5 @@
 import { impuestosAfipController } from "../controller/controller.module";
-import { addKeyword } from "@builderbot/bot";
+import { EVENTS, addKeyword } from "@builderbot/bot";
 import flowMenu from './flowMenu'
 import flowEnd from './flowEnd'
 import { ClientException } from "src/controller/base.controller";
@@ -7,7 +7,7 @@ import { chatBotController } from "../controller/controller.module";
 
 const delay = chatBotController.getDelay()
 
-const flowMonotributo = addKeyword(['1','monotributo', 'mono', 'm'])
+const flowMonotributo = addKeyword(EVENTS.ACTION)
     // .addAction(async (_, { flowDynamic, state }) => {
     //     await flowDynamic([{body:`⏱️ Dame un momento`}])
     //     const myState = state.getMyState()

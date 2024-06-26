@@ -1,11 +1,11 @@
 import { personalController } from "../controller/controller.module";
-import { addKeyword } from "@builderbot/bot";
+import { EVENTS, addKeyword } from "@builderbot/bot";
 import flowEnd from './flowEnd'
 import { chatBotController } from "../controller/controller.module";
 
 const delay = chatBotController.getDelay()
 
-const flowRemoveTel = addKeyword(['9', 'remover'])
+const flowRemoveTel = addKeyword(EVENTS.ACTION)
     .addAction(async (ctx, {flowDynamic, state, endFlow }) => {
         await flowDynamic([{ body: `⏱️ Dame un momento`, delay }])
         const myState = state.getMyState()
