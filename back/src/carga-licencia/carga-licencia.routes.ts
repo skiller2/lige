@@ -72,45 +72,45 @@ const storage = multer.diskStorage({
 
 export const CargaLicenciaCargaRouter = Router();
 
-CargaLicenciaCargaRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
+CargaLicenciaCargaRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res) => {
   cargaLicenciaController.getGridCols(req, res);
 });
 
 
-CargaLicenciaCargaRouter.post("/list", authMiddleware.verifyToken, (req, res, next) => {
+CargaLicenciaCargaRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
     cargaLicenciaController.list(req, res, next);
 });
 
-CargaLicenciaCargaRouter.post("/listhoras", authMiddleware.verifyToken, (req, res, next) => {
+CargaLicenciaCargaRouter.post("/listhoras", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
     cargaLicenciaController.listHoras(req, res, next);
 });
 
-CargaLicenciaCargaRouter.get("/:anio/:mes/:PersonalId/:PersonalLicenciaId", authMiddleware.verifyToken, (req, res, next) => {
+CargaLicenciaCargaRouter.get("/:anio/:mes/:PersonalId/:PersonalLicenciaId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
     cargaLicenciaController.getLicencia(req, res, next);
 });
   
-CargaLicenciaCargaRouter.post("/", authMiddleware.verifyToken, (req, res, next) => {
+CargaLicenciaCargaRouter.post("/", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
   cargaLicenciaController.setLicencia(req, res, next);
 });
 
-CargaLicenciaCargaRouter.post('/changehours', authMiddleware.verifyToken, (req, res, next) => {
+CargaLicenciaCargaRouter.post('/changehours', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
   cargaLicenciaController.changehours(req, res, next);
 })
 
-CargaLicenciaCargaRouter.delete("/", authMiddleware.verifyToken, (req, res, next) => {
+CargaLicenciaCargaRouter.delete("/", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
   cargaLicenciaController.deleteLincencia(req, res, next);
 });
 
-CargaLicenciaCargaRouter.get('/licencia_anteriores/:anio/:mes/:PersonalId/:PersonalLicenciaId', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+CargaLicenciaCargaRouter.get('/licencia_anteriores/:anio/:mes/:PersonalId/:PersonalLicenciaId', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
   cargaLicenciaController.getLicenciaAnteriores(req.params.anio, req.params.mes, req.params.PersonalId, req.params.PersonalLicenciaId, req, res, next)
 });
 
-CargaLicenciaCargaRouter.post("/downloadLicencia", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], async (req, res, next) => {
+CargaLicenciaCargaRouter.post("/downloadLicencia", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], async (req, res, next) => {
   await cargaLicenciaController.getByDownLicencia(req, res, next);
 });
 
 
-CargaLicenciaCargaRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) => {
+CargaLicenciaCargaRouter.post("/upload", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
   
   uploadPdf(req, res, (err) => {
 

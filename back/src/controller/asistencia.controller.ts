@@ -1056,22 +1056,7 @@ export class AsistenciaController extends BaseController {
     const listPersonaId = (personalId.length == 0) ? '' : 'AND per.PersonalId IN (' + personalId.join(',') + ')'
 
     let descuentos = await dataSource.query(
-      `             
-      SELECT CONCAT('ADE',ade.PersonalAdelantoId,'-',ade.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId,per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
-      @1 AS anio, @2 AS mes, 'Adelanto' AS tipomov,
-      '' AS desmovimiento,
-      '' AS desmovimiento2,
-      'ADEL' tipoint,
-      ade.PersonalAdelantoMontoAutorizado AS importe, 1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
-      FROM PersonalAdelanto ade 
-              JOIN Personal per ON per.PersonalId = ade.PersonalId
-              LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-              
-              LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
-        WHERE ade.PersonalAdelantoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) AND ade.PersonalAdelantoAprobado ='S' ${listPersonaId}
-      
-      UNION
-             
+      `      
       SELECT CONCAT('cuo',cuo.PersonalOtroDescuentoCuotaId,'-',cuo.PersonalOtroDescuentoId,'-',cuo.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov,
       des.PersonalOtroDescuentoDetalle AS desmovimiento, 
@@ -1108,10 +1093,12 @@ export class AsistenciaController extends BaseController {
       SELECT CONCAT('ayu',cuo.PersonalPrestamoCuotaId,'-',cuo.PersonalPrestamoId,'-',cuo.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, 'Ayuda Asistencial' AS tipomov, 
       '' AS desmovimiento, 
+      -- form.FormaPrestamoDescripcion AS desmovimiento, 
       '' AS desmovimiento2, 'AYUD' tipoint,
       cuo.PersonalPrestamoCuotaImporte AS importe, cuo.PersonalPrestamoCuotaCuota AS cuotanro, des.PersonalPrestamoCantidadCuotas AS cantcuotas, des.PersonalPrestamoMonto importetotal
       
-      FROM PersonalPrestamo des 
+      FROM PersonalPrestamo des
+      JOIN FormaPrestamo form ON form.FormaPrestamoId = des.FormaPrestamoId
       JOIN PersonalPrestamoCuota cuo ON cuo.PersonalPrestamoId = des.PersonalPrestamoId AND cuo.PersonalId = des.PersonalId
               JOIN Personal per ON per.PersonalId = des.PersonalId
               LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 

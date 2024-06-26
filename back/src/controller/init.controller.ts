@@ -116,7 +116,7 @@ AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.Cliente
 
         records.forEach(rec => {
 
-          //          data.push({ x: rec.totalpersonas, y: rec.PersonalAdelantoMonto })
+          //          data.push({ x: rec.totalpersonas, y: rec.PersonalPrestamoMonto })
           //          total += rec.totalpersonas
           total++
         })
@@ -135,7 +135,9 @@ AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.Cliente
     const stmactual = new Date()
     con
       .query(
-        `SELECT COUNT(ade.PersonalAdelantoId) as totalpersonas, SUM(ade.PersonalAdelantoMonto) as totalimporte FROM PersonalAdelanto ade WHERE ade.PersonalAdelantoAprobado IS null
+        `SELECT COUNT(pre.PersonalPrestamoId) as totalpersonas, SUM(pre.PersonalPrestamoMonto) as totalimporte 
+        FROM PersonalPrestamo pre
+        WHERE pre.PersonalPrestamoAprobado IS NULL AND ISNULL(pre.PersonalPrestamoLiquidoFinanzas,0) <> 1
         `,
         [stmactual]
       )
@@ -145,7 +147,7 @@ AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.Cliente
         //      if (records.length ==0) throw new ClientException('Data not found')
         records.forEach(rec => {
 
-          data.push({ x: rec.totalpersonas, y: rec.PersonalAdelantoMonto })
+          data.push({ x: rec.totalpersonas, y: rec.PersonalPrestamoMonto })
           total += rec.totalpersonas
         })
 
@@ -319,7 +321,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
     const mes = Number(req.params.mes)
     const queryRunner = dataSource.createQueryRunner();
 
-    const licencias = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [],null)
+    const licencias = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [],null,false)
     const licerror =  licencias.filter((r:any)=>r.PersonalLicenciaSePaga ==null || (r.PersonalLicenciaSePaga =='S' && Number(r.horas) ==0))
     this.jsonRes({ total: licerror.length, anio,mes }, res);
   }

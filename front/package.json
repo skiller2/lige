@@ -5,6 +5,7 @@
   "scripts": {
     "ng": "ng",
     "dev": "ng serve --hmr",
+    "devssl": "ng serve --host 0.0.0.0 --hmr --ssl",
     "start": "ng s --proxy-config proxy.conf.json",
     "build": "npm run ng-high-memory build",
     "esbuild": "esbuild ./src/main.ts --bundle --minify --sourcemap --outfile=./dist/run.js",

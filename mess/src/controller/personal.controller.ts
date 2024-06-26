@@ -9,13 +9,22 @@ import * as CryptoJS from 'crypto-js';
 import { botServer } from "src";
 
 export class PersonalController extends BaseController {
+  async removeCode(telefono: string) {
+
+    const result = await dataSource.query(
+      `UPDATE lige.dbo.regtelefonopersonal SET codigo=NULL WHERE telefono=@0`,
+      [telefono]
+    );
+    return result
+  }
+
   async delTelefonoPersona(telefono: string) {
 
-      const result = await dataSource.query(
-        `DELETE FROM lige.dbo.regtelefonopersonal WHERE telefono=@0`,
-        [telefono]
-      );
-      return result
+    const result = await dataSource.query(
+      `DELETE FROM lige.dbo.regtelefonopersonal WHERE telefono=@0`,
+      [telefono]
+    );
+    return result
   }
 
   getRemoteAddress(req: any) {
@@ -169,12 +178,17 @@ export class PersonalController extends BaseController {
 
   async getIdentCode(req: any, res: Response, next: NextFunction) {
     const des_doc_ident = req.query.identData
+//    const des_doc_ident = '00417052787@OROFINO@ALFREDO GONZALO@M@7595775@A@24/05/1973@22/01/2016@239'
     const encTelNro = req.query.encTelNro
 
     const stmactual = new Date();
     const usuario = 'anon'
     const ip = this.getRemoteAddress(req)
-    const cuit = '20148145610'
+
+    const des_doc_ident_parts= des_doc_ident.split('@')
+    const dni = (des_doc_ident_parts[4])?des_doc_ident_parts[4] :''
+
+
     const queryRunner = dataSource.createQueryRunner();
 
     try {
@@ -189,11 +203,15 @@ export class PersonalController extends BaseController {
         padding: CryptoJS.default.pad.Pkcs7
       });
 
-      const telNro = decrypted.toString(CryptoJS.default.enc.Utf8)
+      const telNro = decrypted.toString(CryptoJS.default.enc.Utf8).replace(/\"/g, '')
 
-      const valid = /^\d+$/.test(telNro);
-      if (!valid || telNro.length < 8)
-        throw new ClientException('No se puede verificar el número de teléfono')
+      const telValid = /^\d+$/.test(telNro);
+      const dniValid = /^\d+$/.test(dni);
+      if (!telValid || telNro.length < 8)
+        throw new ClientException('No se puede verificar el número de teléfono', { telNro })
+
+      if (!dniValid || dni.length < 6)
+        throw new ClientException('No se puede verificar el número de dni', { dni })
 
       await queryRunner.startTransaction()
 
@@ -203,23 +221,24 @@ export class PersonalController extends BaseController {
         1
         FROM Personal per
         JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-        WHERE cuit2.PersonalCUITCUILCUIT = @0`,
-        [cuit]
+        WHERE cuit2.PersonalCUITCUILCUIT LIKE @0`,
+        [`%${dni}_`]
       )
       if (result.length == 0)
         throw new ClientException('No se pudo verificar el documento, contáctese con personal')
+      if (result.length >1)
+        throw new ClientException('Se encontraron múltiples coincidencias para el DNI, contáctese con personal')
       const PersonalId = result[0].PersonalId
       const codigo = Math.floor(Math.random() * (999999 - 100000) + 100000)
 
       await queryRunner.query(
         `IF EXISTS(select * from lige.dbo.regtelefonopersonal where personal_id=@0) UPDATE lige.dbo.regtelefonopersonal SET codigo=@1, telefono=@2, des_doc_ident=@6, aud_usuario_mod=@3, aud_ip_mod=@4, aud_fecha_mod=@5 WHERE personal_id=@0 ELSE INSERT INTO lige.dbo.regtelefonopersonal (personal_id, codigo, telefono, des_doc_ident, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod) values(@0,@1,@2,@6,@3,@4,@5,@3,@4,@5)   `,
-        [PersonalId, codigo, telNro, usuario, ip, stmactual,des_doc_ident]
+        [PersonalId, codigo, telNro, usuario, ip, stmactual, des_doc_ident]
       )
 
       await queryRunner.commitTransaction()
 
-
-      botServer.sendMsg(telNro,'Su número ha sido registrado correctamente')
+      botServer.runFlow(telNro, 'REGISTRO_FINAL')
 
 
       this.jsonRes({ codigo }, res);

@@ -17,6 +17,7 @@ import {
   BehaviorSubject,
   debounceTime,
   filter,
+  firstValueFrom,
   map,
   switchMap,
   tap,
@@ -41,16 +42,17 @@ import { BarcodeFormat } from '@zxing/library';
   templateUrl: './test.component.html',
   styleUrls: ['./test.component.less'],
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, PersonalSearchComponent, AngularSlickgridModule,DescuentosComponent,ZXingScannerModule],
-  providers:[        ContainerService,  ],
+  imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, PersonalSearchComponent, AngularSlickgridModule, DescuentosComponent, ZXingScannerModule],
+  providers: [ContainerService,],
 
 })
-  
+
 export class TestComponent {
   public _ContainerService = inject(ContainerService)
+  public apiService = inject(ApiService)
   personalId!: number
-  objetivoId!:number
-  valueExtendedObjetivo:any
+  objetivoId!: number
+  valueExtendedObjetivo: any
   valueExtended: any
   confirmation!: NzPopconfirmComponent
   @ViewChild('btntest', { static: false }) btn!: ElementRef<any>
@@ -61,28 +63,28 @@ export class TestComponent {
   private el = inject(ElementRef);
   private document = inject(DOCUMENT)
   nacimiento: Date = new Date('1973-05-24')
-  allowedBarCodeFormats = [BarcodeFormat.PDF_417,BarcodeFormat.QR_CODE]
-  periodo1 = {year:2024,month:3}
+  allowedBarCodeFormats = [BarcodeFormat.PDF_417, BarcodeFormat.QR_CODE]
+  periodo1 = { year: 2024, month: 3 }
   onChange(evt: any) {
-    console.log('onChange',evt)
+    console.log('onChange', evt)
   }
 
   onClick(evt: any) {
-    console.log('onChange',evt)
+    console.log('onChange', evt)
     this.personalId = 699
   }
 
   onModelChange(evt: any) {
-    console.log('onModelChangePersona',evt,this.valueExtended)
+    console.log('onModelChangePersona', evt, this.valueExtended)
   }
 
   onClickObjetivo(evt: any) {
-    console.log('onChange',evt)
+    console.log('onChange', evt)
     this.objetivoId = 780
   }
 
   onModelChangeObjetivo(evt: any) {
-    console.log('onModelChangeObjetivo',evt,this.valueExtendedObjetivo)
+    console.log('onModelChangeObjetivo', evt, this.valueExtendedObjetivo)
   }
 
 
@@ -90,20 +92,6 @@ export class TestComponent {
   ngOnInit(): void {
 
     setTimeout(() => {
-      console.log('this.btn', this.btn)
-      this.confirmation = new NzPopconfirmComponent(this.cdr, this.el , this.dir, this.document)
-      //          this.confirmation = new NzPopconfirmComponent(this.cdr, e.target, this.dir, document, undefined)
-      this.confirmation.nzTitle = 'Está seguro de borrar el registro?'
-      this.confirmation.setOverlayOrigin(this.btn);
-//        this.confirmation.nzVisible = true
-//        this.confirmation.show()
-      console.log('this.confirmation', this.confirmation)
-
-      this.nzpc.nzTitle = 'Está seguro de borrar el registro?'
-//      this.nzpc.setOverlayOrigin(this.btn);
-      console.log('this.nzpc', this.nzpc)
-  
-
     }, 3000);
   }
 
@@ -112,7 +100,7 @@ export class TestComponent {
 
     this.nzpc.hide()
     this.nzpc.show()
-    this.periodo1 = {year:2023,month:3}
+    this.periodo1 = { year: 2023, month: 3 }
   }
 
   click2(): void {
@@ -126,11 +114,20 @@ export class TestComponent {
     console.log('curr this.confirmation', this.confirmation)
   }
 
-  scanComplete(e:any) {
-    console.log('scanComplete',e)
+  lastScan = ''
+  async scanComplete(e: any) {
+    if (e == this.lastScan)
+      return
+    const res: any = await firstValueFrom(this.apiService.getIdentCode(e, ''));
+
+
+    console.log('scanComplete', e)
+    this.lastScan = e
+
+
   }
   scanSuccess(e: string) {
-    
+
   }
 
 }

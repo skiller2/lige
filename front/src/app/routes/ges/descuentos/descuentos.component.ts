@@ -88,7 +88,7 @@ export class DescuentosComponent {
 
     this.angularGridPersonal.dataView.onRowsChanged.subscribe((_e: any, _arg: any) => {
       totalRecords(this.angularGridPersonal)
-      //columnTotal('PersonalAdelantoMonto', this.angularGridPersonal)
+      //columnTotal('', this.angularGridPersonal)
     })
 
   }

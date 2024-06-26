@@ -200,7 +200,7 @@ export class LiquidacionesBancoController extends BaseController {
       type: "currency",
       id: "importe",
       field: "importe",
-      fieldName: "ade.importe",
+      fieldName: "pre.importe",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -359,16 +359,16 @@ export class LiquidacionesBancoController extends BaseController {
     const stmactual = new Date()
 
     return dataSource.query(
-      `SELECT CONCAT(per.PersonalId,'-',ade.PersonalAdelantoId ) as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,
-      ade.PersonalAdelantoMontoAutorizado AS importe, ade.PersonalAdelantoAplicaEl,
+      `SELECT CONCAT(per.PersonalId,'-',pre.PersonalPrestamoId ) as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,
+      pre.PersonalPrestamoMonto AS importe, pre.PersonalPrestamoAplicaEl,
       tipo.tipo_movimiento_id, tipo.des_movimiento,
-      ade.PersonalAdelantoLiquidoFinanzas,
+      pre.PersonalPrestamoLiquidoFinanzas,
       'G' as tipocuenta_id,
-      'ADE' as ind_imputacion,
+      'PRE' as ind_imputacion,
       sit.SituacionRevistaDescripcion,
           1
               FROM Personal per
-              JOIN PersonalAdelanto ade ON ade.PersonalId = per.PersonalId AND ade.PersonalAdelantoAprobado='S' AND ISNULL(ade.PersonalAdelantoLiquidoFinanzas,0) =0
+              JOIN PersonalPrestamo pre ON pre.PersonalId = per.PersonalId AND pre.PersonalPrestamoAprobado='S' AND ISNULL(pre.PersonalPrestamoLiquidoFinanzas,0) =0
               JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = 1
               LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId AND ISNULL(perbanmax.PersonalBancoHasta,'9999-12-31') >= @2)
               LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
@@ -543,7 +543,7 @@ export class LiquidacionesBancoController extends BaseController {
         throw new ClientException('No hay movimientos pendientes de confirmar')
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
-      const tipo_movimiento_id_ade = 1 //Adelanto
+      const tipo_movimiento_id_ade = 1 //Ayuda Asitencial
       const tipo_movimiento_id = 11 //Depósito
       for (let row of liqmvbanco) {
         if (row.ind_imputacion == 'CUE') {
@@ -561,14 +561,14 @@ export class LiquidacionesBancoController extends BaseController {
             row.tipocuenta_id,
               usuario, ip, fechaActual, usuario, ip, fechaActual,
             ])
-        } else if (row.ind_imputacion == 'ADE') {
-          await queryRunner.query(`UPDATE PersonalAdelanto SET PersonalAdelantoLiquidoFinanzas=1 WHERE PersonalId = @0 AND PersonalAdelantoMontoAutorizado = @1 AND PersonalAdelantoAplicaEl = @2 AND PersonalAdelantoLiquidoFinanzas IS NULL`,
+        } else if (row.ind_imputacion == 'PRE') {
+          await queryRunner.query(`UPDATE PersonalPrestamo SET PersonalPrestamoLiquidoFinanzas=1 WHERE PersonalId = @0 AND PersonalPrestamoMonto = @1 AND PersonalPrestamoAplicaEl = @2 AND ISNULL(PersonalPrestamoLiquidoFinanzas,0) =0`,
             [row.persona_id,
             row.importe,
             row.mes.toString().padStart(2, '0') + '/' + row.anio.toString()
             ])
 
-          //Adelanto Positivo          
+          //Prestamo Positivo          
           await queryRunner.query(`INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe, tipocuenta_id,
             aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
               VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)`,
@@ -576,7 +576,7 @@ export class LiquidacionesBancoController extends BaseController {
             row.periodo_id,
               tipo_movimiento_id_ade,
               fechaActual,
-              `Adelanto`,
+              `Ayuda Asistencial`,
               null,
             row.persona_id,
             row.importe,

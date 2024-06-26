@@ -1,4 +1,4 @@
-import { addKeyword } from "@builderbot/bot";
+import { EVENTS, addKeyword } from "@builderbot/bot";
 import flowMenu from './flowMenu'
 import flowEnd from './flowEnd'
 import { recibosController } from "../controller/controller.module";
@@ -7,13 +7,13 @@ import { chatBotController } from "../controller/controller.module";
 
 const delay = chatBotController.getDelay()
 
-const flowRecibo = addKeyword(['2','recibo de retiro', 'recibo', 'r'])
+const flowRecibo = addKeyword(EVENTS.ACTION)
     .addAction(async (_, { flowDynamic, state, gotoFlow }) => {
-        await flowDynamic([{ body:`⏱️ Dame un momento`, delay }])
+        await flowDynamic([{ body:`⏱️ Buscando recibos`, delay }])
         const myState = state.getMyState()
         const personalId = myState.personalId
         const periodosArray : any[] = await recibosController.getLastPeriodoOfComprobantes(personalId, 3).then(array =>{return array})
-        // console.log('periodos', periodosArray);
+        console.log('periodos', periodosArray);
         let resPeriodos = ''
         if (periodosArray.length) {
             periodosArray.forEach((obj : any, index:number) => {

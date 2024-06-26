@@ -33,7 +33,8 @@ export function goTo(injector: Injector, url: string): void {
 }
 
 export function toLogin(injector: Injector): void {
-//  injector.get(NzNotificationService).error(`未登录或登录已过期，请重新登录。`, ``);
+  //  injector.get(NzNotificationService).error(`未登录或登录已过期，请重新登录。`, ``);
+  injector.get(NzNotificationService).remove('')
   injector.get(NzNotificationService).error(`Requiere volver a autenticarse.`, ``);
   goTo(injector, injector.get(DA_SERVICE_TOKEN).login_url!);
 }

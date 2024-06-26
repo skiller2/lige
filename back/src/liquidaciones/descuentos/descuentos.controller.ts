@@ -68,10 +68,6 @@ export class DescuentosController extends BaseController {
           case "OTRO":
             tipo_movimiento_id = 5
             break;
-          case "ADEL":
-            tipo_movimiento_id = 15
-            row.tipomov = ''
-            break;
           case "AYUD":
             tipo_movimiento_id = 7
             row.tipomov = ''
