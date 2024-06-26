@@ -21,7 +21,7 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
     //         await flowDynamic([{ media:monotributoPdf, delay:delay }]) 
     // })
     .addAction(async (_, { flowDynamic, state ,gotoFlow }) => {
-        await flowDynamic([{ body:`⏱️ Dame un momento`, delay }])
+        await flowDynamic([{ body:`⏱️ Buscando comprobantes`, delay }])
         const myState = state.getMyState()
         const personalId = myState.personalId
         const periodosArray : any[] = await impuestosAfipController.getLastPeriodosOfComprobantes(personalId, 3).then(array =>{return array})
@@ -41,12 +41,12 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         
         await state.update({recibo:{ periodosArray, periodosString: resPeriodos }}) 
     })
-    .addAnswer('Ingrese el numero correspondiente a una fecha de la lista 📝',
-    { delay },
-    async (_, { flowDynamic, state }) => {
+    .addAction(async (_, { flowDynamic, state }) => {
         const myState = state.getMyState()
         const resPeriodos = myState.recibo.periodosString
-        await flowDynamic([{ body: resPeriodos}])
+        await flowDynamic([{ body: resPeriodos }])
+        await flowDynamic([{ body: 'Ingrese el número correspondiente a una fecha de la lista 📝'}])
+
     })
     .addAction({ capture: true, delay },
     async (ctx, { flowDynamic, state, fallBack }) => {
@@ -60,12 +60,12 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         const anio = periodosArray[parseInt(msj)-1].anio
         const personalId = myState.personalId
         // await flowDynamic([{ body:`⏱️ Dame un momento`, delay: delay }])
-        const monotributoPdf = await impuestosAfipController.downloadComprobante(personalId, anio, mes).then(data => { return data })
-        // console.log('reciboPdf -->', monotributoPdf);
-        if (monotributoPdf instanceof ClientException)
-            await flowDynamic([{ body:`Error. Avisé al administrador`, delay }])
+        const urlDoc = await impuestosAfipController.getURLDocComprobante(personalId, anio, mes)
+
+        if (urlDoc instanceof Error)
+            await flowDynamic([{ body:`Error, no se encontró el documento`, delay }])
         else
-            await flowDynamic([ { body:'Monotributo', media: monotributoPdf, delay } ]) 
+            await flowDynamic([ { body:`Recibo`, media:urlDoc, delay } ]) 
     })
     .addAnswer([
         '¿Desea consulta algo mas?', 

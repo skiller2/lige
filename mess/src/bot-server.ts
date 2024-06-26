@@ -12,6 +12,7 @@ import { flowLogin, flowValidateCode } from "./flow/flowLogin";
 import flowRecibo from "./flow/flowRecibo";
 import flowMonotributo from "./flow/flowMonotributo";
 import flowMenu from "./flow/flowMenu";
+import flowRemoveTel from "./flow/flowRemoveTel";
 
 dotenv.config()
 export const tmpName = (dir: string) => {
@@ -42,7 +43,7 @@ export class BotServer {
 
   public async init() {
 
-    const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode,flowRecibo,flowMonotributo])
+    const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode,flowRecibo,flowMonotributo,flowRemoveTel])
     this.adapterProvider = createProvider(Provider)
     const adapterDB = new Database({ filename: 'db.json' })
 

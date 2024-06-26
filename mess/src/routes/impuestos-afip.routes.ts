@@ -3,7 +3,7 @@ import { impuestosAfipController } from "../controller/controller.module";
 
 export const impuestosAfipRouter = Router();
 
-impuestosAfipRouter.get("/:anio/:mes/:PersonalId",
-   (req, res, next) => {
+impuestosAfipRouter.get("/download/:PersonalId/:anio/:mes/",
+  (req, res, next) => {
      impuestosAfipController.downloadComprobante(req, res, next);
 });

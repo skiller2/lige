@@ -48,11 +48,10 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
         // await flowDynamic([{ body:`⏱️ Dame un momento`, delay: delay }])
         const urlDocRecibo = await recibosController.getURLDocRecibo(personalId, anio, mes)
 
-        console.log('reciboPdf',urlDocRecibo)
         if (urlDocRecibo instanceof Error)
-            await flowDynamic([{ body:`Error, no se encontró el recibo correspondiente`, delay }])
+            await flowDynamic([{ body:`Error, no se encontró el documento`, delay }])
         else
-            await flowDynamic([ { body:`Recibo`, media:urlDocRecibo } ]) 
+            await flowDynamic([ { body:`Recibo`, media:urlDocRecibo, delay } ]) 
 //            await flowDynamic([ { body:`Rec`, media:"https://i.imgur.com/0HpzsEm.png" } ]) 
     })
     .addAnswer([

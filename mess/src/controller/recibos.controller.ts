@@ -49,6 +49,7 @@ export class RecibosController extends BaseController {
         }
       });
     } catch (error) {
+      this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -63,7 +64,6 @@ export class RecibosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     
     try {
-      await queryRunner.startTransaction()
       
       const gettmpfilename = await this.getRutaFile(queryRunner, personalId, year, month)
       let tmpURL = ''
