@@ -93,9 +93,8 @@
       </nz-form-item>
 
       
-      <nz-form-item>
-        <nz-form-label [nzSpan]="5">Archivos </nz-form-label>
-        <nz-form-control>
+      <nz-form-item >
+        <nz-form-control class="BtnUploadFile">
           <ng-container>
             <nz-upload nzAccept="application/pdf" nzAction="/api/carga-licencia/upload" [nzData]="{
               anio:this.selectedPeriod().year, 
@@ -114,8 +113,7 @@
 
       @if(ArchivosLicenciasAdd.length > 0){
       <nz-form-item>
-        <nz-form-label [nzSpan]="5">Nuevos Archivos </nz-form-label>
-        <nz-form-control>
+        <nz-form-control class="BtnUploadFile">
           <ng-container *ngFor="let licenciaAdd of ArchivosLicenciasAdd">
             <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{licenciaAdd.fieldname}}>
               <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
