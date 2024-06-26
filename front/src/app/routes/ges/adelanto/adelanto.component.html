@@ -109,13 +109,13 @@
                 <tr *ngFor="let data of this.tableAdelantos.data">
                   <td>{{ data.PersonalCUITCUILCUIT }}</td>
                   <td>{{ data.ApellidoNombre }}</td>
-                  <td>{{ data.PersonalAdelantoMonto | currency }}</td>
-                  <td>{{ data.PersonalAdelantoFechaSolicitud | date }}</td>
-                  <td>{{ data.PersonalAdelantoFechaAprobacion | date }}</td>
-                  <td *ngIf="data.PersonalAdelantoAprobado=='S'; then aprobado else pendiente"></td>
+                  <td>{{ data.PersonalPrestamoMonto | currency }}</td>
+                  <td>{{ data.PersonalPrestamoFechaSolicitud | date }}</td>
+                  <td>{{ data.PersonalPrestamoFechaAprobacion | date }}</td>
+                  <td *ngIf="data.PersonalPrestamoAprobado=='S'; then aprobado else pendiente"></td>
                   <ng-template #aprobado>Aprobado</ng-template>
                   <ng-template #pendiente>Pendiente</ng-template>
-                  <td>{{ data.PersonalAdelantoAplicaEl }}</td>
+                  <td>{{ data.PersonalPrestamoAplicaEl }}</td>
                 </tr>
               </tbody>
             </nz-table>

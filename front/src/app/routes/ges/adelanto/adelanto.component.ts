@@ -55,7 +55,7 @@ export class AdelantoComponent {
 
   columns$ = this.apiService.getCols('/api/adelantos/cols').pipe(map((cols) => {
     let mapped = cols.map((col: Column) => {
-      if (col.id == 'PersonalAdelantoMonto') {
+      if (col.id == 'PersonalPrestamoMonto') {
         col.editor = {
           model: Editors.float,
           decimal: 2,
@@ -109,16 +109,16 @@ export class AdelantoComponent {
     this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
       editCommand.execute();
       try {
-        if (item.PersonalAdelantoMonto == 0) {
+        if (item.PersonalPrestamoMonto == 0) {
           const res = await firstValueFrom(this.apiService
-            .delAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalAdelantoMonto }))
-          item.PersonalAdelantoFechaSolicitud = null
-          item.PersonalAdelantoMonto = null
-        } else if (item.PersonalAdelantoMonto > 0) {
+            .delAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto }))
+          item.PersonalPrestamoFechaSolicitud = null
+          item.PersonalPrestamoMonto = null
+        } else if (item.PersonalPrestamoMonto > 0) {
           const res: any = await firstValueFrom(this.apiService
-            .addAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalAdelantoMonto }))
+            .addAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto }))
 
-          item.PersonalAdelantoFechaSolicitud = res.data.PersonalAdelantoFechaSolicitud
+          item.PersonalPrestamoFechaSolicitud = res.data.PersonalPrestamoFechaSolicitud
         }
       } catch (err) {
         editCommand.undo()
@@ -272,7 +272,7 @@ export class AdelantoComponent {
 
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGrid)
-      columnTotal('PersonalAdelantoMonto', this.angularGrid)
+      columnTotal('PersonalPrestamoMonto', this.angularGrid)
     })
       
   }
@@ -292,7 +292,7 @@ export class AdelantoComponent {
 
   handleOnBeforeEditCell(e: Event) {
     const { column, item, grid } = (<CustomEvent>e).detail.args;
-    if (item.PersonalAdelantoFechaAprobacion != null) {
+    if (item.PersonalPrestamoFechaAprobacion != null) {
       e.stopImmediatePropagation();
       return false
     }

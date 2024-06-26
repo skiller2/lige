@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component, inject, input, model } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { BarcodeFormat } from '@zxing/library';
@@ -8,7 +9,7 @@ import { ApiService } from 'src/app/services/api.service';
 @Component({
   selector: 'app-ident',
   standalone: true,
-  imports: [...SHARED_IMPORTS, ZXingScannerModule],
+  imports: [...SHARED_IMPORTS, CommonModule, ZXingScannerModule],
   templateUrl: './ident.component.html',
   styleUrl: './ident.component.less'
 })

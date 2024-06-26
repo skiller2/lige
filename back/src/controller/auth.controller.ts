@@ -319,30 +319,6 @@ export class AuthController extends BaseController {
       for (const row of GrupoActividadList )
         user.GrupoActividad.push(row.GrupoActividadNumero)
       
-      /*    
-        this.authUser(userName, password)
-          .then(async (user: any) => {
-            const queryRunner = dataSource.createQueryRunner();
-            await queryRunner.connect();
-    
-            let result = await queryRunner.query(
-              `SELECT per.PersonalId
-              FROM Personal per ON per.PersonalId = ade.PersonalId
-              JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-              WHERE cuit.PersonalCUITCUILCUIT = @0`, [
-              user.persona_cuit,
-            ])
-            user.PersonaId=0
-            let row:any
-            if ((row = result[0])) { 
-              user.PersonaId = row['PersonalId']
-            }
-    
-          })
-          .catch((error) => {
-            return next(error)
-          });
-    */
 
 
       const jwtsecret = process.env.JWT_SECRET ? process.env.JWT_SECRET : "";
