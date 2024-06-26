@@ -638,12 +638,16 @@ export class SearchService {
     );
   }
 
-  getPatente(patente: string): Observable<any> {
+  getLastPersonalByPatente(patente: string): Observable<any> {
     if (!patente || patente == '') {
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/custodia/patente`, {patente}).pipe(
-      map(res => res.data),
+    return this.http.post<ResponseJSON<any>>(`api/custodia/lastdueno`, {patente}).pipe(
+      map(res => {
+        console.log(res);
+        
+        return (res && res.data) ? res.data[0] : null
+      }),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
