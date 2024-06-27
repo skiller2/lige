@@ -141,7 +141,7 @@
     <br>
     @for (control of listInputPersonal; track control; let i = $index) {
       <nz-form-item class="marginElement">
-        <nz-form-label  [nzSpan]="2">Personal</nz-form-label>
+        <nz-form-label  [nzSpan]="3">Personal</nz-form-label>
         <nz-form-control [nzSpan]="7">
             <app-personal-search ngModel name={{i+1}}personalId />
         </nz-form-control>
@@ -151,24 +151,12 @@
           </button>
         </nz-form-control>
         
-        <nz-form-label  [nzSpan]="4">Importe - Facturación</nz-form-label>
+        <nz-form-label  [nzSpan]="3">Importe - Facturación</nz-form-label>
         <nz-form-control [nzSpan]="5">
           <nz-input-group style="width: 100%">
             <input nz-input placeholder="" ngModel name={{i+1}}importePersonal type="number" (ngModelChange)="onChangeImpo()" />
           </nz-input-group>
         </nz-form-control>
-        
-        <!-- <nz-form-control [nzSpan]="3" style="text-align: center;">
-            <button nz-button nzType="dashed" (click)="openDrawer(i+1+'personalId')">
-              <span nz-icon nzType="user" nzTheme="outline"></span>
-            </button>
-            <button nz-button nzType="primary" class="add-button" (click)="addPersonal($event)">
-              <span nz-icon nzType="plus"></span>
-            </button>
-            <button nz-button nzType="default" (click)="removePersonal(control, $event)">
-              <span nz-icon nzType="delete" nzTheme="outline" ></span>
-            </button>
-        </nz-form-control> -->
         
         <nz-form-control [nzSpan]="2" style="text-align: center;">
           <button nz-button *ngIf="listInputPersonal.length == i+1" nzType="primary" class="add-button" (click)="addPersonal($event)">
@@ -230,23 +218,20 @@
       </nz-form-control>
       <nz-form-label [nzSpan]="2">Estado</nz-form-label>
       <nz-form-control [nzSpan]="7">
-        <nz-input-group style="width: 100%">
-          <nz-select ngModel="0" name="estado" style="width: 100%">
-            <nz-option nzValue="0" nzLabel="Pendiente"></nz-option>
-            <nz-option nzValue="1" nzLabel="Finalizado"></nz-option>
-            <nz-option nzValue="2" nzLabel="Cancelado"></nz-option>
-            <nz-option nzValue="3" nzLabel="A facturar"></nz-option>
-          </nz-select>
-        </nz-input-group>
+        <nz-select name="estado" nzPlaceHolder="Estado" ngModel nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+          <ng-container *ngFor="let option of $optionsEstadoCust | async" >
+            <nz-option [nzValue]="option.tipo" [nzLabel]="option.descripcion" ></nz-option>
+          </ng-container>
+        </nz-select>
       </nz-form-control>
     </nz-form-item>
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
-        <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar guardar cambios?" nz-button *ngIf="edit" (nzOnConfirm)="save(0)">
+        <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar guardar cambios?" nz-button *ngIf="edit" (nzOnConfirm)="save()">
           Guardar Cambios
         </button>
       </nz-form-control>
-      <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
+      <!-- <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
         <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar accion?" nz-button *ngIf="editCustodiaId() && edit" (nzOnConfirm)="save(1)">
           Finalizar
         </button>
@@ -255,7 +240,7 @@
         <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar accion?" nz-button *ngIf="editCustodiaId() && edit" (nzOnConfirm)="save(2)">
           Cancelar
         </button>
-      </nz-form-control>
+      </nz-form-control> -->
     </nz-form-item>
 
 </form>

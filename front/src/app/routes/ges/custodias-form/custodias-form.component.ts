@@ -53,6 +53,8 @@ export class CustodiaFormComponent {
 
     @Input() edit: boolean = true
 
+    $optionsEstadoCust = this.searchService.getEstadoCustodia();
+
     async load() {
         const res = await firstValueFrom(this.searchService.getInfoObjCustodia(this.editCustodiaId()))
         res.form.fechaInicio = new Date(res.form.fechaInicio)
@@ -111,19 +113,17 @@ export class CustodiaFormComponent {
         }
     }
 
-    async save(estado:number) {
-        let form = this.ngForm().value
-        console.log('form',form);
+    async save() {
+        const form = this.ngForm().value
         
-        // if (this.editCustodiaId()) {
-        //     form.estado = estado
-        //     await firstValueFrom(this.apiService.updateObjCustodia(form, this.editCustodiaId()))
-        // } else {
-        //     const res = await firstValueFrom(this.apiService.addObjCustodia(form))
-        //     if (res.data.custodiaId){
-        //         this.editCustodiaId.set(res.data.custodiaId)
-        //     }
-        // }
+        if (this.editCustodiaId()) {
+            await firstValueFrom(this.apiService.updateObjCustodia(form, this.editCustodiaId()))
+        } else {
+            const res = await firstValueFrom(this.apiService.addObjCustodia(form))
+            if (res.data.custodiaId){
+                this.editCustodiaId.set(res.data.custodiaId)
+            }
+        }
     }
 
     onChangeImpo(){

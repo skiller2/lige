@@ -292,14 +292,10 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   selectedValueEstado(val: any) {
-    console.log('val', val);
-    
     if (val) {
       this.selections.value = val.tipo;
       this.valueExtended = { fullName: val.descripcion };
     }
-    console.log('this.selections', this.selections);
-    console.log('this.valueExtended', this.valueExtended);
   }
 
   async addFilter(field: string, condition: string, operator: string, value: string) {

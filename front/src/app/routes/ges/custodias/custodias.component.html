@@ -1,16 +1,13 @@
 <nz-card class="small-margin">
+  
   <ul nz-menu nzMode="horizontal">
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'cust','objetivos']" (click)="resetForm()">Objetivos</a>
+      <a [routerLink]="['/', 'ges', 'cust', 'objetivos']" (click)="resetForm()">Objetivos</a>
     </li>
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'cust','detalle']">Detalle</a>
-    </li>
-    <li nz-menu-item nzMatchRouter>
-      <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'cust','alta']">Alta</a>
+      <a [routerLink]="['/', 'ges', 'cust', 'detalle']">Detalle</a>
     </li>
   </ul>
   <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
@@ -18,18 +15,21 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/cust/objetivos">Objetivos</a>
 
-      
-
       <ng-template nz-tab *ngIf="(columns$|async) as columnas">
         
-        <!-- <nz-form-control [nzSpan]="3">
-          <button nz-button nzType="default" (click)="getObjCustodiaId()" *ngIf="editCustodiaId">
-            <a [routerLink]="['/', 'ges', 'cust','detalle']" >
-              <span nz-icon nzType="edit" nzTheme="outline"></span>
+        <nz-form-control style="text-align: right;">
+          <nz-button-group>
+            <a [routerLink]="['/', 'ges', 'cust','editar']">
+              <button nz-button nzType="default" [disabled]="editCustodiaId? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
             </a>
-          </button>
-        </nz-form-control> -->
+            <a [routerLink]="['/', 'ges', 'cust','alta']">
+              <button nz-button nzType="default" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+            </a>
+          </nz-button-group>
+        </nz-form-control>
+
         <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
+        
         <div class="gridListContainer container-fluid" >
           <angular-slickgrid gridId="grid" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptions"
             [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
@@ -41,6 +41,11 @@
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/cust/detalle">Detalle</a>
+      <app-custodias-form [custodia]="editCustodiaId" [edit]="false"></app-custodias-form>
+    </nz-tab>
+
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/cust/editar">Editar</a>
       <app-custodias-form [custodia]="editCustodiaId" [edit]="editCustodiaId? true : false"></app-custodias-form>
     </nz-tab>
 
