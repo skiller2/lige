@@ -88,6 +88,30 @@ export class TableHorasLicenciaComponent {
     this.formChange$.next("");
   }
 
+  columns$ = this.apiService.getCols('/api/carga-licencia/colsHoras').pipe(map((cols) => {
+    
+    
+    this.columnDefinitions = [
+      {
+        name: "Horas Mensuales",
+        id: "PersonalLicenciaAplicaPeriodoHorasMensuales",
+        field: "PersonalLicenciaAplicaPeriodoHorasMensuales",
+        params: {
+          complexFieldLabel: 'PersonalLicenciaAplicaPeriodoHorasMensuales',
+        },
+        hidden: false,
+        editor: {
+          model: Editors.float, decimal: 2, valueStep: 1, minValue: 0, maxValue: 10000,
+        },
+        onCellChange: this.onHoursChange.bind(this),
+      },
+      
+    ];
+   
+    cols = [...cols,...this.columnDefinitions]
+    return cols
+  }));
+
 
   listOptionsChange(options: any) {
     this.listOptions = options;
@@ -124,124 +148,6 @@ export class TableHorasLicenciaComponent {
 
   ngOnInit() {
 
-    
-    this.columnDefinitions = [
-  
-    {
-      id: "id",
-      name: "number",
-      field: "id",
-      params: {
-        complexFieldLabel: 'id',
-      },
-      hidden: true,
-    },
-    {
-      name: "Nombre y Apellido",
-      type: "string",
-      id: "NombreCompleto",
-      field: "NombreCompleto",
-      params: {
-        complexFieldLabel: 'NombreCompleto',
-      },
-      hidden: false,
-    },
-    {
-      name: "PersonalLicencia Id",
-      type: "number",
-      id: "PersonalLicenciaId",
-      field: "PersonalLicenciaId",
-      params: {
-        complexFieldLabel: 'PersonalLicenciaId',
-      },
-      hidden: true,
-    },
-    {
-      name: "Periodo",
-      type: "string",
-      id: "PersonalLicenciaAplicaPeriodoAplicaEl",
-      field: "PersonalLicenciaAplicaPeriodoAplicaEl",
-      params: {
-        complexFieldLabel: 'PersonalLicenciaAplicaPeriodoAplicaEl',
-      },
-      hidden: true,
-    },
-    {
-      name: "PeriodoSucursalId",
-      type: "number",
-      id: "PersonalLicenciaAplicaPeriodoSucursalId",
-      field: "PersonalLicenciaAplicaPeriodoSucursalId",
-      params: {
-        complexFieldLabel: 'PersonalLicenciaAplicaPeriodoSucursalId',
-      },
-      hidden: true,
-    },
-    {
-      name: "Personal Licencia SePaga",
-      type: "string",
-      id: "PersonalLicenciaSePaga",
-      field: "PersonalLicenciaSePaga",
-      params: {
-        complexFieldLabel: 'PersonalLicenciaSePaga',
-      },
-      hidden: true,
-    },
-    {
-      name: "TipoInasistenciaId",
-      type: "string",
-      id: "TipoInasistenciaId",
-      field: "TipoInasistenciaId",
-      params: {
-        complexFieldLabel: 'TipoInasistenciaId',
-      },
-      hidden: true,
-    },
-    {
-      name: "Horas Mensuales",
-      id: "PersonalLicenciaAplicaPeriodoHorasMensuales",
-      field: "PersonalLicenciaAplicaPeriodoHorasMensuales",
-      params: {
-        complexFieldLabel: 'PersonalLicenciaAplicaPeriodoHorasMensuales',
-      },
-      hidden: false,
-      editor: {
-        model: Editors.float, decimal: 2, valueStep: 1, minValue: 0, maxValue: 10000,
-      },
-      onCellChange: this.onHoursChange.bind(this),
-    },
-    {
-      name: "Total Valor Liquidacion",
-      id: "total",
-      field: "total",
-      params: {
-        complexFieldLabel: 'total',
-      },
-      hidden: false,
-      onCellChange: this.onHoursChange.bind(this),
-    },
-    {
-      name: "Tipo Inasistencia",
-      type: "string",
-      id: "TipoInasistenciaDescripcion",
-      field: "TipoInasistenciaDescripcion",
-      params: {
-        complexFieldLabel: 'TipoInasistenciaDescripcion',
-      },
-      hidden: false,
-    },
-    {
-      name: "PersonalLicenciaAplicaPeriodo",
-      type: "number",
-      id: "PersonalLicenciaAplicaPeriodo",
-      field: "PersonalLicenciaAplicaPeriodo",
-      params: {
-        complexFieldLabel: 'PersonalLicenciaAplicaPeriodo',
-      },
-      hidden: true,
-    },
-   
-  ];
-    
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsEdit.enableRowDetailView = this.apiService.isMobile()
     this.gridOptionsEdit.showFooterRow = true
@@ -278,10 +184,12 @@ export class TableHorasLicenciaComponent {
 
     this.angularGridEdit = angularGrid.detail
     this.gridObjEdit = angularGrid.detail.slickGrid;
+  
+    this.angularGridEdit.slickGrid.onClick.subscribe((e, args)=> {
+      var data = this.dataAngularGrid[args.row]
 
-
-    if (this.apiService.isMobile())
-      this.angularGridEdit.gridService.hideColumnByIds([])
+    });
+    
   }
 
   valueRowSelectes(value:number){

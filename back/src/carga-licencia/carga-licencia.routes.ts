@@ -76,6 +76,9 @@ CargaLicenciaCargaRouter.get("/cols", [authMiddleware.verifyToken, authMiddlewar
   cargaLicenciaController.getGridCols(req, res);
 });
 
+CargaLicenciaCargaRouter.get("/colsHoras", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res) => {
+  cargaLicenciaController.getGridColsHoras(req, res);
+});
 
 CargaLicenciaCargaRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
     cargaLicenciaController.list(req, res, next);

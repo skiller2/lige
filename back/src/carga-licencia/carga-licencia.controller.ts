@@ -10,6 +10,10 @@ import { IsNull } from "typeorm";
 import { QueryRunner } from "typeorm";
 import * as fs from 'fs';
 import * as path from 'path';
+import { promisify } from 'util';
+
+const stat = promisify(fs.stat);
+const unlink = promisify(fs.unlink);
 
 const columnasGrilla: any[] = [
   
@@ -217,12 +221,111 @@ const columnasGrilla: any[] = [
   }
 ];
 
+const columnasGrillaHoras: any[] = [
+  
+  {
+    name: "id",
+    type: "number",
+    id: "id",
+    field: "id",
+    fieldName: "id",
+    hidden: true,
+    searchHidden:true
+  },
+  {
+    name: "Nombre y Apellido",
+    type: "string",
+    id: "NombreCompleto",
+    field: "NombreCompleto",
+    fieldName: "NombreCompleto",
+    hidden: false,
+    searchHidden:false
+  },
+  {
+    name: "TipoInasistenciaId",
+    type: "string",
+    id: "TipoInasistenciaId",
+    field: "TipoInasistenciaId",
+    fieldName: "TipoInasistenciaId",
+    searchHidden:false,
+    hidden: true,
+  },
+  {
+    name: "Tipo Inasistencia",
+    type: "string",
+    id: "TipoInasistenciaDescripcion",
+    field: "TipoInasistenciaDescripcion",
+    fieldName: "TipoInasistenciaDescripcion",
+    searchHidden:false,
+    hidden: false,
+  },
+  {
+    name: "PersonalLicencia Id",
+    type: "number",
+    id: "PersonalLicenciaId",
+    field: "PersonalLicenciaId",
+    fieldName: "PersonalLicenciaId",
+    searchHidden:false,
+    hidden: true,
+  },
+  {
+    name: "Periodo",
+    type: "string",
+    id: "PersonalLicenciaAplicaPeriodoAplicaEl",
+    field: "PersonalLicenciaAplicaPeriodoAplicaEl",
+    fieldName: "PersonalLicenciaAplicaPeriodoAplicaEl",
+    searchHidden:false,
+    hidden: true,
+  },
+  {
+    name: "PeriodoSucursalId",
+    type: "number",
+    id: "PersonalLicenciaAplicaPeriodoSucursalId",
+    field: "PersonalLicenciaAplicaPeriodoSucursalId",
+    fieldName: "PersonalLicenciaAplicaPeriodoSucursalId",
+    searchHidden:false,
+    hidden: true,
+  },
+  {
+    name: "Personal Licencia SePaga",
+    type: "string",
+    id: "PersonalLicenciaSePaga",
+    field: "PersonalLicenciaSePaga",
+    fieldName: "PersonalLicenciaSePaga",
+    searchHidden:false,
+    hidden: true,
+  },
+  {
+    name: "Total Valor Liquidacion",
+    type: "number",
+    id: "total",
+    field: "total",
+    fieldName: "total",
+    searchHidden:false,
+    hidden: false,
+   
+  },
+  {
+    name: "PersonalLicenciaAplicaPeriodo",
+    type: "number",
+    id: "PersonalLicenciaAplicaPeriodo",
+    field: "PersonalLicenciaAplicaPeriodo",
+    fieldName: "PersonalLicenciaAplicaPeriodo",
+    searchHidden:false,
+    hidden: true,
+  },
+];
+
 
 export class CargaLicenciaController extends BaseController {
 
 
   async getGridCols(req, res) {
     this.jsonRes(columnasGrilla, res);
+  }
+
+  async getGridColsHoras(req, res) {
+    this.jsonRes(columnasGrillaHoras, res);
   }
 
 
@@ -537,7 +640,7 @@ export class CargaLicenciaController extends BaseController {
     let personalLicenciaIncrement = 
     PersonalLicencia[0].PersonalLicenciaAplicaPeriodoUltNro != undefined 
     ? PersonalLicencia[0].PersonalLicenciaAplicaPeriodoUltNro + 1 
-    : 0
+    : 1
 
     await queryRunner.query(`UPDATE PersonalLicencia SET PersonalLicenciaAplicaPeriodoUltNro = @2 WHERE PersonalId = @0 AND  PersonalLicenciaId = @1`,
       [PersonalId,PersonalLicenciaId,personalLicenciaIncrement])
@@ -546,9 +649,9 @@ export class CargaLicenciaController extends BaseController {
         PersonalLicenciaAplicaPeriodoId, 
         PersonalId, 
         PersonalLicenciaId, 
-        PersonalLicenciaHorasMensuales, 
-        fecha, 
-        PersonalPeriodoAplicaPeriodoSucursalId, 
+        PersonalLicenciaAplicaPeriodoHorasMensuales, 
+        PersonalLicenciaAplicaPeriodoAplicaEl, 
+        PersonalLicenciaAplicaPeriodoSucursalId
         )
         VALUES (@0,@1,@2,@3,@4,@5)`
         , [personalLicenciaIncrement,
@@ -786,6 +889,31 @@ export class CargaLicenciaController extends BaseController {
 
     decimalPart = minutes.toString().padStart(2, '0');
     return `${integerPart}.${decimalPart}`;
+  }
+
+
+  async deleleTemporalFiles(req, res, next) {
+    try {
+
+      const tempFolderPath = path.join(process.env.PATH_LICENCIA, 'temp');
+      const files = await fs.promises.readdir(tempFolderPath);
+      const limiteFecha = Date.now() - (24 * 60 * 60 * 1000);
+      const deletePromises = files.map(async (file) => {
+        const filePath = path.join(tempFolderPath, file);
+        const stats = await stat(filePath);
+        const fechaCreacion = stats.birthtime.getTime(); 
+  
+        if (fechaCreacion < limiteFecha) {
+          await unlink(filePath); 
+          console.log(`Archivo ${file} borrado.`);
+        }
+      });
+  
+      await Promise.all(deletePromises);
+      res.json({ message: 'Se borraron los archivos temporales con éxito' });
+    } catch (error) {
+      next(error);
+    }
   }
 
 }

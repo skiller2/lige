@@ -2,10 +2,10 @@
     <form nz-form #objpendForm="ngForm">
       <ng-container>
        
-         <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" /> 
+         <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" /> 
   
-        <div class="gridContainer2 container-fluid">
-            <angular-slickgrid gridId="gridEdit2" [columnDefinitions]="columnDefinitions | colsFilter"
+        <div class="gridContainer2 container-fluid" *ngIf="(columns$|async) as columnas">
+            <angular-slickgrid gridId="gridEdit2" [columnDefinitions]="columnas | colsFilter"
             [gridOptions]="gridOptionsEdit" [dataset]="(gridData$ | async) || []"
             (onAngularGridCreated)="angularGridReadyEdit($event)">
           </angular-slickgrid>
