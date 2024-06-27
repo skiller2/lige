@@ -61,13 +61,5 @@ export class BotServer {
 
     this.botHandle.httpServer(3008)
 
-
-    this.adapterProvider.server.post('/v1/register', this.botHandle.handleCtx(async (bot, req, res) => {
-      const { number, name } = req.body
-      console.log('quetiene',bot)
-      //await bot.dispatch('EVENT_REGISTER', { from: number, name })
-      //await this.botHandle.dispatch('EVENT_REGISTER', { from: number, name })
-      return res.end('trigger')
-    }))
   }
 }

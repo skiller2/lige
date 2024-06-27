@@ -40,9 +40,8 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
 
 
 export const flowLogin = addKeyword(EVENTS.WELCOME)
-    .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
+    .addAction(async (ctx, {  state, gotoFlow, flowDynamic }) => {
         const telefono = ctx.from
-//        console.log('state', state.getMyState());
         await flowDynamic(`Bienvenido al área de consultas de la Cooperativa Lince Seguridad`, { delay: delay })
         const res = await personalController.getPersonalfromTelefonoQuery(telefono)
         if (res.length) {
@@ -50,7 +49,6 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
             await state.update({ cuit: res[0].cuit })
             await state.update({ codigo: res[0].codigo })
             await state.update({ name: res[0].name.trim() })
-
 
             if (res[0].codigo) {
                 //Código pendiente de ingreso

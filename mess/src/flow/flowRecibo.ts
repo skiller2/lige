@@ -13,7 +13,6 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
         const myState = state.getMyState()
         const personalId = myState.personalId
         const periodosArray : any[] = await recibosController.getLastPeriodoOfComprobantes(personalId, 3).then(array =>{return array})
-        console.log('periodos', periodosArray);
         let resPeriodos = ''
         if (periodosArray.length) {
             periodosArray.forEach((obj : any, index:number) => {
@@ -28,11 +27,11 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
         }
         await state.update({recibo:{ periodosArray, periodosString: resPeriodos }}) 
     })
-    .addAnswer('Ingrese el numero correspondiente al periodo del Recibo que deseas consultar:',
-    { delay }, async (_, { flowDynamic, state }) => {
+    .addAction({ delay }, async (_, { flowDynamic, state }) => {
         const myState = state.getMyState()
         const resPeriodos = myState.recibo.periodosString
         await flowDynamic([{ body: resPeriodos}])
+        await flowDynamic([{ body: 'Ingrese el número del período que desea descargar'}])
     })
     .addAction({ capture: true, delay },
     async (ctx, { flowDynamic, state, fallBack }) => {
