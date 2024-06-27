@@ -61,6 +61,7 @@ export class LicenciaDrawerComponent {
       if (this.PersonalLicenciaId()) {
         let vals = await firstValueFrom(this.apiService.getLicencia(per.year, per.month, this.PersonalId(), this.PersonalLicenciaId()));
         vals.categoria = { id: `${vals.PersonalLicenciaTipoAsociadoId}-${vals.PersonalLicenciaCategoriaPersonalId}` }
+        vals.PersonalLicenciaHorasMensuales = Number(vals.PersonalLicenciaHorasMensuales)
         console.log( "vals ", vals )
         this.ngForm().form.patchValue(vals)
       }
