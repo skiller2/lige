@@ -4,16 +4,14 @@ import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Fo
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 // import { Observable } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
-import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
 import { NgForm } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
+import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 
 
 @Component({
@@ -23,7 +21,7 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
     standalone: true,
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, FiltroBuilderComponent],
+    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, FiltroBuilderComponent, NzAutocompleteModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
 
 })
@@ -32,6 +30,7 @@ export class CustodiaFormComponent {
     cantInputs : Array<number> = [1,2,3,4,5]
     listInputPersonal: Array<number> = this.cantInputs.slice();
     listInputVehiculo: Array<number> = this.cantInputs.slice(0,2);
+    optionsDescRequirente: Array<any> = []
 
     visibleDrawer: boolean = false
     periodo = signal({ year: 0, month: 0 });
@@ -115,7 +114,6 @@ export class CustodiaFormComponent {
 
     async save() {
         const form = this.ngForm().value
-        
         if (this.editCustodiaId()) {
             await firstValueFrom(this.apiService.updateObjCustodia(form, this.editCustodiaId()))
         } else {
@@ -144,6 +142,16 @@ export class CustodiaFormComponent {
             const res = await firstValueFrom(this.searchService.getLastPersonalByPatente(patente))
             if (res) {
                 this.ngForm().controls[keyDueno].setValue(res.duenoId)
+            }
+        }
+    }
+
+    async searchDescRequirente(){
+        const clienteId = this.ngForm().value['clienteId']
+        if (clienteId) {
+            const res = await firstValueFrom(this.searchService.getRequirentesByCliente(clienteId))
+            if (res.length) {
+                this.optionsDescRequirente = res
             }
         }
     }

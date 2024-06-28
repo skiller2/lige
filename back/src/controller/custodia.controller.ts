@@ -685,6 +685,27 @@ export class CustodiaController extends BaseController {
                 WHERE patente LIKE '%${patente}%'
                 ORDER BY aud_fecha_ins DESC`,
             [patente])
+            
+            await queryRunner.commitTransaction()
+            return this.jsonRes(list, res);
+        } catch (error) {
+            this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+    async getRequirenteByCliente(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            await queryRunner.startTransaction()
+            const clienteId = req.body.clienteId
+            const list = await queryRunner.query(`
+                SELECT obj.desc_requirente descRequirente
+                FROM lige.dbo.objetivocustodia obj
+                WHERE obj.cliente_id = @0`,
+            [clienteId])
             console.log('list',list);
             
             await queryRunner.commitTransaction()

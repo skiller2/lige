@@ -7,7 +7,7 @@
     
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <app-cliente-search name="clienteId" ngModel />
+          <app-cliente-search name="clienteId" ngModel/>
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -16,7 +16,12 @@
       <nz-form-label [nzSpan]="3">Solicitado por</nz-form-label>
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="descRequirente" type="text" />
+          <input nz-input placeholder="" ngModel name="descRequirente" type="text" (focus)="searchDescRequirente()" [nzAutocomplete]="auto"/>
+          <nz-autocomplete #auto>
+            <nz-auto-option *ngFor="let option of optionsDescRequirente" [nzValue]="option.descRequirente">
+              {{ option.descRequirente }}
+            </nz-auto-option>
+          </nz-autocomplete>
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>

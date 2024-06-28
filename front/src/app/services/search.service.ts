@@ -644,9 +644,22 @@ export class SearchService {
     }
     return this.http.post<ResponseJSON<any>>(`api/custodia/lastdueno`, {patente}).pipe(
       map(res => {
-        console.log(res);
-        
         return (res && res.data) ? res.data[0] : null
+      }),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getRequirentesByCliente(clienteId: number): Observable<any> {
+    if (!clienteId) {
+      return of([]);
+    }
+    return this.http.post<ResponseJSON<any>>(`api/custodia/requirente`, {clienteId}).pipe(
+      map(res => {
+        return res.data
       }),
       catchError((err, caught) => {
         console.log('Something went wrong!');
