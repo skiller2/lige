@@ -706,7 +706,6 @@ export class CustodiaController extends BaseController {
                 FROM lige.dbo.objetivocustodia obj
                 WHERE obj.cliente_id = @0`,
             [clienteId])
-            console.log('list',list);
             
             await queryRunner.commitTransaction()
             return this.jsonRes(list, res);
