@@ -54,6 +54,10 @@ export class CustodiaFormComponent {
 
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
 
+    // ngOnInit() {
+    //     this.ngForm().form.disable()
+    // }
+
     async load() {
         const res = await firstValueFrom(this.searchService.getInfoObjCustodia(this.editCustodiaId()))
         res.form.fechaInicio = new Date(res.form.fechaInicio)
@@ -86,19 +90,23 @@ export class CustodiaFormComponent {
 
     addPersonal(e?: MouseEvent): void {
         e?.preventDefault();
-        const id = this.listInputPersonal.length > 0 ? this.listInputPersonal[this.listInputPersonal.length - 1] + 1 : 0;
-        this.listInputPersonal.push(id);
+        if (this.edit) {
+            const id = this.listInputPersonal.length > 0 ? this.listInputPersonal[this.listInputPersonal.length - 1] + 1 : 0;
+            this.listInputPersonal.push(id);
+        }
     }
 
     addVehiculo(e?: MouseEvent): void {
         e?.preventDefault();
-        const id = this.listInputVehiculo.length > 0 ? this.listInputVehiculo[this.listInputVehiculo.length - 1] + 1 : 0;
-        this.listInputVehiculo.push(id);
+        if (this.edit) {
+            const id = this.listInputVehiculo.length > 0 ? this.listInputVehiculo[this.listInputVehiculo.length - 1] + 1 : 0;
+            this.listInputVehiculo.push(id);
+        }
     }
 
     removePersonal(i: number, e: MouseEvent): void {
         e.preventDefault();
-        if (this.listInputPersonal.length > 1) {
+        if (this.listInputPersonal.length > 1 && this.edit) {
             const index = this.listInputPersonal.indexOf(i);
             this.listInputPersonal.splice(index, 1);
         }
@@ -106,7 +114,7 @@ export class CustodiaFormComponent {
 
     removeVehiculo(i: number, e: MouseEvent): void {
         e.preventDefault();
-        if (this.listInputVehiculo.length > 1) {
+        if (this.listInputVehiculo.length > 1 && this.edit) {
             const index = this.listInputVehiculo.indexOf(i);
             this.listInputVehiculo.splice(index, 1);
         }
