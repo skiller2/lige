@@ -224,13 +224,57 @@ const columnasGrillaHoras: any[] = [
     searchHidden: true
   },
   {
+    name: "Sucursal",
+    type: "number",
+    id: "SucursalId",
+    field: "SucursalId",
+    fieldName: "SucursalId",
+    searchComponent: "inpurForSucursalSearch",
+    hidden: true,
+    searchHidden: false
+  },
+  {
+    name: "Sucursal",
+    type: "string",
+    id: "SucursalDescripcion",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalDescripcion",
+    searchHidden: true,
+    hidden: false,
+  },
+  {
     name: "Nombre y Apellido",
     type: "string",
     id: "NombreCompleto",
     field: "NombreCompleto",
     fieldName: "NombreCompleto",
+    searchComponent: "inpurForPersonalSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
     hidden: false,
-    searchHidden: false
+  },
+  {
+    name: "Desde",
+    type: "date",
+    id: "PersonalLicenciaDesde",
+    field: "PersonalLicenciaDesde",
+    fieldName: "lic.PersonalLicenciaDesde",
+    searchComponent: "inpurForFechaSearch",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
+  },
+  {
+    name: "Hasta",
+    type: "date",
+    id: "PersonalLicenciaHasta",
+    field: "PersonalLicenciaHasta",
+    fieldName: "lic.PersonalLicenciaHasta",
+    searchComponent: "inpurForFechaSearch",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
   },
   {
     name: "TipoInasistenciaId",
@@ -238,7 +282,7 @@ const columnasGrillaHoras: any[] = [
     id: "TipoInasistenciaId",
     field: "TipoInasistenciaId",
     fieldName: "TipoInasistenciaId",
-    searchHidden: false,
+    searchHidden: true,
     hidden: true,
   },
   {
@@ -247,7 +291,7 @@ const columnasGrillaHoras: any[] = [
     id: "TipoInasistenciaDescripcion",
     field: "TipoInasistenciaDescripcion",
     fieldName: "TipoInasistenciaDescripcion",
-    searchHidden: false,
+    searchHidden: true,
     hidden: false,
   },
   {
@@ -256,7 +300,7 @@ const columnasGrillaHoras: any[] = [
     id: "PersonalLicenciaId",
     field: "PersonalLicenciaId",
     fieldName: "PersonalLicenciaId",
-    searchHidden: false,
+    searchHidden: true,
     hidden: true,
   },
   {
@@ -265,7 +309,7 @@ const columnasGrillaHoras: any[] = [
     id: "PersonalLicenciaAplicaPeriodoAplicaEl",
     field: "PersonalLicenciaAplicaPeriodoAplicaEl",
     fieldName: "PersonalLicenciaAplicaPeriodoAplicaEl",
-    searchHidden: false,
+    searchHidden: true,
     hidden: true,
   },
   {
@@ -274,7 +318,7 @@ const columnasGrillaHoras: any[] = [
     id: "PersonalLicenciaAplicaPeriodoSucursalId",
     field: "PersonalLicenciaAplicaPeriodoSucursalId",
     fieldName: "PersonalLicenciaAplicaPeriodoSucursalId",
-    searchHidden: false,
+    searchHidden: true,
     hidden: true,
   },
   {
@@ -283,7 +327,7 @@ const columnasGrillaHoras: any[] = [
     id: "PersonalLicenciaSePaga",
     field: "PersonalLicenciaSePaga",
     fieldName: "PersonalLicenciaSePaga",
-    searchHidden: false,
+    searchHidden: true,
     hidden: true,
   },
   {
@@ -292,7 +336,7 @@ const columnasGrillaHoras: any[] = [
     id: "PersonalLicenciaAplicaPeriodoHorasMensuales",
     field: "PersonalLicenciaAplicaPeriodoHorasMensuales",
     fieldName: "PersonalLicenciaAplicaPeriodoHorasMensuales",
-    searchHidden: false,
+    searchHidden: true,
     hidden: false,
   },
   {
@@ -301,7 +345,7 @@ const columnasGrillaHoras: any[] = [
     id: "total",
     field: "total",
     fieldName: "total",
-    searchHidden: false,
+    searchHidden: true,
     hidden: false,
 
   },
@@ -311,7 +355,7 @@ const columnasGrillaHoras: any[] = [
     id: "PersonalLicenciaAplicaPeriodo",
     field: "PersonalLicenciaAplicaPeriodo",
     fieldName: "PersonalLicenciaAplicaPeriodo",
-    searchHidden: false,
+    searchHidden: true,
     hidden: true,
   },
 ];
@@ -402,7 +446,7 @@ export class CargaLicenciaController extends BaseController {
       IsEdit,
       anioRequest,
       mesRequest,
-      Archivos
+      Archivos,PersonalIdForEdit
 
     } = req.body
 
@@ -438,6 +482,9 @@ export class CargaLicenciaController extends BaseController {
         PersonalLicenciaHasta = this.formatDateToCustomFormat(PersonalLicenciaHasta)
 
       if (PersonalLicenciaId) {  //UPDATE
+
+        if(PersonalIdForEdit != PersonalId)
+          throw new ClientException(`No puede modificar la persona`)
 
         let valueAplicaPeriodo = await queryRunner.query(`select * from PersonalLicenciaAplicaPeriodo WHERE PersonalId = @0 AND PersonalLicenciaId = @1`,
           [PersonalId, PersonalLicenciaId]
