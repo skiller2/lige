@@ -495,15 +495,9 @@ export class ApiService {
   }
 
   setchangehours(gridDataInsert: any) {
-    const parameter = [ gridDataInsert]
-    this.notification.success('Respuesta', `Inicio Modificación `);
-
-    return this.http.post<ResponseJSON<any>>('/api/carga-licencia/changehours', parameter).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
+    return this.http.post<ResponseJSON<any>>('/api/carga-licencia/changehours', gridDataInsert).pipe(
+      //tap((res: ResponseJSON<any>) => this.response(res)),
     )
-
-  
-
   }
 
   getTipoDocumentos(filters: any) {

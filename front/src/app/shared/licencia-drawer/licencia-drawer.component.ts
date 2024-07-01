@@ -77,7 +77,6 @@ export class LicenciaDrawerComponent {
     vals.anioRequest = periodo.year
     vals.mesRequest = periodo.month
     vals.Archivos = this.ArchivosLicenciasAdd
-    //vals.PersonalLicenciaHorasMensuales = Number(this.formatHours(vals.PersonalLicenciaHorasMensuales))
     const res = await firstValueFrom(this.apiService.setLicencia(vals))
     this.ArchivosLicenciasAdd = []
     this.formChange$.next('');  

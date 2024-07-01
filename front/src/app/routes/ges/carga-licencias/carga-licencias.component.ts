@@ -22,12 +22,9 @@ import { AngularGridInstance } from 'angular-slickgrid';
   styleUrl: './carga-licencias.component.less'
 })
 export class CargaLicenciasComponent {
-  //  @ViewChild('LicenciaForm', { static: true }) LicenciaForm: NgForm = new NgForm([], []);
   tabIndex = 0
   periodo = model(new Date())
-  //  formChange$ = new BehaviorSubject('');
   visibleDrawer: boolean = false
-  angularGridEdit!: AngularGridInstance;
   PersonalId = 0
   PersonalLicenciaId = 0
   tituloDrawer = ""
