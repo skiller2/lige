@@ -72,6 +72,17 @@ telefoniaRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
     telefoniaController.getTelefonosCols(req, res);
 });
 
+telefoniaRouter.get("/download/:anio/:mes/:impoexpoId?", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res,next) => {
+  telefoniaController.downloadComprobantes(
+    req.params.anio,
+    req.params.mes,
+    req.params.impoexpoId,
+    res,
+    req,
+    next
+  );
+});
+
 telefoniaRouter.post("/list", [authMiddleware.verifyToken,authMiddleware.hasGroup(['liquidaciones','administrativo'])], (req, res, next) => {
     telefoniaController.getTelefonosList(req, res, next);
 });

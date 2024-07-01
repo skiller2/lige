@@ -149,6 +149,36 @@ export class TelefoniaController extends BaseController {
 
   }
 
+  async downloadComprobantes(
+    year: string,
+    month: string,
+    impoexpoId: string,
+    res: Response,
+    req: Request,
+    next: NextFunction
+  ) {
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const data = await queryRunner.query(`SELECT * FROM lige.dbo.convalorimpoexpo WHERE impoexpo_id = @0`,
+        [impoexpoId]
+      )
+
+      if (!data[0])
+        throw new ClientException(`Archivo de telefono no generado`)
+
+      res.download(this.directory + '/' + data[0].path, data[0].nombre_archivo, async (error) => {
+        if (error) {
+          console.error('Error al descargar el archivo:', error);
+          return next(error)
+        }
+      });
+    } catch (error) {
+      return next(error)
+    }
+  }
+
   async getTelefonosList(req: Request, res: Response, next: NextFunction) {
     const anio = Number(req.body.anio);
     const mes = Number(req.body.mes);
