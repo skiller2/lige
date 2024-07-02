@@ -625,7 +625,8 @@ export class CargaLicenciaController extends BaseController {
 --       licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,
 --     (ROUND(CAST(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales AS FLOAT),0,0) *60+ PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1))/60 AS horas,
      val.ValorLiquidacionHoraNormal,
---     (ROUND(CAST(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales AS FLOAT),0,0) *60+ PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1))/60 * val.ValorLiquidacionHoraNormal AS total,
+  (PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60) * val.ValorLiquidacionHoraNormal AS total,  
+
      lic.PersonalLicenciaSePaga,
      tli.TipoInasistenciaId,
      tli.TipoInasistenciaDescripcion,
