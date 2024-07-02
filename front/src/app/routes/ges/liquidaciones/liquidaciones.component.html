@@ -243,7 +243,7 @@
                       <a nz-icon nzType="download" nzHref="movimiento.path" target="_blank" nzTheme="outline"
                         class="download-color" app-down-file [httpMethod]="'POST'"
                         [httpBody]="{'documentId': movimiento.id}" httpUrl="api/liquidaciones/downloadImportacion"></a>
-                      <span> ID: {{movimiento.id}} - Fecha: {{movimiento.fecha}} </span>
+                      <span> ID: {{movimiento.id}} - Fecha: {{movimiento.fecha| date}} </span>
                     </div>
                   </ng-container>
                 </nz-form-control>
