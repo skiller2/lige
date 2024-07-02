@@ -5,16 +5,14 @@
         <nz-form-control>
           <nz-date-picker nzMode="month"  [(ngModel)]="periodo" />
         </nz-form-control>
+        <nz-button-group style="text-align: right;">
+          <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalLicenciaId>0)" ><span nz-icon nzType="edit"
+                  nzTheme="outline" ></span></button>
+          <button nz-button nzType="default" (click)="openDrawerforNew()"><span nz-icon nzType="plus"
+                  nzTheme="outline"></span></button>
+      </nz-button-group>
       </nz-form-item>
 
-      <nz-form-control style="text-align: right;">
-        <nz-button-group>
-            <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalLicenciaId>0)" ><span nz-icon nzType="user"
-                    nzTheme="outline" ></span></button>
-            <button nz-button nzType="default" (click)="openDrawerforNew()"><span nz-icon nzType="plus"
-                    nzTheme="outline"></span></button>
-        </nz-button-group>
-    </nz-form-control>
 
       <ul nz-menu nzMode="horizontal">
         <li nz-menu-item nzMatchRouter>

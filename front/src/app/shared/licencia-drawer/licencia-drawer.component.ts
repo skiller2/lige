@@ -32,6 +32,7 @@ export class LicenciaDrawerComponent {
   tituloDrawer = input.required<string>()
   private apiService = inject(ApiService)
   formChange$ = new BehaviorSubject('');
+  PersonalIdForEdit = 0
   $ArchivosLicencias = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
@@ -62,6 +63,7 @@ export class LicenciaDrawerComponent {
         let vals = await firstValueFrom(this.apiService.getLicencia(per.year, per.month, this.PersonalId(), this.PersonalLicenciaId()));
         vals.categoria = { id: `${vals.PersonalLicenciaTipoAsociadoId}-${vals.PersonalLicenciaCategoriaPersonalId}` }
         vals.PersonalLicenciaHorasMensuales = Number(vals.PersonalLicenciaHorasMensuales)
+        this.PersonalIdForEdit = vals.PersonalId
         console.log( "vals ", vals )
         this.ngForm().form.patchValue(vals)
       }
@@ -71,12 +73,14 @@ export class LicenciaDrawerComponent {
 
   async save() {
     const periodo = this.selectedPeriod()
+
     let vals = this.ngForm().value
     vals.PersonalLicenciaTipoAsociadoId = vals.categoria.categoriaId
     vals.PersonalLicenciaCategoriaPersonalId = vals.categoria.tipoId
     vals.anioRequest = periodo.year
     vals.mesRequest = periodo.month
     vals.Archivos = this.ArchivosLicenciasAdd
+    vals.PersonalIdForEdit = this.PersonalIdForEdit
     const res = await firstValueFrom(this.apiService.setLicencia(vals))
     this.ArchivosLicenciasAdd = []
     this.formChange$.next('');  
