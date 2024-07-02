@@ -135,7 +135,7 @@ export class CustodiaController extends BaseController {
         const fecha_fin = objetivoCustodia.fechaFinal? objetivoCustodia.fechaFinal.slice(0, 19).replace('T', ' ') : null
         const destino = objetivoCustodia.destino? objetivoCustodia.destino : null
         const cant_modulos = objetivoCustodia.cant_modulos? objetivoCustodia.cant_modulos : null
-        const importe_modulos = objetivoCustodia.importeModulos? objetivoCustodia.importeModulos : null
+        const importe_modulos = objetivoCustodia.impoModulos? objetivoCustodia.impoModulos : null
         const cant_horas_exced = objetivoCustodia.cantHorasExced? objetivoCustodia.cantHorasExced : null
         const impo_horas_exced = objetivoCustodia.impoHorasExced? objetivoCustodia.impoHorasExced : null
         const cant_km_exced = objetivoCustodia.cantKmExced? objetivoCustodia.cantKmExced : null
@@ -222,7 +222,7 @@ export class CustodiaController extends BaseController {
         const fecha_fin = objetivoCustodia.fechaFinal? objetivoCustodia.fechaFinal.slice(0, 19).replace('T', ' ') : null
         const destino = objetivoCustodia.destino
         const cant_modulos = objetivoCustodia.cantModulos? objetivoCustodia.cantModulos : null
-        const importe_modulos = objetivoCustodia.importeModulos? objetivoCustodia.importeModulos  :null
+        const importe_modulos = objetivoCustodia.impoModulos? objetivoCustodia.impoModulos  :null
         const cant_horas_exced = objetivoCustodia.cantHorasExced? objetivoCustodia.cantHorasExced : null
         const impo_horas_exced = objetivoCustodia.impoHorasExced? objetivoCustodia.impoHorasExced : null
         const cant_km_exced = objetivoCustodia.cantKmExced? objetivoCustodia.cantKmExced : null
@@ -276,7 +276,7 @@ export class CustodiaController extends BaseController {
         return await queryRunner.query(`
         SELECT obj.objetivo_custodia_id id, obj.responsable_id responsableId, 
         obj.cliente_id clienteId, obj.desc_requirente descRequirente, obj.descripcion, obj.fecha_inicio fechaInicio, obj.origen, 
-        obj.fecha_fin fechaFinal, obj.destino, obj.cant_modulos cantModulos, obj.importe_modulos importeModulos, 
+        obj.fecha_fin fechaFinal, obj.destino, obj.cant_modulos cantModulos, obj.importe_modulos impoModulos, 
         obj.cant_horas_exced cantHorasExced, obj.impo_horas_exced impoHorasExced, obj.cant_km_exced cantKmExced, 
         obj.impo_km_exced impoKmExced, obj.impo_peaje impoPeaje, obj.impo_facturar facturacion, obj.estado
         FROM lige.dbo.objetivocustodia obj
@@ -636,7 +636,7 @@ export class CustodiaController extends BaseController {
         if (!custodiaForm.clienteId || !custodiaForm.fechaInicio || !custodiaForm.origen){
             errores.push(`Los campos de Cliente, Fecha Inicial y Origen NO pueden estar vacios`)
         }
-        if ((!custodiaForm.cantModulos && custodiaForm.importeModulos) || (custodiaForm.cantModulos && !custodiaForm.importeModulos)) {
+        if ((!custodiaForm.cantModulos && custodiaForm.impoModulos) || (custodiaForm.cantModulos && !custodiaForm.impoModulos)) {
             errores.push(`Los campos pares Cant. e Importe de Modulos deben de llenarse al mismo tiempo`)
         }
         if ((!custodiaForm.cantHorasExced && custodiaForm.impoHorasExced) || (custodiaForm.cantHorasExced && !custodiaForm.impoHorasExced)) {
