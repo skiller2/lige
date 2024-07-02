@@ -6,7 +6,6 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
-import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
@@ -29,25 +28,17 @@ import { CustodiaFormComponent } from "../custodias-form/custodias-form.componen
 
 })
 export class CustodiaComponent {
-    ngForm = viewChild.required(NgForm);
     public router = inject(Router);
     public route = inject(ActivatedRoute);
 
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
     gridDataInsert: any[] = [];
-    agregarPersonal = false
     detailViewRowCount = 1;
     editCustodiaId = 0;
     excelExportService = new ExcelExportService()
-    visibleDrawer: boolean = false
-    periodo = signal({ year: 0, month: 0 });
-    personalId = signal(0);
 
-    cantInputs : Array<number> = [1,2,3,4,5]
-    listInputPersonal: Array<number> = this.cantInputs.slice();
-    listInputVehiculo: Array<number> = this.cantInputs.slice();
-    formChange$ = new BehaviorSubject('');
+    listCustodia$ = new BehaviorSubject('');
 
     listOptions: listOptionsT = {
         filtros: [],
@@ -70,7 +61,7 @@ export class CustodiaComponent {
         return mapped
     }));
 
-    gridData$ = this.formChange$.pipe(
+    gridData$ = this.listCustodia$.pipe(
         debounceTime(500),
         switchMap(() => {
           return this.searchService.getListaObjetivoCustodia({ options: this.listOptions })
@@ -86,7 +77,6 @@ export class CustodiaComponent {
         this.gridOptions.enableAutoSizeColumns = true
         this.gridOptions.fullWidthRows = true
         this.gridOptions.enableExcelExport = false
-        // console.log('this.gridDataInsert', this.gridDataInsert);
     }
 
     ngAfterViewInit(): void {
@@ -106,18 +96,14 @@ export class CustodiaComponent {
         if (row.id == undefined) return
         if (row.estado.tipo) return
         this.editCustodiaId = row.id
-        // console.log('editCustodiaId', this.editCustodiaId);
     }
 
     resetForm(): void {
         this.editCustodiaId = 0
-        this.listInputPersonal = this.cantInputs.slice()
-        this.listInputVehiculo = this.cantInputs.slice()
-        this.ngForm().reset()
     }
 
     listOptionsChange(options: any) {
         this.listOptions = options;
-        this.formChange$.next('');
+        this.listCustodia$.next('');
     }
 }

@@ -1,13 +1,12 @@
 <form nz-form ngForm>
 
     <br>
-    <!-- <h1>editCustodiaId: {{editCustodiaId}}</h1> -->
     <nz-form-item class="marginElement">
       <nz-form-label [nzSpan]="3">Cliente</nz-form-label>
     
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <app-cliente-search name="clienteId" ngModel />
+          <app-cliente-search name="clienteId" ngModel [disabled]="!edit"/>
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -93,7 +92,7 @@
         <nz-form-label  [nzSpan]="3">Personal</nz-form-label>
         <nz-form-control [nzSpan]="7">
           <nz-input-group style="width: 100%" [nzAddOnAfter]="personalButton" nzSearch>
-            <app-personal-search ngModel name={{i+1}}personalId />
+            <app-personal-search ngModel name={{i+1}}personalId [disabled]="!edit"/>
           </nz-input-group>
           <ng-template #personalButton>
             <button nz-button nzType="dashed" nzSearch (click)="openDrawer(i+1+'personalId')">
@@ -117,14 +116,6 @@
           </ng-template>
         </nz-form-control>
         
-        <!-- <nz-form-control [nzSpan]="3" style="text-align: center;">
-          <button nz-button *ngIf="listInputPersonal.length == i+1" nzType="primary" class="add-button" (click)="addPersonal($event)">
-            <span nz-icon nzType="plus"></span>
-          </button>
-          <button nz-button nzType="default" (click)="removePersonal(control, $event)">
-            <span nz-icon nzType="delete" nzTheme="outline" ></span>
-          </button>
-        </nz-form-control> -->
       </nz-form-item>
       
     }
@@ -140,7 +131,7 @@
         <nz-form-label  [nzSpan]="2"> Dueño </nz-form-label>
         <nz-form-control [nzSpan]="6">
           <nz-input-group style="width: 100%">
-            <app-personal-search ngModel name={{i+1}}duenoId />
+            <app-personal-search ngModel name={{i+1}}duenoId [disabled]="!edit"/>
           </nz-input-group>
         </nz-form-control>
         <nz-form-label  [nzSpan]="2">Importe</nz-form-label>
@@ -164,14 +155,6 @@
           </ng-template>
         </nz-form-control>
         
-        <!-- <nz-form-control [nzSpan]="2" style="text-align: center;">
-          <button nz-button *ngIf="listInputVehiculo.length == i+1" nzType="primary" class="add-button" (click)="addVehiculo($event)">
-            <span nz-icon nzType="plus"></span>
-          </button>
-          <button nz-button nzType="default" (click)="removeVehiculo(control, $event)">
-            <span nz-icon nzType="delete" nzTheme="outline" ></span>
-          </button>
-        </nz-form-control> -->
       </nz-form-item>
       
     }
@@ -257,16 +240,6 @@
           Guardar Cambios
         </button>
       </nz-form-control>
-      <!-- <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
-        <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar accion?" nz-button *ngIf="editCustodiaId() && edit" (nzOnConfirm)="save(1)">
-          Finalizar
-        </button>
-      </nz-form-control>
-      <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
-        <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar accion?" nz-button *ngIf="editCustodiaId() && edit" (nzOnConfirm)="save(2)">
-          Cancelar
-        </button>
-      </nz-form-control> -->
     </nz-form-item>
     <br>
 </form>
