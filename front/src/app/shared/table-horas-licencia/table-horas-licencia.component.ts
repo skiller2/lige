@@ -36,6 +36,20 @@ type listOptionsT = {
   sort: any,
 }
 
+interface PersonalLicenciaHoras {
+  PersonalId: number;
+  PersonalLicenciaId: number;
+  PersonalApellido: string;
+  PersonalNombre: string;
+  PersonalLicenciaDesde: Date;
+  PersonalLicenciaHasta: Date;
+  TipoInasistenciaDescripcion: string; 
+  CategoriaPersonalDescripcion: string;
+  PersonalLicenciaHorasMensuales: string;
+  PersonalLicenciaObservacion: string;
+
+}
+
 
 @Component({
   selector: 'app-table-horas-licencia',
@@ -79,7 +93,7 @@ export class TableHorasLicenciaComponent {
     extra: null,
   }
   dataAngularGrid: any
-
+  PersonalLicenciaHoras: PersonalLicenciaHoras[] = [];
 
 
   anio = input<number>();
@@ -179,6 +193,12 @@ export class TableHorasLicenciaComponent {
     this.angularGridEdit = angularGrid.detail
     this.gridObjEdit = angularGrid.detail.slickGrid;
 
+    this.angularGridEdit.slickGrid.onClick.subscribe((e, args)=> {
+      this.PersonalLicenciaHoras = []
+      var data = this.dataAngularGrid[args.row]
+      this.PersonalLicenciaHoras.push(data);
+      this.valueGridEvent.emit(this.PersonalLicenciaHoras)
+    });
 
   }
 

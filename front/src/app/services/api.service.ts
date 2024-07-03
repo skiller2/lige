@@ -62,6 +62,8 @@ export class ApiService {
   }
 
   getLicenciasArchivosAnteriores(anio: number, mes: number,PersonalId:number,PersonalLicenciaId:number) {
+    console.log("PersonalId ", PersonalId)
+    console.log("PersonaPersonalLicenciaIdlId ", PersonalLicenciaId)
     return this.http.get(`/api/carga-licencia/licencia_anteriores/${anio}/${mes}/${PersonalId}/${PersonalLicenciaId}`).pipe(
       map((res: any) => res.data.list),
       catchError((err, caught) => {

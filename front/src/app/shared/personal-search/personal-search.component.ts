@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild, forwardRef } from '@angular/core'
+import { Component, EventEmitter, Input, Output, ViewChild, forwardRef, model } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
@@ -39,7 +39,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("psc") psc!: NzSelectComponent
-
+  //isdisabled = model<boolean>(false)
 
   $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
