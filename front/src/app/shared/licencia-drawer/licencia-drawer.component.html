@@ -75,6 +75,12 @@
           <input nz-input name="PersonalLicenciaObservacion" ngModel />
         </nz-form-control>
       </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Diagnóstico  </nz-form-label>
+        <nz-textarea-count class="textAreaInput" [nzMaxCharacterCount]="500">
+          <textarea rows="1" name="PersonalLicenciaDiagnosticoMedicoDiagnostico" ngModel nz-input></textarea>
+        </nz-textarea-count>
+      </nz-form-item>
       @if (this.ngForm().value.PersonalId>0 ) {
          
       <nz-form-item>

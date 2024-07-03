@@ -446,10 +446,12 @@ export class CargaLicenciaController extends BaseController {
       IsEdit,
       anioRequest,
       mesRequest,
-      Archivos,PersonalIdForEdit
+      Archivos,
+      PersonalIdForEdit,
+      PersonalLicenciaDiagnosticoMedicoDiagnostico
 
     } = req.body
-
+console.log(req.body)
     const queryRunner = dataSource.createQueryRunner();
     try {
 
@@ -494,21 +496,34 @@ export class CargaLicenciaController extends BaseController {
         if (valueAplicaPeriodo.length > 0 && PersonalLicenciaSePaga == "N")
           throw new ClientException(`No se puede actualizar el registro a se paga NO ya que tiene horas cargadas`)
 
+        await this.UpdateDiagnosticoMedico(PersonalLicenciaDiagnosticoMedicoDiagnostico, PersonalId, PersonalLicenciaId, res, req, next)
+
+        let DiagnosticoUpdate = 
+        PersonalLicenciaDiagnosticoMedicoDiagnostico.trim() == "" 
+        ? null
+        : 1
 
         await queryRunner.query(`UPDATE PersonalLicencia
           SET PersonalLicenciaDesde = @0, PersonalLicenciaHasta = @1, PersonalLicenciaTermina = @1, 
-              PersonalTipoInasistenciaId = @2, PersonalLicenciaSePaga = @3, PersonalLicenciaHorasMensuales = @4,
-              PersonalLicenciaObservacion = @5, PersonalLicenciaTipoAsociadoId = @6,PersonalLicenciaCategoriaPersonalId = @7
+              PersonalTipoInasistenciaId = @2, PersonalLicenciaSePaga = @3, PersonalLicenciaHorasMensuales = @4,PersonalLicenciaDiagnosticoMedicoUltNro = @10
+              PersonalLicenciaObservacion = @5, PersonalLicenciaTipoAsociadoId = @6,PersonalLicenciaCategoriaPersonalId = @7,
           WHERE PersonalId = @8 AND PersonalLicenciaId = @9`
           , [PersonalLicenciaDesde, PersonalLicenciaHasta, TipoInasistenciaId, PersonalLicenciaSePaga, PersonalLicenciaHorasMensuales,
-            PersonalLicenciaObservacion, PersonalLicenciaCategoriaPersonalId, PersonalLicenciaTipoAsociadoId, PersonalId, PersonalLicenciaId])
+            PersonalLicenciaObservacion, PersonalLicenciaCategoriaPersonalId, PersonalLicenciaTipoAsociadoId, PersonalId, PersonalLicenciaId,DiagnosticoUpdate])
+
+
 
       } else {  //INSERT
 
+        let DiagnosticoUpdate = 
+        PersonalLicenciaDiagnosticoMedicoDiagnostico.trim() == "" 
+        ? null
+        : 1
 
         let PersonalLicenciaSelect = await queryRunner.query(` SELECT PersonalLicenciaUltNro from Personal WHERE PersonalId = @0`, [PersonalId,])
         let { PersonalLicenciaUltNro } = PersonalLicenciaSelect[0]
         PersonalLicenciaUltNro += 1
+
         await queryRunner.query(` UPDATE Personal SET PersonalLicenciaUltNro = @1 where PersonalId = @0 `, [PersonalId, PersonalLicenciaUltNro])
 
         await queryRunner.query(`INSERT INTO PersonalLicencia (
@@ -545,7 +560,7 @@ export class CargaLicenciaController extends BaseController {
             null,
             null,
             PersonalLicenciaObservacion,
-            null,
+            DiagnosticoUpdate,
             null,
             TipoInasistenciaId,
             PersonalLicenciaSePaga,
@@ -658,6 +673,55 @@ export class CargaLicenciaController extends BaseController {
       return next(error)
     }
   }
+
+  async UpdateDiagnosticoMedico(
+    PersonalLicenciaDiagnosticoMedicoDiagnostico:any, 
+    PersonalId:any, 
+    PersonalLicenciaId:any,
+    res: Response,
+    req: Request,
+    next: NextFunction
+  ) {
+
+    const queryRunner = dataSource.createQueryRunner();
+
+    try {
+      //valida si existe diagnostico medico
+      if(PersonalLicenciaDiagnosticoMedicoDiagnostico.trim() == ""){
+
+         let result = await queryRunner.query(`SELECT * FROM
+           PersonalLicenciaDiagnosticoMedico 
+           WHERE personalId = @0 AND PersonalLicenciaId = @1`,[ PersonalId, PersonalLicenciaId])
+           console.log("este es el result ", result)
+
+           // valida si existe registro en PersonalLicenciaDiagnosticoMedico
+           // si no es que ya venia null
+
+           if (result.length > 0) {
+            //borra el registro con el mayor numero en PersonalLicenciaDiagnosticoMedicoId
+            await queryRunner.query(`DELETE FROM PersonalLicenciaDiagnosticoMedico
+            WHERE PersonalLicenciaDiagnosticoMedicoId = (
+                SELECT TOP 1 PersonalLicenciaDiagnosticoMedicoId
+                FROM PersonalLicenciaDiagnosticoMedico
+                WHERE personalId = @0 AND PersonalLicenciaId = @1
+                ORDER BY PersonalLicenciaDiagnosticoMedicoId DESC
+            )`,[ PersonalId, PersonalLicenciaId])
+        } 
+      }else{
+        await queryRunner.query(`UPDATE PersonalLicenciaDiagnosticoMedico
+        SET PersonalLicenciaDiagnosticoMedicoDiagnostico = @0
+        WHERE PersonalLicenciaDiagnosticoMedicoId = (
+            SELECT MAX(PersonalLicenciaDiagnosticoMedicoId)
+            FROM PersonalLicenciaDiagnosticoMedico
+            WHERE PersonalId = @1 AND PersonalLicenciaId = @2)`
+          , [PersonalLicenciaDiagnosticoMedicoDiagnostico.trim(), PersonalId, PersonalLicenciaId])
+      }
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next('Error:' + error)
+    }
+  }
+
 
   async handlePDFUpload(
     anioRequest: number,
