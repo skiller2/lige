@@ -6,7 +6,11 @@
           <nz-date-picker nzMode="month"  [(ngModel)]="periodo" />
         </nz-form-control>
         <nz-button-group style="text-align: right;">
-          <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalLicenciaId>0)" ><span nz-icon nzType="edit"
+          <!-- <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalLicenciaId>0)" ><span nz-icon nzType="edit"
+            nzTheme="outline" ></span></button> -->
+          <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalLicenciaId>0 && inputForConsult)" ><span nz-icon nzType="edit"
+                  nzTheme="outline" ></span></button>
+          <button nz-button nzType="default" (click)="openDrawerforConsult()" [disabled]="inputForConsult" ><span nz-icon nzType="info-circle"
                   nzTheme="outline" ></span></button>
           <button nz-button nzType="default" (click)="openDrawerforNew()"><span nz-icon nzType="plus"
                   nzTheme="outline"></span></button>
@@ -17,11 +21,11 @@
       <ul nz-menu nzMode="horizontal">
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'carga_licencias','Licencias']" >Licencias</a>
+          <a [routerLink]="['/', 'ges', 'carga_licencias','Licencias']"  (click)="inputConsult(true)">Licencias</a>
         </li>
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'carga_licencias','horasLicencia']" >Horas de licencia</a>
+          <a [routerLink]="['/', 'ges', 'carga_licencias','horasLicencia']"  (click)="inputConsult(false)">Horas de licencia</a>
         </li>
       </ul>
       
@@ -38,11 +42,11 @@
           <a nz-tab-link routerLink="/ges/carga_licencias/horasLicencia">Horas de licencia</a>
           <ng-template nz-tab>
             
-            <app-table-horas-licencia gridId="gridEdit2" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-table-horas-licencia>
+            <app-table-horas-licencia gridId="gridEdit2" (valueGridEvent)="actualizarValorDrawer($event)" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-table-horas-licencia>
           </ng-template>
         </nz-tab>
       
       </nz-tabset>
   </nz-card>
-<app-licencia-drawer [selectedPeriod]="selectedPeriod()" [tituloDrawer] = "tituloDrawer" [(visible)]="visibleDrawer" [PersonalId]="PersonalId" [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
+<app-licencia-drawer [selectedPeriod]="selectedPeriod()" [openDrawerForConsult]="openDrawerForConsult" [tituloDrawer] = "tituloDrawer" [(visible)]="visibleDrawer" [PersonalId]="PersonalId" [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
   

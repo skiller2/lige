@@ -1,4 +1,4 @@
-import { Component, ViewChild, computed, model } from '@angular/core';
+import { Component, ViewChild, computed, input, model } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -28,6 +28,8 @@ export class CargaLicenciasComponent {
   PersonalId = 0
   PersonalLicenciaId = 0
   tituloDrawer = ""
+  openDrawerForConsult = false
+  inputForConsult = true 
 
   selectedPeriod = computed(() => {
     const per = this.periodo()
@@ -65,10 +67,22 @@ export class CargaLicenciasComponent {
     this.PersonalLicenciaId = 0
     this.visibleDrawer = true
     this.tituloDrawer = "Nueva Licencia"
+    this.openDrawerForConsult = false
   }
   openDrawerforEdit(): void {
     this.visibleDrawer = true
     this.tituloDrawer = "Editar Licencia"
+    this.openDrawerForConsult = false
+  }
+
+  openDrawerforConsult(): void{
+    this.visibleDrawer = true
+    this.tituloDrawer = "Consulta Licencia"
+    this.openDrawerForConsult = true
+  }
+
+  inputConsult(value:boolean){
+    this.inputForConsult = value
   }
   
 }

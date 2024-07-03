@@ -146,21 +146,11 @@ const columnasGrilla: any[] = [
     searchHidden: true
   },
   {
-    name: "Desde",
+    name: "Fecha",
     type: "date",
     id: "PersonalLicenciaDesde",
     field: "PersonalLicenciaDesde",
     fieldName: "lic.PersonalLicenciaDesde",
-    searchComponent: "inpurForFechaSearch",
-    hidden: false,
-    searchHidden: false
-  },
-  {
-    name: "Hasta",
-    type: "date",
-    id: "PersonalLicenciaHasta",
-    field: "PersonalLicenciaHasta",
-    fieldName: "lic.PersonalLicenciaHasta",
     searchComponent: "inpurForFechaSearch",
     hidden: false,
     searchHidden: false
@@ -666,6 +656,7 @@ PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(
       LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND cat.CategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId
       LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = suc.SucursalId AND val.ValorLiquidacionTipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
       LEFT JOIN PersonalLicenciaDiagnosticoMedico med ON med.PersonalId=persona.PersonalId AND med.PersonalLicenciaId = lic.PersonalLicenciaId
+      LEFT JOIN PersonalLicenciaAplicaPeriodo licimp ON lic.PersonalId = licimp.PersonalId AND lic.PersonalLicenciaId = licimp.PersonalLicenciaId AND licimp.PersonalLicenciaAplicaPeriodoAplicaEl = CONCAT(RIGHT('  '+CAST(@2 AS VARCHAR(2)),2),'/',@1)
       WHERE lic.PersonalId=@3 AND lic.PersonalLicenciaId=@4 `
 
       const result = await queryRunner.query(selectquery, [, anio, mes, PersonalId, PersonalLicenciaId])
