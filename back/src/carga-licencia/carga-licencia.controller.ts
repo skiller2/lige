@@ -638,10 +638,10 @@ console.log(req.body)
       let selectquery = `SELECT suc.SucursalId, suc.SucursalDescripcion,
       persona.PersonalId,lic.PersonalLicenciaId, persona.PersonalApellido, persona.PersonalNombre, 
 
-PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60 AS PersonalLicenciaAplicaPeriodoHorasMensuales,
+      PARSENAME(lic.PersonalLicenciaHorasMensuales,2)+ CAST(PARSENAME(lic.PersonalLicenciaHorasMensuales,1) AS FLOAT)/60 AS PersonalLicenciaHorasMensuales,
  
-     val.ValorLiquidacionHoraNormal,
-  (PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60) * val.ValorLiquidacionHoraNormal AS total,  
+      val.ValorLiquidacionHoraNormal,
+      (PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60) * val.ValorLiquidacionHoraNormal AS total,  
 
      lic.PersonalLicenciaSePaga,
      tli.TipoInasistenciaId,
@@ -654,13 +654,13 @@ PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(
     lic.PersonalLicenciaObservacion,
     lic.PersonalLicenciaTipoAsociadoId,
     lic.PersonalLicenciaCategoriaPersonalId,
-    lic.PersonalLicenciaHorasMensuales,
     med.PersonalLicenciaDiagnosticoMedicoDiagnostico,
     med.PersonalLicenciaDiagnosticoMedicoFechaDiagnostico,
       1
       FROM PersonalLicencia lic 
       JOIN Personal persona ON persona.PersonalId = lic.PersonalId
       JOIN TipoInasistencia tli ON tli.TipoInasistenciaId = lic.PersonalTipoInasistenciaId
+      LEFT JOIN PersonalLicenciaAplicaPeriodo licimp ON lic.PersonalId = licimp.PersonalId AND lic.PersonalLicenciaId = licimp.PersonalLicenciaId AND licimp.PersonalLicenciaAplicaPeriodoAplicaEl = CONCAT(RIGHT('  '+CAST(@2 AS VARCHAR(2)),2),'/',@1)
       LEFT JOIN PersonalSucursalPrincipal sucpri ON sucpri.PersonalId = persona.PersonalId 
       LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(sucpri.PersonalSucursalPrincipalSucursalId,1)
       LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND cat.CategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId
