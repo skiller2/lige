@@ -3,17 +3,17 @@
   <ul nz-menu nzMode="horizontal">
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'cust', 'objetivos']" (click)="resetForm()">Objetivos</a>
+      <a [routerLink]="['/', 'ges', 'cust', 'objetivos']" >Objetivos</a>
     </li>
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'cust', 'detalle']">Detalle</a>
+      <a [routerLink]="['/', 'ges', 'cust', 'detalle']" >Detalle</a>
     </li>
   </ul>
   <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
 
     <nz-tab>
-      <a nz-tab-link routerLink="/ges/cust/objetivos">Objetivos</a>
+      <a nz-tab-link routerLink="/ges/cust/objetivos" >Objetivos</a>
 
       <ng-template nz-tab *ngIf="(columns$|async) as columnas">
         

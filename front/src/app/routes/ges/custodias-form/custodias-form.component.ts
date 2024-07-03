@@ -136,8 +136,17 @@ export class CustodiaFormComponent {
         const form = this.ngForm().value
         let facturacion : number = 0
         for (const key in form) {
-            if (key.includes('impo') && form[key]) {
+            if (parseInt(key) && key.includes('impo') && form[key]) {
                 facturacion += form[key];
+            }else if (key.includes('impo') && form[key]) {
+                let auxKey = key.slice('impo'.length)
+                auxKey = 'cant'+auxKey
+                if (form[auxKey] !== undefined) {
+                    let cant = form[auxKey]? form[auxKey] : 0
+                    facturacion += (form[key] * cant);
+                } else {
+                    facturacion += form[key];
+                }
             }
         }
         this.ngForm().controls['facturacion'].setValue(facturacion)

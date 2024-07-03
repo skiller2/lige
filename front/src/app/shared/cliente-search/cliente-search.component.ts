@@ -36,6 +36,7 @@ import { CommonModule } from '@angular/common';
 export class ClienteSearchComponent implements ControlValueAccessor {
   constructor(private searchService: SearchService) {}
 
+  @Input() disabled: boolean = false
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("csc") csc!: NzSelectComponent

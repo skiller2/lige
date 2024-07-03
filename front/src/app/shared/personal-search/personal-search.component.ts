@@ -35,6 +35,7 @@ import { CommonModule } from '@angular/common'
 export class PersonalSearchComponent implements ControlValueAccessor {
   constructor(private searchService: SearchService) { }
 
+  @Input() disabled: boolean = false
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("psc") psc!: NzSelectComponent
