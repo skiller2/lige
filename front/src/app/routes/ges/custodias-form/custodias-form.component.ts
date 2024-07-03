@@ -41,11 +41,11 @@ export class CustodiaFormComponent {
 
     @Input() set custodia(value: number) {
         this.editCustodiaId.set(value);
+        this.listInputPersonal = this.cantInputs.slice()
+        this.listInputVehiculo = this.cantInputs.slice(0,2)
         if (this.editCustodiaId()){
           this.load()
         } else {
-            this.listInputPersonal = this.cantInputs.slice()
-            this.listInputVehiculo = this.cantInputs.slice(0,2)
             this.ngForm().reset()
         }
     }
