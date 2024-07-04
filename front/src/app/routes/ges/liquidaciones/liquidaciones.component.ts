@@ -243,7 +243,7 @@ export class LiquidacionesComponent {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
     //console.log('this.angularGrid', this.angularGrid);
-    this.angularGrid.gridService.hideColumnByIds(['PersonalCUITCUILCUIT','horas','periodo'])
+    this.angularGrid.gridService.hideColumnByIds(['PersonalCUITCUILCUIT','horas','periodo','CategoriaPersonalDescripcion'])
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
