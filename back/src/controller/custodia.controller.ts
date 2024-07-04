@@ -329,8 +329,8 @@ export class CustodiaController extends BaseController {
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            const responsableId = 699
-            // const responsableId = res.locals.PersonalId
+            // const responsableId = 699
+            const responsableId = res.locals.PersonalId
             if (!responsableId) 
                 throw new ClientException(`No se a encontrado al personal responsable.`)
 
@@ -411,8 +411,8 @@ export class CustodiaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         try{
             await queryRunner.startTransaction()
-            const responsableId = 699
-            // const responsableId = res.locals.PersonalId
+            // const responsableId = 699
+            const responsableId = res.locals.PersonalId
             const options: Options = isOptions(req.body.options)? req.body.options : { filtros: [], sort: null };
             
             const filterSql = filtrosToSql(options.filtros, columnsObjCustodia);
@@ -502,8 +502,8 @@ export class CustodiaController extends BaseController {
             await queryRunner.startTransaction()
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            const responsableId = 699
-            // const responsableId = res.locals.PersonalId
+            // const responsableId = 699
+            const responsableId = res.locals.PersonalId
             const custodiaId = req.params.id
             const objetivoCustodia = {...req.body }
             
@@ -562,10 +562,10 @@ export class CustodiaController extends BaseController {
                         if (rep) {
                             errores.push(`El personal ya tiene un registro existente en el formulario.`)
                         }else{
-                            // await this.addRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
+                            await this.addRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
                         }
                     } else if (persona.importePersonal != infoPersonal.importe) { //Si hubo un cambio en regpersonalcustodia ACTUALIZA
-                        // await this.updateRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
+                        await this.updateRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
                     }
                     repPersonal.push(infoPersonal)
                 }
@@ -601,12 +601,10 @@ export class CustodiaController extends BaseController {
                             if (rep) {
                                 errores.push(`La patente ${rep.patente} ya tiene un registro existente en el formulario.`)
                             }else{
-                                console.log('Se Creo',infoVehiculo);
-                                // await this.addRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
+                                await this.addRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
                             }
                         } else if (vehiculo.duenoId != infoVehiculo.duenoId || vehiculo.importeVehiculo != infoVehiculo.importe || vehiculo.peaje != infoVehiculo.peaje){
-                            console.log('Se Actualizo',vehiculo,infoVehiculo);
-                            // await this.updateRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
+                            await this.updateRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
                         }
                         repVehiculo.push(infoVehiculo)
                     }else if(objetivoCustodia.estado == 1){
@@ -632,15 +630,15 @@ export class CustodiaController extends BaseController {
 
             //Si hubo un cambio en objetivocustodia ACTUALIZA
             if (cantCambios) {
-                // await this.updateObjetivoCustodiaQuery(queryRunner, {...objetivoCustodia, objetivoCustodiaId: custodiaId}, usuario, ip)
+                await this.updateObjetivoCustodiaQuery(queryRunner, {...objetivoCustodia, objetivoCustodiaId: custodiaId}, usuario, ip)
             }
 
             //Elimino los vehiculos y el personal que ya no pertenecen a este objetivo custodia
             for (const obj of listPersonal) {
-                // await this.deleteRegPersonalObjCustodiaQuery(queryRunner, custodiaId, obj.personalId)
+                await this.deleteRegPersonalObjCustodiaQuery(queryRunner, custodiaId, obj.personalId)
             }
             for (const obj of listVehiculo) {
-                // await this.deleteRegVehiculoObjCustodiaQuery(queryRunner, custodiaId, obj.patente)
+                await this.deleteRegVehiculoObjCustodiaQuery(queryRunner, custodiaId, obj.patente)
             }
             
             await queryRunner.commitTransaction()
