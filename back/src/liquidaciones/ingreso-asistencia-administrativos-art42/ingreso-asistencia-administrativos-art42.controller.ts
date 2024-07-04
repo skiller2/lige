@@ -78,7 +78,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
         else if (row.TipoInasistenciaApartado.indexOf('4'))
           tipo_movimiento_id = tipo_movimiento_id_art42vigi
 
-        const detalle = `Art42 horas ${row.horas}, Categoría ${row.CategoriaPersonalDescripcion.trim()}, ${row.TipoInasistenciaDescripcion.trim()} `
+        const detalle = `Art42 horas ${row.PersonalLicenciaAplicaPeriodoHorasMensuales}, Categoría ${row.CategoriaPersonalDescripcion.trim()}, ${row.TipoInasistenciaDescripcion.trim()} `
 
         await queryRunner.query(
           `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe, horas,
@@ -94,7 +94,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
             null,
             row.PersonalId,
             Number(row.total),
-            row.horas,
+            row.PersonalLicenciaAplicaPeriodoHorasMensuales,
             usuario, ip, fechaActual, usuario, ip, fechaActual,
           ]
         );
