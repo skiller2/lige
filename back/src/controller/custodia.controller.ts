@@ -372,7 +372,7 @@ export class CustodiaController extends BaseController {
                     let keyDueno = i.toString() + 'duenoId'
                     if (req.body[keyDueno]) {
                         let infoVehiculo = {
-                            patente: req.body[key], 
+                            patente: req.body[key].toUpperCase(), 
                             importe: req.body[keyImporte], 
                             peaje: req.body[keyPeaje],
                             duenoId:req.body[keyDueno], 
@@ -577,7 +577,7 @@ export class CustodiaController extends BaseController {
                     let keyDueno = i.toString() + 'duenoId'
                     if (objetivoCustodia[keyDueno]) {
                         let infoVehiculo = {
-                            patente: objetivoCustodia[key], 
+                            patente: objetivoCustodia[key].toUpperCase(), 
                             importe: objetivoCustodia[keyImporte], 
                             peaje: objetivoCustodia[keyPeaje], 
                             duenoId: objetivoCustodia[keyDueno], 
@@ -674,7 +674,7 @@ export class CustodiaController extends BaseController {
             errores.push(`Los campos pares Cant. e Importe de Km Excedentes deben de llenarse al mismo tiempo.`)
         }
         //En caso de FINALIZAR custodia verificar los campos
-        if(custodiaForm.estado == 1 && (!custodiaForm.facturacion || !custodiaForm.fechaFinal || !custodiaForm.destino)){
+        if(custodiaForm.estado === 1 && (!custodiaForm.facturacion || !custodiaForm.fechaFinal || !custodiaForm.destino)){
             errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios.`)
         }
 
