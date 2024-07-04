@@ -44,14 +44,14 @@
           <app-inasistencia-search name="TipoInasistenciaId" ngModel [disabled]="this.openDrawerForConsult()"></app-inasistencia-search>
         </nz-form-control>
       </nz-form-item>
-      <nz-form-item>
-        <nz-form-label [nzSpan]="5">Categoría </nz-form-label>
-        <nz-form-control>
-
-          <app-categoria-persona [sucursalid]="SucursalId" [PersonalId]="this.PersonalId()"
-            [selectedPeriod]="selectedPeriod()" name="categoria" ngModel [disabled]="this.openDrawerForConsult()"></app-categoria-persona>
-        </nz-form-control>
-      </nz-form-item>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Categoría</nz-form-label>
+            <nz-form-control>
+                <!-- <app-categoria-persona [sucursalid]="SucursalId" [PersonalId]="PersonalIdForEdit" -->
+              <app-categoria-persona [sucursalid]="ngForm().value?.SucursalId" [PersonalId]="ngForm().value?.PersonalId"
+                [selectedPeriod]="selectedPeriod()" name="categoria" ngModel [disabled]="this.openDrawerForConsult()"></app-categoria-persona>
+          </nz-form-control>
+        </nz-form-item>
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Se paga</nz-form-label>
         <nz-form-control>
@@ -76,12 +76,14 @@
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
-        <nz-form-label [nzSpan]="5">Diagnóstico {{this.ngForm().value.PersonalId}}  </nz-form-label>
+        <nz-form-label [nzSpan]="5">Diagnóstico </nz-form-label>
         <nz-textarea-count class="textAreaInput" [nzMaxCharacterCount]="500">
           <textarea [disabled]="this.openDrawerForConsult()" rows="1" name="PersonalLicenciaDiagnosticoMedicoDiagnostico" ngModel nz-input ></textarea>
         </nz-textarea-count>
       </nz-form-item>
-      @if (this.PersonalId() >0 ) {
+      
+      @if (PersonalIdForEdit >0  ) {
+        <!-- @if (this.PersonalId() >0 ) { -->
          
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Documentos </nz-form-label>

@@ -24,7 +24,8 @@ const columnasGrilla: any[] = [
     field: "id",
     fieldName: "id",
     hidden: true,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   },
   {
     name: "Sucursal",
@@ -34,7 +35,8 @@ const columnasGrilla: any[] = [
     fieldName: "SucursalId",
     searchComponent: "inpurForSucursalSearch",
     hidden: true,
-    searchHidden: false
+    searchHidden: false,
+    sortable: true
   },
   {
     name: "Sucursal",
@@ -43,7 +45,8 @@ const columnasGrilla: any[] = [
     field: "SucursalDescripcion",
     fieldName: "suc.SucursalDescripcion",
     hidden: false,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   },
   {
     name: "PersonalLicenciaAplicaPeriodoAplicaEl",
@@ -52,7 +55,8 @@ const columnasGrilla: any[] = [
     field: "PersonalLicenciaAplicaPeriodoAplicaEl",
     fieldName: "licimp.PersonalLicenciaAplicaPeriodoAplicaEl",
     hidden: true,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   },
   {
     name: "anio",
@@ -61,7 +65,8 @@ const columnasGrilla: any[] = [
     field: "anio",
     fieldName: "anio",
     hidden: true,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   },
   {
     name: "mes",
@@ -70,7 +75,8 @@ const columnasGrilla: any[] = [
     field: "mes",
     fieldName: "mes",
     hidden: true,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   },
   {
     name: "Personal",
@@ -80,7 +86,8 @@ const columnasGrilla: any[] = [
     fieldName: "persona.PersonalId",
     searchComponent: "inpurForPersonalSearch",
     hidden: true,
-    searchHidden: false
+    searchHidden: false,
+    sortable: true
   },
   {
     name: "Nombre y Apellido",
@@ -89,7 +96,8 @@ const columnasGrilla: any[] = [
     field: "NombreCompleto",
     fieldName: "NombreCompleto",
     hidden: false,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   },
   {
     name: "PersonalLicenciaAplicaPeriodoHorasMensuales",
@@ -98,7 +106,8 @@ const columnasGrilla: any[] = [
     field: "PersonalLicenciaAplicaPeriodoHorasMensuales",
     fieldName: "licimp.PersonalLicenciaAplicaPeriodoHorasMensuales",
     hidden: true,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   },
   {
     name: "ValorLiquidacionHoraNormal",
@@ -107,7 +116,8 @@ const columnasGrilla: any[] = [
     field: "ValorLiquidacionHoraNormal",
     fieldName: "val.ValorLiquidacionHoraNormal",
     hidden: true,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   },
   {
     name: "Total",
@@ -116,7 +126,8 @@ const columnasGrilla: any[] = [
     field: "PersonalLicenciaAplicaPeriodoHorasMensuales",
     fieldName: "licimp.PersonalLicenciaAplicaPeriodoHorasMensuales",
     hidden: true,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   },
   {
     name: "Personal Licencia SePaga",
@@ -125,7 +136,8 @@ const columnasGrilla: any[] = [
     field: "PersonalLicenciaSePaga",
     fieldName: "lic.PersonalLicenciaSePaga",
     hidden: true,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   },
   {
     name: "Tipo Inasistencia",
@@ -134,7 +146,8 @@ const columnasGrilla: any[] = [
     field: "TipoInasistenciaDescripcion",
     fieldName: "tli.TipoInasistenciaDescripcion",
     hidden: false,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   },
   {
     name: "Inasistencia Apartado",
@@ -143,7 +156,8 @@ const columnasGrilla: any[] = [
     field: "TipoInasistenciaApartado",
     fieldName: "tli.TipoInasistenciaApartado",
     hidden: true,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   },
   {
     name: "Fecha",
@@ -153,7 +167,8 @@ const columnasGrilla: any[] = [
     fieldName: "lic.PersonalLicenciaDesde",
     searchComponent: "inpurForFechaSearch",
     hidden: false,
-    searchHidden: false
+    searchHidden: false,
+    sortable: true
   },
   {
     name: "Termina",
@@ -162,7 +177,8 @@ const columnasGrilla: any[] = [
     field: "PersonalLicenciaTermina",
     fieldName: "lic.PersonalLicenciaTermina",
     hidden: true,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   },
   {
     name: "Categoria",
@@ -171,7 +187,8 @@ const columnasGrilla: any[] = [
     field: "CategoriaPersonalDescripcion",
     fieldName: "cat.CategoriaPersonalDescripcion",
     hidden: false,
-    searchHidden: false
+    searchHidden: false,
+    sortable: true
   },
   {
     name: "Observacion",
@@ -180,7 +197,8 @@ const columnasGrilla: any[] = [
     field: "PersonalLicenciaObservacion",
     fieldName: "lic.PersonalLicenciaObservacion",
     hidden: false,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   },
   {
     name: "Diagnostico Medico",
@@ -189,7 +207,18 @@ const columnasGrilla: any[] = [
     field: "PersonalLicenciaDiagnosticoMedicoDiagnostico",
     fieldName: "med.PersonalLicenciaDiagnosticoMedicoDiagnostico",
     hidden: false,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
+  },
+  {
+    name: "Se Paga",
+    type: "string",
+    id: "PersonalLicenciaSePaga",
+    field: "PersonalLicenciaSePaga",
+    fieldName: "PersonalLicenciaSePaga",
+    searchHidden: true,
+    hidden: false,
+    sortable: true
   },
   {
     name: "PersonalLicenciaDiagnosticoMedicoFechaDiagnostico",
@@ -198,7 +227,8 @@ const columnasGrilla: any[] = [
     field: "PersonalLicenciaDiagnosticoMedicoFechaDiagnostico",
     fieldName: "med.PersonalLicenciaDiagnosticoMedicoFechaDiagnostico",
     hidden: true,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   }
 ];
 
@@ -211,7 +241,8 @@ const columnasGrillaHoras: any[] = [
     field: "id",
     fieldName: "id",
     hidden: true,
-    searchHidden: true
+    searchHidden: true,
+    sortable: true
   },
   {
     name: "Sucursal",
@@ -221,7 +252,8 @@ const columnasGrillaHoras: any[] = [
     fieldName: "SucursalId",
     searchComponent: "inpurForSucursalSearch",
     hidden: true,
-    searchHidden: false
+    searchHidden: false,
+    sortable: true
   },
   {
     name: "Sucursal",
@@ -231,6 +263,7 @@ const columnasGrillaHoras: any[] = [
     fieldName: "suc.SucursalDescripcion",
     searchHidden: true,
     hidden: false,
+    sortable: true
   },
   {
     name: "Nombre y Apellido",
@@ -243,6 +276,7 @@ const columnasGrillaHoras: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: false,
+
   },
   {
     name: "Desde",
@@ -274,6 +308,7 @@ const columnasGrillaHoras: any[] = [
     fieldName: "TipoInasistenciaId",
     searchHidden: true,
     hidden: true,
+    sortable: true
   },
   {
     name: "Tipo Inasistencia",
@@ -283,6 +318,7 @@ const columnasGrillaHoras: any[] = [
     fieldName: "TipoInasistenciaDescripcion",
     searchHidden: true,
     hidden: false,
+    sortable: true
   },
   {
     name: "PersonalLicencia Id",
@@ -292,6 +328,7 @@ const columnasGrillaHoras: any[] = [
     fieldName: "PersonalLicenciaId",
     searchHidden: true,
     hidden: true,
+    sortable: true
   },
   {
     name: "Periodo",
@@ -301,6 +338,7 @@ const columnasGrillaHoras: any[] = [
     fieldName: "PersonalLicenciaAplicaPeriodoAplicaEl",
     searchHidden: true,
     hidden: true,
+    sortable: true
   },
   {
     name: "PeriodoSucursalId",
@@ -310,6 +348,7 @@ const columnasGrillaHoras: any[] = [
     fieldName: "PersonalLicenciaAplicaPeriodoSucursalId",
     searchHidden: true,
     hidden: true,
+    sortable: true
   },
   {
     name: "Personal Licencia SePaga",
@@ -319,6 +358,7 @@ const columnasGrillaHoras: any[] = [
     fieldName: "PersonalLicenciaSePaga",
     searchHidden: true,
     hidden: true,
+    sortable: true
   },
   {
     name: "Horas período",
@@ -328,6 +368,7 @@ const columnasGrillaHoras: any[] = [
     fieldName: "PersonalLicenciaAplicaPeriodoHorasMensuales",
     searchHidden: true,
     hidden: false,
+    sortable: true
   },
   {
     name: "Total Valor Liquidacion",
@@ -337,6 +378,7 @@ const columnasGrillaHoras: any[] = [
     fieldName: "total",
     searchHidden: true,
     hidden: false,
+    sortable: true
 
   },
   {
@@ -347,6 +389,7 @@ const columnasGrillaHoras: any[] = [
     fieldName: "PersonalLicenciaAplicaPeriodo",
     searchHidden: true,
     hidden: true,
+    sortable: true
   },
 ];
 
@@ -510,11 +553,22 @@ console.log(req.body)
         ? null
         : 1
 
-        let PersonalLicenciaSelect = await queryRunner.query(` SELECT PersonalLicenciaUltNro from Personal WHERE PersonalId = @0`, [PersonalId,])
-        let { PersonalLicenciaUltNro } = PersonalLicenciaSelect[0]
-        PersonalLicenciaUltNro += 1
+        let PersonalLicenciaSituacionRevistaId = await queryRunner.query(`
+            SELECT PersonalSituacionRevistaSituacionId
+            FROM PersonalSituacionRevista
+            WHERE PersonalId = @0
+            AND PersonalSituacionRevistaId = (
+                SELECT MAX(PersonalSituacionRevistaId)
+                FROM PersonalSituacionRevista
+                WHERE PersonalId = @0
+            );`, [PersonalId])
 
-        await queryRunner.query(` UPDATE Personal SET PersonalLicenciaUltNro = @1 where PersonalId = @0 `, [PersonalId, PersonalLicenciaUltNro])
+        let PersonalLicenciaSelect = await queryRunner.query(` SELECT PersonalLicenciaUltNro,PersonalSituacionRevistaUltNro from Personal WHERE PersonalId = @0`, [PersonalId,])
+        let { PersonalLicenciaUltNro,PersonalSituacionRevistaUltNro } = PersonalLicenciaSelect[0]
+        PersonalLicenciaUltNro += 1
+        PersonalSituacionRevistaUltNro += 1
+
+        await queryRunner.query(` UPDATE Personal SET PersonalLicenciaUltNro = @1,PersonalSituacionRevistaUltNro = @2 where PersonalId = @0 `, [PersonalId, PersonalLicenciaUltNro,PersonalSituacionRevistaUltNro])
 
         await queryRunner.query(`INSERT INTO PersonalLicencia (
           PersonalId, 
@@ -522,45 +576,78 @@ console.log(req.body)
           PersonalLicenciaHistorica, 
           TipoLicenciaId, 
           PersonalLicenciaContraRenuncia, 
+
           PersonalLicenciaDesde, 
           PersonalLicenciaHasta, 
           PersonalLicenciaTermina, 
           PersonalLicenciaDesdeConsejo,
           PersonalLicenciaHastaConsejo, 
+
           PersonalLicenciaTerminaConsejo, 
           PersonalLicenciaObservacion,
           PersonalLicenciaDiagnosticoMedicoUltNro, 
           PersonalLicenciaLiquidacionUltNro,
           PersonalTipoInasistenciaId, 
+
           PersonalLicenciaSePaga, 
           PersonalLicenciaHorasMensuales, 
           PersonalLicenciaTipoAsociadoId, 
           PersonalLicenciaCategoriaPersonalId,
            PersonalLicenciaAplicaPeriodoUltNro, 
+
           PersonalLicenciaSituacionRevistaId)
-          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19)`
+          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19,@20)`
           , [PersonalId,
             PersonalLicenciaUltNro,
             null,
             null,
             'N',
+
             PersonalLicenciaDesde,
             PersonalLicenciaHasta,
             PersonalLicenciaHasta,
             null,
             null,
+
+            null,
             PersonalLicenciaObservacion,
             DiagnosticoUpdate,
             null,
             TipoInasistenciaId,
+
             PersonalLicenciaSePaga,
             `${Math.trunc(PersonalLicenciaHorasMensuales)}.${(60*(PersonalLicenciaHorasMensuales-Math.trunc(PersonalLicenciaHorasMensuales))).toString().padStart(2,'0')}`,
             PersonalLicenciaCategoriaPersonalId,
             PersonalLicenciaTipoAsociadoId,
             null,
-            null])
-      }
 
+            PersonalSituacionRevistaUltNro])
+
+
+            await queryRunner.query(`INSERT INTO PersonalSituacionRevista (
+              PersonalId,
+              PersonalSituacionRevistaId,
+              PersonalSituacionRevistaDesde,
+              PersonalSituacionRevistaTomoConocimiento, 
+              PersonalSituacionRevistaHasta,
+              PersonalSituacionRevistaMotivo,
+              PersonalSituacionRevistaAnula,
+              PersonalSituacionRevistaSituacionId,
+              PersonalSituacionRevistaSituacionClasificacionId,
+              PersonalSituacionRevistaRetenerLiquidacion) 
+              VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, 
+              [PersonalId,
+               PersonalSituacionRevistaUltNro,
+               PersonalLicenciaDesde,
+               null,
+               PersonalLicenciaHasta,
+               'LICENCIA',
+               null,
+               10,
+               null,
+               null
+              ])
+      }
 
       await this.handlePDFUpload(anioRequest, mesRequest, PersonalId, PersonalLicenciaId, res, req, Archivos, next)
 
@@ -650,7 +737,6 @@ console.log(req.body)
       FROM PersonalLicencia lic 
       JOIN Personal persona ON persona.PersonalId = lic.PersonalId
       JOIN TipoInasistencia tli ON tli.TipoInasistenciaId = lic.PersonalTipoInasistenciaId
-      LEFT JOIN PersonalLicenciaAplicaPeriodo licimp ON lic.PersonalId = licimp.PersonalId AND lic.PersonalLicenciaId = licimp.PersonalLicenciaId AND licimp.PersonalLicenciaAplicaPeriodoAplicaEl = CONCAT(RIGHT('  '+CAST(@2 AS VARCHAR(2)),2),'/',@1)
       LEFT JOIN PersonalSucursalPrincipal sucpri ON sucpri.PersonalId = persona.PersonalId 
       LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(sucpri.PersonalSucursalPrincipalSucursalId,1)
       LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND cat.CategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId
@@ -659,7 +745,7 @@ console.log(req.body)
       LEFT JOIN PersonalLicenciaAplicaPeriodo licimp ON lic.PersonalId = licimp.PersonalId AND lic.PersonalLicenciaId = licimp.PersonalLicenciaId AND licimp.PersonalLicenciaAplicaPeriodoAplicaEl = CONCAT(RIGHT('  '+CAST(@2 AS VARCHAR(2)),2),'/',@1)
       WHERE lic.PersonalId=@3 AND lic.PersonalLicenciaId=@4 `
 
-      const result = await queryRunner.query(selectquery, [, anio, mes, PersonalId, PersonalLicenciaId])
+      const result = await queryRunner.query(selectquery, [null,anio, mes, PersonalId, PersonalLicenciaId])
 
       this.jsonRes(result[0], res);
     } catch (error) {

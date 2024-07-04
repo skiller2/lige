@@ -58,10 +58,9 @@ export class LicenciaDrawerComponent {
   cambios = computed(async () => {
     const visible = this.visible()
     this.ngForm().form.reset()
-    console.log("visible ", visible)
     if (visible) {
       const per = this.selectedPeriod()
-      if (this.PersonalLicenciaId()) {
+      if (this.PersonalLicenciaId() > 0) {
         let vals = await firstValueFrom(this.apiService.getLicencia(per.year, per.month, this.PersonalId(), this.PersonalLicenciaId()));
         vals.categoria = { id: `${vals.PersonalLicenciaTipoAsociadoId}-${vals.PersonalLicenciaCategoriaPersonalId}` }
         vals.PersonalLicenciaHorasMensuales = Number(vals.PersonalLicenciaHorasMensuales)

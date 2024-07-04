@@ -29,7 +29,7 @@ export class CargaLicenciasComponent {
   PersonalLicenciaId = 0
   tituloDrawer = ""
   openDrawerForConsult = false
-  inputForConsult = true 
+  inputForConsult = true
 
   selectedPeriod = computed(() => {
     const per = this.periodo()
@@ -65,6 +65,7 @@ export class CargaLicenciasComponent {
 
   openDrawerforNew(): void {
     this.PersonalLicenciaId = 0
+    this.PersonalId = 0
     this.visibleDrawer = true
     this.tituloDrawer = "Nueva Licencia"
     this.openDrawerForConsult = false
