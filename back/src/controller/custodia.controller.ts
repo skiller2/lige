@@ -344,9 +344,8 @@ export class CustodiaController extends BaseController {
             
             await this.addObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
-            let repPersonal = []
-            let repVehiculo = []
-            let errores = []
+            let repPersonal = [], repVehiculo = [], errores = []
+            let vehiculoError = 0, personalError = 0
             for (const key in req.body) {
                 if( key.endsWith('personalId') && req.body[key]){
                     let i = parseInt(key)
@@ -356,6 +355,12 @@ export class CustodiaController extends BaseController {
                         importe: req.body[keyImporte], 
                         objetivoCustodiaId
                     }
+
+                    //En caso de FINALIZAR custodia verificar los campos Importe de Personal
+                    if(objetivoCustodia.estado == 1 && !infoPersonal.importe){
+                        personalError++
+                    }
+
                     let rep = repPersonal.find((obj:any) => obj.personalId == infoPersonal.personalId)
                     if (rep) {
                         errores.push(`El personal ya tiene un registro existente en el formulario.`)
@@ -378,6 +383,12 @@ export class CustodiaController extends BaseController {
                             duenoId:req.body[keyDueno], 
                             objetivoCustodiaId
                         }
+
+                        //En caso de FINALIZAR custodia verificar los campos Importe de Vehiculos
+                        if(objetivoCustodia.estado == 1 && !infoVehiculo.importe){
+                            vehiculoError++
+                        }
+
                         let rep = repVehiculo.find((obj:any) => obj.patente == infoVehiculo.patente)
                         if (rep) {
                             errores.push(`La patente ${rep.patente} ya tiene un registro existente en el formulario.`)
@@ -391,6 +402,14 @@ export class CustodiaController extends BaseController {
             }
             if (repVehiculo.length == 0 && repPersonal.length == 0) {
                 errores.push(`Debe de haber por lo menos una persona y un vehículo (Patente y Dueño) por custodia.`)
+            }
+
+            if(personalError) {
+                errores.push(`Los campos Importe de cada Personal NO pueden estar vacios.`)
+            }
+
+            if(vehiculoError) {
+                errores.push(`Los campos Importe de cada Vehiculo NO pueden estar vacios.`)
             }
 
             if (errores.length) {
@@ -524,12 +543,8 @@ export class CustodiaController extends BaseController {
             
             infoCustodia.fechaInicio = infoCustodia.fechaInicio.toISOString()
             infoCustodia.fechaFinal = infoCustodia.fechaFinal? infoCustodia.fechaFinal.toISOString() : infoCustodia.fechaFinal
-            let cantCambios = 0
-            let personalError = 0
-            let vehiculoError = 0
-            let repPersonal = []
-            let repVehiculo = []
-            let errores = []
+            let cantCambios = 0, personalError = 0, vehiculoError = 0
+            let repPersonal = [], repVehiculo = [], errores = []
             
             for (const key in objetivoCustodia) {
                 //Verifico si hubo cambios
@@ -616,11 +631,11 @@ export class CustodiaController extends BaseController {
                 errores.push(`Debe de haber por lo menos una persona y un vehículo (Patente y Dueño) por custodia.`)
             }
 
-            if(vehiculoError) {
+            if(personalError) {
                 errores.push(`Los campos Importe de cada Personal NO pueden estar vacios.`)
             }
 
-            if(personalError) {
+            if(vehiculoError) {
                 errores.push(`Los campos Importe de cada Vehiculo NO pueden estar vacios.`)
             }
 
