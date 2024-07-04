@@ -148,7 +148,7 @@ export class CustodiaController extends BaseController {
         return await queryRunner.query(`
             INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, 
                 descripcion, fecha_inicio, origen, fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced,
-                impo_horas_exced, cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, estado, 
+                impo_horas_exced, cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, num_factura, estado, 
                 aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
             VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @19, @20, @21)`, 
             [objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, descripcion, fecha_inicio, origen, 
@@ -179,10 +179,10 @@ export class CustodiaController extends BaseController {
         const peaje_vehiculo = infoVehiculo.peaje? infoVehiculo.peaje : null
         const fechaActual = new Date()
         return await queryRunner.query(`INSERT lige.dbo.regvehiculocustodia(
-            objetivo_custodia_id, patente, importe_vehiculo, peaje_vehiculo, 
+            patente, objetivo_custodia_id, personal_id, importe_vehiculo, peaje_vehiculo, 
             aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod
         )
-        VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)`, 
+        VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @5, @6, @7)`, 
         [patente, objetivo_custodia_id, personal_id, importe_vehiculo, peaje_vehiculo, usuario, ip, fechaActual])
     }
 
@@ -287,7 +287,7 @@ export class CustodiaController extends BaseController {
 
     async getRegPersonalObjCustodiaQuery(queryRunner: any, custodiaId: any){
         return await queryRunner.query(`
-        SELECT reg.personal_id personalId, reg.importe_personal importePersonal
+        SELECT reg.personal_id personalId, TRIM(per.PersonalApellidoNombre) apellidoNombre, reg.importe_personal importePersonal
         FROM lige.dbo.regpersonalcustodia reg
         INNER JOIN Personal per ON per.PersonalId = reg.personal_id
         WHERE objetivo_custodia_id = @0`, 
@@ -325,14 +325,14 @@ export class CustodiaController extends BaseController {
         try {
             await queryRunner.startTransaction()
             if (!req.body.clienteId || !req.body.fechaInicio || !req.body.origen)
-                throw new ClientException(`Los campos de Cliente, Fecha Inicial y Origen NO pueden estar vacios`)
+                throw new ClientException(`Los campos de Cliente, Fecha Inicial y Origen NO pueden estar vacios.`)
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            // const responsableId = 699
-            const responsableId = res.locals.PersonalId
+            const responsableId = 699
+            // const responsableId = res.locals.PersonalId
             if (!responsableId) 
-                throw new ClientException(`No se a encontrado al personal responsable`)
+                throw new ClientException(`No se a encontrado al personal responsable.`)
 
             const valCustodiaForm = this.valCustodiaForm(req.body)
             if (valCustodiaForm instanceof ClientException)
@@ -344,8 +344,8 @@ export class CustodiaController extends BaseController {
             
             await this.addObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
-            let cantPersonal = 0
-            let cantVehiculo = 0
+            let repPersonal = [], repVehiculo = [], errores = []
+            let vehiculoError = 0, personalError = 0
             for (const key in req.body) {
                 if( key.endsWith('personalId') && req.body[key]){
                     let i = parseInt(key)
@@ -355,8 +355,19 @@ export class CustodiaController extends BaseController {
                         importe: req.body[keyImporte], 
                         objetivoCustodiaId
                     }
-                    await this.addRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
-                    cantPersonal++
+
+                    //En caso de FINALIZAR custodia verificar los campos Importe de Personal
+                    if(objetivoCustodia.estado == 1 && !infoPersonal.importe){
+                        personalError++
+                    }
+
+                    let rep = repPersonal.find((obj:any) => obj.personalId == infoPersonal.personalId)
+                    if (rep) {
+                        errores.push(`El personal ya tiene un registro existente en el formulario.`)
+                    }else{
+                        await this.addRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
+                        repPersonal.push(infoPersonal)
+                    }
                 }
 
                 if( key.endsWith('patente') && req.body[key]){
@@ -366,22 +377,45 @@ export class CustodiaController extends BaseController {
                     let keyDueno = i.toString() + 'duenoId'
                     if (req.body[keyDueno]) {
                         let infoVehiculo = {
-                            patente: req.body[key], 
+                            patente: req.body[key].toUpperCase(), 
                             importe: req.body[keyImporte], 
                             peaje: req.body[keyPeaje],
                             duenoId:req.body[keyDueno], 
                             objetivoCustodiaId
                         }
-                        await this.addRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
-                        cantVehiculo++
+
+                        //En caso de FINALIZAR custodia verificar los campos Importe de Vehiculos
+                        if(objetivoCustodia.estado == 1 && !infoVehiculo.importe){
+                            vehiculoError++
+                        }
+
+                        let rep = repVehiculo.find((obj:any) => obj.patente == infoVehiculo.patente)
+                        if (rep) {
+                            errores.push(`La patente ${rep.patente} ya tiene un registro existente en el formulario.`)
+                        }else{
+                            await this.addRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
+                            repVehiculo.push(infoVehiculo)
+                        }
                     }
                 }
                 
             }
-            if (cantVehiculo == 0 && cantPersonal == 0) {
-                throw new ClientException(`Debe de haber por lo menos una persona y un vehículo (Patente y Dueño) por custodia`)
+            if (repVehiculo.length == 0 && repPersonal.length == 0) {
+                errores.push(`Debe de haber por lo menos una persona y un vehículo (Patente y Dueño) por custodia.`)
             }
-            
+
+            if(personalError) {
+                errores.push(`Los campos Importe de cada Personal NO pueden estar vacios.`)
+            }
+
+            if(vehiculoError) {
+                errores.push(`Los campos Importe de cada Vehiculo NO pueden estar vacios.`)
+            }
+
+            if (errores.length) {
+                throw new ClientException(errores.join(`\n`))
+            }
+
             await queryRunner.commitTransaction()
             return this.jsonRes({ custodiaId: objetivoCustodiaId }, res, 'Carga Exitosa');
         }catch (error) {
@@ -448,8 +482,10 @@ export class CustodiaController extends BaseController {
             listPersonal.forEach((obj:any, index:any)=>{
                 const keys = Object.keys(obj)
                 keys.forEach((key:any)=>{
-                    let newKey = (index+1)+key
-                    infoCustodia[newKey] = obj[key]
+                    if (key != 'apellidoNombre') {
+                        let newKey = (index+1)+key
+                        infoCustodia[newKey] = obj[key]
+                    }
                 })
                 listInputPersonal.push(index+1)
             })
@@ -504,15 +540,11 @@ export class CustodiaController extends BaseController {
             
             let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, custodiaId)
             let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
-
+            
             infoCustodia.fechaInicio = infoCustodia.fechaInicio.toISOString()
             infoCustodia.fechaFinal = infoCustodia.fechaFinal? infoCustodia.fechaFinal.toISOString() : infoCustodia.fechaFinal
-            let cantPersonal = 0
-            let cantVehiculo = 0
-            let cantCambios = 0
-            let personalError = 0
-            let vehiculoError = 0
-            let errores = []
+            let cantCambios = 0, personalError = 0, vehiculoError = 0
+            let repPersonal = [], repVehiculo = [], errores = []
             
             for (const key in objetivoCustodia) {
                 //Verifico si hubo cambios
@@ -536,16 +568,21 @@ export class CustodiaController extends BaseController {
                     for (let index = 0; index < listPersonal.length; index++) {
                         if(listPersonal[index].personalId == infoPersonal.personalId){
                             persona = listPersonal[index]
-                            listPersonal = listPersonal.splice(i, 1)
+                            listPersonal.splice(index, 1)
                             break
                         }
                     }
                     if (!persona) { //Si el personal es nuevo AGREGAR
-                        await this.addRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
+                        let rep = repPersonal.find((obj:any) => obj.personalId == infoPersonal.personalId)
+                        if (rep) {
+                            errores.push(`El personal ya tiene un registro existente en el formulario.`)
+                        }else{
+                            await this.addRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
+                        }
                     } else if (persona.importePersonal != infoPersonal.importe) { //Si hubo un cambio en regpersonalcustodia ACTUALIZA
                         await this.updateRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
                     }
-                    cantPersonal++
+                    repPersonal.push(infoPersonal)
                 }
                 //Si hubo un cambio ACTUALIZA regvehiculocustodia
                 if( key.endsWith('patente') && objetivoCustodia[key]){
@@ -555,7 +592,7 @@ export class CustodiaController extends BaseController {
                     let keyDueno = i.toString() + 'duenoId'
                     if (objetivoCustodia[keyDueno]) {
                         let infoVehiculo = {
-                            patente: objetivoCustodia[key], 
+                            patente: objetivoCustodia[key].toUpperCase(), 
                             importe: objetivoCustodia[keyImporte], 
                             peaje: objetivoCustodia[keyPeaje], 
                             duenoId: objetivoCustodia[keyDueno], 
@@ -569,30 +606,36 @@ export class CustodiaController extends BaseController {
                         for (let index = 0; index < listVehiculo.length; index++) {
                             if(listVehiculo[index].patente == infoVehiculo.patente){
                                 vehiculo = listVehiculo[index]
-                                listVehiculo = listVehiculo.splice(i, 1)
+                                listVehiculo.splice(index, 1)
                                 break
                             }
                         }
+
                         if (!vehiculo) {
-                            await this.addRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
+                            let rep = repVehiculo.find((obj:any) => obj.patente == infoVehiculo.patente)
+                            if (rep) {
+                                errores.push(`La patente ${rep.patente} ya tiene un registro existente en el formulario.`)
+                            }else{
+                                await this.addRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
+                            }
                         } else if (vehiculo.duenoId != infoVehiculo.duenoId || vehiculo.importeVehiculo != infoVehiculo.importe || vehiculo.peaje != infoVehiculo.peaje){
                             await this.updateRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
                         }
-                        cantVehiculo++
+                        repVehiculo.push(infoVehiculo)
                     }else if(objetivoCustodia.estado == 1){
                         errores.push(`El campo Dueño de la patente ${objetivoCustodia[key]} NO pueden estar vacios.`)  
                     }
                 }
             }
-            if (cantVehiculo == 0 && cantPersonal == 0) {
-                throw new ClientException(`Debe de haber por lo menos una persona y un vehículo (Patente y Dueño) por custodia`)
-            }
-
-            if(vehiculoError) {
-                errores.push(`Los campos Importe de cada Personal NO pueden estar vacios.`)
+            if (repVehiculo.length == 0 && repPersonal.length == 0) {
+                errores.push(`Debe de haber por lo menos una persona y un vehículo (Patente y Dueño) por custodia.`)
             }
 
             if(personalError) {
+                errores.push(`Los campos Importe de cada Personal NO pueden estar vacios.`)
+            }
+
+            if(vehiculoError) {
                 errores.push(`Los campos Importe de cada Vehiculo NO pueden estar vacios.`)
             }
 
@@ -634,20 +677,20 @@ export class CustodiaController extends BaseController {
     valCustodiaForm(custodiaForm: any){
         let errores : any[] = []
         if (!custodiaForm.clienteId || !custodiaForm.fechaInicio || !custodiaForm.origen){
-            errores.push(`Los campos de Cliente, Fecha Inicial y Origen NO pueden estar vacios`)
+            errores.push(`Los campos de Cliente, Fecha Inicial y Origen NO pueden estar vacios.`)
         }
         if ((!custodiaForm.cantModulos && custodiaForm.impoModulos) || (custodiaForm.cantModulos && !custodiaForm.impoModulos)) {
-            errores.push(`Los campos pares Cant. e Importe de Modulos deben de llenarse al mismo tiempo`)
+            errores.push(`Los campos pares Cant. e Importe de Modulos deben de llenarse al mismo tiempo.`)
         }
         if ((!custodiaForm.cantHorasExced && custodiaForm.impoHorasExced) || (custodiaForm.cantHorasExced && !custodiaForm.impoHorasExced)) {
-            errores.push(`Los campos pares Cant. e Importe de Horas Excedentes deben de llenarse al mismo tiempo`)
+            errores.push(`Los campos pares Cant. e Importe de Horas Excedentes deben de llenarse al mismo tiempo.`)
         }
         if ((!custodiaForm.cantKmExced && custodiaForm.impoKmExced) || (custodiaForm.cantKmExced && !custodiaForm.impoKmExced)) {
-            errores.push(`Los campos pares Cant. e Importe de Km Excedentes deben de llenarse al mismo tiempo`)
+            errores.push(`Los campos pares Cant. e Importe de Km Excedentes deben de llenarse al mismo tiempo.`)
         }
         //En caso de FINALIZAR custodia verificar los campos
-        if(custodiaForm.estado == 1 && (!custodiaForm.facturacion || !custodiaForm.fechaFinal || !custodiaForm.destino)){
-            errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios`)
+        if(custodiaForm.estado === 1 && (!custodiaForm.facturacion || !custodiaForm.fechaFinal || !custodiaForm.destino)){
+            errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios.`)
         }
 
         if (errores.length) {

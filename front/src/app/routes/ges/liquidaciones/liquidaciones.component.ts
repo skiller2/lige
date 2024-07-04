@@ -243,6 +243,7 @@ export class LiquidacionesComponent {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
     //console.log('this.angularGrid', this.angularGrid);
+    this.angularGrid.gridService.hideColumnByIds(['PersonalCUITCUILCUIT','horas','periodo','CategoriaPersonalDescripcion'])
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
@@ -371,8 +372,8 @@ export class LiquidacionesComponent {
   }
 
   columns$ = this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols) => {
-    cols[7].asyncPostRender = this.renderAngularComponent.bind(this)
     cols[6].asyncPostRender = this.renderAngularComponent.bind(this)
+    cols[8].asyncPostRender = this.renderAngularComponent.bind(this)
 
     return cols
   }));
@@ -610,6 +611,9 @@ export class LiquidacionesComponent {
 
     this.gridOptionsImport = this.apiService.getDefaultGridOptions('.gridContainer3', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsImport.enableRowDetailView = this.apiService.isMobile()
+
+
+
   }
 
   selectedValueChangeMovimiento(event: string): void {
