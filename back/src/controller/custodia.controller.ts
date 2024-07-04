@@ -148,7 +148,7 @@ export class CustodiaController extends BaseController {
         return await queryRunner.query(`
             INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, 
                 descripcion, fecha_inicio, origen, fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced,
-                impo_horas_exced, cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, estado, 
+                impo_horas_exced, cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, num_factura, estado, 
                 aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
             VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @19, @20, @21)`, 
             [objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, descripcion, fecha_inicio, origen, 
@@ -329,8 +329,8 @@ export class CustodiaController extends BaseController {
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            // const responsableId = 699
-            const responsableId = res.locals.PersonalId
+            const responsableId = 699
+            // const responsableId = res.locals.PersonalId
             if (!responsableId) 
                 throw new ClientException(`No se a encontrado al personal responsable.`)
 
@@ -415,7 +415,7 @@ export class CustodiaController extends BaseController {
             if (errores.length) {
                 throw new ClientException(errores.join(`\n`))
             }
-            
+
             await queryRunner.commitTransaction()
             return this.jsonRes({ custodiaId: objetivoCustodiaId }, res, 'Carga Exitosa');
         }catch (error) {
