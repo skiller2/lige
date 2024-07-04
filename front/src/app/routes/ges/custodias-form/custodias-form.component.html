@@ -221,7 +221,7 @@
       <nz-form-label [nzSpan]="3">Importe a Facturar</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="facturacion" type="number" disabled />
+          <input nz-input placeholder="" ngModel name="facturacion" type="number" [disabled]="!edit" readonly/>
         </nz-input-group>
       </nz-form-control>
       <nz-form-label [nzSpan]="2">Estado</nz-form-label>

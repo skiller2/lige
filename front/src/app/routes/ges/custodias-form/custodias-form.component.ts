@@ -44,7 +44,7 @@ export class CustodiaFormComponent {
         this.listInputPersonal = this.cantInputs.slice()
         this.listInputVehiculo = this.cantInputs.slice(0,2)
         if (this.editCustodiaId()){
-          this.load()
+            this.load()
         } else {
             this.ngForm().reset()
         }
