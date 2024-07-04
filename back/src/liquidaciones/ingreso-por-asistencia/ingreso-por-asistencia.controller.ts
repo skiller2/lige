@@ -56,11 +56,12 @@ export class IngresoPorAsistenciaController extends BaseController {
 
       for (const row of result) {
  //        const detalle = `Horas ${row.totalhorascalc}, Categoría ${((row.rt14CategoriaDescripcion != undefined) ? row.rt14CategoriaDescripcion : row.CategoriaPersonalDescripcion).trim()}  `
+
         const detalle = `Horas ${row.totalhorascalc}, Categoría ${row.CategoriaPersonalDescripcion.trim()}`
         await queryRunner.query(
-          `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,
+          `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas, tipo_asociado_id, categoria_personal_id,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14)
+              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14,@15,@16)
                      `,
           [
             ++movimiento_id,
@@ -72,6 +73,8 @@ export class IngresoPorAsistenciaController extends BaseController {
             row.PersonalId,
             row.totalhorascalc * row.ValorHoraNorm,
             row.totalhorascalc,
+            row.ObjetivoAsistenciaTipoAsociadoId,
+            row.ObjetivoAsistenciaCategoriaPersonalId,
             usuario, ip, fechaActual, usuario, ip, fechaActual,
           ]
         );
@@ -79,9 +82,9 @@ export class IngresoPorAsistenciaController extends BaseController {
         if (row.PersonalArt14Horas) {
           const detalle = `Art14 Horas adicionales ${row.PersonalArt14Horas}`
           await queryRunner.query(
-            `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,
+            `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas, tipo_asociado_id, categoria_personal_id,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14)
+              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14,@15,@16)
                      `,
             [
               ++movimiento_id,
@@ -93,6 +96,8 @@ export class IngresoPorAsistenciaController extends BaseController {
               row.PersonalId,
               row.PersonalArt14Horas*row.ValorHoraNorm,
               row.PersonalArt14Horas,
+              row.ObjetivoAsistenciaTipoAsociadoId,
+              row.ObjetivoAsistenciaCategoriaPersonalId,
               usuario, ip, fechaActual, usuario, ip, fechaActual,
             ]
           );
@@ -103,9 +108,9 @@ export class IngresoPorAsistenciaController extends BaseController {
           //console.log('Dif categoria',row.art14CategoriaDescripcion,row.ValorHoraArt14Categoria)
           const detalle = `Art14 Equivalencia ${row.art14CategoriaDescripcion.trim()}, horas:${row.totalhorascalc+row.PersonalArt14Horas}`
           await queryRunner.query(
-            `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,
+            `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,tipo_asociado_id, categoria_personal_id,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14)
+              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14,@15,@16)
                      `,
             [
               ++movimiento_id,
@@ -116,7 +121,9 @@ export class IngresoPorAsistenciaController extends BaseController {
               row.ObjetivoId,
               row.PersonalId,
               (row.totalhorascalc+row.PersonalArt14Horas) * (row.ValorHoraArt14Categoria-row.ValorHoraNorm),
-              row.totalhorascalc+row.PersonalArt14Horas,
+              row.totalhorascalc + row.PersonalArt14Horas,
+              row.PersonalArt14TipoAsociadoId,
+              row.PersonalArt14CategoriaId,
               usuario, ip, fechaActual, usuario, ip, fechaActual,
             ]
           );
@@ -126,9 +133,9 @@ export class IngresoPorAsistenciaController extends BaseController {
         if (row.PersonalArt14AdicionalHora) {
           const detalle = `Art14 Importe Adicional Horas ${row.totalhorascalc+row.PersonalArt14Horas}`
           await queryRunner.query(
-            `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,
+            `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,tipo_asociado_id, categoria_personal_id,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14)
+              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14,@15,@16)
                      `,
             [
               ++movimiento_id,
@@ -139,7 +146,9 @@ export class IngresoPorAsistenciaController extends BaseController {
               row.ObjetivoId,
               row.PersonalId,
               (row.totalhorascalc+row.PersonalArt14Horas)*row.PersonalArt14AdicionalHora,
-              row.totalhorascalc+row.PersonalArt14Horas,
+              row.totalhorascalc + row.PersonalArt14Horas,
+              row.ObjetivoAsistenciaTipoAsociadoId,
+              row.ObjetivoAsistenciaCategoriaPersonalId,
               usuario, ip, fechaActual, usuario, ip, fechaActual,
             ]
           );
@@ -148,9 +157,9 @@ export class IngresoPorAsistenciaController extends BaseController {
         if (row.PersonalArt14SumaFija) {
           const detalle = `Art14 Suma fija`
           await queryRunner.query(
-            `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,
+            `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,tipo_asociado_id, categoria_personal_id,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14)
+              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14,@15,@16)
                      `,
             [
               ++movimiento_id,
@@ -162,6 +171,8 @@ export class IngresoPorAsistenciaController extends BaseController {
               row.PersonalId,
               row.PersonalArt14SumaFija,
               0,
+              row.ObjetivoAsistenciaTipoAsociadoId,
+              row.ObjetivoAsistenciaCategoriaPersonalId,
               usuario, ip, fechaActual, usuario, ip, fechaActual,
             ]
           );

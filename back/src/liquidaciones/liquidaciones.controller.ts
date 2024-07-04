@@ -248,6 +248,16 @@ export class LiquidacionesController extends BaseController {
       searchHidden: false
     },
     {
+      name: "CUIT",
+      type: "string",
+      id: "PersonalCUITCUILCUIT",
+      field: "PersonalCUITCUILCUIT",
+      fieldName: "PersonalCUITCUILCUIT",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
       name: "Persona",
       type: "string",
       id: "ApellidoNombre",
@@ -271,6 +281,16 @@ export class LiquidacionesController extends BaseController {
       hidden: false,
     },
     {
+      name: "Horas",
+      type: "number",
+      id: "horas",
+      field: "horas",
+      fieldName: "horas",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
       name: "Importe",
       type: "currency",
       id: "importe",
@@ -280,6 +300,9 @@ export class LiquidacionesController extends BaseController {
       searchHidden: false,
       hidden: false,
     },
+
+
+
 
   ];
 
@@ -298,11 +321,13 @@ export class LiquidacionesController extends BaseController {
 
       const liqudacion = await dataSource.query(
         `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,obj.ObjetivoDescripcion,CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
-        li.tipocuenta_id, li.importe * tipomo.signo AS importe, li.tipo_movimiento_id, li.persona_id,li.objetivo_id 
+        li.tipocuenta_id, li.importe * tipomo.signo AS importe, li.tipo_movimiento_id, li.persona_id,li.objetivo_id, li.horas, cuit.PersonalCUITCUILCUIT
         FROM lige.dbo.liqmamovimientos AS li
         INNER JOIN lige.dbo.liqcotipomovimiento AS tipomo ON li.tipo_movimiento_id = tipomo.tipo_movimiento_id 
         INNER JOIN lige.dbo.liqmaperiodo AS per ON li.periodo_id = per.periodo_id 
         LEFT JOIN Personal AS pers ON li.persona_id = pers.PersonalId
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pers.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = pers.PersonalId) 
+
         LEFT JOIN Objetivo AS obj ON li.objetivo_id = obj.ObjetivoId
         WHERE per.anio = @0 AND per.mes = @1 AND (${filterSql}) 
        ${orderBy}

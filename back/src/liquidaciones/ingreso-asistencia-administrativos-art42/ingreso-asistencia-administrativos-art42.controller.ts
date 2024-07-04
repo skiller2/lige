@@ -81,9 +81,9 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
         const detalle = `Art42 horas ${row.PersonalLicenciaAplicaPeriodoHorasMensuales}, Categoría ${row.CategoriaPersonalDescripcion.trim()}, ${row.TipoInasistenciaDescripcion.trim()} `
 
         await queryRunner.query(
-          `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe, horas,
+          `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe, horas, tipo_asociado_id, categoria_personal_id,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14)
+              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14,@15,@16)
                      `,
           [
             ++movimiento_id,
@@ -95,6 +95,8 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
             row.PersonalId,
             Number(row.total),
             row.PersonalLicenciaAplicaPeriodoHorasMensuales,
+            row.PersonalLicenciaTipoAsociadoId,
+            row.PersonalLicenciaCategoriaPersonalId,
             usuario, ip, fechaActual, usuario, ip, fechaActual,
           ]
         );

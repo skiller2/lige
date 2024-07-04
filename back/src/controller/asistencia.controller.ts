@@ -344,6 +344,9 @@ export class AsistenciaController extends BaseController {
 	lic.PersonalLicenciaObservacion,
 	med.PersonalLicenciaDiagnosticoMedicoDiagnostico,
 	med.PersonalLicenciaDiagnosticoMedicoFechaDiagnostico,
+  lic.PersonalLicenciaTipoAsociadoId,
+  lic.PersonalLicenciaCategoriaPersonalId,
+
     1
     FROM PersonalLicencia lic 
     JOIN Personal persona ON persona.PersonalId = lic.PersonalId
