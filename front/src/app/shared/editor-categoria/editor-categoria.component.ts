@@ -76,7 +76,6 @@ export class EditorCategoriaComponent {
       const categorias = await firstValueFrom(this.searchService.getCategoriasPersona(this.PersonalId(), this.selectedPeriod().year, this.selectedPeriod().month, this.sucursalid()))
       this.optionsArray = (this.params?.SucursalId > 0) ? categorias.categorias?.filter((f: any) => f.ValorLiquidacionHoraNormal > 0) : categorias.categorias
     }
-    debugger
     let selopt = this.optionsArray.filter((f: any) => f.id == this.selectedId)
     let propagate = { id: '', fullName: '', tipoId: null, categoriaId: null, tipoFullName: '', horasRecomendadas: 0 }
 
