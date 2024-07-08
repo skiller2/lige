@@ -1019,12 +1019,8 @@ console.log(req.body)
             `${mes.toString().padStart(2,' ')}/${anio}`,
             PersonalSucursal[0].PersonalSucursalPrincipalSucursalId
           ])
-        //const detalle = await queryRunner.query(`SELECT * FROM PersonalLicenciaAplicaPeriodo WHERE PersonalLicenciaAplicaPeriodoId=@0 AND PersonalId=@1 AND PersonalLicenciaId=@2`,[personalLicenciaIncrement,PersonalId,PersonalLicenciaId])
-        // det = detalle[0]
+
         det = await this.getLicenciaQuery(queryRunner,anio, mes, PersonalId, PersonalLicenciaId)
-        
-        // const tmp = det.PersonalLicenciaAplicaPeriodoHorasMensuales.split('.')
-        // det.PersonalLicenciaAplicaPeriodoHorasMensuales = Number(tmp[0])+Number(tmp[1])/60
       }
       await queryRunner.commitTransaction();
 

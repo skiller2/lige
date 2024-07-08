@@ -66,8 +66,6 @@ interface PersonalLicenciaHoras {
 })
 export class TableHorasLicenciaComponent {
 
-  @ViewChild('objpendForm', { static: true }) objpendForm: NgForm =
-    new NgForm([], []);
   @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
   private readonly route = inject(ActivatedRoute);
 
@@ -135,7 +133,6 @@ export class TableHorasLicenciaComponent {
     // this.listOptions.filtros.push({ index: 'mes', operador: '=', condition: 'AND', valor: localStorage.getItem('mes') })
 
     this.formChange$.next('')
-    console.log(this.listOptions)
   }
 
   gridData$ = this.formChange$.pipe(
@@ -173,6 +170,7 @@ export class TableHorasLicenciaComponent {
     const item = args.dataContext
     const res = await firstValueFrom(this.apiService.setchangehours(item))
     item.total = res.data.total
+
     this.angularGridEdit.gridService.updateItemById(item.id, item)
   }
 
