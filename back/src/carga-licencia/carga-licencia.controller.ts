@@ -287,7 +287,7 @@ const columnasGrillaHoras: any[] = [
     searchComponent: "inpurForFechaSearch",
     sortable: true,
     searchHidden: false,
-    hidden: true,
+    hidden: false,
   },
   {
     name: "Hasta",
@@ -298,7 +298,7 @@ const columnasGrillaHoras: any[] = [
     searchComponent: "inpurForFechaSearch",
     sortable: true,
     searchHidden: false,
-    hidden: true,
+    hidden: false,
   },
   {
     name: "TipoInasistenciaId",
@@ -712,44 +712,50 @@ console.log(req.body)
     const queryRunner = dataSource.createQueryRunner();
 
     try {
-      let selectquery = `SELECT suc.SucursalId, suc.SucursalDescripcion,
-      persona.PersonalId,lic.PersonalLicenciaId, persona.PersonalApellido, persona.PersonalNombre, 
+     
+      let result = await this.getLicenciaQuery(queryRunner,anio, mes, PersonalId, PersonalLicenciaId)
+      this.jsonRes(result[0], res);
+    } catch (error) {
+      return next(error)
+    }
+  }
 
-      PARSENAME(lic.PersonalLicenciaHorasMensuales,2)+ CAST(PARSENAME(lic.PersonalLicenciaHorasMensuales,1) AS FLOAT)/60 AS PersonalLicenciaHorasMensuales,
- 
-      val.ValorLiquidacionHoraNormal,
-      (PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60) * val.ValorLiquidacionHoraNormal AS total,  
+  async getLicenciaQuery(queryRunner:QueryRunner,anio:any, mes:any, PersonalId:any, PersonalLicenciaId:any){
+    let selectquery = `SELECT suc.SucursalId, suc.SucursalDescripcion,
+    persona.PersonalId,lic.PersonalLicenciaId, persona.PersonalApellido, persona.PersonalNombre, 
 
-     lic.PersonalLicenciaSePaga,
-     tli.TipoInasistenciaId,
-     tli.TipoInasistenciaDescripcion,
-     tli.TipoInasistenciaApartado,
+    PARSENAME(lic.PersonalLicenciaHorasMensuales,2)+ CAST(PARSENAME(lic.PersonalLicenciaHorasMensuales,1) AS FLOAT)/60 AS PersonalLicenciaHorasMensuales,
+
+    val.ValorLiquidacionHoraNormal,
+    (PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60) * val.ValorLiquidacionHoraNormal AS total,  
+
+    lic.PersonalLicenciaSePaga,
+    tli.TipoInasistenciaId,
+    tli.TipoInasistenciaDescripcion,
+    tli.TipoInasistenciaApartado,
     lic.PersonalLicenciaDesde,
     lic.PersonalLicenciaHasta,
     lic.PersonalLicenciaTermina,
-     cat.CategoriaPersonalDescripcion,
+    cat.CategoriaPersonalDescripcion,
     lic.PersonalLicenciaObservacion,
     lic.PersonalLicenciaTipoAsociadoId,
     lic.PersonalLicenciaCategoriaPersonalId,
     med.PersonalLicenciaDiagnosticoMedicoDiagnostico,
     med.PersonalLicenciaDiagnosticoMedicoFechaDiagnostico,
       1
-      FROM PersonalLicencia lic 
-      JOIN Personal persona ON persona.PersonalId = lic.PersonalId
-      JOIN TipoInasistencia tli ON tli.TipoInasistenciaId = lic.PersonalTipoInasistenciaId
-      LEFT JOIN PersonalSucursalPrincipal sucpri ON sucpri.PersonalId = persona.PersonalId 
-      LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(sucpri.PersonalSucursalPrincipalSucursalId,1)
-      LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND cat.CategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId
-      LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = suc.SucursalId AND val.ValorLiquidacionTipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
-      LEFT JOIN PersonalLicenciaDiagnosticoMedico med ON med.PersonalId=persona.PersonalId AND med.PersonalLicenciaId = lic.PersonalLicenciaId
- WHERE lic.PersonalId=@3 AND lic.PersonalLicenciaId=@4 `
+    FROM PersonalLicencia lic 
+    JOIN Personal persona ON persona.PersonalId = lic.PersonalId
+    JOIN TipoInasistencia tli ON tli.TipoInasistenciaId = lic.PersonalTipoInasistenciaId
+    LEFT JOIN PersonalSucursalPrincipal sucpri ON sucpri.PersonalId = persona.PersonalId
+    LEFT JOIN PersonalLicenciaAplicaPeriodo licimp ON lic.PersonalId = licimp.PersonalId AND lic.PersonalLicenciaId = licimp.PersonalLicenciaId AND licimp.PersonalLicenciaAplicaPeriodoAplicaEl = CONCAT(RIGHT('  '+CAST(@2 AS VARCHAR(2)),2),'/',@1)
+    LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(sucpri.PersonalSucursalPrincipalSucursalId,1)
+    LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND cat.CategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId
+    LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = suc.SucursalId AND val.ValorLiquidacionTipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+    LEFT JOIN PersonalLicenciaDiagnosticoMedico med ON med.PersonalId=persona.PersonalId AND med.PersonalLicenciaId = lic.PersonalLicenciaId
+    WHERE lic.PersonalId=@3 AND lic.PersonalLicenciaId=@4 `
 
-      const result = await queryRunner.query(selectquery, [null,anio, mes, PersonalId, PersonalLicenciaId])
-
-      this.jsonRes(result[0], res);
-    } catch (error) {
-      return next(error)
-    }
+    const result = await queryRunner.query(selectquery, [null,anio, mes, PersonalId, PersonalLicenciaId])
+    return result
   }
 
   async UpdateDiagnosticoMedico(
@@ -1013,15 +1019,16 @@ console.log(req.body)
             `${mes.toString().padStart(2,' ')}/${anio}`,
             PersonalSucursal[0].PersonalSucursalPrincipalSucursalId
           ])
-        const detalle = await queryRunner.query(`SELECT * FROM PersonalLicenciaAplicaPeriodo WHERE PersonalLicenciaAplicaPeriodoId=@0 AND PersonalId=@1 AND PersonalLicenciaId=@2`,[personalLicenciaIncrement,PersonalId,PersonalLicenciaId])
-        det = detalle[0]
+        //const detalle = await queryRunner.query(`SELECT * FROM PersonalLicenciaAplicaPeriodo WHERE PersonalLicenciaAplicaPeriodoId=@0 AND PersonalId=@1 AND PersonalLicenciaId=@2`,[personalLicenciaIncrement,PersonalId,PersonalLicenciaId])
+        // det = detalle[0]
+        det = await this.getLicenciaQuery(queryRunner,anio, mes, PersonalId, PersonalLicenciaId)
         
-        const tmp = det.PersonalLicenciaAplicaPeriodoHorasMensuales.split('.')
-        det.PersonalLicenciaAplicaPeriodoHorasMensuales = Number(tmp[0])+Number(tmp[1])/60
+        // const tmp = det.PersonalLicenciaAplicaPeriodoHorasMensuales.split('.')
+        // det.PersonalLicenciaAplicaPeriodoHorasMensuales = Number(tmp[0])+Number(tmp[1])/60
       }
       await queryRunner.commitTransaction();
 
-      this.jsonRes(det, res, "Modificación con exito!");
+      this.jsonRes(det[0], res, "Modificación con exito!");
 
     } catch (error) {
       this.rollbackTransaction(queryRunner)

@@ -47,6 +47,7 @@ interface PersonalLicenciaHoras {
   CategoriaPersonalDescripcion: string;
   PersonalLicenciaHorasMensuales: string;
   PersonalLicenciaObservacion: string;
+  Total: number;
 
 }
 
@@ -170,9 +171,15 @@ export class TableHorasLicenciaComponent {
 
   async onHoursChange(e: Event, args: any) {
     const item = args.dataContext
+    console.log(item)
     const res = await firstValueFrom(this.apiService.setchangehours(item))
-    //DEbería Actualizar solo el registro con res
-    this.formChange$.next('')
+    item.total = res.data.total
+   
+    this.angularGridEdit.dataView.updateItem(item.id, item);
+    this.angularGridEdit.slickGrid.updateRow(item)
+
+
+
   }
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
@@ -192,7 +199,6 @@ export class TableHorasLicenciaComponent {
 
     this.angularGridEdit = angularGrid.detail
     this.gridObjEdit = angularGrid.detail.slickGrid;
-
     this.angularGridEdit.slickGrid.onClick.subscribe((e, args)=> {
       this.PersonalLicenciaHoras = []
       var data = this.dataAngularGrid[args.row]
