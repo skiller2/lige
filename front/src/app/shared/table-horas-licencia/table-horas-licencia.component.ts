@@ -169,10 +169,13 @@ export class TableHorasLicenciaComponent {
   }
 
   async onHoursChange(e: Event, args: any) {
+    const row = args.row
     const item = args.dataContext
     const res = await firstValueFrom(this.apiService.setchangehours(item))
-    //DEbería Actualizar solo el registro con res
-    this.formChange$.next('')
+
+    item.total = res.data.total
+    this.angularGridEdit.gridService.updateItemById(item.id, item)
+
   }
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
