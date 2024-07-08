@@ -16,6 +16,20 @@ const columnsObjCustodia: any[] = [
         // minWidth: 10,
     },
     {
+        id:'responsable' , name:'Responsable' , field:'responsable',
+        fieldName: "obj.responsable_id",
+        sortable: true,
+        type: 'string',
+        formatter: 'complexObject',
+        params: {
+            complexFieldLabel: 'responsable.fullName',
+        },
+        // searchComponent:"inpurForClientSearch",
+        searchType:"number",
+        // maxWidth: 170,
+        minWidth: 140,
+    },
+    {
         id:'cliente' , name:'Cliente' , field:'cliente',
         fieldName: "cli.ClienteId",
         sortable: true,
@@ -35,7 +49,7 @@ const columnsObjCustodia: any[] = [
         sortable: true,
         type: 'string',
         // maxWidth: 150,
-        minWidth: 120,
+        minWidth: 110,
     },
     {
         id:'descripcion' , name:'Descripcion' , field:'descripcion',
@@ -88,8 +102,8 @@ const columnsObjCustodia: any[] = [
         },
         searchComponent:"inpurForEstadoCustSearch",
         searchType:"number",
-        maxWidth: 180,
-        minWidth: 130,
+        maxWidth: 110,
+        // minWidth: 130,
     },
     {
         name: "Apellido Nombre",
@@ -198,18 +212,25 @@ export class CustodiaController extends BaseController {
         [armaId, detalle])
     }
 
-    async listObjetivoCustodiaByResponsableQuery(queryRunner:any, responsableId:number, filterSql:any, orderBy:any){
+    async listObjetivoCustodiaByResponsableQuery(queryRunner:any, filterSql:any, orderBy:any, responsableId?:number){
+        let search = ''
+        if (responsableId === undefined) {
+            search = `1=1`
+        } else {
+            search = `obj.responsable_id = ${responsableId}`
+        }
         return await queryRunner.query(`
         SELECT DISTINCT obj.objetivo_custodia_id id, obj.responsable_id responsableId, 
         obj.cliente_id clienteId, obj.desc_requirente, obj.descripcion, obj.fecha_inicio, 
-        obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente
+        obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente, 
+        TRIM(per.PersonalApellidoNombre) responsable
         FROM lige.dbo.objetivocustodia obj
+        INNER JOIN Personal per ON per.PersonalId = obj.responsable_id
         INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
         INNER JOIN lige.dbo.regvehiculocustodia regveh ON regveh.objetivo_custodia_id = obj.objetivo_custodia_id
         INNER JOIN lige.dbo.regpersonalcustodia regper ON regper.objetivo_custodia_id = obj.objetivo_custodia_id
-        WHERE obj.responsable_id = @0 AND (${filterSql}) 
-        ${orderBy}`, 
-        [responsableId])
+        WHERE (${search}) AND (${filterSql}) 
+        ${orderBy}`)
     }
 
     async updateObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia:any, usuario:any, ip:any){
@@ -329,8 +350,8 @@ export class CustodiaController extends BaseController {
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            const responsableId = 699
-            // const responsableId = res.locals.PersonalId
+            // const responsableId = 699
+            const responsableId = res.locals.PersonalId
             if (!responsableId) 
                 throw new ClientException(`No se a encontrado al personal responsable.`)
 
@@ -437,12 +458,17 @@ export class CustodiaController extends BaseController {
             const filterSql = filtrosToSql(options.filtros, columnsObjCustodia);
             const orderBy = orderToSQL(options.sort)
             
-            let result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, responsableId, filterSql, orderBy)
+            let result : any
+            if (await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')){
+                result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, filterSql, orderBy)
+            }else{
+                result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, filterSql, orderBy, responsableId)
+            }
 
             let list = result.map((obj : any) => {
                 return {
                     id: obj.id,
-                    responsable:{ id: responsableId},
+                    responsable:{ id: obj.responsableId, fullName: obj.responsable},
                     cliente:{ id: obj.clienteId, fullName: obj.cliente},
                     requirente: obj.desc_requirente,
                     descripcion: obj.descripcion,
@@ -676,6 +702,9 @@ export class CustodiaController extends BaseController {
 
     valCustodiaForm(custodiaForm: any){
         let errores : any[] = []
+        if (!Number.isInteger(custodiaForm.estado)){
+            errores.push(`El campo Estado NO pueden estar vacio`)
+        }
         if (!custodiaForm.clienteId || !custodiaForm.fechaInicio || !custodiaForm.origen){
             errores.push(`Los campos de Cliente, Fecha Inicial y Origen NO pueden estar vacios.`)
         }
