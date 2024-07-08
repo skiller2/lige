@@ -291,6 +291,12 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
   }
 
+  selectedValueSePaga(val: any) {
+    if (val) {
+      this.selections.value = val
+    }
+  }
+
   selectedValueEstado(val: any) {
     if (val) {
       this.selections.value = val.tipo;
