@@ -36,6 +36,7 @@ export class CustodiaComponent {
     gridDataInsert: any[] = [];
     detailViewRowCount = 1;
     editCustodiaId = 0;
+    edit = signal(false)
     excelExportService = new ExcelExportService()
 
     listCustodia$ = new BehaviorSubject('');
@@ -98,12 +99,16 @@ export class CustodiaComponent {
         this.editCustodiaId = row.id
     }
 
-    resetForm(): void {
-        this.editCustodiaId = 0
+    getGridData(): void {
+        this.listCustodia$.next('');
     }
 
     listOptionsChange(options: any) {
         this.listOptions = options;
         this.listCustodia$.next('');
+    }
+
+    setEdit(value: boolean): void {
+        this.edit.set(value)
     }
 }

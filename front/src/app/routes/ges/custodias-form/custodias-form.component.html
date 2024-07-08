@@ -85,79 +85,77 @@
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
+    <br>
+    <nz-form-item class="marginElement" *ngFor="let control of listInputPersonal; let i = index">
 
+      <nz-form-label  [nzSpan]="3">Personal</nz-form-label>
+      <nz-form-control [nzSpan]="7">
+        <nz-input-group style="width: 100%" [nzAddOnAfter]="personalButton" nzSearch>
+          <app-personal-search ngModel name={{i+1}}personalId [disabled]="!edit"/>
+        </nz-input-group>
+        <ng-template #personalButton>
+          <button nz-button nzType="dashed" nzSearch (click)="openDrawer(i+1+'personalId')">
+            <span nz-icon nzType="user" ></span>
+          </button>
+        </ng-template>
+      </nz-form-control> 
+        
+      <nz-form-label  [nzSpan]="3">Importe</nz-form-label>
+      <nz-form-control [nzSpan]="7">
+        <nz-input-group style="width: 100%"  [nzAddOnAfter]="controlPersonalButton" nzSearch>
+          <input nz-input placeholder="" ngModel name={{i+1}}importePersonal type="number" [disabled]="!edit"/>
+        </nz-input-group>
+        <ng-template #controlPersonalButton >
+          <button nz-button *ngIf="listInputPersonal.length == i+1" nzType="primary" class="add-button" (click)="addPersonal($event)">
+            <span nz-icon nzType="plus"></span>
+          </button>
+          <button nz-button nzType="default" (click)="removePersonal(control, $event)">
+            <span nz-icon nzType="delete" nzTheme="outline" ></span>
+          </button>
+        </ng-template>
+      </nz-form-control>
+
+    </nz-form-item>
     <br>
-    @for (control of listInputPersonal; track control; let i = $index) {
-      <nz-form-item class="marginElement">
-        <nz-form-label  [nzSpan]="3">Personal</nz-form-label>
-        <nz-form-control [nzSpan]="7">
-          <nz-input-group style="width: 100%" [nzAddOnAfter]="personalButton" nzSearch>
-            <app-personal-search ngModel name={{i+1}}personalId [disabled]="!edit"/>
-          </nz-input-group>
-          <ng-template #personalButton>
-            <button nz-button nzType="dashed" nzSearch (click)="openDrawer(i+1+'personalId')">
-              <span nz-icon nzType="user" ></span>
-            </button>
-          </ng-template>
-        </nz-form-control> 
-        
-        <nz-form-label  [nzSpan]="3">Importe</nz-form-label>
-        <nz-form-control [nzSpan]="7">
-          <nz-input-group style="width: 100%"  [nzAddOnAfter]="controlPersonalButton" nzSearch>
-            <input nz-input placeholder="" ngModel name={{i+1}}importePersonal type="number" [disabled]="!edit"/>
-          </nz-input-group>
-          <ng-template #controlPersonalButton >
-            <button nz-button *ngIf="listInputPersonal.length == i+1" nzType="primary" class="add-button" (click)="addPersonal($event)">
-              <span nz-icon nzType="plus"></span>
-            </button>
-            <button nz-button nzType="default" (click)="removePersonal(control, $event)">
-              <span nz-icon nzType="delete" nzTheme="outline" ></span>
-            </button>
-          </ng-template>
-        </nz-form-control>
-        
-      </nz-form-item>
+    <nz-form-item class="marginElement" *ngFor="let control of listInputVehiculo; let i = index">
+
+      <nz-form-label  [nzSpan]="2"> Patente </nz-form-label>
+      <nz-form-control [nzSpan]="2">
+        <nz-input-group style="width: 100%">
+          <input nz-input placeholder="" ngModel name={{i+1}}patente type="text" (blur)="searchDueno(i+1)" [disabled]="!edit"/>
+        </nz-input-group>
+      </nz-form-control>
+
+      <nz-form-label  [nzSpan]="2"> Dueño </nz-form-label>
+      <nz-form-control [nzSpan]="6">
+        <nz-input-group style="width: 100%">
+          <app-personal-search ngModel name={{i+1}}duenoId [disabled]="!edit"/>
+        </nz-input-group>
+      </nz-form-control>
+      <nz-form-label  [nzSpan]="2">Importe</nz-form-label>
+      <nz-form-control [nzSpan]="2">
+        <nz-input-group style="width: 100%">
+          <input nz-input placeholder="" ngModel name={{i+1}}importeVehiculo type="number" [disabled]="!edit"/>
+        </nz-input-group>
+      </nz-form-control>
+
+      <nz-form-label  [nzSpan]="2">Peaje</nz-form-label>
+      <nz-form-control [nzSpan]="4">
+        <nz-input-group style="width: 100%" [nzAddOnAfter]="controlVehiculoButton" nzSearch>
+          <input nz-input placeholder="" ngModel name={{i+1}}peajeVehiculo type="number" [disabled]="!edit" />
+        </nz-input-group>
+        <ng-template #controlVehiculoButton >
+          <button nz-button *ngIf="listInputVehiculo.length == i+1" nzType="primary" class="add-button" (click)="addVehiculo($event)">
+            <span nz-icon nzType="plus"></span>
+          </button>
+          <button nz-button nzType="default" (click)="removeVehiculo(control, $event)">
+            <span nz-icon nzType="delete" nzTheme="outline" ></span>
+          </button>
+        </ng-template>
+      </nz-form-control> 
       
-    }
-    <br>
-    @for (control of listInputVehiculo; track control; let i = $index) {
-      <nz-form-item class="marginElement">
-        <nz-form-label  [nzSpan]="2"> Patente </nz-form-label>
-        <nz-form-control [nzSpan]="2">
-          <nz-input-group style="width: 100%">
-            <input nz-input placeholder="" ngModel name={{i+1}}patente type="text" (blur)="searchDueno(i+1)" [disabled]="!edit"/>
-          </nz-input-group>
-        </nz-form-control>
-        <nz-form-label  [nzSpan]="2"> Dueño </nz-form-label>
-        <nz-form-control [nzSpan]="6">
-          <nz-input-group style="width: 100%">
-            <app-personal-search ngModel name={{i+1}}duenoId [disabled]="!edit"/>
-          </nz-input-group>
-        </nz-form-control>
-        <nz-form-label  [nzSpan]="2">Importe</nz-form-label>
-        <nz-form-control [nzSpan]="2">
-          <nz-input-group style="width: 100%">
-            <input nz-input placeholder="" ngModel name={{i+1}}importeVehiculo type="number" [disabled]="!edit"/>
-          </nz-input-group>
-        </nz-form-control>
-        <nz-form-label  [nzSpan]="2">Peaje</nz-form-label>
-        <nz-form-control [nzSpan]="4">
-          <nz-input-group style="width: 100%" [nzAddOnAfter]="controlVehiculoButton" nzSearch>
-            <input nz-input placeholder="" ngModel name={{i+1}}peajeVehiculo type="number" [disabled]="!edit" />
-          </nz-input-group>
-          <ng-template #controlVehiculoButton >
-            <button nz-button *ngIf="listInputVehiculo.length == i+1" nzType="primary" class="add-button" (click)="addVehiculo($event)">
-              <span nz-icon nzType="plus"></span>
-            </button>
-            <button nz-button nzType="default" (click)="removeVehiculo(control, $event)">
-              <span nz-icon nzType="delete" nzTheme="outline" ></span>
-            </button>
-          </ng-template>
-        </nz-form-control>
-        
-      </nz-form-item>
+    </nz-form-item>
       
-    }
     <br>
 
     <nz-form-item class="marginElement">

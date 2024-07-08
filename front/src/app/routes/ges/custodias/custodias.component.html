@@ -3,11 +3,11 @@
   <ul nz-menu nzMode="horizontal">
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'cust', 'objetivos']" >Objetivos</a>
+      <a [routerLink]="['/', 'ges', 'cust', 'objetivos']" (click)="getGridData()" >Objetivos</a>
     </li>
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'cust', 'detalle']" >Detalle</a>
+      <a [routerLink]="['/', 'ges', 'cust', 'detalle']" (click)="setEdit(false)">Detalle</a>
     </li>
   </ul>
   <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
@@ -19,7 +19,7 @@
         
         <nz-form-control style="text-align: right;">
           <nz-button-group>
-            <a [routerLink]="['/', 'ges', 'cust','editar']">
+            <a [routerLink]="['/', 'ges', 'cust','detalle']" (click)="setEdit(true)">
               <button nz-button nzType="default" [disabled]="editCustodiaId? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
             </a>
             <a [routerLink]="['/', 'ges', 'cust','alta']">
@@ -41,12 +41,7 @@
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/cust/detalle">Detalle</a>
-      <app-custodias-form [custodia]="editCustodiaId" [edit]="false"></app-custodias-form>
-    </nz-tab>
-
-    <nz-tab>
-      <a nz-tab-link routerLink="/ges/cust/editar">Editar</a>
-      <app-custodias-form [custodia]="editCustodiaId" [edit]="editCustodiaId? true : false"></app-custodias-form>
+      <app-custodias-form [custodia]="editCustodiaId" [edit]="edit()"></app-custodias-form>
     </nz-tab>
 
     <nz-tab> 

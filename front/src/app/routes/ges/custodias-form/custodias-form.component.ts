@@ -63,6 +63,8 @@ export class CustodiaFormComponent {
             res.form.fechaFinal = new Date(res.form.fechaFinal)
         this.listInputPersonal = res.personalLength
         this.listInputVehiculo = res.vehiculoLength
+        // console.log(this.ngForm().value);
+        // console.log(res);
         this.ngForm().reset(res.form)
     }
 
