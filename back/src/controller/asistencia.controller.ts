@@ -326,14 +326,18 @@ export class AsistenciaController extends BaseController {
   static async getAsistenciaAdminArt42(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[],filterSql:any,PersonalLicenciaSePaga:boolean) {
     const listPersonaId = (personalId.length == 0) ? '' : 'AND persona.PersonalId IN (' + personalId.join(',') + ')'
 
-  let selectquery = `    SELECT ROW_NUMBER() OVER (ORDER BY suc.SucursalId) AS id,suc.SucursalId, suc.SucursalDescripcion, licimp.PersonalLicenciaAplicaPeriodoAplicaEl,
+  let selectquery = `SELECT ROW_NUMBER() OVER (ORDER BY suc.SucursalId) AS id,suc.SucursalId, suc.SucursalDescripcion, licimp.PersonalLicenciaAplicaPeriodoAplicaEl,
   @1 anio, @2 mes,
   persona.PersonalId,lic.PersonalLicenciaId, persona.PersonalApellido, persona.PersonalNombre, 
   CONCAT(persona.PersonalApellido, ' ', persona.PersonalNombre) AS NombreCompleto,
   PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60 AS PersonalLicenciaAplicaPeriodoHorasMensuales,
   val.ValorLiquidacionHoraNormal,
   (PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60) * val.ValorLiquidacionHoraNormal AS total,  
-  lic.PersonalLicenciaSePaga,
+ CASE 
+        WHEN lic.PersonalLicenciaSePaga = 'S' THEN 'SI'
+        WHEN lic.PersonalLicenciaSePaga = 'N' THEN 'No'
+        ELSE 'Pendiente'
+    END AS PersonalLicenciaSePaga,
   tli.TipoInasistenciaId,
   tli.TipoInasistenciaDescripcion,
   tli.TipoInasistenciaApartado,
@@ -363,8 +367,8 @@ export class AsistenciaController extends BaseController {
     if(filterSql && filterSql.length > 0)
       selectquery += `AND ${filterSql}`
 
-    if(PersonalLicenciaSePaga)
-      selectquery += ` AND lic.PersonalLicenciaSePaga = 'S'`
+    // if(PersonalLicenciaSePaga)
+    //   selectquery += ` AND lic.PersonalLicenciaSePaga = 'S'`
 
 
     return await queryRunner.query(selectquery, [, anio, mes]) 

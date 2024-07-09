@@ -1,4 +1,4 @@
-import { Component, ViewChild, computed, input, model } from '@angular/core';
+import { Component, SimpleChanges, ViewChild, computed, input, model, signal } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -30,6 +30,7 @@ export class CargaLicenciasComponent {
   tituloDrawer = ""
   openDrawerForConsult = false
   inputForConsult = true
+  RefreshLicencia = false;
 
   selectedPeriod = computed(() => {
     const per = this.periodo()
@@ -57,6 +58,8 @@ export class CargaLicenciasComponent {
     this.periodo.set(new Date(anio, mes - 1, 1))
   }
 
+ 
+
 
   actualizarValorDrawer(event: any) {
     this.PersonalId = event[0].PersonalId
@@ -69,11 +72,13 @@ export class CargaLicenciasComponent {
     this.visibleDrawer = true
     this.tituloDrawer = "Nueva Licencia"
     this.openDrawerForConsult = false
+    this.RefreshLicencia = false
   }
   openDrawerforEdit(): void {
     this.visibleDrawer = true
     this.tituloDrawer = "Editar Licencia"
     this.openDrawerForConsult = false
+    this.RefreshLicencia = false
   }
 
   openDrawerforConsult(): void{

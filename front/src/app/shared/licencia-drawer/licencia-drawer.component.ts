@@ -31,6 +31,7 @@ export class LicenciaDrawerComponent {
   ArchivosLicenciasAdd: any[] = [];
   tituloDrawer = input.required<string>()
   openDrawerForConsult =  model<boolean>(false)
+  RefreshLicencia =  model<boolean>(false)
   private apiService = inject(ApiService)
   formChange$ = new BehaviorSubject('');
   PersonalIdForEdit = 0
@@ -66,6 +67,10 @@ export class LicenciaDrawerComponent {
         vals.PersonalLicenciaHorasMensuales = Number(vals.PersonalLicenciaHorasMensuales)
         this.PersonalIdForEdit = vals.PersonalId
         this.SucursalId = vals.SucursalId
+
+        if(vals.PersonalLicenciaDiagnosticoMedicoDiagnostico != null)
+          vals.PersonalLicenciaDiagnosticoMedicoDiagnostico = vals.PersonalLicenciaDiagnosticoMedicoDiagnostico.trim()
+
         console.log( "vals ", vals )
         this.ngForm().form.patchValue(vals)
       }
@@ -85,7 +90,8 @@ export class LicenciaDrawerComponent {
     vals.PersonalIdForEdit = this.PersonalIdForEdit
     const res = await firstValueFrom(this.apiService.setLicencia(vals))
     this.ArchivosLicenciasAdd = []
-    this.formChange$.next('');  
+    this.RefreshLicencia.set(true)
+     
   }
 
   async deletelicencia() {

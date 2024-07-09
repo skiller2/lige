@@ -130,13 +130,14 @@ const columnasGrilla: any[] = [
     sortable: true
   },
   {
-    name: "Personal Licencia SePaga",
+    name: "Se Paga",
     type: "strng",
     id: "PersonalLicenciaSePaga",
     field: "PersonalLicenciaSePaga",
     fieldName: "lic.PersonalLicenciaSePaga",
+    searchComponent: "inpurForSePaga",
     hidden: true,
-    searchHidden: true,
+    searchHidden: false,
     sortable: true
   },
   {
@@ -789,7 +790,7 @@ console.log(req.body)
                 FROM PersonalLicenciaDiagnosticoMedico
                 WHERE personalId = @0 AND PersonalLicenciaId = @1
                 ORDER BY PersonalLicenciaDiagnosticoMedicoId DESC
-            )`,[ PersonalId, PersonalLicenciaId])
+            ) AND personalId = @0 AND PersonalLicenciaId = @1`,[ PersonalId, PersonalLicenciaId])
         } 
       }else{
         await queryRunner.query(`UPDATE PersonalLicenciaDiagnosticoMedico
@@ -797,7 +798,7 @@ console.log(req.body)
         WHERE PersonalLicenciaDiagnosticoMedicoId = (
             SELECT MAX(PersonalLicenciaDiagnosticoMedicoId)
             FROM PersonalLicenciaDiagnosticoMedico
-            WHERE PersonalId = @1 AND PersonalLicenciaId = @2)`
+            WHERE PersonalId = @1 AND PersonalLicenciaId = @2) AND PersonalId = @1 AND PersonalLicenciaId = @2`
           , [PersonalLicenciaDiagnosticoMedicoDiagnostico.trim(), PersonalId, PersonalLicenciaId])
       }
     } catch (error) {
