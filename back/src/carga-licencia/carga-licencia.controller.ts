@@ -485,7 +485,7 @@ export class CargaLicenciaController extends BaseController {
       PersonalLicenciaDiagnosticoMedicoDiagnostico
 
     } = req.body
-console.log(req.body)
+    //console.log(req.body)
     const queryRunner = dataSource.createQueryRunner();
     try {
 
@@ -516,6 +516,12 @@ console.log(req.body)
 
       if (PersonalLicenciaHasta != null)
         PersonalLicenciaHasta = this.formatDateToCustomFormat(PersonalLicenciaHasta)
+
+
+      let dateValid = await this.validateDates(PersonalLicenciaDesde,PersonalId)
+      if (dateValid.length > 0) {
+        throw new Error('ya existe un registro para el rando de fechas seleccionado');
+      }
 
       if (PersonalLicenciaId) {  //UPDATE
 
@@ -1058,4 +1064,16 @@ console.log(req.body)
     }
   }
 
+  async validateDates (Fechadesde: any, personalId: any) {
+    const anio = Fechadesde.getMonth();
+    const mes = Fechadesde.getFullYear();
+
+      return  await dataSource.query(
+        `SELECT 1 FROM PersonalLicencia WHERE 
+        per.PersonalId = @0 AND 
+        EOMONTH(DATEFROMPARTS(@1,@2,1)) > PersonalLicenciaDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(PersonalLicenciaTermina , '9999-12-31') 
+        LIMIT 1` ,
+        [personalId, anio, mes]
+      );
+  }
 }
