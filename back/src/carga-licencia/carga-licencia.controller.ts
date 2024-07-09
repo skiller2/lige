@@ -468,8 +468,6 @@ export class CargaLicenciaController extends BaseController {
       SucursalId,
       PersonalLicenciaId,
       PersonalId,
-      PersonalLicenciaDesde,
-      PersonalLicenciaHasta,
       TipoInasistenciaId,
       categoria,
       PersonalLicenciaSePaga,
@@ -485,6 +483,12 @@ export class CargaLicenciaController extends BaseController {
       PersonalLicenciaDiagnosticoMedicoDiagnostico
 
     } = req.body
+
+    const PersonalLicenciaHasta = new Date(req.body.PersonalLicenciaHasta)
+    const PersonalLicenciaDesde = new Date(req.body.PersonalLicenciaDesde)
+    PersonalLicenciaHasta.setHours(0, 0, 0, 0)
+    PersonalLicenciaDesde.setHours(0,0,0,0)
+
     //console.log(req.body)
     const queryRunner = dataSource.createQueryRunner();
     try {
@@ -507,23 +511,19 @@ export class CargaLicenciaController extends BaseController {
       if (PersonalLicenciaSePaga == "")
         PersonalLicenciaSePaga = null
 
-      if (PersonalLicenciaDesde != null) {
-        PersonalLicenciaDesde = this.formatDateToCustomFormat(PersonalLicenciaDesde)
-      } else {
+
+      if (PersonalLicenciaDesde == null) 
         throw new ClientException(`Debe seleccionar la fecha desde`)
-      }
 
-
-      if (PersonalLicenciaHasta != null)
-        PersonalLicenciaHasta = this.formatDateToCustomFormat(PersonalLicenciaHasta)
 
 
       let dateValid = await this.validateDates(PersonalLicenciaDesde,PersonalId)
       if (dateValid.length > 0) {
-        throw new Error('ya existe un registro para el rando de fechas seleccionado');
+        throw new ClientException('ya existe un licencia para en el rango seleccionado. ');
       }
 
       if (PersonalLicenciaId) {  //UPDATE
+
 
         if(PersonalIdForEdit != PersonalId)
           throw new ClientException(`No puede modificar la persona`)
@@ -560,16 +560,14 @@ export class CargaLicenciaController extends BaseController {
         ? null
         : 1
 
-        let PersonalLicenciaSituacionRevistaId = await queryRunner.query(`
-            SELECT PersonalSituacionRevistaSituacionId
+        const sitrev = await queryRunner.query(`
+            SELECT TOP 1 PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaDesde,PersonalSituacionRevistaHasta
             FROM PersonalSituacionRevista
-            WHERE PersonalId = @0
-            AND PersonalSituacionRevistaId = (
-                SELECT MAX(PersonalSituacionRevistaId)
-                FROM PersonalSituacionRevista
-                WHERE PersonalId = @0
-            );`, [PersonalId])
+            WHERE PersonalId = @0 AND PersonalSituacionRevistaSituacionId <> 10
+            ORDER BY PersonalSituacionRevistaDesde DESC, PersonalSituacionRevistaHasta DESC
+        `, [PersonalId])
 
+        const { PersonalSituacionRevistaSituacionId } =sitrev[0]
         let PersonalLicenciaSelect = await queryRunner.query(` SELECT PersonalLicenciaUltNro,PersonalSituacionRevistaUltNro from Personal WHERE PersonalId = @0`, [PersonalId,])
         let { PersonalLicenciaUltNro,PersonalSituacionRevistaUltNro } = PersonalLicenciaSelect[0]
         PersonalLicenciaUltNro += 1
@@ -628,7 +626,7 @@ export class CargaLicenciaController extends BaseController {
             PersonalLicenciaTipoAsociadoId,
             null,
 
-            PersonalSituacionRevistaUltNro])
+            PersonalSituacionRevistaSituacionId])
 
 
             await queryRunner.query(`INSERT INTO PersonalSituacionRevista (
@@ -668,16 +666,10 @@ export class CargaLicenciaController extends BaseController {
 
   }
 
-  formatDateToCustomFormat(dateString: string): string {
+  formatDateToCustomFormat(dateString: string): Date {
     const date = new Date(dateString);
-
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(date.getUTCDate()).padStart(2, '0');
-
-    const formattedDate = `${year}-${month}-${day} 00:00:00.000`;
-
-    return formattedDate;
+    date.setHours(0, 0, 0, 0)
+    return date;
   }
 
   async deleteLincencia(req: Request, res: Response, next: NextFunction) {
@@ -1064,16 +1056,13 @@ export class CargaLicenciaController extends BaseController {
     }
   }
 
-  async validateDates (Fechadesde: any, personalId: any) {
-    const anio = Fechadesde.getMonth();
-    const mes = Fechadesde.getFullYear();
-
+  async validateDates (Fechadesde: Date, personalId: any) {
       return  await dataSource.query(
-        `SELECT 1 FROM PersonalLicencia WHERE 
-        per.PersonalId = @0 AND 
-        EOMONTH(DATEFROMPARTS(@1,@2,1)) > PersonalLicenciaDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(PersonalLicenciaTermina , '9999-12-31') 
-        LIMIT 1` ,
-        [personalId, anio, mes]
+        `SELECT * FROM PersonalLicencia lic WHERE 
+        lic.PersonalId = @0 AND 
+        @1 >= lic.PersonalLicenciaDesde AND @1 < ISNULL(lic.PersonalLicenciaHasta,ISNULL(lic.PersonalLicenciaTermina , '9999-12-31')) 
+        ` ,
+        [personalId, Fechadesde]
       );
   }
 }
