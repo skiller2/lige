@@ -25,7 +25,7 @@
         </li>
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'carga_licencias','horasLicencia']"  (click)="inputConsult(false)">Horas de licencia</a>
+          <a [routerLink]="['/', 'ges', 'carga_licencias','horasLicencia']"  (click)="inputConsult(false)">Horas de licencia </a>
         </li>
       </ul>
       
@@ -34,7 +34,7 @@
           <a nz-tab-link routerLink="/ges/carga_licencias/Licencias">Alta de licencia</a>
           <ng-template nz-tab>
             
-            <app-table-abm-licencia gridId="gridEdit1" (valueGridEvent)="actualizarValorDrawer($event)" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-table-abm-licencia>
+            <app-table-abm-licencia gridId="gridEdit1" [RefreshLicencia]="RefreshLicencia" (valueGridEvent)="actualizarValorDrawer($event)" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-table-abm-licencia>
   
           </ng-template>
         </nz-tab>
@@ -48,5 +48,5 @@
       
       </nz-tabset>
   </nz-card>
-<app-licencia-drawer [selectedPeriod]="selectedPeriod()" [openDrawerForConsult]="openDrawerForConsult" [tituloDrawer] = "tituloDrawer" [(visible)]="visibleDrawer" [PersonalId]="PersonalId"  [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
+<app-licencia-drawer [(RefreshLicencia)]="RefreshLicencia" [selectedPeriod]="selectedPeriod()" [openDrawerForConsult]="openDrawerForConsult" [tituloDrawer] = "tituloDrawer" [(visible)]="visibleDrawer" [PersonalId]="PersonalId"  [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
   

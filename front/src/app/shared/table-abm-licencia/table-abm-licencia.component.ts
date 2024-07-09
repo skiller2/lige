@@ -5,7 +5,8 @@ import {
   Inject,
   LOCALE_ID,
   ViewChild,
-  inject,input,SimpleChanges,EventEmitter,Output
+  inject,input,SimpleChanges,EventEmitter,Output,
+  model
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
@@ -69,7 +70,7 @@ export class TableAbmLicenciaComponent {
   private readonly route = inject(ActivatedRoute);
 
   @Output()valueGridEvent = new EventEmitter();
-
+  RefreshLicencia = model<boolean>(false)
 
   constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService:SearchService) { }
   formChange$ = new BehaviorSubject('');
@@ -103,8 +104,12 @@ export class TableAbmLicenciaComponent {
  mes = input<number>();
 
   ngOnChanges(changes: SimpleChanges) {
-    this.formChange$.next("");
+    if (this.RefreshLicencia() === true) {
+      this.formChange$.next("");
+    }
   }
+
+ 
 
 
   listOptionsChange(options: any) {
