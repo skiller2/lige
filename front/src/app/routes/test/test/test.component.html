@@ -1,19 +1,48 @@
 <nz-card>
   <p>Hola prueba {{ 4044.3 | currency }}</p>
 
-  <nz-select ngModel="lucy" [nzDropdownMatchSelectWidth]="false" >
-    <nz-option nzValue="jack" nzLabel="Jack"></nz-option>
-    <nz-option nzValue="lucy" nzLabel="Lucy"></nz-option>
-    <nz-option nzValue="disabled" nzLabel="Disabled" nzDisabled></nz-option>
-  </nz-select>
+  <form nz-form ngForm>
 
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Pie</nz-form-label>
+      <nz-form-control [nzSpan]="19">
+        <textarea rows="3" nz-input name="footer" ngModel></textarea>
+
+      </nz-form-control>
+    </nz-form-item>
+
+    <ng-container ngModelGroup="phonenumbers">
+      
+      <nz-form-item>
+        <nz-form-label [nzSpan]="3">Texto {{ tracker }}</nz-form-label>
+        <nz-form-control [nzSpan]="19">
+          <textarea rows="3" nz-input name="phone1" ngModel></textarea>
+
+        </nz-form-control>
+      </nz-form-item>
+
+      <ng-container *ngFor="let item of form().value.phonenumbers | keyvalue; trackBy: tracker">
+        <div class="lesson-form-row">
+
+          <nz-form-item>
+            <nz-form-label [nzSpan]="3">Texto {{ item|json }}</nz-form-label>
+            <nz-form-control [nzSpan]="19">
+              <textarea rows="3" nz-input [name]="'no'" ngModel></textarea>
+
+            </nz-form-control>
+          </nz-form-item>
+
+        </div>
+      </ng-container>
+    </ng-container>
+  </form>
+  <p>{{form().value|json}}</p>
 </nz-card>
 
 <nz-card>
-  <zxing-scanner [formats]="allowedBarCodeFormats" style="width:100px;height: 100px;" (scanComplete)="scanComplete($event)"  (scanSuccess)="scanSuccess($event)"></zxing-scanner>
 
-  <button (click)="click1($event)" >nzpc</button>
-  <button (click)="click2()" >otro</button>
+  <button (click)="click1($event)">nzpc</button>
+  <button (click)="click2()">otro</button>
 
 
 </nz-card>
@@ -28,7 +57,5 @@
 <nz-card>
 
   <nz-date-picker [(ngModel)]="nacimiento" />
-<p>{{nacimiento|date}} {{ nacimiento|AGE }}</p>
+  <p>{{nacimiento|date}} {{ nacimiento|AGE }}</p>
 </nz-card>
-
-

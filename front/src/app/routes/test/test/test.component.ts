@@ -1,6 +1,6 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { ChangeDetectorRef, Component, ElementRef, ViewChild, ViewEncapsulation, inject } from '@angular/core';
-import { NgForm } from '@angular/forms';
+import { ChangeDetectorRef, Component, ElementRef, ViewChild, ViewEncapsulation, inject, viewChild } from '@angular/core';
+import { FormArray, NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import { AngularGridInstance, AngularSlickgridComponent, AngularSlickgridModule, Column, ContainerService, Editors, FieldType, Filters, Formatters, GridOption, SlickRowDetailView } from 'angular-slickgrid';
 import { NzModalService } from 'ng-zorro-antd/modal';
@@ -68,6 +68,10 @@ export class TestComponent {
   onChange(evt: any) {
     console.log('onChange', evt)
   }
+  form = viewChild.required(NgForm);
+
+  tracker = (i: number) => i;
+
 
   onClick(evt: any) {
     console.log('onChange', evt)
@@ -92,6 +96,9 @@ export class TestComponent {
   ngOnInit(): void {
 
     setTimeout(() => {
+      this.form().form.setValue({footer:'pie',phonenumbers:{phone1:'11111111',phone2:'22222222'}})
+      console.log('set',this.form().value)
+
     }, 3000);
   }
 
@@ -114,20 +121,6 @@ export class TestComponent {
     console.log('curr this.confirmation', this.confirmation)
   }
 
-  lastScan = ''
-  async scanComplete(e: any) {
-    if (e == this.lastScan)
-      return
-    const res: any = await firstValueFrom(this.apiService.getIdentCode(e, ''));
 
-
-    console.log('scanComplete', e)
-    this.lastScan = e
-
-
-  }
-  scanSuccess(e: string) {
-
-  }
 
 }
