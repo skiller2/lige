@@ -14,9 +14,9 @@
     <ng-container ngModelGroup="phonenumbers">
       
       <nz-form-item>
-        <nz-form-label [nzSpan]="3">Texto {{ tracker }}</nz-form-label>
+        <nz-form-label [nzSpan]="3">Texto</nz-form-label>
         <nz-form-control [nzSpan]="19">
-          <textarea rows="3" nz-input name="phone1" ngModel></textarea>
+          <textarea rows="3" nz-input name="phone0" ngModel></textarea>
 
         </nz-form-control>
       </nz-form-item>
@@ -25,9 +25,9 @@
         <div class="lesson-form-row">
 
           <nz-form-item>
-            <nz-form-label [nzSpan]="3">Texto {{ item|json }}</nz-form-label>
+            <nz-form-label [nzSpan]="3">Texto {{ item.key }}</nz-form-label>
             <nz-form-control [nzSpan]="19">
-              <textarea rows="3" nz-input [name]="'no'" ngModel></textarea>
+              <textarea rows="3" nz-input [name]="''+item.key" ngModel></textarea>
 
             </nz-form-control>
           </nz-form-item>

@@ -96,7 +96,7 @@ export class TestComponent {
   ngOnInit(): void {
 
     setTimeout(() => {
-      this.form().form.setValue({footer:'pie',phonenumbers:{phone1:'11111111',phone2:'22222222'}})
+      this.form().form.patchValue({footer:'pie',phonenumbers:{phone0:'000000000',phone1:'11111111',phone2:'22222222'}})
       console.log('set',this.form().value)
 
     }, 3000);
