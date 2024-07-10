@@ -1,6 +1,32 @@
 <nz-card>
   <p>Hola prueba {{ 4044.3 | currency }}</p>
 
+
+  <form [formGroup]="persona">
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Nombre</nz-form-label>
+      <nz-form-control [nzSpan]="19">
+        <input formControlName="nombre">
+      </nz-form-control>
+    </nz-form-item>
+    <div formArrayName="telefonos">
+      <div *ngFor="let tel of telefonos().controls; let ti=index">
+        <nz-form-item [formGroupName]="ti">
+          <nz-form-label [nzSpan]="3">Telefono {{ti}}</nz-form-label>
+          <nz-form-control [nzSpan]="19">
+            <input formControlName="PersonalId">
+          </nz-form-control>
+          <nz-form-control [nzSpan]="19">
+            <input formControlName="Importe">
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+    <p>{{persona.value|json}}</p>
+
+  </form>
+
+
   <form nz-form ngForm>
 
     <nz-form-item>
@@ -12,7 +38,7 @@
     </nz-form-item>
 
     <ng-container ngModelGroup="phonenumbers">
-      
+
       <nz-form-item>
         <nz-form-label [nzSpan]="3">Texto</nz-form-label>
         <nz-form-control [nzSpan]="19">
@@ -40,9 +66,6 @@
 </nz-card>
 
 <nz-card>
-
-  <button (click)="click1($event)">nzpc</button>
-  <button (click)="click2()">otro</button>
 
 
 </nz-card>

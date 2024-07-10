@@ -6,7 +6,7 @@
     
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <app-cliente-search name="clienteId" ngModel [disabled]="!edit"/>
+          <app-cliente-search name="clienteId" ngModel [disabled]="!edit()"/>
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -15,7 +15,7 @@
       <nz-form-label [nzSpan]="3">Solicitado por</nz-form-label>
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="descRequirente" type="text" (focus)="searchDescRequirente()" [nzAutocomplete]="auto" [disabled]="!edit"/>
+          <input nz-input placeholder="" ngModel name="descRequirente" type="text" (focus)="searchDescRequirente()" [nzAutocomplete]="auto" [disabled]="!edit()"/>
           <nz-autocomplete #auto>
             <nz-auto-option *ngFor="let option of optionsDescRequirente" [nzValue]="option.descRequirente">
               {{ option.descRequirente }}
@@ -30,7 +30,7 @@
     
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <textarea rows="5" nz-input name="descripcion" ngModel [disabled]="!edit"></textarea>
+          <textarea rows="5" nz-input name="descripcion" ngModel [disabled]="!edit()"></textarea>
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -45,7 +45,7 @@
             ngModel
             name ="fechaInicio"
             (ngModelChange)="onChangePeriodo($event)"
-            [disabled]="!edit"
+            [disabled]="!edit()"
           ></nz-date-picker>
         </nz-input-group>
       </nz-form-control>
@@ -56,7 +56,7 @@
     
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="Direccion" ngModel name="origen" type="text" [disabled]="!edit" />
+          <input nz-input placeholder="Direccion" ngModel name="origen" type="text" [disabled]="!edit()" />
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -70,7 +70,7 @@
             [nzShowTime]="{ nzFormat: 'HH:mm' }"
             ngModel
             name="fechaFinal"
-            [disabled]="!edit"
+            [disabled]="!edit()"
           ></nz-date-picker>
         </nz-input-group>
       </nz-form-control>
@@ -81,7 +81,7 @@
     
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="Direccion" ngModel name="destino" type="text" [disabled]="!edit" />
+          <input nz-input placeholder="Direccion" ngModel name="destino" type="text" [disabled]="!edit()" />
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -91,7 +91,7 @@
       <nz-form-label  [nzSpan]="3">Personal</nz-form-label>
       <nz-form-control [nzSpan]="7">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="personalButton" nzSearch>
-          <app-personal-search ngModel name={{i+1}}personalId [disabled]="!edit"/>
+          <app-personal-search ngModel name={{i+1}}personalId [disabled]="!edit()"/>
         </nz-input-group>
         <ng-template #personalButton>
           <button nz-button nzType="dashed" nzSearch (click)="openDrawer(i+1+'personalId')">
@@ -103,7 +103,7 @@
       <nz-form-label  [nzSpan]="3">Importe</nz-form-label>
       <nz-form-control [nzSpan]="7">
         <nz-input-group style="width: 100%"  [nzAddOnAfter]="controlPersonalButton" nzSearch>
-          <input nz-input placeholder="" ngModel name={{i+1}}importePersonal type="number" [disabled]="!edit"/>
+          <input nz-input placeholder="" ngModel name={{i+1}}importePersonal type="number" [disabled]="!edit()"/>
         </nz-input-group>
         <ng-template #controlPersonalButton >
           <button nz-button *ngIf="listInputPersonal.length == i+1" nzType="primary" class="add-button" (click)="addPersonal($event)">
@@ -122,27 +122,27 @@
       <nz-form-label  [nzSpan]="2"> Patente </nz-form-label>
       <nz-form-control [nzSpan]="2">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name={{i+1}}patente type="text" (blur)="searchDueno(i+1)" [disabled]="!edit"/>
+          <input nz-input placeholder="" ngModel name={{i+1}}patente type="text" (blur)="searchDueno(i+1)" [disabled]="!edit()"/>
         </nz-input-group>
       </nz-form-control>
 
       <nz-form-label  [nzSpan]="2"> Dueño </nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <app-personal-search ngModel name={{i+1}}duenoId [disabled]="!edit"/>
+          <app-personal-search ngModel name={{i+1}}duenoId [disabled]="!edit()"/>
         </nz-input-group>
       </nz-form-control>
       <nz-form-label  [nzSpan]="2">Importe</nz-form-label>
       <nz-form-control [nzSpan]="2">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name={{i+1}}importeVehiculo type="number" [disabled]="!edit"/>
+          <input nz-input placeholder="" ngModel name={{i+1}}importeVehiculo type="number" [disabled]="!edit()"/>
         </nz-input-group>
       </nz-form-control>
 
       <nz-form-label  [nzSpan]="2">Peaje</nz-form-label>
       <nz-form-control [nzSpan]="4">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="controlVehiculoButton" nzSearch>
-          <input nz-input placeholder="" ngModel name={{i+1}}peajeVehiculo type="number" [disabled]="!edit" />
+          <input nz-input placeholder="" ngModel name={{i+1}}peajeVehiculo type="number" [disabled]="!edit()" />
         </nz-input-group>
         <ng-template #controlVehiculoButton >
           <button nz-button *ngIf="listInputVehiculo.length == i+1" nzType="primary" class="add-button" (click)="addVehiculo($event)">
@@ -162,14 +162,14 @@
       <nz-form-label [nzSpan]="3">Cant. módulos</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="cantModulos" type="number" [disabled]="!edit" (ngModelChange)="onChangeImpo()"/>
+          <input nz-input placeholder="" ngModel name="cantModulos" type="number" [disabled]="!edit()" (ngModelChange)="onChangeImpo()"/>
         </nz-input-group>
       </nz-form-control>
 
       <nz-form-label [nzSpan]="5">Importe módulo - Facturación</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="impoModulos" type="number" (ngModelChange)="onChangeImpo()" [disabled]="!edit" />
+          <input nz-input placeholder="" ngModel name="impoModulos" type="number" (ngModelChange)="onChangeImpo()" [disabled]="!edit()" />
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -178,14 +178,14 @@
       <nz-form-label [nzSpan]="3">Cant. Horas excedentes</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="cantHorasExced" type="number" [disabled]="!edit" (ngModelChange)="onChangeImpo()"/>
+          <input nz-input placeholder="" ngModel name="cantHorasExced" type="number" [disabled]="!edit()" (ngModelChange)="onChangeImpo()"/>
         </nz-input-group>
       </nz-form-control>
 
       <nz-form-label [nzSpan]="5">Importe hora excedente - Facturación</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="impoHorasExced" type="number" (ngModelChange)="onChangeImpo()" [disabled]="!edit" />
+          <input nz-input placeholder="" ngModel name="impoHorasExced" type="number" (ngModelChange)="onChangeImpo()" [disabled]="!edit()" />
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -194,14 +194,14 @@
       <nz-form-label [nzSpan]="3">Cant. Km excedentes</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="cantKmExced" type="number" [disabled]="!edit" (ngModelChange)="onChangeImpo()" />
+          <input nz-input placeholder="" ngModel name="cantKmExced" type="number" [disabled]="!edit()" (ngModelChange)="onChangeImpo()" />
         </nz-input-group>
       </nz-form-control>
 
       <nz-form-label [nzSpan]="5">Importe Km excedente - Facturación</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="impoKmExced" type="number" (ngModelChange)="onChangeImpo()" [disabled]="!edit" />
+          <input nz-input placeholder="" ngModel name="impoKmExced" type="number" (ngModelChange)="onChangeImpo()" [disabled]="!edit()" />
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -210,7 +210,7 @@
       <nz-form-label [nzSpan]="3">Importe Peajes - Facturación</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="impoPeaje" type="number" (ngModelChange)="onChangeImpo()" [disabled]="!edit" />
+          <input nz-input placeholder="" ngModel name="impoPeaje" type="number" (ngModelChange)="onChangeImpo()" [disabled]="!edit()" />
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -219,12 +219,12 @@
       <nz-form-label [nzSpan]="3">Importe a Facturar</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <input nz-input placeholder="" ngModel name="facturacion" type="number" [disabled]="!edit" readonly/>
+          <input nz-input placeholder="" ngModel name="facturacion" type="number" [disabled]="!edit()" readonly/>
         </nz-input-group>
       </nz-form-control>
       <nz-form-label [nzSpan]="2">Estado</nz-form-label>
       <nz-form-control [nzSpan]="6">
-        <nz-select name="estado" nzPlaceHolder="Estado" ngModel nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" [disabled]="!edit" >
+        <nz-select name="estado" nzPlaceHolder="Estado" ngModel nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" [disabled]="!edit()" >
           <ng-container *ngFor="let option of $optionsEstadoCust | async" >
             <nz-option [nzValue]="option.tipo" [nzLabel]="option.descripcion" ></nz-option>
           </ng-container>
@@ -234,7 +234,7 @@
     <br>
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
-        <button nzType="primary" nz-button *ngIf="edit" (click)="save()">
+        <button nzType="primary" nz-button *ngIf="edit()" (click)="save()">
           Guardar Cambios
         </button>
       </nz-form-control>

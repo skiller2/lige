@@ -56,6 +56,8 @@ export class CustodiaFormComponent {
 
     async load() {
         const res = await firstValueFrom(this.searchService.getInfoObjCustodia(this.custodiaId()))
+        console.log('datos custodia',res)
+
         res.form.fechaInicio = new Date(res.form.fechaInicio)
         if (res.form.fechaFinal)
             res.form.fechaFinal = new Date(res.form.fechaFinal)
@@ -66,7 +68,7 @@ export class CustodiaFormComponent {
         }, 100);
         // console.log(this.ngForm().value);
         // console.log(res);
-
+        {}
     }
 
     onChangePeriodo(result: Date): void {

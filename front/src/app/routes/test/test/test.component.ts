@@ -1,6 +1,6 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { ChangeDetectorRef, Component, ElementRef, ViewChild, ViewEncapsulation, inject, viewChild } from '@angular/core';
-import { FormArray, NgForm } from '@angular/forms';
+import { FormArray, FormBuilder, NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import { AngularGridInstance, AngularSlickgridComponent, AngularSlickgridModule, Column, ContainerService, Editors, FieldType, Filters, Formatters, GridOption, SlickRowDetailView } from 'angular-slickgrid';
 import { NzModalService } from 'ng-zorro-antd/modal';
@@ -64,6 +64,14 @@ export class TestComponent {
   private document = inject(DOCUMENT)
   nacimiento: Date = new Date('1973-05-24')
   allowedBarCodeFormats = [BarcodeFormat.PDF_417, BarcodeFormat.QR_CODE]
+
+  fb = inject(FormBuilder)
+  persona = this.fb.group({ nombre:'',telefonos: this.fb.array([]) })
+  
+  telefonos():FormArray {
+    return this.persona.get("telefonos") as unknown as FormArray
+  }
+
   periodo1 = { year: 2024, month: 3 }
   onChange(evt: any) {
     console.log('onChange', evt)
@@ -96,8 +104,14 @@ export class TestComponent {
   ngOnInit(): void {
 
     setTimeout(() => {
-      this.form().form.patchValue({footer:'pie',phonenumbers:{phone0:'000000000',phone1:'11111111',phone2:'22222222'}})
-      console.log('set',this.form().value)
+      //this.form().form.patchValue({footer:'pie',phonenumbers:{phone0:'000000000',phone1:'11111111',phone2:'22222222'}})
+      //console.log('set', this.form().value)
+      (this.persona.get("telefonos") as FormArray).push(this.fb.group({ PersonalId: '', Importe: 0 }))
+      
+      
+
+    
+      this.persona.patchValue({ nombre: 'mario', telefonos: [{ PersonalId: '111111' }, {PersonalId: '22222'},{PersonalId:'333333'}]})
 
     }, 3000);
   }
