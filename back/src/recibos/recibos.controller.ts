@@ -252,8 +252,7 @@ export class RecibosController extends BaseController {
     headerContent: string,
     footerContent: string,
   ) {
-
-    Domicilio = (Domicilio) ? Domicilio : 'Sin especificar'
+    Domicilio = (Domicilio && Domicilio!='()') ? Domicilio : 'Sin especificar'
     Asociado = (Asociado) ? Asociado.toString() : 'Pendiente'
     Grupo = (Grupo) ? Grupo : 'Sin asignar'
     Cuit = (Cuit)?Cuit.toString():'Sin especificar'
