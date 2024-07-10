@@ -135,7 +135,6 @@ export class RecibosController extends BaseController {
         docgeneral = existRecibo[0].docgeneral
         directorPathUnique = existRecibo[0].path
       }
-
       const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, personalId, fechaRecibo)
 
       var directorPath = String(periodo.year) + String(periodo.month).padStart(2, '0') + '/' + periodo_id
@@ -187,7 +186,7 @@ export class RecibosController extends BaseController {
         await this.updateTablePeriodo(queryRunner, periodo_id, usuario, ip, fechaActual)
 
       await page.close()
-      await browser.close();
+      await browser.close()      
 
       this.jsonRes([], res, `Se generaron ${movimientosPendientes.length} recibos`);
 
@@ -257,10 +256,12 @@ export class RecibosController extends BaseController {
     Domicilio = (Domicilio) ? Domicilio : 'Sin especificar'
     Asociado = (Asociado) ? Asociado.toString() : 'Pendiente'
     Grupo = (Grupo) ? Grupo : 'Sin asignar'
+    Cuit = (Cuit)?Cuit.toString():'Sin especificar'
+
 
     headerContent = headerContent.replace(/\${idrecibo}/g, idrecibo.toString());
     htmlContent = htmlContent.replace(/\${PersonaNombre}/g, PersonaNombre);
-    htmlContent = htmlContent.replace(/\${Cuit}/g, Cuit.toString());
+    htmlContent = htmlContent.replace(/\${Cuit}/g, Cuit);
     htmlContent = htmlContent.replace(/\${Domicilio}/g, Domicilio);
     htmlContent = htmlContent.replace(/\${SucursalPrincipal}/g, SucursalPrincipal);
 
