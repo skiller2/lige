@@ -2827,10 +2827,10 @@
   optionalDependencies:
     "@zxing/text-encoding" "~0.9.0"
 
-"@zxing/ngx-scanner@^18.0.0":
-  version "18.0.0"
-  resolved "https://registry.npmjs.org/@zxing/ngx-scanner/-/ngx-scanner-18.0.0.tgz"
-  integrity sha512-BTG0OeMu5tt3xl6AS2sGXzcb9mqsWhrX5gtMaCbfkcJXJUw49RpCDcCmJiATJEPwXVUMgc/+8jKhy2XEzDSzaQ==
+"@zxing/ngx-scanner@^18.0.1":
+  version "18.0.1"
+  resolved "https://registry.npmjs.org/@zxing/ngx-scanner/-/ngx-scanner-18.0.1.tgz"
+  integrity sha512-mG/r25BNxykgvH5Gj850Z0XEhY1/WGFVo/w9bkootcEFtrxJE+NsqCOmJO39MYh7BCMCA6sGw+pvHHBUgisDiw==
   dependencies:
     tslib "^2.3.0"
 

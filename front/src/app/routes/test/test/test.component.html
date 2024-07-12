@@ -1,12 +1,39 @@
 <nz-card>
   <p>Hola prueba {{ 4044.3 | currency }}</p>
 
-
-  <form [formGroup]="persona">
+  <form nz-form  ngForm>
     <nz-form-item>
       <nz-form-label [nzSpan]="3">Nombre</nz-form-label>
       <nz-form-control [nzSpan]="19">
-        <input formControlName="nombre">
+        <input name="nombre" ngModel>
+      </nz-form-control>
+    </nz-form-item>
+    <div ngModelGroup="telefonos">
+      <div *ngFor="let tel of telefonos().controls; let ti=index" [ngModelGroup]="ti.toString()">
+        <nz-form-item >
+          <nz-form-label [nzSpan]="3">Telefono {{ti}}</nz-form-label>
+          <nz-form-control [nzSpan]="19">
+            <input [id]="'PersonalId'+ti" name="PersonalId" ngModel>
+          </nz-form-control>
+          </nz-form-item>
+          <nz-form-item >
+          <nz-form-control [nzSpan]="19">
+            <input name="Importe" ngModel>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+    <p>Directo: {{personaf().form.value|json}}</p>
+  </form>
+
+
+<!--
+
+  <form nz-form  ngForm  [formGroup]="personaf().form">
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Nombre</nz-form-label>
+      <nz-form-control [nzSpan]="19">
+        <input name="nombre"  ngModel>
       </nz-form-control>
     </nz-form-item>
     <div formArrayName="telefonos">
@@ -22,47 +49,13 @@
         </nz-form-item>
       </div>
     </div>
-    <p>{{persona.value|json}}</p>
-
+    <p>Directo: {{personaf().form.value|json}}</p>
   </form>
 
 
-  <form nz-form ngForm>
 
-    <nz-form-item>
-      <nz-form-label [nzSpan]="3">Pie</nz-form-label>
-      <nz-form-control [nzSpan]="19">
-        <textarea rows="3" nz-input name="footer" ngModel></textarea>
+-->
 
-      </nz-form-control>
-    </nz-form-item>
-
-    <ng-container ngModelGroup="phonenumbers">
-
-      <nz-form-item>
-        <nz-form-label [nzSpan]="3">Texto</nz-form-label>
-        <nz-form-control [nzSpan]="19">
-          <textarea rows="3" nz-input name="phone0" ngModel></textarea>
-
-        </nz-form-control>
-      </nz-form-item>
-
-      <ng-container *ngFor="let item of form().value.phonenumbers | keyvalue; trackBy: tracker">
-        <div class="lesson-form-row">
-
-          <nz-form-item>
-            <nz-form-label [nzSpan]="3">Texto {{ item.key }}</nz-form-label>
-            <nz-form-control [nzSpan]="19">
-              <textarea rows="3" nz-input [name]="''+item.key" ngModel></textarea>
-
-            </nz-form-control>
-          </nz-form-item>
-
-        </div>
-      </ng-container>
-    </ng-container>
-  </form>
-  <p>{{form().value|json}}</p>
 </nz-card>
 
 <nz-card>

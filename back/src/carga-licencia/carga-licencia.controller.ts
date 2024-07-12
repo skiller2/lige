@@ -555,11 +555,8 @@ export class CargaLicenciaController extends BaseController {
 
       } else {  //INSERT
 
-        let DiagnosticoUpdate = 
-        PersonalLicenciaDiagnosticoMedicoDiagnostico.trim() == "" 
-        ? null
-        : 1
-
+        let DiagnosticoUpdate
+      
         const sitrev = await queryRunner.query(`
             SELECT TOP 1 PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaDesde,PersonalSituacionRevistaHasta
             FROM PersonalSituacionRevista
@@ -572,6 +569,19 @@ export class CargaLicenciaController extends BaseController {
         let { PersonalLicenciaUltNro,PersonalSituacionRevistaUltNro } = PersonalLicenciaSelect[0]
         PersonalLicenciaUltNro += 1
         PersonalSituacionRevistaUltNro += 1
+
+        if(PersonalLicenciaDiagnosticoMedicoDiagnostico.trim() == "" ){
+          DiagnosticoUpdate = null
+        }else{
+          const ResultDiagnostico = await queryRunner.query(`SELECT PersonalLicenciaDiagnosticoMedicoId FROM PersonalLicenciaDiagnosticoMedico WHERE PersonalId = @0 AND PersonalLicenciaId = @1  `, 
+            [PersonalId,PersonalLicenciaUltNro])
+            if(ResultDiagnostico.length > 0){
+              let {PersonalLicenciaDiagnosticoMedicoId} = ResultDiagnostico[0]
+              DiagnosticoUpdate = PersonalLicenciaDiagnosticoMedicoId + 1
+            }else{
+              DiagnosticoUpdate = 1
+            }
+        }
 
         await queryRunner.query(` UPDATE Personal SET PersonalLicenciaUltNro = @1,PersonalSituacionRevistaUltNro = @2 where PersonalId = @0 `, [PersonalId, PersonalLicenciaUltNro,PersonalSituacionRevistaUltNro])
 
@@ -652,6 +662,18 @@ export class CargaLicenciaController extends BaseController {
                null,
                null
               ])
+
+        // INSERT DE DIGANOSTICO       
+        const PersonalLicenciaDesdeDiagnostico = new Date(req.body.PersonalLicenciaDesde)
+        PersonalLicenciaDesdeDiagnostico.setHours(0,0,0,0)
+
+        await queryRunner.query(`INSERT INTO PersonalLicenciaDiagnosticoMedico (
+          PersonalLicenciaDiagnosticoMedicoId, 
+          PersonalId, 
+          PersonalLicenciaId, 
+          PersonalLicenciaDiagnosticoMedicoFechaDiagnostico,
+          PersonalLicenciaDiagnosticoMedicoDiagnostico)
+        VALUES (@0,@1,@2,@3,@4)`,[DiagnosticoUpdate,PersonalId,PersonalLicenciaUltNro,PersonalLicenciaDesdeDiagnostico,PersonalLicenciaDiagnosticoMedicoDiagnostico])
       }
 
       await this.handlePDFUpload(anioRequest, mesRequest, PersonalId, PersonalLicenciaId, res, req, Archivos, next)
@@ -803,6 +825,7 @@ export class CargaLicenciaController extends BaseController {
       this.rollbackTransaction(queryRunner)
       return next('Error:' + error)
     }
+
   }
 
 

@@ -1,38 +1,17 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { ChangeDetectorRef, Component, ElementRef, ViewChild, ViewEncapsulation, inject, viewChild } from '@angular/core';
-import { FormArray, FormBuilder, NgForm } from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, inject, viewChild } from '@angular/core';
+import { FormArray, FormBuilder, FormControl, FormGroup, NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
-import { AngularGridInstance, AngularSlickgridComponent, AngularSlickgridModule, Column, ContainerService, Editors, FieldType, Filters, Formatters, GridOption, SlickRowDetailView } from 'angular-slickgrid';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzPopconfirmComponent } from 'ng-zorro-antd/popconfirm';
-import { NzSelectComponent } from 'ng-zorro-antd/select';
-import {
-  NzTableSortOrder,
-  NzTableSortFn,
-  NzTableFilterList,
-  NzTableFilterFn,
-} from 'ng-zorro-antd/table';
-import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
-import {
-  BehaviorSubject,
-  debounceTime,
-  filter,
-  firstValueFrom,
-  map,
-  switchMap,
-  tap,
-  throttleTime,
-} from 'rxjs';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
+
+
+import { ApiService } from 'src/app/services/api.service';
 import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
-import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
-import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
-import { DescuentoJSON } from 'src/app/shared/schemas/ResponseJSON';
-import { Options } from 'src/app/shared/schemas/filtro';
+
 import { Directionality } from '@angular/cdk/bidi';
 import { DescuentosComponent } from '../../ges/descuentos/descuentos.component';
-import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { BarcodeFormat } from '@zxing/library';
 
 /** config ng-zorro-antd i18n **/
@@ -42,43 +21,40 @@ import { BarcodeFormat } from '@zxing/library';
   templateUrl: './test.component.html',
   styleUrls: ['./test.component.less'],
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, PersonalSearchComponent, AngularSlickgridModule, DescuentosComponent, ZXingScannerModule],
-  providers: [ContainerService,],
+  imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, PersonalSearchComponent, DescuentosComponent],
+  providers: [],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+
 
 })
 
 export class TestComponent {
-  public _ContainerService = inject(ContainerService)
   public apiService = inject(ApiService)
   personalId!: number
   objetivoId!: number
   valueExtendedObjetivo: any
   valueExtended: any
   confirmation!: NzPopconfirmComponent
-  @ViewChild('btntest', { static: false }) btn!: ElementRef<any>
-  @ViewChild('nzpc', { static: false }) nzpc!: NzPopconfirmComponent
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly dir = inject(Directionality);
-  private modalService = inject(NzModalService);
   private el = inject(ElementRef);
   private document = inject(DOCUMENT)
   nacimiento: Date = new Date('1973-05-24')
   allowedBarCodeFormats = [BarcodeFormat.PDF_417, BarcodeFormat.QR_CODE]
 
   fb = inject(FormBuilder)
-  persona = this.fb.group({ nombre:'',telefonos: this.fb.array([]) })
-  
-  telefonos():FormArray {
-    return this.persona.get("telefonos") as unknown as FormArray
+  telefonos() {
+    //return new FormArray([])
+    console.log('pido',this.personaf().form.get("telefonos") as FormArray)
+    return this.personaf().form.get("telefonos") as FormArray
   }
 
   periodo1 = { year: 2024, month: 3 }
   onChange(evt: any) {
     console.log('onChange', evt)
   }
-  form = viewChild.required(NgForm);
-
-  tracker = (i: number) => i;
+  //form = viewChild.required(NgForm);
+  personaf = viewChild.required(NgForm);
 
 
   onClick(evt: any) {
@@ -100,29 +76,25 @@ export class TestComponent {
   }
 
 
-
   ngOnInit(): void {
-
-    setTimeout(() => {
-      //this.form().form.patchValue({footer:'pie',phonenumbers:{phone0:'000000000',phone1:'11111111',phone2:'22222222'}})
-      //console.log('set', this.form().value)
-      (this.persona.get("telefonos") as FormArray).push(this.fb.group({ PersonalId: '', Importe: 0 }))
-      
-      
+    this.personaf().form.controls['telefonos'] = new FormArray([])
 
     
-      this.persona.patchValue({ nombre: 'mario', telefonos: [{ PersonalId: '111111' }, {PersonalId: '22222'},{PersonalId:'333333'}]})
+    //this.personaf().form.addControl('telefonos', new FormArray([]))
+    const tels = this.personaf().form.get("telefonos") as FormArray 
 
-    }, 3000);
+    async () => {
+      tels.push(new FormGroup([new FormControl('PersonalId'), new FormControl('Importe')]));
+      tels.push(new FormGroup([new FormControl('PersonalId'), new FormControl('Importe')]));
+    }
+
+
+    setTimeout(() => {
+      this.personaf().form.patchValue({ nombre: 'mario', telefonos: [{ PersonalId: '111111' }, {PersonalId: '22222'},{PersonalId:'333333'}]})
+    }, 1000);
   }
 
-  click1(e: any): void {
-    this.nzpc.setOverlayOrigin(new ElementRef(e.target));
 
-    this.nzpc.hide()
-    this.nzpc.show()
-    this.periodo1 = { year: 2023, month: 3 }
-  }
 
   click2(): void {
     this.confirmation.hide()
