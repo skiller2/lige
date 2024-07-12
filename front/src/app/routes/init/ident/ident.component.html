@@ -1,21 +1,35 @@
 <nz-card>
   @if (scannerEnabled()) {
 
-  <h1>Muestre DNI ante la cámara</h1>
-  <zxing-scanner [formats]="allowedBarCodeFormats" style="width:90vw;" (scanComplete)="scanComplete($event)"
-    (scanSuccess)="scanSuccess($event)" (camerasFound)="camerasFoundHandler($event)"
-    [device]="camdevice"></zxing-scanner>
-  <button (click)="cambioCam()">Cambiar cámara</button>
+  <h1>Validación de DNI</h1>
+  <nz-card style="text-align: center;">
+    <p>Enfoque el código de barras del documento delante de la cámara</p>
+    <p>En caso de no poder lograr una imagen nítida pruebe cambiar a la cámara alternativa</p>
+    <button nz-button nzType="primary" (click)="cambioCam()" style="width:80%;">Cámara Alternativa</button>
+  </nz-card>
+  <nz-card style="text-align: center;">
+    <ng-container style="max-width: 800px;">
+      <zxing-scanner [formats]="allowedBarCodeFormats" (scanComplete)="scanComplete($event)"
+        (scanSuccess)="scanSuccess($event)" (camerasFound)="camerasFoundHandler($event)"
+        [device]="camdevice"></zxing-scanner>
+    </ng-container>
+  </nz-card>
   } @else if (encTelNro()) {
-    <button (click)="scannerEnabled.set(true)">Habilitar captura de DNI</button>
   }
 
+
+
   @if (codGenerado()) {
-  <h1>Código de acceso</h1>
-  <h1> {{ codGenerado() }}</h1>
+  <nz-result nzStatus="success" nzTitle="Código: {{ codGenerado() }}"
+    nzSubTitle="Aguarde a ser contactactado e ingrese el código cuando se lo soliciten">
+    <div nz-result-extra>
+      <button nz-button nzType="primary" (click)="scannerEnabled.set(true)">Validar DNI y generar nuevo código</button>
+    </div>
+  </nz-result>
+
   <!--<h2>Aguarde recibir un mensaje para continuar</h2>-->
   }
-<!--
+  <!--
   <button (click)="scanSuccess('demo')">Send Test</button>
    <p>{{ cams|json }}</p> 
 -->
