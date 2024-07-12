@@ -175,7 +175,7 @@ export class CustodiaController extends BaseController {
     async addRegistroPersonalCustodiaQuery(queryRunner: any, infoPersonal:any, usuario:any, ip:any){
         const personal_id = infoPersonal.personalId
         const objetivo_custodia_id = infoPersonal.objetivoCustodiaId
-        const importe_personal = infoPersonal.monto? infoPersonal.monto : null
+        const importe_personal = infoPersonal.importe? infoPersonal.importe : null
         const fechaActual = new Date()
         return await queryRunner.query(`INSERT lige.dbo.regpersonalcustodia(
             personal_id, objetivo_custodia_id, importe_personal, 
@@ -283,7 +283,7 @@ export class CustodiaController extends BaseController {
         const objetivo_custodia_id = infoVehiculo.objetivoCustodiaId
         const patente = infoVehiculo.patente
         const personal_id = infoVehiculo.duenoId
-        const importe_vehiculo = infoVehiculo.monto? infoVehiculo.monto : null
+        const importe_vehiculo = infoVehiculo.importe? infoVehiculo.importe : null
         const peaje_vehiculo = infoVehiculo.peaje? infoVehiculo.peaje : null
         const fechaActual = new Date()
         return await queryRunner.query(`
@@ -308,7 +308,7 @@ export class CustodiaController extends BaseController {
 
     async getRegPersonalObjCustodiaQuery(queryRunner: any, custodiaId: any){
         return await queryRunner.query(`
-        SELECT reg.personal_id personalId, TRIM(per.PersonalApellidoNombre) apellidoNombre, reg.importe_personal importePersonal
+        SELECT reg.personal_id personalId, reg.importe_personal importe
         FROM lige.dbo.regpersonalcustodia reg
         INNER JOIN Personal per ON per.PersonalId = reg.personal_id
         WHERE objetivo_custodia_id = @0`, 
@@ -317,7 +317,7 @@ export class CustodiaController extends BaseController {
 
     async getRegVehiculoObjCustodiaQuery(queryRunner: any, custodiaId: any){
         return await queryRunner.query(`
-        SELECT reg.patente , reg.importe_vehiculo importeVehiculo, reg.peaje_vehiculo peajeVehiculo, reg.personal_id duenoId
+        SELECT reg.patente , reg.importe_vehiculo importe, reg.peaje_vehiculo peaje, reg.personal_id duenoId
         FROM lige.dbo.regvehiculocustodia reg
         INNER JOIN Personal per ON per.PersonalId = reg.personal_id
         WHERE objetivo_custodia_id = @0`, 
@@ -367,13 +367,11 @@ export class CustodiaController extends BaseController {
 
             let repPersonal = [], repVehiculo = [], errores = []
             let vehiculoError = 0, personalError = 0
-            for (const key in req.body) {
-                if( key.endsWith('personalId') && req.body[key]){
-                    let i = parseInt(key)
-                    let keyImporte = i.toString() + 'importePersonal'
+            
+            for (const obj of objetivoCustodia.personal) {
+                if( obj.personalId ){
                     let infoPersonal = {
-                        personalId: req.body[key], 
-                        importe: req.body[keyImporte], 
+                        ...obj,
                         objetivoCustodiaId
                     }
 
@@ -390,37 +388,32 @@ export class CustodiaController extends BaseController {
                         repPersonal.push(infoPersonal)
                     }
                 }
+            }
+            for (const obj of objetivoCustodia.vehiculos) {
+                if( obj.patente ){
+                    let infoVehiculo = {
+                        ... obj,
+                        objetivoCustodiaId
+                    }
 
-                if( key.endsWith('patente') && req.body[key]){
-                    let i = parseInt(key)
-                    let keyImporte = i.toString() + 'importeVehiculo'
-                    let keyPeaje = i.toString() + 'peajeVehiculo'
-                    let keyDueno = i.toString() + 'duenoId'
-                    if (req.body[keyDueno]) {
-                        let infoVehiculo = {
-                            patente: req.body[key].toUpperCase(), 
-                            importe: req.body[keyImporte], 
-                            peaje: req.body[keyPeaje],
-                            duenoId:req.body[keyDueno], 
-                            objetivoCustodiaId
-                        }
+                    //En caso de FINALIZAR custodia verificar los campos Importe de Vehiculos
+                    if(objetivoCustodia.estado == 1 && !infoVehiculo.importe){
+                        vehiculoError++
+                    }
+                    if(objetivoCustodia.estado == 1 && !infoVehiculo.duenoId){
+                        errores.push(`El campo Dueño de la patente ${obj.patente} NO pueden estar vacios.`)
+                    }
 
-                        //En caso de FINALIZAR custodia verificar los campos Importe de Vehiculos
-                        if(objetivoCustodia.estado == 1 && !infoVehiculo.importe){
-                            vehiculoError++
-                        }
-
-                        let rep = repVehiculo.find((obj:any) => obj.patente == infoVehiculo.patente)
-                        if (rep) {
-                            errores.push(`La patente ${rep.patente} ya tiene un registro existente en el formulario.`)
-                        }else{
-                            await this.addRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
-                            repVehiculo.push(infoVehiculo)
-                        }
+                    let rep = repVehiculo.find((obj:any) => obj.patente == infoVehiculo.patente)
+                    if (rep) {
+                        errores.push(`La patente ${rep.patente} ya tiene un registro existente en el formulario.`)
+                    }else{
+                        await this.addRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
+                        repVehiculo.push(infoVehiculo)
                     }
                 }
-                
             }
+                
             if (repVehiculo.length == 0 && repPersonal.length == 0) {
                 errores.push(`Debe de haber por lo menos una persona y un vehículo (Patente y Dueño) por custodia.`)
             }
@@ -436,7 +429,7 @@ export class CustodiaController extends BaseController {
             if (errores.length) {
                 throw new ClientException(errores.join(`\n`))
             }
-
+            throw new ClientException('Todos salio BIEN')
             await queryRunner.commitTransaction()
             return this.jsonRes({ custodiaId: objetivoCustodiaId }, res, 'Carga Exitosa');
         }catch (error) {
@@ -503,34 +496,11 @@ export class CustodiaController extends BaseController {
             delete infoCustodia.responsableId
             // delete infoCustodia.estado
 
-            let listInputPersonal = []
-            let listInputVehiculo = []
-            listPersonal.forEach((obj:any, index:any)=>{
-                const keys = Object.keys(obj)
-                keys.forEach((key:any)=>{
-                    if (key != 'apellidoNombre') {
-                        let newKey = (index+1)+key
-                        infoCustodia[newKey] = obj[key]
-                    }
-                })
-                listInputPersonal.push(index+1)
-            })
-            listVehiculo.forEach((obj:any, index:any)=>{
-                const keys = Object.keys(obj)
-                keys.forEach((key:any)=>{
-                    let newKey = (index+1)+key
-                    infoCustodia[newKey] = obj[key]
-                })
-                listInputVehiculo.push(index+1)
-            })
+            infoCustodia.personal = listPersonal
+            infoCustodia.vehiculos = listVehiculo
             
-            let respuesta = {
-                form: infoCustodia, 
-                vehiculoLength: listInputVehiculo, 
-                personalLength: listInputPersonal
-            }
             await queryRunner.commitTransaction()
-            return this.jsonRes(respuesta, res)
+            return this.jsonRes(infoCustodia, res)
         }catch (error) {
             this.rollbackTransaction(queryRunner)
             return next(error)
@@ -539,7 +509,6 @@ export class CustodiaController extends BaseController {
         }
     }
 
-    //ACTULIZAR CODIGO POR (AGREGAR DELETE DE REGVEH)
     async updateObjetivoCustodia(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
     
@@ -577,19 +546,19 @@ export class CustodiaController extends BaseController {
                 if ( infoCustodia[key] !== undefined && (infoCustodia[key] != objetivoCustodia[key])){
                     cantCambios++
                 }
-                //Si hubo un cambio ACTUALIZA regpersonalcustodia 
-                if( key.endsWith('personalId') && objetivoCustodia[key]){
-                    let i = parseInt(key)
-                    let keyImporte = i.toString() + 'importePersonal'
+            }
+
+            for (const obj of objetivoCustodia.personal) {
+                if( obj.personalId ){
                     let infoPersonal = {
-                        personalId: objetivoCustodia[key], 
-                        importe: objetivoCustodia[keyImporte] , 
+                        ...obj,
                         objetivoCustodiaId: custodiaId
                     }
                     //En caso de FINALIZAR custodia verificar los campos Importe de Personal
                     if(objetivoCustodia.estado == 1 && !infoPersonal.importe){
                         personalError++
                     }
+                    //Verifico que el personal no se repita
                     let persona = null
                     for (let index = 0; index < listPersonal.length; index++) {
                         if(listPersonal[index].personalId == infoPersonal.personalId){
@@ -605,52 +574,45 @@ export class CustodiaController extends BaseController {
                         }else{
                             await this.addRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
                         }
-                    } else if (persona.importePersonal != infoPersonal.importe) { //Si hubo un cambio en regpersonalcustodia ACTUALIZA
+                    } else if (persona.importe != infoPersonal.importe) { //Si hubo un cambio en regpersonalcustodia ACTUALIZA
                         await this.updateRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
                     }
                     repPersonal.push(infoPersonal)
                 }
-                //Si hubo un cambio ACTUALIZA regvehiculocustodia
-                if( key.endsWith('patente') && objetivoCustodia[key]){
-                    let i = parseInt(key)
-                    let keyImporte = i.toString() + 'importeVehiculo'
-                    let keyPeaje = i.toString() + 'peajeVehiculo'
-                    let keyDueno = i.toString() + 'duenoId'
-                    if (objetivoCustodia[keyDueno]) {
-                        let infoVehiculo = {
-                            patente: objetivoCustodia[key].toUpperCase(), 
-                            importe: objetivoCustodia[keyImporte], 
-                            peaje: objetivoCustodia[keyPeaje], 
-                            duenoId: objetivoCustodia[keyDueno], 
-                            objetivoCustodiaId: custodiaId
-                        }
-                        //En caso de FINALIZAR custodia verificar los campos Importe de Vehiculos
-                        if(objetivoCustodia.estado == 1 && !infoVehiculo.importe){
-                            vehiculoError++
-                        }
-                        let vehiculo = null
-                        for (let index = 0; index < listVehiculo.length; index++) {
-                            if(listVehiculo[index].patente == infoVehiculo.patente){
-                                vehiculo = listVehiculo[index]
-                                listVehiculo.splice(index, 1)
-                                break
-                            }
-                        }
-
-                        if (!vehiculo) {
-                            let rep = repVehiculo.find((obj:any) => obj.patente == infoVehiculo.patente)
-                            if (rep) {
-                                errores.push(`La patente ${rep.patente} ya tiene un registro existente en el formulario.`)
-                            }else{
-                                await this.addRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
-                            }
-                        } else if (vehiculo.duenoId != infoVehiculo.duenoId || vehiculo.importeVehiculo != infoVehiculo.importe || vehiculo.peaje != infoVehiculo.peaje){
-                            await this.updateRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
-                        }
-                        repVehiculo.push(infoVehiculo)
-                    }else if(objetivoCustodia.estado == 1){
-                        errores.push(`El campo Dueño de la patente ${objetivoCustodia[key]} NO pueden estar vacios.`)  
+            }
+            for (const obj of objetivoCustodia.vehiculos) {
+                if( obj.patente ){
+                    let infoVehiculo = {
+                        ...obj,
+                        objetivoCustodiaId: custodiaId
                     }
+                    //En caso de FINALIZAR custodia verificar los campos Importe de Vehiculos
+                    if(objetivoCustodia.estado == 1 && !infoVehiculo.importe){
+                        vehiculoError++
+                    }
+                    if(objetivoCustodia.estado == 1 && !infoVehiculo.duenoId){
+                        errores.push(`El campo Dueño de la patente ${obj.patente} NO pueden estar vacios.`)
+                    }
+                    //Verifico que la patente no se repita
+                    let vehiculo = null
+                    for (let index = 0; index < listVehiculo.length; index++) {
+                        if(listVehiculo[index].patente == infoVehiculo.patente){
+                            vehiculo = listVehiculo[index]
+                            listVehiculo.splice(index, 1)
+                            break
+                        }
+                    }
+                    if (!vehiculo) {
+                        let rep = repVehiculo.find((obj:any) => obj.patente == infoVehiculo.patente)
+                        if (rep) {
+                            errores.push(`La patente ${rep.patente} ya tiene un registro existente en el formulario.`)
+                        }else{
+                            await this.addRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
+                        }
+                    } else if (vehiculo.duenoId != infoVehiculo.duenoId || vehiculo.importe != infoVehiculo.importe || vehiculo.peaje != infoVehiculo.peaje){
+                        await this.updateRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
+                    }
+                    repVehiculo.push(infoVehiculo)
                 }
             }
             if (repVehiculo.length == 0 && repPersonal.length == 0) {
