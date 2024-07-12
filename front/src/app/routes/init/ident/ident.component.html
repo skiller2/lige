@@ -11,7 +11,9 @@
     <ng-container style="max-width: 800px;">
       <zxing-scanner [formats]="allowedBarCodeFormats" (scanComplete)="scanComplete($event)"
         (scanSuccess)="scanSuccess($event)" (camerasFound)="camerasFoundHandler($event)"
-        [device]="camdevice"></zxing-scanner>
+        [device]="camdevice"
+        [tryHarder]="true"
+        ></zxing-scanner>
     </ng-container>
   </nz-card>
   } @else if (encTelNro()) {

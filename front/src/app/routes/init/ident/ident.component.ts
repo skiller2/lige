@@ -18,7 +18,6 @@ export class IdentComponent {
   allowedBarCodeFormats = [BarcodeFormat.PDF_417, BarcodeFormat.QR_CODE]
   codGenerado = model('')
   encTelNro = input('')
-  identData = model('A@B@C@23329580')
 
   private apiService = inject(ApiService)
   camdevice = undefined
