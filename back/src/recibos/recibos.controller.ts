@@ -186,7 +186,7 @@ export class RecibosController extends BaseController {
         await this.updateTablePeriodo(queryRunner, periodo_id, usuario, ip, fechaActual)
 
       await page.close()
-      await browser.close()      
+      await browser.close()
 
       this.jsonRes([], res, `Se generaron ${movimientosPendientes.length} recibos`);
 
@@ -252,10 +252,10 @@ export class RecibosController extends BaseController {
     headerContent: string,
     footerContent: string,
   ) {
-    Domicilio = (Domicilio && Domicilio!='()') ? Domicilio : 'Sin especificar'
+    Domicilio = (Domicilio && Domicilio != '()') ? Domicilio : 'Sin especificar'
     Asociado = (Asociado) ? Asociado.toString() : 'Pendiente'
     Grupo = (Grupo) ? Grupo : 'Sin asignar'
-    Cuit = (Cuit)?Cuit.toString():'Sin especificar'
+    Cuit = (Cuit) ? Cuit.toString() : 'Sin especificar'
 
 
     headerContent = headerContent.replace(/\${idrecibo}/g, idrecibo.toString());
