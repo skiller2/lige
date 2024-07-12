@@ -81,8 +81,7 @@
           <textarea [disabled]="this.openDrawerForConsult()" rows="1" name="PersonalLicenciaDiagnosticoMedicoDiagnostico" ngModel nz-input ></textarea>
         </nz-textarea-count>
       </nz-form-item>
-      
-      @if (PersonalIdForEdit >0  ) {
+      @if (ngForm().form.value.PersonalId >0  ) {
         <!-- @if (this.PersonalId() >0 ) { -->
          
       <nz-form-item>
@@ -110,7 +109,7 @@
               PersonalId:this.ngForm().value.PersonalId,
               PersonalLicenciaId: this.ngForm().value.PersonalLicenciaId,
             }" nzName="pdf" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
-              <button nz-button>
+              <button [disabled]="isSaving" nz-button>
                 <span nz-icon nzType="upload"></span>
                 Subir PDF
               </button>
@@ -134,7 +133,7 @@
     }
     @if(!(this.openDrawerForConsult())) {
       <nz-form-item class="btnCenter">
-          <button nz-button nzType="primary" (click)="save()">Guardar</button>
+          <button nz-button nzType="primary" [disabled]="isSaving" (click)="save()">Guardar</button>
           @if (this.ngForm().value.PersonalLicenciaId>0) {
           <button nz-button nzType="primary" (click)="deletelicencia()" nzDanger>Eliminar</button>
         }
