@@ -15,7 +15,7 @@ import { NzResultModule } from 'ng-zorro-antd/result';
   styleUrl: './ident.component.less'
 })
 export class IdentComponent {
-  allowedBarCodeFormats = [BarcodeFormat.PDF_417, BarcodeFormat.QR_CODE]
+  allowedBarCodeFormats = [BarcodeFormat.PDF_417]
   codGenerado = model('')
   encTelNro = input('')
 
