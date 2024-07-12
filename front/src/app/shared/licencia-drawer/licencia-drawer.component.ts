@@ -36,6 +36,7 @@ export class LicenciaDrawerComponent {
   formChange$ = new BehaviorSubject('');
   PersonalIdForEdit = 0
   SucursalId = 0
+  isSaving: boolean = false;
   $ArchivosLicencias = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
@@ -79,19 +80,26 @@ export class LicenciaDrawerComponent {
   })
 
   async save() {
-    const periodo = this.selectedPeriod()
 
-    let vals = this.ngForm().value
-    vals.PersonalLicenciaTipoAsociadoId = vals.categoria.categoriaId
-    vals.PersonalLicenciaCategoriaPersonalId = vals.categoria.tipoId
-    vals.anioRequest = periodo.year
-    vals.mesRequest = periodo.month
-    vals.Archivos = this.ArchivosLicenciasAdd
-    vals.PersonalIdForEdit = this.PersonalIdForEdit
-    const res = await firstValueFrom(this.apiService.setLicencia(vals))
-    this.ArchivosLicenciasAdd = []
-    this.RefreshLicencia.set(true)
-     
+    this.isSaving = true
+    try {
+      const periodo = this.selectedPeriod()
+
+      let vals = this.ngForm().value
+      vals.PersonalLicenciaTipoAsociadoId = vals.categoria.categoriaId
+      vals.PersonalLicenciaCategoriaPersonalId = vals.categoria.tipoId
+      vals.anioRequest = periodo.year
+      vals.mesRequest = periodo.month
+      vals.Archivos = this.ArchivosLicenciasAdd
+      vals.PersonalIdForEdit = this.PersonalIdForEdit
+      const res = await firstValueFrom(this.apiService.setLicencia(vals))
+      this.ArchivosLicenciasAdd = []
+      this.RefreshLicencia.set(true)
+      //console.log(res)
+      this.isSaving = false
+    } catch (error) {
+      this.isSaving = false
+    }
   }
 
   async deletelicencia() {
