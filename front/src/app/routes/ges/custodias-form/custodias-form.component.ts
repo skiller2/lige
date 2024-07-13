@@ -4,7 +4,7 @@ import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Fo
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 // import { Observable } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
-import { NgForm } from '@angular/forms';
+import { NgForm, FormArray, FormBuilder } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap } from 'rxjs';
@@ -26,48 +26,60 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 
 })
 export class CustodiaFormComponent {
-    ngForm = viewChild.required(NgForm);
-    cantInputs: Array<number> = [1, 2, 3, 4]
-    listInputPersonal: Array<number> = this.cantInputs.slice(0, 2);
-    listInputVehiculo: Array<number> = this.cantInputs.slice(0, 1);
-    optionsDescRequirente: Array<any> = []
 
     visibleDrawer: boolean = false
     periodo = signal({ year: 0, month: 0 });
+    objPersonal = { personalId: 0, importe: null }
+    objVehiculo = { patente: '', duenoId: 0, importe: null, peaje: null }
     personalId = signal(0);
-    custodiaId = input(0);
+    custodiaId = model(0);
+
+    optionsDescRequirente: Array<any> = []
+
     private apiService = inject(ApiService)
     private searchService = inject(SearchService)
     private injector = inject(Injector)
     edit = input(false)
 
+    fb = inject(FormBuilder)
+    formCus = this.fb.group({ clienteId: 0, descRequirente: '', descripcion: '',
+        fechaInicio: '', origen: '', fechaFinal: '', destino: '',
+        personal: this.fb.array([this.fb.group({...this.objPersonal}),this.fb.group({...this.objPersonal})]),
+        vehiculos: this.fb.array([this.fb.group({...this.objVehiculo})]),
+        cantModulos: null, impoModulos: null, cantHorasExced: null, impoHorasExced: null, cantKmExced: null,
+        impoKmExced: null, impoPeaje: null, facturacion: 0, estado: 0,
+    })
+    personal():FormArray {
+        return this.formCus.get("personal") as FormArray
+    }
+    vehiculos():FormArray {
+        return this.formCus.get("vehiculos") as FormArray
+    }
+
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
 
     ngOnInit() {
         effect(() => {
-            console.log(`The editCustodiaId is: ${this.custodiaId()}`);
-            if (this.custodiaId()) {
-                this.load()
-            } else {
-                this.ngForm().reset()
-            }
+            // console.log(`The editCustodiaId is: ${this.custodiaId()}`);
+            // if (this.custodiaId()) {
+            //     this.load()
+            // } else {
+            //     this.formCus.reset()
+            // }
         }, { injector: this.injector });
     }
 
     async load() {
-        const res = await firstValueFrom(this.searchService.getInfoObjCustodia(this.custodiaId()))
-        console.log('datos custodia',res)
-
-        res.form.fechaInicio = new Date(res.form.fechaInicio)
-        if (res.form.fechaFinal)
-            res.form.fechaFinal = new Date(res.form.fechaFinal)
-        this.listInputPersonal = res.personalLength
-        this.listInputVehiculo = res.vehiculoLength
+        let infoCust= await firstValueFrom(this.searchService.getInfoObjCustodia(this.custodiaId()))
+        console.log('datos custodia',infoCust)
+        infoCust.fechaInicio = new Date(infoCust.fechaInicio)
+        if (infoCust.fechaFinal)
+            infoCust.fechaFinal = new Date(infoCust.fechaFinal)
+        // this.listPersonal = res.personalLength
+        // this.listVehiculo = res.vehiculoLength
         setTimeout(() => {
-            this.ngForm().reset(res.form)         
+            this.formCus.patchValue(infoCust)       
         }, 100);
-        // console.log(this.ngForm().value);
-        // console.log(res);
         {}
     }
 
@@ -79,8 +91,8 @@ export class CustodiaFormComponent {
         }
     }
 
-    openDrawer(key: any): void {
-        const personalId = this.ngForm().value[key]
+    openDrawer(index: any): void {
+        const personalId = this.personal().value[index].personalId
         if (!personalId) return
         this.personalId.set(personalId)
         this.visibleDrawer = true
@@ -94,52 +106,49 @@ export class CustodiaFormComponent {
     addPersonal(e?: MouseEvent): void {
         e?.preventDefault();
         if (this.edit()) {
-            const id = this.listInputPersonal.length > 0 ? this.listInputPersonal[this.listInputPersonal.length - 1] + 1 : 0;
-            this.listInputPersonal.push(id);
+            this.personal().controls.push((this.fb.group({...this.objPersonal})))
         }
     }
 
     addVehiculo(e?: MouseEvent): void {
         e?.preventDefault();
         if (this.edit()) {
-            const id = this.listInputVehiculo.length > 0 ? this.listInputVehiculo[this.listInputVehiculo.length - 1] + 1 : 0;
-            this.listInputVehiculo.push(id);
+            this.vehiculos().push(this.fb.group({...this.objVehiculo}))
         }
     }
 
-    removePersonal(i: number, e: MouseEvent): void {
+    removePersonal(index: number, e: MouseEvent): void {
         e.preventDefault();
-        if (this.listInputPersonal.length > 1 && this.edit()) {
-            const index = this.listInputPersonal.indexOf(i);
-            this.listInputPersonal.splice(index, 1);
+        if (this.personal().controls.length > 1 && this.edit()) {
+            this.personal().removeAt(index)
         }
     }
 
-    removeVehiculo(i: number, e: MouseEvent): void {
+    removeVehiculo(index: number, e: MouseEvent): void {
         e.preventDefault();
-        if (this.listInputVehiculo.length > 1 && this.edit()) {
-            const index = this.listInputVehiculo.indexOf(i);
-            this.listInputVehiculo.splice(index, 1);
+        if (this.vehiculos().controls.length > 1 && this.edit()) {
+            this.vehiculos().removeAt(index)
         }
     }
 
     async save() {
-        const form = this.ngForm().value
+        const form = this.formCus.value
+        console.log('form', form);
         if (this.custodiaId()) {
             await firstValueFrom(this.apiService.updateObjCustodia(form, this.custodiaId()))
         } else {
             const res = await firstValueFrom(this.apiService.addObjCustodia(form))
             if (res.data.custodiaId) {
-               // this.custodiaId.set(res.data.custodiaId)
+               this.custodiaId.set(res.data.custodiaId)
             }
         }
     }
 
     onChangeImpo() {
-        const form = this.ngForm().value
+        const form = Object(this.formCus.value)
         let facturacion: number = 0
         for (const key in form) {
-            if (!(parseInt(key)) && key.includes('impo') && form[key]) {
+            if (key.includes('impo') && form[key]) {
                 let auxKey = key.slice('impo'.length)
                 auxKey = 'cant' + auxKey
                 if (form[auxKey] !== undefined) {
@@ -150,22 +159,23 @@ export class CustodiaFormComponent {
                 }
             }
         }
-        this.ngForm().controls['facturacion'].setValue(facturacion)
+        this.formCus.controls['facturacion'].patchValue(facturacion)
     }
 
     async searchDueno(index: number) {
-        const keyDueno = index + 'duenoId'
-        const patente = this.ngForm().value['1patente']
+        let value = this.vehiculos().value[index]
+        const patente = value.patente
         if (patente.length > 5) {
             const res = await firstValueFrom(this.searchService.getLastPersonalByPatente(patente))
             if (res) {
-                this.ngForm().controls[keyDueno].setValue(res.duenoId)
+                value.duenoId = res.duenoId
+                this.vehiculos().controls[index].patchValue(value)
             }
         }
     }
 
     async searchDescRequirente() {
-        const clienteId = this.ngForm().value['clienteId']
+        const clienteId = this.formCus.value['clienteId']
         if (clienteId) {
             const res = await firstValueFrom(this.searchService.getRequirentesByCliente(clienteId))
             if (res.length) {
