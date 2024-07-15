@@ -24,7 +24,8 @@ export const tmpName = (dir: string) => {
 
 export class BotServer {
   private adapterProvider: Provider
-  private botHandle:any
+  private botHandle: any
+  private statusMsg: number
 
   public sendMsg(telNro: string, message: string) {
     return this.adapterProvider.sendMessage(telNro, message, {})
@@ -32,18 +33,22 @@ export class BotServer {
 
   public runFlow(from: string, name: string) {
     return this.adapterProvider.emit('message', {
-      ...{from,name},
+      ...{ from, name },
       body: utils.encryptData(`_event_custom_${name}_`),
       name,
       from,
-  });
-
-
+    });
   }
+
+  public status() {
+
+    return { bot_online: this.statusMsg }
+  }
+
 
   public async init() {
 
-    const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode,flowRecibo,flowMonotributo,flowRemoveTel])
+    const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo, flowRemoveTel])
     this.adapterProvider = createProvider(Provider)
     const adapterDB = new Database({ filename: 'db.json' })
 
@@ -54,12 +59,24 @@ export class BotServer {
 
     })
 
-    this.adapterProvider.on('ready',  () => {
-      console.log('ready' )
+    this.adapterProvider.on('ready', () => {
+      this.statusMsg = 3
+      console.log('ready')
+    })
+
+    this.adapterProvider.on('require_action', (e) => {
+      this.statusMsg = 1
+      console.log('event', e)
+    })
+
+    this.adapterProvider.on('auth_failure', () => {
+      this.statusMsg = 2
+      console.log('event')
     })
 
 
     this.botHandle.httpServer(3008)
-
+    console.log('botHandle', this.botHandle)
+    console.log('adapterProvider', this.adapterProvider)
   }
 }

@@ -1,0 +1,4 @@
+
+> mess-backend@0.0.1 build
+> node ./scripts/build.mjs .\dist\index.js
+
