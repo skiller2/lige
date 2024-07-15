@@ -6,8 +6,7 @@
     
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <!-- <app-cliente-search formControlName="clienteId" [disabled]="!edit()"/> -->
-          <app-cliente-search formControlName="clienteId" />
+          <app-cliente-search formControlName="clienteId" [edit]="!edit()"/>
         </nz-input-group>
       </nz-form-control>
     </nz-form-item>
@@ -16,7 +15,6 @@
       <nz-form-label [nzSpan]="3">Solicitado por</nz-form-label>
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <!-- <input nz-input placeholder="" formControlName="descRequirente" type="text" (focus)="searchDescRequirente()" [nzAutocomplete]="auto" [disabled]="!edit()"/> -->
           <input nz-input placeholder="" formControlName="descRequirente" type="text" (focus)="searchDescRequirente()" [nzAutocomplete]="auto" />
           <nz-autocomplete #auto>
             <nz-auto-option *ngFor="let option of optionsDescRequirente" [nzValue]="option.descRequirente">
@@ -32,7 +30,6 @@
     
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <!-- <textarea rows="5" nz-input formControlName="descripcion" [disabled]="!edit()"></textarea> -->
           <textarea rows="5" nz-input formControlName="descripcion" ></textarea>
         </nz-input-group>
       </nz-form-control>
@@ -43,12 +40,6 @@
     
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <!-- <nz-date-picker
-            [nzShowTime]="{ nzFormat: 'HH:mm' }"
-            formControlName="fechaInicio"
-            (ngModelChange)="onChangePeriodo($event)"
-            [disabled]="!edit()"
-          ></nz-date-picker> -->
           <nz-date-picker
             [nzShowTime]="{ nzFormat: 'HH:mm' }"
             nzFormat="yyyy-MM-dd HH:mm"
@@ -64,7 +55,6 @@
     
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <!-- <input nz-input placeholder="Direccion" formControlName="origen" type="text" [disabled]="!edit()" /> -->
           <input nz-input placeholder="Direccion" formControlName="origen" type="text" />
         </nz-input-group>
       </nz-form-control>
@@ -75,11 +65,6 @@
     
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <!-- <nz-date-picker
-            [nzShowTime]="{ nzFormat: 'HH:mm' }"
-            formControlName="fechaFinal"
-            [disabled]="!edit()"
-          ></nz-date-picker> -->
           <nz-date-picker
             [nzShowTime]="{ nzFormat: 'HH:mm' }"
             nzFormat="yyyy-MM-dd HH:mm"
@@ -94,7 +79,6 @@
     
       <nz-form-control [nzSpan]="17">
         <nz-input-group style="width: 100%">
-          <!-- <input nz-input placeholder="Direccion" formControlName="destino" type="text" [disabled]="!edit()" /> -->
           <input nz-input placeholder="Direccion" formControlName="destino" type="text" />
         </nz-input-group>
       </nz-form-control>
@@ -106,8 +90,7 @@
       <nz-form-label  [nzSpan]="3">Personal</nz-form-label>
       <nz-form-control [nzSpan]="7">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="personalButton" nzSearch>
-          <!-- <app-personal-search formControlName="personalId" [disabled]="!edit()"/> -->
-          <app-personal-search formControlName="personalId" />
+          <app-personal-search formControlName="personalId" [edit]="!edit()"/>
         </nz-input-group>
         <ng-template #personalButton>
           <button nz-button nzType="dashed" nzSearch (click)="openDrawer(i)">
@@ -119,7 +102,6 @@
       <nz-form-label  [nzSpan]="3">Importe</nz-form-label>
       <nz-form-control [nzSpan]="7">
         <nz-input-group style="width: 100%"  [nzAddOnAfter]="controlPersonalButton" nzSearch>
-          <!-- <input nz-input placeholder="" formControlName="importe" type="number" [disabled]="!edit()"/> -->
           <input nz-input placeholder="" formControlName="importe" type="number" />
         </nz-input-group>
         <ng-template #controlPersonalButton >
@@ -141,7 +123,6 @@
       <nz-form-label  [nzSpan]="2"> Patente </nz-form-label>
       <nz-form-control [nzSpan]="2">
         <nz-input-group style="width: 100%">
-          <!-- <input nz-input placeholder="" formControlName="patente" type="text" (blur)="searchDueno(i)" [disabled]="!edit()"/> -->
           <input nz-input placeholder="" formControlName="patente" type="text" (blur)="searchDueno(i)" />
         </nz-input-group>
       </nz-form-control>
@@ -149,14 +130,12 @@
       <nz-form-label  [nzSpan]="2"> Dueño </nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <!-- <app-personal-search formControlName="duenoId" [disabled]="!edit()"/> -->
-          <app-personal-search formControlName="duenoId" />
+          <app-personal-search formControlName="duenoId" [edit]="!edit()"/>
         </nz-input-group>
       </nz-form-control>
       <nz-form-label  [nzSpan]="2">Importe</nz-form-label>
       <nz-form-control [nzSpan]="2">
         <nz-input-group style="width: 100%">
-          <!-- <input nz-input placeholder="" formControlName="importe" type="number" [disabled]="!edit()"/> -->
           <input nz-input placeholder="" formControlName="importe" type="number" />
         </nz-input-group>
       </nz-form-control>
@@ -164,7 +143,6 @@
       <nz-form-label  [nzSpan]="2">Peaje</nz-form-label>
       <nz-form-control [nzSpan]="4">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="controlVehiculoButton" nzSearch>
-          <!-- <input nz-input placeholder="" formControlName="peaje" type="number" [disabled]="!edit()" /> -->
           <input nz-input placeholder="" formControlName="peaje" type="number" />
         </nz-input-group>
         <ng-template #controlVehiculoButton >
@@ -186,7 +164,6 @@
       <nz-form-label [nzSpan]="3">Cant. módulos</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <!-- <input nz-input placeholder="" formControlName="cantModulos" type="number" [disabled]="!edit()" (ngModelChange)="onChangeImpo()"/> -->
           <input nz-input placeholder="" formControlName="cantModulos" type="number" (ngModelChange)="onChangeImpo()"/>
         </nz-input-group>
       </nz-form-control>
@@ -194,7 +171,6 @@
       <nz-form-label [nzSpan]="5">Importe módulo - Facturación</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <!-- <input nz-input placeholder="" formControlName="impoModulos" type="number" (ngModelChange)="onChangeImpo()" [disabled]="!edit()" /> -->
           <input nz-input placeholder="" formControlName="impoModulos" type="number" (ngModelChange)="onChangeImpo()" />
         </nz-input-group>
       </nz-form-control>
@@ -204,7 +180,6 @@
       <nz-form-label [nzSpan]="3">Cant. Horas excedentes</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <!-- <input nz-input placeholder="" formControlName="cantHorasExced" type="number" [disabled]="!edit()" (ngModelChange)="onChangeImpo()"/> -->
           <input nz-input placeholder="" formControlName="cantHorasExced" type="number" (ngModelChange)="onChangeImpo()"/>
         </nz-input-group>
       </nz-form-control>
@@ -212,7 +187,6 @@
       <nz-form-label [nzSpan]="5">Importe hora excedente - Facturación</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <!-- <input nz-input placeholder="" formControlName="impoHorasExced" type="number" (ngModelChange)="onChangeImpo()" [disabled]="!edit()" /> -->
           <input nz-input placeholder="" formControlName="impoHorasExced" type="number" (ngModelChange)="onChangeImpo()" />
         </nz-input-group>
       </nz-form-control>
@@ -222,7 +196,6 @@
       <nz-form-label [nzSpan]="3">Cant. Km excedentes</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <!-- <input nz-input placeholder="" formControlName="cantKmExced" type="number" [disabled]="!edit()" (ngModelChange)="onChangeImpo()" /> -->
           <input nz-input placeholder="" formControlName="cantKmExced" type="number" (ngModelChange)="onChangeImpo()" />
         </nz-input-group>
       </nz-form-control>
@@ -230,7 +203,6 @@
       <nz-form-label [nzSpan]="5">Importe Km excedente - Facturación</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <!-- <input nz-input placeholder="" formControlName="impoKmExced" type="number" (ngModelChange)="onChangeImpo()" [disabled]="!edit()" /> -->
           <input nz-input placeholder="" formControlName="impoKmExced" type="number" (ngModelChange)="onChangeImpo()" />
         </nz-input-group>
       </nz-form-control>
@@ -240,7 +212,6 @@
       <nz-form-label [nzSpan]="3">Importe Peajes - Facturación</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <!-- <input nz-input placeholder="" formControlName="impoPeaje" type="number" (ngModelChange)="onChangeImpo()" [disabled]="!edit()" /> -->
           <input nz-input placeholder="" formControlName="impoPeaje" type="number" (ngModelChange)="onChangeImpo()" />
         </nz-input-group>
       </nz-form-control>
@@ -250,13 +221,11 @@
       <nz-form-label [nzSpan]="3">Importe a Facturar</nz-form-label>
       <nz-form-control [nzSpan]="6">
         <nz-input-group style="width: 100%">
-          <!-- <input nz-input placeholder="" formControlName="facturacion" type="number" [disabled]="!edit()" readonly/> -->
           <input nz-input placeholder="" formControlName="facturacion" type="number" readonly/>
         </nz-input-group>
       </nz-form-control>
       <nz-form-label [nzSpan]="2">Estado</nz-form-label>
       <nz-form-control [nzSpan]="6">
-        <!-- <nz-select formControlName="estado" nzPlaceHolder="Estado" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" [disabled]="!edit()" > -->
         <nz-select formControlName="estado" nzPlaceHolder="Estado" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
           <ng-container *ngFor="let option of $optionsEstadoCust | async" >
             <nz-option [nzValue]="option.tipo" [nzLabel]="option.descripcion" ></nz-option>
