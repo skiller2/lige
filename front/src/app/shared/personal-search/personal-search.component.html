@@ -1,6 +1,6 @@
 <nz-select #psc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
    (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Apellido, Nombre o CUIT"
-  nzShowSearch nzServerSearch (nzOnSearch)="search($event)" [disabled]="disabled">
+  nzShowSearch nzServerSearch (nzOnSearch)="search($event)" [disabled]="edit">
   <ng-container *ngFor="let option of $optionsArray | async">
     <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.PersonalId" [nzLabel]="option.fullName +' '+option.PersonalId" />
   </ng-container>

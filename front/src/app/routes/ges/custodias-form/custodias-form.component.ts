@@ -39,7 +39,7 @@ export class CustodiaFormComponent {
     private apiService = inject(ApiService)
     private searchService = inject(SearchService)
     private injector = inject(Injector)
-    edit = input(false)
+    edit = input(true)
 
     fb = inject(FormBuilder)
     formCus = this.fb.group({ clienteId: 0, descRequirente: '', descripcion: '',
@@ -59,24 +59,35 @@ export class CustodiaFormComponent {
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
 
     ngOnInit() {
-        effect(() => {
-            // console.log(`The editCustodiaId is: ${this.custodiaId()}`);
-            // if (this.custodiaId()) {
-            //     this.load()
-            // } else {
-            //     this.formCus.reset()
-            // }
+        effect(async () => {
+            console.log(`The editCustodiaId is: ${this.custodiaId()}`);
+            if (this.custodiaId()) {
+                await this.load()
+            } else {
+                this.formCus.reset()
+            }
+            if (this.edit()) {
+                this.formCus.enable()
+            }else{
+                this.formCus.disable()
+            }
         }, { injector: this.injector });
     }
 
     async load() {
         let infoCust= await firstValueFrom(this.searchService.getInfoObjCustodia(this.custodiaId()))
-        console.log('datos custodia',infoCust)
+        // console.log('datos custodia',infoCust)
         infoCust.fechaInicio = new Date(infoCust.fechaInicio)
         if (infoCust.fechaFinal)
             infoCust.fechaFinal = new Date(infoCust.fechaFinal)
-        // this.listPersonal = res.personalLength
-        // this.listVehiculo = res.vehiculoLength
+        this.personal().clear()
+        this.vehiculos().clear()
+        infoCust.personal.forEach((obj:any) => {
+            this.personal().push(this.fb.group({...this.objPersonal}))
+        });
+        infoCust.vehiculos.forEach((obj:any) => {
+            this.vehiculos().push(this.fb.group({...this.objVehiculo}))
+        });
         setTimeout(() => {
             this.formCus.patchValue(infoCust)       
         }, 100);
@@ -133,7 +144,7 @@ export class CustodiaFormComponent {
 
     async save() {
         const form = this.formCus.value
-        console.log('form', form);
+        // console.log('form', form);
         if (this.custodiaId()) {
             await firstValueFrom(this.apiService.updateObjCustodia(form, this.custodiaId()))
         } else {
