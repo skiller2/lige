@@ -39,14 +39,6 @@ export class MessComponent {
       this.messInfo.set({'msg':'error'})
     }
   }
-  async getUltimoDeposito() {
-    try {
-      this.ultimoDeposito.set(await firstValueFrom(this.apiService.getUltimoDeposito()))
-    } catch (e) {
-      console.log(e)
-      this.ultimoDeposito.set({'msg':'error'})
-    }
-  }
 
   msChange(result: number): void {
     this.ms.set(result)
@@ -65,7 +57,8 @@ export class MessComponent {
     try {
       this.ms.set(await firstValueFrom(this.apiService.getChatBotDelay()))
       let imagenCount = 0
-      setInterval(() => {this.imagenUrl.set(`/mess/api/chatbot/qr/${imagenCount++}`)},3000)
+      this.getMessInfo()
+      setInterval(() => {this.imagenUrl.set(`./mess/api/chatbot/qr/${imagenCount++}`)},3000)
     } catch (error) {
       console.log(error)
     }

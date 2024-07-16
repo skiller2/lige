@@ -695,29 +695,28 @@ export class ApiService {
   }
 
   getMessInfo() {
-    const path = `mess/api/info/dbstatus`;
+    const path = `/mess/api/chatbot/status`;
     return this.http.get(path).pipe(
       map((res: any) => res.data)
     );
   }
 
-  getUltimoDeposito() {
-    const personalId = 28748
-    const path = `mess/api/personal/ultDeposito/${personalId}`;
+  getMessInfoDb() {
+    const path = `/mess/api/info/dbstatus`;
     return this.http.get(path).pipe(
       map((res: any) => res.data)
     );
   }
 
   getChatBotDelay() {
-    const path = `mess/api/chatbot/delay`;
+    const path = `/mess/api/chatbot/delay`;
     return this.http.get(path).pipe(
       map((res: any) => res.data)
     );
   }
 
   setChatBotDelay(ms: number) {
-    return this.http.post<ResponseJSON<any>>(`mess/api/chatbot/delay`, { ms }).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
+    return this.http.post<ResponseJSON<any>>(`/mess/api/chatbot/delay`, { ms }).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
   }
 
   addAdelanto(adelanto: { PersonalId: string; monto: number, anio:number,mes:number }) {
