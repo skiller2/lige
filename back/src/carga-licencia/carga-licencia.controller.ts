@@ -484,12 +484,14 @@ export class CargaLicenciaController extends BaseController {
 
     } = req.body
 
-    const PersonalLicenciaHasta = new Date(req.body.PersonalLicenciaHasta)
+    let PersonalLicenciaHasta = new Date(req.body.PersonalLicenciaHasta)
     const PersonalLicenciaDesde = new Date(req.body.PersonalLicenciaDesde)
     PersonalLicenciaHasta.setHours(0, 0, 0, 0)
     PersonalLicenciaDesde.setHours(0,0,0,0)
 
-    //console.log(req.body)
+    if (isNaN(PersonalLicenciaHasta.getTime()))
+      PersonalLicenciaHasta = null
+    
     const queryRunner = dataSource.createQueryRunner();
     try {
 
