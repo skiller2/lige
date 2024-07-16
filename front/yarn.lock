@@ -1749,6 +1749,11 @@
   resolved "https://registry.npmjs.org/@exodus/schemasafe/-/schemasafe-1.0.1.tgz"
   integrity sha512-PQdbF8dGd4LnbwBlcc4ML8RKYdplm+e9sUeWBTr4zgF13/Shiuov9XznvM4T8cb1CfyKK21yTUkuAIIh/DAH/g==
 
+"@geoapify/geocoder-autocomplete@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.npmjs.org/@geoapify/geocoder-autocomplete/-/geocoder-autocomplete-2.0.1.tgz"
+  integrity sha512-uylT+V33dcYsCdTfmzx6kH6wgQLaGWeGYY4S1ko54W6wTYfua2VfMV6rOvaxqYg3J8WFCtWoUozWG8Xm3p3h+w==
+
 "@github/hotkey@^3.1.1":
   version "3.1.1"
   resolved "https://registry.npmjs.org/@github/hotkey/-/hotkey-3.1.1.tgz"

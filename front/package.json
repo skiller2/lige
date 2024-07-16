@@ -45,6 +45,7 @@
     "@delon/mock": "^18.0.1",
     "@delon/theme": "^18.0.1",
     "@delon/util": "^18.0.1",
+    "@geoapify/geocoder-autocomplete": "^2.0.1",
     "@slickgrid-universal/common": "^4.6.0",
     "@slickgrid-universal/event-pub-sub": "^4.3.0",
     "@zxing/browser": "^0.1.5",

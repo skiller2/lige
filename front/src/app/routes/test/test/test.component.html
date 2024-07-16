@@ -1,30 +1,8 @@
 <nz-card>
   <p>Hola prueba {{ 4044.3 | currency }}</p>
 
-  <form nz-form  ngForm>
-    <nz-form-item>
-      <nz-form-label [nzSpan]="3">Nombre</nz-form-label>
-      <nz-form-control [nzSpan]="19">
-        <input name="nombre" ngModel>
-      </nz-form-control>
-    </nz-form-item>
-    <div ngModelGroup="telefonos">
-      <div *ngFor="let tel of telefonos().controls; let ti=index" [ngModelGroup]="ti.toString()">
-        <nz-form-item >
-          <nz-form-label [nzSpan]="3">Telefono {{ti}}</nz-form-label>
-          <nz-form-control [nzSpan]="19">
-            <input [id]="'PersonalId'+ti" name="PersonalId" ngModel>
-          </nz-form-control>
-          </nz-form-item>
-          <nz-form-item >
-          <nz-form-control [nzSpan]="19">
-            <input name="Importe" ngModel>
-          </nz-form-control>
-        </nz-form-item>
-      </div>
-    </div>
-    <p>Directo: {{personaf().form.value|json}}</p>
-  </form>
+  <div id="autocomplete" class="autocomplete-container"></div>
+  
 
 
 <!--

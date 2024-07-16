@@ -4,7 +4,7 @@ import { FormArray, FormBuilder, FormControl, FormGroup, NgForm } from '@angular
 import { SHARED_IMPORTS } from '@shared';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { NzPopconfirmComponent } from 'ng-zorro-antd/popconfirm';
-
+import { GeocoderAutocomplete } from '@geoapify/geocoder-autocomplete';
 
 import { ApiService } from 'src/app/services/api.service';
 import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
@@ -42,14 +42,7 @@ export class TestComponent {
   nacimiento: Date = new Date('1973-05-24')
   allowedBarCodeFormats = [BarcodeFormat.PDF_417, BarcodeFormat.QR_CODE]
 
-  fb = inject(FormBuilder)
-  telefonos() {
-    //return new FormArray([])
-    console.log('pido',this.personaf().form.get("telefonos") as FormArray)
-    return this.personaf().form.get("telefonos") as FormArray
-  }
-
-  periodo1 = { year: 2024, month: 3 }
+   periodo1 = { year: 2024, month: 3 }
   onChange(evt: any) {
     console.log('onChange', evt)
   }
@@ -76,12 +69,32 @@ export class TestComponent {
   }
 
 
-  ngOnInit(): void {
-    this.personaf().form.controls['telefonos'] = new FormArray([])
 
+  ngOnInit(): void {
+
+
+    const autocomplete = new GeocoderAutocomplete(
+      this.el.nativeElement ,
+      'f5cdd3892a38432fbcd0edc786268446',
+      { /* Geocoder options */ })
+  
+/*
+
+
+    this.autocomplete.on('select', (location) => {
+      // check selected location here 
+    });
     
+    this.autocomplete.on('suggestions', (suggestions) => {
+      // process suggestions here
+    });    
+*/
+    //this.personaf().form.controls['telefonos'] = new FormArray([])
+
+
     //this.personaf().form.addControl('telefonos', new FormArray([]))
-    const tels = this.personaf().form.get("telefonos") as FormArray 
+    /*
+    const tels = this.personaf().form.get("telefonos") as FormArray
 
     async () => {
       tels.push(new FormGroup([new FormControl('PersonalId'), new FormControl('Importe')]));
@@ -90,8 +103,9 @@ export class TestComponent {
 
 
     setTimeout(() => {
-      this.personaf().form.patchValue({ nombre: 'mario', telefonos: [{ PersonalId: '111111' }, {PersonalId: '22222'},{PersonalId:'333333'}]})
+      this.personaf().form.patchValue({ nombre: 'mario', telefonos: [{ PersonalId: '111111' }, { PersonalId: '22222' }, { PersonalId: '333333' }] })
     }, 1000);
+    */
   }
 
 
@@ -106,6 +120,9 @@ export class TestComponent {
   clickTest(): void {
     console.log('curr this.confirmation', this.confirmation)
   }
+
+
+    
 
 
 
