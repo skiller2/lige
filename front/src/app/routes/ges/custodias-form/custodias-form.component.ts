@@ -57,15 +57,18 @@ export class CustodiaFormComponent {
     }
 
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
-
+    
     ngOnInit() {
         effect(async () => {
-            console.log(`The editCustodiaId is: ${this.custodiaId()}`);
+            // console.log(`The editCustodiaId is: ${this.custodiaId()}`);
             if (this.custodiaId()) {
                 await this.load()
             } else {
                 this.formCus.reset()
             }
+        }, { injector: this.injector });
+        
+        effect(async () => {
             if (this.edit()) {
                 this.formCus.enable()
             }else{
@@ -88,6 +91,13 @@ export class CustodiaFormComponent {
         infoCust.vehiculos.forEach((obj:any) => {
             this.vehiculos().push(this.fb.group({...this.objVehiculo}))
         });
+        if (this.edit()) {
+            this.personal().enable()
+            this.vehiculos().enable()
+        }else{
+            this.personal().disable()
+            this.vehiculos().disable()
+        }
         setTimeout(() => {
             this.formCus.patchValue(infoCust)       
         }, 100);
@@ -145,14 +155,20 @@ export class CustodiaFormComponent {
     async save() {
         const form = this.formCus.value
         // console.log('form', form);
-        if (this.custodiaId()) {
-            await firstValueFrom(this.apiService.updateObjCustodia(form, this.custodiaId()))
-        } else {
-            const res = await firstValueFrom(this.apiService.addObjCustodia(form))
-            if (res.data.custodiaId) {
-               this.custodiaId.set(res.data.custodiaId)
+        //loading=1
+        try {
+            if (this.custodiaId()) {
+                await firstValueFrom(this.apiService.updateObjCustodia(form, this.custodiaId()))
+            } else {
+                const res = await firstValueFrom(this.apiService.addObjCustodia(form))
+                if (res.data.custodiaId) {
+                    this.custodiaId.set(res.data.custodiaId)
+                }
             }
+        } catch (e) {
+            
         }
+        //loading=0
     }
 
     onChangeImpo() {
