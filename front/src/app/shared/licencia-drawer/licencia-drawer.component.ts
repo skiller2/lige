@@ -95,7 +95,6 @@ export class LicenciaDrawerComponent {
       const res = await firstValueFrom(this.apiService.setLicencia(vals))
       this.ArchivosLicenciasAdd = []
       this.RefreshLicencia.set(true)
-      //console.log(res)
       this.isSaving = false
     } catch (error) {
       this.isSaving = false

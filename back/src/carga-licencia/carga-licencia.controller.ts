@@ -483,7 +483,7 @@ export class CargaLicenciaController extends BaseController {
       PersonalLicenciaDiagnosticoMedicoDiagnostico
 
     } = req.body
-
+console.log(req.body)
     let PersonalLicenciaHasta = new Date(req.body.PersonalLicenciaHasta)
     const PersonalLicenciaDesde = new Date(req.body.PersonalLicenciaDesde)
     PersonalLicenciaHasta.setHours(0, 0, 0, 0)
@@ -516,7 +516,6 @@ export class CargaLicenciaController extends BaseController {
 
       if (PersonalLicenciaDesde == null) 
         throw new ClientException(`Debe seleccionar la fecha desde`)
-
 
 
       let dateValid = await this.validateDates(PersonalLicenciaDesde,PersonalId)
@@ -552,7 +551,7 @@ export class CargaLicenciaController extends BaseController {
         if (valueAplicaPeriodo.length > 0 && PersonalLicenciaSePaga == "N")
           throw new ClientException(`No se puede actualizar el registro a se paga NO ya que tiene horas cargadas`)
 
-        await this.UpdateDiagnosticoMedico(PersonalLicenciaDiagnosticoMedicoDiagnostico, PersonalId, PersonalLicenciaId, res, req, next)
+        await this.UpdateDiagnosticoMedico(PersonalLicenciaDiagnosticoMedicoDiagnostico, PersonalId, PersonalLicenciaId, queryRunner)
 
         let DiagnosticoUpdate = 
         PersonalLicenciaDiagnosticoMedicoDiagnostico.trim() == "" 
@@ -706,11 +705,13 @@ export class CargaLicenciaController extends BaseController {
           PersonalLicenciaDiagnosticoMedicoDiagnostico)
         VALUES (@0,@1,@2,@3,@4)`,[DiagnosticoUpdate,PersonalId,PersonalLicenciaUltNro,PersonalLicenciaDesdeDiagnostico,PersonalLicenciaDiagnosticoMedicoDiagnostico])
       
-        if (PersonalLicenciaDesde != null) 
+        if (PersonalLicenciaHasta != null) 
           await this.CreateSituacionRevista(2,queryRunner,PersonalId,PersonalLicenciaDesde,PersonalLicenciaHasta,PersonalSituacionRevistaUltNro,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId)
+      
+
       }
       //Actuliza la fecha del registro anterior
-      await this.UpdateHastaSitucionRevistaAnterior(PersonalId,PersonalSituacionRevistaId,PersonalLicenciaHasta,queryRunner)
+      await this.UpdateHastaSitucionRevistaAnterior(PersonalId,PersonalSituacionRevistaId,PersonalLicenciaDesde,queryRunner)
       await this.handlePDFUpload(anioRequest, mesRequest, PersonalId, PersonalLicenciaId, res, req, Archivos, next)
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
@@ -742,13 +743,14 @@ export class CargaLicenciaController extends BaseController {
       case 0:
           // update
           PersonalLicenciaHasta.setDate(PersonalLicenciaHasta.getDate() + 1);
+          const date = new Date(PersonalLicenciaHasta);
           await queryRunner.query(`
           UPDATE PersonalSituacionRevista
           SET PersonalSituacionRevistaDesde = @2
           WHERE PersonalId = @0 AND PersonalSituacionRevistaId = @1`, 
             [PersonalId,
              PersonalSituacionRevistaUltNro,
-             PersonalLicenciaHasta
+             date
             ])
           break;
       case 1:
@@ -759,6 +761,7 @@ export class CargaLicenciaController extends BaseController {
       case 2:
           // Create
           PersonalLicenciaHasta.setDate(PersonalLicenciaHasta.getDate() + 1);
+          const dateH = new Date(PersonalLicenciaHasta);
           await queryRunner.query(`INSERT INTO PersonalSituacionRevista (
             PersonalId,
             PersonalSituacionRevistaId,
@@ -773,7 +776,7 @@ export class CargaLicenciaController extends BaseController {
             VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, 
             [PersonalId,
              PersonalSituacionRevistaUltNro + 1,
-             PersonalLicenciaHasta,
+             dateH,
              null,
              null,
              PersonalSituacionRevistaMotivo,
@@ -786,14 +789,17 @@ export class CargaLicenciaController extends BaseController {
     }
   }
 
-  async UpdateHastaSitucionRevistaAnterior(PersonalId:any,PersonalSituacionRevistaId:any,PersonalLicenciaHasta:Date,queryRunner:QueryRunner){
-    const DateHastaPersonalSituacionRevista = PersonalLicenciaHasta.setDate(PersonalLicenciaHasta.getDate() - 1)
+  async UpdateHastaSitucionRevistaAnterior(PersonalId:any,PersonalSituacionRevistaId:any,PersonalLicenciaDesde:Date,queryRunner:QueryRunner){
+    
+    PersonalLicenciaDesde.setDate(PersonalLicenciaDesde.getDate() - 1);
+    const date = new Date(PersonalLicenciaDesde);
+
     await queryRunner.query(`UPDATE PersonalSituacionRevista
       SET PersonalSituacionRevistaHasta = @2
       WHERE PersonalId = @0 AND PersonalSituacionRevistaId = @1`, 
       [PersonalId,
       PersonalSituacionRevistaId,
-       DateHastaPersonalSituacionRevista])
+      date])
   }
 
   async deleteLincencia(req: Request, res: Response, next: NextFunction) {
@@ -808,7 +814,6 @@ export class CargaLicenciaController extends BaseController {
       const result = await queryRunner.query(`select * from PersonalLicencia where PersonalId=@0 and PersonalLicenciaId=@1 `
         , [PersonalId, PersonalLicenciaId])
 
-      console.log(result.length)
       if (result.length > 0) {
         await queryRunner.query(` DELETE FROM PersonalLicencia WHERE PersonalId = @0 and PersonalLicenciaId =@1`
           , [PersonalId, PersonalLicenciaId])
@@ -885,21 +890,15 @@ export class CargaLicenciaController extends BaseController {
     PersonalLicenciaDiagnosticoMedicoDiagnostico:any, 
     PersonalId:any, 
     PersonalLicenciaId:any,
-    res: Response,
-    req: Request,
-    next: NextFunction
+    queryRunner:QueryRunner
   ) {
 
-    const queryRunner = dataSource.createQueryRunner();
-
-    try {
       //valida si existe diagnostico medico
       if(PersonalLicenciaDiagnosticoMedicoDiagnostico.trim() == ""){
 
          let result = await queryRunner.query(`SELECT * FROM
            PersonalLicenciaDiagnosticoMedico 
            WHERE personalId = @0 AND PersonalLicenciaId = @1`,[ PersonalId, PersonalLicenciaId])
-           console.log("este es el result ", result)
 
            // valida si existe registro en PersonalLicenciaDiagnosticoMedico
            // si no es que ya venia null
@@ -923,10 +922,6 @@ export class CargaLicenciaController extends BaseController {
             WHERE PersonalId = @1 AND PersonalLicenciaId = @2) AND PersonalId = @1 AND PersonalLicenciaId = @2`
           , [PersonalLicenciaDiagnosticoMedicoDiagnostico.trim(), PersonalId, PersonalLicenciaId])
       }
-    } catch (error) {
-      this.rollbackTransaction(queryRunner)
-      return next('Error:' + error)
-    }
 
   }
 
