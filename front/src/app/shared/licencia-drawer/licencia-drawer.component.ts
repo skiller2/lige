@@ -64,7 +64,10 @@ export class LicenciaDrawerComponent {
       const per = this.selectedPeriod()
       if (this.PersonalLicenciaId() > 0) {
         let vals = await firstValueFrom(this.apiService.getLicencia(per.year, per.month, this.PersonalId(), this.PersonalLicenciaId()));
-        vals.categoria = { id: `${vals.PersonalLicenciaTipoAsociadoId}-${vals.PersonalLicenciaCategoriaPersonalId}` }
+        vals.categoria = { id: `${vals.PersonalLicenciaTipoAsociadoId}-${vals.PersonalLicenciaCategoriaPersonalId}`,categoriaId:vals.PersonalLicenciaCategoriaPersonalId,tipoId:vals.PersonalLicenciaTipoAsociadoId }
+        vals.PersonalLicenciaTipoAsociadoId = vals.categoria.categoriaId
+        vals.PersonalLicenciaCategoriaPersonalId = vals.categoria.tipoId
+
         vals.PersonalLicenciaHorasMensuales = Number(vals.PersonalLicenciaHorasMensuales)
         this.PersonalIdForEdit = vals.PersonalId
         this.SucursalId = vals.SucursalId
@@ -95,6 +98,10 @@ export class LicenciaDrawerComponent {
       vals.Archivos = this.ArchivosLicenciasAdd
       vals.PersonalIdForEdit = this.PersonalIdForEdit
       const res = await firstValueFrom(this.apiService.setLicencia(vals))
+
+      this.ngForm().form.markAsUntouched()
+      this.ngForm().form.markAsPristine()
+  
       this.ArchivosLicenciasAdd = []
       this.RefreshLicencia.set(true)
 

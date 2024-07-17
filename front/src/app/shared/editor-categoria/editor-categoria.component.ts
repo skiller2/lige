@@ -87,8 +87,8 @@ export class EditorCategoriaComponent {
     }
 
     
-    if (this.selectedItem!=propagate)
-    this.propagateChange(propagate)
+    if (this.selectedItem?.id!=propagate.id)
+      this.propagateChange(propagate)
 
     this.selectedItem = propagate
 
