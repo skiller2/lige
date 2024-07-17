@@ -48,6 +48,12 @@ const columnsObjCustodia: any[] = [
         fieldName: "obj.desc_requirente",
         sortable: true,
         type: 'string',
+        formatter: 'complexObject',
+        params: {
+            complexFieldLabel: 'desc_requirente.fullName',
+        },
+        searchComponent:"inpurForRequirenteSearch",
+        searchType:"string",
         // maxWidth: 150,
         minWidth: 110,
     },
@@ -429,7 +435,7 @@ export class CustodiaController extends BaseController {
             if (errores.length) {
                 throw new ClientException(errores.join(`\n`))
             }
-            throw new ClientException('Todos salio BIEN')
+            
             await queryRunner.commitTransaction()
             return this.jsonRes({ custodiaId: objetivoCustodiaId }, res, 'Carga Exitosa');
         }catch (error) {
@@ -750,4 +756,25 @@ export class CustodiaController extends BaseController {
             await queryRunner.release()
         }
     }
+
+    async searchRequirente(req: any, res: Response, next:NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            await queryRunner.startTransaction()
+            const { value } = req.body;
+            const list = await queryRunner.query(`
+                SELECT DISTINCT obj.desc_requirente fullName
+                FROM lige.dbo.objetivocustodia obj
+                WHERE obj.desc_requirente LIKE '%${value}%'`)
+                console.log(list);
+                
+            await queryRunner.commitTransaction()
+            return this.jsonRes(list, res);
+        } catch (error) {
+            this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+        }
 }

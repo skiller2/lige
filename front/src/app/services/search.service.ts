@@ -668,4 +668,19 @@ export class SearchService {
     );
   }
 
+  getRequirente(value: string): Observable<Search[]> {
+    if (!value || value == '') {
+      return of([]);
+    }
+    return this.http.post<ResponseJSON<any>>('api/custodia/requirente/search', { value }).pipe(
+      map(res => {
+        return res.data;
+      }),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }
