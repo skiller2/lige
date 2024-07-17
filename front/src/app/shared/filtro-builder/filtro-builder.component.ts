@@ -20,7 +20,8 @@ import { TipoMovimientoSearchComponent } from '../tipo-movimiento-search/tipo-mo
 import { ObjetivoSearchComponent } from '../objetivo-search/objetivo-search.component';
 import { ClienteSearchComponent } from '../cliente-search/cliente-search.component';
 import { PersonalSearchComponent } from '../personal-search/personal-search.component';
-import { GrupoActividadSearchComponent } from '../grupo-actividad/grupo-actividad.component'
+import { GrupoActividadSearchComponent } from '../grupo-actividad/grupo-actividad.component';
+import { RequirenteSearchComponent } from '../requirente-search/requirente-search.component';
 
 type listOptionsT = {
   filtros: any[],
@@ -39,7 +40,10 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
 @Component({
   selector: 'shared-filtro-builder',
   standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule,FechaSearchComponent,TipoMovimientoSearchComponent,ObjetivoSearchComponent,ClienteSearchComponent,PersonalSearchComponent,GrupoActividadSearchComponent],
+  imports: [ ...SHARED_IMPORTS,CommonModule,FechaSearchComponent,TipoMovimientoSearchComponent,
+    ObjetivoSearchComponent,ClienteSearchComponent,PersonalSearchComponent,GrupoActividadSearchComponent,
+    RequirenteSearchComponent
+  ],
   templateUrl: './filtro-builder.component.html',
   styles: [],
   providers: [CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR],
