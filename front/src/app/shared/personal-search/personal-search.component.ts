@@ -33,6 +33,7 @@ import { CommonModule } from '@angular/common'
 })
 
 export class PersonalSearchComponent implements ControlValueAccessor {
+  tmpInputVal: any
   constructor(private searchService: SearchService) { }
 
   @Input() edit: boolean = false
@@ -132,13 +133,16 @@ export class PersonalSearchComponent implements ControlValueAccessor {
             this._selected = this._selectedId
             this.valueExtendedEmitter.emit(this.extendedOption)
             //if (val!=this._selected)
-            this.propagateChange(this._selectedId)
+            if (this.tmpInputVal != this._selected) {
+              this.propagateChange(this._selectedId)
+            }
           }))
       )
     }
   }
 
   writeValue(value: any) {
+    this.tmpInputVal = value
     if (value !== this._selectedId) {
       this.selectedId = value
     }

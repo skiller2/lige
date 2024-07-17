@@ -33,6 +33,7 @@ import { CommonModule } from '@angular/common'
 })
 
 export class InasistenciaSearchComponent implements ControlValueAccessor {
+  tmpInputVal: any
   constructor(private searchService: SearchService) { }
 
   @Input() valueExtended: any
@@ -130,8 +131,8 @@ export class InasistenciaSearchComponent implements ControlValueAccessor {
             this.extendedOption = res[0]
             this._selected = this._selectedId
             this.valueExtendedEmitter.emit(this.extendedOption)
-            //if (val!=this._selectedId)
-            this.propagateChange(this._selectedId)
+            if (this.tmpInputVal!=this._selectedId)
+              this.propagateChange(this._selectedId)
           }))
       )
 
@@ -139,6 +140,7 @@ export class InasistenciaSearchComponent implements ControlValueAccessor {
   }
 
   writeValue(value: any) {
+    this.tmpInputVal = value
     if (value !== this._selectedId) {
       this.selectedId = value
     }

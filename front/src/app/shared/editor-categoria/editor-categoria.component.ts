@@ -37,6 +37,7 @@ export class EditorCategoriaComponent {
   onItemChanged = new Subject<any>();    // object
   valueExtended!: any
   optionsArray: any[] = [];
+  tmpInputVal: any;
   constructor(public element: ElementRef, private searchService: SearchService) { }
 
   selectedPeriod = model({ year: 0, month: 0 });
@@ -87,8 +88,12 @@ export class EditorCategoriaComponent {
     }
 
     
-    if (this.selectedItem?.id!=propagate.id)
-      this.propagateChange(propagate)
+    if (this.selectedItem?.id != propagate.id) {
+      if (this.tmpInputVal?.id != propagate.id) {
+
+        this.propagateChange(propagate)
+      }
+    }
 
     this.selectedItem = propagate
 
@@ -136,6 +141,8 @@ export class EditorCategoriaComponent {
   }
 
   writeValue(value: any) {
+    this.tmpInputVal = value
+    console.log('writeValue',value)
     const tmp = (value?.id)?value.id:value
     if (tmp !== this.selectedId) {
       this.selectedId = tmp
