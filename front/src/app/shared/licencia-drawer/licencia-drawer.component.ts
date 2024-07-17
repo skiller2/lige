@@ -36,7 +36,7 @@ export class LicenciaDrawerComponent {
   formChange$ = new BehaviorSubject('');
   PersonalIdForEdit = 0
   SucursalId = 0
-  isSaving: boolean = false;
+  isSaving= model<boolean>(false)
   $ArchivosLicencias = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
@@ -76,12 +76,14 @@ export class LicenciaDrawerComponent {
         this.ngForm().form.patchValue(vals)
       }
     }
+    this.ngForm().form.markAsUntouched()
+    this.ngForm().form.markAsPristine()
     return true
   })
 
   async save() {
 
-    this.isSaving = true
+    this.isSaving.set(true)
     try {
       const periodo = this.selectedPeriod()
 
@@ -95,10 +97,11 @@ export class LicenciaDrawerComponent {
       const res = await firstValueFrom(this.apiService.setLicencia(vals))
       this.ArchivosLicenciasAdd = []
       this.RefreshLicencia.set(true)
-      this.isSaving = false
+
     } catch (error) {
-      this.isSaving = false
+
     }
+    this.isSaving.set(false)
   }
 
   async deletelicencia() {

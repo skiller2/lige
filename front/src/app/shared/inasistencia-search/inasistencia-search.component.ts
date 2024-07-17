@@ -130,6 +130,7 @@ export class InasistenciaSearchComponent implements ControlValueAccessor {
             this.extendedOption = res[0]
             this._selected = this._selectedId
             this.valueExtendedEmitter.emit(this.extendedOption)
+            if (val!=this._selectedId)
             this.propagateChange(this._selectedId)
           }))
       )

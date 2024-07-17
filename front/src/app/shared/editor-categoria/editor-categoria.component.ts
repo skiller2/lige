@@ -86,8 +86,12 @@ export class EditorCategoriaComponent {
       propagate = { id: this.selectedId, fullName: `${this.optionsArray[0]?.CategoriaPersonalDescripcion.trim()} ${(this.optionsArray[0]?.ValorLiquidacionHorasTrabajoHoraNormal > 0) ? this.optionsArray[0].ValorLiquidacionHorasTrabajoHoraNormal : ''}`, tipoId: this.optionsArray[0]?.TipoAsociadoId, tipoFullName: this.optionsArray[0]?.TipoAsociadoDescripcion, horasRecomendadas: this.optionsArray[0]?.ValorLiquidacionHorasTrabajoHoraNormal, categoriaId: this.optionsArray[0]?.PersonalCategoriaCategoriaPersonalId }
     }
 
-    this.selectedItem = propagate
+    
+    if (this.selectedItem!=propagate)
     this.propagateChange(propagate)
+
+    this.selectedItem = propagate
+
   }
 
   async ngOnInit() {
