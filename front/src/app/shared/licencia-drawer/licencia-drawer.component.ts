@@ -77,10 +77,14 @@ export class LicenciaDrawerComponent {
 
         console.log( "vals ", vals )
         this.ngForm().form.patchValue(vals)
+        setTimeout(() => {
+          this.ngForm().form.markAsUntouched()
+          this.ngForm().form.markAsPristine()
+          return true
+        },1000)
+              
       }
     }
-    this.ngForm().form.markAsUntouched()
-    this.ngForm().form.markAsPristine()
     return true
   })
 

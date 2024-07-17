@@ -131,7 +131,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
             this.extendedOption = res[0]
             this._selected = this._selectedId
             this.valueExtendedEmitter.emit(this.extendedOption)
-            if (val!=this._selected)
+            //if (val!=this._selected)
             this.propagateChange(this._selectedId)
           }))
       )
