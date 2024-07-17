@@ -142,7 +142,6 @@ export class EditorCategoriaComponent {
 
   writeValue(value: any) {
     this.tmpInputVal = value
-    console.log('writeValue',value)
     const tmp = (value?.id)?value.id:value
     if (tmp !== this.selectedId) {
       this.selectedId = tmp
