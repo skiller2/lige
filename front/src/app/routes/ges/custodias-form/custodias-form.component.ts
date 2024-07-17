@@ -155,14 +155,20 @@ export class CustodiaFormComponent {
     async save() {
         const form = this.formCus.value
         // console.log('form', form);
-        if (this.custodiaId()) {
-            await firstValueFrom(this.apiService.updateObjCustodia(form, this.custodiaId()))
-        } else {
-            const res = await firstValueFrom(this.apiService.addObjCustodia(form))
-            if (res.data.custodiaId) {
-               this.custodiaId.set(res.data.custodiaId)
+        //loading=1
+        try {
+            if (this.custodiaId()) {
+                await firstValueFrom(this.apiService.updateObjCustodia(form, this.custodiaId()))
+            } else {
+                const res = await firstValueFrom(this.apiService.addObjCustodia(form))
+                if (res.data.custodiaId) {
+                    this.custodiaId.set(res.data.custodiaId)
+                }
             }
+        } catch (e) {
+            
         }
+        //loading=0
     }
 
     onChangeImpo() {
