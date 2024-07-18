@@ -24,7 +24,7 @@ const columnsObjCustodia: any[] = [
         params: {
             complexFieldLabel: 'responsable.fullName',
         },
-        // searchComponent:"inpurForClientSearch",
+        searchComponent:"inpurForPersonalSearch",
         searchType:"number",
         // maxWidth: 170,
         minWidth: 140,
@@ -48,10 +48,10 @@ const columnsObjCustodia: any[] = [
         fieldName: "obj.desc_requirente",
         sortable: true,
         type: 'string',
-        formatter: 'complexObject',
-        params: {
-            complexFieldLabel: 'desc_requirente.fullName',
-        },
+        // formatter: 'complexObject',
+        // params: {
+        //     complexFieldLabel: 'desc_requirente.fullName',
+        // },
         searchComponent:"inpurForRequirenteSearch",
         searchType:"string",
         // maxWidth: 150,
@@ -98,6 +98,15 @@ const columnsObjCustodia: any[] = [
         minWidth: 140,
     },
     {
+        id:'facturacion' , name:'Importe a Facturar' , field:'facturacion',
+        fieldName: "obj.impo_facturar",
+        sortable: true,
+        type: 'number',
+        maxWidth: 110,
+        // minWidth: 10,
+        searchType:"number",
+    },
+    {
         id:'estado' , name:'Estado' , field:'estado',
         fieldName: "obj.estado",
         sortable: true,
@@ -118,6 +127,7 @@ const columnsObjCustodia: any[] = [
         field: "ApellidoNombre",
         fieldName: "regper.personal_id",
         searchComponent:"inpurForPersonalSearch",
+        searchType:"number",
         sortable: true,
         hidden: true,
         searchHidden: false
@@ -129,6 +139,7 @@ const columnsObjCustodia: any[] = [
         field: "Patente",
         fieldName: "regveh.patente",
         // searchComponent:"inpurForPatenteSearch",
+        searchType:"string",
         sortable: true,
         hidden: true,
         searchHidden: false
@@ -140,6 +151,7 @@ const estados : any[] = [
     { tipo: 1, descripcion: 'Finalizado' },
     { tipo: 2, descripcion: 'Cancelado' },
     { tipo: 3, descripcion: 'A facturar' },
+    { tipo: 4, descripcion: 'Facturado' },
 ]
 
 export class CustodiaController extends BaseController {
@@ -229,7 +241,7 @@ export class CustodiaController extends BaseController {
         SELECT DISTINCT obj.objetivo_custodia_id id, obj.responsable_id responsableId, 
         obj.cliente_id clienteId, obj.desc_requirente, obj.descripcion, obj.fecha_inicio, 
         obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente, 
-        TRIM(per.PersonalApellidoNombre) responsable
+        TRIM(per.PersonalApellidoNombre) responsable, obj.impo_facturar facturacion
         FROM lige.dbo.objetivocustodia obj
         INNER JOIN Personal per ON per.PersonalId = obj.responsable_id
         INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
@@ -301,13 +313,14 @@ export class CustodiaController extends BaseController {
 
     async getObjetivoCustodiaQuery(queryRunner: any, custodiaId: any){
         return await queryRunner.query(`
-        SELECT obj.objetivo_custodia_id id, obj.responsable_id responsableId, 
+        SELECT obj.objetivo_custodia_id id, obj.responsable_id responsableId, TRIM(per.PersonalApellidoNombre) responsable,
         obj.cliente_id clienteId, obj.desc_requirente descRequirente, obj.descripcion, obj.fecha_inicio fechaInicio, obj.origen, 
         obj.fecha_fin fechaFinal, obj.destino, obj.cant_modulos cantModulos, obj.importe_modulos impoModulos, 
         obj.cant_horas_exced cantHorasExced, obj.impo_horas_exced impoHorasExced, obj.cant_km_exced cantKmExced, 
-        obj.impo_km_exced impoKmExced, obj.impo_peaje impoPeaje, obj.impo_facturar facturacion, obj.estado
+        obj.impo_km_exced impoKmExced, obj.impo_peaje impoPeaje, obj.impo_facturar facturacion, obj.estado, obj.num_factura numFactura
         FROM lige.dbo.objetivocustodia obj
         INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
+        INNER JOIN Personal per ON per.PersonalId = obj.responsable_id
         WHERE objetivo_custodia_id = @0`, 
         [custodiaId])
     }
@@ -382,7 +395,7 @@ export class CustodiaController extends BaseController {
                     }
 
                     //En caso de FINALIZAR custodia verificar los campos Importe de Personal
-                    if(objetivoCustodia.estado == 1 && !infoPersonal.importe){
+                    if((objetivoCustodia.estado == 1 || objetivoCustodia.estado == 3 || objetivoCustodia.estado == 4) && !infoPersonal.importe){
                         personalError++
                     }
 
@@ -403,10 +416,10 @@ export class CustodiaController extends BaseController {
                     }
 
                     //En caso de FINALIZAR custodia verificar los campos Importe de Vehiculos
-                    if(objetivoCustodia.estado == 1 && !infoVehiculo.importe){
+                    if((objetivoCustodia.estado == 1 || objetivoCustodia.estado == 3 || objetivoCustodia.estado == 4) && !infoVehiculo.importe){
                         vehiculoError++
                     }
-                    if(objetivoCustodia.estado == 1 && !infoVehiculo.duenoId){
+                    if((objetivoCustodia.estado == 1 || objetivoCustodia.estado == 3 || objetivoCustodia.estado == 4) && !infoVehiculo.duenoId){
                         errores.push(`El campo Dueño de la patente ${obj.patente} NO pueden estar vacios.`)
                     }
 
@@ -475,6 +488,7 @@ export class CustodiaController extends BaseController {
                     origen: obj.origen,
                     fechaF: obj.fecha_fin? obj.fecha_fin.toISOString().slice(0, 19).replace('T', ' ') : null,
                     destino: obj.destino,
+                    facturacion: obj.facturacion,
                     estado: estados[obj.estado]
                 }
             })
@@ -498,7 +512,7 @@ export class CustodiaController extends BaseController {
             let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
 
             infoCustodia= infoCustodia[0]
-            delete infoCustodia.id
+            // delete infoCustodia.id
             delete infoCustodia.responsableId
             // delete infoCustodia.estado
 
@@ -526,15 +540,17 @@ export class CustodiaController extends BaseController {
             const responsableId = res.locals.PersonalId
             const custodiaId = req.params.id
             const objetivoCustodia = {...req.body }
-            
-            if (!responsableId) 
-                throw new ClientException(`No se a encontrado al personal responsable`)
             let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, custodiaId)
             infoCustodia= infoCustodia[0]
-
-            if (responsableId != infoCustodia.responsableId) {
-                throw new ClientException(`No eres el responsable de la custodia`)
+            // delete infoCustodia.id
+            delete infoCustodia.responsableId
+            // delete infoCustodia.responsable
+            // delete infoCustodia.estado
+            
+            if (!(await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')) && responsableId != infoCustodia.responsableId){
+                throw new ClientException(`Únicamente puede modificar el registro ${infoCustodia.responsable} o pertenecer al grupo 'Administracion'/'Liquidaciones'.`)
             }
+            
             const valCustodiaForm = this.valCustodiaForm(objetivoCustodia)
             if (valCustodiaForm instanceof ClientException)
                 throw valCustodiaForm
@@ -561,7 +577,7 @@ export class CustodiaController extends BaseController {
                         objetivoCustodiaId: custodiaId
                     }
                     //En caso de FINALIZAR custodia verificar los campos Importe de Personal
-                    if(objetivoCustodia.estado == 1 && !infoPersonal.importe){
+                    if((objetivoCustodia.estado == 1 || objetivoCustodia.estado == 3 || objetivoCustodia.estado == 4) && !infoPersonal.importe){
                         personalError++
                     }
                     //Verifico que el personal no se repita
@@ -593,10 +609,10 @@ export class CustodiaController extends BaseController {
                         objetivoCustodiaId: custodiaId
                     }
                     //En caso de FINALIZAR custodia verificar los campos Importe de Vehiculos
-                    if(objetivoCustodia.estado == 1 && !infoVehiculo.importe){
+                    if((objetivoCustodia.estado == 1 || objetivoCustodia.estado == 3 || objetivoCustodia.estado == 4) && !infoVehiculo.importe){
                         vehiculoError++
                     }
-                    if(objetivoCustodia.estado == 1 && !infoVehiculo.duenoId){
+                    if((objetivoCustodia.estado == 1 || objetivoCustodia.estado == 3 || objetivoCustodia.estado == 4) && !infoVehiculo.duenoId){
                         errores.push(`El campo Dueño de la patente ${obj.patente} NO pueden estar vacios.`)
                     }
                     //Verifico que la patente no se repita
@@ -686,8 +702,12 @@ export class CustodiaController extends BaseController {
             errores.push(`Los campos pares Cant. e Importe de Km Excedentes deben de llenarse al mismo tiempo.`)
         }
         //En caso de FINALIZAR custodia verificar los campos
-        if(custodiaForm.estado === 1 && (!custodiaForm.facturacion || !custodiaForm.fechaFinal || !custodiaForm.destino)){
+        if((custodiaForm.estado == 1 || custodiaForm.estado == 3 || custodiaForm.estado == 4) && (!custodiaForm.facturacion || !custodiaForm.fechaFinal || !custodiaForm.destino)){
             errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios.`)
+        }
+
+        if(custodiaForm.estado == 4 && !custodiaForm.numFactura){
+            errores.push(`El campo Num de Factura NO puede estar vacio.`)
         }
 
         if (errores.length) {
@@ -776,5 +796,6 @@ export class CustodiaController extends BaseController {
         } finally {
             await queryRunner.release()
         }
-        }
+    }
+
 }
