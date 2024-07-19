@@ -500,9 +500,6 @@ export class CargaLicenciaController extends BaseController {
     if (isNaN(PersonalLicenciaHasta.getTime()))
       PersonalLicenciaHasta = null
 
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
-
       if (PersonalLicenciaSePaga == "S") {
         if (!PersonalLicenciaCategoriaPersonalId)
           throw new ClientException(`Debe seleccionar categoría`)
@@ -581,7 +578,7 @@ export class CargaLicenciaController extends BaseController {
         const sitrevUpdate = await queryRunner.query(`
               SELECT TOP 1 PersonalSituacionRevistaId
               FROM PersonalSituacionRevista
-              WHERE PersonalId = @0 AND PersonalSituacionRevistaSituacionId == 10
+              WHERE PersonalId = @0 AND PersonalSituacionRevistaSituacionId = 10
               ORDER BY PersonalSituacionRevistaDesde DESC, PersonalSituacionRevistaHasta DESC
           `, [PersonalId])
       
@@ -904,7 +901,7 @@ export class CargaLicenciaController extends BaseController {
           PersonalLicenciaDiagnosticoMedico 
           WHERE personalId = @0 AND PersonalLicenciaId = @1`,[ PersonalId, PersonalLicenciaId])
 
-          if(result > 0){
+          if(result.length > 0){
 
             await queryRunner.query(`UPDATE PersonalLicenciaDiagnosticoMedico
               SET PersonalLicenciaDiagnosticoMedicoDiagnostico = @0
@@ -1183,7 +1180,7 @@ export class CargaLicenciaController extends BaseController {
   async validateDates (Fechadesde: Date, personalId: any,PersonalLicenciaId :any) {
       return  await dataSource.query(
         `SELECT * FROM PersonalLicencia lic WHERE 
-        lic.PersonalId = @0 AND lic.PersonalLicenciaId <> @2
+        lic.PersonalId = @0 AND lic.PersonalLicenciaId <> @2 AND
         @1 >= lic.PersonalLicenciaDesde AND @1 < ISNULL(lic.PersonalLicenciaHasta,ISNULL(lic.PersonalLicenciaTermina , '9999-12-31')) 
         ` ,
         [personalId, Fechadesde,PersonalLicenciaId]
