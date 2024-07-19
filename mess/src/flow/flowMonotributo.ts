@@ -1,9 +1,10 @@
 import { impuestosAfipController } from "../controller/controller.module";
 import { EVENTS, addKeyword } from "@builderbot/bot";
 import flowMenu from './flowMenu'
-import flowEnd from './flowEnd'
 import { ClientException } from "src/controller/base.controller";
 import { chatBotController } from "../controller/controller.module";
+import { botServer } from "src";
+import { reset } from "./flowIdle";
 
 const delay = chatBotController.getDelay()
 
@@ -49,7 +50,9 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
 
     })
     .addAction({ capture: true, delay },
-    async (ctx, { flowDynamic, state, fallBack }) => {
+        async (ctx, { flowDynamic, state, fallBack, gotoFlow }) => {
+        reset(ctx,gotoFlow,botServer.globalTimeOutMs)
+
         const myState = state.getMyState()
         const periodosArray : any[] = myState.recibo.periodosArray
         const msj = ctx.body
@@ -71,7 +74,9 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         '¿Desea consulta algo mas?', 
         'Responda "Si" o "No"'
     ], { capture: true, delay },  
-    async (ctx , { gotoFlow, fallBack, state }) => {
+        async (ctx, { gotoFlow, fallBack, state }) => {
+        reset(ctx,gotoFlow,botServer.globalTimeOutMs)
+
         let myState = state.getMyState()
         delete myState.recibo
         await state.update(myState)
@@ -83,6 +88,6 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         } else if (respuesta != 'no' && respuesta != 'No') {
             return fallBack()
         }
-    }, [flowEnd])
+    }, [])
 
 export default flowMonotributo

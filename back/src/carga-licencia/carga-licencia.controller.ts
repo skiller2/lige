@@ -494,12 +494,16 @@ export class CargaLicenciaController extends BaseController {
 
     let PersonalLicenciaHasta = new Date(req.body.PersonalLicenciaHasta)
     const PersonalLicenciaDesde = new Date(req.body.PersonalLicenciaDesde)
-    PersonalLicenciaHasta.setHours(0, 0, 0, 0)
-    PersonalLicenciaDesde.setHours(0,0,0,0)
+ 
 
-    if (isNaN(PersonalLicenciaHasta.getTime()))
-      PersonalLicenciaHasta = null
+    PersonalLicenciaDesde.setHours(0, 0, 0, 0)      
 
+    if (isNaN(PersonalLicenciaHasta.getTime()) || PersonalLicenciaHasta.getTime()<=0)
+        PersonalLicenciaHasta = null
+    else
+        PersonalLicenciaHasta.setHours(0, 0, 0, 0)
+      
+      
       if (PersonalLicenciaSePaga == "S") {
         if (!PersonalLicenciaCategoriaPersonalId)
           throw new ClientException(`Debe seleccionar categoría`)
