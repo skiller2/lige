@@ -29,11 +29,13 @@ const reset = (ctx: BotContext, gotoFlow: (a: TFlow) => Promise<void>, ms: numbe
 }
 
 // Function to stop the inactivity timer for a user
-const stop = (ctx: BotContext, state: BotStateStandAlone) => {
+const stop = (ctx: BotContext, gotoFlow: (a: TFlow) => Promise<void>, state: BotStateStandAlone) => {
   if (timers[ctx.from]) {
     clearTimeout(timers[ctx.from]);
   }
   state.clear()
+  console.log(`User stop: ${ctx.from}`);
+  return gotoFlow(idleFlow);
 }
 
 export {

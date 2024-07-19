@@ -11,7 +11,7 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => { 
     })
     .addAnswer([`Ingrese el código proporcionado durante la verificación de DNI`], { capture: true,delay: delay, idle:5000 },
-        async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+        async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
             const telefono = ctx.from
             const res = await personalController.getPersonalfromTelefonoQuery(telefono)
             if (res.length) {
@@ -31,7 +31,7 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
                 if (reintento > 3) {
                     const res = await personalController.delTelefonoPersona(telefono)
                     await flowDynamic(`Demasiados reintentos`, { delay: delay })
-                    stop(ctx,state)
+                    stop(ctx,gotoFlow, state)
                     return
                 }
 
@@ -74,7 +74,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
                 await state.update({ encTelNro: ret.encTelNro })
                 return endFlow()
             } else {
-                stop(ctx,state)
+                stop(ctx,gotoFlow, state)
             }
 
         })

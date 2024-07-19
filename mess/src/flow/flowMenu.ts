@@ -35,7 +35,7 @@ const flowMenu = addKeyword(EVENTS.ACTION)
                     return gotoFlow(flowRemoveTel)
                     break;
                 case 0:
-                    stop(ctx, state)
+                    stop(ctx,gotoFlow, state)
                     break;
                 default:
                     return fallBack()
