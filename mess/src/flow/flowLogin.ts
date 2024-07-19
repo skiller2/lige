@@ -65,7 +65,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
             const respSINO = ctx.body
             if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
                 const ret = await personalController.genTelCode(telefono)
-                await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${ret.encTelNro}`, { delay: delay })
+                await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, { delay: delay })
 //                await flowDynamic(`E`, { delay: delay })
                 await state.update({ encTelNro: ret.encTelNro })
                 return endFlow()
