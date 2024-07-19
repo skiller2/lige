@@ -14,4 +14,5 @@ export const dataSource = new DataSource({
   extra: {
     trustServerCertificate: true,
   },
+  pool:{max:1000}
 });

@@ -28,6 +28,7 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 export class CustodiaFormComponent {
 
     visibleDrawer: boolean = false
+    isLoading = signal(false);
     periodo = signal({ year: 0, month: 0 });
     objPersonal = { personalId: 0, importe: null }
     objVehiculo = { patente: '', duenoId: 0, importe: null, peaje: null }
@@ -99,7 +100,7 @@ export class CustodiaFormComponent {
             this.vehiculos().disable()
         }
         setTimeout(() => {
-            this.formCus.patchValue(infoCust)       
+            this.formCus.reset(infoCust)
         }, 100);
         {}
     }
@@ -153,9 +154,9 @@ export class CustodiaFormComponent {
     }
 
     async save() {
+        this.isLoading.set(true)
         const form = this.formCus.value
         // console.log('form', form);
-        //loading=1
         try {
             if (this.custodiaId()) {
                 await firstValueFrom(this.apiService.updateObjCustodia(form, this.custodiaId()))
@@ -168,7 +169,7 @@ export class CustodiaFormComponent {
         } catch (e) {
             
         }
-        //loading=0
+        this.isLoading.set(false)
     }
 
     onChangeImpo() {
