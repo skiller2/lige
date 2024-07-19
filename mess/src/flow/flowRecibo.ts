@@ -38,11 +38,11 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
         const myState = state.getMyState()
         const periodosArray : any[] = myState.recibo.periodosArray
         const msj = ctx.body
-        if (parseInt(msj) > periodosArray.length) {
+        if (parseInt(msj)<1 || Number.isNaN(parseInt(msj)) || parseInt(msj) > periodosArray.length ) {
             return fallBack('El numero ingresado no aparece en la lista  📝\nIngrese otro')
         }
-        const mes = periodosArray[parseInt(msj)-1].mes
-        const anio = periodosArray[parseInt(msj)-1].anio
+        const mes = periodosArray[parseInt(msj)-1]?.mes
+        const anio = periodosArray[parseInt(msj)-1]?.anio
         const personalId = myState.personalId
         // await flowDynamic([{ body:`⏱️ Dame un momento`, delay: delay }])
         const urlDocRecibo = await recibosController.getURLDocRecibo(personalId, anio, mes)
