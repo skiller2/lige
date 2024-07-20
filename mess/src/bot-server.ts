@@ -52,7 +52,7 @@ export class BotServer {
     const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo, flowRemoveTel,idleFlow])
     this.adapterProvider = createProvider(Provider)
     const adapterDB = new Database({ filename: 'db.json' })
-    this.globalTimeOutMs = 30000
+    this.globalTimeOutMs = 60000 * 5
     this.botHandle = await createBot({
       flow: adapterFlow,
       provider: this.adapterProvider,
