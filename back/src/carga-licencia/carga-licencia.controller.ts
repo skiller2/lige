@@ -492,18 +492,22 @@ export class CargaLicenciaController extends BaseController {
       if (req.body.PersonalLicenciaDesde == "") 
           throw new ClientException(`Debe seleccionar la fecha desde`)
 
-    let PersonalLicenciaHasta = new Date(req.body.PersonalLicenciaHasta)
+
+    let PersonalLicenciaHasta
+
+    if(req.body.PersonalLicenciaHasta != null ){
+      PersonalLicenciaHasta = new Date(req.body.PersonalLicenciaHasta)
+      PersonalLicenciaHasta.setHours(0, 0, 0, 0) 
+    } else{
+      PersonalLicenciaHasta = null
+    } 
+
     const PersonalLicenciaDesde = new Date(req.body.PersonalLicenciaDesde)
- 
+    PersonalLicenciaDesde.setHours(0,0,0,0)
 
-    PersonalLicenciaDesde.setHours(0, 0, 0, 0)      
+    //if (isNaN(PersonalLicenciaHasta.getTime()))
+      //PersonalLicenciaHasta = null
 
-    if (isNaN(PersonalLicenciaHasta.getTime()) || PersonalLicenciaHasta.getTime()<=0)
-        PersonalLicenciaHasta = null
-    else
-        PersonalLicenciaHasta.setHours(0, 0, 0, 0)
-      
-      
       if (PersonalLicenciaSePaga == "S") {
         if (!PersonalLicenciaCategoriaPersonalId)
           throw new ClientException(`Debe seleccionar categoría`)
@@ -587,10 +591,10 @@ export class CargaLicenciaController extends BaseController {
           `, [PersonalId])
       
         let  PersonalSituacionRevistaIdSearch = sitrevUpdate[0].PersonalSituacionRevistaId
-        await queryRunner.query(`UPDATE PersonalSituacionRevista
-        SET PersonalSituacionRevistaDesde = @1, PersonalSituacionRevistaHasta = @3
-        WHERE PersonalId = @0 AND PersonalSituacionRevistaId= @2`,[PersonalId,PersonalLicenciaDesde,PersonalSituacionRevistaId,PersonalLicenciaHasta])
-
+        // await queryRunner.query(`UPDATE PersonalSituacionRevista
+        // SET PersonalSituacionRevistaDesde = @1, PersonalSituacionRevistaHasta = @3
+        // WHERE PersonalId = @0 AND PersonalSituacionRevistaId= @2`,[PersonalId,PersonalLicenciaDesde,PersonalSituacionRevistaId,PersonalLicenciaHasta])
+        
        if(PersonalSituacionRevistaId > PersonalSituacionRevistaIdSearch ){
  
         if (PersonalLicenciaHasta != null){
@@ -599,12 +603,14 @@ export class CargaLicenciaController extends BaseController {
 
         }else {
           // delete 1
+          
           await this.CreateSituacionRevista(1,queryRunner,PersonalId,PersonalLicenciaDesde,PersonalLicenciaHasta,PersonalSituacionRevistaId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId)
         }
 
         }else{
           //create 2
-          await this.CreateSituacionRevista(2,queryRunner,PersonalId,PersonalLicenciaDesde,PersonalLicenciaHasta,PersonalSituacionRevistaUltNro,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId)
+          if(PersonalLicenciaHasta != null )
+            await this.CreateSituacionRevista(2,queryRunner,PersonalId,PersonalLicenciaDesde,PersonalLicenciaHasta,PersonalSituacionRevistaUltNro,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId)
         }
 
       } else {  //INSERT
@@ -670,29 +676,29 @@ export class CargaLicenciaController extends BaseController {
             PersonalSituacionRevistaSituacionId])
 
 
-            await queryRunner.query(`INSERT INTO PersonalSituacionRevista (
-              PersonalId,
-              PersonalSituacionRevistaId,
-              PersonalSituacionRevistaDesde,
-              PersonalSituacionRevistaTomoConocimiento, 
-              PersonalSituacionRevistaHasta,
-              PersonalSituacionRevistaMotivo,
-              PersonalSituacionRevistaAnula,
-              PersonalSituacionRevistaSituacionId,
-              PersonalSituacionRevistaSituacionClasificacionId,
-              PersonalSituacionRevistaRetenerLiquidacion) 
-              VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, 
-              [PersonalId,
-               PersonalSituacionRevistaUltNro,
-               PersonalLicenciaDesde,
-               null,
-               PersonalLicenciaHasta,
-               'LICENCIA',
-               null,
-               10,
-               null,
-               null
-              ])
+            // await queryRunner.query(`INSERT INTO PersonalSituacionRevista (
+            //   PersonalId,
+            //   PersonalSituacionRevistaId,
+            //   PersonalSituacionRevistaDesde,
+            //   PersonalSituacionRevistaTomoConocimiento, 
+            //   PersonalSituacionRevistaHasta,
+            //   PersonalSituacionRevistaMotivo,
+            //   PersonalSituacionRevistaAnula,
+            //   PersonalSituacionRevistaSituacionId,
+            //   PersonalSituacionRevistaSituacionClasificacionId,
+            //   PersonalSituacionRevistaRetenerLiquidacion) 
+            //   VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, 
+            //   [PersonalId,
+            //    PersonalSituacionRevistaUltNro,
+            //    PersonalLicenciaDesde,
+            //    null,
+            //    PersonalLicenciaHasta,
+            //    'LICENCIA',
+            //    null,
+            //    10,
+            //    null,
+            //    null
+            //   ])
         
         await this.UpdateDiagnosticoMedico(PersonalLicenciaDiagnosticoMedicoDiagnostico, PersonalId, PersonalLicenciaId, DiagnosticoUpdate,PersonalLicenciaDesde,queryRunner)
 
