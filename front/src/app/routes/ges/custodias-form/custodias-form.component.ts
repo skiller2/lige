@@ -34,27 +34,34 @@ export class CustodiaFormComponent {
     objVehiculo = { patente: '', duenoId: 0, importe: null, peaje: null }
     personalId = signal(0);
     custodiaId = model(0);
+    edit = model(true)
 
     optionsDescRequirente: Array<any> = []
 
     private apiService = inject(ApiService)
     private searchService = inject(SearchService)
     private injector = inject(Injector)
-    edit = input(true)
 
     fb = inject(FormBuilder)
-    formCus = this.fb.group({ clienteId: 0, descRequirente: '', descripcion: '',
-        fechaInicio: '', origen: '', fechaFinal: '', destino: '',
+    formCus = this.fb.group({ id: 0, responsable: '', clienteId: 0, descRequirente: '',
+        descripcion: '', fechaInicio: '', origen: '', fechaFinal: '', destino: '',
         personal: this.fb.array([this.fb.group({...this.objPersonal}),this.fb.group({...this.objPersonal})]),
         vehiculos: this.fb.array([this.fb.group({...this.objVehiculo})]),
         cantModulos: null, impoModulos: null, cantHorasExced: null, impoHorasExced: null, cantKmExced: null,
-        impoKmExced: null, impoPeaje: null, facturacion: 0, estado: 0,
+        impoKmExced: null, impoPeaje: null, facturacion: 0, estado: 0, numFactura: 0,
     })
     personal():FormArray {
         return this.formCus.get("personal") as FormArray
     }
     vehiculos():FormArray {
         return this.formCus.get("vehiculos") as FormArray
+    }
+    numFactura():boolean {
+        const value = this.formCus.get("estado")?.value
+        if(value == 3 || value == 4)
+            return true
+        else
+        return false
     }
 
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
@@ -65,11 +72,12 @@ export class CustodiaFormComponent {
             if (this.custodiaId()) {
                 await this.load()
             } else {
-                this.formCus.reset()
+                this.formCus.reset({estado: 0})
             }
         }, { injector: this.injector });
         
         effect(async () => {
+            // console.log(this.edit());
             if (this.edit()) {
                 this.formCus.enable()
             }else{
@@ -160,11 +168,11 @@ export class CustodiaFormComponent {
         try {
             if (this.custodiaId()) {
                 await firstValueFrom(this.apiService.updateObjCustodia(form, this.custodiaId()))
-            } else {
-                const res = await firstValueFrom(this.apiService.addObjCustodia(form))
-                if (res.data.custodiaId) {
-                    this.custodiaId.set(res.data.custodiaId)
+                if(form.estado === 4 && form.numFactura){
+                    this.edit.set(false)
                 }
+            } else {
+                await firstValueFrom(this.apiService.addObjCustodia(form))
             }
         } catch (e) {
             
