@@ -336,7 +336,7 @@ export class AsistenciaController extends BaseController {
  CASE 
         WHEN lic.PersonalLicenciaSePaga = 'S' THEN 'SI'
         WHEN lic.PersonalLicenciaSePaga = 'N' THEN 'No'
-        ELSE 'Pendiente'
+        ELSE 'Indeterminado'
     END AS PersonalLicenciaSePaga,
   tli.TipoInasistenciaId,
   tli.TipoInasistenciaDescripcion,

@@ -13,6 +13,7 @@ import flowRecibo from "./flow/flowRecibo";
 import flowMonotributo from "./flow/flowMonotributo";
 import flowMenu from "./flow/flowMenu";
 import flowRemoveTel from "./flow/flowRemoveTel";
+import { idleFlow } from "./flow/flowIdle";
 
 dotenv.config()
 export const tmpName = (dir: string) => {
@@ -26,7 +27,7 @@ export class BotServer {
   private adapterProvider: Provider
   private botHandle: any
   private statusMsg: number
-
+  public globalTimeOutMs: number
   public sendMsg(telNro: string, message: string) {
     return this.adapterProvider.sendMessage(telNro, message, {})
   }
@@ -48,10 +49,10 @@ export class BotServer {
 
   public async init() {
 
-    const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo, flowRemoveTel])
+    const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo, flowRemoveTel,idleFlow])
     this.adapterProvider = createProvider(Provider)
     const adapterDB = new Database({ filename: 'db.json' })
-
+    this.globalTimeOutMs = 60000 * 5
     this.botHandle = await createBot({
       flow: adapterFlow,
       provider: this.adapterProvider,

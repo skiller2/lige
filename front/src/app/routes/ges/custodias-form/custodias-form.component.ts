@@ -68,7 +68,7 @@ export class CustodiaFormComponent {
     
     ngOnInit() {
         effect(async () => {
-            // console.log(`The editCustodiaId is: ${this.custodiaId()}`);
+            console.log(`The editCustodiaId is: ${this.custodiaId()}`);
             if (this.custodiaId()) {
                 await this.load()
             } else {
@@ -174,6 +174,8 @@ export class CustodiaFormComponent {
             } else {
                 await firstValueFrom(this.apiService.addObjCustodia(form))
             }
+            this.formCus.markAsUntouched()
+            this.formCus.markAsPristine()
         } catch (e) {
             
         }

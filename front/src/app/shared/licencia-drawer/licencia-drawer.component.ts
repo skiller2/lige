@@ -36,6 +36,8 @@ export class LicenciaDrawerComponent {
   formChange$ = new BehaviorSubject('');
   PersonalIdForEdit = 0
   SucursalId = 0
+  selectedOption: string = "Indeterminado";
+  
   isSaving= model<boolean>(false)
   $ArchivosLicencias = this.formChange$.pipe(
     debounceTime(500),
@@ -97,6 +99,10 @@ export class LicenciaDrawerComponent {
       vals.mesRequest = periodo.month
       vals.Archivos = this.ArchivosLicenciasAdd
       vals.PersonalIdForEdit = this.PersonalIdForEdit
+
+      if(vals.PersonalLicenciaSePaga == "Indeterminado")
+        vals.PersonalLicenciaSePaga = ""
+
       const res = await firstValueFrom(this.apiService.setLicencia(vals))
 
       this.ngForm().form.markAsUntouched()

@@ -4,8 +4,6 @@ import { personalController } from "../controller/controller.module";
 
 export const personalRouter = Router();
 const base = "";
-// personalRouter.get(`/search`, (req, res, next) => { personalController.search(req, res, next) });
-// personalRouter.get(`/ultDeposito/:personalId`,  (req, res, next) => { personalController.getUltDeposito(req, res, next) });
 
 personalRouter.get(`${base}/encode`, [], async (req, res, next) => {
   const data = req.params.data 

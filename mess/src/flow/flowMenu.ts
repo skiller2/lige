@@ -1,10 +1,10 @@
 import { EVENTS, addKeyword } from "@builderbot/bot";
 import flowMonotributo from './flowMonotributo'
 import flowRecibo from './flowRecibo'
-import flowConstMedica from './flowConstMedica'
-import flowEnd from './flowEnd'
 import flowRemoveTel from './flowRemoveTel'
 import { chatBotController } from "../controller/controller.module";
+import { reset, stop } from "./flowIdle";
+import { botServer } from "src";
 
 const delay = chatBotController.getDelay()
 
@@ -19,7 +19,8 @@ const flowMenu = addKeyword(EVENTS.ACTION)
         '0- Si no desea consultar nada más'
     ],
         { capture: true, delay },
-        async (ctx, { fallBack, gotoFlow }) => {
+        async (ctx, { fallBack, gotoFlow, state }) => {
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
             const tema = parseInt(ctx.body)
 
@@ -34,7 +35,7 @@ const flowMenu = addKeyword(EVENTS.ACTION)
                     return gotoFlow(flowRemoveTel)
                     break;
                 case 0:
-                    return gotoFlow(flowEnd)
+                    stop(ctx,gotoFlow, state)
                     break;
                 default:
                     return fallBack()

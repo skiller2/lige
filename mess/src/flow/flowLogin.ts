@@ -1,17 +1,17 @@
 import { addKeyword, utils, EVENTS } from '@builderbot/bot'
 import flowMenu from './flowMenu'
 import { chatBotController, personalController } from "../controller/controller.module";
-import flowEnd from './flowEnd';
+import { reset, start, stop } from './flowIdle';
+import { botServer } from 'src';
 
 const delay = chatBotController.getDelay()
 
 
 export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => { 
-
     })
-    .addAnswer([`Ingrese el código proporcionado durante la verificación de DNI`], { capture: true,delay: delay },
-        async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+    .addAnswer([`Ingrese el código proporcionado durante la verificación de DNI`], { capture: true,delay: delay, idle:5000 },
+        async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
             const telefono = ctx.from
             const res = await personalController.getPersonalfromTelefonoQuery(telefono)
             if (res.length) {
@@ -30,7 +30,9 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
                 const reintento = (data.reintento)?data.reintento:0
                 if (reintento > 3) {
                     const res = await personalController.delTelefonoPersona(telefono)
-                    return endFlow('Demasiados reintentos, hasta la próxima')
+                    await flowDynamic(`Demasiados reintentos`, { delay: delay })
+                    stop(ctx,gotoFlow, state)
+                    return
                 }
 
                 await state.update({ reintento: reintento + 1 })    
@@ -40,7 +42,9 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
 
 
 export const flowLogin = addKeyword(EVENTS.WELCOME)
-    .addAction(async (ctx, {  state, gotoFlow, flowDynamic }) => {
+    .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
+        start(ctx, gotoFlow, botServer.globalTimeOutMs)
+
         const telefono = ctx.from
         await flowDynamic(`Bienvenido al área de consultas de la Cooperativa Lince Seguridad`, { delay: delay })
         const res = await personalController.getPersonalfromTelefonoQuery(telefono)
@@ -61,16 +65,16 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
     })
     .addAnswer('El teléfono ingresado no lo pude localizar.  Desea registrarlo?', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
+            reset(ctx,gotoFlow,botServer.globalTimeOutMs)
             const telefono = ctx.from
             const respSINO = ctx.body
             if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
                 const ret = await personalController.genTelCode(telefono)
-                await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${ret.encTelNro}`, { delay: delay })
-//                await flowDynamic(`E`, { delay: delay })
+                await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, { delay: delay })
                 await state.update({ encTelNro: ret.encTelNro })
                 return endFlow()
             } else {
-                return endFlow(`Hasta la próxima`)
+                stop(ctx,gotoFlow, state)
             }
 
         })

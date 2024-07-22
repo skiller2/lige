@@ -55,11 +55,11 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Se paga</nz-form-label>
         <nz-form-control>
-          <nz-select nzShowSearch nzAllowClear nzPlaceHolder="" name="PersonalLicenciaSePaga" ngModel
-            [nzDropdownMatchSelectWidth]="false" [disabled]="this.openDrawerForConsult()">
+          <nz-select nzShowSearch nzAllowClear nzPlaceHolder="" name="PersonalLicenciaSePaga"  [(ngModel)]="selectedOption"
+            [nzDropdownMatchSelectWidth]="false"  [disabled]="this.openDrawerForConsult()">
             <nz-option nzLabel="Si" nzValue="S"></nz-option>
             <nz-option nzLabel="No" nzValue="N"></nz-option>
-            <nz-option nzLabel="Indeterminado" nzValue=""></nz-option>
+            <nz-option nzLabel="Indeterminado" nzValue="Indeterminado"></nz-option>
           </nz-select>
         </nz-form-control>
       </nz-form-item>
