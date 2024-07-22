@@ -33,7 +33,7 @@
         <div class="gridListContainer container-fluid" >
           <angular-slickgrid gridId="grid" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptions"
             [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
-            (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+            (onSelectedRowsChanged)="handleSelectedRowsChanged()">
           </angular-slickgrid>
         </div>
       </ng-template>
