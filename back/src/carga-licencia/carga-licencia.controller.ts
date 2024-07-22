@@ -483,6 +483,7 @@ export class CargaLicenciaController extends BaseController {
       PersonalLicenciaDiagnosticoMedicoDiagnostico
 
     } = req.body
+    console.log(req.body)
     const queryRunner = dataSource.createQueryRunner();
     try {
 
@@ -507,6 +508,11 @@ export class CargaLicenciaController extends BaseController {
 
     //if (isNaN(PersonalLicenciaHasta.getTime()))
       //PersonalLicenciaHasta = null
+    if(PersonalLicenciaHasta != null ){
+      if(PersonalLicenciaHasta > PersonalLicenciaDesde){
+        throw new ClientException(`La fecha Hasta no puede ser mayor a la fecha desde`)
+      }
+    }
 
       if (PersonalLicenciaSePaga == "S") {
         if (!PersonalLicenciaCategoriaPersonalId)
@@ -536,8 +542,17 @@ export class CargaLicenciaController extends BaseController {
         ORDER BY PersonalSituacionRevistaDesde DESC, PersonalSituacionRevistaHasta DESC
     `, [PersonalId])
 
-      const { PersonalSituacionRevistaId,PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaMotivo, } =sitrev[0] 
-        
+      const { PersonalSituacionRevistaId,PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaHasta,PersonalSituacionRevistaDesde } =sitrev[0]
+      
+      
+      if (PersonalLicenciaDesde <= PersonalSituacionRevistaDesde) {
+        throw new ClientException('Error: ya posee una licencia en la fecha de inicio seleccionada');
+    }
+    
+    if (PersonalSituacionRevistaHasta !== null && PersonalLicenciaDesde <= PersonalSituacionRevistaHasta) {
+        throw new ClientException('Error: ya posee una licencia en la fecha hasta seleccionada');
+    }
+
       let PersonalLicenciaSelect = await queryRunner.query(` SELECT PersonalLicenciaUltNro,PersonalSituacionRevistaUltNro from Personal WHERE PersonalId = @0`, [PersonalId,])
       let { PersonalLicenciaUltNro,PersonalSituacionRevistaUltNro } = PersonalLicenciaSelect[0]
       PersonalLicenciaUltNro += 1
@@ -557,6 +572,11 @@ export class CargaLicenciaController extends BaseController {
             DiagnosticoUpdate = 1
           }
       }
+
+      //optiene el tipo de inasistencia
+      const tipoIns = await queryRunner.query(`SELECT TipoInasistenciaDescripcion FROM TipoInasistencia WHERE TipoInasistenciaId = @0`
+        ,[TipoInasistenciaId])
+      const {TipoInasistenciaDescripcion} = tipoIns[0]
 
 
       if (PersonalLicenciaId) {  //UPDATE
@@ -593,8 +613,8 @@ export class CargaLicenciaController extends BaseController {
         let  PersonalSituacionRevistaIdSearch = sitrevUpdate[0].PersonalSituacionRevistaId
 
         await queryRunner.query(`UPDATE PersonalSituacionRevista
-        SET PersonalSituacionRevistaDesde = @1, PersonalSituacionRevistaHasta = @3
-        WHERE PersonalId = @0 AND PersonalSituacionRevistaId= @2`,[PersonalId,PersonalLicenciaDesde,PersonalSituacionRevistaIdSearch,PersonalLicenciaHasta])
+        SET PersonalSituacionRevistaDesde = @1, PersonalSituacionRevistaHasta = @3, PersonalSituacionRevistaMotivo = @4
+        WHERE PersonalId = @0 AND PersonalSituacionRevistaId= @2`,[PersonalId,PersonalLicenciaDesde,PersonalSituacionRevistaIdSearch,PersonalLicenciaHasta,TipoInasistenciaDescripcion])
         
        if(PersonalSituacionRevistaId > PersonalSituacionRevistaIdSearch ){
         if (PersonalLicenciaHasta != null){
@@ -609,7 +629,7 @@ export class CargaLicenciaController extends BaseController {
         }else{
           //create 2
           if(PersonalLicenciaHasta != null )
-            await this.CreateSituacionRevista(2,queryRunner,PersonalId,PersonalLicenciaDesde,PersonalLicenciaHasta,PersonalSituacionRevistaUltNro,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId)
+            await this.CreateSituacionRevista(2,queryRunner,PersonalId,PersonalLicenciaDesde,PersonalLicenciaHasta,PersonalSituacionRevistaUltNro,TipoInasistenciaDescripcion,PersonalSituacionRevistaSituacionId)
         }
 
       } else {  //INSERT
@@ -703,7 +723,7 @@ export class CargaLicenciaController extends BaseController {
 
       
         if (PersonalLicenciaHasta != null) 
-          await this.CreateSituacionRevista(2,queryRunner,PersonalId,PersonalLicenciaDesde,PersonalLicenciaHasta,PersonalSituacionRevistaUltNro,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId)
+          await this.CreateSituacionRevista(2,queryRunner,PersonalId,PersonalLicenciaDesde,PersonalLicenciaHasta,PersonalSituacionRevistaUltNro,TipoInasistenciaDescripcion,PersonalSituacionRevistaSituacionId)
       
 
       }
