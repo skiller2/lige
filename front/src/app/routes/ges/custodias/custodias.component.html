@@ -40,12 +40,12 @@
     </nz-tab>
 
     <nz-tab>
-      <a nz-tab-link routerLink="/ges/cust/detalle">Detalle</a>
-      <app-custodias-form [custodiaId]="editCustodiaId" [edit]="edit()"></app-custodias-form>
+      <a nz-tab-link routerLink="/ges/cust/detalle" >Detalle</a>
+      <app-custodias-form [custodiaId]="editCustodiaId" [edit]="edit && estado" ></app-custodias-form>
     </nz-tab>
 
     <nz-tab> 
-      <a nz-tab-link routerLink="/ges/cust/alta">Alta</a>
+      <a nz-tab-link routerLink="/ges/cust/alta" >Alta</a>
       <app-custodias-form></app-custodias-form>
     </nz-tab>
 

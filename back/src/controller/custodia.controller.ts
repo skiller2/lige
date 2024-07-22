@@ -395,7 +395,7 @@ export class CustodiaController extends BaseController {
                     }
 
                     //En caso de FINALIZAR custodia verificar los campos Importe de Personal
-                    if((objetivoCustodia.estado == 1 || objetivoCustodia.estado == 3 || objetivoCustodia.estado == 4) && !infoPersonal.importe){
+                    if(this.valByEstado(objetivoCustodia.estado) && !infoPersonal.importe){
                         personalError++
                     }
 
@@ -416,10 +416,10 @@ export class CustodiaController extends BaseController {
                     }
 
                     //En caso de FINALIZAR custodia verificar los campos Importe de Vehiculos
-                    if((objetivoCustodia.estado == 1 || objetivoCustodia.estado == 3 || objetivoCustodia.estado == 4) && !infoVehiculo.importe){
+                    if(this.valByEstado(objetivoCustodia.estado) && !infoVehiculo.importe){
                         vehiculoError++
                     }
-                    if((objetivoCustodia.estado == 1 || objetivoCustodia.estado == 3 || objetivoCustodia.estado == 4) && !infoVehiculo.duenoId){
+                    if(this.valByEstado(objetivoCustodia.estado) && !infoVehiculo.duenoId){
                         errores.push(`El campo Dueño de la patente ${obj.patente} NO pueden estar vacios.`)
                     }
 
@@ -542,9 +542,9 @@ export class CustodiaController extends BaseController {
             const objetivoCustodia = {...req.body }
             let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, custodiaId)
             infoCustodia= infoCustodia[0]
-            // delete infoCustodia.id
-            delete infoCustodia.responsableId
-            // delete infoCustodia.responsable
+            delete infoCustodia.id
+            // delete infoCustodia.responsableId
+            delete infoCustodia.responsable
             // delete infoCustodia.estado
             
             if (!(await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')) && responsableId != infoCustodia.responsableId){
@@ -577,7 +577,7 @@ export class CustodiaController extends BaseController {
                         objetivoCustodiaId: custodiaId
                     }
                     //En caso de FINALIZAR custodia verificar los campos Importe de Personal
-                    if((objetivoCustodia.estado == 1 || objetivoCustodia.estado == 3 || objetivoCustodia.estado == 4) && !infoPersonal.importe){
+                    if(this.valByEstado(objetivoCustodia.estado) && !infoPersonal.importe){
                         personalError++
                     }
                     //Verifico que el personal no se repita
@@ -609,10 +609,10 @@ export class CustodiaController extends BaseController {
                         objetivoCustodiaId: custodiaId
                     }
                     //En caso de FINALIZAR custodia verificar los campos Importe de Vehiculos
-                    if((objetivoCustodia.estado == 1 || objetivoCustodia.estado == 3 || objetivoCustodia.estado == 4) && !infoVehiculo.importe){
+                    if(this.valByEstado(objetivoCustodia.estado) && !infoVehiculo.importe){
                         vehiculoError++
                     }
-                    if((objetivoCustodia.estado == 1 || objetivoCustodia.estado == 3 || objetivoCustodia.estado == 4) && !infoVehiculo.duenoId){
+                    if(this.valByEstado(objetivoCustodia.estado) && !infoVehiculo.duenoId){
                         errores.push(`El campo Dueño de la patente ${obj.patente} NO pueden estar vacios.`)
                     }
                     //Verifico que la patente no se repita
@@ -702,7 +702,7 @@ export class CustodiaController extends BaseController {
             errores.push(`Los campos pares Cant. e Importe de Km Excedentes deben de llenarse al mismo tiempo.`)
         }
         //En caso de FINALIZAR custodia verificar los campos
-        if((custodiaForm.estado == 1 || custodiaForm.estado == 3 || custodiaForm.estado == 4) && (!custodiaForm.facturacion || !custodiaForm.fechaFinal || !custodiaForm.destino)){
+        if(this.valByEstado(custodiaForm.estado) && (!custodiaForm.facturacion || !custodiaForm.fechaFinal || !custodiaForm.destino)){
             errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios.`)
         }
 
@@ -798,4 +798,22 @@ export class CustodiaController extends BaseController {
         }
     }
 
+    //Devuelve TRUE si el estado es 
+    //[{ tipo: 1, descripcion: 'Finalizado' },{ tipo: 3, descripcion: 'A facturar' },{ tipo: 4, descripcion: 'Facturado' },]
+    valByEstado(estado:any):boolean {
+        switch (typeof estado) {
+            case 'string':
+                if (estado === 'Finalizado' || estado === 'A facturar' || estado === 'Facturado') 
+                    return true
+                else
+                    return false
+            case 'number':
+                if (estado === 1 || estado === 3 || estado === 4)
+                    return true
+                else
+                    return false
+            default:
+                return false
+        }
+    }
 }

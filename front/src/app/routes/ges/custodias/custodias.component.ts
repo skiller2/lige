@@ -36,7 +36,8 @@ export class CustodiaComponent {
     gridDataInsert: any[] = [];
     detailViewRowCount = 1;
     editCustodiaId = 0;
-    edit = signal(false)
+    estado : boolean = true
+    edit : boolean = false
     excelExportService = new ExcelExportService()
 
     listCustodia$ = new BehaviorSubject('');
@@ -90,10 +91,17 @@ export class CustodiaComponent {
             this.angularGrid.gridService.hideColumnByIds([])
     }
 
-    handleSelectedRowsChanged(e: any): void {
-        const selrow = e.detail.args.rows[0]
-        const row = this.angularGrid.slickGrid.getDataItem(selrow)
+    handleSelectedRowsChanged(): void {
+        const selrows = this.angularGrid.slickGrid.getSelectedRows()
+        if (selrows[0] == undefined) return
+        const row = this.angularGrid.slickGrid.getDataItem(selrows[0])
+        if (row.id == undefined) return
         this.editCustodiaId = row.id
+        if (row.estado.tipo === 4){
+            this.estado = false
+        }else{
+            this.estado = true
+        }
     }
 
     getGridData(): void {
@@ -106,6 +114,6 @@ export class CustodiaComponent {
     }
 
     setEdit(value: boolean): void {
-        this.edit.set(value)
+        this.edit = value
     }
 }
