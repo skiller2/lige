@@ -591,19 +591,18 @@ export class CargaLicenciaController extends BaseController {
           `, [PersonalId])
       
         let  PersonalSituacionRevistaIdSearch = sitrevUpdate[0].PersonalSituacionRevistaId
-        // await queryRunner.query(`UPDATE PersonalSituacionRevista
-        // SET PersonalSituacionRevistaDesde = @1, PersonalSituacionRevistaHasta = @3
-        // WHERE PersonalId = @0 AND PersonalSituacionRevistaId= @2`,[PersonalId,PersonalLicenciaDesde,PersonalSituacionRevistaId,PersonalLicenciaHasta])
+
+        await queryRunner.query(`UPDATE PersonalSituacionRevista
+        SET PersonalSituacionRevistaDesde = @1, PersonalSituacionRevistaHasta = @3
+        WHERE PersonalId = @0 AND PersonalSituacionRevistaId= @2`,[PersonalId,PersonalLicenciaDesde,PersonalSituacionRevistaIdSearch,PersonalLicenciaHasta])
         
        if(PersonalSituacionRevistaId > PersonalSituacionRevistaIdSearch ){
- 
         if (PersonalLicenciaHasta != null){
           //update 0
           await this.CreateSituacionRevista(0,queryRunner,PersonalId,PersonalLicenciaDesde,PersonalLicenciaHasta,PersonalSituacionRevistaId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId)
 
         }else {
           // delete 1
-          
           await this.CreateSituacionRevista(1,queryRunner,PersonalId,PersonalLicenciaDesde,PersonalLicenciaHasta,PersonalSituacionRevistaId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId)
         }
 
@@ -709,7 +708,7 @@ export class CargaLicenciaController extends BaseController {
 
       }
       //Actuliza la fecha del registro anterior
-      await this.UpdateHastaSitucionRevistaAnterior(PersonalId,PersonalSituacionRevistaId,PersonalLicenciaDesde,queryRunner)
+      await this.UpdateHastaSitucionRevistaAnterior(PersonalId,PersonalLicenciaDesde,queryRunner)
       await this.handlePDFUpload(anioRequest, mesRequest, PersonalId, PersonalLicenciaId, res, req, Archivos, next)
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
@@ -739,7 +738,7 @@ export class CargaLicenciaController extends BaseController {
 
     switch (value) {
       case 0:
-          // update
+          //update
           PersonalLicenciaHasta.setDate(PersonalLicenciaHasta.getDate() + 1);
           const date = new Date(PersonalLicenciaHasta);
           await queryRunner.query(`
@@ -787,10 +786,16 @@ export class CargaLicenciaController extends BaseController {
     }
   }
 
-  async UpdateHastaSitucionRevistaAnterior(PersonalId:any,PersonalSituacionRevistaId:any,PersonalLicenciaDesde:Date,queryRunner:QueryRunner){
+  async UpdateHastaSitucionRevistaAnterior(PersonalId:any,PersonalLicenciaDesde:Date,queryRunner:QueryRunner){
     
     PersonalLicenciaDesde.setDate(PersonalLicenciaDesde.getDate() - 1);
     const date = new Date(PersonalLicenciaDesde);
+
+    const result = await queryRunner.query(`SELECT TOP 2 PersonalSituacionRevistaId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaDesde,PersonalSituacionRevistaHasta
+      FROM PersonalSituacionRevista
+      WHERE PersonalId = @0 AND PersonalSituacionRevistaSituacionId <> 10
+      ORDER BY PersonalSituacionRevistaDesde ASC`,[PersonalId])
+    const { PersonalSituacionRevistaId } = result[0]
 
     await queryRunner.query(`UPDATE PersonalSituacionRevista
       SET PersonalSituacionRevistaHasta = @2
