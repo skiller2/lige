@@ -91,12 +91,11 @@ export class CustodiaComponent {
             this.angularGrid.gridService.hideColumnByIds([])
     }
 
-    handleSelectedRowsChanged(): void {
-        const selrows = this.angularGrid.slickGrid.getSelectedRows()
-        if (selrows[0] == undefined) return
-        const row = this.angularGrid.slickGrid.getDataItem(selrows[0])
-        if (row.id == undefined) return
+    handleSelectedRowsChanged(e: any): void {
+        const selrow = e.detail.args.rows[0]
+        const row = this.angularGrid.slickGrid.getDataItem(selrow)
         this.editCustodiaId = row.id
+
         if (row.estado.tipo === 4){
             this.estado = false
         }else{
