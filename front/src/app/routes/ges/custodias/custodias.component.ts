@@ -14,7 +14,7 @@ import { SearchService } from 'src/app/services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { CustodiaFormComponent } from "../custodias-form/custodias-form.component";
-
+import { SettingsService } from '@delon/theme';
 
 @Component({
     selector: 'app-custodias',
@@ -39,17 +39,17 @@ export class CustodiaComponent {
     estado : boolean = true
     edit : boolean = false
     excelExportService = new ExcelExportService()
-
-    listCustodia$ = new BehaviorSubject('');
-
+    listCustodia$ = new BehaviorSubject('')
     listOptions: listOptionsT = {
         filtros: [],
         sort: null,
-      };
+    };
+    startFilters: { field: string; condition: string; operator: string; value: string; }[]=[]
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
+    private settingService = inject(SettingsService)
 
     columns$ = this.apiService.getColumnsCustodia().pipe(map((cols) => {
         let mapped = cols.map((col:any) => {
@@ -72,6 +72,13 @@ export class CustodiaComponent {
       )
 
     async ngOnInit(){
+        const user: any = this.settingService.getUser()
+        this.settingService.user
+        if (user.PersonalId) {
+            this.startFilters = [
+                { field:'responsable', condition: 'AND', operator: '=', value: user.PersonalId.toString()},
+            ]
+        }
         this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptions.enableRowDetailView = false
         this.gridOptions.editable = false
