@@ -10,8 +10,9 @@ const delay = chatBotController.getDelay()
 export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => { 
     })
-    .addAnswer([`Ingrese el código proporcionado durante la verificación de DNI`], { capture: true,delay: delay, idle:5000 },
+    .addAnswer([`Ingrese el código proporcionado durante la verificación de DNI`], { capture: true,delay: delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const telefono = ctx.from
             const res = await personalController.getPersonalfromTelefonoQuery(telefono)
             if (res.length) {
