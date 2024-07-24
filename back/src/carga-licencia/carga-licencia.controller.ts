@@ -15,6 +15,12 @@ import { promisify } from 'util';
 const stat = promisify(fs.stat);
 const unlink = promisify(fs.unlink);
 
+const getOptions :any[] = [
+  { label: 'Si', value: 'S' },
+  { label: 'No', value: 'N' },
+  { label: 'Indeterminado', value: '' }
+]
+
 const columnasGrilla: any[] = [
 
   {
@@ -406,6 +412,9 @@ export class CargaLicenciaController extends BaseController {
     this.jsonRes(columnasGrillaHoras, res);
   }
 
+  async getOptions(req, res) {
+    this.jsonRes(getOptions, res);
+  }
 
   async list(
     req: any,
@@ -545,13 +554,13 @@ export class CargaLicenciaController extends BaseController {
       const { PersonalSituacionRevistaId,PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaHasta,PersonalSituacionRevistaDesde } =sitrev[0]
       
       
-      if (PersonalLicenciaDesde <= PersonalSituacionRevistaDesde) {
-        throw new ClientException('Error: ya posee una licencia en la fecha de inicio seleccionada');
-    }
+      // if (PersonalLicenciaDesde <= PersonalSituacionRevistaDesde) {
+      //   throw new ClientException('Error: ya posee una licencia en la fecha de inicio seleccionada');
+      // }
     
-    if (PersonalSituacionRevistaHasta !== null && PersonalLicenciaDesde <= PersonalSituacionRevistaHasta) {
-        throw new ClientException('Error: ya posee una licencia en la fecha hasta seleccionada');
-    }
+      // if (PersonalSituacionRevistaHasta !== null && PersonalLicenciaDesde <= PersonalSituacionRevistaHasta) {
+      //   throw new ClientException('Error: ya posee una licencia en la fecha hasta seleccionada');
+      // }
 
       let PersonalLicenciaSelect = await queryRunner.query(` SELECT PersonalLicenciaUltNro,PersonalSituacionRevistaUltNro from Personal WHERE PersonalId = @0`, [PersonalId,])
       let { PersonalLicenciaUltNro,PersonalSituacionRevistaUltNro } = PersonalLicenciaSelect[0]
@@ -806,23 +815,31 @@ export class CargaLicenciaController extends BaseController {
     }
   }
 
-  async UpdateHastaSitucionRevistaAnterior(PersonalId:any,PersonalLicenciaDesde:Date,queryRunner:QueryRunner){
-    
-    PersonalLicenciaDesde.setDate(PersonalLicenciaDesde.getDate() - 1);
-    const date = new Date(PersonalLicenciaDesde);
+  async UpdateHastaSitucionRevistaAnterior(PersonalId:any,PersonalLicenciaDesde:any,queryRunner:QueryRunner){
 
-    const result = await queryRunner.query(`SELECT TOP 2 PersonalSituacionRevistaId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaDesde,PersonalSituacionRevistaHasta
+    let date
+
+    if(PersonalLicenciaDesde != null ){
+      PersonalLicenciaDesde.setDate(PersonalLicenciaDesde.getDate() - 1);
+       date = new Date(PersonalLicenciaDesde);
+    }else{
+      date = null
+    }
+
+    const result = queryRunner.query(`SELECT TOP 2 PersonalSituacionRevistaId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaDesde,PersonalSituacionRevistaHasta
       FROM PersonalSituacionRevista
       WHERE PersonalId = @0 AND PersonalSituacionRevistaSituacionId <> 10
       ORDER BY PersonalSituacionRevistaDesde ASC`,[PersonalId])
+
     const { PersonalSituacionRevistaId } = result[0]
 
     await queryRunner.query(`UPDATE PersonalSituacionRevista
-      SET PersonalSituacionRevistaHasta = @2
-      WHERE PersonalId = @0 AND PersonalSituacionRevistaId = @1`, 
-      [PersonalId,
-      PersonalSituacionRevistaId,
-      date])
+        SET PersonalSituacionRevistaHasta = @2
+        WHERE PersonalId = @0 AND PersonalSituacionRevistaId = @1`, 
+        [PersonalId,
+        PersonalSituacionRevistaId,
+        date])
+   
   }
 
   async deleteLincencia(req: Request, res: Response, next: NextFunction) {
@@ -834,22 +851,23 @@ export class CargaLicenciaController extends BaseController {
     } = req.query
     const queryRunner = dataSource.createQueryRunner();
     try {
-      const result = await queryRunner.query(`select * from PersonalLicencia where PersonalId=@0 and PersonalLicenciaId=@1 `
-        , [PersonalId, PersonalLicenciaId])
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
 
-      if (result.length > 0) {
         await queryRunner.query(` DELETE FROM PersonalLicencia WHERE PersonalId = @0 and PersonalLicenciaId =@1`
           , [PersonalId, PersonalLicenciaId])
 
         await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE Persona_id = @0 AND doctipo_id = 'LIC' AND den_documento = @1`
           , [PersonalId, PersonalLicenciaId])
 
-      } else {
-        throw new ClientException(`No se puede eliminar la licencia`)
-      }
-
+        
+      this.UpdateHastaSitucionRevistaAnterior(PersonalId,null,queryRunner)
+ 
       this.jsonRes({ list: [] }, res, `Licencia borrada con exito`);
+      await queryRunner.commitTransaction();
+
     } catch (error) {
+      this.rollbackTransaction(queryRunner)
       return next(error)
     }
 

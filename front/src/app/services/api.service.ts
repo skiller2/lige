@@ -73,6 +73,16 @@ export class ApiService {
     );
   }
 
+  getOptions() {
+    return this.http.get(`/api/carga-licencia/sepaga_getOptions`).pipe(
+      map((res: any) => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getImportacionesTelefoniaAnteriores(anio: number, mes: number) {
     return this.http.get(`/api/telefonia/importaciones_anteriores/${anio}/${mes}`).pipe(
       map((res: any) => res.data.list),

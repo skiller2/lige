@@ -13,6 +13,10 @@ import { PersonalSearchComponent } from '../personal-search/personal-search.comp
 import { CommonModule } from '@angular/common';
 import { SearchService } from '../../services/search.service';
 
+export interface Option {
+  label: string;
+  value: string;
+}
 
 @Component({
   selector: 'app-licencia-drawer',
@@ -22,6 +26,8 @@ import { SearchService } from '../../services/search.service';
   styleUrl: './licencia-drawer.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
+
+
 
 export class LicenciaDrawerComponent {
   ngForm = viewChild.required(NgForm);
@@ -36,7 +42,11 @@ export class LicenciaDrawerComponent {
   formChange$ = new BehaviorSubject('');
   PersonalIdForEdit = 0
   SucursalId = 0
-  selectedOption: string = "Indeterminado";
+  //selectedOption: string = "Indeterminado";
+  selectedOption: string = "" 
+  options: any[] = [];
+ 
+
   
   isSaving= model<boolean>(false)
   $ArchivosLicencias = this.formChange$.pipe(
@@ -49,6 +59,7 @@ export class LicenciaDrawerComponent {
         )
     })
   )
+
   placement: NzDrawerPlacement = 'left';
   visible = model<boolean>(false)
   
@@ -57,7 +68,12 @@ export class LicenciaDrawerComponent {
     private searchService: SearchService
   ) { }
 
-
+  ngOnInit(): void {
+    this.apiService.getOptions().subscribe(options => {
+      console.log("traigo las opciones : ", options)
+      this.options = options;
+    });
+  }
 
   cambios = computed(async () => {
     const visible = this.visible()
@@ -99,9 +115,6 @@ export class LicenciaDrawerComponent {
       vals.mesRequest = periodo.month
       vals.Archivos = this.ArchivosLicenciasAdd
       vals.PersonalIdForEdit = this.PersonalIdForEdit
-
-      if(vals.PersonalLicenciaSePaga == "Indeterminado")
-        vals.PersonalLicenciaSePaga = ""
 
       const res = await firstValueFrom(this.apiService.setLicencia(vals))
 

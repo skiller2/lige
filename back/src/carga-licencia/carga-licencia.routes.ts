@@ -108,6 +108,12 @@ CargaLicenciaCargaRouter.get('/licencia_anteriores/:anio/:mes/:PersonalId/:Perso
   cargaLicenciaController.getLicenciaAnteriores(req.params.anio, req.params.mes, req.params.PersonalId, req.params.PersonalLicenciaId, req, res, next)
 });
 
+CargaLicenciaCargaRouter.get('/sepaga_getOptions', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+  cargaLicenciaController.getOptions(req, res)
+});
+
+
+
 CargaLicenciaCargaRouter.post("/downloadLicencia", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], async (req, res, next) => {
   await cargaLicenciaController.getByDownLicencia(req, res, next);
 });
