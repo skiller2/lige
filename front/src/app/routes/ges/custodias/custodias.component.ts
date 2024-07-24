@@ -73,8 +73,7 @@ export class CustodiaComponent {
 
     async ngOnInit(){
         const user: any = this.settingService.getUser()
-        this.settingService.user
-        if (user.PersonalId) {
+        if (user.PersonalId && !user.GrupoActividad.find((elem:any) => {elem == "Administracion"}) && !user.GrupoActividad.find((elem:any) => {elem == "Liquidaciones"})) {
             this.startFilters = [
                 { field:'responsable', condition: 'AND', operator: '=', value: user.PersonalId.toString()},
             ]
