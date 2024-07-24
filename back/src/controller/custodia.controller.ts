@@ -12,7 +12,7 @@ const columnsObjCustodia: any[] = [
         fieldName: "obj.objetivo_custodia_id",
         sortable: true,
         type: 'number',
-        minWidth: 40,
+        minWidth: 50,
         // minWidth: 10,
     },
     {
