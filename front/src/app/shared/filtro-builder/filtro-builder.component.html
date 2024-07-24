@@ -1,6 +1,6 @@
 <nz-card style="max-height: 150px; overflow: auto;">
-  <nz-tag *ngFor="let tag of tags; let i = index" [nzMode]="'closeable'" (nzOnClose)="closeTag(i)">
-    <span class="app-tag-span">{{ tag }}</span>
+  <nz-tag *ngFor="let tag of localoptions.filtros; let i = index" [nzMode]="(tag.closeable)?'closeable':'default'" (nzOnClose)="removeFiltro(i)">
+    <span class="app-tag-span">{{ tag.tagName }}</span>
   </nz-tag>
   <nz-tag *ngIf="!isFiltroBuilder" class="editable-tag" nzNoAnimation (click)="handleTagInteraction()">
     <span nz-icon nzType="plus"></span>

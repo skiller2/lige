@@ -141,7 +141,7 @@ export class ObjetivosPendAsisComponent {
 
     setTimeout(() => {
       if (gruposActividadList.length > 0)
-        this.sharedFiltroBuilder.addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'))  //Ej 548
+        this.sharedFiltroBuilder.addFilter('GrupoActividadNumero', 'AND', '=', gruposActividadList.join(';'),false)  //Ej 548
     }, 3000);
 
   }

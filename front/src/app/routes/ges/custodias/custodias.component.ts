@@ -44,7 +44,7 @@ export class CustodiaComponent {
         filtros: [],
         sort: null,
     };
-    startFilters: { field: string; condition: string; operator: string; value: string; }[]=[]
+    startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
@@ -73,10 +73,10 @@ export class CustodiaComponent {
 
     async ngOnInit(){
         const user: any = this.settingService.getUser()
-        this.settingService.user
-        if (user.PersonalId) {
+        console.log('user.GrupoActividad',user)
+        if (user.PersonalId && !user.GrupoActividad.find((elem:any) => {elem == "Administracion"}) && !user.GrupoActividad.find((elem:any) => {elem == "Liquidaciones"})) {
             this.startFilters = [
-                { field:'responsable', condition: 'AND', operator: '=', value: user.PersonalId.toString()},
+                { field:'responsable', condition: 'AND', operator: '=', value: user.PersonalId.toString(), forced:true},
             ]
         }
         this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)

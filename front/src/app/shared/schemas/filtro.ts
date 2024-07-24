@@ -3,6 +3,8 @@ export interface Filtro {
   operador: string;
   condition: string;
   valor: string[];
+  tagName: string;
+  closeable: boolean
 }
 
 export interface Sort {

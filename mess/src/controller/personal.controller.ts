@@ -160,14 +160,22 @@ export class PersonalController extends BaseController {
     const stmactual = new Date();
     const usuario = 'anon'
     const ip = this.getRemoteAddress(req)
-
+    let dni = ''
     const des_doc_ident_parts = des_doc_ident.split('@')
-    const dni = (des_doc_ident_parts[4]) ? des_doc_ident_parts[4] : ''
+
 
 
     const queryRunner = dataSource.createQueryRunner();
 
     try {
+      if (des_doc_ident_parts.length > 4) {
+        if (des_doc_ident_parts[0] == '')
+          dni = des_doc_ident_parts[1].trim()
+        else
+          dni = des_doc_ident_parts[4].trim()
+      } else
+        throw new ClientException('No se pudo obtener el número de dni', { des_doc_ident })
+  
 
       const _key = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
       const _iv = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
