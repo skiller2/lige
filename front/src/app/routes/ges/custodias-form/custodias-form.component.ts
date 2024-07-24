@@ -115,8 +115,9 @@ export class CustodiaFormComponent {
 
     onChangePeriodo(result: Date): void {
         if (result) {
-            const year = result.getFullYear()
-            const month = result.getMonth() + 1
+            const date = new Date(result)
+            const year = date.getFullYear()
+            const month = date.getMonth() + 1
             this.periodo.set({ year, month })
         }
     }
