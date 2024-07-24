@@ -51,17 +51,7 @@ export class CustodiaComponent {
     private apiService = inject(ApiService)
     private settingService = inject(SettingsService)
 
-    columns$ = this.apiService.getColumnsCustodia().pipe(map((cols) => {
-        let mapped = cols.map((col:any) => {
-            let item = col
-            if(col.type)
-                item = {...item, type : FieldType[col.type as keyof typeof FieldType]}
-            if(col.formatter = 'complexObject')
-                item = {...item, formatter: Formatters.complexObject}
-            return item
-        });
-        return mapped
-    }));
+    columns$ = this.apiService.getCols('/api/custodia/cols')
 
     gridData$ = this.listCustodia$.pipe(
         debounceTime(500),

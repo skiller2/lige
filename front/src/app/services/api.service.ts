@@ -294,8 +294,12 @@ export class ApiService {
     return this.http.get<any>(url).pipe(
       map((res: any) => {
         const mapped = res.data.map((col: Column) => {
+          if(col.formatter)
+            col.formatter= Formatters.complexObject
+
           if (col.type == 'date')
             col.formatter = Formatters.dateEuro
+
 
           if (String(col.type) == 'currency' || String(col.type) == 'money') {
             col.formatter = Formatters.multiple
@@ -309,6 +313,8 @@ export class ApiService {
             col.params = { formatters: [] }
             col.cssClass = 'text-right'
           }
+
+  
 
           return col
         });
@@ -839,13 +845,6 @@ console.log(vals)
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
-  }
-
-  getColumnsCustodia() {
-    return this.http.get<ResponseJSON<any>>('/api/custodia/cols').pipe(
-      map((res: { data: any; }) => res.data),
-      catchError(() => of([])),
-    )
   }
 
   addObjCustodia(custodia: any) {

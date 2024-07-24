@@ -12,7 +12,7 @@ const columnsObjCustodia: any[] = [
         fieldName: "obj.objetivo_custodia_id",
         sortable: true,
         type: 'number',
-        maxWidth: 100,
+        minWidth: 40,
         // minWidth: 10,
     },
     {
@@ -27,7 +27,7 @@ const columnsObjCustodia: any[] = [
         searchComponent:"inpurForPersonalSearch",
         searchType:"number",
         // maxWidth: 170,
-        minWidth: 140,
+        minWidth: 100,
     },
     {
         id:'cliente' , name:'Cliente' , field:'cliente',
@@ -41,7 +41,7 @@ const columnsObjCustodia: any[] = [
         searchComponent:"inpurForClientSearch",
         searchType:"number",
         // maxWidth: 170,
-        minWidth: 140,
+        minWidth: 100,
     },
     {
         id:'requirente' , name:'Solicitado por' , field:'requirente',
@@ -71,7 +71,7 @@ const columnsObjCustodia: any[] = [
         sortable: true,
         type: 'date',
         // maxWidth: 150,
-        minWidth: 110,
+        minWidth: 90,
     },
     {
         id:'origen' , name:'Origen' , field:'origen',
@@ -87,7 +87,7 @@ const columnsObjCustodia: any[] = [
         sortable: true,
         type: 'date',
         // maxWidth: 150,
-        minWidth: 110,
+        minWidth: 90,
     },
     {
         id:'destino' , name:'Destino' , field:'destino',
@@ -101,9 +101,9 @@ const columnsObjCustodia: any[] = [
         id:'facturacion' , name:'Importe a Facturar' , field:'facturacion',
         fieldName: "obj.impo_facturar",
         sortable: true,
-        type: 'number',
-        maxWidth: 110,
-        // minWidth: 10,
+        type: 'currency',
+        //maxWidth: 110,
+        minWidth: 110,
         searchType:"number",
     },
     {
@@ -117,8 +117,8 @@ const columnsObjCustodia: any[] = [
         },
         searchComponent:"inpurForEstadoCustSearch",
         searchType:"number",
-        maxWidth: 110,
-        // minWidth: 130,
+        //maxWidth: 110,
+        minWidth: 70,
     },
     {
         name: "Apellido Nombre",
