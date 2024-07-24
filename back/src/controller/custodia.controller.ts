@@ -70,7 +70,7 @@ const columnsObjCustodia: any[] = [
         fieldName: "obj.fecha_inicio",
         sortable: true,
         type: 'date',
-        maxWidth: 150,
+        // maxWidth: 150,
         minWidth: 110,
     },
     {
@@ -86,7 +86,7 @@ const columnsObjCustodia: any[] = [
         fieldName: "obj.fecha_fin",
         sortable: true,
         type: 'date',
-        maxWidth: 150,
+        // maxWidth: 150,
         minWidth: 110,
     },
     {
@@ -162,9 +162,9 @@ export class CustodiaController extends BaseController {
         const cliente_id = objetivoCustodia.clienteId
         const desc_requirente = objetivoCustodia.descRequirente? objetivoCustodia.descRequirente : null
         const descripcion = objetivoCustodia.descripcion? objetivoCustodia.descripcion : null
-        const fecha_inicio = objetivoCustodia.fechaInicio.slice(0, 19).replace('T', ' ')
+        const fecha_inicio = objetivoCustodia.fechaInicio.slice(0, 16).replace('T', ' ')
         const origen = objetivoCustodia.origen
-        const fecha_fin = objetivoCustodia.fechaFinal? objetivoCustodia.fechaFinal.slice(0, 19).replace('T', ' ') : null
+        const fecha_fin = objetivoCustodia.fechaFinal? objetivoCustodia.fechaFinal.slice(0, 16).replace('T', ' ') : null
         const destino = objetivoCustodia.destino? objetivoCustodia.destino : null
         const cant_modulos = objetivoCustodia.cant_modulos? objetivoCustodia.cant_modulos : null
         const importe_modulos = objetivoCustodia.impoModulos? objetivoCustodia.impoModulos : null
@@ -239,8 +239,8 @@ export class CustodiaController extends BaseController {
         }
         return await queryRunner.query(`
         SELECT DISTINCT obj.objetivo_custodia_id id, obj.responsable_id responsableId, 
-        obj.cliente_id clienteId, obj.desc_requirente, obj.descripcion, obj.fecha_inicio, 
-        obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente, 
+        obj.cliente_id clienteId, obj.desc_requirente, obj.descripcion, FORMAT(obj.fecha_inicio, 'yyyy-MM-dd HH:mm') AS fecha_inicio, 
+        obj.origen, FORMAT(obj.fecha_fin, 'yyyy-MM-dd HH:mm') AS fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente, 
         TRIM(per.PersonalApellidoNombre) responsable, obj.impo_facturar facturacion
         FROM lige.dbo.objetivocustodia obj
         INNER JOIN Personal per ON per.PersonalId = obj.responsable_id
@@ -256,9 +256,9 @@ export class CustodiaController extends BaseController {
         const cliente_id = objetivoCustodia.clienteId
         const desc_requirente = objetivoCustodia.descRequirente? objetivoCustodia.descRequirente : null
         const descripcion = objetivoCustodia.descripcion? objetivoCustodia.descripcion : null
-        const fecha_inicio = objetivoCustodia.fechaInicio.slice(0, 19).replace('T', ' ')
+        const fecha_inicio = objetivoCustodia.fechaInicio.slice(0, 16).replace('T', ' ')
         const origen = objetivoCustodia.origen
-        const fecha_fin = objetivoCustodia.fechaFinal? objetivoCustodia.fechaFinal.slice(0, 19).replace('T', ' ') : null
+        const fecha_fin = objetivoCustodia.fechaFinal? objetivoCustodia.fechaFinal.slice(0, 16).replace('T', ' ') : null
         const destino = objetivoCustodia.destino
         const cant_modulos = objetivoCustodia.cantModulos? objetivoCustodia.cantModulos : null
         const importe_modulos = objetivoCustodia.impoModulos? objetivoCustodia.impoModulos  :null
@@ -484,9 +484,9 @@ export class CustodiaController extends BaseController {
                     cliente:{ id: obj.clienteId, fullName: obj.cliente},
                     requirente: obj.desc_requirente,
                     descripcion: obj.descripcion,
-                    fechaI: obj.fecha_inicio.toISOString().slice(0, 19).replace('T', ' '),
+                    fechaI: obj.fecha_inicio,
                     origen: obj.origen,
-                    fechaF: obj.fecha_fin? obj.fecha_fin.toISOString().slice(0, 19).replace('T', ' ') : null,
+                    fechaF: obj.fecha_fin? obj.fecha_fin : null,
                     destino: obj.destino,
                     facturacion: obj.facturacion,
                     estado: estados[obj.estado]
@@ -762,7 +762,7 @@ export class CustodiaController extends BaseController {
             await queryRunner.startTransaction()
             const clienteId = req.body.clienteId
             const list = await queryRunner.query(`
-                SELECT obj.desc_requirente descRequirente
+                SELECT DISTINCT obj.desc_requirente descRequirente
                 FROM lige.dbo.objetivocustodia obj
                 WHERE obj.cliente_id = @0`,
             [clienteId])
@@ -786,7 +786,6 @@ export class CustodiaController extends BaseController {
                 SELECT DISTINCT obj.desc_requirente fullName
                 FROM lige.dbo.objetivocustodia obj
                 WHERE obj.desc_requirente LIKE '%${value}%'`)
-                console.log(list);
                 
             await queryRunner.commitTransaction()
             return this.jsonRes(list, res);
