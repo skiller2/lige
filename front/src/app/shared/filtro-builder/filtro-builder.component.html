@@ -1,5 +1,4 @@
 <nz-card style="max-height: 150px; overflow: auto;">
-  <p>Filtros: {{localoptions|json}}</p>
   <nz-tag *ngFor="let tag of localoptions.filtros; let i = index" [nzMode]="(tag.closeable)?'closeable':'default'" (nzOnClose)="removeFiltro(i)">
     <span class="app-tag-span">{{ tag.tagName }}</span>
   </nz-tag>
