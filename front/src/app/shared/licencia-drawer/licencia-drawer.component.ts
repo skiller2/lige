@@ -68,11 +68,8 @@ export class LicenciaDrawerComponent {
     private searchService: SearchService
   ) { }
 
-  ngOnInit(): void {
-    this.apiService.getOptions().subscribe(options => {
-      console.log("traigo las opciones : ", options)
-      this.options = options;
-    });
+  async ngOnInit(): Promise<void> {
+    this.options = await firstValueFrom(this.apiService.getOptions())
   }
 
   cambios = computed(async () => {

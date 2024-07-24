@@ -90,6 +90,7 @@ export class CustodiaComponent {
 
     handleSelectedRowsChanged(e: any): void {
         const selrow = e.detail.args.rows[0]
+        if (!selrow) return
         const row = this.angularGrid.slickGrid.getDataItem(selrow)
         this.editCustodiaId = row.id
 
