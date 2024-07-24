@@ -12,11 +12,13 @@
     <ng-container style="max-width: 800px;">
       <zxing-scanner [formats]="allowedBarCodeFormats" (scanComplete)="scanComplete($event)"
         (scanSuccess)="scanSuccess($event)" (camerasFound)="camerasFoundHandler($event)" [enable]="scannerEnabled()"
-        [device]="camdevice"
+        [device]="camdevice()"
         [tryHarder]="true"
         [autofocusEnabled]="true"
+        [videoConstraints]="videoConstraints()"
         ></zxing-scanner>
     </ng-container>
+    <!-- <p>Cámara: {{camdevice()}}</p> -->
   </nz-card>
   } @else if (encTelNro()) {
   }
