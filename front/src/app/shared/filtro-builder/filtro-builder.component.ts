@@ -40,8 +40,8 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
 @Component({
   selector: 'shared-filtro-builder',
   standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule,FechaSearchComponent,TipoMovimientoSearchComponent,
-    ObjetivoSearchComponent,ClienteSearchComponent,PersonalSearchComponent,GrupoActividadSearchComponent,
+  imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
+    ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent,
     RequirenteSearchComponent
   ],
   templateUrl: './filtro-builder.component.html',
@@ -58,18 +58,17 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   //conditionsToSelect = ['AND', 'OR'];
   //operatorsToSelect = ['LIKE', '>', '<', '>=', '<=', '!=', '<>', '='];
-  
+
   @Output() optionsChange = new EventEmitter<Options>();
   //options = model<Options>({
-//    filtros: [],
-//    sort: null
-//  })
+  //    filtros: [],
+  //    sort: null
+  //  })
   formChange$ = new BehaviorSubject('');
-  
+
   $optionsEstadoCust = this.searchService.getEstadoCustodia();
 
   $optionsSucursales = this.searchService.getSucursales();
-  tags: string[] = [];
   private _options: Options = {
     filtros: [],
     sort: null,
@@ -83,32 +82,17 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     condition: 'AND',
     operator: '',
     value: '',
-    label: ''
+    label: '',
+    forced: false
   };
 
-  valueExtended = { fullName:''}
+  valueExtended = { fullName: '' }
 
-  //
-  // Tags
-  //
+
   ngOnInit(): void {
     for (const filter of this.startFilters()) {
-      this.addFilter(filter.field, filter.condition, filter.operator, filter.value)
+      this.addFilter(filter.field, filter.condition, filter.operator, filter.value, filter.forced)
     }
-  }
-
-  addTag() {
-    if (this.selections.label == "" && this.valueExtended?.fullName)
-      this.selections.label = this.valueExtended.fullName
-    if (this.selections.label == "")
-      this.selections.label = this.selections.value == "" ? "Vacio" : this.selections.value
-    const tagToAdd = `${this.selections.field.name} ${this.selections.operator} ${this.selections.label}`;
-    this.tags.push(tagToAdd);
-  }
-
-  closeTag(indexToRemove: number) {
-    this.tags.splice(indexToRemove, 1);
-    this.removeFiltro(indexToRemove);
   }
 
   handleTagInteraction() {
@@ -177,12 +161,19 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   handleInputConfirm() {
     if (this.verifySelections()) {
       let value
-      Array.isArray(this.selections.value)? value = this.selections.value : value = String(this.selections.value).trim().split(/\s+/)
-      this.addTag();
-      const appendedFilter = this.appendFiltro(
+      Array.isArray(this.selections.value) ? value = this.selections.value : value = String(this.selections.value).trim().split(/\s+/)
+
+      if (this.selections.label == "" && this.valueExtended?.fullName)
+        this.selections.label = this.valueExtended.fullName
+      if (this.selections.label == "")
+        this.selections.label = this.selections.value == "" ? "Vacio" : this.selections.value
+
+      this.appendFiltro(
         this.selections as any,
-        value
-      );
+        value,
+        `${this.selections.field.name} ${this.selections.operator} ${this.selections.label}`,
+        !this.selections.forced
+      )
     }
     this.resetSelections();
     this.isFiltroBuilder = false;
@@ -193,7 +184,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     if (inputSearch)
       inputSearch.click()
   }
-  
+
 
   //
   // Filtros
@@ -201,24 +192,29 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   appendFiltro(
     selections: { field: any; condition: any; operator: any },
-    valueToFilter: any[]
+    valueToFilter: any[],
+    tagName: string,
+    closeable: boolean
   ): Filtro {
     const filtro = {
       index: selections.field.field,
       condition: selections.condition,
       operador: selections.operator,
       valor: valueToFilter,
+      tagName,
+      closeable
+  
     };
     this.localoptions.filtros.push(filtro);
     this.optionsChange.emit(this.localoptions);
-//    this.options.set(this.localoptions);
+    //    this.options.set(this.localoptions);
     return filtro;
   }
 
   removeFiltro(indexToRemove: number) {
     this.localoptions.filtros.splice(indexToRemove, 1);
     this.optionsChange.emit(this.localoptions);
-//    this.options.set(this.localoptions);
+    //    this.options.set(this.localoptions);
   }
 
   resetSelections() {
@@ -227,9 +223,10 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       condition: 'AND',
       operator: '',
       value: '',
-      label: ''
+      label: '',
+      forced: false
     };
-    this.valueExtended = { fullName:''}
+    this.valueExtended = { fullName: '' }
   }
 
   //Control Value Accessor
@@ -308,18 +305,18 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
   }
 
-  async addFilter(field: string, condition: string, operator: string, value: string) {
+  async addFilter(field: string, condition: string, operator: string, value: string, forced: boolean) {
     const fieldObj: any = this.fieldsToSelect().filter(x => x.field === field)[0]
     if (!fieldObj)
       return
     let label = ''
-//TODO revisar que pasa con el resto de los filtros
+    //TODO revisar que pasa con el resto de los filtros
     if (fieldObj.searchComponent == 'inpurForPersonalSearch') {
       const person = await firstValueFrom(this.searchService.getPersonFromName('PersonalId', value))
       label = person[0].fullName
     }
 
-    this.selections = { field: fieldObj, condition, operator, value, label }
+    this.selections = { field: fieldObj, condition, operator, value, label, forced }
     this.handleInputConfirm()
   }
 
