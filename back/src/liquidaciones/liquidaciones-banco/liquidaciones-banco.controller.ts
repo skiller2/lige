@@ -332,6 +332,7 @@ export class LiquidacionesBancoController extends BaseController {
 
     return dataSource.query(
       `SELECT CONCAT(per.PersonalId,movpos.tipocuenta_id) as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion,movpos.tipocuenta_id, movpos.importe, 'CUE' as ind_imputacion,
+      '' as clave_id,
       sit.SituacionRevistaDescripcion
       FROM Personal per
       JOIN(SELECT liq.persona_id, liq.tipocuenta_id, SUM(liq.importe * tipo.signo) importe FROM lige.dbo.liqmamovimientos liq
@@ -359,7 +360,7 @@ export class LiquidacionesBancoController extends BaseController {
     const stmactual = new Date()
 
     return dataSource.query(
-      `SELECT CONCAT(per.PersonalId,'-',pre.PersonalPrestamoId ) as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,
+      `SELECT CONCAT(per.PersonalId,'-',pre.PersonalPrestamoId ) as id,per.PersonalId, pre.PersonalPrestamoId as clave_id, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,
       pre.PersonalPrestamoMonto AS importe, pre.PersonalPrestamoAplicaEl,
       tipo.tipo_movimiento_id, tipo.des_movimiento,
       pre.PersonalPrestamoLiquidoFinanzas,
@@ -562,10 +563,10 @@ export class LiquidacionesBancoController extends BaseController {
               usuario, ip, fechaActual, usuario, ip, fechaActual,
             ])
         } else if (row.ind_imputacion == 'PRE') {
-          await queryRunner.query(`UPDATE PersonalPrestamo SET PersonalPrestamoLiquidoFinanzas=1 WHERE PersonalId = @0 AND PersonalPrestamoMonto = @1 AND PersonalPrestamoAplicaEl = @2 AND ISNULL(PersonalPrestamoLiquidoFinanzas,0) =0`,
+          await queryRunner.query(`UPDATE PersonalPrestamo SET PersonalPrestamoLiquidoFinanzas=1 WHERE PersonalId = @0 AND PersonalPrestamoMonto = @1 AND PersonalPrestamoId=@2 AND ISNULL(PersonalPrestamoLiquidoFinanzas,0) =0`,
             [row.persona_id,
             row.importe,
-            row.mes.toString().padStart(2, '0') + '/' + row.anio.toString()
+            row.clave_id
             ])
 
           //Prestamo Positivo          
@@ -681,12 +682,12 @@ export class LiquidacionesBancoController extends BaseController {
       for (const row of banco) {
 
         await queryRunner.query(
-          `INSERT INTO lige.dbo.liqmvbanco (banco_id, periodo_id, envio_nro, persona_id, importe, cbu, ind_imputacion, fecha, tipocuenta_id, 
+          `INSERT INTO lige.dbo.liqmvbanco (banco_id, periodo_id, envio_nro, persona_id, importe, cbu, ind_imputacion, fecha, tipocuenta_id, clave_id, 
             aud_usuario_ins, aud_ip_ins, aud_fecha_ins)
-          VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8,
-            @9, @10, @11)`,
+          VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9,
+          @10, @11, @12)`,
           [
-            BancoId, periodo_id, nro_envio, row.PersonalId, row.importe, row.PersonalBancoCBU, row.ind_imputacion, fechaActual, row.tipocuenta_id,
+            BancoId, periodo_id, nro_envio, row.PersonalId, row.importe, row.PersonalBancoCBU, row.ind_imputacion, fechaActual, row.tipocuenta_id,row.clave_id,
             usuario, ip, fechaActual
           ]
         );
