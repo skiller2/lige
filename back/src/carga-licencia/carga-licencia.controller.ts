@@ -6,7 +6,7 @@ import { ObjetivoController } from "src/controller/objetivo.controller";
 import { AsistenciaController } from "../controller/asistencia.controller";
 import { mkdirSync, renameSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
 import { Utils } from "./../liquidaciones/liquidaciones.utils";
-import { IsNull } from "typeorm";
+import { Collection, IsNull } from "typeorm";
 import { QueryRunner } from "typeorm";
 import * as fs from 'fs';
 import * as path from 'path';
@@ -15,7 +15,7 @@ import { promisify } from 'util';
 const stat = promisify(fs.stat);
 const unlink = promisify(fs.unlink);
 
-const getOptions :any[] = [
+const getOptions: any[] = [
   { label: 'Si', value: 'S' },
   { label: 'No', value: 'N' },
   { label: 'Indeterminado', value: '' }
@@ -136,17 +136,6 @@ const columnasGrilla: any[] = [
     sortable: true
   },
   {
-    name: "Se Paga",
-    type: "strng",
-    id: "PersonalLicenciaSePaga",
-    field: "PersonalLicenciaSePaga",
-    fieldName: "lic.PersonalLicenciaSePaga",
-    searchComponent: "inpurForSePaga",
-    hidden: true,
-    searchHidden: false,
-    sortable: true
-  },
-  {
     name: "Tipo Inasistencia",
     type: "strng",
     id: "TipoInasistenciaDescripcion",
@@ -219,12 +208,18 @@ const columnasGrilla: any[] = [
   },
   {
     name: "Se Paga",
-    type: "string",
     id: "PersonalLicenciaSePaga",
     field: "PersonalLicenciaSePaga",
-    fieldName: "PersonalLicenciaSePaga",
-    searchHidden: true,
+    fieldName: "lic.PersonalLicenciaSePaga",
+    formatter: 'collectionFormatter',
+    exportWithFormatter: true,
+    params: { collection: getOptions, },
+    dataKey: 'code',
+    labelKey: 'name',
+    type: 'string',    
+    searchComponent: "inpurForSePaga",
     hidden: false,
+    searchHidden: false,
     sortable: true
   },
   {
@@ -498,30 +493,30 @@ export class CargaLicenciaController extends BaseController {
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
-  
-      if (req.body.PersonalLicenciaDesde == "") 
-          throw new ClientException(`Debe seleccionar la fecha desde`)
+
+      if (req.body.PersonalLicenciaDesde == "")
+        throw new ClientException(`Debe seleccionar la fecha desde`)
 
 
-    let PersonalLicenciaHasta
+      let PersonalLicenciaHasta
 
-    if(req.body.PersonalLicenciaHasta != null ){
-      PersonalLicenciaHasta = new Date(req.body.PersonalLicenciaHasta)
-      PersonalLicenciaHasta.setHours(0, 0, 0, 0) 
-    } else{
-      PersonalLicenciaHasta = null
-    } 
-
-    const PersonalLicenciaDesde = new Date(req.body.PersonalLicenciaDesde)
-    PersonalLicenciaDesde.setHours(0,0,0,0)
-
-    //if (isNaN(PersonalLicenciaHasta.getTime()))
-      //PersonalLicenciaHasta = null
-    if(PersonalLicenciaHasta != null ){
-      if(PersonalLicenciaHasta > PersonalLicenciaDesde){
-        throw new ClientException(`La fecha Hasta no puede ser mayor a la fecha desde`)
+      if (req.body.PersonalLicenciaHasta != null) {
+        PersonalLicenciaHasta = new Date(req.body.PersonalLicenciaHasta)
+        PersonalLicenciaHasta.setHours(0, 0, 0, 0)
+      } else {
+        PersonalLicenciaHasta = null
       }
-    }
+
+      const PersonalLicenciaDesde = new Date(req.body.PersonalLicenciaDesde)
+      PersonalLicenciaDesde.setHours(0, 0, 0, 0)
+
+      //if (isNaN(PersonalLicenciaHasta.getTime()))
+      //PersonalLicenciaHasta = null
+      if (PersonalLicenciaHasta != null) {
+        if (PersonalLicenciaHasta > PersonalLicenciaDesde) {
+          throw new ClientException(`La fecha Hasta no puede ser mayor a la fecha desde`)
+        }
+      }
 
       if (PersonalLicenciaSePaga == "S") {
         if (!PersonalLicenciaCategoriaPersonalId)
@@ -539,7 +534,7 @@ export class CargaLicenciaController extends BaseController {
         PersonalLicenciaSePaga = null
 
 
-      let dateValid = await this.validateDates(PersonalLicenciaDesde,PersonalId,PersonalLicenciaId)
+      let dateValid = await this.validateDates(PersonalLicenciaDesde, PersonalId, PersonalLicenciaId)
       if (dateValid.length > 0) {
         throw new ClientException('ya existe un licencia para en el rango seleccionado. ');
       }
@@ -551,47 +546,47 @@ export class CargaLicenciaController extends BaseController {
         ORDER BY PersonalSituacionRevistaDesde DESC, PersonalSituacionRevistaHasta DESC
     `, [PersonalId])
 
-      const { PersonalSituacionRevistaId,PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaHasta,PersonalSituacionRevistaDesde } =sitrev[0]
-      
-      
+      const { PersonalSituacionRevistaId, PersonalSituacionRevistaSituacionId, PersonalSituacionRevistaMotivo, PersonalSituacionRevistaHasta, PersonalSituacionRevistaDesde } = sitrev[0]
+
+
       // if (PersonalLicenciaDesde <= PersonalSituacionRevistaDesde) {
       //   throw new ClientException('Error: ya posee una licencia en la fecha de inicio seleccionada');
       // }
-    
+
       // if (PersonalSituacionRevistaHasta !== null && PersonalLicenciaDesde <= PersonalSituacionRevistaHasta) {
       //   throw new ClientException('Error: ya posee una licencia en la fecha hasta seleccionada');
       // }
 
       let PersonalLicenciaSelect = await queryRunner.query(` SELECT PersonalLicenciaUltNro,PersonalSituacionRevistaUltNro from Personal WHERE PersonalId = @0`, [PersonalId,])
-      let { PersonalLicenciaUltNro,PersonalSituacionRevistaUltNro } = PersonalLicenciaSelect[0]
+      let { PersonalLicenciaUltNro, PersonalSituacionRevistaUltNro } = PersonalLicenciaSelect[0]
       PersonalLicenciaUltNro += 1
       PersonalSituacionRevistaUltNro += 1
 
       let DiagnosticoUpdate
 
-      if(PersonalLicenciaDiagnosticoMedicoDiagnostico.trim() == "" ){
-         DiagnosticoUpdate = null
-      }else{
-        const ResultDiagnostico = await queryRunner.query(`SELECT PersonalLicenciaDiagnosticoMedicoId FROM PersonalLicenciaDiagnosticoMedico WHERE PersonalId = @0 AND PersonalLicenciaId = @1  `, 
-          [PersonalId,PersonalLicenciaUltNro])
-          if(ResultDiagnostico.length > 0){
-            let {PersonalLicenciaDiagnosticoMedicoId} = ResultDiagnostico[0]
-            DiagnosticoUpdate = PersonalLicenciaDiagnosticoMedicoId + 1
-          }else{
-            DiagnosticoUpdate = 1
-          }
+      if (PersonalLicenciaDiagnosticoMedicoDiagnostico.trim() == "") {
+        DiagnosticoUpdate = null
+      } else {
+        const ResultDiagnostico = await queryRunner.query(`SELECT PersonalLicenciaDiagnosticoMedicoId FROM PersonalLicenciaDiagnosticoMedico WHERE PersonalId = @0 AND PersonalLicenciaId = @1  `,
+          [PersonalId, PersonalLicenciaUltNro])
+        if (ResultDiagnostico.length > 0) {
+          let { PersonalLicenciaDiagnosticoMedicoId } = ResultDiagnostico[0]
+          DiagnosticoUpdate = PersonalLicenciaDiagnosticoMedicoId + 1
+        } else {
+          DiagnosticoUpdate = 1
+        }
       }
 
       //optiene el tipo de inasistencia
       const tipoIns = await queryRunner.query(`SELECT TipoInasistenciaDescripcion FROM TipoInasistencia WHERE TipoInasistenciaId = @0`
-        ,[TipoInasistenciaId])
-      const {TipoInasistenciaDescripcion} = tipoIns[0]
+        , [TipoInasistenciaId])
+      const { TipoInasistenciaDescripcion } = tipoIns[0]
 
 
       if (PersonalLicenciaId) {  //UPDATE
 
 
-        if(PersonalIdForEdit != PersonalId)
+        if (PersonalIdForEdit != PersonalId)
           throw new ClientException(`No puede modificar la persona`)
 
         let valueAplicaPeriodo = await queryRunner.query(`select * from PersonalLicenciaAplicaPeriodo WHERE PersonalId = @0 AND PersonalLicenciaId = @1`,
@@ -601,7 +596,7 @@ export class CargaLicenciaController extends BaseController {
         if (valueAplicaPeriodo.length > 0 && PersonalLicenciaSePaga == "N")
           throw new ClientException(`No se puede actualizar el registro a se paga NO ya que tiene horas cargadas`)
 
-        await this.UpdateDiagnosticoMedico(PersonalLicenciaDiagnosticoMedicoDiagnostico, PersonalId, PersonalLicenciaId, DiagnosticoUpdate,PersonalLicenciaDesde,queryRunner)
+        await this.UpdateDiagnosticoMedico(PersonalLicenciaDiagnosticoMedicoDiagnostico, PersonalId, PersonalLicenciaId, DiagnosticoUpdate, PersonalLicenciaDesde, queryRunner)
 
         await queryRunner.query(`UPDATE PersonalLicencia
           SET PersonalLicenciaDesde = @0, PersonalLicenciaHasta = @1, PersonalLicenciaTermina = @1, 
@@ -609,7 +604,7 @@ export class CargaLicenciaController extends BaseController {
               PersonalLicenciaObservacion = @5, PersonalLicenciaTipoAsociadoId = @6,PersonalLicenciaCategoriaPersonalId = @7
           WHERE PersonalId = @8 AND PersonalLicenciaId = @9`
           , [PersonalLicenciaDesde, PersonalLicenciaHasta, TipoInasistenciaId, PersonalLicenciaSePaga, PersonalLicenciaHorasMensuales,
-            PersonalLicenciaObservacion, PersonalLicenciaCategoriaPersonalId, PersonalLicenciaTipoAsociadoId, PersonalId, PersonalLicenciaId,DiagnosticoUpdate])
+            PersonalLicenciaObservacion, PersonalLicenciaCategoriaPersonalId, PersonalLicenciaTipoAsociadoId, PersonalId, PersonalLicenciaId, DiagnosticoUpdate])
 
         // Busca el ultimo registro q sea 10 enPersonalSituacionRevistaId para actualizar las fechas    
         const sitrevUpdate = await queryRunner.query(`
@@ -618,27 +613,27 @@ export class CargaLicenciaController extends BaseController {
               WHERE PersonalId = @0 AND PersonalSituacionRevistaSituacionId = 10
               ORDER BY PersonalSituacionRevistaDesde DESC, PersonalSituacionRevistaHasta DESC
           `, [PersonalId])
-      
-        let  PersonalSituacionRevistaIdSearch = sitrevUpdate[0].PersonalSituacionRevistaId
+
+        let PersonalSituacionRevistaIdSearch = sitrevUpdate[0].PersonalSituacionRevistaId
 
         await queryRunner.query(`UPDATE PersonalSituacionRevista
         SET PersonalSituacionRevistaDesde = @1, PersonalSituacionRevistaHasta = @3, PersonalSituacionRevistaMotivo = @4
-        WHERE PersonalId = @0 AND PersonalSituacionRevistaId= @2`,[PersonalId,PersonalLicenciaDesde,PersonalSituacionRevistaIdSearch,PersonalLicenciaHasta,TipoInasistenciaDescripcion])
-        
-       if(PersonalSituacionRevistaId > PersonalSituacionRevistaIdSearch ){
-        if (PersonalLicenciaHasta != null){
-          //update 0
-          await this.CreateSituacionRevista(0,queryRunner,PersonalId,PersonalLicenciaDesde,PersonalLicenciaHasta,PersonalSituacionRevistaId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId)
+        WHERE PersonalId = @0 AND PersonalSituacionRevistaId= @2`, [PersonalId, PersonalLicenciaDesde, PersonalSituacionRevistaIdSearch, PersonalLicenciaHasta, TipoInasistenciaDescripcion])
 
-        }else {
-          // delete 1
-          await this.CreateSituacionRevista(1,queryRunner,PersonalId,PersonalLicenciaDesde,PersonalLicenciaHasta,PersonalSituacionRevistaId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId)
-        }
+        if (PersonalSituacionRevistaId > PersonalSituacionRevistaIdSearch) {
+          if (PersonalLicenciaHasta != null) {
+            //update 0
+            await this.CreateSituacionRevista(0, queryRunner, PersonalId, PersonalLicenciaDesde, PersonalLicenciaHasta, PersonalSituacionRevistaId, PersonalSituacionRevistaMotivo, PersonalSituacionRevistaSituacionId)
 
-        }else{
+          } else {
+            // delete 1
+            await this.CreateSituacionRevista(1, queryRunner, PersonalId, PersonalLicenciaDesde, PersonalLicenciaHasta, PersonalSituacionRevistaId, PersonalSituacionRevistaMotivo, PersonalSituacionRevistaSituacionId)
+          }
+
+        } else {
           //create 2
-          if(PersonalLicenciaHasta != null )
-            await this.CreateSituacionRevista(2,queryRunner,PersonalId,PersonalLicenciaDesde,PersonalLicenciaHasta,PersonalSituacionRevistaUltNro,TipoInasistenciaDescripcion,PersonalSituacionRevistaSituacionId)
+          if (PersonalLicenciaHasta != null)
+            await this.CreateSituacionRevista(2, queryRunner, PersonalId, PersonalLicenciaDesde, PersonalLicenciaHasta, PersonalSituacionRevistaUltNro, TipoInasistenciaDescripcion, PersonalSituacionRevistaSituacionId)
         }
 
       } else {  //INSERT
@@ -646,9 +641,9 @@ export class CargaLicenciaController extends BaseController {
         let DiagnosticoUpdate
 
 
-       
 
-        await queryRunner.query(` UPDATE Personal SET PersonalLicenciaUltNro = @1,PersonalSituacionRevistaUltNro = @2 where PersonalId = @0 `, [PersonalId, PersonalLicenciaUltNro,PersonalSituacionRevistaUltNro])
+
+        await queryRunner.query(` UPDATE Personal SET PersonalLicenciaUltNro = @1,PersonalSituacionRevistaUltNro = @2 where PersonalId = @0 `, [PersonalId, PersonalLicenciaUltNro, PersonalSituacionRevistaUltNro])
 
         await queryRunner.query(`INSERT INTO PersonalLicencia (
           PersonalId, 
@@ -696,7 +691,7 @@ export class CargaLicenciaController extends BaseController {
             TipoInasistenciaId,
 
             PersonalLicenciaSePaga,
-            `${Math.trunc(PersonalLicenciaHorasMensuales)}.${(60*(PersonalLicenciaHorasMensuales-Math.trunc(PersonalLicenciaHorasMensuales))).toString().padStart(2,'0')}`,
+            `${Math.trunc(PersonalLicenciaHorasMensuales)}.${(60 * (PersonalLicenciaHorasMensuales - Math.trunc(PersonalLicenciaHorasMensuales))).toString().padStart(2, '0')}`,
             PersonalLicenciaCategoriaPersonalId,
             PersonalLicenciaTipoAsociadoId,
             null,
@@ -704,40 +699,40 @@ export class CargaLicenciaController extends BaseController {
             PersonalSituacionRevistaSituacionId])
 
 
-            // await queryRunner.query(`INSERT INTO PersonalSituacionRevista (
-            //   PersonalId,
-            //   PersonalSituacionRevistaId,
-            //   PersonalSituacionRevistaDesde,
-            //   PersonalSituacionRevistaTomoConocimiento, 
-            //   PersonalSituacionRevistaHasta,
-            //   PersonalSituacionRevistaMotivo,
-            //   PersonalSituacionRevistaAnula,
-            //   PersonalSituacionRevistaSituacionId,
-            //   PersonalSituacionRevistaSituacionClasificacionId,
-            //   PersonalSituacionRevistaRetenerLiquidacion) 
-            //   VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, 
-            //   [PersonalId,
-            //    PersonalSituacionRevistaUltNro,
-            //    PersonalLicenciaDesde,
-            //    null,
-            //    PersonalLicenciaHasta,
-            //    'LICENCIA',
-            //    null,
-            //    10,
-            //    null,
-            //    null
-            //   ])
-        
-        await this.UpdateDiagnosticoMedico(PersonalLicenciaDiagnosticoMedicoDiagnostico, PersonalId, PersonalLicenciaId, DiagnosticoUpdate,PersonalLicenciaDesde,queryRunner)
+        // await queryRunner.query(`INSERT INTO PersonalSituacionRevista (
+        //   PersonalId,
+        //   PersonalSituacionRevistaId,
+        //   PersonalSituacionRevistaDesde,
+        //   PersonalSituacionRevistaTomoConocimiento, 
+        //   PersonalSituacionRevistaHasta,
+        //   PersonalSituacionRevistaMotivo,
+        //   PersonalSituacionRevistaAnula,
+        //   PersonalSituacionRevistaSituacionId,
+        //   PersonalSituacionRevistaSituacionClasificacionId,
+        //   PersonalSituacionRevistaRetenerLiquidacion) 
+        //   VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, 
+        //   [PersonalId,
+        //    PersonalSituacionRevistaUltNro,
+        //    PersonalLicenciaDesde,
+        //    null,
+        //    PersonalLicenciaHasta,
+        //    'LICENCIA',
+        //    null,
+        //    10,
+        //    null,
+        //    null
+        //   ])
 
-      
-        if (PersonalLicenciaHasta != null) 
-          await this.CreateSituacionRevista(2,queryRunner,PersonalId,PersonalLicenciaDesde,PersonalLicenciaHasta,PersonalSituacionRevistaUltNro,TipoInasistenciaDescripcion,PersonalSituacionRevistaSituacionId)
-      
+        await this.UpdateDiagnosticoMedico(PersonalLicenciaDiagnosticoMedicoDiagnostico, PersonalId, PersonalLicenciaId, DiagnosticoUpdate, PersonalLicenciaDesde, queryRunner)
+
+
+        if (PersonalLicenciaHasta != null)
+          await this.CreateSituacionRevista(2, queryRunner, PersonalId, PersonalLicenciaDesde, PersonalLicenciaHasta, PersonalSituacionRevistaUltNro, TipoInasistenciaDescripcion, PersonalSituacionRevistaSituacionId)
+
 
       }
       //Actuliza la fecha del registro anterior
-      await this.UpdateHastaSitucionRevistaAnterior(PersonalId,PersonalLicenciaDesde,queryRunner)
+      await this.UpdateHastaSitucionRevistaAnterior(PersonalId, PersonalLicenciaDesde, queryRunner)
       await this.handlePDFUpload(anioRequest, mesRequest, PersonalId, PersonalLicenciaId, res, req, Archivos, next)
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
@@ -755,40 +750,40 @@ export class CargaLicenciaController extends BaseController {
     return date;
   }
 
-  async CreateSituacionRevista(value:number,queryRunner:QueryRunner,
-    PersonalId:any,
-    PersonalLicenciaDesde:Date,
-    PersonalLicenciaHasta:Date,
+  async CreateSituacionRevista(value: number, queryRunner: QueryRunner,
+    PersonalId: any,
+    PersonalLicenciaDesde: Date,
+    PersonalLicenciaHasta: Date,
     PersonalSituacionRevistaUltNro: any,
-    PersonalSituacionRevistaMotivo:any,
-    PersonalSituacionRevistaSituacionId:any
-    
-  ){
+    PersonalSituacionRevistaMotivo: any,
+    PersonalSituacionRevistaSituacionId: any
+
+  ) {
 
     switch (value) {
       case 0:
-          //update
-          PersonalLicenciaHasta.setDate(PersonalLicenciaHasta.getDate() + 1);
-          const date = new Date(PersonalLicenciaHasta);
-          await queryRunner.query(`
+        //update
+        PersonalLicenciaHasta.setDate(PersonalLicenciaHasta.getDate() + 1);
+        const date = new Date(PersonalLicenciaHasta);
+        await queryRunner.query(`
           UPDATE PersonalSituacionRevista
           SET PersonalSituacionRevistaDesde = @2
-          WHERE PersonalId = @0 AND PersonalSituacionRevistaId = @1`, 
-            [PersonalId,
-             PersonalSituacionRevistaUltNro,
-             date
-            ])
-          break;
+          WHERE PersonalId = @0 AND PersonalSituacionRevistaId = @1`,
+          [PersonalId,
+            PersonalSituacionRevistaUltNro,
+            date
+          ])
+        break;
       case 1:
-          // Delete
-          await queryRunner.query(`DELETE FROM PersonalSituacionRevista WHERE PersonalId = @0 AND PersonalSituacionRevistaId = @1`, 
-              [PersonalId,PersonalSituacionRevistaUltNro])
-          break;
+        // Delete
+        await queryRunner.query(`DELETE FROM PersonalSituacionRevista WHERE PersonalId = @0 AND PersonalSituacionRevistaId = @1`,
+          [PersonalId, PersonalSituacionRevistaUltNro])
+        break;
       case 2:
-          // Create
-          PersonalLicenciaHasta.setDate(PersonalLicenciaHasta.getDate() + 1);
-          const dateH = new Date(PersonalLicenciaHasta);
-          await queryRunner.query(`INSERT INTO PersonalSituacionRevista (
+        // Create
+        PersonalLicenciaHasta.setDate(PersonalLicenciaHasta.getDate() + 1);
+        const dateH = new Date(PersonalLicenciaHasta);
+        await queryRunner.query(`INSERT INTO PersonalSituacionRevista (
             PersonalId,
             PersonalSituacionRevistaId,
             PersonalSituacionRevistaDesde,
@@ -799,47 +794,47 @@ export class CargaLicenciaController extends BaseController {
             PersonalSituacionRevistaSituacionId,
             PersonalSituacionRevistaSituacionClasificacionId,
             PersonalSituacionRevistaRetenerLiquidacion) 
-            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, 
-            [PersonalId,
-             PersonalSituacionRevistaUltNro + 1,
-             dateH,
-             null,
-             null,
-             PersonalSituacionRevistaMotivo,
-             null,
-             PersonalSituacionRevistaSituacionId,
-             null,
-             null
-            ])
-          break;
+            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`,
+          [PersonalId,
+            PersonalSituacionRevistaUltNro + 1,
+            dateH,
+            null,
+            null,
+            PersonalSituacionRevistaMotivo,
+            null,
+            PersonalSituacionRevistaSituacionId,
+            null,
+            null
+          ])
+        break;
     }
   }
 
-  async UpdateHastaSitucionRevistaAnterior(PersonalId:any,PersonalLicenciaDesde:any,queryRunner:QueryRunner){
+  async UpdateHastaSitucionRevistaAnterior(PersonalId: any, PersonalLicenciaDesde: any, queryRunner: QueryRunner) {
 
     let date
 
-    if(PersonalLicenciaDesde != null ){
+    if (PersonalLicenciaDesde != null) {
       PersonalLicenciaDesde.setDate(PersonalLicenciaDesde.getDate() - 1);
-       date = new Date(PersonalLicenciaDesde);
-    }else{
+      date = new Date(PersonalLicenciaDesde);
+    } else {
       date = null
     }
 
     const result = queryRunner.query(`SELECT TOP 2 PersonalSituacionRevistaId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaDesde,PersonalSituacionRevistaHasta
       FROM PersonalSituacionRevista
       WHERE PersonalId = @0 AND PersonalSituacionRevistaSituacionId <> 10
-      ORDER BY PersonalSituacionRevistaDesde ASC`,[PersonalId])
+      ORDER BY PersonalSituacionRevistaDesde ASC`, [PersonalId])
 
     const { PersonalSituacionRevistaId } = result[0]
 
     await queryRunner.query(`UPDATE PersonalSituacionRevista
         SET PersonalSituacionRevistaHasta = @2
-        WHERE PersonalId = @0 AND PersonalSituacionRevistaId = @1`, 
-        [PersonalId,
+        WHERE PersonalId = @0 AND PersonalSituacionRevistaId = @1`,
+      [PersonalId,
         PersonalSituacionRevistaId,
         date])
-   
+
   }
 
   async deleteLincencia(req: Request, res: Response, next: NextFunction) {
@@ -854,15 +849,15 @@ export class CargaLicenciaController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-        await queryRunner.query(` DELETE FROM PersonalLicencia WHERE PersonalId = @0 and PersonalLicenciaId =@1`
-          , [PersonalId, PersonalLicenciaId])
+      await queryRunner.query(` DELETE FROM PersonalLicencia WHERE PersonalId = @0 and PersonalLicenciaId =@1`
+        , [PersonalId, PersonalLicenciaId])
 
-        await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE Persona_id = @0 AND doctipo_id = 'LIC' AND den_documento = @1`
-          , [PersonalId, PersonalLicenciaId])
+      await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE Persona_id = @0 AND doctipo_id = 'LIC' AND den_documento = @1`
+        , [PersonalId, PersonalLicenciaId])
 
-        
-      this.UpdateHastaSitucionRevistaAnterior(PersonalId,null,queryRunner)
- 
+
+      this.UpdateHastaSitucionRevistaAnterior(PersonalId, null, queryRunner)
+
       this.jsonRes({ list: [] }, res, `Licencia borrada con exito`);
       await queryRunner.commitTransaction();
 
@@ -881,15 +876,15 @@ export class CargaLicenciaController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
 
     try {
-     
-      let result = await this.getLicenciaQuery(queryRunner,anio, mes, PersonalId, PersonalLicenciaId)
+
+      let result = await this.getLicenciaQuery(queryRunner, anio, mes, PersonalId, PersonalLicenciaId)
       this.jsonRes(result[0], res);
     } catch (error) {
       return next(error)
     }
   }
 
-  async getLicenciaQuery(queryRunner:QueryRunner,anio:any, mes:any, PersonalId:any, PersonalLicenciaId:any){
+  async getLicenciaQuery(queryRunner: QueryRunner, anio: any, mes: any, PersonalId: any, PersonalLicenciaId: any) {
     let selectquery = `SELECT suc.SucursalId, suc.SucursalDescripcion,
     persona.PersonalId,lic.PersonalLicenciaId, persona.PersonalApellido, persona.PersonalNombre, 
 
@@ -923,59 +918,59 @@ export class CargaLicenciaController extends BaseController {
     LEFT JOIN PersonalLicenciaDiagnosticoMedico med ON med.PersonalId=persona.PersonalId AND med.PersonalLicenciaId = lic.PersonalLicenciaId
     WHERE lic.PersonalId=@3 AND lic.PersonalLicenciaId=@4 `
 
-    const result = await queryRunner.query(selectquery, [null,anio, mes, PersonalId, PersonalLicenciaId])
+    const result = await queryRunner.query(selectquery, [null, anio, mes, PersonalId, PersonalLicenciaId])
     return result
   }
 
   async UpdateDiagnosticoMedico(
-    PersonalLicenciaDiagnosticoMedicoDiagnostico:any, 
-    PersonalId:any, 
-    PersonalLicenciaId:any,
-    DiagnosticoUpdate:any,
-    PersonalLicenciaDesde:Date,
-    queryRunner:QueryRunner
+    PersonalLicenciaDiagnosticoMedicoDiagnostico: any,
+    PersonalId: any,
+    PersonalLicenciaId: any,
+    DiagnosticoUpdate: any,
+    PersonalLicenciaDesde: Date,
+    queryRunner: QueryRunner
   ) {
 
-      //valida si existe diagnostico medico
-      if(PersonalLicenciaDiagnosticoMedicoDiagnostico.trim() == ""){
+    //valida si existe diagnostico medico
+    if (PersonalLicenciaDiagnosticoMedicoDiagnostico.trim() == "") {
 
-            //borra el registro con el mayor numero en PersonalLicenciaDiagnosticoMedicoId
-            await queryRunner.query(`DELETE FROM PersonalLicenciaDiagnosticoMedico
+      //borra el registro con el mayor numero en PersonalLicenciaDiagnosticoMedicoId
+      await queryRunner.query(`DELETE FROM PersonalLicenciaDiagnosticoMedico
             WHERE PersonalLicenciaDiagnosticoMedicoId = (
                 SELECT TOP 1 PersonalLicenciaDiagnosticoMedicoId
                 FROM PersonalLicenciaDiagnosticoMedico
                 WHERE personalId = @0 AND PersonalLicenciaId = @1
                 ORDER BY PersonalLicenciaDiagnosticoMedicoId DESC
-            ) AND personalId = @0 AND PersonalLicenciaId = @1`,[ PersonalId, PersonalLicenciaId])
-        
-      }else{
+            ) AND personalId = @0 AND PersonalLicenciaId = @1`, [PersonalId, PersonalLicenciaId])
 
-        let result = await queryRunner.query(`SELECT * FROM
+    } else {
+
+      let result = await queryRunner.query(`SELECT * FROM
           PersonalLicenciaDiagnosticoMedico 
-          WHERE personalId = @0 AND PersonalLicenciaId = @1`,[ PersonalId, PersonalLicenciaId])
+          WHERE personalId = @0 AND PersonalLicenciaId = @1`, [PersonalId, PersonalLicenciaId])
 
-          if(result.length > 0){
+      if (result.length > 0) {
 
-            await queryRunner.query(`UPDATE PersonalLicenciaDiagnosticoMedico
+        await queryRunner.query(`UPDATE PersonalLicenciaDiagnosticoMedico
               SET PersonalLicenciaDiagnosticoMedicoDiagnostico = @0
               WHERE PersonalLicenciaDiagnosticoMedicoId = (
                   SELECT MAX(PersonalLicenciaDiagnosticoMedicoId)
                   FROM PersonalLicenciaDiagnosticoMedico
                   WHERE PersonalId = @1 AND PersonalLicenciaId = @2) AND PersonalId = @1 AND PersonalLicenciaId = @2`
-                , [PersonalLicenciaDiagnosticoMedicoDiagnostico.trim(), PersonalId, PersonalLicenciaId])
+          , [PersonalLicenciaDiagnosticoMedicoDiagnostico.trim(), PersonalId, PersonalLicenciaId])
 
-          }else{
-            await queryRunner.query(`INSERT INTO PersonalLicenciaDiagnosticoMedico 
+      } else {
+        await queryRunner.query(`INSERT INTO PersonalLicenciaDiagnosticoMedico 
               (PersonalLicenciaDiagnosticoMedicoId, 
                PersonalId, 
                PersonalLicenciaId,
                PersonalLicenciaDiagnosticoMedicoFechaDiagnostico,
                PersonalLicenciaDiagnosticoMedicoDiagnostico )
                 VALUES (@0,@1,@2,@3,@4)`
-                , [DiagnosticoUpdate,PersonalId, PersonalLicenciaId,PersonalLicenciaDesde,PersonalLicenciaDiagnosticoMedicoDiagnostico.trim()])
-          }
-       
+          , [DiagnosticoUpdate, PersonalId, PersonalLicenciaId, PersonalLicenciaDesde, PersonalLicenciaDiagnosticoMedicoDiagnostico.trim()])
       }
+
+    }
 
   }
 
@@ -1155,7 +1150,7 @@ export class CargaLicenciaController extends BaseController {
       const anio = req.body.anio
       const mes = req.body.mes
 
-      let det:any = {}
+      let det: any = {}
       await queryRunner.query(`DELETE FROM  PersonalLicenciaAplicaPeriodo
         WHERE PersonalId = @0  AND PersonalLicenciaId = @1`,
         [PersonalId, PersonalLicenciaId]);
@@ -1188,12 +1183,12 @@ export class CargaLicenciaController extends BaseController {
           , [personalLicenciaIncrement,
             PersonalId,
             PersonalLicenciaId,
-            `${Math.trunc(horas)}.${(60*(horas-Math.trunc(horas))).toString().padStart(2,'0')}`,
-            `${mes.toString().padStart(2,' ')}/${anio}`,
+            `${Math.trunc(horas)}.${(60 * (horas - Math.trunc(horas))).toString().padStart(2, '0')}`,
+            `${mes.toString().padStart(2, ' ')}/${anio}`,
             PersonalSucursal[0].PersonalSucursalPrincipalSucursalId
           ])
 
-        det = await this.getLicenciaQuery(queryRunner,anio, mes, PersonalId, PersonalLicenciaId)
+        det = await this.getLicenciaQuery(queryRunner, anio, mes, PersonalId, PersonalLicenciaId)
       }
       await queryRunner.commitTransaction();
 
@@ -1230,13 +1225,13 @@ export class CargaLicenciaController extends BaseController {
     }
   }
 
-  async validateDates (Fechadesde: Date, personalId: any,PersonalLicenciaId :any) {
-      return  await dataSource.query(
-        `SELECT * FROM PersonalLicencia lic WHERE 
+  async validateDates(Fechadesde: Date, personalId: any, PersonalLicenciaId: any) {
+    return await dataSource.query(
+      `SELECT * FROM PersonalLicencia lic WHERE 
         lic.PersonalId = @0 AND lic.PersonalLicenciaId <> @2 AND
         @1 >= lic.PersonalLicenciaDesde AND @1 < ISNULL(lic.PersonalLicenciaHasta,ISNULL(lic.PersonalLicenciaTermina , '9999-12-31')) 
         ` ,
-        [personalId, Fechadesde,PersonalLicenciaId]
-      );
+      [personalId, Fechadesde, PersonalLicenciaId]
+    );
   }
 }

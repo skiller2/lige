@@ -332,12 +332,8 @@ export class AsistenciaController extends BaseController {
   CONCAT(persona.PersonalApellido, ' ', persona.PersonalNombre) AS NombreCompleto,
   PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60 AS PersonalLicenciaAplicaPeriodoHorasMensuales,
   val.ValorLiquidacionHoraNormal,
-  (PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60) * val.ValorLiquidacionHoraNormal AS total,  
- CASE 
-        WHEN lic.PersonalLicenciaSePaga = 'S' THEN 'SI'
-        WHEN lic.PersonalLicenciaSePaga = 'N' THEN 'No'
-        ELSE 'Indeterminado'
-    END AS PersonalLicenciaSePaga,
+  (PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60) * val.ValorLiquidacionHoraNormal AS total,
+  lic.PersonalLicenciaSePaga,  
   tli.TipoInasistenciaId,
   tli.TipoInasistenciaDescripcion,
   tli.TipoInasistenciaApartado,

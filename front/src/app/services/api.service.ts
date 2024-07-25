@@ -6,7 +6,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { error } from 'pdf-lib';
 import { DownloadService } from './download.service';
 import { formatNumber } from '@angular/common';
-import { ExternalResource, Formatters } from '@slickgrid-universal/common';
+import { collectionFormatter, ExternalResource, FieldType, Formatters } from '@slickgrid-universal/common';
 import { AngularUtilService, Column, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { HttpContext } from '@angular/common/http';
@@ -294,11 +294,16 @@ export class ApiService {
     return this.http.get<any>(url).pipe(
       map((res: any) => {
         const mapped = res.data.map((col: Column) => {
-          if(col.formatter)
+          if(String(col.formatter)=='collectionFormatter')
+            col.formatter = collectionFormatter
+
+            if (String(col.formatter) == 'complexObject')
             col.formatter= Formatters.complexObject
 
           if (col.type == 'date')
             col.formatter = Formatters.dateEuro
+
+
 
 
           if (String(col.type) == 'currency' || String(col.type) == 'money') {
@@ -314,7 +319,8 @@ export class ApiService {
             col.cssClass = 'text-right'
           }
 
-  
+          if (col.type == 'object')
+            col.type = FieldType.object
 
           return col
         });
