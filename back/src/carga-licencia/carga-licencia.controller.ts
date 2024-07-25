@@ -214,8 +214,6 @@ const columnasGrilla: any[] = [
     formatter: 'collectionFormatter',
     exportWithFormatter: true,
     params: { collection: getOptions, },
-    dataKey: 'code',
-    labelKey: 'name',
     type: 'string',    
     searchComponent: "inpurForSePaga",
     hidden: false,
