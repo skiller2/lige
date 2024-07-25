@@ -44,6 +44,7 @@ export class LicenciaDrawerComponent {
   SucursalId = 0
   //selectedOption: string = "Indeterminado";
   options: any[] = [];
+  fileUploaded = false;
  
 
   
@@ -63,15 +64,18 @@ export class LicenciaDrawerComponent {
   visible = model<boolean>(false)
   
   uploading$ = new BehaviorSubject({loading:false,event:null});
+  uploadFileModel = viewChild.required(NgForm);
   constructor(
     private searchService: SearchService
   ) { }
 
   async ngOnInit(): Promise<void> {
+    this.ArchivosLicenciasAdd = []
     this.options = await firstValueFrom(this.apiService.getOptions())
   }
 
   cambios = computed(async () => {
+    console.log("voy")
     const visible = this.visible()
     this.ngForm().form.reset()
     if (visible) {
@@ -118,8 +122,9 @@ export class LicenciaDrawerComponent {
       this.ngForm().form.markAsPristine()
   
       this.ArchivosLicenciasAdd = []
+      this.fileUploaded = false
       this.RefreshLicencia.set(true)
-
+      this.formChange$.next("")
     } catch (error) {
 
     }
@@ -154,7 +159,8 @@ export class LicenciaDrawerComponent {
         this.ArchivosLicenciasAdd = [ ...this.ArchivosLicenciasAdd, Response.data[0] ]
         console.log(this.ArchivosLicenciasAdd)
         this.uploading$.next({ loading: false, event })
-        this.apiService.response(Response)  
+        this.apiService.response(Response) 
+        this.fileUploaded = true;
         break
       default:
         break;
