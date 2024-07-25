@@ -15,6 +15,7 @@ import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.comp
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { CustodiaFormComponent } from "../custodias-form/custodias-form.component";
 import { SettingsService } from '@delon/theme';
+import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 
 @Component({
     selector: 'app-custodias',
@@ -62,13 +63,13 @@ export class CustodiaComponent {
       )
 
     async ngOnInit(){
-        const user: any = this.settingService.getUser()
-        console.log('user.GrupoActividad',user)
-        if (user.PersonalId && !user.GrupoActividad.find((elem:any) => {elem == "Administracion"}) && !user.GrupoActividad.find((elem:any) => {elem == "Liquidaciones"})) {
-            this.startFilters = [
-                { field:'responsable', condition: 'AND', operator: '=', value: user.PersonalId.toString(), forced:true},
-            ]
-        }
+        // const user: any = this.settingService.getUser()
+        // console.log('user.GrupoActividad',user)
+        // if (user.PersonalId && !user.GrupoActividad.find((elem:any) => {elem == "Administracion"}) && !user.GrupoActividad.find((elem:any) => {elem == "Liquidaciones"})) {
+        //     this.startFilters = [
+        //         { field:'responsable', condition: 'AND', operator: '=', value: user.PersonalId.toString(), forced:true},
+        //     ]
+        // }
         this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptions.enableRowDetailView = false
         this.gridOptions.editable = false
@@ -76,6 +77,8 @@ export class CustodiaComponent {
         this.gridOptions.enableAutoSizeColumns = true
         this.gridOptions.fullWidthRows = true
         this.gridOptions.enableExcelExport = false
+        this.gridOptions.showFooterRow = true
+        this.gridOptions.createFooterRow = true
     }
 
     ngAfterViewInit(): void {
@@ -83,7 +86,10 @@ export class CustodiaComponent {
 
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
-
+        this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+            totalRecords(this.angularGrid)
+            columnTotal('facturacion', this.angularGrid)
+        })
         if (this.apiService.isMobile())
             this.angularGrid.gridService.hideColumnByIds([])
     }
