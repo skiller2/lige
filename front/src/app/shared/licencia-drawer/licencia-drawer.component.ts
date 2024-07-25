@@ -43,7 +43,6 @@ export class LicenciaDrawerComponent {
   PersonalIdForEdit = 0
   SucursalId = 0
   //selectedOption: string = "Indeterminado";
-  selectedOption: string = "" 
   options: any[] = [];
  
 

@@ -18,7 +18,7 @@ const unlink = promisify(fs.unlink);
 const getOptions: any[] = [
   { label: 'Si', value: 'S' },
   { label: 'No', value: 'N' },
-  { label: 'Indeterminado', value: '' }
+  { label: 'Indeterminado', value: null }
 ]
 
 const columnasGrilla: any[] = [
@@ -534,7 +534,7 @@ export class CargaLicenciaController extends BaseController {
         PersonalLicenciaSePaga = null
 
 
-      let dateValid = await this.validateDates(PersonalLicenciaDesde, PersonalId, PersonalLicenciaId)
+      let dateValid = await this.validateDates(PersonalLicenciaDesde, PersonalId, PersonalLicenciaId, queryRunner)
       if (dateValid.length > 0) {
         throw new ClientException('ya existe un licencia para en el rango seleccionado. ');
       }
@@ -608,11 +608,14 @@ export class CargaLicenciaController extends BaseController {
 
         // Busca el ultimo registro q sea 10 enPersonalSituacionRevistaId para actualizar las fechas    
         const sitrevUpdate = await queryRunner.query(`
-              SELECT TOP 1 PersonalSituacionRevistaId
-              FROM PersonalSituacionRevista
-              WHERE PersonalId = @0 AND PersonalSituacionRevistaSituacionId = 10
-              ORDER BY PersonalSituacionRevistaDesde DESC, PersonalSituacionRevistaHasta DESC
-          `, [PersonalId])
+              SELECT sit.PersonalSituacionRevistaId, sit.PersonalSituacionRevistaDesde, sit.PersonalSituacionRevistaHasta, lic.PersonalLicenciaDesde, lic.PersonalLicenciaHasta
+              FROM PersonalSituacionRevista sit
+              JOIN PersonalLicencia lic ON lic.PersonalLicenciaDesde = sit.PersonalSituacionRevistaDesde AND sit.PersonalId = lic.PersonalId 
+              WHERE sit.PersonalId = @0 AND sit.PersonalSituacionRevistaSituacionId = 10 AND lic.PersonalLicenciaId = @1 
+          `, [PersonalId,PersonalLicenciaId])
+
+        if (sitrevUpdate.length != 1)
+          throw new ClientException(`No se puede localizar situación de revista relacionada a la licencia`)
 
         let PersonalSituacionRevistaIdSearch = sitrevUpdate[0].PersonalSituacionRevistaId
 
@@ -821,7 +824,7 @@ export class CargaLicenciaController extends BaseController {
       date = null
     }
 
-    const result = queryRunner.query(`SELECT TOP 2 PersonalSituacionRevistaId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaDesde,PersonalSituacionRevistaHasta
+    const result = await queryRunner.query(`SELECT TOP 2 PersonalSituacionRevistaId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaDesde,PersonalSituacionRevistaHasta
       FROM PersonalSituacionRevista
       WHERE PersonalId = @0 AND PersonalSituacionRevistaSituacionId <> 10
       ORDER BY PersonalSituacionRevistaDesde ASC`, [PersonalId])
@@ -1225,8 +1228,8 @@ export class CargaLicenciaController extends BaseController {
     }
   }
 
-  async validateDates(Fechadesde: Date, personalId: any, PersonalLicenciaId: any) {
-    return await dataSource.query(
+  async validateDates(Fechadesde: Date, personalId: any, PersonalLicenciaId: any,queryRunner:QueryRunner) {
+    return queryRunner.query(
       `SELECT * FROM PersonalLicencia lic WHERE 
         lic.PersonalId = @0 AND lic.PersonalLicenciaId <> @2 AND
         @1 >= lic.PersonalLicenciaDesde AND @1 < ISNULL(lic.PersonalLicenciaHasta,ISNULL(lic.PersonalLicenciaTermina , '9999-12-31')) 
