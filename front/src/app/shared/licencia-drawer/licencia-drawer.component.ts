@@ -44,7 +44,7 @@ export class LicenciaDrawerComponent {
   SucursalId = 0
   //selectedOption: string = "Indeterminado";
   options: any[] = [];
-  fileUploaded = false;
+  //fileUploaded = false;
  
 
   
@@ -122,7 +122,7 @@ export class LicenciaDrawerComponent {
       this.ngForm().form.markAsPristine()
   
       this.ArchivosLicenciasAdd = []
-      this.fileUploaded = false
+      //this.fileUploaded = false
       this.RefreshLicencia.set(true)
       this.formChange$.next("")
     } catch (error) {
@@ -160,7 +160,8 @@ export class LicenciaDrawerComponent {
         console.log(this.ArchivosLicenciasAdd)
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response) 
-        this.fileUploaded = true;
+        //this.fileUploaded = true;
+        this.ngForm().form.markAsDirty()
         break
       default:
         break;
