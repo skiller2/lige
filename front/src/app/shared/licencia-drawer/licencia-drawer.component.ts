@@ -36,7 +36,7 @@ export class LicenciaDrawerComponent {
   selectedPeriod = input.required<any>()
   ArchivosLicenciasAdd: any[] = [];
   tituloDrawer = input.required<string>()
-  openDrawerForConsult =  model<boolean>(false)
+  openDrawerForConsult =  input<boolean>(false)
   RefreshLicencia =  model<boolean>(false)
   private apiService = inject(ApiService)
   formChange$ = new BehaviorSubject('');
@@ -78,6 +78,13 @@ export class LicenciaDrawerComponent {
     console.log("voy")
     const visible = this.visible()
     this.ngForm().form.reset()
+
+    if (this.openDrawerForConsult()) {
+      this.ngForm().form.disable()
+    } else {
+      this.ngForm().form.enable()
+    }
+
     if (visible) {
       const per = this.selectedPeriod()
       if (this.PersonalLicenciaId() > 0) {

@@ -20,7 +20,7 @@
         <nz-form-label [nzSpan]="5">Persona</nz-form-label>
         <nz-form-control>
           <nz-input-group style="width: 100%">
-            <app-personal-search [disabled]="this.openDrawerForConsult()" name="PersonalId" ngModel  (valueExtendedChange)="ngForm().form.patchValue({SucursalId:$event.SucursalId}) "></app-personal-search>
+            <app-personal-search  name="PersonalId" ngModel  (valueExtendedChange)="ngForm().form.patchValue({SucursalId:$event.SucursalId}) "></app-personal-search>
             <p> </p>
           </nz-input-group>
         </nz-form-control>
@@ -29,19 +29,19 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Desde: </nz-form-label>
         <nz-form-control [nzXs]="24">
-          <nz-date-picker name="PersonalLicenciaDesde" ngModel [disabled]="this.openDrawerForConsult()"></nz-date-picker>
+          <nz-date-picker name="PersonalLicenciaDesde" ngModel ></nz-date-picker>
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Hasta </nz-form-label>
         <nz-form-control>
-          <nz-date-picker name="PersonalLicenciaHasta" ngModel [disabled]="this.openDrawerForConsult()"></nz-date-picker>
+          <nz-date-picker name="PersonalLicenciaHasta" ngModel ></nz-date-picker>
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Tipo Inasistencia </nz-form-label>
         <nz-form-control>
-          <app-inasistencia-search name="TipoInasistenciaId" ngModel [disabled]="this.openDrawerForConsult()"></app-inasistencia-search>
+          <app-inasistencia-search name="TipoInasistenciaId" ngModel ></app-inasistencia-search>
         </nz-form-control>
       </nz-form-item>
         <nz-form-item>
@@ -49,7 +49,7 @@
             <nz-form-control>
                 <!-- <app-categoria-persona [sucursalid]="SucursalId" [PersonalId]="PersonalIdForEdit" -->
               <app-categoria-persona [sucursalid]="ngForm().value?.SucursalId" [PersonalId]="ngForm().value?.PersonalId"
-                [selectedPeriod]="selectedPeriod()" name="categoria" ngModel [disabled]="this.openDrawerForConsult()"></app-categoria-persona>
+                [selectedPeriod]="selectedPeriod()" name="categoria" ngModel ></app-categoria-persona>
           </nz-form-control>
         </nz-form-item>
       <nz-form-item>
@@ -64,19 +64,19 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Horas Mensuales </nz-form-label>
         <nz-form-control>
-          <input nz-input type="number" name="PersonalLicenciaHorasMensuales" ngModel [disabled]="this.openDrawerForConsult()"  />
+          <input nz-input type="number" name="PersonalLicenciaHorasMensuales" ngModel   />
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Observación </nz-form-label>
         <nz-form-control>
-          <input [disabled]="this.openDrawerForConsult()" nz-input name="PersonalLicenciaObservacion" ngModel />
+          <input  nz-input name="PersonalLicenciaObservacion" ngModel />
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Diagnóstico </nz-form-label>
         <nz-textarea-count class="textAreaInput" [nzMaxCharacterCount]="500">
-          <textarea [disabled]="this.openDrawerForConsult()" rows="1" name="PersonalLicenciaDiagnosticoMedicoDiagnostico" ngModel nz-input ></textarea>
+          <textarea  rows="1" name="PersonalLicenciaDiagnosticoMedicoDiagnostico" ngModel nz-input ></textarea>
         </nz-textarea-count>
       </nz-form-item>
       @if (ngForm().form.value.PersonalId >0  ) {
@@ -129,8 +129,7 @@
       </nz-form-item>
      }
     }
-
-    @if(!(this.openDrawerForConsult())) {
+    @if(this.ngForm().enabled) {
       <nz-form-item class="btnCenter">
           <button nz-button nzType="primary" [disabled]="!ngForm().dirty" (click)="save()" [nzLoading]="isSaving()">Guardar</button>
           @if (this.ngForm().value.PersonalLicenciaId>0) {
