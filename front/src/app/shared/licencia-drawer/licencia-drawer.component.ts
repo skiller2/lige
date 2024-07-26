@@ -77,6 +77,7 @@ export class LicenciaDrawerComponent {
   cambios = computed(async () => {
     const visible = this.visible()
     this.ngForm().form.reset()
+    this.ngForm().form.enable()
     
     if (visible) {
       const per = this.selectedPeriod()
@@ -100,7 +101,6 @@ export class LicenciaDrawerComponent {
         if (this.openDrawerForConsult()) {
           this.ngForm().form.disable()
         } else {
-          this.ngForm().form.enable()
         }
     
       }

@@ -978,5 +978,9 @@ input:disabled{
 
 textarea:disabled {
   pointer-events: all;
-  user-select: all;
+  user-select: all !important;
+}
+
+nz-select-item {
+  user-select: all !important;
 }
