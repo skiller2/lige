@@ -170,6 +170,7 @@ export class AdelantosController extends BaseController {
 
   async setAdelanto(anio:number, mes:number, personalId: number, monto: number, ip, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
+    const FormaPrestamoId = 7 //Adelanto
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -185,12 +186,21 @@ export class AdelantosController extends BaseController {
         throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede generar adelantos para el período`)
   
 
-      const aplicaEl = `${String(mes).padStart(2,'0')}/${String(anio).padStart(4,'0')}`
+      const aplicaEl = `${String(mes).padStart(2, '0')}/${String(anio).padStart(4, '0')}`
+      
+      const presPend = await queryRunner.query(`SELECT pre.PersonalPrestamoId FROM PersonalPrestamo pre WHERE pre.PersonalId = @0 AND pre.PersonalPrestamoAprobado = 'S' AND pre.PersonalPrestamoLiquidoFinanzas = 0 AND pre.FormaPrestamoId =@1`,
+        [personalId,FormaPrestamoId]
+      )
+      if (presPend.length>0)
+        throw new ClientException(`Ya se encuentra generado, aprobado y pendiente de acreditar en cuenta.  No se puede solicitar nuevo adelanto`)
+
+
       const adelantoExistente = await queryRunner.query(
         `DELETE From PersonalPrestamo 
-                WHERE (PersonalPrestamoAprobado IS NULL)
+                WHERE PersonalPrestamoAprobado IS NULL
+                AND FormaPrestamoId = @1
                 AND PersonalId = @0`,
-        [personalId]
+        [personalId,FormaPrestamoId]
       );
       const now = new Date()
       const hora = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
@@ -228,7 +238,7 @@ export class AdelantosController extends BaseController {
             prestamoId, //PersonalPrestamoId
             personalId, //PersonalId
             monto, //PersonalPrestamoMonto
-            7, //FormaPrestamoId = 7 Adelanto
+            FormaPrestamoId, //FormaPrestamoId = 7 Adelanto
 
             null, //PersonalPrestamoAprobado
             null, //PersonalPrestamoFechaAprobacion
