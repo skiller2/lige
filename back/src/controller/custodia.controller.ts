@@ -1,8 +1,6 @@
 import { NextFunction, Response } from "express";
 import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
-import { QueryRunner } from "typeorm";
-import { ObjetivoController } from "./objetivo.controller";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
 

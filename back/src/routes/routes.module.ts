@@ -23,6 +23,7 @@ import { listaPersmisoCargaRouter } from "src/lista-permisocarga/lista-permisoca
 import { custodiaRouter } from "./custodia.routes";
 import { CargaLicenciaCargaRouter } from "../carga-licencia/carga-licencia.routes"
 import { inasistenciaRouter } from "../routes/inasistencia.routes"
+import { ayudaAsistencialRouter } from "./ayuda-asistencial.routes"
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -49,4 +50,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/lista-permisocarga", listaPersmisoCargaRouter);
   server.setRoute("/api/carga-licencia", CargaLicenciaCargaRouter);
   server.setRoute("/api/inasistencia", inasistenciaRouter);
+  server.setRoute("/api/ayuda-asistencial", ayudaAsistencialRouter)
 }
