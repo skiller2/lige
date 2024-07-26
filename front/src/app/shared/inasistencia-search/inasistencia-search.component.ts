@@ -39,7 +39,6 @@ export class InasistenciaSearchComponent implements ControlValueAccessor {
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("isc") isc!: NzSelectComponent
-  disabled = model<boolean>(false)
 
   $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
@@ -171,4 +170,11 @@ export class InasistenciaSearchComponent implements ControlValueAccessor {
     console.log('focus')
 
   }
+
+
+  setDisabledState(isDisabled: boolean): void {
+    this.isc.setDisabledState(isDisabled)
+  } 
+
 }
+

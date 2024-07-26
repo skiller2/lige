@@ -75,20 +75,9 @@ export class LicenciaDrawerComponent {
   }
 
   cambios = computed(async () => {
-    console.log("voy")
     const visible = this.visible()
     this.ngForm().form.reset()
-    if (this.openDrawerForConsult()) {
-      this.ngForm().form.disable()
-      for (const controlName in this.ngForm().form.controls) {
-        console.log(`control ${controlName}`,(<any>this.ngForm().form.get(controlName)));
-//        (<any>this.ngForm().form.get(controlName)).valueAccessor._elementRef.nativeElement.disabled(true);
-      }
-
-    } else {
-      this.ngForm().form.enable()
-    }
-
+    
     if (visible) {
       const per = this.selectedPeriod()
       if (this.PersonalLicenciaId() > 0) {
@@ -104,10 +93,16 @@ export class LicenciaDrawerComponent {
         if(vals.PersonalLicenciaDiagnosticoMedicoDiagnostico != null)
           vals.PersonalLicenciaDiagnosticoMedicoDiagnostico = vals.PersonalLicenciaDiagnosticoMedicoDiagnostico.trim()
 
-        console.log( "vals ", vals )
         this.ngForm().form.patchValue(vals)
         this.ngForm().form.markAsUntouched()
         this.ngForm().form.markAsPristine()
+
+        if (this.openDrawerForConsult()) {
+          this.ngForm().form.disable()
+        } else {
+          this.ngForm().form.enable()
+        }
+    
       }
     }
     return true
