@@ -129,8 +129,6 @@ export class AdelantoComponent {
 
     }
 
-
-
   }
 
 
@@ -147,25 +145,7 @@ export class AdelantoComponent {
           : now.getMonth() + 1;
 
       this.adelanto.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
-
-
-
-
-
-
-
-
-
     }, 1);
-
-
-
-
-
-
-
-
-
   }
 
   ngAfterContentInit(): void {

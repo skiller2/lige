@@ -1,0 +1,39 @@
+<nz-card class="small-margin">
+  <ul nz-menu nzMode="horizontal">
+    <li nz-menu-item nzMatchRouter>
+      <span nz-icon nzType=""></span>
+      <a [routerLink]="['/', 'ges', 'liquidacion_ayuda_asistencial','listado']">Listado</a>
+    </li>
+    <!-- <li nz-menu-item nzMatchRouter>
+      <span nz-icon nzType=""></span>
+      <a [routerLink]="['/', 'ges', 'adelanto','carga']">Carga</a>
+    </li> -->
+  </ul>
+  <form nz-form #adelanto="ngForm" class="">
+    <br>
+    <nz-form-item>
+      <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
+      <nz-form-control>
+        <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/liquidacion_ayuda_asistencial/listado">Listado</a>
+        <ng-template nz-tab *ngIf="(columns$|async) as columnas">
+          <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters"/>
+          <div class="gridContainer container-fluid">
+            <angular-slickgrid gridId="grid" class="" [columnDefinitions]="columnas | colsFilter"
+              [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+              
+              >
+            </angular-slickgrid>
+          </div>
+        </ng-template>
+      </nz-tab>
+      
+    </nz-tabset>
+  </form>
+
+</nz-card>

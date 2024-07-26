@@ -1,0 +1,58 @@
+@media screen and (max-width: 700px) {
+    .ant-table-small {
+      font-size: 9px;
+    }
+  
+  
+    .app-table  table {
+      background-color: yellow !important;
+      border: 0;
+    }
+  
+    table {
+      border: 0;
+    }
+  
+    table caption {
+      font-size: 1.3em;
+    }
+    
+    table thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      overflow: hidden;
+      border: none;
+      clip: rect(0 0 0 0);
+    }
+    
+    table tr {
+      display: block;
+      margin-bottom: .625em;
+      border-bottom: 3px solid #ddd;
+    }
+    
+    table td {
+      display: block;
+      font-size: .8em;
+      text-align: right;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    table td::before {
+      /*
+      * aria-label has no advantage, it won't be read inside a table
+      content: attr(aria-label);
+      */
+      float: left;
+      font-weight: bold;
+      text-transform: uppercase;
+      content: attr(data-label);
+    }
+    
+    table td:last-child {
+      border-bottom: 0;
+    }
+  }
