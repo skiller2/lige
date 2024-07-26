@@ -152,4 +152,9 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   focus() { 
 
   }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.psc.setDisabledState(isDisabled)
+  } 
+
 }

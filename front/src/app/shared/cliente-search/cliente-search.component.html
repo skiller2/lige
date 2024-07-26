@@ -1,6 +1,6 @@
 <nz-select #csc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Nombre Cliente"
-  nzShowSearch nzServerSearch (nzOnSearch)="search($event)" [disabled]="edit">
+  nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
   <ng-container *ngFor="let option of $optionsArray | async">
     <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.ClienteId" [nzLabel]="option.ClienteApellidoNombre" />
   </ng-container>

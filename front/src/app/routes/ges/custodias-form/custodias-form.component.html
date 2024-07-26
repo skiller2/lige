@@ -16,7 +16,7 @@
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cliente</nz-form-label>
       <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
-        <app-cliente-search formControlName="clienteId" [edit]="!edit()"/>
+        <app-cliente-search formControlName="clienteId" [disabled]="!edit()"/>
       </nz-form-control>
     </nz-form-item>
 
@@ -84,7 +84,7 @@
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3">Personal</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="10" [nzLg]="7">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="personalButton" nzSearch>
-          <app-personal-search formControlName="personalId" [edit]="!edit()"/>
+          <app-personal-search formControlName="personalId" [disabled]="!edit()"/>
         </nz-input-group>
         <ng-template #personalButton>
           <button nz-button nzType="dashed" nzSearch (click)="openDrawer(i)">
@@ -121,7 +121,7 @@
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Dueño </nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <app-personal-search formControlName="duenoId" [edit]="!edit()"/>
+        <app-personal-search formControlName="duenoId" [disabled]="!edit()"/>
       </nz-form-control>
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2">Importe</nz-form-label>

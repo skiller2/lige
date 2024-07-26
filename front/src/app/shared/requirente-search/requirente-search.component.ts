@@ -35,11 +35,9 @@ import { CommonModule } from '@angular/common'
 export class RequirenteSearchComponent implements ControlValueAccessor {
   constructor(private searchService: SearchService) { }
 
-  @Input() edit: boolean = false
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("rsc") rsc!: NzSelectComponent
-  //isdisabled = model<boolean>(false)
 
   $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
@@ -166,4 +164,9 @@ export class RequirenteSearchComponent implements ControlValueAccessor {
     console.log('focus')
 
   }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.rsc.setDisabledState(isDisabled)
+  } 
+
 }

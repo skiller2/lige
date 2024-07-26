@@ -1,6 +1,6 @@
 <nz-select #rsc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
    (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Nombre"
-  nzShowSearch nzServerSearch (nzOnSearch)="search($event)" [disabled]="edit">
+  nzShowSearch nzServerSearch (nzOnSearch)="search($event)" >
   <ng-container *ngFor="let option of $optionsArray | async">
     <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.fullName" [nzLabel]="option.fullName" />
   </ng-container>

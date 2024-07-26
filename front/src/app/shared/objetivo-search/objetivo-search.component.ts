@@ -144,5 +144,10 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
     this.extendedOption = { objetivoId: 0, clienteId: 0, elementoDependienteId: 0, descripcion: '', fullName: '' }
     this.$searchChange.next(value);
   }
+
+  
+  setDisabledState(isDisabled: boolean): void {
+    this.osc.setDisabledState(isDisabled)
+  } 
 }
 

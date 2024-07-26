@@ -37,7 +37,6 @@ export class ClienteSearchComponent implements ControlValueAccessor {
   tmpInputVal: any;
   constructor(private searchService: SearchService) {}
 
-  @Input() edit: boolean = false
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("csc") csc!: NzSelectComponent
@@ -167,4 +166,9 @@ export class ClienteSearchComponent implements ControlValueAccessor {
     this.extendedOption = { ClienteId: 0, fullName: "" }
     this.$searchChange.next(value)
   }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.csc.setDisabledState(isDisabled)
+  } 
+
 }

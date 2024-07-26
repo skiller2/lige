@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild, forwardRef, model } from '@angular/core'
+import { Component, EventEmitter, Input, Output, ViewChild, forwardRef, input, model, signal } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
@@ -36,12 +36,10 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   tmpInputVal: any
   constructor(private searchService: SearchService) { }
 
-  @Input() edit: boolean = false
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("psc") psc!: NzSelectComponent
-  //isdisabled = model<boolean>(false)
-
+  disabled = signal(false)
   $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
 
@@ -173,4 +171,8 @@ export class PersonalSearchComponent implements ControlValueAccessor {
     console.log('focus')
 
   }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.psc.setDisabledState(isDisabled)
+  } 
 }

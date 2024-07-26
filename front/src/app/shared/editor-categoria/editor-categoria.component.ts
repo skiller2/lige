@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, SimpleChanges, ViewChild, computed, forwardRef, input, model } from '@angular/core';
+import { Component, ElementRef, Input, SimpleChanges, ViewChild, computed, forwardRef, input, model, signal } from '@angular/core';
 import { Subject, firstValueFrom, noop } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
@@ -43,7 +43,6 @@ export class EditorCategoriaComponent {
   selectedPeriod = model({ year: 0, month: 0 });
   sucursalid = model(0)
   PersonalId = model(0)
-  disabled = model<boolean>(false)
 
   onChange(key: any) {
     
@@ -149,5 +148,8 @@ export class EditorCategoriaComponent {
     }
   }
 
+  setDisabledState(isDisabled: boolean): void {
+    this.eto.setDisabledState(isDisabled)
+  } 
 
 }

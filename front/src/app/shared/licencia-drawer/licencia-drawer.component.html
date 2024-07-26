@@ -49,7 +49,7 @@
             <nz-form-control>
                 <!-- <app-categoria-persona [sucursalid]="SucursalId" [PersonalId]="PersonalIdForEdit" -->
               <app-categoria-persona [sucursalid]="ngForm().value?.SucursalId" [PersonalId]="ngForm().value?.PersonalId"
-                [selectedPeriod]="selectedPeriod()" name="categoria" ngModel ></app-categoria-persona>
+                [selectedPeriod]="selectedPeriod()" name="categoria" ngModel [disabled]="!this.ngForm().form.enabled"></app-categoria-persona>
           </nz-form-control>
         </nz-form-item>
       <nz-form-item>
@@ -106,7 +106,7 @@
               mes:this.selectedPeriod().month,
               PersonalId:this.ngForm().value.PersonalId,
               PersonalLicenciaId: this.ngForm().value.PersonalLicenciaId,
-            }" nzName="pdf" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)" ngModel [disabled]="!this.ngForm().form.enabled">
+            }" nzName="pdf" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)" >
               <button [disabled]="isSaving()"  nz-button  >
                 <span nz-icon nzType="upload"></span>
                 Subir PDF

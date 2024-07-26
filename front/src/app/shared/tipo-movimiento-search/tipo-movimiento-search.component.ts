@@ -138,4 +138,9 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
     // this.extendedOption = { objetivoId: 0, clienteId: 0, elementoDependienteId: 0, descripcion: '', fullName: '' }
     // this.$searchChange.next(value);
   }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.msc.setDisabledState(isDisabled)
+  } 
+
 }

@@ -2,7 +2,7 @@ import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
 import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
-import { NgForm } from '@angular/forms';
+import { FormControl, NgForm } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
@@ -78,9 +78,12 @@ export class LicenciaDrawerComponent {
     console.log("voy")
     const visible = this.visible()
     this.ngForm().form.reset()
-
     if (this.openDrawerForConsult()) {
       this.ngForm().form.disable()
+      for (const controlName in this.ngForm().form.controls) {
+        console.log(`control ${controlName}`,(<any>this.ngForm().form.get(controlName)));
+//        (<any>this.ngForm().form.get(controlName)).valueAccessor._elementRef.nativeElement.disabled(true);
+      }
 
     } else {
       this.ngForm().form.enable()
