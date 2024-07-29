@@ -173,6 +173,6 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.psc.setDisabledState(isDisabled)
+    this.psc?.setDisabledState(isDisabled)
   } 
 }

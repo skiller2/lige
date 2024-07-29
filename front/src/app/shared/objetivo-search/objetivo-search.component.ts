@@ -147,7 +147,7 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
 
   
   setDisabledState(isDisabled: boolean): void {
-    this.osc.setDisabledState(isDisabled)
+    this.osc?.setDisabledState(isDisabled)
   } 
 }
 

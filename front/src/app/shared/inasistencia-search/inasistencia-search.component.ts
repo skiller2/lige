@@ -173,7 +173,7 @@ export class InasistenciaSearchComponent implements ControlValueAccessor {
 
 
   setDisabledState(isDisabled: boolean): void {
-    this.isc.setDisabledState(isDisabled)
+    this.isc?.setDisabledState(isDisabled)
   } 
 
 }
