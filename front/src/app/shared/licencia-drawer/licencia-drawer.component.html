@@ -87,6 +87,7 @@
         <nz-form-control>
           <ng-container *ngFor="let licencia of $ArchivosLicencias | async" >
             <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{licencia.nombre}}>
+              <span nz-icon nzType="delete" nzTheme="outline" class="trash-color" (click)="ArchivoDelete(templateArchivo,licencia.id,false)"></span>
               <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
               <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
                 class="download-color" app-down-file [httpMethod]="'POST'"
@@ -94,8 +95,23 @@
               <span> {{licencia.id}}-{{licencia.nombre}} </span>
             </div>
           </ng-container>
+          @if(ArchivosLicenciasAdd.length > 0){
+            <ng-container  class="" *ngFor="let licenciaAdd of ArchivosLicenciasAdd ">
+              <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{licenciaAdd.fieldname}}>
+                <span nz-icon nzType="delete" nzTheme="outline" class="trash-color" (click)="ArchivoDelete(templateArchivo,licenciaAdd.fieldname,true)"></span>
+                <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
+                  class="download-color" app-down-file [httpMethod]="'POST'"
+                  [httpBody]="{'documentId': licenciaAdd.id}" httpUrl="api/carga-licencia/downloadLicencia"></a>
+                <span> {{licenciaAdd.originalname}} </span>
+              </div>
+            </ng-container>
+       }
         </nz-form-control>
+
+       
       </nz-form-item>
+
+     
 
       @if(!ngForm().disabled) {
       <nz-form-item >
@@ -116,18 +132,7 @@
         </nz-form-control>
       </nz-form-item>
     }
-      @if(ArchivosLicenciasAdd.length > 0){
-      <nz-form-item>
-        <nz-form-control class="BtnUploadFile">
-          <ng-container *ngFor="let licenciaAdd of ArchivosLicenciasAdd">
-            <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{licenciaAdd.fieldname}}>
-              <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
-              <span> {{licenciaAdd.originalname}} </span>
-            </div>
-          </ng-container>
-        </nz-form-control>
-      </nz-form-item>
-     }
+     
     }
     @if(this.ngForm().enabled) {
       <nz-form-item class="btnCenter">
@@ -151,4 +156,19 @@
     
     <!-- <p>Debug Valores: {{ngForm().value | json }}</p> -->
   </ng-container>
+  <ng-template #templateArchivo let-notification>
+    <div class=" notificacionArchivo ant-notification-notice-content">
+      <div>
+        <div class="ant-notification-notice-message">Eliminar Archivo</div>
+        <div class="ant-notification-notice-description">
+          Seguro que desea eliminar dicho archivo
+        </div>
+        <span class="ant-notification-notice-btn">
+          <button nz-button nzType="primary" nzSize="small" (click)="confirmDeleteArchivo()">
+            <span>Aceptar</span>
+          </button>
+        </span>
+      </div>
+    </div>
+  </ng-template>
 </nz-drawer>

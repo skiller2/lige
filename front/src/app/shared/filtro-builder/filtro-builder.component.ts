@@ -74,6 +74,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     sort: null,
   };
 
+  $optionsSepaga = this.searchService.getSePaga();
+
 
   isFiltroBuilder = false;
 
