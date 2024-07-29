@@ -112,7 +112,9 @@ CargaLicenciaCargaRouter.get('/sepaga_getOptions', [authMiddleware.verifyToken, 
   cargaLicenciaController.getOptions(req, res)
 });
 
-
+CargaLicenciaCargaRouter.delete('/deleteArchivo', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+  cargaLicenciaController.deleteArchivos(req, res, next)
+});
 
 CargaLicenciaCargaRouter.post("/downloadLicencia", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], async (req, res, next) => {
   await cargaLicenciaController.getByDownLicencia(req, res, next);

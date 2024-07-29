@@ -249,6 +249,16 @@ export class SearchService {
     );
   }
 
+  getSePaga(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`/api/carga-licencia/sepaga_getOptions`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getCategorias(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/asistencia/categorias`).pipe(
       map(res => res.data),

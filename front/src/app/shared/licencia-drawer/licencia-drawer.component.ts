@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef,  } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { FormControl, NgForm } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -12,6 +12,8 @@ import { InasistenciaSearchComponent } from 'src/app/shared/inasistencia-search/
 import { PersonalSearchComponent } from '../personal-search/personal-search.component';
 import { CommonModule } from '@angular/common';
 import { SearchService } from '../../services/search.service';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { log } from '@delon/util';
 
 export interface Option {
   label: string;
@@ -40,8 +42,11 @@ export class LicenciaDrawerComponent {
   RefreshLicencia =  model<boolean>(false)
   private apiService = inject(ApiService)
   formChange$ = new BehaviorSubject('');
+  private notification = inject(NzNotificationService);
   PersonalIdForEdit = 0
   SucursalId = 0
+  ArchivoIdForDelete = 0;
+  tipoDocumentDelete = signal(false)
   //selectedOption: string = "Indeterminado";
   options: any[] = [];
   //fileUploaded = false;
@@ -71,13 +76,13 @@ export class LicenciaDrawerComponent {
 
   async ngOnInit(): Promise<void> {
     this.ArchivosLicenciasAdd = []
-    this.options = await firstValueFrom(this.apiService.getOptions())
+    this.options = await firstValueFrom(this.apiService.getOptionsForLicenciaDrawer())
   }
 
   cambios = computed(async () => {
     const visible = this.visible()
     this.ngForm().form.reset()
-    
+    this.ArchivosLicenciasAdd = []
     if (visible) {
       const per = this.selectedPeriod()
       if (this.PersonalLicenciaId() > 0) {
@@ -126,8 +131,6 @@ export class LicenciaDrawerComponent {
 
       this.ngForm().form.markAsUntouched()
       this.ngForm().form.markAsPristine()
-  
-      this.ArchivosLicenciasAdd = []
       //this.fileUploaded = false
       this.RefreshLicencia.set(true)
       this.formChange$.next("")
@@ -141,6 +144,16 @@ export class LicenciaDrawerComponent {
     let vals = this.ngForm().value
     let res = await firstValueFrom(this.apiService.deleteLicencia(vals))
     this.visible.set(false)
+  }
+
+   ArchivoDelete(template: TemplateRef<{}>, id: string, tipoDocumentDelete : boolean): void {
+
+    this.ArchivoIdForDelete = parseInt(id);
+    this.tipoDocumentDelete.set(tipoDocumentDelete)
+    const element = document.getElementsByClassName('notificacionArchivo');
+
+    if (element.length == 0)
+      this.notification.template(template);
   }
 
   uploadChange(event: any) {
@@ -174,4 +187,25 @@ export class LicenciaDrawerComponent {
     }
 
   }
+
+ async confirmDeleteArchivo() {
+    try {
+      if( this.tipoDocumentDelete()){
+        console.log("fieldname ", this.ArchivosLicenciasAdd)
+        console.log("ArchivoIdForDelete ", this.ArchivoIdForDelete)
+        const ArchivoFilter = this.ArchivosLicenciasAdd.filter((item) => item.fieldname === this.ArchivoIdForDelete)
+        this.ArchivosLicenciasAdd = ArchivoFilter
+         
+       this.notification.success('Respuesta', `Archivo borrado con exito `);
+
+      }else{
+        await firstValueFrom( this.apiService.deleteArchivosLicencias(this.ArchivoIdForDelete))
+      }
+
+      this.formChange$.next('');
+    } catch (error) {
+      
+    }
+  }
+  
 }

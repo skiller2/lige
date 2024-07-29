@@ -73,7 +73,7 @@ export class ApiService {
     );
   }
 
-  getOptions() {
+  getOptionsForLicenciaDrawer() {
     return this.http.get(`/api/carga-licencia/sepaga_getOptions`).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
@@ -553,6 +553,7 @@ export class ApiService {
 
   }
 
+
   setDeleteMovimiento(row: any) {
     const parameter = {
       persona_id: row.persona_id,
@@ -805,11 +806,21 @@ export class ApiService {
   }
 
   deleteLicencia(vals: any) {
-console.log(vals)
     return this.http.delete<ResponseJSON<any>>(`/api/carga-licencia`,  vals ).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
       catchError(() => of([])),
 
+    )
+
+  }
+
+  deleteArchivosLicencias(deleteId: any) {
+    const parameter = [deleteId]
+    this.notification.success('Respuesta', `Inicio Borrado `);
+
+    return this.http.delete<ResponseJSON<any>>('/api/carga-licencia/deleteArchivo', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+      catchError(() => of([])),
     )
 
   }

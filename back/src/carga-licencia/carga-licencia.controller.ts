@@ -869,6 +869,42 @@ export class CargaLicenciaController extends BaseController {
 
   }
 
+  async deleteArchivos(req: Request, res: Response, next: NextFunction) {
+
+    let deleteId = Number(req.query[0])
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+     
+      const document = await this.getLicenciatInfo(deleteId);
+      const finalurl = `${document[0]["path"]}`
+
+      if(document.length > 0 ) {
+        if (!existsSync(finalurl)){
+          console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
+         }else {
+           await unlink(finalurl);
+        }
+
+        console.log("..................................")
+        console.log("voy a borrar " , deleteId )
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE doc_id = @0`,[deleteId])
+
+        await queryRunner.commitTransaction();
+      }   
+
+     this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
+
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    }
+
+  }
+
+
   async getLicencia(req: Request, res: Response, next: NextFunction) {
     const PersonalId = Number(req.params.PersonalId)
     const PersonalLicenciaId = Number(req.params.PersonalLicenciaId)
