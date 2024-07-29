@@ -92,6 +92,11 @@
               "text": "Banco",
               "link": "/ges/liquidacion_banco",
               "icon": "anticon-profile"
+            },
+            {
+              "text": "Ayuda Asistencial",
+              "link": "/ges/liquidacion_ayuda_asistencial",
+              "icon": "anticon-profile"
             }
           ]
         },

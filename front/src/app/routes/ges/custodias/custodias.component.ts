@@ -60,7 +60,7 @@ export class CustodiaComponent {
           return this.searchService.getListaObjetivoCustodia({ options: this.listOptions })
             .pipe(map(data => { return data }))
         })
-      )
+    )
 
     async ngOnInit(){
         // const user: any = this.settingService.getUser()

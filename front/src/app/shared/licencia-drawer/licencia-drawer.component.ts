@@ -105,7 +105,6 @@ export class LicenciaDrawerComponent {
         if (this.openDrawerForConsult()) {
           this.ngForm().form.disable()
         } else {
-          this.ngForm().form.enable()
         }
     
       }

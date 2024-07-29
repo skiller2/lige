@@ -970,3 +970,17 @@ $slick-pagination-icon-seek-prev:                           url('data:image/svg+
   }
 }
 */ 
+
+input:disabled{
+  pointer-events: all;
+  user-select: all;
+}
+
+textarea:disabled {
+  pointer-events: all;
+  user-select: all !important;
+}
+
+nz-select-item {
+  user-select: all !important;
+}
