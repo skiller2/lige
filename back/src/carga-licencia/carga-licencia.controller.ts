@@ -482,17 +482,27 @@ export class CargaLicenciaController extends BaseController {
       mesRequest,
       Archivos,
       PersonalIdForEdit,
-      PersonalLicenciaDiagnosticoMedicoDiagnostico
+      PersonalLicenciaDiagnosticoMedicoDiagnostico,
+      PersonalLicenciaAplicaPeriodoHorasMensuales
 
     } = req.body
     console.log(req.body)
+
+    
     const queryRunner = dataSource.createQueryRunner();
     try {
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (req.body.PersonalLicenciaDesde == "")
+      
+      if(PersonalLicenciaSePaga == null   ){
+        if( PersonalLicenciaAplicaPeriodoHorasMensuales != null && PersonalLicenciaAplicaPeriodoHorasMensuales > 0){
+          throw new ClientException(`No puede modificar el se paga ya que tiene horas cargadas`)
+        }
+      }
+
+      if (req.body.PersonalLicenciaDesde == null)
         throw new ClientException(`Debe seleccionar la fecha desde`)
 
 
@@ -505,6 +515,8 @@ export class CargaLicenciaController extends BaseController {
         PersonalLicenciaHasta = null
       }
 
+      
+    
       const PersonalLicenciaDesde = new Date(req.body.PersonalLicenciaDesde)
       PersonalLicenciaDesde.setHours(0, 0, 0, 0)
 
@@ -562,7 +574,10 @@ export class CargaLicenciaController extends BaseController {
 
       let DiagnosticoUpdate
 
-      if (PersonalLicenciaDiagnosticoMedicoDiagnostico.trim() == "") {
+      if(PersonalLicenciaDiagnosticoMedicoDiagnostico != null)
+        PersonalLicenciaDiagnosticoMedicoDiagnostico.trim()
+
+      if (PersonalLicenciaDiagnosticoMedicoDiagnostico == null) {
         DiagnosticoUpdate = null
       } else {
         const ResultDiagnostico = await queryRunner.query(`SELECT PersonalLicenciaDiagnosticoMedicoId FROM PersonalLicenciaDiagnosticoMedico WHERE PersonalId = @0 AND PersonalLicenciaId = @1  `,
@@ -885,8 +900,6 @@ export class CargaLicenciaController extends BaseController {
            await unlink(finalurl);
         }
 
-        console.log("..................................")
-        console.log("voy a borrar " , deleteId )
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
@@ -928,6 +941,7 @@ export class CargaLicenciaController extends BaseController {
     PARSENAME(lic.PersonalLicenciaHorasMensuales,2)+ CAST(PARSENAME(lic.PersonalLicenciaHorasMensuales,1) AS FLOAT)/60 AS PersonalLicenciaHorasMensuales,
 
     val.ValorLiquidacionHoraNormal,
+    PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60 AS PersonalLicenciaAplicaPeriodoHorasMensuales,
     (PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60) * val.ValorLiquidacionHoraNormal AS total,  
 
     lic.PersonalLicenciaSePaga,
@@ -969,7 +983,7 @@ export class CargaLicenciaController extends BaseController {
   ) {
 
     //valida si existe diagnostico medico
-    if (PersonalLicenciaDiagnosticoMedicoDiagnostico.trim() == "") {
+    if (PersonalLicenciaDiagnosticoMedicoDiagnostico == null) {
 
       //borra el registro con el mayor numero en PersonalLicenciaDiagnosticoMedicoId
       await queryRunner.query(`DELETE FROM PersonalLicenciaDiagnosticoMedico
@@ -1004,7 +1018,7 @@ export class CargaLicenciaController extends BaseController {
                PersonalLicenciaDiagnosticoMedicoFechaDiagnostico,
                PersonalLicenciaDiagnosticoMedicoDiagnostico )
                 VALUES (@0,@1,@2,@3,@4)`
-          , [DiagnosticoUpdate, PersonalId, PersonalLicenciaId, PersonalLicenciaDesde, PersonalLicenciaDiagnosticoMedicoDiagnostico.trim()])
+          , [DiagnosticoUpdate, PersonalId, PersonalLicenciaId, PersonalLicenciaDesde, PersonalLicenciaDiagnosticoMedicoDiagnostico])
       }
 
     }
