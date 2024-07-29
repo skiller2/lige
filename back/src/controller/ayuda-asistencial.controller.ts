@@ -4,11 +4,17 @@ import { dataSource } from "../data-source";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
 
+const getOptions: any[] = [
+    { label: 'Si', value: true },
+    { label: 'No', value: false },
+    { label: 'Indeterminado', value: null }
+]
+
 const columnsAyudaAsistencial: any[] = [
     {
       id: "cuit",
       name: "CUIT",
-      field: "cuit",
+      field: "PersonalCUITCUILCUIT",
       type: "number",
       fieldName: "cuit.PersonalCUITCUILCUIT",
       sortable: true,
@@ -20,7 +26,7 @@ const columnsAyudaAsistencial: any[] = [
       field: "apellidoNombre",
       type: "string",
       fieldName: "per.PersonalId",
-      searchComponent: "inpurForPersonalSearch",
+      searchComponent: "inpurformersonalSearch",
       searchType: "number",
       sortable: true,
       searchHidden: false,
@@ -36,20 +42,20 @@ const columnsAyudaAsistencial: any[] = [
       searchHidden: true,
       hidden: true,
     },
+    // {
+    //   id: "sitRevDescripcion",
+    //   name: "SituacionRevistaDescripcion",
+    //   field: "sitRevDescripcion",
+    //   type: "string",
+    //   fieldName: "sit.SituacionRevistaDescripcion",
+    //   sortable: true,
+    //   hidden: true,
+    //   searchHidden: false
+    // },
     {
-      id: "sitRevDescripcion",
-      name: "SituacionRevistaDescripcion",
-      field: "sitRevDescripcion",
-      type: "string",
-      fieldName: "sit.SituacionRevistaDescripcion",
-      sortable: true,
-      hidden: true,
-      searchHidden: false
-    },
-    {
-      id: "personalPrestamoMonto",
+      id: "PersonalPrestamoMonto",
       name: "Importe",
-      field: "personalPrestamoMonto",
+      field: "PersonalPrestamoMonto",
       type: "currency",
       fieldName: "pre.PersonalPrestamoMonto",
       sortable: true,
@@ -80,8 +86,8 @@ const columnsAyudaAsistencial: any[] = [
       id: "cantCuotas",
       name: "Cant Cuotas",
       type: "number",
-      field: "PersonalAdelantoCantidadCuotas",
-      fieldName: "pc.PersonalAdelantoCantidadCuotas",
+      field: "PersonalPrestamoCantidadCuotas",
+      fieldName: "pre.PersonalPrestamoCantidadCuotas",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -90,19 +96,32 @@ const columnsAyudaAsistencial: any[] = [
       id: "tipo",
       name: "Tipo de Prestado",
       type: "string",
-      field: "FormaPrestamoId",
-      fieldName: "pp.FormaPrestamoId",
-      searchType: "number",
+      field: "FormaPrestamoDescripcion",
+      fieldName: "form.FormaPrestamoDescripcion",
+      searchType: "string",
       sortable: true,
       searchHidden: false
     },
     {
+      id: "tipoId",
+      name: "TipoId",
+      type: "number",
+      field: "FormaPrestamoId",
+      fieldName: "form.FormaPrestamoId",
+      searchType: "number",
+      sortable: true,
+      searchHidden: false,
+      hidden: true
+    },
+    {
       id: "liquidoFinanzas",
       name: "Liquido Finanzas",
-      type: "string",
+      type: "boolean",
       field: "PersonalPrestamoLiquidoFinanzas",
-      fieldName: "pp.PersonalPrestamoLiquidoFinanzas",
-      searchType: "string",
+      fieldName: "pre.PersonalPrestamoLiquidoFinanzas",
+      formatter: 'collectionFormatter',
+      params: { collection: getOptions, },
+      searchType: "boolean",
       sortable: true,
       searchHidden: false
     },
@@ -111,7 +130,7 @@ const columnsAyudaAsistencial: any[] = [
       name: "Aplica El",
       type: "string",
       field: "PersonalPrestamoAplicaEl",
-      fieldName: "pp.PersonalPrestamoAplicaEl",
+      fieldName: "pre.PersonalPrestamoAplicaEl",
       searchType: "string",
       sortable: true,
       searchHidden: false
@@ -126,12 +145,26 @@ const columnsAyudaAsistencial: any[] = [
       searchHidden: false,
       hidden: true,
     },
-  ];
+];
 
 export class AyudaAsistencialController extends BaseController {
 
-  async listAyudaAsistencialQuery(queryRunner:any, filterSql:any, orderBy:any, responsableId?:number){
-
+  async listAyudaAsistencialQuery(queryRunner:any, filterSql:any, orderBy:any, anio:number, mes:number){
+    return await queryRunner.query(`
+      SELECT DISTINCT CONCAT(per.PersonalId, '-', pres.PersonalPrestamoId, '-', g.GrupoActividadId) id,
+      TRIM(per.PersonalApellidoNombre) apellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
+      pres.PersonalPrestamoDia, pres.PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
+      pres.PersonalPrestamoAplicaEl, form.FormaPrestamoId, form.FormaPrestamoDescripcion, pres.PersonalPrestamoLiquidoFinanzas
+      FROM PersonalPrestamo pres
+      LEFT JOIN Personal per ON per.PersonalId = pres.PersonalId 
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pres.PersonalId 
+      LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pres.FormaPrestamoId
+      LEFT JOIN GrupoActividadPersonal ga ON ga.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@0,@1,28) > ga.GrupoActividadPersonalDesde AND DATEFROMPARTS(@0,@1,1) <  ISNULL(ga.GrupoActividadPersonalHasta, '9999-12-31')
+      LEFT JOIN GrupoActividad g ON g.GrupoActividadId = ga.GrupoActividadId
+      WHERE ((pres.PersonalPrestamoFechaProceso BETWEEN DATEFROMPARTS(@0, @1, 1) AND EOMONTH(DATEFROMPARTS(@0, @1, 1))) OR (pres.PersonalPrestamoAplicaEl IS NULL AND pres.PersonalPrestamoAprobado IS NULL))
+      AND (${filterSql})
+      ${orderBy}
+    `,[anio, mes])
   }
 
   async getGridColumns(req: any, res: Response, next: NextFunction) {
@@ -139,22 +172,22 @@ export class AyudaAsistencialController extends BaseController {
   }
 
   async getAyudaAsistencialList(req: any, res: Response, next: NextFunction) {
-    const anio = String(req.body.anio);
-    const mes = String(req.body.mes);
+    const anio = req.body.anio
+    const mes = req.body.mes
     const options: Options = isOptions(req.body.options)? req.body.options : { filtros: [], sort: null };
-    if (options.filtros.length == 0) { 
-      return this.jsonRes([], res);
-    }
+    // if (options.filtros.length == 0) { 
+    //   return this.jsonRes([], res);
+    // }
     const filterSql = filtrosToSql(options.filtros, columnsAyudaAsistencial);
     const orderBy = orderToSQL(options.sort)
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.startTransaction()
 
-      let list = await this.listAyudaAsistencialQuery(queryRunner, filterSql, orderBy)
-
+      let list = await this.listAyudaAsistencialQuery(queryRunner, filterSql, orderBy, anio, mes)
+      
       await queryRunner.commitTransaction()
-      return this.jsonRes(list, res, 'Carga Exitosa');
+      return this.jsonRes(list, res);
     }catch (error) {
         this.rollbackTransaction(queryRunner)
         return next(error)

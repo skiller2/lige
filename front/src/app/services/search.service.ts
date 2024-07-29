@@ -694,7 +694,10 @@ export class SearchService {
   }
 
   getPersonasAyudaAsistencial(filters: any) {
-    return this.http.post<ResponseJSON<any>>('/api/ayuda-asistencial/list', filters).pipe(
+    console.log(filters);
+    
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>('api/ayuda-asistencial/list', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );

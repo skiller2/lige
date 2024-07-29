@@ -9,7 +9,7 @@
       <a [routerLink]="['/', 'ges', 'adelanto','carga']">Carga</a>
     </li> -->
   </ul>
-  <form nz-form #adelanto="ngForm" class="">
+  <form nz-form #formAsist="ngForm" class="">
     <br>
     <nz-form-item>
       <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
@@ -26,7 +26,7 @@
           <div class="gridContainer container-fluid">
             <angular-slickgrid gridId="grid" class="" [columnDefinitions]="columnas | colsFilter"
               [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
-              
+              (onAngularGridCreated)="angularGridReady($event)"
               >
             </angular-slickgrid>
           </div>

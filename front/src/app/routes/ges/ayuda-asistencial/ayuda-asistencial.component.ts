@@ -1,4 +1,4 @@
-import { Component, Injector, ViewChild, inject } from '@angular/core';
+import { Component, Injector, viewChild, inject } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS,listOptionsT } from '@shared';
 import { AngularGridInstance, AngularUtilService, Column, Editors, FileType, GridOption, OnEventArgs, SlickGrid } from 'angular-slickgrid';
@@ -6,7 +6,6 @@ import { BehaviorSubject, Observable, debounceTime, firstValueFrom, map, switchM
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { Router } from '@angular/router';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SettingsService } from '@delon/theme';
@@ -25,10 +24,11 @@ import { ViewResponsableComponent } from "../../../shared/view-responsable/view-
     imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ViewResponsableComponent]
 })
 export class AyudaAsistencialComponent {
-
+    formAsist = viewChild.required(NgForm)
     selectedPeriod = { year: 0, month: 0 };
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
+    gridObj!: SlickGrid;
     excelExportService = new ExcelExportService()
     detailViewRowCount = 1
     startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
@@ -42,45 +42,38 @@ export class AyudaAsistencialComponent {
     private angularUtilService = inject(AngularUtilService)
     private settingService = inject(SettingsService)
 
-    columns$ = this.apiService.getCols('/api/custodia/cols')
+    columns$ = this.apiService.getCols('/api/ayuda-asistencial/cols')
 
     gridData$ = this.formChange$.pipe(
         debounceTime(500),
         switchMap(() => {
-          return this.searchService
-            .getPersonasAyudaAsistencial(
-              { anio: this.selectedPeriod.year, mes: this.selectedPeriod.month, options: this.listOptions }
+            return this.searchService.getPersonasAyudaAsistencial(
+                { anio: this.selectedPeriod.year, mes: this.selectedPeriod.month, options: this.listOptions }
             )
             .pipe(
-              map(data => { return data }),
-              doOnSubscribe(() => this.tableLoading$.next(true)),
-              tap({ complete: () => this.tableLoading$.next(false) })
+                map(data => { return data }),
+                doOnSubscribe(() => this.tableLoading$.next(true)),
+                tap({ complete: () => this.tableLoading$.next(false) })
             )
         })
     )
 
     async ngOnInit() {
         this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
-        this.gridOptions.enableRowDetailView = this.apiService.isMobile()
+        this.gridOptions.enableRowDetailView = false
         this.gridOptions.autoEdit = true
         this.gridOptions.showFooterRow = true
-        this.gridOptions.createFooterRow = true
+        this.gridOptions.createFooterRow = true  
     }
 
     ngAfterViewInit(): void {
         const now = new Date();
         setTimeout(() => {
-          const anio =
-            Number(localStorage.getItem('anio')) > 0
-              ? Number(localStorage.getItem('anio'))
-              : now.getFullYear();
-          const mes =
-            Number(localStorage.getItem('mes')) > 0
-              ? Number(localStorage.getItem('mes'))
-              : now.getMonth() + 1;
-    
-          this.selectedPeriod.year = anio
-          this.selectedPeriod.month = mes
+            const anio = Number(localStorage.getItem('anio')) > 0  ? Number(localStorage.getItem('anio')) : now.getFullYear();
+            const mes = Number(localStorage.getItem('mes')) > 0 ? Number(localStorage.getItem('mes')) : now.getMonth() + 1;
+            this.selectedPeriod.year = anio
+            this.selectedPeriod.month = mes
+            this.formAsist().form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
         }, 1);
     }
 
@@ -89,11 +82,19 @@ export class AyudaAsistencialComponent {
         const gruposActividadList = user.GrupoActividad
         setTimeout(() => {
             if (gruposActividadList.length > 0)
-            this.startFilters = [
-                { field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: gruposActividadList.join(';'), forced: false },
-            ]
+              this.startFilters.push({ field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: gruposActividadList.join(';'), forced: false })
         }, 1500);
-      }
+    }
+
+    async angularGridReady(angularGrid: any) {
+        this.angularGrid = angularGrid.detail
+        this.gridObj = angularGrid.detail.slickGrid;
+        
+        this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+          totalRecords(this.angularGrid)
+        })
+        
+    }
 
     dateChange(result: Date): void {
         this.selectedPeriod.year = result.getFullYear();
