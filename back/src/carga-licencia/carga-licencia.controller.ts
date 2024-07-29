@@ -496,7 +496,7 @@ export class CargaLicenciaController extends BaseController {
       await queryRunner.startTransaction();
 
       
-      if(PersonalLicenciaSePaga == null   ){
+      if(PersonalLicenciaSePaga == null || PersonalLicenciaSePaga == "N" ){
         if( PersonalLicenciaAplicaPeriodoHorasMensuales != null && PersonalLicenciaAplicaPeriodoHorasMensuales > 0){
           throw new ClientException(`No puede modificar el se paga ya que tiene horas cargadas`)
         }

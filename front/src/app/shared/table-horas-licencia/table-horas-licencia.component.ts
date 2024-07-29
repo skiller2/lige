@@ -191,6 +191,11 @@ export class TableHorasLicenciaComponent {
 
     this.angularGridEdit = angularGrid.detail
     this.gridObjEdit = angularGrid.detail.slickGrid;
+
+    this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGridEdit)
+    })   
+
     this.angularGridEdit.slickGrid.onClick.subscribe((e, args)=> {
       this.PersonalLicenciaHoras = []
       var data = this.dataAngularGrid[args.row]
