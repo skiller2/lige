@@ -149,7 +149,7 @@ export class EditorCategoriaComponent {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.eto.setDisabledState(isDisabled)
+    this.eto?.setDisabledState(isDisabled)
   } 
 
 }

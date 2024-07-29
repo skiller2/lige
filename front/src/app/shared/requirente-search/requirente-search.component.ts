@@ -166,7 +166,7 @@ export class RequirenteSearchComponent implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.rsc.setDisabledState(isDisabled)
+    this.rsc?.setDisabledState(isDisabled)
   } 
 
 }

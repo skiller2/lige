@@ -140,7 +140,7 @@ export class TipoMovimientoSearchComponent implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.msc.setDisabledState(isDisabled)
+    this.msc?.setDisabledState(isDisabled)
   } 
 
 }

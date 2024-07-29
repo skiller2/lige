@@ -42,7 +42,7 @@ import { SHARED_IMPORTS } from '@shared';
 
 `,
 standalone: true,
-imports: [RouterOutlet,CommonModule,...SHARED_IMPORTS,
+imports: [RouterOutlet,CommonModule,AppComponent,...SHARED_IMPORTS,
 ]
 })
 export class AppComponent implements OnInit {

@@ -168,7 +168,7 @@ export class ClienteSearchComponent implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.csc.setDisabledState(isDisabled)
+    this.csc?.setDisabledState(isDisabled)
   } 
 
 }
