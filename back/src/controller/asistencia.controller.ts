@@ -338,8 +338,7 @@ export class AsistenciaController extends BaseController {
   tli.TipoInasistenciaDescripcion,
   tli.TipoInasistenciaApartado,
 	lic.PersonalLicenciaDesde,
-	lic.PersonalLicenciaHasta,
-	lic.PersonalLicenciaTermina,
+	ISNULL(lic.PersonalLicenciaHasta,lic.PersonalLicenciaTermina) PersonalLicenciaHasta,
    cat.CategoriaPersonalDescripcion,
 	lic.PersonalLicenciaObservacion,
 	med.PersonalLicenciaDiagnosticoMedicoDiagnostico,
@@ -360,12 +359,11 @@ export class AsistenciaController extends BaseController {
     WHERE lic.PersonalLicenciaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(ISNULL(lic.PersonalLicenciaTermina,lic.PersonalLicenciaHasta),'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
     ${listPersonaId} ` 
     
+    if(PersonalLicenciaSePaga)
+       selectquery += ` AND (lic.PersonalLicenciaSePaga = 'S' OR PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60 >0)`
+
     if(filterSql && filterSql.length > 0)
-      selectquery += `AND ${filterSql}`
-
-    // if(PersonalLicenciaSePaga)
-    //   selectquery += ` AND lic.PersonalLicenciaSePaga = 'S'`
-
+      selectquery += ` AND ${filterSql}`
 
     return await queryRunner.query(selectquery, [, anio, mes]) 
 /*

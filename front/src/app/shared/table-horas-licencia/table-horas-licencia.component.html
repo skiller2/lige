@@ -6,8 +6,8 @@
   
         <div class="gridContainer2 container-fluid" *ngIf="(columns$|async) as columnas">
             <angular-slickgrid gridId="gridEdit2" [columnDefinitions]="columnas | colsFilter"
-            [gridOptions]="gridOptionsEdit" [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReadyEdit($event)"
-           >
+            [gridOptions]="gridOptionsEdit" [dataset]="(gridData$ | async) || []" 
+            (onAngularGridCreated)="angularGridReadyEdit($event)" >
           </angular-slickgrid>
           </div>
       </ng-container>

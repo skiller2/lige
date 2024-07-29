@@ -104,9 +104,8 @@ export class TableAbmLicenciaComponent {
  mes = input<number>();
 
   ngOnChanges(changes: SimpleChanges) {
-    if (this.RefreshLicencia() === true) {
+    if ((changes['RefreshLicencia'] && changes['RefreshLicencia'].currentValue==true ) || changes['anio'] || changes['mes'] )
       this.formChange$.next("");
-    }
   }
 
  

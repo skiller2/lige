@@ -46,7 +46,7 @@ export class LicenciaDrawerComponent {
   PersonalIdForEdit = 0
   SucursalId = 0
   ArchivoIdForDelete = 0;
-  tipoDocumentDelete = signal(false)
+  PersonalLicenciaAplicaPeriodoHorasMensuales = signal(null)
   //selectedOption: string = "Indeterminado";
   options: any[] = [];
   //fileUploaded = false;
@@ -87,6 +87,7 @@ export class LicenciaDrawerComponent {
       const per = this.selectedPeriod()
       if (this.PersonalLicenciaId() > 0) {
         let vals = await firstValueFrom(this.apiService.getLicencia(per.year, per.month, this.PersonalId(), this.PersonalLicenciaId()));
+        //console.log("vals ", vals)
         vals.categoria = { id: `${vals.PersonalLicenciaTipoAsociadoId}-${vals.PersonalLicenciaCategoriaPersonalId}`,categoriaId:vals.PersonalLicenciaCategoriaPersonalId,tipoId:vals.PersonalLicenciaTipoAsociadoId }
         vals.PersonalLicenciaTipoAsociadoId = vals.categoria.categoriaId
         vals.PersonalLicenciaCategoriaPersonalId = vals.categoria.tipoId
@@ -97,6 +98,8 @@ export class LicenciaDrawerComponent {
 
         if(vals.PersonalLicenciaDiagnosticoMedicoDiagnostico != null)
           vals.PersonalLicenciaDiagnosticoMedicoDiagnostico = vals.PersonalLicenciaDiagnosticoMedicoDiagnostico.trim()
+
+        this.PersonalLicenciaAplicaPeriodoHorasMensuales.set(vals.PersonalLicenciaAplicaPeriodoHorasMensuales)
 
         this.ngForm().form.patchValue(vals)
         this.ngForm().form.markAsUntouched()
@@ -125,7 +128,7 @@ export class LicenciaDrawerComponent {
       vals.mesRequest = periodo.month
       vals.Archivos = this.ArchivosLicenciasAdd
       vals.PersonalIdForEdit = this.PersonalIdForEdit
-
+      vals.PersonalLicenciaAplicaPeriodoHorasMensuales = this.PersonalLicenciaAplicaPeriodoHorasMensuales()
       const res = await firstValueFrom(this.apiService.setLicencia(vals))
 
       this.ngForm().form.markAsUntouched()
@@ -143,16 +146,6 @@ export class LicenciaDrawerComponent {
     let vals = this.ngForm().value
     let res = await firstValueFrom(this.apiService.deleteLicencia(vals))
     this.visible.set(false)
-  }
-
-   ArchivoDelete(template: TemplateRef<{}>, id: string, tipoDocumentDelete : boolean): void {
-
-    this.ArchivoIdForDelete = parseInt(id);
-    this.tipoDocumentDelete.set(tipoDocumentDelete)
-    const element = document.getElementsByClassName('notificacionArchivo');
-
-    if (element.length == 0)
-      this.notification.template(template);
   }
 
   uploadChange(event: any) {
@@ -175,7 +168,7 @@ export class LicenciaDrawerComponent {
         const Response = event.file.response
        
         this.ArchivosLicenciasAdd = [ ...this.ArchivosLicenciasAdd, Response.data[0] ]
-        console.log(this.ArchivosLicenciasAdd)
+       // console.log(this.ArchivosLicenciasAdd)
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response) 
         //this.fileUploaded = true;
@@ -187,9 +180,10 @@ export class LicenciaDrawerComponent {
 
   }
 
- async confirmDeleteArchivo() {
+ async confirmDeleteArchivo( id: string, tipoDocumentDelete : boolean) {
     try {
-      if( this.tipoDocumentDelete()){
+      this.ArchivoIdForDelete = parseInt(id);
+      if( tipoDocumentDelete){
         console.log("fieldname ", this.ArchivosLicenciasAdd)
         console.log("ArchivoIdForDelete ", this.ArchivoIdForDelete)
         const ArchivoFilter = this.ArchivosLicenciasAdd.filter((item) => item.fieldname === this.ArchivoIdForDelete)

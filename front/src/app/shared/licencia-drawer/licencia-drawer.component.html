@@ -87,7 +87,16 @@
         <nz-form-control>
           <ng-container *ngFor="let licencia of $ArchivosLicencias | async" >
             <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{licencia.nombre}}>
-              <span nz-icon nzType="delete" nzTheme="outline" class="trash-color" (click)="ArchivoDelete(templateArchivo,licencia.id,false)"></span>
+              
+              <span 
+                nz-popconfirm
+                nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
+                (nzOnConfirm)="confirmDeleteArchivo(licencia.id,false)"
+                nzPopconfirmPlacement="top"
+                nz-button 
+                nzType="primary"
+                nzDanger
+                nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
               <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
               <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
                 class="download-color" app-down-file [httpMethod]="'POST'"
@@ -98,7 +107,16 @@
           @if(ArchivosLicenciasAdd.length > 0){
             <ng-container  class="" *ngFor="let licenciaAdd of ArchivosLicenciasAdd ">
               <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{licenciaAdd.fieldname}}>
-                <span nz-icon nzType="delete" nzTheme="outline" class="trash-color" (click)="ArchivoDelete(templateArchivo,licenciaAdd.fieldname,true)"></span>
+                
+                <span 
+                    nz-popconfirm
+                    nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
+                    (nzOnConfirm)="confirmDeleteArchivo(licenciaAdd.fieldname,true)"
+                    nzPopconfirmPlacement="top"
+                    nz-button 
+                    nzType="primary"
+                    nzDanger
+                    nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
                 <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
                   class="download-color" app-down-file [httpMethod]="'POST'"
                   [httpBody]="{'documentId': licenciaAdd.id}" httpUrl="api/carga-licencia/downloadLicencia"></a>
@@ -156,19 +174,4 @@
     
     <!-- <p>Debug Valores: {{ngForm().value | json }}</p> -->
   </ng-container>
-  <ng-template #templateArchivo let-notification>
-    <div class=" notificacionArchivo ant-notification-notice-content">
-      <div>
-        <div class="ant-notification-notice-message">Eliminar Archivo</div>
-        <div class="ant-notification-notice-description">
-          Seguro que desea eliminar dicho archivo
-        </div>
-        <span class="ant-notification-notice-btn">
-          <button nz-button nzType="primary" nzSize="small" (click)="confirmDeleteArchivo()">
-            <span>Aceptar</span>
-          </button>
-        </span>
-      </div>
-    </div>
-  </ng-template>
 </nz-drawer>

@@ -85,24 +85,14 @@ const columnasGrilla: any[] = [
     sortable: true
   },
   {
-    name: "Personal",
-    type: "number",
-    id: "PersonalId",
-    field: "PersonalId",
-    fieldName: "persona.PersonalId",
-    searchComponent: "inpurForPersonalSearch",
-    hidden: true,
-    searchHidden: false,
-    sortable: true
-  },
-  {
-    name: "Nombre y Apellido",
+    name: "Apellido y Nombre",
     type: "string",
     id: "NombreCompleto",
     field: "NombreCompleto",
-    fieldName: "NombreCompleto",
+    fieldName: "persona.PersonalId",
+    searchComponent: "inpurForPersonalSearch",
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     sortable: true
   },
   {
@@ -167,14 +157,15 @@ const columnasGrilla: any[] = [
     sortable: true
   },
   {
-    name: "Termina",
+    name: "Hasta",
     type: "date",
-    id: "PersonalLicenciaTermina",
-    field: "PersonalLicenciaTermina",
-    fieldName: "lic.PersonalLicenciaTermina",
-    hidden: true,
-    searchHidden: true,
-    sortable: true
+    id: "PersonalLicenciaHasta",
+    field: "PersonalLicenciaHasta",
+    fieldName: "ISNULL(lic.PersonalLicenciaHasta,lic.PersonalLicenciaTermina)",
+    searchComponent: "inpurForFechaSearch",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
   },
   {
     name: "Categoria",
@@ -214,7 +205,7 @@ const columnasGrilla: any[] = [
     formatter: 'collectionFormatter',
     exportWithFormatter: true,
     params: { collection: getOptions, },
-    type: 'string',    
+    type: 'string',
     searchComponent: "inpurForSePaga",
     hidden: false,
     searchHidden: false,
@@ -266,17 +257,15 @@ const columnasGrillaHoras: any[] = [
     sortable: true
   },
   {
-    name: "Nombre y Apellido",
+    name: "Apellido y Nombre",
     type: "string",
     id: "NombreCompleto",
     field: "NombreCompleto",
-    fieldName: "NombreCompleto",
+    fieldName: "persona.PersonalId",
     searchComponent: "inpurForPersonalSearch",
-    searchType: "number",
-    sortable: true,
-    searchHidden: false,
     hidden: false,
-
+    searchHidden: false,
+    sortable: true
   },
   {
     name: "Desde",
@@ -294,7 +283,7 @@ const columnasGrillaHoras: any[] = [
     type: "date",
     id: "PersonalLicenciaHasta",
     field: "PersonalLicenciaHasta",
-    fieldName: "lic.PersonalLicenciaHasta",
+    fieldName: "ISNULL(lic.PersonalLicenciaHasta,lic.PersonalLicenciaTermina)",
     searchComponent: "inpurForFechaSearch",
     sortable: true,
     searchHidden: false,
@@ -422,7 +411,7 @@ export class CargaLicenciaController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     try {
 
-      const listCargaLicencia = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [], filterSql, true)
+      const listCargaLicencia = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [], filterSql, false)
       this.jsonRes(
         {
           total: listCargaLicencia.length,
@@ -482,17 +471,27 @@ export class CargaLicenciaController extends BaseController {
       mesRequest,
       Archivos,
       PersonalIdForEdit,
-      PersonalLicenciaDiagnosticoMedicoDiagnostico
+      PersonalLicenciaDiagnosticoMedicoDiagnostico,
+      PersonalLicenciaAplicaPeriodoHorasMensuales
 
     } = req.body
     console.log(req.body)
+
+
     const queryRunner = dataSource.createQueryRunner();
     try {
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      if (req.body.PersonalLicenciaDesde == "")
+
+      if (PersonalLicenciaSePaga == null || PersonalLicenciaSePaga == "N") {
+        if (PersonalLicenciaAplicaPeriodoHorasMensuales != null && PersonalLicenciaAplicaPeriodoHorasMensuales > 0) {
+          throw new ClientException(`No puede modificar el se paga ya que tiene horas cargadas`)
+        }
+      }
+
+      if (req.body.PersonalLicenciaDesde == null)
         throw new ClientException(`Debe seleccionar la fecha desde`)
 
 
@@ -504,6 +503,8 @@ export class CargaLicenciaController extends BaseController {
       } else {
         PersonalLicenciaHasta = null
       }
+
+
 
       const PersonalLicenciaDesde = new Date(req.body.PersonalLicenciaDesde)
       PersonalLicenciaDesde.setHours(0, 0, 0, 0)
@@ -562,7 +563,10 @@ export class CargaLicenciaController extends BaseController {
 
       let DiagnosticoUpdate
 
-      if (PersonalLicenciaDiagnosticoMedicoDiagnostico.trim() == "") {
+      if (PersonalLicenciaDiagnosticoMedicoDiagnostico != null)
+        PersonalLicenciaDiagnosticoMedicoDiagnostico.trim()
+
+      if (PersonalLicenciaDiagnosticoMedicoDiagnostico == null) {
         DiagnosticoUpdate = null
       } else {
         const ResultDiagnostico = await queryRunner.query(`SELECT PersonalLicenciaDiagnosticoMedicoId FROM PersonalLicenciaDiagnosticoMedico WHERE PersonalId = @0 AND PersonalLicenciaId = @1  `,
@@ -610,7 +614,7 @@ export class CargaLicenciaController extends BaseController {
               FROM PersonalSituacionRevista sit
               JOIN PersonalLicencia lic ON lic.PersonalLicenciaDesde = sit.PersonalSituacionRevistaDesde AND sit.PersonalId = lic.PersonalId 
               WHERE sit.PersonalId = @0 AND sit.PersonalSituacionRevistaSituacionId = 10 AND lic.PersonalLicenciaId = @1 
-          `, [PersonalId,PersonalLicenciaId])
+          `, [PersonalId, PersonalLicenciaId])
 
         if (sitrevUpdate.length != 1)
           throw new ClientException(`No se puede localizar situación de revista relacionada a la licencia`)
@@ -874,28 +878,26 @@ export class CargaLicenciaController extends BaseController {
     let deleteId = Number(req.query[0])
     const queryRunner = dataSource.createQueryRunner();
     try {
-     
+
       const document = await this.getLicenciatInfo(deleteId);
       const finalurl = `${document[0]["path"]}`
 
-      if(document.length > 0 ) {
-        if (!existsSync(finalurl)){
+      if (document.length > 0) {
+        if (!existsSync(finalurl)) {
           console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
-         }else {
-           await unlink(finalurl);
+        } else {
+          await unlink(finalurl);
         }
 
-        console.log("..................................")
-        console.log("voy a borrar " , deleteId )
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
-        await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE doc_id = @0`,[deleteId])
+        await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE doc_id = @0`, [deleteId])
 
         await queryRunner.commitTransaction();
-      }   
+      }
 
-     this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
+      this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
 
     } catch (error) {
       this.rollbackTransaction(queryRunner)
@@ -928,6 +930,7 @@ export class CargaLicenciaController extends BaseController {
     PARSENAME(lic.PersonalLicenciaHorasMensuales,2)+ CAST(PARSENAME(lic.PersonalLicenciaHorasMensuales,1) AS FLOAT)/60 AS PersonalLicenciaHorasMensuales,
 
     val.ValorLiquidacionHoraNormal,
+    PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60 AS PersonalLicenciaAplicaPeriodoHorasMensuales,
     (PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60) * val.ValorLiquidacionHoraNormal AS total,  
 
     lic.PersonalLicenciaSePaga,
@@ -935,8 +938,7 @@ export class CargaLicenciaController extends BaseController {
     tli.TipoInasistenciaDescripcion,
     tli.TipoInasistenciaApartado,
     lic.PersonalLicenciaDesde,
-    lic.PersonalLicenciaHasta,
-    lic.PersonalLicenciaTermina,
+    ISNULL(lic.PersonalLicenciaTermina, lic.PersonalLicenciaHasta) PersonalLicenciaHasta,
     cat.CategoriaPersonalDescripcion,
     lic.PersonalLicenciaObservacion,
     lic.PersonalLicenciaTipoAsociadoId,
@@ -969,7 +971,7 @@ export class CargaLicenciaController extends BaseController {
   ) {
 
     //valida si existe diagnostico medico
-    if (PersonalLicenciaDiagnosticoMedicoDiagnostico.trim() == "") {
+    if (PersonalLicenciaDiagnosticoMedicoDiagnostico == null) {
 
       //borra el registro con el mayor numero en PersonalLicenciaDiagnosticoMedicoId
       await queryRunner.query(`DELETE FROM PersonalLicenciaDiagnosticoMedico
@@ -1004,7 +1006,7 @@ export class CargaLicenciaController extends BaseController {
                PersonalLicenciaDiagnosticoMedicoFechaDiagnostico,
                PersonalLicenciaDiagnosticoMedicoDiagnostico )
                 VALUES (@0,@1,@2,@3,@4)`
-          , [DiagnosticoUpdate, PersonalId, PersonalLicenciaId, PersonalLicenciaDesde, PersonalLicenciaDiagnosticoMedicoDiagnostico.trim()])
+          , [DiagnosticoUpdate, PersonalId, PersonalLicenciaId, PersonalLicenciaDesde, PersonalLicenciaDiagnosticoMedicoDiagnostico])
       }
 
     }
@@ -1262,7 +1264,7 @@ export class CargaLicenciaController extends BaseController {
     }
   }
 
-  async validateDates(Fechadesde: Date, personalId: any, PersonalLicenciaId: any,queryRunner:QueryRunner) {
+  async validateDates(Fechadesde: Date, personalId: any, PersonalLicenciaId: any, queryRunner: QueryRunner) {
     return queryRunner.query(
       `SELECT * FROM PersonalLicencia lic WHERE 
         lic.PersonalId = @0 AND lic.PersonalLicenciaId <> @2 AND
