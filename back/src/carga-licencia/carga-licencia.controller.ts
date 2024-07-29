@@ -85,24 +85,14 @@ const columnasGrilla: any[] = [
     sortable: true
   },
   {
-    name: "Personal",
-    type: "number",
-    id: "PersonalId",
-    field: "PersonalId",
-    fieldName: "persona.PersonalId",
-    searchComponent: "inpurForPersonalSearch",
-    hidden: true,
-    searchHidden: false,
-    sortable: true
-  },
-  {
-    name: "Nombre y Apellido",
+    name: "Apellido y Nombre",
     type: "string",
     id: "NombreCompleto",
     field: "NombreCompleto",
-    fieldName: "NombreCompleto",
+    fieldName: "persona.PersonalId",
+    searchComponent: "inpurForPersonalSearch",
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     sortable: true
   },
   {
@@ -267,17 +257,15 @@ const columnasGrillaHoras: any[] = [
     sortable: true
   },
   {
-    name: "Nombre y Apellido",
+    name: "Apellido y Nombre",
     type: "string",
     id: "NombreCompleto",
     field: "NombreCompleto",
-    fieldName: "NombreCompleto",
+    fieldName: "persona.PersonalId",
     searchComponent: "inpurForPersonalSearch",
-    searchType: "number",
-    sortable: true,
-    searchHidden: false,
     hidden: false,
-
+    searchHidden: false,
+    sortable: true
   },
   {
     name: "Desde",
