@@ -194,6 +194,7 @@ export class TableHorasLicenciaComponent {
 
     this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGridEdit)
+      columnTotal('total', this.angularGridEdit)
     })   
 
     this.angularGridEdit.slickGrid.onClick.subscribe((e, args)=> {

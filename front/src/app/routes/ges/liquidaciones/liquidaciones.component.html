@@ -238,8 +238,14 @@
                   <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
                     <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{movimiento.nombre}}>
                       <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
-                      <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"
-                        (click)="createBasicNotificationImportacion(templateImportacion,movimiento.id)"></span>
+                      <span nz-popconfirm
+                      nzPopconfirmTitle="Seguro que desea eliminar dichas importaciones?"
+                      (nzOnConfirm)="confirmDeleteImportacion(movimiento.id)"
+                      nzPopconfirmPlacement="top"
+                      nz-button 
+                      nzType="primary"
+                      nzDanger
+                      nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
                       <a nz-icon nzType="download" nzHref="movimiento.path" target="_blank" nzTheme="outline"
                         class="download-color" app-down-file [httpMethod]="'POST'"
                         [httpBody]="{'documentId': movimiento.id}" httpUrl="api/liquidaciones/downloadImportacion"></a>
@@ -283,21 +289,6 @@
       </nz-tab>
     </nz-tabset>
 
-    <ng-template #templateImportacion let-notification>
-      <div class=" notificacionImportacion ant-notification-notice-content">
-        <div>
-          <div class="ant-notification-notice-message">Eliminar Importación</div>
-          <div class="ant-notification-notice-description">
-            Seguro que desea eliminar dichas importaciones...
-          </div>
-          <span class="ant-notification-notice-btn">
-            <button nz-button nzType="primary" nzSize="small" (click)="confirmDeleteImportacion()">
-              <span>Aceptar</span>
-            </button>
-          </span>
-        </div>
-      </div>
-    </ng-template>
 
   </form>
 </nz-card>

@@ -668,15 +668,6 @@ export class LiquidacionesComponent {
     this.angularGridEdit.gridService.addItem(newItem1, { position: insertPosition, highlightRow: false, scrollRowIntoView: false, triggerEvent: false });
   }
 
-  createBasicNotificationImportacion(template: TemplateRef<{}>, id: string): void {
-
-    this.NotificationIdForDelete = parseInt(id);
-    const element = document.getElementsByClassName('notificacionImportacion');
-
-    if (element.length == 0)
-      this.notification.template(template);
-  }
-
   cleanTable() {
 
     const ids = this.gridDataInsert.filter((f: any) => f.isfull == 1);
@@ -713,7 +704,8 @@ export class LiquidacionesComponent {
     }
   }
 
-  confirmDeleteImportacion() {
+  confirmDeleteImportacion( id: any) {
+    this.NotificationIdForDelete = parseInt(id);
     const periodo = this.liquidacionesForm.form.get('periodo')?.value
     let periodoM = periodo.getMonth() + 1;
     let periodoY = periodo.getFullYear();

@@ -46,7 +46,6 @@ export class LicenciaDrawerComponent {
   PersonalIdForEdit = 0
   SucursalId = 0
   ArchivoIdForDelete = 0;
-  tipoDocumentDelete = signal(false)
   PersonalLicenciaAplicaPeriodoHorasMensuales = signal(null)
   //selectedOption: string = "Indeterminado";
   options: any[] = [];
@@ -149,16 +148,6 @@ export class LicenciaDrawerComponent {
     this.visible.set(false)
   }
 
-   ArchivoDelete(template: TemplateRef<{}>, id: string, tipoDocumentDelete : boolean): void {
-
-    this.ArchivoIdForDelete = parseInt(id);
-    this.tipoDocumentDelete.set(tipoDocumentDelete)
-    const element = document.getElementsByClassName('notificacionArchivo');
-
-    if (element.length == 0)
-      this.notification.template(template);
-  }
-
   uploadChange(event: any) {
     switch (event.type) {
       case 'start':
@@ -191,9 +180,10 @@ export class LicenciaDrawerComponent {
 
   }
 
- async confirmDeleteArchivo() {
+ async confirmDeleteArchivo( id: string, tipoDocumentDelete : boolean) {
     try {
-      if( this.tipoDocumentDelete()){
+      this.ArchivoIdForDelete = parseInt(id);
+      if( tipoDocumentDelete){
         console.log("fieldname ", this.ArchivosLicenciasAdd)
         console.log("ArchivoIdForDelete ", this.ArchivoIdForDelete)
         const ArchivoFilter = this.ArchivosLicenciasAdd.filter((item) => item.fieldname === this.ArchivoIdForDelete)
