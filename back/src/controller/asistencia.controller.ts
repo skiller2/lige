@@ -363,8 +363,8 @@ export class AsistenciaController extends BaseController {
     if(filterSql && filterSql.length > 0)
       selectquery += `AND ${filterSql}`
 
-    // if(PersonalLicenciaSePaga)
-    //   selectquery += ` AND lic.PersonalLicenciaSePaga = 'S'`
+    if(PersonalLicenciaSePaga)
+       selectquery += ` AND (lic.PersonalLicenciaSePaga = 'S' OR PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60 >0)`
 
 
     return await queryRunner.query(selectquery, [, anio, mes]) 

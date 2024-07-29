@@ -422,7 +422,7 @@ export class CargaLicenciaController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     try {
 
-      const listCargaLicencia = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [], filterSql, true)
+      const listCargaLicencia = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [], filterSql, false)
       this.jsonRes(
         {
           total: listCargaLicencia.length,
@@ -436,7 +436,7 @@ export class CargaLicenciaController extends BaseController {
     }
   }
 
-  async listHoras(
+  async  listHoras(
     req: any,
     res: Response,
     next: NextFunction
