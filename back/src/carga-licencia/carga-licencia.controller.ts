@@ -512,8 +512,8 @@ export class CargaLicenciaController extends BaseController {
       //if (isNaN(PersonalLicenciaHasta.getTime()))
       //PersonalLicenciaHasta = null
       if (PersonalLicenciaHasta != null) {
-        if (PersonalLicenciaHasta > PersonalLicenciaDesde) {
-          throw new ClientException(`La fecha Hasta no puede ser mayor a la fecha desde`)
+        if (PersonalLicenciaHasta < PersonalLicenciaDesde) {
+          throw new ClientException(`La fecha Hasta debe ser mayor a la fecha desde`)
         }
       }
 
