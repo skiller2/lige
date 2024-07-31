@@ -1761,7 +1761,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       
       WHERE obja.ObjetivoAsistenciaAnoAno = @1 
       AND objm.ObjetivoAsistenciaAnoMesMes = @2
-      AND objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras IN ('N','C')
+      AND objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras IN ('N','C','R')
 
       ${extraFiltersStr}
 `,
@@ -1885,9 +1885,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const totalHoras = result.map(row => row.totalhorascalc).reduce((prev, curr) => prev + curr, 0)
       const totalHorasN = result.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'N') ? row.totalhorascalc : 0 }).reduce((prev, curr) => prev + curr, 0)
       const totalHorasC = result.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'C') ? row.totalhorascalc : 0 }).reduce((prev, curr) => prev + curr, 0)
+      const totalHorasR = result.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'R') ? row.totalhorascalc : 0 }).reduce((prev, curr) => prev + curr, 0)
 
 
-      this.jsonRes({ asistencia: result, totalImporte, totalHoras, totalHorasN, totalHorasC }, res);
+      this.jsonRes({ asistencia: result, totalImporte, totalHoras, totalHorasN, totalHorasC,totalHorasR }, res);
 
     } catch (error) {
       this.rollbackTransaction(queryRunner)
@@ -2588,7 +2589,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     return [
       { TipoHoraId: 'N', Descripcion: 'Normal' },
       { TipoHoraId: 'C', Descripcion: 'Capacitacion' },
-      { TipoHoraId: 'A', Descripcion: 'Art42' },
+      { TipoHoraId: 'R', Descripcion: 'Retén' },
     ]
   }
 
