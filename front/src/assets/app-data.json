@@ -158,6 +158,12 @@
           "link": "/ges/cust",
           "icon": "anticon-profile"
         }
+        ,
+        {
+          "text": "Clientes",
+          "link": "/ges/clientes",
+          "icon": "anticon-profile"
+        }
       ]
     }
   ],

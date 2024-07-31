@@ -30,7 +30,7 @@ import { ListaPermisoCargaController } from "../lista-permisocarga/lista-permiso
 import { CargaLicenciaController } from "../carga-licencia/carga-licencia.controller";
 import { InasistenciaController } from "../controller/inasistencia.controller";
 import { AyudaAsistencialController } from "./ayuda-asistencial.controller"
-
+import { ClientesController } from "../clientes/clientes.controller"
 
 
 export const infoController = new InfoController();
@@ -65,3 +65,5 @@ export const listaPermisoCargaController = new ListaPermisoCargaController();
 export const cargaLicenciaController = new CargaLicenciaController();
 export const inasistenciaController = new InasistenciaController();
 export const ayudaAsistencialController = new AyudaAsistencialController();
+export const clientesController = new ClientesController();
+

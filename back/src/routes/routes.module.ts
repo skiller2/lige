@@ -24,6 +24,7 @@ import { custodiaRouter } from "./custodia.routes";
 import { CargaLicenciaCargaRouter } from "../carga-licencia/carga-licencia.routes"
 import { inasistenciaRouter } from "../routes/inasistencia.routes"
 import { ayudaAsistencialRouter } from "./ayuda-asistencial.routes"
+import { clientesRouter } from "../clientes/clientes.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -51,4 +52,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/carga-licencia", CargaLicenciaCargaRouter);
   server.setRoute("/api/inasistencia", inasistenciaRouter);
   server.setRoute("/api/ayuda-asistencial", ayudaAsistencialRouter)
+  server.setRoute("/api/clientes", clientesRouter)
 }

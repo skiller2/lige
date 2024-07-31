@@ -1,0 +1,53 @@
+<nz-card class="small-margin">
+  
+    <div style="align-items: end; display: flex; justify-content: space-between;">
+    <ul nz-menu nzMode="horizontal" >
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'clientes', 'clientes']" (click)="getGridData()" >Clientes</a>
+      </li>
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'clientes', 'detalle']" (click)="setEdit(false)">Detalle</a>
+      </li>
+    </ul>
+  
+    <nz-button-group >
+      <a [routerLink]="['/', 'ges', 'clientes','detalle']" (click)="setEdit(true)">
+        <button nz-button nzType="default" [disabled]="editClienteId? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+      </a>
+      <a [routerLink]="['/', 'ges', 'clientes','alta']">
+        <button nz-button nzType="default" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+      </a>
+    </nz-button-group>
+    </div>
+  
+    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+  
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/clientes/clientes" >Clientes</a>
+  
+        <ng-template nz-tab *ngIf="(columns$|async) as columnas">
+          <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters" />
+  
+          <div class="gridListContainer container-fluid" >
+            <angular-slickgrid gridId="grid" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptions"
+              [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
+              (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+            </angular-slickgrid>
+          </div>
+        </ng-template>
+      </nz-tab>
+  
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/clientes/detalle" >Detalle</a>
+        <!-- <app-custodias-form [custodiaId]="editCustodiaId" [edit]="edit && estado" ></app-custodias-form> -->
+      </nz-tab>
+  
+      <nz-tab> 
+        <a nz-tab-link routerLink="/ges/clientes/alta" >Alta</a>
+        <!-- <app-custodias-form></app-custodias-form> -->
+      </nz-tab>
+  
+    </nz-tabset>
+  </nz-card>

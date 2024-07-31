@@ -95,4 +95,10 @@ export const GesRoutes: Routes = [
     path: 'carga_licencias/:tab',
     loadComponent: () => import('./carga-licencias/carga-licencias.component').then(c => c.CargaLicenciasComponent),
   },
+   
+  { path: 'clientes', redirectTo: 'clientes/objetivos' },
+  {
+    path: 'clientes/:tab',
+    loadComponent: () => import('./clientes/clientes.component').then(c => c.ClientesComponent),
+  },
 ];
