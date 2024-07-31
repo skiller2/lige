@@ -414,8 +414,23 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
 
 
           records.forEach(rec => {
-            if (rec.ObjetivoAsistenciaAnoAno == lastyear  || (rec.ObjetivoAsistenciaAnoAno < lastyear && rec.ObjetivoAsistenciaAnoMesMes >= lastmonth))
-              horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoAno + '-' + rec.ObjetivoAsistenciaAnoMesMes, y: rec.totalhorascalc, type: rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras, color: rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'N' ? '#f50' : '#e30', })
+            if (rec.ObjetivoAsistenciaAnoAno == lastyear || (rec.ObjetivoAsistenciaAnoAno < lastyear && rec.ObjetivoAsistenciaAnoMesMes >= lastmonth)) {
+              let color='#f80'
+              switch (rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras) {
+                case 'C':
+                  color='#f50'
+                  break;
+                case 'N':
+                  color='#e30'
+                  break;
+                case 'R':
+                  color='#d10'
+                  break;
+                default:
+                  break;
+              } 
+              horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoAno + '-' + rec.ObjetivoAsistenciaAnoMesMes, y: rec.totalhorascalc, type: rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras, color: color, })
+            }
           })
         }
 
