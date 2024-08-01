@@ -13,7 +13,7 @@ export class ObjetivoController extends BaseController {
         ISNULL(ISNULL(ele.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId
         FROM Objetivo obj 
         JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-        LEFT JOIN ClienteElementoDependiente ele ON ele.ElementoDependienteId = obj.ClienteElementoDependienteId AND ele.ClienteId = obj.ClienteId
+        LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId = obj.ClienteId AND ele.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
         WHERE obj.ObjetivoId = @0`,
         [objetivoId]
       );
