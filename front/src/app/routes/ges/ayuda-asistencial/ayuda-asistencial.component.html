@@ -16,6 +16,10 @@
       <nz-form-control>
         <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
       </nz-form-control>
+      <nz-form-control style="display: flex; justify-content:center; align-items:end;">    
+        <!-- <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Aprobar registro?"><span nz-icon nzType="check" nzTheme="outline"></span></button> -->
+        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Rechazar registro?" (click)="rechazarReg()" [disabled]="!registroId.length" ><span nz-icon nzType="close" nzTheme="outline"></span></button>
+      </nz-form-control>
     </nz-form-item>
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
@@ -26,7 +30,8 @@
           <div class="gridContainer container-fluid">
             <angular-slickgrid gridId="grid" class="" [columnDefinitions]="columnas | colsFilter"
               [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
-              (onAngularGridCreated)="angularGridReady($event)"
+              (onAngularGridCreated)="angularGridReady($event)" (onBeforeEditCell)="handleOnBeforeEditCell($event)"
+              (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"
               >
             </angular-slickgrid>
           </div>

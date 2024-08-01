@@ -513,7 +513,7 @@ export class CargaLicenciaController extends BaseController {
       //PersonalLicenciaHasta = null
       if (PersonalLicenciaHasta != null) {
         if (PersonalLicenciaHasta < PersonalLicenciaDesde) {
-          throw new ClientException(`La fecha Hasta debe ser mayor a la fecha desde`)
+          throw new ClientException(`La fecha Desde no puede ser mayor a la fecha Hasta`)
         }
       }
 

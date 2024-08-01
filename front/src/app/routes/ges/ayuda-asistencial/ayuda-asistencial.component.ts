@@ -1,4 +1,4 @@
-import { Component, Injector, viewChild, inject } from '@angular/core';
+import { Component, Injector, viewChild, inject, signal } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS,listOptionsT } from '@shared';
 import { AngularGridInstance, AngularUtilService, Column, Editors, FileType, GridOption, OnEventArgs, SlickGrid } from 'angular-slickgrid';
@@ -25,6 +25,7 @@ import { ViewResponsableComponent } from "../../../shared/view-responsable/view-
 })
 export class AyudaAsistencialComponent {
     formAsist = viewChild.required(NgForm)
+    registroId = ''
     selectedPeriod = { year: 0, month: 0 };
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
@@ -42,7 +43,40 @@ export class AyudaAsistencialComponent {
     private angularUtilService = inject(AngularUtilService)
     private settingService = inject(SettingsService)
 
-    columns$ = this.apiService.getCols('/api/ayuda-asistencial/cols')
+    columns$ = this.apiService.getCols('/api/ayuda-asistencial/cols').pipe(map((cols) => {
+        let mapped = cols.map((col: Column) => {
+          if (col.id == 'PersonalPrestamoMonto') {
+            col.editor = {
+              model: Editors.float,
+              decimal: 2,
+              valueStep: 1,
+              minValue: 0,
+              maxValue: 10000000,
+              alwaysSaveOnEnterKey: true,
+              required: true
+            }
+          }
+          if (col.id == 'PersonalPrestamoCantidadCuotas') {
+            col.editor = {
+              model: Editors.integer,
+              valueStep: 1,
+              minValue: 0,
+              maxValue: 100,
+              alwaysSaveOnEnterKey: true,
+              required: true
+            }
+          }
+          if (col.id == 'PersonalPrestamoAplicaEl') {
+            col.editor = {
+              model: Editors.text,
+              alwaysSaveOnEnterKey: true,
+              required: true
+            }
+          }
+          return col
+        });
+        return mapped
+    }));
 
     gridData$ = this.formChange$.pipe(
         debounceTime(500),
@@ -63,7 +97,23 @@ export class AyudaAsistencialComponent {
         this.gridOptions.enableRowDetailView = false
         this.gridOptions.autoEdit = true
         this.gridOptions.showFooterRow = true
-        this.gridOptions.createFooterRow = true  
+        this.gridOptions.createFooterRow = true
+
+        this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
+            editCommand.execute();
+            //Verifico que los campos
+            if (!this.valAplicaEl(item.PersonalPrestamoAplicaEl) || !item.PersonalPrestamoCantidadCuotas || !item.PersonalPrestamoMonto) {
+                return 
+            }
+
+            try {
+                // const res = await firstValueFrom(this.apiService.delAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto }))
+            } catch (err) {
+              editCommand.undo()
+            }
+            // this.angularGrid.dataView.updateItem(item.id, item)
+            // this.angularGrid.slickGrid.updateRow(editCommand.row)
+        }
     }
 
     ngAfterViewInit(): void {
@@ -77,14 +127,14 @@ export class AyudaAsistencialComponent {
         }, 1);
     }
 
-    ngAfterContentInit(): void {
-        const user: any = this.settingService.getUser()
-        const gruposActividadList = user.GrupoActividad
-        setTimeout(() => {
-            if (gruposActividadList.length > 0)
-              this.startFilters.push({ field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: gruposActividadList.join(';'), forced: false })
-        }, 1500);
-    }
+    // ngAfterContentInit(): void {
+    //     const user: any = this.settingService.getUser()
+    //     const gruposActividadList = user.GrupoActividad
+    //     setTimeout(() => {
+    //         if (gruposActividadList.length > 0)
+    //           this.startFilters.push({ field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: gruposActividadList.join(';'), forced: false })
+    //     }, 1500);
+    // }
 
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
@@ -96,17 +146,52 @@ export class AyudaAsistencialComponent {
         
     }
 
+    handleOnBeforeEditCell(e: Event) {
+        const { column, item, grid } = (<CustomEvent>e).detail.args;
+        if ( item.PersonalPrestamoFechaAprobacion != null ) {
+          e.stopImmediatePropagation();
+          return false
+        }
+        return true;
+    }
+
+    handleSelectedRowsChanged(e: any): void {
+        const selrow = e.detail.args.rows[0]
+        if (Number.isNaN(selrow)) return
+        const row = this.angularGrid.slickGrid.getDataItem(selrow)
+        this.registroId = row.id
+    }
+
     dateChange(result: Date): void {
         this.selectedPeriod.year = result.getFullYear();
         this.selectedPeriod.month = result.getMonth() + 1;
-    
-        localStorage.setItem('anio', String(this.selectedPeriod.year));
-        localStorage.setItem('mes', String(this.selectedPeriod.month));
-    
         this.formChange('');
     }
 
     formChange(event: any) {
         this.formChange$.next(event);
+    }
+
+    rechazarReg(){
+        console.log(this.registroId);
+    }
+
+    valAplicaEl(date:string):boolean{
+        if (date == null) {
+            return false
+        }
+        if (date.length != 7) {
+            return false
+        }
+        const periodo = date.split('/')
+        if (periodo.length != 2 && (periodo[0].length != 2 || periodo[1].length != 4)) {
+            return false
+        }
+        const mes = Number.parseInt(periodo[0])
+        const anio = Number.parseInt(periodo[1])
+        if (Number.isNaN(mes) || mes > 12 || mes < 0 || Number.isNaN(anio) || anio < 0) {
+            return false
+        }
+        return true
     }
 }

@@ -629,6 +629,16 @@ export class SearchService {
       );
   }
 
+  getListaClientes(filters: any){
+    return this.http
+      .post<ResponseJSON<any>>(`api/clientes/list`, filters)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
+
   getInfoObjCustodia(objCustodiaId: number){
     return this.http
       .get<ResponseJSON<any>>(`api/custodia/obj/${objCustodiaId}`)
@@ -694,10 +704,7 @@ export class SearchService {
   }
 
   getPersonasAyudaAsistencial(filters: any) {
-    console.log(filters);
-    
-    const parameter = filters
-    return this.http.post<ResponseJSON<any>>('api/ayuda-asistencial/list', parameter).pipe(
+    return this.http.post<ResponseJSON<any>>('/api/ayuda-asistencial/list', filters).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
