@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-// import { Observable } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
@@ -13,9 +12,9 @@ import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } fr
 import { SearchService } from 'src/app/services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
-import { CustodiaFormComponent } from "../custodias-form/custodias-form.component";
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
+import { ClientesFormComponent } from "../clientes-form/clientes-form.component"
 
 @Component({
   selector: 'app-clientes',
@@ -24,7 +23,14 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
   styleUrl: './clientes.component.less',
   encapsulation: ViewEncapsulation.None,
   providers: [AngularUtilService],
-  imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, FiltroBuilderComponent, CustodiaFormComponent],
+  imports: [
+    SHARED_IMPORTS, 
+    CommonModule, 
+    PersonalSearchComponent, 
+    ClienteSearchComponent,
+    DetallePersonaComponent,
+    FiltroBuilderComponent,
+    ClientesFormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ClientesComponent {
