@@ -876,6 +876,18 @@ export class ApiService {
     )
   }
 
+  ayudaAsistencialRechazar(parameter: any,) {
+    return this.http.post<ResponseJSON<any>>(`/api/ayuda-asistencial/rechazar`, parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  ayudaAsistencialAprobar(parameter: any,) {
+    return this.http.post<ResponseJSON<any>>(`/api/ayuda-asistencial/aprobar`, parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

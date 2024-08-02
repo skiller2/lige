@@ -107,12 +107,12 @@ export class AyudaAsistencialComponent {
             }
 
             try {
-                // const res = await firstValueFrom(this.apiService.delAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto }))
+                const res = await firstValueFrom(this.apiService.ayudaAsistencialAprobar(item))
+                this.angularGrid.dataView.updateItem(this.registroId, res.data);
+                this.angularGrid.slickGrid.updateRow(editCommand.row)
             } catch (err) {
               editCommand.undo()
             }
-            // this.angularGrid.dataView.updateItem(item.id, item)
-            // this.angularGrid.slickGrid.updateRow(editCommand.row)
         }
     }
 
@@ -126,15 +126,6 @@ export class AyudaAsistencialComponent {
             this.formAsist().form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
         }, 1);
     }
-
-    // ngAfterContentInit(): void {
-    //     const user: any = this.settingService.getUser()
-    //     const gruposActividadList = user.GrupoActividad
-    //     setTimeout(() => {
-    //         if (gruposActividadList.length > 0)
-    //           this.startFilters.push({ field: 'GrupoActividadNumero', condition: 'AND', operator: '=', value: gruposActividadList.join(';'), forced: false })
-    //     }, 1500);
-    // }
 
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
@@ -172,8 +163,15 @@ export class AyudaAsistencialComponent {
         this.formChange$.next(event);
     }
 
-    rechazarReg(){
-        console.log(this.registroId);
+    async rechazarReg(){
+        try {
+            const res: any = await firstValueFrom(this.apiService.ayudaAsistencialRechazar({id:this.registroId}))
+            this.angularGrid.dataView.updateItem(this.registroId, res.data);
+            const rowNum = this.angularGrid.dataView.getRowById(this.registroId)
+            this.angularGrid.slickGrid.updateRow(rowNum!)
+        } catch (error) {
+            console.log(error);
+        }
     }
 
     valAplicaEl(date:string):boolean{

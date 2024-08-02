@@ -6,3 +6,5 @@ export const ayudaAsistencialRouter = Router()
 
 ayudaAsistencialRouter.get('/cols', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => { ayudaAsistencialController.getGridColumns(req, res, next) } )
 ayudaAsistencialRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => { ayudaAsistencialController.getAyudaAsistencialList(req, res, next) } )
+ayudaAsistencialRouter.post('/aprobar', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => { ayudaAsistencialController.personalPrestamoAprobado(req, res, next) } )
+ayudaAsistencialRouter.post('/rechazar', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => { ayudaAsistencialController.personalPrestamoRechazado(req, res, next) } )
