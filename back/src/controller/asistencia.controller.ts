@@ -2284,11 +2284,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           if (formaLiquidacion == 'A' && !licencia) {
             errores.push(`La persona no se encuentra de licencia. dia:${numdia}`)
           }
-
+console.log('situacionesRevista',situacionesRevista)
           //Validación Situación de Revista
           const situacion = situacionesRevista.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
           if (situacion && (formaLiquidacion != 'A')) {
-            // throw new ClientException(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
             errores.push(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
           }
 
