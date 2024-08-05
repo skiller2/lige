@@ -190,7 +190,7 @@ export class ClientesController extends BaseController {
 
 async getClienteContactoQuery(queryRunner: any, clienteId: any){
      return await queryRunner.query(`SELECT 
-            cc.ClienteId AS personalId,
+            cc.ClienteContactoNombre AS nombre,
             cc.ClienteContactoArea AS area,
             cce.ClienteContactoEmailEmail AS correo ,
             cct.ClienteContactoTelefonoNro AS telefono

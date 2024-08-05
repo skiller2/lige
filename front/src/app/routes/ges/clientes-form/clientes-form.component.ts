@@ -54,7 +54,7 @@ export class ClientesFormComponent {
 
   periodo = signal({ year: 0, month: 0 })
   visibleDrawer: boolean = false
-  objClienteContacto = { personalId: 0, area:"",telefono:"",correo:"" }
+  objClienteContacto = { nombre: "", area:"",telefono:"",correo:"" }
   personalId = signal(0)
   edit = model(true)
   ClienteId = model(0)
