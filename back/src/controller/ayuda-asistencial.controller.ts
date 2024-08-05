@@ -5,8 +5,8 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { Options } from "../schemas/filtro";
 
 const getOptions: any[] = [
-    { label: 'Si', value: 1 },
-    { label: 'No', value: 0 }
+    { label: 'Si', value: '1' },
+    { label: 'No', value: '0' }
 ]
 
 const columnsAyudaAsistencial: any[] = [
@@ -65,7 +65,7 @@ const columnsAyudaAsistencial: any[] = [
     {
       id: "liquidoFinanzas",
       name: "Liquido Finanzas",
-      type: "number",
+      type: "string",
       field: "PersonalPrestamoLiquidoFinanzas",
       fieldName: "pre.PersonalPrestamoLiquidoFinanzas",
       formatter: 'collectionFormatter',
@@ -238,14 +238,14 @@ export class AyudaAsistencialController extends BaseController {
       SELECT DISTINCT CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
       pres.PersonalPrestamoDia, IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
-      pres.PersonalPrestamoAplicaEl, form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,1,0) PersonalPrestamoLiquidoFinanzas 
+      pres.PersonalPrestamoAplicaEl, form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas 
       FROM PersonalPrestamo pres
       LEFT JOIN Personal per ON per.PersonalId = pres.PersonalId 
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pres.PersonalId 
       LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pres.FormaPrestamoId
       WHERE 
-      (pres.PersonalPrestamoLiquidoFinanzas <> 1 OR pres.PersonalPrestamoAprobado IS NULL OR pres.PersonalPrestamoAprobado <> 'S'
-      OR pres.PersonalPrestamoAplicaEl = CONCAT(@1,'/',@0)
+      (pres.PersonalPrestamoLiquidoFinanzas <> 1 OR pres.PersonalPrestamoAprobado IS NULL
+      OR pres.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@1,'00'),'/',@0)
       )
       AND (${filterSql})
       ${orderBy}
