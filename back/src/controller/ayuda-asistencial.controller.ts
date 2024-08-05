@@ -9,6 +9,14 @@ const getOptions: any[] = [
     { label: 'No', value: '0' }
 ]
 
+
+const getOptionsPersonalPrestamoAprobado: any[] = [
+  { label: 'Aprobado', value: 'S' },
+  { label: 'Rechazado', value: 'N' },
+  { label: 'Anulado', value: 'A' },
+  { label: 'Pentiente', value: null }
+]
+
 const columnsAyudaAsistencial: any[] = [
     {
       id: "cuit",
@@ -71,6 +79,18 @@ const columnsAyudaAsistencial: any[] = [
       formatter: 'collectionFormatter',
       params: { collection: getOptions, },
       searchType: "boolean",
+      sortable: true,
+      searchHidden: false
+    },
+    {
+      id: "PersonalPrestamoAprobado",
+      name: "Estado",
+      type: "string",
+      field: "PersonalPrestamoAprobado",
+      fieldName: "pre.PersonalPrestamoAprobado",
+      formatter: 'collectionFormatter',
+      params: { collection: getOptionsPersonalPrestamoAprobado, },
+      searchType: "string",
       sortable: true,
       searchHidden: false
     },
@@ -238,13 +258,14 @@ export class AyudaAsistencialController extends BaseController {
       SELECT DISTINCT CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
       pres.PersonalPrestamoDia, IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
-      pres.PersonalPrestamoAplicaEl, form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas 
+      pres.PersonalPrestamoAplicaEl, form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
+      pres.PersonalPrestamoAprobado 
       FROM PersonalPrestamo pres
       LEFT JOIN Personal per ON per.PersonalId = pres.PersonalId 
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pres.PersonalId 
       LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pres.FormaPrestamoId
       WHERE 
-      (pres.PersonalPrestamoLiquidoFinanzas <> 1 OR pres.PersonalPrestamoAprobado IS NULL
+      (pres.PersonalPrestamoAprobado IS NULL
       OR pres.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@1,'00'),'/',@0)
       )
       AND (${filterSql})
