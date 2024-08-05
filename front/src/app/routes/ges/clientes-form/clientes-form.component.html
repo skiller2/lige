@@ -41,14 +41,6 @@
         </nz-form-control>
     </nz-form-item>
 
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Rubros</nz-form-label>
-        <!-- Rubros (puede seleccionar varios de RubroCliente usar el nz-select nzMode="multiple") la relacionante es ClienteRubro  -->
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-          <input nz-input placeholder="" formControlName="rubros" type="text" />
-        </nz-form-control>
-    </nz-form-item>
-
     <div class="input-container">
         <div class="input-label">Domicilio</div>
     </div>  
@@ -67,7 +59,7 @@
   
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Cod Postal </nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-          <input nz-input placeholder="" formControlName="domiciliocodigopostal" type="number" />
+          <input nz-input placeholder="" formControlName="domiciliocodigopostal" type="text" />
         </nz-form-control>
     </nz-form-item>
 
@@ -116,7 +108,7 @@
     <div formArrayName="arrayContacto">
     <nz-form-item class="marginElement" *ngFor="let control of arrayContacto().controls; let i = index" [formGroupName]="i">
 
-        <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Persona </nz-form-label>
+        <!-- <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Persona </nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="personalButton" nzSearch>
           <app-personal-search formControlName="personalId" [disabled]="!edit()"/>
@@ -126,18 +118,25 @@
             <span nz-icon nzType="user" ></span>
           </button>
         </ng-template>
+      </nz-form-control> -->
+
+      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Persona </nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="1">
+        <nz-input-group style="width: 100%" nzSearch>
+          <input nz-input placeholder="" formControlName="personalId" type="string" />
+        </nz-input-group>
       </nz-form-control>
         
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Area </nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="1">
         <nz-input-group style="width: 100%" nzSearch>
-          <input nz-input placeholder="" formControlName="area" type="number" />
+          <input nz-input placeholder="" formControlName="area" type="string" />
         </nz-input-group>
       </nz-form-control>
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Telefono </nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">
         <nz-input-group style="width: 100%" nzSearch>
-            <input nz-input placeholder="" formControlName="telefono" type="number" />
+            <input nz-input placeholder="" formControlName="telefono" type="string" />
         </nz-input-group>
       </nz-form-control>
 
@@ -165,7 +164,7 @@
     <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Administrador</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-          <input nz-input placeholder="" formControlName="adminsitrador" type="text" />
+          <input nz-input placeholder="" formControlName="AdministradorApellidoNombre" type="text" />
         </nz-form-control>
     </nz-form-item>
 

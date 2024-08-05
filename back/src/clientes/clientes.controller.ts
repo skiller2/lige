@@ -173,8 +173,11 @@ export class ClientesController extends BaseController {
           console.log("cliente ", clienteId )
           
           let infoCliente= await this.getObjetivoClienteQuery(queryRunner, clienteId)
+          let infoClienteContacto = await this. getClienteContactoQuery(queryRunner, clienteId)
+
           infoCliente= infoCliente[0]
-          
+          infoCliente.infoClienteContacto = infoClienteContacto
+
           await queryRunner.commitTransaction()
           return this.jsonRes(infoCliente, res)
       }catch (error) {
@@ -185,52 +188,76 @@ export class ClientesController extends BaseController {
       }
   }
 
+async getClienteContactoQuery(queryRunner: any, clienteId: any){
+     return await queryRunner.query(`SELECT 
+            cc.ClienteId AS personalId,
+            cc.ClienteContactoArea AS area,
+            cce.ClienteContactoEmailEmail AS correo ,
+            cct.ClienteContactoTelefonoNro AS telefono
+        FROM 
+            ClienteContacto cc
+        LEFT JOIN 
+            ClienteContactoEmail cce
+        ON 
+            cc.ClienteId = cce.ClienteId
+            AND cc.ClienteContactoId = cce.ClienteContactoId
+            AND cc.ClienteContactoEmailUltNro = cce.ClienteContactoEmailId
+        LEFT JOIN 
+            ClienteContactoTelefono cct
+        ON 
+            cc.ClienteId = cct.ClienteId
+            AND cc.ClienteContactoId = cct.ClienteContactoId
+            AND cct.ClienteContactoTelefonoId = cct.ClienteContactoTelefonoId
+        WHERE  
+                cc.ClienteId= @0`, 
+        [clienteId])
+}  
+
   
 async getObjetivoClienteQuery(queryRunner: any, clienteId: any){
   return await queryRunner.query(`
-      SELECT 
-        cli.ClienteId AS id, 
-        cli.ClienteId,
-        fac.ClienteFacturacionCUIT AS cuit,
-        con.CondicionAnteIVADescripcion AS condicioniva,
-        cli.ClienteDenominacion AS razonsocial, 
-        cli.CLienteNombreFantasia AS nombrefantasia, 
-        cli.ClienteFechaAlta AS fechaInicio,
-        domcli.ClienteDomicilioId,
-        CONCAT_WS(' ', TRIM(domcli.ClienteDomicilioDomCalle), TRIM(domcli.ClienteDomicilioDomNro)) AS domiciliodireccion,
-        domcli.ClienteDomicilioCodigoPostal AS domiciliocodigopostal,
-        domcli.ClienteDomicilioPaisId AS domiciliopais,
-        domcli.ClienteDomicilioProvinciaId AS domicilioprovincia,
-        domcli.ClienteDomicilioLocalidadId AS domiciliolocalidad,
-        domcli.ClienteDomicilioBarrioId AS domiciliobarrio
-    FROM 
-        Cliente cli
-        LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId 
-        AND fac.ClienteFacturacionDesde <= '2024-07-30' 
+     SELECT cli.ClienteId AS id
+        ,cli.ClienteId
+        ,fac.ClienteFacturacionCUIT AS cuit
+        ,con.CondicionAnteIVADescripcion AS condicioniva
+        ,cli.ClienteDenominacion AS razonsocial
+        ,cli.CLienteNombreFantasia AS nombrefantasia
+        ,cli.ClienteFechaAlta AS fechaInicio
+        ,domcli.ClienteDomicilioId
+        ,CONCAT_WS(' ', TRIM(domcli.ClienteDomicilioDomCalle), TRIM(domcli.ClienteDomicilioDomNro)) AS domiciliodireccion
+        ,domcli.ClienteDomicilioCodigoPostal AS domiciliocodigopostal
+        ,domcli.ClienteDomicilioPaisId AS domiciliopais
+        ,domcli.ClienteDomicilioProvinciaId AS domicilioprovincia
+        ,domcli.ClienteDomicilioLocalidadId AS domiciliolocalidad
+        ,domcli.ClienteDomicilioBarrioId AS domiciliobarrio
+        ,(
+            SELECT TOP 1 adm.AdministradorApellidoNombre
+            FROM ClienteAdministrador ca
+            JOIN Administrador adm ON adm.AdministradorId = ca.ClienteAdministradorAdministradorId
+            WHERE ca.ClienteId = cli.ClienteId
+            ORDER BY ca.ClienteAdministradorId DESC
+            ) AS AdministradorApellidoNombre
+    FROM Cliente cli
+    LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId
+        AND fac.ClienteFacturacionDesde <= '2024-07-30'
         AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= '2024-07-30'
-        LEFT JOIN CondicionAnteIVA con ON con.CondicionAnteIVAId = fac.CondicionAnteIVAId
-        LEFT JOIN (
-            SELECT TOP 1
-                domcli.ClienteDomicilioId,
-                domcli.ClienteId,
-                domcli.ClienteDomicilioDomCalle,
-                domcli.ClienteDomicilioDomNro,
-                domcli.ClienteDomicilioCodigoPostal,
-                domcli.ClienteDomicilioPaisId,
-                domcli.ClienteDomicilioProvinciaId,
-                domcli.ClienteDomicilioLocalidadId,
-                domcli.ClienteDomicilioBarrioId
-            FROM 
-                ClienteDomicilio AS domcli
-            WHERE 
-                domcli.ClienteId = @0
-                AND domcli.ClienteDomicilioActual = 1
-            ORDER BY 
-                domcli.ClienteDomicilioId DESC
+    LEFT JOIN CondicionAnteIVA con ON con.CondicionAnteIVAId = fac.CondicionAnteIVAId
+    LEFT JOIN (
+        SELECT TOP 1 domcli.ClienteDomicilioId
+            ,domcli.ClienteId
+            ,domcli.ClienteDomicilioDomCalle
+            ,domcli.ClienteDomicilioDomNro
+            ,domcli.ClienteDomicilioCodigoPostal
+            ,domcli.ClienteDomicilioPaisId
+            ,domcli.ClienteDomicilioProvinciaId
+            ,domcli.ClienteDomicilioLocalidadId
+            ,domcli.ClienteDomicilioBarrioId
+        FROM ClienteDomicilio AS domcli
+        WHERE domcli.ClienteId = @0
+            AND domcli.ClienteDomicilioActual = 1
+        ORDER BY domcli.ClienteDomicilioId DESC
         ) AS domcli ON domcli.ClienteId = cli.ClienteId
-    WHERE 
-        cli.ClienteId = @0
-    `, 
+    WHERE cli.ClienteId = @0`, 
       [clienteId])
   }   
 
