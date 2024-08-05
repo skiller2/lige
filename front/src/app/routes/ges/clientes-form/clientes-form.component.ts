@@ -6,11 +6,29 @@ import { ApiService } from 'src/app/services/api.service';
 import { NgForm, FormArray, FormBuilder } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap,startWith, Observable, of } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+
+interface Provincia {
+  ProvinciaId: number;
+  ProvinciaDescripcion: string;
+}
+
+interface Localidad {
+  LocalidadId: number;
+  localidadDescripcion: string;
+  ProvinciaId: number;
+}
+
+interface Barrio {
+  BarrioId: number;
+  BarrioDescripcion: string;
+  LocalidadId: number;
+}
 
 
 @Component({
@@ -27,7 +45,8 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
     ClienteSearchComponent,
     DetallePersonaComponent,
     FiltroBuilderComponent,
-    NzAutocompleteModule
+    NzAutocompleteModule,
+    NzSelectModule
     ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -35,10 +54,12 @@ export class ClientesFormComponent {
 
   periodo = signal({ year: 0, month: 0 })
   visibleDrawer: boolean = false
+  objPersonal = { personalId: '', area:0,telefono:0,correo:"" }
   personalId = signal(0)
-  objPersonal = { personalId: 0, area: 0 ,telefono:0,correo:"", }
   edit = model(true)
-  custodiaId = model(0)
+  ClienteId = model(0)
+  selectedValueProvincia = null
+
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
@@ -54,11 +75,17 @@ export class ClientesFormComponent {
     nombrefantasia:"",
     fechaInicio:"",
     rubros:"",
-    direccion:"",referencia:"",codigopostal:0,
-    pais:"",provincia:"",localidad:"",barrio:"",
+    domiciliodireccion:"",referencia:"",domiciliocodigopostal:0,
+    domiciliopais:"",domicilioprovincia:0,domiciliolocalidad:0,domiciliobarrio:0,
     adminsitrador:"",
-    contacto: this.fb.array([this.fb.group({...this.objPersonal}),this.fb.group({...this.objPersonal})]),
-    estado: 0,})
+    arrayContacto: this.fb.array([this.fb.group({...this.objPersonal}),this.fb.group({...this.objPersonal})]),estado: 0,})
+    // $optionsProvincia: Observable<Provincia[]> | null = null;
+    // $optionsLocalidad: Observable<Localidad[]> = of([]);
+    // $optionsBarrio: Observable<Barrio[]> = of([]);
+    
+    $optionsProvincia = this.searchService.getProvincia();
+    $optionsLocalidad = this.searchService.getLocalidad();
+    $optionsBarrio = this.searchService.getBarrio();
 
   onChangePeriodo(result: Date): void {
     if (result) {
@@ -70,9 +97,11 @@ export class ClientesFormComponent {
   }
 
   ngOnInit() {
-    console.log("voy a pasar")
+
+
+
     effect(async () => {
-        if (this.custodiaId()) {
+        if (this.ClienteId()) {
             await this.load()
         } else {
             this.formCli.reset({estado: 0})
@@ -86,45 +115,94 @@ export class ClientesFormComponent {
             this.formCli.disable()
         }
     }, { injector: this.injector });
+
   }
+  
 
   async load() {
-    // let infoCust= await firstValueFrom(this.searchService.getInfoObjCustodia(this.custodiaId()))
-    // infoCust.fechaInicio = new Date(infoCust.fechaInicio)
-    // if (infoCust.fechaFinal)
-    //     infoCust.fechaFinal = new Date(infoCust.fechaFinal)
-    // this.clienteContacto().clear()
-    // infoCust.personal.forEach((obj:any) => {
-    //     this.clienteContacto().push(this.fb.group({...this.objPersonal}))
+    console.log("cliente ", this.ClienteId())
+     let infoCliente= await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
+     console.log("infoCliente ", infoCliente)
+     infoCliente.fechaInicio = new Date(infoCliente.fechaInicio)
+
+    
+
+    // this.changeSelect()
+     this.formCli.patchValue({ 
+      domicilioprovincia: infoCliente.ProvinciaId,
+      domiciliolocalidad: infoCliente.domiciliolocalidad,
+      domiciliobarrio: infoCliente.domiciliobarrio
+     });
+    this.arrayContacto().clear()
+    // infoCliente.contacto.forEach((obj:any) => {
+    //     this.arrayContacto().push(this.fb.group({...this.objPersonal}))
     // });
     if (this.edit()) {
-      console.log("voy")
-        this.contacto().enable()
+        this.arrayContacto().enable()
        
     }else{
-        this.contacto().disable() 
+        this.arrayContacto().disable() 
     }
-    // setTimeout(() => {
-    //     this.formCli.reset(infoCust)
-    // }, 100);
+    setTimeout(() => {
+        this.formCli.reset(infoCliente)
+    }, 100);
     {}
 }
 
-contacto():FormArray {
-    return this.formCli.get("contacto") as FormArray
+// changeSelect(){
+
+//   this.formCli.get('domicilioprovincia')!.valueChanges.pipe(
+//     startWith(null),
+//     switchMap(provinciaId => this.searchService.getLocalidad().pipe(
+//       map((Localidad: Localidad[]) => Localidad.filter(Localidad => Localidad.ProvinciaId === provinciaId))
+//     ))
+//   ).subscribe(LocalidadOptions => {
+//     console.log("LocalidadOptions " , LocalidadOptions)
+//     this.$optionsLocalidad = of(LocalidadOptions);
+//     if (LocalidadOptions && LocalidadOptions.length > 0) {
+//       //this.formCli.get('domiciliobarrio')!.enable();
+//     } else {
+//       //this.formCli.get('domiciliobarrio')!.disable();
+//     }
+//   });
+
+
+//   console.log("localidades ", this.$optionsLocalidad)
+//   // Deshabilitar el select de Barrio al inicio
+//   this.formCli.get('domiciliobarrio')!.disable();
+
+//   // Filtrar barrios cuando cambia la localidad
+//   this.formCli.get('domiciliolocalidad')!.valueChanges.pipe(
+//     startWith(null),
+//     switchMap(localidadId => this.searchService.getBarrio().pipe(
+//       map((barrios: Barrio[]) => barrios.filter(barrio => barrio.LocalidadId === localidadId))
+//     ))
+//   ).subscribe(barrioOptions => {
+//     this.$optionsBarrio = of(barrioOptions);
+//     if (barrioOptions && barrioOptions.length > 0) {
+//       this.formCli.get('domiciliobarrio')!.enable();
+//     } else {
+//       this.formCli.get('domiciliobarrio')!.disable();
+//     }
+//   });
+
+// }
+
+arrayContacto():FormArray {
+    return this.formCli.get("arrayContacto") as FormArray
   }
 
   addClienteContacto(e?: MouseEvent): void {
     e?.preventDefault();
     if (this.edit()) {
-        this.contacto().controls.push((this.fb.group({...this.objPersonal})))
+        this.arrayContacto().controls.push((this.fb.group({...this.objPersonal})))
     }
   }
 
   removeClienteContacto(index: number, e: MouseEvent): void {
     e.preventDefault();
-    if (this.contacto().controls.length > 1 && this.edit()) {
-        this.contacto().removeAt(index)
+    if (this.arrayContacto().controls.length > 1 && this.edit()) {
+        this.arrayContacto().removeAt(index)
     }
   }
   

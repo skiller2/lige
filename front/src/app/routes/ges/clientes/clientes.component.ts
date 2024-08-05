@@ -43,7 +43,6 @@ export class ClientesComponent {
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
   editClienteId = 0;
-  estado : boolean = true
   edit : boolean = false
   excelExportService = new ExcelExportService()
   listCliente$ = new BehaviorSubject('')
@@ -95,13 +94,9 @@ export class ClientesComponent {
     const selrow = e.detail.args.rows[0]
     if (!selrow) return
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
+    console.log("row ", row)
     this.editClienteId = row.id
 
-    if (row.estado.tipo === 4){
-        this.estado = false
-    }else{
-        this.estado = true
-    }
   }
 
   getGridData(): void {

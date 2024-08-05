@@ -165,4 +165,118 @@ export class ClientesController extends BaseController {
 
     }
 
+    async infoCliente(req: any, res: Response, next: NextFunction) {
+      const queryRunner = dataSource.createQueryRunner();
+      try{
+          await queryRunner.startTransaction()
+          const clienteId = req.params.id
+          console.log("cliente ", clienteId )
+          
+          let infoCliente= await this.getObjetivoClienteQuery(queryRunner, clienteId)
+          infoCliente= infoCliente[0]
+          
+          await queryRunner.commitTransaction()
+          return this.jsonRes(infoCliente, res)
+      }catch (error) {
+          this.rollbackTransaction(queryRunner)
+          return next(error)
+      } finally {
+          await queryRunner.release()
+      }
+  }
+
+  
+async getObjetivoClienteQuery(queryRunner: any, clienteId: any){
+  return await queryRunner.query(`
+      SELECT 
+        cli.ClienteId AS id, 
+        cli.ClienteId,
+        fac.ClienteFacturacionCUIT AS cuit,
+        con.CondicionAnteIVADescripcion AS condicioniva,
+        cli.ClienteDenominacion AS razonsocial, 
+        cli.CLienteNombreFantasia AS nombrefantasia, 
+        cli.ClienteFechaAlta AS fechaInicio,
+        domcli.ClienteDomicilioId,
+        CONCAT_WS(' ', TRIM(domcli.ClienteDomicilioDomCalle), TRIM(domcli.ClienteDomicilioDomNro)) AS domiciliodireccion,
+        domcli.ClienteDomicilioCodigoPostal AS domiciliocodigopostal,
+        domcli.ClienteDomicilioPaisId AS domiciliopais,
+        domcli.ClienteDomicilioProvinciaId AS domicilioprovincia,
+        domcli.ClienteDomicilioLocalidadId AS domiciliolocalidad,
+        domcli.ClienteDomicilioBarrioId AS domiciliobarrio
+    FROM 
+        Cliente cli
+        LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId 
+        AND fac.ClienteFacturacionDesde <= '2024-07-30' 
+        AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= '2024-07-30'
+        LEFT JOIN CondicionAnteIVA con ON con.CondicionAnteIVAId = fac.CondicionAnteIVAId
+        LEFT JOIN (
+            SELECT TOP 1
+                domcli.ClienteDomicilioId,
+                domcli.ClienteId,
+                domcli.ClienteDomicilioDomCalle,
+                domcli.ClienteDomicilioDomNro,
+                domcli.ClienteDomicilioCodigoPostal,
+                domcli.ClienteDomicilioPaisId,
+                domcli.ClienteDomicilioProvinciaId,
+                domcli.ClienteDomicilioLocalidadId,
+                domcli.ClienteDomicilioBarrioId
+            FROM 
+                ClienteDomicilio AS domcli
+            WHERE 
+                domcli.ClienteId = @0
+                AND domcli.ClienteDomicilioActual = 1
+            ORDER BY 
+                domcli.ClienteDomicilioId DESC
+        ) AS domcli ON domcli.ClienteId = cli.ClienteId
+    WHERE 
+        cli.ClienteId = @0
+    `, 
+      [clienteId])
+  }   
+
+  async getProvinciasQuery(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+        try{
+             const provincias = await queryRunner.query(`SELECT ProvinciaId,ProvinciaDescripcion FROM Provincia WHERE PaisId  = 1`)
+             console.log(provincias)
+             return this.jsonRes(provincias, res);
+        }catch (error) {
+            return next(error)
+        } finally {
+            
+        } 
+    
+    }
+
+  async getLocalidadQuery(req: any, res: Response, next: NextFunction){
+        const queryRunner = dataSource.createQueryRunner();
+            try{
+                 const provincias = await queryRunner.query(`SELECT LocalidadId, ProvinciaId, localidadDescripcion FROM Localidad  WHERE PaisId = 1`)
+                 console.log(provincias)
+                 return this.jsonRes(provincias, res);
+            }catch (error) {
+                return next(error)
+            } finally {
+                
+            } 
+        
+    }
+
+    async getBarrioQuery(req: any, res: Response, next: NextFunction){
+        const queryRunner = dataSource.createQueryRunner();
+            try{
+                 const provincias = await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 `)
+                 console.log(provincias)
+                 return this.jsonRes(provincias, res);
+            }catch (error) {
+                return next(error)
+            } finally {
+                
+            } 
+        
+    }
+
+        
+    
+
 }

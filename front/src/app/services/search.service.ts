@@ -648,9 +648,48 @@ export class SearchService {
       );
   }
 
+  getInfoObjCliente(objClienteId: number){
+    return this.http
+      .get<ResponseJSON<any>>(`api/clientes/obj/${objClienteId}`)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
   getEstadoCustodia(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/custodia/estados`).pipe(
       map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getProvincia(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/clientes/getProvincia`).pipe(
+      map(res =>  res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getLocalidad(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/clientes/getLocalidad`).pipe(
+      map(res =>  res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+  
+  getBarrio(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/clientes/getBarrio`).pipe(
+      map(res =>  res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
