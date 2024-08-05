@@ -54,7 +54,7 @@ export class ClientesFormComponent {
 
   periodo = signal({ year: 0, month: 0 })
   visibleDrawer: boolean = false
-  objPersonal = { personalId: '', area:0,telefono:0,correo:"" }
+  objClienteContacto = { nombre: "", area:"",telefono:"",correo:"" }
   personalId = signal(0)
   edit = model(true)
   ClienteId = model(0)
@@ -77,8 +77,8 @@ export class ClientesFormComponent {
     rubros:"",
     domiciliodireccion:"",referencia:"",domiciliocodigopostal:0,
     domiciliopais:"",domicilioprovincia:0,domiciliolocalidad:0,domiciliobarrio:0,
-    adminsitrador:"",
-    arrayContacto: this.fb.array([this.fb.group({...this.objPersonal}),this.fb.group({...this.objPersonal})]),estado: 0,})
+    AdministradorApellidoNombre:"",
+    arrayContacto: this.fb.array([this.fb.group({...this.objClienteContacto}),this.fb.group({...this.objClienteContacto})]),estado: 0,})
     // $optionsProvincia: Observable<Provincia[]> | null = null;
     // $optionsLocalidad: Observable<Localidad[]> = of([]);
     // $optionsBarrio: Observable<Barrio[]> = of([]);
@@ -120,23 +120,21 @@ export class ClientesFormComponent {
   
 
   async load() {
-    console.log("cliente ", this.ClienteId())
+    
      let infoCliente= await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
-     console.log("infoCliente ", infoCliente)
      infoCliente.fechaInicio = new Date(infoCliente.fechaInicio)
 
-    
-
-    // this.changeSelect()
      this.formCli.patchValue({ 
       domicilioprovincia: infoCliente.ProvinciaId,
       domiciliolocalidad: infoCliente.domiciliolocalidad,
       domiciliobarrio: infoCliente.domiciliobarrio
      });
     this.arrayContacto().clear()
-    // infoCliente.contacto.forEach((obj:any) => {
-    //     this.arrayContacto().push(this.fb.group({...this.objPersonal}))
-    // });
+    console.log("infoCliente ",  infoCliente.infoClienteContacto)
+    infoCliente.infoClienteContacto.forEach((obj:any) => {
+     
+      this.arrayContacto().push(this.fb.group({...this.objClienteContacto}))
+  });
     if (this.edit()) {
         this.arrayContacto().enable()
        
@@ -195,7 +193,7 @@ arrayContacto():FormArray {
   addClienteContacto(e?: MouseEvent): void {
     e?.preventDefault();
     if (this.edit()) {
-        this.arrayContacto().controls.push((this.fb.group({...this.objPersonal})))
+        this.arrayContacto().controls.push((this.fb.group({...this.objClienteContacto})))
     }
   }
 
