@@ -140,30 +140,49 @@ const columnsAyudaAsistencial: any[] = [
 
 export class AyudaAsistencialController extends BaseController {
 
+  async personalPrestamoAprobadoQuery(
+    queryRunner:any, personalPrestamoId:number, personalId:number, PersonalPrestamoAplicaEl:string, 
+    PersonalPrestamoCantidadCuotas:number ,PersonalPrestamoMonto:number
+  ){
+    const PersonalPrestamoAprobado = 'S'
+    const PersonalPrestamoFechaAprobacion = new Date()
+    return await queryRunner.query(`
+      UPDATE PersonalPrestamo
+      SET PersonalPrestamoAprobado = @2, PersonalPrestamoAplicaEl = @3, PersonalPrestamoCantidadCuotas = @4,
+      PersonalPrestamoMontoAutorizado = @5, PersonalPrestamoMonto = @5, PersonalPrestamoFechaAprobacion = @6
+      WHERE PersonalPrestamoId = @0 AND PersonalId = @1
+    `, [personalPrestamoId, personalId, PersonalPrestamoAprobado, PersonalPrestamoAplicaEl,
+      PersonalPrestamoCantidadCuotas, PersonalPrestamoMonto, PersonalPrestamoFechaAprobacion]
+    )
+  }
   async personalPrestamoRechazadoQuery(queryRunner:any, personalPrestamoId:number, personalId:number){
     const PersonalPrestamoAprobado = 'N'
     const PersonalPrestamoAplicaEl = ''
+    const PersonalPrestamoUltimaLiquidacion = ''
     const PersonalPrestamoCantidadCuotas= 0
     const PersonalPrestamoMontoAutorizado = 0
     const PersonalPrestamoFechaAprobacion = null
     return await queryRunner.query(`
       UPDATE PersonalPrestamo
-      SET PersonalPrestamoAprobado = @2, PersonalPrestamoAplicaEl = @3, PersonalPrestamoCantidadCuotas = @4,
-      PersonalPrestamoMontoAutorizado = @5, PersonalPrestamoFechaAprobacion = @6
+      SET PersonalPrestamoAprobado = @2, PersonalPrestamoAplicaEl = @3, PersonalPrestamoUltimaLiquidacion = @4,
+      PersonalPrestamoCantidadCuotas = @5, PersonalPrestamoMontoAutorizado = @6, PersonalPrestamoFechaAprobacion = @7
       WHERE PersonalPrestamoId = @0 AND PersonalId = @1
-    `, [personalPrestamoId, personalId, PersonalPrestamoAprobado,PersonalPrestamoAplicaEl,PersonalPrestamoCantidadCuotas,PersonalPrestamoMontoAutorizado,PersonalPrestamoFechaAprobacion])
+    `, [personalPrestamoId, personalId, PersonalPrestamoAprobado, PersonalPrestamoAplicaEl,
+      PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCantidadCuotas, PersonalPrestamoMontoAutorizado,
+      PersonalPrestamoFechaAprobacion]
+    )
   }
 
   async deletePersonalPrestamoCuotasQuery(
     queryRunner:any, personalPrestamoId:number, personalId:number
   ){
     return await queryRunner.query(`
-      DELETE FROM PersonalPrestamoCuota ppc
-      WHERE ppr.PersonalPrestamoId = @0 AND ppr.PersonalId = @1
+      DELETE FROM PersonalPrestamoCuota
+      WHERE PersonalPrestamoId = @0 AND PersonalId = @1
     `, [personalPrestamoId, personalId])
   }
 
-  async getPersonalPrestamoByIdQuery(queryRunner:any, personalPrestamoId:number, personalId:number){
+  async getPersonalPrestamoByIdsQuery(queryRunner:any, personalPrestamoId:number, personalId:number){
     return await queryRunner.query(`
       SELECT *
       FROM PersonalPrestamo pres
@@ -171,12 +190,20 @@ export class AyudaAsistencialController extends BaseController {
       `, [personalPrestamoId, personalId])
   }
 
-  async getPersonalPrestamoCuotaByPeriodoQuery(
-    queryRunner:any, personalPrestamoId:number, personalId:number, personalPrestamoAplicaEl:string
+  async getPersonalPrestamoCuotaByIdsQuery(
+    queryRunner:any, personalPrestamoId:number, personalId:number
   ){
-    const periodo = personalPrestamoAplicaEl.split('/')
-    const mes = periodo[0]
-    const anio = periodo[1]
+    return await queryRunner.query(`
+      SELECT PersonalPrestamoCuotaId, PersonalPrestamoId, PersonalId,
+      PersonalPrestamoCuotaAno anio, PersonalPrestamoCuotaMes mes, PersonalPrestamoCuotaImporte importe
+      FROM PersonalPrestamoCuota ppc
+      WHERE ppc.PersonalPrestamoId = @0 AND ppc.PersonalId = @1
+      `, [personalPrestamoId, personalId])
+  }
+
+  async getPersonalPrestamoCuotaByPeriodoQuery(
+    queryRunner:any, personalPrestamoId:number, personalId:number, anio:number, mes:number
+  ){
     return await queryRunner.query(`
       SELECT *
       FROM PersonalPrestamoCuota ppc
@@ -184,16 +211,27 @@ export class AyudaAsistencialController extends BaseController {
       `, [personalPrestamoId, personalId, anio, mes])
   }
 
-  async getReciboByPeriodoQuery(queryRunner:any, PersonalId:number, PersonalPrestamoAplicaEl:string){
-    const periodo = PersonalPrestamoAplicaEl.split('/')
-    const mes = periodo[0]
-    const anio = periodo[1]
+  async getReciboQuery(queryRunner:any, PersonalId:number, anio:number, mes:number){
     return await queryRunner.query(`
       SELECT *
-      FROM lige.dbo.liqmamovimientos liq
-      LEFT JOIN lige.dbo.liqmaperiodo liqp per ON liqp.periodo_id = liq.periodo_id
-      WHERE liq.PersonalId = @0 AND liqp.anio = @1 AND liqp.mes = @2
+      FROM lige.dbo.docgeneral doc
+      LEFT JOIN lige.dbo.liqmaperiodo liqp ON liqp.periodo_id = doc.periodo
+      WHERE doc.persona_id = @0 AND liqp.anio = @1 AND liqp.mes = @2 
       `, [PersonalId, anio, mes])
+  }
+
+  async rowAyudaAsistencialQuery(queryRunner:any, personalPrestamoId:number, personalId:number){
+    return await queryRunner.query(`
+      SELECT CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
+      TRIM(per.PersonalApellidoNombre) apellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
+      pres.PersonalPrestamoDia, pres.PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
+      pres.PersonalPrestamoAplicaEl, form.FormaPrestamoId, form.FormaPrestamoDescripcion, pres.PersonalPrestamoLiquidoFinanzas
+      FROM PersonalPrestamo pres
+      LEFT JOIN Personal per ON per.PersonalId = pres.PersonalId 
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pres.PersonalId 
+      LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pres.FormaPrestamoId
+      WHERE pres.PersonalPrestamoId = @0 AND pres.PersonalId = @1
+    `,[personalPrestamoId, personalId])
   }
 
   async listAyudaAsistencialQuery(queryRunner:any, filterSql:any, orderBy:any, anio:number, mes:number){
@@ -245,19 +283,35 @@ export class AyudaAsistencialController extends BaseController {
   async personalPrestamoAprobado(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     const ids = req.body.id.split('-')
-    const PersonalPrestamoId = ids[0]
-    const PersonalId = ids[1]
+    const personalPrestamoId = Number.parseInt(ids[0])
+    const personalId = Number.parseInt(ids[1])
+    const personalPrestamoAplicaEl = req.body.PersonalPrestamoAplicaEl
+    const personalPrestamoCantidadCuotas = req.body.PersonalPrestamoCantidadCuotas
+    const personalPrestamoMonto = req.body.PersonalPrestamoMonto
     try {
       await queryRunner.startTransaction()
-      let PersonalPrestamo = await this.getPersonalPrestamoByIdQuery(queryRunner, PersonalPrestamoId, PersonalId)
+      // Validaciones
+      const periodo = this.valAplicaEl(personalPrestamoAplicaEl)
+      if (!periodo || !personalPrestamoCantidadCuotas || !personalPrestamoMonto) {
+        throw new ClientException('Verifiquen que Cant Cuotas e Importe sean mayores a 0 y que Aplica El sea un periodo valido.')
+      }
+      let PersonalPrestamo = await this.getPersonalPrestamoByIdsQuery(queryRunner, personalPrestamoId, personalId)
       if (!PersonalPrestamo.length) 
-        throw new ClientException('El registro NO existe')
+        throw new ClientException('No se encuentra el registro.')
       PersonalPrestamo = PersonalPrestamo[0]
 
-      // Validaciones
+      if (PersonalPrestamo.PersonalPrestamoAprobado != null) {
+        throw new ClientException('El registro NO puede ser APROBADO.')
+      }
+      const recibos = await this.getReciboQuery(queryRunner, personalId, periodo.anio, periodo.mes)
+      if (recibos.length) 
+        throw new ClientException(`Ya existe un recibo para ${req.body.apellidoNombre} del periodo ${personalPrestamoAplicaEl}`)
 
+      await this.personalPrestamoAprobadoQuery(queryRunner, personalPrestamoId, personalId, personalPrestamoAplicaEl, personalPrestamoCantidadCuotas, personalPrestamoMonto)
+      
+      let row = await this.rowAyudaAsistencialQuery(queryRunner, personalPrestamoId, personalId)
       await queryRunner.commitTransaction()
-      return this.jsonRes([], res, 'Carga Exitosa');
+      return this.jsonRes(row[0], res, 'Carga Exitosa');
     }catch (error) {
         this.rollbackTransaction(queryRunner)
         return next(error)
@@ -273,29 +327,34 @@ export class AyudaAsistencialController extends BaseController {
     const personalId = ids[1]
     try {
       await queryRunner.startTransaction()
-      let PersonalPrestamo = await this.getPersonalPrestamoByIdQuery(queryRunner, personalPrestamoId, personalId)
+
+      let PersonalPrestamo = await this.getPersonalPrestamoByIdsQuery(queryRunner, personalPrestamoId, personalId)
       if (!PersonalPrestamo.length) 
-        throw new ClientException('El registro NO existe')
+        throw new ClientException('No se encuentra el registro.')
       PersonalPrestamo = PersonalPrestamo[0]
 
       // Validaciones
       if(PersonalPrestamo.PersonalPrestamoAprobado != 'S' &&  PersonalPrestamo.PersonalPrestamoAprobado != null)
-        return new ClientException('El registro NO puede ser RECHAZADO.')
+        throw new ClientException('El registro NO puede ser RECHAZADO.')
       if(PersonalPrestamo.PersonalPrestamoLiquidoFinanzas)
-        return new ClientException('El registro ya se envió al banco.')
+        throw new ClientException('El registro ya se envió al banco.')
       if (PersonalPrestamo.PersonalPrestamoAplicaEl.length) {
-        const PersonalPrestamoAplicaEl = PersonalPrestamo.PersonalPrestamoAplicaEl
-        let cuota = await this.getReciboByPeriodoQuery(queryRunner, personalId, PersonalPrestamoAplicaEl)
-        if (cuota.length) {
-          return new ClientException('Existe un recibo de este registro')
+        let cuotas = await this.getPersonalPrestamoCuotaByIdsQuery(queryRunner, personalPrestamoId, personalId)
+        if(cuotas.length){
+          for (const cuota of cuotas) {
+            const recibos = await this.getReciboQuery(queryRunner, personalId, cuota.anio, cuota.mes)
+            if (recibos.length) 
+              throw new ClientException('Existe un recibo de este registro')
+          }
         }
       }
-
+      
       await this.personalPrestamoRechazadoQuery(queryRunner, personalPrestamoId, personalId)
-      // await this.deletePersonalPrestamoCuotasQuery(queryRunner, personalPrestamoId, personalId)
-
+      await this.deletePersonalPrestamoCuotasQuery(queryRunner, personalPrestamoId, personalId)
+      
+      let row = await this.rowAyudaAsistencialQuery(queryRunner, personalPrestamoId, personalId)
       await queryRunner.commitTransaction()
-      return this.jsonRes([], res, 'Carga Exitosa');
+      return this.jsonRes(row[0], res, 'Carga Exitosa');
     }catch (error) {
         this.rollbackTransaction(queryRunner)
         return next(error)
@@ -303,5 +362,24 @@ export class AyudaAsistencialController extends BaseController {
         await queryRunner.release()
     }
   }
+
+  valAplicaEl(date:string):any{
+    if (date == null) {
+        return null
+    }
+    if (date.length != 7) {
+        return null
+    }
+    const periodo = date.split('/')
+    if (periodo.length != 2 && (periodo[0].length != 2 || periodo[1].length != 4)) {
+        return null
+    }
+    const mes = Number.parseInt(periodo[0])
+    const anio = Number.parseInt(periodo[1])
+    if (Number.isNaN(mes) || mes > 12 || mes < 0 || Number.isNaN(anio) || anio < 0) {
+        return null
+    }
+    return {anio, mes}
+}
 
 }
