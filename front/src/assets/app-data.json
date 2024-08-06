@@ -95,7 +95,7 @@
             },
             {
               "text": "Ayuda Asistencial",
-              "link": "/ges/liquidacion_ayuda_asistencial",
+              "link": "/ges/ayuda_asistencial",
               "icon": "anticon-profile"
             }
           ]

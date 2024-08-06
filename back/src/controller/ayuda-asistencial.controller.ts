@@ -4,6 +4,11 @@ import { dataSource } from "../data-source";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
 
+const optionsSelect: any[] = [
+  { descripcion: 'Ayuda Asistencial', tipo: 1 },
+  { descripcion: 'Adelanto', tipo: 7 },
+]
+
 const getOptions: any[] = [
     { label: 'Si', value: '1' },
     { label: 'No', value: '0' }
@@ -230,9 +235,17 @@ export class AyudaAsistencialController extends BaseController {
       `, [personalPrestamoId, personalId, anio, mes])
   }
 
+  async getPeriodoQuery(queryRunner:any, anio:number, mes:number){
+    return await queryRunner.query(`
+      SELECT periodo_id, anio, mes, ind_recibos_generados
+      FROM lige.dbo.liqmaperiodo per
+      WHERE liqp.anio = @1 AND liqp.mes = @2 
+      `, [anio, mes])
+  }
+
   async getReciboQuery(queryRunner:any, PersonalId:number, anio:number, mes:number){
     return await queryRunner.query(`
-      SELECT *
+      SELECT doc.doc_id, 
       FROM lige.dbo.docgeneral doc
       LEFT JOIN lige.dbo.liqmaperiodo liqp ON liqp.periodo_id = doc.periodo
       WHERE doc.persona_id = @0 AND liqp.anio = @1 AND liqp.mes = @2 
@@ -325,6 +338,10 @@ export class AyudaAsistencialController extends BaseController {
       if (PersonalPrestamo.PersonalPrestamoAprobado != null) {
         throw new ClientException('El registro NO puede ser APROBADO.')
       }
+      let res = await this.getPeriodoQuery(queryRunner, periodo.anio, periodo.mes)
+      if (res[0]?.ind_recibos_generados == 1)
+        return new ClientException(`Ya se encuentran generados los recibos para el período ${periodo.anio}/${periodo.mes}`)
+
       const recibos = await this.getReciboQuery(queryRunner, personalId, periodo.anio, periodo.mes)
       if (recibos.length) 
         throw new ClientException(`Ya existe un recibo para ${req.body.apellidoNombre} del periodo ${personalPrestamoAplicaEl}`)
@@ -366,7 +383,7 @@ export class AyudaAsistencialController extends BaseController {
           for (const cuota of cuotas) {
             const recibos = await this.getReciboQuery(queryRunner, personalId, cuota.anio, cuota.mes)
             if (recibos.length) 
-              throw new ClientException('Existe un recibo de este registro')
+              throw new ClientException(`Existe un recibo del período ${cuota.anio}/${cuota.mes} de este registro`)
           }
         }
       }
@@ -383,6 +400,33 @@ export class AyudaAsistencialController extends BaseController {
     } finally {
         await queryRunner.release()
     }
+  }
+
+  async addCuota(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    const personalPrestamoAplicaEl = req.body.PersonalPrestamoAplicaEl
+    const personalPrestamoCantidadCuotas = req.body.PersonalPrestamoCantidadCuotas
+    const personalPrestamoMonto = req.body.PersonalPrestamoMonto
+    try {
+      const periodo = this.valAplicaEl(personalPrestamoAplicaEl)
+      if (!periodo || !personalPrestamoCantidadCuotas || !personalPrestamoMonto) {
+        throw new ClientException('Verifiquen que Cant Cuotas e Importe sean mayores a 0 y que Aplica El sea un periodo valido.')
+      }
+      await queryRunner.startTransaction()
+      let res = await this.getPeriodoQuery(queryRunner, periodo.anio, periodo.mes)
+      if (res[0]?.ind_recibos_generados == 1)
+        return new ClientException(`Ya se encuentran generados los recibos para el período ${periodo.anio}/${periodo.mes}`)
+
+    }catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+        await queryRunner.release()
+    }
+  }
+
+  getTipoPrestamo(req: any, res: Response, next: NextFunction){
+    return this.jsonRes(optionsSelect, res)
   }
 
   valAplicaEl(date:string):any{
@@ -402,6 +446,6 @@ export class AyudaAsistencialController extends BaseController {
         return null
     }
     return {anio, mes}
-}
+  }
 
 }
