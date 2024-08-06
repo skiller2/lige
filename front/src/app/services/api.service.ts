@@ -888,6 +888,16 @@ export class ApiService {
     )
   }
 
+  getTipoPrestamo(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/ayuda-asistencial/estados`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {
