@@ -10,9 +10,16 @@ const optionsSelect: any[] = [
 ]
 
 const getOptions: any[] = [
-    { label: 'Si', value: true },
-    { label: 'No', value: false },
-    { label: 'Indeterminado', value: null }
+    { label: 'Si', value: '1' },
+    { label: 'No', value: '0' }
+]
+
+
+const getOptionsPersonalPrestamoAprobado: any[] = [
+  { label: 'Aprobado', value: 'S' },
+  { label: 'Rechazado', value: 'N' },
+  { label: 'Anulado', value: 'A' },
+  { label: 'Pentiente', value: null }
 ]
 
 const columnsAyudaAsistencial: any[] = [
@@ -26,9 +33,9 @@ const columnsAyudaAsistencial: any[] = [
       searchHidden: false
     },
     {
-      id: "apellidoNombre",
+      id: "ApellidoNombre",
       name: "Apellido Nombre",
-      field: "apellidoNombre",
+      field: "ApellidoNombre",
       type: "string",
       fieldName: "per.PersonalId",
       searchComponent: "inpurformersonalSearch",
@@ -71,12 +78,24 @@ const columnsAyudaAsistencial: any[] = [
     {
       id: "liquidoFinanzas",
       name: "Liquido Finanzas",
-      type: "boolean",
+      type: "string",
       field: "PersonalPrestamoLiquidoFinanzas",
       fieldName: "pre.PersonalPrestamoLiquidoFinanzas",
       formatter: 'collectionFormatter',
       params: { collection: getOptions, },
       searchType: "boolean",
+      sortable: true,
+      searchHidden: false
+    },
+    {
+      id: "PersonalPrestamoAprobado",
+      name: "Estado",
+      type: "string",
+      field: "PersonalPrestamoAprobado",
+      fieldName: "pre.PersonalPrestamoAprobado",
+      formatter: 'collectionFormatter',
+      params: { collection: getOptionsPersonalPrestamoAprobado, },
+      searchType: "string",
       sortable: true,
       searchHidden: false
     },
@@ -250,15 +269,18 @@ export class AyudaAsistencialController extends BaseController {
   async listAyudaAsistencialQuery(queryRunner:any, filterSql:any, orderBy:any, anio:number, mes:number){
     return await queryRunner.query(`
       SELECT DISTINCT CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
-      TRIM(per.PersonalApellidoNombre) apellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
-      pres.PersonalPrestamoDia, pres.PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
-      pres.PersonalPrestamoAplicaEl, form.FormaPrestamoId, form.FormaPrestamoDescripcion, pres.PersonalPrestamoLiquidoFinanzas
+      CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
+      pres.PersonalPrestamoDia, IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
+      pres.PersonalPrestamoAplicaEl, form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
+      pres.PersonalPrestamoAprobado 
       FROM PersonalPrestamo pres
       LEFT JOIN Personal per ON per.PersonalId = pres.PersonalId 
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pres.PersonalId 
       LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pres.FormaPrestamoId
-      WHERE (pres.PersonalPrestamoFechaProceso BETWEEN DATEFROMPARTS(@0, @1, 1) AND EOMONTH(DATEFROMPARTS(@0, @1, 1)))
-      -- OR (pres.PersonalPrestamoAplicaEl IS NULL AND pres.PersonalPrestamoAprobado IS NULL)
+      WHERE 
+      (pres.PersonalPrestamoAprobado IS NULL
+      OR pres.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@1,'00'),'/',@0)
+      )
       AND (${filterSql})
       ${orderBy}
     `,[anio, mes])
