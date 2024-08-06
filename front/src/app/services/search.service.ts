@@ -667,6 +667,18 @@ export class SearchService {
     );
   }
 
+  getOptionsCondicionAnteIva(): Observable<any> {
+    console.log("voy")
+    return this.http.get<ResponseJSON<any>>(`api/clientes/getCondicion`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+
   getProvincia(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getProvincia`).pipe(
       map(res =>  res.data),
@@ -686,7 +698,7 @@ export class SearchService {
       })
     );
   }
-  
+
   getBarrio(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getBarrio`).pipe(
       map(res =>  res.data),
