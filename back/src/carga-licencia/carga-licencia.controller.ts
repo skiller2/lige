@@ -1153,11 +1153,22 @@ export class CargaLicenciaController extends BaseController {
       const PersonalLicenciaId = req.body.PersonalLicenciaId
       const anio = req.body.anio
       const mes = req.body.mes
+      const aplicaEl = `${mes.toString().padStart(2, ' ')}/${anio}`
+
+      const recibo = await queryRunner.query(`
+        SELECT doc.doc_id
+        FROM lige.dbo.docgeneral doc
+        LEFT JOIN lige.dbo.liqmaperiodo liqp ON liqp.periodo_id = doc.periodo
+        WHERE doc.persona_id = @0 AND liqp.anio = @1 AND liqp.mes = @2 
+        `, [PersonalId, anio, mes])
+      if (recibo.length > 0)
+        throw new ClientException(`Ya se generó recibo para el período ${mes}/${anio}, no se pueden modificar las horas`)
+    
 
       let det: any = {}
       await queryRunner.query(`DELETE FROM  PersonalLicenciaAplicaPeriodo
-        WHERE PersonalId = @0  AND PersonalLicenciaId = @1`,
-        [PersonalId, PersonalLicenciaId]);
+        WHERE PersonalId = @0  AND PersonalLicenciaId = @1 AND PersonalLicenciaAplicaPeriodoAplicaEl = @2`,
+        [PersonalId, PersonalLicenciaId,aplicaEl]);
 
       if (horas > 0) {
         const PersonalLicencia = await queryRunner.query(`SELECT PersonalLicenciaAplicaPeriodoUltNro FROM PersonalLicencia WHERE PersonalId = @0 AND  PersonalLicenciaId = @1`,
@@ -1188,7 +1199,7 @@ export class CargaLicenciaController extends BaseController {
             PersonalId,
             PersonalLicenciaId,
             `${Math.trunc(horas)}.${(60 * (horas - Math.trunc(horas))).toString().padStart(2, '0')}`,
-            `${mes.toString().padStart(2, ' ')}/${anio}`,
+            aplicaEl,
             PersonalSucursal[0].PersonalSucursalPrincipalSucursalId
           ])
 
@@ -1200,8 +1211,7 @@ export class CargaLicenciaController extends BaseController {
 
     } catch (error) {
       this.rollbackTransaction(queryRunner)
-      //return next(error)
-      return next(`Error Procesando Cambios `)
+      return next(error)
     }
   }
 
