@@ -650,7 +650,7 @@ export class SearchService {
 
   getInfoObjCliente(objClienteId: number){
     return this.http
-      .get<ResponseJSON<any>>(`api/clientes/obj/${objClienteId}`)
+      .get<ResponseJSON<any>>(`api/clientes/infoCliente/${objClienteId}`)
       .pipe(
         map(res => res.data),
         catchError(() => of([]))

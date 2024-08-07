@@ -54,7 +54,7 @@ export class ClientesFormComponent {
 
   periodo = signal({ year: 0, month: 0 })
   visibleDrawer: boolean = false
-  objClienteContacto = { nombre: "", ClienteContactoApellido:"",area: "", telefono: "", correo: "" }
+  objClienteContacto = { ClienteContactoId:0,nombre: "", ClienteContactoApellido:"",area: "", telefono: "", correo: "",ClienteContactoEmailUltNro:null, ClienteContactoTelefonoUltNro:null}
   personalId = signal(0)
   edit = model(true)
   ClienteId = model(0)
@@ -77,15 +77,14 @@ export class ClientesFormComponent {
     CLienteNombreFantasia: "",
     ClienteFechaAlta: "",
     ClienteDomicilioId:0,ClienteDomicilioDomCalle: "",ClienteDomicilioDomNro:0, referencia: "", ClienteDomicilioCodigoPostal: 0,
-    domiciliopais: "", ClienteDomicilioProvinciaId: 0, ClienteDomicilioLocalidadId: 0, ClienteDomicilioBarrioId: 0,
-    AdministradorId:0, AdministradorApellidoNombre: "",
+    domiciliopais: "", ClienteDomicilioProvinciaId: null, ClienteDomicilioLocalidadId: null, ClienteDomicilioBarrioId: null,
+    AdministradorId:0, AdministradorApellidoNombre: null,
     infoClienteContacto: this.fb.array([this.fb.group({ ...this.objClienteContacto }), this.fb.group({ ...this.objClienteContacto })]), estado: 0,
   })
   // $optionsProvincia: Observable<Provincia[]> | null = null;
   // $optionsLocalidad: Observable<Localidad[]> = of([]);
   // $optionsBarrio: Observable<Barrio[]> = of([]);
 
- 
 
   $optionsProvincia = this.searchService.getProvincia();
   $optionsLocalidad = this.searchService.getLocalidad();
@@ -127,7 +126,7 @@ export class ClientesFormComponent {
   async load() {
 
     let infoCliente = await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
-console.log("infoCliente ",infoCliente)
+    console.log("infoCliente ",infoCliente)
     this.infoClienteContacto().clear()
     infoCliente.infoClienteContacto.forEach((obj: any) => {
       this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
@@ -241,6 +240,11 @@ console.log("infoCliente ",infoCliente)
   closeDrawer(): void {
     this.visibleDrawer = false;
     this.personalId.set(0)
+  }
+
+  async deleteCliente() {
+    const form = this.formCli.value
+    await firstValueFrom(this.apiService.deleteCliente(form))
   }
 
 }

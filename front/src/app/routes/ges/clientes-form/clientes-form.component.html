@@ -190,6 +190,13 @@
         <button nzType="primary" nz-button *ngIf="edit()"  (click)="save()" [nzLoading]="isLoading()" [disabled]="formCli.pristine" >
           Guardar Cambios
         </button>
+
+        <button nzType="primary" nz-button nzDanger  nz-popconfirm
+        nzPopconfirmTitle="Esta seguro que quiere eliminar este Cliente?"
+        (nzOnConfirm)="deleteCliente()"
+        nzPopconfirmPlacement="top" *ngIf="edit()" [nzLoading]="isLoading()" [disabled]="!(formCli.pristine)" >
+          Borrar Cliente
+        </button>
       </nz-form-control>
     </nz-form-item>
     <br>
