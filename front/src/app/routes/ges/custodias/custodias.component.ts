@@ -87,7 +87,7 @@ export class CustodiaComponent {
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-            totalRecords(this.angularGrid)
+            totalRecords(this.angularGrid,'cliente')
             columnTotal('facturacion', this.angularGrid)
         })
         if (this.apiService.isMobile())
