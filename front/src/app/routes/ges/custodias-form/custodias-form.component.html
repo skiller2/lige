@@ -16,7 +16,7 @@
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cliente</nz-form-label>
       <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
-        <app-cliente-search formControlName="clienteId" [disabled]="!edit()"/>
+        <app-cliente-search formControlName="clienteId" />
       </nz-form-control>
     </nz-form-item>
 
@@ -35,7 +35,7 @@
     </nz-form-item>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Descripcion</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Descripción</nz-form-label>
       <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
         <textarea rows="5" nz-input formControlName="descripcion" ></textarea>
       </nz-form-control>
@@ -84,7 +84,7 @@
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3">Personal</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="10" [nzLg]="7">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="personalButton" nzSearch>
-          <app-personal-search formControlName="personalId" [disabled]="!edit()"/>
+          <app-personal-search formControlName="personalId" />
         </nz-input-group>
         <ng-template #personalButton>
           <button nz-button nzType="dashed" nzSearch (click)="openDrawer(i)">
@@ -121,7 +121,7 @@
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Dueño </nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <app-personal-search formControlName="duenoId" [disabled]="!edit()"/>
+        <app-personal-search formControlName="duenoId" />
       </nz-form-control>
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2">Importe</nz-form-label>
@@ -196,7 +196,13 @@
         <input nz-input placeholder="" formControlName="facturacion" type="number" readonly/>
       </nz-form-control>
     </nz-form-item>
-    
+    <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Descripción Facturación</nz-form-label>
+      <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
+        <textarea rows="5" nz-input formControlName="desc_facturacion" ></textarea>
+      </nz-form-control>
+    </nz-form-item>
+
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Estado</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">

@@ -8,7 +8,7 @@ import { filtrosToSql, orderToSQL } from "src/impuestos-afip/filtros-utils/filtr
 class ClientExceptionArt14 extends ClientException {
   constructor(metodo: string) {
     const etiqueta = AsistenciaController.getMetodologias().find(val => val.metodo == metodo).etiqueta
-    super(`Existe un art14 ${etiqueta} para la persona`);
+    super(`Existe una excepción ${etiqueta} para la persona`);
   }
 }
 
@@ -659,7 +659,7 @@ export class AsistenciaController extends BaseController {
           throw val
       }
 
-      //Traigo el Art14 para analizarlo
+      //Traigo la excepcion para analizarlo
 
       let resultAutoriz = await queryRunner.query(
         `SELECT art.PersonalArt14Id, art.Personalid, art.PersonalArt14ObjetivoId, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, 
@@ -708,7 +708,7 @@ export class AsistenciaController extends BaseController {
           PersonalArt14AdicionalHora == AdicionalHora &&
           PersonalArt14Horas == Horas
         ) {
-          throw new ClientException("Ya se encuentra registrado el art14")
+          throw new ClientException("Ya se encuentra registrada la excepción")
         }
 
         let hasta: Date = new Date(fechaDesde);
@@ -1573,7 +1573,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       var desde = new Date(anio, mes - 1, 1);
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
-        throw new ClientException(`No tiene permiso para obtener información de art14`)
+        throw new ClientException(`No tiene permiso para obtener información las excepciones`)
 
       const result = await queryRunner.query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, TRIM(cat.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion,

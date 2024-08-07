@@ -48,7 +48,7 @@ export class CustodiaFormComponent {
         personal: this.fb.array([this.fb.group({...this.objPersonal}),this.fb.group({...this.objPersonal})]),
         vehiculos: this.fb.array([this.fb.group({...this.objVehiculo})]),
         cantModulos: null, impoModulos: null, cantHorasExced: null, impoHorasExced: null, cantKmExced: null,
-        impoKmExced: null, impoPeaje: null, facturacion: 0, estado: 0, numFactura: 0,
+        impoKmExced: null, impoPeaje: null, facturacion: 0, estado: 0, numFactura: 0, desc_facturacion: ''
     })
     personal():FormArray {
         return this.formCus.get("personal") as FormArray
@@ -101,9 +101,11 @@ export class CustodiaFormComponent {
             this.vehiculos().push(this.fb.group({...this.objVehiculo}))
         });
         if (this.edit()) {
+            this.formCus.enable()
             this.personal().enable()
             this.vehiculos().enable()
-        }else{
+        } else {
+            this.formCus.disable()
             this.personal().disable()
             this.vehiculos().disable()
         }
