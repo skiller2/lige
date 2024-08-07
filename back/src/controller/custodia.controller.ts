@@ -164,7 +164,7 @@ export class CustodiaController extends BaseController {
         const origen = objetivoCustodia.origen
         const fecha_fin = objetivoCustodia.fechaFinal? objetivoCustodia.fechaFinal.slice(0, 16).replace('T', ' ') : null
         const destino = objetivoCustodia.destino? objetivoCustodia.destino : null
-        const cant_modulos = objetivoCustodia.cant_modulos? objetivoCustodia.cant_modulos : null
+        const cant_modulos = objetivoCustodia.cant_modulos? objetivoCustodia.cantModulos : null
         const importe_modulos = objetivoCustodia.impoModulos? objetivoCustodia.impoModulos : null
         const cant_horas_exced = objetivoCustodia.cantHorasExced? objetivoCustodia.cantHorasExced : null
         const impo_horas_exced = objetivoCustodia.impoHorasExced? objetivoCustodia.impoHorasExced : null
@@ -236,17 +236,17 @@ export class CustodiaController extends BaseController {
             search = `obj.responsable_id = ${responsableId}`
         }
         return await queryRunner.query(`
-        SELECT DISTINCT obj.objetivo_custodia_id id, obj.responsable_id responsableId, 
-        obj.cliente_id clienteId, obj.desc_requirente, obj.descripcion, FORMAT(obj.fecha_inicio, 'yyyy-MM-dd HH:mm') AS fecha_inicio, 
-        obj.origen, FORMAT(obj.fecha_fin, 'yyyy-MM-dd HH:mm') AS fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente, 
-        TRIM(per.PersonalApellidoNombre) responsable, obj.impo_facturar facturacion
-        FROM lige.dbo.objetivocustodia obj
-        INNER JOIN Personal per ON per.PersonalId = obj.responsable_id
-        INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
-        INNER JOIN lige.dbo.regvehiculocustodia regveh ON regveh.objetivo_custodia_id = obj.objetivo_custodia_id
-        INNER JOIN lige.dbo.regpersonalcustodia regper ON regper.objetivo_custodia_id = obj.objetivo_custodia_id
-        WHERE (${search}) AND (${filterSql}) 
-        ${orderBy}`)
+            SELECT DISTINCT obj.objetivo_custodia_id id, obj.responsable_id responsableId,
+            obj.cliente_id clienteId, obj.desc_requirente, obj.descripcion, obj.fecha_inicio, 
+            obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente,
+            CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) responsable, obj.impo_facturar facturacion
+            FROM lige.dbo.objetivocustodia obj
+            JOIN Personal per ON per.PersonalId = obj.responsable_id
+            JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
+            LEFT JOIN lige.dbo.regvehiculocustodia regveh ON regveh.objetivo_custodia_id = obj.objetivo_custodia_id
+            LEFT JOIN lige.dbo.regpersonalcustodia regper ON regper.objetivo_custodia_id = obj.objetivo_custodia_id
+            WHERE (${search}) AND (${filterSql}) 
+            ${orderBy}`)
     }
 
     async updateObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia:any, usuario:any, ip:any){
@@ -406,6 +406,7 @@ export class CustodiaController extends BaseController {
                     }
                 }
             }
+
             for (const obj of objetivoCustodia.vehiculos) {
                 if( obj.patente ){
                     let infoVehiculo = {
@@ -446,7 +447,7 @@ export class CustodiaController extends BaseController {
             if (errores.length) {
                 throw new ClientException(errores.join(`\n`))
             }
-            
+ //           throw new ClientException("LLego todo ")
             await queryRunner.commitTransaction()
             return this.jsonRes({ custodiaId: objetivoCustodiaId }, res, 'Carga Exitosa');
         }catch (error) {

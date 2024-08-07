@@ -80,7 +80,7 @@ export class IngresoPorAsistenciaController extends BaseController {
         );
 
         if (row.PersonalArt14Horas) {
-          const detalle = `Art14 Horas adicionales ${row.PersonalArt14Horas}`
+          const detalle = `Art.17 Horas adicionales ${row.PersonalArt14Horas}`
           await queryRunner.query(
             `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas, tipo_asociado_id, categoria_personal_id,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
@@ -106,7 +106,7 @@ export class IngresoPorAsistenciaController extends BaseController {
 
         if (row.ValorHoraArt14Categoria > 0) {
           //console.log('Dif categoria',row.art14CategoriaDescripcion,row.ValorHoraArt14Categoria)
-          const detalle = `Art14 Equivalencia ${row.art14CategoriaDescripcion.trim()}, horas:${row.totalhorascalc+row.PersonalArt14Horas}`
+          const detalle = `Art.17 Equivalencia ${row.art14CategoriaDescripcion.trim()}, horas:${row.totalhorascalc+row.PersonalArt14Horas}`
           await queryRunner.query(
             `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,tipo_asociado_id, categoria_personal_id,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
@@ -131,7 +131,7 @@ export class IngresoPorAsistenciaController extends BaseController {
 
 
         if (row.PersonalArt14AdicionalHora) {
-          const detalle = `Art14 Importe Adicional Horas ${row.totalhorascalc+row.PersonalArt14Horas}`
+          const detalle = `Art.17 Importe Adicional Horas ${row.totalhorascalc+row.PersonalArt14Horas}`
           await queryRunner.query(
             `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,tipo_asociado_id, categoria_personal_id,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
@@ -155,7 +155,7 @@ export class IngresoPorAsistenciaController extends BaseController {
         }
 
         if (row.PersonalArt14SumaFija) {
-          const detalle = `Art14 Suma fija`
+          const detalle = `Art.17 Suma fija`
           await queryRunner.query(
             `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,tipo_asociado_id, categoria_personal_id,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)

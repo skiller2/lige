@@ -25,7 +25,10 @@ import { ViewResponsableComponent } from "../../../shared/view-responsable/view-
 })
 export class AyudaAsistencialComponent {
     formAsist = viewChild.required(NgForm)
-    registroId = ''
+    rows: number[] = []
+    registerId : string = ''
+    loadingRec:boolean = false
+    loadingApr:boolean = false
     selectedPeriod = { year: 0, month: 0 };
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
@@ -98,6 +101,10 @@ export class AyudaAsistencialComponent {
         this.gridOptions.autoEdit = true
         this.gridOptions.showFooterRow = true
         this.gridOptions.createFooterRow = true
+        this.gridOptions.enableCheckboxSelector = true
+        this.gridOptions.rowSelectionOptions = {
+            selectActiveRow: false
+        }
 
         this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
             editCommand.execute();
@@ -107,8 +114,8 @@ export class AyudaAsistencialComponent {
             }
 
             try {
-                const res = await firstValueFrom(this.apiService.ayudaAsistencialAprobar(item))
-                this.angularGrid.dataView.updateItem(this.registroId, res.data);
+                const res = await firstValueFrom(this.apiService.updateRowAyudaAsistencial(item))
+                this.angularGrid.dataView.updateItem(item.id, res.data);
                 this.angularGrid.slickGrid.updateRow(editCommand.row)
             } catch (err) {
               editCommand.undo()
@@ -139,7 +146,7 @@ export class AyudaAsistencialComponent {
 
     handleOnBeforeEditCell(e: Event) {
         const { column, item, grid } = (<CustomEvent>e).detail.args;
-        if ( item.PersonalPrestamoFechaAprobacion != null ) {
+        if ( item.PersonalPrestamoAprobado === 'S' ) {
           e.stopImmediatePropagation();
           return false
         }
@@ -147,15 +154,18 @@ export class AyudaAsistencialComponent {
     }
 
     handleSelectedRowsChanged(e: any): void {
-        const selrow = e.detail.args.rows[0]
-        if (Number.isNaN(selrow)) return
-        const row = this.angularGrid.slickGrid.getDataItem(selrow)
-        this.registroId = row.id
+        this.rows = e.detail.args.rows
+        if(e.detail.args.changedSelectedRows.length == 1){
+            this.registerId = this.angularGrid.dataView.getItemByIdx(e.detail.args.changedSelectedRows[0]).id
+        }else
+            this.registerId = ''
     }
 
     dateChange(result: Date): void {
         this.selectedPeriod.year = result.getFullYear();
         this.selectedPeriod.month = result.getMonth() + 1;
+        this.rows = []
+        this.registerId = ''
         this.formChange('');
     }
 
@@ -164,14 +174,29 @@ export class AyudaAsistencialComponent {
     }
 
     async rechazarReg(){
+        this.loadingRec = true
+        const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
+        // console.log(ids,this.rows);
         try {
-            const res: any = await firstValueFrom(this.apiService.ayudaAsistencialRechazar({id:this.registroId}))
-            this.angularGrid.dataView.updateItem(this.registroId, res.data);
-            const rowNum = this.angularGrid.dataView.getRowById(this.registroId)
-            this.angularGrid.slickGrid.updateRow(rowNum!)
+            await firstValueFrom(this.apiService.ayudaAsistencialRechazar({ids:ids, rows:this.rows}))
+            this.formChange('')
         } catch (error) {
             console.log(error);
         }
+        this.loadingRec = false
+    }
+
+    async aprobarReg(){
+        this.loadingApr = true
+        const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
+        // console.log(ids,this.rows);
+        try {
+            const res :any = await firstValueFrom(this.apiService.ayudaAsistencialAprobar({ids:ids, rows:this.rows}))
+            this.formChange('')
+        } catch (error) {
+            console.log(error);
+        }
+        this.loadingApr = false
     }
 
     valAplicaEl(date:string):boolean{
