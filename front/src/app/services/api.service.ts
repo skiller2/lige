@@ -894,6 +894,12 @@ export class ApiService {
     )
   }
 
+  updateRowAyudaAsistencial(parameter: any,) {
+    return this.http.post<ResponseJSON<any>>(`/api/ayuda-asistencial/updaterow`, parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
   getTipoPrestamo(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/ayuda-asistencial/estados`).pipe(
       map(res => res.data),

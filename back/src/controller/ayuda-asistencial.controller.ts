@@ -56,7 +56,7 @@ const columnsAyudaAsistencial: any[] = [
     },
     {
       id: "tipo",
-      name: "Tipo de Prestamo",
+      name: "Tipo",
       type: "string",
       field: "FormaPrestamoDescripcion",
       fieldName: "form.FormaPrestamoDescripcion",
@@ -84,18 +84,6 @@ const columnsAyudaAsistencial: any[] = [
       formatter: 'collectionFormatter',
       params: { collection: getOptions, },
       searchType: "boolean",
-      sortable: true,
-      searchHidden: false
-    },
-    {
-      id: "PersonalPrestamoAprobado",
-      name: "Estado",
-      type: "string",
-      field: "PersonalPrestamoAprobado",
-      fieldName: "pre.PersonalPrestamoAprobado",
-      formatter: 'collectionFormatter',
-      params: { collection: getOptionsPersonalPrestamoAprobado, },
-      searchType: "string",
       sortable: true,
       searchHidden: false
     },
@@ -160,6 +148,18 @@ const columnsAyudaAsistencial: any[] = [
       searchHidden: false,
       hidden: false,
     },
+    {
+      id: "PersonalPrestamoAprobado",
+      name: "Estado",
+      type: "string",
+      field: "PersonalPrestamoAprobado",
+      fieldName: "pre.PersonalPrestamoAprobado",
+      formatter: 'collectionFormatter',
+      params: { collection: getOptionsPersonalPrestamoAprobado, },
+      searchType: "string",
+      sortable: true,
+      searchHidden: false
+    },
 ];
 
 export class AyudaAsistencialController extends BaseController {
@@ -194,6 +194,19 @@ export class AyudaAsistencialController extends BaseController {
     `, [personalPrestamoId, personalId, PersonalPrestamoAprobado, PersonalPrestamoAplicaEl,
       PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCantidadCuotas, PersonalPrestamoMontoAutorizado,
       PersonalPrestamoFechaAprobacion]
+    )
+  }
+
+  async updateRowPersonalPrestamoQuery(
+    queryRunner:any, personalPrestamoId:number, personalId:number, PersonalPrestamoAplicaEl:string, 
+    PersonalPrestamoCantidadCuotas:number ,PersonalPrestamoMonto:number
+  ){
+    return await queryRunner.query(`
+      UPDATE PersonalPrestamo
+      SET PersonalPrestamoAplicaEl = @2, PersonalPrestamoCantidadCuotas = @3, PersonalPrestamoMonto = @4
+      WHERE PersonalPrestamoId = @0 AND PersonalId = @1
+    `, [personalPrestamoId, personalId, PersonalPrestamoAplicaEl, PersonalPrestamoCantidadCuotas,
+      PersonalPrestamoMonto]
     )
   }
 
@@ -238,14 +251,14 @@ export class AyudaAsistencialController extends BaseController {
   async getPeriodoQuery(queryRunner:any, anio:number, mes:number){
     return await queryRunner.query(`
       SELECT periodo_id, anio, mes, ind_recibos_generados
-      FROM lige.dbo.liqmaperiodo per
-      WHERE liqp.anio = @1 AND liqp.mes = @2 
+      FROM lige.dbo.liqmaperiodo
+      WHERE anio = @0 AND mes = @1
       `, [anio, mes])
   }
 
   async getReciboQuery(queryRunner:any, PersonalId:number, anio:number, mes:number){
     return await queryRunner.query(`
-      SELECT doc.doc_id, 
+      SELECT doc.doc_id
       FROM lige.dbo.docgeneral doc
       LEFT JOIN lige.dbo.liqmaperiodo liqp ON liqp.periodo_id = doc.periodo
       WHERE doc.persona_id = @0 AND liqp.anio = @1 AND liqp.mes = @2 
@@ -255,9 +268,9 @@ export class AyudaAsistencialController extends BaseController {
   async rowAyudaAsistencialQuery(queryRunner:any, personalPrestamoId:number, personalId:number){
     return await queryRunner.query(`
       SELECT CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
-      TRIM(per.PersonalApellidoNombre) apellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
+      CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
       pres.PersonalPrestamoDia, pres.PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
-      pres.PersonalPrestamoAplicaEl, form.FormaPrestamoId, form.FormaPrestamoDescripcion, pres.PersonalPrestamoLiquidoFinanzas
+      pres.PersonalPrestamoAplicaEl, form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas
       FROM PersonalPrestamo pres
       LEFT JOIN Personal per ON per.PersonalId = pres.PersonalId 
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pres.PersonalId 
@@ -315,8 +328,8 @@ export class AyudaAsistencialController extends BaseController {
     }
   }
 
-  async personalPrestamoAprobado(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+  async updateRowPersonalPrestamo(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner()
     const ids = req.body.id.split('-')
     const personalPrestamoId = Number.parseInt(ids[0])
     const personalId = Number.parseInt(ids[1])
@@ -325,30 +338,24 @@ export class AyudaAsistencialController extends BaseController {
     const personalPrestamoMonto = req.body.PersonalPrestamoMonto
     try {
       await queryRunner.startTransaction()
-      // Validaciones
       const periodo = this.valAplicaEl(personalPrestamoAplicaEl)
       if (!periodo || !personalPrestamoCantidadCuotas || !personalPrestamoMonto) {
         throw new ClientException('Verifiquen que Cant Cuotas e Importe sean mayores a 0 y que Aplica El sea un periodo valido.')
       }
+
       let PersonalPrestamo = await this.getPersonalPrestamoByIdsQuery(queryRunner, personalPrestamoId, personalId)
       if (!PersonalPrestamo.length) 
         throw new ClientException('No se encuentra el registro.')
       PersonalPrestamo = PersonalPrestamo[0]
 
-      if (PersonalPrestamo.PersonalPrestamoAprobado != null) {
-        throw new ClientException('El registro NO puede ser APROBADO.')
+      if (PersonalPrestamo.PersonalPrestamoAprobado == 'S') {
+        throw new ClientException('No se puede editar en estado APROBADO.')
       }
-      let res = await this.getPeriodoQuery(queryRunner, periodo.anio, periodo.mes)
-      if (res[0]?.ind_recibos_generados == 1)
-        return new ClientException(`Ya se encuentran generados los recibos para el período ${periodo.anio}/${periodo.mes}`)
 
-      const recibos = await this.getReciboQuery(queryRunner, personalId, periodo.anio, periodo.mes)
-      if (recibos.length) 
-        throw new ClientException(`Ya existe un recibo para ${req.body.apellidoNombre} del periodo ${personalPrestamoAplicaEl}`)
-
-      await this.personalPrestamoAprobadoQuery(queryRunner, personalPrestamoId, personalId, personalPrestamoAplicaEl, personalPrestamoCantidadCuotas, personalPrestamoMonto)
+      await this.updateRowPersonalPrestamoQuery(queryRunner, personalPrestamoId, personalId, personalPrestamoAplicaEl, personalPrestamoCantidadCuotas, personalPrestamoMonto)
       
       let row = await this.rowAyudaAsistencialQuery(queryRunner, personalPrestamoId, personalId)
+      
       await queryRunner.commitTransaction()
       return this.jsonRes(row[0], res, 'Carga Exitosa');
     }catch (error) {
@@ -359,71 +366,153 @@ export class AyudaAsistencialController extends BaseController {
     }
   }
 
-  async personalPrestamoRechazado(req: any, res: Response, next: NextFunction) {
+  async personalPrestamoAprobar(queryRunner: any, personalPrestamoId: number, personalId: number) {
+
+    let PersonalPrestamo = await this.getPersonalPrestamoByIdsQuery(queryRunner, personalPrestamoId, personalId)
+    if (!PersonalPrestamo.length)
+      return new ClientException('No se encuentra el registro.')
+    PersonalPrestamo = PersonalPrestamo[0]
+
+    // Validaciones
+    const periodo = this.valAplicaEl(PersonalPrestamo.PersonalPrestamoAplicaEl)
+    if (!periodo || !PersonalPrestamo.PersonalPrestamoCantidadCuotas || !PersonalPrestamo.PersonalPrestamoMonto) {
+      return new ClientException('Verifiquen que Cant Cuotas e Importe sean mayores a 0 y que Aplica El sea un periodo valido.')
+    }
+      
+    if (PersonalPrestamo.PersonalPrestamoAprobado != null) {
+      return new ClientException('El registro NO puede ser APROBADO.')
+    }
+    let res = await this.getPeriodoQuery(queryRunner, periodo.anio, periodo.mes)
+    if (res[0]?.ind_recibos_generados == 1)
+      return new ClientException(`Ya se encuentran generados los recibos para el período ${periodo.anio}/${periodo.mes}`)
+
+    const recibos = await this.getReciboQuery(queryRunner, personalId, periodo.anio, periodo.mes)
+    if (recibos.length) 
+      return new ClientException(`Ya existe un recibo para ${PersonalPrestamo.ApellidoNombre} del periodo ${PersonalPrestamo.PersonalPrestamoAplicaEl}`)
+
+    await this.personalPrestamoAprobadoQuery(queryRunner, personalPrestamoId, personalId, PersonalPrestamo.PersonalPrestamoAplicaEl, PersonalPrestamo.PersonalPrestamoCantidadCuotas, PersonalPrestamo.PersonalPrestamoMonto)
+      
+    let row = await this.rowAyudaAsistencialQuery(queryRunner, personalPrestamoId, personalId)
+    return row[0]
+  }
+
+  async personalPrestamoAprobarList(req: any, res: Response, next: NextFunction){
     const queryRunner = dataSource.createQueryRunner();
-    const ids = req.body.id.split('-')
-    const personalPrestamoId = ids[0]
-    const personalId = ids[1]
+    const ids : string[] = req.body.ids
+    const numRows : number[] = req.body.rows
+    let errors : string[] = []
     try {
       await queryRunner.startTransaction()
 
-      let PersonalPrestamo = await this.getPersonalPrestamoByIdsQuery(queryRunner, personalPrestamoId, personalId)
-      if (!PersonalPrestamo.length) 
-        throw new ClientException('No se encuentra el registro.')
-      PersonalPrestamo = PersonalPrestamo[0]
+      for (const [index, id] of ids.entries()) {
+        const arrayIds = id.split('-')
+        let personalPrestamoId = Number.parseInt(arrayIds[0])
+        let personalId = Number.parseInt(arrayIds[1])
+        let res = await this.personalPrestamoAprobar(queryRunner,personalPrestamoId,personalId)
+        if (res instanceof ClientException) {
+          errors.push(`FILA ${numRows[index]+1}: `+res.messageArr[0])
+        }
+      }
 
-      // Validaciones
-      if(PersonalPrestamo.PersonalPrestamoAprobado != 'S' &&  PersonalPrestamo.PersonalPrestamoAprobado != null)
-        throw new ClientException('El registro NO puede ser RECHAZADO.')
-      if(PersonalPrestamo.PersonalPrestamoLiquidoFinanzas)
-        throw new ClientException('El registro ya se envió al banco.')
-      if (PersonalPrestamo.PersonalPrestamoAplicaEl.length) {
-        let cuotas = await this.getPersonalPrestamoCuotaByIdsQuery(queryRunner, personalPrestamoId, personalId)
-        if(cuotas.length){
-          for (const cuota of cuotas) {
-            const recibos = await this.getReciboQuery(queryRunner, personalId, cuota.anio, cuota.mes)
-            if (recibos.length) 
-              throw new ClientException(`Existe un recibo del período ${cuota.anio}/${cuota.mes} de este registro`)
-          }
+      if (errors.length) {
+        throw new ClientException(errors.join(`\n`))
+      }
+      
+      await queryRunner.commitTransaction()
+      return this.jsonRes({}, res, 'Carga Exitosa');
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    }finally{
+      await queryRunner.release()
+    }
+  }
+
+  async personalPrestamoRechazar(queryRunner: any, personalPrestamoId: number, personalId: number) {
+    let PersonalPrestamo = await this.getPersonalPrestamoByIdsQuery(queryRunner, personalPrestamoId, personalId)
+    if (!PersonalPrestamo.length) 
+      return new ClientException('No se encuentra el registro.')
+    PersonalPrestamo = PersonalPrestamo[0]
+
+    // Validaciones
+    if(PersonalPrestamo.PersonalPrestamoAprobado != 'S' &&  PersonalPrestamo.PersonalPrestamoAprobado != null)
+      return new ClientException('El registro NO puede ser RECHAZADO.')
+    if(PersonalPrestamo.PersonalPrestamoLiquidoFinanzas)
+      return new ClientException('El registro ya se envió al banco.')
+    if (PersonalPrestamo.PersonalPrestamoAplicaEl.length) {
+      let cuotas = await this.getPersonalPrestamoCuotaByIdsQuery(queryRunner, personalPrestamoId, personalId)
+      if(cuotas.length){
+        for (const cuota of cuotas) {
+          const recibos = await this.getReciboQuery(queryRunner, personalId, cuota.anio, cuota.mes)
+          if (recibos.length) 
+            return new ClientException(`Existe un recibo del período ${cuota.anio}/${cuota.mes} de este registro`)
+        }
+      }
+    }
+      
+    await this.personalPrestamoRechazadoQuery(queryRunner, personalPrestamoId, personalId)
+    await this.deletePersonalPrestamoCuotasQuery(queryRunner, personalPrestamoId, personalId)
+      
+    let row = await this.rowAyudaAsistencialQuery(queryRunner, personalPrestamoId, personalId)
+
+    return row[0]
+  }
+
+  async personalPrestamoRechazarList(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    const ids : string[] = req.body.ids
+    const numRows : number[] = req.body.rows
+    let errors : string[] = []
+    try {
+      await queryRunner.startTransaction()
+
+      for (const [index, id] of ids.entries()) {
+        const arrayIds = id.split('-')
+        let personalPrestamoId = Number.parseInt(arrayIds[0])
+        let personalId = Number.parseInt(arrayIds[1])
+        
+        let res = await this.personalPrestamoRechazar(queryRunner,personalPrestamoId,personalId)
+        if (res instanceof ClientException) {
+          errors.push(`FILA ${numRows[index]+1}: `+res.messageArr[0])
         }
       }
       
-      await this.personalPrestamoRechazadoQuery(queryRunner, personalPrestamoId, personalId)
-      await this.deletePersonalPrestamoCuotasQuery(queryRunner, personalPrestamoId, personalId)
-      
-      let row = await this.rowAyudaAsistencialQuery(queryRunner, personalPrestamoId, personalId)
-      await queryRunner.commitTransaction()
-      return this.jsonRes(row[0], res, 'Carga Exitosa');
-    }catch (error) {
-        this.rollbackTransaction(queryRunner)
-        return next(error)
-    } finally {
-        await queryRunner.release()
-    }
-  }
-
-  async addCuota(req: any, res: Response, next: NextFunction){
-    const queryRunner = dataSource.createQueryRunner();
-    const personalPrestamoAplicaEl = req.body.PersonalPrestamoAplicaEl
-    const personalPrestamoCantidadCuotas = req.body.PersonalPrestamoCantidadCuotas
-    const personalPrestamoMonto = req.body.PersonalPrestamoMonto
-    try {
-      const periodo = this.valAplicaEl(personalPrestamoAplicaEl)
-      if (!periodo || !personalPrestamoCantidadCuotas || !personalPrestamoMonto) {
-        throw new ClientException('Verifiquen que Cant Cuotas e Importe sean mayores a 0 y que Aplica El sea un periodo valido.')
+      if (errors.length) {
+        throw new ClientException(errors.join(`\n`))
       }
-      await queryRunner.startTransaction()
-      let res = await this.getPeriodoQuery(queryRunner, periodo.anio, periodo.mes)
-      if (res[0]?.ind_recibos_generados == 1)
-        return new ClientException(`Ya se encuentran generados los recibos para el período ${periodo.anio}/${periodo.mes}`)
-
-    }catch (error) {
+      
+      await queryRunner.commitTransaction()
+      return this.jsonRes({}, res, 'Carga Exitosa');
+    } catch (error) {
       this.rollbackTransaction(queryRunner)
       return next(error)
-    } finally {
-        await queryRunner.release()
+    }finally{
+      await queryRunner.release()
     }
   }
+
+  // async addCuota(req: any, res: Response, next: NextFunction){
+  //   const queryRunner = dataSource.createQueryRunner();
+  //   const personalPrestamoAplicaEl = req.body.PersonalPrestamoAplicaEl
+  //   const personalPrestamoCantidadCuotas = req.body.PersonalPrestamoCantidadCuotas
+  //   const personalPrestamoMonto = req.body.PersonalPrestamoMonto
+  //   try {
+  //     const periodo = this.valAplicaEl(personalPrestamoAplicaEl)
+  //     if (!periodo || !personalPrestamoCantidadCuotas || !personalPrestamoMonto) {
+  //       throw new ClientException('Verifiquen que Cant Cuotas e Importe sean mayores a 0 y que Aplica El sea un periodo valido.')
+  //     }
+  //     await queryRunner.startTransaction()
+  //     let res = await this.getPeriodoQuery(queryRunner, periodo.anio, periodo.mes)
+  //     if (res[0]?.ind_recibos_generados == 1)
+  //       return new ClientException(`Ya se encuentran generados los recibos para el período ${periodo.anio}/${periodo.mes}`)
+
+  //   }catch (error) {
+  //     this.rollbackTransaction(queryRunner)
+  //     return next(error)
+  //   } finally {
+  //     await queryRunner.release()
+  //   }
+  // }
 
   getTipoPrestamo(req: any, res: Response, next: NextFunction){
     return this.jsonRes(optionsSelect, res)
