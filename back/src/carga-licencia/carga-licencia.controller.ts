@@ -498,7 +498,6 @@ export class CargaLicenciaController extends BaseController {
       if (req.body.PersonalLicenciaDesde == null)
         throw new ClientException(`Debe seleccionar la fecha desde`)
 
-
       let PersonalLicenciaHasta
 
       if (req.body.PersonalLicenciaHasta != null) {
@@ -508,18 +507,13 @@ export class CargaLicenciaController extends BaseController {
         PersonalLicenciaHasta = null
       }
 
-
-
       const PersonalLicenciaDesde = new Date(req.body.PersonalLicenciaDesde)
       PersonalLicenciaDesde.setHours(0, 0, 0, 0)
 
       //if (isNaN(PersonalLicenciaHasta.getTime()))
       //PersonalLicenciaHasta = null
-      if (PersonalLicenciaHasta != null) {
-        if (PersonalLicenciaHasta < PersonalLicenciaDesde) {
+      if (PersonalLicenciaHasta != null && PersonalLicenciaHasta < PersonalLicenciaDesde)
           throw new ClientException(`La fecha Desde no puede ser mayor a la fecha Hasta`)
-        }
-      }
 
       if (PersonalLicenciaSePaga == "S") {
         if (!PersonalLicenciaCategoriaPersonalId)
@@ -546,7 +540,7 @@ export class CargaLicenciaController extends BaseController {
       );
 
       if (dateValid.length > 0)
-        throw new ClientException('ya existe un licencia para en el rango seleccionado. ')
+        throw new ClientException('La fecha desde se encuentra en un rango de otra licencia')
 
 
       // if (PersonalSituacionRevistaHasta !== null && PersonalLicenciaDesde <= PersonalSituacionRevistaHasta) {
@@ -630,7 +624,7 @@ export class CargaLicenciaController extends BaseController {
             SELECT TOP 1 sit.PersonalSituacionRevistaId, sit.PersonalSituacionRevistaDesde, ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') PersonalSituacionRevistaHasta, sit.PersonalSituacionRevistaSituacionId
             FROM PersonalSituacionRevista sit
             WHERE sit.PersonalId = @0 AND sit.PersonalSituacionRevistaDesde >  @1
-            ORDER BY sit.PersonalSituacionRevistaDesde DESC, sit.PersonalSituacionRevistaHasta DESC
+            ORDER BY sit.PersonalSituacionRevistaDesde ASC, ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') ASC
             `, [PersonalId, PersonalSituacionRevistaHastaOrig])
 
           if (PersonalSituacionRevistaHastaOrig != null && PersonalLicenciaHasta != null) {
@@ -752,7 +746,7 @@ export class CargaLicenciaController extends BaseController {
       await this.handlePDFUpload(anioRequest, mesRequest, PersonalId, PersonalLicenciaId, res, req, Archivos, next)
 
 
-//      throw new ClientException("Parece que todo oka")
+      throw new ClientException("DEBUG:  Paso bien")
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
 
@@ -1159,11 +1153,22 @@ export class CargaLicenciaController extends BaseController {
       const PersonalLicenciaId = req.body.PersonalLicenciaId
       const anio = req.body.anio
       const mes = req.body.mes
+      const aplicaEl = `${mes.toString().padStart(2, ' ')}/${anio}`
+
+      const recibo = await queryRunner.query(`
+        SELECT doc.doc_id
+        FROM lige.dbo.docgeneral doc
+        LEFT JOIN lige.dbo.liqmaperiodo liqp ON liqp.periodo_id = doc.periodo
+        WHERE doc.persona_id = @0 AND liqp.anio = @1 AND liqp.mes = @2 
+        `, [PersonalId, anio, mes])
+      if (recibo.length > 0)
+        throw new ClientException(`Ya se generó recibo para el período ${mes}/${anio}, no se pueden modificar las horas`)
+    
 
       let det: any = {}
       await queryRunner.query(`DELETE FROM  PersonalLicenciaAplicaPeriodo
-        WHERE PersonalId = @0  AND PersonalLicenciaId = @1`,
-        [PersonalId, PersonalLicenciaId]);
+        WHERE PersonalId = @0  AND PersonalLicenciaId = @1 AND PersonalLicenciaAplicaPeriodoAplicaEl = @2`,
+        [PersonalId, PersonalLicenciaId,aplicaEl]);
 
       if (horas > 0) {
         const PersonalLicencia = await queryRunner.query(`SELECT PersonalLicenciaAplicaPeriodoUltNro FROM PersonalLicencia WHERE PersonalId = @0 AND  PersonalLicenciaId = @1`,
@@ -1194,7 +1199,7 @@ export class CargaLicenciaController extends BaseController {
             PersonalId,
             PersonalLicenciaId,
             `${Math.trunc(horas)}.${(60 * (horas - Math.trunc(horas))).toString().padStart(2, '0')}`,
-            `${mes.toString().padStart(2, ' ')}/${anio}`,
+            aplicaEl,
             PersonalSucursal[0].PersonalSucursalPrincipalSucursalId
           ])
 
@@ -1206,8 +1211,7 @@ export class CargaLicenciaController extends BaseController {
 
     } catch (error) {
       this.rollbackTransaction(queryRunner)
-      //return next(error)
-      return next(`Error Procesando Cambios `)
+      return next(error)
     }
   }
 

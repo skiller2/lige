@@ -54,12 +54,12 @@ export class ClientesFormComponent {
 
   periodo = signal({ year: 0, month: 0 })
   visibleDrawer: boolean = false
-  objClienteContacto = { nombre: "", area: "", telefono: "", correo: "" }
+  objClienteContacto = { nombre: "", ClienteContactoApellido:"",area: "", telefono: "", correo: "" }
   personalId = signal(0)
   edit = model(true)
   ClienteId = model(0)
   selectedValueProvincia = null
-
+  isLoading = signal(false)
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
@@ -69,24 +69,28 @@ export class ClientesFormComponent {
   fb = inject(FormBuilder)
   formCli = this.fb.group({
     id: 0,
-    cuit: 0,
-    condicioniva: "",
-    razonsocial: "",
-    nombrefantasia: "",
-    fechaInicio: "",
-    rubros: "",
-    domiciliodireccion: "", referencia: "", domiciliocodigopostal: 0,
-    domiciliopais: "", domicilioprovincia: 0, domiciliolocalidad: 0, domiciliobarrio: 0,
-    AdministradorApellidoNombre: "",
+    ClienteFacturacionCUIT: 0,
+    ClienteFacturacionId:0,
+    ClienteCondicionAnteIVAId:0,
+    CondicionAnteIVADescripcion: "",
+    ClienteDenominacion: "",
+    CLienteNombreFantasia: "",
+    ClienteFechaAlta: "",
+    ClienteDomicilioId:0,ClienteDomicilioDomCalle: "",ClienteDomicilioDomNro:0, referencia: "", ClienteDomicilioCodigoPostal: 0,
+    domiciliopais: "", ClienteDomicilioProvinciaId: 0, ClienteDomicilioLocalidadId: 0, ClienteDomicilioBarrioId: 0,
+    AdministradorId:0, AdministradorApellidoNombre: "",
     infoClienteContacto: this.fb.array([this.fb.group({ ...this.objClienteContacto }), this.fb.group({ ...this.objClienteContacto })]), estado: 0,
   })
   // $optionsProvincia: Observable<Provincia[]> | null = null;
   // $optionsLocalidad: Observable<Localidad[]> = of([]);
   // $optionsBarrio: Observable<Barrio[]> = of([]);
 
+ 
+
   $optionsProvincia = this.searchService.getProvincia();
   $optionsLocalidad = this.searchService.getLocalidad();
   $optionsBarrio = this.searchService.getBarrio();
+  $optionsCondicionAnteIva = this.searchService.getOptionsCondicionAnteIva();
 
   onChangePeriodo(result: Date): void {
     if (result) {
@@ -123,7 +127,7 @@ export class ClientesFormComponent {
   async load() {
 
     let infoCliente = await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
-
+console.log("infoCliente ",infoCliente)
     this.infoClienteContacto().clear()
     infoCliente.infoClienteContacto.forEach((obj: any) => {
       this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
@@ -139,9 +143,10 @@ export class ClientesFormComponent {
     setTimeout(() => {
       this.formCli.reset(infoCliente)
       this.formCli.patchValue({
-        domicilioprovincia: infoCliente.ProvinciaId,
-        domiciliolocalidad: infoCliente.domiciliolocalidad,
-        domiciliobarrio: infoCliente.domiciliobarrio
+        ClienteDomicilioProvinciaId: infoCliente.ClienteDomicilioProvinciaId,
+        ClienteDomicilioLocalidadId: infoCliente.ClienteDomicilioLocalidadId,
+        ClienteDomicilioBarrioId: infoCliente.ClienteDomicilioBarrioId,
+        ClienteCondicionAnteIVAId: infoCliente.CondicionAnteIVAId
       });
   
     }, 100);
@@ -186,6 +191,25 @@ export class ClientesFormComponent {
   //   });
 
   // }
+
+  async save() {
+    this.isLoading.set(true)
+    const form = this.formCli.value
+    try {
+        if (this.ClienteId()) {
+            await firstValueFrom(this.apiService.updateCliente(form, this.ClienteId()))
+            this.edit.set(false)
+        } else {
+          //este es para cuando es un nuevo registro
+          //await firstValueFrom(this.apiService.addObjCustodia(form))
+        }
+        this.formCli.markAsUntouched()
+        this.formCli.markAsPristine()
+    } catch (e) {
+        
+    }
+    this.isLoading.set(false)
+}
 
   infoClienteContacto(): FormArray {
     return this.formCli.get("infoClienteContacto") as FormArray

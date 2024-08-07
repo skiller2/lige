@@ -876,6 +876,12 @@ export class ApiService {
     )
   }
 
+  updateCliente(cliente: any, ClienteId: any) {
+    return this.http.post<ResponseJSON<any>>(`/api/clientes/update/${ClienteId}`, cliente).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
   ayudaAsistencialRechazar(parameter: any,) {
     return this.http.post<ResponseJSON<any>>(`/api/ayuda-asistencial/rechazar`, parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
