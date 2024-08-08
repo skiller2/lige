@@ -100,17 +100,14 @@ export class CustodiaFormComponent {
         infoCust.vehiculos.forEach((obj:any) => {
             this.vehiculos().push(this.fb.group({...this.objVehiculo}))
         });
-        if (this.edit()) {
-            this.formCus.enable()
-            this.personal().enable()
-            this.vehiculos().enable()
-        } else {
-            this.formCus.disable()
-            this.personal().disable()
-            this.vehiculos().disable()
-        }
         setTimeout(() => {
             this.formCus.reset(infoCust)
+            if (this.edit()) {
+                this.formCus.enable()
+            } else {
+                this.formCus.disable()
+            }
+    
         }, 100);
         {}
     }
