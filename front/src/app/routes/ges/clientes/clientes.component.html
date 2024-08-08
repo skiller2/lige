@@ -16,7 +16,7 @@
       <a [routerLink]="['/', 'ges', 'clientes','detalle']" (click)="setEdit(true)">
         <button nz-button nzType="default" [disabled]="editClienteId? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
       </a>
-      <a [routerLink]="['/', 'ges', 'clientes','alta']">
+      <a [routerLink]="['/', 'ges', 'clientes','alta']" (click)="setEdit(false)">
         <button nz-button nzType="default" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
       </a>
     </nz-button-group>
@@ -42,12 +42,11 @@
       <nz-tab>
         <a nz-tab-link routerLink="/ges/clientes/detalle" >Detalle</a>
         <app-clientes-form [ClienteId]="editClienteId" [edit]="edit"></app-clientes-form>
-        <!-- <app-custodias-form [custodiaId]="editCustodiaId" [edit]="edit && estado" ></app-custodias-form> -->
       </nz-tab>
   
       <nz-tab> 
         <a nz-tab-link routerLink="/ges/clientes/alta" >Alta</a>
-        <!-- <app-custodias-form></app-custodias-form> -->
+        <app-clientes-form [edit]="edit" ></app-clientes-form>
       </nz-tab>
   
     </nz-tabset>

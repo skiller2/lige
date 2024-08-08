@@ -193,13 +193,17 @@ export class ClientesController extends BaseController {
     async getClienteContactoQuery(queryRunner: any, clienteId: any) {
         return await queryRunner.query(`SELECT 
             cc.ClienteContactoNombre AS nombre,
-             cc.ClienteContactoId,
+            cc.ClienteContactoId,
             cc.ClienteContactoApellido,
             cc.ClienteContactoArea AS area,
             cc.ClienteContactoEmailUltNro,
-             cc.ClienteContactoTelefonoUltNro,
+            cc.ClienteContactoTelefonoUltNro,
+            cct.TipoTelefonoId,
+            cct.ClienteContactoTelefonoCodigoArea,
+            cct.ClienteContactoTelefonoId,
             cce.ClienteContactoEmailEmail AS correo ,
-            cct.ClienteContactoTelefonoNro AS telefono
+            cct.ClienteContactoTelefonoNro AS telefono,
+            cce.ClienteContactoEmailId
         FROM  ClienteContacto cc
         LEFT JOIN ClienteContactoEmail cce ON  cc.ClienteId = cce.ClienteId
             AND cc.ClienteContactoId = cce.ClienteContactoId
@@ -207,7 +211,6 @@ export class ClientesController extends BaseController {
         LEFT JOIN ClienteContactoTelefono cct ON 
             cc.ClienteId = cct.ClienteId
             AND cc.ClienteContactoId = cct.ClienteContactoId
-            AND cct.ClienteContactoTelefonoId = cct.ClienteContactoTelefonoId
             AND cc.ClienteContactoTelefonoUltNro = cct.ClienteContactoTelefonoId
         WHERE  cc.ClienteId= @0`,
             [clienteId])
@@ -232,6 +235,7 @@ export class ClientesController extends BaseController {
             ,domcli.ClienteDomicilioProvinciaId
             ,domcli.ClienteDomicilioLocalidadId
             ,domcli.ClienteDomicilioBarrioId
+            ,domcli.ClienteDomicilioDomLugar
             ,adm.AdministradorApellidoNombre
             ,adm.AdministradorId
         FROM Cliente cli
@@ -249,6 +253,7 @@ export class ClientesController extends BaseController {
                 ,domcli.ClienteDomicilioProvinciaId
                 ,domcli.ClienteDomicilioLocalidadId
                 ,domcli.ClienteDomicilioBarrioId
+                ,domcli.ClienteDomicilioDomLugar
             FROM ClienteDomicilio AS domcli
             WHERE domcli.ClienteId = @0
                 AND domcli.ClienteDomicilioActual = 1
@@ -280,6 +285,19 @@ export class ClientesController extends BaseController {
         }
 
     }
+    
+    async getTipoTelefono(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const tipoTelefono = await queryRunner.query(`SELECT * FROM TipoTelefono`)
+            return this.jsonRes(tipoTelefono, res);
+        } catch (error) {
+            return next(error)
+        } finally {
+
+        }
+
+    }
 
     async getProvinciasQuery(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
@@ -297,8 +315,8 @@ export class ClientesController extends BaseController {
     async getLocalidadQuery(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         try {
-            const provincias = await queryRunner.query(`SELECT LocalidadId, ProvinciaId, localidadDescripcion FROM Localidad  WHERE PaisId = 1`)
-            return this.jsonRes(provincias, res);
+            const localidad = await queryRunner.query(`SELECT LocalidadId, ProvinciaId, localidadDescripcion FROM Localidad  WHERE PaisId = 1`)
+            return this.jsonRes(localidad, res);
         } catch (error) {
             return next(error)
         } finally {
@@ -310,8 +328,8 @@ export class ClientesController extends BaseController {
     async getBarrioQuery(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         try {
-            const provincias = await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 `)
-            return this.jsonRes(provincias, res);
+            const barrio = await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 `)
+            return this.jsonRes(barrio, res);
         } catch (error) {
             return next(error)
         } finally {
@@ -352,7 +370,8 @@ export class ClientesController extends BaseController {
                 ,ObjCliente.ClienteDomicilioCodigoPostal
                 ,ObjCliente.ClienteDomicilioProvinciaId 
                 ,ObjCliente.ClienteDomicilioLocalidadId 
-                ,ObjCliente.ClienteDomicilioBarrioId)
+                ,ObjCliente.ClienteDomicilioBarrioId
+                ,ObjCliente.ClienteDomicilioDomLugar)
 
             await this.updateAdministradorTable(queryRunner,ObjCliente.AdministradorId,ObjCliente.AdministradorApellidoNombre)
 
@@ -366,40 +385,54 @@ export class ClientesController extends BaseController {
             const infoClienteCorreo = await queryRunner.query(`SELECT MAX(ClienteContactoEmailId) AS maxClienteContactoEmailId FROM ClienteContactoEmail WHERE clienteId = @0`, [ObjCliente])
             let maxClienteContactoEmailId = infoClienteCorreo[0].maxClienteContactoEmailId
 
+            //ACA SE EVALUA Y SE ELIMINA EL CASO QUE SE BORRE ALGUN REGISTRO DE CLIENTE CONTACTO EXISTENTE
+            const numerosQueNoPertenecen = clienteContactoIds.filter(num => {
+                return !ObjCliente.infoClienteContacto.some(obj => obj.ClienteContactoId === num && obj.ClienteContactoId !== 0);
+            });
 
             for (const obj of ObjCliente.infoClienteContacto) {
-                
-                if (clienteContactoIds.includes(obj.ClienteContactoId) && obj.ClienteContactoId !== 0) {
-                  //update
-                    await this.updateClienteContactoTable(queryRunner,ClienteId,obj.ClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area)
 
-                    if(obj.ClienteContactoEmailUltNro != null){
+                if(numerosQueNoPertenecen?.length > 0) {
 
-                        await this.updateClienteContactoEmailTable(queryRunner,ClienteId,obj.ClienteContactoId,obj.ClienteContactoEmailUltNro,obj.correo)
-                    }
+                    await this.deleteClienteContactoTable(queryRunner,ClienteId, obj.ClienteContactoId)
+                    await this.deleteClienteContactoEmailTable(queryRunner,ClienteId,obj.ClienteContactoEmailId,obj.ClienteContactoId)
+                    await this.deleteClienteContactoTelefonoTable(queryRunner,ClienteId,obj.ClienteContactoTelefonoId,obj.ClienteContactoId)
 
-                    if(obj.ClienteContactoTelefonoUltNro != null){
+                }else{
+                    if (clienteContactoIds.includes(obj.ClienteContactoId) && obj.ClienteContactoId !== 0) {
+                        //update
+                          await this.updateClienteContactoTable(queryRunner,ClienteId,obj.ClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area)
+      
+                          if(obj.ClienteContactoEmailUltNro != null){
+      
+                              await this.updateClienteContactoEmailTable(queryRunner,ClienteId,obj.ClienteContactoId,obj.ClienteContactoEmailUltNro,obj.correo)
+                          }
+      
+                          if(obj.ClienteContactoTelefonoUltNro != null){
+      
+                              await this.updateClienteContactoTelefonoTable(queryRunner,ClienteId,obj.ClienteContactoId,obj.ClienteContactoTelefonoUltNro,obj.telefono)
+                          }
+                         
+                      } else {
+                         // Insert
+                         maxClienteContactoId += 1
+                         maxClienteContactoTelefonoId += 1
+                         maxClienteContactoEmailId += 1
+      
+                         await this.insertClienteContactoTable(queryRunner,ClienteId,obj.maxClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxClienteContactoTelefonoId,maxClienteContactoEmailId)
+      
+                         await this.insertClienteContactoEmailTable(queryRunner,ClienteId,obj.maxClienteContactoId,obj.maxClienteContactoEmailId,obj.correo)
+      
+                         await this.insertClienteContactoTelefonoTable(queryRunner,ClienteId,obj.maxClienteContactoId,obj.maxClienteContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,
+                          obj.ClienteContactoTelefonoCodigoArea)
+      
+                      }
+                }    
 
-                        await this.updateClienteContactoTelefonoTable(queryRunner,ClienteId,obj.ClienteContactoId,obj.ClienteContactoTelefonoUltNro,obj.telefono)
-                    }
-                   
-                } else {
-                   // Insert
-                   maxClienteContactoId += 1
-                   maxClienteContactoTelefonoId += 1
-                   maxClienteContactoEmailId += 1
-
-                   await this.insertClienteContactoTable(queryRunner,ClienteId,obj.maxClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxClienteContactoTelefonoId,maxClienteContactoEmailId)
-
-                   await this.insertClienteContactoEmailTable(queryRunner,ClienteId,obj.maxClienteContactoId,obj.maxClienteContactoEmailId,obj.correo)
-
-                   await this.insertClienteContactoTelefonoTable(queryRunner,ClienteId,obj.maxClienteContactoId,obj.maxClienteContactoTelefonoId,obj.telefono)
-
-                }
             }
-            
+
             await queryRunner.commitTransaction()
-            return this.jsonRes([], res, 'Carga Exitosa');
+            return this.jsonRes([], res, 'Modificación  Exitosa');
         }catch (error) {
             this.rollbackTransaction(queryRunner)
             return next(error)
@@ -411,67 +444,76 @@ export class ClientesController extends BaseController {
     async FormValidations(form:any){
 
 
-        if(form.ClienteFacturacionCUIT == null) {
+        if(!form.ClienteFacturacionCUIT) {
            throw new ClientException(`El campo CUIT NO pueden estar vacio.`)
         }
 
-        if(form.ClienteFechaAlta == null) {
+        if(!form.ClienteFechaAlta) {
            throw new ClientException(`El campo Fecha Inicial NO pueden estar vacio.`)
         }
 
-        if(form.CLienteNombreFantasia.trim() == "") {
+        if(!form.CLienteNombreFantasia) {
             throw new ClientException(`El campo  Nombre Fantasía NO pueden estar vacio.`)
         }
 
-        if(form.ClienteCondicionAnteIVAId == null) {
+        if(!form.ClienteCondicionAnteIVAId) {
            throw new ClientException(`El campo Condición Ante IVA NO pueden estar vacio.`)
         }
 
-        if(form.ClienteDenominacion.trim() == "") {
+        if(!form.ClienteDenominacion) {
            throw new ClientException(`El campo Razón Social NO pueden estar vacio.`)
         }
 
         //Domicilio
 
-        if(form.ClienteDomicilioDomCalle.trim() == "") {
+        if(!form.ClienteDomicilioDomCalle) {
             throw new ClientException(`El campo Dirección Calle NO pueden estar vacio.`)
          }
  
-         if(form.ClienteDomicilioDomNro.trim() == "") {
+         if(!form.ClienteDomicilioDomNro) {
             throw new ClientException(`El campo Nro NO pueden estar vacio.`)
          }
  
-         if(form.ClienteDomicilioCodigoPostal.trim() == "") {
+         if(!form.ClienteDomicilioCodigoPostal) {
              throw new ClientException(`El campo Cod Postal NO pueden estar vacio.`)
          }
  
-         if(form.ClienteDomicilioProvinciaId == null) {
+         if(!form.ClienteDomicilioProvinciaId) {
             throw new ClientException(`El campo Provincia Ante IVA NO pueden estar vacio.`)
          }
  
-         if(form.ClienteDomicilioBarrioId == null) {
+         if(!form.ClienteDomicilioBarrioId) {
             throw new ClientException(`El campo Razón Social NO pueden estar vacio.`)
          }
 
-         if(form.ClienteDomicilioLocalidadId == null) {
+         if(!form.ClienteDomicilioLocalidadId) {
             throw new ClientException(`El campo Barrio NO pueden estar vacio.`)
          }
 
+        // CLIENTE CONTACTO
+
          for(const obj of form.infoClienteContacto){
 
-            if(form.nombre.trim() == "") {
+            if(!obj.nombre) {
                 throw new ClientException(`El campo Nombre en cliente contacto NO pueden estar vacio.`)
              }
 
-             if(form.ClienteContactoApellido.trim() == "") {
+             if(!obj.ClienteContactoApellido) {
                 throw new ClientException(`El campo Apellido en cliente contacto NO pueden estar vacio.`)
              }
 
-             if(form.area.trim() == "") {
+             if(!obj.area) {
                 throw new ClientException(`El campo Area en cliente contacto NO pueden estar vacio.`)
+ 
              }
 
+            if(!obj.TipoTelefonoId) {
+                throw new ClientException(`El campo Tipo Telefono NO pueden estar vacio.`)
+            }
+
          }
+
+        
 
     }
     
@@ -485,18 +527,19 @@ export class ClientesController extends BaseController {
         ,ClienteDomicilioCodigoPostal: string
         ,ClienteDomicilioProvinciaId: any
         ,ClienteDomicilioLocalidadId: any
-        ,ClienteDomicilioBarrioId: any){
+        ,ClienteDomicilioBarrioId: any
+        ,ClienteDomicilioDomLugar:any){
 
         await queryRunner.query(`UPDATE ClienteDomicilio
         SET ClienteDomicilioDomCalle = @2,ClienteDomicilioDomNro = @3, ClienteDomicilioCodigoPostal = @4, 
-        ClienteDomicilioProvinciaId = @5,ClienteDomicilioLocalidadId = @6,ClienteDomicilioBarrioId = @7
+        ClienteDomicilioProvinciaId = @5,ClienteDomicilioLocalidadId = @6,ClienteDomicilioBarrioId = @7,ClienteDomicilioDomLugar=@8
         WHERE ClienteId = @0 AND ClienteDomicilioId = @1`,[
             ClienteId,
             ClienteDomicilioId,
             ClienteDomicilioDomCalle,
             ClienteDomicilioDomNro,
             ClienteDomicilioCodigoPostal,
-            ClienteDomicilioProvinciaId,ClienteDomicilioLocalidadId,ClienteDomicilioBarrioId])
+            ClienteDomicilioProvinciaId,ClienteDomicilioLocalidadId,ClienteDomicilioBarrioId,ClienteDomicilioDomLugar])
      }
 
     async updateFacturaTable(queryRunner:any,ClienteId:number,ClienteFacturacionId:string,ClienteFacturacionCUIT:string,CondicionAnteIVAId:number){
@@ -613,7 +656,8 @@ export class ClientesController extends BaseController {
 
      }
 
-     async insertClienteContactoTelefonoTable(queryRunner:any,ClienteId:number,ClienteContactoId:number,maxClienteContactoTelefonoId:number,telefono:string){
+     async insertClienteContactoTelefonoTable(queryRunner:any,ClienteId:number,ClienteContactoId:number,maxClienteContactoTelefonoId:number,telefono:string,TipoTelefonoId:number,
+        ClienteContactoTelefonoCodigoArea:any){
 
         await queryRunner.query(`INSERT INTO ClienteContactoTelefono (
             ClienteId,
@@ -633,10 +677,10 @@ export class ClientesController extends BaseController {
                ClienteContactoId,
                maxClienteContactoTelefonoId, 
                null, 
-               3, 
+               TipoTelefonoId, 
                null,
                null,
-               null,
+               ClienteContactoTelefonoCodigoArea,
                telefono,
                null,
                null,
@@ -655,9 +699,9 @@ export class ClientesController extends BaseController {
           await queryRunner.connect();
           await queryRunner.startTransaction();
           
-          await this.deleteClienteContactoTable(queryRunner,ClienteId)
-          await this.deleteClienteContactoEmailTable(queryRunner,ClienteId)
-          await this.deleteClienteContactoTelefonoTable(queryRunner,ClienteId)
+          await this.deleteClienteContactoTable(queryRunner,ClienteId,null)
+          await this.deleteClienteContactoEmailTable(queryRunner,ClienteId,null,null)
+          await this.deleteClienteContactoTelefonoTable(queryRunner,ClienteId,null,null)
     
           await queryRunner.commitTransaction();
     
@@ -669,21 +713,107 @@ export class ClientesController extends BaseController {
       }
 
 
-    async deleteClienteContactoTable(queryRunner:any,ClienteId:number){
+    async deleteClienteContactoTable(queryRunner:any,ClienteId:number,ClienteContactoId:any){
 
-        await queryRunner.query(`DELETE FROM ClienteContacto WHERE ClienteId = @0;`,[ClienteId])
+        let deleteCliente = `DELETE FROM ClienteContacto WHERE ClienteId = @0`
+
+        if(ClienteContactoId != null)
+            deleteCliente += ` AND ClienteContactoId =@1`
+
+        await queryRunner.query(deleteCliente,[ClienteId,ClienteContactoId])
     } 
 
-    async deleteClienteContactoEmailTable(queryRunner:any,ClienteId:number){
+    async deleteClienteContactoEmailTable(queryRunner:any,ClienteId:number,ClienteContactoEmailId:any,ClienteContactoId:any){
 
-        await queryRunner.query(`DELETE FROM ClienteContactoEmail WHERE ClienteId = @0;`,[ClienteId])
+        let deleteEmail = `DELETE FROM ClienteContactoEmail WHERE ClienteId = @0`
+
+        if(ClienteContactoEmailId != null && ClienteContactoId != null && ClienteContactoId != null)
+            deleteEmail += ` AND ClienteContactoEmailId =@1 AND ClienteContactoId = @2 `
+
+        await queryRunner.query(deleteEmail,[ClienteId,ClienteContactoEmailId,ClienteContactoId])
     } 
 
-    async deleteClienteContactoTelefonoTable(queryRunner:any,ClienteId:number){
+    async deleteClienteContactoTelefonoTable(queryRunner:any,ClienteId:number,ClienteContactoTelefonoId:any,ClienteContactoId:any){
 
-        await queryRunner.query(`DELETE FROM ClienteContactoTelefono WHERE ClienteId = @0;`,[ClienteId])
+        let deletTelefono = `DELETE FROM ClienteContactoTelefono WHERE ClienteId = @0`
+
+        if(ClienteContactoTelefonoId != null && ClienteContactoId != null)
+            deletTelefono += ` AND ClienteContactoEmailId =@1 AND ClienteContactoId = @2`
+
+        await queryRunner.query(deletTelefono,[ClienteId,ClienteContactoTelefonoId,ClienteContactoId])
     } 
+    
 
+    async addCliente(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        const ObjCliente = {...req.body }
+        console.log(".....................................................")
+        console.log(ObjCliente)
+        try {
+
+            await queryRunner.startTransaction()
+
+            const usuario = res.locals.userName
+            const ip = this.getRemoteAddress(req)
+
+            //validaciones
+
+            await this.FormValidations(ObjCliente)
+
+            let ClienteSelectId = await queryRunner.query("SELECT MAX(ClienteId) AS MaxClienteId FROM Cliente")
+            let ClienteId = ClienteSelectId[0].MaxClienteId + 1
+
+            await this.insertCliente(queryRunner,ClienteId)
+
+            // await this.insertClienteContactoTable(queryRunner,ClienteId,obj.maxClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxClienteContactoTelefonoId,maxClienteContactoEmailId)
+            // await this.insertClienteContactoEmailTable(queryRunner,ClienteId,obj.maxClienteContactoId,obj.maxClienteContactoEmailId,obj.correo)
+            // await this.insertClienteContactoTelefonoTable(queryRunner,ClienteId,obj.maxClienteContactoId,obj.maxClienteContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,obj.ClienteContactoTelefonoCodigoArea)
+
+            await queryRunner.commitTransaction()
+            return this.jsonRes([], res, 'Carga  de nuevo registro exitoso');
+        }catch (error) {
+            this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+
+    async insertCliente(queryRunner:any, ClienteId:number){
+
+        await queryRunner.query(`INSERT INTO Cliente (	
+        ClienteId,
+        ClienteConsorcioEs,
+        ClienteApellido,
+        ClienteNombre,
+        ClienteDenominacion,
+        ClienteNombreFantasia,
+        ClienteApellidoNombre,
+        ClienteSexo,
+        ClienteFechaAlta,
+        ClienteInactivo,
+        ClienteContactoUltNro,
+        ClienteTelefonoUltNro,
+        ClienteEmailUltNro,
+        ClientePaginaWebUltNro,
+        ClienteCoordinadorCuentaUltNro,
+        ClienteCobradorUltNro,
+        ClienteFacturaUltNro,
+        ClienteContratoUltNro,
+        ClienteDomicilioUltNro,
+        ClientePresupuestoUltNro,
+        ClienteRubroUltNro,
+        ClienteElementoDependienteUltNro,
+        ClienteFacturacionUltNro,
+        ClienteAdministradorUltNro,
+        ClientePropio,
+        ClienteSucursalId,
+        ClienteImagenId,
+        ClienteImagenBlob VALUES (
+        @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19,@20,@21,@22,@23,@24,@25,@26,@27
+        )`,[])
+    }
 
 
 
