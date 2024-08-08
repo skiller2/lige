@@ -814,6 +814,15 @@ export class ApiService {
 
   }
 
+  deleteCliente(vals: any) {
+    return this.http.delete<ResponseJSON<any>>(`/api/clientes`,  vals ).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+      catchError(() => of([])),
+
+    )
+
+  }
+
   deleteArchivosLicencias(deleteId: any) {
     const parameter = [deleteId]
     this.notification.success('Respuesta', `Inicio Borrado `);
