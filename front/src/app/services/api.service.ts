@@ -919,6 +919,12 @@ export class ApiService {
     );
   }
 
+  ayudaAsistencialAddCuota(parameter: any,) {
+    return this.http.post<ResponseJSON<any>>(`/api/ayuda-asistencial/addcuota`, parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

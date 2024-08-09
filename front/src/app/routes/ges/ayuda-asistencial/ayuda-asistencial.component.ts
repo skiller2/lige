@@ -29,6 +29,7 @@ export class AyudaAsistencialComponent {
     registerId : string = ''
     loadingRec:boolean = false
     loadingApr:boolean = false
+    loadingCuo:boolean = false
     selectedPeriod = { year: 0, month: 0 };
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
@@ -197,6 +198,19 @@ export class AyudaAsistencialComponent {
             console.log(error);
         }
         this.loadingApr = false
+    }
+
+    async addCuotaReg(){
+        this.loadingCuo = true
+        const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
+        // console.log(ids,this.rows);
+        try {
+            const res :any = await firstValueFrom(this.apiService.ayudaAsistencialAddCuota({ids:ids, rows:this.rows}))
+            this.formChange('')
+        } catch (error) {
+            console.log(error);
+        }
+        this.loadingCuo = false
     }
 
     valAplicaEl(date:string):boolean{

@@ -227,7 +227,7 @@ export class AyudaAsistencialController extends BaseController {
       `, [personalPrestamoId, personalId])
   }
 
-  async getPersonalPrestamoCuotaByIdsQuery(
+  async getPersonalPrestamoCuotasByIdsQuery(
     queryRunner:any, personalPrestamoId:number, personalId:number
   ){
     return await queryRunner.query(`
@@ -297,6 +297,30 @@ export class AyudaAsistencialController extends BaseController {
       AND (${filterSql})
       ${orderBy}
     `,[anio, mes])
+  }
+
+  async personalPrestamoCuotaAddCuotaQuery(
+    queryRunner: any, personalPrestamoCuotaId:number, personalPrestamoId: number, personalId: number,
+    anio:number, mes:number, importe:number
+  ) {
+    return await queryRunner.query(`
+      INSERT PersonalPrestamoCuota (PersonalPrestamoCuotaId, PersonalPrestamoId, PersonalId,
+      PersonalPrestamoCuotaAno, PersonalPrestamoCuotaMes, PersonalPrestamoCuotaCuota,
+      PersonalPrestamoCuotaImporte, PersonalPrestamoCuotaMantiene,PersonalPrestamoCuotaFinaliza,
+      PersonalPrestamoCuotaProceso)
+      VALUES (@0,@1,@2,@3,@4,@0,@5,@6,@6,@7)
+    `,[personalPrestamoCuotaId, personalPrestamoId, personalId, anio, mes, importe, 0, 'FA'])
+  }
+
+  async updateCuotaPersonalPrestamo(
+    queryRunner: any, personalPrestamoId: number, personalId: number, ultCuota:number,  anio:number, mes:number
+  ) {
+    return await queryRunner.query(`
+      UPDATE PersonalPrestamo
+      SET PersonalPrestamoUltimaLiquidacion = CONCAT(FORMAT(@2,'00'),'/',@3,' Cuota ', 4), PersonalPrestamoCuotaUltNro = @3
+      WHERE PersonalPrestamoId = @0 AND PersonalId = @1
+    `, [personalPrestamoId, personalId, mes, anio, ultCuota]
+    )
   }
 
   async getGridColumns(req: any, res: Response, next: NextFunction) {
@@ -440,7 +464,7 @@ export class AyudaAsistencialController extends BaseController {
     if(PersonalPrestamo.PersonalPrestamoLiquidoFinanzas)
       return new ClientException('El registro ya se envió al banco.')
     if (PersonalPrestamo.PersonalPrestamoAplicaEl.length) {
-      let cuotas = await this.getPersonalPrestamoCuotaByIdsQuery(queryRunner, personalPrestamoId, personalId)
+      let cuotas = await this.getPersonalPrestamoCuotasByIdsQuery(queryRunner, personalPrestamoId, personalId)
       if(cuotas.length){
         for (const cuota of cuotas) {
           const recibos = await this.getReciboQuery(queryRunner, personalId, cuota.anio, cuota.mes)
@@ -491,28 +515,74 @@ export class AyudaAsistencialController extends BaseController {
     }
   }
 
-  // async addCuota(req: any, res: Response, next: NextFunction){
-  //   const queryRunner = dataSource.createQueryRunner();
-  //   const personalPrestamoAplicaEl = req.body.PersonalPrestamoAplicaEl
-  //   const personalPrestamoCantidadCuotas = req.body.PersonalPrestamoCantidadCuotas
-  //   const personalPrestamoMonto = req.body.PersonalPrestamoMonto
-  //   try {
-  //     const periodo = this.valAplicaEl(personalPrestamoAplicaEl)
-  //     if (!periodo || !personalPrestamoCantidadCuotas || !personalPrestamoMonto) {
-  //       throw new ClientException('Verifiquen que Cant Cuotas e Importe sean mayores a 0 y que Aplica El sea un periodo valido.')
-  //     }
-  //     await queryRunner.startTransaction()
-  //     let res = await this.getPeriodoQuery(queryRunner, periodo.anio, periodo.mes)
-  //     if (res[0]?.ind_recibos_generados == 1)
-  //       return new ClientException(`Ya se encuentran generados los recibos para el período ${periodo.anio}/${periodo.mes}`)
+  async personalPrestamoCuotaAddCuota(queryRunner: any, personalPrestamoId: number, personalId: number) {
+    let periodo : any = null
+    let ultCuota : number = 0
+    let importeCuota : number = 0
+    let PersonalPrestamo = await this.getPersonalPrestamoByIdsQuery(queryRunner, personalPrestamoId, personalId)
+    //Validaciones
+    if (!PersonalPrestamo.length) 
+      return new ClientException('No se encuentra el registro.')
+    PersonalPrestamo = PersonalPrestamo[0]
 
-  //   }catch (error) {
-  //     this.rollbackTransaction(queryRunner)
-  //     return next(error)
-  //   } finally {
-  //     await queryRunner.release()
-  //   }
-  // }
+    if(PersonalPrestamo.PersonalPrestamoAprobado != 'S')
+      return new ClientException('El registro NO esta APROBADO.')
+    if (PersonalPrestamo.PersonalPrestamoCuotaUltNro >= PersonalPrestamo.PersonalPrestamoCantidadCuotas) {
+      return new ClientException('No se pude generar más cuotas.')
+    }
+    if (PersonalPrestamo.PersonalPrestamoUltimaLiquidacion?.length) {
+      let ultimaLiquidacion = PersonalPrestamo.PersonalPrestamoUltimaLiquidacion.split(' ')
+      periodo = this.valAplicaEl(ultimaLiquidacion[0])
+      ultCuota = Number.parseInt(ultimaLiquidacion[2])
+    }else{
+      periodo = this.valAplicaEl(PersonalPrestamo.PersonalPrestamoAplicaEl)
+    }
+    //Actualizo los datos para la nueva cuota
+    importeCuota  = PersonalPrestamo.PersonalPrestamoMontoAutorizado / PersonalPrestamo.PersonalPrestamoCantidadCuotas
+    if(periodo.mes < 12)
+      periodo.mes++
+    else {
+      periodo.mes = 1
+      periodo.anio++
+    }
+    ultCuota++
+    await this.personalPrestamoCuotaAddCuotaQuery(queryRunner, ultCuota, personalPrestamoId, personalId,
+      periodo.anio, periodo.mes, importeCuota)
+    await this.updateCuotaPersonalPrestamo(queryRunner, personalPrestamoId, personalId, ultCuota,
+      periodo.anio, periodo.mes)
+
+  }
+
+  async personalPrestamoCuotaListAddCuota(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    const ids : string[] = req.body.ids
+    const numRows : number[] = req.body.rows
+    let errors : string[] = []
+    try {
+      for (const [index, id] of ids.entries()) {
+        const arrayIds = id.split('-')
+        let personalPrestamoId = Number.parseInt(arrayIds[0])
+        let personalId = Number.parseInt(arrayIds[1])
+        
+        let res = await this.personalPrestamoCuotaAddCuota(queryRunner, personalPrestamoId, personalId)
+        if (res instanceof ClientException) {
+          errors.push(`FILA ${numRows[index]+1}: `+res.messageArr[0])
+        }
+      }
+
+      if (errors.length) {
+        throw new ClientException(errors.join(`\n`))
+      }
+      
+      await queryRunner.commitTransaction()
+      return this.jsonRes({}, res, 'Carga Exitosa');
+    }catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
 
   getTipoPrestamo(req: any, res: Response, next: NextFunction){
     return this.jsonRes(optionsSelect, res)
@@ -531,7 +601,7 @@ export class AyudaAsistencialController extends BaseController {
     }
     const mes = Number.parseInt(periodo[0])
     const anio = Number.parseInt(periodo[1])
-    if (Number.isNaN(mes) || mes > 12 || mes < 0 || Number.isNaN(anio) || anio < 0) {
+    if (Number.isNaN(mes) || mes > 12 || mes < 1 || Number.isNaN(anio) || anio < 2000) {
         return null
     }
     return {anio, mes}

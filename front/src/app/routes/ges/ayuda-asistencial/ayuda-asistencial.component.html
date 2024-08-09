@@ -17,14 +17,13 @@
         <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
       </nz-form-control>
       <nz-form-control style="display: flex; justify-content:center; align-items:end;">
-        Cant selecionada: {{rows.length}}
-        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Aprobar?" (nzOnConfirm)="aprobarReg()" [disabled]="!rows.length" [nzLoading]="loadingApr" >
+        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Aprobar {{rows.length}} registros?" (nzOnConfirm)="aprobarReg()" [disabled]="!rows.length || loadingRec || loadingCuo" [nzLoading]="loadingApr" >
           <span nz-icon nzType="check" nzTheme="outline"></span>
         </button>
-        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Rechazar?" (nzOnConfirm)="rechazarReg()" [disabled]="!rows.length" [nzLoading]="loadingRec" >
+        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Rechazar {{rows.length}} registros?" (nzOnConfirm)="rechazarReg()" [disabled]="!rows.length || loadingApr || loadingCuo" [nzLoading]="loadingRec" >
           <span nz-icon nzType="close" nzTheme="outline"></span>
         </button>
-        <button nzType="default" nz-button [disabled]="!registerId.length"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Generar cuota a {{rows.length}} registros?" (nzOnConfirm)="addCuotaReg()" [disabled]="!rows.length || loadingApr || loadingRec" [nzLoading]="loadingCuo" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
       </nz-form-control>
     </nz-form-item>
 
