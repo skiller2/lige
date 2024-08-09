@@ -102,7 +102,7 @@
           <button nz-button *ngIf="personal().controls.length == i+1 && formCus.enabled" nzType="primary" class="add-button" (click)="addPersonal($event)">
             <span nz-icon nzType="plus"></span>
           </button>
-          <button nz-button *nfIf="formCus.enabled"  nzType="default" (click)="removePersonal(i, $event)">
+          <button nz-button *ngIf="formCus.enabled"  nzType="default" (click)="removePersonal(i, $event)">
             <span nz-icon nzType="delete" nzTheme="outline" ></span>
           </button>
         </ng-template>

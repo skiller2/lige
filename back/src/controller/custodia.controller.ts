@@ -173,17 +173,18 @@ export class CustodiaController extends BaseController {
         const impo_peaje = objetivoCustodia.impoPeaje? objetivoCustodia.impoPeaje : null
         const impo_facturar= objetivoCustodia.facturacion? objetivoCustodia.facturacion : null
         const num_factura= objetivoCustodia.numFactura? objetivoCustodia.numFactura : null
+        const desc_facturacion= objetivoCustodia.desc_facturacion? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
         return await queryRunner.query(`
             INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, 
                 descripcion, fecha_inicio, origen, fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced,
-                impo_horas_exced, cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, num_factura, estado, 
+                impo_horas_exced, cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, desc_facturacion, num_factura, estado, 
                 aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-            VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @19, @20, @21)`, 
+            VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @19, @20, @21, @22)`, 
             [objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, descripcion, fecha_inicio, origen, 
                 fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced, impo_horas_exced, 
-                cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, num_factura, estado, 
+                cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, desc_facturacion, num_factura, estado, 
                 usuario, ip, fechaActual]
         )
     }
@@ -267,6 +268,7 @@ export class CustodiaController extends BaseController {
         const impo_peaje = objetivoCustodia.impoPeaje? objetivoCustodia.impoPeaje : null
         const impo_facturar = objetivoCustodia.facturacion? objetivoCustodia.facturacion : null
         const num_factura = objetivoCustodia.numFactura? objetivoCustodia.numFactura : null
+        const desc_facturacion = objetivoCustodia.desc_facturacion? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
         return await queryRunner.query(`
@@ -274,12 +276,12 @@ export class CustodiaController extends BaseController {
         SET cliente_id = @1, desc_requirente = @2, descripcion = @3, fecha_inicio = @4, origen = @5, 
         fecha_fin = @6, destino = @7, cant_modulos = @8, importe_modulos = @9, cant_horas_exced = @10, 
         impo_horas_exced = @11, cant_km_exced = @12, impo_km_exced = @13, impo_peaje = @14,  
-        impo_facturar = @15, num_factura = @16, estado = @17, 
-        aud_usuario_mod = @18, aud_ip_mod = @19, aud_fecha_mod = @20
+        impo_facturar = @15, desc_facturacion = @16, num_factura = @17, estado = @18, 
+        aud_usuario_mod = @19, aud_ip_mod = @20, aud_fecha_mod = @21
         WHERE objetivo_custodia_id = @0`, 
         [objetivo_custodia_id, cliente_id, desc_requirente, descripcion, fecha_inicio, origen, fecha_fin, destino, 
             cant_modulos, importe_modulos, cant_horas_exced, impo_horas_exced, cant_km_exced, impo_km_exced, 
-            impo_peaje, impo_facturar, num_factura, estado, usuario, ip, fechaActual
+            impo_peaje, impo_facturar, desc_facturacion, num_factura, estado, usuario, ip, fechaActual
         ])
     }
 
@@ -653,9 +655,9 @@ export class CustodiaController extends BaseController {
             }
 
             //Si hubo un cambio en objetivocustodia ACTUALIZA
-            if (cantCambios) {
+            //if (cantCambios) {
                 await this.updateObjetivoCustodiaQuery(queryRunner, {...objetivoCustodia, objetivoCustodiaId: custodiaId}, usuario, ip)
-            }
+            //}
 
             //Elimino los vehiculos y el personal que ya no pertenecen a este objetivo custodia
             for (const obj of listPersonal) {
