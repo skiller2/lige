@@ -93,7 +93,7 @@ export class ClientesFormComponent {
     ClienteFechaAlta: "",
     ClienteDomicilioId:0,ClienteDomicilioDomCalle: "",ClienteDomicilioDomNro:0, referencia: "", ClienteDomicilioCodigoPostal: 0,ClienteDomicilioDomLugar:null,
     domiciliopais: "", ClienteDomicilioProvinciaId: null, ClienteDomicilioLocalidadId: null, ClienteDomicilioBarrioId: null,
-    AdministradorId:0, AdministradorApellidoNombre: null,
+    AdministradorId:0, AdministradorApellido: null,AdministradorNombre:null,
     infoClienteContacto: this.fb.array([this.fb.group({ ...this.objClienteContacto })]), estado: 0,
   })
   // $optionsProvincia: Observable<Provincia[]> | null = null;

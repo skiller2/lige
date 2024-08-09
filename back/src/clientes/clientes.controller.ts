@@ -192,17 +192,17 @@ export class ClientesController extends BaseController {
 
     async getClienteContactoQuery(queryRunner: any, clienteId: any) {
         return await queryRunner.query(`SELECT 
-            cc.ClienteContactoNombre AS nombre,
+            cc.TRIM(ClienteContactoNombre) AS nombre,
             cc.ClienteContactoId,
-            cc.ClienteContactoApellido,
+            cc.TRIM(ClienteContactoApellido) AS ClienteContactoApellido,
             cc.ClienteContactoArea AS area,
             cc.ClienteContactoEmailUltNro,
             cc.ClienteContactoTelefonoUltNro,
             cct.TipoTelefonoId,
             cct.ClienteContactoTelefonoCodigoArea,
             cct.ClienteContactoTelefonoId,
-            cce.ClienteContactoEmailEmail AS correo ,
-            cct.ClienteContactoTelefonoNro AS telefono,
+            cce.TRIM(ClienteContactoEmailEmail) AS correo ,
+            cct.TRIM(ClienteContactoTelefonoNro) AS telefono,
             cce.ClienteContactoEmailId
         FROM  ClienteContacto cc
         LEFT JOIN ClienteContactoEmail cce ON  cc.ClienteId = cce.ClienteId
@@ -223,20 +223,21 @@ export class ClientesController extends BaseController {
             ,fac.ClienteFacturacionCUIT
             ,fac.ClienteFacturacionId
             ,fac.CondicionAnteIVAId
-            ,con.CondicionAnteIVADescripcion
-            ,cli.ClienteDenominacion
-            ,cli.CLienteNombreFantasia
+            ,TRIM(con.CondicionAnteIVADescripcion) AS CondicionAnteIVADescripcion
+            ,TRIM(cli.ClienteDenominacion) AS ClienteDenominacion 
+            ,TRIM(cli.CLienteNombreFantasia) AS CLienteNombreFantasia
             ,cli.ClienteFechaAlta
             ,domcli.ClienteDomicilioId
-            ,domcli.ClienteDomicilioDomCalle
-            ,domcli.ClienteDomicilioDomNro
-            ,domcli.ClienteDomicilioCodigoPostal
+            ,TRIM(domcli.ClienteDomicilioDomCalle) AS ClienteDomicilioDomCalle
+            ,TRIM(domcli.ClienteDomicilioDomNro) AS ClienteDomicilioDomNro
+            ,TRIM(domcli.ClienteDomicilioCodigoPostal) AS  ClienteDomicilioCodigoPostal
             ,domcli.ClienteDomicilioPaisId AS domiciliopais
             ,domcli.ClienteDomicilioProvinciaId
             ,domcli.ClienteDomicilioLocalidadId
             ,domcli.ClienteDomicilioBarrioId
-            ,domcli.ClienteDomicilioDomLugar
-            ,adm.AdministradorApellidoNombre
+            ,TRIM(domcli.ClienteDomicilioDomLugar) AS ClienteDomicilioDomLugar
+            ,TRIM(adm.AdministradorNombre) AS AdministradorNombre
+            ,TRIM(adm.AdministradorApellido) AS AdministradorNombre
             ,adm.AdministradorId
         FROM Cliente cli
         LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId
@@ -262,7 +263,8 @@ export class ClientesController extends BaseController {
         LEFT JOIN (
             SELECT TOP 1 ca.ClienteId
                 ,ca.ClienteAdministradorAdministradorId AS AdministradorId
-                ,adm.AdministradorApellidoNombre
+                ,adm.AdministradorNombre
+                ,adm.AdministradorApellido
             FROM ClienteAdministrador ca
             JOIN Administrador adm ON adm.AdministradorId = ca.ClienteAdministradorAdministradorId
             WHERE ca.ClienteId = @0
@@ -372,8 +374,14 @@ export class ClientesController extends BaseController {
                 ,ObjCliente.ClienteDomicilioLocalidadId 
                 ,ObjCliente.ClienteDomicilioBarrioId
                 ,ObjCliente.ClienteDomicilioDomLugar)
+               
 
-            await this.updateAdministradorTable(queryRunner,ObjCliente.AdministradorId,ObjCliente.AdministradorApellidoNombre)
+            if( ObjCliente.AdministradorId != null )
+            await this.updateAdministradorTable(queryRunner,ObjCliente.AdministradorId,ObjCliente.AdministradorNombre,ObjCliente.AdministradorApellido,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion)
+
+            if(ObjCliente.AdministradorId == null && (ObjCliente.AdministradorNombre != null || ObjCliente.AdministradorApellido != null)){
+                await this.createAdministrador(queryRunner,ObjCliente,ClienteId)
+            }
 
             const infoCliente = await queryRunner.query(`SELECT ClienteContactoId FROM ClienteContacto WHERE clienteId = @0`,[ObjCliente])
             const clienteContactoIds = infoCliente.map(row => row.ClienteContactoId)
@@ -419,11 +427,11 @@ export class ClientesController extends BaseController {
                          maxClienteContactoTelefonoId += 1
                          maxClienteContactoEmailId += 1
       
-                         await this.insertClienteContactoTable(queryRunner,ClienteId,obj.maxClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxClienteContactoTelefonoId,maxClienteContactoEmailId)
+                         await this.insertClienteContactoTable(queryRunner,ClienteId,maxClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxClienteContactoTelefonoId,maxClienteContactoEmailId)
       
-                         await this.insertClienteContactoEmailTable(queryRunner,ClienteId,obj.maxClienteContactoId,obj.maxClienteContactoEmailId,obj.correo)
+                         await this.insertClienteContactoEmailTable(queryRunner,ClienteId,maxClienteContactoId,obj.maxClienteContactoEmailId,obj.correo)
       
-                         await this.insertClienteContactoTelefonoTable(queryRunner,ClienteId,obj.maxClienteContactoId,obj.maxClienteContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,
+                         await this.insertClienteContactoTelefonoTable(queryRunner,ClienteId,maxClienteContactoId,obj.maxClienteContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,
                           obj.ClienteContactoTelefonoCodigoArea)
       
                       }
@@ -441,82 +449,19 @@ export class ClientesController extends BaseController {
         }
     }
 
-    async FormValidations(form:any){
+    async createAdministrador(queryRunner:any,ObjCliente:any,ClienteId:number){
 
+        const infoAdministrador = await queryRunner.query(`SELECT  MAX(AdministradorId) AS AdministradorId  FROM Administrador`)
+        let maxAdministradorId = infoAdministrador[0].AdministradorId + 1 
 
-        if(!form.ClienteFacturacionCUIT) {
-           throw new ClientException(`El campo CUIT NO pueden estar vacio.`)
-        }
-
-        if(!form.ClienteFechaAlta) {
-           throw new ClientException(`El campo Fecha Inicial NO pueden estar vacio.`)
-        }
-
-        if(!form.CLienteNombreFantasia) {
-            throw new ClientException(`El campo  Nombre Fantasía NO pueden estar vacio.`)
-        }
-
-        if(!form.ClienteCondicionAnteIVAId) {
-           throw new ClientException(`El campo Condición Ante IVA NO pueden estar vacio.`)
-        }
-
-        if(!form.ClienteDenominacion) {
-           throw new ClientException(`El campo Razón Social NO pueden estar vacio.`)
-        }
-
-        //Domicilio
-
-        if(!form.ClienteDomicilioDomCalle) {
-            throw new ClientException(`El campo Dirección Calle NO pueden estar vacio.`)
-         }
- 
-         if(!form.ClienteDomicilioDomNro) {
-            throw new ClientException(`El campo Nro NO pueden estar vacio.`)
-         }
- 
-         if(!form.ClienteDomicilioCodigoPostal) {
-             throw new ClientException(`El campo Cod Postal NO pueden estar vacio.`)
-         }
- 
-         if(!form.ClienteDomicilioProvinciaId) {
-            throw new ClientException(`El campo Provincia Ante IVA NO pueden estar vacio.`)
-         }
- 
-         if(!form.ClienteDomicilioBarrioId) {
-            throw new ClientException(`El campo Razón Social NO pueden estar vacio.`)
-         }
-
-         if(!form.ClienteDomicilioLocalidadId) {
-            throw new ClientException(`El campo Barrio NO pueden estar vacio.`)
-         }
-
-        // CLIENTE CONTACTO
-
-         for(const obj of form.infoClienteContacto){
-
-            if(!obj.nombre) {
-                throw new ClientException(`El campo Nombre en cliente contacto NO pueden estar vacio.`)
-             }
-
-             if(!obj.ClienteContactoApellido) {
-                throw new ClientException(`El campo Apellido en cliente contacto NO pueden estar vacio.`)
-             }
-
-             if(!obj.area) {
-                throw new ClientException(`El campo Area en cliente contacto NO pueden estar vacio.`)
- 
-             }
-
-            if(!obj.TipoTelefonoId) {
-                throw new ClientException(`El campo Tipo Telefono NO pueden estar vacio.`)
-            }
-
-         }
-
-        
+        await this.insertAdministrador(queryRunner,maxAdministradorId,ObjCliente.AdministradorApellido,ObjCliente.AdministradorNombre,ObjCliente.ClienteDenominacion,
+            ObjCliente.CLienteNombreFantasia) 
+            
+         let ClienteAdministradorId = 1   
+        await this.insertClienteAdministrador(queryRunner,ClienteId,ClienteAdministradorId,ObjCliente.ClienteFechaAlta,maxAdministradorId)    
 
     }
-    
+ 
 
     async updateClienteDomicilioTable(
          queryRunner: any
@@ -557,20 +502,18 @@ export class ClientesController extends BaseController {
          WHERE ClienteId = @0`,[ClienteId,CLienteNombreFantasia,ClienteDenominacion,ClienteFechaAlta])
      }
 
-     async updateAdministradorTable(queryRunner:any,AdministradorId:number,AdministradorApellidoNombre:any){
+     async updateAdministradorTable(queryRunner:any,AdministradorId:number,AdministradorNombre:any,AdministradorApellido:any,CLienteNombreFantasia:any,ClienteDenominacion:any){
+
+         let AdministradorApellidoNombre = `${AdministradorApellido.trim()},${AdministradorNombre.trim()}`
 
         await queryRunner.query(`
          UPDATE Administrador
-         SET AdministradorApellidoNombre = @1
-         WHERE AdministradorId = @0`,[AdministradorId,AdministradorApellidoNombre])
+         SET AdministradorApellido = @1,AdministradorApellido = @2,AdministradorApellidoNombre = @3, AdministradorNombreFantasia = @4,AdministradorDenominacion= @5
+         WHERE AdministradorId = @0`,[AdministradorId,AdministradorApellido,AdministradorNombre,AdministradorApellidoNombre,CLienteNombreFantasia,ClienteDenominacion])
 
      }
 
      async updateClienteContactoTable(queryRunner:any,ClienteId:number,ClienteContactoId:number,nombre:string,ClienteContactoApellido:string,area:string){
-
-
-        if(area != null)
-            area = area.trim()
 
         let ClienteContactoApellidoNombre = `${nombre.trim()},${ClienteContactoApellido.trim()}`
 
@@ -601,9 +544,6 @@ export class ClientesController extends BaseController {
 
      async insertClienteContactoTable(queryRunner:any,ClienteId:number,ClienteContactoId:number,nombre:string,ClienteContactoApellido:string,area:string,maxClienteContactoTelefonoId:number,maxClienteContactoEmailId:number){
 
-
-        if(area != null)
-            area = area.trim()
 
         let ClienteContactoApellidoNombre = `${nombre.trim()},${ClienteContactoApellido.trim()}`
 
@@ -763,11 +703,30 @@ export class ClientesController extends BaseController {
             let ClienteSelectId = await queryRunner.query("SELECT MAX(ClienteId) AS MaxClienteId FROM Cliente")
             let ClienteId = ClienteSelectId[0].MaxClienteId + 1
 
-            await this.insertCliente(queryRunner,ClienteId)
+            let ClienteDomicilioUltNro,ClienteFacturacionId,ClienteDomicilioId = 1
+            let maxClienteContactoId,maxClienteContactoTelefonoId,maxClienteContactoEmailId = 0
 
-            // await this.insertClienteContactoTable(queryRunner,ClienteId,obj.maxClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxClienteContactoTelefonoId,maxClienteContactoEmailId)
-            // await this.insertClienteContactoEmailTable(queryRunner,ClienteId,obj.maxClienteContactoId,obj.maxClienteContactoEmailId,obj.correo)
-            // await this.insertClienteContactoTelefonoTable(queryRunner,ClienteId,obj.maxClienteContactoId,obj.maxClienteContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,obj.ClienteContactoTelefonoCodigoArea)
+            await this.insertCliente(queryRunner,ClienteId,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion,ObjCliente.ClienteFechaAlta,ClienteDomicilioUltNro)
+            await this.insertClienteFacturacion(queryRunner,ClienteId,ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.CondicionAnteIVAId,ObjCliente.ClienteFechaAlta)
+            await this.inserClientetDomicilio(queryRunner,ClienteId,ClienteDomicilioId,ObjCliente.ClienteDomicilioDomLugar,ObjCliente.ClienteDomicilioDomCalle,ObjCliente.ClienteDomicilioDomNro,
+                ObjCliente.ClienteDomicilioCodigoPostal,ObjCliente.ClienteDomicilioProvinciaId,ObjCliente.ClienteDomicilioLocalidadId,ObjCliente.ClienteDomicilioBarrioId,
+            )
+
+            for (const obj of ObjCliente.infoClienteContacto) {
+
+                maxClienteContactoId += 1
+                maxClienteContactoTelefonoId += 1
+                maxClienteContactoEmailId += 1
+
+                await this.insertClienteContactoTable(queryRunner,ClienteId,maxClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxClienteContactoTelefonoId,maxClienteContactoEmailId)
+                await this.insertClienteContactoEmailTable(queryRunner,ClienteId,maxClienteContactoId,obj.maxClienteContactoEmailId,obj.correo)
+                await this.insertClienteContactoTelefonoTable(queryRunner,ClienteId,maxClienteContactoId,obj.maxClienteContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,obj.ClienteContactoTelefonoCodigoArea)
+                
+            }
+
+            if(ObjCliente.AdministradorNombre != null || ObjCliente.AdministradorApellido != null){
+                await this.createAdministrador(queryRunner,ObjCliente,ClienteId)
+            }
 
             await queryRunner.commitTransaction()
             return this.jsonRes([], res, 'Carga  de nuevo registro exitoso');
@@ -780,7 +739,7 @@ export class ClientesController extends BaseController {
     }
 
 
-    async insertCliente(queryRunner:any, ClienteId:number){
+    async insertCliente(queryRunner:any, ClienteId:number,CLienteNombreFantasia:any,ClienteDenominacion:any,ClienteFechaAlta:any,ClienteDomicilioUltNro:any){
 
         await queryRunner.query(`INSERT INTO Cliente (	
         ClienteId,
@@ -810,11 +769,236 @@ export class ClientesController extends BaseController {
         ClientePropio,
         ClienteSucursalId,
         ClienteImagenId,
-        ClienteImagenBlob VALUES (
+        ClienteImagenBlob) VALUES (
         @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19,@20,@21,@22,@23,@24,@25,@26,@27
-        )`,[])
+        )`,[
+         ClienteId,
+         null,
+         null,
+         null,
+         ClienteDenominacion,
+         CLienteNombreFantasia,
+         ClienteDenominacion,
+         null,
+         ClienteFechaAlta,
+         null,
+         null,
+         null,
+         null,
+         null,
+         null,
+         null,
+         null,
+         null,
+         ClienteDomicilioUltNro,
+         null,
+         null,
+         null,
+         null,
+         null,
+         null,
+         null,
+         null,
+         null,
+        ])
     }
 
+    async insertClienteFacturacion(queryRunner:any,ClienteId:any,ClienteFacturacionId:any,CondicionAnteIVAId:any,ClienteFacturacionCUIT:any,ClienteFechaAlta:Date){
 
+      await queryRunner.query(`INSERT INTO ClienteFacturacion (
+        ClienteId,
+        ClienteFacturacionId,
+        ClienteFacturacionCUIT,
+        CondicionAnteIVAId,
+        ClienteFacturacionTipoFactura,
+        ClienteFacturacionTipoFacturacion,
+        ClienteFacturacionDesde,
+        ClienteFacturacionHasta) VALUES (
+        @0,@1,@2,@3,@4,@5,@6,@7)`,[ClienteId,ClienteFacturacionId,CondicionAnteIVAId,ClienteFacturacionCUIT,null,null,ClienteFechaAlta,null] )
+    }
+
+    async inserClientetDomicilio(queryRunner:any,ClienteId:any,ClienteDomicilioId:any,ClienteDomicilioDomLugar:any,ClienteDomicilioDomCalle:any,
+        ClienteDomicilioDomNro:any,ClienteDomicilioCodigoPostal:any,ClienteDomicilioProvinciaId:any,ClienteDomicilioLocalidadId:any,ClienteDomicilioBarrioId:any,
+){
+
+        await queryRunner.query(`INSERT INTO ClienteDomicilio (
+            ClienteId,
+            ClienteDomicilioId,
+            ClienteDomicilioDomLugar,
+            ClienteDomicilioRutaTipoRuta,
+            ClienteDomicilioRutaCatalogacion,
+            ClienteDomicilioRutaKm,
+            ClienteDomicilioDomCalle,
+            ClienteDomicilioDomNro,
+            ClienteDomicilioDomPiso,
+            ClienteDomicilioDomDpto,
+            ClienteDomicilioEntreRutaTipoRuta,
+            ClienteDomicilioEntreRutaCatalogacion,
+            ClienteDomicilioYRutaTipoRuta,
+            ClienteDomicilioYRutaCatalogacion,
+            ClienteDomicilioEntreEsquina,
+            ClienteDomicilioEntreEsquinaY,
+            ClienteDomicilioDomBloque,
+            ClienteDomicilioDomEdificio,
+            ClienteDomicilioDomCuerpo,
+            ClienteDomicilioCodigoPostal,
+            ClienteDomicilioPaisId,
+            ClienteDomicilioProvinciaId,
+            ClienteDomicilioLocalidadId,
+            ClienteDomicilioBarrioId,
+            ClienteDomicilioActual,
+            ClienteDomicilioComercial,
+            ClienteDomicilioOperativo) VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19,@20,@21,@22,@23,@24,@25,@26
+            )`,[ClienteId,
+                ClienteDomicilioId,
+                ClienteDomicilioDomLugar,
+                null,
+                null,
+                null,
+                ClienteDomicilioDomCalle,
+                ClienteDomicilioDomNro,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                ClienteDomicilioCodigoPostal,
+                1,
+                ClienteDomicilioProvinciaId,
+                ClienteDomicilioLocalidadId,
+                ClienteDomicilioBarrioId,
+                1,
+                1,
+                1
+
+            ])
+          }
+
+
+          async insertClienteAdministrador(queryRunner:any,ClienteId:number,ClienteAdministradorId:number,ClienteFechaAlta:Date,maxAdministradorId:number){
+
+            await queryRunner.query(` INSERT ClienteAdministrador (
+                ClienteId,
+                ClienteAdministradorId,
+                ClienteAdministradorDesde,
+                ClienteAdministradorHasta,
+                ClienteAdministradorAdministradorId,
+                ) VALUES ( @0,@1,@2,@3,@4
+                )`,[ClienteId,ClienteAdministradorId,ClienteFechaAlta,null,maxAdministradorId])
+    
+    
+        }
+    
+        async insertAdministrador(queryRunner:any,maxAdministradorId:any,  AdministradorApellido:any,
+            AdministradorNombre:any, AdministradorDenominacion:any,
+            AdministradorNombreFantasia:any,){
+    
+            let AdministradorApellidoNombre = `${AdministradorApellido.trim()},${AdministradorNombre.trim()}`
+            
+            await queryRunner.query(` INSERT INTO Administrador (
+                AdministradorId,
+                AdministradorApellido,
+                AdministradorNombre,
+                AdministradorDenominacion,
+                AdministradorNombreFantasia,
+                AdministradorApellidoNombre,
+                AdministradorSexo,
+                AdministradorInactivo,
+                AdministradorContactoUltNro,
+                AdministradorTelefonoUltNro,
+                AdministradorEmailUltNro,
+                AdministradorPaginaWebUltNro,
+                AdministradorDomicilioUltNro,
+                AdministradorFacturacionUltNro,
+                AdministradorSucursalId,
+                AdministradorImagenId,
+                AdministradorImagenBlob
+                ) VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16
+                )`,[maxAdministradorId,AdministradorApellido,AdministradorNombre,AdministradorDenominacion,
+                    AdministradorNombreFantasia,AdministradorApellidoNombre,null,null,null,null,null,null,null,null,null,null,null])
+    
+        }
+
+        async FormValidations(form:any){
+    
+    
+            if(!form.ClienteFacturacionCUIT) {
+               throw new ClientException(`El campo CUIT NO pueden estar vacio.`)
+            }
+    
+            if(!form.ClienteFechaAlta) {
+               throw new ClientException(`El campo Fecha Inicial NO pueden estar vacio.`)
+            }
+    
+            if(!form.CLienteNombreFantasia) {
+                throw new ClientException(`El campo  Nombre Fantasía NO pueden estar vacio.`)
+            }
+    
+            if(!form.ClienteCondicionAnteIVAId) {
+               throw new ClientException(`El campo Condición Ante IVA NO pueden estar vacio.`)
+            }
+    
+            if(!form.ClienteDenominacion) {
+               throw new ClientException(`El campo Razón Social NO pueden estar vacio.`)
+            }
+    
+            //Domicilio
+    
+            if(!form.ClienteDomicilioDomCalle) {
+                throw new ClientException(`El campo Dirección Calle NO pueden estar vacio.`)
+             }
+     
+             if(!form.ClienteDomicilioDomNro) {
+                throw new ClientException(`El campo Nro NO pueden estar vacio.`)
+             }
+     
+             if(!form.ClienteDomicilioCodigoPostal) {
+                 throw new ClientException(`El campo Cod Postal NO pueden estar vacio.`)
+             }
+     
+             if(!form.ClienteDomicilioProvinciaId) {
+                throw new ClientException(`El campo Provincia Ante IVA NO pueden estar vacio.`)
+             }
+     
+             if(!form.ClienteDomicilioBarrioId) {
+                throw new ClientException(`El campo Razón Social NO pueden estar vacio.`)
+             }
+    
+             if(!form.ClienteDomicilioLocalidadId) {
+                throw new ClientException(`El campo Barrio NO pueden estar vacio.`)
+             }
+    
+            // CLIENTE CONTACTO
+    
+             for(const obj of form.infoClienteContacto){
+    
+                if(!obj.nombre) {
+                    throw new ClientException(`El campo Nombre en cliente contacto NO pueden estar vacio.`)
+                 }
+    
+                 if(!obj.ClienteContactoApellido) {
+                    throw new ClientException(`El campo Apellido en cliente contacto NO pueden estar vacio.`)
+                 }
+    
+                 if(!obj.area) {
+                    throw new ClientException(`El campo Area en cliente contacto NO pueden estar vacio.`)
+     
+                 }
+    
+                if(!obj.TipoTelefonoId) {
+                    throw new ClientException(`El campo Tipo Telefono NO pueden estar vacio.`)
+                }
+    
+             }
+    
+            
+    
+        }     
 
 }
