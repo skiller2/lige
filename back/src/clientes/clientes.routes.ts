@@ -38,6 +38,10 @@ clientesRouter.get('/getProvincia', authMiddleware.verifyToken, (req, res, next)
   clientesController.getProvinciasQuery(req, res, next) 
 })
 
+clientesRouter.get('/getTipoTelefono', authMiddleware.verifyToken, (req, res, next) => { 
+  clientesController.getTipoTelefono(req, res, next) 
+})
+
 clientesRouter.get('/getLocalidad', authMiddleware.verifyToken, (req, res, next) => { 
   clientesController.getLocalidadQuery(req, res, next) 
 })
@@ -50,7 +54,12 @@ clientesRouter.post('/update/:id', authMiddleware.verifyToken, (req, res, next) 
   clientesController.updateCliente(req, res, next)
 } )
 
-clientesRouter.delete("/", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+clientesRouter.delete("/", authMiddleware.verifyToken, (req, res, next) => {
   clientesController.deleteCliente(req, res, next);
 });
+
+clientesRouter.post('/add', authMiddleware.verifyToken, (req, res, next) => { 
+  clientesController.addCliente(req, res, next) 
+} )
+
 

@@ -689,6 +689,16 @@ export class SearchService {
     );
   }
 
+  getTipoTelefono(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/clientes/getTipoTelefono`).pipe(
+      map(res =>  res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getLocalidad(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getLocalidad`).pipe(
       map(res =>  res.data),
