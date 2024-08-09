@@ -54,7 +54,22 @@ export class ClientesFormComponent {
 
   periodo = signal({ year: 0, month: 0 })
   visibleDrawer: boolean = false
-  objClienteContacto = { ClienteContactoId:0,nombre: "", ClienteContactoApellido:"",area: "", telefono: "", correo: "",ClienteContactoEmailUltNro:null, ClienteContactoTelefonoUltNro:null}
+
+  objClienteContacto = { 
+    ClienteContactoId:0,
+    nombre: "", 
+    ClienteContactoApellido:"",
+    area: "", 
+    TipoTelefonoId:null,
+    ClienteContactoTelefonoCodigoArea:"",
+    telefono: "", 
+    correo: "",
+    ClienteContactoEmailUltNro:null,
+    ClienteContactoTelefonoUltNro:null,
+    ClienteContactoTelefonoId:null,
+    ClienteContactoEmailId:null
+  }
+
   personalId = signal(0)
   edit = model(true)
   ClienteId = model(0)
@@ -76,16 +91,16 @@ export class ClientesFormComponent {
     ClienteDenominacion: "",
     CLienteNombreFantasia: "",
     ClienteFechaAlta: "",
-    ClienteDomicilioId:0,ClienteDomicilioDomCalle: "",ClienteDomicilioDomNro:0, referencia: "", ClienteDomicilioCodigoPostal: 0,
+    ClienteDomicilioId:0,ClienteDomicilioDomCalle: "",ClienteDomicilioDomNro:0, referencia: "", ClienteDomicilioCodigoPostal: 0,ClienteDomicilioDomLugar:null,
     domiciliopais: "", ClienteDomicilioProvinciaId: null, ClienteDomicilioLocalidadId: null, ClienteDomicilioBarrioId: null,
-    AdministradorId:0, AdministradorApellidoNombre: null,
-    infoClienteContacto: this.fb.array([this.fb.group({ ...this.objClienteContacto }), this.fb.group({ ...this.objClienteContacto })]), estado: 0,
+    AdministradorId:0, AdministradorApellido: null,AdministradorNombre:null,
+    infoClienteContacto: this.fb.array([this.fb.group({ ...this.objClienteContacto })]), estado: 0,
   })
   // $optionsProvincia: Observable<Provincia[]> | null = null;
   // $optionsLocalidad: Observable<Localidad[]> = of([]);
   // $optionsBarrio: Observable<Barrio[]> = of([]);
 
-
+  $tipoTelefono = this.searchService.getTipoTelefono();
   $optionsProvincia = this.searchService.getProvincia();
   $optionsLocalidad = this.searchService.getLocalidad();
   $optionsBarrio = this.searchService.getBarrio();
@@ -113,10 +128,11 @@ export class ClientesFormComponent {
     }, { injector: this.injector });
 
     effect(async () => {
+      
       if (this.edit()) {
         this.formCli.enable()
-      } else {
-        this.formCli.disable()
+      } else{
+       
       }
     }, { injector: this.injector });
 
@@ -195,12 +211,15 @@ export class ClientesFormComponent {
     this.isLoading.set(true)
     const form = this.formCli.value
     try {
+      console.log("cliente " , this.ClienteId())
         if (this.ClienteId()) {
-            await firstValueFrom(this.apiService.updateCliente(form, this.ClienteId()))
-            this.edit.set(false)
+          console.log("paso")
+            // await firstValueFrom(this.apiService.updateCliente(form, this.ClienteId()))
+            // this.edit.set(false)
         } else {
+          console.log("paso1")
           //este es para cuando es un nuevo registro
-          //await firstValueFrom(this.apiService.addObjCustodia(form))
+          await firstValueFrom(this.apiService.addCliente(form))
         }
         this.formCli.markAsUntouched()
         this.formCli.markAsPristine()
@@ -215,15 +234,16 @@ export class ClientesFormComponent {
   }
 
   addClienteContacto(e?: MouseEvent): void {
+
     e?.preventDefault();
-    if (this.edit()) {
-      this.infoClienteContacto().controls.push((this.fb.group({ ...this.objClienteContacto })))
-    }
+    this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
+    
   }
 
   removeClienteContacto(index: number, e: MouseEvent): void {
+
     e.preventDefault();
-    if (this.infoClienteContacto().controls.length > 1 && this.edit()) {
+    if (this.infoClienteContacto().length > 1 ) {
       this.infoClienteContacto().removeAt(index)
     }
   }

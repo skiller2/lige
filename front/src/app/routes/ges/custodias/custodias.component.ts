@@ -87,7 +87,7 @@ export class CustodiaComponent {
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-            totalRecords(this.angularGrid)
+            totalRecords(this.angularGrid,'cliente')
             columnTotal('facturacion', this.angularGrid)
         })
         if (this.apiService.isMobile())
@@ -96,8 +96,8 @@ export class CustodiaComponent {
 
     handleSelectedRowsChanged(e: any): void {
         const selrow = e.detail.args.rows[0]
-        if (!selrow) return
         const row = this.angularGrid.slickGrid.getDataItem(selrow)
+        if (!row) return
         this.editCustodiaId = row.id
 
         if (row.estado.tipo === 4){

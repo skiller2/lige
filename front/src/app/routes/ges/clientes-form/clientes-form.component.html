@@ -30,7 +30,7 @@
   
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">  Nombre Fantasía</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-          <input nz-input placeholder="" formControlName="CLienteNombreFantasia" type="text" />
+          <input nz-input placeholder="" formControlName="CLienteNombreFantasia" type="string" />
         </nz-form-control>
     </nz-form-item>
 
@@ -46,7 +46,7 @@
         </nz-form-control>
     </nz-form-item>
 
-    <div class="input-container">
+    <div class="input-container1">
         <div class="input-label">Domicilio</div>
     </div>  
     <nz-form-item class="marginElement">
@@ -62,9 +62,9 @@
     </nz-form-item>
 
     <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Referencia</nz-form-label>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Complemento</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-          <input nz-input placeholder="" formControlName="referencia" type="text" />
+          <input nz-input placeholder="" formControlName="ClienteDomicilioDomLugar" type="text" />
         </nz-form-control>
   
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Cod Postal </nz-form-label>
@@ -116,7 +116,7 @@
      <div class="input-label">Cliente Contacto</div>
     </div>   
     <div formArrayName="infoClienteContacto">
-    <nz-form-item class="marginElement" *ngFor="let control of infoClienteContacto().controls; let i = index" [formGroupName]="i">
+    <nz-form-item class="marginElement" *ngFor="let control of infoClienteContacto().controls; let i = index" [formGroupName]="i" [ngClass]="{'even-background': i % 2 === 0}">
 
         <!-- <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Persona </nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
@@ -131,34 +131,51 @@
       </nz-form-control> -->
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Nombre </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="6">
         <nz-input-group style="width: 100%" nzSearch>
           <input nz-input placeholder="" formControlName="nombre" type="string" />
         </nz-input-group>
       </nz-form-control>
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Apellido </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="6">
         <nz-input-group style="width: 100%" nzSearch>
           <input nz-input placeholder="" formControlName="ClienteContactoApellido" type="string" />
         </nz-input-group>
       </nz-form-control>
         
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Area </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
         <nz-input-group style="width: 100%" nzSearch>
           <input nz-input placeholder="" formControlName="area" type="string" />
         </nz-input-group>
       </nz-form-control>
-      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Telefono </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="3" [ngClass]="'btn-margintop'" >Tipo Telefono</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [ngClass]="'btn-margintop'">
+        <nz-select formControlName="TipoTelefonoId" nzPlaceHolder="Tipo Telefono" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
+          <ng-container *ngFor="let option of $tipoTelefono | async " >
+            <nz-option [nzValue]="option.TipoTelefonoId" [nzLabel]="option.TipoTelefonoDescripcion" ></nz-option>
+          </ng-container>
+        </nz-select>
+      </nz-form-control>
+
+      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2" [ngClass]="'btn-margintop'"> Cod Area </nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2" [ngClass]="'btn-margintop'">
+        <nz-input-group style="width: 100%" nzSearch>
+          <input nz-input placeholder="" formControlName="ClienteContactoTelefonoCodigoArea" type="string" />
+        </nz-input-group>
+      </nz-form-control>
+
+      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2" [ngClass]="'btn-margintop'"> Telefono </nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4" [ngClass]="'btn-margintop'">
         <nz-input-group style="width: 100%" nzSearch>
             <input nz-input placeholder="" formControlName="telefono" type="string" />
         </nz-input-group>
       </nz-form-control>
 
-      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Correo </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
+      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2" [ngClass]="'btn-margintop'" > Correo </nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5" [ngClass]="'btn-margintop'">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="controlClienteButton" nzSearch>
             <input nz-input placeholder="" formControlName="correo" type="string" />
           </nz-input-group>
@@ -175,22 +192,26 @@
     </nz-form-item>
 </div>
 
-    <div class="input-container">
+    <div class="input-container1">
         <div class="input-label">Administrador</div>
     </div>  
     <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Administrador</nz-form-label>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3"> Nombre</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-          <input nz-input placeholder="" formControlName="AdministradorApellidoNombre" type="text" />
+          <input nz-input placeholder="" formControlName="AdministradorNombre" type="text" />
+        </nz-form-control>
+
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5"> Apellido</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+          <input nz-input placeholder="" formControlName="AdministradorApellido" type="text" />
         </nz-form-control>
     </nz-form-item>
     <br>
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
-        <button nzType="primary" nz-button *ngIf="edit()"  (click)="save()" [nzLoading]="isLoading()" [disabled]="formCli.pristine" >
+        <button nzType="primary" nz-button  (click)="save()" [nzLoading]="isLoading()" [disabled]="formCli.pristine" >
           Guardar Cambios
         </button>
-
         <button nzType="primary" nz-button nzDanger  nz-popconfirm
         nzPopconfirmTitle="Esta seguro que quiere eliminar este Cliente?"
         (nzOnConfirm)="deleteCliente()"
@@ -201,5 +222,5 @@
     </nz-form-item>
     <br>
 </form>
-<!-- <app-detalle-persona [anio]="periodo().year" [mes]="periodo().month" [SucursalId]="0"
-  [PersonalId]="personalId()" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona> -->
+<app-detalle-persona [anio]="periodo().year" [mes]="periodo().month" [SucursalId]="0"
+  [PersonalId]="personalId()" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>
