@@ -39,7 +39,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("psc") psc!: NzSelectComponent
-  disabled = signal(false)
+  private isDisabled =false
   $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
 
@@ -91,7 +91,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
     setTimeout(() => {
       this.psc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
       this.psc.focus()  //Al hacer click en el componente hace foco
-      this.psc.setDisabledState(this.disabled())
+      this.psc.setDisabledState(this.isDisabled)
      
     }, 1);
   }
@@ -174,7 +174,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.disabled.set(isDisabled)
+    this.isDisabled =  isDisabled
     this.psc?.setDisabledState(isDisabled)
   } 
 }
