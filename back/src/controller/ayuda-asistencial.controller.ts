@@ -30,7 +30,7 @@ const columnsAyudaAsistencial: any[] = [
       type: "string",
       fieldName: "cuit.PersonalCUITCUILCUIT",
       sortable: true,
-      searchHidden: false
+      searchHidden: true
     },
     {
       id: "ApellidoNombre",
@@ -38,7 +38,7 @@ const columnsAyudaAsistencial: any[] = [
       field: "ApellidoNombre",
       type: "string",
       fieldName: "per.PersonalId",
-      searchComponent: "inpurformersonalSearch",
+      searchComponent: "inpurForPersonalSearch",
       searchType: "number",
       sortable: true,
       searchHidden: false,
@@ -70,9 +70,8 @@ const columnsAyudaAsistencial: any[] = [
       type: "number",
       field: "FormaPrestamoId",
       fieldName: "form.FormaPrestamoId",
-      searchType: "number",
       sortable: true,
-      searchHidden: false,
+      searchHidden: true,
       hidden: true
     },
     {
@@ -80,7 +79,7 @@ const columnsAyudaAsistencial: any[] = [
       name: "Liquido Finanzas",
       type: "string",
       field: "PersonalPrestamoLiquidoFinanzas",
-      fieldName: "pre.PersonalPrestamoLiquidoFinanzas",
+      fieldName: "pres.PersonalPrestamoLiquidoFinanzas",
       formatter: 'collectionFormatter',
       params: { collection: getOptions, },
       searchType: "boolean",
@@ -102,7 +101,9 @@ const columnsAyudaAsistencial: any[] = [
       name: "Fecha Solicitud",
       field: "PersonalPrestamoDia",
       type: "date",
-      fieldName: "pre.PersonalPrestamoDia",
+      fieldName: "pres.PersonalPrestamoDia",
+      searchComponent: "inpurForFechaSearch",
+      searchType: "date",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -112,7 +113,9 @@ const columnsAyudaAsistencial: any[] = [
       name: "Fecha Aprobado",
       field: "PersonalPrestamoFechaAprobacion",
       type: "date",
-      fieldName: "pre.PersonalPrestamoFechaAprobacion",
+      fieldName: "pres.PersonalPrestamoFechaAprobacion",
+      searchComponent: "inpurForFechaSearch",
+      searchType: "date",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -122,7 +125,7 @@ const columnsAyudaAsistencial: any[] = [
       name: "Aplica El",
       type: "string",
       field: "PersonalPrestamoAplicaEl",
-      fieldName: "pre.PersonalPrestamoAplicaEl",
+      fieldName: "pres.PersonalPrestamoAplicaEl",
       searchType: "string",
       sortable: true,
       searchHidden: false
@@ -132,7 +135,7 @@ const columnsAyudaAsistencial: any[] = [
       name: "Cant Cuotas",
       type: "number",
       field: "PersonalPrestamoCantidadCuotas",
-      fieldName: "pre.PersonalPrestamoCantidadCuotas",
+      fieldName: "pres.PersonalPrestamoCantidadCuotas",
       searchType: "number",
       sortable: true,
       searchHidden: false,
@@ -143,7 +146,7 @@ const columnsAyudaAsistencial: any[] = [
       name: "Importe",
       field: "PersonalPrestamoMonto",
       type: "currency",
-      fieldName: "pre.PersonalPrestamoMonto",
+      fieldName: "pres.PersonalPrestamoMonto",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -153,9 +156,10 @@ const columnsAyudaAsistencial: any[] = [
       name: "Estado",
       type: "string",
       field: "PersonalPrestamoAprobado",
-      fieldName: "pre.PersonalPrestamoAprobado",
+      fieldName: "pres.PersonalPrestamoAprobado",
       formatter: 'collectionFormatter',
       params: { collection: getOptionsPersonalPrestamoAprobado, },
+      searchComponent: "inpurForPrestamoAprobadoSearch",
       searchType: "string",
       sortable: true,
       searchHidden: false
@@ -323,6 +327,16 @@ export class AyudaAsistencialController extends BaseController {
     )
   }
 
+  async getLigmamovimientosQuery(
+    queryRunner:any, personalId:number, periodo_id:number, tipocuenta_id:string
+  ){
+    return await queryRunner.query(`
+      SELECT *
+      FROM lige.dbo.liqmamovimientos liqm
+      WHERE liqm.persona_id = @0 AND liqm.periodo_id = @1 AND liqm.tipocuenta_id = @2
+      `, [ personalId, periodo_id, tipocuenta_id])
+  }
+
   async getGridColumns(req: any, res: Response, next: NextFunction) {
     return this.jsonRes(columnsAyudaAsistencial, res)
   }
@@ -341,6 +355,7 @@ export class AyudaAsistencialController extends BaseController {
       await queryRunner.startTransaction()
 
       let list = await this.listAyudaAsistencialQuery(queryRunner, filterSql, orderBy, anio, mes)
+      console.log(list[0]);
       
       await queryRunner.commitTransaction()
       return this.jsonRes(list, res);
@@ -546,6 +561,19 @@ export class AyudaAsistencialController extends BaseController {
       periodo.anio++
     }
     ultCuota++
+
+    let cuota = await this.getPersonalPrestamoCuotaByPeriodoQuery(queryRunner, personalPrestamoId, personalId, periodo.anio, periodo.mes)
+    if (cuota.length) {
+      return new ClientException(`La cuota para el período ${periodo.anio}/${periodo.mes} ya existe.`)
+    }
+    const per = await this.getPeriodoQuery(queryRunner, periodo.anio, periodo.mes)
+    if (per[0]?.ind_recibos_generados == 1)
+      return new ClientException(`Ya se encuentran generados los recibos para el período ${periodo.anio}/${periodo.mes}.`)
+    let ligm = await this.getLigmamovimientosQuery(queryRunner, personalId, per[0]?.periodo_id, 'G')
+    if (!ligm.length) {
+      return new ClientException(`La persona no tiene disponibilidad de su cuenta.`)
+    }
+
     await this.personalPrestamoCuotaAddCuotaQuery(queryRunner, ultCuota, personalPrestamoId, personalId,
       periodo.anio, periodo.mes, importeCuota)
     await this.updateCuotaPersonalPrestamo(queryRunner, personalPrestamoId, personalId, ultCuota,
@@ -586,6 +614,13 @@ export class AyudaAsistencialController extends BaseController {
 
   getTipoPrestamo(req: any, res: Response, next: NextFunction){
     return this.jsonRes(optionsSelect, res)
+  }
+
+  getEstadoPrestamo(req: any, res: Response, next: NextFunction){
+    let estados = getOptionsPersonalPrestamoAprobado.map((obj) => {
+      return {descripcion: obj.label, tipo: obj.value}
+    })
+    return this.jsonRes(estados, res)
   }
 
   valAplicaEl(date:string):any{

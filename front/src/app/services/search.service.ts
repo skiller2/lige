@@ -667,6 +667,16 @@ export class SearchService {
     );
   }
 
+  getEstadoPrestamo(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/ayuda-asistencial/estados`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getOptionsCondicionAnteIva(): Observable<any> {
     console.log("voy")
     return this.http.get<ResponseJSON<any>>(`api/clientes/getCondicion`).pipe(

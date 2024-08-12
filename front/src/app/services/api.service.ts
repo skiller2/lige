@@ -916,7 +916,7 @@ export class ApiService {
   }
 
   getTipoPrestamo(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`api/ayuda-asistencial/estados`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/ayuda-asistencial/tipos`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
