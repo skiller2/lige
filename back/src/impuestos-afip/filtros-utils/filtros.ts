@@ -90,7 +90,9 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
           }else if(type == 'date'){
                 const valor = valorBusqueda.split('/').reverse().join('/');
                 filterString.push(`${fieldName} >= '${valor} 00:00:00' AND ${fieldName} <= '${valor} 23:59:59'`)
-          } else
+          } else if (type == 'string' && (valorBusqueda === 'null' || valorBusqueda == null))
+            filterString.push(`${fieldName} IS NULL`)
+          else
             filterString.push(`${fieldName} = '${valorBusqueda}'`)
 
           break;

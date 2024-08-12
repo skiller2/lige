@@ -122,13 +122,16 @@ export class AyudaAsistencialComponent {
               editCommand.undo()
             }
         }
+
+        this.startFilters = [{field:'PersonalPrestamoAprobado', condition:'AND', operator:'=', value:'S', forced:false}]
+        
     }
 
     ngAfterViewInit(): void {
         const now = new Date();
         setTimeout(() => {
-            const anio = Number(localStorage.getItem('anio')) > 0  ? Number(localStorage.getItem('anio')) : now.getFullYear();
-            const mes = Number(localStorage.getItem('mes')) > 0 ? Number(localStorage.getItem('mes')) : now.getMonth() + 1;
+            const anio = now.getFullYear()
+            const mes = now.getMonth() + 1
             this.selectedPeriod.year = anio
             this.selectedPeriod.month = mes
             this.formAsist().form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
@@ -160,6 +163,11 @@ export class AyudaAsistencialComponent {
             this.registerId = this.angularGrid.dataView.getItemByIdx(e.detail.args.changedSelectedRows[0]).id
         }else
             this.registerId = ''
+    }
+
+    listOptionsChange(options: any) {
+        this.listOptions = options;
+        this.formChange('');
     }
 
     dateChange(result: Date): void {

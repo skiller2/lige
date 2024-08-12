@@ -67,6 +67,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   formChange$ = new BehaviorSubject('');
 
   $optionsEstadoCust = this.searchService.getEstadoCustodia();
+  $optionsEstadoPrest = this.searchService.getEstadoPrestamo();
 
   $optionsSucursales = this.searchService.getSucursales();
   private _options: Options = {
