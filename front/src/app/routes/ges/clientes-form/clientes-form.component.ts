@@ -12,6 +12,7 @@ import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.comp
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 
 interface Provincia {
   ProvinciaId: number;
@@ -46,7 +47,8 @@ interface Barrio {
     DetallePersonaComponent,
     FiltroBuilderComponent,
     NzAutocompleteModule,
-    NzSelectModule
+    NzSelectModule,
+    FileUploadComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -75,6 +77,9 @@ export class ClientesFormComponent {
   ClienteId = model(0)
   selectedValueProvincia = null
   isLoading = signal(false)
+  files = []
+  textForSearch = "Cliente"
+  
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
@@ -209,12 +214,14 @@ export class ClientesFormComponent {
 
   async save() {
     this.isLoading.set(true)
-    const form = this.formCli.value
+    let form = this.formCli.value
+    let finalObj = [form,...this.files]
+    console.log("form ", finalObj)
     try {
-      console.log("cliente " , this.ClienteId())
+      console.log("imprimo file " , this.files)
         if (this.ClienteId()) {
           console.log("paso")
-            // await firstValueFrom(this.apiService.updateCliente(form, this.ClienteId()))
+            await firstValueFrom(this.apiService.updateCliente(form, this.ClienteId()))
             // this.edit.set(false)
         } else {
           console.log("paso1")

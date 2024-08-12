@@ -31,6 +31,8 @@ import { CargaLicenciaController } from "../carga-licencia/carga-licencia.contro
 import { InasistenciaController } from "../controller/inasistencia.controller";
 import { AyudaAsistencialController } from "./ayuda-asistencial.controller"
 import { ClientesController } from "../clientes/clientes.controller"
+import { FileUploadController } from "./file-upload.controller"
+
 
 
 export const infoController = new InfoController();
@@ -66,4 +68,6 @@ export const cargaLicenciaController = new CargaLicenciaController();
 export const inasistenciaController = new InasistenciaController();
 export const ayudaAsistencialController = new AyudaAsistencialController();
 export const clientesController = new ClientesController();
+export const fileUploadController = new FileUploadController();
+
 

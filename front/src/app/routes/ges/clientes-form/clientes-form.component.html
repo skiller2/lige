@@ -207,6 +207,19 @@
         </nz-form-control>
     </nz-form-item>
     <br>
+    <div class="input-container1">
+      <div class="input-label">Documentos</div>
+  </div>
+  
+    <nz-form-item>
+
+      <nz-form-control>
+        <app-file-upload [valueFile]="this.formCli.value.ClienteFacturacionCUIT" [(files)]="files"   [idForSearh]="ClienteId()"
+        [textForSearch]="textForSearch" ></app-file-upload>
+      </nz-form-control>
+      
+    </nz-form-item>
+
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
         <button nzType="primary" nz-button  (click)="save()" [nzLoading]="isLoading()" [disabled]="formCli.pristine" >

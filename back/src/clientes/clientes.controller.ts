@@ -192,17 +192,17 @@ export class ClientesController extends BaseController {
 
     async getClienteContactoQuery(queryRunner: any, clienteId: any) {
         return await queryRunner.query(`SELECT 
-            cc.TRIM(ClienteContactoNombre) AS nombre,
+            TRIM(cc.ClienteContactoNombre) AS nombre,
             cc.ClienteContactoId,
-            cc.TRIM(ClienteContactoApellido) AS ClienteContactoApellido,
+            TRIM(cc.ClienteContactoApellido) AS ClienteContactoApellido,
             cc.ClienteContactoArea AS area,
             cc.ClienteContactoEmailUltNro,
             cc.ClienteContactoTelefonoUltNro,
             cct.TipoTelefonoId,
             cct.ClienteContactoTelefonoCodigoArea,
             cct.ClienteContactoTelefonoId,
-            cce.TRIM(ClienteContactoEmailEmail) AS correo ,
-            cct.TRIM(ClienteContactoTelefonoNro) AS telefono,
+            TRIM(cce.ClienteContactoEmailEmail) AS correo ,
+            TRIM(cct.ClienteContactoTelefonoNro) AS telefono,
             cce.ClienteContactoEmailId
         FROM  ClienteContacto cc
         LEFT JOIN ClienteContactoEmail cce ON  cc.ClienteId = cce.ClienteId
@@ -349,7 +349,7 @@ export class ClientesController extends BaseController {
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
             const ClienteId = Number(req.params.id)
-            const ObjCliente = {...req.body }
+            const ObjCliente = {...req.body[0] }
             
             console.log("ObjCliente ", ObjCliente)
             console.log("ClienteId ", ClienteId)
@@ -686,7 +686,7 @@ export class ClientesController extends BaseController {
 
     async addCliente(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
-        const ObjCliente = {...req.body }
+        const ObjCliente = {...req.body[0] }
         console.log(".....................................................")
         console.log(ObjCliente)
         try {
