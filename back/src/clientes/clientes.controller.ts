@@ -3,6 +3,7 @@ import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { QueryResult } from "typeorm";
+import { FileUploadController } from "../controller/file-upload.controller"
 
 
 export class ClientesController extends BaseController {
@@ -439,6 +440,11 @@ export class ClientesController extends BaseController {
 
             }
 
+            if(req.body.length > 1){
+             const [, ...newArray] = req.body;
+             await FileUploadController.handlePDFUpload(ClienteId,'Cliente',newArray,usuario,ip ) 
+            }
+
             await queryRunner.commitTransaction()
             return this.jsonRes([], res, 'Modificación  Exitosa');
         }catch (error) {
@@ -642,6 +648,7 @@ export class ClientesController extends BaseController {
           await this.deleteClienteContactoTable(queryRunner,ClienteId,null)
           await this.deleteClienteContactoEmailTable(queryRunner,ClienteId,null,null)
           await this.deleteClienteContactoTelefonoTable(queryRunner,ClienteId,null,null)
+          await this.deleteFileCliente(queryRunner,ClienteId)
     
           await queryRunner.commitTransaction();
     
@@ -651,6 +658,10 @@ export class ClientesController extends BaseController {
         }
     
       }
+    
+    async deleteFileCliente(queryRunner:any,ClienteId:number){
+        await queryRunner.query("`DELETE FROM lige.dbo.docgeneral WHERE cliente_id = @0 AND doctipo_id = 'CLI' ")
+    }
 
 
     async deleteClienteContactoTable(queryRunner:any,ClienteId:number,ClienteContactoId:any){
@@ -726,6 +737,11 @@ export class ClientesController extends BaseController {
 
             if(ObjCliente.AdministradorNombre != null || ObjCliente.AdministradorApellido != null){
                 await this.createAdministrador(queryRunner,ObjCliente,ClienteId)
+            }
+
+            if(req.body.length > 1){
+                const [, ...newArray] = req.body;
+                await FileUploadController.handlePDFUpload(ClienteId,'Cliente',newArray,usuario,ip ) 
             }
 
             await queryRunner.commitTransaction()
