@@ -746,7 +746,7 @@ export class CargaLicenciaController extends BaseController {
       await this.handlePDFUpload(anioRequest, mesRequest, PersonalId, PersonalLicenciaId, res, req, Archivos, next)
 
 
-      throw new ClientException("DEBUG:  Paso bien")
+//      throw new ClientException("DEBUG:  Paso bien")
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
 
