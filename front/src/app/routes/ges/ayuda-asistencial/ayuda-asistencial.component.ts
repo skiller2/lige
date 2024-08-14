@@ -143,7 +143,9 @@ export class AyudaAsistencialComponent {
         this.gridObj = angularGrid.detail.slickGrid;
         
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-          totalRecords(this.angularGrid)
+            totalRecords(this.angularGrid)
+            columnTotal('PersonalPrestamoMonto', this.angularGrid)
+
         })
         
     }

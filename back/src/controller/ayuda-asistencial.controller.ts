@@ -381,10 +381,10 @@ export class AyudaAsistencialController extends BaseController {
       if (!periodo)
         throw new ClientException('Aplica El no es válido')
 
-      if (Number(personalPrestamoCantidadCuotas)>0)
+      if (Number(personalPrestamoCantidadCuotas)<=0)
         throw new ClientException('Cantidad de cuotas debe ser mayor a 0')
 
-      if (parseFloat(personalPrestamoMonto)>0)
+      if (parseFloat(personalPrestamoMonto)<=0)
         throw new ClientException('El monto debe ser mayor a 0')
 
 
@@ -402,7 +402,7 @@ export class AyudaAsistencialController extends BaseController {
         throw new ClientException('No se puede editar en estado APROBADO.')
       }
 
-      await this.updateRowPersonalPrestamoQuery(queryRunner, personalPrestamoId, personalId, personalPrestamoAplicaEl, personalPrestamoCantidadCuotas, personalPrestamoMonto)
+      await this.updateRowPersonalPrestamoQuery(queryRunner, personalPrestamoId, personalId, `${periodo.mes.toString().padStart(2,'0')}/${periodo.anio}`, personalPrestamoCantidadCuotas, personalPrestamoMonto)
       
       let row = await this.rowAyudaAsistencialQuery(queryRunner, personalPrestamoId, personalId)
       
@@ -638,11 +638,8 @@ export class AyudaAsistencialController extends BaseController {
     if (date == null) {
         return null
     }
-    if (date.length != 7) {
-        return null
-    }
     const periodo = date.split('/')
-    if (periodo.length != 2 && (periodo[0].length != 2 || periodo[1].length != 4)) {
+    if (periodo.length != 2) {
         return null
     }
     const mes = Number.parseInt(periodo[0])
