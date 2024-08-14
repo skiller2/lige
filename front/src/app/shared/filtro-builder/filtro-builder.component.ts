@@ -68,8 +68,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   $optionsEstadoCust = this.searchService.getEstadoCustodia();
   $optionsEstadoPrest = this.searchService.getEstadoPrestamo();
+  $optionsTipoPrest = this.searchService.getTipoPrestamo();
 
-  $optionsSucursales = this.searchService.getSucursales();
+  $optionsSucursales = this.searchService.getTipoPrestamo();
   private _options: Options = {
     filtros: [],
     sort: null,
@@ -302,9 +303,11 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   selectedValueEstado(val: any) {
+    console.log(val);
+    
     if (val) {
-      this.selections.value = val.tipo;
-      this.valueExtended = { fullName: val.descripcion };
+      this.selections.value = val.value;
+      this.valueExtended = { fullName: val.label };
     }
   }
 

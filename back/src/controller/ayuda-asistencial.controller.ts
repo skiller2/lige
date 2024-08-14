@@ -5,8 +5,8 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { Options } from "../schemas/filtro";
 
 const optionsSelect: any[] = [
-  { descripcion: 'Ayuda Asistencial', tipo: 1 },
-  { descripcion: 'Adelanto', tipo: 7 },
+  { label: 'Ayuda Asistencial', value: 1 },
+  { label: 'Adelanto', value: 7 },
 ]
 
 const getOptions: any[] = [
@@ -59,21 +59,22 @@ const columnsAyudaAsistencial: any[] = [
       name: "Tipo",
       type: "string",
       field: "FormaPrestamoDescripcion",
-      fieldName: "form.FormaPrestamoDescripcion",
-      searchType: "string",
+      fieldName: "form.FormaPrestamoId",
+      searchComponent: "inpurForTipoPrestamoSearch",
+      searchType: "number",
       sortable: true,
       searchHidden: false
     },
-    {
-      id: "tipoId",
-      name: "TipoId",
-      type: "number",
-      field: "FormaPrestamoId",
-      fieldName: "form.FormaPrestamoId",
-      sortable: true,
-      searchHidden: true,
-      hidden: true
-    },
+    // {
+    //   id: "tipoId",
+    //   name: "TipoId",
+    //   type: "number",
+    //   field: "FormaPrestamoId",
+    //   fieldName: "form.FormaPrestamoId",
+    //   sortable: true,
+    //   searchHidden: true,
+    //   hidden: true
+    // },
     {
       id: "liquidoFinanzas",
       name: "Liquido Finanzas",
@@ -355,7 +356,6 @@ export class AyudaAsistencialController extends BaseController {
       await queryRunner.startTransaction()
 
       let list = await this.listAyudaAsistencialQuery(queryRunner, filterSql, orderBy, anio, mes)
-      console.log(list[0]);
       
       await queryRunner.commitTransaction()
       return this.jsonRes(list, res);
@@ -628,10 +628,7 @@ export class AyudaAsistencialController extends BaseController {
   }
 
   getEstadoPrestamo(req: any, res: Response, next: NextFunction){
-    let estados = getOptionsPersonalPrestamoAprobado.map((obj) => {
-      return {descripcion: obj.label, tipo: obj.value}
-    })
-    return this.jsonRes(estados, res)
+    return this.jsonRes(getOptionsPersonalPrestamoAprobado, res)
   }
 
   valAplicaEl(date:string):any{

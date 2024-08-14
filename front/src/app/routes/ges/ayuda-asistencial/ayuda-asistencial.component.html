@@ -23,7 +23,12 @@
         <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Rechazar {{rows.length}} registros?" (nzOnConfirm)="rechazarReg()" [disabled]="!rows.length || loadingApr || loadingCuo" [nzLoading]="loadingRec" >
           <span nz-icon nzType="close" nzTheme="outline"></span>
         </button>
-        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Generar cuota a {{rows.length}} registros?" (nzOnConfirm)="addCuotaReg()" [disabled]="!rows.length || loadingApr || loadingRec" [nzLoading]="loadingCuo" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Generar cuota a {{rows.length}} registros?" (nzOnConfirm)="addCuotaReg()" [disabled]="!rows.length || loadingApr || loadingRec" [nzLoading]="loadingCuo" >
+          <span nz-icon nzType="plus" nzTheme="outline"></span>
+        </button>
+        <button nzType="default" nz-button (click)="openDrawer()" [nzLoading]="false" >
+          <span nz-icon nzType="file" nzTheme="outline"></span>
+        </button>
       </nz-form-control>
     </nz-form-item>
 
@@ -47,3 +52,4 @@
   </form>
 
 </nz-card>
+<app-ayuda-asistencial-drawer [tituloDrawer] = "tituloDrawer" [(visible)]="visibleDrawer"></app-ayuda-asistencial-drawer>
