@@ -3,6 +3,7 @@ import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { QueryResult } from "typeorm";
+import { FileUploadController } from "../controller/file-upload.controller"
 
 
 export class ClientesController extends BaseController {
@@ -15,7 +16,8 @@ export class ClientesController extends BaseController {
             fieldName: "cli.ClienteId",
             type: "number",
             sortable: false,
-            hidden: true
+            hidden: true,
+            searchHidden: true            
         },
         {
             name: "CUIT",
@@ -62,8 +64,8 @@ export class ClientesController extends BaseController {
         {
             name: "Domicilio",
             type: "string",
-            id: "domicilio",
-            field: "domicilio",
+            id: "Domicilio",
+            field: "Domicilio",
             fieldName: "domcli.ClienteDomicilioDomCalle",
             sortable: true,
             searchHidden: true
@@ -106,27 +108,14 @@ export class ClientesController extends BaseController {
         CONCAT_WS(' ', 
             TRIM(domcli.ClienteDomicilioDomCalle), 
             TRIM(domcli.ClienteDomicilioDomNro)
-        ) AS domicilio,
-        COUNT(DISTINCT obj.ObjetivoId) AS CantidadObjetivos
+        ) AS Domicilio,
+        cant.CantidadObjetivos
     FROM 
         Cliente cli
         LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId 
             AND fac.ClienteFacturacionDesde <= @0 
             AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= @0
         LEFT JOIN CondicionAnteIVA con ON con.CondicionAnteIVAId = fac.CondicionAnteIVAId
-        LEFT JOIN Objetivo obj ON obj.ClienteId = cli.ClienteId
-        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
-            AND eledep.ClienteId = obj.ClienteId
-        LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId 
-            AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
-            AND @0 >= eledepcon.ClienteElementoDependienteContratoFechaDesde 
-            AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta, '9999-12-31') >= @0 
-            AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion, '9999-12-31') >= @0
-        LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = obj.ClienteId 
-            AND obj.ClienteElementoDependienteId IS NULL 
-            AND @0 >= clicon.ClienteContratoFechaDesde 
-            AND ISNULL(clicon.ClienteContratoFechaHasta, '9999-12-31') >= @0 
-            AND ISNULL(clicon.ClienteContratoFechaFinalizacion, '9999-12-31') >= @0
         LEFT JOIN (
             SELECT 
                 domcli.ClienteId, 
@@ -143,17 +132,30 @@ export class ClientesController extends BaseController {
                 AND ClienteDomicilioActual = 1
             )
         ) AS domcli ON domcli.ClienteId = cli.ClienteId
+			LEFT JOIN (SELECT DISTINCT 
+   obj.ClienteId, 
+	COUNT(DISTINCT obj.ObjetivoId) CantidadObjetivos
+        
+    FROM Objetivo obj
+
+
+    LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+    LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
+    AND @0 >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0
+    
+    LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
+    LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL 
+    AND @0 >= clicon.ClienteContratoFechaDesde AND ISNuLL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNuLL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= @0
+
+        
+        
+    WHERE 
+      ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) IS NOT NULL
+GROUP BY obj.ClienteId) cant ON cant.ClienteId=cli.ClienteId        
+
     WHERE 
         ${filterSql}
-    GROUP BY 
-        cli.ClienteId,
-        fac.ClienteFacturacionCUIT,
-        con.CondicionAnteIVADescripcion,
-        cli.ClienteDenominacion, 
-        cli.CLienteNombreFantasia, 
-        cli.ClienteFechaAlta,
-        domcli.ClienteDomicilioDomCalle,
-        domcli.ClienteDomicilioDomNro ${orderBy}`, [fechaActual])
+${orderBy}`, [fechaActual])
 
             this.jsonRes(
                 {
@@ -439,6 +441,11 @@ export class ClientesController extends BaseController {
 
             }
 
+            if(req.body.length > 1){
+             const [, ...newArray] = req.body;
+             await FileUploadController.handlePDFUpload(ClienteId,'Cliente',newArray,usuario,ip ) 
+            }
+
             await queryRunner.commitTransaction()
             return this.jsonRes([], res, 'Modificación  Exitosa');
         }catch (error) {
@@ -642,6 +649,7 @@ export class ClientesController extends BaseController {
           await this.deleteClienteContactoTable(queryRunner,ClienteId,null)
           await this.deleteClienteContactoEmailTable(queryRunner,ClienteId,null,null)
           await this.deleteClienteContactoTelefonoTable(queryRunner,ClienteId,null,null)
+          await this.deleteFileCliente(queryRunner,ClienteId)
     
           await queryRunner.commitTransaction();
     
@@ -651,6 +659,10 @@ export class ClientesController extends BaseController {
         }
     
       }
+    
+    async deleteFileCliente(queryRunner:any,ClienteId:number){
+        await queryRunner.query("`DELETE FROM lige.dbo.docgeneral WHERE cliente_id = @0 AND doctipo_id = 'CLI' ")
+    }
 
 
     async deleteClienteContactoTable(queryRunner:any,ClienteId:number,ClienteContactoId:any){
@@ -726,6 +738,11 @@ export class ClientesController extends BaseController {
 
             if(ObjCliente.AdministradorNombre != null || ObjCliente.AdministradorApellido != null){
                 await this.createAdministrador(queryRunner,ObjCliente,ClienteId)
+            }
+
+            if(req.body.length > 1){
+                const [, ...newArray] = req.body;
+                await FileUploadController.handlePDFUpload(ClienteId,'Cliente',newArray,usuario,ip ) 
             }
 
             await queryRunner.commitTransaction()

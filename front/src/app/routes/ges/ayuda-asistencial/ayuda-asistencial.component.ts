@@ -69,7 +69,7 @@ export class AyudaAsistencialComponent {
             col.editor = {
               model: Editors.integer,
               valueStep: 1,
-              minValue: 0,
+              minValue: 1,
               maxValue: 100,
               alwaysSaveOnEnterKey: true,
               required: true
@@ -115,9 +115,9 @@ export class AyudaAsistencialComponent {
         this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
             editCommand.execute();
             //Verifico que los campos
-            if (!this.valAplicaEl(item.PersonalPrestamoAplicaEl) || !item.PersonalPrestamoCantidadCuotas || !item.PersonalPrestamoMonto) {
-                return 
-            }
+            //if (!this.valAplicaEl(item.PersonalPrestamoAplicaEl) || !item.PersonalPrestamoCantidadCuotas || !item.PersonalPrestamoMonto) {
+            //    return 
+            //}
 
             try {
                 const res = await firstValueFrom(this.apiService.updateRowAyudaAsistencial(item))

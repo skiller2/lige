@@ -75,6 +75,7 @@ export class LicenciaDrawerComponent {
   ) { }
 
   async ngOnInit(): Promise<void> {
+
     this.ArchivosLicenciasAdd = []
     this.options = await firstValueFrom(this.apiService.getOptionsForLicenciaDrawer())
   }
@@ -108,6 +109,8 @@ export class LicenciaDrawerComponent {
         if (this.openDrawerForConsult()) {
           this.ngForm().form.disable()
         } else {
+          this.ngForm().form.enable()
+
         }
     
       }

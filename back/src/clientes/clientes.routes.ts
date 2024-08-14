@@ -9,11 +9,11 @@ clientesRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
   clientesController.getGridCols(req, res);
 });
 
-clientesRouter.post('/list', authMiddleware.verifyToken,  (req, res, next) => {
+clientesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])],  (req, res, next) => {
   clientesController.listClientes(req, res, next)
 })
 
-clientesRouter.get('/infoCliente/:id', authMiddleware.verifyToken,  (req, res, next) => { 
+clientesRouter.get('/infoCliente/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])],  (req, res, next) => { 
 clientesController.infoCliente(req, res, next) 
 })
 

@@ -69,22 +69,26 @@ export class CargaLicenciasComponent {
   openDrawerforNew(): void {
     this.PersonalLicenciaId = 0
     this.PersonalId = 0
-    this.visibleDrawer = true
+
     this.tituloDrawer = "Nueva Licencia"
     this.openDrawerForConsult = false
     this.RefreshLicencia = false
+    this.visibleDrawer = true    
   }
   openDrawerforEdit(): void {
-    this.visibleDrawer = true
+
     this.tituloDrawer = "Editar Licencia"
     this.openDrawerForConsult = false
     this.RefreshLicencia = false
+    this.visibleDrawer = true    
+
   }
 
   openDrawerforConsult(): void{
-    this.visibleDrawer = true
+
     this.tituloDrawer = "Consulta Licencia"
     this.openDrawerForConsult = true
+    this.visibleDrawer = true    
   }
 
   inputConsult(value:boolean){

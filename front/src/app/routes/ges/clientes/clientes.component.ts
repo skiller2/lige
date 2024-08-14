@@ -93,7 +93,8 @@ export class ClientesComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
-    this.editClienteId = row.id
+    if (row?.id)
+      this.editClienteId = row.id
 
   }
 

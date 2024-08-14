@@ -80,14 +80,6 @@ const columnsObjCustodia: any[] = [
         minWidth: 140,
     },
     {
-        id:'fechaF' , name:'Fecha Final' , field:'fechaF',
-        fieldName: "obj.fecha_fin",
-        sortable: true,
-        type: 'date',
-        // maxWidth: 150,
-        minWidth: 90,
-    },
-    {
         id:'destino' , name:'Destino' , field:'destino',
         fieldName: "obj.destino",
         sortable: true,
@@ -95,6 +87,15 @@ const columnsObjCustodia: any[] = [
         // maxWidth: 180,
         minWidth: 140,
     },
+    {
+        id:'desc_facturacion' , name:'Desp/Oper/Ref' , field:'desc_facturacion',
+        fieldName: "obj.desc_facturacion",
+        sortable: true,
+        type: 'string',
+        // maxWidth: 180,
+        minWidth: 50,
+    },
+
     {
         id:'facturacion' , name:'Importe a Facturar' , field:'facturacion',
         fieldName: "obj.impo_facturar",
@@ -164,7 +165,7 @@ export class CustodiaController extends BaseController {
         const origen = objetivoCustodia.origen
         const fecha_fin = objetivoCustodia.fechaFinal? objetivoCustodia.fechaFinal.slice(0, 16).replace('T', ' ') : null
         const destino = objetivoCustodia.destino? objetivoCustodia.destino : null
-        const cant_modulos = objetivoCustodia.cant_modulos? objetivoCustodia.cantModulos : null
+        const cant_modulos = objetivoCustodia.cantModulos? objetivoCustodia.cantModulos : null
         const importe_modulos = objetivoCustodia.impoModulos? objetivoCustodia.impoModulos : null
         const cant_horas_exced = objetivoCustodia.cantHorasExced? objetivoCustodia.cantHorasExced : null
         const impo_horas_exced = objetivoCustodia.impoHorasExced? objetivoCustodia.impoHorasExced : null
@@ -316,7 +317,7 @@ export class CustodiaController extends BaseController {
         SELECT obj.objetivo_custodia_id id, obj.responsable_id responsableId, TRIM(per.PersonalApellidoNombre) responsable,
         obj.cliente_id clienteId, obj.desc_requirente descRequirente, obj.descripcion, obj.fecha_inicio fechaInicio, obj.origen, 
         obj.fecha_fin fechaFinal, obj.destino, obj.cant_modulos cantModulos, obj.importe_modulos impoModulos, 
-        obj.cant_horas_exced cantHorasExced, obj.impo_horas_exced impoHorasExced, obj.cant_km_exced cantKmExced, 
+        obj.cant_horas_exced cantHorasExced, obj.impo_horas_exced impoHorasExced, obj.cant_km_exced cantKmExced, obj.desc_facturacion,
         obj.impo_km_exced impoKmExced, obj.impo_peaje impoPeaje, obj.impo_facturar facturacion, obj.estado, obj.num_factura numFactura
         FROM lige.dbo.objetivocustodia obj
         INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
