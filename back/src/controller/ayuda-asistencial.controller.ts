@@ -165,6 +165,15 @@ const columnsAyudaAsistencial: any[] = [
       sortable: true,
       searchHidden: false
     },
+    {
+      id: "SituacionRevistaDescripcion",
+      name: "Situación Revista",
+      type: "string",
+      field: "SituacionRevistaDescripcion",
+      fieldName: "sit.SituacionRevistaDescripcion",
+      searchType: "string",
+      sortable: true,
+    },
 ];
 
 export class AyudaAsistencialController extends BaseController {
@@ -290,18 +299,24 @@ export class AyudaAsistencialController extends BaseController {
       CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
       pres.PersonalPrestamoDia, IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
       pres.PersonalPrestamoAplicaEl, form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
-      pres.PersonalPrestamoAprobado 
+      pres.PersonalPrestamoAprobado,
+      sit.SituacionRevistaDescripcion 
       FROM PersonalPrestamo pres
       LEFT JOIN Personal per ON per.PersonalId = pres.PersonalId 
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pres.PersonalId 
       LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pres.FormaPrestamoId
+
+      LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,@2) AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,@2)
+      LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+
+      
       WHERE 
       (pres.PersonalPrestamoAprobado IS NULL
       OR pres.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@1,'00'),'/',@0)
       )
       AND (${filterSql})
       ${orderBy}
-    `,[anio, mes])
+    `,[anio, mes,new Date()])
   }
 
   async personalPrestamoCuotaAddCuotaQuery(
