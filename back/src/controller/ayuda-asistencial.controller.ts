@@ -19,7 +19,7 @@ const getOptionsPersonalPrestamoAprobado: any[] = [
   { label: 'Aprobado', value: 'S' },
   { label: 'Rechazado', value: 'N' },
   { label: 'Anulado', value: 'A' },
-  { label: 'Pentiente', value: null }
+  { label: 'Pendiente', value: null }
 ]
 
 const columnsAyudaAsistencial: any[] = [
@@ -378,10 +378,21 @@ export class AyudaAsistencialController extends BaseController {
     try {
       await queryRunner.startTransaction()
       const periodo = this.valAplicaEl(personalPrestamoAplicaEl)
-      if (!periodo || !personalPrestamoCantidadCuotas || !personalPrestamoMonto) {
-        throw new ClientException('Verifiquen que Cant Cuotas e Importe sean mayores a 0 y que Aplica El sea un periodo valido.')
-      }
+      if (!periodo)
+        throw new ClientException('Aplica El no es válido')
 
+      if (Number(personalPrestamoCantidadCuotas)>0)
+        throw new ClientException('Cantidad de cuotas debe ser mayor a 0')
+
+      if (parseFloat(personalPrestamoMonto)>0)
+        throw new ClientException('El monto debe ser mayor a 0')
+
+
+      
+      const per = await this.getPeriodoQuery(queryRunner, periodo.anio, periodo.mes)
+      if (per[0]?.ind_recibos_generados==1)
+        throw new ClientException(`No se puede modificar el período ${periodo.mes}/${periodo.anio}, ya que tiene los recibos generados.`)
+      
       let PersonalPrestamo = await this.getPersonalPrestamoByIdsQuery(queryRunner, personalPrestamoId, personalId)
       if (!PersonalPrestamo.length) 
         throw new ClientException('No se encuentra el registro.')

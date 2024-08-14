@@ -80,14 +80,6 @@ const columnsObjCustodia: any[] = [
         minWidth: 140,
     },
     {
-        id:'fechaF' , name:'Fecha Final' , field:'fechaF',
-        fieldName: "obj.fecha_fin",
-        sortable: true,
-        type: 'date',
-        // maxWidth: 150,
-        minWidth: 90,
-    },
-    {
         id:'destino' , name:'Destino' , field:'destino',
         fieldName: "obj.destino",
         sortable: true,
@@ -95,6 +87,15 @@ const columnsObjCustodia: any[] = [
         // maxWidth: 180,
         minWidth: 140,
     },
+    {
+        id:'desc_facturacion' , name:'Desp/Oper/Ref' , field:'desc_facturacion',
+        fieldName: "obj.desc_facturacion",
+        sortable: true,
+        type: 'string',
+        // maxWidth: 180,
+        minWidth: 50,
+    },
+
     {
         id:'facturacion' , name:'Importe a Facturar' , field:'facturacion',
         fieldName: "obj.impo_facturar",

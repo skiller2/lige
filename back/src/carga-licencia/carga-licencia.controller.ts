@@ -530,14 +530,7 @@ export class CargaLicenciaController extends BaseController {
       if (PersonalLicenciaSePaga == "")
         PersonalLicenciaSePaga = null
 
-
-      const dateValid = await queryRunner.query(
-        `SELECT * FROM PersonalLicencia lic WHERE 
-          lic.PersonalId = @0 AND lic.PersonalLicenciaId <> @2 AND
-          @1 >= lic.PersonalLicenciaDesde AND @1 < ISNULL(lic.PersonalLicenciaHasta,ISNULL(lic.PersonalLicenciaTermina , '9999-12-31')) 
-          ` ,
-        [PersonalId, PersonalLicenciaDesde, PersonalLicenciaId]
-      );
+      const dateValid = await this.validateDates(PersonalLicenciaDesde, PersonalId, Number(PersonalLicenciaId), queryRunner)
 
       if (dateValid.length > 0)
         throw new ClientException('La fecha desde se encuentra en un rango de otra licencia')
