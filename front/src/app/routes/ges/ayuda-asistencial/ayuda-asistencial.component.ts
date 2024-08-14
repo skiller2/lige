@@ -121,7 +121,7 @@ export class AyudaAsistencialComponent {
 
             try {
                 const res = await firstValueFrom(this.apiService.updateRowAyudaAsistencial(item))
-                this.angularGrid.dataView.updateItem(item.id, res.data);
+                this.angularGrid.dataView.updateItem(item.id,{ ...item, ...res.data } );
                 this.angularGrid.slickGrid.updateRow(editCommand.row)
             } catch (err) {
               editCommand.undo()
