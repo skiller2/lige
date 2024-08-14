@@ -13,6 +13,8 @@ export const dataSource = new DataSource({
   //entities: [Photo],
   extra: {
     trustServerCertificate: true,
+    encrypt: false,
+
   },
   pool:{max:1000}
 });
