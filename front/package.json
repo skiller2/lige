@@ -61,8 +61,6 @@
     "qrious": "^4.0.2",
     "rxjs": "~7.8.1",
     "screenfull": "^6.0.2",
-    "tslib": "^2.6.3",
-    "webpack": "^5.93.0",
     "zone.js": "^0.14.10"
   },
   "devDependencies": {
