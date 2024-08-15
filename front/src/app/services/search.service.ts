@@ -781,4 +781,14 @@ export class SearchService {
     );
   }
 
+  getTipoPrestamo(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/ayuda-asistencial/tipos`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }

@@ -37,7 +37,7 @@
             <div nz-row nzJustify="space-around">
               <div nz-col [nzSpan]="13" style="text-align: center">
                 <label>Persona Responsable</label>
-                <app-personal-search
+                <app-personal-search [anio]="periodo().getFullYear()" [mes]="periodo().getMonth()+1"
                   (ngModelChange)="formChanged($event)"
                   [(ngModel)]="selectedPersonalId"
                   [ngModelOptions]="{ standalone: true }" />

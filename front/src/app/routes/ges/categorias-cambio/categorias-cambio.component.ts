@@ -4,6 +4,7 @@ import {
   ElementRef,
   Inject,
   LOCALE_ID,
+  signal,
   ViewChild,
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
@@ -69,7 +70,7 @@ export class CategoriasCambioComponent {
   selectedPersonalId = null;
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
-
+  periodo=signal(new Date())
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && dataContext.monto > 0) {
@@ -212,6 +213,8 @@ export class CategoriasCambioComponent {
 
   onChange(result: Date): void {
     this.listOptionsChange(this.listOptions)
+
+    this.periodo.set(result)
   }
 
   formChanged(_event: any) {

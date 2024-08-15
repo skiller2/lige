@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, model, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, model, signal, viewChild } from '@angular/core';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { SHARED_IMPORTS } from '@shared';
@@ -23,7 +23,8 @@ export class ReciboComponent {
   ngForm = viewChild.required(NgForm);
   private apiService = inject(ApiService)
   PersonalId = model.required()
-
+  anio = signal(0)
+  mes = signal(0)
   constructor() {
     effect(() => { this.ngForm().controls['PersonalId']?.setValue(Number(this.PersonalId())) });
   }
@@ -37,6 +38,11 @@ export class ReciboComponent {
 
       this.load(false)
     }, 0);
+  }
+
+  dateChange(val: Date) {
+    this.anio.set(val.getFullYear())
+    this.mes.set(val.getMonth() + 1)
   }
 
   async load(prev: boolean) {

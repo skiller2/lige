@@ -473,12 +473,16 @@ export class RecibosController extends BaseController {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
+
+
     try {
+      await queryRunner.connect();
       const data = await queryRunner.query(`SELECT doc.path, doc.nombre_archivo from lige.dbo.docgeneral doc
       JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
       WHERE per.anio =@0 AND per.mes=@1 AND doc.persona_id = @2 AND doctipo_id = 'REC'`,
         [year, month, PersonalId]
       )
+
 
       if (!data[0])
         throw new ClientException(`Recibo no generado`)
@@ -526,11 +530,11 @@ export class RecibosController extends BaseController {
       let pathFile = (lista)
         ? await this.getparthFile(queryRunner, periodo_id, lista)
         : await this.getGrupFilterDowload(queryRunner, periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch, SeachField)
-
+      
       const mergedPdf = await PDFDocument.create();
 
       if (pathFile.length == 0)
-        throw new ClientException(`Recibo/s no generado/s para el periodo seleccionado`);
+        throw new ClientException(`Recibo/s no generado/s para el periodo seleccionado ${Mes}/${Anio}`);
 
       //      pathFile= [pathFile[0]]
       for (const filterDowload of pathFile) {
@@ -581,6 +585,7 @@ export class RecibosController extends BaseController {
       res.write(resBuffer, 'binary');
       res.end();
     } catch (error) {
+      this.rollbackTransaction(queryRunner)
       return next(error)
     }
 
@@ -601,8 +606,10 @@ export class RecibosController extends BaseController {
         break;
       case 'S':
         filterExtraIN = `SELECT DISTINCT mov.persona_id FROM lige.dbo.liqmamovimientos mov 
-        LEFT JOIN PersonalSucursalPrincipal suc ON suc.PersonalId = mov.persona_id
-        JOIN Sucursal i ON i.SucursalId = ISNULL(suc.PersonalSucursalPrincipalSucursalId,1)
+        LEFT JOIN (SELECT per.PersonalId, ISNULL(suc.PersonalSucursalPrincipalSucursalId,1) PersonalSucursalPrincipalSucursalId, suc.PersonalSucursalPrincipalUltimaActualizacion
+          FROM Personal per
+          JOIN PersonalSucursalPrincipal suc ON suc.PersonalId=per.PersonalId) suc ON suc.PersonalId = mov.persona_id
+        JOIN Sucursal i ON i.SucursalId =  suc.PersonalSucursalPrincipalSucursalId
         WHERE mov.periodo_id=@0 AND i.SucursalId = @3`
 
         break;
@@ -630,7 +637,8 @@ export class RecibosController extends BaseController {
         LEFT JOIN PersonalSucursalPrincipal h ON h.PersonalId = per.PersonalId
         LEFT JOIN Sucursal i ON i.SucursalId = ISNULL(h.PersonalSucursalPrincipalSucursalId,1)
         WHERE doc.periodo =  @0 AND doc.doctipo_id = 'REC' AND per.PersonalId IN (${filterExtraIN})
-    ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`, [periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch])
+    ORDER BY i.SucursalDescripcion, g.GrupoActividadDetalle, per.PersonalApellido, per.PersonalNombre, per.PersonalId`,
+      [periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch])
   }
 
   async getparthFile(queryRunner: QueryRunner, periodo_id: number, perosonalIds: number[]) {

@@ -5,8 +5,8 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { Options } from "../schemas/filtro";
 
 const optionsSelect: any[] = [
-  { descripcion: 'Ayuda Asistencial', tipo: 1 },
-  { descripcion: 'Adelanto', tipo: 7 },
+  { label: 'Ayuda Asistencial', value: 1 },
+  { label: 'Adelanto', value: 7 },
 ]
 
 const getOptions: any[] = [
@@ -19,7 +19,7 @@ const getOptionsPersonalPrestamoAprobado: any[] = [
   { label: 'Aprobado', value: 'S' },
   { label: 'Rechazado', value: 'N' },
   { label: 'Anulado', value: 'A' },
-  { label: 'Pentiente', value: null }
+  { label: 'Pendiente', value: null }
 ]
 
 const columnsAyudaAsistencial: any[] = [
@@ -59,21 +59,22 @@ const columnsAyudaAsistencial: any[] = [
       name: "Tipo",
       type: "string",
       field: "FormaPrestamoDescripcion",
-      fieldName: "form.FormaPrestamoDescripcion",
-      searchType: "string",
+      fieldName: "form.FormaPrestamoId",
+      searchComponent: "inpurForTipoPrestamoSearch",
+      searchType: "number",
       sortable: true,
       searchHidden: false
     },
-    {
-      id: "tipoId",
-      name: "TipoId",
-      type: "number",
-      field: "FormaPrestamoId",
-      fieldName: "form.FormaPrestamoId",
-      sortable: true,
-      searchHidden: true,
-      hidden: true
-    },
+    // {
+    //   id: "tipoId",
+    //   name: "TipoId",
+    //   type: "number",
+    //   field: "FormaPrestamoId",
+    //   fieldName: "form.FormaPrestamoId",
+    //   sortable: true,
+    //   searchHidden: true,
+    //   hidden: true
+    // },
     {
       id: "liquidoFinanzas",
       name: "Liquido Finanzas",
@@ -163,6 +164,15 @@ const columnsAyudaAsistencial: any[] = [
       searchType: "string",
       sortable: true,
       searchHidden: false
+    },
+    {
+      id: "SituacionRevistaDescripcion",
+      name: "Situación Revista",
+      type: "string",
+      field: "SituacionRevistaDescripcion",
+      fieldName: "sit.SituacionRevistaDescripcion",
+      searchType: "string",
+      sortable: true,
     },
 ];
 
@@ -289,18 +299,24 @@ export class AyudaAsistencialController extends BaseController {
       CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
       pres.PersonalPrestamoDia, IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
       pres.PersonalPrestamoAplicaEl, form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
-      pres.PersonalPrestamoAprobado 
+      pres.PersonalPrestamoAprobado,
+      sit.SituacionRevistaDescripcion 
       FROM PersonalPrestamo pres
       LEFT JOIN Personal per ON per.PersonalId = pres.PersonalId 
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pres.PersonalId 
       LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pres.FormaPrestamoId
+
+      LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,@2) AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,@2)
+      LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+
+      
       WHERE 
       (pres.PersonalPrestamoAprobado IS NULL
       OR pres.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@1,'00'),'/',@0)
       )
       AND (${filterSql})
       ${orderBy}
-    `,[anio, mes])
+    `,[anio, mes,new Date()])
   }
 
   async personalPrestamoCuotaAddCuotaQuery(
@@ -355,7 +371,6 @@ export class AyudaAsistencialController extends BaseController {
       await queryRunner.startTransaction()
 
       let list = await this.listAyudaAsistencialQuery(queryRunner, filterSql, orderBy, anio, mes)
-      console.log(list[0]);
       
       await queryRunner.commitTransaction()
       return this.jsonRes(list, res);
@@ -378,10 +393,21 @@ export class AyudaAsistencialController extends BaseController {
     try {
       await queryRunner.startTransaction()
       const periodo = this.valAplicaEl(personalPrestamoAplicaEl)
-      if (!periodo || !personalPrestamoCantidadCuotas || !personalPrestamoMonto) {
-        throw new ClientException('Verifiquen que Cant Cuotas e Importe sean mayores a 0 y que Aplica El sea un periodo valido.')
-      }
+      if (!periodo)
+        throw new ClientException('Aplica El no es válido')
 
+      if (Number(personalPrestamoCantidadCuotas)<=0)
+        throw new ClientException('Cantidad de cuotas debe ser mayor a 0')
+
+      if (parseFloat(personalPrestamoMonto)<=0)
+        throw new ClientException('El monto debe ser mayor a 0')
+
+
+      
+      const per = await this.getPeriodoQuery(queryRunner, periodo.anio, periodo.mes)
+      if (per[0]?.ind_recibos_generados==1)
+        throw new ClientException(`No se puede modificar el período ${periodo.mes}/${periodo.anio}, ya que tiene los recibos generados.`)
+      
       let PersonalPrestamo = await this.getPersonalPrestamoByIdsQuery(queryRunner, personalPrestamoId, personalId)
       if (!PersonalPrestamo.length) 
         throw new ClientException('No se encuentra el registro.')
@@ -391,7 +417,7 @@ export class AyudaAsistencialController extends BaseController {
         throw new ClientException('No se puede editar en estado APROBADO.')
       }
 
-      await this.updateRowPersonalPrestamoQuery(queryRunner, personalPrestamoId, personalId, personalPrestamoAplicaEl, personalPrestamoCantidadCuotas, personalPrestamoMonto)
+      await this.updateRowPersonalPrestamoQuery(queryRunner, personalPrestamoId, personalId, `${periodo.mes.toString().padStart(2,'0')}/${periodo.anio}`, personalPrestamoCantidadCuotas, personalPrestamoMonto)
       
       let row = await this.rowAyudaAsistencialQuery(queryRunner, personalPrestamoId, personalId)
       
@@ -617,21 +643,15 @@ export class AyudaAsistencialController extends BaseController {
   }
 
   getEstadoPrestamo(req: any, res: Response, next: NextFunction){
-    let estados = getOptionsPersonalPrestamoAprobado.map((obj) => {
-      return {descripcion: obj.label, tipo: obj.value}
-    })
-    return this.jsonRes(estados, res)
+    return this.jsonRes(getOptionsPersonalPrestamoAprobado, res)
   }
 
   valAplicaEl(date:string):any{
     if (date == null) {
         return null
     }
-    if (date.length != 7) {
-        return null
-    }
     const periodo = date.split('/')
-    if (periodo.length != 2 && (periodo[0].length != 2 || periodo[1].length != 4)) {
+    if (periodo.length != 2) {
         return null
     }
     const mes = Number.parseInt(periodo[0])

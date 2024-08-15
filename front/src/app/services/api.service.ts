@@ -925,20 +925,14 @@ export class ApiService {
     )
   }
 
-  getTipoPrestamo(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`api/ayuda-asistencial/tipos`).pipe(
-      map(res => res.data),
-      catchError((err, caught) => {
-        console.log('Something went wrong!');
-        return of([]);
-      })
-    );
-  }
-
   ayudaAsistencialAddCuota(parameter: any,) {
     return this.http.post<ResponseJSON<any>>(`/api/ayuda-asistencial/addcuota`, parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
+  }
+
+  addAyudaAsistencial(parameter: any) {
+    return this.http.post<ResponseJSON<any>>(`api/ayuda-asistencial/addpres`, parameter).pipe(map(res => res.data));
   }
 
 }

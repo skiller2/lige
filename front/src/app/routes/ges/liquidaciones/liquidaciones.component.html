@@ -17,7 +17,7 @@
           <app-cliente-search [(ngModel)]="ClienteIdWithSearch"></app-cliente-search>
         }
         @case ("P") {
-          <app-personal-search [(ngModel)]="PersonalIdWithSearch"></app-personal-search>
+          <app-personal-search [(ngModel)]="PersonalIdWithSearch" [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" ></app-personal-search>
         }
         @case ("S") {
           <nz-select nzAllowClear style="width:100%" nzPlaceHolder="Sucursal" nzShowSearch

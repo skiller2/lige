@@ -1,8 +1,16 @@
-<nz-select #psc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
-   (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Apellido, Nombre o CUIT"
-  nzShowSearch nzServerSearch (nzOnSearch)="search($event)" >
+<ng-template #suffixReloadTpl>
+  <button nz-button (click)="openDrawer()">
+    <span nz-icon nzType="user" nzTheme="outline"></span>
+  </button>
+</ng-template>
+
+<ng-template #selectTpl>
+  <nz-select #psc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
+  (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Apellido, Nombre o CUIT" nzShowSearch
+  nzServerSearch (nzOnSearch)="search($event)">
   <ng-container *ngFor="let option of $optionsArray | async">
-    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.PersonalId" [nzLabel]="option.fullName +' '+option.PersonalId" />
+    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.PersonalId"
+      [nzLabel]="option.fullName +' '+option.PersonalId" />
   </ng-container>
   <nz-option *ngIf="extendedOption.PersonalId >0 " [nzValue]="extendedOption.PersonalId"
     [nzLabel]="extendedOption.fullName" />
@@ -12,3 +20,16 @@
     Cargando datos...
   </nz-option>
 </nz-select>
+
+</ng-template>
+
+@if (anio()>0 && mes()>0){
+<nz-input-number-group [nzAddOnAfter]="suffixReloadTpl" style="width: 100%;">
+  <ng-container [ngTemplateOutlet]="selectTpl"></ng-container>
+</nz-input-number-group>
+<app-detalle-persona [anio]="anio()" [mes]="mes()" [SucursalId]="sucursalId()" [PersonalId]="selectedIdNum"
+  [visible]="visibleDrawer()" (onClose)="closeDrawer()"></app-detalle-persona>
+
+} @else {
+  <ng-container [ngTemplateOutlet]="selectTpl"></ng-container>
+}

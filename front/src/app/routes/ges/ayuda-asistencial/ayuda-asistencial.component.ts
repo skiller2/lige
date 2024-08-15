@@ -14,6 +14,7 @@ import { CommonModule } from '@angular/common';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 import { SearchService } from 'src/app/services/search.service';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
+import { AyudaAsistencialDrawerComponent } from "../../../shared/ayuda-asistencial-drawer/ayuda-asistencial-drawer.component";
 
 @Component({
     selector: 'app-ayuda-asistencial',
@@ -21,15 +22,19 @@ import { ViewResponsableComponent } from "../../../shared/view-responsable/view-
     styleUrls: ['./ayuda-asistencial.component.less'],
     standalone: true,
     providers: [AngularUtilService, ExcelExportService],
-    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ViewResponsableComponent]
+    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent,
+        ViewResponsableComponent, AyudaAsistencialDrawerComponent
+    ]
 })
 export class AyudaAsistencialComponent {
     formAsist = viewChild.required(NgForm)
     rows: number[] = []
     registerId : string = ''
+    tituloDrawer : string = ""
     loadingRec:boolean = false
     loadingApr:boolean = false
     loadingCuo:boolean = false
+    visibleDrawer: boolean = false
     selectedPeriod = { year: 0, month: 0 };
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
@@ -64,7 +69,7 @@ export class AyudaAsistencialComponent {
             col.editor = {
               model: Editors.integer,
               valueStep: 1,
-              minValue: 0,
+              minValue: 1,
               maxValue: 100,
               alwaysSaveOnEnterKey: true,
               required: true
@@ -110,13 +115,13 @@ export class AyudaAsistencialComponent {
         this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
             editCommand.execute();
             //Verifico que los campos
-            if (!this.valAplicaEl(item.PersonalPrestamoAplicaEl) || !item.PersonalPrestamoCantidadCuotas || !item.PersonalPrestamoMonto) {
-                return 
-            }
+            //if (!this.valAplicaEl(item.PersonalPrestamoAplicaEl) || !item.PersonalPrestamoCantidadCuotas || !item.PersonalPrestamoMonto) {
+            //    return 
+            //}
 
             try {
                 const res = await firstValueFrom(this.apiService.updateRowAyudaAsistencial(item))
-                this.angularGrid.dataView.updateItem(item.id, res.data);
+                this.angularGrid.dataView.updateItem(item.id,{ ...item, ...res.data } );
                 this.angularGrid.slickGrid.updateRow(editCommand.row)
             } catch (err) {
               editCommand.undo()
@@ -143,7 +148,9 @@ export class AyudaAsistencialComponent {
         this.gridObj = angularGrid.detail.slickGrid;
         
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-          totalRecords(this.angularGrid)
+            totalRecords(this.angularGrid)
+            columnTotal('PersonalPrestamoMonto', this.angularGrid)
+
         })
         
     }
@@ -239,4 +246,9 @@ export class AyudaAsistencialComponent {
         }
         return true
     }
+
+    openDrawer(): void {
+        this.visibleDrawer = true
+        this.tituloDrawer = "Alta"
+      }
 }
