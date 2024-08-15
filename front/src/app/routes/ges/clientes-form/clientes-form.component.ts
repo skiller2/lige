@@ -221,12 +221,12 @@ export class ClientesFormComponent {
       console.log("imprimo file " , this.files)
         if (this.ClienteId()) {
           console.log("paso")
-            await firstValueFrom(this.apiService.updateCliente(form, this.ClienteId()))
+            await firstValueFrom(this.apiService.updateCliente(finalObj, this.ClienteId()))
             // this.edit.set(false)
         } else {
           console.log("paso1")
           //este es para cuando es un nuevo registro
-          await firstValueFrom(this.apiService.addCliente(form))
+          await firstValueFrom(this.apiService.addCliente(finalObj))
         }
         this.formCli.markAsUntouched()
         this.formCli.markAsPristine()
