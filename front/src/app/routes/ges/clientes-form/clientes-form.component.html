@@ -121,7 +121,7 @@
         <!-- <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Persona </nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="personalButton" nzSearch>
-          <app-personal-search formControlName="personalId" [disabled]="!edit()"/>
+          <app-personal-search formControlName="personalId" [disabled]="!edit()" [anio]="periodo().year" [mes]="periodo().month"/>
         </nz-input-group>
         <ng-template #personalButton>
           <button nz-button nzType="dashed" nzSearch (click)="openDrawer(i)">
@@ -235,5 +235,3 @@
     </nz-form-item>
     <br>
 </form>
-<app-detalle-persona [anio]="periodo().year" [mes]="periodo().month" [SucursalId]="0"
-  [PersonalId]="personalId()" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>

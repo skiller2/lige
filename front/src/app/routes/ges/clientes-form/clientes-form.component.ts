@@ -55,7 +55,7 @@ interface Barrio {
 export class ClientesFormComponent {
 
   periodo = signal({ year: 0, month: 0 })
-  visibleDrawer: boolean = false
+//  visibleDrawer: boolean = false
 
   objClienteContacto = { 
     ClienteContactoId:0,
@@ -253,20 +253,6 @@ export class ClientesFormComponent {
     if (this.infoClienteContacto().length > 1 ) {
       this.infoClienteContacto().removeAt(index)
     }
-  }
-
-
-  openDrawer(index: any): void {
-    const personalId = this.formCli.get("personalId")
-    //const personalId = this.personal().value[index].personalId
-    if (!personalId) return
-    this.personalId.set(Number(personalId))
-    this.visibleDrawer = true
-  }
-
-  closeDrawer(): void {
-    this.visibleDrawer = false;
-    this.personalId.set(0)
   }
 
   async deleteCliente() {
