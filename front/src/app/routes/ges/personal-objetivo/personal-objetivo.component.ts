@@ -55,7 +55,6 @@ export class PersonalObjetivoComponnet {
   contratos: any[] = []
   objetivoInfo: any = {}
   selectedSucursalId = 0
-  visibleDrawer: boolean = false
 
   fechaActual = new Date();
   mes = this.fechaActual.getMonth() + 1; // Agrega 1 porque los meses se indexan desde 0 (0 = enero)
@@ -189,15 +188,6 @@ export class PersonalObjetivoComponnet {
       );
     }
 
-    openDrawer(): void {
-     
-      if (this.userId == 0) return
-      this.visibleDrawer = true
-  }
-
-  closeDrawer(): void {
-    this.visibleDrawer = false;
-}
 
   
 }

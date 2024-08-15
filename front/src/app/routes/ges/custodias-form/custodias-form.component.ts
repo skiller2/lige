@@ -27,7 +27,6 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 })
 export class CustodiaFormComponent {
 
-    visibleDrawer: boolean = false
     isLoading = signal(false);
     periodo = signal({ year: 0, month: 0 });
     objPersonal = { personalId: 0, importe: null }
@@ -109,7 +108,10 @@ export class CustodiaFormComponent {
             }
     
         }, 100);
-        {}
+        { }
+        
+        const currDate = new Date()
+        this.periodo.set({year:currDate.getFullYear(),month:currDate.getMonth()+1})
     }
 
     onChangePeriodo(result: Date): void {
@@ -119,18 +121,6 @@ export class CustodiaFormComponent {
             const month = date.getMonth() + 1
             this.periodo.set({ year, month })
         }
-    }
-
-    openDrawer(index: any): void {
-        const personalId = this.personal().value[index].personalId
-        if (!personalId) return
-        this.personalId.set(personalId)
-        this.visibleDrawer = true
-    }
-
-    closeDrawer(): void {
-        this.visibleDrawer = false;
-        this.personalId.set(0)
     }
 
     addPersonal(e?: MouseEvent): void {

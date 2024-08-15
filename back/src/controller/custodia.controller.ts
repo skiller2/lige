@@ -241,7 +241,8 @@ export class CustodiaController extends BaseController {
             SELECT DISTINCT obj.objetivo_custodia_id id, obj.responsable_id responsableId,
             obj.cliente_id clienteId, obj.desc_requirente, obj.descripcion, obj.fecha_inicio, 
             obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente,
-            CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) responsable, obj.impo_facturar facturacion
+            CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) responsable, obj.impo_facturar facturacion,
+            obj.desc_facturacion
             FROM lige.dbo.objetivocustodia obj
             JOIN Personal per ON per.PersonalId = obj.responsable_id
             JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
@@ -491,7 +492,8 @@ export class CustodiaController extends BaseController {
                     fechaF: obj.fecha_fin? obj.fecha_fin : null,
                     destino: obj.destino,
                     facturacion: obj.facturacion,
-                    estado: estados[obj.estado]
+                    estado: estados[obj.estado],
+                    desc_facturacion: obj.desc_facturacion
                 }
             })
             await queryRunner.commitTransaction()

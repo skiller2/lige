@@ -83,14 +83,7 @@
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3">Personal</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="10" [nzLg]="7">
-        <nz-input-group style="width: 100%" [nzAddOnAfter]="personalButton" nzSearch>
-          <app-personal-search formControlName="personalId" />
-        </nz-input-group>
-        <ng-template #personalButton>
-          <button nz-button nzType="dashed" nzSearch (click)="openDrawer(i)">
-            <span nz-icon nzType="user" ></span>
-          </button>
-        </ng-template>
+        <app-personal-search formControlName="personalId" [anio]="periodo().year" [mes]="periodo().month"/>
       </nz-form-control> 
         
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe</nz-form-label>
@@ -121,7 +114,7 @@
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Dueño </nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <app-personal-search formControlName="duenoId" />
+        <app-personal-search formControlName="duenoId" [anio]="periodo().year" [mes]="periodo().month"/>
       </nz-form-control>
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2">Importe</nz-form-label>
@@ -228,5 +221,3 @@
     </nz-form-item>
     <br>
 </form>
-<app-detalle-persona [anio]="periodo().year" [mes]="periodo().month" [SucursalId]="0"
-  [PersonalId]="personalId()" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>
