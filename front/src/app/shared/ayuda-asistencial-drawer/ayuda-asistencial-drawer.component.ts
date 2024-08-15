@@ -32,7 +32,7 @@ export class AyudaAsistencialDrawerComponent {
     ngForm = viewChild.required(NgForm);
     visible = model<boolean>(false)
     tituloDrawer = input.required<string>()
-
+    currDate = signal(new Date())
     formChange$ = new BehaviorSubject('');
     placement: NzDrawerPlacement = 'left';
     options: any[] = [];
@@ -43,6 +43,7 @@ export class AyudaAsistencialDrawerComponent {
 
     async ngOnInit(): Promise<void> {
         this.options = await firstValueFrom(this.searchService.getTipoPrestamo())
+        this.currDate.set(new Date())
     }
 
     async save(){

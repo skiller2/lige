@@ -15,6 +15,7 @@ import { doOnSubscribe } from 'src/app/services/api.service'
 import { NzSelectComponent } from 'ng-zorro-antd/select'
 import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
+import { DetallePersonaComponent } from "../../routes/ges/detalle-persona/detalle-persona.component";
 
 @Component({
   selector: 'app-personal-search',
@@ -28,7 +29,7 @@ import { CommonModule } from '@angular/common'
     },
   ],
   standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule],
+  imports: [...SHARED_IMPORTS, CommonModule, DetallePersonaComponent],
 
 })
 
@@ -49,6 +50,9 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
+  anio = input(0)
+  mes = input(0)
+  sucursalId = input(0)
 
   registerOnChange(fn: any) {
 
@@ -99,6 +103,10 @@ export class PersonalSearchComponent implements ControlValueAccessor {
 
   get selectedId() {
     return this._selectedId
+  }
+
+  get selectedIdNum():number {
+    return parseInt(this._selectedId)
   }
 
   set selectedId(val: string) {
@@ -173,8 +181,18 @@ export class PersonalSearchComponent implements ControlValueAccessor {
 
   }
 
+  visibleDrawer = signal(false)
   setDisabledState(isDisabled: boolean): void {
     this.isDisabled =  isDisabled
     this.psc?.setDisabledState(isDisabled)
-  } 
+  }
+
+   openDrawer(): void {
+    this.visibleDrawer.set( true)
+  }
+  
+  closeDrawer(): void {
+    this.visibleDrawer.set( false)
+  }
+
 }

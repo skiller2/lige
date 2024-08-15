@@ -437,14 +437,4 @@ export class DetalleAsistenciaComponent {
     this.destroy$.complete();
   }
 
-  visibleDrawer = false
-
-  closeDrawer(): void {
-    this.visibleDrawer = false;
-  }
-
-
-  openDrawer(): void {
-    this.visibleDrawer = true
-  }
 }

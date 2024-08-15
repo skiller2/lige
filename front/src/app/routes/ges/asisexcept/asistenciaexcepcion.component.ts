@@ -1,4 +1,4 @@
-import { Component, HostListener, Injector, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, HostListener, Injector, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { BehaviorSubject, Subject, catchError, debounceTime, of, switchMap, takeUntil, tap } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
@@ -48,7 +48,7 @@ export class ExcepcionAsistenciaComponent {
 
   private destroy$ = new Subject();
 
-  selectedSucursalId = '';
+  selectedSucursalId = signal(0);
   selectedObjetivoId = '';
   //selectedPersonalId = '';
   selectedMetodologiaId:any;
@@ -175,17 +175,10 @@ export class ExcepcionAsistenciaComponent {
         this.$selectedObjetivoIdChange.next(this.asistenciaexcepcion.controls['ObjetivoId'].value);
         break;
 
-      case Busqueda.Sucursal:
-        localStorage.setItem('SucursalId', this.asistenciaexcepcion.controls['SucursalId'].value);
-
-        this.$selectedSucursalIdChange.next(event);
-        this.$isSucursalDataLoading.next(true);
-
-        return;
       case Busqueda.Objetivo:
         this.$selectedObjetivoIdChange.next(event);
         this.$isObjetivoDataLoading.next(true);
-
+console.log('objetivo', event)
         if (this.asistenciaexcepcion.controls['ObjetivoId'].value > 0) {
           this.router.navigate(['.', { ObjetivoId: this.selectedObjetivoId }], {
             relativeTo: this._route,
@@ -299,5 +292,9 @@ export class ExcepcionAsistenciaComponent {
 
   gotoCargaAsistencia(): void { 
     this.router.navigate(['/ges/carga_asistencia',{ObjetivoId:this.selectedObjetivoId}])
+  }
+
+  infoObjetivo(val: any) {
+    this.selectedSucursalId.set(val.SucursalId)
   }
 }

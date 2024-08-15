@@ -5,16 +5,14 @@
       <nz-form-label [nzSpan]="3">Período</nz-form-label>
       <nz-form-control [nzSpan]="5">
 
-        <nz-date-picker nzMode="month" name="periodo" nzFormat="MM/yyyy" ngModel/>
+        <nz-date-picker nzMode="month" name="periodo" nzFormat="MM/yyyy" ngModel (ngModelChange)="dateChange($event)"/>
       </nz-form-control>
     </nz-form-item>
 
     <nz-form-item>
       <nz-form-label [nzSpan]="3">Persona</nz-form-label>
       <nz-form-control [nzSpan]="19">
-        <nz-input-group style="width: 100%">
-          <app-personal-search name="PersonalId" ngModel/>
-        </nz-input-group>
+          <app-personal-search name="PersonalId" ngModel [anio]="anio()" [mes]="mes()"/>
       </nz-form-control>
     </nz-form-item>
 
