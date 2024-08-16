@@ -351,8 +351,11 @@ ${orderBy}`, [fechaActual])
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
             const ClienteId = Number(req.params.id)
-            const ObjCliente = {...req.body[0] }
-            
+            const ObjCliente =  {...req.body[0]}
+        //    const ObjCliente = req.body.length == 1 ? {...req.body[0]} : {...req.body[0]};
+
+           console.log("req.body.length ", req.body.length)
+
             console.log("ObjCliente ", ObjCliente)
             console.log("ClienteId ", ClienteId)
 
@@ -381,18 +384,18 @@ ${orderBy}`, [fechaActual])
             if( ObjCliente.AdministradorId != null )
             await this.updateAdministradorTable(queryRunner,ObjCliente.AdministradorId,ObjCliente.AdministradorNombre,ObjCliente.AdministradorApellido,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion)
 
-            if(ObjCliente.AdministradorId == null && (ObjCliente.AdministradorNombre != null || ObjCliente.AdministradorApellido != null)){
+            if (ObjCliente.AdministradorId == null && (ObjCliente.AdministradorNombre && ObjCliente.AdministradorApellido )){
                 await this.createAdministrador(queryRunner,ObjCliente,ClienteId)
             }
 
-            const infoCliente = await queryRunner.query(`SELECT ClienteContactoId FROM ClienteContacto WHERE clienteId = @0`,[ObjCliente])
+            const infoCliente = await queryRunner.query(`SELECT ClienteContactoId FROM ClienteContacto WHERE clienteId = @0`,[ClienteId])
             const clienteContactoIds = infoCliente.map(row => row.ClienteContactoId)
             let maxClienteContactoId = clienteContactoIds.length > 0 ? Math.max(...clienteContactoIds) : 0
 
-            const infoClienteTelefono = await queryRunner.query(`SELECT MAX(ClienteContactoTelefonoId) AS MaxClienteContactoTelefonoId FROM ClienteContactoTelefono WHERE clienteId = 1;`, [ObjCliente])
+            const infoClienteTelefono = await queryRunner.query(`SELECT MAX(ClienteContactoTelefonoId) AS MaxClienteContactoTelefonoId FROM ClienteContactoTelefono WHERE clienteId = @0;`, [ClienteId])
             let maxClienteContactoTelefonoId = infoClienteTelefono[0].MaxClienteContactoTelefonoId
 
-            const infoClienteCorreo = await queryRunner.query(`SELECT MAX(ClienteContactoEmailId) AS maxClienteContactoEmailId FROM ClienteContactoEmail WHERE clienteId = @0`, [ObjCliente])
+            const infoClienteCorreo = await queryRunner.query(`SELECT MAX(ClienteContactoEmailId) AS maxClienteContactoEmailId FROM ClienteContactoEmail WHERE clienteId = @0`, [ClienteId])
             let maxClienteContactoEmailId = infoClienteCorreo[0].maxClienteContactoEmailId
 
             //ACA SE EVALUA Y SE ELIMINA EL CASO QUE SE BORRE ALGUN REGISTRO DE CLIENTE CONTACTO EXISTENTE
@@ -457,12 +460,13 @@ ${orderBy}`, [fechaActual])
     }
 
     async createAdministrador(queryRunner:any,ObjCliente:any,ClienteId:number){
+       
+
+        await this.insertAdministrador(queryRunner,ObjCliente.AdministradorApellido,ObjCliente.AdministradorNombre,ObjCliente.ClienteDenominacion,
+            ObjCliente.CLienteNombreFantasia) 
 
         const infoAdministrador = await queryRunner.query(`SELECT  MAX(AdministradorId) AS AdministradorId  FROM Administrador`)
-        let maxAdministradorId = infoAdministrador[0].AdministradorId + 1 
-
-        await this.insertAdministrador(queryRunner,maxAdministradorId,ObjCliente.AdministradorApellido,ObjCliente.AdministradorNombre,ObjCliente.ClienteDenominacion,
-            ObjCliente.CLienteNombreFantasia) 
+        let maxAdministradorId = infoAdministrador[0].AdministradorId 
             
          let ClienteAdministradorId = 1   
         await this.insertClienteAdministrador(queryRunner,ClienteId,ClienteAdministradorId,ObjCliente.ClienteFechaAlta,maxAdministradorId)    
@@ -511,7 +515,10 @@ ${orderBy}`, [fechaActual])
 
      async updateAdministradorTable(queryRunner:any,AdministradorId:number,AdministradorNombre:any,AdministradorApellido:any,CLienteNombreFantasia:any,ClienteDenominacion:any){
 
-         let AdministradorApellidoNombre = `${AdministradorApellido.trim()},${AdministradorNombre.trim()}`
+         let AdministradorApellidoNombre = 
+            (AdministradorApellido ? AdministradorApellido : '') + 
+            (AdministradorApellido && AdministradorNombre ? ',' : '') + 
+            (AdministradorNombre ? AdministradorNombre : '') || null;
 
         await queryRunner.query(`
          UPDATE Administrador
@@ -522,7 +529,11 @@ ${orderBy}`, [fechaActual])
 
      async updateClienteContactoTable(queryRunner:any,ClienteId:number,ClienteContactoId:number,nombre:string,ClienteContactoApellido:string,area:string){
 
-        let ClienteContactoApellidoNombre = `${nombre.trim()},${ClienteContactoApellido.trim()}`
+        let ClienteContactoApellidoNombre = 
+        (ClienteContactoApellido ? ClienteContactoApellido : '') + 
+        (ClienteContactoApellido && nombre ? ',' : '') + 
+        (nombre ? nombre : '') || null;
+
 
         await queryRunner.query(`
          UPDATE ClienteContacto
@@ -552,7 +563,10 @@ ${orderBy}`, [fechaActual])
      async insertClienteContactoTable(queryRunner:any,ClienteId:number,ClienteContactoId:number,nombre:string,ClienteContactoApellido:string,area:string,maxClienteContactoTelefonoId:number,maxClienteContactoEmailId:number){
 
 
-        let ClienteContactoApellidoNombre = `${nombre.trim()},${ClienteContactoApellido.trim()}`
+        let ClienteContactoApellidoNombre = 
+        (ClienteContactoApellido ? ClienteContactoApellido : '') + 
+        (ClienteContactoApellido && nombre ? ',' : '') + 
+        (nombre ? nombre : '') || null;
 
         await queryRunner.query(`INSERT INTO  ClienteContacto (
             ClienteId,
@@ -698,7 +712,7 @@ ${orderBy}`, [fechaActual])
 
     async addCliente(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
-        const ObjCliente = {...req.body[0] }
+        const ObjCliente = req.body.length == 1 ? {...req.body} : {...req.body[0]};
         console.log(".....................................................")
         console.log(ObjCliente)
         try {
@@ -900,7 +914,7 @@ ${orderBy}`, [fechaActual])
 
           async insertClienteAdministrador(queryRunner:any,ClienteId:number,ClienteAdministradorId:number,ClienteFechaAlta:Date,maxAdministradorId:number){
 
-            await queryRunner.query(` INSERT ClienteAdministrador (
+            await queryRunner.query(` INSERT INTO ClienteAdministrador (
                 ClienteId,
                 ClienteAdministradorId,
                 ClienteAdministradorDesde,
@@ -912,14 +926,16 @@ ${orderBy}`, [fechaActual])
     
         }
     
-        async insertAdministrador(queryRunner:any,maxAdministradorId:any,  AdministradorApellido:any,
+        async insertAdministrador(queryRunner:any,  AdministradorApellido:any,
             AdministradorNombre:any, AdministradorDenominacion:any,
             AdministradorNombreFantasia:any,){
     
-            let AdministradorApellidoNombre = `${AdministradorApellido.trim()},${AdministradorNombre.trim()}`
+            let AdministradorApellidoNombre =      
+            (AdministradorApellido ? AdministradorApellido : '') + 
+            (AdministradorApellido && AdministradorNombre ? ',' : '') + 
+            (AdministradorNombre ? AdministradorNombre : '') || AdministradorDenominacion;
             
             await queryRunner.query(` INSERT INTO Administrador (
-                AdministradorId,
                 AdministradorApellido,
                 AdministradorNombre,
                 AdministradorDenominacion,
@@ -934,11 +950,10 @@ ${orderBy}`, [fechaActual])
                 AdministradorDomicilioUltNro,
                 AdministradorFacturacionUltNro,
                 AdministradorSucursalId,
-                AdministradorImagenId,
-                AdministradorImagenBlob
-                ) VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16
-                )`,[maxAdministradorId,AdministradorApellido,AdministradorNombre,AdministradorDenominacion,
-                    AdministradorNombreFantasia,AdministradorApellidoNombre,null,null,null,null,null,null,null,null,null,null,null])
+                AdministradorImagenId
+                ) VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14
+                )`,[AdministradorApellido,AdministradorNombre,AdministradorDenominacion,
+                    AdministradorNombreFantasia,AdministradorApellidoNombre,null,null,null,null,null,null,null,null,null,null])
     
         }
 
@@ -982,14 +997,16 @@ ${orderBy}`, [fechaActual])
              if(!form.ClienteDomicilioProvinciaId) {
                 throw new ClientException(`El campo Provincia Ante IVA NO pueden estar vacio.`)
              }
+
+             if(!form.ClienteDomicilioLocalidadId) {
+                throw new ClientException(`El campo Localidad NO pueden estar vacio.`)
+             }
      
              if(!form.ClienteDomicilioBarrioId) {
-                throw new ClientException(`El campo Razón Social NO pueden estar vacio.`)
-             }
-    
-             if(!form.ClienteDomicilioLocalidadId) {
                 throw new ClientException(`El campo Barrio NO pueden estar vacio.`)
              }
+    
+             
     
             // CLIENTE CONTACTO
     
