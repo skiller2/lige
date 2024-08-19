@@ -13,6 +13,7 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
+import { Router } from '@angular/router';
 
 interface Provincia {
   ProvinciaId: number;
@@ -52,7 +53,11 @@ interface Barrio {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
+
+
 export class ClientesFormComponent {
+
+  public router = inject(Router);
 
   periodo = signal({ year: 0, month: 0 })
 //  visibleDrawer: boolean = false
@@ -77,6 +82,7 @@ export class ClientesFormComponent {
   ClienteId = model(0)
   selectedValueProvincia = null
   isLoading = signal(false)
+  addNew = model()
   files = []
   textForSearch = "Cliente"
   
@@ -122,8 +128,6 @@ export class ClientesFormComponent {
 
   ngOnInit() {
 
-
-
     effect(async () => {
       if (this.ClienteId()) {
         await this.load()
@@ -147,7 +151,6 @@ export class ClientesFormComponent {
   async load() {
 
     let infoCliente = await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
-    console.log("infoCliente ",infoCliente)
     this.infoClienteContacto().clear()
     infoCliente.infoClienteContacto.forEach((obj: any) => {
       this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
@@ -217,18 +220,20 @@ export class ClientesFormComponent {
     this.isLoading.set(true)
     let form = this.formCli.value
     let finalObj = [form,...this.files]
-    console.log("form ", finalObj)
     try {
-      console.log("imprimo file " , this.files)
         if (this.ClienteId()) {
           await firstValueFrom(this.apiService.updateCliente(finalObj, this.ClienteId()))
+          await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
             // this.edit.set(false)
         } else {
-          console.log("paso1")
           //este es para cuando es un nuevo registro
           await firstValueFrom(this.apiService.addCliente(finalObj))
+          this.addNew.set(true)
+          this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+            this.router.navigate(['/ges/clientes/clientes']);
+          });
         }
-        await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
+        
         this.formCli.markAsUntouched()
         this.formCli.markAsPristine()
     } catch (e) {

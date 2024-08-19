@@ -17,10 +17,10 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { ClientesFormComponent } from "../clientes-form/clientes-form.component"
 
 @Component({
-  selector: 'app-clientes',
+  selector: 'app-objetivos',
   standalone: true,
-  templateUrl: './clientes.component.html',
-  styleUrl: './clientes.component.less',
+  templateUrl: './objetivos.component.html',
+  styleUrl: './objetivos.component.less',
   encapsulation: ViewEncapsulation.None,
   providers: [AngularUtilService],
   imports: [
@@ -33,7 +33,7 @@ import { ClientesFormComponent } from "../clientes-form/clientes-form.component"
     ClientesFormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ClientesComponent {
+export class ObjetivosComponent {
 
   public router = inject(Router);
   public route = inject(ActivatedRoute);
@@ -60,7 +60,7 @@ export class ClientesComponent {
     private apiService = inject(ApiService)
     private settingService = inject(SettingsService)
 
-    columns$ = this.apiService.getCols('/api/clientes/cols')
+    columns$ = this.apiService.getCols('/api/objetivos/cols')
 
     gridData$ = this.listCliente$.pipe(
         debounceTime(500),

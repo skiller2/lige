@@ -55,7 +55,7 @@ export class ClientesController extends BaseController {
             type: "date",
             id: "ClienteFechaAlta",
             field: "ClienteFechaAlta",
-            fieldName: "cli.ClienteFechaAlta",
+            fieldName: "inpurForFechaSearch",
             sortable: true,
             hidden: false,
             searchHidden: false
@@ -78,7 +78,7 @@ export class ClientesController extends BaseController {
             fieldName: "CantidadObjetivos",
             sortable: true,
             hidden: false,
-            searchHidden: false
+            searchHidden: true
         },
     ];
 
@@ -280,7 +280,6 @@ ${orderBy}`, [fechaActual])
         const queryRunner = dataSource.createQueryRunner();
         try {
             const CondicionAnteIva = await queryRunner.query(`SELECT CondicionAnteIVAId,CondicionAnteIVADescripcion from CondicionAnteIVA`)
-            console.log(CondicionAnteIva)
             return this.jsonRes(CondicionAnteIva, res);
         } catch (error) {
             return next(error)
@@ -354,18 +353,16 @@ ${orderBy}`, [fechaActual])
             const ObjCliente =  {...req.body[0]}
         //    const ObjCliente = req.body.length == 1 ? {...req.body[0]} : {...req.body[0]};
 
-           console.log("req.body.length ", req.body.length)
-
-            console.log("ObjCliente ", ObjCliente)
-            console.log("ClienteId ", ClienteId)
-
             //validaciones
 
             await this.FormValidations(ObjCliente)
 
+            const ClienteFechaAlta = new Date(ObjCliente.ClienteFechaAlta)
+            ClienteFechaAlta.setHours(0, 0, 0, 0)
+
             //update
 
-            await this.updateClienteTable(queryRunner,ClienteId,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion,ObjCliente.ClienteFechaAlta)
+            await this.updateClienteTable(queryRunner,ClienteId,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion,ClienteFechaAlta)
             await this.updateFacturaTable(queryRunner,ClienteId,ObjCliente.ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.ClienteCondicionAnteIVAId)
             
             await this.updateClienteDomicilioTable(
@@ -434,8 +431,6 @@ ${orderBy}`, [fechaActual])
                          maxClienteContactoId += 1
                          maxClienteContactoTelefonoId += 1
                          maxClienteContactoEmailId += 1
-
-                         console.log(" maxClienteContactoEmailId sum ", maxClienteContactoEmailId)
       
                          await this.insertClienteContactoTable(queryRunner,ClienteId,maxClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxClienteContactoTelefonoId,maxClienteContactoEmailId)
       
@@ -717,8 +712,8 @@ ${orderBy}`, [fechaActual])
 
     async addCliente(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
-        const ObjCliente = req.body.length == 1 ? {...req.body} : {...req.body[0]};
-        console.log(".....................................................")
+        const ObjCliente = {...req.body[0]};
+        // const ObjCliente = req.body.length == 1 ? {...req.body} : {...req.body[0]};
         console.log(ObjCliente)
         try {
 
@@ -731,14 +726,22 @@ ${orderBy}`, [fechaActual])
 
             await this.FormValidations(ObjCliente)
 
+            let ClienteDomicilioUltNro = 1
+            let ClienteFacturacionId = 1
+            let ClienteDomicilioId = 1
+            let maxClienteContactoId = 0
+            let maxClienteContactoTelefonoId = 0
+            let maxClienteContactoEmailId = 0
+
+            const ClienteFechaAlta = new Date(ObjCliente.ClienteFechaAlta)
+            ClienteFechaAlta.setHours(0, 0, 0, 0)
+
+            await this.insertCliente(queryRunner,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion,ClienteFechaAlta,ClienteDomicilioUltNro)
+
             let ClienteSelectId = await queryRunner.query("SELECT MAX(ClienteId) AS MaxClienteId FROM Cliente")
-            let ClienteId = ClienteSelectId[0].MaxClienteId + 1
+            let ClienteId = ClienteSelectId[0].MaxClienteId
 
-            let ClienteDomicilioUltNro,ClienteFacturacionId,ClienteDomicilioId = 1
-            let maxClienteContactoId,maxClienteContactoTelefonoId,maxClienteContactoEmailId = 0
-
-            await this.insertCliente(queryRunner,ClienteId,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion,ObjCliente.ClienteFechaAlta,ClienteDomicilioUltNro)
-            await this.insertClienteFacturacion(queryRunner,ClienteId,ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.CondicionAnteIVAId,ObjCliente.ClienteFechaAlta)
+            await this.insertClienteFacturacion(queryRunner,ClienteId,ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.ClienteCondicionAnteIVAId,ClienteFechaAlta)
             await this.inserClientetDomicilio(queryRunner,ClienteId,ClienteDomicilioId,ObjCliente.ClienteDomicilioDomLugar,ObjCliente.ClienteDomicilioDomCalle,ObjCliente.ClienteDomicilioDomNro,
                 ObjCliente.ClienteDomicilioCodigoPostal,ObjCliente.ClienteDomicilioProvinciaId,ObjCliente.ClienteDomicilioLocalidadId,ObjCliente.ClienteDomicilioBarrioId,
             )
@@ -750,8 +753,8 @@ ${orderBy}`, [fechaActual])
                 maxClienteContactoEmailId += 1
 
                 await this.insertClienteContactoTable(queryRunner,ClienteId,maxClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxClienteContactoTelefonoId,maxClienteContactoEmailId)
-                await this.insertClienteContactoEmailTable(queryRunner,ClienteId,maxClienteContactoId,obj.maxClienteContactoEmailId,obj.correo)
-                await this.insertClienteContactoTelefonoTable(queryRunner,ClienteId,maxClienteContactoId,obj.maxClienteContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,obj.ClienteContactoTelefonoCodigoArea)
+                await this.insertClienteContactoEmailTable(queryRunner,ClienteId,maxClienteContactoId,maxClienteContactoEmailId,obj.correo)
+                await this.insertClienteContactoTelefonoTable(queryRunner,ClienteId,maxClienteContactoId,maxClienteContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,obj.ClienteContactoTelefonoCodigoArea)
                 
             }
 
@@ -775,10 +778,9 @@ ${orderBy}`, [fechaActual])
     }
 
 
-    async insertCliente(queryRunner:any, ClienteId:number,CLienteNombreFantasia:any,ClienteDenominacion:any,ClienteFechaAlta:any,ClienteDomicilioUltNro:any){
+    async insertCliente(queryRunner:any,CLienteNombreFantasia:any,ClienteDenominacion:any,ClienteFechaAlta:any,ClienteDomicilioUltNro:any){
 
         await queryRunner.query(`INSERT INTO Cliente (	
-        ClienteId,
         ClienteConsorcioEs,
         ClienteApellido,
         ClienteNombre,
@@ -804,11 +806,9 @@ ${orderBy}`, [fechaActual])
         ClienteAdministradorUltNro,
         ClientePropio,
         ClienteSucursalId,
-        ClienteImagenId,
-        ClienteImagenBlob) VALUES (
-        @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19,@20,@21,@22,@23,@24,@25,@26,@27
+        ClienteImagenId) VALUES (
+        @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19,@20,@21,@22,@23,@24,@25
         )`,[
-         ClienteId,
          null,
          null,
          null,
@@ -834,8 +834,7 @@ ${orderBy}`, [fechaActual])
          null,
          null,
          null,
-         null,
-         null,
+         null
         ])
     }
 
@@ -1007,9 +1006,9 @@ ${orderBy}`, [fechaActual])
                 throw new ClientException(`El campo Localidad NO pueden estar vacio.`)
              }
      
-             if(!form.ClienteDomicilioBarrioId) {
-                throw new ClientException(`El campo Barrio NO pueden estar vacio.`)
-             }
+            //  if(!form.ClienteDomicilioBarrioId) {
+            //     throw new ClientException(`El campo Barrio NO pueden estar vacio.`)
+            //  }
     
              
     
