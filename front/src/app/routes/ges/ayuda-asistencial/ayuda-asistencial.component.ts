@@ -31,10 +31,10 @@ export class AyudaAsistencialComponent {
     rows: number[] = []
     registerId : string = ''
     tituloDrawer : string = ""
-    loadingRec:boolean = false
-    loadingApr:boolean = false
-    loadingCuo:boolean = false
-    visibleDrawer: boolean = false
+    loadingRec = signal(false)
+    loadingApr = signal(false)
+    loadingCuo = signal(false)
+    visibleDrawer : boolean = false
     selectedPeriod = { year: 0, month: 0 };
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
@@ -190,7 +190,7 @@ export class AyudaAsistencialComponent {
     }
 
     async rechazarReg(){
-        this.loadingRec = true
+        this.loadingRec.set(true)
         const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
         // console.log(ids,this.rows);
         try {
@@ -199,11 +199,11 @@ export class AyudaAsistencialComponent {
         } catch (error) {
             console.log(error);
         }
-        this.loadingRec = false
+        this.loadingRec.set(false)
     }
 
     async aprobarReg(){
-        this.loadingApr = true
+        this.loadingApr.set(true)
         const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
         // console.log(ids,this.rows);
         try {
@@ -212,20 +212,20 @@ export class AyudaAsistencialComponent {
         } catch (error) {
             console.log(error);
         }
-        this.loadingApr = false
+        this.loadingApr.set(false)
     }
 
     async addCuotaReg(){
-        this.loadingCuo = true
+        this.loadingCuo.set(true)
         const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
         // console.log(ids,this.rows);
         try {
-            const res :any = await firstValueFrom(this.apiService.ayudaAsistencialAddCuota({ids:ids, rows:this.rows}))
+            const res :any = await firstValueFrom(this.apiService.ayudaAsistencialAddCuota({year:this.selectedPeriod.year, month:this.selectedPeriod.month}))
             this.formChange('')
         } catch (error) {
             console.log(error);
         }
-        this.loadingCuo = false
+        this.loadingCuo.set(false)
     }
 
     valAplicaEl(date:string):boolean{
