@@ -195,8 +195,8 @@ export class AyudaAsistencialController extends BaseController {
   }
   async personalPrestamoRechazadoQuery(queryRunner:any, personalPrestamoId:number, personalId:number){
     const PersonalPrestamoAprobado = 'N'
-    const PersonalPrestamoAplicaEl = ''
-    const PersonalPrestamoUltimaLiquidacion = ''
+    const PersonalPrestamoAplicaEl = null
+    const PersonalPrestamoUltimaLiquidacion = null
     const PersonalPrestamoCantidadCuotas= 0
     const PersonalPrestamoMontoAutorizado = 0
     const PersonalPrestamoFechaAprobacion = null
@@ -312,7 +312,7 @@ export class AyudaAsistencialController extends BaseController {
       
       WHERE 
       (pres.PersonalPrestamoAprobado IS NULL
-      OR pres.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@1,'00'),'/',@0)
+      OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) >= DATEFROMPARTS(@0,@1,1)
       )
       AND (${filterSql})
       ${orderBy}

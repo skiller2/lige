@@ -63,20 +63,22 @@
 
     <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Complemento</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
           <input nz-input placeholder="" formControlName="ClienteDomicilioDomLugar" type="text" />
         </nz-form-control>
   
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Cod Postal </nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-          <input nz-input placeholder="" formControlName="ClienteDomicilioCodigoPostal" type="text" />
-        </nz-form-control>
+        
     </nz-form-item>
 
     <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">País</nz-form-label>
+        <!-- <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">País</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
           <input nz-input placeholder="" type="text" />
+        </nz-form-control> -->
+
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cod Postal </nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+          <input nz-input placeholder="" formControlName="ClienteDomicilioCodigoPostal" type="text" />
         </nz-form-control>
   
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Provincia</nz-form-label>
@@ -160,22 +162,22 @@
         </nz-select>
       </nz-form-control>
 
-      <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2" [ngClass]="'btn-margintop'"> Cod Area </nz-form-label>
+      <!-- <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2" [ngClass]="'btn-margintop'"> Cod Area </nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2" [ngClass]="'btn-margintop'">
         <nz-input-group style="width: 100%" nzSearch>
           <input nz-input placeholder="" formControlName="ClienteContactoTelefonoCodigoArea" type="string" />
         </nz-input-group>
-      </nz-form-control>
+      </nz-form-control> -->
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2" [ngClass]="'btn-margintop'"> Telefono </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4" [ngClass]="'btn-margintop'">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="6" [ngClass]="'btn-margintop'">
         <nz-input-group style="width: 100%" nzSearch>
             <input nz-input placeholder="" formControlName="telefono" type="string" />
         </nz-input-group>
       </nz-form-control>
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2" [ngClass]="'btn-margintop'" > Correo </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5" [ngClass]="'btn-margintop'">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="7" [ngClass]="'btn-margintop'">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="controlClienteButton" nzSearch>
             <input nz-input placeholder="" formControlName="correo" type="string" />
           </nz-input-group>
