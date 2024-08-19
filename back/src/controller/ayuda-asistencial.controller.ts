@@ -195,8 +195,8 @@ export class AyudaAsistencialController extends BaseController {
   }
   async personalPrestamoRechazadoQuery(queryRunner:any, personalPrestamoId:number, personalId:number){
     const PersonalPrestamoAprobado = 'N'
-    const PersonalPrestamoAplicaEl = ''
-    const PersonalPrestamoUltimaLiquidacion = ''
+    const PersonalPrestamoAplicaEl = null
+    const PersonalPrestamoUltimaLiquidacion = null
     const PersonalPrestamoCantidadCuotas= 0
     const PersonalPrestamoMontoAutorizado = 0
     const PersonalPrestamoFechaAprobacion = null
@@ -312,7 +312,7 @@ export class AyudaAsistencialController extends BaseController {
       
       WHERE 
       (pres.PersonalPrestamoAprobado IS NULL
-      OR pres.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@1,'00'),'/',@0)
+      OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) >= DATEFROMPARTS(@0,@1,1)
       )
       AND (${filterSql})
       ${orderBy}
@@ -660,6 +660,112 @@ export class AyudaAsistencialController extends BaseController {
         return null
     }
     return {anio, mes}
+  }
+
+  async addPersonalPrestamo(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    const personalId = req.body.personalId
+    const formaId = req.body.formaId
+    const anio = req.body.aplicaEl.getFullYear()
+    const mes = req.body.aplicaEl.getMonth()+1
+    const importe = req.body.importe
+    const cantCuotas = req.body.cantCuotas
+    const ip = req.socket.remoteAddress
+    try {
+      await queryRunner.startTransaction()
+
+      if (!formaId) throw new ClientException("Falta cargar el Tipo.");
+      if (!personalId) throw new ClientException("Falta cargar la Persona.");
+
+      const forma = optionsSelect.find((obj:any)=>{ obj.value == formaId })
+
+      const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
+  
+      if (checkrecibos[0]?.ind_recibos_generados ==1)
+        throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede generar ${forma.label} para el período`)
+  
+
+      const aplicaEl = `${String(mes).padStart(2, '0')}/${String(anio).padStart(4, '0')}`
+      
+      const presPend = await queryRunner.query(`
+        SELECT pre.PersonalPrestamoId 
+        FROM PersonalPrestamo pre 
+        WHERE pre.PersonalId = @0 AND pre.PersonalPrestamoAprobado = 'S' AND pre.PersonalPrestamoLiquidoFinanzas = 0 AND pre.FormaPrestamoId =@1`,
+        [personalId,formaId]
+      )
+      if (presPend.length>0)
+        throw new ClientException(`Ya se encuentra generado, aprobado y pendiente de acreditar en cuenta.  No se puede solicitar nuevo ${forma.label}.`)
+
+
+      const adelantoExistente = await queryRunner.query(
+        `DELETE From PersonalPrestamo 
+        WHERE PersonalPrestamoAprobado IS NULL
+        AND FormaPrestamoId = @1
+        AND PersonalId = @0`,
+        [personalId, formaId]
+      );
+      const now = new Date()
+      const hora = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
+      let today = now
+      today.setHours(0, 0, 0, 0)
+
+      if (importe > 0) {
+        const prestamoId = Number((await queryRunner.query(`
+          SELECT per.PersonalPrestamoUltNro as max 
+          FROM Personal per WHERE per.PersonalId = @0`,
+          [personalId]
+        ))[0].max) + 1;
+
+        const result = await queryRunner.query(
+          `INSERT INTO PersonalPrestamo (PersonalPrestamoId, PersonalId, PersonalPrestamoMonto, FormaPrestamoId, 
+          PersonalPrestamoAprobado, PersonalPrestamoFechaAprobacion, PersonalPrestamoCantidadCuotas, PersonalPrestamoAplicaEl, 
+          PersonalPrestamoLiquidoFinanzas, PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCuotaUltNro, PersonalPrestamoMontoAutorizado, 
+          -- PersonalPrestamoJerarquicoId, PersonalPrestamoPuesto, PersonalPrestamoUsuarioId,
+          PersonalPrestamoDia, PersonalPrestamoTiempo)
+          VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11,
+          -- @12, @13, @14,
+          @15, @16)`,
+          [
+            prestamoId, //PersonalPrestamoId
+            personalId, //PersonalId
+            importe, //PersonalPrestamoMonto
+            formaId, //FormaPrestamoId = 7 Adelanto / 1 Ayuda Asistencial
+
+            null, //PersonalPrestamoAprobado
+            null, //PersonalPrestamoFechaAprobacion
+            cantCuotas,  //PersonalPrestamoCantidadCuotas
+            aplicaEl, //PersonalPrestamoAplicaEl
+
+            null, //PersonalPrestamoLiquidoFinanzas
+            "", //PersonalPrestamoUltimaLiquidacion
+            null, //PersonalPrestamoCuotaUltNro
+            0, //PersonalPrestamoMontoAutorizado
+
+            null, //PersonalPrestamoJerarquicoId
+            ip, //PersonalPrestamoPuesto
+            null, //PersonalPrestamoUsuarioId
+
+            today, //PersonalPrestamoDia
+            hora, //PersonalPrestamoTiempo  
+
+          ]
+        );
+
+        const resultAdelanto = await queryRunner.query(
+          `UPDATE Personal SET PersonalPrestamoUltNro=@1 WHERE PersonalId=@0 `,
+          [personalId, prestamoId]
+        );
+
+      }
+      
+      await queryRunner.commitTransaction()
+      return this.jsonRes({}, res, 'Carga Exitosa');
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    }finally{
+      await queryRunner.release()
+    }
   }
 
 }
