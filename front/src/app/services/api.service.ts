@@ -74,7 +74,10 @@ export class ApiService {
   }
 
   getArchivosAnteriores(id:number, TipoSearch:string) {
-    return this.http.get(`/api/file-upload/Archivos_anteriores/${id}/${TipoSearch}`).pipe(
+    console.log("............. voy a buscar los archivos ")
+    console.log("id ", id)
+    console.log("TipoSearch ", TipoSearch)
+    return this.http.get(`/api/file-upload/archivos_anteriores/${id}/${TipoSearch}`).pipe(
       map((res: any) => res.data.list),
       catchError((err, caught) => {
         console.log('Something went wrong!');

@@ -6,6 +6,7 @@ import { Response } from "express"
 import { CategoriasController } from "./categorias-cambio/categorias-cambio.controller";
 import { ObjetivoController } from "./controller/objetivo.controller";
 import { CargaLicenciaController } from "./carga-licencia/carga-licencia.controller";
+import {} from "./controller/file-upload.controller"
 //import packageConfig from "./../package.json" with { type: 'json' }; 
 import dotenv from "dotenv"
 
@@ -40,6 +41,11 @@ scheduleJob('1 0 * * *', async function (fireDate) {
   //TODO Se debería instanciar Response correctamente
 
   const ret = await objetivoController.objetivosGrupos(null, null, (ret: any) => ret)
+  console.log(`job run at ${fireDate}, response: ${ret}`);
+});
+
+scheduleJob('1 0 * * *', async function (fireDate) {
+  const ret = await cargaLicenciaController.deleleTemporalFiles(null, null, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 

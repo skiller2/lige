@@ -1,4 +1,4 @@
-import { Component, inject, input, model, viewChild } from '@angular/core';
+import { Component, inject, input, model, SimpleChanges, viewChild } from '@angular/core';
 import { BehaviorSubject, debounceTime, Observable, switchMap } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
@@ -28,10 +28,9 @@ export class FileUploadComponent {
   idForSearh = input(0)
   textForSearch = input("")
   
-  $ArchivosLicencias = this.formChange$.pipe(
+  $files = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
-
       if(this.idForSearh() > 0 && this.textForSearch() != ""){
         return this.apiService
         .getArchivosAnteriores(this.idForSearh(),this.textForSearch())
@@ -41,6 +40,12 @@ export class FileUploadComponent {
 
     })
   )
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['idForSearh']) {
+      this.formChange$.next('');
+    }
+  }
 
 
   uploadChange(event: any) {

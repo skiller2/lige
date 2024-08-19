@@ -156,7 +156,8 @@ export class ClientesFormComponent {
 
     if (this.edit()) {
       this.infoClienteContacto().enable()
-
+      if(infoCliente.infoClienteContacto.length == 0)
+        this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
     } else {
       this.infoClienteContacto().disable()
     }
@@ -220,14 +221,14 @@ export class ClientesFormComponent {
     try {
       console.log("imprimo file " , this.files)
         if (this.ClienteId()) {
-          console.log("paso")
-            await firstValueFrom(this.apiService.updateCliente(finalObj, this.ClienteId()))
+          await firstValueFrom(this.apiService.updateCliente(finalObj, this.ClienteId()))
             // this.edit.set(false)
         } else {
           console.log("paso1")
           //este es para cuando es un nuevo registro
           await firstValueFrom(this.apiService.addCliente(finalObj))
         }
+        await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
         this.formCli.markAsUntouched()
         this.formCli.markAsPristine()
     } catch (e) {

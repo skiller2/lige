@@ -239,7 +239,7 @@ ${orderBy}`, [fechaActual])
             ,domcli.ClienteDomicilioBarrioId
             ,TRIM(domcli.ClienteDomicilioDomLugar) AS ClienteDomicilioDomLugar
             ,TRIM(adm.AdministradorNombre) AS AdministradorNombre
-            ,TRIM(adm.AdministradorApellido) AS AdministradorNombre
+            ,TRIM(adm.AdministradorApellido) AS AdministradorApellido
             ,adm.AdministradorId
         FROM Cliente cli
         LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId
@@ -390,14 +390,17 @@ ${orderBy}`, [fechaActual])
 
             const infoCliente = await queryRunner.query(`SELECT ClienteContactoId FROM ClienteContacto WHERE clienteId = @0`,[ClienteId])
             const clienteContactoIds = infoCliente.map(row => row.ClienteContactoId)
+            console.log("clienteContactoIds.length ", clienteContactoIds.length)
             let maxClienteContactoId = clienteContactoIds.length > 0 ? Math.max(...clienteContactoIds) : 0
-
+            
             const infoClienteTelefono = await queryRunner.query(`SELECT MAX(ClienteContactoTelefonoId) AS MaxClienteContactoTelefonoId FROM ClienteContactoTelefono WHERE clienteId = @0;`, [ClienteId])
-            let maxClienteContactoTelefonoId = infoClienteTelefono[0].MaxClienteContactoTelefonoId
+            let maxClienteContactoTelefonoId = infoClienteTelefono[0].MaxClienteContactoTelefonoId !== null ? infoClienteTelefono[0].MaxClienteContactoTelefonoId : 0;
 
             const infoClienteCorreo = await queryRunner.query(`SELECT MAX(ClienteContactoEmailId) AS maxClienteContactoEmailId FROM ClienteContactoEmail WHERE clienteId = @0`, [ClienteId])
-            let maxClienteContactoEmailId = infoClienteCorreo[0].maxClienteContactoEmailId
+            let maxClienteContactoEmailId = infoClienteCorreo[0].maxClienteContactoEmailId !== null ? infoClienteCorreo[0].maxClienteContactoEmailId : 0;
 
+            console.log("maxClienteContactoEmailId ", maxClienteContactoEmailId)
+            
             //ACA SE EVALUA Y SE ELIMINA EL CASO QUE SE BORRE ALGUN REGISTRO DE CLIENTE CONTACTO EXISTENTE
             const numerosQueNoPertenecen = clienteContactoIds.filter(num => {
                 return !ObjCliente.infoClienteContacto.some(obj => obj.ClienteContactoId === num && obj.ClienteContactoId !== 0);
@@ -431,12 +434,14 @@ ${orderBy}`, [fechaActual])
                          maxClienteContactoId += 1
                          maxClienteContactoTelefonoId += 1
                          maxClienteContactoEmailId += 1
+
+                         console.log(" maxClienteContactoEmailId sum ", maxClienteContactoEmailId)
       
                          await this.insertClienteContactoTable(queryRunner,ClienteId,maxClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxClienteContactoTelefonoId,maxClienteContactoEmailId)
       
-                         await this.insertClienteContactoEmailTable(queryRunner,ClienteId,maxClienteContactoId,obj.maxClienteContactoEmailId,obj.correo)
+                         await this.insertClienteContactoEmailTable(queryRunner,ClienteId,maxClienteContactoId,maxClienteContactoEmailId,obj.correo)
       
-                         await this.insertClienteContactoTelefonoTable(queryRunner,ClienteId,maxClienteContactoId,obj.maxClienteContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,
+                         await this.insertClienteContactoTelefonoTable(queryRunner,ClienteId,maxClienteContactoId,maxClienteContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,
                           obj.ClienteContactoTelefonoCodigoArea)
       
                       }
@@ -522,7 +527,7 @@ ${orderBy}`, [fechaActual])
 
         await queryRunner.query(`
          UPDATE Administrador
-         SET AdministradorApellido = @1,AdministradorApellido = @2,AdministradorApellidoNombre = @3, AdministradorNombreFantasia = @4,AdministradorDenominacion= @5
+         SET AdministradorApellido = @1,AdministradorNombre = @2,AdministradorApellidoNombre = @2, AdministradorNombreFantasia = @4,AdministradorDenominacion= @5
          WHERE AdministradorId = @0`,[AdministradorId,AdministradorApellido,AdministradorNombre,AdministradorApellidoNombre,CLienteNombreFantasia,ClienteDenominacion])
 
      }
@@ -547,7 +552,7 @@ ${orderBy}`, [fechaActual])
         await queryRunner.query(`
          UPDATE ClienteContactoEmail
          SET ClienteContactoEmailEmail = @3
-         WHERE ClienteId = @0 AND  ClienteContactoId = @1 AND ClienteContactoEmailUltNro=@2`,[ClienteId,ClienteContactoId,ClienteContactoEmailUltNro,ClienteContactoEmailEmail])
+         WHERE ClienteId = @0 AND  ClienteContactoId = @1 AND ClienteContactoEmailId =@2`,[ClienteId,ClienteContactoId,ClienteContactoEmailUltNro,ClienteContactoEmailEmail])
 
      }
 
@@ -604,10 +609,11 @@ ${orderBy}`, [fechaActual])
 
      }
 
-     async insertClienteContactoEmailTable(queryRunner:any,ClienteId:number,ClienteContactoId:number,maxClienteContactoEmailId:number,ClienteContactoEmailEmail:string){
+     async insertClienteContactoEmailTable(queryRunner:any,ClienteId:number,ClienteContactoId:number,maxClienteContactoEmailId:number, ClienteContactoEmailEmail:any){
 
         await queryRunner.query(`INSERT INTO ClienteContactoEmail (
-            ClienteId,ClienteContactoId,
+            ClienteId,
+            ClienteContactoId,
             ClienteContactoEmailId,
             ClienteContactoEmailEmail,
             ClienteContactoEmailInactivo
@@ -633,7 +639,7 @@ ${orderBy}`, [fechaActual])
             ClienteContactoTelefonoAl,
             ClienteContactoTelefonoInactivo,
             ClienteContactoTelefonoInternoUltNro) VALUES (
-            @0,@1,@2,@3,@4,@7,@8,@9,@10,@11,@12,@13)
+            @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)
             `,[ClienteId,
                ClienteContactoId,
                maxClienteContactoTelefonoId, 
@@ -656,7 +662,6 @@ ${orderBy}`, [fechaActual])
         const queryRunner = dataSource.createQueryRunner();
 
         try {
-
           await queryRunner.connect();
           await queryRunner.startTransaction();
           
@@ -919,7 +924,7 @@ ${orderBy}`, [fechaActual])
                 ClienteAdministradorId,
                 ClienteAdministradorDesde,
                 ClienteAdministradorHasta,
-                ClienteAdministradorAdministradorId,
+                ClienteAdministradorAdministradorId
                 ) VALUES ( @0,@1,@2,@3,@4
                 )`,[ClienteId,ClienteAdministradorId,ClienteFechaAlta,null,maxAdministradorId])
     
