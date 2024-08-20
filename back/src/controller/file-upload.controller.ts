@@ -66,7 +66,7 @@ export class FileUploadController extends BaseController {
                     FROM lige.dbo.docgeneral doc
                      JOIN lige.dbo.doctipo tipo ON doc.doctipo_id = tipo.doctipo_id
                     WHERE 
-                        doc.cliente_id = @0
+                        doc.cliente_id = @0 AND
                         tipo.detalle = @1 `,
                     [id,TipoSearch])
               break;
@@ -135,7 +135,7 @@ export class FileUploadController extends BaseController {
       }
     
       static moveFile(filename: any, newFilePath: any, dirtmp: any) {
-        const originalFilePath = `${process.env.PATH_LICENCIA}/temp/${filename}`;
+        const originalFilePath = `${process.env.PATH_FILEUPLOAD}/temp/${filename}`;
         console.log("originalFilePath ", originalFilePath)
         console.log("newFilePath ", newFilePath)
     
@@ -200,6 +200,30 @@ export class FileUploadController extends BaseController {
             [den_numerador, den_numero, usuario, ip, fechaActual])
         }
         return den_numero
+      }
+
+      async deleleTemporalFiles(req, res, next) {
+        try {
+    
+          const tempFolderPath = path.join(process.env.PATH_FILEUPLOAD, 'temp');
+          const files = await fs.promises.readdir(tempFolderPath);
+          const limiteFecha = Date.now() - (24 * 60 * 60 * 1000);
+          const deletePromises = files.map(async (file) => {
+            const filePath = path.join(tempFolderPath, file);
+            const stats = await stat(filePath);
+            const fechaCreacion = stats.birthtime.getTime();
+    
+            if (fechaCreacion < limiteFecha) {
+              await unlink(filePath);
+              console.log(`Archivo ${file} borrado.`);
+            }
+          });
+    
+          await Promise.all(deletePromises);
+          res.json({ message: 'Se borraron los archivos temporales con éxito' });
+        } catch (error) {
+          next(error);
+        }
       }
 
 }

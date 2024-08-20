@@ -1,23 +1,23 @@
 <nz-form-item>
     <nz-form-control>
-      <!-- <ng-container *ngFor="let licencia of $files | async" >
-        <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{licencia.nombre}}>
+      <ng-container *ngFor="let files of $files | async" >
+        <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{files.nombre}}>
           
           <span 
             nz-popconfirm
             nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
-            (nzOnConfirm)="confirmDeleteArchivo(licencia.id,false)"
+            (nzOnConfirm)="confirmDeleteArchivo(files.id,false)"
             nzPopconfirmPlacement="top"
             nz-button 
             nzType="primary"
             nzDanger
             nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
-          <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
+          <a nz-icon nzType="download" nzHref="files.path" target="_blank" nzTheme="outline"
             class="download-color" app-down-file [httpMethod]="'POST'"
-            [httpBody]="{'documentId': licencia.id}" httpUrl="api/carga-licencia/downloadLicencia"></a>
-          <span> {{licencia.id}}-{{licencia.nombre}} </span>
+            [httpBody]="{'documentId': files.id}" httpUrl="api/carga-licencia/downloadLicencia"></a>
+          <span> {{files.id}}-{{files.nombre}} </span>
         </div>
-      </ng-container> -->
+      </ng-container> 
       @if(files().length > 0){
         <ng-container  class="" *ngFor="let filesAdd of files() ">
           <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{filesAdd.fieldname}}>

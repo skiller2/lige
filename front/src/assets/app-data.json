@@ -163,6 +163,11 @@
           "text": "Clientes",
           "link": "/ges/clientes",
           "icon": "anticon-profile"
+        },
+        {
+          "text": "Objetivos",
+          "link": "/ges/objetivos",
+          "icon": "anticon-profile"
         }
       ]
     }
