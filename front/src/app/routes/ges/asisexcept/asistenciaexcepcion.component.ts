@@ -178,7 +178,6 @@ export class ExcepcionAsistenciaComponent {
       case Busqueda.Objetivo:
         this.$selectedObjetivoIdChange.next(event);
         this.$isObjetivoDataLoading.next(true);
-console.log('objetivo', event)
         if (this.asistenciaexcepcion.controls['ObjetivoId'].value > 0) {
           this.router.navigate(['.', { ObjetivoId: this.selectedObjetivoId }], {
             relativeTo: this._route,
@@ -186,27 +185,6 @@ console.log('objetivo', event)
             replaceUrl: false,
           })
 
-          /*
-          this._router.navigate(
-            [
-              '/ges/asistenciaexcepcion',
-              this.asistenciaexcepcion.controls['SucursalId'].value,
-              this.asistenciaexcepcion.controls['ObjetivoId'].value,
-            ],
-            {
-              relativeTo: this._route,
-              //          queryParams: {
-              //            ObjetivoId: this.asistenciaexcepcion.controls['ObjetivoId'].value,
-              //            SucursalId:this.asistenciaexcepcion.controls['SucursalId'].value
-              //
-              //          },
-              //          queryParamsHandling: 'merge',
-              //skipLocationChange: false,
-              //replaceUrl: false,
-              
-            }
-          );
-          */
         }
         return;
       case Busqueda.Personal:

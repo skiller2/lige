@@ -744,9 +744,11 @@ export class CustodiaController extends BaseController {
             await queryRunner.startTransaction()
             const patente = req.body.patente
             const list = await queryRunner.query(`
-                SELECT reg.patente, reg.personal_id duenoId
+                SELECT TOP 1 reg.patente, reg.personal_id duenoId
                 FROM lige.dbo.regvehiculocustodia reg
-                WHERE patente LIKE '%${patente}%'
+                WHERE
+                reg.patente = @0
+                -- patente LIKE '%${patente}%'
                 ORDER BY aud_fecha_ins DESC`,
             [patente])
             
