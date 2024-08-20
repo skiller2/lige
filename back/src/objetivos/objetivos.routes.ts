@@ -9,8 +9,8 @@ objetivosRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
   objetivosController.getGridCols(req, res);
 });
 
-// objetivosRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])],  (req, res, next) => {
-//   objetivosController.list(req, res, next)
-// })
+objetivosRouter.post('/list',  (req, res, next) => {
+  objetivosController.list(req, res, next)
+})
 
 

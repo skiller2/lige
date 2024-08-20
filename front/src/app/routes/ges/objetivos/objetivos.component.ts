@@ -46,7 +46,7 @@ export class ObjetivosComponent {
   edit : boolean = false
   addNew = false
   excelExportService = new ExcelExportService()
-  listCliente$ = new BehaviorSubject('')
+  listObjetivos$ = new BehaviorSubject('')
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
@@ -62,10 +62,10 @@ export class ObjetivosComponent {
 
     columns$ = this.apiService.getCols('/api/objetivos/cols')
 
-    gridData$ = this.listCliente$.pipe(
+    gridData$ = this.listObjetivos$.pipe(
         debounceTime(500),
         switchMap(() => {
-          return this.searchService.getListaClientes({ options: this.listOptions })
+          return this.searchService.getListObjetivos({ options: this.listOptions })
             .pipe(map(data => {
               return data.list
             })
@@ -100,19 +100,19 @@ export class ObjetivosComponent {
 
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['addNew']) {
-      this.listCliente$.next('');
-    }
-  }
+  // ngOnChanges(changes: SimpleChanges) {
+  //   if (changes['addNew']) {
+  //     this.listObjetivos$.next('');
+  //   }
+  // }
 
   getGridData(): void {
-    this.listCliente$.next('');
+    this.listObjetivos$.next('');
   }
 
   listOptionsChange(options: any) {
       this.listOptions = options;
-      this.listCliente$.next('');
+      this.listObjetivos$.next('');
   }
 
   setEdit(value: boolean): void {

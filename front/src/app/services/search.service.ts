@@ -638,6 +638,15 @@ export class SearchService {
       );
   }
 
+  getListObjetivos(filters: any){
+    return this.http
+      .post<ResponseJSON<any>>(`api/objetivos/list`, filters)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
 
   getInfoObjCustodia(objCustodiaId: number){
     return this.http

@@ -25,7 +25,7 @@
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
   
       <nz-tab>
-        <a nz-tab-link routerLink="/ges/objetivos/objetivos" >Clientes</a>
+        <a nz-tab-link routerLink="/ges/objetivos/objetivos" >Objetivos</a>
         estoy
         <ng-template nz-tab *ngIf="(columns$|async) as columnas">
           <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters" />
@@ -41,12 +41,12 @@
   
       <nz-tab>
         <a nz-tab-link routerLink="/ges/objetivos/detalle" >Detalle</a>
-        <app-clientes-form [ClienteId]="editClienteId" [edit]="edit"></app-clientes-form>
+        <!-- <app-clientes-form [ClienteId]="editClienteId" [edit]="edit"></app-clientes-form> -->
       </nz-tab>
   
       <nz-tab> 
         <a nz-tab-link routerLink="/ges/objetivos/alta" >Alta </a>
-        <app-clientes-form [edit]="edit" [(addNew)]="addNew" ></app-clientes-form>
+        <!-- <app-clientes-form [edit]="edit" [(addNew)]="addNew" ></app-clientes-form> -->
       </nz-tab>
   
     </nz-tabset>
