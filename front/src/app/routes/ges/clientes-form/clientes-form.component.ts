@@ -156,8 +156,7 @@ export class ClientesFormComponent {
       this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
     });
 
-
-    if (this.edit()) {
+    if (this.ClienteId()) {
       this.infoClienteContacto().enable()
       if(infoCliente.infoClienteContacto.length == 0)
         this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
