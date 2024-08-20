@@ -136,7 +136,7 @@
             <nz-select name="Equivalencia" ngModel nzAllowClear nzPlaceHolder="Categoria" nzShowSearch
               [nzDropdownMatchSelectWidth]="false">
               <ng-container *ngFor="let option of $optionsCategoria | async">
-                <ng-container *ngIf="option.ValorLiquidacionSucursalId == selectedSucursalId">
+                <ng-container *ngIf="option.ValorLiquidacionSucursalId == selectedSucursalId()">
                   <nz-option
                     [nzValue]="{CategoriaPersonalId:option.CategoriaPersonalId,TipoAsociadoId:option.TipoAsociadoId}"
                     [nzLabel]="option.CategoriaPersonalDescripcion + ' ' + (option.ValorLiquidacionHoraNormal | currency)"></nz-option>

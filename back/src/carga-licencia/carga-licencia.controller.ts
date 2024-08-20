@@ -758,7 +758,7 @@ export class CargaLicenciaController extends BaseController {
     PersonalSituacionRevistaMotivo: string,
     PersonalSituacionRevistaSituacionId: number
   ) {
-
+    PersonalSituacionRevistaSituacionId = (PersonalSituacionRevistaSituacionId)? PersonalSituacionRevistaSituacionId:2
     await queryRunner.query(`INSERT INTO PersonalSituacionRevista (
             PersonalId,
             PersonalSituacionRevistaId,

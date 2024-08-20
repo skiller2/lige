@@ -337,20 +337,37 @@ export class AyudaAsistencialController extends BaseController {
   ) {
     return await queryRunner.query(`
       UPDATE PersonalPrestamo
-      SET PersonalPrestamoUltimaLiquidacion = CONCAT(FORMAT(@2,'00'),'/',@3,' Cuota ', 4), PersonalPrestamoCuotaUltNro = @3
+      SET PersonalPrestamoUltimaLiquidacion = CONCAT(FORMAT(@2,'00'),'/',@3,' Cuota ', @4), PersonalPrestamoCuotaUltNro = @4
       WHERE PersonalPrestamoId = @0 AND PersonalId = @1
     `, [personalPrestamoId, personalId, mes, anio, ultCuota]
     )
   }
 
   async getLigmamovimientosQuery(
-    queryRunner:any, personalId:number, periodo_id:number, tipocuenta_id:string
+    queryRunner:any, personalId:number, anio:number, mes:number, tipocuenta_id:string
   ){
     return await queryRunner.query(`
       SELECT *
       FROM lige.dbo.liqmamovimientos liqm
-      WHERE liqm.persona_id = @0 AND liqm.periodo_id = @1 AND liqm.tipocuenta_id = @2
-      `, [ personalId, periodo_id, tipocuenta_id])
+      LEFT JOIN lige.dbo.liqmaperiodo liqp ON liqp.periodo_id = liqm.periodo_id
+      WHERE liqm.persona_id = @0 AND liqp.anio = @1 AND liqp.mes = @2 AND liqm.tipocuenta_id = @3
+      `, [ personalId, anio, mes, tipocuenta_id])
+  }
+
+  async personalPrestamoListAddCuotaQuery(
+    queryRunner:any, anio:number, mes:number
+  ){
+    return await queryRunner.query(`
+      SELECT pp.PersonalPrestamoId, pp.PersonalId,
+      CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+      ISNULL(pp.PersonalPrestamoCuotaUltNro, 0) AS PersonalPrestamoCuotaUltNro,
+      ROUND(pp.PersonalPrestamoMontoAutorizado/pp.PersonalPrestamoCantidadCuotas, 2) AS PersonalPrestamoCuotaImporte
+      -- pp.PersonalPrestamoAplicaEl, pp.PersonalPrestamoUltimaLiquidacion,
+      FROM PersonalPrestamo pp
+      LEFT JOIN Personal per ON per.PersonalId = pp.PersonalId 
+      WHERE pp.PersonalPrestamoAprobado = 'S' AND pp.PersonalPrestamoCantidadCuotas > ISNULL(pp.PersonalPrestamoCuotaUltNro, 0)
+      AND DATEADD(MONTH,  ISNULL(pp.PersonalPrestamoCuotaUltNro, 0),  DATEFROMPARTS(SUBSTRING(pp.PersonalPrestamoAplicaEl, 4, 4), SUBSTRING(pp.PersonalPrestamoAplicaEl, 1, 2), 1)) = DATEFROMPARTS(@0,@1,1)
+      `, [ anio, mes])
   }
 
   async getGridColumns(req: any, res: Response, next: NextFunction) {
@@ -556,78 +573,53 @@ export class AyudaAsistencialController extends BaseController {
     }
   }
 
-  async personalPrestamoCuotaAddCuota(queryRunner: any, personalPrestamoId: number, personalId: number) {
-    let periodo : any = null
-    let ultCuota : number = 0
-    let importeCuota : number = 0
-    let PersonalPrestamo = await this.getPersonalPrestamoByIdsQuery(queryRunner, personalPrestamoId, personalId)
-    //Validaciones
-    if (!PersonalPrestamo.length) 
-      return new ClientException('No se encuentra el registro.')
-    PersonalPrestamo = PersonalPrestamo[0]
-
-    if(PersonalPrestamo.PersonalPrestamoAprobado != 'S')
-      return new ClientException('El registro NO esta APROBADO.')
-    if (PersonalPrestamo.PersonalPrestamoCuotaUltNro >= PersonalPrestamo.PersonalPrestamoCantidadCuotas) {
-      return new ClientException('No se pude generar más cuotas.')
-    }
-    if (PersonalPrestamo.PersonalPrestamoUltimaLiquidacion?.length) {
-      let ultimaLiquidacion = PersonalPrestamo.PersonalPrestamoUltimaLiquidacion.split(' ')
-      periodo = this.valAplicaEl(ultimaLiquidacion[0])
-      ultCuota = Number.parseInt(ultimaLiquidacion[2])
-    }else{
-      periodo = this.valAplicaEl(PersonalPrestamo.PersonalPrestamoAplicaEl)
-    }
-    //Actualizo los datos para la nueva cuota
-    importeCuota  = PersonalPrestamo.PersonalPrestamoMontoAutorizado / PersonalPrestamo.PersonalPrestamoCantidadCuotas
-    if(periodo.mes < 12)
-      periodo.mes++
-    else {
-      periodo.mes = 1
-      periodo.anio++
-    }
+  async personalPrestamoCuotaAddCuota(
+    queryRunner: any, personalPrestamoId: number, personalId: number, anio:number, mes:number,
+    importeCuota:number, ultCuota:number, apellidoNombre:string
+  ) {
     ultCuota++
 
-    let cuota = await this.getPersonalPrestamoCuotaByPeriodoQuery(queryRunner, personalPrestamoId, personalId, periodo.anio, periodo.mes)
+    let cuota = await this.getPersonalPrestamoCuotaByPeriodoQuery(queryRunner, personalPrestamoId, personalId, anio, mes)
     if (cuota.length) {
-      return new ClientException(`La cuota para el período ${periodo.anio}/${periodo.mes} ya existe.`)
+      return new ClientException(`La cuota para ${apellidoNombre} del período ${anio}/${mes} ya existe.`)
     }
-    const per = await this.getPeriodoQuery(queryRunner, periodo.anio, periodo.mes)
-    if (per[0]?.ind_recibos_generados == 1)
-      return new ClientException(`Ya se encuentran generados los recibos para el período ${periodo.anio}/${periodo.mes}.`)
-    let ligm = await this.getLigmamovimientosQuery(queryRunner, personalId, per[0]?.periodo_id, 'G')
+    
+    let ligm = await this.getLigmamovimientosQuery(queryRunner, personalId, anio, mes, 'G')
     if (!ligm.length) {
-      return new ClientException(`La persona no tiene disponibilidad de su cuenta.`)
+      return new ClientException(`${apellidoNombre} no tiene disponibilidad de su cuenta.`)
     }
 
-    await this.personalPrestamoCuotaAddCuotaQuery(queryRunner, ultCuota, personalPrestamoId, personalId,
-      periodo.anio, periodo.mes, importeCuota)
-    await this.updateCuotaPersonalPrestamo(queryRunner, personalPrestamoId, personalId, ultCuota,
-      periodo.anio, periodo.mes)
-
+    await this.personalPrestamoCuotaAddCuotaQuery(queryRunner, ultCuota, personalPrestamoId, personalId, anio, mes, importeCuota)
+    await this.updateCuotaPersonalPrestamo(queryRunner, personalPrestamoId, personalId, ultCuota, anio, mes)
+    
+    return
   }
 
-  async personalPrestamoCuotaListAddCuota(req: any, res: Response, next: NextFunction){
+  async personalPrestamoListAddCuota(req: any, res: Response, next: NextFunction){
     const queryRunner = dataSource.createQueryRunner();
-    const ids : string[] = req.body.ids
-    const numRows : number[] = req.body.rows
+    const anio : number = req.body.year
+    const mes : number = req.body.month
     let errors : string[] = []
     try {
-      for (const [index, id] of ids.entries()) {
-        const arrayIds = id.split('-')
-        let personalPrestamoId = Number.parseInt(arrayIds[0])
-        let personalId = Number.parseInt(arrayIds[1])
-        
-        let res = await this.personalPrestamoCuotaAddCuota(queryRunner, personalPrestamoId, personalId)
+      const per = await this.getPeriodoQuery(queryRunner, anio, mes)
+      if (per[0]?.ind_recibos_generados == 1)
+        return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}.`)
+      const list = await this.personalPrestamoListAddCuotaQuery(queryRunner, anio, mes)
+      
+      for (const obj of list) {
+        let res = await this.personalPrestamoCuotaAddCuota(
+          queryRunner, obj.PersonalPrestamoId, obj.PersonalId, anio, mes,
+          obj.PersonalPrestamoCuotaImporte, obj.PersonalPrestamoCuotaUltNro, obj.ApellidoNombre
+        )
         if (res instanceof ClientException) {
-          errors.push(`FILA ${numRows[index]+1}: `+res.messageArr[0])
+          errors.push(res.messageArr[0])
         }
       }
 
-      if (errors.length) {
-        throw new ClientException(errors.join(`\n`))
-      }
-      
+      // if (errors.length) {
+      //   throw new ClientException(errors.join(`\n`))
+      // }
+
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, 'Carga Exitosa');
     }catch (error) {
