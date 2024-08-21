@@ -184,6 +184,7 @@ export class AyudaAsistencialController extends BaseController {
   ){
     const PersonalPrestamoAprobado = 'S'
     const PersonalPrestamoFechaAprobacion = new Date()
+    PersonalPrestamoFechaAprobacion.setHours(0,0,0,0)
     return await queryRunner.query(`
       UPDATE PersonalPrestamo
       SET PersonalPrestamoAprobado = @2, PersonalPrestamoAplicaEl = @3, PersonalPrestamoCantidadCuotas = @4,
