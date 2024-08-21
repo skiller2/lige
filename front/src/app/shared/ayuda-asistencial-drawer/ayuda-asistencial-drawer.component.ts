@@ -35,7 +35,7 @@ export class AyudaAsistencialDrawerComponent {
     currDate = signal(new Date())
     placement: NzDrawerPlacement = 'left';
     options: any[] = [];
-    isSaving : boolean = false
+    isSaving = signal(false)
 
     private apiService = inject(ApiService)
     constructor(private searchService: SearchService) { }
@@ -64,7 +64,7 @@ export class AyudaAsistencialDrawerComponent {
     }
 
     async save(){
-        this.isSaving = true
+        this.isSaving.set(true)
         try {
             let values = this.ngForm().value
             // console.log('values',values);
@@ -72,7 +72,7 @@ export class AyudaAsistencialDrawerComponent {
         } catch (error) {
             
         }
-        this.isSaving = false
+        this.isSaving.set(false)
     }
 
 }
