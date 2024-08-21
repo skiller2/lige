@@ -601,6 +601,8 @@ export class AyudaAsistencialController extends BaseController {
     const mes : number = req.body.month
     let errors : string[] = []
     try {
+      await queryRunner.startTransaction()
+
       const per = await this.getPeriodoQuery(queryRunner, anio, mes)
       if (per[0]?.ind_recibos_generados == 1)
         return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}.`)
@@ -756,6 +758,39 @@ export class AyudaAsistencialController extends BaseController {
       this.rollbackTransaction(queryRunner)
       return next(error)
     }finally{
+      await queryRunner.release()
+    }
+  }
+
+  async getPersonalPrestamoByPersonalId(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    const personalId : number = Number(req.body.personalId)
+    try {
+      await queryRunner.startTransaction()
+      
+      let list = await queryRunner.query(
+        `SELECT TOP 5 pre.PersonalPrestamoMonto, pre.PersonalPrestamoDia, pre.PersonalPrestamoFechaAprobacion,
+        pre.PersonalPrestamoAplicaEl, pre.PersonalPrestamoAprobado, TRIM(form.FormaPrestamoDescripcion) FormaPrestamoDescripcion
+        FROM PersonalPrestamo pre
+        LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pre.FormaPrestamoId
+        WHERE pre.PersonalId = @0
+        ORDER BY pre.PersonalPrestamoDia DESC`,
+        [personalId]
+      );
+      list = list.map((obj:any)=>{
+        let option = getOptionsPersonalPrestamoAprobado.find((option:any) => {
+          return option.value === obj.PersonalPrestamoAprobado
+        })
+        obj.PersonalPrestamoAprobado = option.label
+        return obj
+      })
+      
+      await queryRunner.commitTransaction()
+      return this.jsonRes(list, res);
+    }catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
       await queryRunner.release()
     }
   }

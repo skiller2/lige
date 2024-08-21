@@ -9,7 +9,7 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Personal</nz-form-label>
           <nz-form-control [nzSpan]="17">
-            <app-personal-search  name="personalId" ngModel [anio]="currDate().getFullYear()" [mes]="currDate().getMonth()+1"></app-personal-search>
+            <app-personal-search  name="personalId" ngModel [anio]="currDate().getFullYear()" [mes]="currDate().getMonth()+1" (ngModelChange)="this.formChange($event)"></app-personal-search>
         </nz-form-control>
       </nz-form-item>
 
@@ -43,6 +43,37 @@
 
       <nz-form-item class="btnCenter">
         <button nz-button nzType="primary" [disabled]="!ngForm().dirty" (click)="save()" [nzLoading]="isSaving">Guardar</button>
+      </nz-form-item>
+
+      <nz-form-item class="app-table">
+        <!-- <nz-form-label [nzSpan]="5"> Historial </nz-form-label> -->
+        <nz-form-control>
+          <nz-table class="app-table" #tableAdelantos [nzData]="(listaAdelantos$ | async) || []" nzSize="small"
+            [nzPageSize]="1000000" [nzShowPagination]="false" [nzScroll]="{ x: '500px' }"
+            [nzLoading]="tableLoading$ | async">
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Monto</th>
+                <th>Fecha de Solicitud</th>
+                <th>Fecha de Aprobación</th>
+                <th>Aplica El</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let data of this.tableAdelantos.data">
+                <td>{{ data.FormaPrestamoDescripcion }}</td>
+                <td>{{ data.PersonalPrestamoMonto | currency }}</td>
+                <td>{{ data.PersonalPrestamoDia | date }}</td>
+                <td>{{ data.PersonalPrestamoFechaAprobacion | date }}</td>
+                <td>{{ data.PersonalPrestamoAplicaEl }}</td>
+                <td>{{ data.PersonalPrestamoAprobado }}</td>
+                <td>{{ data.Estado }}</td>
+              </tr>
+            </tbody>
+          </nz-table>
+        </nz-form-control>
       </nz-form-item>
 
     </form>
