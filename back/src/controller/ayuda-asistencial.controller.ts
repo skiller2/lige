@@ -196,7 +196,7 @@ export class AyudaAsistencialController extends BaseController {
   async personalPrestamoRechazadoQuery(queryRunner:any, personalPrestamoId:number, personalId:number){
     const PersonalPrestamoAprobado = 'N'
     const PersonalPrestamoAplicaEl = null
-    const PersonalPrestamoUltimaLiquidacion = null
+    const PersonalPrestamoUltimaLiquidacion = ''
     const PersonalPrestamoCantidadCuotas= 0
     const PersonalPrestamoMontoAutorizado = 0
     const PersonalPrestamoFechaAprobacion = null
