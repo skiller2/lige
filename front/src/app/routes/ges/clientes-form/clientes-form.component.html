@@ -84,7 +84,7 @@
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Provincia</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
           <!-- <input nz-input placeholder="" formControlName="domicilioprovincia" type="number" /> -->
-          <nz-select formControlName="ClienteDomicilioProvinciaId" nzPlaceHolder="Provincia" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
+          <nz-select #ClienteDomicilioProvinciaId formControlName="ClienteDomicilioProvinciaId" nzPlaceHolder="Provincia" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
             <ng-container *ngFor="let option of $optionsProvincia | async " >
               <nz-option [nzValue]="option.ProvinciaId" [nzLabel]="option.ProvinciaDescripcion" ></nz-option>
             </ng-container>
@@ -96,9 +96,9 @@
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Localidad</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
           <!-- <input nz-input placeholder="" formControlName="domiciliolocalidad" type="number" /> -->
-          <nz-select formControlName="ClienteDomicilioLocalidadId" nzPlaceHolder="Localidad" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
+          <nz-select #ClienteDomicilioLocalidadId formControlName="ClienteDomicilioLocalidadId" nzPlaceHolder="Localidad" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
             <ng-container *ngFor="let option of $optionsLocalidad | async " >
-              <nz-option [nzValue]="option.LocalidadId" [nzLabel]="option.localidadDescripcion" ></nz-option>
+              <nz-option *ngIf="option.ProvinciaId == ClienteDomicilioProvinciaId.activatedValue"  [nzValue]="option.LocalidadId" [nzLabel]="option.localidadDescripcion" ></nz-option>
             </ng-container>
           </nz-select>
         </nz-form-control>
@@ -106,9 +106,9 @@
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Barrio</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
           <!-- <input nz-input placeholder="" formControlName="domiciliobarrio" type="number" /> -->
-          <nz-select formControlName="ClienteDomicilioBarrioId" nzPlaceHolder="Barrio" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
+          <nz-select #ClienteDomicilioBarrioId formControlName="ClienteDomicilioBarrioId" nzPlaceHolder="Barrio" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
             <ng-container *ngFor="let option of $optionsBarrio | async " >
-              <nz-option [nzValue]="option.BarrioId" [nzLabel]="option.BarrioDescripcion" ></nz-option>
+              <nz-option *ngIf="option.ProvinciaId == ClienteDomicilioProvinciaId.activatedValue && option.LocalidadId == ClienteDomicilioLocalidadId.activatedValue " [nzValue]="option.BarrioId" [nzLabel]="option.BarrioDescripcion" ></nz-option>
             </ng-container>
           </nz-select>
         </nz-form-control>

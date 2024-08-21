@@ -3,10 +3,10 @@ import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, i
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
-import { NgForm, FormArray, FormBuilder } from '@angular/forms';
+import { NgForm, FormArray, FormBuilder, ValueChangeEvent } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, startWith, Observable, of } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, startWith, Observable, of, filter } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
@@ -56,6 +56,11 @@ interface Barrio {
 
 
 export class ClientesFormComponent {
+  updateAddressFields(event: any) {
+    console.log('event',event)
+      //ClienteDomicilioLocalidadId
+ //   this.formCli.controls['']
+}
 
   public router = inject(Router);
 
@@ -127,6 +132,12 @@ export class ClientesFormComponent {
   }
 
   ngOnInit() {
+    this.formCli.events
+    .pipe(filter((event) => event instanceof ValueChangeEvent))
+    .subscribe((event) => {
+      console.log('ValueChangeEvent',event);
+    });
+
 
     effect(async () => {
       if (this.ClienteId()) {
