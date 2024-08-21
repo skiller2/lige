@@ -134,7 +134,7 @@ export class ObjetivosController extends BaseController {
                 NEWID() AS id, 
                 obj.ClienteId,
                 obj.ClienteElementoDependienteId,
-                CONCAT(obj.ClienteId, ' ', obj.ClienteElementoDependienteId) AS Codigo, 
+                CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS Codigo, 
                 cli.ClienteDenominacion,
                 obj.ObjetivoDescripcion AS Descripcion, 
                 gru.GrupoActividadId,
