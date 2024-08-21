@@ -235,8 +235,9 @@ export class AyudaAsistencialController extends BaseController {
 
   async getPersonalPrestamoByIdsQuery(queryRunner:any, personalPrestamoId:number, personalId:number){
     return await queryRunner.query(`
-      SELECT *
+      SELECT pres.*, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
       FROM PersonalPrestamo pres
+      JOIN Personal per ON per.PersonalId=pres.PersonalId
       WHERE pres.PersonalPrestamoId = @0 AND pres.PersonalId = @1
       `, [personalPrestamoId, personalId])
   }
@@ -275,7 +276,7 @@ export class AyudaAsistencialController extends BaseController {
       SELECT doc.doc_id
       FROM lige.dbo.docgeneral doc
       LEFT JOIN lige.dbo.liqmaperiodo liqp ON liqp.periodo_id = doc.periodo
-      WHERE doc.persona_id = @0 AND liqp.anio = @1 AND liqp.mes = @2 
+      WHERE doc.persona_id = @0 AND liqp.anio = @1 AND liqp.mes = @2 AND doc.doctipo_id='REC' 
       `, [PersonalId, anio, mes])
   }
 
@@ -470,7 +471,7 @@ export class AyudaAsistencialController extends BaseController {
 
     const recibos = await this.getReciboQuery(queryRunner, personalId, periodo.anio, periodo.mes)
     if (recibos.length) 
-      return new ClientException(`Ya existe un recibo para ${PersonalPrestamo.ApellidoNombre} del periodo ${PersonalPrestamo.PersonalPrestamoAplicaEl}`)
+      return new ClientException(`Ya existe un recibo para ${PersonalPrestamo.ApellidoNombre} del periodo ${PersonalPrestamo.PersonalPrestamoAplicaEl}, PersonalId=${personalId}`)
 
     await this.personalPrestamoAprobadoQuery(queryRunner, personalPrestamoId, personalId, PersonalPrestamo.PersonalPrestamoAplicaEl, PersonalPrestamo.PersonalPrestamoCantidadCuotas, PersonalPrestamo.PersonalPrestamoMonto)
       
