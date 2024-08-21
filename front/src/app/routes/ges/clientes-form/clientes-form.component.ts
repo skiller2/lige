@@ -6,7 +6,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { NgForm, FormArray, FormBuilder, ValueChangeEvent } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, startWith, Observable, of, filter } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, startWith, Observable, of, filter, merge } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
@@ -14,6 +14,7 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 import { Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface Provincia {
   ProvinciaId: number;
@@ -126,10 +127,11 @@ export class ClientesFormComponent {
   }
 
   ngOnInit() {
-    this.formCli.events
-    .pipe(filter((event) => event instanceof ValueChangeEvent))
-    .subscribe((event) => {
-      console.log('ValueChangeEvent',event, event.source.value,event.source.get([]));
+    this.formCli.controls['ClienteDomicilioProvinciaId'].valueChanges.pipe(takeUntilDestroyed()).subscribe(event => {
+      this.formCli.patchValue({ClienteDomicilioLocalidadId:null})
+    });
+    this.formCli.controls['ClienteDomicilioLocalidadId'].valueChanges.pipe(takeUntilDestroyed()).subscribe(event => {
+      this.formCli.patchValue({ClienteDomicilioBarrioId:null})
     });
 
 
