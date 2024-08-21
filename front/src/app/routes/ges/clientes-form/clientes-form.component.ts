@@ -56,12 +56,6 @@ interface Barrio {
 
 
 export class ClientesFormComponent {
-  updateAddressFields(event: any) {
-    console.log('event',event)
-      //ClienteDomicilioLocalidadId
- //   this.formCli.controls['']
-}
-
   public router = inject(Router);
 
   periodo = signal({ year: 0, month: 0 })
@@ -135,7 +129,7 @@ export class ClientesFormComponent {
     this.formCli.events
     .pipe(filter((event) => event instanceof ValueChangeEvent))
     .subscribe((event) => {
-      console.log('ValueChangeEvent',event);
+      console.log('ValueChangeEvent',event, event.source.value,event.source.get([]));
     });
 
 

@@ -18,7 +18,7 @@
       },
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:application",
+          "builder": "@angular/build:application",
           "options": {
             "namedChunks": true,
             "outputPath": "dist",
@@ -87,10 +87,9 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "options": {
-            "proxyConfig": "proxy.conf.json",
-            "forceEsbuild": true
+            "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
             "production": {

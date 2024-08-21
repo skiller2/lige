@@ -15,6 +15,7 @@
     "declaration": false,
     "downlevelIteration": true,
     "experimentalDecorators": true,
+    "isolatedModules": true,
     "moduleResolution": "node",
     "importHelpers": true,
     "target": "ESNext",
