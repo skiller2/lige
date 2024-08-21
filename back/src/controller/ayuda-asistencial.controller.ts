@@ -662,8 +662,8 @@ export class AyudaAsistencialController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const personalId = req.body.personalId
     const formaId = req.body.formaId
-    const anio = req.body.aplicaEl.getFullYear()
-    const mes = req.body.aplicaEl.getMonth()+1
+    const anio = new Date(req.body.aplicaEl).getFullYear()
+    const mes = new Date(req.body.aplicaEl).getMonth()+1
     const importe = req.body.importe
     const cantCuotas = req.body.cantCuotas
     const ip = req.socket.remoteAddress
@@ -673,7 +673,10 @@ export class AyudaAsistencialController extends BaseController {
       if (!formaId) throw new ClientException("Falta cargar el Tipo.");
       if (!personalId) throw new ClientException("Falta cargar la Persona.");
 
-      const forma = optionsSelect.find((obj:any)=>{ obj.value == formaId })
+      const forma = optionsSelect.find((obj: any) =>  obj.value == formaId )
+      
+      if (!forma)
+        throw new ClientException(`No se encontró el Tipo seleccionado ${formaId}`)
 
       const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
   
