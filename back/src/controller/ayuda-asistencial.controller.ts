@@ -314,7 +314,7 @@ export class AyudaAsistencialController extends BaseController {
       
       WHERE 
       (pres.PersonalPrestamoAprobado IS NULL
-      OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) >= DATEFROMPARTS(@0,@1,1)
+      OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) >= DATEFROMPARTS(@0,@1,1) OR pres.PersonalPrestamoDia >= DATEFROMPARTS(@0,@1,1)
       )
       AND (${filterSql})
       ${orderBy}
