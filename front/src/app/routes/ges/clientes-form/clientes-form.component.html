@@ -7,10 +7,6 @@
         <input nz-input placeholder="" formControlName="ClienteFacturacionCUIT" type="number" />
       </nz-form-control>
 
-      <div>
-        {{edit()}}
-      </div>
-
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Condición Ante IVA</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <!-- <input nz-input placeholder="" formControlName="CondicionAnteIVAId" type="number" /> -->
@@ -198,15 +194,11 @@
         <div class="input-label">Administrador</div>
     </div>  
     <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3"> Nombre</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-          <input nz-input placeholder="" formControlName="AdministradorNombre" type="text" />
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3"> Administrador</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7">
+          <app-administrador-search formControlName="AdministradorId" />
         </nz-form-control>
 
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5"> Apellido</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-          <input nz-input placeholder="" formControlName="AdministradorApellido" type="text" />
-        </nz-form-control>
     </nz-form-item>
     <br>
     <div class="input-container1">

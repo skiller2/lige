@@ -1,0 +1,13 @@
+<nz-select #csc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
+  style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Nombre Administrador"
+  nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
+  <ng-container *ngFor="let option of $optionsArray | async">
+    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.AdministradorId" [nzLabel]="option.AdministradorApellidoNombre" />
+  </ng-container>
+  <nz-option *ngIf="extendedOption.AdministradorId >0 " [nzValue]="extendedOption.AdministradorId"
+    [nzLabel]="extendedOption.fullName" />  
+  <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
+    <span nz-icon nzType="loading" class="loading-icon"></span>
+    Cargando datos...
+  </nz-option>
+</nz-select>

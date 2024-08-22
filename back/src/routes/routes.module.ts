@@ -27,6 +27,7 @@ import { ayudaAsistencialRouter } from "./ayuda-asistencial.routes"
 import { clientesRouter } from "../clientes/clientes.routes";
 import { FileUploadRouter } from "./file-upload.routes"
 import { objetivosRouter } from "../objetivos/objetivos.routes"
+import { administradorRouter } from "./administrador.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -57,5 +58,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/clientes", clientesRouter)
   server.setRoute("/api/file-upload",FileUploadRouter)
   server.setRoute("/api/objetivos",objetivosRouter)
-  
+  server.setRoute("/api/administrador",administradorRouter)
 }

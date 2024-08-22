@@ -229,6 +229,7 @@ ${orderBy}`, [fechaActual])
             ,TRIM(cli.ClienteDenominacion) AS ClienteDenominacion 
             ,TRIM(cli.CLienteNombreFantasia) AS CLienteNombreFantasia
             ,cli.ClienteFechaAlta
+            ,cli.ClienteAdministradorUltNro
             ,domcli.ClienteDomicilioId
             ,TRIM(domcli.ClienteDomicilioDomCalle) AS ClienteDomicilioDomCalle
             ,TRIM(domcli.ClienteDomicilioDomNro) AS ClienteDomicilioDomNro
@@ -361,8 +362,26 @@ ${orderBy}`, [fechaActual])
             ClienteFechaAlta.setHours(0, 0, 0, 0)
 
             //update
+            let ClienteAdministradorId = null
 
-            await this.updateClienteTable(queryRunner,ClienteId,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion,ClienteFechaAlta)
+            if (ObjCliente.AdministradorId != null && ObjCliente.AdministradorId != "")
+                {
+                    if (ObjCliente.ClienteAdministradorUltNro != null)
+                    {
+                        ClienteAdministradorId = ObjCliente.ClienteAdministradorUltNro
+                        await this.updateAdministradorTable(queryRunner,ClienteId,ObjCliente.ClienteAdministradorUltNro,ObjCliente.AdministradorId)
+                    }
+                     else
+                    {
+                         ClienteAdministradorId = 1   
+                        await this.insertClienteAdministrador(queryRunner,ClienteId,ClienteAdministradorId,ObjCliente.ClienteFechaAlta,ObjCliente.AdministradorId) 
+                    }
+                }else if (ObjCliente.ClienteAdministradorUltNro != null){
+                        // delete
+                      await this.DeleteClienteAdministrador(queryRunner,ObjCliente,ClienteId)
+            }
+
+            await this.updateClienteTable(queryRunner,ClienteId,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion,ClienteFechaAlta,ClienteAdministradorId)
             await this.updateFacturaTable(queryRunner,ClienteId,ObjCliente.ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.ClienteCondicionAnteIVAId)
             
             await this.updateClienteDomicilioTable(
@@ -377,13 +396,7 @@ ${orderBy}`, [fechaActual])
                 ,ObjCliente.ClienteDomicilioBarrioId
                 ,ObjCliente.ClienteDomicilioDomLugar)
                
-
-            if( ObjCliente.AdministradorId != null )
-            await this.updateAdministradorTable(queryRunner,ObjCliente.AdministradorId,ObjCliente.AdministradorNombre,ObjCliente.AdministradorApellido,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion)
-
-            if (ObjCliente.AdministradorId == null && (ObjCliente.AdministradorNombre && ObjCliente.AdministradorApellido )){
-                await this.createAdministrador(queryRunner,ObjCliente,ClienteId)
-            }
+                    
 
             const infoCliente = await queryRunner.query(`SELECT ClienteContactoId FROM ClienteContacto WHERE clienteId = @0`,[ClienteId])
             const clienteContactoIds = infoCliente.map(row => row.ClienteContactoId)
@@ -459,21 +472,6 @@ ${orderBy}`, [fechaActual])
         }
     }
 
-    async createAdministrador(queryRunner:any,ObjCliente:any,ClienteId:number){
-       
-
-        await this.insertAdministrador(queryRunner,ObjCliente.AdministradorApellido,ObjCliente.AdministradorNombre,ObjCliente.ClienteDenominacion,
-            ObjCliente.CLienteNombreFantasia) 
-
-        const infoAdministrador = await queryRunner.query(`SELECT  MAX(AdministradorId) AS AdministradorId  FROM Administrador`)
-        let maxAdministradorId = infoAdministrador[0].AdministradorId 
-            
-         let ClienteAdministradorId = 1   
-        await this.insertClienteAdministrador(queryRunner,ClienteId,ClienteAdministradorId,ObjCliente.ClienteFechaAlta,maxAdministradorId)    
-
-    }
- 
-
     async updateClienteDomicilioTable(
          queryRunner: any
         ,ClienteId: number
@@ -506,26 +504,22 @@ ${orderBy}`, [fechaActual])
         WHERE ClienteId = @0 AND ClienteFacturacionId = @1`,[ClienteId,ClienteFacturacionId,ClienteFacturacionCUIT,CondicionAnteIVAId])
     }
     
-    async updateClienteTable(queryRunner:any,ClienteId:number,CLienteNombreFantasia:string,ClienteDenominacion:string,ClienteFechaAlta:Date){
+    async updateClienteTable(queryRunner:any,ClienteId:number,CLienteNombreFantasia:string,ClienteDenominacion:string,ClienteFechaAlta:Date,ClienteAdministradorId:any){
 
         await queryRunner.query(`UPDATE Cliente
-         SET CLienteNombreFantasia = @1, ClienteDenominacion = @2, ClienteFechaAlta= @3
-         WHERE ClienteId = @0`,[ClienteId,CLienteNombreFantasia,ClienteDenominacion,ClienteFechaAlta])
+         SET CLienteNombreFantasia = @1, ClienteDenominacion = @2, ClienteFechaAlta= @3, ClienteAdministradorUltNro = @4
+         WHERE ClienteId = @0`,[ClienteId,CLienteNombreFantasia,ClienteDenominacion,ClienteFechaAlta,ClienteAdministradorId])
      }
 
-     async updateAdministradorTable(queryRunner:any,AdministradorId:number,AdministradorNombre:any,AdministradorApellido:any,CLienteNombreFantasia:any,ClienteDenominacion:any){
+     async updateAdministradorTable(queryRunner:any,ClienteId:number,ClienteAdministradorId:number,ClienteAdministradorAdministradorId:any){
 
-         let AdministradorApellidoNombre = 
-            (AdministradorApellido ? AdministradorApellido : '') + 
-            (AdministradorApellido && AdministradorNombre ? ',' : '') + 
-            (AdministradorNombre ? AdministradorNombre : '') || null;
-
+    
         await queryRunner.query(`
-         UPDATE Administrador
-         SET AdministradorApellido = @1,AdministradorNombre = @2,AdministradorApellidoNombre = @2, AdministradorNombreFantasia = @4,AdministradorDenominacion= @5
-         WHERE AdministradorId = @0`,[AdministradorId,AdministradorApellido,AdministradorNombre,AdministradorApellidoNombre,CLienteNombreFantasia,ClienteDenominacion])
+         UPDATE ClienteAdministrador
+         SET ClienteAdministradorAdministradorId= @2
+         WHERE ClienteId = @0 AND ClienteAdministradorId = @1`,[ClienteId,ClienteAdministradorAdministradorId])
 
-     }
+    }
 
      async updateClienteContactoTable(queryRunner:any,ClienteId:number,ClienteContactoId:number,nombre:string,ClienteContactoApellido:string,area:string){
 
@@ -736,7 +730,10 @@ ${orderBy}`, [fechaActual])
             const ClienteFechaAlta = new Date(ObjCliente.ClienteFechaAlta)
             ClienteFechaAlta.setHours(0, 0, 0, 0)
 
-            await this.insertCliente(queryRunner,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion,ClienteFechaAlta,ClienteDomicilioUltNro)
+            let ClienteAdministradorId = ObjCliente.AdministradorId != null && ObjCliente.AdministradorId != "" ? 1 : null
+
+
+            await this.insertCliente(queryRunner,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion,ClienteFechaAlta,ClienteDomicilioUltNro,ClienteAdministradorId)
 
             let ClienteSelectId = await queryRunner.query("SELECT MAX(ClienteId) AS MaxClienteId FROM Cliente")
             let ClienteId = ClienteSelectId[0].MaxClienteId
@@ -758,8 +755,8 @@ ${orderBy}`, [fechaActual])
                 
             }
 
-            if(ObjCliente.AdministradorNombre != null || ObjCliente.AdministradorApellido != null){
-                await this.createAdministrador(queryRunner,ObjCliente,ClienteId)
+            if(ClienteAdministradorId != null){
+                await this.insertClienteAdministrador(queryRunner,ClienteId,ClienteAdministradorId,ObjCliente.ClienteFechaAlta,ObjCliente.AdministradorId) 
             }
 
             if(req.body.length > 1){
@@ -778,7 +775,7 @@ ${orderBy}`, [fechaActual])
     }
 
 
-    async insertCliente(queryRunner:any,CLienteNombreFantasia:any,ClienteDenominacion:any,ClienteFechaAlta:any,ClienteDomicilioUltNro:any){
+    async insertCliente(queryRunner:any,CLienteNombreFantasia:any,ClienteDenominacion:any,ClienteFechaAlta:any,ClienteDomicilioUltNro:any,ClienteAdministradorUltNro:any){
 
         await queryRunner.query(`INSERT INTO Cliente (	
         ClienteConsorcioEs,
@@ -831,7 +828,7 @@ ${orderBy}`, [fechaActual])
          null,
          null,
          null,
-         null,
+         ClienteAdministradorUltNro,
          null,
          null,
          null
@@ -916,7 +913,7 @@ ${orderBy}`, [fechaActual])
           }
 
 
-          async insertClienteAdministrador(queryRunner:any,ClienteId:number,ClienteAdministradorId:number,ClienteFechaAlta:Date,maxAdministradorId:number){
+          async insertClienteAdministrador(queryRunner:any,ClienteId:number,ClienteAdministradorId:number,ClienteFechaAlta:Date,ClienteAdministradorAdministradorId:number){
 
             await queryRunner.query(` INSERT INTO ClienteAdministrador (
                 ClienteId,
@@ -925,10 +922,18 @@ ${orderBy}`, [fechaActual])
                 ClienteAdministradorHasta,
                 ClienteAdministradorAdministradorId
                 ) VALUES ( @0,@1,@2,@3,@4
-                )`,[ClienteId,ClienteAdministradorId,ClienteFechaAlta,null,maxAdministradorId])
+                )`,[ClienteId,ClienteAdministradorId,ClienteFechaAlta,null,ClienteAdministradorAdministradorId])
     
     
         }
+
+        async DeleteClienteAdministrador(queryRunner:any,ObjCliente:any,ClienteId:number){
+       
+ 
+            await queryRunner.query(` DELETE FROM ClienteAdministrador 
+                WHERE ClienteId=@0 AND ClienteAdministradorId=@1 `,[ClienteId,ObjCliente.ClienteAdministradorUltNro])
+    
+       }
     
         async insertAdministrador(queryRunner:any,  AdministradorApellido:any,
             AdministradorNombre:any, AdministradorDenominacion:any,

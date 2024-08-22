@@ -6,6 +6,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { NgForm, FormArray, FormBuilder, ValueChangeEvent } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
+import { AdministradorSearchComponent } from '../../../shared/administrador-search/administrador-search.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, startWith, Observable, of, filter, merge } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
@@ -46,6 +47,7 @@ interface Barrio {
     CommonModule,
     PersonalSearchComponent,
     ClienteSearchComponent,
+    AdministradorSearchComponent,
     DetallePersonaComponent,
     FiltroBuilderComponent,
     NzAutocompleteModule,
@@ -104,7 +106,7 @@ export class ClientesFormComponent {
     ClienteFechaAlta: "",
     ClienteDomicilioId:0,ClienteDomicilioDomCalle: "",ClienteDomicilioDomNro:0, referencia: "", ClienteDomicilioCodigoPostal: 0,ClienteDomicilioDomLugar:null,
     domiciliopais: "", ClienteDomicilioProvinciaId: null, ClienteDomicilioLocalidadId: null, ClienteDomicilioBarrioId: null,
-    AdministradorId:0, AdministradorApellido: null,AdministradorNombre:null,
+    AdministradorId:0,ClienteAdministradorUltNro:0,
     infoClienteContacto: this.fb.array([this.fb.group({ ...this.objClienteContacto })]), estado: 0,
   })
   // $optionsProvincia: Observable<Provincia[]> | null = null;

@@ -33,6 +33,7 @@ import { AyudaAsistencialController } from "./ayuda-asistencial.controller"
 import { ClientesController } from "../clientes/clientes.controller"
 import { FileUploadController } from "./file-upload.controller"
 import { ObjetivosController } from "../objetivos/objetivos.controller"
+import { AdministradorController } from "../controller/administrador.controller"
 
 
 
@@ -71,4 +72,5 @@ export const ayudaAsistencialController = new AyudaAsistencialController();
 export const clientesController = new ClientesController();
 export const fileUploadController = new FileUploadController();
 export const objetivosController = new ObjetivosController();
+export const administradorController = new AdministradorController();
 

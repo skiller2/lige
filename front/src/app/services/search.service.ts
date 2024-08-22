@@ -20,6 +20,8 @@ import {
 } from 'src/app/shared/schemas/personal.schemas';
 import {SearchGrup,ResponseBySearchGrup } from 'src/app/shared/schemas/grupoActividad.shemas';
 import { ResponseBySearchCliente,SearchClient } from 'src/app/shared/schemas/cliente.schemas';
+import { ResponseBySearchAdministrador,SearchAdmind } from 'src/app/shared/schemas/administrador.schemas';
+
 import { ResponseBySearchInasistencia,SearchInasistencia } from 'src/app/shared/schemas/inasistencia.schemas';
 import {
   Objetivo,
@@ -218,6 +220,7 @@ export class SearchService {
       );
   }
 
+  
   getClientFromName(fieldName: string, values: string): Observable<SearchClient[]> {
     if (!values || values == '') {
       return of([]);
@@ -239,6 +242,27 @@ export class SearchService {
       );
   }
 
+  getAdministradorFromName(fieldName: string, values: string): Observable<SearchAdmind[]> {
+    if (!values || values == '') {
+      return of([]);
+    }
+    return this.http
+      .post<ResponseJSON<ResponseBySearchAdministrador>>('api/administrador/search', {
+        fieldName: fieldName,
+        value: values,
+      })
+      .pipe(
+        map(res => {
+          if (res.data.recordsArray) return res.data.recordsArray;
+          else return [];
+        }),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+  
   getSucursales(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/sucursales`).pipe(
       map(res => res.data),
