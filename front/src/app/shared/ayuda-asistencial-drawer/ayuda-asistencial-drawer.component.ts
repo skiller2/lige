@@ -4,8 +4,8 @@ import { Component, ChangeDetectionStrategy, model, input, computed, inject, vie
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { FormControl, NgForm } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
-import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
-import { ApiService } from 'src/app/services/api.service';
+import { BehaviorSubject, firstValueFrom, debounceTime, switchMap, tap } from 'rxjs';
+import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { EditorCategoriaComponent } from 'src/app/shared/editor-categoria/editor-categoria.component';
 import { InasistenciaSearchComponent } from 'src/app/shared/inasistencia-search/inasistencia-search.component';
@@ -30,16 +30,33 @@ export interface Option {
 
 export class AyudaAsistencialDrawerComponent {
     ngForm = viewChild.required(NgForm);
-    visible = model<boolean>(false)
     tituloDrawer = input.required<string>()
+    visible = model<boolean>(false)
     currDate = signal(new Date())
-    formChange$ = new BehaviorSubject('');
     placement: NzDrawerPlacement = 'left';
     options: any[] = [];
-    isSaving : boolean = false
+    isSaving = signal(false)
 
     private apiService = inject(ApiService)
     constructor(private searchService: SearchService) { }
+
+    formChange$ = new BehaviorSubject('');
+    tableLoading$ = new BehaviorSubject(false);
+    listaAdelantos$ = this.formChange$.pipe(
+        debounceTime(500),
+        switchMap(() =>
+          this.apiService
+            .getAyudaAsitencialByPersonalId({personalId: this.ngForm().form.get('personalId')?.value})
+            .pipe(
+              doOnSubscribe(() => this.tableLoading$.next(true)),
+              tap({ complete: () => this.tableLoading$.next(false) })
+            )
+        )
+      );
+
+    formChange(event: any) {
+        this.formChange$.next(event);
+    }
 
     async ngOnInit(): Promise<void> {
         this.options = await firstValueFrom(this.searchService.getTipoPrestamo())
@@ -47,15 +64,15 @@ export class AyudaAsistencialDrawerComponent {
     }
 
     async save(){
-        this.isSaving = true
+        this.isSaving.set(true)
         try {
             let values = this.ngForm().value
-            console.log('values',values);
-            // const res = await firstValueFrom(this.apiService.addAyudaAsistencial(values))
+            // console.log('values',values);
+            const res = await firstValueFrom(this.apiService.addAyudaAsistencial(values))
         } catch (error) {
             
         }
-        this.isSaving = false
+        this.isSaving.set(false)
     }
 
 }

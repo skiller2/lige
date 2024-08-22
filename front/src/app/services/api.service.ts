@@ -938,6 +938,11 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>(`api/ayuda-asistencial/addpres`, parameter).pipe(map(res => res.data));
   }
 
+  getAyudaAsitencialByPersonalId(personalId: any) {
+    if (personalId == "") personalId = "0"
+    return this.http.post<ResponseJSON<any>>(`api/ayuda-asistencial/personal`, personalId).pipe(map(res => res.data));
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

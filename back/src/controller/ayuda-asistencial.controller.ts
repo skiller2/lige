@@ -184,6 +184,7 @@ export class AyudaAsistencialController extends BaseController {
   ){
     const PersonalPrestamoAprobado = 'S'
     const PersonalPrestamoFechaAprobacion = new Date()
+    PersonalPrestamoFechaAprobacion.setHours(0,0,0,0)
     return await queryRunner.query(`
       UPDATE PersonalPrestamo
       SET PersonalPrestamoAprobado = @2, PersonalPrestamoAplicaEl = @3, PersonalPrestamoCantidadCuotas = @4,
@@ -235,8 +236,9 @@ export class AyudaAsistencialController extends BaseController {
 
   async getPersonalPrestamoByIdsQuery(queryRunner:any, personalPrestamoId:number, personalId:number){
     return await queryRunner.query(`
-      SELECT *
+      SELECT pres.*, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
       FROM PersonalPrestamo pres
+      JOIN Personal per ON per.PersonalId=pres.PersonalId
       WHERE pres.PersonalPrestamoId = @0 AND pres.PersonalId = @1
       `, [personalPrestamoId, personalId])
   }
@@ -275,7 +277,7 @@ export class AyudaAsistencialController extends BaseController {
       SELECT doc.doc_id
       FROM lige.dbo.docgeneral doc
       LEFT JOIN lige.dbo.liqmaperiodo liqp ON liqp.periodo_id = doc.periodo
-      WHERE doc.persona_id = @0 AND liqp.anio = @1 AND liqp.mes = @2 
+      WHERE doc.persona_id = @0 AND liqp.anio = @1 AND liqp.mes = @2 AND doc.doctipo_id='REC' 
       `, [PersonalId, anio, mes])
   }
 
@@ -312,7 +314,7 @@ export class AyudaAsistencialController extends BaseController {
       
       WHERE 
       (pres.PersonalPrestamoAprobado IS NULL
-      OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) >= DATEFROMPARTS(@0,@1,1)
+      OR DATEFROMPARTS(SUBSTRING(pres.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pres.PersonalPrestamoAplicaEl,1,2),1) >= DATEFROMPARTS(@0,@1,1) OR pres.PersonalPrestamoDia >= DATEFROMPARTS(@0,@1,1)
       )
       AND (${filterSql})
       ${orderBy}
@@ -470,7 +472,7 @@ export class AyudaAsistencialController extends BaseController {
 
     const recibos = await this.getReciboQuery(queryRunner, personalId, periodo.anio, periodo.mes)
     if (recibos.length) 
-      return new ClientException(`Ya existe un recibo para ${PersonalPrestamo.ApellidoNombre} del periodo ${PersonalPrestamo.PersonalPrestamoAplicaEl}`)
+      return new ClientException(`Ya existe un recibo para ${PersonalPrestamo.ApellidoNombre} del periodo ${PersonalPrestamo.PersonalPrestamoAplicaEl}, PersonalId=${personalId}`)
 
     await this.personalPrestamoAprobadoQuery(queryRunner, personalPrestamoId, personalId, PersonalPrestamo.PersonalPrestamoAplicaEl, PersonalPrestamo.PersonalPrestamoCantidadCuotas, PersonalPrestamo.PersonalPrestamoMonto)
       
@@ -601,6 +603,8 @@ export class AyudaAsistencialController extends BaseController {
     const mes : number = req.body.month
     let errors : string[] = []
     try {
+      await queryRunner.startTransaction()
+
       const per = await this.getPeriodoQuery(queryRunner, anio, mes)
       if (per[0]?.ind_recibos_generados == 1)
         return new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}.`)
@@ -658,8 +662,8 @@ export class AyudaAsistencialController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const personalId = req.body.personalId
     const formaId = req.body.formaId
-    const anio = req.body.aplicaEl.getFullYear()
-    const mes = req.body.aplicaEl.getMonth()+1
+    const anio = new Date(req.body.aplicaEl).getFullYear()
+    const mes = new Date(req.body.aplicaEl).getMonth()+1
     const importe = req.body.importe
     const cantCuotas = req.body.cantCuotas
     const ip = req.socket.remoteAddress
@@ -669,7 +673,10 @@ export class AyudaAsistencialController extends BaseController {
       if (!formaId) throw new ClientException("Falta cargar el Tipo.");
       if (!personalId) throw new ClientException("Falta cargar la Persona.");
 
-      const forma = optionsSelect.find((obj:any)=>{ obj.value == formaId })
+      const forma = optionsSelect.find((obj: any) =>  obj.value == formaId )
+      
+      if (!forma)
+        throw new ClientException(`No se encontró el Tipo seleccionado ${formaId}`)
 
       const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
   
@@ -756,6 +763,39 @@ export class AyudaAsistencialController extends BaseController {
       this.rollbackTransaction(queryRunner)
       return next(error)
     }finally{
+      await queryRunner.release()
+    }
+  }
+
+  async getPersonalPrestamoByPersonalId(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    const personalId : number = Number(req.body.personalId)
+    try {
+      await queryRunner.startTransaction()
+      
+      let list = await queryRunner.query(
+        `SELECT TOP 5 pre.PersonalPrestamoMonto, pre.PersonalPrestamoDia, pre.PersonalPrestamoFechaAprobacion,
+        pre.PersonalPrestamoAplicaEl, pre.PersonalPrestamoAprobado, TRIM(form.FormaPrestamoDescripcion) FormaPrestamoDescripcion
+        FROM PersonalPrestamo pre
+        LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pre.FormaPrestamoId
+        WHERE pre.PersonalId = @0
+        ORDER BY pre.PersonalPrestamoDia DESC`,
+        [personalId]
+      );
+      list = list.map((obj:any)=>{
+        let option = getOptionsPersonalPrestamoAprobado.find((option:any) => {
+          return option.value === obj.PersonalPrestamoAprobado
+        })
+        obj.PersonalPrestamoAprobado = option.label
+        return obj
+      })
+      
+      await queryRunner.commitTransaction()
+      return this.jsonRes(list, res);
+    }catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
       await queryRunner.release()
     }
   }
