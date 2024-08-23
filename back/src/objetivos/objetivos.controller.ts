@@ -125,7 +125,7 @@ export class ObjetivosController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         const fechaActual = new Date()
         const anio = fechaActual.getFullYear()
-        const mes = fechaActual.getMonth()
+        const mes = fechaActual.getMonth()+1
 
         try {
             const objetivos = await queryRunner.query(
