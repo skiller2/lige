@@ -132,40 +132,61 @@ export class ObjetivosController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         const fechaActual = new Date()
         const anio = fechaActual.getFullYear()
-        const mes = fechaActual.getMonth()
+        const mes = fechaActual.getMonth()+1
 
         try {
             const objetivos = await queryRunner.query(
                 `SELECT 
+-- DISTINCT
                 obj.ObjetivoId,
-                NEWID() AS id, 
+                obj.ObjetivoId id, 
                 obj.ClienteId,
                 obj.ClienteElementoDependienteId,
                 CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS Codigo, 
                 cli.ClienteDenominacion,
-                obj.ObjetivoDescripcion AS Descripcion, 
-                gru.GrupoActividadId,
-                gruac.GrupoActividadDetalle,
+                ISNULL(eledep.ClienteElementoDependienteDescripcion,cli.ClienteDenominacion) Descripcion,                
+--                obj.ObjetivoDescripcion AS Descripcion2, --Basura
+                gap.GrupoActividadId,
+                ga.GrupoActividadDetalle,
                 suc.SucursalDescripcion,
                 ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde, clicon.ClienteContratoFechaDesde) AS ContratoFechaDesde,
-                ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta, clicon.ClienteContratoFechaHasta) AS ContratoFechaHasta
-
+                ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta, clicon.ClienteContratoFechaHasta) AS ContratoFechaHasta,
+ 1
                 FROM Objetivo obj 
                 LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-                LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId 
-                    AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
-                    AND EOMONTH(DATEFROMPARTS(@0,@1,1)) >= eledepcon.ClienteElementoDependienteContratoFechaDesde 
-                    AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
-                    AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
-                LEFT JOIN  ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId 
-                    AND obj.ClienteElementoDependienteId IS NULL 
-                    AND EOMONTH(DATEFROMPARTS(@0,@1,1)) >= clicon.ClienteContratoFechaDesde 
-                    AND ISNULL(clicon.ClienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
-                    AND ISNULL(clicon.ClienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
-                LEFT JOIN GrupoActividadObjetivo gru ON gru.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
-                LEFT JOIN GrupoActividad gruac  ON gruac.GrupoActividadId = gru.GrupoActividadId
-                LEFT JOIN  ObjetivoSucursal sucobj ON sucobj.ObjetivoSucursalId = obj.ObjetivoEsSucursalId AND sucobj.ObjetivoId = obj.ObjetivoId
-                LEFT JOIN Sucursal suc ON suc.SucursalId = sucobj.ObjetivoSucursalSucursalId
+                LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+					 
+					 
+
+					LEFT JOIN (SELECT cc.ClienteId, MAX(cc.ClienteContratoId) ClienteContratoId FROM  ClienteContrato cc WHERE EOMONTH(DATEFROMPARTS(@0,@1,1)) >= cc.ClienteContratoFechaDesde 
+                    AND ISNULL(cc.ClienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
+                    AND ISNULL(cc.ClienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
+					GROUP BY cc.ClienteId) clicon2 ON clicon2.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS null
+
+					 LEFT JOIN  ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId AND clicon.ClienteContratoId = clicon2.ClienteContratoId
+					 
+					 
+					LEFT JOIN (SELECT ec.ClienteId, ec.ClienteElementoDependienteId, MAX(ec.ClienteElementoDependienteContratoId) ClienteElementoDependienteContratoId FROM ClienteElementoDependienteContrato ec WHERE  EOMONTH(DATEFROMPARTS(@0,@1,1)) >= ec.ClienteElementoDependienteContratoFechaDesde 
+                    AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
+                    AND ISNULL(ec.ClienteElementoDependienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
+                GROUP BY ec.ClienteId, ec.ClienteElementoDependienteId
+						
+					) eledepcon2 ON eledepcon2.ClienteId = obj.ClienteId AND eledepcon2.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+					 
+					 
+					 LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId  AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId  AND eledepcon.ClienteElementoDependienteContratoId = eledepcon2.ClienteElementoDependienteContratoId
+                          
+   				LEFT JOIN (SELECT GrupoActividadObjetivoObjetivoId, MAX(GrupoActividadObjetivoId) GrupoActividadObjetivoId FROM GrupoActividadObjetivo
+   				WHERE EOMONTH(DATEFROMPARTS(@0,@1,1)) >= GrupoActividadObjetivoDesde AND DATEFROMPARTS(@0,@1,1) <= ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') 
+   				GROUP BY GrupoActividadObjetivoObjetivoId
+					) gap2 ON gap2.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId 
+      
+                LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND gap.GrupoActividadObjetivoId=gap2.GrupoActividadObjetivoId
+                LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+		                    
+                LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
+                
+
                 WHERE ${filterSql} ${orderBy}`, [anio,mes])
 
             console.log("..............." , objetivos.length)

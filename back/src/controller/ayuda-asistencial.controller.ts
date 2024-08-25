@@ -129,7 +129,7 @@ const columnsAyudaAsistencial: any[] = [
       fieldName: "pres.PersonalPrestamoAplicaEl",
       searchType: "string",
       sortable: true,
-      searchHidden: false
+      searchHidden: true
     },
     {
       id: "PersonalPrestamoCantidadCuotas",
@@ -299,8 +299,9 @@ export class AyudaAsistencialController extends BaseController {
     return await queryRunner.query(`
       SELECT DISTINCT CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
-      pres.PersonalPrestamoDia, IIF(pres.PersonalPrestamoAprobado='S',pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
-      pres.PersonalPrestamoAplicaEl, form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
+      pres.PersonalPrestamoDia, IIF(pres.PersonalPrestamoAprobado='S', pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
+      IIF(LEN(pres.PersonalPrestamoUltimaLiquidacion)>0, SUBSTRING(pres.PersonalPrestamoUltimaLiquidacion, 1, 7), pres.PersonalPrestamoAplicaEl) PersonalPrestamoAplicaEl,
+      form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
       pres.PersonalPrestamoAprobado,
       sit.SituacionRevistaDescripcion 
       FROM PersonalPrestamo pres
