@@ -13,4 +13,9 @@ objetivosRouter.post('/list',  (req, res, next) => {
   objetivosController.list(req, res, next)
 })
 
+objetivosRouter.get('/getDescuento', authMiddleware.verifyToken, (req, res, next) => { 
+  objetivosController.getDescuento(req, res) 
+})
+
+
 

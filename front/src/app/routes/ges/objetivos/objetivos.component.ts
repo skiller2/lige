@@ -14,7 +14,7 @@ import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.comp
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
-import { ClientesFormComponent } from "../clientes-form/clientes-form.component"
+import { ObjetivosFormComponent } from "../objetivos-form/objetivos-form.component"
 
 @Component({
   selector: 'app-objetivos',
@@ -28,9 +28,10 @@ import { ClientesFormComponent } from "../clientes-form/clientes-form.component"
     CommonModule, 
     PersonalSearchComponent, 
     ClienteSearchComponent,
+    ObjetivosFormComponent,
     DetallePersonaComponent,
     FiltroBuilderComponent,
-    ClientesFormComponent],
+    ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ObjetivosComponent {
@@ -42,7 +43,7 @@ export class ObjetivosComponent {
   gridOptions!: GridOption;
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
-  editClienteId = 0;
+  editObjetivoId = 0;
   edit : boolean = false
   addNew = false
   excelExportService = new ExcelExportService()
@@ -96,7 +97,7 @@ export class ObjetivosComponent {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
     if (row?.id)
-      this.editClienteId = row.id
+      this.editObjetivoId = row.id
 
   }
 

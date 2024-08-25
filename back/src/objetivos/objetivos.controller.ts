@@ -4,123 +4,130 @@ import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { QueryResult } from "typeorm";
 
+const getOptions: any[] = [
+    { label: 'Si', value: 'S' },
+    { label: 'No', value: 'N' },
+    { label: 'Indeterminado', value: null }
+  ]
+
+const listaColumnas: any[] = [
+    {
+        id: "id",
+        name: "id",
+        field: "id",
+        fieldName: "id",
+        type: "number",
+        sortable: false,
+        hidden: true,
+        searchHidden: true            
+    },
+    {
+        name: "Codigo",
+        type: "number",
+        id: "Codigo",
+        field: "Codigo",
+        fieldName: "Codigo",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        name: "Cliente",
+        type: "number",
+        id: "ClienteId",
+        field: "ClienteId",
+        fieldName: "obj.ClienteId",
+        searchComponent: "inpurForClientSearch",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Objetivo",
+        type: "number",
+        id: "ObjetivoId",
+        field: "ObjetivoId",
+        fieldName: " obj.ObjetivoId",
+        searchComponent: "inpurForObjetivoSearch",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    
+    {
+        name: "Razón Social",
+        type: "string",
+        id: "ClienteDenominacion",
+        field: "ClienteDenominacion",
+        fieldName: "cli.ClienteDenominacion",
+        searchType: "string",
+        sortable: true,
+
+        searchHidden: false,
+        hidden: false,
+    },
+    {
+        name: "Descripcion Objetivo",
+        type: "string",
+        id: "Descripcion",
+        field: "Descripcion",
+        fieldName: "Descripcion",
+        searchType: "string",
+        searchHidden: false
+    },
+    {
+        name: "Grupo Actividad",
+        type: "string",
+        id: "GrupoActividadDetalle",
+        field: "GrupoActividadDetalle",
+        fieldName: " gruac.GrupoActividadDetalle",
+        sortable: true,
+        searchHidden: true
+    },
+    {
+        name: "Sucursal",
+        type: "string",
+        id: "SucursalDescripcion",
+        field: "SucursalDescripcion",
+        fieldName: "suc.SucursalDescripcion",
+        sortable: true,
+        searchHidden: true
+    },
+    {
+        name: "Contrato Desde",
+        type: "date",
+        id: "ContratoFechaDesde",
+        field: "ContratoFechaDesde",
+        fieldName: "ContratoFechaDesde",
+        searchComponent: "inpurForFechaSearch",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        name: "Contrato Hasta",
+        type: "date",
+        id: "ContratoFechaHasta",
+        field: "ContratoFechaHasta",
+        fieldName: "ContratoFechaHasta",
+        searchComponent: "inpurForFechaSearch",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+];
+
 
 export class ObjetivosController extends BaseController {
 
-    listaColumnas: any[] = [
-        {
-            id: "id",
-            name: "id",
-            field: "id",
-            fieldName: "id",
-            type: "number",
-            sortable: false,
-            hidden: true,
-            searchHidden: true            
-        },
-        {
-            name: "Codigo",
-            type: "number",
-            id: "Codigo",
-            field: "Codigo",
-            fieldName: "Codigo",
-            sortable: true,
-            hidden: false,
-            searchHidden: false
-        },
-        {
-            name: "Cliente",
-            type: "number",
-            id: "ClienteId",
-            field: "ClienteId",
-            fieldName: "obj.ClienteId",
-            searchComponent: "inpurForClientSearch",
-            sortable: true,
-            hidden: true,
-            searchHidden: false
-        },
-        {
-            name: "Objetivo",
-            type: "number",
-            id: "ObjetivoId",
-            field: "ObjetivoId",
-            fieldName: " obj.ObjetivoId",
-            searchComponent: "inpurForObjetivoSearch",
-            sortable: true,
-            hidden: true,
-            searchHidden: false
-        },
-        
-        {
-            name: "Razón Social",
-            type: "string",
-            id: "ClienteDenominacion",
-            field: "ClienteDenominacion",
-            fieldName: "cli.ClienteDenominacion",
-            searchType: "string",
-            sortable: true,
-
-            searchHidden: false,
-            hidden: false,
-        },
-        {
-            name: "Descripcion Objetivo",
-            type: "string",
-            id: "Descripcion",
-            field: "Descripcion",
-            fieldName: "Descripcion",
-            searchType: "string",
-            searchHidden: false
-        },
-        {
-            name: "Grupo Actividad",
-            type: "string",
-            id: "GrupoActividadDetalle",
-            field: "GrupoActividadDetalle",
-            fieldName: " gruac.GrupoActividadDetalle",
-            sortable: true,
-            searchHidden: true
-        },
-        {
-            name: "Sucursal",
-            type: "string",
-            id: "SucursalDescripcion",
-            field: "SucursalDescripcion",
-            fieldName: "suc.SucursalDescripcion",
-            sortable: true,
-            searchHidden: true
-        },
-        {
-            name: "Contrato Desde",
-            type: "date",
-            id: "ContratoFechaDesde",
-            field: "ContratoFechaDesde",
-            fieldName: "ContratoFechaDesde",
-            searchComponent: "inpurForFechaSearch",
-            sortable: true,
-            hidden: false,
-            searchHidden: false
-        },
-        {
-            name: "Contrato Hasta",
-            type: "date",
-            id: "ContratoFechaHasta",
-            field: "ContratoFechaHasta",
-            fieldName: "ContratoFechaHasta",
-            searchComponent: "inpurForFechaSearch",
-            sortable: true,
-            hidden: false,
-            searchHidden: false
-        },
-    ];
-
+    
     async getGridCols(req, res) {
-        this.jsonRes(this.listaColumnas, res);
+        this.jsonRes(listaColumnas, res);
     }
 
     async list(req: any, res: Response, next: NextFunction) {
 
-        const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
+        const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = dataSource.createQueryRunner();
         const fechaActual = new Date()
@@ -176,4 +183,8 @@ export class ObjetivosController extends BaseController {
         }
 
     }
+
+    async getDescuento(req, res) {
+        this.jsonRes(getOptions, res);
+      }
 }
