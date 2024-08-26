@@ -128,7 +128,6 @@ export class ObjetivosFormComponent {
 
 
   async load() {
-console.log("paso")
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
     console.log(infoObjetivo)
     this.infoCoordinadorContacto().clear()
@@ -162,16 +161,16 @@ console.log("paso")
     let finalObj = [form,...this.files]
     try {
         if (this.ObjetivoId()) {
-          await firstValueFrom(this.apiService.updateCliente(finalObj, this.ObjetivoId()))
-          await firstValueFrom(this.searchService.getInfoObjCliente(this.ObjetivoId()))
+          await firstValueFrom(this.apiService.updateObjetivo(finalObj, this.ObjetivoId()))
+          // await firstValueFrom(this.searchService.getInfoObjCliente(this.ObjetivoId()))
             // this.edit.set(false)
         } else {
-          //este es para cuando es un nuevo registro
-          await firstValueFrom(this.apiService.addCliente(finalObj))
-          this.addNew.set(true)
-          this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-            this.router.navigate(['/ges/clientes/clientes']);
-          });
+          // //este es para cuando es un nuevo registro
+          // await firstValueFrom(this.apiService.addCliente(finalObj))
+          // this.addNew.set(true)
+          // this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+          //   this.router.navigate(['/ges/clientes/clientes']);
+          // });
         }
         
         this.formCli.markAsUntouched()

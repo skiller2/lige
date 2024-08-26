@@ -322,4 +322,192 @@ export class ObjetivosController extends BaseController {
         WHERE obj.ObjetivoId = @0;`,
             [ObjetivoId,ClienteId,ClienteElementoDependienteId,anio,mes])
     }
+
+
+    
+    async updateObjetivo(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+    
+        try {
+            await queryRunner.startTransaction()
+            const usuario = res.locals.userName
+            const ip = this.getRemoteAddress(req)
+            const ObjetivoId = Number(req.params.id)
+            const Obj =  {...req.body[0]}
+
+            //validaciones
+
+            await this.FormValidations(Obj)
+
+            const ClienteFechaAlta = new Date(Obj.ClienteFechaAlta)
+            ClienteFechaAlta.setHours(0, 0, 0, 0)
+
+            //update
+            // let ClienteAdministradorId = null
+
+            // if (ObjCliente.AdministradorId != null && ObjCliente.AdministradorId != "")
+            //     {
+            //         if (ObjCliente.ClienteAdministradorUltNro != null)
+            //         {
+            //             ClienteAdministradorId = ObjCliente.ClienteAdministradorUltNro
+            //             await this.updateAdministradorTable(queryRunner,ClienteId,ObjCliente.ClienteAdministradorUltNro,ObjCliente.AdministradorId)
+            //         }
+            //          else
+            //         {
+            //              ClienteAdministradorId = 1   
+            //             await this.insertClienteAdministrador(queryRunner,ClienteId,ClienteAdministradorId,ObjCliente.ClienteFechaAlta,ObjCliente.AdministradorId) 
+            //         }
+            //     }else if (ObjCliente.ClienteAdministradorUltNro != null){
+            //             // delete
+            //           await this.DeleteClienteAdministrador(queryRunner,ObjCliente,ClienteId)
+            // }
+
+            // await this.updateClienteTable(queryRunner,ClienteId,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion,ClienteFechaAlta,ClienteAdministradorId)
+            // await this.updateFacturaTable(queryRunner,ClienteId,ObjCliente.ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.ClienteCondicionAnteIVAId)
+            
+            // await this.updateClienteDomicilioTable(
+            //      queryRunner
+            //     ,ClienteId
+            //     ,ObjCliente.ClienteDomicilioId
+            //     ,ObjCliente.ClienteDomicilioDomCalle
+            //     ,ObjCliente.ClienteDomicilioDomNro
+            //     ,ObjCliente.ClienteDomicilioCodigoPostal
+            //     ,ObjCliente.ClienteDomicilioProvinciaId 
+            //     ,ObjCliente.ClienteDomicilioLocalidadId 
+            //     ,ObjCliente.ClienteDomicilioBarrioId
+            //     ,ObjCliente.ClienteDomicilioDomLugar)
+               
+
+            
+            //ACA SE EVALUA Y SE ELIMINA EL CASO QUE SE BORRE ALGUN REGISTRO DE CLIENTE CONTACTO EXISTENTE
+            // const numerosQueNoPertenecen = clienteContactoIds.filter(num => {
+            //     return !ObjCliente.infoClienteContacto.some(obj => obj.ClienteContactoId === num && obj.ClienteContactoId !== 0);
+            // });
+
+            // for (const obj of ObjCliente.infoClienteContacto) {
+
+            //     if(numerosQueNoPertenecen?.length > 0) {
+
+            //         await this.deleteClienteContactoTable(queryRunner,ClienteId, obj.ClienteContactoId)
+            //         await this.deleteClienteContactoEmailTable(queryRunner,ClienteId,obj.ClienteContactoEmailId,obj.ClienteContactoId)
+            //         await this.deleteClienteContactoTelefonoTable(queryRunner,ClienteId,obj.ClienteContactoTelefonoId,obj.ClienteContactoId)
+
+            //     }else{
+            //         if (clienteContactoIds.includes(obj.ClienteContactoId) && obj.ClienteContactoId !== 0) {
+            //             //update
+            //               await this.updateClienteContactoTable(queryRunner,ClienteId,obj.ClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area)
+      
+            //               if(obj.ClienteContactoEmailUltNro != null){
+      
+            //                   await this.updateClienteContactoEmailTable(queryRunner,ClienteId,obj.ClienteContactoId,obj.ClienteContactoEmailUltNro,obj.correo)
+            //               }
+      
+            //               if(obj.ClienteContactoTelefonoUltNro != null){
+      
+            //                   await this.updateClienteContactoTelefonoTable(queryRunner,ClienteId,obj.ClienteContactoId,obj.ClienteContactoTelefonoUltNro,obj.telefono)
+            //               }
+                         
+            //           } else {
+            //              // Insert
+            //              maxClienteContactoId += 1
+            //              maxClienteContactoTelefonoId += 1
+            //              maxClienteContactoEmailId += 1
+      
+            //              await this.insertClienteContactoTable(queryRunner,ClienteId,maxClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxClienteContactoTelefonoId,maxClienteContactoEmailId)
+      
+            //              await this.insertClienteContactoEmailTable(queryRunner,ClienteId,maxClienteContactoId,maxClienteContactoEmailId,obj.correo)
+      
+            //              await this.insertClienteContactoTelefonoTable(queryRunner,ClienteId,maxClienteContactoId,maxClienteContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,
+            //               obj.ClienteContactoTelefonoCodigoArea)
+      
+            //           }
+            //     }    
+
+            // }
+
+            // if(req.body.length > 1){
+            //  const [, ...newArray] = req.body;
+            //  await FileUploadController.handlePDFUpload(ClienteId,'Cliente',newArray,usuario,ip ) 
+            // }
+
+            await queryRunner.commitTransaction()
+            return this.jsonRes([], res, 'Modificación  Exitosa');
+        }catch (error) {
+            this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+
+    async FormValidations(form:any){
+    
+    
+        if(!form.ClienteId) {
+           throw new ClientException(`El campo Cliente NO pueden estar vacio.`)
+        }
+
+        if(!form.Descripcion) {
+           throw new ClientException(`El campo Descripcion NO pueden estar vacio.`)
+        }
+
+        if(!form.SucursalId) {
+            throw new ClientException(`El campo Sucursal NO pueden estar vacio.`)
+        } 
+
+        if(!form.ContratoFechaDesde) {
+           throw new ClientException(`El campo Contrato Desde NO pueden estar vacio.`)
+        }
+
+        if(!form.ContratoFechaHasta) {
+            throw new ClientException(`El campo Contrato Hasta NO pueden estar vacio.`)
+         }
+
+        //Domicilio
+
+        if(!form.ClienteElementoDependienteDomicilioDomCalle) {
+            throw new ClientException(`El campo Dirección Calle NO pueden estar vacio.`)
+         }
+ 
+         if(!form.ClienteElementoDependienteDomicilioDomNro) {
+            throw new ClientException(`El campo Nro NO pueden estar vacio.`)
+         }
+ 
+         if(!form.ClienteElementoDependienteDomicilioCodigoPostal) {
+             throw new ClientException(`El campo Cod Postal NO pueden estar vacio.`)
+         }
+ 
+         if(!form.ClienteElementoDependienteDomicilioProvinciaId) {
+            throw new ClientException(`El campo Provincia Ante IVA NO pueden estar vacio.`)
+         }
+
+         if(!form.ClienteElementoDependienteDomicilioLocalidadId) {
+            throw new ClientException(`El campo Localidad NO pueden estar vacio.`)
+         }
+
+         
+
+        // Coordinador de cuenta
+
+         for(const obj of form.infoCoordinadorCuenta){
+
+            if(!obj.PersonaId) {
+                throw new ClientException(`El campo Nombre en cliente contacto NO pueden estar vacio.`)
+             }
+
+             if(!obj.ObjetivoPersonalJerarquicoComision) {
+                throw new ClientException(`El campo Comision NO pueden estar vacio.`)
+             }
+
+             if(!obj.ObjetivoPersonalJerarquicoDescuentos) {
+                throw new ClientException(`El campo Descuento NO pueden estar vacio.`)
+ 
+             }
+
+         }
+
+        
+
+    } 
 }
