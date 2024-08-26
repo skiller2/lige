@@ -3,7 +3,7 @@
 >
 
   <ng-container *nzDrawerContent>
-
+    @if (conditional()|async) {}
     <form nz-form ngForm>
 
       <nz-form-item>
@@ -57,7 +57,7 @@
                 <th>Monto</th>
                 <th>Fecha de Solicitud</th>
                 <th>Fecha de Aprobación</th>
-                <th>Aplica El</th>
+                <th>Ult. Liquidacion</th>
                 <th>Estado</th>
               </tr>
             </thead>
@@ -67,7 +67,7 @@
                 <td>{{ data.PersonalPrestamoMonto | currency }}</td>
                 <td>{{ data.PersonalPrestamoDia | date }}</td>
                 <td>{{ data.PersonalPrestamoFechaAprobacion | date }}</td>
-                <td>{{ data.PersonalPrestamoAplicaEl }}</td>
+                <td>{{ data.PersonalPrestamoUltimaLiquidacion }}</td>
                 <td>{{ data.PersonalPrestamoAprobado }}</td>
                 <td>{{ data.Estado }}</td>
               </tr>

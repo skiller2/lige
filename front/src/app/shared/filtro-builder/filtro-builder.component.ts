@@ -303,8 +303,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   selectedValueEstado(val: any) {
-    console.log(val);
-    
     if (val) {
       this.selections.value = val.value;
       this.valueExtended = { fullName: val.label };
