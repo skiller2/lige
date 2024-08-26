@@ -47,13 +47,14 @@ export class ObjetivosFormComponent {
 
   objCoordinadorCuenta = { 
     PersonaId:0,
-    Porcentaje: "", 
+    ObjetivoPersonalJerarquicoComision: 0, 
     Descuento:"",
   }
 
-  personalId = signal(0)
   edit = model(true)
   ObjetivoId = model(0)
+  ClienteId = model(0)
+  ClienteElementoDependienteId = model(0)
   selectedValueProvincia = null
   isLoading = signal(false)
   addNew = model()
@@ -70,11 +71,14 @@ export class ObjetivosFormComponent {
   formCli = this.fb.group({
     id: 0,
     ClienteId: 0,
-    CLienteDescripcion:"",
-    ContratoDesde:"",
-    ContratoHasta:"",
-    ObjetivoDomicilioId:0,ObjetivoDomicilioDomCalle: "",ObjetivoDomicilioDomNro:0, ObjetivoDomicilioCodigoPostal: 0,ObjetivoDomicilioDomLugar:null,
-    ObjetivoDomicilioProvinciaId: null, ObjetivoDomicilioLocalidadId: null, ObjetivoDomicilioBarrioId: null,
+    ObjetivoId:0,
+    Descripcion:"",
+    SucursalId:0,
+    ContratoFechaDesde:"",
+    ContratoFechaHasta:"",
+    ClienteElementoDependienteDomicilioId:0,ClienteElementoDependienteDomicilioDomCalle: "",
+    ClienteElementoDependienteDomicilioDomNro:0, ClienteElementoDependienteDomicilioCodigoPostal: 0,ClienteElementoDependienteDomicilioDomLugar:null,
+    ClienteElementoDependienteDomicilioProvinciaId: null,ClienteElementoDependienteDomicilioLocalidadId: null, ClienteElementoDependienteDomicilioBarrioId: null,
     infoCoordinadorContacto: this.fb.array([this.fb.group({ ...this.objCoordinadorCuenta })]), estado: 0,
   })
 
@@ -95,11 +99,11 @@ export class ObjetivosFormComponent {
   }
 
   ngOnInit() {
-    this.formCli.controls['ObjetivoDomicilioProvinciaId'].valueChanges.subscribe(event => {
-      this.formCli.patchValue({ObjetivoDomicilioLocalidadId:null})
+    this.formCli.controls['ClienteElementoDependienteDomicilioProvinciaId'].valueChanges.subscribe(event => {
+      this.formCli.patchValue({ClienteElementoDependienteDomicilioLocalidadId:null})
     });
-    this.formCli.controls['ObjetivoDomicilioLocalidadId'].valueChanges.subscribe(event => {
-      this.formCli.patchValue({ObjetivoDomicilioBarrioId:null})
+    this.formCli.controls['ClienteElementoDependienteDomicilioLocalidadId'].valueChanges.subscribe(event => {
+      this.formCli.patchValue({ClienteElementoDependienteDomicilioBarrioId:null})
     });
 
 
@@ -124,29 +128,30 @@ export class ObjetivosFormComponent {
 
 
   async load() {
+console.log("paso")
+    let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
+    console.log(infoObjetivo)
+    this.infoCoordinadorContacto().clear()
+    infoObjetivo.infoCoordinadorCuenta.forEach((obj: any) => {
+      this.infoCoordinadorContacto().push(this.fb.group({ ...this.objCoordinadorCuenta }))
+    });
 
-    let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId()))
-    // this.infoCoordinadorContacto().clear()
-    // infoCliente.infoClienteContacto.forEach((obj: any) => {
-    //   this.infoCoordinadorContacto().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-    // });
-
-    // if (this.ObjetivoId()) {
-    //   this.infoCoordinadorContacto().enable()
-    //   if(infoCliente.infoClienteContacto.length == 0)
-    //     this.infoCoordinadorContacto().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-    // } else {
-    //   this.infoCoordinadorContacto().disable()
-    // }
-    // setTimeout(() => {
-    //   this.formCli.reset(infoCliente)
-    //   this.formCli.patchValue({
-    //     ObjetivoDomicilioProvinciaId: infoCliente.ClienteDomicilioProvinciaId,
-    //     ObjetivoDomicilioLocalidadId: infoCliente.ClienteDomicilioLocalidadId,
-    //     ObjetivoDomicilioBarrioId: infoCliente.ClienteDomicilioBarrioId,
-    //   });
+    if (this.ObjetivoId()) {
+      this.infoCoordinadorContacto().enable()
+      if(infoObjetivo.infoCoordinadorCuenta.length == 0)
+        this.infoCoordinadorContacto().push(this.fb.group({ ...this.objCoordinadorCuenta }))
+    } else {
+      this.infoCoordinadorContacto().disable()
+    }
+    setTimeout(() => {
+      this.formCli.reset(infoObjetivo)
+      this.formCli.patchValue({
+        ClienteElementoDependienteDomicilioProvinciaId: infoObjetivo.ClienteElementoDependienteDomicilioProvinciaId,
+        ClienteElementoDependienteDomicilioLocalidadId: infoObjetivo.ClienteElementoDependienteDomicilioLocalidadId,
+        ClienteElementoDependienteDomicilioBarrioId: infoObjetivo.ClienteElementoDependienteDomicilioBarrioId,
+      });
   
-    // }, 100);
+    }, 100);
     // { }
   }
 

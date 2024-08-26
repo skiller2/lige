@@ -4,14 +4,14 @@
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cliente</nz-form-label>
     <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
-      <app-cliente-search formControlName="clienteId" />
+      <app-cliente-search formControlName="ClienteId" (valueExtendedChange)="this.formCli.patchValue({ClienteId:$event.ClienteId})"/>
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Descrpcion</nz-form-label>
     <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="8">
-      <input nz-input placeholder="" formControlName="CLienteDescripcion" type="string" />
+      <input nz-input placeholder="" formControlName="Descripcion" type="string" />
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Sucursal</nz-form-label>
@@ -34,7 +34,7 @@
       <nz-date-picker
       [nzShowTime]="{ nzFormat: 'HH:mm' }"
       nzFormat="yyyy-MM-dd HH:mm"
-      formControlName="ContratoDesde"
+      formControlName="ContratoFechaDesde"
       (ngModelChange)="onChangePeriodo($event)"
     ></nz-date-picker>
     </nz-form-control>
@@ -45,7 +45,7 @@
       <nz-date-picker
       [nzShowTime]="{ nzFormat: 'HH:mm' }"
       nzFormat="yyyy-MM-dd HH:mm"
-      formControlName="ContratoHasta"
+      formControlName="ContratoFechaHasta"
       (ngModelChange)="onChangePeriodo($event)"
     ></nz-date-picker>
     </nz-form-control>
@@ -57,19 +57,19 @@
 <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Dirección Calle</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
-      <input nz-input placeholder="" formControlName="ObjetivoDomicilioDomCalle" type="text" />
+      <input nz-input placeholder="" formControlName="ClienteElementoDependienteDomicilioDomCalle" type="text" />
     </nz-form-control>
 
   <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">Nro</nz-form-label>
   <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
-    <input nz-input placeholder="" formControlName="ObjetivoDomicilioDomNro" type="text" />
+    <input nz-input placeholder="" formControlName="ClienteElementoDependienteDomicilioDomNro" type="text" />
   </nz-form-control>
 </nz-form-item>
 
 <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Complemento</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
-      <input nz-input placeholder="" formControlName="ObjetivoDomicilioDomLugar" type="text" />
+      <input nz-input placeholder="" formControlName="ClienteElementoDependienteDomicilioDomLugar" type="text" />
     </nz-form-control>
 
     
@@ -79,12 +79,12 @@
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cod Postal </nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <input nz-input placeholder="" formControlName="ObjetivoDomicilioCodigoPostal" type="text" />
+      <input nz-input placeholder="" formControlName="ClienteElementoDependienteDomicilioCodigoPostal" type="text" />
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Provincia</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <nz-select  formControlName="ObjetivoDomicilioProvinciaId" nzPlaceHolder="Provincia" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
+      <nz-select  formControlName="ClienteElementoDependienteDomicilioProvinciaId" nzPlaceHolder="Provincia" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
         <ng-container *ngFor="let option of $optionsProvincia | async " >
           <nz-option [nzValue]="option.ProvinciaId" [nzLabel]="option.ProvinciaDescripcion" ></nz-option>
         </ng-container>
@@ -95,18 +95,18 @@
 <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Localidad</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <nz-select formControlName="ObjetivoDomicilioLocalidadId" nzPlaceHolder="Localidad" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
+      <nz-select formControlName="ClienteElementoDependienteDomicilioLocalidadId" nzPlaceHolder="Localidad" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
         <ng-container *ngFor="let option of $optionsLocalidad | async " >
-          <nz-option *ngIf="option.ProvinciaId == formCli.value.ObjetivoDomicilioProvinciaId"  [nzValue]="option.LocalidadId" [nzLabel]="option.localidadDescripcion" ></nz-option>
+          <nz-option *ngIf="option.ProvinciaId == formCli.value.ClienteElementoDependienteDomicilioProvinciaId"  [nzValue]="option.LocalidadId" [nzLabel]="option.localidadDescripcion" ></nz-option>
         </ng-container>
       </nz-select>
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Barrio</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <nz-select formControlName="ObjetivoDomicilioBarrioId" nzPlaceHolder="Barrio" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
+      <nz-select formControlName="ClienteElementoDependienteDomicilioBarrioId" nzPlaceHolder="Barrio" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
         <ng-container *ngFor="let option of $optionsBarrio | async " >
-          <nz-option *ngIf="option.ProvinciaId == formCli.value.ObjetivoDomicilioProvinciaId && option.LocalidadId == formCli.value.ObjetivoDomicilioLocalidadId " [nzValue]="option.BarrioId" [nzLabel]="option.BarrioDescripcion" ></nz-option>
+          <nz-option *ngIf="option.ProvinciaId == formCli.value.ClienteElementoDependienteDomicilioProvinciaId && option.LocalidadId == formCli.value.ClienteElementoDependienteDomicilioLocalidadId " [nzValue]="option.BarrioId" [nzLabel]="option.BarrioDescripcion" ></nz-option>
         </ng-container>
       </nz-select>
     </nz-form-control>
@@ -124,14 +124,14 @@
     <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Persona </nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="6">
       <nz-input-group style="width: 100%" nzSearch>
-        <app-personal-search name="PersonalId"/>
+        <app-personal-search name="PersonaId"  (valueExtendedChange)="this.formCli.patchValue({infoCoordinadorContacto:$event.infoCoordinadorContacto.PersonaId})"/>
       </nz-input-group>
     </nz-form-control>
 
-    <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Porcentaje </nz-form-label>
+    <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Comision </nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
       <nz-input-group style="width: 100%" nzSearch>
-        <input nz-input placeholder="" formControlName="Porcentaje" type="number" />
+        <input nz-input placeholder="" formControlName="ObjetivoPersonalJerarquicoComision" type="number" />
       </nz-input-group>
     </nz-form-control>
 

@@ -682,9 +682,9 @@ export class SearchService {
   }
 
   
-  getInfoObj(objetivo: number){
+  getInfoObj(objetivo: number,ClienteId:any,ClienteElementoDependienteId:any){
     return this.http
-      .get<ResponseJSON<any>>(`api/clientes/infoObjetivo/${objetivo}`)
+      .get<ResponseJSON<any>>(`api/objetivos/infObjetivo/${objetivo}/${ClienteId}/${ClienteElementoDependienteId}`)
       .pipe(
         map(res => res.data),
         catchError(() => of([]))

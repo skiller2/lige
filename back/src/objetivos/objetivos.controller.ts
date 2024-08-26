@@ -5,8 +5,8 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { QueryResult } from "typeorm";
 
 const getOptions: any[] = [
-    { label: 'Si', value: 'S' },
-    { label: 'No', value: 'N' },
+    { label: 'Si', value: 'True' },
+    { label: 'No', value: 'False' },
     { label: 'Indeterminado', value: null }
   ]
 
@@ -208,4 +208,118 @@ export class ObjetivosController extends BaseController {
     async getDescuento(req, res) {
         this.jsonRes(getOptions, res);
       }
+
+    async infObjetivo(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            await queryRunner.startTransaction()
+            const ObjetivoId = req.params.ObjetivoId
+            const ClienteId = req.params.ClienteId
+            const ClienteElementoDependienteId = req.params.ClienteElementoDependienteId
+            let infObjetivo = await this.getObjetivoQuery(queryRunner, ObjetivoId,ClienteId,ClienteElementoDependienteId)
+            let infoCoordinadorCuenta = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
+
+            infObjetivo = infObjetivo[0]
+            infObjetivo.infoCoordinadorCuenta = infoCoordinadorCuenta
+
+            await queryRunner.commitTransaction()
+            return this.jsonRes(infObjetivo, res)
+        } catch (error) {
+            this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+    
+
+    async getCoordinadorCuentaQuery(queryRunner: any, ObjetivoId: any) {
+        return await queryRunner.query(`SELECT
+                ObjetivoId,
+                ObjetivoPersonalJerarquicoId,
+                ObjetivoPersonalJerarquicoPersonalId as PersonaId,
+                ObjetivoPersonalJerarquicoComision,
+                ObjetivoPersonalJerarquicoDescuentos FROM ObjetivoPersonalJerarquico
+
+                WHERE 
+                ObjetivoPersonalJerarquicoComo = 'C' 
+                AND ObjetivoId = @0`,
+            [ObjetivoId])
+    }
+
+
+    async getObjetivoQuery(queryRunner: any, ObjetivoId: any, ClienteId:any,ClienteElementoDependienteId: any) {
+        const fechaActual = new Date()
+        const anio = fechaActual.getFullYear()
+        const mes = fechaActual.getMonth()+1
+        return await queryRunner.query(`SELECT obj.ObjetivoId
+            ,obj.ObjetivoId AS id
+            ,obj.ClienteId
+            ,obj.ClienteElementoDependienteId
+            ,ISNULL(eledep.ClienteElementoDependienteDescripcion, cli.ClienteDenominacion) AS Descripcion
+            ,suc.SucursalDescripcion
+            ,suc.SucursalId
+            ,ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde, clicon.ClienteContratoFechaDesde) AS ContratoFechaDesde
+            ,ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta, clicon.ClienteContratoFechaHasta) AS ContratoFechaHasta
+            ,domcli.ClienteElementoDependienteDomicilioDomCalle
+            ,domcli.ClienteElementoDependienteDomicilioDomNro
+            ,domcli.ClienteElementoDependienteDomicilioCodigoPostal
+            ,domcli.ClienteElementoDependienteDomicilioPaisId
+            ,domcli.ClienteElementoDependienteDomicilioProvinciaId
+            ,domcli.ClienteElementoDependienteDomicilioLocalidadId
+            ,domcli.ClienteElementoDependienteDomicilioBarrioId
+            ,domcli.ClienteElementoDependienteDomicilioDomLugar
+        FROM Objetivo obj
+        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId
+            AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+        LEFT JOIN (
+            SELECT cc.ClienteId
+                ,MAX(cc.ClienteContratoId) AS ClienteContratoId
+            FROM ClienteContrato cc
+            WHERE EOMONTH(DATEFROMPARTS(@3, @4, 1)) >= cc.ClienteContratoFechaDesde
+                AND ISNULL(cc.ClienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@3,  @4, 1)
+                AND ISNULL(cc.ClienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@3,  @4, 1)
+            GROUP BY cc.ClienteId
+            ) clicon2 ON clicon2.ClienteId = cli.ClienteId
+            AND obj.ClienteElementoDependienteId IS NULL
+        LEFT JOIN (
+            SELECT ec.ClienteId
+                ,ec.ClienteElementoDependienteId
+                ,MAX(ec.ClienteElementoDependienteContratoId) AS ClienteElementoDependienteContratoId
+            FROM ClienteElementoDependienteContrato ec
+            WHERE EOMONTH(DATEFROMPARTS(@3, @4, 1)) >= ec.ClienteElementoDependienteContratoFechaDesde
+                AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@3, @4, 1)
+                AND ISNULL(ec.ClienteElementoDependienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@3,  @4, 1)
+            GROUP BY ec.ClienteId
+                ,ec.ClienteElementoDependienteId
+            ) eledepcon2 ON eledepcon2.ClienteId = obj.ClienteId
+            AND eledepcon2.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+        LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId
+            AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+            AND eledepcon.ClienteElementoDependienteContratoId = eledepcon2.ClienteElementoDependienteContratoId
+        LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId
+            AND clicon.ClienteContratoId = clicon2.ClienteContratoId
+        LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId, cli.ClienteSucursalId)
+        LEFT JOIN (
+            SELECT TOP 1 domcli.ClienteId
+                ,domcli.ClienteElementoDependienteId
+                ,domcli.ClienteElementoDependienteDomicilioDomCalle
+                ,domcli.ClienteElementoDependienteDomicilioDomNro
+                ,domcli.ClienteElementoDependienteDomicilioCodigoPostal
+                ,domcli.ClienteElementoDependienteDomicilioPaisId
+                ,domcli.ClienteElementoDependienteDomicilioProvinciaId
+                ,domcli.ClienteElementoDependienteDomicilioLocalidadId
+                ,domcli.ClienteElementoDependienteDomicilioBarrioId
+                ,domcli.ClienteElementoDependienteDomicilioDomLugar
+            FROM ClienteElementoDependienteDomicilio AS domcli
+            WHERE domcli.ClienteId = @1
+                AND domcli.ClienteElementoDependienteId = @2
+            ORDER BY domcli.ClienteElementoDependienteDomicilioId DESC
+            ) AS domcli ON domcli.ClienteId = cli.ClienteId
+            AND domcli.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+        WHERE obj.ObjetivoId = @0;`,
+            [ObjetivoId,ClienteId,ClienteElementoDependienteId,anio,mes])
+    }
 }

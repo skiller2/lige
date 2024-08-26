@@ -44,6 +44,8 @@ export class ObjetivosComponent {
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
   editObjetivoId = 0;
+  editClienteId = 0
+  editClienteElementoDependienteId = 0
   edit : boolean = false
   addNew = false
   excelExportService = new ExcelExportService()
@@ -96,8 +98,12 @@ export class ObjetivosComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
-    if (row?.id)
-      this.editObjetivoId = row.id
+    if (row?.id){
+      this.editObjetivoId = row.ObjetivoId
+      this.editClienteId = row.ClienteId
+      this.editClienteElementoDependienteId = row.ClienteElementoDependienteId
+    }
+    
 
   }
 
