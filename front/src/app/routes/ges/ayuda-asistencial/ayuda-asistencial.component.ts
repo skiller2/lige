@@ -1,4 +1,4 @@
-import { Component, Injector, viewChild, inject, signal } from '@angular/core';
+import { Component, Injector, viewChild, inject, signal, model, computed } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS,listOptionsT } from '@shared';
 import { AngularGridInstance, AngularUtilService, Column, Editors, FileType, GridOption, OnEventArgs, SlickGrid } from 'angular-slickgrid';
@@ -34,6 +34,7 @@ export class AyudaAsistencialComponent {
     loadingRec = signal(false)
     loadingApr = signal(false)
     loadingCuo = signal(false)
+    refresh = signal(0)
     visibleDrawer : boolean = false
     selectedPeriod = { year: 0, month: 0 };
     angularGrid!: AngularGridInstance;
@@ -51,6 +52,12 @@ export class AyudaAsistencialComponent {
     private searchService = inject(SearchService)
     private angularUtilService = inject(AngularUtilService)
     private settingService = inject(SettingsService)
+
+    conditional = computed(async () => {
+        if (this.refresh()) {
+            this.formChange('')
+        }
+    });
 
     columns$ = this.apiService.getCols('/api/ayuda-asistencial/cols').pipe(map((cols) => {
         let mapped = cols.map((col: Column) => {

@@ -10,8 +10,8 @@ const optionsSelect: any[] = [
 ]
 
 const getOptions: any[] = [
-    { label: 'Si', value: '1' },
-    { label: 'No', value: '0' }
+  { label: 'Si', value: '1' },
+  { label: 'No', value: '0' }
 ]
 
 
@@ -129,7 +129,7 @@ const columnsAyudaAsistencial: any[] = [
       fieldName: "pres.PersonalPrestamoAplicaEl",
       searchType: "string",
       sortable: true,
-      searchHidden: true
+      searchHidden: false
     },
     {
       id: "PersonalPrestamoCantidadCuotas",
@@ -150,6 +150,16 @@ const columnsAyudaAsistencial: any[] = [
       fieldName: "pres.PersonalPrestamoMonto",
       sortable: true,
       searchHidden: false,
+      hidden: false,
+    },
+    {
+      id: "PersonalPrestamoUltimaLiquidacion",
+      name: "Ultima Liquidacion",
+      field: "PersonalPrestamoUltimaLiquidacion",
+      type: "string",
+      fieldName: "pres.PersonalPrestamoUltimaLiquidacion",
+      sortable: true,
+      searchHidden: true,
       hidden: false,
     },
     {
@@ -300,7 +310,7 @@ export class AyudaAsistencialController extends BaseController {
       SELECT DISTINCT CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
       pres.PersonalPrestamoDia, IIF(pres.PersonalPrestamoAprobado='S', pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
-      IIF(LEN(pres.PersonalPrestamoUltimaLiquidacion)>0, SUBSTRING(pres.PersonalPrestamoUltimaLiquidacion, 1, 7), pres.PersonalPrestamoAplicaEl) PersonalPrestamoAplicaEl,
+      pres.PersonalPrestamoUltimaLiquidacion, pres.PersonalPrestamoAplicaEl,
       form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
       pres.PersonalPrestamoAprobado,
       sit.SituacionRevistaDescripcion 
@@ -776,7 +786,7 @@ export class AyudaAsistencialController extends BaseController {
       
       let list = await queryRunner.query(
         `SELECT TOP 5 pre.PersonalPrestamoMonto, pre.PersonalPrestamoDia, pre.PersonalPrestamoFechaAprobacion,
-        pre.PersonalPrestamoAplicaEl, pre.PersonalPrestamoAprobado, TRIM(form.FormaPrestamoDescripcion) FormaPrestamoDescripcion
+        pre.PersonalPrestamoUltimaLiquidacion, pre.PersonalPrestamoAprobado, TRIM(form.FormaPrestamoDescripcion) FormaPrestamoDescripcion
         FROM PersonalPrestamo pre
         LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pre.FormaPrestamoId
         WHERE pre.PersonalId = @0
