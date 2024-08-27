@@ -76,6 +76,7 @@ export class ObjetivosFormComponent {
     SucursalId:0,
     ContratoFechaDesde:"",
     ContratoFechaHasta:"",
+    ClienteElementoDependienteContratoId:0,
     ClienteElementoDependienteDomicilioId:0,ClienteElementoDependienteDomicilioDomCalle: "",
     ClienteElementoDependienteDomicilioDomNro:0, ClienteElementoDependienteDomicilioCodigoPostal: 0,ClienteElementoDependienteDomicilioDomLugar:null,
     ClienteElementoDependienteDomicilioProvinciaId: null,ClienteElementoDependienteDomicilioLocalidadId: null, ClienteElementoDependienteDomicilioBarrioId: null,

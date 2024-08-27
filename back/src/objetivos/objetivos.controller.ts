@@ -3,6 +3,7 @@ import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { QueryResult } from "typeorm";
+import { AnyError } from "typeorm/browser";
 
 const getOptions: any[] = [
     { label: 'Si', value: 'True' },
@@ -262,6 +263,7 @@ export class ObjetivosController extends BaseController {
             ,suc.SucursalId
             ,ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde, clicon.ClienteContratoFechaDesde) AS ContratoFechaDesde
             ,ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta, clicon.ClienteContratoFechaHasta) AS ContratoFechaHasta
+            ,eledepcon.ClienteElementoDependienteContratoId
             ,domcli.ClienteElementoDependienteDomicilioDomCalle
             ,domcli.ClienteElementoDependienteDomicilioDomNro
             ,domcli.ClienteElementoDependienteDomicilioCodigoPostal
@@ -270,6 +272,7 @@ export class ObjetivosController extends BaseController {
             ,domcli.ClienteElementoDependienteDomicilioLocalidadId
             ,domcli.ClienteElementoDependienteDomicilioBarrioId
             ,domcli.ClienteElementoDependienteDomicilioDomLugar
+            ,domcli.ClienteElementoDependienteDomicilioId
         FROM Objetivo obj
         LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
         LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId
@@ -303,7 +306,8 @@ export class ObjetivosController extends BaseController {
             AND clicon.ClienteContratoId = clicon2.ClienteContratoId
         LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId, cli.ClienteSucursalId)
         LEFT JOIN (
-            SELECT TOP 1 domcli.ClienteId
+            SELECT TOP 1 domcli.ClienteElementoDependienteDomicilioId
+                ,domcli.ClienteId
                 ,domcli.ClienteElementoDependienteId
                 ,domcli.ClienteElementoDependienteDomicilioDomCalle
                 ,domcli.ClienteElementoDependienteDomicilioDomNro
@@ -335,14 +339,35 @@ export class ObjetivosController extends BaseController {
             const ObjetivoId = Number(req.params.id)
             const Obj =  {...req.body[0]}
 
+            console.log("voy a hacer update ", Obj)
+
             //validaciones
 
-            await this.FormValidations(Obj)
+            //await this.FormValidations(Obj)
 
             const ClienteFechaAlta = new Date(Obj.ClienteFechaAlta)
             ClienteFechaAlta.setHours(0, 0, 0, 0)
 
             //update
+
+
+            await this.updateContratoTable(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.ClienteElementoDependienteContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
+
+            await this.updateObjetivoDomicilioTable(
+                 queryRunner
+                ,Obj.ClienteId
+                ,Obj.ClienteElementoDependienteId
+                ,Obj.ClienteElementoDependienteDomicilioId
+                ,Obj.ClienteElementoDependienteDomicilioDomCalle
+                ,Obj.ClienteElementoDependienteDomicilioDomNro
+                ,Obj.ClienteElementoDependienteDomicilioCodigoPostal
+                ,Obj.ClienteElementoDependienteDomicilioProvinciaId 
+                ,Obj.ClienteElementoDependienteDomicilioLocalidadId 
+                ,Obj.ClienteElementoDependienteDomicilioBarrioId
+                ,Obj.ClienteElementoDependienteDomicilioDomLugar)
+
+            await this.updateClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.SucursalId,Obj.SucursalDescripcion)    
+
             // let ClienteAdministradorId = null
 
             // if (ObjCliente.AdministradorId != null && ObjCliente.AdministradorId != "")
@@ -363,20 +388,7 @@ export class ObjetivosController extends BaseController {
             // }
 
             // await this.updateClienteTable(queryRunner,ClienteId,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion,ClienteFechaAlta,ClienteAdministradorId)
-            // await this.updateFacturaTable(queryRunner,ClienteId,ObjCliente.ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.ClienteCondicionAnteIVAId)
-            
-            // await this.updateClienteDomicilioTable(
-            //      queryRunner
-            //     ,ClienteId
-            //     ,ObjCliente.ClienteDomicilioId
-            //     ,ObjCliente.ClienteDomicilioDomCalle
-            //     ,ObjCliente.ClienteDomicilioDomNro
-            //     ,ObjCliente.ClienteDomicilioCodigoPostal
-            //     ,ObjCliente.ClienteDomicilioProvinciaId 
-            //     ,ObjCliente.ClienteDomicilioLocalidadId 
-            //     ,ObjCliente.ClienteDomicilioBarrioId
-            //     ,ObjCliente.ClienteDomicilioDomLugar)
-               
+            // await this.updateFacturaTable(queryRunner,ClienteId,ObjCliente.ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.ClienteCondicionAnteIVAId)   
 
             
             //ACA SE EVALUA Y SE ELIMINA EL CASO QUE SE BORRE ALGUN REGISTRO DE CLIENTE CONTACTO EXISTENTE
@@ -440,6 +452,71 @@ export class ObjetivosController extends BaseController {
         }
     }
 
+    async updateClienteElementoDependiente(
+        queryRunner: any,
+        ClienteId: number,
+        ClienteElementoDependienteId:any,
+        SucursalId:any, 
+        SucursalDescripcion:any
+    ) {
+
+        return await queryRunner.query(`
+            UPDATE ClienteElementoDependiente
+            SET ClienteElementoDependienteSucursalId = @2, ClienteElementoDependienteDescripcion = @3,ClienteId =@4
+            WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
+            [ClienteId,ClienteElementoDependienteId,SucursalId,SucursalDescripcion,ClienteId])
+    }
+
+    async updateContratoTable(queryRunner: any, 
+        ClienteId:any, 
+        ClienteElementoDependienteId:any,
+        ClienteElementoDependienteContratoId:any,
+        ClienteElementoDependienteContratoFechaDesde:any,
+        ClienteElementoDependienteContratoFechaHasta:any
+    ) {
+
+        const FechaDesde = new Date(ClienteElementoDependienteContratoFechaDesde)
+        FechaDesde.setHours(0, 0, 0, 0)
+
+        const FechaHasta = new Date(ClienteElementoDependienteContratoFechaHasta)
+        FechaHasta.setHours(0, 0, 0, 0)
+
+        return await queryRunner.query(`
+            UPDATE ClienteElementoDependienteContrato
+            SET ClienteElementoDependienteContratoFechaDesde = @3, ClienteElementoDependienteContratoFechaHasta @4
+            WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND ClienteElementoDependienteContratoId = @2`,
+            [ClienteId,ClienteElementoDependienteId,ClienteElementoDependienteContratoId,FechaDesde, FechaHasta])
+    }
+
+
+    async updateObjetivoDomicilioTable(
+        queryRunner: any
+       ,ClienteId: number
+       ,ClienteElementoDependienteId:any
+       ,ClienteElementoDependienteDomicilioId: number
+       ,ClienteElementoDependienteDomicilioDomCalle: string
+       ,ClienteElementoDependienteDomicilioDomNro: string
+       ,ClienteElementoDependienteDomicilioCodigoPostal: string
+       ,ClienteElementoDependienteDomicilioProvinciaId: any
+       ,ClienteElementoDependienteDomicilioLocalidadId: any
+       ,ClienteElementoDependienteDomicilioBarrioId: any
+       ,ClienteElementoDependienteDomicilioDomLugar:any){
+
+       await queryRunner.query(`UPDATE ClienteElementoDependienteDomicilio
+       SET ClienteElementoDependienteDomicilioDomCalle = @2,ClienteElementoDependienteDomicilioDomNro = @3, ClienteElementoDependienteDomicilioCodigoPostal = @4, 
+       ClienteElementoDependienteDomicilioProvinciaId = @5,ClienteElementoDependienteDomicilioLocalidadId = @6,ClienteElementoDependienteDomicilioBarrioId = @7,
+       ClienteElementoDependienteDomicilioDomLugar=@8
+       WHERE ClienteId = @0 AND ClienteDomicilioId = @1 AND ClienteElementoDependienteId = @9`,[
+           ClienteId,
+           ClienteElementoDependienteDomicilioId,
+           ClienteElementoDependienteDomicilioDomCalle,
+           ClienteElementoDependienteDomicilioDomNro,
+           ClienteElementoDependienteDomicilioCodigoPostal,
+           ClienteElementoDependienteDomicilioProvinciaId,ClienteElementoDependienteDomicilioLocalidadId,
+           ClienteElementoDependienteDomicilioBarrioId,ClienteElementoDependienteDomicilioDomLugar,ClienteElementoDependienteId
+        ])
+    }
+
 
     async FormValidations(form:any){
     
@@ -490,7 +567,7 @@ export class ObjetivosController extends BaseController {
 
         // Coordinador de cuenta
 
-         for(const obj of form.infoCoordinadorCuenta){
+         for(const obj of form.infoCoordinadorContacto){
 
             if(!obj.PersonaId) {
                 throw new ClientException(`El campo Nombre en cliente contacto NO pueden estar vacio.`)
