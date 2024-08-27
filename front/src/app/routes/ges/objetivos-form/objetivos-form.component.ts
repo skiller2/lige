@@ -48,7 +48,7 @@ export class ObjetivosFormComponent {
   objCoordinadorCuenta = { 
     PersonaId:0,
     ObjetivoPersonalJerarquicoComision: 0, 
-    Descuento:"",
+    ObjetivoPersonalJerarquicoDescuentos:false,
   }
 
   edit = model(true)
@@ -80,7 +80,7 @@ export class ObjetivosFormComponent {
     ClienteElementoDependienteDomicilioId:0,ClienteElementoDependienteDomicilioDomCalle: "",
     ClienteElementoDependienteDomicilioDomNro:0, ClienteElementoDependienteDomicilioCodigoPostal: 0,ClienteElementoDependienteDomicilioDomLugar:null,
     ClienteElementoDependienteDomicilioProvinciaId: null,ClienteElementoDependienteDomicilioLocalidadId: null, ClienteElementoDependienteDomicilioBarrioId: null,
-    infoCoordinadorContacto: this.fb.array([this.fb.group({ ...this.objCoordinadorCuenta })]), estado: 0,
+    infoCoordinadorCuenta: this.fb.array([this.fb.group({ ...this.objCoordinadorCuenta })]), estado: 0,
   })
 
  
@@ -121,7 +121,7 @@ export class ObjetivosFormComponent {
       if (this.edit()) {
         this.formCli.enable()
       } else{
-       
+        this.formCli.disable()
       }
     }, { injector: this.injector });
 
@@ -130,19 +130,20 @@ export class ObjetivosFormComponent {
 
   async load() {
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
-    console.log(infoObjetivo)
-    this.infoCoordinadorContacto().clear()
+    this.infoCoordinadorCuenta().clear()
     infoObjetivo.infoCoordinadorCuenta.forEach((obj: any) => {
-      this.infoCoordinadorContacto().push(this.fb.group({ ...this.objCoordinadorCuenta }))
+      this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
     });
+  
+    if(infoObjetivo.infoCoordinadorCuenta.length == 0)
+      this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
+    
+    if (this.formCli.disabled)
+      this.infoCoordinadorCuenta().disable()
+    else 
+      this.infoCoordinadorCuenta().enable()
 
-    if (this.ObjetivoId()) {
-      this.infoCoordinadorContacto().enable()
-      if(infoObjetivo.infoCoordinadorCuenta.length == 0)
-        this.infoCoordinadorContacto().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-    } else {
-      this.infoCoordinadorContacto().disable()
-    }
+
     setTimeout(() => {
       this.formCli.reset(infoObjetivo)
       this.formCli.patchValue({
@@ -182,22 +183,22 @@ export class ObjetivosFormComponent {
     this.isLoading.set(false)
 }
 
-infoCoordinadorContacto(): FormArray {
-    return this.formCli.get("infoCoordinadorContacto") as FormArray
+infoCoordinadorCuenta(): FormArray {
+    return this.formCli.get("infoCoordinadorCuenta") as FormArray
   }
 
   addClienteContacto(e?: MouseEvent): void {
 
     e?.preventDefault();
-    this.infoCoordinadorContacto().push(this.fb.group({ ...this.objCoordinadorCuenta }))
+    this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
     
   }
 
   removeClienteContacto(index: number, e: MouseEvent): void {
 
     e.preventDefault();
-    if (this.infoCoordinadorContacto().length > 1 ) {
-      this.infoCoordinadorContacto().removeAt(index)
+    if (this.infoCoordinadorCuenta().length > 1 ) {
+      this.infoCoordinadorCuenta().removeAt(index)
     }
   }
 
