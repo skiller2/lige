@@ -35,6 +35,7 @@
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
       <nz-tab>
         <a nz-tab-link routerLink="/ges/ayuda_asistencial/listado">Listado</a>
+        @if (conditional()|async) {}
         <ng-template nz-tab *ngIf="(columns$|async) as columnas">
           <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"/>
           <div class="gridContainer container-fluid">
@@ -52,4 +53,4 @@
   </form>
 
 </nz-card>
-<app-ayuda-asistencial-drawer [tituloDrawer] = "tituloDrawer" [(visible)]="visibleDrawer"></app-ayuda-asistencial-drawer>
+<app-ayuda-asistencial-drawer [tituloDrawer] = "tituloDrawer" [(visible)]="visibleDrawer" [(refresh)]="refresh"></app-ayuda-asistencial-drawer>

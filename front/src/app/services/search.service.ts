@@ -262,7 +262,7 @@ export class SearchService {
         })
       );
   }
-  
+
   getSucursales(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/sucursales`).pipe(
       map(res => res.data),
@@ -681,6 +681,16 @@ export class SearchService {
       );
   }
 
+  
+  getInfoObj(objetivo: number,ClienteId:any,ClienteElementoDependienteId:any){
+    return this.http
+      .get<ResponseJSON<any>>(`api/objetivos/infObjetivo/${objetivo}/${ClienteId}/${ClienteElementoDependienteId}`)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
   getInfoObjCliente(objClienteId: number){
     return this.http
       .get<ResponseJSON<any>>(`api/clientes/infoCliente/${objClienteId}`)
@@ -721,6 +731,15 @@ export class SearchService {
     );
   }
 
+  getDescuento(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/objetivos/getDescuento`).pipe(
+      map(res =>  res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
 
   getProvincia(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getProvincia`).pipe(

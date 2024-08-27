@@ -13,8 +13,8 @@
     </ul>
   
     <nz-button-group >
-      <a [routerLink]="['/', 'ges', 'objetivos','objetivos']" (click)="setEdit(true)">
-        <button nz-button nzType="default" [disabled]="editClienteId? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+      <a [routerLink]="['/', 'ges', 'objetivos','detalle']" (click)="setEdit(true)">
+        <button nz-button nzType="default" [disabled]="editObjetivoId? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
       </a>
       <a [routerLink]="['/', 'ges', 'objetivos','alta']" (click)="setEdit(false)">
         <button nz-button nzType="default" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
@@ -26,7 +26,6 @@
   
       <nz-tab>
         <a nz-tab-link routerLink="/ges/objetivos/objetivos" >Objetivos</a>
-        estoy
         <ng-template nz-tab *ngIf="(columns$|async) as columnas">
           <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters" />
   
@@ -41,12 +40,12 @@
   
       <nz-tab>
         <a nz-tab-link routerLink="/ges/objetivos/detalle" >Detalle</a>
-        <!-- <app-clientes-form [ClienteId]="editClienteId" [edit]="edit"></app-clientes-form> -->
+         <app-objetivos-form [ObjetivoId]="editObjetivoId" [ClienteElementoDependienteId]="editClienteElementoDependienteId"  [ClienteId]="editClienteId" [edit]="edit"></app-objetivos-form>
       </nz-tab>
   
       <nz-tab> 
         <a nz-tab-link routerLink="/ges/objetivos/alta" >Alta </a>
-        <!-- <app-clientes-form [edit]="edit" [(addNew)]="addNew" ></app-clientes-form> -->
+        <app-objetivos-form [edit]="edit" [(addNew)]="addNew"></app-objetivos-form>
       </nz-tab>
   
     </nz-tabset>

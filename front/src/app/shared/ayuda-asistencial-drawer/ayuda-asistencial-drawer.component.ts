@@ -32,6 +32,7 @@ export class AyudaAsistencialDrawerComponent {
     ngForm = viewChild.required(NgForm);
     tituloDrawer = input.required<string>()
     visible = model<boolean>(false)
+    refresh = model<number>(0)
     currDate = signal(new Date())
     placement: NzDrawerPlacement = 'left';
     options: any[] = [];
@@ -39,6 +40,12 @@ export class AyudaAsistencialDrawerComponent {
 
     private apiService = inject(ApiService)
     constructor(private searchService: SearchService) { }
+
+    conditional = computed(async () => {
+        if (!this.visible()) {
+            this.ngForm().reset()
+        }
+    });
 
     formChange$ = new BehaviorSubject('');
     tableLoading$ = new BehaviorSubject(false);
@@ -67,8 +74,10 @@ export class AyudaAsistencialDrawerComponent {
         this.isSaving.set(true)
         try {
             let values = this.ngForm().value
-            // console.log('values',values);
             const res = await firstValueFrom(this.apiService.addAyudaAsistencial(values))
+            this.formChange('')
+            let ref = this.refresh()
+            this.refresh.set(++ref)
         } catch (error) {
             
         }
