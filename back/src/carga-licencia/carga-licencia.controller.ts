@@ -495,12 +495,12 @@ export class CargaLicenciaController extends BaseController {
         }
       }
 
-      if (req.body.PersonalLicenciaDesde == null)
+      if (req.body.PersonalLicenciaDesde == null || req.body.PersonalLicenciaDesde == "")
         throw new ClientException(`Debe seleccionar la fecha desde`)
 
       let PersonalLicenciaHasta
 
-      if (req.body.PersonalLicenciaHasta != null) {
+      if (req.body.PersonalLicenciaHasta != null && req.body.PersonalLicenciaHasta != "") {
         PersonalLicenciaHasta = new Date(req.body.PersonalLicenciaHasta)
         PersonalLicenciaHasta.setHours(0, 0, 0, 0)
       } else {
