@@ -659,10 +659,13 @@ export class CargaLicenciaController extends BaseController {
 
         const { PersonalSituacionRevistaId, PersonalSituacionRevistaSituacionId, PersonalSituacionRevistaMotivo, PersonalSituacionRevistaHasta, PersonalSituacionRevistaDesde } = sitrev[0]
 
-
-
-        if (PersonalLicenciaDesde <= PersonalSituacionRevistaDesde)
-          throw new ClientException('La fecha desde no puede ser menor a la fecha desde de la última situación revista')
+        if (PersonalLicenciaDesde < PersonalSituacionRevistaDesde)
+          throw new ClientException('La fecha desde no puede ser menor al desde de la última situación revista')
+        else if (PersonalLicenciaDesde.getTime() == PersonalSituacionRevistaDesde.getTime() && PersonalSituacionRevistaSituacionId != 10) {
+          console.log('procedo a borrar')
+          await queryRunner.query(`DELETE FROM PersonalSituacionRevista
+            WHERE PersonalId = @0 AND PersonalSituacionRevistaId= @1`, [PersonalId, PersonalSituacionRevistaId])
+        }
 
         PersonalLicenciaUltNro++
         await queryRunner.query(`INSERT INTO PersonalLicencia (
@@ -719,15 +722,24 @@ export class CargaLicenciaController extends BaseController {
             PersonalSituacionRevistaSituacionId])
 
         await this.UpdateDiagnosticoMedico(PersonalLicenciaDiagnosticoMedicoDiagnostico, PersonalId, PersonalLicenciaUltNro, PersonalLicenciaDesde, queryRunner)
+
+        if (PersonalSituacionRevistaId) {
+          await queryRunner.query(`UPDATE PersonalSituacionRevista
+          SET PersonalSituacionRevistaHasta = @2
+          WHERE PersonalId = @0 AND PersonalSituacionRevistaId= @1`, [PersonalId, PersonalSituacionRevistaId, this.addDays(PersonalLicenciaDesde, -1)])
+        }
+
+
         PersonalSituacionRevistaUltNro++
         await this.addSituacionRevista(queryRunner, PersonalId, PersonalSituacionRevistaUltNro, PersonalLicenciaDesde, PersonalLicenciaHasta, TipoInasistenciaDescripcion, 10)
-
-        await this.updateHastaSitucionRevistaAnterior(PersonalId, PersonalLicenciaDesde, PersonalLicenciaHasta, queryRunner)
 
         if (PersonalLicenciaHasta != null) {
           PersonalSituacionRevistaUltNro++
           await this.addSituacionRevista(queryRunner, PersonalId, PersonalSituacionRevistaUltNro, this.addDays(PersonalLicenciaHasta, 1), null, '', PersonalSituacionRevistaSituacionId)
         }
+
+
+
       }
 
 
@@ -792,7 +804,9 @@ export class CargaLicenciaController extends BaseController {
       FROM PersonalSituacionRevista
       WHERE PersonalId = @0 AND PersonalSituacionRevistaDesde <> @1 AND ISNULL(PersonalSituacionRevistaHasta,'9999-12-31') <> @2 AND PersonalSituacionRevistaSituacionId <> 10 AND PersonalSituacionRevistaDesde < @1
       ORDER BY PersonalSituacionRevistaDesde DESC`, [PersonalId, PersonalLicenciaDesde, PersonalLicenciaHasta])
+
     if (result.length > 0) {
+
       const { PersonalSituacionRevistaId } = result[0]
 
       await queryRunner.query(`UPDATE PersonalSituacionRevista
