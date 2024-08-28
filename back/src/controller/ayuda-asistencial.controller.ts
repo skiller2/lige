@@ -794,14 +794,33 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
     try {
       await queryRunner.startTransaction()
       
+      let periodo = await queryRunner.query(
+        `SELECT DATEADD(MONTH,  1,  MAX(DATEFROMPARTS(liqp.anio, liqp.mes, 1))) ultPeriodo
+        FROM lige.dbo.liqmaperiodo liqp
+        WHERE ind_recibos_generados = 1`
+      );
+      periodo = periodo[0].ultPeriodo
+      const mes = periodo.getMonth()+1
+      const anio = periodo.getFullYear()
+      
+      // let list = await queryRunner.query(
+      //   `SELECT TOP 5 pre.PersonalPrestamoMonto, pre.PersonalPrestamoDia, pre.PersonalPrestamoFechaAprobacion,
+      //   pre.PersonalPrestamoUltimaLiquidacion, pre.PersonalPrestamoAprobado, TRIM(form.FormaPrestamoDescripcion) FormaPrestamoDescripcion
+      //   FROM PersonalPrestamo pre
+      //   LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pre.FormaPrestamoId
+      //   WHERE pre.PersonalId = @0
+      //   ORDER BY pre.PersonalPrestamoDia DESC`,
+      //   [personalId]
+      // );
       let list = await queryRunner.query(
         `SELECT TOP 5 pre.PersonalPrestamoMonto, pre.PersonalPrestamoDia, pre.PersonalPrestamoFechaAprobacion,
-        pre.PersonalPrestamoUltimaLiquidacion, pre.PersonalPrestamoAprobado, TRIM(form.FormaPrestamoDescripcion) FormaPrestamoDescripcion
+        CONCAT(@2,'/',@1) PersonalPrestamoUltimaLiquidacion, pre.PersonalPrestamoAprobado, TRIM(form.FormaPrestamoDescripcion) FormaPrestamoDescripcion
         FROM PersonalPrestamo pre
         LEFT JOIN FormaPrestamo form ON form.FormaPrestamoId = pre.FormaPrestamoId
-        WHERE pre.PersonalId = @0
+        LEFT JOIN PersonalPrestamoCuota ppc ON ppc.PersonalPrestamoId = pre.PersonalPrestamoId AND ppc.PersonalId = pre.PersonalId
+        WHERE pre.PersonalId = @0 AND ppc.PersonalPrestamoCuotaAno = @1 AND ppc.PersonalPrestamoCuotaMes = @2
         ORDER BY pre.PersonalPrestamoDia DESC`,
-        [personalId]
+        [personalId,anio,mes]
       );
       list = list.map((obj:any)=>{
         let option = getOptionsPersonalPrestamoAprobado.find((option:any) => {
