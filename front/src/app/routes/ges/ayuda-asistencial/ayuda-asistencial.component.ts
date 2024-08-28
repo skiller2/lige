@@ -122,9 +122,9 @@ export class AyudaAsistencialComponent {
         this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
             editCommand.execute();
             //Verifico que los campos
-            //if (!this.valAplicaEl(item.PersonalPrestamoAplicaEl) || !item.PersonalPrestamoCantidadCuotas || !item.PersonalPrestamoMonto) {
-            //    return 
-            //}
+            if (!item.PersonalPrestamoAplicaEl || !item.PersonalPrestamoCantidadCuotas || !item.PersonalPrestamoMonto) {
+               return 
+            }
 
             try {
                 const res = await firstValueFrom(this.apiService.updateRowAyudaAsistencial(item))
@@ -233,25 +233,6 @@ export class AyudaAsistencialComponent {
             console.log(error);
         }
         this.loadingCuo.set(false)
-    }
-
-    valAplicaEl(date:string):boolean{
-        if (date == null) {
-            return false
-        }
-        if (date.length != 7) {
-            return false
-        }
-        const periodo = date.split('/')
-        if (periodo.length != 2 && (periodo[0].length != 2 || periodo[1].length != 4)) {
-            return false
-        }
-        const mes = Number.parseInt(periodo[0])
-        const anio = Number.parseInt(periodo[1])
-        if (Number.isNaN(mes) || mes > 12 || mes < 0 || Number.isNaN(anio) || anio < 0) {
-            return false
-        }
-        return true
     }
 
     openDrawer(): void {
