@@ -20,10 +20,9 @@ import { EditorTipoHoraComponent } from 'src/app/shared/editor-tipohora/editor-t
 import { EditorCategoriaComponent } from 'src/app/shared/editor-categoria/editor-categoria.component';
 import { LoadingService } from '@delon/abc/loading';
 import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
-import { toNumber } from '@delon/util';
+
 enum Busqueda {
     Sucursal,
     Objetivo,
@@ -100,15 +99,13 @@ export class CargaAsistenciaComponent {
         ]).pipe(
             map((data: any[]) => {
                 // console.log('DATA',data);
-                //this.selectedSucursalId = this.objetivoInfo?.SucursalId
-                //this.selectedSucursalId = data[1][0]?.SucursalId
                 this.gridOptionsEdit.params.SucursalId = this.selectedSucursalId
-                // const totalesHeader = this.totalesHeader()
                 this.excelExportOption.filename = `${this.selectedPeriod.year}-${this.selectedPeriod.month}-${data[2][0]?.ObjetivoCodigo}-${data[2][0]?.ObjetivoDescripcion}`
                 this.customHeaderExcel = [[{ value: `Año: ${anio}` }],
                 [{ value: `Mes: ${mes}` }],
                 [{ value: `Código: ${data[2][0]?.ObjetivoCodigo}` }],
                 [{ value: `Objetivo: ${data[2][0]?.ObjetivoDescripcion}` }],
+                [{ value: `Grupo: ${data[0][0]?.detalle}` }],
                 []]
                 
                 this.angularGridEdit.resizerService.resizeGrid();
@@ -196,7 +193,6 @@ export class CargaAsistenciaComponent {
                     alwaysSaveOnEnterKey: true,
                     // required: true
                 },
-                onCellChange: this.personChange.bind(this),
             },
             {
                 id: 'forma', name: 'Forma', field: 'forma',
@@ -584,13 +580,6 @@ export class CargaAsistenciaComponent {
         //        this.insertDB(args.dataContext.id)
     }
 
-    personChange(e: Event, args: any) {
-        //        let item = args.dataContext
-        //        item.categoria = {}
-        //        item.tipo = ''
-        //        this.angularGridEdit.gridService.updateItemById(item.id, item)
-    }
-
     editColumnSelectOptions(column: string, array: Object[], campo: string, columns: any) {
         const idColumn = this.angularGridEdit.slickGrid.getColumnIndex(column)
         const newOptions: any = array.map((cate: any) => {
@@ -797,26 +786,12 @@ export class CargaAsistenciaComponent {
         let totalHoras = 0
         const cantCeldas = 4
         const columnaInicial = 'E'
-        const fila = 4
+        const fila = 5
         //Cantidad de celdas que se van a fusionadar
         let arrayRango: any[] = []
         for (let index = 0; index < cantCeldas; index++) {
             arrayRango.push({ value: '' })
         }
-
-        // //Armar los totales de horas
-        // let grupos: any[]= this.angularGridEdit.dataView.getGroups()
-        // grupos.forEach(( obj, index, arr) => {
-        //     // if (obj.value != "Totales") {
-        //         totalHoras += obj.totals.sum.total
-        //         totalHeader = totalHeader.concat([{ value: `Horas de ${obj.value}:` }, ...arrayRango,{ value: obj.totals.sum.total },])
-        //         delete arr[index].totals.sum.total
-        //     // }
-        // })
-        // totalHeader = totalHeader.concat([{ value: `Total de Horas:`}, ...arrayRango,{ value: totalHoras }])
-        // //Sumar a la fila del encabezado los totales de horas
-        // const rowNum = this.customHeaderExcel.length-2
-        // this.customHeaderExcel[rowNum] = this.customHeaderExcel[rowNum].concat({},{},{},totalHeader)
 
         //Crear el encabezado del Excel
         this.excelExportOption.customExcelHeader = (workbook, sheet) => {
@@ -851,7 +826,12 @@ export class CargaAsistenciaComponent {
             let auxCustomHeaderExcel = [...this.customHeaderExcel]
             auxCustomHeaderExcel[rowNum] = this.customHeaderExcel[rowNum].concat({ value: '' }, { value: '' }, { value: '' }, totalHeader)
 
+            //
+            sheet.mergeCells('A1', 'B1');
+            sheet.mergeCells('A2', 'B2');
+            sheet.mergeCells('A3', 'B3');
             sheet.mergeCells('A4', 'B4');
+            sheet.mergeCells('A5', 'B5');
 
             let colA = columnaInicial
             let colB = columnaInicial
