@@ -568,7 +568,7 @@ export class CargaLicenciaController extends BaseController {
         const sitrevUpdate = await queryRunner.query(`
               SELECT sit.PersonalSituacionRevistaId, sit.PersonalSituacionRevistaDesde, sit.PersonalSituacionRevistaHasta, lic.PersonalLicenciaDesde, lic.PersonalLicenciaHasta,lic.PersonalLicenciaSituacionRevistaId
               FROM PersonalSituacionRevista sit
-              JOIN PersonalLicencia lic ON lic.PersonalLicenciaDesde = sit.PersonalSituacionRevistaDesde AND sit.PersonalId = lic.PersonalId AND ISNULL(lic.PersonalLicenciaHasta,'9999-12-31') = ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') 
+              JOIN PersonalLicencia lic ON lic.PersonalLicenciaDesde = sit.PersonalSituacionRevistaDesde AND sit.PersonalId = lic.PersonalId AND ISNULL(lic.PersonalLicenciaTermina,ISNULL(lic.PersonalLicenciaHasta,'9999-12-31')) = ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') 
               WHERE sit.PersonalId = @0 AND sit.PersonalSituacionRevistaSituacionId = 10 AND lic.PersonalLicenciaId = @1 
           `, [PersonalId, PersonalLicenciaId])
         if (sitrevUpdate.length != 1)
