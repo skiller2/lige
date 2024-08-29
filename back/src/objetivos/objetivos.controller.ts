@@ -2,6 +2,8 @@ import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+import { ClientesController } from "../clientes/clientes.controller"
+import { FileUploadController } from "../controller/file-upload.controller"
 import { QueryResult } from "typeorm";
 import { AnyError } from "typeorm/browser";
 
@@ -91,8 +93,10 @@ const listaColumnas: any[] = [
         id: "SucursalDescripcion",
         field: "SucursalDescripcion",
         fieldName: "suc.SucursalDescripcion",
+        searchComponent:"inpurForSucursalSearch",
         sortable: true,
-        searchHidden: true
+        hidden: false,
+        searchHidden: false
     },
     {
         name: "Contrato Desde",
@@ -254,77 +258,154 @@ export class ObjetivosController extends BaseController {
         const fechaActual = new Date()
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth()+1
-        return await queryRunner.query(`SELECT obj.ObjetivoId
-            ,obj.ObjetivoId AS id
-            ,obj.ClienteId
-            ,obj.ClienteElementoDependienteId
-            ,ISNULL(eledep.ClienteElementoDependienteDescripcion, cli.ClienteDenominacion) AS Descripcion
-            ,suc.SucursalDescripcion
-            ,suc.SucursalId
-            ,ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde, clicon.ClienteContratoFechaDesde) AS ContratoFechaDesde
-            ,ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta, clicon.ClienteContratoFechaHasta) AS ContratoFechaHasta
-            ,eledepcon.ClienteElementoDependienteContratoId
-            ,domcli.ClienteElementoDependienteDomicilioDomCalle
-            ,domcli.ClienteElementoDependienteDomicilioDomNro
-            ,domcli.ClienteElementoDependienteDomicilioCodigoPostal
-            ,domcli.ClienteElementoDependienteDomicilioPaisId
-            ,domcli.ClienteElementoDependienteDomicilioProvinciaId
-            ,domcli.ClienteElementoDependienteDomicilioLocalidadId
-            ,domcli.ClienteElementoDependienteDomicilioBarrioId
-            ,domcli.ClienteElementoDependienteDomicilioDomLugar
-            ,domcli.ClienteElementoDependienteDomicilioId
-        FROM Objetivo obj
-        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId
-            AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-        LEFT JOIN (
-            SELECT cc.ClienteId
-                ,MAX(cc.ClienteContratoId) AS ClienteContratoId
-            FROM ClienteContrato cc
-            WHERE EOMONTH(DATEFROMPARTS(@3, @4, 1)) >= cc.ClienteContratoFechaDesde
-                AND ISNULL(cc.ClienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@3,  @4, 1)
-                AND ISNULL(cc.ClienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@3,  @4, 1)
-            GROUP BY cc.ClienteId
-            ) clicon2 ON clicon2.ClienteId = cli.ClienteId
-            AND obj.ClienteElementoDependienteId IS NULL
-        LEFT JOIN (
-            SELECT ec.ClienteId
-                ,ec.ClienteElementoDependienteId
-                ,MAX(ec.ClienteElementoDependienteContratoId) AS ClienteElementoDependienteContratoId
-            FROM ClienteElementoDependienteContrato ec
-            WHERE EOMONTH(DATEFROMPARTS(@3, @4, 1)) >= ec.ClienteElementoDependienteContratoFechaDesde
-                AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@3, @4, 1)
-                AND ISNULL(ec.ClienteElementoDependienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@3,  @4, 1)
-            GROUP BY ec.ClienteId
-                ,ec.ClienteElementoDependienteId
-            ) eledepcon2 ON eledepcon2.ClienteId = obj.ClienteId
-            AND eledepcon2.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-        LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId
-            AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-            AND eledepcon.ClienteElementoDependienteContratoId = eledepcon2.ClienteElementoDependienteContratoId
-        LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId
-            AND clicon.ClienteContratoId = clicon2.ClienteContratoId
-        LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId, cli.ClienteSucursalId)
-        LEFT JOIN (
-            SELECT TOP 1 domcli.ClienteElementoDependienteDomicilioId
-                ,domcli.ClienteId
-                ,domcli.ClienteElementoDependienteId
-                ,domcli.ClienteElementoDependienteDomicilioDomCalle
-                ,domcli.ClienteElementoDependienteDomicilioDomNro
-                ,domcli.ClienteElementoDependienteDomicilioCodigoPostal
-                ,domcli.ClienteElementoDependienteDomicilioPaisId
-                ,domcli.ClienteElementoDependienteDomicilioProvinciaId
-                ,domcli.ClienteElementoDependienteDomicilioLocalidadId
-                ,domcli.ClienteElementoDependienteDomicilioBarrioId
-                ,domcli.ClienteElementoDependienteDomicilioDomLugar
-            FROM ClienteElementoDependienteDomicilio AS domcli
-            WHERE domcli.ClienteId = @1
-                AND domcli.ClienteElementoDependienteId = @2
-            ORDER BY domcli.ClienteElementoDependienteDomicilioId DESC
-            ) AS domcli ON domcli.ClienteId = cli.ClienteId
-            AND domcli.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-        WHERE obj.ObjetivoId = @0;`,
-            [ObjetivoId,ClienteId,ClienteElementoDependienteId,anio,mes])
+        if(ClienteElementoDependienteId != "null"){
+            return await queryRunner.query(`SELECT obj.ObjetivoId
+                ,obj.ObjetivoId AS id
+                ,obj.ClienteId
+                ,obj.ClienteElementoDependienteId
+                ,ISNULL(eledep.ClienteElementoDependienteDescripcion, cli.ClienteDenominacion) AS Descripcion
+                ,suc.SucursalDescripcion
+                ,suc.SucursalId
+                ,ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde, clicon.ClienteContratoFechaDesde) AS ContratoFechaDesde
+                ,ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta, clicon.ClienteContratoFechaHasta) AS ContratoFechaHasta
+                ,eledepcon.ClienteElementoDependienteContratoId AS ContratoId
+                ,domcli.ClienteElementoDependienteDomicilioDomCalle AS DomicilioDomCalle
+                ,domcli.ClienteElementoDependienteDomicilioDomNro AS DomicilioDomNro
+                ,domcli.ClienteElementoDependienteDomicilioCodigoPostal AS DomicilioCodigoPostal
+                ,domcli.ClienteElementoDependienteDomicilioPaisId AS DomicilioPaisId
+                ,domcli.ClienteElementoDependienteDomicilioProvinciaId AS DomicilioProvinciaId
+                ,domcli.ClienteElementoDependienteDomicilioLocalidadId AS DomicilioLocalidadId
+                ,domcli.ClienteElementoDependienteDomicilioBarrioId AS DomicilioBarrioId
+                ,domcli.ClienteElementoDependienteDomicilioDomLugar AS DomicilioDomLugar
+                ,domcli.ClienteElementoDependienteDomicilioId AS DomicilioId
+            FROM Objetivo obj
+            LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+            LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId
+                AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+            LEFT JOIN (
+                SELECT cc.ClienteId
+                    ,MAX(cc.ClienteContratoId) AS ClienteContratoId
+                FROM ClienteContrato cc
+                WHERE EOMONTH(DATEFROMPARTS(@3, @4, 1)) >= cc.ClienteContratoFechaDesde
+                    AND ISNULL(cc.ClienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@3,  @4, 1)
+                    AND ISNULL(cc.ClienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@3,  @4, 1)
+                GROUP BY cc.ClienteId
+                ) clicon2 ON clicon2.ClienteId = cli.ClienteId
+                AND obj.ClienteElementoDependienteId IS NULL
+            LEFT JOIN (
+                SELECT ec.ClienteId
+                    ,ec.ClienteElementoDependienteId
+                    ,MAX(ec.ClienteElementoDependienteContratoId) AS ClienteElementoDependienteContratoId
+                FROM ClienteElementoDependienteContrato ec
+                WHERE EOMONTH(DATEFROMPARTS(@3, @4, 1)) >= ec.ClienteElementoDependienteContratoFechaDesde
+                    AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@3, @4, 1)
+                    AND ISNULL(ec.ClienteElementoDependienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@3,  @4, 1)
+                GROUP BY ec.ClienteId
+                    ,ec.ClienteElementoDependienteId
+                ) eledepcon2 ON eledepcon2.ClienteId = obj.ClienteId
+                AND eledepcon2.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+            LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId
+                AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+                AND eledepcon.ClienteElementoDependienteContratoId = eledepcon2.ClienteElementoDependienteContratoId
+            LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId
+                AND clicon.ClienteContratoId = clicon2.ClienteContratoId
+            LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId, cli.ClienteSucursalId)
+            LEFT JOIN (
+                SELECT TOP 1 domcli.ClienteElementoDependienteDomicilioId
+                    ,domcli.ClienteId
+                    ,domcli.ClienteElementoDependienteId
+                    ,domcli.ClienteElementoDependienteDomicilioDomCalle
+                    ,domcli.ClienteElementoDependienteDomicilioDomNro
+                    ,domcli.ClienteElementoDependienteDomicilioCodigoPostal
+                    ,domcli.ClienteElementoDependienteDomicilioPaisId
+                    ,domcli.ClienteElementoDependienteDomicilioProvinciaId
+                    ,domcli.ClienteElementoDependienteDomicilioLocalidadId
+                    ,domcli.ClienteElementoDependienteDomicilioBarrioId
+                    ,domcli.ClienteElementoDependienteDomicilioDomLugar
+                FROM ClienteElementoDependienteDomicilio AS domcli
+                WHERE domcli.ClienteId = @1
+                    AND domcli.ClienteElementoDependienteId = @2
+                ORDER BY domcli.ClienteElementoDependienteDomicilioId DESC
+                ) AS domcli ON domcli.ClienteId = cli.ClienteId
+                AND domcli.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+            WHERE obj.ObjetivoId = @0;`,
+                [ObjetivoId,ClienteId,ClienteElementoDependienteId,anio,mes])
+        }else{
+            return await queryRunner.query(`
+                SELECT cli.ClienteId AS id
+                ,cli.ClienteId
+                ,fac.ClienteFacturacionCUIT
+                ,fac.ClienteFacturacionId
+                ,fac.CondicionAnteIVAId
+                ,TRIM(con.CondicionAnteIVADescripcion) AS CondicionAnteIVADescripcion
+                ,TRIM(cli.ClienteDenominacion) AS Descripcion 
+                ,TRIM(cli.CLienteNombreFantasia) AS CLienteNombreFantasia
+                ,cli.ClienteFechaAlta AS ContratoFechaDesde
+                ,cli.ClienteAdministradorUltNro
+                ,cli.ClienteSucursalId AS SucursalId
+                ,clicon.ClienteContratoFechaDesde AS ContratoFechaDesde
+	            ,clicon.ClienteContratoFechaHasta AS ContratoFechaHasta
+                ,clicon.ClienteContratoId = ContratoId
+                ,domcli.ClienteDomicilioId AS DomicilioId
+                ,TRIM(domcli.ClienteDomicilioDomCalle) AS DomicilioDomCalle
+                ,TRIM(domcli.ClienteDomicilioDomNro) AS DomicilioDomNro
+                ,TRIM(domcli.ClienteDomicilioCodigoPostal) AS DomicilioCodigoPostal
+                ,domcli.ClienteDomicilioPaisId AS DomicilioPaisId
+                ,domcli.ClienteDomicilioProvinciaId AS DomicilioProvinciaId
+                ,domcli.ClienteDomicilioLocalidadId AS DomicilioLocalidadId
+                ,domcli.ClienteDomicilioBarrioId AS DomicilioBarrioId
+                ,TRIM(domcli.ClienteDomicilioDomLugar) AS DomicilioDomLugar
+                ,TRIM(adm.AdministradorNombre) AS AdministradorNombre
+                ,TRIM(adm.AdministradorApellido) AS AdministradorApellido
+                ,adm.AdministradorId
+            FROM Cliente cli
+            LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId
+                AND fac.ClienteFacturacionDesde <=  DATEFROMPARTS(@1,@2, 1)
+                AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >=  DATEFROMPARTS(@1,@2, 1)
+            LEFT JOIN CondicionAnteIVA con ON con.CondicionAnteIVAId = fac.CondicionAnteIVAId
+            LEFT JOIN (
+                SELECT TOP 1 domcli.ClienteDomicilioId
+                    ,domcli.ClienteId
+                    ,domcli.ClienteDomicilioDomCalle
+                    ,domcli.ClienteDomicilioDomNro
+                    ,domcli.ClienteDomicilioCodigoPostal
+                    ,domcli.ClienteDomicilioPaisId
+                    ,domcli.ClienteDomicilioProvinciaId
+                    ,domcli.ClienteDomicilioLocalidadId
+                    ,domcli.ClienteDomicilioBarrioId
+                    ,domcli.ClienteDomicilioDomLugar
+                FROM ClienteDomicilio AS domcli
+                WHERE domcli.ClienteId = @0
+                    AND domcli.ClienteDomicilioActual = 1
+                ORDER BY domcli.ClienteDomicilioId DESC
+                ) AS domcli ON domcli.ClienteId = cli.ClienteId
+            LEFT JOIN (
+                SELECT cc.ClienteId
+                    ,MAX(cc.ClienteContratoId) AS ClienteContratoId
+                FROM ClienteContrato cc
+                WHERE EOMONTH(DATEFROMPARTS(@1, @2, 1)) >= cc.ClienteContratoFechaDesde
+                    AND ISNULL(cc.ClienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@1, @2, 1)
+                    AND ISNULL(cc.ClienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@1, @2, 1)
+                GROUP BY cc.ClienteId
+                ) clicon2 ON clicon2.ClienteId = cli.ClienteId
+            LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId
+                AND clicon.ClienteContratoId = clicon2.ClienteContratoId     
+            LEFT JOIN (
+                SELECT TOP 1 ca.ClienteId
+                    ,ca.ClienteAdministradorAdministradorId AS AdministradorId
+                    ,adm.AdministradorNombre
+                    ,adm.AdministradorApellido
+                FROM ClienteAdministrador ca
+                JOIN Administrador adm ON adm.AdministradorId = ca.ClienteAdministradorAdministradorId
+                WHERE ca.ClienteId = @0
+                ORDER BY ca.ClienteAdministradorId DESC
+                ) AS adm ON adm.ClienteId = cli.ClienteId
+
+
+            WHERE cli.ClienteId = @0;`,
+                [ClienteId,anio,mes])
+        }
+       
     }
 
 
@@ -350,97 +431,93 @@ export class ObjetivosController extends BaseController {
 
             //update
 
+            if(Obj.ClienteElementoDependienteId != "null") {
 
-            await this.updateContratoTable(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.ClienteElementoDependienteContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
+                //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
+                await this.updateClienteElementoDependienteContratoTable(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.ContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
+                await this.updateObjetivoDomicilioTable(
+                     queryRunner
+                    ,Obj.ClienteId
+                    ,Obj.DependienteId
+                    ,Obj.DomicilioId
+                    ,Obj.DomicilioDomCalle
+                    ,Obj.DomicilioDomNro
+                    ,Obj.DomicilioCodigoPostal
+                    ,Obj.DomicilioProvinciaId 
+                    ,Obj.DomicilioLocalidadId 
+                    ,Obj.DomicilioBarrioId
+                    ,Obj.DomicilioDomLugar)
 
-            await this.updateObjetivoDomicilioTable(
-                 queryRunner
-                ,Obj.ClienteId
-                ,Obj.ClienteElementoDependienteId
-                ,Obj.ClienteElementoDependienteDomicilioId
-                ,Obj.ClienteElementoDependienteDomicilioDomCalle
-                ,Obj.ClienteElementoDependienteDomicilioDomNro
-                ,Obj.ClienteElementoDependienteDomicilioCodigoPostal
-                ,Obj.ClienteElementoDependienteDomicilioProvinciaId 
-                ,Obj.ClienteElementoDependienteDomicilioLocalidadId 
-                ,Obj.ClienteElementoDependienteDomicilioBarrioId
-                ,Obj.ClienteElementoDependienteDomicilioDomLugar)
+                await this.updateClienteElementoDependienteTable(queryRunner,ObjetivoId,Obj.ClienteId,Obj.Descripcion,Obj.SucursalId)  
+    
+    
+            }else{
+                //SI EL ELEMENTO DEPENDIENTE ES NULL SOLO ACTUALIZA TABLAS DE CLIENTE
+                await  ClientesController.updateClienteDomicilioTable( queryRunner
+                    ,Obj.ClienteId
+                    ,Obj.DomicilioId
+                    ,Obj.DomicilioDomCalle
+                    ,Obj.DomicilioDomNro
+                    ,Obj.DomicilioCodigoPostal
+                    ,Obj.DomicilioProvinciaId 
+                    ,Obj.DomicilioLocalidadId 
+                    ,Obj.DomicilioBarrioId
+                    ,Obj.DomicilioDomLugar)
 
-            await this.updateClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.SucursalId,Obj.SucursalDescripcion)    
+                await this.updateClienteContratoTable(queryRunner,Obj.ClienteId,Obj.ContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
 
-            // let ClienteAdministradorId = null
-
-            // if (ObjCliente.AdministradorId != null && ObjCliente.AdministradorId != "")
-            //     {
-            //         if (ObjCliente.ClienteAdministradorUltNro != null)
-            //         {
-            //             ClienteAdministradorId = ObjCliente.ClienteAdministradorUltNro
-            //             await this.updateAdministradorTable(queryRunner,ClienteId,ObjCliente.ClienteAdministradorUltNro,ObjCliente.AdministradorId)
-            //         }
-            //          else
-            //         {
-            //              ClienteAdministradorId = 1   
-            //             await this.insertClienteAdministrador(queryRunner,ClienteId,ClienteAdministradorId,ObjCliente.ClienteFechaAlta,ObjCliente.AdministradorId) 
-            //         }
-            //     }else if (ObjCliente.ClienteAdministradorUltNro != null){
-            //             // delete
-            //           await this.DeleteClienteAdministrador(queryRunner,ObjCliente,ClienteId)
-            // }
-
-            // await this.updateClienteTable(queryRunner,ClienteId,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion,ClienteFechaAlta,ClienteAdministradorId)
-            // await this.updateFacturaTable(queryRunner,ClienteId,ObjCliente.ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.ClienteCondicionAnteIVAId)   
-
+                await this.updateClienteTable(queryRunner,ObjetivoId,Obj.ClienteId,Obj.Descripcion,Obj.SucursalId) 
+                    
+            }
             
-            //ACA SE EVALUA Y SE ELIMINA EL CASO QUE SE BORRE ALGUN REGISTRO DE CLIENTE CONTACTO EXISTENTE
-            // const numerosQueNoPertenecen = clienteContactoIds.filter(num => {
-            //     return !ObjCliente.infoClienteContacto.some(obj => obj.ClienteContactoId === num && obj.ClienteContactoId !== 0);
-            // });
 
-            // for (const obj of ObjCliente.infoClienteContacto) {
+            const infoObjetivo = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
+            const ObjetivoCoordinadorIds = infoObjetivo.map(row => row.ObjetivoId)
 
-            //     if(numerosQueNoPertenecen?.length > 0) {
+            //ACA SE EVALUA Y SE ELIMINA EL CASO QUE SE BORRE ALGUN REGISTRO DE COORDINADOR DE CUENTA EXISTENTE
 
-            //         await this.deleteClienteContactoTable(queryRunner,ClienteId, obj.ClienteContactoId)
-            //         await this.deleteClienteContactoEmailTable(queryRunner,ClienteId,obj.ClienteContactoEmailId,obj.ClienteContactoId)
-            //         await this.deleteClienteContactoTelefonoTable(queryRunner,ClienteId,obj.ClienteContactoTelefonoId,obj.ClienteContactoId)
+            const numerosQueNoPertenecen = ObjetivoCoordinadorIds.filter(num => {
+                return !Obj.infoCoordinadorCuenta.some(value => value.ObjetivoId === num && value.ObjetivoId !== 0);
+            });
+           
+            for (const objetivo of Obj.infoCoordinadorCuenta) {
 
-            //     }else{
-            //         if (clienteContactoIds.includes(obj.ClienteContactoId) && obj.ClienteContactoId !== 0) {
-            //             //update
-            //               await this.updateClienteContactoTable(queryRunner,ClienteId,obj.ClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area)
-      
-            //               if(obj.ClienteContactoEmailUltNro != null){
-      
-            //                   await this.updateClienteContactoEmailTable(queryRunner,ClienteId,obj.ClienteContactoId,obj.ClienteContactoEmailUltNro,obj.correo)
-            //               }
-      
-            //               if(obj.ClienteContactoTelefonoUltNro != null){
-      
-            //                   await this.updateClienteContactoTelefonoTable(queryRunner,ClienteId,obj.ClienteContactoId,obj.ClienteContactoTelefonoUltNro,obj.telefono)
-            //               }
-                         
-            //           } else {
-            //              // Insert
-            //              maxClienteContactoId += 1
-            //              maxClienteContactoTelefonoId += 1
-            //              maxClienteContactoEmailId += 1
-      
-            //              await this.insertClienteContactoTable(queryRunner,ClienteId,maxClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxClienteContactoTelefonoId,maxClienteContactoEmailId)
-      
-            //              await this.insertClienteContactoEmailTable(queryRunner,ClienteId,maxClienteContactoId,maxClienteContactoEmailId,obj.correo)
-      
-            //              await this.insertClienteContactoTelefonoTable(queryRunner,ClienteId,maxClienteContactoId,maxClienteContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,
-            //               obj.ClienteContactoTelefonoCodigoArea)
-      
-            //           }
-            //     }    
+                 if(numerosQueNoPertenecen?.length > 0) {
 
-            // }
+                    await this.deleteCoordinadorCuentaQuery(queryRunner,ObjetivoId,objetivo.PersonaId)
 
-            // if(req.body.length > 1){
-            //  const [, ...newArray] = req.body;
-            //  await FileUploadController.handlePDFUpload(ClienteId,'Cliente',newArray,usuario,ip ) 
-            // }
+                }else{
+                    if (ObjetivoCoordinadorIds.includes(objetivo.ObjetivoId) && objetivo.ObjetivoId !== 0) {
+                        //update
+                          await this.updateCoordinadorCuentaQuery(
+                            queryRunner,
+                            ObjetivoId,
+                            objetivo.PersonaId,
+                            objetivo.ObjetivoPersonalJerarquicoComision, 
+                            objetivo.ObjetivoPersonalJerarquicoDescuentos)
+
+                      } else {
+                         // Insert
+
+                         const ObjetivoPersonalJerarquico = await queryRunner.query(`SELECT MAX(ObjetivoPersonalJerarquicoId) AS ObjetivoPersonalJerarquicoId FROM ObjetivoPersonalJerarquico`)
+                         console.log("ObjetivoPersonalJerarquico ", ObjetivoPersonalJerarquico)
+                         let maxObjetivoPersonalJerarquico = ObjetivoPersonalJerarquico[0].ObjetivoPersonalJerarquicoId + 1 
+      
+                         await this.insertCoordinadorCuentaQuery(queryRunner,maxObjetivoPersonalJerarquico,
+                            ObjetivoId,
+                            objetivo.PersonaId,
+                            objetivo.ObjetivoPersonalJerarquicoComision, 
+                            objetivo.ObjetivoPersonalJerarquicoDescuentos)
+      
+                      }
+               }    
+
+             }
+
+            if(req.body.length > 1){
+             const [, ...newArray] = req.body;
+             await FileUploadController.handlePDFUpload(ObjetivoId,'Objetivo',newArray,usuario,ip ) 
+            }
 
             await queryRunner.commitTransaction()
             return this.jsonRes([], res, 'Modificación  Exitosa');
@@ -452,7 +529,60 @@ export class ObjetivosController extends BaseController {
         }
     }
 
-    async updateClienteElementoDependiente(
+    async deleteCoordinadorCuentaQuery(queryRunner: any, ObjetivoId: any, PersonaId:any) {
+        return await queryRunner.query(`DELETE FROM ObjetivoPersonalJerarquico WHERE ObjetivoId = @0 AND PersonaId = @1;`,
+            [ObjetivoId,PersonaId])
+    }
+
+    async insertCoordinadorCuentaQuery(
+        queryRunner: any,
+        maxObjetivoPersonalJerarquico: any,
+        ObjetivoId: number,
+        PersonaId:any,
+        ObjetivoPersonalJerarquicoComision:any, 
+        ObjetivoPersonalJerarquicoDescuentos:any
+    ) {
+
+        const Fecha = new Date()
+        Fecha.setHours(0, 0, 0, 0)
+
+        return await queryRunner.query(`
+           INSERT INTO ObjetivoPersonalJerarquico (
+           	ObjetivoPersonalJerarquicoId,
+            ObjetivoId,
+            ObjetivoPersonalJerarquicoPersonalId,
+            ObjetivoPersonalJerarquicoDesde,
+            ObjetivoPersonalJerarquicoHasta,
+            ObjetivoPersonalJerarquicoComo,
+            ObjetivoPersonalJerarquicoComision,
+            ObjetivoPersonalJerarquicoDescuentos)
+           VALUES (@0, @1,@2,@3,@4,@5,@6,@7); `,
+           [maxObjetivoPersonalJerarquico,
+            ObjetivoId,
+            PersonaId,
+            Fecha,
+            null,
+            'C',
+            ObjetivoPersonalJerarquicoComision,
+            ObjetivoPersonalJerarquicoDescuentos])
+    }
+    
+    async updateCoordinadorCuentaQuery(
+        queryRunner: any,
+        ObjetivoId: number,
+        PersonaId:any,
+        ObjetivoPersonalJerarquicoComision:any, 
+        ObjetivoPersonalJerarquicoDescuentos:any
+    ) {
+
+        return await queryRunner.query(`
+            UPDATE ObjetivoPersonalJerarquico
+            SET ObjetivoPersonalJerarquicoComision = @2, ObjetivoPersonalJerarquicoDescuentos = @3
+            WHERE  ObjetivoPersonalJerarquicoComo = 'C' AND PersonaId = @0 AND ObjetivoId = @1 `,
+            [PersonaId,ObjetivoId,ObjetivoPersonalJerarquicoComision,ObjetivoPersonalJerarquicoDescuentos])
+    }
+
+    async updateClienteElementoDependienteTable(
         queryRunner: any,
         ClienteId: number,
         ClienteElementoDependienteId:any,
@@ -462,12 +592,27 @@ export class ObjetivosController extends BaseController {
 
         return await queryRunner.query(`
             UPDATE ClienteElementoDependiente
-            SET ClienteElementoDependienteSucursalId = @2, ClienteElementoDependienteDescripcion = @3,ClienteId =@4
+            SET ClienteElementoDependienteSucursalId = @2, ClienteElementoDependienteDescripcion = @3
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
-            [ClienteId,ClienteElementoDependienteId,SucursalId,SucursalDescripcion,ClienteId])
+            [ClienteId,ClienteElementoDependienteId,SucursalId,SucursalDescripcion])
     }
 
-    async updateContratoTable(queryRunner: any, 
+    async updateClienteTable(
+        queryRunner: any,
+        ClienteId: number,
+        ClienteElementoDependienteId:any,
+        SucursalId:any, 
+        SucursalDescripcion:any
+    ) {
+
+        return await queryRunner.query(`
+            UPDATE Cliente
+            SET ClienteSucursalId = @1, ClienteNombreFantasia = @2
+            WHERE ClienteId = @0 `,
+            [ClienteId,SucursalId,SucursalDescripcion])
+    }
+
+    async updateClienteElementoDependienteContratoTable(queryRunner: any, 
         ClienteId:any, 
         ClienteElementoDependienteId:any,
         ClienteElementoDependienteContratoId:any,
@@ -486,6 +631,26 @@ export class ObjetivosController extends BaseController {
             SET ClienteElementoDependienteContratoFechaDesde = @3, ClienteElementoDependienteContratoFechaHasta @4
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND ClienteElementoDependienteContratoId = @2`,
             [ClienteId,ClienteElementoDependienteId,ClienteElementoDependienteContratoId,FechaDesde, FechaHasta])
+    }
+
+    async updateClienteContratoTable(queryRunner: any, 
+        ClienteId:any, 
+        ClienteContratoId:any,
+        ClienteContratoFechaDesde:any,
+        ClienteContratoFechaHasta:any
+    ) {
+
+        const FechaDesde = new Date(ClienteContratoFechaDesde)
+        FechaDesde.setHours(0, 0, 0, 0)
+
+        const FechaHasta = new Date(ClienteContratoFechaHasta)
+        FechaHasta.setHours(0, 0, 0, 0)
+
+        return await queryRunner.query(`
+            UPDATE ClienteContrato
+            SET ClienteContratoFechaDesde = @2, ClienteContratoFechaHasta @3
+            WHERE ClienteId = @0 AND ClienteContratoId = @1`,
+            [ClienteId,ClienteContratoId,FechaDesde, FechaHasta])
     }
 
 

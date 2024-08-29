@@ -220,6 +220,9 @@ ${orderBy}`, [fechaActual])
 
 
     async getObjetivoClienteQuery(queryRunner: any, clienteId: any) {
+        const fechaActual = new Date()
+        const anio = fechaActual.getFullYear()
+        const mes = fechaActual.getMonth()+1
         return await queryRunner.query(`SELECT cli.ClienteId AS id
             ,cli.ClienteId
             ,fac.ClienteFacturacionCUIT
@@ -244,8 +247,8 @@ ${orderBy}`, [fechaActual])
             ,adm.AdministradorId
         FROM Cliente cli
         LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId
-            AND fac.ClienteFacturacionDesde <= '2024-07-30'
-            AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= '2024-07-30'
+            AND fac.ClienteFacturacionDesde <= DATEFROMPARTS(@1,@2, 1)
+            AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= DATEFROMPARTS(@1,@2, 1)
         LEFT JOIN CondicionAnteIVA con ON con.CondicionAnteIVAId = fac.CondicionAnteIVAId
         LEFT JOIN (
             SELECT TOP 1 domcli.ClienteDomicilioId
@@ -274,7 +277,7 @@ ${orderBy}`, [fechaActual])
             ORDER BY ca.ClienteAdministradorId DESC
             ) AS adm ON adm.ClienteId = cli.ClienteId
         WHERE cli.ClienteId = @0;`,
-            [clienteId])
+            [clienteId,anio,mes])
     }
 
     async getCondicionQuery(req: any, res: Response, next: NextFunction) {
@@ -384,7 +387,7 @@ ${orderBy}`, [fechaActual])
             await this.updateClienteTable(queryRunner,ClienteId,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion,ClienteFechaAlta,ClienteAdministradorId)
             await this.updateFacturaTable(queryRunner,ClienteId,ObjCliente.ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.ClienteCondicionAnteIVAId)
             
-            await this.updateClienteDomicilioTable(
+            await ClientesController.updateClienteDomicilioTable(
                  queryRunner
                 ,ClienteId
                 ,ObjCliente.ClienteDomicilioId
@@ -472,7 +475,7 @@ ${orderBy}`, [fechaActual])
         }
     }
 
-    async updateClienteDomicilioTable(
+    static async updateClienteDomicilioTable(
          queryRunner: any
         ,ClienteId: number
         ,ClienteDomicilioId: number

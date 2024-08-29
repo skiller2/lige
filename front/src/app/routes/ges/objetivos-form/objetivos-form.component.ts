@@ -46,6 +46,7 @@ export class ObjetivosFormComponent {
 //  visibleDrawer: boolean = false
 
   objCoordinadorCuenta = { 
+    ObjetivoId:0,
     PersonaId:0,
     ObjetivoPersonalJerarquicoComision: 0, 
     ObjetivoPersonalJerarquicoDescuentos:false,
@@ -76,10 +77,10 @@ export class ObjetivosFormComponent {
     SucursalId:0,
     ContratoFechaDesde:"",
     ContratoFechaHasta:"",
-    ClienteElementoDependienteContratoId:0,
-    ClienteElementoDependienteDomicilioId:0,ClienteElementoDependienteDomicilioDomCalle: "",
-    ClienteElementoDependienteDomicilioDomNro:0, ClienteElementoDependienteDomicilioCodigoPostal: 0,ClienteElementoDependienteDomicilioDomLugar:null,
-    ClienteElementoDependienteDomicilioProvinciaId: null,ClienteElementoDependienteDomicilioLocalidadId: null, ClienteElementoDependienteDomicilioBarrioId: null,
+    ContratoId:0,
+    DomicilioId:0,DomicilioDomCalle: "",
+    DomicilioDomNro:0, DomicilioCodigoPostal: 0,DomicilioDomLugar:null,
+    DomicilioProvinciaId: null,DomicilioLocalidadId: null, DomicilioBarrioId: null,
     infoCoordinadorCuenta: this.fb.array([this.fb.group({ ...this.objCoordinadorCuenta })]), estado: 0,
   })
 
@@ -100,11 +101,11 @@ export class ObjetivosFormComponent {
   }
 
   ngOnInit() {
-    this.formCli.controls['ClienteElementoDependienteDomicilioProvinciaId'].valueChanges.subscribe(event => {
-      this.formCli.patchValue({ClienteElementoDependienteDomicilioLocalidadId:null})
+    this.formCli.controls['DomicilioProvinciaId'].valueChanges.subscribe(event => {
+      this.formCli.patchValue({DomicilioLocalidadId:null})
     });
-    this.formCli.controls['ClienteElementoDependienteDomicilioLocalidadId'].valueChanges.subscribe(event => {
-      this.formCli.patchValue({ClienteElementoDependienteDomicilioBarrioId:null})
+    this.formCli.controls['DomicilioLocalidadId'].valueChanges.subscribe(event => {
+      this.formCli.patchValue({DomicilioBarrioId:null})
     });
 
 
@@ -143,13 +144,14 @@ export class ObjetivosFormComponent {
     else 
       this.infoCoordinadorCuenta().enable()
 
+    this.formCli.get('ClienteId')?.disable();
 
     setTimeout(() => {
       this.formCli.reset(infoObjetivo)
       this.formCli.patchValue({
-        ClienteElementoDependienteDomicilioProvinciaId: infoObjetivo.ClienteElementoDependienteDomicilioProvinciaId,
-        ClienteElementoDependienteDomicilioLocalidadId: infoObjetivo.ClienteElementoDependienteDomicilioLocalidadId,
-        ClienteElementoDependienteDomicilioBarrioId: infoObjetivo.ClienteElementoDependienteDomicilioBarrioId,
+        DomicilioProvinciaId: infoObjetivo.DomicilioProvinciaId,
+        DomicilioLocalidadId: infoObjetivo.DomicilioLocalidadId,
+        DomicilioBarrioId: infoObjetivo.DomicilioBarrioId,
       });
   
     }, 100);

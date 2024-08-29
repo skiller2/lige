@@ -107,9 +107,12 @@ export class FileUploadController extends BaseController {
             const newFilePath = `${dirtmpNew}/${docgeneral}-${id}.pdf`;
             this.moveFile(`${file.fieldname}.pdf`, newFilePath, dirtmpNew);
 
+            let tipoCodigo = tipoUpload === "Cliente" ? "CLI" : tipoUpload === "Objetivo" ? "OBJ" : "";
 
-            if(tipoUpload == "Cliente"){
-                await this.setArchivos(
+            if(tipoCodigo == "")
+              throw new ClientException(`Error en el tipo de Codido al subir archivo `)
+            
+            await this.setArchivos(
                     queryRunner,
                     Number(docgeneral),
                     periodo_id,
@@ -121,11 +124,11 @@ export class FileUploadController extends BaseController {
                     usuario,
                     ip,
                     fechaActual,
-                    'CLI',
+                    tipoCodigo,
                     null,
                     id
                   );
-            }
+            
     
             
           }
