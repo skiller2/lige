@@ -46,7 +46,7 @@ export class ObjetivosComponent {
   editObjetivoId = 0;
   editClienteId = 0
   editClienteElementoDependienteId = 0
-  edit : boolean = false
+  edit =model(false)
   addNew = false
   excelExportService = new ExcelExportService()
   listObjetivos$ = new BehaviorSubject('')
@@ -121,9 +121,4 @@ export class ObjetivosComponent {
       this.listOptions = options;
       this.listObjetivos$.next('');
   }
-
-  setEdit(value: boolean): void {
-      this.edit = value
-  }
-
 }
