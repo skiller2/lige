@@ -29,7 +29,7 @@ const listaColumnas: any[] = [
     field: "SituacionRevistaDescripcion",
     fieldName: "sit.SituacionRevistaDescripcion",
     sortable: true,
-    hidden: true,
+    hidden: false,
     searchHidden: false
   },
   {
