@@ -46,7 +46,7 @@ export class ObjetivosComponent {
   editObjetivoId = 0;
   editClienteId = 0
   editClienteElementoDependienteId = 0
-  edit =model(false)
+  edit =signal(false)
   addNew = false
   excelExportService = new ExcelExportService()
   listObjetivos$ = new BehaviorSubject('')
