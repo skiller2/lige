@@ -36,7 +36,7 @@ export class CustodiaComponent {
     gridOptions!: GridOption;
     gridDataInsert: any[] = [];
     detailViewRowCount = 1;
-    editCustodiaId = 0;
+    editCustodiaId = model(0);
     estado : boolean = true
     edit : boolean = false
     excelExportService = new ExcelExportService()
@@ -98,7 +98,7 @@ export class CustodiaComponent {
         const selrow = e.detail.args.rows[0]
         const row = this.angularGrid.slickGrid.getDataItem(selrow)
         if (!row) return
-        this.editCustodiaId = row.id
+        this.editCustodiaId.set(row.id)
 
         if (row.estado.tipo === 4){
             this.estado = false

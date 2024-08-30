@@ -234,12 +234,33 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       JOIN Personal per ON per.PersonalId = imp.PersonalId
      LEFT JOIN PersonalOtroDescuento des ON des.PersonalId = imp.PersonalId AND des.PersonalOtroDescuentoDescuentoId=@3 AND des.PersonalOtroDescuentoAnoAplica = @1 AND des.PersonalOtroDescuentoMesesAplica = @2
      LEFT JOIN PersonalComprobantePagoAFIP com ON com.PersonalId = per.PersonalId AND com.PersonalComprobantePagoAFIPAno =@1 AND com.PersonalComprobantePagoAFIPMes=@2
-	LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = imp.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
-	LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
-     LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-     LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
-     LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) >  sitrev.PersonalSituacionRevistaDesde AND  DATEFROMPARTS(@1,@2,1) < ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')
-     LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+	
+  
+  
+	LEFT JOIN 
+  	( SELECT  gap2.GrupoActividadPersonalPersonalId, MAX(gap2.GrupoActividadId) GrupoActividadId FROM GrupoActividadPersonal gap2
+	  WHERE 
+	  EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap2.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gap2.GrupoActividadPersonalHasta , '9999-12-31')
+	  GROUP BY gap2.GrupoActividadPersonalPersonalId
+	  ) gap3 ON gap3.GrupoActividadPersonalPersonalId = imp.PersonalId 
+  LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = imp.PersonalId AND gap.GrupoActividadId = gap3.GrupoActividadId
+  LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+
+  LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+  LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
+
+
+  LEFT JOIN 
+		(
+		SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
+		FROM PersonalSituacionRevista sitrev2 
+		JOIN PersonalPrestamo pres2 ON pres2.PersonalId = sitrev2.PersonalId
+		WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) >  sitrev2.PersonalSituacionRevistaDesde AND  DATEFROMPARTS(@1,@2,1) < ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31')
+		GROUP BY sitrev2.PersonalId
+      ) sitrev3  ON sitrev3.PersonalId = per.PersonalId
+   LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
+
+   LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
      WHERE
    1=1
 

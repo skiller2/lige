@@ -162,7 +162,11 @@ export class CustodiaFormComponent {
                     this.edit.set(false)
                 }
             } else {
-                await firstValueFrom(this.apiService.addObjCustodia(form))
+                const res = await firstValueFrom(this.apiService.addObjCustodia(form))
+                console.log('resutlado',res)
+                if (res.data.custodiaId)
+                    this.custodiaId.set(Number(res.data.custodiaId))
+
             }
             this.formCus.markAsUntouched()
             this.formCus.markAsPristine()
