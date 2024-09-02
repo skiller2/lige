@@ -25,5 +25,9 @@ objetivosRouter.post('/update/:id', authMiddleware.verifyToken, (req, res, next)
   objetivosController.updateObjetivo(req, res, next)
 } )
 
+objetivosRouter.delete("/", authMiddleware.verifyToken, (req, res, next) => {
+  objetivosController.deleteObjetivo(req, res, next);
+});
+
 
 

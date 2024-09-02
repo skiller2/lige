@@ -325,6 +325,7 @@ export class ObjetivosController extends BaseController {
                 FROM ClienteElementoDependienteDomicilio AS domcli
                 WHERE domcli.ClienteId = @1
                     AND domcli.ClienteElementoDependienteId = @2
+                    AND domcli.ClienteElementoDependienteDomicilioDomicilioActual = 1
                 ORDER BY domcli.ClienteElementoDependienteDomicilioId DESC
                 ) AS domcli ON domcli.ClienteId = cli.ClienteId
                 AND domcli.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
@@ -435,18 +436,25 @@ export class ObjetivosController extends BaseController {
 
                 //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
                 await this.updateClienteElementoDependienteContratoTable(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.ContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
-                await this.updateObjetivoDomicilioTable(
-                     queryRunner
-                    ,Obj.ClienteId
-                    ,Obj.DependienteId
-                    ,Obj.DomicilioId
-                    ,Obj.DomicilioDomCalle
-                    ,Obj.DomicilioDomNro
-                    ,Obj.DomicilioCodigoPostal
-                    ,Obj.DomicilioProvinciaId 
-                    ,Obj.DomicilioLocalidadId 
-                    ,Obj.DomicilioBarrioId
-                    ,Obj.DomicilioDomLugar)
+                
+                let domicilioString = `${Obj.DomicilioDomCalle}, ${Obj.DomicilioDomNro}, ${Obj.DomicilioCodigoPostal}, ${Obj.DomicilioProvinciaId}, ${Obj.DomicilioLocalidadId}, ${Obj.DomicilioBarrioId}, ${Obj.DomicilioDomLugar}`.toLowerCase();
+
+                if(Obj.DomicilioFulllAdress != domicilioString){
+
+                    await this.updateObjetivoDomicilioTable(
+                        queryRunner
+                       ,Obj.ClienteId
+                       ,Obj.DependienteId
+                       ,Obj.DomicilioId
+                       ,Obj.DomicilioDomCalle
+                       ,Obj.DomicilioDomNro
+                       ,Obj.DomicilioCodigoPostal
+                       ,Obj.DomicilioProvinciaId 
+                       ,Obj.DomicilioLocalidadId 
+                       ,Obj.DomicilioBarrioId
+                       ,Obj.DomicilioDomLugar)
+
+                }
 
                 await this.updateClienteElementoDependienteTable(queryRunner,ObjetivoId,Obj.ClienteId,Obj.Descripcion,Obj.SucursalId)  
     
@@ -752,4 +760,71 @@ export class ObjetivosController extends BaseController {
         
 
     } 
+
+    async deleteObjetivo(req: Request, res: Response, next: NextFunction) {
+
+        let { ClienteId,ObjetivoId,ClienteElementoDependienteId,DomicilioId,ContratoId} = req.query
+        console.log("req.query ", req.query)
+        const queryRunner = dataSource.createQueryRunner();
+
+        try {
+          await queryRunner.connect();
+          await queryRunner.startTransaction();
+
+          await this.deleteObjetivoQuery(queryRunner,Number(ObjetivoId),Number(ClienteId))
+          await this.deletePersonalJerarquicoQuery(queryRunner,Number(ObjetivoId))
+
+          if(ClienteElementoDependienteId != 'null'){
+
+            await this.deleteObjetivoQuery(queryRunner,Number(ObjetivoId),Number(ClienteId))
+            await this.deleteClienteElementoDependienteQuery(queryRunner,Number(ClienteId),Number(ClienteElementoDependienteId))
+            await this.deleteClienteElementoDependienteDomicilioQuery(queryRunner,Number(ClienteId),Number(ClienteElementoDependienteId),Number(DomicilioId))
+            await this.deleteClienteElementoDependienteContratoQuery(queryRunner,Number(ClienteId),Number(ClienteElementoDependienteId),Number(ContratoId))
+          }
+    
+          await queryRunner.commitTransaction();
+    
+        } catch (error) {
+          this.rollbackTransaction(queryRunner)
+          return next(error)
+        }
+    
+    }
+
+    async deleteObjetivoQuery(queryRunner: any, ObjetivoId: number, ClienteId:number ) {
+
+        return await queryRunner.query(`DELETE FROM objetivo WHERE ObjetivoId = @0 AND ClienteId = @1;`,
+            [ObjetivoId,ClienteId])
+    }
+
+    async deleteClienteElementoDependienteQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId:number ) {
+
+        return await queryRunner.query(`DELETE FROM ClienteElementoDependiente WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1;`,
+            [ClienteId,ClienteElementoDependienteId])
+    }
+
+    async deleteClienteElementoDependienteDomicilioQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId:number,DomicilioId:number ) {
+
+        return await queryRunner.query(`DELETE FROM ClienteElementoDependienteDomicilio  WHERE 
+             ClienteId = @0
+             AND ClienteElementoDependienteId = @1 
+             AND ClienteElementoDependienteDomicilioDomicilioId=@2;`,
+            [ClienteId,ClienteElementoDependienteId,DomicilioId])
+    }
+    async deleteClienteElementoDependienteContratoQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId:number,ContratoId:number ) {
+
+        return await queryRunner.query(`DELETE FROM ClienteElementoDependienteContrato  WHERE 
+             ClienteId = @0
+             AND ClienteElementoDependienteId = @1 
+             AND ClienteElementoDependienteContratoId=@2;`,
+            [ClienteId,ClienteElementoDependienteId,ContratoId])
+    }
+
+    async deletePersonalJerarquicoQuery(queryRunner: any, ObjetivoId: number ) {
+
+        return await queryRunner.query(`DELETE FROM ObjetivoPersonalJerarquico WHERE 
+             ObjetivoId = @0
+             AND ObjetivoPersonalJerarquicoComo='C';`,
+            [ObjetivoId])
+    }
 }

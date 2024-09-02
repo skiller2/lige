@@ -32,8 +32,7 @@
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Contrato Desde</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
       <nz-date-picker
-      [nzShowTime]="{ nzFormat: 'HH:mm' }"
-      nzFormat="yyyy-MM-dd HH:mm"
+      nzFormat="yyyy-MM-dd"
       formControlName="ContratoFechaDesde"
       (ngModelChange)="onChangePeriodo($event)"
     ></nz-date-picker>
@@ -43,8 +42,7 @@
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Contrato Hasta</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
       <nz-date-picker
-      [nzShowTime]="{ nzFormat: 'HH:mm' }"
-      nzFormat="yyyy-MM-dd HH:mm"
+      nzFormat="yyyy-MM-dd"
       formControlName="ContratoFechaHasta"
       (ngModelChange)="onChangePeriodo($event)"
     ></nz-date-picker>
@@ -171,8 +169,8 @@
       Guardar Cambios
     </button>
     <button nzType="primary" nz-button nzDanger  nz-popconfirm
-    nzPopconfirmTitle="Esta seguro que quiere eliminar este Cliente?"
-    (nzOnConfirm)="deleteCliente()"
+    nzPopconfirmTitle="Esta seguro que quiere eliminar este Objetivo?"
+    (nzOnConfirm)="deleteObjetivo()"
     nzPopconfirmPlacement="top" *ngIf="edit()" [nzLoading]="isLoading()" [disabled]="!(formCli.pristine)" >
       Borrar Cliente
     </button>

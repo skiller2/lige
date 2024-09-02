@@ -72,12 +72,14 @@ export class ObjetivosFormComponent {
   formCli = this.fb.group({
     id: 0,
     ClienteId: 0,
+    ClienteElementoDependienteId:0,
     ObjetivoId:0,
     Descripcion:"",
     SucursalId:0,
     ContratoFechaDesde:"",
     ContratoFechaHasta:"",
     ContratoId:0,
+    DomicilioFulllAdress:"",
     DomicilioId:0,DomicilioDomCalle: "",
     DomicilioDomNro:0, DomicilioCodigoPostal: 0,DomicilioDomLugar:null,
     DomicilioProvinciaId: null,DomicilioLocalidadId: null, DomicilioBarrioId: null,
@@ -132,7 +134,13 @@ export class ObjetivosFormComponent {
   async load() {
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
     this.infoCoordinadorCuenta().clear()
-    infoObjetivo.infoCoordinadorCuenta.forEach((obj: any) => {
+
+    let domicilioString = `${infoObjetivo.DomicilioDomCalle}, ${infoObjetivo.DomicilioDomNro}, ${infoObjetivo.DomicilioCodigoPostal}, 
+    ${infoObjetivo.DomicilioProvinciaId}, ${infoObjetivo.DomicilioLocalidadId}, ${infoObjetivo.DomicilioBarrioId}, ${infoObjetivo.DomicilioDomLugar}`.toLowerCase();
+
+    this.formCli.patchValue({DomicilioFulllAdress:domicilioString});
+
+    infoObjetivo?.infoCoordinadorCuenta.forEach((obj: any) => {
       this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
     });
   
@@ -204,9 +212,10 @@ infoCoordinadorCuenta(): FormArray {
     }
   }
 
-  async deleteCliente() {
+  async deleteObjetivo() {
     const form = this.formCli.value
-    await firstValueFrom(this.apiService.deleteCliente(form))
+    console.log(form)
+    await firstValueFrom(this.apiService.deleteObjetivos(form))
   }
 
 }

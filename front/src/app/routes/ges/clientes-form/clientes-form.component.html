@@ -34,8 +34,7 @@
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha Inicial</nz-form-label>
         <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
           <nz-date-picker
-            [nzShowTime]="{ nzFormat: 'HH:mm' }"
-            nzFormat="yyyy-MM-dd HH:mm"
+            nzFormat="yyyy-MM-dd"
             formControlName="ClienteFechaAlta"
             (ngModelChange)="onChangePeriodo($event)"
           ></nz-date-picker>
