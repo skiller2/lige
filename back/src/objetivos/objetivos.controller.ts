@@ -441,7 +441,7 @@ export class ObjetivosController extends BaseController {
 
                 if(Obj.DomicilioFulllAdress != domicilioString){
 
-                    await this.updateObjetivoDomicilioTable(
+                    await this.InsertDomicilioTable(
                         queryRunner
                        ,Obj.ClienteId
                        ,Obj.DependienteId
@@ -662,7 +662,7 @@ export class ObjetivosController extends BaseController {
     }
 
 
-    async updateObjetivoDomicilioTable(
+    async InsertDomicilioTable(
         queryRunner: any
        ,ClienteId: number
        ,ClienteElementoDependienteId:any
@@ -675,19 +675,37 @@ export class ObjetivosController extends BaseController {
        ,ClienteElementoDependienteDomicilioBarrioId: any
        ,ClienteElementoDependienteDomicilioDomLugar:any){
 
-       await queryRunner.query(`UPDATE ClienteElementoDependienteDomicilio
-       SET ClienteElementoDependienteDomicilioDomCalle = @2,ClienteElementoDependienteDomicilioDomNro = @3, ClienteElementoDependienteDomicilioCodigoPostal = @4, 
-       ClienteElementoDependienteDomicilioProvinciaId = @5,ClienteElementoDependienteDomicilioLocalidadId = @6,ClienteElementoDependienteDomicilioBarrioId = @7,
-       ClienteElementoDependienteDomicilioDomLugar=@8
-       WHERE ClienteId = @0 AND ClienteDomicilioId = @1 AND ClienteElementoDependienteId = @9`,[
-           ClienteId,
-           ClienteElementoDependienteDomicilioId,
-           ClienteElementoDependienteDomicilioDomCalle,
-           ClienteElementoDependienteDomicilioDomNro,
-           ClienteElementoDependienteDomicilioCodigoPostal,
-           ClienteElementoDependienteDomicilioProvinciaId,ClienteElementoDependienteDomicilioLocalidadId,
-           ClienteElementoDependienteDomicilioBarrioId,ClienteElementoDependienteDomicilioDomLugar,ClienteElementoDependienteId
-        ])
+        ClienteElementoDependienteDomicilioId += 1
+        
+        await queryRunner.query(`
+            INSERT INTO ClienteElementoDependienteDomicilio (
+                ClienteId,
+                ClienteElementoDependienteDomicilioId,
+                ClienteElementoDependienteDomicilioDomCalle,
+                ClienteElementoDependienteDomicilioDomNro,
+                ClienteElementoDependienteDomicilioCodigoPostal,
+                ClienteElementoDependienteDomicilioProvinciaId,
+                ClienteElementoDependienteDomicilioLocalidadId,
+                ClienteElementoDependienteDomicilioBarrioId,
+                ClienteElementoDependienteDomicilioDomLugar,
+                ClienteElementoDependienteId,
+                ClienteElementoDependienteDomicilioDomicilioActual,
+            ) VALUES (
+                @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10
+            )
+        `, [
+            ClienteId,
+            ClienteElementoDependienteDomicilioId,
+            ClienteElementoDependienteDomicilioDomCalle,
+            ClienteElementoDependienteDomicilioDomNro,
+            ClienteElementoDependienteDomicilioCodigoPostal,
+            ClienteElementoDependienteDomicilioProvinciaId,
+            ClienteElementoDependienteDomicilioLocalidadId,
+            ClienteElementoDependienteDomicilioBarrioId,
+            ClienteElementoDependienteDomicilioDomLugar,
+            ClienteElementoDependienteId,
+            1
+        ]);
     }
 
 
