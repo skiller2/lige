@@ -341,12 +341,11 @@ export class ObjetivosController extends BaseController {
                 ,TRIM(con.CondicionAnteIVADescripcion) AS CondicionAnteIVADescripcion
                 ,TRIM(cli.ClienteDenominacion) AS Descripcion 
                 ,TRIM(cli.CLienteNombreFantasia) AS CLienteNombreFantasia
-                ,cli.ClienteFechaAlta AS ContratoFechaDesde
                 ,cli.ClienteAdministradorUltNro
                 ,cli.ClienteSucursalId AS SucursalId
                 ,clicon.ClienteContratoFechaDesde AS ContratoFechaDesde
 	            ,clicon.ClienteContratoFechaHasta AS ContratoFechaHasta
-                ,clicon.ClienteContratoId = ContratoId
+                ,clicon.ClienteContratoId AS ContratoId
                 ,domcli.ClienteDomicilioId AS DomicilioId
                 ,TRIM(domcli.ClienteDomicilioDomCalle) AS DomicilioDomCalle
                 ,TRIM(domcli.ClienteDomicilioDomNro) AS DomicilioDomNro
@@ -389,6 +388,7 @@ export class ObjetivosController extends BaseController {
                     AND ISNULL(cc.ClienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@1, @2, 1)
                 GROUP BY cc.ClienteId
                 ) clicon2 ON clicon2.ClienteId = cli.ClienteId
+                
             LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId
                 AND clicon.ClienteContratoId = clicon2.ClienteContratoId     
             LEFT JOIN (
