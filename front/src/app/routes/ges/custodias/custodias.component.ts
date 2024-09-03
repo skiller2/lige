@@ -16,6 +16,7 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
 import { CustodiaFormComponent } from "../custodias-form/custodias-form.component";
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
+import { FormBuilder } from '@angular/forms';
 
 @Component({
     selector: 'app-custodias',
@@ -35,12 +36,15 @@ export class CustodiaComponent {
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
     gridDataInsert: any[] = [];
+    rows: number[] = [];
     detailViewRowCount = 1;
     editCustodiaId = model(0);
-    estado : boolean = true
-    edit : boolean = false
-    excelExportService = new ExcelExportService()
-    listCustodia$ = new BehaviorSubject('')
+    estado = signal(true);
+    edit = signal(false);
+    visible = signal(false);
+    isLoading = signal(false);
+    excelExportService = new ExcelExportService();
+    listCustodia$ = new BehaviorSubject('');
     listOptions: listOptionsT = {
         filtros: [],
         sort: null,
@@ -53,6 +57,7 @@ export class CustodiaComponent {
     private settingService = inject(SettingsService)
 
     columns$ = this.apiService.getCols('/api/custodia/cols')
+    $optionsEstadoCust = this.searchService.getEstadoCustodia();
 
     gridData$ = this.listCustodia$.pipe(
         debounceTime(500),
@@ -61,6 +66,16 @@ export class CustodiaComponent {
             .pipe(map(data => { return data }))
         })
     )
+
+    fb = inject(FormBuilder)
+    formCusEstado = this.fb.group({ estado: 0, numFactura: 0 })
+    numFactura(): boolean {
+        const value = this.formCusEstado.get("estado")?.value
+        if(value == 3 || value == 4)
+            return true
+        else
+        return false
+    }
 
     async ngOnInit(){
         // const user: any = this.settingService.getUser()
@@ -75,10 +90,14 @@ export class CustodiaComponent {
         this.gridOptions.editable = false
         this.gridOptions.autoEdit = true
         this.gridOptions.enableAutoSizeColumns = true
-        this.gridOptions.fullWidthRows = true
+        // this.gridOptions.fullWidthRows = true
         this.gridOptions.enableExcelExport = false
         this.gridOptions.showFooterRow = true
         this.gridOptions.createFooterRow = true
+        this.gridOptions.enableCheckboxSelector = true
+        this.gridOptions.rowSelectionOptions = {
+            selectActiveRow: true
+        }
     }
 
     ngAfterViewInit(): void {
@@ -95,16 +114,20 @@ export class CustodiaComponent {
     }
 
     handleSelectedRowsChanged(e: any): void {
-        const selrow = e.detail.args.rows[0]
-        const row = this.angularGrid.slickGrid.getDataItem(selrow)
-        if (!row) return
-        this.editCustodiaId.set(row.id)
-
-        if (row.estado.tipo === 4){
-            this.estado = false
+        this.rows = e.detail.args.rows
+        if(e.detail.args.rows.length == 1){
+            const selrow = this.angularGrid.dataView.getItemByIdx(e.detail.args.rows[0])
+            // console.log('selrow',selrow);
+            this.editCustodiaId.set(selrow.id)
+            if (selrow.estado.tipo === 4)
+                this.estado.set(false)
+            else
+                this.estado.set(true)
         }else{
-            this.estado = true
+            this.editCustodiaId.set(0)
+            this.estado.set(false)
         }
+        // console.log(this.editCustodiaId(), this.estado(), this.rows, this.angularGrid.dataView.getAllSelectedFilteredIds());
     }
 
     getGridData(): void {
@@ -117,6 +140,24 @@ export class CustodiaComponent {
     }
 
     setEdit(value: boolean): void {
-        this.edit = value
+        this.edit.set(value)
+    }
+
+    setVisible(value: boolean): void {
+        this.visible.set(value)
+    }
+
+    async save() {
+        this.isLoading.set(true)
+        // const form = this.formCusEstado.value
+        // console.log('form', form);
+        try {
+            console.log({...this.formCusEstado.value, ids: this.angularGrid.dataView.getAllSelectedFilteredIds() })
+            this.formCusEstado.markAsUntouched()
+            this.formCusEstado.markAsPristine()
+        } catch (e) {
+            
+        }
+        this.isLoading.set(false)
     }
 }

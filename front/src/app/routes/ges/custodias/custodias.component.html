@@ -14,7 +14,8 @@
 
   <nz-button-group >
       <button nz-button nzType="default" [disabled]="editCustodiaId()? false : true" [routerLink]="['/', 'ges', 'cust','detalle']" (click)="setEdit(true)"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
-      <button nz-button nzType="default" (click)="setEdit(true); editCustodiaId.set(0)" [routerLink]="['/', 'ges', 'cust','alta']" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+      <button nz-button nzType="default" (click)="setEdit(true); angularGrid.slickGrid.setSelectedRows([])" [routerLink]="['/', 'ges', 'cust','alta']" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+      <button nz-button nzType="default" [disabled]="rows.length? false : true" (click)="setVisible(true)" ><span nz-icon nzType="copy" nzTheme="outline"></span></button>
   </nz-button-group>
   </div>
 
@@ -37,7 +38,7 @@
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/cust/detalle" >Detalle</a>
-      <app-custodias-form [custodiaId]="editCustodiaId()" [edit]="edit && estado" ></app-custodias-form>
+      <app-custodias-form [custodiaId]="editCustodiaId()" [edit]="edit() && estado()" ></app-custodias-form>
     </nz-tab>
 
     <nz-tab> 
@@ -47,3 +48,35 @@
 
   </nz-tabset>
 </nz-card>
+<nz-drawer [nzClosable]="false" [nzVisible]="visible()" nzPlacement="left" 
+  nzTitle="Edición masiva de Estado" (nzOnClose)="setVisible(false)" >
+  <ng-container *nzDrawerContent>
+    <form [formGroup]="formCusEstado">
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5" >Estado</nz-form-label>
+        <nz-form-control >
+          <nz-select formControlName="estado" nzPlaceHolder="Estado" nzAllowClear [nzDropdownMatchSelectWidth]="false" >
+            <ng-container *ngFor="let option of $optionsEstadoCust | async" >
+              <nz-option [nzValue]="option.tipo" [nzLabel]="option.descripcion" ></nz-option>
+            </ng-container>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement" *ngIf="numFactura()">
+        <nz-form-label >Número de Factura</nz-form-label>
+        <nz-form-control >
+          <input nz-input placeholder="" formControlName="numFactura" type="number" />
+        </nz-form-control>
+        <p></p>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
+          <button nzType="primary" nz-button *ngIf="formCusEstado.enabled"  (click)="save()" [nzLoading]="isLoading()" [disabled]="formCusEstado.pristine" >
+            Guardar Cambios
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </ng-container>
+</nz-drawer>
