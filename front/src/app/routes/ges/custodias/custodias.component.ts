@@ -115,8 +115,8 @@ export class CustodiaComponent {
 
     handleSelectedRowsChanged(e: any): void {
         this.rows = e.detail.args.rows
-        if(e.detail.args.changedSelectedRows.length == 1){
-            const selrow = this.angularGrid.dataView.getItemByIdx(e.detail.args.changedSelectedRows[0])
+        if(e.detail.args.rows.length == 1){
+            const selrow = this.angularGrid.dataView.getItemByIdx(e.detail.args.rows[0])
             // console.log('selrow',selrow);
             this.editCustodiaId.set(selrow.id)
             if (selrow.estado.tipo === 4)
