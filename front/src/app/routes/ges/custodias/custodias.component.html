@@ -14,7 +14,7 @@
 
   <nz-button-group >
       <button nz-button nzType="default" [disabled]="editCustodiaId()? false : true" [routerLink]="['/', 'ges', 'cust','detalle']" (click)="setEdit(true)"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
-      <button nz-button nzType="default" (click)="setEdit(true); editCustodiaId.set(0)" [routerLink]="['/', 'ges', 'cust','alta']" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+      <button nz-button nzType="default" (click)="setEdit(true); angularGrid.slickGrid.setSelectedRows([])" [routerLink]="['/', 'ges', 'cust','alta']" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
       <button nz-button nzType="default" [disabled]="rows.length? false : true" (click)="setVisible(true)" ><span nz-icon nzType="copy" nzTheme="outline"></span></button>
   </nz-button-group>
   </div>
