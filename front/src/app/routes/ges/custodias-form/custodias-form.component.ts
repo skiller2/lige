@@ -110,7 +110,15 @@ export class CustodiaFormComponent {
             this.vehiculos().push(this.fb.group({...this.objVehiculo}))
 
         this.formCus.reset(infoCust)
+
         
+        if (this.edit()) {
+            this.formCus.enable()
+        }else{
+            this.formCus.disable()
+        }
+
+
         const currDate = new Date()
         this.periodo.set({year:currDate.getFullYear(),month:currDate.getMonth()+1})
     }
