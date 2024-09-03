@@ -91,14 +91,11 @@ export class CustodiaFormComponent {
 
     async load() {
         let infoCust= await firstValueFrom(this.searchService.getInfoObjCustodia(this.custodiaId()))
-        // console.log('datos custodia',infoCust)
         infoCust.fechaInicio = new Date(infoCust.fechaInicio)
         if (infoCust.fechaFinal)
             infoCust.fechaFinal = new Date(infoCust.fechaFinal)
         this.personal().clear()
         this.vehiculos().clear()
-//        this.formCus.reset({estado: 0})
-//this.formCus.enable()
 
         infoCust.personal.forEach((obj:any) => {
             this.personal().push(this.fb.group({...this.objPersonal}))
@@ -112,17 +109,7 @@ export class CustodiaFormComponent {
         if (this.vehiculos().length == 0)
             this.vehiculos().push(this.fb.group({...this.objVehiculo}))
 
-        //setTimeout(() => {
         this.formCus.reset(infoCust)
-        /*
-            if (this.edit()) {
-                this.formCus.enable()
-            } else {
-                this.formCus.disable()
-            }
-    */
-        //}, 100);
-        //{ }
         
         const currDate = new Date()
         this.periodo.set({year:currDate.getFullYear(),month:currDate.getMonth()+1})
