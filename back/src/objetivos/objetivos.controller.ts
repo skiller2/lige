@@ -845,4 +845,203 @@ export class ObjetivosController extends BaseController {
              AND ObjetivoPersonalJerarquicoComo='C';`,
             [ObjetivoId])
     }
+
+    async addObjetivo(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        const Obj = {...req.body[0]};
+        console.log("Insert ",Obj)
+        try {
+
+            //await queryRunner.startTransaction()
+
+            const usuario = res.locals.userName
+            const ip = this.getRemoteAddress(req)
+
+            //validaciones
+
+            //throw new ClientException(`ESTOY TESTEANDO`)
+            await this.FormValidations(Obj)
+
+            const newDate= new Date()
+            newDate.setHours(0, 0, 0, 0)
+
+            const ContratoDesde = new Date(Obj.ContratoFechaDesde)
+            ContratoDesde.setHours(0, 0, 0, 0)
+
+            const ContratoHasta = new Date(Obj.ContratoFechaHasta)
+            ContratoHasta.setHours(0, 0, 0, 0)
+
+            let infoMaxObjetivo = await queryRunner.query(`SELECT MAX(ObjetivoId) AS MaxObjetivoId FROM Objetivo`)
+            let { MaxObjetivoId } = infoMaxObjetivo[0]
+            MaxObjetivoId += 1
+
+            let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT MAX(ClienteElementoDependienteId) AS MaxClienteElementoDependiente FROM ClienteElementoDependiente WHERE ClienteId = @0`,[Number(Obj.ClienteId)])
+            let { MaxClienteElementoDependienteId } = infoMaxClienteElementoDependiente[0]
+            MaxClienteElementoDependienteId += 1
+
+
+            //Agrego los valores al objeto original para retornar
+
+            Obj.ObjetivoId = MaxObjetivoId
+            Obj.ClienteElementoDependienteId = MaxClienteElementoDependienteId
+
+
+            let infoMaxDependienteDomicilio = await queryRunner.query(`SELECT MAX(ClienteElementoDependienteDomicilioId) AS ClienteElementoDependienteDomicilioId FROM ClienteElementoDependienteDomicilio WHERE ClienteId = @0`,[Number(Obj.ClienteId)])
+            
+            let ClienteElementoDependienteDomicilioId = 
+            infoMaxDependienteDomicilio[0].ClienteElementoDependienteDomicilioId !== null ? 
+            infoMaxDependienteDomicilio[0].ClienteElementoDependienteDomicilioId : 0;
+
+            ClienteElementoDependienteDomicilioId += 1
+
+
+            await this.insertObjetivoSql(queryRunner,MaxObjetivoId,Number(Obj.ClienteId),Obj.Descripcion,MaxClienteElementoDependienteId,Obj.SucursalId)
+            await this.insertClienteElementoDependienteSql(queryRunner,Number(Obj.ClienteId),MaxClienteElementoDependienteId,Obj.Descripcion,Obj.SucursalId,ClienteElementoDependienteDomicilioId)
+            await this.inserClienteElementoDependienteDomicilio(queryRunner,Obj.ClienteId,MaxClienteElementoDependienteId,ClienteElementoDependienteDomicilioId,Obj.DomicilioDomLugar,Obj.DomicilioDomCalle,Obj.DomicilioDomNro,
+                Obj.DomicilioCodigoPostal,Obj.DomicilioProvinciaId,Obj.DomicilioLocalidadId,Obj.DomicilioBarrioId )
+
+            await this.ClienteElementoDependienteContrato(queryRunner,Number(Obj.ClienteId),MaxClienteElementoDependienteId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
+            
+            let infoObjetivoPersonalJerarquico = await queryRunner.query(`SELECT MAX(ObjetivoPersonalJerarquicoId) AS MaxObjetivoPersonalJerarquicoId FROM ObjetivoPersonalJerarquico`)
+            let { MaxObjetivoPersonalJerarquicoId } = infoObjetivoPersonalJerarquico[0]
+           
+             let newinfoCoordinadorCuentaArray = []
+
+             for (const obj of Obj.infoCoordinadorCuenta) {
+
+             MaxObjetivoPersonalJerarquicoId += 1
+             obj.ObjetivoId = MaxObjetivoPersonalJerarquicoId
+             await this.insertObjetivoPersonalJerarquico(queryRunner,MaxObjetivoPersonalJerarquicoId,MaxObjetivoId,Obj.PersonaId,newDate,Obj.ObjetivoPersonalJerarquicoComision,Obj.ObjetivoPersonalJerarquicoDescuentos)
+             newinfoCoordinadorCuentaArray.push(obj)
+
+            }
+
+            Obj.infoCoordinadorCuenta = newinfoCoordinadorCuentaArray
+
+            if(req.body.length > 1){
+                const [, ...newArray] = req.body;
+                await FileUploadController.handlePDFUpload(Obj.ObjetivoId,'Objetivo',newArray,usuario,ip ) 
+               }
+
+            //await queryRunner.commitTransaction()
+            return this.jsonRes(Obj, res, 'Carga  de nuevo registro exitoso');
+        }catch (error) {
+            this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+    async insertObjetivoPersonalJerarquico(queryRunner: any,ObjetivoPersonalJerarquicoId:any,ObjetivoId:any,ObjetivoPersonalJerarquicoPersonalId:any,
+        ObjetivoPersonalJerarquicoDesde:any,ObjetivoPersonalJerarquicoComision:any,ObjetivoPersonalJerarquicoDescuentos:any
+    ) {
+
+        return await queryRunner.query(`INSERT INTO ObjetivoPersonalJerarquico (
+            ObjetivoPersonalJerarquicoId,
+            ObjetivoId,
+            ObjetivoPersonalJerarquicoPersonalId,
+            ObjetivoPersonalJerarquicoDesde,
+            ObjetivoPersonalJerarquicoComo,
+            ObjetivoPersonalJerarquicoComision,
+            ObjetivoPersonalJerarquicoDescuentos
+            ) VALUES (@0,@1,@2,@3,@4,@5,@6)`,
+            [ObjetivoPersonalJerarquicoId,
+             ObjetivoId,
+             ObjetivoPersonalJerarquicoPersonalId,
+             ObjetivoPersonalJerarquicoDesde,
+             'C',
+             ObjetivoPersonalJerarquicoComision,
+             ObjetivoPersonalJerarquicoDescuentos
+            ])
+    }
+
+    async ClienteElementoDependienteContrato(queryRunner: any,ClienteId:any,ClienteElementoDependienteId:any,ClienteElementoDependienteContratoFechaDesde:any,
+        ClienteElementoDependienteContratoFechaHasta:any ) {
+
+        let ClienteElementoDependienteContratoinfo = await queryRunner.query(`SELECT MAX(ClienteElementoDependienteContratoId) AS ClienteElementoDependienteContratoId FROM ClienteElementoDependienteContrato`)
+        let {ClienteElementoDependienteContratoId} = ClienteElementoDependienteContratoinfo[0]
+        
+        return await queryRunner.query(`INSERT INTO ClienteElementoDependienteContrato (
+            ClienteElementoDependienteContratoId,
+            ClienteId,
+            ClienteElementoDependienteId,
+            ClienteElementoDependienteContratoFechaDesde,
+            ClienteElementoDependienteContratoFechaHasta,
+            ) VALUES (@0,@1,@2,@3,@4)`,
+            [ClienteElementoDependienteContratoId,
+             ClienteId,
+             ClienteElementoDependienteId,
+             ClienteElementoDependienteContratoFechaDesde,
+             ClienteElementoDependienteContratoFechaHasta,
+            ])
+    }
+
+    async inserClienteElementoDependienteDomicilio(queryRunner:any,ClienteId:any,ClienteElementoDependienteId:any,DomicilioId:any,DomicilioDomLugar:any,DomicilioDomCalle:any,
+        DomicilioDomNro:any,DomicilioCodigoPostal:any,DomicilioProvinciaId:any,DomicilioLocalidadId:any,DomicilioBarrioId:any){
+
+        await queryRunner.query(`INSERT INTO ClienteElementoDependienteDomicilio (
+            ClienteId,
+            ClienteElementoDependienteId
+            ClienteElementoDependienteDomicilioId,
+            ClienteElementoDependienteDomicilioDomLugar,
+            ClienteElementoDependienteDomicilioDomCalle,
+            ClienteElementoDependienteDomicilioDomNro,
+            ClienteElementoDependienteDomicilioCodigoPostal,
+            ClienteElementoDependienteDomicilioPaisId,
+            ClienteElementoDependienteDomicilioProvinciaId,
+            ClienteElementoDependienteDomicilioLocalidadId,
+            ClienteElementoDependienteDomicilioBarrioId,
+            ClienteElementoDependienteDomicilioOperativo) VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19,@20,@21,@22,@23,@24,@25,@26,@27
+            )`,[ClienteId,
+                ClienteElementoDependienteId,
+                DomicilioId,
+                DomicilioDomLugar,
+                DomicilioDomCalle,
+                DomicilioDomNro,
+                DomicilioCodigoPostal,
+                1,
+                DomicilioProvinciaId,
+                DomicilioLocalidadId,
+                DomicilioBarrioId,
+                1
+            ])
+          }
+
+    async insertObjetivoSql(queryRunner: any,ObjetivoId:any ,ClienteId: number, ObjetivoDescripcion:any, ClienteElementoDependienteId:any, ObjetivoSucursalUltNro:any,) {
+
+        return await queryRunner.query(`INSERT INTO Objetivo (
+            ObjetivoId,
+            ClienteId,
+            ObjetivoDescripcion,
+            ClienteElementoDependienteId,
+            ObjetivoSucursalUltNro) VALUES (@0,@1,@2,@3,@4)`,
+            [ObjetivoId,ClienteId,ObjetivoDescripcion,ClienteElementoDependienteId,ObjetivoSucursalUltNro])
+    }
+
+    async insertClienteElementoDependienteSql(queryRunner: any,ClienteId:any,ClienteElementoDependienteId:any,ClienteElementoDependienteDescripcion,ClienteElementoDependienteSucursalId:any,ClienteElementoDependienteDomicilioUltNro:any) {
+
+        //este codigo arma el ClienteElementoDependienteArmado
+        let ElementoDependienteId = 1
+        let infoElementoDependiente = await queryRunner.query(`SELECT ElementoDependienteDescripcion FROM ElementoDependiente WHERE ElementoDependienteId = @0`,[ElementoDependienteId])
+        let ClienteElementoDependienteArmado =  `${infoElementoDependiente[0].ElementoDependienteDescripcion} - ${ClienteElementoDependienteDescripcion}`
+
+        return await queryRunner.query(`INSERT INTO ClienteElementoDependiente (
+            ClienteId,
+            ClienteElementoDependienteId,
+            ElementoDependienteId,
+            ClienteElementoDependienteDescripcion,
+            ClienteElementoDependienteArmado,
+            ClienteElementoDependienteDomicilioUltNro,
+            ClienteElementoDependienteSucursalId) VALUES (@0,@1,@2,@3,@4,@5,@6 )`,
+            [ClienteId,
+             ClienteElementoDependienteId,
+             ElementoDependienteId,
+             ClienteElementoDependienteDescripcion,
+             ClienteElementoDependienteArmado,
+             ClienteElementoDependienteDomicilioUltNro,
+             ClienteElementoDependienteSucursalId])
+    }
+    
+
 }

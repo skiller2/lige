@@ -173,16 +173,24 @@ export class ObjetivosFormComponent {
     let finalObj = [form,...this.files]
     try {
         if (this.ObjetivoId()) {
+          // este es para cuando es update
+
           await firstValueFrom(this.apiService.updateObjetivo(finalObj, this.ObjetivoId()))
-          // await firstValueFrom(this.searchService.getInfoObjCliente(this.ObjetivoId()))
-            // this.edit.set(false)
+          this.edit.set(false)
         } else {
-          // //este es para cuando es un nuevo registro
-          // await firstValueFrom(this.apiService.addCliente(finalObj))
-          // this.addNew.set(true)
-          // this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-          //   this.router.navigate(['/ges/clientes/clientes']);
-          // });
+          // este es para cuando es un nuevo registro
+
+          let result = await firstValueFrom(this.apiService.addObjetivo(finalObj))
+          setTimeout(() => {
+            this.formCli.reset(result.data)
+            this.formCli.patchValue({
+              DomicilioProvinciaId: result.data.DomicilioProvinciaId,
+              DomicilioLocalidadId: result.data.DomicilioLocalidadId,
+              DomicilioBarrioId: result.data.DomicilioBarrioId,
+            });
+        
+          }, 100);
+          this.addNew.set(true)
         }
         
         this.formCli.markAsUntouched()

@@ -913,6 +913,12 @@ export class ApiService {
     )
   }
 
+  addObjetivo(objetivo: any) {
+    return this.http.post<ResponseJSON<any>>('/api/objetivos/add', objetivo).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
   updateCliente(cliente: any, ClienteId: any) {
     return this.http.post<ResponseJSON<any>>(`/api/clientes/update/${ClienteId}`, cliente).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
