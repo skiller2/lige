@@ -96,7 +96,7 @@ export class CustodiaComponent {
         this.gridOptions.createFooterRow = true
         this.gridOptions.enableCheckboxSelector = true
         this.gridOptions.rowSelectionOptions = {
-            selectActiveRow: false
+            selectActiveRow: true
         }
     }
 
