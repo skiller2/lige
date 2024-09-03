@@ -45,7 +45,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
 
   private _selectedId: string = ''
-  _selected = ''
+  _selected =signal('')
   extendedOption = { PersonalId: 0, fullName: "" }
   
   private propagateTouched: () => void = noop
@@ -118,7 +118,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
 
       if (this._selectedId == '' || this._selectedId == '0') {
         this.valueExtendedEmitter.emit({})
-        this._selected = ''
+        this._selected.set('')
         this.propagateChange(this._selectedId)
         return
       }
@@ -137,7 +137,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
           .pipe(tap(res => {
             if (res[0]?.PersonalId)
             this.extendedOption = res[0]
-            this._selected = this._selectedId
+            this._selected.set(this._selectedId)
             this.valueExtendedEmitter.emit(this.extendedOption)
             //if (val!=this._selected)
             if (this.tmpInputVal != this._selected) {

@@ -5,7 +5,7 @@
 </ng-template>
 
 <ng-template #selectTpl>
-  <nz-select #psc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
+  <nz-select #psc [ngModel]="_selected()" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Apellido, Nombre o CUIT" nzShowSearch
   nzServerSearch (nzOnSearch)="search($event)">
   <ng-container *ngFor="let option of $optionsArray | async">

@@ -71,6 +71,10 @@ export class CustodiaFormComponent {
             if (this.custodiaId()) {
                 await this.load()
             } else {
+                this.personal().clear()
+                this.vehiculos().clear()
+                this.personal().push(this.fb.group({...this.objPersonal}))
+                this.vehiculos().push(this.fb.group({...this.objVehiculo}))
                 this.formCus.reset({estado: 0})
             }
         }, { injector: this.injector });
@@ -93,22 +97,32 @@ export class CustodiaFormComponent {
             infoCust.fechaFinal = new Date(infoCust.fechaFinal)
         this.personal().clear()
         this.vehiculos().clear()
+//        this.formCus.reset({estado: 0})
+//this.formCus.enable()
+
         infoCust.personal.forEach((obj:any) => {
             this.personal().push(this.fb.group({...this.objPersonal}))
         });
+        if (this.personal().length == 0)
+            this.personal().push(this.fb.group({...this.objPersonal}))
+        
         infoCust.vehiculos.forEach((obj:any) => {
             this.vehiculos().push(this.fb.group({...this.objVehiculo}))
         });
-        setTimeout(() => {
-            this.formCus.reset(infoCust)
+        if (this.vehiculos().length == 0)
+            this.vehiculos().push(this.fb.group({...this.objVehiculo}))
+
+        //setTimeout(() => {
+        this.formCus.reset(infoCust)
+        /*
             if (this.edit()) {
                 this.formCus.enable()
             } else {
                 this.formCus.disable()
             }
-    
-        }, 100);
-        { }
+    */
+        //}, 100);
+        //{ }
         
         const currDate = new Date()
         this.periodo.set({year:currDate.getFullYear(),month:currDate.getMonth()+1})
