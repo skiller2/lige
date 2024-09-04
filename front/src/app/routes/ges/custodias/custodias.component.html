@@ -72,7 +72,7 @@
       </nz-form-item>
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
-          <button nzType="primary" nz-button *ngIf="formCusEstado.enabled"  (click)="save()" [nzLoading]="isLoading()" [disabled]="formCusEstado.pristine" >
+          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" >
             Guardar Cambios
           </button>
         </nz-form-control>

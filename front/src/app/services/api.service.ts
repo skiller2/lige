@@ -961,6 +961,12 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>(`api/ayuda-asistencial/personal`, personalId).pipe(map(res => res.data));
   }
 
+  setEstado(parameter: any){
+    return this.http.post<ResponseJSON<any>>('/api/custodia/setestado', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

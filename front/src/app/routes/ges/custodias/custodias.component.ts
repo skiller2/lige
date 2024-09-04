@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-// import { Observable } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
@@ -54,7 +53,7 @@ export class CustodiaComponent {
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
-    private settingService = inject(SettingsService)
+    // private settingService = inject(SettingsService)
 
     columns$ = this.apiService.getCols('/api/custodia/cols')
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
@@ -100,9 +99,6 @@ export class CustodiaComponent {
         }
     }
 
-    ngAfterViewInit(): void {
-    }
-
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
@@ -125,7 +121,7 @@ export class CustodiaComponent {
                 this.estado.set(true)
         }else{
             this.editCustodiaId.set(0)
-            this.estado.set(false)
+            this.estado.set(true)
         }
         // console.log(this.editCustodiaId(), this.estado(), this.rows, this.angularGrid.dataView.getAllSelectedFilteredIds());
     }
@@ -147,12 +143,15 @@ export class CustodiaComponent {
         this.visible.set(value)
     }
 
+    listCustodia(event: any) {
+        this.listCustodia$.next(event);
+    }
+
     async save() {
         this.isLoading.set(true)
-        // const form = this.formCusEstado.value
-        // console.log('form', form);
         try {
-            console.log({...this.formCusEstado.value, ids: this.angularGrid.dataView.getAllSelectedFilteredIds() })
+            await firstValueFrom(this.apiService.setEstado({...this.formCusEstado.value, ids: this.angularGrid.dataView.getAllSelectedFilteredIds() }))
+            this.listCustodia('')
             this.formCusEstado.markAsUntouched()
             this.formCusEstado.markAsPristine()
         } catch (e) {
