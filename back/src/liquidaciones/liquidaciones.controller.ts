@@ -526,14 +526,11 @@ export class LiquidacionesController extends BaseController {
 
       let contador = 0
 
-      newFilePath = `${this.directory
-        }/${anio}/${anio}-${mes
+      newFilePath = `${anio}/${anio}-${mes
           .toString()
           .padStart(2, "0")}-${convalorimpoexpo_id}.xls`;
 
-      console.log("newFilePath " + newFilePath)
-
-      if (existsSync(newFilePath)) throw new ClientException("El documento ya existe.");
+      if (existsSync(`${this.directory}/${newFilePath}`)) throw new ClientException("El documento ya existe.");
 
       let TipoMovimiento = "E"
       let entidad = "liquidacion"
@@ -609,7 +606,7 @@ export class LiquidacionesController extends BaseController {
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
 
       await queryRunner.commitTransaction();
-      copyFileSync(file.path, newFilePath);
+      copyFileSync(file.path, `${this.directory}/${newFilePath}`);
       this.jsonRes({}, res, `XLS Recibido y se procesaron ${contador} registros`);
     } catch (error) {
       this.rollbackTransaction(queryRunner)
