@@ -556,14 +556,10 @@ export class ApiService {
 
   }
 
-  setDeleteImportacion(deleteId: any, valuePeriodo: any) {
-    const parameter = [deleteId, valuePeriodo]
-    this.notification.success('Respuesta', `Inicio Borrado `);
-
-    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/delete', parameter).pipe(
+  setDeleteImportacion(deleteId: any, anio:number,mes:number) {
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/delete', {deleteId, anio,mes}).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
-
   }
 
 
@@ -963,6 +959,12 @@ export class ApiService {
   getAyudaAsitencialByPersonalId(personalId: any) {
     if (personalId == "") personalId = "0"
     return this.http.post<ResponseJSON<any>>(`api/ayuda-asistencial/personal`, personalId).pipe(map(res => res.data));
+  }
+
+  setEstado(parameter: any){
+    return this.http.post<ResponseJSON<any>>('/api/custodia/setestado', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
   }
 
 }

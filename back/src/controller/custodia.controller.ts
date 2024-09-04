@@ -156,7 +156,7 @@ const estados : any[] = [
 export class CustodiaController extends BaseController {
 
     async addObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia:any, usuario: any, ip: any){
-        const objetivo_custodia_id = objetivoCustodia.objetivoCustodiaId
+        const objetivo_custodia_id = objetivoCustodia.id
         const responsable_id = objetivoCustodia.responsableId
         const cliente_id = objetivoCustodia.clienteId
         const desc_requirente = objetivoCustodia.descRequirente? objetivoCustodia.descRequirente : null
@@ -253,7 +253,7 @@ export class CustodiaController extends BaseController {
     }
 
     async updateObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia:any, usuario:any, ip:any){
-        const objetivo_custodia_id = objetivoCustodia.objetivoCustodiaId
+        const objetivo_custodia_id = objetivoCustodia.id
         const cliente_id = objetivoCustodia.clienteId
         const desc_requirente = objetivoCustodia.descRequirente? objetivoCustodia.descRequirente : null
         const descripcion = objetivoCustodia.descripcion? objetivoCustodia.descripcion : null
@@ -382,7 +382,7 @@ export class CustodiaController extends BaseController {
 
             const objetivoCustodiaId = await this.getProxNumero(queryRunner, `objetivocustodia`, usuario, ip)
 
-            const objetivoCustodia = {...req.body, responsableId, objetivoCustodiaId}
+            const objetivoCustodia = {...req.body, responsableId, id: objetivoCustodiaId}
             
             await this.addObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
@@ -451,7 +451,7 @@ export class CustodiaController extends BaseController {
             if (errores.length) {
                 throw new ClientException(errores.join(`\n`))
             }
- //           throw new ClientException("LLego todo ")
+
             await queryRunner.commitTransaction()
             return this.jsonRes({ custodiaId: objetivoCustodiaId }, res, 'Carga Exitosa');
         }catch (error) {
@@ -659,7 +659,7 @@ export class CustodiaController extends BaseController {
 
             //Si hubo un cambio en objetivocustodia ACTUALIZA
             //if (cantCambios) {
-                await this.updateObjetivoCustodiaQuery(queryRunner, {...objetivoCustodia, objetivoCustodiaId: custodiaId}, usuario, ip)
+                await this.updateObjetivoCustodiaQuery(queryRunner, {...objetivoCustodia, id: custodiaId}, usuario, ip)
             //}
 
             //Elimino los vehiculos y el personal que ya no pertenecen a este objetivo custodia
@@ -795,6 +795,93 @@ export class CustodiaController extends BaseController {
                 
             await queryRunner.commitTransaction()
             return this.jsonRes(list, res);
+        } catch (error) {
+            this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+    async setEstados(req: any, res: Response, next:NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+            const usuario = res.locals.userName
+            const ip = this.getRemoteAddress(req)
+            // const responsableId = 699
+            const responsableId = res.locals.PersonalId
+            const ids: number[] = req.body.ids
+            const estado: number = req.body.estado
+            let numFactura: number = req.body.numFactura
+            let errores : any[] = []
+            
+            if (estado == 4 && !numFactura) {
+                throw new ClientException(`El Número de Factura es invalido.`)
+            }
+
+            await queryRunner.startTransaction()
+            for (const id of ids) {
+                let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, id)
+                infoCustodia= infoCustodia[0]
+                infoCustodia.fechaInicio = infoCustodia.fechaInicio.toISOString()
+                if (infoCustodia.fechaFinal) infoCustodia.fechaFinal = infoCustodia.fechaFinal.toISOString()
+
+                if (infoCustodia.estado === estado) {
+                    continue
+                }
+                //Validaciones
+                if (!(await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')) && responsableId != infoCustodia.responsableId){
+                    errores.push(`Codigo ${id}: Únicamente puede modificar el registro ${infoCustodia.responsable} o pertenecer al grupo 'Administracion'/'Liquidaciones'.`)
+                    continue
+                }
+
+                if (infoCustodia.estado == 4){
+                    errores.push(`Codigo ${id}: No se puede modificar el estado.`)
+                    continue
+                }
+
+                let msgError: string = ''
+                if (this.valByEstado(estado)) {
+                    let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, id)
+                    let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, id)
+                    for (const personal of listPersonal) {
+                        if (!personal.importe){
+                            msgError+=`Revisar el Importe del personal. `
+                            break
+                        }
+                    }
+                    for (const vehiculo of listVehiculo) {
+                        if (!vehiculo.importe){
+                            msgError+=(`Revisar el Importe del vehiculo.`)
+                            break
+                        }
+                    }
+                }
+                if (msgError.length) {
+                    errores.push(`Codigo ${id}:`+msgError)
+                    continue
+                }
+
+                infoCustodia.estado = estado
+                if (!infoCustodia.numFactura) infoCustodia.numFactura = numFactura
+                
+
+                const valCustodiaForm = this.valCustodiaForm(infoCustodia)
+                if (valCustodiaForm instanceof ClientException){
+                    errores.push(`Codigo ${id}: ${valCustodiaForm.messageArr}`)
+                    continue
+                }
+
+                await this.updateObjetivoCustodiaQuery(queryRunner, infoCustodia, usuario, ip)
+                numFactura++
+            }
+
+            if (errores.length) {
+                throw new ClientException(errores.join(`\n`))
+            }
+                
+            await queryRunner.commitTransaction()
+            return this.jsonRes({}, res, 'Carga Exitosa');
         } catch (error) {
             this.rollbackTransaction(queryRunner)
             return next(error)
