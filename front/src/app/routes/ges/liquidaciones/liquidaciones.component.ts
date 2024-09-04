@@ -707,13 +707,9 @@ export class LiquidacionesComponent {
   confirmDeleteImportacion( id: any) {
     this.NotificationIdForDelete = parseInt(id);
     const periodo = this.liquidacionesForm.form.get('periodo')?.value
-    let periodoM = periodo.getMonth() + 1;
-    let periodoY = periodo.getFullYear();
-    const valuePeriodo = periodoM + "/" + periodoY;
-    console.log("periodo" + valuePeriodo);
     if (this.NotificationIdForDelete > 0) {
-      (document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
-      this.apiService.setDeleteImportacion({ deleteId: this.NotificationIdForDelete }, valuePeriodo).subscribe(evt => {
+      //(document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
+      this.apiService.setDeleteImportacion(this.NotificationIdForDelete, periodo.getFullYear(), periodo.getMonth() + 1).subscribe(evt => {
         this.formChange$.next('')
       });
     }

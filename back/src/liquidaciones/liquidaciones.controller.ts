@@ -16,11 +16,11 @@ export class LiquidacionesController extends BaseController {
       let status = null
       if (anio && mes) {
         status = await dataSource.query(
-          `SELECT peri.anio, peri.mes, peri.periodo_id, peri.ind_recibos_generados, peri.aud_fecha_mod FROM lige.dbo.liqmaperiodo peri WHERE peri.anio=@1 and peri.mes=@2`, [,anio, mes]
+          `SELECT peri.anio, peri.mes, peri.periodo_id, peri.ind_recibos_generados, peri.aud_fecha_mod FROM lige.dbo.liqmaperiodo peri WHERE peri.anio=@1 and peri.mes=@2`, [, anio, mes]
         )
         if (!status[0])
           throw new ClientException(`No se encontró el período ${mes}/${anio}`)
-          
+
       } else {
         status = await dataSource.query(
           `SELECT TOP 1 peri.anio, peri.mes, peri.periodo_id, peri.ind_recibos_generados, peri.aud_fecha_mod FROM lige.dbo.liqmaperiodo peri WHERE peri.ind_recibos_generados= 1 ORDER BY peri.anio DESC, peri.mes DESC`, [anio, mes]
@@ -29,10 +29,10 @@ export class LiquidacionesController extends BaseController {
 
       this.jsonRes(
         {
-          anio:status[0].anio,
+          anio: status[0].anio,
           mes: status[0].mes,
-          ind_recibos_generados:status[0].ind_recibos_generados,
-          stm_recibos_generados:status[0].aud_fecha_mod
+          ind_recibos_generados: status[0].ind_recibos_generados,
+          stm_recibos_generados: status[0].aud_fecha_mod
         },
         res
       );
@@ -359,11 +359,30 @@ export class LiquidacionesController extends BaseController {
     this.jsonRes(this.listaColumnas, res);
   }
 
-  async setDeeleteimportacionesQuerys(queryRunner: QueryRunner, deleteId: any, res: Response) {
-    if (deleteId != null) {
+
+  async setDeleteImportaciones(req: Request, res: Response, next: NextFunction) {
+
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    const anio = Number(req.body.anio)
+    const mes = Number(req.body.mes)
+    let fechaActual = new Date()
+    const deleteId = Number(req.body.deleteId)
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      if (!deleteId)
+        throw new ClientException(`No se pudo identificar el grupo de importación ${anio} ${mes} ${deleteId}`)
 
       await queryRunner.connect();
       await queryRunner.startTransaction();
+
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+  
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+        throw new ClientException(`Los recibos para este periodo ya se generaron, no se pueden eliminar `)
+  
 
       await queryRunner.query(
         `UPDATE lige.dbo.convalorimpoexpo SET ind_eliminado = 1 WHERE impoexpo_id = @0`,
@@ -373,40 +392,16 @@ export class LiquidacionesController extends BaseController {
         `DELETE FROM lige.dbo.liqmamovimientos WHERE impoexpo_id = @0`,
         [deleteId]
       );
-
       await queryRunner.commitTransaction();
 
       this.jsonRes({ list: [] }, res, `Se eliminaron con exito los registros `);
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      //   await queryRunner.release();
     }
-  }
 
-  async setDeleteImportaciones(req: Request, res: Response, next: NextFunction) {
-
-    let usuario = res.locals.userName
-    let ip = this.getRemoteAddress(req)
-    let periodo = req.body[1].split('/');
-    let fechaActual = new Date()
-    let deleteId = req.body[0].deleteId
-    const queryRunner = dataSource.createQueryRunner();
-
-    const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, parseFloat(periodo[1]), parseFloat(periodo[0]), usuario, ip)
-    console.log("periodo_id" + periodo_id)
-    const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
-
-    console.log("estan generados ? " + getRecibosGenerados[0].ind_recibos_generados)
-    if (getRecibosGenerados[0].ind_recibos_generados == 1) {
-      this.jsonRes({ list: [] }, res, `Los recibos para este periodo ya se generaron, no se pueden eliminar `);
-    } else {
-      try {
-        await this.setDeeleteimportacionesQuerys(queryRunner, deleteId, res)
-      } catch (error) {
-        this.rollbackTransaction(queryRunner)
-        return next(error)
-      } finally {
-        //   await queryRunner.release();
-      }
-
-    }
 
   }
 
@@ -426,7 +421,7 @@ export class LiquidacionesController extends BaseController {
     try {
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
         throw new ClientException(`Los recibos para este periodo ya se generaron`)
-  
+
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
@@ -527,8 +522,8 @@ export class LiquidacionesController extends BaseController {
       let contador = 0
 
       newFilePath = `${anio}/${anio}-${mes
-          .toString()
-          .padStart(2, "0")}-${convalorimpoexpo_id}.xls`;
+        .toString()
+        .padStart(2, "0")}-${convalorimpoexpo_id}.xls`;
 
       if (existsSync(`${this.directory}/${newFilePath}`)) throw new ClientException("El documento ya existe.");
 
