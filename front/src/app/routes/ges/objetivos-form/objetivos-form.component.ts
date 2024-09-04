@@ -134,7 +134,7 @@ export class ObjetivosFormComponent {
   async load() {
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
     this.infoCoordinadorCuenta().clear()
-
+console.log("infoObjetivo ", infoObjetivo)
     let domicilioString = `${infoObjetivo.DomicilioDomCalle}, ${infoObjetivo.DomicilioDomNro}, ${infoObjetivo.DomicilioCodigoPostal}, 
     ${infoObjetivo.DomicilioProvinciaId}, ${infoObjetivo.DomicilioLocalidadId}, ${infoObjetivo.DomicilioBarrioId}, ${infoObjetivo.DomicilioDomLugar}`.toLowerCase();
 
@@ -169,7 +169,7 @@ export class ObjetivosFormComponent {
 
   async save() {
     this.isLoading.set(true)
-    let form = this.formCli.value
+    let form = this.formCli.getRawValue();
     let finalObj = [form,...this.files]
     try {
         if (this.ObjetivoId()) {
