@@ -96,6 +96,7 @@ export class CustodiaComponent {
         this.gridOptions.rowSelectionOptions = {
             selectActiveRow: true
         }
+
     }
 
     async angularGridReady(angularGrid: any) {
