@@ -73,8 +73,15 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
           else if(type == 'date'){
             const valor = valorBusqueda.split('/').reverse().join('/');
             filterString.push(`${fieldName} >= '${valor} 00:00:00' AND ${fieldName} <= '${valor} 23:59:59'`)
-          }else {
-            filterString.push(`${fieldName} LIKE '%${valorBusqueda}%'`)
+          } else {
+            if (String(valorBusqueda).indexOf(';') == 0)
+              filterString.push(`${fieldName} LIKE '%${valorBusqueda}%'`)
+            else {
+              //Falta splitear el valor 
+              const vals = String(valorBusqueda).split(';')
+              for (const val of vals)
+              filterString.push(`${fieldName} LIKE '%${val.trim()}%'`)
+            }
           }
           break;
         case "=":
