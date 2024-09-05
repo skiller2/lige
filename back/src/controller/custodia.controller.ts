@@ -54,6 +54,9 @@ const columnsObjCustodia: any[] = [
         searchType:"string",
         // maxWidth: 150,
         minWidth: 110,
+        hidden: true,
+        searchHidden: false
+
     },
     {
         id:'descripcion' , name:'Descripcion' , field:'descripcion',
@@ -62,7 +65,10 @@ const columnsObjCustodia: any[] = [
         type: 'text',
         // maxWidth: 300,
         minWidth: 230,
+        hidden: true,
+        searchHidden: false
     },
+
     {
         id:'fechaI' , name:'Fecha Inicio' , field:'fechaI',
         fieldName: "obj.fecha_inicio",
@@ -96,6 +102,72 @@ const columnsObjCustodia: any[] = [
         minWidth: 50,
     },
 
+
+    {
+        id: 'cant_modulos', name: 'Cant. módulos',
+        field: 'cant_modulos',
+        fieldName: "obj.cant_modulos",
+        sortable: true,
+        type: 'number',
+        //maxWidth: 110,
+        minWidth: 60,
+        searchType:"number",
+    },
+    {
+        id: 'importe_modulos', name: 'Importe módulo',
+        field: 'importe_modulos',
+        fieldName: "obj.importe_modulos",
+        sortable: true,
+        type: 'currency',
+        //maxWidth: 110,
+        minWidth: 80,
+        searchType:"number",
+    },
+    {
+        id:'cant_horas_exced' , name:'Horas excedentes' , field:'cant_horas_exced',
+        fieldName: "obj.cant_horas_exced",
+        sortable: true,
+        type: 'number',
+        //maxWidth: 110,
+        minWidth: 60,
+        searchType:"number",
+    },
+    {
+        id:'impo_horas_exced' , name:'Importe hora excedente' , field:'impo_horas_exced',
+        fieldName: "obj.impo_horas_exced",
+        sortable: true,
+        type: 'currency',
+        //maxWidth: 110,
+        minWidth: 80,
+        searchType:"number",
+    },
+    {
+        id:'cant_km_exced' , name:'Km excentes' , field:'cant_km_exced',
+        fieldName: "obj.cant_km_exced",
+        sortable: true,
+        type: 'number',
+        //maxWidth: 110,
+        minWidth: 60,
+        searchType:"number",
+    },
+    {
+        id:'impo_km_exced' , name:'Importe km excedente' , field:'impo_km_exced',
+        fieldName: "obj.impo_km_exced",
+        sortable: true,
+        type: 'currency',
+        //maxWidth: 110,
+        minWidth: 80,
+        searchType:"number",
+    },
+    {
+        id:'impo_peaje' , name:'Importe Peaje' , field:'impo_peaje',
+        fieldName: "obj.impo_peaje",
+        sortable: true,
+        type: 'currency',
+        //maxWidth: 110,
+        minWidth: 80,
+        searchType:"number",
+    },
     {
         id:'facturacion' , name:'Importe a Facturar' , field:'facturacion',
         fieldName: "obj.impo_facturar",
@@ -242,7 +314,8 @@ export class CustodiaController extends BaseController {
             obj.cliente_id clienteId, obj.desc_requirente, obj.descripcion, obj.fecha_inicio, 
             obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente,
             CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) responsable, obj.impo_facturar facturacion,
-            obj.desc_facturacion
+            obj.desc_facturacion,
+            obj.impo_peaje, obj.impo_km_exced, obj.cant_km_exced,obj.impo_horas_exced, obj.cant_horas_exced,obj.importe_modulos,obj.cant_modulos
             FROM lige.dbo.objetivocustodia obj
             JOIN Personal per ON per.PersonalId = obj.responsable_id
             JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
@@ -491,9 +564,16 @@ export class CustodiaController extends BaseController {
                     origen: obj.origen,
                     fechaF: obj.fecha_fin? obj.fecha_fin : null,
                     destino: obj.destino,
-                    facturacion: obj.facturacion,
                     estado: estados[obj.estado],
-                    desc_facturacion: obj.desc_facturacion
+                    desc_facturacion: obj.desc_facturacion,
+                    facturacion: obj.facturacion,
+                    cant_modulos:obj.cant_modulos,
+                    importe_modulos:obj.importe_modulos,
+                    cant_horas_exced:obj.cant_horas_exced,
+                    impo_horas_exced:obj.impo_horas_exced,
+                    cant_km_exced:obj.cant_km_exced,
+                    impo_km_exced:obj.impo_km_exced,
+                    impo_peaje:obj.impo_peaje,
                 }
             })
             await queryRunner.commitTransaction()
