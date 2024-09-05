@@ -32,9 +32,9 @@ export class ClientesController extends BaseController {
         {
             name: "Razón Social",
             type: "string",
-            id: "ClienteDenominacion",
-            field: "ClienteDenominacion",
-            fieldName: "cli.ClienteDenominacion",
+            id: "ClienteApellidoNombre",
+            field: "ClienteApellidoNombre",
+            fieldName: "cli.ClienteApellidoNombre",
             searchType: "string",
             sortable: true,
 
@@ -102,7 +102,7 @@ export class ClientesController extends BaseController {
         cli.ClienteId,
         fac.ClienteFacturacionCUIT,
         con.CondicionAnteIVADescripcion,
-        cli.ClienteDenominacion, 
+        cli.ClienteApellidoNombre, 
         cli.CLienteNombreFantasia, 
         cli.ClienteFechaAlta,
         CONCAT_WS(' ', 
@@ -229,7 +229,7 @@ ${orderBy}`, [fechaActual])
             ,fac.ClienteFacturacionId
             ,fac.CondicionAnteIVAId
             ,TRIM(con.CondicionAnteIVADescripcion) AS CondicionAnteIVADescripcion
-            ,TRIM(cli.ClienteDenominacion) AS ClienteDenominacion 
+            ,TRIM(cli.ClienteApellidoNombre) AS ClienteApellidoNombre 
             ,TRIM(cli.CLienteNombreFantasia) AS CLienteNombreFantasia
             ,cli.ClienteFechaAlta
             ,cli.ClienteAdministradorUltNro
@@ -384,7 +384,7 @@ ${orderBy}`, [fechaActual])
                       await this.DeleteClienteAdministrador(queryRunner,ObjCliente,ClienteId)
             }
 
-            await this.updateClienteTable(queryRunner,ClienteId,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion,ClienteFechaAlta,ClienteAdministradorId)
+            await this.updateClienteTable(queryRunner,ClienteId,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteApellidoNombre,ClienteFechaAlta,ClienteAdministradorId)
             await this.updateFacturaTable(queryRunner,ClienteId,ObjCliente.ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.ClienteCondicionAnteIVAId)
             
             await ClientesController.updateClienteDomicilioTable(
@@ -507,11 +507,11 @@ ${orderBy}`, [fechaActual])
         WHERE ClienteId = @0 AND ClienteFacturacionId = @1`,[ClienteId,ClienteFacturacionId,ClienteFacturacionCUIT,CondicionAnteIVAId])
     }
     
-    async updateClienteTable(queryRunner:any,ClienteId:number,CLienteNombreFantasia:string,ClienteDenominacion:string,ClienteFechaAlta:Date,ClienteAdministradorId:any){
+    async updateClienteTable(queryRunner:any,ClienteId:number,CLienteNombreFantasia:string,ClienteApellidoNombre:string,ClienteFechaAlta:Date,ClienteAdministradorId:any){
 
         await queryRunner.query(`UPDATE Cliente
-         SET CLienteNombreFantasia = @1, ClienteDenominacion = @2, ClienteFechaAlta= @3, ClienteAdministradorUltNro = @4
-         WHERE ClienteId = @0`,[ClienteId,CLienteNombreFantasia,ClienteDenominacion,ClienteFechaAlta,ClienteAdministradorId])
+         SET CLienteNombreFantasia = @1, ClienteApellidoNombre = @2, ClienteFechaAlta= @3, ClienteAdministradorUltNro = @4
+         WHERE ClienteId = @0`,[ClienteId,CLienteNombreFantasia,ClienteApellidoNombre,ClienteFechaAlta,ClienteAdministradorId])
      }
 
      async updateAdministradorTable(queryRunner:any,ClienteId:number,ClienteAdministradorId:number,ClienteAdministradorAdministradorId:any){
@@ -736,7 +736,7 @@ ${orderBy}`, [fechaActual])
             let ClienteAdministradorId = ObjCliente.AdministradorId != null && ObjCliente.AdministradorId != "" ? 1 : null
 
 
-            await this.insertCliente(queryRunner,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteDenominacion,ClienteFechaAlta,ClienteDomicilioUltNro,ClienteAdministradorId)
+            await this.insertCliente(queryRunner,ObjCliente.CLienteNombreFantasia,ObjCliente.ClienteApellidoNombre,ClienteFechaAlta,ClienteDomicilioUltNro,ClienteAdministradorId)
 
             let ClienteSelectId = await queryRunner.query("SELECT MAX(ClienteId) AS MaxClienteId FROM Cliente")
             let ClienteId = ClienteSelectId[0].MaxClienteId
@@ -778,7 +778,7 @@ ${orderBy}`, [fechaActual])
     }
 
 
-    async insertCliente(queryRunner:any,CLienteNombreFantasia:any,ClienteDenominacion:any,ClienteFechaAlta:any,ClienteDomicilioUltNro:any,ClienteAdministradorUltNro:any){
+    async insertCliente(queryRunner:any,CLienteNombreFantasia:any,ClienteApellidoNombre:any,ClienteFechaAlta:any,ClienteDomicilioUltNro:any,ClienteAdministradorUltNro:any){
 
         await queryRunner.query(`INSERT INTO Cliente (	
         ClienteConsorcioEs,
@@ -812,9 +812,9 @@ ${orderBy}`, [fechaActual])
          null,
          null,
          null,
-         ClienteDenominacion,
+         ClienteApellidoNombre,
          CLienteNombreFantasia,
-         ClienteDenominacion,
+         ClienteApellidoNombre,
          null,
          ClienteFechaAlta,
          null,
@@ -988,7 +988,7 @@ ${orderBy}`, [fechaActual])
                throw new ClientException(`El campo Condición Ante IVA NO pueden estar vacio.`)
             }
     
-            if(!form.ClienteDenominacion) {
+            if(!form.ClienteApellidoNombre) {
                throw new ClientException(`El campo Razón Social NO pueden estar vacio.`)
             }
     

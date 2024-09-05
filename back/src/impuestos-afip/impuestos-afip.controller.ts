@@ -183,7 +183,7 @@ export class ImpuestosAfipController extends BaseController {
       
       obj.ClienteId,
       obj.ClienteElementoDependienteId, obj.ObjetivoDescripcion,
-      cli.ClienteDenominacion, cli.ClienteNombreFantasia, cli.ClienteApellidoNombre,
+      cli.ClienteNombreFantasia, cli.ClienteApellidoNombre,
       
       1
       
