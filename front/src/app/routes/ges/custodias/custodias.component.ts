@@ -90,7 +90,6 @@ export class CustodiaComponent {
         this.gridOptions.autoEdit = true
         this.gridOptions.enableAutoSizeColumns = true
         // this.gridOptions.fullWidthRows = true
-        this.gridOptions.enableExcelExport = false
         this.gridOptions.showFooterRow = true
         this.gridOptions.createFooterRow = true
         this.gridOptions.enableCheckboxSelector = true
