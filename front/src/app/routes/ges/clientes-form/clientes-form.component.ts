@@ -104,6 +104,8 @@ export class ClientesFormComponent {
     ClienteDenominacion: "",
     CLienteNombreFantasia: "",
     ClienteFechaAlta: "",
+    ClienteTelefonoUltNro:0,
+    ClienteEmailUltNro:0,
     ClienteDomicilioId:0,ClienteDomicilioDomCalle: "",ClienteDomicilioDomNro:0, referencia: "", ClienteDomicilioCodigoPostal: 0,ClienteDomicilioDomLugar:null,
     domiciliopais: "", ClienteDomicilioProvinciaId: null, ClienteDomicilioLocalidadId: null, ClienteDomicilioBarrioId: null,
     AdministradorId:0,ClienteAdministradorUltNro:0,
@@ -185,57 +187,21 @@ export class ClientesFormComponent {
     { }
   }
 
-  // changeSelect(){
-
-  //   this.formCli.get('domicilioprovincia')!.valueChanges.pipe(
-  //     startWith(null),
-  //     switchMap(provinciaId => this.searchService.getLocalidad().pipe(
-  //       map((Localidad: Localidad[]) => Localidad.filter(Localidad => Localidad.ProvinciaId === provinciaId))
-  //     ))
-  //   ).subscribe(LocalidadOptions => {
-  //     console.log("LocalidadOptions " , LocalidadOptions)
-  //     this.$optionsLocalidad = of(LocalidadOptions);
-  //     if (LocalidadOptions && LocalidadOptions.length > 0) {
-  //       //this.formCli.get('domiciliobarrio')!.enable();
-  //     } else {
-  //       //this.formCli.get('domiciliobarrio')!.disable();
-  //     }
-  //   });
-
-
-  //   console.log("localidades ", this.$optionsLocalidad)
-  //   // Deshabilitar el select de Barrio al inicio
-  //   this.formCli.get('domiciliobarrio')!.disable();
-
-  //   // Filtrar barrios cuando cambia la localidad
-  //   this.formCli.get('domiciliolocalidad')!.valueChanges.pipe(
-  //     startWith(null),
-  //     switchMap(localidadId => this.searchService.getBarrio().pipe(
-  //       map((barrios: Barrio[]) => barrios.filter(barrio => barrio.LocalidadId === localidadId))
-  //     ))
-  //   ).subscribe(barrioOptions => {
-  //     this.$optionsBarrio = of(barrioOptions);
-  //     if (barrioOptions && barrioOptions.length > 0) {
-  //       this.formCli.get('domiciliobarrio')!.enable();
-  //     } else {
-  //       this.formCli.get('domiciliobarrio')!.disable();
-  //     }
-  //   });
-
-  // }
-
   async save() {
     this.isLoading.set(true)
     let form = this.formCli.value
-    let finalObj = [form,...this.files]
+    let combinedData = {
+      ...form,
+      files: this.files
+    };
     try {
         if (this.ClienteId()) {
-          await firstValueFrom(this.apiService.updateCliente(finalObj, this.ClienteId()))
+          await firstValueFrom(this.apiService.updateCliente(combinedData, this.ClienteId()))
           await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
             // this.edit.set(false)
         } else {
           //este es para cuando es un nuevo registro
-          await firstValueFrom(this.apiService.addCliente(finalObj))
+          await firstValueFrom(this.apiService.addCliente(combinedData))
           this.addNew.set(true)
           this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
             this.router.navigate(['/ges/clientes/clientes']);

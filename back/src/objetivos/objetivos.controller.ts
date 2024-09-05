@@ -269,6 +269,8 @@ export class ObjetivosController extends BaseController {
                 ,ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde, clicon.ClienteContratoFechaDesde) AS ContratoFechaDesde
                 ,ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta, clicon.ClienteContratoFechaHasta) AS ContratoFechaHasta
                 ,eledepcon.ClienteElementoDependienteContratoId AS ContratoId
+                ,eledep.ClienteElementoDependienteDomicilioUltNro
+                ,eledep.ClienteElementoDependienteContratoUltNro
                 ,domcli.ClienteElementoDependienteDomicilioDomCalle AS DomicilioDomCalle
                 ,domcli.ClienteElementoDependienteDomicilioDomNro AS DomicilioDomNro
                 ,domcli.ClienteElementoDependienteDomicilioCodigoPostal AS DomicilioCodigoPostal
@@ -343,6 +345,7 @@ export class ObjetivosController extends BaseController {
                 ,TRIM(cli.CLienteNombreFantasia) AS CLienteNombreFantasia
                 ,cli.ClienteAdministradorUltNro
                 ,cli.ClienteSucursalId AS SucursalId
+                ,cli.ClienteContratoUltNro as ClienteContratoUltNro
                 ,clicon.ClienteContratoFechaDesde AS ContratoFechaDesde
 	            ,clicon.ClienteContratoFechaHasta AS ContratoFechaHasta
                 ,clicon.ClienteContratoId AS ContratoId
@@ -419,13 +422,13 @@ export class ObjetivosController extends BaseController {
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
             const ObjetivoId = Number(req.params.id)
-            const Obj =  {...req.body[0]}
+            const Obj =  {...req.body}
 
             console.log("voy a hacer update ", Obj)
-
+            
             //validaciones
 
-            await this.FormValidations(Obj)
+            //await this.FormValidations(Obj)
             //throw new ClientException(`estoy testeando`)
             const ClienteFechaAlta = new Date(Obj.ClienteFechaAlta)
             ClienteFechaAlta.setHours(0, 0, 0, 0)
@@ -441,13 +444,13 @@ export class ObjetivosController extends BaseController {
 
                 if(Obj.DomicilioFulllAdress != domicilioString){
 
-                    let MaxClienteElementoDependienteDomicilioId = await this.selectMaxEleDepDomicilioid(queryRunner,Number(Obj.ClienteId),Obj.ClienteElementoDependienteId)
+                    let ClienteElementoDependienteDomicilioUltNro  = Obj.ClienteElementoDependienteDomicilioUltNro + 1
 
                     await this.inserClienteElementoDependienteDomicilio(
                         queryRunner
                        ,Obj.ClienteId
                        ,Obj.ClienteElementoDependienteId
-                       ,MaxClienteElementoDependienteDomicilioId
+                       ,ClienteElementoDependienteDomicilioUltNro
                        ,Obj.DomicilioDomLugar
                        ,Obj.DomicilioDomCalle
                        ,Obj.DomicilioDomNro
@@ -478,7 +481,7 @@ export class ObjetivosController extends BaseController {
                 if(Obj.ContratoId != null){
                     await this.updateClienteContratoTable(queryRunner,Obj.ClienteId,Obj.ContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
                 }else{
-                    await this.insertClienteContratoTable(queryRunner,Obj.ClienteId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
+                    await this.insertClienteContratoTable(queryRunner,Obj.ClienteId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta,Obj.ClienteContratoUltNro)
                 }
                
                 await this.updateClienteTable(queryRunner,Obj.ClienteId,Obj.SucursalId,Obj.Descripcion) 
@@ -529,9 +532,8 @@ export class ObjetivosController extends BaseController {
 
              }
 
-            if(req.body.length > 1){
-             const [, ...newArray] = req.body;
-             await FileUploadController.handlePDFUpload(ObjetivoId,'Objetivo',newArray,usuario,ip ) 
+            if(Obj.files.length > 1){
+             await FileUploadController.handlePDFUpload(ObjetivoId,'Objetivo',Obj.files,usuario,ip ) 
             }
 
             await queryRunner.commitTransaction()
@@ -544,10 +546,9 @@ export class ObjetivosController extends BaseController {
         }
     }
 
-    async insertClienteContratoTable(queryRunner: any,ClienteId:any,ClienteContratoFechaDesde:any,ClienteContratoFechaHasta:any ) {
+    async insertClienteContratoTable(queryRunner: any,ClienteId:any,ClienteContratoFechaDesde:any,ClienteContratoFechaHasta:any,ClienteContratoUltNro:any ) {
 
-        let ClienteContratoinfo = await queryRunner.query(`SELECT MAX(ClienteContratoId) AS ClienteContratoId FROM ClienteContrato`)
-        let {ClienteContratoId} = ClienteContratoinfo[0]
+        let ClienteContratoId = ClienteContratoUltNro == null ? 1 : ClienteContratoUltNro + 1
         
         return await queryRunner.query(`INSERT INTO ClienteContrato (
             ClienteContratoId,
@@ -824,7 +825,7 @@ export class ObjetivosController extends BaseController {
 
     async addObjetivo(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
-        const Obj = {...req.body[0]};
+        const Obj = {...req.body};
         console.log("Insert ",Obj)
         try {
 
@@ -851,26 +852,24 @@ export class ObjetivosController extends BaseController {
             let { MaxObjetivoId } = infoMaxObjetivo[0]
             MaxObjetivoId += 1
 
-            let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT MAX(ClienteElementoDependienteId) AS MaxClienteElementoDependiente FROM ClienteElementoDependiente WHERE ClienteId = @0`,[Number(Obj.ClienteId)])
-            let { MaxClienteElementoDependienteId } = infoMaxClienteElementoDependiente[0]
-            MaxClienteElementoDependienteId += 1
+            let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT ClienteElementoDependienteUltNro AS ClienteElementoDependienteUltNro FROM Cliente WHERE ClienteId = @0`,[Number(Obj.ClienteId)])
+            let { ClienteElementoDependienteUltNro } = infoMaxClienteElementoDependiente[0]
+            ClienteElementoDependienteUltNro = ClienteElementoDependienteUltNro == null ? 1 :ClienteElementoDependienteUltNro + 1
 
 
             //Agrego los valores al objeto original para retornar
 
             Obj.ObjetivoId = MaxObjetivoId
-            Obj.ClienteElementoDependienteId = MaxClienteElementoDependienteId
+            Obj.ClienteElementoDependienteId = ClienteElementoDependienteUltNro
 
+            let ClienteElementoDependienteDomicilioId = 1
 
-            let MaxClienteElementoDependienteDomicilioId = await this.selectMaxEleDepDomicilioid(queryRunner,Number(Obj.ClienteId),Obj.ClienteElementoDependienteId)
-
-
-            await this.insertObjetivoSql(queryRunner,MaxObjetivoId,Number(Obj.ClienteId),Obj.Descripcion,MaxClienteElementoDependienteId,Obj.SucursalId)
-            await this.insertClienteElementoDependienteSql(queryRunner,Number(Obj.ClienteId),MaxClienteElementoDependienteId,Obj.Descripcion,Obj.SucursalId,MaxClienteElementoDependienteDomicilioId)
-            await this.inserClienteElementoDependienteDomicilio(queryRunner,Obj.ClienteId,MaxClienteElementoDependienteId,MaxClienteElementoDependienteDomicilioId,Obj.DomicilioDomLugar,Obj.DomicilioDomCalle,Obj.DomicilioDomNro,
+            await this.insertObjetivoSql(queryRunner,MaxObjetivoId,Number(Obj.ClienteId),Obj.Descripcion,ClienteElementoDependienteUltNro,Obj.SucursalId)
+            await this.insertClienteElementoDependienteSql(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.Descripcion,Obj.SucursalId,ClienteElementoDependienteDomicilioId)
+            await this.inserClienteElementoDependienteDomicilio(queryRunner,Obj.ClienteId,ClienteElementoDependienteUltNro,ClienteElementoDependienteDomicilioId,Obj.DomicilioDomLugar,Obj.DomicilioDomCalle,Obj.DomicilioDomNro,
                 Obj.DomicilioCodigoPostal,Obj.DomicilioProvinciaId,Obj.DomicilioLocalidadId,Obj.DomicilioBarrioId )
 
-            await this.ClienteElementoDependienteContrato(queryRunner,Number(Obj.ClienteId),MaxClienteElementoDependienteId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
+            await this.ClienteElementoDependienteContrato(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
             
             let infoObjetivoPersonalJerarquico = await queryRunner.query(`SELECT MAX(ObjetivoPersonalJerarquicoId) AS MaxObjetivoPersonalJerarquicoId FROM ObjetivoPersonalJerarquico`)
             let { MaxObjetivoPersonalJerarquicoId } = infoObjetivoPersonalJerarquico[0]
@@ -888,9 +887,8 @@ export class ObjetivosController extends BaseController {
 
             Obj.infoCoordinadorCuenta = newinfoCoordinadorCuentaArray
 
-            if(req.body.length > 1){
-                const [, ...newArray] = req.body;
-                await FileUploadController.handlePDFUpload(Obj.ObjetivoId,'Objetivo',newArray,usuario,ip ) 
+            if(Obj.files.length > 1){
+                await FileUploadController.handlePDFUpload(Obj.ObjetivoId,'Objetivo',Obj.files,usuario,ip ) 
                }
 
             //await queryRunner.commitTransaction()
@@ -901,17 +899,6 @@ export class ObjetivosController extends BaseController {
         } finally {
             await queryRunner.release()
         }
-    }
-
-    async selectMaxEleDepDomicilioid(queryRunner:any,ClienteId:number,ClienteElementoDependienteId:any){
-        let infoMaxDependienteDomicilio = await queryRunner.query(`SELECT MAX(ClienteElementoDependienteDomicilioId) AS ClienteElementoDependienteDomicilioId FROM ClienteElementoDependienteDomicilio 
-                WHERE ClienteId = @0 AND ClienteElementoDependienteId =@1`,[ClienteId,ClienteElementoDependienteId])
-            
-            let ClienteElementoDependienteDomicilioId = 
-            infoMaxDependienteDomicilio[0].ClienteElementoDependienteDomicilioId !== null ? 
-            infoMaxDependienteDomicilio[0].ClienteElementoDependienteDomicilioId : 0;
-
-            return ClienteElementoDependienteDomicilioId += 1
     }
 
     async insertObjetivoPersonalJerarquico(queryRunner: any,ObjetivoPersonalJerarquicoId:any,ObjetivoId:any,ObjetivoPersonalJerarquicoPersonalId:any,
@@ -940,8 +927,8 @@ export class ObjetivosController extends BaseController {
     async ClienteElementoDependienteContrato(queryRunner: any,ClienteId:any,ClienteElementoDependienteId:any,ClienteElementoDependienteContratoFechaDesde:any,
         ClienteElementoDependienteContratoFechaHasta:any ) {
 
-        let ClienteElementoDependienteContratoinfo = await queryRunner.query(`SELECT MAX(ClienteElementoDependienteContratoId) AS ClienteElementoDependienteContratoId FROM ClienteElementoDependienteContrato`)
-        let {ClienteElementoDependienteContratoId} = ClienteElementoDependienteContratoinfo[0]
+        
+        let ClienteElementoDependienteContratoUltNro = 1
         
         return await queryRunner.query(`INSERT INTO ClienteElementoDependienteContrato (
             ClienteElementoDependienteContratoId,
@@ -950,7 +937,7 @@ export class ObjetivosController extends BaseController {
             ClienteElementoDependienteContratoFechaDesde,
             ClienteElementoDependienteContratoFechaHasta,
             ) VALUES (@0,@1,@2,@3,@4)`,
-            [ClienteElementoDependienteContratoId,
+            [ClienteElementoDependienteContratoUltNro,
              ClienteId,
              ClienteElementoDependienteId,
              ClienteElementoDependienteContratoFechaDesde,

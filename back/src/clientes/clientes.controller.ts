@@ -233,6 +233,8 @@ ${orderBy}`, [fechaActual])
             ,TRIM(cli.CLienteNombreFantasia) AS CLienteNombreFantasia
             ,cli.ClienteFechaAlta
             ,cli.ClienteAdministradorUltNro
+            ,cli.ClienteTelefonoUltNro
+            ,cli.ClienteEmailUltNro
             ,domcli.ClienteDomicilioId
             ,TRIM(domcli.ClienteDomicilioDomCalle) AS ClienteDomicilioDomCalle
             ,TRIM(domcli.ClienteDomicilioDomNro) AS ClienteDomicilioDomNro
@@ -354,8 +356,7 @@ ${orderBy}`, [fechaActual])
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
             const ClienteId = Number(req.params.id)
-            const ObjCliente =  {...req.body[0]}
-        //    const ObjCliente = req.body.length == 1 ? {...req.body[0]} : {...req.body[0]};
+            const ObjCliente =  {...req.body}
 
             //validaciones
 
@@ -406,12 +407,9 @@ ${orderBy}`, [fechaActual])
             console.log("clienteContactoIds.length ", clienteContactoIds.length)
             let maxClienteContactoId = clienteContactoIds.length > 0 ? Math.max(...clienteContactoIds) : 0
             
-            const infoClienteTelefono = await queryRunner.query(`SELECT MAX(ClienteContactoTelefonoId) AS MaxClienteContactoTelefonoId FROM ClienteContactoTelefono WHERE clienteId = @0;`, [ClienteId])
-            let maxClienteContactoTelefonoId = infoClienteTelefono[0].MaxClienteContactoTelefonoId !== null ? infoClienteTelefono[0].MaxClienteContactoTelefonoId : 0;
-
-            const infoClienteCorreo = await queryRunner.query(`SELECT MAX(ClienteContactoEmailId) AS maxClienteContactoEmailId FROM ClienteContactoEmail WHERE clienteId = @0`, [ClienteId])
-            let maxClienteContactoEmailId = infoClienteCorreo[0].maxClienteContactoEmailId !== null ? infoClienteCorreo[0].maxClienteContactoEmailId : 0;
-
+            let maxClienteContactoTelefonoId = ObjCliente.ClienteTelefonoUltNro == null ? 1 : ObjCliente.ClienteTelefonoUltNro + 1;
+            let maxClienteContactoEmailId = ObjCliente.ClienteEmailUltNro == null ? 1 : ObjCliente.ClienteEmailUltNro + 1;
+            
             console.log("maxClienteContactoEmailId ", maxClienteContactoEmailId)
             
             //ACA SE EVALUA Y SE ELIMINA EL CASO QUE SE BORRE ALGUN REGISTRO DE CLIENTE CONTACTO EXISTENTE
@@ -460,9 +458,8 @@ ${orderBy}`, [fechaActual])
 
             }
 
-            if(req.body.length > 1){
-             const [, ...newArray] = req.body;
-             await FileUploadController.handlePDFUpload(ClienteId,'Cliente',newArray,usuario,ip ) 
+            if(ObjCliente.files.length > 1){
+             await FileUploadController.handlePDFUpload(ClienteId,'Cliente',ObjCliente.files,usuario,ip ) 
             }
 
             await queryRunner.commitTransaction()
@@ -709,8 +706,7 @@ ${orderBy}`, [fechaActual])
 
     async addCliente(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
-        const ObjCliente = {...req.body[0]};
-        // const ObjCliente = req.body.length == 1 ? {...req.body} : {...req.body[0]};
+        const ObjCliente = {...req.body};
         console.log(ObjCliente)
         try {
 
@@ -762,9 +758,8 @@ ${orderBy}`, [fechaActual])
                 await this.insertClienteAdministrador(queryRunner,ClienteId,ClienteAdministradorId,ObjCliente.ClienteFechaAlta,ObjCliente.AdministradorId) 
             }
 
-            if(req.body.length > 1){
-                const [, ...newArray] = req.body;
-                await FileUploadController.handlePDFUpload(ClienteId,'Cliente',newArray,usuario,ip ) 
+            if(ObjCliente.files.length > 1){
+                await FileUploadController.handlePDFUpload(ClienteId,'Cliente',ObjCliente.files,usuario,ip ) 
             }
 
             await queryRunner.commitTransaction()
