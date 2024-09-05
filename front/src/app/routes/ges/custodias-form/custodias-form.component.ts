@@ -135,7 +135,7 @@ export class CustodiaFormComponent {
     addPersonal(e?: MouseEvent): void {
         e?.preventDefault();
         if (this.edit()) {
-            this.personal().controls.push((this.fb.group({...this.objPersonal})))
+            this.personal().push((this.fb.group({...this.objPersonal})))
         }
     }
 
@@ -163,7 +163,7 @@ export class CustodiaFormComponent {
     async save() {
         this.isLoading.set(true)
         const form = this.formCus.value
-        // console.log('form', form);
+        console.log('form', form);
         try {
             if (this.custodiaId()) {
                 await firstValueFrom(this.apiService.updateObjCustodia(form, this.custodiaId()))
