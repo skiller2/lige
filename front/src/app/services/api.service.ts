@@ -277,6 +277,9 @@ export class ApiService {
         //rightFooterText:'fin'
 
       },
+      excelExportOptions: {
+        exportWithFormatter: true
+      }
     };
   }
 

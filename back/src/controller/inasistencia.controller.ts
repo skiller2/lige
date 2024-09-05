@@ -17,7 +17,6 @@ export class InasistenciaController extends BaseController {
         valueArray.forEach((element, index) => {
           if (element.trim().length >= 1) {
             query += ` TipoInasistenciaDescripcion LIKE '%${element.trim()}%' AND `;
-            //query += `(CONCAT(CLienteDenominacion, ClienteNombreFantasia, ClienteApellidoNombre) LIKE '%${element.trim()}%') AND `;
             buscar = true;
           }
         });

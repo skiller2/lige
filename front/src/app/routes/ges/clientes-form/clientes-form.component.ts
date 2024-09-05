@@ -101,7 +101,7 @@ export class ClientesFormComponent {
     ClienteFacturacionId:0,
     ClienteCondicionAnteIVAId:0,
     CondicionAnteIVADescripcion: "",
-    ClienteDenominacion: "",
+    ClienteApellidoNombre: "",
     CLienteNombreFantasia: "",
     ClienteFechaAlta: "",
     ClienteTelefonoUltNro:0,

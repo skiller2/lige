@@ -60,9 +60,9 @@ const listaColumnas: any[] = [
     {
         name: "Razón Social",
         type: "string",
-        id: "ClienteDenominacion",
-        field: "ClienteDenominacion",
-        fieldName: "cli.ClienteDenominacion",
+        id: "ClienteApellidoNombre",
+        field: "ClienteApellidoNombre",
+        fieldName: "cli.ClienteApellidoNombre",
         searchType: "string",
         sortable: true,
 
@@ -148,8 +148,8 @@ export class ObjetivosController extends BaseController {
                 obj.ClienteId,
                 obj.ClienteElementoDependienteId,
                 CONCAT(obj.ClienteId, '/', ISNULL(obj.ClienteElementoDependienteId,0)) AS Codigo, 
-                cli.ClienteDenominacion,
-                ISNULL(eledep.ClienteElementoDependienteDescripcion,cli.ClienteDenominacion) Descripcion,                
+                cli.ClienteApellidoNombre,
+                ISNULL(eledep.ClienteElementoDependienteDescripcion,cli.ClienteApellidoNombre) Descripcion,                
 --                obj.ObjetivoDescripcion AS Descripcion2, --Basura
                 gap.GrupoActividadId,
                 ga.GrupoActividadDetalle,
@@ -263,7 +263,7 @@ export class ObjetivosController extends BaseController {
                 ,obj.ObjetivoId AS id
                 ,obj.ClienteId
                 ,obj.ClienteElementoDependienteId
-                ,ISNULL(eledep.ClienteElementoDependienteDescripcion, cli.ClienteDenominacion) AS Descripcion
+                ,ISNULL(eledep.ClienteElementoDependienteDescripcion, cli.ClienteApellidoNombre) AS Descripcion
                 ,suc.SucursalDescripcion
                 ,suc.SucursalId
                 ,ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde, clicon.ClienteContratoFechaDesde) AS ContratoFechaDesde
@@ -341,7 +341,7 @@ export class ObjetivosController extends BaseController {
                 ,fac.ClienteFacturacionId
                 ,fac.CondicionAnteIVAId
                 ,TRIM(con.CondicionAnteIVADescripcion) AS CondicionAnteIVADescripcion
-                ,TRIM(cli.ClienteDenominacion) AS Descripcion 
+                ,TRIM(cli.ClienteApellidoNombre) AS Descripcion 
                 ,TRIM(cli.CLienteNombreFantasia) AS CLienteNombreFantasia
                 ,cli.ClienteAdministradorUltNro
                 ,cli.ClienteSucursalId AS SucursalId
