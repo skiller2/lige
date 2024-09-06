@@ -79,11 +79,15 @@ export class ObjetivosFormComponent {
     ContratoFechaDesde:"",
     ContratoFechaHasta:"",
     ContratoId:0,
+    ClienteContratoUltNro:0,
+    ClienteElementoDependienteContratoUltNro:0,
+    ClienteElementoDependienteDomicilioUltNro:0,
     DomicilioFulllAdress:"",
     DomicilioId:0,DomicilioDomCalle: "",
     DomicilioDomNro:0, DomicilioCodigoPostal: 0,DomicilioDomLugar:null,
     DomicilioProvinciaId: null,DomicilioLocalidadId: null, DomicilioBarrioId: null,
-    infoCoordinadorCuenta: this.fb.array([this.fb.group({ ...this.objCoordinadorCuenta })]), estado: 0,
+    infoCoordinadorCuenta: this.fb.array([this.fb.group({ ...this.objCoordinadorCuenta })]), 
+    estado: 0,
   })
 
  
@@ -170,17 +174,21 @@ console.log("infoObjetivo ", infoObjetivo)
   async save() {
     this.isLoading.set(true)
     let form = this.formCli.getRawValue();
-    let finalObj = [form,...this.files]
+    let combinedData = {
+      ...form,
+      files: this.files
+    };
+    
     try {
         if (this.ObjetivoId()) {
           // este es para cuando es update
 
-          await firstValueFrom(this.apiService.updateObjetivo(finalObj, this.ObjetivoId()))
+          await firstValueFrom(this.apiService.updateObjetivo(combinedData, this.ObjetivoId()))
           this.edit.set(false)
         } else {
           // este es para cuando es un nuevo registro
 
-          let result = await firstValueFrom(this.apiService.addObjetivo(finalObj))
+          let result = await firstValueFrom(this.apiService.addObjetivo(combinedData))
           setTimeout(() => {
             this.formCli.reset(result.data)
             this.formCli.patchValue({

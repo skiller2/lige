@@ -4,7 +4,7 @@
     <ul nz-menu nzMode="horizontal" >
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'objetivos', 'objetivos']" (click)="getGridData()" >Objetivos</a>
+        <a [routerLink]="['/', 'ges', 'objetivos', 'listado']" (click)="getGridData()" >Objetivos</a>
       </li>
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
@@ -25,7 +25,7 @@
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
   
       <nz-tab>
-        <a nz-tab-link routerLink="/ges/objetivos/objetivos" >Objetivos</a>
+        <a nz-tab-link routerLink="/ges/objetivos/listado" >Objetivos</a>
         <ng-template nz-tab *ngIf="(columns$|async) as columnas">
           <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters" />
   
