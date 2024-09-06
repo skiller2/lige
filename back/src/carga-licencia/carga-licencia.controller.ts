@@ -440,7 +440,7 @@ export class CargaLicenciaController extends BaseController {
     const filterSql = filtrosToSql(req.body.filters["options"].filtros, columnasGrilla);
     //const orderBy = orderToSQL(req.body.options.sort)
     const anio = Number(req.body.anio)
-    const mes = Number(req.body.anio)
+    const mes = Number(req.body.mes)
 
     try {
 
