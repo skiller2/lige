@@ -233,9 +233,9 @@ export class CustodiaController extends BaseController {
         const cliente_id = objetivoCustodia.clienteId
         const desc_requirente = objetivoCustodia.descRequirente? objetivoCustodia.descRequirente : null
         const descripcion = objetivoCustodia.descripcion? objetivoCustodia.descripcion : null
-        const fecha_inicio = objetivoCustodia.fechaInicio.slice(0, 16).replace('T', ' ')
+        const fecha_inicio = new Date(objetivoCustodia.fechaInicio)
         const origen = objetivoCustodia.origen
-        const fecha_fin = objetivoCustodia.fechaFinal? objetivoCustodia.fechaFinal.slice(0, 16).replace('T', ' ') : null
+        const fecha_fin = objetivoCustodia.fechaFinal? new Date(objetivoCustodia.fechaFinal) : null
         const destino = objetivoCustodia.destino? objetivoCustodia.destino : null
         const cant_modulos = objetivoCustodia.cantModulos? objetivoCustodia.cantModulos : null
         const importe_modulos = objetivoCustodia.impoModulos? objetivoCustodia.impoModulos : null
@@ -330,9 +330,9 @@ export class CustodiaController extends BaseController {
         const cliente_id = objetivoCustodia.clienteId
         const desc_requirente = objetivoCustodia.descRequirente? objetivoCustodia.descRequirente : null
         const descripcion = objetivoCustodia.descripcion? objetivoCustodia.descripcion : null
-        const fecha_inicio = objetivoCustodia.fechaInicio.slice(0, 16).replace('T', ' ')
+        const fecha_inicio = new Date(objetivoCustodia.fechaInicio)
         const origen = objetivoCustodia.origen
-        const fecha_fin = objetivoCustodia.fechaFinal? objetivoCustodia.fechaFinal.slice(0, 16).replace('T', ' ') : null
+        const fecha_fin = objetivoCustodia.fechaFinal? new Date(objetivoCustodia.fechaFinal) : null
         const destino = objetivoCustodia.destino
         const cant_modulos = objetivoCustodia.cantModulos? objetivoCustodia.cantModulos : null
         const importe_modulos = objetivoCustodia.impoModulos? objetivoCustodia.impoModulos  :null
@@ -623,7 +623,9 @@ export class CustodiaController extends BaseController {
             // const responsableId = 699
             const responsableId = res.locals.PersonalId
             const custodiaId = req.params.id
-            const objetivoCustodia = {...req.body }
+            const objetivoCustodia = { ...req.body }
+            console.log('quehay',req.body)
+
             let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, custodiaId)
             infoCustodia= infoCustodia[0]
             delete infoCustodia.id
@@ -642,8 +644,8 @@ export class CustodiaController extends BaseController {
             let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, custodiaId)
             let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
             
-            infoCustodia.fechaInicio = infoCustodia.fechaInicio.toISOString()
-            infoCustodia.fechaFinal = infoCustodia.fechaFinal? infoCustodia.fechaFinal.toISOString() : infoCustodia.fechaFinal
+//            infoCustodia.fechaInicio = infoCustodia.fechaInicio.toISOString()
+//            infoCustodia.fechaFinal = infoCustodia.fechaFinal? infoCustodia.fechaFinal.toISOString() : infoCustodia.fechaFinal
             let cantCambios = 0, personalError = 0, vehiculoError = 0
             let repPersonal = [], repVehiculo = [], errores = []
             
@@ -749,6 +751,7 @@ export class CustodiaController extends BaseController {
             for (const obj of listVehiculo) {
                 await this.deleteRegVehiculoObjCustodiaQuery(queryRunner, custodiaId, obj.patente)
             }
+//            throw new ClientException('DEBUG')
             
             await queryRunner.commitTransaction()
             return this.jsonRes([], res, 'Carga Exitosa');
@@ -903,8 +906,8 @@ export class CustodiaController extends BaseController {
             for (const id of ids) {
                 let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, id)
                 infoCustodia= infoCustodia[0]
-                infoCustodia.fechaInicio = infoCustodia.fechaInicio.toISOString()
-                if (infoCustodia.fechaFinal) infoCustodia.fechaFinal = infoCustodia.fechaFinal.toISOString()
+//                infoCustodia.fechaInicio = infoCustodia.fechaInicio.toISOString()
+//                if (infoCustodia.fechaFinal) infoCustodia.fechaFinal = infoCustodia.fechaFinal.toISOString()
 
                 if (infoCustodia.estado === estado) {
                     continue
