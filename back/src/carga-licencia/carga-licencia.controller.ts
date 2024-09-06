@@ -1163,12 +1163,9 @@ export class CargaLicenciaController extends BaseController {
       const aplicaEl = `${mes.toString().padStart(2, ' ')}/${anio}`
 
       const recibo = await queryRunner.query(`
-        SELECT doc.doc_id
-        FROM lige.dbo.docgeneral doc
-        LEFT JOIN lige.dbo.liqmaperiodo liqp ON liqp.periodo_id = doc.periodo
-        WHERE doc.persona_id = @0 AND liqp.anio = @1 AND liqp.mes = @2 
-        `, [PersonalId, anio, mes])
-      if (recibo.length > 0)
+        SELECT liqp.ind_recibos_generados FROM lige.dbo.liqmaperiodo liqp WHERE liqp.anio = @1 AND liqp.mes = @2
+        `, [null,anio, mes])
+      if (recibo.length > 0 && recibo[0]['ind_recibos_generados']==1 )
         throw new ClientException(`Ya se generó recibo para el período ${mes}/${anio}, no se pueden modificar las horas`)
     
 
