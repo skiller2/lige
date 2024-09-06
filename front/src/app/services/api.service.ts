@@ -516,7 +516,7 @@ export class ApiService {
   }
 
   getListCargaLicencia(filters: any, anio: any, mes: any) {
-    const parameter = [filters, anio, mes]
+    const parameter = { filters, anio, mes }
     return this.http.post<ResponseJSON<any>>('/api/carga-licencia/list', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
@@ -526,7 +526,7 @@ export class ApiService {
 
   
   getListHorasLicencia(filters: any, anio: any, mes: any) {
-    const parameter = [filters, anio, mes]
+    const parameter = { filters, anio, mes }
     return this.http.post<ResponseJSON<any>>('/api/carga-licencia/listhoras', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))

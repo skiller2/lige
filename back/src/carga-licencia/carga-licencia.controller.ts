@@ -404,10 +404,10 @@ export class CargaLicenciaController extends BaseController {
     next: NextFunction
   ) {
 
-    const filterSql = filtrosToSql(req.body[0]["options"].filtros, columnasGrilla);
+    const filterSql = filtrosToSql(req.body.filters["options"].filtros, columnasGrilla);
     //const orderBy = orderToSQL(req.body.options.sort)
-    const anio = Number(req.body[1])
-    const mes = Number(req.body[2])
+    const anio = Number(req.body.anio)
+    const mes = Number(req.body.mes)
     const queryRunner = dataSource.createQueryRunner();
     try {
 
@@ -437,10 +437,10 @@ export class CargaLicenciaController extends BaseController {
     next: NextFunction
   ) {
 
-    const filterSql = filtrosToSql(req.body[0]["options"].filtros, columnasGrilla);
+    const filterSql = filtrosToSql(req.body.filters["options"].filtros, columnasGrilla);
     //const orderBy = orderToSQL(req.body.options.sort)
-    const anio = Number(req.body[1])
-    const mes = Number(req.body[2])
+    const anio = Number(req.body.anio)
+    const mes = Number(req.body.anio)
 
     try {
 
