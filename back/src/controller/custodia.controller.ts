@@ -644,8 +644,6 @@ export class CustodiaController extends BaseController {
             let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, custodiaId)
             let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
             
-//            infoCustodia.fechaInicio = infoCustodia.fechaInicio.toISOString()
-//            infoCustodia.fechaFinal = infoCustodia.fechaFinal? infoCustodia.fechaFinal.toISOString() : infoCustodia.fechaFinal
             let cantCambios = 0, personalError = 0, vehiculoError = 0
             let repPersonal = [], repVehiculo = [], errores = []
             
@@ -906,18 +904,11 @@ export class CustodiaController extends BaseController {
             for (const id of ids) {
                 let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, id)
                 infoCustodia= infoCustodia[0]
-//                infoCustodia.fechaInicio = infoCustodia.fechaInicio.toISOString()
-//                if (infoCustodia.fechaFinal) infoCustodia.fechaFinal = infoCustodia.fechaFinal.toISOString()
 
                 if (infoCustodia.estado === estado) {
                     continue
                 }
                 //Validaciones
-                if (!(await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')) && responsableId != infoCustodia.responsableId){
-                    errores.push(`Codigo ${id}: Únicamente puede modificar el registro ${infoCustodia.responsable} o pertenecer al grupo 'Administracion'/'Liquidaciones'.`)
-                    continue
-                }
-
                 if (infoCustodia.estado == 4){
                     errores.push(`Codigo ${id}: No se puede modificar el estado.`)
                     continue
