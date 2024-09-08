@@ -183,22 +183,25 @@ console.log("infoObjetivo ", infoObjetivo)
         if (this.ObjetivoId()) {
           // este es para cuando es update
 
-          await firstValueFrom(this.apiService.updateObjetivo(combinedData, this.ObjetivoId()))
-          this.edit.set(false)
+          let result = await firstValueFrom(this.apiService.updateObjetivo(combinedData, this.ObjetivoId()))
+          //this.formCli.reset(result.data)
+          this.formCli.patchValue({
+            infoCoordinadorCuenta: result.data.infoCoordinadorCuenta
+          });
+          //this.edit.set(false)
         } else {
           // este es para cuando es un nuevo registro
 
           let result = await firstValueFrom(this.apiService.addObjetivo(combinedData))
           setTimeout(() => {
-            this.formCli.reset(result.data)
+          
             this.formCli.patchValue({
-              DomicilioProvinciaId: result.data.DomicilioProvinciaId,
-              DomicilioLocalidadId: result.data.DomicilioLocalidadId,
-              DomicilioBarrioId: result.data.DomicilioBarrioId,
+              ObjetivoId:result.data.ObjetivoId,
+              infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
             });
         
           }, 100);
-          this.addNew.set(true)
+          //this.addNew.set(true)
         }
         
         this.formCli.markAsUntouched()

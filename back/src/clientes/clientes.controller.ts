@@ -417,6 +417,8 @@ ${orderBy}`, [fechaActual])
                 return !ObjCliente.infoClienteContacto.some(obj => obj.ClienteContactoId === num && obj.ClienteContactoId !== 0);
             });
 
+            let newinfoClienteContactoArray = []
+
             for (const obj of ObjCliente.infoClienteContacto) {
 
                 if(numerosQueNoPertenecen?.length > 0) {
@@ -445,6 +447,9 @@ ${orderBy}`, [fechaActual])
                          maxClienteContactoId += 1
                          maxClienteContactoTelefonoId += 1
                          maxClienteContactoEmailId += 1
+
+                         obj.ClienteContactoId = maxClienteContactoId
+                         newinfoClienteContactoArray.push(obj)
       
                          await this.insertClienteContactoTable(queryRunner,ClienteId,maxClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxClienteContactoTelefonoId,maxClienteContactoEmailId)
       
@@ -458,12 +463,14 @@ ${orderBy}`, [fechaActual])
 
             }
 
+            ObjCliente.infoClienteContacto = newinfoClienteContactoArray
+
             if(ObjCliente.files.length > 1){
              await FileUploadController.handlePDFUpload(ClienteId,'Cliente',ObjCliente.files,usuario,ip ) 
             }
 
             await queryRunner.commitTransaction()
-            return this.jsonRes([], res, 'Modificación  Exitosa');
+            return this.jsonRes(ObjCliente, res, 'Modificación  Exitosa');
         }catch (error) {
             this.rollbackTransaction(queryRunner)
             return next(error)
@@ -737,10 +744,14 @@ ${orderBy}`, [fechaActual])
             let ClienteSelectId = await queryRunner.query("SELECT MAX(ClienteId) AS MaxClienteId FROM Cliente")
             let ClienteId = ClienteSelectId[0].MaxClienteId
 
+            ObjCliente.id = ClienteId
+
             await this.insertClienteFacturacion(queryRunner,ClienteId,ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.ClienteCondicionAnteIVAId,ClienteFechaAlta)
             await this.inserClientetDomicilio(queryRunner,ClienteId,ClienteDomicilioId,ObjCliente.ClienteDomicilioDomLugar,ObjCliente.ClienteDomicilioDomCalle,ObjCliente.ClienteDomicilioDomNro,
                 ObjCliente.ClienteDomicilioCodigoPostal,ObjCliente.ClienteDomicilioProvinciaId,ObjCliente.ClienteDomicilioLocalidadId,ObjCliente.ClienteDomicilioBarrioId,
             )
+
+            let newinfoClienteContactoArray = []
 
             for (const obj of ObjCliente.infoClienteContacto) {
 
@@ -748,11 +759,16 @@ ${orderBy}`, [fechaActual])
                 maxClienteContactoTelefonoId += 1
                 maxClienteContactoEmailId += 1
 
+                obj.ClienteContactoId = maxClienteContactoId
+
                 await this.insertClienteContactoTable(queryRunner,ClienteId,maxClienteContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxClienteContactoTelefonoId,maxClienteContactoEmailId)
                 await this.insertClienteContactoEmailTable(queryRunner,ClienteId,maxClienteContactoId,maxClienteContactoEmailId,obj.correo)
                 await this.insertClienteContactoTelefonoTable(queryRunner,ClienteId,maxClienteContactoId,maxClienteContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,obj.ClienteContactoTelefonoCodigoArea)
                 
+                newinfoClienteContactoArray.push(obj)
             }
+
+            ObjCliente.infoClienteContacto = newinfoClienteContactoArray
 
             if(ClienteAdministradorId != null){
                 await this.insertClienteAdministrador(queryRunner,ClienteId,ClienteAdministradorId,ObjCliente.ClienteFechaAlta,ObjCliente.AdministradorId) 
@@ -763,7 +779,7 @@ ${orderBy}`, [fechaActual])
             }
 
             await queryRunner.commitTransaction()
-            return this.jsonRes([], res, 'Carga  de nuevo registro exitoso');
+            return this.jsonRes(ObjCliente, res, 'Carga  de nuevo registro exitoso');
         }catch (error) {
             this.rollbackTransaction(queryRunner)
             return next(error)
@@ -1025,11 +1041,6 @@ ${orderBy}`, [fechaActual])
     
                  if(!obj.ClienteContactoApellido) {
                     throw new ClientException(`El campo Apellido en cliente contacto NO pueden estar vacio.`)
-                 }
-    
-                 if(!obj.area) {
-                    throw new ClientException(`El campo Area en cliente contacto NO pueden estar vacio.`)
-     
                  }
     
                 if(!obj.TipoTelefonoId) {

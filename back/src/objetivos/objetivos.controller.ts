@@ -498,6 +498,8 @@ export class ObjetivosController extends BaseController {
                 return !Obj.infoCoordinadorCuenta.some(value => value.ObjetivoId === num && value.ObjetivoId !== 0);
             });
            
+            let newinfoCoordinadorCuentaArray = []
+
             for (const objetivo of Obj.infoCoordinadorCuenta) {
 
                  if(numerosQueNoPertenecen?.length > 0) {
@@ -520,7 +522,10 @@ export class ObjetivosController extends BaseController {
                          const ObjetivoPersonalJerarquico = await queryRunner.query(`SELECT MAX(ObjetivoPersonalJerarquicoId) AS ObjetivoPersonalJerarquicoId FROM ObjetivoPersonalJerarquico`)
                          console.log("ObjetivoPersonalJerarquico ", ObjetivoPersonalJerarquico)
                          let maxObjetivoPersonalJerarquico = ObjetivoPersonalJerarquico[0].ObjetivoPersonalJerarquicoId + 1 
-      
+
+                         objetivo.ObjetivoId = maxObjetivoPersonalJerarquico
+                         newinfoCoordinadorCuentaArray.push(objetivo)
+
                          await this.insertCoordinadorCuentaQuery(queryRunner,maxObjetivoPersonalJerarquico,
                             ObjetivoId,
                             objetivo.PersonaId,
@@ -528,16 +533,19 @@ export class ObjetivosController extends BaseController {
                             objetivo.ObjetivoPersonalJerarquicoDescuentos)
       
                       }
+                  
                }    
 
              }
+
+             Obj.infoCoordinadorCuenta = newinfoCoordinadorCuentaArray
 
             if(Obj.files.length > 1){
              await FileUploadController.handlePDFUpload(ObjetivoId,'Objetivo',Obj.files,usuario,ip ) 
             }
 
             await queryRunner.commitTransaction()
-            return this.jsonRes([], res, 'Modificación  Exitosa');
+            return this.jsonRes(Obj, res, 'Modificación  Exitosa');
         }catch (error) {
             this.rollbackTransaction(queryRunner)
             return next(error)
@@ -879,7 +887,9 @@ export class ObjetivosController extends BaseController {
              for (const obj of Obj.infoCoordinadorCuenta) {
 
              MaxObjetivoPersonalJerarquicoId += 1
+
              obj.ObjetivoId = MaxObjetivoPersonalJerarquicoId
+
              await this.insertObjetivoPersonalJerarquico(queryRunner,MaxObjetivoPersonalJerarquicoId,MaxObjetivoId,Obj.PersonaId,newDate,Obj.ObjetivoPersonalJerarquicoComision,Obj.ObjetivoPersonalJerarquicoDescuentos)
              newinfoCoordinadorCuentaArray.push(obj)
 

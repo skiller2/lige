@@ -196,16 +196,24 @@ export class ClientesFormComponent {
     };
     try {
         if (this.ClienteId()) {
-          await firstValueFrom(this.apiService.updateCliente(combinedData, this.ClienteId()))
-          await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
+          let result = await firstValueFrom(this.apiService.updateCliente(combinedData, this.ClienteId()))
+
+          this.formCli.patchValue({
+            infoClienteContacto: result.data.infoClienteContacto
+          });
+
             // this.edit.set(false)
         } else {
           //este es para cuando es un nuevo registro
-          await firstValueFrom(this.apiService.addCliente(combinedData))
-          this.addNew.set(true)
-          this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-            this.router.navigate(['/ges/clientes/clientes']);
+          let result =  await firstValueFrom(this.apiService.addCliente(combinedData))
+
+          this.formCli.patchValue({
+            id:result.data.id,
+            infoClienteContacto: result.data.infoClienteContacto,
           });
+
+          //this.addNew.set(true)
+         
         }
         
         this.formCli.markAsUntouched()
