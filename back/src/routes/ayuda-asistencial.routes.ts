@@ -14,3 +14,4 @@ ayudaAsistencialRouter.post('/rechazar', [authMiddleware.verifyToken, authMiddle
 ayudaAsistencialRouter.post('/addcuota', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => { ayudaAsistencialController.personalPrestamoListAddCuota(req, res, next) } )
 ayudaAsistencialRouter.post('/addpres', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => { ayudaAsistencialController.addPersonalPrestamo(req, res, next) } )
 ayudaAsistencialRouter.post('/personal', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => { ayudaAsistencialController.getPersonalPrestamoByPersonalId(req, res, next) } )
+ayudaAsistencialRouter.post('/proxfecha', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => { ayudaAsistencialController.getProxAplicaEl(req, res, next) } )

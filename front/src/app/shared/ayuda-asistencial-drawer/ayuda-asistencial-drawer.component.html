@@ -4,20 +4,20 @@
 
   <ng-container *nzDrawerContent>
     @if (conditional()|async) {}
-    <form nz-form ngForm>
+    <form [formGroup]="formAyudaAsi">
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Personal</nz-form-label>
           <nz-form-control [nzSpan]="17">
-            <app-personal-search  name="personalId" ngModel [anio]="currDate().getFullYear()" [mes]="currDate().getMonth()+1" (ngModelChange)="this.formChange($event)"></app-personal-search>
+            <app-personal-search  formControlName="personalId" [anio]="currDate().getFullYear()" [mes]="currDate().getMonth()+1" (ngModelChange)="this.formChange($event)"></app-personal-search>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Tipo</nz-form-label>
           <nz-form-control [nzSpan]="17">
-            <nz-select nzShowSearch nzAllowClear name="formaId" ngModel 
-                [nzDropdownMatchSelectWidth]="false" >
+            <nz-select nzShowSearch nzAllowClear formControlName="formaId"
+                [nzDropdownMatchSelectWidth]="false" (ngModelChange)="onChangeTipo($event)">
             <nz-option *ngFor="let option of options" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
             </nz-select>
         </nz-form-control>
@@ -26,23 +26,23 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Aplica El</nz-form-label>
           <nz-form-control [nzSpan]="17">
-            <nz-date-picker nzMode="month" ngModel name="aplicaEl"></nz-date-picker>
+            <nz-date-picker nzMode="month" formControlName="aplicaEl"></nz-date-picker>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Cant. de Cuotas</nz-form-label>
           <nz-form-control [nzSpan]="5">
-            <input nz-input name="cantCuotas" ngModel type="number" />
+            <input nz-input formControlName="cantCuotas" type="number" />
         </nz-form-control>
         <nz-form-label [nzSpan]="3">Importe</nz-form-label>
           <nz-form-control [nzSpan]="9">
-            <input nz-input name="importe" ngModel type="number" />
+            <input nz-input formControlName="importe" type="number" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item class="btnCenter">
-        <button nz-button nzType="primary" [disabled]="!ngForm().dirty" (click)="save()" [nzLoading]="isSaving()">Guardar</button>
+        <button nz-button nzType="primary" [disabled]="!formAyudaAsi.dirty" (click)="save()" [nzLoading]="isSaving()">Guardar</button>
       </nz-form-item>
 
       <nz-form-item class="app-table">

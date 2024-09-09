@@ -68,8 +68,9 @@
         <nz-form-control >
           <input nz-input placeholder="" formControlName="numFactura" type="number" />
         </nz-form-control>
-        <p></p>
       </nz-form-item>
+      <p>Cantidad de Custodias: {{cantReg()}}</p>
+      <p>Importe Total: {{impTotal()}}</p>
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
           <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" >

@@ -717,7 +717,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
         throw new ClientException(`Ya se encuentra generado, aprobado y pendiente de acreditar en cuenta.  No se puede solicitar nuevo ${forma.label}.`)
 
 
-      const adelantoExistente = await queryRunner.query(
+      await queryRunner.query(
         `DELETE From PersonalPrestamo 
         WHERE PersonalPrestamoAprobado IS NULL
         AND FormaPrestamoId = @1
@@ -832,6 +832,41 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       
       await queryRunner.commitTransaction()
       return this.jsonRes(list, res);
+    }catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async getProxAplicaEl(req: any, res: Response, next: NextFunction){
+    const personalId:number = req.body.personalId
+    const tipo:number = req.body.tipo
+    const date = new Date()
+    const mes = date.getMonth()+1
+    const anio = date.getFullYear()
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction()
+      
+      let max:any = await queryRunner.query(
+        `SELECT MAX(DATEFROMPARTS(SUBSTRING(pp.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pp.PersonalPrestamoAplicaEl,1,2),1)) aplicaEl
+        FROM PersonalPrestamo pp
+        WHERE pp.PersonalId = @0 AND pp.FormaPrestamoId = @1
+        AND DATEFROMPARTS(SUBSTRING(pp.PersonalPrestamoAplicaEl,4,4),SUBSTRING(pp.PersonalPrestamoAplicaEl,1,2),1) >= DATEFROMPARTS(@2,@3,1)
+        `, [personalId, tipo, anio, mes]
+      );
+      max = max[0].aplicaEl
+      console.log('MAX',max);
+      if (max) {
+        max.setMonth(max.getMonth() + 1);
+      }else{
+        max = new Date(anio,mes-1)
+      }
+      console.log(max);
+      await queryRunner.commitTransaction()
+      return this.jsonRes({aplicaEl: max}, res, '');
     }catch (error) {
       this.rollbackTransaction(queryRunner)
       return next(error)
