@@ -162,6 +162,7 @@ export class ClientesFormComponent {
   async load() {
 
     let infoCliente = await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
+    console.log("infoCliente ", infoCliente)
     this.infoClienteContacto().clear()
     infoCliente.infoClienteContacto.forEach((obj: any) => {
       this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))

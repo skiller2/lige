@@ -421,11 +421,20 @@ ${orderBy}`, [fechaActual])
 
             for (const obj of ObjCliente.infoClienteContacto) {
 
+                console.log("obj para insertar ", obj)
+
                 if(numerosQueNoPertenecen?.length > 0) {
 
-                    await this.deleteClienteContactoTable(queryRunner,ClienteId, obj.ClienteContactoId)
-                    await this.deleteClienteContactoEmailTable(queryRunner,ClienteId,obj.ClienteContactoEmailId,obj.ClienteContactoId)
-                    await this.deleteClienteContactoTelefonoTable(queryRunner,ClienteId,obj.ClienteContactoTelefonoId,obj.ClienteContactoId)
+                    const exist = numerosQueNoPertenecen.includes(obj.ClienteContactoId)
+                    
+                    if (exist) {
+                    
+                        await this.deleteClienteContactoTable(queryRunner,ClienteId, obj.ClienteContactoId)
+                        await this.deleteClienteContactoEmailTable(queryRunner,ClienteId,obj.ClienteContactoEmailId,obj.ClienteContactoId)
+                        await this.deleteClienteContactoTelefonoTable(queryRunner,ClienteId,obj.ClienteContactoTelefonoId,obj.ClienteContactoId)
+
+                    }
+                    
 
                 }else{
                     if (clienteContactoIds.includes(obj.ClienteContactoId) && obj.ClienteContactoId !== 0) {
@@ -435,12 +444,29 @@ ${orderBy}`, [fechaActual])
                           if(obj.ClienteContactoEmailUltNro != null){
       
                               await this.updateClienteContactoEmailTable(queryRunner,ClienteId,obj.ClienteContactoId,obj.ClienteContactoEmailUltNro,obj.correo)
+                          }else{
+
+                            maxClienteContactoEmailId += 1
+
+                            await this.insertClienteContactoEmailTable(queryRunner,ClienteId,maxClienteContactoId,maxClienteContactoEmailId,obj.correo)
+                            await this.updateClienteContactoUltNro(queryRunner,ClienteId,obj.ClienteContactoId,maxClienteContactoEmailId,null)   
+                            
                           }
       
                           if(obj.ClienteContactoTelefonoUltNro != null){
       
                               await this.updateClienteContactoTelefonoTable(queryRunner,ClienteId,obj.ClienteContactoId,obj.ClienteContactoTelefonoUltNro,obj.telefono)
-                          }
+                          
+                            }else{
+
+                            maxClienteContactoTelefonoId += 1
+
+                            await this.insertClienteContactoTelefonoTable(queryRunner,ClienteId,maxClienteContactoId,maxClienteContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,
+                                obj.ClienteContactoTelefonoCodigoArea)
+
+                            await this.updateClienteContactoUltNro(queryRunner,ClienteId,obj.ClienteContactoId,null,maxClienteContactoTelefonoId)   
+
+                         } 
                          
                       } else {
                          // Insert
@@ -527,6 +553,26 @@ ${orderBy}`, [fechaActual])
          WHERE ClienteId = @0 AND ClienteAdministradorId = @1`,[ClienteId,ClienteAdministradorAdministradorId])
 
     }
+
+    async updateClienteContactoUltNro(queryRunner:any,ClienteId:number,ClienteContactoId:number,ClienteContactoEmailUltNro:any,ClienteContactoTelefonoUltNro:any){
+
+        if(ClienteContactoEmailUltNro == null){
+            await queryRunner.query(`
+                UPDATE ClienteContacto
+                SET ClienteContactoTelefonoUltNro = @2
+                WHERE ClienteId = @0 AND ClienteContactoId = @1`,[ClienteId,ClienteContactoId,ClienteContactoTelefonoUltNro])
+        }
+
+        if(ClienteContactoTelefonoUltNro == null){
+            await queryRunner.query(`
+                UPDATE ClienteContacto
+                SET ClienteContactoEmailUltNro = @2
+                WHERE ClienteId = @0 AND ClienteContactoId = @1`,[ClienteId,ClienteContactoId,ClienteContactoEmailUltNro])
+        }
+
+       
+
+     }
 
      async updateClienteContactoTable(queryRunner:any,ClienteId:number,ClienteContactoId:number,nombre:string,ClienteContactoApellido:string,area:string){
 
@@ -705,7 +751,7 @@ ${orderBy}`, [fechaActual])
         let deletTelefono = `DELETE FROM ClienteContactoTelefono WHERE ClienteId = @0`
 
         if(ClienteContactoTelefonoId != null && ClienteContactoId != null)
-            deletTelefono += ` AND ClienteContactoEmailId =@1 AND ClienteContactoId = @2`
+            deletTelefono += ` AND ClienteContactoTelefonoId =@1 AND ClienteContactoId = @2`
 
         await queryRunner.query(deletTelefono,[ClienteId,ClienteContactoTelefonoId,ClienteContactoId])
     } 
