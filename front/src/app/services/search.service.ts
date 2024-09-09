@@ -843,4 +843,11 @@ export class SearchService {
     );
   }
 
+  getProxAplicaEl(parameter: any){
+    return this.http.post<ResponseJSON<any>>('/api/ayuda-asistencial/proxfecha', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of({}))
+    );
+  }
+
 }

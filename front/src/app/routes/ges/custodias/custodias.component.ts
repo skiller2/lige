@@ -42,6 +42,8 @@ export class CustodiaComponent {
     edit = signal(false);
     visible = signal(false);
     isLoading = signal(false);
+    cantReg = signal(0)
+    impTotal = signal(0)
     excelExportService = new ExcelExportService();
     listCustodia$ = new BehaviorSubject('');
     listOptions: listOptionsT = {
@@ -124,6 +126,13 @@ export class CustodiaComponent {
             this.estado.set(true)
         }
         // console.log(this.editCustodiaId(), this.estado(), this.rows, this.angularGrid.dataView.getAllSelectedFilteredIds());
+        let regs = this.angularGrid.dataView.getAllSelectedItems()
+        let total = 0
+        regs.forEach((reg:any) => {
+            total += reg.facturacion
+        })
+        this.cantReg.set(this.rows.length)
+        this.impTotal.set(total)
     }
 
     getGridData(): void {

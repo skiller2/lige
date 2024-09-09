@@ -960,7 +960,7 @@ export class ApiService {
   }
 
   getAyudaAsitencialByPersonalId(personalId: any) {
-    if (personalId == "") personalId = "0"
+    if (personalId == 0) return of([])
     return this.http.post<ResponseJSON<any>>(`api/ayuda-asistencial/personal`, personalId).pipe(map(res => res.data));
   }
 

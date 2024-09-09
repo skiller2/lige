@@ -2,7 +2,7 @@ import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
 import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef,  } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
-import { FormControl, NgForm } from '@angular/forms';
+import { FormControl, NgForm, FormBuilder } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, debounceTime, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
@@ -29,7 +29,6 @@ export interface Option {
 })
 
 export class AyudaAsistencialDrawerComponent {
-    ngForm = viewChild.required(NgForm);
     tituloDrawer = input.required<string>()
     visible = model<boolean>(false)
     refresh = model<number>(0)
@@ -41,9 +40,12 @@ export class AyudaAsistencialDrawerComponent {
     private apiService = inject(ApiService)
     constructor(private searchService: SearchService) { }
 
+    fb = inject(FormBuilder)
+    formAyudaAsi = this.fb.group({ personalId: 0, formaId: null, aplicaEl:'', cantCuotas:0, importe:0 })
+
     conditional = computed(async () => {
         if (!this.visible()) {
-            this.ngForm().reset()
+            this.formAyudaAsi.reset()
         }
     });
 
@@ -53,13 +55,13 @@ export class AyudaAsistencialDrawerComponent {
         debounceTime(500),
         switchMap(() =>
           this.apiService
-            .getAyudaAsitencialByPersonalId({personalId: this.ngForm().form.get('personalId')?.value})
+            .getAyudaAsitencialByPersonalId({personalId: this.formAyudaAsi.get('personalId')?.value})
             .pipe(
               doOnSubscribe(() => this.tableLoading$.next(true)),
               tap({ complete: () => this.tableLoading$.next(false) })
             )
         )
-      );
+    );
 
     formChange(event: any) {
         this.formChange$.next(event);
@@ -73,7 +75,7 @@ export class AyudaAsistencialDrawerComponent {
     async save(){
         this.isSaving.set(true)
         try {
-            let values = this.ngForm().value
+            let values = this.formAyudaAsi.value
             const res = await firstValueFrom(this.apiService.addAyudaAsistencial(values))
             this.formChange('')
             let ref = this.refresh()
@@ -82,6 +84,20 @@ export class AyudaAsistencialDrawerComponent {
             
         }
         this.isSaving.set(false)
+        this.formAyudaAsi.markAsDirty()
+        this.formAyudaAsi.markAsPristine()
+    }
+
+    async onChangeTipo(result: number){
+        let values = this.formAyudaAsi.value
+        if (values.personalId && !values.aplicaEl) {
+            try {
+                const res = await firstValueFrom(this.searchService.getProxAplicaEl({personalId:values.personalId, tipo:result}))
+                if(res.aplicaEl) this.formAyudaAsi.controls['aplicaEl'].patchValue(res.aplicaEl)
+            } catch (error) {
+                
+            } 
+        }
     }
 
 }
