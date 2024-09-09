@@ -504,7 +504,12 @@ export class ObjetivosController extends BaseController {
 
                  if(numerosQueNoPertenecen?.length > 0) {
 
-                    await this.deleteCoordinadorCuentaQuery(queryRunner,ObjetivoId,objetivo.PersonaId)
+                    let exist = numerosQueNoPertenecen.include(objetivo.ObjetivoId)
+
+                    if(exist){
+                        await this.deleteCoordinadorCuentaQuery(queryRunner,objetivo.ObjetivoId,objetivo.PersonaId)
+                    }
+   
 
                 }else{
                     if (ObjetivoCoordinadorIds.includes(objetivo.ObjetivoId) && objetivo.ObjetivoId !== 0) {

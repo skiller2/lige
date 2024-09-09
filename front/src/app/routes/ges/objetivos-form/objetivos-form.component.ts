@@ -138,7 +138,6 @@ export class ObjetivosFormComponent {
   async load() {
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
     this.infoCoordinadorCuenta().clear()
-console.log("infoObjetivo ", infoObjetivo)
     let domicilioString = `${infoObjetivo.DomicilioDomCalle}, ${infoObjetivo.DomicilioDomNro}, ${infoObjetivo.DomicilioCodigoPostal}, 
     ${infoObjetivo.DomicilioProvinciaId}, ${infoObjetivo.DomicilioLocalidadId}, ${infoObjetivo.DomicilioBarrioId}, ${infoObjetivo.DomicilioDomLugar}`.toLowerCase();
 
@@ -188,7 +187,9 @@ console.log("infoObjetivo ", infoObjetivo)
           this.formCli.patchValue({
             infoCoordinadorCuenta: result.data.infoCoordinadorCuenta
           });
-          //this.edit.set(false)
+
+          this.edit.set(false)
+
         } else {
           // este es para cuando es un nuevo registro
 
@@ -201,7 +202,9 @@ console.log("infoObjetivo ", infoObjetivo)
             });
         
           }, 100);
-          //this.addNew.set(true)
+
+          this.addNew.set(true)
+          this.ObjetivoId.set(result.data.id)
         }
         
         this.formCli.markAsUntouched()
@@ -233,7 +236,6 @@ infoCoordinadorCuenta(): FormArray {
 
   async deleteObjetivo() {
     const form = this.formCli.value
-    console.log(form)
     await firstValueFrom(this.apiService.deleteObjetivos(form))
   }
 

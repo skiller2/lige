@@ -404,13 +404,10 @@ ${orderBy}`, [fechaActual])
 
             const infoCliente = await queryRunner.query(`SELECT ClienteContactoId FROM ClienteContacto WHERE clienteId = @0`,[ClienteId])
             const clienteContactoIds = infoCliente.map(row => row.ClienteContactoId)
-            console.log("clienteContactoIds.length ", clienteContactoIds.length)
             let maxClienteContactoId = clienteContactoIds.length > 0 ? Math.max(...clienteContactoIds) : 0
             
             let maxClienteContactoTelefonoId = ObjCliente.ClienteTelefonoUltNro == null ? 1 : ObjCliente.ClienteTelefonoUltNro + 1;
             let maxClienteContactoEmailId = ObjCliente.ClienteEmailUltNro == null ? 1 : ObjCliente.ClienteEmailUltNro + 1;
-            
-            console.log("maxClienteContactoEmailId ", maxClienteContactoEmailId)
             
             //ACA SE EVALUA Y SE ELIMINA EL CASO QUE SE BORRE ALGUN REGISTRO DE CLIENTE CONTACTO EXISTENTE
             const numerosQueNoPertenecen = clienteContactoIds.filter(num => {
@@ -420,8 +417,6 @@ ${orderBy}`, [fechaActual])
             let newinfoClienteContactoArray = []
 
             for (const obj of ObjCliente.infoClienteContacto) {
-
-                console.log("obj para insertar ", obj)
 
                 if(numerosQueNoPertenecen?.length > 0) {
 
