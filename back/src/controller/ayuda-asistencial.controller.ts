@@ -864,7 +864,6 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       }else{
         max = new Date(anio,mes-1)
       }
-      console.log(max);
       await queryRunner.commitTransaction()
       return this.jsonRes({aplicaEl: max}, res, '');
     }catch (error) {

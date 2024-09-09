@@ -76,7 +76,7 @@ export class AyudaAsistencialDrawerComponent {
         this.isSaving.set(true)
         try {
             let values = this.formAyudaAsi.value
-            // const res = await firstValueFrom(this.apiService.addAyudaAsistencial(values))
+            const res = await firstValueFrom(this.apiService.addAyudaAsistencial(values))
             this.formChange('')
             let ref = this.refresh()
             this.refresh.set(++ref)
