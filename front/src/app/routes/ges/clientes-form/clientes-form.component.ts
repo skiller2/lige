@@ -65,18 +65,18 @@ export class ClientesFormComponent {
 //  visibleDrawer: boolean = false
 
   objClienteContacto = { 
-    ClienteContactoId:0,
+    ContactoId:0,
     nombre: "", 
-    ClienteContactoApellido:"",
+    ContactoApellido:"",
     area: "", 
     TipoTelefonoId:null,
-    ClienteContactoTelefonoCodigoArea:"",
+    ContactoTelefonoCodigoArea:"",
     telefono: "", 
     correo: "",
-    ClienteContactoEmailUltNro:null,
-    ClienteContactoTelefonoUltNro:null,
-    ClienteContactoTelefonoId:null,
-    ClienteContactoEmailId:null
+    ContactoEmailUltNro:null,
+    ContactoTelefonoUltNro:null,
+    ContactoTelefonoId:null,
+    ContactoEmailId:null
   }
 
   personalId = signal(0)
