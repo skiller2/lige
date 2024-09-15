@@ -525,7 +525,7 @@ export class ObjetivosController extends BaseController {
                          // Insert
 
                          const ObjetivoPersonalJerarquico = await queryRunner.query(`SELECT MAX(ObjetivoPersonalJerarquicoId) AS ObjetivoPersonalJerarquicoId FROM ObjetivoPersonalJerarquico`)
-                         console.log("ObjetivoPersonalJerarquico ", ObjetivoPersonalJerarquico)
+                         
                          let maxObjetivoPersonalJerarquico = ObjetivoPersonalJerarquico[0].ObjetivoPersonalJerarquicoId + 1 
 
                          objetivo.ObjetivoId = maxObjetivoPersonalJerarquico
@@ -732,8 +732,16 @@ export class ObjetivosController extends BaseController {
             throw new ClientException(`El campo Nro NO pueden estar vacio.`)
          }
  
+         if(form.DomicilioDomNro.length > 5) {
+            throw new ClientException(`El campo Domicilio Nro NO puede ser mayor a 5 digitos.`)
+         }
+ 
          if(!form.DomicilioCodigoPostal) {
              throw new ClientException(`El campo Cod Postal NO pueden estar vacio.`)
+         }
+
+         if(form.DomicilioCodigoPostal.length > 8) {
+            throw new ClientException(`El campo Cod Postal NO puede ser mayor a 8 digitos.`)
          }
  
          if(!form.DomicilioProvinciaId) {
@@ -752,15 +760,6 @@ export class ObjetivosController extends BaseController {
 
             if(!obj.PersonaId) {
                 throw new ClientException(`El campo Nombre en cliente contacto NO pueden estar vacio.`)
-             }
-
-             if(!obj.ObjetivoPersonalJerarquicoComision) {
-                throw new ClientException(`El campo Comision NO pueden estar vacio.`)
-             }
-
-             if(!obj.ObjetivoPersonalJerarquicoDescuentos) {
-                throw new ClientException(`El campo Descuento NO pueden estar vacio.`)
- 
              }
 
          }
@@ -842,7 +841,7 @@ export class ObjetivosController extends BaseController {
         console.log("Insert ",Obj)
         try {
 
-            //await queryRunner.startTransaction()
+            await queryRunner.startTransaction()
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
@@ -865,11 +864,12 @@ export class ObjetivosController extends BaseController {
             let { MaxObjetivoId } = infoMaxObjetivo[0]
             MaxObjetivoId += 1
 
+            
             let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT ClienteElementoDependienteUltNro AS ClienteElementoDependienteUltNro FROM Cliente WHERE ClienteId = @0`,[Number(Obj.ClienteId)])
             let { ClienteElementoDependienteUltNro } = infoMaxClienteElementoDependiente[0]
             ClienteElementoDependienteUltNro = ClienteElementoDependienteUltNro == null ? 1 :ClienteElementoDependienteUltNro + 1
-
-
+           
+           
             //Agrego los valores al objeto original para retornar
 
             Obj.ObjetivoId = MaxObjetivoId
@@ -877,13 +877,15 @@ export class ObjetivosController extends BaseController {
 
             let ClienteElementoDependienteDomicilioId = 1
 
-            await this.insertObjetivoSql(queryRunner,MaxObjetivoId,Number(Obj.ClienteId),Obj.Descripcion,ClienteElementoDependienteUltNro,Obj.SucursalId)
+            
             await this.insertClienteElementoDependienteSql(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.Descripcion,Obj.SucursalId,ClienteElementoDependienteDomicilioId)
+            await this.updateCliente(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro)
             await this.inserClienteElementoDependienteDomicilio(queryRunner,Obj.ClienteId,ClienteElementoDependienteUltNro,ClienteElementoDependienteDomicilioId,Obj.DomicilioDomLugar,Obj.DomicilioDomCalle,Obj.DomicilioDomNro,
                 Obj.DomicilioCodigoPostal,Obj.DomicilioProvinciaId,Obj.DomicilioLocalidadId,Obj.DomicilioBarrioId )
 
             await this.ClienteElementoDependienteContrato(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
-            
+            await this.insertObjetivoSql(queryRunner,Number(Obj.ClienteId),Obj.Descripcion,ClienteElementoDependienteUltNro,Obj.SucursalId)
+
             let infoObjetivoPersonalJerarquico = await queryRunner.query(`SELECT MAX(ObjetivoPersonalJerarquicoId) AS MaxObjetivoPersonalJerarquicoId FROM ObjetivoPersonalJerarquico`)
             let { MaxObjetivoPersonalJerarquicoId } = infoObjetivoPersonalJerarquico[0]
            
@@ -894,8 +896,8 @@ export class ObjetivosController extends BaseController {
              MaxObjetivoPersonalJerarquicoId += 1
 
              obj.ObjetivoId = MaxObjetivoPersonalJerarquicoId
-
-             await this.insertObjetivoPersonalJerarquico(queryRunner,MaxObjetivoPersonalJerarquicoId,MaxObjetivoId,Obj.PersonaId,newDate,Obj.ObjetivoPersonalJerarquicoComision,Obj.ObjetivoPersonalJerarquicoDescuentos)
+            
+             await this.insertObjetivoPersonalJerarquico(queryRunner,MaxObjetivoId,obj.PersonaId,newDate,obj.ObjetivoPersonalJerarquicoComision,obj.ObjetivoPersonalJerarquicoDescuentos)
              newinfoCoordinadorCuentaArray.push(obj)
 
             }
@@ -906,7 +908,7 @@ export class ObjetivosController extends BaseController {
                 await FileUploadController.handlePDFUpload(Obj.ObjetivoId,'Objetivo',Obj.files,usuario,ip ) 
                }
 
-            //await queryRunner.commitTransaction()
+            await queryRunner.commitTransaction()
             return this.jsonRes(Obj, res, 'Carga  de nuevo registro exitoso');
         }catch (error) {
             this.rollbackTransaction(queryRunner)
@@ -916,20 +918,24 @@ export class ObjetivosController extends BaseController {
         }
     }
 
-    async insertObjetivoPersonalJerarquico(queryRunner: any,ObjetivoPersonalJerarquicoId:any,ObjetivoId:any,ObjetivoPersonalJerarquicoPersonalId:any,
+    async updateCliente(queryRunner: any,ClienteId:number,ClienteElementoDependienteUltNro:any){
+        return await queryRunner.query(`UPDATE Cliente SET ClienteElementoDependienteUltNro = @1 WHERE ClienteId = @0`,
+            [ClienteId,ClienteElementoDependienteUltNro])
+    }
+
+    async insertObjetivoPersonalJerarquico(queryRunner: any,ObjetivoId:any,ObjetivoPersonalJerarquicoPersonalId:any,
         ObjetivoPersonalJerarquicoDesde:any,ObjetivoPersonalJerarquicoComision:any,ObjetivoPersonalJerarquicoDescuentos:any
     ) {
 
         return await queryRunner.query(`INSERT INTO ObjetivoPersonalJerarquico (
-            ObjetivoPersonalJerarquicoId,
             ObjetivoId,
             ObjetivoPersonalJerarquicoPersonalId,
             ObjetivoPersonalJerarquicoDesde,
             ObjetivoPersonalJerarquicoComo,
             ObjetivoPersonalJerarquicoComision,
             ObjetivoPersonalJerarquicoDescuentos
-            ) VALUES (@0,@1,@2,@3,@4,@5,@6)`,
-            [ObjetivoPersonalJerarquicoId,
+            ) VALUES (@0,@1,@2,@3,@4,@5)`,
+            [
              ObjetivoId,
              ObjetivoPersonalJerarquicoPersonalId,
              ObjetivoPersonalJerarquicoDesde,
@@ -950,7 +956,7 @@ export class ObjetivosController extends BaseController {
             ClienteId,
             ClienteElementoDependienteId,
             ClienteElementoDependienteContratoFechaDesde,
-            ClienteElementoDependienteContratoFechaHasta,
+            ClienteElementoDependienteContratoFechaHasta
             ) VALUES (@0,@1,@2,@3,@4)`,
             [ClienteElementoDependienteContratoUltNro,
              ClienteId,
@@ -992,15 +998,14 @@ export class ObjetivosController extends BaseController {
             ])
           }
 
-    async insertObjetivoSql(queryRunner: any,ObjetivoId:any ,ClienteId: number, ObjetivoDescripcion:any, ClienteElementoDependienteId:any, ObjetivoSucursalUltNro:any,) {
+    async insertObjetivoSql(queryRunner: any,ClienteId: number, ObjetivoDescripcion:any, ClienteElementoDependienteId:any, ObjetivoSucursalUltNro:any,) {
 
         return await queryRunner.query(`INSERT INTO Objetivo (
-            ObjetivoId,
             ClienteId,
             ObjetivoDescripcion,
             ClienteElementoDependienteId,
-            ObjetivoSucursalUltNro) VALUES (@0,@1,@2,@3,@4)`,
-            [ObjetivoId,ClienteId,ObjetivoDescripcion,ClienteElementoDependienteId,ObjetivoSucursalUltNro])
+            ObjetivoSucursalUltNro) VALUES (@0,@1,@2,@3)`,
+            [ClienteId,ObjetivoDescripcion,ClienteElementoDependienteId,ObjetivoSucursalUltNro])
     }
 
     async insertClienteElementoDependienteSql(queryRunner: any,ClienteId:any,ClienteElementoDependienteId:any,ClienteElementoDependienteDescripcion,ClienteElementoDependienteSucursalId:any,ClienteElementoDependienteDomicilioUltNro:any) {

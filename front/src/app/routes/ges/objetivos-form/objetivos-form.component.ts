@@ -119,6 +119,7 @@ export class ObjetivosFormComponent {
       if (this.ObjetivoId()) {
         await this.load()
       } else {
+        console.log("paso por aca")
         this.formCli.reset({ estado: 0 })
       }
     }, { injector: this.injector });
@@ -136,7 +137,12 @@ export class ObjetivosFormComponent {
 
 
   async load() {
+    console.log("paso por aca 3")
+    console.log("objetivo", this.ObjetivoId())
+    console.log("cliente",this.ClienteId())
+    console.log("ClienteElementoDependienteId",this.ClienteElementoDependienteId())
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
+    console.log("infoObjetivo ", infoObjetivo)
     this.infoCoordinadorCuenta().clear()
     let domicilioString = `${infoObjetivo.DomicilioDomCalle}, ${infoObjetivo.DomicilioDomNro}, ${infoObjetivo.DomicilioCodigoPostal}, 
     ${infoObjetivo.DomicilioProvinciaId}, ${infoObjetivo.DomicilioLocalidadId}, ${infoObjetivo.DomicilioBarrioId}, ${infoObjetivo.DomicilioDomLugar}`.toLowerCase();
@@ -188,23 +194,18 @@ export class ObjetivosFormComponent {
             infoCoordinadorCuenta: result.data.infoCoordinadorCuenta
           });
 
-          this.edit.set(false)
+          //this.edit.set(false)
 
         } else {
           // este es para cuando es un nuevo registro
 
           let result = await firstValueFrom(this.apiService.addObjetivo(combinedData))
-          setTimeout(() => {
+          this.formCli.get('ClienteId')?.disable();
+          this.ObjetivoId.set(result.data.ObjetivoId)
+          this.ClienteId.set(result.data.ClienteId)
+          this.ClienteElementoDependienteId.set(result.data.ClienteElementoDependienteId)
+          //this.addNew.set(true)
           
-            this.formCli.patchValue({
-              ObjetivoId:result.data.ObjetivoId,
-              infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
-            });
-        
-          }, 100);
-
-          this.addNew.set(true)
-          this.ObjetivoId.set(result.data.id)
         }
         
         this.formCli.markAsUntouched()

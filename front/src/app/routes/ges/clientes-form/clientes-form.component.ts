@@ -203,7 +203,7 @@ export class ClientesFormComponent {
             infoClienteContacto: result.data.infoClienteContacto
           });
 
-          this.edit.set(false)
+          //this.edit.set(false)
         } else {
           //este es para cuando es un nuevo registro
           let result =  await firstValueFrom(this.apiService.addCliente(combinedData))
@@ -215,7 +215,7 @@ export class ClientesFormComponent {
 
           this.ClienteId.set(result.data.id)
 
-          this.addNew.set(true)
+          //this.addNew.set(true)
          
         }
         

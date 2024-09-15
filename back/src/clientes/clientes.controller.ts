@@ -982,7 +982,7 @@ ${orderBy}`, [fechaActual])
                 throw new ClientException(`El campo Domicilio Nro NO pueden estar vacio.`)
              }
 
-             if(form.ClienteDomicilioCodigoPostal.length > 5) {
+             if(form.ClienteDomicilioDomNro.length > 5) {
                 throw new ClientException(`El campo Domicilio Nro NO puede ser mayor a 5 digitos.`)
              }
      
