@@ -178,8 +178,15 @@ ${orderBy}`, [fechaActual])
             const clienteId = req.params.id
             let infoCliente = await this.getObjetivoClienteQuery(queryRunner, clienteId)
             let infoClienteContacto = await this.getClienteContactoQuery(queryRunner, clienteId)
+            const domiclio = await this.getClienteDomicilioQuery(queryRunner, clienteId)
 
-            infoCliente = infoCliente[0]
+            if(domiclio){
+                infoCliente ={...infoCliente[0],...domiclio[0]} 
+            }else{
+                infoCliente = infoCliente[0]
+            }
+
+           
             infoCliente.infoClienteContacto = infoClienteContacto
 
             await queryRunner.commitTransaction()
@@ -190,6 +197,26 @@ ${orderBy}`, [fechaActual])
         } finally {
             await queryRunner.release()
         }
+    }
+
+    async getClienteDomicilioQuery(queryRunner: any, clienteId: any) {
+
+        return await queryRunner.query(`
+            SELECT TOP 1 
+                 domcli.ClienteDomicilioId
+                ,domcli.ClienteDomicilioDomCalle AS ClienteDomicilioDomCalle
+                ,domcli.ClienteDomicilioDomNro AS ClienteDomicilioDomNro
+                ,domcli.ClienteDomicilioCodigoPostal AS ClienteDomicilioCodigoPostal
+                ,domcli.ClienteDomicilioPaisId AS domiciliopais
+                ,domcli.ClienteDomicilioProvinciaId
+                ,domcli.ClienteDomicilioLocalidadId
+                ,domcli.ClienteDomicilioBarrioId
+                ,domcli.ClienteDomicilioDomLugar AS ClienteDomicilioDomLugar
+            FROM ClienteDomicilio AS domcli
+            WHERE domcli.ClienteId = @0
+                AND domcli.ClienteDomicilioActual = 1
+            ORDER BY domcli.ClienteDomicilioId DESC `,[clienteId])
+    
     }
 
     async getClienteContactoQuery(queryRunner: any, clienteId: any) {
@@ -235,15 +262,6 @@ ${orderBy}`, [fechaActual])
             ,cli.ClienteAdministradorUltNro
             ,cli.ClienteTelefonoUltNro
             ,cli.ClienteEmailUltNro
-            ,domcli.ClienteDomicilioId
-            ,TRIM(domcli.ClienteDomicilioDomCalle) AS ClienteDomicilioDomCalle
-            ,TRIM(domcli.ClienteDomicilioDomNro) AS ClienteDomicilioDomNro
-            ,TRIM(domcli.ClienteDomicilioCodigoPostal) AS ClienteDomicilioCodigoPostal
-            ,domcli.ClienteDomicilioPaisId AS domiciliopais
-            ,domcli.ClienteDomicilioProvinciaId
-            ,domcli.ClienteDomicilioLocalidadId
-            ,domcli.ClienteDomicilioBarrioId
-            ,TRIM(domcli.ClienteDomicilioDomLugar) AS ClienteDomicilioDomLugar
             ,TRIM(adm.AdministradorNombre) AS AdministradorNombre
             ,TRIM(adm.AdministradorApellido) AS AdministradorApellido
             ,adm.AdministradorId
@@ -253,23 +271,6 @@ ${orderBy}`, [fechaActual])
             AND fac.ClienteFacturacionDesde BETWEEN DATEFROMPARTS(@1, @2, 1) AND EOMONTH(DATEFROMPARTS(@1, @2, 1))
         LEFT JOIN CondicionAnteIVA con 
             ON con.CondicionAnteIVAId = fac.CondicionAnteIVAId
-        LEFT JOIN (
-            SELECT TOP 1 domcli.ClienteDomicilioId
-                ,domcli.ClienteId
-                ,domcli.ClienteDomicilioDomCalle
-                ,domcli.ClienteDomicilioDomNro
-                ,domcli.ClienteDomicilioCodigoPostal
-                ,domcli.ClienteDomicilioPaisId
-                ,domcli.ClienteDomicilioProvinciaId
-                ,domcli.ClienteDomicilioLocalidadId
-                ,domcli.ClienteDomicilioBarrioId
-                ,domcli.ClienteDomicilioDomLugar
-            FROM ClienteDomicilio AS domcli
-            WHERE domcli.ClienteId = @0
-                AND domcli.ClienteDomicilioActual = 1
-            ORDER BY domcli.ClienteDomicilioId DESC
-        ) AS domcli 
-            ON domcli.ClienteId = cli.ClienteId
         LEFT JOIN (
             SELECT TOP 1 ca.ClienteId
                 ,ca.ClienteAdministradorAdministradorId AS AdministradorId
@@ -376,7 +377,7 @@ ${orderBy}`, [fechaActual])
 
             if (ObjCliente.AdministradorId != null && ObjCliente.AdministradorId != "")
                 {
-                    if (ObjCliente.ClienteAdministradorUltNro != null)
+                    if (ObjCliente.ClienteAdministradorUltNro)
                     {
                         ClienteAdministradorId = ObjCliente.ClienteAdministradorUltNro
                         await this.updateAdministradorTable(queryRunner,ClienteId,ObjCliente.ClienteAdministradorUltNro,ObjCliente.AdministradorId)
@@ -386,7 +387,7 @@ ${orderBy}`, [fechaActual])
                          ClienteAdministradorId = 1   
                         await this.insertClienteAdministrador(queryRunner,ClienteId,ClienteAdministradorId,ObjCliente.ClienteFechaAlta,ObjCliente.AdministradorId) 
                     }
-                }else if (ObjCliente.ClienteAdministradorUltNro != null){
+                }else if (ObjCliente.ClienteAdministradorUltNro){
                         // delete
                       await this.DeleteClienteAdministrador(queryRunner,ObjCliente,ClienteId)
             }

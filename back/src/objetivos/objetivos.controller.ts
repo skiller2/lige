@@ -220,13 +220,20 @@ export class ObjetivosController extends BaseController {
             await queryRunner.startTransaction()
             const ObjetivoId = req.params.ObjetivoId
             const ClienteId = req.params.ClienteId
-            const ClienteElementoDependienteId = req.params.ClienteElementoDependienteId
-            let infObjetivo = await this.getObjetivoQuery(queryRunner, ObjetivoId,ClienteId,ClienteElementoDependienteId)
-            let infoCoordinadorCuenta = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
+            const ClienteElementoDependienteId = req.params.ClienteElementoDependienteId === "null" ? null : req.params.ClienteElementoDependienteId
+            let infObjetivo = await this.getObjetivoQuery(queryRunner, ObjetivoId,ClienteId,ClienteElementoDependienteId)  
+            const infoCoordinadorCuenta = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
+            const domiclio = await this.getDomicilio(queryRunner, ObjetivoId,ClienteId,ClienteElementoDependienteId)
+            const facturacion = await this.getFacturacion(queryRunner,ClienteId,ClienteElementoDependienteId)
 
-            infObjetivo = infObjetivo[0]
+            if(!facturacion ){
+                infObjetivo = {...infObjetivo[0],...domiclio[0]};
+            }else{
+                infObjetivo = {...infObjetivo[0],...domiclio[0],...facturacion[0]};
+            }
+            
             infObjetivo.infoCoordinadorCuenta = infoCoordinadorCuenta
-
+            console.log("infObjetivo ",infObjetivo)
             await queryRunner.commitTransaction()
             return this.jsonRes(infObjetivo, res)
         } catch (error) {
@@ -235,6 +242,74 @@ export class ObjetivosController extends BaseController {
         } finally {
             await queryRunner.release()
         }
+    }
+
+    async getFacturacion(queryRunner,ClienteId,ClienteElementoDependienteId){
+
+
+        if(!ClienteElementoDependienteId){
+
+            const fechaActual = new Date()
+            const anio = fechaActual.getFullYear()
+            const mes = fechaActual.getMonth()+1
+
+            return await queryRunner.query(`
+                SELECT 
+                    fac.ClienteFacturacionCUIT
+                    ,fac.ClienteFacturacionId
+                    ,fac.CondicionAnteIVAId
+                    ,TRIM(con.CondicionAnteIVADescripcion) AS CondicionAnteIVADescripcion
+                FROM ClienteFacturacion fac
+                LEFT JOIN CondicionAnteIVA con ON con.CondicionAnteIVAId = fac.CondicionAnteIVAId
+                WHERE fac.ClienteId = @2
+                AND fac.ClienteFacturacionDesde <= DATEFROMPARTS(@0, @1, 1)
+                AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= DATEFROMPARTS(@0, @1, 1)`,[anio,mes,ClienteId])
+          
+        }
+
+    }
+
+    async getDomicilio(queryRunner: any, ObjetivoId: any,ClienteId:any,ClienteElementoDependienteId:any){
+
+        if(ClienteElementoDependienteId){
+
+            return await queryRunner.query(`SELECT TOP 1 
+                 domcli.ClienteElementoDependienteDomicilioId AS DomicilioId
+                ,domcli.ClienteElementoDependienteDomicilioDomCalle AS DomicilioDomCalle
+                ,domcli.ClienteElementoDependienteDomicilioDomNro AS DomicilioDomNro
+                ,domcli.ClienteElementoDependienteDomicilioCodigoPostal AS DomicilioCodigoPostal
+                ,domcli.ClienteElementoDependienteDomicilioPaisId AS DomicilioPaisId
+                ,domcli.ClienteElementoDependienteDomicilioProvinciaId AS DomicilioProvinciaId
+                ,domcli.ClienteElementoDependienteDomicilioLocalidadId AS DomicilioLocalidadId
+                ,domcli.ClienteElementoDependienteDomicilioBarrioId AS DomicilioBarrioId
+                ,domcli.ClienteElementoDependienteDomicilioDomLugar AS DomicilioDomLugar
+
+            FROM ClienteElementoDependienteDomicilio AS domcli
+            WHERE domcli.ClienteId = @0
+                AND domcli.ClienteElementoDependienteId = @1
+                AND domcli.ClienteElementoDependienteDomicilioDomicilioActual = 1
+            ORDER BY domcli.ClienteElementoDependienteDomicilioId DESC`,
+        [ClienteId,ClienteElementoDependienteId])
+          
+        }else{
+            
+            return await queryRunner.query(`SELECT TOP 1 
+                 domcli.ClienteDomicilioId AS DomicilioId
+                ,domcli.ClienteDomicilioDomCalle AS DomicilioDomCalle
+                ,domcli.ClienteDomicilioDomNro AS DomicilioDomNro
+                ,domcli.ClienteDomicilioCodigoPostal AS DomicilioCodigoPostal
+                ,domcli.ClienteDomicilioPaisId AS DomicilioPaisId
+                ,domcli.ClienteDomicilioProvinciaId AS DomicilioProvinciaId
+                ,domcli.ClienteDomicilioLocalidadId AS DomicilioLocalidadId
+                ,domcli.ClienteDomicilioBarrioId AS DomicilioBarrioId
+                ,domcli.ClienteDomicilioDomLugar AS DomicilioDomLugar
+            FROM ClienteDomicilio AS domcli
+            WHERE domcli.ClienteId = @0
+                AND domcli.ClienteDomicilioActual = 1
+            ORDER BY domcli.ClienteDomicilioId DESC`,
+        [ObjetivoId])
+        }
+
     }
 
     
@@ -258,11 +333,12 @@ export class ObjetivosController extends BaseController {
         const fechaActual = new Date()
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth()+1
-        if(ClienteElementoDependienteId != "null"){
+        if(ClienteElementoDependienteId){
             return await queryRunner.query(`SELECT obj.ObjetivoId
                 ,obj.ObjetivoId AS id
                 ,obj.ClienteId
                 ,obj.ClienteElementoDependienteId
+
                 ,ISNULL(eledep.ClienteElementoDependienteDescripcion, cli.ClienteApellidoNombre) AS Descripcion
                 ,suc.SucursalDescripcion
                 ,suc.SucursalId
@@ -271,15 +347,7 @@ export class ObjetivosController extends BaseController {
                 ,eledepcon.ClienteElementoDependienteContratoId AS ContratoId
                 ,eledep.ClienteElementoDependienteDomicilioUltNro
                 ,eledep.ClienteElementoDependienteContratoUltNro
-                ,domcli.ClienteElementoDependienteDomicilioDomCalle AS DomicilioDomCalle
-                ,domcli.ClienteElementoDependienteDomicilioDomNro AS DomicilioDomNro
-                ,domcli.ClienteElementoDependienteDomicilioCodigoPostal AS DomicilioCodigoPostal
-                ,domcli.ClienteElementoDependienteDomicilioPaisId AS DomicilioPaisId
-                ,domcli.ClienteElementoDependienteDomicilioProvinciaId AS DomicilioProvinciaId
-                ,domcli.ClienteElementoDependienteDomicilioLocalidadId AS DomicilioLocalidadId
-                ,domcli.ClienteElementoDependienteDomicilioBarrioId AS DomicilioBarrioId
-                ,domcli.ClienteElementoDependienteDomicilioDomLugar AS DomicilioDomLugar
-                ,domcli.ClienteElementoDependienteDomicilioId AS DomicilioId
+
             FROM Objetivo obj
             LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
             LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId
@@ -312,35 +380,13 @@ export class ObjetivosController extends BaseController {
             LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId
                 AND clicon.ClienteContratoId = clicon2.ClienteContratoId
             LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId, cli.ClienteSucursalId)
-            LEFT JOIN (
-                SELECT TOP 1 domcli.ClienteElementoDependienteDomicilioId
-                    ,domcli.ClienteId
-                    ,domcli.ClienteElementoDependienteId
-                    ,domcli.ClienteElementoDependienteDomicilioDomCalle
-                    ,domcli.ClienteElementoDependienteDomicilioDomNro
-                    ,domcli.ClienteElementoDependienteDomicilioCodigoPostal
-                    ,domcli.ClienteElementoDependienteDomicilioPaisId
-                    ,domcli.ClienteElementoDependienteDomicilioProvinciaId
-                    ,domcli.ClienteElementoDependienteDomicilioLocalidadId
-                    ,domcli.ClienteElementoDependienteDomicilioBarrioId
-                    ,domcli.ClienteElementoDependienteDomicilioDomLugar
-                FROM ClienteElementoDependienteDomicilio AS domcli
-                WHERE domcli.ClienteId = @1
-                    AND domcli.ClienteElementoDependienteId = @2
-                    AND domcli.ClienteElementoDependienteDomicilioDomicilioActual = 1
-                ORDER BY domcli.ClienteElementoDependienteDomicilioId DESC
-                ) AS domcli ON domcli.ClienteId = cli.ClienteId
-                AND domcli.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+           
             WHERE obj.ObjetivoId = @0;`,
                 [ObjetivoId,ClienteId,ClienteElementoDependienteId,anio,mes])
         }else{
             return await queryRunner.query(`
                 SELECT cli.ClienteId AS id
                 ,cli.ClienteId
-                ,fac.ClienteFacturacionCUIT
-                ,fac.ClienteFacturacionId
-                ,fac.CondicionAnteIVAId
-                ,TRIM(con.CondicionAnteIVADescripcion) AS CondicionAnteIVADescripcion
                 ,TRIM(cli.ClienteApellidoNombre) AS Descripcion 
                 ,TRIM(cli.CLienteNombreFantasia) AS CLienteNombreFantasia
                 ,cli.ClienteAdministradorUltNro
@@ -349,39 +395,11 @@ export class ObjetivosController extends BaseController {
                 ,clicon.ClienteContratoFechaDesde AS ContratoFechaDesde
 	            ,clicon.ClienteContratoFechaHasta AS ContratoFechaHasta
                 ,clicon.ClienteContratoId AS ContratoId
-                ,domcli.ClienteDomicilioId AS DomicilioId
-                ,TRIM(domcli.ClienteDomicilioDomCalle) AS DomicilioDomCalle
-                ,TRIM(domcli.ClienteDomicilioDomNro) AS DomicilioDomNro
-                ,TRIM(domcli.ClienteDomicilioCodigoPostal) AS DomicilioCodigoPostal
-                ,domcli.ClienteDomicilioPaisId AS DomicilioPaisId
-                ,domcli.ClienteDomicilioProvinciaId AS DomicilioProvinciaId
-                ,domcli.ClienteDomicilioLocalidadId AS DomicilioLocalidadId
-                ,domcli.ClienteDomicilioBarrioId AS DomicilioBarrioId
-                ,TRIM(domcli.ClienteDomicilioDomLugar) AS DomicilioDomLugar
                 ,TRIM(adm.AdministradorNombre) AS AdministradorNombre
                 ,TRIM(adm.AdministradorApellido) AS AdministradorApellido
                 ,adm.AdministradorId
             FROM Cliente cli
-            LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId
-                AND fac.ClienteFacturacionDesde <=  DATEFROMPARTS(@1,@2, 1)
-                AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >=  DATEFROMPARTS(@1,@2, 1)
-            LEFT JOIN CondicionAnteIVA con ON con.CondicionAnteIVAId = fac.CondicionAnteIVAId
-            LEFT JOIN (
-                SELECT TOP 1 domcli.ClienteDomicilioId
-                    ,domcli.ClienteId
-                    ,domcli.ClienteDomicilioDomCalle
-                    ,domcli.ClienteDomicilioDomNro
-                    ,domcli.ClienteDomicilioCodigoPostal
-                    ,domcli.ClienteDomicilioPaisId
-                    ,domcli.ClienteDomicilioProvinciaId
-                    ,domcli.ClienteDomicilioLocalidadId
-                    ,domcli.ClienteDomicilioBarrioId
-                    ,domcli.ClienteDomicilioDomLugar
-                FROM ClienteDomicilio AS domcli
-                WHERE domcli.ClienteId = @0
-                    AND domcli.ClienteDomicilioActual = 1
-                ORDER BY domcli.ClienteDomicilioId DESC
-                ) AS domcli ON domcli.ClienteId = cli.ClienteId
+    
             LEFT JOIN (
                 SELECT cc.ClienteId
                     ,MAX(cc.ClienteContratoId) AS ClienteContratoId
@@ -411,7 +429,6 @@ export class ObjetivosController extends BaseController {
         }
        
     }
-
 
     
     async updateObjetivo(req: any, res: Response, next: NextFunction) {
