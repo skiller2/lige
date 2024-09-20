@@ -137,12 +137,8 @@ export class ObjetivosFormComponent {
 
 
   async load() {
-    console.log("paso por aca 3")
-    console.log("objetivo", this.ObjetivoId())
-    console.log("cliente",this.ClienteId())
-    console.log("ClienteElementoDependienteId",this.ClienteElementoDependienteId())
+    
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
-    console.log("infoObjetivo ", infoObjetivo)
     this.infoCoordinadorCuenta().clear()
     let domicilioString = `${infoObjetivo.DomicilioDomCalle}, ${infoObjetivo.DomicilioDomNro}, ${infoObjetivo.DomicilioCodigoPostal}, 
     ${infoObjetivo.DomicilioProvinciaId}, ${infoObjetivo.DomicilioLocalidadId}, ${infoObjetivo.DomicilioBarrioId}, ${infoObjetivo.DomicilioDomLugar}`.toLowerCase();
