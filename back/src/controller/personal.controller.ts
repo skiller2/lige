@@ -5,6 +5,108 @@ import { dataSource } from "../data-source";
 import { Response } from "express-serve-static-core";
 import { NextFunction } from "express";
 import { existsSync } from "fs";
+import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+import { Options } from "../schemas/filtro";
+
+const columns: any[] = [
+  {
+    id: "id",
+    name: "id",
+    field: "id",
+    type: "number",
+    fieldName: "per.PersonalId",
+    sortable: true,
+    searchHidden: true,
+    hidden: true,
+  },
+  {
+    id: "cuit",
+    name: "CUIT",
+    field: "PersonalCUITCUILCUIT",
+    type: "string",
+    fieldName: "cuit.PersonalCUITCUILCUIT",
+    sortable: true,
+    searchHidden: true
+  },
+  {
+    id: "ApellidoNombre",
+    name: "Apellido Nombre",
+    field: "ApellidoNombre",
+    type: "string",
+    fieldName: "per.PersonalId",
+    searchComponent: "inpurForPersonalSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
+    id: "personalNroLegajo",
+    name: " Num Legajo",
+    field: "personalNroLegajo",
+    type: "string",
+    fieldName: "per.PersonalNroLegajo",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
+    id: "sucursalId",
+    name: "SucursalId",
+    field: "SucursalId",
+    type: "string",
+    fieldName: "suc.SucursalId",
+    searchType: "number",
+    sortable: true,
+    searchHidden: true,
+    hidden: true,
+  },
+  {
+    id: "sucursal",
+    name: "Sucursal",
+    field: "Sucursal",
+    type: "string",
+    fieldName: "suc.SucursalDescripcion",
+    searchType: "string",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
+    id: "situacionRevistaDescripcion",
+    name: "Situacion Revista",
+    field: "SituacionRevista",
+    type: "string",
+    fieldName: "sit.SituacionRevistaDescripcion",
+    searchType: "string",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
+  },
+  {
+    id: "situacionRevista",
+    name: "Situacion Revista",
+    field: "SituacionRevista",
+    type: "string",
+    fieldName: "suc.SucursalDescripcion",
+    searchType: "string",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },
+  {
+    id: "personalFechaIngreso",
+    name: "PersonalFechaIngreso",
+    field: "PersonalFechaIngreso",
+    type: "date",
+    fieldName: "per.PersonalFechaIngreso",
+    searchType: "date",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+]
 
 export class PersonalController extends BaseController {
 
@@ -341,5 +443,50 @@ export class PersonalController extends BaseController {
         );
         */
     // ... do something with the result
+  }
+
+  async listPersonalQuery(queryRunner:any, filterSql:any, orderBy:any){
+    const anio = new Date().getFullYear()
+    const mes = new Date().getMonth()+1
+    return await queryRunner.query(`
+        SELECT DISTINCT per.PersonalId AS id, cuit.PersonalCUITCUILCUIT,
+        CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+        per.PersonalNroLegajo, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
+        CONCAT(TRIM(sit.SituacionRevistaDescripcion), ' ', FORMAT(sitrev.PersonalSituacionRevistaDesde, 'dd/MM/yyyy'), ' ', FORMAT(sitrev.PersonalSituacionRevistaHasta, 'dd/MM/yyyy')) AS SituacionRevista,
+        per.PersonalFechaIngreso
+        FROM Personal per
+        JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND ((DATEPART(YEAR,sitrev.PersonalSituacionRevistaDesde)=@0 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaDesde)=@1) OR (DATEPART(YEAR,sitrev.PersonalSituacionRevistaHasta)=@0 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaHasta)=@1) OR (sitrev.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1)) AND ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@0,@1,1)))
+        LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId
+        LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId
+        LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
+        WHERE (${filterSql}) 
+        ${orderBy}`, [anio, mes])
+  }
+
+  async getGridColumns(req: any, res: Response, next: NextFunction) {
+    return this.jsonRes(columns, res)
+  }
+
+  async getGridList(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction()
+
+      const options: Options = isOptions(req.body.options)? req.body.options : { filtros: [], sort: null };
+      const filterSql = filtrosToSql(options.filtros, columns);
+      const orderBy = orderToSQL(options.sort)
+
+      let lista: any[] = []
+      // lista = await this.listPersonalQuery(queryRunner, filterSql, orderBy)
+
+      await queryRunner.commitTransaction()
+      this.jsonRes(lista, res);
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
   }
 }

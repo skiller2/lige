@@ -850,4 +850,13 @@ export class SearchService {
     );
   }
 
+  getPersonalList(filters: any){
+    return this.http
+      .post<ResponseJSON<any>>(`api/personal/list`, filters)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
 }

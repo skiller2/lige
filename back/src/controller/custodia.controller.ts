@@ -388,7 +388,7 @@ export class CustodiaController extends BaseController {
 
     async getObjetivoCustodiaQuery(queryRunner: any, custodiaId: any){
         return await queryRunner.query(`
-        SELECT obj.objetivo_custodia_id id, obj.responsable_id responsableId, TRIM(per.PersonalApellidoNombre) responsable,
+        SELECT obj.objetivo_custodia_id id, obj.responsable_id responsableId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS responsable,
         obj.cliente_id clienteId, obj.desc_requirente descRequirente, obj.descripcion, obj.fecha_inicio fechaInicio, obj.origen, 
         obj.fecha_fin fechaFinal, obj.destino, obj.cant_modulos cantModulos, obj.importe_modulos impoModulos, 
         obj.cant_horas_exced cantHorasExced, obj.impo_horas_exced impoHorasExced, obj.cant_km_exced cantKmExced, obj.desc_facturacion,
@@ -624,7 +624,7 @@ export class CustodiaController extends BaseController {
             const responsableId = res.locals.PersonalId
             const custodiaId = req.params.id
             const objetivoCustodia = { ...req.body }
-            console.log('quehay',req.body)
+            // console.log('quehay',req.body)
 
             let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, custodiaId)
             infoCustodia= infoCustodia[0]

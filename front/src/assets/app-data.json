@@ -24,34 +24,39 @@
           "text": "Utilidades",
           "icon": "anticon-profile",
           "children": [
-
+          {
+            "text": "Convertir PDF Retiros",
+            "link": "/ges/pdf_retiro",
+            "icon": "anticon-profile"
+          }
+        ]},
         {
-          "text": "Convertir PDF Retiros",
-          "link": "/ges/pdf_retiro",
-          "icon": "anticon-profile"
-        }
-      ]},
-      {
-        "text": "Personal",
-        "icon": "anticon-profile",
-        "children": [
+          "text": "Personal",
+          "icon": "anticon-profile",
+          "children": [
           {
             "text": "Cambio Categoría",
             "link": "/ges/cambio_categoria",
             "icon": "anticon-profile"
           },  
-        {
-          "text": "Credencial Personal",
-          "i18n": "ges.imgpers",
-          "icon": "anticon-profile",
-          "link": "/ges/credencial_personal"
-        },
-        {
-          "text": "Lista de Credenciales",
-          "i18n": "ges.credpers",
-          "icon": "anticon-profile",
-          "link": "/ges/credencial_lista"
-        }]},        
+          {
+            "text": "Credencial Personal",
+            "i18n": "ges.imgpers",
+            "icon": "anticon-profile",
+            "link": "/ges/credencial_personal"
+          },
+          {
+            "text": "Lista de Credenciales",
+            "i18n": "ges.credpers",
+            "icon": "anticon-profile",
+            "link": "/ges/credencial_lista"
+          },
+          {
+            "text": "Listado",
+            "icon": "anticon-profile",
+            "link": "/ges/personal"
+          }
+        ]},        
         {
           "text": "Asistencia",
           "icon": "anticon-profile",

@@ -45,7 +45,7 @@ export class AyudaAsistencialDrawerComponent {
 
     conditional = computed(async () => {
         if (!this.visible()) {
-            this.formAyudaAsi.reset()
+            this.formAyudaAsi.patchValue({ personalId: 0, formaId: null, aplicaEl:'', cantCuotas:0, importe:0 })
         }
     });
 

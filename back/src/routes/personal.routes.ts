@@ -5,6 +5,10 @@ import { authMiddleware } from "../middlewares/middleware.module";
 export const personalRouter = Router();
 const base = "";
 
+personalRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+  personalController.getGridList(req, res, next)
+});
+
 personalRouter.post(
   `${base}/search`,
   authMiddleware.verifyToken,
@@ -15,6 +19,9 @@ personalRouter.post(
 
 
 
+personalRouter.get('/cols', authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getGridColumns(req, res, next)
+});
 
 personalRouter.get(`${base}/telefonos/:id`, authMiddleware.verifyToken, (req, res, next) => {
   //personalRouter.get(`${base}/:id`,  (req, res) => {
@@ -63,8 +70,6 @@ personalRouter.get(`${base}/name/:personalId`, authMiddleware.verifyToken, (req,
   personalController.getNameFromId(req.params.personalId, res, next);
 });
 
-
 personalRouter.get(`${base}/:id`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getById(req.params.id, res, next);
 });
-
