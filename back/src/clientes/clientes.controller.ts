@@ -188,7 +188,6 @@ ${orderBy}`, [fechaActual])
 
            
             infoCliente.infoClienteContacto = infoClienteContacto
-console.log("infoCliente ", infoCliente)
             await queryRunner.commitTransaction()
             return this.jsonRes(infoCliente, res)
         } catch (error) {
@@ -421,30 +420,15 @@ console.log("infoCliente ", infoCliente)
              numerosQueNoPertenecen = ContactoIds.filter(num => {
                 return !ObjCliente.infoClienteContacto.some(obj => obj.ContactoId === num && obj.ContactoId !== 0);
             });
-            console.log("numerosQueNoPertenecen ", numerosQueNoPertenecen)
+            //console.log("numerosQueNoPertenecen ", numerosQueNoPertenecen)
             let newinfoClienteContactoArray = []
 
             for (const obj of ObjCliente.infoClienteContacto) {
 
-                console.log("obj ", obj)
-                if(numerosQueNoPertenecen?.length > 0 ) {
-                    const exist = numerosQueNoPertenecen.includes(obj.ContactoId)
-                    console.log("exist ", exist)
-                    if (exist) {
-                    
-                        await this.deleteContactoTable(queryRunner,ClienteId, obj.ContactoId)
-                        await this.deleteContactoEmailTable(queryRunner,ClienteId,obj.ContactoEmailId,obj.ContactoId)
-                        await this.deleteContactoTelefonoTable(queryRunner,ClienteId,obj.ContactoTelefonoId,obj.ContactoId)
-
-                    }
-                    
-
-                }else{
                     if (ContactoIds.includes(obj.ContactoId) && obj.ContactoId !== 0) {
                         //update
                          
-                          console.log("voy a hacer update")
-                          if(obj.ContactoEmailUltNro != null){
+                          if(obj.ContactoEmailUltNro){
                            
                               await this.updateContactoEmailTable(queryRunner,ClienteId,obj.ContactoId,obj.ContactoEmailUltNro,obj.correo)
                           }else{
@@ -455,8 +439,7 @@ console.log("infoCliente ", infoCliente)
                             await this.updateClienteTableMax(queryRunner,ClienteId,maxContactoEmailId,null,null,null) 
                             
                           }
-      
-                          if(obj.ContactoTelefonoUltNro != null){
+                          if(obj.ContactoTelefonoUltNro){
                               await this.updateContactoTelefonoTable(queryRunner,ClienteId,obj.ContactoId,obj.ContactoTelefonoUltNro,obj.telefono)
                              
                             }else{
@@ -468,6 +451,10 @@ console.log("infoCliente ", infoCliente)
                             await this.updateContactoTable(queryRunner,ClienteId,obj.ContactoId,obj.nombre,obj.ContactoApellido,obj.area,null,maxContactoTelefonoId) 
                             await this.updateClienteTableMax(queryRunner,ClienteId,null,maxContactoTelefonoId,null,null) 
                          } 
+
+                         if(obj.ContactoTelefonoUltNro && obj.ContactoEmailUltNro){
+                            await this.updateContactoTable(queryRunner,ClienteId,obj.ContactoId,obj.nombre,obj.ContactoApellido,obj.area,null,null) 
+                         }
                          
                       } else {
                          // Insert
@@ -477,8 +464,7 @@ console.log("infoCliente ", infoCliente)
 
                          obj.ClienteContactoId = maxContactoId
                          newinfoClienteContactoArray.push(obj)
-                         console.log("voy a insertar 1.1")
-                         await this.insertContactoTable(queryRunner,ClienteId,maxContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxContactoTelefonoId,maxContactoEmailId)
+                         await this.insertContactoTable(queryRunner,ClienteId,maxContactoId,obj.nombre,obj.ContactoApellido,obj.area,maxContactoTelefonoId,maxContactoEmailId)
       
                          await this.insertContactoEmailTable(queryRunner,maxContactoId,maxContactoEmailId,obj.correo)
       
@@ -486,11 +472,21 @@ console.log("infoCliente ", infoCliente)
                           obj.ClienteContactoTelefonoCodigoArea)
 
                           await this.updateClienteTableMax(queryRunner,ClienteId,maxContactoEmailId,maxContactoTelefonoId,null,null) 
-
-                         
-                      }
+     
                 }    
 
+            }
+  
+            if(numerosQueNoPertenecen?.length > 0 ) {
+                for (const numero of numerosQueNoPertenecen) {
+                    //const exist = numerosQueNoPertenecen.includes(obj.ContactoId)
+                   // console.log("exist ", exist)
+                   
+                    await this.deleteContactoEmailTable(queryRunner,ClienteId,numero)
+                    await this.deleteContactoTelefonoTable(queryRunner,ClienteId,numero)
+                    await this.deleteContactoTable(queryRunner,ClienteId, numero)
+                }
+               
             }
 
             ObjCliente.infoClienteContacto = newinfoClienteContactoArray
@@ -600,19 +596,27 @@ console.log("infoCliente ", infoCliente)
         (ContactoApellido && nombre ? ',' : '') + 
         (nombre ? nombre : '') || null;
 
-         if(!ContactoEmailUltNro){
+         if(ContactoTelefonoUltNro){
             await queryRunner.query(`
                 UPDATE Contacto
                 SET ContactoNombre = @2, ContactoApellido = @3, ContactoArea =@4, ContactoApellidoNombre = @5,ContactoTelefonoUltNro=@6
                 WHERE ClienteId = @0 AND ContactoId = @1`,[ClienteId,ContactoId,nombre,ContactoApellido,area,ContactoApellidoNombre,ContactoTelefonoUltNro])
         }
 
-        if(!ContactoTelefonoUltNro){
+        if(ContactoEmailUltNro){
             
             await queryRunner.query(`
                 UPDATE Contacto
                 SET ContactoNombre = @2, ContactoApellido = @3, ContactoArea =@4, ContactoApellidoNombre = @5,ContactoEmailUltNro=@6
                 WHERE ClienteId = @0 AND ContactoId = @1`,[ClienteId,ContactoId,nombre,ContactoApellido,area,ContactoApellidoNombre,ContactoEmailUltNro])
+        }
+
+        if(!ContactoTelefonoUltNro && !ContactoEmailUltNro){
+            
+            await queryRunner.query(`
+                UPDATE Contacto
+                SET ContactoNombre = @2, ContactoApellido = @3, ContactoArea =@4, ContactoApellidoNombre = @5
+                WHERE ClienteId = @0 AND ContactoId = @1`,[ClienteId,ContactoId,nombre,ContactoApellido,area,ContactoApellidoNombre])
         }
 
 
@@ -646,34 +650,23 @@ console.log("infoCliente ", infoCliente)
 
         await queryRunner.query(`INSERT INTO Contacto (
             ClienteId,
-            ContactoApellidoNombre,
+            ContactoArea,
             ContactoApellido,
             ContactoNombre,
-            ContactoSexo,
-            TipoDocumentoId,
-            ContactoDocumentoNro,
-            ContactoCargo,
-            ContactoArea,
-            ContactoFechaNacimiento,
-            ContactoInactivo,
             ContactoTelefonoUltNro,
-            ContactoEmailUltNro )
+            ContactoEmailUltNro,
+            ContactoApellidoNombre )
             
             VALUES (
-            @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12
+            @0,@1,@2,@3,@4,@5,@6
             )`,[
                 ClienteId,
-                ContactoApellidoNombre,
-                nombre,
-                ContactoApellido,
-                null,
-                null,
-                null,
-                null,
                 area,
-                null,
-                null,
-                maxContactoTelefonoId,maxContactoEmailId
+                ContactoApellido,
+                nombre,
+                maxContactoTelefonoId,
+                maxContactoEmailId,
+                ContactoApellidoNombre,
                 ])
 
      }
@@ -734,8 +727,8 @@ console.log("infoCliente ", infoCliente)
           await queryRunner.startTransaction();
           
           await this.deleteContactoTable(queryRunner,ClienteId,null)
-          await this.deleteContactoEmailTable(queryRunner,ClienteId,null,null)
-          await this.deleteContactoTelefonoTable(queryRunner,ClienteId,null,null)
+          await this.deleteContactoEmailTable(queryRunner,ClienteId,null)
+          await this.deleteContactoTelefonoTable(queryRunner,ClienteId,null)
           await this.deleteFileCliente(queryRunner,ClienteId)
     
           await queryRunner.commitTransaction();
@@ -756,37 +749,43 @@ console.log("infoCliente ", infoCliente)
 
         let deleteCliente = `DELETE FROM Contacto WHERE ClienteId = @0`
 
-        if(ContactoId != null)
+        if(ContactoId)
             deleteCliente += ` AND ContactoId =@1`
 
         await queryRunner.query(deleteCliente,[ClienteId,ContactoId])
+       
     } 
 
-    async deleteContactoEmailTable(queryRunner:any,ClienteId:number,ContactoEmailId:any,ContactoId:any){
+    async deleteContactoEmailTable(queryRunner:any,ClienteId:number,ContactoId:any){
 
-        let deleteEmail = `DELETE FROM ContactoEmail WHERE ClienteId = @0`
+        let deleteEmail 
 
-        if(ContactoEmailId != null && ContactoId != null && ContactoId != null)
-            deleteEmail += ` AND ContactoEmailId =@1 AND ContactoId = @2 `
+        if(ClienteId && ContactoId){
+            deleteEmail = `DELETE FROM ContactoEmail WHERE ContactoId = @1 `
+        }else{
+            deleteEmail = `DELETE FROM ContactoEmail WHERE ClienteId = @0`
+        }
 
-        await queryRunner.query(deleteEmail,[ClienteId,ContactoEmailId,ContactoId])
+        await queryRunner.query(deleteEmail,[ClienteId,ContactoId])
+
     } 
 
-    async deleteContactoTelefonoTable(queryRunner:any,ClienteId:number,ContactoTelefonoId:any,ContactoId:any){
+    async deleteContactoTelefonoTable(queryRunner:any,ClienteId:number,ContactoId:any){
 
-        let deletTelefono = `DELETE FROM ContactoTelefono WHERE ClienteId = @0`
+        let deletTelefono 
 
-        if(ContactoTelefonoId != null && ContactoId != null)
-            deletTelefono += ` AND ContactoTelefonoId =@1 AND ContactoId = @2`
-
-        await queryRunner.query(deletTelefono,[ClienteId,ContactoTelefonoId, ContactoId])
+        if(ClienteId && ContactoId){
+            deletTelefono = `DELETE FROM ContactoTelefono WHERE ContactoId = @1 `
+        }else{
+            deletTelefono = `DELETE FROM ContactoTelefono WHERE ClienteId = @0`
+        }
+        await queryRunner.query(deletTelefono,[ClienteId, ContactoId])
     } 
     
 
     async addCliente(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         const ObjCliente = {...req.body};
-        console.log(ObjCliente)
         try {
 
             await queryRunner.startTransaction()
@@ -825,7 +824,6 @@ console.log("infoCliente ", infoCliente)
 
             let newinfoClienteContactoArray = []
             for (const obj of ObjCliente.infoClienteContacto) {
-
                 maxContactoTelefonoId = ObjCliente.ClienteTelefonoUltNro == null ? 1 : ObjCliente.ClienteTelefonoUltNro + 1;
                 //maxContactoTelefonoId += 1
                 maxContactoEmailId = ObjCliente.ClienteEmailUltNro == null ? 1 : ObjCliente.ClienteEmailUltNro + 1;
