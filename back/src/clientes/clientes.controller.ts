@@ -452,7 +452,7 @@ console.log("infoCliente ", infoCliente)
                             maxContactoEmailId += 1
                             await this.insertContactoEmailTable(queryRunner,maxContactoId,maxContactoEmailId,obj.correo)
                             await this.updateContactoTable(queryRunner,ClienteId,obj.ContactoId,obj.nombre,obj.ContactoApellido,obj.area,maxContactoEmailId,null)  
-                            await this.updateClienteTableMax(queryRunner,ClienteId,maxContactoEmailId,null) 
+                            await this.updateClienteTableMax(queryRunner,ClienteId,maxContactoEmailId,null,null,null) 
                             
                           }
       
@@ -466,7 +466,7 @@ console.log("infoCliente ", infoCliente)
                                 obj.ContactoTelefonoCodigoArea)
  
                             await this.updateContactoTable(queryRunner,ClienteId,obj.ContactoId,obj.nombre,obj.ContactoApellido,obj.area,null,maxContactoTelefonoId) 
-                            await this.updateClienteTableMax(queryRunner,ClienteId,null,maxContactoTelefonoId) 
+                            await this.updateClienteTableMax(queryRunner,ClienteId,null,maxContactoTelefonoId,null,null) 
                          } 
                          
                       } else {
@@ -485,7 +485,7 @@ console.log("infoCliente ", infoCliente)
                          await this.insertContactoTelefonoTable(queryRunner,ClienteId,maxContactoId,maxContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,
                           obj.ClienteContactoTelefonoCodigoArea)
 
-                          await this.updateClienteTableMax(queryRunner,ClienteId,maxContactoEmailId,maxContactoTelefonoId) 
+                          await this.updateClienteTableMax(queryRunner,ClienteId,maxContactoEmailId,maxContactoTelefonoId,null,null) 
 
                          
                       }
@@ -541,21 +541,36 @@ console.log("infoCliente ", infoCliente)
         WHERE ClienteId = @0 AND ClienteFacturacionId = @1`,[ClienteId,ClienteFacturacionId,ClienteFacturacionCUIT,CondicionAnteIVAId])
     }
     
-    async updateClienteTableMax(queryRunner:any,ClienteId:number,ClienteEmailUltNro:any,ClienteTelefonoUltNro:any){
+    async updateClienteTableMax(queryRunner:any,ClienteId:number,ClienteEmailUltNro:any,ClienteTelefonoUltNro:any,ClienteTeContactoUltNro:any,ClienteFacturacionId:any){
 
-         if(!ClienteEmailUltNro){
+         if(ClienteTelefonoUltNro){
             await queryRunner.query(`
                 UPDATE Cliente
                 SET ClienteTelefonoUltNro = @1
                 WHERE ClienteId = @0 `,[ClienteId,ClienteTelefonoUltNro])
         }
 
-        if(!ClienteTelefonoUltNro){
+        if(ClienteEmailUltNro){
             
             await queryRunner.query(`
-                UPDATE Contacto
+                UPDATE cliente
                 SET ClienteEmailUltNro = @1
                 WHERE ClienteId = @0`,[ClienteId,ClienteEmailUltNro])
+        }
+
+        if(ClienteTeContactoUltNro){
+
+            await queryRunner.query(`
+                UPDATE Cliente
+                SET ClienteContactoUltNro = @1
+                WHERE ClienteId = @0`,[ClienteId,ClienteTeContactoUltNro])
+        }
+
+        if(ClienteFacturacionId){
+            await queryRunner.query(`
+                UPDATE Cliente
+                SET ClienteFacturacionUltNro = @1
+                WHERE ClienteId = @0`,[ClienteId,ClienteFacturacionId])
         }
 
      }
@@ -786,23 +801,22 @@ console.log("infoCliente ", infoCliente)
             let ClienteDomicilioUltNro = 1
             let ClienteFacturacionId = 1
             let ClienteDomicilioId = 1
-            let maxContactoTelefonoId = ObjCliente.ClienteTelefonoUltNro == null ? 1 : ObjCliente.ClienteTelefonoUltNro + 1;
-            let maxContactoEmailId = ObjCliente.ClienteEmailUltNro == null ? 1 : ObjCliente.ClienteEmailUltNro + 1;
+            let maxContactoTelefonoId 
+            let maxContactoEmailId = ObjCliente.ClienteEmailUltNro == null ? null : ObjCliente.ClienteEmailUltNro + 1;
 
             const ClienteFechaAlta = new Date(ObjCliente.ClienteFechaAlta)
             ClienteFechaAlta.setHours(0, 0, 0, 0)
 
             let ClienteAdministradorId = ObjCliente.AdministradorId != null && ObjCliente.AdministradorId != "" ? 1 : null
 
-           await this.insertCliente(queryRunner,ObjCliente.ClienteNombreFantasia,ObjCliente.ClienteApellidoNombre,ClienteFechaAlta,ClienteDomicilioUltNro,ClienteAdministradorId)
+            await this.insertCliente(queryRunner,ObjCliente.ClienteNombreFantasia,ObjCliente.ClienteApellidoNombre,ClienteFechaAlta,ClienteDomicilioUltNro,ClienteAdministradorId)
 
             let ClienteSelectId = await queryRunner.query("SELECT MAX(ClienteId) AS MaxClienteId FROM Cliente")
-            let ClienteId = ClienteSelectId[0].MaxClienteId 
+            let ClienteId = ClienteSelectId[0].MaxClienteId
             ObjCliente.id = ClienteId
 
-            const infoCliente = await queryRunner.query(`SELECT ContactoId FROM Contacto`)
-            const ContactoIds = infoCliente.map(row => row.ContactoId)
-            let maxContactoId = ContactoIds.length > 0 ? Math.max(...ContactoIds) : 0
+         
+            let maxContactoId
 
              this.insertClienteFacturacion(queryRunner,ClienteId,ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.ClienteCondicionAnteIVAId,ClienteFechaAlta)
             await this.inserClientetDomicilio(queryRunner,ClienteId,ClienteDomicilioId,ObjCliente.ClienteDomicilioDomLugar,ObjCliente.ClienteDomicilioDomCalle,ObjCliente.ClienteDomicilioDomNro,
@@ -810,22 +824,31 @@ console.log("infoCliente ", infoCliente)
             )
 
             let newinfoClienteContactoArray = []
-
             for (const obj of ObjCliente.infoClienteContacto) {
 
-                maxContactoId += 1
-                maxContactoTelefonoId += 1
-                maxContactoEmailId += 1
+                maxContactoTelefonoId = ObjCliente.ClienteTelefonoUltNro == null ? 1 : ObjCliente.ClienteTelefonoUltNro + 1;
+                //maxContactoTelefonoId += 1
+                maxContactoEmailId = ObjCliente.ClienteEmailUltNro == null ? 1 : ObjCliente.ClienteEmailUltNro + 1;
+                //maxContactoEmailId += 1
 
                 obj.ClienteContactoId = maxContactoId
                 await this.insertContactoTable(queryRunner,ClienteId,maxContactoId,obj.nombre,obj.ContactoApellido,obj.area,maxContactoTelefonoId,maxContactoEmailId)
 
-                await this.insertContactoEmailTable(queryRunner,maxContactoId,maxContactoEmailId,obj.correo)
+                const infoCliente = await queryRunner.query(`SELECT  MAX(ContactoId) AS MaxContactoId  FROM Contacto`)
+                maxContactoId = infoCliente[0].MaxContactoId
+
                 await this.insertContactoTelefonoTable(queryRunner,ClienteId,maxContactoId,maxContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,obj.ContactoTelefonoCodigoArea)
+                await this.insertContactoEmailTable(queryRunner,maxContactoId,maxContactoEmailId,obj.correo)
+                
                 
                 newinfoClienteContactoArray.push(obj)
             }
 
+           
+            await this.updateClienteTableMax(queryRunner,ClienteId,maxContactoEmailId,maxContactoTelefonoId,maxContactoId,ClienteFacturacionId) 
+            
+
+        
             ObjCliente.infoClienteContacto = newinfoClienteContactoArray
 
             if(ClienteAdministradorId != null){
@@ -847,24 +870,25 @@ console.log("infoCliente ", infoCliente)
     }
 
 
-    async insertCliente(queryRunner:any,ClienteNombreFantasia:any,ClienteApellidoNombre:any,ClienteFechaAlta:any,ClienteDomicilioUltNro:any,ClienteAdministradorUltNro:any){
+    async insertCliente(queryRunner:any,ClienteNombreFantasia:any,ClienteApellidoNombre:any,ClienteFechaAlta:any,ClienteDomicilioUltNro:any,ClienteAdministradorUltNro:any,
+    ){
 
         await queryRunner.query(`INSERT INTO Cliente (
-        ClienteDenominacion,
-        ClienteNombreFantasia,
-        ClienteApellidoNombre,
-        ClienteFechaAlta,
-        ClienteDomicilioUltNro,
-        ClienteAdministradorUltNro
-        ) VALUES (
-        @0,@1,@2,@3,@4,@5
-        )`,[
-         ClienteApellidoNombre,
-         ClienteNombreFantasia,
-         ClienteApellidoNombre,
-         ClienteFechaAlta,
-         ClienteDomicilioUltNro,
-         ClienteAdministradorUltNro
+            ClienteDenominacion,
+            ClienteNombreFantasia,
+            ClienteApellidoNombre,
+            ClienteFechaAlta,
+            ClienteDomicilioUltNro,
+            ClienteAdministradorUltNro
+            ) VALUES (
+            @0,@1,@2,@3,@4,@5
+            )`,[
+             ClienteApellidoNombre,
+             ClienteNombreFantasia,
+             ClienteApellidoNombre,
+             ClienteFechaAlta,
+             ClienteDomicilioUltNro,
+             ClienteAdministradorUltNro
         ])
     }
 
