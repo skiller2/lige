@@ -460,7 +460,8 @@ export class PersonalController extends BaseController {
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId
         LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
-        WHERE (${filterSql}) 
+        WHERE sitrev.PersonalSituacionRevistaHasta IS NULL
+        AND (${filterSql})
         ${orderBy}`, [anio, mes])
   }
 
@@ -477,8 +478,16 @@ export class PersonalController extends BaseController {
       const filterSql = filtrosToSql(options.filtros, columns);
       const orderBy = orderToSQL(options.sort)
 
-      let lista: any[] = []
-      // lista = await this.listPersonalQuery(queryRunner, filterSql, orderBy)
+      const lista:any[] = await this.listPersonalQuery(queryRunner, filterSql, orderBy)
+
+      let array: any[]=[]
+      for (const obj of lista) {
+        if (array.includes(obj.id)) {
+          console.log(obj);
+        }else{
+          array.push(obj.id)
+        }
+      }
 
       await queryRunner.commitTransaction()
       this.jsonRes(lista, res);

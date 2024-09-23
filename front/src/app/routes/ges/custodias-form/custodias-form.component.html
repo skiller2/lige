@@ -201,7 +201,7 @@
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <nz-select formControlName="estado" nzPlaceHolder="Estado" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
           <ng-container *ngFor="let option of $optionsEstadoCust | async" >
-            <nz-option [nzValue]="option.tipo" [nzLabel]="option.descripcion" ></nz-option>
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label" ></nz-option>
           </ng-container>
         </nz-select>
       </nz-form-control>

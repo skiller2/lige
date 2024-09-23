@@ -203,8 +203,11 @@ export class AyudaAsistencialComponent {
         try {
             await firstValueFrom(this.apiService.ayudaAsistencialRechazar({ids:ids, rows:this.rows}))
             this.formChange('')
-        } catch (error) {
-            console.log(error);
+        } catch (error:any) {
+            let rows : any[] = error.error.data
+            if (rows.length) {
+                // this.angularGrid.gridService.highlightRow(error.error.data, 10000)
+            }
         }
         this.loadingRec.set(false)
     }
@@ -216,8 +219,11 @@ export class AyudaAsistencialComponent {
         try {
             const res :any = await firstValueFrom(this.apiService.ayudaAsistencialAprobar({ids:ids, rows:this.rows}))
             this.formChange('')
-        } catch (error) {
-            console.log(error);
+        } catch (error:any) {
+            let rows : any[] = error.error.data
+            if (rows.length) {
+                // this.angularGrid.gridService.highlightRow(error.error.data, 10000)
+            }
         }
         this.loadingApr.set(false)
     }

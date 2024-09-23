@@ -53,7 +53,7 @@ import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal
   )
 
     async ngOnInit(){
-      this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+      this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
       this.gridOptions.enableRowDetailView = false
       this.gridOptions.editable = false
       this.gridOptions.autoEdit = true

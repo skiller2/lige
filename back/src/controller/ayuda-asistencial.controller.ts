@@ -506,6 +506,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
     const ids : string[] = req.body.ids
     const numRows : number[] = req.body.rows
     let errors : string[] = []
+    let numRowsError : number[] = []
     try {
       await queryRunner.startTransaction()
 
@@ -515,12 +516,19 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
         let personalId = Number.parseInt(arrayIds[1])
         let res = await this.personalPrestamoAprobar(queryRunner,personalPrestamoId,personalId)
         if (res instanceof ClientException) {
-          errors.push(`FILA ${numRows[index]+1}: `+res.messageArr[0])
+          let name = await queryRunner.query(`
+            SELECT CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+            FROM Personal per
+            WHERE per.PersonalId = @0`,
+            [personalId]
+          )
+          numRowsError.push(numRows[index])
+          errors.push(`[FILA ${numRows[index]+1}]${name[0].ApellidoNombre}: `+res.messageArr[0])
         }
       }
 
       if (errors.length) {
-        throw new ClientException(errors.join(`\n`))
+        throw new ClientException(errors.join(`\n`), numRowsError)
       }
       
       await queryRunner.commitTransaction()
@@ -568,6 +576,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
     const ids : string[] = req.body.ids
     const numRows : number[] = req.body.rows
     let errors : string[] = []
+    let numRowsError : number[] = []
     try {
       await queryRunner.startTransaction()
 
@@ -578,12 +587,19 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
         
         let res = await this.personalPrestamoRechazar(queryRunner,personalPrestamoId,personalId)
         if (res instanceof ClientException) {
-          errors.push(`FILA ${numRows[index]+1}: `+res.messageArr[0])
+          let name = await queryRunner.query(`
+            SELECT CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+            FROM Personal per
+            WHERE per.PersonalId = @0`,
+            [personalId]
+          )
+          numRowsError.push(numRows[index])
+          errors.push(`[FILA ${numRows[index]+1}]${name[0].ApellidoNombre}: `+res.messageArr[0])
         }
       }
       
       if (errors.length) {
-        throw new ClientException(errors.join(`\n`))
+        throw new ClientException(errors.join(`\n`), numRowsError)
       }
       
       await queryRunner.commitTransaction()
@@ -858,7 +874,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
         `, [personalId, tipo, anio, mes]
       );
       max = max[0].aplicaEl
-      console.log('MAX',max);
+      // console.log('MAX',max);
       if (max) {
         max.setMonth(max.getMonth() + 1);
       }else{

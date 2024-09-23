@@ -218,12 +218,12 @@ const columnsObjCustodia: any[] = [
 ]
 
 const estados : any[] = [
-    { tipo: 0, descripcion: 'Pendiente' },
-    { tipo: 1, descripcion: 'Finalizado' },
-    { tipo: 2, descripcion: 'Cancelado' },
-    { tipo: 3, descripcion: 'A facturar' },
-    { tipo: 4, descripcion: 'Facturado' },
-]
+    { value: 0, label: 'Pendiente' },
+    { value: 1, label: 'Finalizado' },
+    { value: 2, label: 'Cancelado' },
+    { value: 3, label: 'A facturar' },
+    { value: 4, label: 'Facturado' },
+]// value = tipo , label = descripcion
 
 export class CustodiaController extends BaseController {
 
@@ -965,7 +965,7 @@ export class CustodiaController extends BaseController {
     }
 
     //Devuelve TRUE si el estado es 
-    //[{ tipo: 1, descripcion: 'Finalizado' },{ tipo: 3, descripcion: 'A facturar' },{ tipo: 4, descripcion: 'Facturado' },]
+    //[{ value: 1, label: 'Finalizado' },{ value: 3, label: 'A facturar' },{ value: 4, label: 'Facturado' },]
     valByEstado(estado:any):boolean {
         switch (typeof estado) {
             case 'string':
