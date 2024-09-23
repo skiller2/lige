@@ -188,7 +188,6 @@ ${orderBy}`, [fechaActual])
 
            
             infoCliente.infoClienteContacto = infoClienteContacto
-
             await queryRunner.commitTransaction()
             return this.jsonRes(infoCliente, res)
         } catch (error) {
@@ -268,7 +267,7 @@ ${orderBy}`, [fechaActual])
         FROM Cliente cli
         LEFT JOIN ClienteFacturacion fac 
             ON fac.ClienteId = cli.ClienteId
-            AND fac.ClienteFacturacionDesde BETWEEN DATEFROMPARTS(@1, @2, 1) AND EOMONTH(DATEFROMPARTS(@1, @2, 1))
+            AND fac.ClienteFacturacionId = cli.ClienteFacturacionUltNro
         LEFT JOIN CondicionAnteIVA con 
             ON con.CondicionAnteIVAId = fac.CondicionAnteIVAId
         LEFT JOIN (
@@ -421,40 +420,26 @@ ${orderBy}`, [fechaActual])
              numerosQueNoPertenecen = ContactoIds.filter(num => {
                 return !ObjCliente.infoClienteContacto.some(obj => obj.ContactoId === num && obj.ContactoId !== 0);
             });
-
+            //console.log("numerosQueNoPertenecen ", numerosQueNoPertenecen)
             let newinfoClienteContactoArray = []
 
             for (const obj of ObjCliente.infoClienteContacto) {
 
-
-                if(numerosQueNoPertenecen?.length > 0 ) {
-                    const exist = numerosQueNoPertenecen.includes(obj.ContactoId)
-                    
-                    if (exist) {
-                    
-                        await this.deleteContactoTable(queryRunner,ClienteId, obj.ContactoId)
-                        await this.deleteContactoEmailTable(queryRunner,ClienteId,obj.ContactoEmailId,obj.ContactoId)
-                        await this.deleteContactoTelefonoTable(queryRunner,ClienteId,obj.ContactoTelefonoId,obj.ContactoId)
-
-                    }
-                    
-
-                }else{
                     if (ContactoIds.includes(obj.ContactoId) && obj.ContactoId !== 0) {
                         //update
-                          await this.updateContactoTable(queryRunner,ClienteId,obj.ContactoId,obj.nombre,obj.ContactoApellido,obj.area)
-      
-                          if(obj.ContactoEmailUltNro != null){
+                         
+                          if(obj.ContactoEmailUltNro){
+                           
                               await this.updateContactoEmailTable(queryRunner,ClienteId,obj.ContactoId,obj.ContactoEmailUltNro,obj.correo)
                           }else{
 
                             maxContactoEmailId += 1
                             await this.insertContactoEmailTable(queryRunner,maxContactoId,maxContactoEmailId,obj.correo)
-                            await this.updateContactoUltNro(queryRunner,ClienteId,obj.ContactoId,maxContactoEmailId,null)   
+                            await this.updateContactoTable(queryRunner,ClienteId,obj.ContactoId,obj.nombre,obj.ContactoApellido,obj.area,maxContactoEmailId,null)  
+                            await this.updateClienteTableMax(queryRunner,ClienteId,maxContactoEmailId,null,null,null) 
                             
                           }
-      
-                          if(obj.ContactoTelefonoUltNro != null){
+                          if(obj.ContactoTelefonoUltNro){
                               await this.updateContactoTelefonoTable(queryRunner,ClienteId,obj.ContactoId,obj.ContactoTelefonoUltNro,obj.telefono)
                              
                             }else{
@@ -462,10 +447,14 @@ ${orderBy}`, [fechaActual])
                             maxContactoTelefonoId += 1
                             await this.insertContactoTelefonoTable(queryRunner,ClienteId,maxContactoId,maxContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,
                                 obj.ContactoTelefonoCodigoArea)
-
-                            await this.updateContactoUltNro(queryRunner,ClienteId,obj.ContactoId,null,maxContactoTelefonoId)   
-
+ 
+                            await this.updateContactoTable(queryRunner,ClienteId,obj.ContactoId,obj.nombre,obj.ContactoApellido,obj.area,null,maxContactoTelefonoId) 
+                            await this.updateClienteTableMax(queryRunner,ClienteId,null,maxContactoTelefonoId,null,null) 
                          } 
+
+                         if(obj.ContactoTelefonoUltNro && obj.ContactoEmailUltNro){
+                            await this.updateContactoTable(queryRunner,ClienteId,obj.ContactoId,obj.nombre,obj.ContactoApellido,obj.area,null,null) 
+                         }
                          
                       } else {
                          // Insert
@@ -475,17 +464,29 @@ ${orderBy}`, [fechaActual])
 
                          obj.ClienteContactoId = maxContactoId
                          newinfoClienteContactoArray.push(obj)
-      
-                         await this.insertContactoTable(queryRunner,ClienteId,maxContactoId,obj.nombre,obj.ClienteContactoApellido,obj.area,maxContactoTelefonoId,maxContactoEmailId)
+                         await this.insertContactoTable(queryRunner,ClienteId,maxContactoId,obj.nombre,obj.ContactoApellido,obj.area,maxContactoTelefonoId,maxContactoEmailId)
       
                          await this.insertContactoEmailTable(queryRunner,maxContactoId,maxContactoEmailId,obj.correo)
       
                          await this.insertContactoTelefonoTable(queryRunner,ClienteId,maxContactoId,maxContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,
                           obj.ClienteContactoTelefonoCodigoArea)
-      
-                      }
+
+                          await this.updateClienteTableMax(queryRunner,ClienteId,maxContactoEmailId,maxContactoTelefonoId,null,null) 
+     
                 }    
 
+            }
+  
+            if(numerosQueNoPertenecen?.length > 0 ) {
+                for (const numero of numerosQueNoPertenecen) {
+                    //const exist = numerosQueNoPertenecen.includes(obj.ContactoId)
+                   // console.log("exist ", exist)
+                   
+                    await this.deleteContactoEmailTable(queryRunner,ClienteId,numero)
+                    await this.deleteContactoTelefonoTable(queryRunner,ClienteId,numero)
+                    await this.deleteContactoTable(queryRunner,ClienteId, numero)
+                }
+               
             }
 
             ObjCliente.infoClienteContacto = newinfoClienteContactoArray
@@ -536,6 +537,41 @@ ${orderBy}`, [fechaActual])
         WHERE ClienteId = @0 AND ClienteFacturacionId = @1`,[ClienteId,ClienteFacturacionId,ClienteFacturacionCUIT,CondicionAnteIVAId])
     }
     
+    async updateClienteTableMax(queryRunner:any,ClienteId:number,ClienteEmailUltNro:any,ClienteTelefonoUltNro:any,ClienteTeContactoUltNro:any,ClienteFacturacionId:any){
+
+         if(ClienteTelefonoUltNro){
+            await queryRunner.query(`
+                UPDATE Cliente
+                SET ClienteTelefonoUltNro = @1
+                WHERE ClienteId = @0 `,[ClienteId,ClienteTelefonoUltNro])
+        }
+
+        if(ClienteEmailUltNro){
+            
+            await queryRunner.query(`
+                UPDATE cliente
+                SET ClienteEmailUltNro = @1
+                WHERE ClienteId = @0`,[ClienteId,ClienteEmailUltNro])
+        }
+
+        if(ClienteTeContactoUltNro){
+
+            await queryRunner.query(`
+                UPDATE Cliente
+                SET ClienteContactoUltNro = @1
+                WHERE ClienteId = @0`,[ClienteId,ClienteTeContactoUltNro])
+        }
+
+        if(ClienteFacturacionId){
+            await queryRunner.query(`
+                UPDATE Cliente
+                SET ClienteFacturacionUltNro = @1
+                WHERE ClienteId = @0`,[ClienteId,ClienteFacturacionId])
+        }
+
+     }
+
+
     async updateClienteTable(queryRunner:any,ClienteId:number,ClienteNombreFantasia:string,ClienteApellidoNombre:string,ClienteFechaAlta:Date,ClienteAdministradorId:any){
 
         await queryRunner.query(`UPDATE Cliente
@@ -553,38 +589,36 @@ ${orderBy}`, [fechaActual])
 
     }
 
-    async updateContactoUltNro(queryRunner:any,ClienteId:number,ContactoId:number,ContactoEmailUltNro:any,ContactoTelefonoUltNro:any){
-
-        if(ContactoEmailUltNro == null){
-            await queryRunner.query(`
-                UPDATE Contacto
-                SET ContactoTelefonoUltNro = @2
-                WHERE ClienteId = @0 AND ContactoId = @1`,[ClienteId,ContactoId,ContactoTelefonoUltNro])
-        }
-
-        if(ContactoTelefonoUltNro == null){
-            await queryRunner.query(`
-                UPDATE Contacto
-                SET ContactoEmailUltNro = @2
-                WHERE ClienteId = @0 AND ContactoId = @1`,[ClienteId,ContactoId,ContactoEmailUltNro])
-        }
-
-       
-
-     }
-
-     async updateContactoTable(queryRunner:any,ClienteId:number,ContactoId:number,nombre:string,ContactoApellido:string,area:string){
+     async updateContactoTable(queryRunner:any,ClienteId:number,ContactoId:number,nombre:string,ContactoApellido:string,area:string,ContactoEmailUltNro:any,ContactoTelefonoUltNro:any){
 
         let ContactoApellidoNombre = 
         (ContactoApellido ? ContactoApellido : '') + 
         (ContactoApellido && nombre ? ',' : '') + 
         (nombre ? nombre : '') || null;
 
+         if(ContactoTelefonoUltNro){
+            await queryRunner.query(`
+                UPDATE Contacto
+                SET ContactoNombre = @2, ContactoApellido = @3, ContactoArea =@4, ContactoApellidoNombre = @5,ContactoTelefonoUltNro=@6
+                WHERE ClienteId = @0 AND ContactoId = @1`,[ClienteId,ContactoId,nombre,ContactoApellido,area,ContactoApellidoNombre,ContactoTelefonoUltNro])
+        }
 
-        await queryRunner.query(`
-         UPDATE Contacto
-         SET ContactoNombre = @2, ContactoApellido = @3, ContactoArea =@4, ContactoApellidoNombre = @5
-         WHERE ClienteId = @0 AND ContactoId = @1`,[ClienteId,ContactoId,nombre,ContactoApellido,area,ContactoApellidoNombre])
+        if(ContactoEmailUltNro){
+            
+            await queryRunner.query(`
+                UPDATE Contacto
+                SET ContactoNombre = @2, ContactoApellido = @3, ContactoArea =@4, ContactoApellidoNombre = @5,ContactoEmailUltNro=@6
+                WHERE ClienteId = @0 AND ContactoId = @1`,[ClienteId,ContactoId,nombre,ContactoApellido,area,ContactoApellidoNombre,ContactoEmailUltNro])
+        }
+
+        if(!ContactoTelefonoUltNro && !ContactoEmailUltNro){
+            
+            await queryRunner.query(`
+                UPDATE Contacto
+                SET ContactoNombre = @2, ContactoApellido = @3, ContactoArea =@4, ContactoApellidoNombre = @5
+                WHERE ClienteId = @0 AND ContactoId = @1`,[ClienteId,ContactoId,nombre,ContactoApellido,area,ContactoApellidoNombre])
+        }
+
 
      }
 
@@ -616,34 +650,23 @@ ${orderBy}`, [fechaActual])
 
         await queryRunner.query(`INSERT INTO Contacto (
             ClienteId,
-            ContactoApellidoNombre,
+            ContactoArea,
             ContactoApellido,
             ContactoNombre,
-            ContactoSexo,
-            TipoDocumentoId,
-            ContactoDocumentoNro,
-            ContactoCargo,
-            ContactoArea,
-            ContactoFechaNacimiento,
-            ContactoInactivo,
             ContactoTelefonoUltNro,
-            ContactoEmailUltNro )
+            ContactoEmailUltNro,
+            ContactoApellidoNombre )
             
             VALUES (
-            @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12
+            @0,@1,@2,@3,@4,@5,@6
             )`,[
                 ClienteId,
-                ContactoApellidoNombre,
-                nombre,
-                ContactoApellido,
-                null,
-                null,
-                null,
-                null,
                 area,
-                null,
-                null,
-                maxContactoTelefonoId,maxContactoEmailId
+                ContactoApellido,
+                nombre,
+                maxContactoTelefonoId,
+                maxContactoEmailId,
+                ContactoApellidoNombre,
                 ])
 
      }
@@ -651,8 +674,8 @@ ${orderBy}`, [fechaActual])
      async insertContactoEmailTable(queryRunner:any,ContactoId:number,maxContactoEmailId:number,ContactoEmailEmail:any){
 
         await queryRunner.query(`INSERT INTO ContactoEmail (
-            ContactoId,
             ContactoEmailId,
+            ContactoId,
             ContactoEmailEmail,
             ContactoEmailInactivo
             ) VALUES (
@@ -665,8 +688,9 @@ ${orderBy}`, [fechaActual])
         ContactoTelefonoCodigoArea:any){
 
         await queryRunner.query(`INSERT INTO ContactoTelefono (
-            ContactoId,
+            
             ContactoTelefonoId,
+            ContactoId,
             LugarTelefonoId,
             TipoTelefonoId,
             ContactoTelefonoCodigoPais,
@@ -678,8 +702,8 @@ ${orderBy}`, [fechaActual])
             ContactoTelefonoInternoUltNro) VALUES (
             @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10)
             `,[
-               ContactoId,
                maxContactoTelefonoId, 
+               ContactoId,
                null, 
                TipoTelefonoId, 
                null,
@@ -703,8 +727,8 @@ ${orderBy}`, [fechaActual])
           await queryRunner.startTransaction();
           
           await this.deleteContactoTable(queryRunner,ClienteId,null)
-          await this.deleteContactoEmailTable(queryRunner,ClienteId,null,null)
-          await this.deleteContactoTelefonoTable(queryRunner,ClienteId,null,null)
+          await this.deleteContactoEmailTable(queryRunner,ClienteId,null)
+          await this.deleteContactoTelefonoTable(queryRunner,ClienteId,null)
           await this.deleteFileCliente(queryRunner,ClienteId)
     
           await queryRunner.commitTransaction();
@@ -725,37 +749,43 @@ ${orderBy}`, [fechaActual])
 
         let deleteCliente = `DELETE FROM Contacto WHERE ClienteId = @0`
 
-        if(ContactoId != null)
+        if(ContactoId)
             deleteCliente += ` AND ContactoId =@1`
 
         await queryRunner.query(deleteCliente,[ClienteId,ContactoId])
+       
     } 
 
-    async deleteContactoEmailTable(queryRunner:any,ClienteId:number,ContactoEmailId:any,ContactoId:any){
+    async deleteContactoEmailTable(queryRunner:any,ClienteId:number,ContactoId:any){
 
-        let deleteEmail = `DELETE FROM ContactoEmail WHERE ClienteId = @0`
+        let deleteEmail 
 
-        if(ContactoEmailId != null && ContactoId != null && ContactoId != null)
-            deleteEmail += ` AND ContactoEmailId =@1 AND ContactoId = @2 `
+        if(ClienteId && ContactoId){
+            deleteEmail = `DELETE FROM ContactoEmail WHERE ContactoId = @1 `
+        }else{
+            deleteEmail = `DELETE FROM ContactoEmail WHERE ClienteId = @0`
+        }
 
-        await queryRunner.query(deleteEmail,[ClienteId,ContactoEmailId,ContactoId])
+        await queryRunner.query(deleteEmail,[ClienteId,ContactoId])
+
     } 
 
-    async deleteContactoTelefonoTable(queryRunner:any,ClienteId:number,ContactoTelefonoId:any,ContactoId:any){
+    async deleteContactoTelefonoTable(queryRunner:any,ClienteId:number,ContactoId:any){
 
-        let deletTelefono = `DELETE FROM ContactoTelefono WHERE ClienteId = @0`
+        let deletTelefono 
 
-        if(ContactoTelefonoId != null && ContactoId != null)
-            deletTelefono += ` AND ContactoTelefonoId =@1 AND ContactoId = @2`
-
-        await queryRunner.query(deletTelefono,[ClienteId,ContactoTelefonoId, ContactoId])
+        if(ClienteId && ContactoId){
+            deletTelefono = `DELETE FROM ContactoTelefono WHERE ContactoId = @1 `
+        }else{
+            deletTelefono = `DELETE FROM ContactoTelefono WHERE ClienteId = @0`
+        }
+        await queryRunner.query(deletTelefono,[ClienteId, ContactoId])
     } 
     
 
     async addCliente(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         const ObjCliente = {...req.body};
-        console.log(ObjCliente)
         try {
 
             await queryRunner.startTransaction()
@@ -770,23 +800,22 @@ ${orderBy}`, [fechaActual])
             let ClienteDomicilioUltNro = 1
             let ClienteFacturacionId = 1
             let ClienteDomicilioId = 1
-            let maxContactoTelefonoId = ObjCliente.ClienteTelefonoUltNro == null ? 1 : ObjCliente.ClienteTelefonoUltNro + 1;
-            let maxContactoEmailId = ObjCliente.ClienteEmailUltNro == null ? 1 : ObjCliente.ClienteEmailUltNro + 1;
+            let maxContactoTelefonoId 
+            let maxContactoEmailId = ObjCliente.ClienteEmailUltNro == null ? null : ObjCliente.ClienteEmailUltNro + 1;
 
             const ClienteFechaAlta = new Date(ObjCliente.ClienteFechaAlta)
             ClienteFechaAlta.setHours(0, 0, 0, 0)
 
             let ClienteAdministradorId = ObjCliente.AdministradorId != null && ObjCliente.AdministradorId != "" ? 1 : null
 
-           await this.insertCliente(queryRunner,ObjCliente.ClienteNombreFantasia,ObjCliente.ClienteApellidoNombre,ClienteFechaAlta,ClienteDomicilioUltNro,ClienteAdministradorId)
+            await this.insertCliente(queryRunner,ObjCliente.ClienteNombreFantasia,ObjCliente.ClienteApellidoNombre,ClienteFechaAlta,ClienteDomicilioUltNro,ClienteAdministradorId)
 
             let ClienteSelectId = await queryRunner.query("SELECT MAX(ClienteId) AS MaxClienteId FROM Cliente")
-            let ClienteId = ClienteSelectId[0].MaxClienteId 
+            let ClienteId = ClienteSelectId[0].MaxClienteId
             ObjCliente.id = ClienteId
 
-            const infoCliente = await queryRunner.query(`SELECT ContactoId FROM Contacto`)
-            const ContactoIds = infoCliente.map(row => row.ContactoId)
-            let maxContactoId = ContactoIds.length > 0 ? Math.max(...ContactoIds) : 0
+         
+            let maxContactoId
 
              this.insertClienteFacturacion(queryRunner,ClienteId,ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.ClienteCondicionAnteIVAId,ClienteFechaAlta)
             await this.inserClientetDomicilio(queryRunner,ClienteId,ClienteDomicilioId,ObjCliente.ClienteDomicilioDomLugar,ObjCliente.ClienteDomicilioDomCalle,ObjCliente.ClienteDomicilioDomNro,
@@ -794,22 +823,30 @@ ${orderBy}`, [fechaActual])
             )
 
             let newinfoClienteContactoArray = []
-
             for (const obj of ObjCliente.infoClienteContacto) {
-
-                maxContactoId += 1
-                maxContactoTelefonoId += 1
-                maxContactoEmailId += 1
+                maxContactoTelefonoId = ObjCliente.ClienteTelefonoUltNro == null ? 1 : ObjCliente.ClienteTelefonoUltNro + 1;
+                //maxContactoTelefonoId += 1
+                maxContactoEmailId = ObjCliente.ClienteEmailUltNro == null ? 1 : ObjCliente.ClienteEmailUltNro + 1;
+                //maxContactoEmailId += 1
 
                 obj.ClienteContactoId = maxContactoId
                 await this.insertContactoTable(queryRunner,ClienteId,maxContactoId,obj.nombre,obj.ContactoApellido,obj.area,maxContactoTelefonoId,maxContactoEmailId)
 
-                await this.insertContactoEmailTable(queryRunner,maxContactoId,maxContactoEmailId,obj.correo)
+                const infoCliente = await queryRunner.query(`SELECT  MAX(ContactoId) AS MaxContactoId  FROM Contacto`)
+                maxContactoId = infoCliente[0].MaxContactoId
+
                 await this.insertContactoTelefonoTable(queryRunner,ClienteId,maxContactoId,maxContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,obj.ContactoTelefonoCodigoArea)
+                await this.insertContactoEmailTable(queryRunner,maxContactoId,maxContactoEmailId,obj.correo)
+                
                 
                 newinfoClienteContactoArray.push(obj)
             }
 
+           
+            await this.updateClienteTableMax(queryRunner,ClienteId,maxContactoEmailId,maxContactoTelefonoId,maxContactoId,ClienteFacturacionId) 
+            
+
+        
             ObjCliente.infoClienteContacto = newinfoClienteContactoArray
 
             if(ClienteAdministradorId != null){
@@ -831,24 +868,25 @@ ${orderBy}`, [fechaActual])
     }
 
 
-    async insertCliente(queryRunner:any,ClienteNombreFantasia:any,ClienteApellidoNombre:any,ClienteFechaAlta:any,ClienteDomicilioUltNro:any,ClienteAdministradorUltNro:any){
+    async insertCliente(queryRunner:any,ClienteNombreFantasia:any,ClienteApellidoNombre:any,ClienteFechaAlta:any,ClienteDomicilioUltNro:any,ClienteAdministradorUltNro:any,
+    ){
 
         await queryRunner.query(`INSERT INTO Cliente (
-        ClienteDenominacion,
-        ClienteNombreFantasia,
-        ClienteApellidoNombre,
-        ClienteFechaAlta,
-        ClienteDomicilioUltNro,
-        ClienteAdministradorUltNro
-        ) VALUES (
-        @0,@1,@2,@3,@4,@5
-        )`,[
-         ClienteApellidoNombre,
-         ClienteNombreFantasia,
-         ClienteApellidoNombre,
-         ClienteFechaAlta,
-         ClienteDomicilioUltNro,
-         ClienteAdministradorUltNro
+            ClienteDenominacion,
+            ClienteNombreFantasia,
+            ClienteApellidoNombre,
+            ClienteFechaAlta,
+            ClienteDomicilioUltNro,
+            ClienteAdministradorUltNro
+            ) VALUES (
+            @0,@1,@2,@3,@4,@5
+            )`,[
+             ClienteApellidoNombre,
+             ClienteNombreFantasia,
+             ClienteApellidoNombre,
+             ClienteFechaAlta,
+             ClienteDomicilioUltNro,
+             ClienteAdministradorUltNro
         ])
     }
 

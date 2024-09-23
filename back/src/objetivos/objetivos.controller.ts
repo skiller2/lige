@@ -194,8 +194,6 @@ export class ObjetivosController extends BaseController {
 
                 WHERE ${filterSql} ${orderBy}`, [anio,mes])
 
-            console.log("..............." , objetivos.length)
-
             this.jsonRes(
                 {
                     total: objetivos.length,
@@ -233,7 +231,6 @@ export class ObjetivosController extends BaseController {
             }
             
             infObjetivo.infoCoordinadorCuenta = infoCoordinadorCuenta
-            console.log("infObjetivo ",infObjetivo)
             await queryRunner.commitTransaction()
             return this.jsonRes(infObjetivo, res)
         } catch (error) {
@@ -444,9 +441,9 @@ export class ObjetivosController extends BaseController {
             console.log("voy a hacer update ", Obj)
             
             //validaciones
-
-            //await this.FormValidations(Obj)
             //throw new ClientException(`estoy testeando`)
+            await this.FormValidations(Obj)
+            
             const ClienteFechaAlta = new Date(Obj.ClienteFechaAlta)
             ClienteFechaAlta.setHours(0, 0, 0, 0)
 
@@ -457,8 +454,9 @@ export class ObjetivosController extends BaseController {
                 //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
                 await this.updateClienteElementoDependienteContratoTable(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.ContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
                 
-                let domicilioString = `${Obj.DomicilioDomCalle}, ${Obj.DomicilioDomNro}, ${Obj.DomicilioCodigoPostal}, ${Obj.DomicilioProvinciaId}, ${Obj.DomicilioLocalidadId}, ${Obj.DomicilioBarrioId}, ${Obj.DomicilioDomLugar}`.toLowerCase();
+                let domicilioString = `${Obj.DomicilioDomCalle}, ${Obj.DomicilioDomNro}, ${Obj.DomicilioCodigoPostal}, ${Obj.DomicilioProvinciaId}, ${Obj.DomicilioLocalidadId}, ${Obj.DomicilioBarrioId}, ${Obj.DomicilioDomLugar}`.toLowerCase().replace(/\s+/g, '');;
 
+                //throw new ClientException(`estoy testeando`)
                 if(Obj.DomicilioFulllAdress != domicilioString){
 
                     let ClienteElementoDependienteDomicilioUltNro  = Obj.ClienteElementoDependienteDomicilioUltNro + 1
@@ -504,31 +502,20 @@ export class ObjetivosController extends BaseController {
                 await this.updateClienteTable(queryRunner,Obj.ClienteId,Obj.SucursalId,Obj.Descripcion) 
                     
             }
-            
-
+        
             const infoObjetivo = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
-            const ObjetivoCoordinadorIds = infoObjetivo.map(row => row.ObjetivoId)
-
+            const ObjetivoCoordinadorIds = infoObjetivo.map(row => row.ObjetivoPersonalJerarquicoId)
             //ACA SE EVALUA Y SE ELIMINA EL CASO QUE SE BORRE ALGUN REGISTRO DE COORDINADOR DE CUENTA EXISTENTE
-
-            const numerosQueNoPertenecen = ObjetivoCoordinadorIds.filter(num => {
-                return !Obj.infoCoordinadorCuenta.some(value => value.ObjetivoId === num && value.ObjetivoId !== 0);
+            let numerosQueNoPertenecen = []
+            numerosQueNoPertenecen = ObjetivoCoordinadorIds.filter(num => {
+                return !Obj.infoCoordinadorCuenta.some(value => value.ObjetivoPersonalJerarquicoId === num && value.ObjetivoPersonalJerarquicoId !== 0);
             });
            
             let newinfoCoordinadorCuentaArray = []
 
             for (const objetivo of Obj.infoCoordinadorCuenta) {
 
-                 if(numerosQueNoPertenecen?.length > 0) {
-
-                    let exist = numerosQueNoPertenecen.include(objetivo.ObjetivoId)
-
-                    if(exist){
-                        await this.deleteCoordinadorCuentaQuery(queryRunner,objetivo.ObjetivoId,objetivo.PersonaId)
-                    }
-   
-
-                }else{
+           
                     if (ObjetivoCoordinadorIds.includes(objetivo.ObjetivoId) && objetivo.ObjetivoId !== 0) {
                         //update
                           await this.updateCoordinadorCuentaQuery(
@@ -554,11 +541,17 @@ export class ObjetivosController extends BaseController {
                             objetivo.ObjetivoPersonalJerarquicoComision, 
                             objetivo.ObjetivoPersonalJerarquicoDescuentos)
       
-                      }
-                  
-               }    
+                      }  
 
              }
+
+             if(numerosQueNoPertenecen?.length > 0) {
+                for (const numero of numerosQueNoPertenecen) {
+                //let exist = numerosQueNoPertenecen.include(objetivo.ObjetivoId)
+                await this.deleteCoordinadorCuentaQuery(queryRunner,numero)
+                
+              }
+            }
 
              Obj.infoCoordinadorCuenta = newinfoCoordinadorCuentaArray
 
@@ -593,9 +586,12 @@ export class ObjetivosController extends BaseController {
             ])
     }
 
-    async deleteCoordinadorCuentaQuery(queryRunner: any, ObjetivoId: any, PersonaId:any) {
-        return await queryRunner.query(`DELETE FROM ObjetivoPersonalJerarquico WHERE ObjetivoId = @0 AND PersonaId = @1;`,
-            [ObjetivoId,PersonaId])
+    async deleteCoordinadorCuentaQuery(queryRunner: any, ObjetivoPersonalJerarquicoId: any) {
+        console.log("..............")
+        return await queryRunner.query(`DELETE FROM ObjetivoPersonalJerarquico WHERE ObjetivoPersonalJerarquicoId = @0`,
+            [ObjetivoPersonalJerarquicoId])
+
+            
     }
 
     async insertCoordinadorCuentaQuery(
@@ -612,7 +608,6 @@ export class ObjetivosController extends BaseController {
 
         return await queryRunner.query(`
            INSERT INTO ObjetivoPersonalJerarquico (
-           	ObjetivoPersonalJerarquicoId,
             ObjetivoId,
             ObjetivoPersonalJerarquicoPersonalId,
             ObjetivoPersonalJerarquicoDesde,
@@ -620,8 +615,8 @@ export class ObjetivosController extends BaseController {
             ObjetivoPersonalJerarquicoComo,
             ObjetivoPersonalJerarquicoComision,
             ObjetivoPersonalJerarquicoDescuentos)
-           VALUES (@0, @1,@2,@3,@4,@5,@6,@7); `,
-           [maxObjetivoPersonalJerarquico,
+           VALUES (@0, @1,@2,@3,@4,@5,@6); `,
+           [
             ObjetivoId,
             PersonaId,
             Fecha,

@@ -48,10 +48,11 @@ export class ObjetivosFormComponent {
   objCoordinadorCuenta = { 
     ObjetivoId:0,
     PersonaId:0,
+    ObjetivoPersonalJerarquicoId:0,
     ObjetivoPersonalJerarquicoComision: 0, 
     ObjetivoPersonalJerarquicoDescuentos:false,
   }
-
+  isLoadSelect= signal(false)
   edit = model(true)
   ObjetivoId = model(0)
   ClienteId = model(0)
@@ -107,19 +108,28 @@ export class ObjetivosFormComponent {
   }
 
   ngOnInit() {
+
     this.formCli.controls['DomicilioProvinciaId'].valueChanges.subscribe(event => {
-      this.formCli.patchValue({DomicilioLocalidadId:null})
+
+      if(!this.isLoadSelect()){
+        this.formCli.patchValue({DomicilioLocalidadId:null})
+        this.isLoadSelect.set(false)
+      }
+        
     });
     this.formCli.controls['DomicilioLocalidadId'].valueChanges.subscribe(event => {
+      if(!this.isLoadSelect()){
       this.formCli.patchValue({DomicilioBarrioId:null})
+      this.isLoadSelect.set(false)
+      }
     });
+
 
 
     effect(async () => {
       if (this.ObjetivoId()) {
         await this.load()
       } else {
-        console.log("paso por aca")
         this.formCli.reset({ estado: 0 })
       }
     }, { injector: this.injector });
@@ -129,7 +139,6 @@ export class ObjetivosFormComponent {
       if (this.edit()) {
         this.formCli.enable()
       } else{
-        this.formCli.disable()
       }
     }, { injector: this.injector });
 
@@ -140,10 +149,6 @@ export class ObjetivosFormComponent {
     
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
     this.infoCoordinadorCuenta().clear()
-    let domicilioString = `${infoObjetivo.DomicilioDomCalle}, ${infoObjetivo.DomicilioDomNro}, ${infoObjetivo.DomicilioCodigoPostal}, 
-    ${infoObjetivo.DomicilioProvinciaId}, ${infoObjetivo.DomicilioLocalidadId}, ${infoObjetivo.DomicilioBarrioId}, ${infoObjetivo.DomicilioDomLugar}`.toLowerCase();
-
-    this.formCli.patchValue({DomicilioFulllAdress:domicilioString});
 
     infoObjetivo?.infoCoordinadorCuenta.forEach((obj: any) => {
       this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
@@ -165,11 +170,27 @@ export class ObjetivosFormComponent {
         DomicilioProvinciaId: infoObjetivo.DomicilioProvinciaId,
         DomicilioLocalidadId: infoObjetivo.DomicilioLocalidadId,
         DomicilioBarrioId: infoObjetivo.DomicilioBarrioId,
+        
       });
-  
+
+      let domicilioString = `${infoObjetivo.DomicilioDomCalle}, ${infoObjetivo.DomicilioDomNro}, ${infoObjetivo.DomicilioCodigoPostal}, 
+      ${infoObjetivo.DomicilioProvinciaId}, ${infoObjetivo.DomicilioLocalidadId}, ${infoObjetivo.DomicilioBarrioId}, ${infoObjetivo.DomicilioDomLugar}`.toLowerCase().replace(/\s+/g, '');
+
+      this.formCli.patchValue({
+        DomicilioFulllAdress:domicilioString
+      });
+
+      this.formCli.markAsUntouched()
+      this.formCli.markAsPristine();
+
+      this.isLoadSelect.set(true)
+
     }, 100);
-    // { }
+    
+ 
   }
+
+
 
 
   async save() {
@@ -179,7 +200,7 @@ export class ObjetivosFormComponent {
       ...form,
       files: this.files
     };
-    
+    //console.log("combinedData ", combinedData)
     try {
         if (this.ObjetivoId()) {
           // este es para cuando es update
@@ -216,19 +237,20 @@ infoCoordinadorCuenta(): FormArray {
     return this.formCli.get("infoCoordinadorCuenta") as FormArray
   }
 
-  addClienteContacto(e?: MouseEvent): void {
+  addCoordinadorCuenta(e?: MouseEvent): void {
 
     e?.preventDefault();
     this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
     
   }
 
-  removeClienteContacto(index: number, e: MouseEvent): void {
-
+  removeCordinadorCuenta(index: number, e: MouseEvent): void {
+   
     e.preventDefault();
     if (this.infoCoordinadorCuenta().length > 1 ) {
       this.infoCoordinadorCuenta().removeAt(index)
     }
+    this.formCli.markAsDirty();
   }
 
   async deleteObjetivo() {

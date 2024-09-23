@@ -60,7 +60,7 @@ interface Barrio {
 
 export class ClientesFormComponent {
   public router = inject(Router);
-
+  isLoadSelect= signal(false)
   periodo = signal({ year: 0, month: 0 })
 //  visibleDrawer: boolean = false
 
@@ -132,10 +132,17 @@ export class ClientesFormComponent {
 
   ngOnInit() {
     this.formCli.controls['ClienteDomicilioProvinciaId'].valueChanges.subscribe(event => {
-      this.formCli.patchValue({ClienteDomicilioLocalidadId:null})
+      if(!this.isLoadSelect()){
+        this.formCli.patchValue({ClienteDomicilioLocalidadId:null})
+        this.isLoadSelect.set(false)
+      }
+        
     });
     this.formCli.controls['ClienteDomicilioLocalidadId'].valueChanges.subscribe(event => {
+      if(!this.isLoadSelect()){
       this.formCli.patchValue({ClienteDomicilioBarrioId:null})
+      this.isLoadSelect.set(false)
+      }
     });
 
 
@@ -183,7 +190,7 @@ export class ClientesFormComponent {
         ClienteDomicilioBarrioId: infoCliente.ClienteDomicilioBarrioId,
         ClienteCondicionAnteIVAId: infoCliente.CondicionAnteIVAId
       });
-  
+     this.isLoadSelect.set(true)
     }, 100);
     { }
   }
@@ -244,6 +251,7 @@ export class ClientesFormComponent {
     if (this.infoClienteContacto().length > 1 ) {
       this.infoClienteContacto().removeAt(index)
     }
+    this.formCli.markAsDirty();
   }
 
   async deleteCliente() {
