@@ -524,6 +524,16 @@ export class ApiService {
 
   }
 
+  getListCargaLicenciaHistory(filters: any, anio: any, mes: any, personalId:any) {
+    console.log("personalId ", personalId)
+    const parameter = { filters, anio, mes, personalId }
+    return this.http.post<ResponseJSON<any>>('/api/carga-licencia/listHistory', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+  }
+
   
   getListHorasLicencia(filters: any, anio: any, mes: any) {
     const parameter = { filters, anio, mes }

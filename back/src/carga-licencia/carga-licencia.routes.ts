@@ -76,6 +76,10 @@ CargaLicenciaCargaRouter.get("/cols", [authMiddleware.verifyToken, authMiddlewar
   cargaLicenciaController.getGridCols(req, res);
 });
 
+CargaLicenciaCargaRouter.get("/colsHistory", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res) => {
+  cargaLicenciaController.getGridColsHistory(req, res);
+});
+
 CargaLicenciaCargaRouter.get("/colsHoras", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res) => {
   cargaLicenciaController.getGridColsHoras(req, res);
 });
@@ -83,6 +87,11 @@ CargaLicenciaCargaRouter.get("/colsHoras", [authMiddleware.verifyToken, authMidd
 CargaLicenciaCargaRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
     cargaLicenciaController.list(req, res, next);
 });
+
+CargaLicenciaCargaRouter.post("/listHistory", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+  cargaLicenciaController.listHistory(req, res, next);
+});
+
 
 CargaLicenciaCargaRouter.post("/listhoras", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
     cargaLicenciaController.listHoras(req, res, next);

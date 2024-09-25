@@ -1,0 +1,10 @@
+<nz-drawer [nzClosable]="false" [nzVisible]="visibleHistorial()" [nzPlacement]="placement" [nzWidth]="1200"
+  [nzTitle]="tituloDrawer() + PersonalNombre()" (nzOnClose)="visibleHistorial.set(false)">
+  <ng-container *nzDrawerContent>
+
+    <form nz-form ngForm>
+    <app-table-historial-licencia [PersonalId] = "PersonalId()" ></app-table-historial-licencia>
+    </form>
+    
+  </ng-container>
+</nz-drawer>

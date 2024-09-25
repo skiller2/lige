@@ -197,13 +197,6 @@ export class TableHorasLicenciaComponent {
       columnTotal('total', this.angularGridEdit)
     })   
 
-    this.angularGridEdit.slickGrid.onClick.subscribe((e, args)=> {
-      this.PersonalLicenciaHoras = []
-      var data = this.dataAngularGrid[args.row]
-      this.PersonalLicenciaHoras.push(data);
-      this.valueGridEvent.emit(this.PersonalLicenciaHoras)
-    });
-
   }
 
   valueRowSelectes(value: number) {

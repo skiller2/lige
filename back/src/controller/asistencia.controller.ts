@@ -323,7 +323,8 @@ export class AsistenciaController extends BaseController {
   }
 
 
-  static async getAsistenciaAdminArt42(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[],filterSql:any,PersonalLicenciaSePaga:boolean) {
+  static async getAsistenciaAdminArt42(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[],filterSql:any,PersonalLicenciaSePaga:boolean,ishistory:boolean) {
+
     const listPersonaId = (personalId.length == 0) ? '' : 'AND persona.PersonalId IN (' + personalId.join(',') + ')'
 
   let selectquery = `SELECT ROW_NUMBER() OVER (ORDER BY suc.SucursalId) AS id,suc.SucursalId, suc.SucursalDescripcion, licimp.PersonalLicenciaAplicaPeriodoAplicaEl,
@@ -356,8 +357,12 @@ export class AsistenciaController extends BaseController {
     LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND cat.CategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId
     LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = licimp.PersonalLicenciaAplicaPeriodoSucursalId AND val.ValorLiquidacionTipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
     LEFT JOIN PersonalLicenciaDiagnosticoMedico med ON med.PersonalId=persona.PersonalId AND med.PersonalLicenciaId = lic.PersonalLicenciaId
-    WHERE lic.PersonalLicenciaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(ISNULL(lic.PersonalLicenciaTermina,lic.PersonalLicenciaHasta),'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
-    ${listPersonaId} ` 
+    WHERE lic.PersonalLicenciaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) `
+    
+    if(!ishistory)
+      selectquery += `AND ISNULL(ISNULL(lic.PersonalLicenciaTermina,lic.PersonalLicenciaHasta),'9999-12-31') >= DATEFROMPARTS(@1,@2,1)`
+
+    selectquery += `${listPersonaId} ` 
     
     if(PersonalLicenciaSePaga)
        selectquery += ` AND (lic.PersonalLicenciaSePaga = 'S' OR PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60 >0)`
@@ -1395,7 +1400,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, personalIdList)
 
-      const resAsisAdmArt42 = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, personalIdList,[],false)
+      const resAsisAdmArt42 = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, personalIdList,[],false,false)
       const resIngreExtra = await AsistenciaController.getIngresosExtra(anio, mes, queryRunner, personalIdList)
 
       for (const row of resAsisObjetiv) {
@@ -1523,7 +1528,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de ingresos`)
 
-      const result = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [personalId],[],false)
+      const result = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [personalId],[],false,false)
 
       const total = result.map(row => row.total).reduce((prev, curr) => prev + curr, 0)
       const totalHoras = result.map(row => row.horas).reduce((prev, curr) => prev + curr, 0)

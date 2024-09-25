@@ -223,6 +223,76 @@ const columnasGrilla: any[] = [
   }
 ];
 
+const columnasGrillaHistory: any[] = [
+
+  {
+    name: "id",
+    type: "number",
+    id: "id",
+    field: "id",
+    fieldName: "id",
+    hidden: true,
+    searchHidden: true,
+    sortable: true
+  },
+  {
+    name: "Tipo Inasistencia",
+    type: "strng",
+    id: "TipoInasistenciaDescripcion",
+    field: "TipoInasistenciaDescripcion",
+    fieldName: "tli.TipoInasistenciaDescripcion",
+    hidden: false,
+    searchHidden: true,
+    sortable: true
+  },
+  {
+    name: "Desde",
+    type: "date",
+    id: "PersonalLicenciaDesde",
+    field: "PersonalLicenciaDesde",
+    fieldName: "lic.PersonalLicenciaDesde",
+    searchComponent: "inpurForFechaSearch",
+    hidden: false,
+    searchHidden: false,
+    sortable: true
+  },
+  {
+    name: "Hasta",
+    type: "date",
+    id: "PersonalLicenciaHasta",
+    field: "PersonalLicenciaHasta",
+    fieldName: "ISNULL(lic.PersonalLicenciaHasta,lic.PersonalLicenciaTermina)",
+    searchComponent: "inpurForFechaSearch",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
+    name: "Diagnostico Medico",
+    type: "string",
+    id: "PersonalLicenciaDiagnosticoMedicoDiagnostico",
+    field: "PersonalLicenciaDiagnosticoMedicoDiagnostico",
+    fieldName: "med.PersonalLicenciaDiagnosticoMedicoDiagnostico",
+    hidden: false,
+    searchHidden: true,
+    sortable: true
+  },
+  {
+    name: "Se Paga",
+    id: "PersonalLicenciaSePaga",
+    field: "PersonalLicenciaSePaga",
+    fieldName: "lic.PersonalLicenciaSePaga",
+    formatter: 'collectionFormatter',
+    exportWithFormatter: true,
+    params: { collection: getOptions, },
+    type: 'string',
+    searchComponent: "inpurForSePaga",
+    hidden: false,
+    searchHidden: false,
+    sortable: true
+  }
+];
+
 const columnasGrillaHoras: any[] = [
 
   {
@@ -390,6 +460,10 @@ export class CargaLicenciaController extends BaseController {
     this.jsonRes(columnasGrilla, res);
   }
 
+  async getGridColsHistory(req, res) {
+    this.jsonRes(columnasGrillaHistory, res);
+  }
+
   async getGridColsHoras(req, res) {
     this.jsonRes(columnasGrillaHoras, res);
   }
@@ -405,17 +479,48 @@ export class CargaLicenciaController extends BaseController {
   ) {
 
     const filterSql = filtrosToSql(req.body.filters["options"].filtros, columnasGrilla);
-    //const orderBy = orderToSQL(req.body.options.sort)
+    
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
     const queryRunner = dataSource.createQueryRunner();
+   
     try {
 
-      const listCargaLicencia = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [], filterSql, false)
+      const listCargaLicencia = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [], filterSql, false,false)
       this.jsonRes(
         {
           total: listCargaLicencia.length,
           list: listCargaLicencia,
+        },
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async listHistory(
+    req: any,
+    res: Response,
+    next: NextFunction
+  ) {
+
+    const filterSql = filtrosToSql(req.body.filters["options"].filtros, columnasGrilla);
+    //const orderBy = orderToSQL(req.body.options.sort)
+    let fechaActual = new Date()
+    const anio = Number(fechaActual.getFullYear())
+    const mes = Number(fechaActual.getMonth())
+    const personalId = Number(req.body.personalId)
+    const queryRunner = dataSource.createQueryRunner();
+    const perosnalIdarray = [personalId];
+    try {
+
+      const listCargaLicenciaHistory = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, perosnalIdarray, filterSql, false,true)
+      this.jsonRes(
+        {
+          total: listCargaLicenciaHistory.length,
+          list: listCargaLicenciaHistory,
         },
         res
       );
@@ -445,7 +550,7 @@ export class CargaLicenciaController extends BaseController {
     try {
 
       let queryRunner = dataSource.createQueryRunner();
-      const listHorasLicencia = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [], filterSql, true)
+      const listHorasLicencia = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [], filterSql, true,false)
       this.jsonRes(
         {
           total: listHorasLicencia.length,

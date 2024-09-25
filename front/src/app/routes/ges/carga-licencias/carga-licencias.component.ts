@@ -5,11 +5,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TableAbmLicenciaComponent } from '../../../shared/table-abm-licencia/table-abm-licencia.component'
 import { TableHorasLicenciaComponent } from '../../../shared/table-horas-licencia/table-horas-licencia.component'
 
+
 import {
   BehaviorSubject,
 } from 'rxjs';
 import { NgForm } from '@angular/forms';
 import { LicenciaDrawerComponent } from '../../../shared/licencia-drawer/licencia-drawer.component'
+import { LicenciaHistorialDrawerComponent } from '../../../shared/licencia-historial-drawer/licencia-historial-drawer.component'
 import { AngularGridInstance } from 'angular-slickgrid';
 
 
@@ -17,7 +19,7 @@ import { AngularGridInstance } from 'angular-slickgrid';
 @Component({
   selector: 'app-carga-licencias',
   standalone: true,
-  imports: [SHARED_IMPORTS, CommonModule, TableHorasLicenciaComponent,TableAbmLicenciaComponent, LicenciaDrawerComponent],
+  imports: [SHARED_IMPORTS, CommonModule, TableHorasLicenciaComponent,TableAbmLicenciaComponent, LicenciaDrawerComponent,LicenciaHistorialDrawerComponent],
   templateUrl: './carga-licencias.component.html',
   styleUrl: './carga-licencias.component.less'
 })
@@ -25,6 +27,8 @@ export class CargaLicenciasComponent {
   tabIndex = 0
   periodo = model(new Date())
   visibleDrawer: boolean = false
+  visibleHistorial = model<boolean>(false)
+  PersonalNombre = model<string>("")
   PersonalId = 0
   PersonalLicenciaId = 0
   tituloDrawer = ""
@@ -64,6 +68,7 @@ export class CargaLicenciasComponent {
   actualizarValorDrawer(event: any) {
     this.PersonalId = event[0].PersonalId
     this.PersonalLicenciaId = event[0].PersonalLicenciaId
+    this.PersonalNombre.set(event[0].PersonalNombre)
   }
 
   openDrawerforNew(): void {
@@ -73,7 +78,8 @@ export class CargaLicenciasComponent {
     this.tituloDrawer = "Nueva Licencia"
     this.openDrawerForConsult = false
     this.RefreshLicencia = false
-    this.visibleDrawer = true    
+    this.visibleDrawer = true  
+    this.visibleHistorial.set(false)  
   }
   openDrawerforEdit(): void {
 
@@ -81,6 +87,7 @@ export class CargaLicenciasComponent {
     this.openDrawerForConsult = false
     this.RefreshLicencia = false
     this.visibleDrawer = true    
+    this.visibleHistorial.set(false)
 
   }
 
@@ -89,6 +96,17 @@ export class CargaLicenciasComponent {
     this.tituloDrawer = "Consulta Licencia"
     this.openDrawerForConsult = true
     this.visibleDrawer = true    
+    this.visibleHistorial.set(false)
+  }
+
+  openDrawerforConsultHistory(): void{
+
+    this.tituloDrawer = "Historial Licencias: "
+    this.openDrawerForConsult = false
+    this.visibleDrawer = false 
+    this.visibleHistorial.set(true)
+    
+       
   }
 
   inputConsult(value:boolean){
