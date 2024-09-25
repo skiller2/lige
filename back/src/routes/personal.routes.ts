@@ -18,6 +18,9 @@ personalRouter.post(
 );
 
 
+personalRouter.get('/sitrevista/options', authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getSituacionRevista(req, res, next)
+});
 
 personalRouter.get('/cols', authMiddleware.verifyToken, (req, res, next) => {
   personalController.getGridColumns(req, res, next)

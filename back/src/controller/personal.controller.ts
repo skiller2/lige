@@ -20,13 +20,14 @@ const columns: any[] = [
     hidden: true,
   },
   {
-    id: "cuit",
+    id: "PersonalCUITCUILCUIT",
     name: "CUIT",
     field: "PersonalCUITCUILCUIT",
     type: "string",
     fieldName: "cuit.PersonalCUITCUILCUIT",
     sortable: true,
-    searchHidden: true
+    searchHidden: true,
+    hidden: false,
   },
   {
     id: "ApellidoNombre",
@@ -41,9 +42,9 @@ const columns: any[] = [
     hidden: false,
   },
   {
-    id: "personalNroLegajo",
+    id: "PersonalNroLegajo",
     name: " Num Legajo",
-    field: "personalNroLegajo",
+    field: "PersonalNroLegajo",
     type: "string",
     fieldName: "per.PersonalNroLegajo",
     searchType: "number",
@@ -52,7 +53,7 @@ const columns: any[] = [
     hidden: false,
   },
   {
-    id: "sucursalId",
+    id: "SucursalId",
     name: "SucursalId",
     field: "SucursalId",
     type: "string",
@@ -63,9 +64,9 @@ const columns: any[] = [
     hidden: true,
   },
   {
-    id: "sucursal",
+    id: "SucursalDescripcion",
     name: "Sucursal",
-    field: "Sucursal",
+    field: "SucursalDescripcion",
     type: "string",
     fieldName: "suc.SucursalDescripcion",
     searchType: "string",
@@ -74,18 +75,19 @@ const columns: any[] = [
     hidden: false,
   },
   {
-    id: "situacionRevistaDescripcion",
+    id: "SituacionRevistaId",
     name: "Situacion Revista",
-    field: "SituacionRevista",
-    type: "string",
-    fieldName: "sit.SituacionRevistaDescripcion",
-    searchType: "string",
+    field: "SituacionRevistaId",
+    type: "number",
+    fieldName: "sit.SituacionRevistaId",
+    searchComponent: "inpurForSituacionRevistaSearch",
+    searchType: "number",
     sortable: true,
     searchHidden: false,
     hidden: true,
   },
   {
-    id: "situacionRevista",
+    id: "SituacionRevista",
     name: "Situacion Revista",
     field: "SituacionRevista",
     type: "string",
@@ -96,8 +98,8 @@ const columns: any[] = [
     hidden: false,
   },
   {
-    id: "personalFechaIngreso",
-    name: "PersonalFechaIngreso",
+    id: "PersonalFechaIngreso",
+    name: "Fecha Ingreso",
     field: "PersonalFechaIngreso",
     type: "date",
     fieldName: "per.PersonalFechaIngreso",
@@ -445,6 +447,10 @@ export class PersonalController extends BaseController {
     // ... do something with the result
   }
 
+  async getGridColumns(req: any, res: Response, next: NextFunction) {
+    return this.jsonRes(columns, res)
+  }
+
   async listPersonalQuery(queryRunner:any, filterSql:any, orderBy:any){
     const anio = new Date().getFullYear()
     const mes = new Date().getMonth()+1
@@ -460,13 +466,9 @@ export class PersonalController extends BaseController {
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId
         LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
-        WHERE sitrev.PersonalSituacionRevistaHasta IS NULL
+        WHERE sitrev.PersonalSituacionRevistaHasta IS NULL AND cuit.PersonalCUITCUILHasta IS NULL
         AND (${filterSql})
         ${orderBy}`, [anio, mes])
-  }
-
-  async getGridColumns(req: any, res: Response, next: NextFunction) {
-    return this.jsonRes(columns, res)
   }
 
   async getGridList(req: any, res: Response, next: NextFunction) {
@@ -491,6 +493,29 @@ export class PersonalController extends BaseController {
 
       await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async getSituacionRevistaQuery(queryRunner:any){
+    return await queryRunner.query(`
+        SELECT sit.SituacionRevistaId value, sit.SituacionRevistaDescripcion label
+        FROM SituacionRevista sit`)
+  }
+
+  async getSituacionRevista(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction()
+
+      const options = await this.getSituacionRevistaQuery(queryRunner)
+
+      await queryRunner.commitTransaction()
+      this.jsonRes(options, res);
     } catch (error) {
       this.rollbackTransaction(queryRunner)
       return next(error)
