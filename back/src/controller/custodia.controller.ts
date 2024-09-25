@@ -184,7 +184,7 @@ const columnsObjCustodia: any[] = [
         type: 'string',
         formatter: 'complexObject',
         params: {
-            complexFieldLabel: 'estado.descripcion',
+            complexFieldLabel: 'estado.label',
         },
         searchComponent:"inpurForEstadoCustSearch",
         searchType:"number",
