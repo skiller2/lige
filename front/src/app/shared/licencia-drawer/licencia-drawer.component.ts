@@ -34,6 +34,7 @@ export interface Option {
 export class LicenciaDrawerComponent {
   ngForm = viewChild.required(NgForm);
   PersonalId = input.required<number>()
+  visibleHistorial = model<boolean>(false)
   PersonalLicenciaId = input.required<number>()
   selectedPeriod = input.required<any>()
   ArchivosLicenciasAdd: any[] = [];
@@ -181,6 +182,10 @@ export class LicenciaDrawerComponent {
         break;
     }
 
+  }
+
+  openDrawerforConsultHistory(){
+    this.visibleHistorial.set(true)
   }
 
  async confirmDeleteArchivo( id: string, tipoDocumentDelete : boolean) {

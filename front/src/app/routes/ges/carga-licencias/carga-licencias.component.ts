@@ -101,9 +101,9 @@ export class CargaLicenciasComponent {
 
   openDrawerforConsultHistory(): void{
 
-    this.tituloDrawer = "Historial Licencias: "
-    this.openDrawerForConsult = false
-    this.visibleDrawer = false 
+    //this.tituloDrawer = ""
+    // this.openDrawerForConsult = false
+    // this.visibleDrawer = false 
     this.visibleHistorial.set(true)
     
        

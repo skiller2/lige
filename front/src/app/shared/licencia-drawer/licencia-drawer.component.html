@@ -15,13 +15,20 @@
           <input nz-input name="PersonalLicenciaId" ngModel  />
         </nz-form-control>
       </nz-form-item>
-
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Persona</nz-form-label>
-        <nz-form-control>
-          <nz-input-group style="width: 100%">
+        <nz-form-control [nzSpan]="18">
+          <nz-input-group>
             <app-personal-search  name="PersonalId" ngModel  (valueExtendedChange)="ngForm().form.patchValue({SucursalId:$event.SucursalId}) " [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-personal-search>
             <p> </p>
+          </nz-input-group>
+        </nz-form-control>
+        <nz-form-control [nzSpan]="1">
+          <nz-input-group >
+            <button nz-button nzType="default" [disabled]="PersonalId() == 0" (click)="openDrawerforConsultHistory()"><span nz-icon nzType="menu-unfold" 
+              nzTheme="outline"></span></button>
+              <!-- <button nz-button nzType="default" (click)="openDrawerforConsultHistory()"><span nz-icon nzType="menu-unfold" 
+                nzTheme="outline"></span></button> -->
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
