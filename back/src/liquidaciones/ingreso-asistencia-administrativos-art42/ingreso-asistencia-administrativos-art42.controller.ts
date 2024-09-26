@@ -63,7 +63,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
       
       
       
-      const result = await AsistenciaController.getAsistenciaAdminArt42(anio,mes,queryRunner,[],null,false)
+      const result = await AsistenciaController.getAsistenciaAdminArt42(anio,mes,queryRunner,[],null,false,false)
       let cntLincencias = 0
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
