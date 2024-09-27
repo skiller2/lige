@@ -4,10 +4,10 @@
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'personal','listado']">Listado</a>
       </li>
-      <!-- <li nz-menu-item nzMatchRouter>
+      <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'personal','carga']">Carga</a>
-      </li> -->
+      </li>
     </ul>
     <!-- <form nz-form #formAsist="ngForm" class="">
       <br>
@@ -32,7 +32,12 @@
               </angular-slickgrid>
             </div>
         </ng-template>
-      </nz-tab>  
+      </nz-tab>
+
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/personal/carga" >Carga</a>
+        <app-personal-form></app-personal-form>
+      </nz-tab>
     </nz-tabset>
     
 </nz-card>

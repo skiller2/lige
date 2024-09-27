@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CustodiaFormComponent } from './custodias-form.component';
 
-describe('CargaAsistenciaComponent', () => {
+describe('CustodiaFormComponent', () => {
   let component: CustodiaFormComponent;
   let fixture: ComponentFixture<CustodiaFormComponent>;
 
