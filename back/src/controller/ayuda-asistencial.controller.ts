@@ -552,7 +552,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       return new ClientException('El registro NO puede ser RECHAZADO.')
     if(PersonalPrestamo.PersonalPrestamoLiquidoFinanzas)
       return new ClientException('El registro ya se envió al banco.')
-    if (PersonalPrestamo.PersonalPrestamoAplicaEl.length) {
+    if (PersonalPrestamo.PersonalPrestamoAplicaEl) {
       let cuotas = await this.getPersonalPrestamoCuotasByIdsQuery(queryRunner, personalPrestamoId, personalId)
       if(cuotas.length){
         for (const cuota of cuotas) {
