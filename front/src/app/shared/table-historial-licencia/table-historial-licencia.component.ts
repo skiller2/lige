@@ -73,6 +73,7 @@ export class TableHistorialLicenciaComponent {
   excelExportService = new ExcelExportService()
   angularGridEdit!: AngularGridInstance;
   gridObj!: SlickGrid;
+  PersonalNombre = model()
   detailViewRowCount = 9
   gridOptions!: GridOption
   gridDataLen = 0
@@ -101,7 +102,6 @@ export class TableHistorialLicenciaComponent {
     })
 
     this.formChange$.next('')
-    console.log(this.listOptions)
   }
 
   gridData$ = this.formChange$.pipe(
@@ -115,6 +115,9 @@ export class TableHistorialLicenciaComponent {
         .pipe(
           map(data => {
             this.dataAngularGrid = data.list
+            if(data.list.length > 0){
+              this.PersonalNombre.set(data.list[0].NombreCompleto.trim())
+            }
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -153,7 +156,6 @@ export class TableHistorialLicenciaComponent {
     this.gridObj = angularGrid.detail.slickGrid;
 
     this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
-      console.log("voy a contar")
       totalRecords(this.angularGridEdit)
       columnTotal('total', this.angularGridEdit)
     })   

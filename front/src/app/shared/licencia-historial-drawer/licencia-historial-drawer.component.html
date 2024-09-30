@@ -4,7 +4,7 @@
   <ng-container *nzDrawerContent>
 
     <form nz-form ngForm>
-    <app-table-historial-licencia [PersonalId] = "PersonalId()" ></app-table-historial-licencia>
+    <app-table-historial-licencia  [(PersonalId)] = "PersonalId" [(PersonalNombre)] = "PersonalNombre"></app-table-historial-licencia>
     </form>
     
   </ng-container>

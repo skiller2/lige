@@ -31,13 +31,13 @@ export interface Option {
 
 export class LicenciaHistorialDrawerComponent {
 
-  PersonalId = input.required<number>()
+  PersonalId = model()
   PersonalLicenciaId = input.required<number>()
   RefreshLicencia =  model<boolean>(false)
   visibleHistorial = model<boolean>(false)
   selectedPeriod = input.required<any>()
   tituloDrawer = input.required<string>()
-  PersonalNombre = input.required<string>()
+  PersonalNombre = model()
 
   ngForm = viewChild.required(NgForm);
   openDrawerForConsult =  input<boolean>(false)
