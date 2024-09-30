@@ -893,7 +893,7 @@ export class CustodiaController extends BaseController {
             const responsableId = res.locals.PersonalId
             const ids: number[] = req.body.ids
             const estado: number = req.body.estado
-            let numFactura: number = req.body.numFactura
+            const numFactura: number = req.body.numFactura
             let errores : any[] = []
             
             if (estado == 4 && !numFactura) {
@@ -937,8 +937,6 @@ export class CustodiaController extends BaseController {
                 }
 
                 infoCustodia.estado = estado
-                if (!infoCustodia.numFactura) infoCustodia.numFactura = numFactura
-                
 
                 const valCustodiaForm = this.valCustodiaForm(infoCustodia)
                 if (valCustodiaForm instanceof ClientException){
@@ -947,7 +945,6 @@ export class CustodiaController extends BaseController {
                 }
 
                 await this.updateObjetivoCustodiaQuery(queryRunner, infoCustodia, usuario, ip)
-                numFactura++
             }
 
             if (errores.length) {
