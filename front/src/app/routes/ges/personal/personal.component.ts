@@ -1,4 +1,4 @@
-import { Component, Injector, viewChild, inject, signal, model, computed } from '@angular/core';
+import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
 import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
@@ -10,17 +10,19 @@ import { CommonModule } from '@angular/common';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
+import { PersonalFormComponent } from '../personal-form/personal-form.component';
 
 @Component({
     selector: 'app-personal',
-    standalone: true,
-    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent],
     templateUrl: './personal.component.html',
-    providers: [AngularUtilService, ExcelExportService],
     styleUrl: './personal.component.less',
-  })
+    standalone: true,
+    // encapsulation: ViewEncapsulation.None,
+    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, PersonalFormComponent],
+    providers: [AngularUtilService, ExcelExportService],
+})
   
-  export class PersonalComponent {
+export class PersonalComponent {
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
     gridDataInsert: any[] = [];
@@ -69,6 +71,10 @@ import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal
 
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
+    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGrid)
+    })
+
     if (this.apiService.isMobile())
         this.angularGrid.gridService.hideColumnByIds([])
   }
@@ -83,7 +89,7 @@ import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal
   listOptionsChange(options: any) {
     this.listOptions = options;
     this.listPersonal$.next('');
-}
+  }
 
   getGridData(): void {
     this.listPersonal$.next('');

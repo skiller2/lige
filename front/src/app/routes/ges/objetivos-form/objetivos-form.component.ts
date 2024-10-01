@@ -5,6 +5,7 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
 import { NgForm, FormArray, FormBuilder, ValueChangeEvent } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
+import { RubroSearchComponent } from '../../../shared/rubro-search/rubro-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, startWith, Observable, of, filter, merge } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
@@ -28,6 +29,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     SHARED_IMPORTS,
     CommonModule,
     PersonalSearchComponent,
+    RubroSearchComponent,
     ClienteSearchComponent,
     DetallePersonaComponent,
     FiltroBuilderComponent,
@@ -51,6 +53,10 @@ export class ObjetivosFormComponent {
     ObjetivoPersonalJerarquicoId:0,
     ObjetivoPersonalJerarquicoComision: 0, 
     ObjetivoPersonalJerarquicoDescuentos:false,
+  }
+  objRubro = {
+    ClienteElementoDependienteRubroId:0,
+    RubroId:0
   }
   isLoadSelect= signal(false)
   edit = model(true)
@@ -83,11 +89,13 @@ export class ObjetivosFormComponent {
     ClienteContratoUltNro:0,
     ClienteElementoDependienteContratoUltNro:0,
     ClienteElementoDependienteDomicilioUltNro:0,
+    RubroUltNro:0,
     DomicilioFulllAdress:"",
     DomicilioId:0,DomicilioDomCalle: "",
     DomicilioDomNro:0, DomicilioCodigoPostal: 0,DomicilioDomLugar:null,
     DomicilioProvinciaId: null,DomicilioLocalidadId: null, DomicilioBarrioId: null,
     infoCoordinadorCuenta: this.fb.array([this.fb.group({ ...this.objCoordinadorCuenta })]), 
+    infoRubro: this.fb.array([this.fb.group({ ...this.objRubro })]), 
     estado: 0,
   })
 
@@ -148,19 +156,34 @@ export class ObjetivosFormComponent {
   async load() {
     
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
-    this.infoCoordinadorCuenta().clear()
 
+    this.infoCoordinadorCuenta().clear()
+    this.infoRubro().clear()
+    
     infoObjetivo?.infoCoordinadorCuenta.forEach((obj: any) => {
       this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
     });
+
+    infoObjetivo?.infoRubro.forEach((obj: any) => {
+      this.infoRubro().push(this.fb.group({ ...this.objRubro }))
+    });
   
-    if(infoObjetivo.infoCoordinadorCuenta.length == 0)
+    if(infoObjetivo.infoCoordinadorCuenta.length == 0){
       this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
+     
+    }     
+    if(infoObjetivo.infoRubro.length == 0){
+      this.infoRubro().push(this.fb.group({ ...this.objRubro }))
+    }
     
-    if (this.formCli.disabled)
+    if (this.formCli.disabled){
       this.infoCoordinadorCuenta().disable()
-    else 
+      this.infoRubro().disable()
+    }else {
       this.infoCoordinadorCuenta().enable()
+      this.infoRubro().enable()
+    }
+     
 
     this.formCli.get('ClienteId')?.disable();
 
@@ -208,7 +231,12 @@ export class ObjetivosFormComponent {
           let result = await firstValueFrom(this.apiService.updateObjetivo(combinedData, this.ObjetivoId()))
           //this.formCli.reset(result.data)
           this.formCli.patchValue({
-            infoCoordinadorCuenta: result.data.infoCoordinadorCuenta
+            infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
+            infoRubro: result.data.infoRubro
+          });
+
+          this.formCli.patchValue({
+            infoRubro: result.data.infoRubro
           });
 
           //this.edit.set(false)
@@ -233,8 +261,12 @@ export class ObjetivosFormComponent {
     this.isLoading.set(false)
 }
 
-infoCoordinadorCuenta(): FormArray {
+  infoCoordinadorCuenta(): FormArray {
     return this.formCli.get("infoCoordinadorCuenta") as FormArray
+  }
+
+  infoRubro(): FormArray {
+    return this.formCli.get("infoRubro") as FormArray
   }
 
   addCoordinadorCuenta(e?: MouseEvent): void {
@@ -244,11 +276,27 @@ infoCoordinadorCuenta(): FormArray {
     
   }
 
+  addRubro(e?: MouseEvent): void {
+
+    e?.preventDefault();
+    this.infoRubro().push(this.fb.group({ ...this.objRubro }))
+    
+  }
+
   removeCordinadorCuenta(index: number, e: MouseEvent): void {
    
     e.preventDefault();
     if (this.infoCoordinadorCuenta().length > 1 ) {
       this.infoCoordinadorCuenta().removeAt(index)
+    }
+    this.formCli.markAsDirty();
+  }
+
+  removeRubro(index: number, e: MouseEvent): void {
+   
+    e.preventDefault();
+    if (this.infoRubro().length > 1 ) {
+      this.infoRubro().removeAt(index)
     }
     this.formCli.markAsDirty();
   }

@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, Input, input, } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 // import { Observable } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
@@ -10,7 +9,6 @@ import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-s
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
-import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 
 
@@ -20,8 +18,7 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
     styleUrls: ['./custodias-form.component.less'],
     standalone: true,
     encapsulation: ViewEncapsulation.None,
-    providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, FiltroBuilderComponent, NzAutocompleteModule],
+    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, NzAutocompleteModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
 
 })
@@ -163,7 +160,7 @@ export class CustodiaFormComponent {
     async save() {
         this.isLoading.set(true)
         const form = this.formCus.value
-        console.log('form', form);
+        // console.log('form', form);
         try {
             if (this.custodiaId()) {
                 await firstValueFrom(this.apiService.updateObjCustodia(form, this.custodiaId()))
@@ -172,7 +169,7 @@ export class CustodiaFormComponent {
                 }
             } else {
                 const res = await firstValueFrom(this.apiService.addObjCustodia(form))
-                console.log('resutlado',res)
+                // console.log('resutlado',res)
                 if (res.data.custodiaId)
                     this.custodiaId.set(Number(res.data.custodiaId))
 
