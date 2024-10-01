@@ -128,9 +128,9 @@ export class CustodiaComponent {
         // console.log(this.editCustodiaId(), this.estado(), this.rows, this.angularGrid.dataView.getAllSelectedFilteredIds());
         let regs = this.angularGrid.dataView.getAllSelectedItems()
         let total = 0
-        regs.forEach((reg:any) => {
-            total += reg.facturacion
-        })
+        for (const reg of regs) {
+            total += reg?.facturacion
+        }
         this.cantReg.set(this.rows.length)
         this.impTotal.set(total)
     }
