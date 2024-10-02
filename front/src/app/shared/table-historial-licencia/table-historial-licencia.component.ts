@@ -110,7 +110,7 @@ export class TableHistorialLicenciaComponent {
       //this.searchService.getCUITfromPersonalId
       setTimeout(async () => {
         const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
-        this.PersonalNombre.set(personal.PersonalNombre+', '+personal.PersonalNombre)
+        this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
       }, 0);
 
       this.listOptions.extra = { 'todos': (this.route.snapshot.url[1].path=='todos')}
