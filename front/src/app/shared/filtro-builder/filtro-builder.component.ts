@@ -71,7 +71,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsTipoPrest = this.searchService.getTipoPrestamo();
   $optionsSitRevista = this.searchService.getSitRevista();
 
-  $optionsSucursales = this.searchService.getTipoPrestamo();
+  $optionsSucursales = this.searchService.getSucursales();
   private _options: Options = {
     filtros: [],
     sort: null,
@@ -172,7 +172,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         this.selections.label = this.valueExtended.fullName
       if (this.selections.label == "")
         this.selections.label = this.selections.value == "" ? "Vacio" : this.selections.value
-
       this.appendFiltro(
         this.selections as any,
         value,
@@ -211,6 +210,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   
     };
     this.localoptions.filtros.push(filtro);
+
+
+
     this.optionsChange.emit(this.localoptions);
     //    this.options.set(this.localoptions);
     return filtro;
@@ -311,6 +313,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   async addFilter(field: string, condition: string, operator: string, value: string, forced: boolean) {
+    console.log('agrego',field)
     const fieldObj: any = this.fieldsToSelect().filter(x => x.field === field)[0]
     if (!fieldObj)
       return

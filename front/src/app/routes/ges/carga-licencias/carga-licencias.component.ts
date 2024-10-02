@@ -28,8 +28,7 @@ export class CargaLicenciasComponent {
   periodo = model(new Date())
   visibleDrawer: boolean = false
   visibleHistorial = model<boolean>(false)
-  PersonalNombre = model<string>("")
-  PersonalId = 0
+  PersonalId = model(0)
   PersonalLicenciaId = 0
   tituloDrawer = ""
   openDrawerForConsult = false
@@ -66,14 +65,13 @@ export class CargaLicenciasComponent {
 
 
   actualizarValorDrawer(event: any) {
-    this.PersonalId = event[0].PersonalId
+    this.PersonalId.set(event[0].PersonalId)
     this.PersonalLicenciaId = event[0].PersonalLicenciaId
-    this.PersonalNombre.set(event[0].PersonalNombre)
   }
 
   openDrawerforNew(): void {
     this.PersonalLicenciaId = 0
-    this.PersonalId = 0
+    this.PersonalId.set(0)
 
     this.tituloDrawer = "Nueva Licencia"
     this.openDrawerForConsult = false

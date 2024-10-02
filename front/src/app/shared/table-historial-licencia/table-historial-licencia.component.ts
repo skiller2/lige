@@ -16,6 +16,7 @@ import {
   map,
   switchMap,
   tap,fromEvent,
+  firstValueFrom,
 } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -56,7 +57,6 @@ export class TableHistorialLicenciaComponent {
   private readonly route = inject(ActivatedRoute);
 
   @Output()valueGridEvent = new EventEmitter();
-  RefreshLicencia = model<boolean>(false)
 
   constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService:SearchService) { }
   formChange$ = new BehaviorSubject('');
@@ -69,11 +69,11 @@ export class TableHistorialLicenciaComponent {
     return cols
   }));
 
-  PersonalId = model()
+  PersonalId = input(0)
+  PersonalNombre = model('')
   excelExportService = new ExcelExportService()
   angularGridEdit!: AngularGridInstance;
   gridObj!: SlickGrid;
-  PersonalNombre = model()
   detailViewRowCount = 9
   gridOptions!: GridOption
   gridDataLen = 0
@@ -90,8 +90,8 @@ export class TableHistorialLicenciaComponent {
  mes = input<number>();
 
   ngOnChanges(changes: SimpleChanges) {
-    if ((changes['RefreshLicencia'] && changes['RefreshLicencia'].currentValue==true ) || changes['anio'] || changes['mes'] )
-      this.formChange$.next("");
+//    if ((changes['RefreshLicencia'] && changes['RefreshLicencia'].currentValue==true ) || changes['anio'] || changes['mes'] )
+//      this.formChange$.next("");
   }
 
   listOptionsChange(options: any) {
@@ -107,6 +107,12 @@ export class TableHistorialLicenciaComponent {
   gridData$ = this.formChange$.pipe(
     debounceTime(250),
     switchMap(() => {
+      //this.searchService.getCUITfromPersonalId
+      setTimeout(async () => {
+        const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
+        this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
+      }, 0);
+
       this.listOptions.extra = { 'todos': (this.route.snapshot.url[1].path=='todos')}
       return this.apiService
         .getListCargaLicenciaHistory(
@@ -115,9 +121,6 @@ export class TableHistorialLicenciaComponent {
         .pipe(
           map(data => {
             this.dataAngularGrid = data.list
-            if(data.list.length > 0){
-              this.PersonalNombre.set(data.list[0].NombreCompleto.trim())
-            }
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -131,7 +134,7 @@ export class TableHistorialLicenciaComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
- 
+    this.PersonalNombre.set('')
   }
 
   

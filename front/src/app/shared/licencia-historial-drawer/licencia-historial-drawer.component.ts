@@ -30,33 +30,9 @@ export interface Option {
 
 
 export class LicenciaHistorialDrawerComponent {
+  PersonalId = input(0)
+  PersonalNombre = model<string>("")
 
-  PersonalId = model()
-  PersonalLicenciaId = input.required<number>()
-  RefreshLicencia =  model<boolean>(false)
   visibleHistorial = model<boolean>(false)
-  selectedPeriod = input.required<any>()
-  tituloDrawer = input.required<string>()
-  PersonalNombre = model()
-
-  ngForm = viewChild.required(NgForm);
-  openDrawerForConsult =  input<boolean>(false)
-  private apiService = inject(ApiService)
-  formChange$ = new BehaviorSubject('');
-  private notification = inject(NzNotificationService);
-  options: any[] = [];
-  isSaving= model<boolean>(false)
   placement: NzDrawerPlacement = 'left';
-  uploading$ = new BehaviorSubject({loading:false,event:null});
-  uploadFileModel = viewChild.required(NgForm);
-  constructor(
-    private searchService: SearchService
-  ) { }
-
-  async ngOnInit(): Promise<void> {
-
-    //this.ArchivosLicenciasAdd = []
-    //this.options = await firstValueFrom(this.apiService.getOptionsForLicenciaDrawer())
-  }
-  
 }

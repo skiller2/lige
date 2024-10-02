@@ -185,8 +185,6 @@ export class LicenciaDrawerComponent {
   }
 
   openDrawerforConsultHistory(){
-
-    //if(this.PersonalId() == 0 && this.ngForm().value.PersonalId != 0)
     this.PersonalId.set(this.ngForm().value.PersonalId)
     this.visibleHistorial.set(true)
   }
