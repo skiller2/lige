@@ -493,16 +493,7 @@ export class ObjetivosController extends BaseController {
     
             }else{
                 //SI EL ELEMENTO DEPENDIENTE ES NULL SOLO ACTUALIZA TABLAS DE CLIENTE
-                await  ClientesController.updateClienteDomicilioTable( queryRunner
-                    ,Obj.ClienteId
-                    ,Obj.DomicilioId
-                    ,Obj.DomicilioDomCalle
-                    ,Obj.DomicilioDomNro
-                    ,Obj.DomicilioCodigoPostal
-                    ,Obj.DomicilioProvinciaId 
-                    ,Obj.DomicilioLocalidadId 
-                    ,Obj.DomicilioBarrioId
-                    ,Obj.DomicilioDomLugar)
+                await  ClientesController.updateClienteDomicilioTable( queryRunner,Obj.ClienteId,Obj)
 
                 if(Obj.ContratoId != null){
                     await this.updateClienteContratoTable(queryRunner,Obj.ClienteId,Obj.ContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
