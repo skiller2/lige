@@ -16,6 +16,7 @@ import {
   map,
   switchMap,
   tap,fromEvent,
+  firstValueFrom,
 } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -68,7 +69,8 @@ export class TableHistorialLicenciaComponent {
     return cols
   }));
 
-  PersonalId = input()
+  PersonalId = input(0)
+  PersonalNombre = model('')
   excelExportService = new ExcelExportService()
   angularGridEdit!: AngularGridInstance;
   gridObj!: SlickGrid;
@@ -105,6 +107,12 @@ export class TableHistorialLicenciaComponent {
   gridData$ = this.formChange$.pipe(
     debounceTime(250),
     switchMap(() => {
+      //this.searchService.getCUITfromPersonalId
+      setTimeout(async () => {
+        const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
+        this.PersonalNombre.set(personal.PersonalNombre+', '+personal.PersonalNombre)
+      }, 0);
+
       this.listOptions.extra = { 'todos': (this.route.snapshot.url[1].path=='todos')}
       return this.apiService
         .getListCargaLicenciaHistory(
@@ -126,7 +134,7 @@ export class TableHistorialLicenciaComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
- 
+    this.PersonalNombre.set('')
   }
 
   

@@ -511,7 +511,7 @@ export class CargaLicenciaController extends BaseController {
     let fechaActual = new Date()
     const anio = Number(fechaActual.getFullYear())
     const mes = Number(fechaActual.getMonth())
-    const personalId = Number(req.body.personalId)
+    const personalId = isNaN(Number(req.body.personalId))?0:Number(req.body.personalId)
     const queryRunner = dataSource.createQueryRunner();
     const perosnalIdarray = [personalId];
     try {

@@ -30,8 +30,9 @@ export interface Option {
 
 
 export class LicenciaHistorialDrawerComponent {
-  PersonalId = input()
+  PersonalId = input(0)
+  PersonalNombre = model<string>("")
+
   visibleHistorial = model<boolean>(false)
-  PersonalNombre = input()
   placement: NzDrawerPlacement = 'left';
 }
