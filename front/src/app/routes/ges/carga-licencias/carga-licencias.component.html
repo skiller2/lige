@@ -14,7 +14,7 @@
                   nzTheme="outline" ></span></button>
           <button nz-button nzType="default" (click)="openDrawerforNew()"><span nz-icon nzType="plus"
                   nzTheme="outline"></span></button>
-          <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="PersonalId == 0"><span nz-icon nzType="menu-unfold" 
+          <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="PersonalId() == 0"><span nz-icon nzType="menu-unfold" 
                   nzTheme="outline"></span></button>
       </nz-button-group>
       </nz-form-item>
@@ -50,5 +50,5 @@
       
       </nz-tabset>
   </nz-card>
-<app-licencia-drawer [(RefreshLicencia)]="RefreshLicencia" [(visibleHistorial)]="visibleHistorial" [selectedPeriod]="selectedPeriod()" [openDrawerForConsult]="openDrawerForConsult" [tituloDrawer] = "tituloDrawer" [(visible)]="visibleDrawer" [PersonalId]="PersonalId"  [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
-<app-licencia-historial-drawer [(RefreshLicencia)]="RefreshLicencia" [selectedPeriod]="selectedPeriod()" [tituloDrawer] = "tituloDrawer" [PersonalNombre]="PersonalNombre()" [(visibleHistorial)]="visibleHistorial" [PersonalId]="PersonalId"  [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-historial-drawer>
+<app-licencia-drawer [(RefreshLicencia)]="RefreshLicencia" [(visibleHistorial)]="visibleHistorial" [selectedPeriod]="selectedPeriod()" [openDrawerForConsult]="openDrawerForConsult" [tituloDrawer] = "tituloDrawer" [(visible)]="visibleDrawer"  [(PersonalId)]="PersonalId"  [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
+<app-licencia-historial-drawer [(visibleHistorial)]="visibleHistorial" [PersonalId]="PersonalId()" ></app-licencia-historial-drawer>

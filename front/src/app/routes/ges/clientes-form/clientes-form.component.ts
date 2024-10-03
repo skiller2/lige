@@ -73,10 +73,9 @@ export class ClientesFormComponent {
     ContactoTelefonoCodigoArea:"",
     telefono: "", 
     correo: "",
-    ContactoEmailUltNro:null,
-    ContactoTelefonoUltNro:null,
-    ContactoTelefonoId:null,
-    ContactoEmailId:null
+    ContactoEmailId:0,
+    ContactoTelefonoId:0,
+   
   }
 
   personalId = signal(0)
@@ -104,12 +103,16 @@ export class ClientesFormComponent {
     ClienteApellidoNombre: "",
     ClienteNombreFantasia: "",
     ClienteFechaAlta: "",
+    ClienteContactoUltNro:0,
     ClienteTelefonoUltNro:0,
     ClienteEmailUltNro:0,
+    MaxContactoId:0,
     ClienteDomicilioId:0,ClienteDomicilioDomCalle: "",ClienteDomicilioDomNro:0, referencia: "", ClienteDomicilioCodigoPostal: 0,ClienteDomicilioDomLugar:null,
     domiciliopais: "", ClienteDomicilioProvinciaId: null, ClienteDomicilioLocalidadId: null, ClienteDomicilioBarrioId: null,
     AdministradorId:0,ClienteAdministradorUltNro:0,
-    infoClienteContacto: this.fb.array([this.fb.group({ ...this.objClienteContacto })]), estado: 0,
+    infoClienteContacto: this.fb.array([this.fb.group({ ...this.objClienteContacto })]), 
+    infoClienteContactoOriginal : this.fb.array([this.fb.group({ ...this.objClienteContacto })]),
+    estado: 0,
   })
   // $optionsProvincia: Observable<Provincia[]> | null = null;
   // $optionsLocalidad: Observable<Localidad[]> = of([]);
@@ -250,6 +253,9 @@ export class ClientesFormComponent {
     e.preventDefault();
     if (this.infoClienteContacto().length > 1 ) {
       this.infoClienteContacto().removeAt(index)
+    }else{
+      this.infoClienteContacto().clear()
+      this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
     }
     this.formCli.markAsDirty();
   }

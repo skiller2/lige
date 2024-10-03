@@ -221,6 +221,7 @@ export class ObjetivosController extends BaseController {
             const ClienteElementoDependienteId = req.params.ClienteElementoDependienteId === "null" ? null : req.params.ClienteElementoDependienteId
             let infObjetivo = await this.getObjetivoQuery(queryRunner, ObjetivoId,ClienteId,ClienteElementoDependienteId)  
             const infoCoordinadorCuenta = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
+            const infoRubro = await this.getRubroQuery(queryRunner, ObjetivoId,ClienteId,ClienteElementoDependienteId)
             const domiclio = await this.getDomicilio(queryRunner, ObjetivoId,ClienteId,ClienteElementoDependienteId)
             const facturacion = await this.getFacturacion(queryRunner,ClienteId,ClienteElementoDependienteId)
 
@@ -231,6 +232,7 @@ export class ObjetivosController extends BaseController {
             }
             
             infObjetivo.infoCoordinadorCuenta = infoCoordinadorCuenta
+            infObjetivo.infoRubro = infoRubro
             await queryRunner.commitTransaction()
             return this.jsonRes(infObjetivo, res)
         } catch (error) {
@@ -325,6 +327,13 @@ export class ObjetivosController extends BaseController {
             [ObjetivoId])
     }
 
+    async getRubroQuery(queryRunner: any, ObjetivoId: any,ClienteId:any,ClienteElementoDependienteId) {
+        return await queryRunner.query(`SELECT
+             ClienteElementoDependienteRubroId,ClienteElementoDependienteRubroClienteId AS RubroId FROM ClienteEleDepRubro 
+             WHERE clienteId = @1 AND ClienteElementoDependienteId = @2`,
+            [ObjetivoId,ClienteId,ClienteElementoDependienteId])
+    }
+
 
     async getObjetivoQuery(queryRunner: any, ObjetivoId: any, ClienteId:any,ClienteElementoDependienteId: any) {
         const fechaActual = new Date()
@@ -335,7 +344,7 @@ export class ObjetivosController extends BaseController {
                 ,obj.ObjetivoId AS id
                 ,obj.ClienteId
                 ,obj.ClienteElementoDependienteId
-
+                ,eledep.ClienteElementoDependienteRubroUltNro as RubroUltNro
                 ,ISNULL(eledep.ClienteElementoDependienteDescripcion, cli.ClienteApellidoNombre) AS Descripcion
                 ,suc.SucursalDescripcion
                 ,suc.SucursalId
@@ -386,6 +395,7 @@ export class ObjetivosController extends BaseController {
                 ,cli.ClienteId
                 ,TRIM(cli.ClienteApellidoNombre) AS Descripcion 
                 ,TRIM(cli.CLienteNombreFantasia) AS CLienteNombreFantasia
+                ,cli.ClienteRubroUltNro as RubroUltNro
                 ,cli.ClienteAdministradorUltNro
                 ,cli.ClienteSucursalId AS SucursalId
                 ,cli.ClienteContratoUltNro as ClienteContratoUltNro
@@ -441,6 +451,7 @@ export class ObjetivosController extends BaseController {
             console.log("voy a hacer update ", Obj)
             
             //validaciones
+
             //throw new ClientException(`estoy testeando`)
             await this.FormValidations(Obj)
             
@@ -482,16 +493,7 @@ export class ObjetivosController extends BaseController {
     
             }else{
                 //SI EL ELEMENTO DEPENDIENTE ES NULL SOLO ACTUALIZA TABLAS DE CLIENTE
-                await  ClientesController.updateClienteDomicilioTable( queryRunner
-                    ,Obj.ClienteId
-                    ,Obj.DomicilioId
-                    ,Obj.DomicilioDomCalle
-                    ,Obj.DomicilioDomNro
-                    ,Obj.DomicilioCodigoPostal
-                    ,Obj.DomicilioProvinciaId 
-                    ,Obj.DomicilioLocalidadId 
-                    ,Obj.DomicilioBarrioId
-                    ,Obj.DomicilioDomLugar)
+                await  ClientesController.updateClienteDomicilioTable( queryRunner,Obj.ClienteId,Obj)
 
                 if(Obj.ContratoId != null){
                     await this.updateClienteContratoTable(queryRunner,Obj.ClienteId,Obj.ContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
@@ -512,6 +514,7 @@ export class ObjetivosController extends BaseController {
             });
            
             let newinfoCoordinadorCuentaArray = []
+            let maxObjetivoPersonalJerarquico 
 
             for (const objetivo of Obj.infoCoordinadorCuenta) {
 
@@ -525,12 +528,14 @@ export class ObjetivosController extends BaseController {
                             objetivo.ObjetivoPersonalJerarquicoComision, 
                             objetivo.ObjetivoPersonalJerarquicoDescuentos)
 
+                            newinfoCoordinadorCuentaArray.push(objetivo)
+
                       } else {
                          // Insert
 
                          const ObjetivoPersonalJerarquico = await queryRunner.query(`SELECT MAX(ObjetivoPersonalJerarquicoId) AS ObjetivoPersonalJerarquicoId FROM ObjetivoPersonalJerarquico`)
                          
-                         let maxObjetivoPersonalJerarquico = ObjetivoPersonalJerarquico[0].ObjetivoPersonalJerarquicoId + 1 
+                          maxObjetivoPersonalJerarquico = ObjetivoPersonalJerarquico[0].ObjetivoPersonalJerarquicoId + 1 
 
                          objetivo.ObjetivoId = maxObjetivoPersonalJerarquico
                          newinfoCoordinadorCuentaArray.push(objetivo)
@@ -553,7 +558,57 @@ export class ObjetivosController extends BaseController {
               }
             }
 
-             Obj.infoCoordinadorCuenta = newinfoCoordinadorCuentaArray
+
+            const infoRubro= await this.getRubroQuery(queryRunner, ObjetivoId,Obj.ClienteId,Obj.ClienteElementoDependienteId)
+            const RubroIds = infoRubro.map(row => row.ClienteElementoDependienteRubroId)
+            //ACA SE EVALUA Y SE ELIMINA EL CASO QUE SE BORRE ALGUN REGISTRO DE RUBRO EXISTENTE
+            let RubosQueNoPertenecen = []
+            RubosQueNoPertenecen = RubroIds.filter(num => {
+                return !Obj.infoRubro.some(value => value.ClienteElementoDependienteRubroId === num && value.ClienteElementoDependienteRubroId !== 0);
+            });
+           
+            let newRubroArray = []
+            let maxRubro
+
+            for(const rub of Obj.infoRubro){
+
+                if (RubroIds.includes(rub.RubroId) && rub.RubroId !== 0) {
+                    //update
+                      await this.updateRubroQuery(queryRunner,ObjetivoId,Obj.ClienteId,rub.RubroId, rub.ClienteElementoDependienteRubroId)
+                    
+                    newRubroArray.push(rub)
+
+                  } else {
+                     // Insert
+                    maxRubro = Obj.RubroUltNro ?  Obj.RubroUltNro + 1 :  1
+                   
+
+                    Obj.RubroUltNro = maxRubro
+                    newRubroArray.push(rub)
+
+                     await this.insertRubroQuery(queryRunner, maxRubro,Obj.ClienteId,Obj.ClienteElementoDependienteId,rub.RubroId)
+  
+                  }  
+            }
+
+            if(RubosQueNoPertenecen?.length > 0) {
+                for (const numero of RubosQueNoPertenecen) {
+                //let exist = numerosQueNoPertenecen.include(objetivo.ObjetivoId)
+                await this.deleteRubroQuery(queryRunner,numero, Obj.ClienteId)
+                
+              }
+            }
+
+            Obj.infoCoordinadorCuenta = newinfoCoordinadorCuentaArray
+            Obj.infoRubro = newRubroArray
+
+            if(Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
+                await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,maxObjetivoPersonalJerarquico, maxRubro)
+            }else{
+                await this.updateMaxCliente(queryRunner,Obj.ClienteId,maxObjetivoPersonalJerarquico, maxRubro)
+            }
+
+            
 
             if(Obj.files.length > 1){
              await FileUploadController.handlePDFUpload(ObjetivoId,'Objetivo',Obj.files,usuario,ip ) 
@@ -587,9 +642,15 @@ export class ObjetivosController extends BaseController {
     }
 
     async deleteCoordinadorCuentaQuery(queryRunner: any, ObjetivoPersonalJerarquicoId: any) {
-        console.log("..............")
         return await queryRunner.query(`DELETE FROM ObjetivoPersonalJerarquico WHERE ObjetivoPersonalJerarquicoId = @0`,
             [ObjetivoPersonalJerarquicoId])
+
+            
+    }
+
+    async deleteRubroQuery(queryRunner: any, ClienteElementoDependienteRubroId: any,ClienteId:any) {
+        return await queryRunner.query(`DELETE FROM ClienteEleDepRubro WHERE ClienteElementoDependienteRubroId = @0 AND ClienteId = @1`,
+            [ClienteElementoDependienteRubroId,ClienteId])
 
             
     }
@@ -625,7 +686,42 @@ export class ObjetivosController extends BaseController {
             ObjetivoPersonalJerarquicoComision,
             ObjetivoPersonalJerarquicoDescuentos])
     }
+
+    async insertRubroQuery(
+        queryRunner: any,
+        maxRubro: any,
+        ClienteId:any,
+        ClienteElementoDependienteId:any,
+        RubroId:any,
+    ) {
+
+        return await queryRunner.query(`
+           INSERT INTO ClienteEleDepRubro (
+           ClienteElementoDependienteRubroId,
+           ClienteId,
+           ClienteElementoDependienteId,
+           ClienteElementoDependienteRubroClienteId )
+           VALUES (@0, @1,@2,@3); `,
+           [maxRubro,ClienteId,ClienteElementoDependienteId,RubroId])
+    }
     
+
+    async updateMaxClienteElementoDependiente(queryRunner:any,ClienteId:any,ClienteElementoDependienteId:any,maxObjetivoPersonalJerarquico:any, maxRubro:any){
+        return await queryRunner.query(`
+           UPDATE ClienteElementoDependiente
+            SET ClienteElementoDependienteContactoUltNro = @2, ClienteElementoDependienteRubroUltNro = @3
+            WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
+            [ClienteId,ClienteElementoDependienteId,maxObjetivoPersonalJerarquico,maxRubro])
+    }
+
+    async updateMaxCliente(queryRunner:any,ClienteId:any,maxObjetivoPersonalJerarquico:any, maxRubro:any){
+        return await queryRunner.query(`
+           UPDATE Cliente
+            SET ClienteContactoUltNro = @2, ClienteRubroUltNro = @3
+            WHERE ClienteId = @0`,
+            [ClienteId,maxObjetivoPersonalJerarquico,maxRubro])
+    }
+
     async updateCoordinadorCuentaQuery(
         queryRunner: any,
         ObjetivoId: number,
@@ -639,6 +735,21 @@ export class ObjetivosController extends BaseController {
             SET ObjetivoPersonalJerarquicoComision = @2, ObjetivoPersonalJerarquicoDescuentos = @3
             WHERE  ObjetivoPersonalJerarquicoComo = 'C' AND ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1 `,
             [PersonaId,ObjetivoId,ObjetivoPersonalJerarquicoComision,ObjetivoPersonalJerarquicoDescuentos])
+    }
+
+    async updateRubroQuery(
+        queryRunner: any,
+        ObjetivoId: number,
+        Cliente:any,
+        RubroId:any, 
+        ClienteElementoDependienteRubroId:any
+    ) {
+
+        return await queryRunner.query(`
+            UPDATE ClienteEleDepRubro
+            SET ClienteElementoDependienteRubroClienteId = @1
+            WHERE ClienteId = @0 AND  ClienteElementoDependienteRubroId = @2`,
+            [Cliente,RubroId,ClienteElementoDependienteRubroId])
     }
 
     async updateClienteElementoDependienteTable(
@@ -730,9 +841,9 @@ export class ObjetivosController extends BaseController {
            throw new ClientException(`El campo Contrato Desde NO pueden estar vacio.`)
         }
 
-        if(!form.ContratoFechaHasta) {
-            throw new ClientException(`El campo Contrato Hasta NO pueden estar vacio.`)
-         }
+        // if(!form.ContratoFechaHasta) {
+        //     throw new ClientException(`El campo Contrato Hasta NO pueden estar vacio.`)
+        //  }
 
         //Domicilio
 
@@ -799,6 +910,7 @@ export class ObjetivosController extends BaseController {
             await this.deleteClienteElementoDependienteQuery(queryRunner,Number(ClienteId),Number(ClienteElementoDependienteId))
             await this.deleteClienteElementoDependienteDomicilioQuery(queryRunner,Number(ClienteId),Number(ClienteElementoDependienteId),Number(DomicilioId))
             await this.deleteClienteElementoDependienteContratoQuery(queryRunner,Number(ClienteId),Number(ClienteElementoDependienteId),Number(ContratoId))
+            await this.deleteClienteEleDepRubroQuery(queryRunner,Number(ClienteId),Number(ClienteElementoDependienteId))
           }
     
           await queryRunner.commitTransaction();
@@ -837,6 +949,14 @@ export class ObjetivosController extends BaseController {
              AND ClienteElementoDependienteId = @1 
              AND ClienteElementoDependienteContratoId=@2;`,
             [ClienteId,ClienteElementoDependienteId,ContratoId])
+    }
+
+    async deleteClienteEleDepRubroQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId:number ) {
+
+        return await queryRunner.query(`DELETE FROM ClienteEleDepRubro  WHERE 
+             ClienteId = @0
+             AND ClienteElementoDependienteId = @1`,
+            [ClienteId,ClienteElementoDependienteId])
     }
 
     async deletePersonalJerarquicoQuery(queryRunner: any, ObjetivoId: number ) {
@@ -914,7 +1034,31 @@ export class ObjetivosController extends BaseController {
 
             }
 
+            let newRubroArray = []
+            let maxRubro
+
+            for (const rub of Obj.infoRubro) {
+
+                maxRubro = Obj.RubroUltNro ?  Obj.RubroUltNro + 1 :  1
+                   
+
+                Obj.RubroUltNro = maxRubro
+                newRubroArray.push(rub)
+
+                 await this.insertRubroQuery(
+                    queryRunner,
+                    maxRubro,
+                    Obj.ClienteId,
+                    Obj.ClienteElementoDependienteId,
+                    rub.RubroId)
+            
+   
+               }
+
             Obj.infoCoordinadorCuenta = newinfoCoordinadorCuentaArray
+            Obj.infoRubro = newRubroArray
+
+            await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,MaxObjetivoPersonalJerarquicoId, maxRubro)
 
             if(Obj.files.length > 1){
                 await FileUploadController.handlePDFUpload(Obj.ObjetivoId,'Objetivo',Obj.files,usuario,ip ) 

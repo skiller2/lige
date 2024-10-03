@@ -21,6 +21,7 @@ import {
 import {SearchGrup,ResponseBySearchGrup } from 'src/app/shared/schemas/grupoActividad.shemas';
 import { ResponseBySearchCliente,SearchClient } from 'src/app/shared/schemas/cliente.schemas';
 import { ResponseBySearchAdministrador,SearchAdmind } from 'src/app/shared/schemas/administrador.schemas';
+import { ResponseBySearchRubro,SearchRubro } from 'src/app/shared/schemas/rubro.schemas';
 
 import { ResponseBySearchInasistencia,SearchInasistencia } from 'src/app/shared/schemas/inasistencia.schemas';
 import {
@@ -170,6 +171,33 @@ export class SearchService {
 
   getInasistenciaFromName(fieldName: string, values: string): Observable<SearchInasistencia[]> {
     return this.getInasistenciaSearch(fieldName, values)
+  }
+
+  //rubro
+
+  getRubroFromName(fieldName: string, values: string): Observable<SearchRubro[]> {
+    return this.getRubroSearch(fieldName, values)
+  }
+
+  getRubroSearch(fieldName: string, values: string): Observable<SearchRubro[]> {
+    if (!values || values == '') {
+      return of([]);
+    }
+    return this.http
+      .post<ResponseJSON<ResponseBySearchRubro>>('api/rubro/search', {
+        fieldName: fieldName,
+        value: values,
+      })
+      .pipe(
+        map(res => {
+          if (res.data.recordsArray) return res.data.recordsArray;
+          else return [];
+        }),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
   }
 
 
