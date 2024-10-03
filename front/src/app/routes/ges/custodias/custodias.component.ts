@@ -15,7 +15,7 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
 import { CustodiaFormComponent } from "../custodias-form/custodias-form.component";
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
-import { FormBuilder } from '@angular/forms';
+import { FormBuilder, FormArray } from '@angular/forms';
 
 @Component({
     selector: 'app-custodias',
@@ -42,8 +42,12 @@ export class CustodiaComponent {
     edit = signal(false);
     visible = signal(false);
     isLoading = signal(false);
+    // isLoadingForm = signal(false);
     cantReg = signal(0)
     impTotal = signal(0)
+    selectedCli = signal<any[]>([])
+    selectedCliInfo = signal<any[]>([])
+    valueForm = signal<any[]>([])
     excelExportService = new ExcelExportService();
     listCustodia$ = new BehaviorSubject('');
     listOptions: listOptionsT = {
@@ -69,9 +73,15 @@ export class CustodiaComponent {
     )
 
     fb = inject(FormBuilder)
-    formCusEstado = this.fb.group({ estado: 0, numFactura: 0 })
-    numFactura(): boolean {
-        const value = this.formCusEstado.get("estado")?.value
+    objCusEstado = { clienteId: 0, estado: 0, numFactura: 0, custodiasIds: this.fb.array([this.fb.control(0)]) }
+    formCusEstado = this.fb.group({
+        custodia: this.fb.array([this.fb.group({...this.objCusEstado})])
+    })
+    custodia(): FormArray {
+        return this.formCusEstado.get("custodia") as FormArray
+    }
+    numFactura(index:number): boolean {
+        const value = this.custodia().at(index).get("estado")?.value
         if(value == 3 || value == 4)
             return true
         else
@@ -115,7 +125,6 @@ export class CustodiaComponent {
         this.rows = e.detail.args.rows
         if(e.detail.args.rows.length == 1){
             const selrow = this.angularGrid.dataView.getItemByIdx(e.detail.args.rows[0])
-            // console.log('selrow',selrow);
             this.editCustodiaId.set(selrow.id)
             if (selrow.estado.tipo === 4)
                 this.estado.set(false)
@@ -125,23 +134,38 @@ export class CustodiaComponent {
             this.editCustodiaId.set(0)
             this.estado.set(true)
         }
-        // console.log(this.editCustodiaId(), this.estado(), this.rows, this.angularGrid.dataView.getAllSelectedFilteredIds());
+        
+        //Agrupar por clienteId
         let regs = this.angularGrid.dataView.getAllSelectedItems()
-        let total = 0
-        regs.forEach((reg:any) => {
-            total += reg.facturacion
-        })
-        this.cantReg.set(this.rows.length)
-        this.impTotal.set(total)
+        let itemsByClientes: any[] = []
+        let clientesIds: any[] = [] //Ids de los clientes selecionados
+        let valueForm: any[] = []
+        if (regs.length && regs[0]){
+            for (const reg of regs){
+                if (clientesIds.length && clientesIds.includes(reg.cliente.id)) {
+                    const index: number = clientesIds.indexOf(reg.cliente.id)
+                    itemsByClientes[index].total += reg?.facturacion
+                    itemsByClientes[index].cantReg += 1
+                    valueForm[index].custodiasIds.push(reg.id)
+                }else{
+                    clientesIds.push(reg.cliente?.id)
+                    itemsByClientes.push({clienteId: reg.cliente.id, clienteName: reg.cliente.fullName, cantReg: 1,total: reg.facturacion, cuit: 0, razonSocial: '', domicilio:''})
+                    valueForm.push({ clienteId: reg.cliente.id, estado: 0, numFactura: 0, custodiasIds: [reg.id] })
+                }
+            }
+        }
+        this.selectedCli.set(clientesIds)
+        this.selectedCliInfo.set(itemsByClientes)
+        this.valueForm.set(valueForm)
     }
 
     getGridData(): void {
-        this.listCustodia$.next('');
+        this.listCustodia('')
     }
 
     listOptionsChange(options: any) {
         this.listOptions = options;
-        this.listCustodia$.next('');
+        this.listCustodia('')
     }
 
     setEdit(value: boolean): void {
@@ -156,10 +180,40 @@ export class CustodiaComponent {
         this.listCustodia$.next(event);
     }
 
+    async setFormCusEstado(){
+        this.custodia().clear()
+        let createForm = JSON.parse(JSON.stringify(this.valueForm()))
+        for (const obj of createForm){
+            let ids: FormArray = this.fb.array([])
+            for (const id of obj.custodiasIds){
+                ids.push(this.fb.control(id))
+            }
+            obj.custodiasIds = ids
+            
+            this.custodia().push(this.fb.group(obj))
+        };
+        try {
+            const res = await firstValueFrom(this.searchService.getDatosFacturacionByCliente(this.selectedCli()))
+            let clientes = this.selectedCliInfo()
+            clientes.map((obj:any, index:number)=>{
+                obj.cuit = res[index].CUIT
+                obj.razonSocial = res[index].ApellidoNombre
+                obj.domicilio = res[index].Domicilio
+                return obj
+            })
+            this.selectedCliInfo.set(clientes)
+        } catch (error) {
+            
+        }
+        this.setVisible(true)
+    }
+
     async save() {
         this.isLoading.set(true)
         try {
-            await firstValueFrom(this.apiService.setEstado({...this.formCusEstado.value, ids: this.angularGrid.dataView.getAllSelectedFilteredIds() }))
+            let values = this.custodia().value
+            // console.log(values);
+            await firstValueFrom(this.apiService.setEstado(values))
             this.listCustodia('')
             this.formCusEstado.markAsUntouched()
             this.formCusEstado.markAsPristine()

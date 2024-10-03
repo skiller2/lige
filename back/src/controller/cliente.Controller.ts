@@ -54,4 +54,44 @@ export class ClienteController extends BaseController {
         */
     // ... do something with the result
   }
+
+  async getClientesBillingData(req: any, res: Response, next:NextFunction) {
+    const clientesIds: number[] = req.body
+    const queryRunner = dataSource.createQueryRunner();
+    let infoCliente: any[] = []
+    const now = new Date()
+    try {
+      await queryRunner.startTransaction()
+      for (const id of clientesIds) {
+        let info = await queryRunner.query(`
+          SELECT cli.ClienteId AS ClienteId, TRIM(cli.ClienteApellidoNombre) AS ApellidoNombre, fac.ClienteFacturacionCUIT AS CUIT,
+          CONCAT_WS(' ', TRIM(domcli.ClienteDomicilioDomCalle), TRIM(domcli.ClienteDomicilioDomNro), TRIM(domcli.ClienteDomicilioDomLugar)) AS Domicilio
+          FROM Cliente cli
+          LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId 
+            AND fac.ClienteFacturacionDesde <= @1 
+            AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= @1
+          LEFT JOIN (
+            SELECT domcli.ClienteId, domcli.ClienteDomicilioDomCalle, domcli.ClienteDomicilioDomNro, domcli.ClienteDomicilioDomLugar
+            FROM ClienteDomicilio domcli
+            WHERE domcli.ClienteDomicilioActual = 1
+            AND domcli.ClienteDomicilioId = (
+              SELECT MAX(ClienteDomicilioId)
+              FROM ClienteDomicilio
+              WHERE ClienteId = domcli.ClienteId
+              AND ClienteDomicilioActual = 1
+            )
+          ) AS domcli ON domcli.ClienteId = cli.ClienteId
+          WHERE cli.ClienteId = @0`, [id, now]
+        )
+        infoCliente.push(info[0])
+      }
+      await queryRunner.commitTransaction()
+      return this.jsonRes(infoCliente, res);
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
 }
