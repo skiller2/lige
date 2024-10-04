@@ -678,54 +678,22 @@ console.log("ObjClienteNew",ObjClienteNew)
             let ClienteDomicilioUltNro = 1
             let ClienteFacturacionId = 1
             let ClienteDomicilioId = 1
-            let maxContactoTelefonoId 
-            let maxContactoEmailId = ObjCliente.ClienteEmailUltNro == null ? null : ObjCliente.ClienteEmailUltNro + 1;
 
             const ClienteFechaAlta = new Date(ObjCliente.ClienteFechaAlta)
             ClienteFechaAlta.setHours(0, 0, 0, 0)
 
             let ClienteAdministradorId = ObjCliente.AdministradorId != null && ObjCliente.AdministradorId != "" ? 1 : null
 
-            await this.insertCliente(queryRunner,ObjCliente.ClienteNombreFantasia,ObjCliente.ClienteApellidoNombre,ClienteFechaAlta,ClienteDomicilioUltNro,ClienteAdministradorId)
+            const ClienteId =  await this.insertCliente(queryRunner,ObjCliente.ClienteNombreFantasia,ObjCliente.ClienteApellidoNombre,ClienteFechaAlta,ClienteDomicilioUltNro,ClienteAdministradorId)
 
-            let ClienteSelectId = await queryRunner.query("SELECT MAX(ClienteId) AS MaxClienteId FROM Cliente")
-            let ClienteId = ClienteSelectId[0].MaxClienteId
             ObjCliente.id = ClienteId
-
-         
-            let maxContactoId
 
              this.insertClienteFacturacion(queryRunner,ClienteId,ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.ClienteCondicionAnteIVAId,ClienteFechaAlta)
             await this.inserClientetDomicilio(queryRunner,ClienteId,ClienteDomicilioId,ObjCliente.ClienteDomicilioDomLugar,ObjCliente.ClienteDomicilioDomCalle,ObjCliente.ClienteDomicilioDomNro,
                 ObjCliente.ClienteDomicilioCodigoPostal,ObjCliente.ClienteDomicilioProvinciaId,ObjCliente.ClienteDomicilioLocalidadId,ObjCliente.ClienteDomicilioBarrioId,
             )
 
-            let newinfoClienteContactoArray = []
-            for (const obj of ObjCliente.infoClienteContacto) {
-                maxContactoTelefonoId = ObjCliente.ClienteTelefonoUltNro == null ? 1 : ObjCliente.ClienteTelefonoUltNro + 1;
-                //maxContactoTelefonoId += 1
-                maxContactoEmailId = ObjCliente.ClienteEmailUltNro == null ? 1 : ObjCliente.ClienteEmailUltNro + 1;
-                //maxContactoEmailId += 1
-
-                // obj.ClienteContactoId = maxContactoId
-                // await this.insertContactoTable(queryRunner,ClienteId,obj.nombre,obj.ContactoApellido,obj.area,maxContactoTelefonoId,maxContactoEmailId)
-
-                // const infoCliente = await queryRunner.query(`SELECT IDENT_CURRENT('Contacto')`)
-                // maxContactoId = infoCliente[0].MaxContactoId
-                
-                // await this.insertContactoTelefonoTable(queryRunner,ClienteId,maxContactoId,maxContactoTelefonoId,obj.telefono,obj.TipoTelefonoId,obj.ContactoTelefonoCodigoArea)
-                // await this.insertContactoEmailTable(queryRunner,maxContactoId,maxContactoEmailId,obj.correo)
-                
-                
-                newinfoClienteContactoArray.push(obj)
-            }
-
-           
-            // await this.updateClienteTableMax(queryRunner,ClienteId,maxContactoEmailId,maxContactoTelefonoId,maxContactoId,ClienteFacturacionId) 
-            
-
-        
-            ObjCliente.infoClienteContacto = newinfoClienteContactoArray
+            let ObjClienteNew = await this.ClienteContacto(queryRunner,ObjCliente,ClienteId)
 
             if(ClienteAdministradorId != null){
                 await this.insertClienteAdministrador(queryRunner,ClienteId,ClienteAdministradorId,ObjCliente.ClienteFechaAlta,ObjCliente.AdministradorId) 
@@ -736,7 +704,7 @@ console.log("ObjClienteNew",ObjClienteNew)
             }
 
             await queryRunner.commitTransaction()
-            return this.jsonRes(ObjCliente, res, 'Carga  de nuevo registro exitoso');
+            return this.jsonRes(ObjClienteNew, res, 'Carga  de nuevo registro exitoso');
         }catch (error) {
             this.rollbackTransaction(queryRunner)
             return next(error)
@@ -766,6 +734,9 @@ console.log("ObjClienteNew",ObjClienteNew)
              ClienteDomicilioUltNro,
              ClienteAdministradorUltNro
         ])
+
+        const ContactoId = await queryRunner.query(`SELECT IDENT_CURRENT('Cliente')`)
+         return  ContactoId[0]['']
     }
 
     async insertClienteFacturacion(queryRunner:any,ClienteId:any,ClienteFacturacionId:any,CondicionAnteIVAId:any,ClienteFacturacionCUIT:any,ClienteFechaAlta:Date){
