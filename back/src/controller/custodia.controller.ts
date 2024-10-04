@@ -244,12 +244,12 @@ export class CustodiaController extends BaseController {
         const cant_km_exced = objetivoCustodia.cantKmExced? objetivoCustodia.cantKmExced : null
         const impo_km_exced = objetivoCustodia.impoKmExced? objetivoCustodia.impoKmExced : null
         const impo_peaje = objetivoCustodia.impoPeaje? objetivoCustodia.impoPeaje : null
-        const impo_facturar= objetivoCustodia.facturacion? objetivoCustodia.facturacion : null
+        const impo_facturar= cant_modulos * importe_modulos + cant_horas_exced * impo_horas_exced +  cant_km_exced * impo_km_exced +  impo_peaje
         const num_factura= objetivoCustodia.numFactura? objetivoCustodia.numFactura : null
         const desc_facturacion= objetivoCustodia.desc_facturacion? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
-        return await queryRunner.query(`
+        return queryRunner.query(`
             INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, 
                 descripcion, fecha_inicio, origen, fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced,
                 impo_horas_exced, cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, desc_facturacion, num_factura, estado, 
@@ -341,12 +341,12 @@ export class CustodiaController extends BaseController {
         const cant_km_exced = objetivoCustodia.cantKmExced? objetivoCustodia.cantKmExced : null
         const impo_km_exced = objetivoCustodia.impoKmExced? objetivoCustodia.impoKmExced : null
         const impo_peaje = objetivoCustodia.impoPeaje? objetivoCustodia.impoPeaje : null
-        const impo_facturar = objetivoCustodia.facturacion? objetivoCustodia.facturacion : null
+        const impo_facturar = cant_modulos * importe_modulos + cant_horas_exced * impo_horas_exced + cant_km_exced * impo_km_exced + impo_peaje
         const num_factura = objetivoCustodia.numFactura? objetivoCustodia.numFactura : null
         const desc_facturacion = objetivoCustodia.desc_facturacion? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
-        return await queryRunner.query(`
+        return queryRunner.query(`
         UPDATE lige.dbo.objetivocustodia 
         SET cliente_id = @1, desc_requirente = @2, descripcion = @3, fecha_inicio = @4, origen = @5, 
         fecha_fin = @6, destino = @7, cant_modulos = @8, importe_modulos = @9, cant_horas_exced = @10, 
