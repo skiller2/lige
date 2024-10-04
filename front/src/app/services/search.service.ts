@@ -897,4 +897,11 @@ export class SearchService {
     );
   }
 
+  getDatosFacturacionByCliente(listClientes: any){
+    return this.http.post<ResponseJSON<any>>('/api/cliente/facturacion', listClientes).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of({}))
+    );
+  }
+
 }

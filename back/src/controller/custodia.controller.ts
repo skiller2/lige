@@ -244,12 +244,12 @@ export class CustodiaController extends BaseController {
         const cant_km_exced = objetivoCustodia.cantKmExced? objetivoCustodia.cantKmExced : null
         const impo_km_exced = objetivoCustodia.impoKmExced? objetivoCustodia.impoKmExced : null
         const impo_peaje = objetivoCustodia.impoPeaje? objetivoCustodia.impoPeaje : null
-        const impo_facturar= objetivoCustodia.facturacion? objetivoCustodia.facturacion : null
+        const impo_facturar= cant_modulos * importe_modulos + cant_horas_exced * impo_horas_exced +  cant_km_exced * impo_km_exced +  impo_peaje
         const num_factura= objetivoCustodia.numFactura? objetivoCustodia.numFactura : null
         const desc_facturacion= objetivoCustodia.desc_facturacion? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
-        return await queryRunner.query(`
+        return queryRunner.query(`
             INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, 
                 descripcion, fecha_inicio, origen, fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced,
                 impo_horas_exced, cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, desc_facturacion, num_factura, estado, 
@@ -341,12 +341,12 @@ export class CustodiaController extends BaseController {
         const cant_km_exced = objetivoCustodia.cantKmExced? objetivoCustodia.cantKmExced : null
         const impo_km_exced = objetivoCustodia.impoKmExced? objetivoCustodia.impoKmExced : null
         const impo_peaje = objetivoCustodia.impoPeaje? objetivoCustodia.impoPeaje : null
-        const impo_facturar = objetivoCustodia.facturacion? objetivoCustodia.facturacion : null
+        const impo_facturar = cant_modulos * importe_modulos + cant_horas_exced * impo_horas_exced + cant_km_exced * impo_km_exced + impo_peaje
         const num_factura = objetivoCustodia.numFactura? objetivoCustodia.numFactura : null
         const desc_facturacion = objetivoCustodia.desc_facturacion? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
-        return await queryRunner.query(`
+        return queryRunner.query(`
         UPDATE lige.dbo.objetivocustodia 
         SET cliente_id = @1, desc_requirente = @2, descripcion = @3, fecha_inicio = @4, origen = @5, 
         fecha_fin = @6, destino = @7, cant_modulos = @8, importe_modulos = @9, cant_horas_exced = @10, 
@@ -891,60 +891,61 @@ export class CustodiaController extends BaseController {
             const ip = this.getRemoteAddress(req)
             // const responsableId = 699
             const responsableId = res.locals.PersonalId
-            const ids: number[] = req.body.ids
-            const estado: number = req.body.estado
-            const numFactura: number = req.body.numFactura
-            let errores : any[] = []
-            
-            if (estado == 4 && !numFactura) {
-                throw new ClientException(`El Número de Factura es invalido.`)
-            }
-
             await queryRunner.startTransaction()
-            for (const id of ids) {
-                let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, id)
-                infoCustodia= infoCustodia[0]
-
-                if (infoCustodia.estado === estado) {
-                    continue
+            const forms:any []= req.body
+            let errores : any[] = []
+            for (const form of forms) {
+                const ids: number[] = form.custodiasIds
+                const estado: number = form.estado
+                const numFactura: number = form.numFactura
+                
+                if (estado == 4 && !numFactura) {
+                    throw new ClientException(`El Número de Factura es invalido.`)
                 }
-                //Validaciones
-                if (infoCustodia.estado == 4){
-                    errores.push(`Codigo ${id}: No se puede modificar el estado.`)
-                    continue
-                }
+                
+                for (const id of ids) {
+                    let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, id)
+                    infoCustodia= infoCustodia[0]
 
-                let msgError: string = ''
-                if (this.valByEstado(estado)) {
-                    let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, id)
-                    let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, id)
-                    for (const personal of listPersonal) {
-                        if (!personal.importe){
-                            msgError+=`Revisar el Importe del personal. `
-                            break
+                    //Validaciones
+                    if (infoCustodia.estado == 4){
+                        errores.push(`Codigo ${id}: No se puede modificar el estado.`)
+                        continue
+                    }
+
+                    let msgError: string = ''
+                    if (this.valByEstado(estado)) {
+                        let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, id)
+                        let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, id)
+                        for (const personal of listPersonal) {
+                            if (!personal.importe){
+                                msgError+=`Revisar el Importe del personal. `
+                                break
+                            }
+                        }
+                        for (const vehiculo of listVehiculo) {
+                            if (!vehiculo.importe){
+                                msgError+=(`Revisar el Importe del vehiculo.`)
+                                break
+                            }
                         }
                     }
-                    for (const vehiculo of listVehiculo) {
-                        if (!vehiculo.importe){
-                            msgError+=(`Revisar el Importe del vehiculo.`)
-                            break
-                        }
+                    if (msgError.length) {
+                        errores.push(`Codigo ${id}:`+msgError)
+                        continue
                     }
-                }
-                if (msgError.length) {
-                    errores.push(`Codigo ${id}:`+msgError)
-                    continue
-                }
 
-                infoCustodia.estado = estado
+                    infoCustodia.estado = estado
 
-                const valCustodiaForm = this.valCustodiaForm(infoCustodia)
-                if (valCustodiaForm instanceof ClientException){
-                    errores.push(`Codigo ${id}: ${valCustodiaForm.messageArr}`)
-                    continue
+                    const valCustodiaForm = this.valCustodiaForm(infoCustodia)
+                    if (valCustodiaForm instanceof ClientException){
+                        errores.push(`Codigo ${id}: ${valCustodiaForm.messageArr}`)
+                        continue
+                    }
+
+                    await this.updateObjetivoCustodiaQuery(queryRunner, infoCustodia, usuario, ip)
                 }
 
-                await this.updateObjetivoCustodiaQuery(queryRunner, infoCustodia, usuario, ip)
             }
 
             if (errores.length) {
