@@ -4,6 +4,7 @@ import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { QueryResult } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller"
+import { info } from "pdfjs-dist/types/src/shared/util";
 
 
 
@@ -179,14 +180,15 @@ ${orderBy}`, [fechaActual])
             const clienteId = req.params.id
             let infoCliente = await this.getObjetivoClienteQuery(queryRunner, clienteId)
             let infoClienteContacto = await this.getClienteContactoQuery(queryRunner, clienteId)
-            const domiclio = await this.getClienteDomicilioQuery(queryRunner, clienteId)
+            let domiclio = await this.getClienteDomicilioQuery(queryRunner, clienteId)
 
             if(domiclio){
                 infoCliente ={...infoCliente[0],...domiclio[0]} 
             }else{
                 infoCliente = infoCliente[0]
             }
-
+            infoCliente.infoDomicilio = domiclio
+            infoCliente.infoDomicilioOriginal = domiclio
             infoCliente.infoClienteContacto = infoClienteContacto
             infoCliente.infoClienteContactoOriginal = infoClienteContacto
             await queryRunner.commitTransaction()
@@ -203,7 +205,7 @@ ${orderBy}`, [fechaActual])
     async getClienteDomicilioQuery(queryRunner: any, clienteId: any) {
 
         return await queryRunner.query(`
-            SELECT TOP 1 
+            SELECT 
                  domcli.ClienteDomicilioId
                 ,domcli.ClienteDomicilioDomCalle AS ClienteDomicilioDomCalle
                 ,domcli.ClienteDomicilioDomNro AS ClienteDomicilioDomNro
@@ -264,6 +266,7 @@ ${orderBy}`, [fechaActual])
             ,cli.ClienteContactoUltNro
             ,cli.ClienteTelefonoUltNro
             ,cli.ClienteEmailUltNro
+            ,cli.ClienteDomicilioUltNro
         FROM Cliente cli
         LEFT JOIN ClienteFacturacion fac 
             ON fac.ClienteId = cli.ClienteId
@@ -385,7 +388,8 @@ ${orderBy}`, [fechaActual])
            ObjCliente.ClienteFacturacionId = ClienteFacturacionId
 
             // se actualiza el domicilio
-            await ClientesController.updateClienteDomicilioTable(queryRunner,ClienteId,ObjCliente) 
+
+            ObjClienteNew = await this.ClienteDomicilioUpdate(queryRunner,ClienteId,ObjCliente)
 
             // inser y update cliente contacto
             ObjClienteNew = await this.ClienteContacto(queryRunner,ObjCliente,ClienteId)
@@ -395,7 +399,6 @@ ${orderBy}`, [fechaActual])
                 
              await FileUploadController.handlePDFUpload(ClienteId,'Cliente',ObjCliente.files,usuario,ip ) 
             }
-console.log("ObjClienteNew",ObjClienteNew)
             await queryRunner.commitTransaction()
             return this.jsonRes(ObjClienteNew, res, 'Modificación  Exitosa');
         }catch (error) {
@@ -404,6 +407,53 @@ console.log("ObjClienteNew",ObjClienteNew)
         } finally {
             await queryRunner.release()
         }
+    }
+
+    async ClienteDomicilioUpdate(queryRunner:any,ObjCliente:any,ClienteId:any){
+
+          // valida si hay cambios entre el objeto orinal y el que se presento en el front
+       // if(JSON.stringify(ObjCliente.infoDomicilio) !== JSON.stringify(ObjCliente.infoDomicilioOriginal)){}
+
+       let numerosQueNoPertenecenDomicilio = []
+
+       //ACA SE EVALUA Y SE ELIMINA EL CASO QUE SE BORRE ALGUN REGISTRO DE CLIENTE DOMICILIO EXISTENTE
+       const DomicilioIds = ObjCliente.infoDomicilioOriginal.map(row => row.ClienteDomicilioId)
+       numerosQueNoPertenecenDomicilio = DomicilioIds.filter(num => {
+           return !ObjCliente.infoDomicilio.some(obj => obj.ClienteDomicilioId === num && obj.ClienteDomicilioId !== 0);
+       });
+
+       let newinfoDomicilioArray = []
+       for (const obj of ObjCliente.infoDomicilio) {
+        //Si no se cumple la siguiente condicion es un regitro o nuevo o hay q hacer update
+            if (DomicilioIds.includes(obj.ClienteDomicilioId) && obj.ClienteDomicilioId !== 0 && obj.ClienteDomicilioId) {
+                
+                await ClientesController.updateClienteDomicilioTable(queryRunner,ClienteId,obj)
+                
+                    newinfoDomicilioArray.push(obj)
+
+            } else {
+
+                ObjCliente.ClienteDomicilioUltNro  = ObjCliente.ClienteDomicilioUltNro ? ObjCliente.ClienteDomicilioUltNro + 1 : 1
+
+                await this.inserClientetDomicilio(queryRunner,ClienteId,ObjCliente.ClienteDomicilioId,obj.ClienteDomicilioDomLugar,obj.ClienteDomicilioDomCalle,obj.ClienteDomicilioDomNro,
+                    obj.ClienteDomicilioCodigoPostal,obj.ClienteDomicilioProvinciaId,obj.ClienteDomicilioLocalidadId,obj.ClienteDomicilioBarrioId,
+                )
+                newinfoDomicilioArray.push(obj)
+
+            }    
+
+        }
+
+        if(numerosQueNoPertenecenDomicilio?.length > 0 ) {
+            for (const ClienteDomicilioId of numerosQueNoPertenecenDomicilio) {
+                
+                await queryRunner.query(`DELETE FROM ClienteDomicilio WHERE ClienteId = @0 AND ClienteDomicilioId = @1`,[ClienteId,ClienteDomicilioId])
+            }
+           
+        }
+
+        ObjCliente.infoDomicilio = newinfoDomicilioArray 
+        ObjCliente.infoDomicilioOriginal = newinfoDomicilioArray 
     }
 
     async ClienteContacto(queryRunner:any,ObjCliente:any,ClienteId:any){
@@ -860,41 +910,42 @@ console.log("ObjClienteNew",ObjClienteNew)
                throw new ClientException(`El campo Razón Social NO pueden estar vacio.`)
             }
     
-            //Domicilio
+           
     
-            if(!form.ClienteDomicilioDomCalle) {
-                throw new ClientException(`El campo Dirección Calle NO pueden estar vacio.`)
-             }
-     
-             if(!form.ClienteDomicilioDomNro) {
-                throw new ClientException(`El campo Domicilio Nro NO pueden estar vacio.`)
-             }
+            for(const obj of form.infoDomicilio){
 
-             if(form.ClienteDomicilioDomNro.length > 5) {
-                throw new ClientException(`El campo Domicilio Nro NO puede ser mayor a 5 digitos.`)
-             }
-     
-             if(!form.ClienteDomicilioCodigoPostal) {
-                 throw new ClientException(`El campo Cod Postal NO pueden estar vacio.`)
-             }
+                 //Domicilio
+        
+                if(!obj.ClienteDomicilioDomCalle) {
+                    throw new ClientException(`El campo Dirección Calle NO pueden estar vacio.`)
+                }
+        
+                if(!obj.ClienteDomicilioDomNro) {
+                    throw new ClientException(`El campo Domicilio Nro NO pueden estar vacio.`)
+                }
 
-             if(form.ClienteDomicilioCodigoPostal.length > 8) {
-                throw new ClientException(`El campo Cod Postal NO puede ser mayor a 8 digitos.`)
-             }
-     
-             if(!form.ClienteDomicilioProvinciaId) {
-                throw new ClientException(`El campo Provincia Ante IVA NO pueden estar vacio.`)
-             }
+                if(obj.ClienteDomicilioDomNro.length > 5) {
+                    throw new ClientException(`El campo Domicilio Nro NO puede ser mayor a 5 digitos.`)
+                }
+        
+                if(!obj.ClienteDomicilioCodigoPostal) {
+                    throw new ClientException(`El campo Cod Postal NO pueden estar vacio.`)
+                }
 
-             if(!form.ClienteDomicilioLocalidadId) {
-                throw new ClientException(`El campo Localidad NO pueden estar vacio.`)
-             }
+                if(obj.ClienteDomicilioCodigoPostal.length > 8) {
+                    throw new ClientException(`El campo Cod Postal NO puede ser mayor a 8 digitos.`)
+                }
+        
+                if(!obj.ClienteDomicilioProvinciaId) {
+                    throw new ClientException(`El campo Provincia Ante IVA NO pueden estar vacio.`)
+                }
+
+                if(!obj.ClienteDomicilioLocalidadId) {
+                    throw new ClientException(`El campo Localidad NO pueden estar vacio.`)
+                }
      
-            //  if(!form.ClienteDomicilioBarrioId) {
-            //     throw new ClientException(`El campo Barrio NO pueden estar vacio.`)
-            //  }
-    
-             
+
+            }
     
             // CLIENTE CONTACTO
     

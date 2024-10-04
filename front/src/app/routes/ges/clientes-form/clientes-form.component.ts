@@ -3,7 +3,7 @@ import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, i
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
-import { NgForm, FormArray, FormBuilder, ValueChangeEvent } from '@angular/forms';
+import { NgForm, FormArray, FormBuilder, ValueChangeEvent, FormGroup } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { AdministradorSearchComponent } from '../../../shared/administrador-search/administrador-search.component';
@@ -62,6 +62,19 @@ export class ClientesFormComponent {
   public router = inject(Router);
   isLoadSelect= signal(false)
   periodo = signal({ year: 0, month: 0 })
+  personalId = signal(0)
+  edit = model(true)
+  ClienteId = model(0)
+  selectedValueProvincia = null
+  isLoading = signal(false)
+  addNew = model()
+  files = []
+  textForSearch = "Cliente"
+  
+
+  private apiService = inject(ApiService)
+  private searchService = inject(SearchService)
+  private injector = inject(Injector)
 //  visibleDrawer: boolean = false
 
   objClienteContacto = { 
@@ -78,19 +91,20 @@ export class ClientesFormComponent {
    
   }
 
-  personalId = signal(0)
-  edit = model(true)
-  ClienteId = model(0)
-  selectedValueProvincia = null
-  isLoading = signal(false)
-  addNew = model()
-  files = []
-  textForSearch = "Cliente"
-  
+  objDomiclio = { 
+    ClienteDomicilioId:0,
+    ClienteDomicilioDomCalle: "",
+    ClienteDomicilioDomNro:0,
+    referencia: "", 
+    ClienteDomicilioCodigoPostal: 0,
+    ClienteDomicilioDomLugar:null,
+    domiciliopais: "", 
+    ClienteDomicilioProvinciaId: null, 
+    ClienteDomicilioLocalidadId: null, 
+    ClienteDomicilioBarrioId: null
+  }
 
-  private apiService = inject(ApiService)
-  private searchService = inject(SearchService)
-  private injector = inject(Injector)
+
 
 
   fb = inject(FormBuilder)
@@ -107,11 +121,11 @@ export class ClientesFormComponent {
     ClienteTelefonoUltNro:0,
     ClienteEmailUltNro:0,
     MaxContactoId:0,
-    ClienteDomicilioId:0,ClienteDomicilioDomCalle: "",ClienteDomicilioDomNro:0, referencia: "", ClienteDomicilioCodigoPostal: 0,ClienteDomicilioDomLugar:null,
-    domiciliopais: "", ClienteDomicilioProvinciaId: null, ClienteDomicilioLocalidadId: null, ClienteDomicilioBarrioId: null,
-    AdministradorId:0,ClienteAdministradorUltNro:0,
+    AdministradorId:0,ClienteAdministradorUltNro:0,ClienteDomicilioUltNro:0,
     infoClienteContacto: this.fb.array([this.fb.group({ ...this.objClienteContacto })]), 
     infoClienteContactoOriginal : this.fb.array([this.fb.group({ ...this.objClienteContacto })]),
+    infoDomicilio :  this.fb.array([this.fb.group({ ...this.objDomiclio })]),
+    infoDomicilioOriginal :  this.fb.array([this.fb.group({ ...this.objDomiclio })]),
     estado: 0,
   })
   // $optionsProvincia: Observable<Provincia[]> | null = null;
@@ -134,19 +148,21 @@ export class ClientesFormComponent {
   }
 
   ngOnInit() {
-    this.formCli.controls['ClienteDomicilioProvinciaId'].valueChanges.subscribe(event => {
-      if(!this.isLoadSelect()){
-        this.formCli.patchValue({ClienteDomicilioLocalidadId:null})
-        this.isLoadSelect.set(false)
-      }
+
+    // this.formCli.controls['ClienteDomicilioProvinciaId'].valueChanges.subscribe(event => {
+    //   if(!this.isLoadSelect()){
+    //     this.formCli.patchValue({
+    //       infoDomicilio.ClienteDomicilioLocalidadId:null})
+    //     this.isLoadSelect.set(false)
+    //   }
         
-    });
-    this.formCli.controls['ClienteDomicilioLocalidadId'].valueChanges.subscribe(event => {
-      if(!this.isLoadSelect()){
-      this.formCli.patchValue({ClienteDomicilioBarrioId:null})
-      this.isLoadSelect.set(false)
-      }
-    });
+    // });
+    // this.formCli.controls['ClienteDomicilioLocalidadId'].valueChanges.subscribe(event => {
+    //   if(!this.isLoadSelect()){
+    //   this.formCli.patchValue({ClienteDomicilioBarrioId:null})
+    //   this.isLoadSelect.set(false)
+    //   }
+    // });
 
 
     effect(async () => {
@@ -173,26 +189,34 @@ export class ClientesFormComponent {
 
     let infoCliente = await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
     console.log("infoCliente ", infoCliente)
+
     this.infoClienteContacto().clear()
+    this.infoDomicilio().clear()
+
     infoCliente.infoClienteContacto.forEach((obj: any) => {
       this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
     });
 
+    infoCliente.infoDomicilio.forEach((obj: any) => {
+      this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
+    });
+
     if (this.ClienteId()) {
       this.infoClienteContacto().enable()
+      this.infoDomicilio().enable()
       if(infoCliente.infoClienteContacto.length == 0)
         this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
+
+      if(infoCliente.infoDomicilio.length == 0)
+        this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
+
     } else {
+      this.infoDomicilio().disable()
       this.infoClienteContacto().disable()
     }
     setTimeout(() => {
       this.formCli.reset(infoCliente)
-      this.formCli.patchValue({
-        ClienteDomicilioProvinciaId: infoCliente.ClienteDomicilioProvinciaId,
-        ClienteDomicilioLocalidadId: infoCliente.ClienteDomicilioLocalidadId,
-        ClienteDomicilioBarrioId: infoCliente.ClienteDomicilioBarrioId,
-        ClienteCondicionAnteIVAId: infoCliente.CondicionAnteIVAId
-      });
+     
      this.isLoadSelect.set(true)
     }, 100);
     { }
@@ -213,7 +237,6 @@ export class ClientesFormComponent {
             infoClienteContacto: result.data.infoClienteContacto
           });
 
-          //this.edit.set(false)
         } else {
           //este es para cuando es un nuevo registro
           let result =  await firstValueFrom(this.apiService.addCliente(combinedData))
@@ -225,7 +248,6 @@ export class ClientesFormComponent {
 
           this.ClienteId.set(result.data.id)
 
-          //this.addNew.set(true)
          
         }
         
@@ -237,6 +259,31 @@ export class ClientesFormComponent {
     this.isLoading.set(false)
 }
 
+  infoDomicilio(): FormArray {
+    return this.formCli.get("infoDomicilio") as FormArray
+  }
+
+  addDomicilio(e?: MouseEvent): void {
+
+    e?.preventDefault();
+    this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
+    
+  }
+
+  removeDomicilio(index: number, e: MouseEvent): void {
+
+    e.preventDefault();
+    if (this.infoDomicilio().length > 1 ) {
+      this.infoDomicilio().removeAt(index)
+    }else{
+      this.infoDomicilio().clear()
+      this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
+    }
+    this.formCli.markAsDirty();
+  }
+
+
+  ////////
   infoClienteContacto(): FormArray {
     return this.formCli.get("infoClienteContacto") as FormArray
   }
