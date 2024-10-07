@@ -54,7 +54,7 @@ export class CustodiaComponent {
         filtros: [],
         sort: null,
     };
-    startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
+    startFilters: { field: string; condition: string; operator: string; value: string; forced: boolean }[] = []
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)
@@ -67,28 +67,28 @@ export class CustodiaComponent {
     gridData$ = this.listCustodia$.pipe(
         debounceTime(500),
         switchMap(() => {
-          return this.searchService.getListaObjetivoCustodia({ options: this.listOptions })
-            .pipe(map(data => { return data }))
+            return this.searchService.getListaObjetivoCustodia({ options: this.listOptions })
+                .pipe(map(data => { return data }))
         })
     )
 
     fb = inject(FormBuilder)
     objCusEstado = { clienteId: 0, estado: 0, numFactura: 0, custodiasIds: this.fb.array([this.fb.control(0)]) }
     formCusEstado = this.fb.group({
-        custodia: this.fb.array([this.fb.group({...this.objCusEstado})])
+        custodia: this.fb.array([this.fb.group({ ...this.objCusEstado })])
     })
     custodia(): FormArray {
         return this.formCusEstado.get("custodia") as FormArray
     }
-    numFactura(index:number): boolean {
+    numFactura(index: number): boolean {
         const value = this.custodia().at(index).get("estado")?.value
-        if(value == 3 || value == 4)
+        if (value == 3 || value == 4)
             return true
         else
-        return false
+            return false
     }
 
-    async ngOnInit(){
+    async ngOnInit() {
         // const user: any = this.settingService.getUser()
         // console.log('user.GrupoActividad',user)
         // if (user.PersonalId && !user.GrupoActividad.find((elem:any) => {elem == "Administracion"}) && !user.GrupoActividad.find((elem:any) => {elem == "Liquidaciones"})) {
@@ -114,7 +114,7 @@ export class CustodiaComponent {
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-            totalRecords(this.angularGrid,'cliente')
+            totalRecords(this.angularGrid, 'cliente')
             columnTotal('facturacion', this.angularGrid)
         })
         if (this.apiService.isMobile())
@@ -123,35 +123,35 @@ export class CustodiaComponent {
 
     handleSelectedRowsChanged(e: any): void {
         this.rows = e.detail.args.rows
-        if(e.detail.args.rows.length == 1){
+        if (e.detail.args.rows.length == 1) {
             const selrow = this.angularGrid.dataView.getItemByIdx(e.detail.args.rows[0])
             this.editCustodiaId.set(selrow.id)
             if (selrow.estado.tipo === 4)
                 this.estado.set(false)
             else
                 this.estado.set(true)
-        }else{
+        } else {
             this.editCustodiaId.set(0)
             this.estado.set(true)
         }
-        
+
         //Agrupar por clienteId
         let regs = this.angularGrid.dataView.getAllSelectedItems()
         let itemsByClientes: any[] = []
         let clientesIds: any[] = [] //Ids de los clientes selecionados
         let valueForm: any[] = []
-        if (regs.length && regs[0]){
-            for (const reg of regs){
-                if (clientesIds.length && clientesIds.includes(reg.cliente.id)) {
-                    const index: number = clientesIds.indexOf(reg.cliente.id)
-                    itemsByClientes[index].total += reg?.facturacion
-                    itemsByClientes[index].cantReg += 1
-                    valueForm[index].custodiasIds.push(reg.id)
-                }else{
-                    clientesIds.push(reg.cliente?.id)
-                    itemsByClientes.push({clienteId: reg.cliente.id, clienteName: reg.cliente.fullName, cantReg: 1,total: reg.facturacion, cuit: 0, razonSocial: '', domicilio:''})
-                    valueForm.push({ clienteId: reg.cliente.id, estado: 0, numFactura: 0, custodiasIds: [reg.id] })
-                }
+
+        for (const reg of regs) {
+            if (!reg) continue
+            if (clientesIds.includes(reg.cliente.id)) {
+                const index: number = clientesIds.indexOf(reg.cliente.id)
+                itemsByClientes[index].total += reg?.facturacion
+                itemsByClientes[index].cantReg += 1
+                valueForm[index].custodiasIds.push(reg.id)
+            } else {
+                clientesIds.push(reg.cliente?.id)
+                itemsByClientes.push({ clienteId: reg.cliente.id, clienteName: reg.cliente.fullName, cantReg: 1, total: reg.facturacion, cuit: 0, razonSocial: '', domicilio: '' })
+                valueForm.push({ clienteId: reg.cliente.id, estado: 0, numFactura: 0, custodiasIds: [reg.id] })
             }
         }
         this.selectedCli.set(clientesIds)
@@ -180,22 +180,22 @@ export class CustodiaComponent {
         this.listCustodia$.next(event);
     }
 
-    async setFormCusEstado(){
+    async setFormCusEstado() {
         this.custodia().clear()
         let createForm = JSON.parse(JSON.stringify(this.valueForm()))
-        for (const obj of createForm){
+        for (const obj of createForm) {
             let ids: FormArray = this.fb.array([])
-            for (const id of obj.custodiasIds){
+            for (const id of obj.custodiasIds) {
                 ids.push(this.fb.control(id))
             }
             obj.custodiasIds = ids
-            
+
             this.custodia().push(this.fb.group(obj))
         };
         try {
             const res = await firstValueFrom(this.searchService.getDatosFacturacionByCliente(this.selectedCli()))
             let clientes = this.selectedCliInfo()
-            clientes.map((obj:any, index:number)=>{
+            clientes.map((obj: any, index: number) => {
                 obj.cuit = res[index].CUIT
                 obj.razonSocial = res[index].ApellidoNombre
                 obj.domicilio = res[index].Domicilio
@@ -203,7 +203,7 @@ export class CustodiaComponent {
             })
             this.selectedCliInfo.set(clientes)
         } catch (error) {
-            
+
         }
         this.setVisible(true)
     }
@@ -218,7 +218,7 @@ export class CustodiaComponent {
             this.formCusEstado.markAsUntouched()
             this.formCusEstado.markAsPristine()
         } catch (e) {
-            
+
         }
         this.isLoading.set(false)
     }
