@@ -769,7 +769,7 @@ export class CustodiaController extends BaseController {
         return this.jsonRes(estados, res)
     }
 
-    valCustodiaForm(custodiaForm: any){
+    valCustodiaForm(custodiaForm: any) {
         let errores : any[] = []
         if (!Number.isInteger(custodiaForm.estado)){
             errores.push(`El campo Estado NO pueden estar vacio`)
@@ -936,7 +936,8 @@ export class CustodiaController extends BaseController {
                     }
 
                     infoCustodia.estado = estado
-
+                    if (estado ==4)
+                        infoCustodia.numFactura = numFactura
                     const valCustodiaForm = this.valCustodiaForm(infoCustodia)
                     if (valCustodiaForm instanceof ClientException){
                         errores.push(`Codigo ${id}: ${valCustodiaForm.messageArr}`)
