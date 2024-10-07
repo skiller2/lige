@@ -654,10 +654,11 @@ ${orderBy}`, [fechaActual])
           await queryRunner.connect();
           await queryRunner.startTransaction();
           
-          await this.deleteContactoTable(queryRunner,ClienteId,null)
-          await this.deleteContactoEmailTable(queryRunner,ClienteId,null)
-          await this.deleteContactoTelefonoTable(queryRunner,ClienteId,null)
-          await this.deleteFileCliente(queryRunner,ClienteId)
+          
+          await queryRunner.query(`DELETE FROM Contacto WHERE ClienteId = @0 `,[ClienteId])
+          await queryRunner.query(`DELETE FROM ContactoEmail WHERE ClienteId = @0 `,[ClienteId])
+          await queryRunner.query(`DELETE FROM ContactoTelefono WHERE ClienteId = @0 `,[ClienteId])
+          await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE cliente_id = @0 AND doctipo_id = 'CLI'`)
     
           await queryRunner.commitTransaction();
     
@@ -667,48 +668,6 @@ ${orderBy}`, [fechaActual])
         }
     
       }
-    
-    async deleteFileCliente(queryRunner:any,ClienteId:number){
-        await queryRunner.query("`DELETE FROM lige.dbo.docgeneral WHERE cliente_id = @0 AND doctipo_id = 'CLI' ")
-    }
-
-
-    async deleteContactoTable(queryRunner:any,ClienteId:number,ContactoId:any){
-
-        let deleteCliente = `DELETE FROM Contacto WHERE ClienteId = @0`
-
-        if(ContactoId)
-            deleteCliente += ` AND ContactoId =@1`
-
-        await queryRunner.query(deleteCliente,[ClienteId,ContactoId])
-       
-    } 
-
-    async deleteContactoEmailTable(queryRunner:any,ClienteId:number,ContactoId:any){
-
-        let deleteEmail 
-
-        if(ClienteId && ContactoId){
-           
-        }else{
-            deleteEmail = `DELETE FROM ContactoEmail WHERE ClienteId = @0`
-        }
-
-        await queryRunner.query(deleteEmail,[ClienteId,ContactoId])
-
-    } 
-
-    async deleteContactoTelefonoTable(queryRunner:any,ClienteId:number,ContactoId:any){
-
-        let deletTelefono 
-
-        if(ClienteId && ContactoId){
-           
-        }else{
-            deletTelefono = `DELETE FROM ContactoTelefono WHERE ClienteId = @0`
-        }
-        await queryRunner.query(deletTelefono,[ClienteId, ContactoId])
-    } 
     
 
     async addCliente(req: any, res: Response, next: NextFunction) {
