@@ -366,7 +366,7 @@ ${orderBy}`, [fechaActual])
             const ip = this.getRemoteAddress(req)
             const ClienteId = Number(req.params.id)
             const ObjCliente =  {...req.body}
-            let ObjClienteNew
+            let ObjClienteNew={infoDomicilio :{}}
 
             console.log("ObjCliente ", ObjCliente)
             //throw new ClientException(`test`)
@@ -389,8 +389,10 @@ ${orderBy}`, [fechaActual])
 
             // se actualiza el domicilio
 
-            ObjClienteNew = await this.ClienteDomicilioUpdate(queryRunner,ClienteId,ObjCliente)
+            //            ObjClienteNew = await this.ClienteDomicilioUpdate(queryRunner,ClienteId,ObjCliente)
 
+            ObjClienteNew.infoDomicilio = await this.ClienteDomicilioUpdate(queryRunner,ObjCliente.infoDomicilio,ClienteId)
+            
             // inser y update cliente contacto
             ObjClienteNew = await this.ClienteContacto(queryRunner,ObjCliente,ClienteId)
            
@@ -409,7 +411,42 @@ ${orderBy}`, [fechaActual])
         }
     }
 
-    async ClienteDomicilioUpdate(queryRunner:any,ObjCliente:any,ClienteId:any){
+    async ClienteDomicilioUpdate(queryRunner: any, domicilios: any, ClienteId: number) {
+        const DomicilioIds = domicilios.map((row: { ClienteDomicilioId: any; }) => row.ClienteDomicilioId)
+        if (DomicilioIds.length > 0)
+            await queryRunner.query(`DELETE FROM ClienteDomicilio WHERE ClienteId = @0 AND ClienteDomicilioId NOT IN (${DomicilioIds.join(',')})`, [ClienteId])
+
+        const res = await queryRunner.query(`SELECT ClienteDomicilioUltNro FROM Cliente WHERE ClienteId = @0`, [ClienteId])
+        let ClienteDomicilioUltNro = (res[0].ClienteDomicilioUltNro)?res[0].ClienteDomicilioUltNro:0
+
+        for (const [idx,domicilio] of domicilios.entries()) {
+            if (domicilio.ClienteDomicilioId) {
+                await queryRunner.query(`UPDATE ClienteDomicilio
+                    SET ClienteDomicilioDomCalle = @2,ClienteDomicilioDomNro = @3, ClienteDomicilioCodigoPostal = @4, 
+                    ClienteDomicilioProvinciaId = @5,ClienteDomicilioLocalidadId = @6,ClienteDomicilioBarrioId = @7,ClienteDomicilioDomLugar=@8
+                    WHERE ClienteId = @0 AND ClienteDomicilioId = @1`, [
+                    ClienteId, domicilio.ClienteDomicilioId, domicilio.ClienteDomicilioDomCalle, domicilio.ClienteDomicilioDomNro, domicilio.ClienteDomicilioCodigoPostal,
+                    domicilio.ClienteDomicilioProvinciaId, domicilio.ClienteDomicilioLocalidadId, domicilio.ClienteDomicilioBarrioId, domicilio.ClienteDomicilioDomLugar])
+            } else {
+                ClienteDomicilioUltNro++
+                await queryRunner.query(`INSERT INTO ClienteDomicilio (
+                    ClienteId, ClienteDomicilioId, ClienteDomicilioDomLugar, ClienteDomicilioDomCalle, ClienteDomicilioDomNro, ClienteDomicilioCodigoPostal, 
+                    ClienteDomicilioPaisId, ClienteDomicilioProvinciaId, ClienteDomicilioLocalidadId, ClienteDomicilioBarrioId, ClienteDomicilioActual) 
+                    VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10 )`, [ClienteId,
+                    ClienteDomicilioUltNro, domicilio.ClienteDomicilioDomLugar, domicilio.ClienteDomicilioDomCalle, domicilio.ClienteDomicilioDomNro,
+                    domicilio.ClienteDomicilioCodigoPostal, 1, domicilio.ClienteDomicilioProvinciaId, domicilio.ClienteDomicilioLocalidadId,
+                    domicilio.ClienteDomicilioBarrioId, 1
+                ])
+                domicilios[idx].ClienteDomicilioId = ClienteDomicilioUltNro
+            }
+        }
+
+        await queryRunner.query(`UPDATE Cliente SET ClienteDomicilioUltNro = @1 WHERE ClienteId = @0`, [ClienteId,ClienteDomicilioUltNro])
+
+        return domicilios
+    }
+
+    async ClienteDomicilioUpdateOld(queryRunner:any,ObjCliente:any,ClienteId:any){
 
           // valida si hay cambios entre el objeto orinal y el que se presento en el front
        // if(JSON.stringify(ObjCliente.infoDomicilio) !== JSON.stringify(ObjCliente.infoDomicilioOriginal)){}
