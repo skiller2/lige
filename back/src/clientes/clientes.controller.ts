@@ -207,9 +207,9 @@ ${orderBy}`, [fechaActual])
         return await queryRunner.query(`
             SELECT 
                  domcli.ClienteDomicilioId
-                ,domcli.ClienteDomicilioDomCalle AS ClienteDomicilioDomCalle
-                ,domcli.ClienteDomicilioDomNro AS ClienteDomicilioDomNro
-                ,domcli.ClienteDomicilioCodigoPostal AS ClienteDomicilioCodigoPostal
+                ,TRIM(domcli.ClienteDomicilioDomCalle) AS ClienteDomicilioDomCalle
+                ,TRIM(domcli.ClienteDomicilioDomNro) AS ClienteDomicilioDomNro
+                ,TRIM(domcli.ClienteDomicilioCodigoPostal) AS ClienteDomicilioCodigoPostal
                 ,domcli.ClienteDomicilioPaisId AS domiciliopais
                 ,domcli.ClienteDomicilioProvinciaId
                 ,domcli.ClienteDomicilioLocalidadId
@@ -228,7 +228,7 @@ ${orderBy}`, [fechaActual])
             TRIM(cc.ContactoNombre) AS nombre,
             cc.ContactoId,
             TRIM(cc.ContactoApellido) AS ContactoApellido,
-            cc.ContactoArea AS area,
+            TRIM(cc.ContactoArea) AS area,
             cc.ContactoEmailUltNro,
             cc.ContactoTelefonoUltNro,
             cct.TipoTelefonoId,
@@ -366,7 +366,7 @@ ${orderBy}`, [fechaActual])
             const ip = this.getRemoteAddress(req)
             const ClienteId = Number(req.params.id)
             const ObjCliente =  {...req.body}
-            let ObjClienteNew={infoDomicilio :{}}
+            let ObjClienteNew={infoDomicilio :{},infoClienteContacto :{}}
 
             console.log("ObjCliente ", ObjCliente)
             //throw new ClientException(`test`)
@@ -392,9 +392,11 @@ ${orderBy}`, [fechaActual])
             //            ObjClienteNew = await this.ClienteDomicilioUpdate(queryRunner,ClienteId,ObjCliente)
 
             ObjClienteNew.infoDomicilio = await this.ClienteDomicilioUpdate(queryRunner,ObjCliente.infoDomicilio,ClienteId)
+
+            ObjClienteNew.infoClienteContacto = await this.ClienteContactoUpdate(queryRunner,ObjCliente.infoClienteContacto,ClienteId) 
             
             // inser y update cliente contacto
-            ObjClienteNew = await this.ClienteContacto(queryRunner,ObjCliente,ClienteId)
+            //ObjClienteNew = await this.ClienteContacto(queryRunner,ObjCliente,ClienteId)
            
 
             if(ObjCliente.files.length > 1){
@@ -413,8 +415,9 @@ ${orderBy}`, [fechaActual])
 
     async ClienteDomicilioUpdate(queryRunner: any, domicilios: any, ClienteId: number) {
         const DomicilioIds = domicilios.map((row: { ClienteDomicilioId: any; }) => row.ClienteDomicilioId)
-        if (DomicilioIds.length > 0)
-            await queryRunner.query(`DELETE FROM ClienteDomicilio WHERE ClienteId = @0 AND ClienteDomicilioId NOT IN (${DomicilioIds.join(',')})`, [ClienteId])
+        console.log("DomicilioIds ", DomicilioIds)
+        //if (DomicilioIds.length > 0)
+            //await queryRunner.query(`DELETE FROM ClienteDomicilio WHERE ClienteId = @0 AND ClienteDomicilioId NOT IN (${DomicilioIds.join(',')})`, [ClienteId])
 
         const res = await queryRunner.query(`SELECT ClienteDomicilioUltNro FROM Cliente WHERE ClienteId = @0`, [ClienteId])
         let ClienteDomicilioUltNro = (res[0].ClienteDomicilioUltNro)?res[0].ClienteDomicilioUltNro:0
@@ -446,6 +449,93 @@ ${orderBy}`, [fechaActual])
         return domicilios
     }
 
+    async ClienteContactoUpdate(queryRunner: any, contactos: any, ClienteId: number) {
+        const ContactoIds = contactos.map((row: { ContactoId: any; }) => row.ContactoId)
+        const ContactoEmailIds = contactos.map((row: { ContactoEmailId: any; }) => row.ContactoEmailId)
+        const ContactoTelefonoIds = contactos.map((row: { ContactoTelefonoId: any; }) => row.ContactoTelefonoId)
+        if (ContactoIds.length > 0) {
+
+            await queryRunner.query( `DELETE FROM Contacto WHERE ClienteId = @0  AND ContactoId NOT IN (${ContactoIds.join(',')})`,[ClienteId]);
+        
+            if (ContactoEmailIds.length > 0) {
+                await queryRunner.query(`DELETE FROM ContactoEmail WHERE ContactoId IN (${ContactoIds.join(',')}) AND ContactoEmailId NOT IN (${ContactoEmailIds.join(',')})` );
+            }
+        
+            if (ContactoTelefonoIds.length > 0) {
+                await queryRunner.query(`DELETE FROM ContactoTelefono WHERE ContactoId IN (${ContactoIds.join(',')}) AND ContactoTelefonoId NOT IN (${ContactoTelefonoIds.join(',')})`);
+         
+            }
+        }    
+
+        const res = await queryRunner.query(`SELECT ClienteContactoUltNro,ClienteEmailUltNro,ClienteTelefonoUltNro FROM Cliente WHERE ClienteId = @0`, [ClienteId])
+        let ClienteContactoUltNro = (res[0].ClienteContactoUltNro)?res[0].ClienteContactoUltNro:0
+        let ClienteEmailUltNro = (res[0].ClienteEmailUltNro)?res[0].ClienteEmailUltNro:0
+        let ClienteTelefonoUltNro = (res[0].ClienteTelefonoUltNro)?res[0].ClienteTelefonoUltNro:0
+
+        for (const [idx,contacto] of contactos.entries()) {
+
+            if (contacto.ContactoId) {
+                
+                if(contacto.ContactoEmailId){
+
+                    await queryRunner.query(`UPDATE ContactoEmail SET ContactoEmailEmail = @2 WHERE ContactoId=@0 AND ContactoEmailId =@1 `
+                      ,[contacto.ContactoId,contacto.ContactoEmailUltNro,contacto.correo])
+
+                }else{
+
+                  ClienteEmailUltNro++
+
+                  contacto.ContactoEmailId = contacto.ClienteEmailUltNro
+                  await queryRunner.query(`INSERT INTO ContactoEmail (ContactoEmailId,ContactoId,ContactoEmailEmail,ContactoEmailInactivo) VALUES (
+                       @0,@1,@2,@3)`,[contacto.ClienteEmailUltNro,contacto.ContactoId,contacto.correo,'False'])
+
+                }
+                if(contacto.ContactoTelefonoId){
+                    await queryRunner.query(`UPDATE ContactoTelefono SET ContactoTelefonoNro = @2  WHERE  ContactoId = @0 AND ContactoTelefonoId=@1`
+                      ,[contacto.ContactoId,contacto.ContactoTelefonoUltNro,contacto.telefono])
+
+                  }else{
+
+                  ClienteTelefonoUltNro++
+                  await queryRunner.query(`INSERT INTO ContactoTelefono (ContactoTelefonoId,ContactoId,TipoTelefonoId,ContactoTelefonoCodigoArea,ContactoTelefonoNro) 
+                      VALUES (@0,@1,@2,@3,@4)`,[ ClienteTelefonoUltNro,contacto.ContactoId,contacto.TipoTelefonoId, contacto.ContactoTelefonoCodigoArea,contacto.telefono])
+               } 
+               
+            } else {
+                ClienteContactoUltNro++
+                ClienteEmailUltNro++
+                ClienteTelefonoUltNro++
+
+                let ContactoApellidoNombre = (contacto.ContactoApellido ? contacto.ContactoApellido : '') + (contacto.ContactoApellido && contacto.nombre ? ',' : '') + (contacto.nombre ? contacto.nombre : '') || null;
+         
+                await queryRunner.query(`INSERT INTO Contacto (ClienteId,ContactoArea,ContactoApellido,ContactoNombre,ContactoTelefonoUltNro,ContactoEmailUltNro,ContactoApellidoNombre )
+                    VALUES ( @0,@1,@2,@3,@4,@5,@6)`,[
+                        ClienteId,contacto.area,contacto.ContactoApellido,contacto.nombre, contacto.ContactoTelefonoUltNro,contacto.ContactoEmailUltNro,ContactoApellidoNombre])
+
+                const resContacto = await queryRunner.query(`SELECT IDENT_CURRENT('Contacto')`)
+                const ContactoId = resContacto[0]['']; 
+
+                await queryRunner.query(`INSERT INTO ContactoEmail (ContactoEmailId,ContactoId,ContactoEmailEmail,ContactoEmailInactivo) VALUES (
+                   @0,@1,@2,@3)`,[ClienteEmailUltNro,ContactoId,contacto.correo,'False'])
+                
+               await queryRunner.query(`INSERT INTO ContactoTelefono (ContactoTelefonoId,ContactoId,TipoTelefonoId,ContactoTelefonoCodigoArea,ContactoTelefonoNro) 
+                    VALUES (@0,@1,@2,@3,@4)`,[ClienteTelefonoUltNro,ContactoId,contacto.TipoTelefonoId, contacto.ContactoTelefonoCodigoArea,contacto.telefono]) 
+
+
+            contactos[idx].ContactoId = ClienteContactoUltNro
+            contactos[idx].ContactoEmailId = ClienteEmailUltNro
+            contactos[idx].ContactoTelefonoId = ClienteTelefonoUltNro
+            }
+        }
+
+        // se actualizan contacto
+         await queryRunner.query(` UPDATE Cliente SET ClienteTelefonoUltNro = @1,ClienteEmailUltNro = @2,ClienteContactoUltNro=@3 WHERE ClienteId = @0 `,
+            [ClienteId,ClienteTelefonoUltNro,ClienteEmailUltNro,ClienteContactoUltNro])
+      
+
+        return contactos
+    }
+
     async ClienteDomicilioUpdateOld(queryRunner:any,ObjCliente:any,ClienteId:any){
 
           // valida si hay cambios entre el objeto orinal y el que se presento en el front
@@ -472,7 +562,7 @@ ${orderBy}`, [fechaActual])
 
                 ObjCliente.ClienteDomicilioUltNro  = ObjCliente.ClienteDomicilioUltNro ? ObjCliente.ClienteDomicilioUltNro + 1 : 1
 
-                await this.inserClientetDomicilio(queryRunner,ClienteId,ObjCliente.ClienteDomicilioId,obj.ClienteDomicilioDomLugar,obj.ClienteDomicilioDomCalle,obj.ClienteDomicilioDomNro,
+                await this.inserClientetDomicilioOLD(queryRunner,ClienteId,ObjCliente.ClienteDomicilioId,obj.ClienteDomicilioDomLugar,obj.ClienteDomicilioDomCalle,obj.ClienteDomicilioDomNro,
                     obj.ClienteDomicilioCodigoPostal,obj.ClienteDomicilioProvinciaId,obj.ClienteDomicilioLocalidadId,obj.ClienteDomicilioBarrioId,
                 )
                 newinfoDomicilioArray.push(obj)
@@ -493,13 +583,13 @@ ${orderBy}`, [fechaActual])
         ObjCliente.infoDomicilioOriginal = newinfoDomicilioArray 
     }
 
-    async ClienteContacto(queryRunner:any,ObjCliente:any,ClienteId:any){
+    async ClienteContactoOld(queryRunner:any,ObjCliente:any,ClienteId:any){
 
         // valida si hay cambios entre el objeto orinal y el que se presento en el front
        // if(JSON.stringify(ObjCliente.infoClienteContacto) !== JSON.stringify(ObjCliente.infoClienteContactoOriginal)){}
 
         let numerosQueNoPertenecen = []
-
+        
         //ACA SE EVALUA Y SE ELIMINA EL CASO QUE SE BORRE ALGUN REGISTRO DE CLIENTE CONTACTO EXISTENTE
         const ContactoIds = ObjCliente.infoClienteContactoOriginal.map(row => row.ContactoId)
         numerosQueNoPertenecen = ContactoIds.filter(num => {
@@ -507,10 +597,13 @@ ${orderBy}`, [fechaActual])
         });
 
         let newinfoClienteContactoArray = []
+        console.log("ContactoIds ", ContactoIds)
+        console.log("ObjCliente.infoClienteContacto ", ObjCliente.infoClienteContacto)
         for (const obj of ObjCliente.infoClienteContacto) {
+            console.log("pase por aca  ", obj)
             //Si no se cumple la siguiente condicion es un regitro o nuevo o hay q hacer update
             if (ContactoIds.includes(obj.ContactoId) && obj.ContactoId !== 0 && obj.ContactoId) {
-                 
+                console.log("pase por aca1  ", ContactoIds)
                   if(obj.ContactoEmailId){
 
                       await queryRunner.query(`UPDATE ContactoEmail SET ContactoEmailEmail = @2 WHERE ContactoId=@0 AND ContactoEmailId =@1 `
@@ -553,6 +646,7 @@ ${orderBy}`, [fechaActual])
                  newinfoClienteContactoArray.push(obj)
 
             } else {
+                console.log("voy a agregar uno nuevo")
                  // el registro no existe voy a insertar
                 
                  ObjCliente.ClienteTelefonoUltNro  = ObjCliente.ClienteTelefonoUltNro ? ObjCliente.ClienteTelefonoUltNro + 1 : 1
@@ -710,6 +804,7 @@ ${orderBy}`, [fechaActual])
     async addCliente(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         const ObjCliente = {...req.body};
+        let ObjClienteNew={ClienteNewId:0,infoDomicilio :{},infoClienteContacto :{}}
         try {
 
             await queryRunner.startTransaction()
@@ -732,14 +827,19 @@ ${orderBy}`, [fechaActual])
 
             const ClienteId =  await this.insertCliente(queryRunner,ObjCliente.ClienteNombreFantasia,ObjCliente.ClienteApellidoNombre,ClienteFechaAlta,ClienteDomicilioUltNro,ClienteAdministradorId)
 
-            ObjCliente.id = ClienteId
+            ObjClienteNew.ClienteNewId = ClienteId
 
              this.insertClienteFacturacion(queryRunner,ClienteId,ClienteFacturacionId,ObjCliente.ClienteFacturacionCUIT,ObjCliente.ClienteCondicionAnteIVAId,ClienteFechaAlta)
-            await this.inserClientetDomicilio(queryRunner,ClienteId,ClienteDomicilioId,ObjCliente.ClienteDomicilioDomLugar,ObjCliente.ClienteDomicilioDomCalle,ObjCliente.ClienteDomicilioDomNro,
-                ObjCliente.ClienteDomicilioCodigoPostal,ObjCliente.ClienteDomicilioProvinciaId,ObjCliente.ClienteDomicilioLocalidadId,ObjCliente.ClienteDomicilioBarrioId,
-            )
+            
+             ObjClienteNew.infoDomicilio = await this.ClienteDomicilioUpdate(queryRunner,ObjCliente.infoDomicilio,ClienteId)
 
-            let ObjClienteNew = await this.ClienteContacto(queryRunner,ObjCliente,ClienteId)
+             ObjClienteNew.infoClienteContacto = await this.ClienteContactoUpdate(queryRunner,ObjCliente.infoClienteContacto,ClienteId) 
+            
+             //await this.inserClientetDomicilioOLD(queryRunner,ClienteId,ClienteDomicilioId,ObjCliente.ClienteDomicilioDomLugar,ObjCliente.ClienteDomicilioDomCalle,ObjCliente.ClienteDomicilioDomNro,
+            //     ObjCliente.ClienteDomicilioCodigoPostal,ObjCliente.ClienteDomicilioProvinciaId,ObjCliente.ClienteDomicilioLocalidadId,ObjCliente.ClienteDomicilioBarrioId,
+            // )
+
+            //let ObjClienteNew = await this.ClienteContactoOLD(queryRunner,ObjCliente,ClienteId)
 
             if(ClienteAdministradorId != null){
                 await this.insertClienteAdministrador(queryRunner,ClienteId,ClienteAdministradorId,ObjCliente.ClienteFechaAlta,ObjCliente.AdministradorId) 
@@ -799,7 +899,7 @@ ${orderBy}`, [fechaActual])
         @0,@1,@2,@3,@4,@5,@6,@7)`,[ClienteId,ClienteFacturacionId,CondicionAnteIVAId,ClienteFacturacionCUIT,null,null,ClienteFechaAlta,null] )
     }
 
-    async inserClientetDomicilio(queryRunner:any,ClienteId:any,ClienteDomicilioId:any,ClienteDomicilioDomLugar:any,ClienteDomicilioDomCalle:any,
+    async inserClientetDomicilioOLD(queryRunner:any,ClienteId:any,ClienteDomicilioId:any,ClienteDomicilioDomLugar:any,ClienteDomicilioDomCalle:any,
         ClienteDomicilioDomNro:any,ClienteDomicilioCodigoPostal:any,ClienteDomicilioProvinciaId:any,ClienteDomicilioLocalidadId:any,ClienteDomicilioBarrioId:any,
 ){
 

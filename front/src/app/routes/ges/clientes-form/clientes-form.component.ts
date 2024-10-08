@@ -237,6 +237,9 @@ export class ClientesFormComponent {
     }
     setTimeout(() => {
       this.formCli.reset(infoCliente)
+      this.formCli.patchValue({
+        ClienteCondicionAnteIVAId: infoCliente.CondicionAnteIVAId
+      });
      
      this.isLoadSelect.set(true)
     }, 100);
@@ -255,7 +258,8 @@ export class ClientesFormComponent {
           let result = await firstValueFrom(this.apiService.updateCliente(combinedData, this.ClienteId()))
 
           this.formCli.patchValue({
-            infoClienteContacto: result.data.infoClienteContacto
+            infoClienteContacto: result.data.infoClienteContacto,
+            infoDomicilio:result.data.infoDomicilio,
           });
 
         } else {
@@ -263,11 +267,12 @@ export class ClientesFormComponent {
           let result =  await firstValueFrom(this.apiService.addCliente(combinedData))
 
           this.formCli.patchValue({
-            id:result.data.id,
+            id:result.data.ClienteNewId,
             infoClienteContacto: result.data.infoClienteContacto,
+            infoDomicilio:result.data.infoDomicilio,
           });
 
-          this.ClienteId.set(result.data.id)
+          this.ClienteId.set(result.data.ClienteNewId)
 
          
         }
