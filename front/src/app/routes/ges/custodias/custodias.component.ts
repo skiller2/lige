@@ -210,11 +210,19 @@ export class CustodiaComponent {
 
     async save() {
         this.isLoading.set(true)
+        this.editCustodiaId.set(0)
         try {
             let values = this.custodia().value
             // console.log(values);
             await firstValueFrom(this.apiService.setEstado(values))
             this.listCustodia('')
+            let aux = this.editCustodiaId()
+            await this.editCustodiaId.set(0)
+            this.editCustodiaId.set(aux)
+            const selrow = this.angularGrid.dataView.getAllSelectedFilteredIds()
+            if (selrow.length == 1) {
+                this.editCustodiaId.set(selrow[0])
+            }
             this.formCusEstado.markAsUntouched()
             this.formCusEstado.markAsPristine()
         } catch (e) {
