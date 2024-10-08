@@ -92,20 +92,17 @@ export class ClientesFormComponent {
   }
 
   objDomiclio = { 
-    ClienteDomicilioId:new FormControl(0),
-    ClienteDomicilioDomCalle: new FormControl(""),
-    ClienteDomicilioDomNro:new FormControl(0),
-    referencia: new FormControl(""), 
-    ClienteDomicilioCodigoPostal: new FormControl(0),
-    ClienteDomicilioDomLugar:new FormControl(null),
-    domiciliopais: new FormControl(""), 
-    ClienteDomicilioProvinciaId: new FormControl(null), 
-    ClienteDomicilioLocalidadId: new FormControl(null), 
-    ClienteDomicilioBarrioId: new FormControl(null)
+    ClienteDomicilioId:0,
+    ClienteDomicilioDomCalle:"",
+    ClienteDomicilioDomNro:"",
+    referencia: "", 
+    ClienteDomicilioCodigoPostal: "",
+    ClienteDomicilioDomLugar:null,
+    domiciliopais: "", 
+    ClienteDomicilioProvinciaId: null, 
+    ClienteDomicilioLocalidadId: null, 
+    ClienteDomicilioBarrioId: null
   }
-
-
-
 
   fb = inject(FormBuilder)
   formCli = this.fb.group({
@@ -288,7 +285,6 @@ export class ClientesFormComponent {
   }
 
   addDomicilio(e?: MouseEvent): void {
-
     e?.preventDefault();
     this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
     
