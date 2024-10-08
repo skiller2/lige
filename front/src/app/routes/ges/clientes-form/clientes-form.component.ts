@@ -3,11 +3,11 @@ import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, i
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
-import { NgForm, FormArray, FormBuilder, ValueChangeEvent, FormGroup } from '@angular/forms';
+import { NgForm, FormArray, FormBuilder, ValueChangeEvent, FormGroup, FormControl } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { AdministradorSearchComponent } from '../../../shared/administrador-search/administrador-search.component';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, startWith, Observable, of, filter, merge } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, startWith, Observable, of, filter, merge, Subscription } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
@@ -92,16 +92,16 @@ export class ClientesFormComponent {
   }
 
   objDomiclio = { 
-    ClienteDomicilioId:0,
-    ClienteDomicilioDomCalle: "",
-    ClienteDomicilioDomNro:0,
-    referencia: "", 
-    ClienteDomicilioCodigoPostal: 0,
-    ClienteDomicilioDomLugar:null,
-    domiciliopais: "", 
-    ClienteDomicilioProvinciaId: null, 
-    ClienteDomicilioLocalidadId: null, 
-    ClienteDomicilioBarrioId: null
+    ClienteDomicilioId:new FormControl(0),
+    ClienteDomicilioDomCalle: new FormControl(""),
+    ClienteDomicilioDomNro:new FormControl(0),
+    referencia: new FormControl(""), 
+    ClienteDomicilioCodigoPostal: new FormControl(0),
+    ClienteDomicilioDomLugar:new FormControl(null),
+    domiciliopais: new FormControl(""), 
+    ClienteDomicilioProvinciaId: new FormControl(null), 
+    ClienteDomicilioLocalidadId: new FormControl(null), 
+    ClienteDomicilioBarrioId: new FormControl(null)
   }
 
 
@@ -125,7 +125,7 @@ export class ClientesFormComponent {
     infoClienteContacto: this.fb.array([this.fb.group({ ...this.objClienteContacto })]), 
     infoClienteContactoOriginal : this.fb.array([this.fb.group({ ...this.objClienteContacto })]),
     infoDomicilio :  this.fb.array([this.fb.group({ ...this.objDomiclio })]),
-    infoDomicilioOriginal :  this.fb.array([this.fb.group({ ...this.objDomiclio })]),
+    //infoDomicilioOriginal :  this.fb.array([this.fb.group({ ...this.objDomiclio })]),
     estado: 0,
   })
   // $optionsProvincia: Observable<Provincia[]> | null = null;
@@ -148,6 +148,30 @@ export class ClientesFormComponent {
   }
 
   ngOnInit() {
+    /*
+    const subscription: Subscription = this.objDomiclio.ClienteDomicilioProvinciaId.events.subscribe(event => {
+      //console.log(event.source.parent);
+    });
+
+
+    this.objDomiclio.ClienteDomicilioProvinciaId.valueChanges.subscribe(event => {
+      console.log('event',event)
+      //event.parent.ClienteDomicilioLocalidadId.setValue(null)
+  //    if (!this.isLoadSelect()) {
+      this.objDomiclio.ClienteDomicilioLocalidadId.setValue(null)
+      this.objDomiclio.ClienteDomicilioBarrioId.setValue(null)
+      
+  //      this.isLoadSelect.set(false)
+  //    }
+    })
+
+    this.objDomiclio.ClienteDomicilioLocalidadId.valueChanges.subscribe(event => {
+  //    if (!this.isLoadSelect()) {
+        this.objDomiclio.ClienteDomicilioBarrioId.setValue(null)
+  //      this.isLoadSelect.set(false)
+  //    }
+    })
+*/
 
     // this.formCli.controls['ClienteDomicilioProvinciaId'].valueChanges.subscribe(event => {
     //   if(!this.isLoadSelect()){

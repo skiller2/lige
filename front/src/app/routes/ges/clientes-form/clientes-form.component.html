@@ -44,6 +44,7 @@
     <div class="input-container1">
         <div class="input-label">Domicilio</div>
     </div>  
+    
     <div formArrayName="infoDomicilio">
       <div *ngFor="let control of infoDomicilio().controls; let i = index" [formGroupName]="i" [ngClass]="{'even-background': i % 2 !== 0}">
     <nz-form-item class="marginElement">
@@ -88,14 +89,13 @@
           </nz-select>
         </nz-form-control>
     </nz-form-item>
-
     <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Localidad</nz-form-label>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Localidad </nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
           <!-- <input nz-input placeholder="" formControlName="domiciliolocalidad" type="number" /> -->
           <nz-select formControlName="ClienteDomicilioLocalidadId" nzPlaceHolder="Localidad" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
             <ng-container *ngFor="let option of $optionsLocalidad | async " >
-              <!-- <nz-option *ngIf="option.ProvinciaId == formCli.value.ClienteDomicilioProvinciaId"  [nzValue]="option.LocalidadId" [nzLabel]="option.localidadDescripcion" ></nz-option> -->
+              <nz-option *ngIf="option.ProvinciaId == control.value.ClienteDomicilioProvinciaId "  [nzValue]="option.LocalidadId" [nzLabel]="option.localidadDescripcion" ></nz-option>
             </ng-container>
           </nz-select>
         </nz-form-control>
@@ -107,7 +107,7 @@
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
             <nz-select formControlName="ClienteDomicilioBarrioId" nzPlaceHolder="Barrio" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
               <ng-container *ngFor="let option of $optionsBarrio | async " >
-                <!-- <nz-option *ngIf="option.ProvinciaId == formCli.value.ClienteDomicilioProvinciaId && option.LocalidadId == formCli.value.ClienteDomicilioLocalidadId " [nzValue]="option.BarrioId" [nzLabel]="option.BarrioDescripcion" ></nz-option> -->
+                <nz-option *ngIf="option.ProvinciaId == control.value.ClienteDomicilioProvinciaId && option.LocalidadId == control.value.ClienteDomicilioLocalidadId " [nzValue]="option.BarrioId" [nzLabel]="option.BarrioDescripcion" ></nz-option> -->
               </ng-container> 
             </nz-select>
           </nz-form-control>
