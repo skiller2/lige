@@ -414,7 +414,8 @@ ${orderBy}`, [fechaActual])
     }
 
     async ClienteDomicilioUpdate(queryRunner: any, domicilios: any, ClienteId: number) {
-        const DomicilioIds = domicilios.map((row: { ClienteDomicilioId: any; }) => row.ClienteDomicilioId)
+        const DomicilioIds = domicilios.map((row: { ClienteDomicilioId: any; }) => row.ClienteDomicilioId).filter((id) => id !== null && id !== undefined);
+        console.log("DomicilioIds ", DomicilioIds)
         if (DomicilioIds.length > 0)
             await queryRunner.query(`DELETE FROM ClienteDomicilio WHERE ClienteId = @0 AND ClienteDomicilioId NOT IN (${DomicilioIds.join(',')})`, [ClienteId])
 
@@ -449,7 +450,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async ClienteContactoUpdate(queryRunner: any, contactos: any, ClienteId: number) {
-        const ContactoIds = contactos.map((row: { ContactoId: any; }) => row.ContactoId)
+        const ContactoIds = contactos.map((row: { ContactoId: any; }) => row.ContactoId).filter((id) => id !== null && id !== undefined);
         if (ContactoIds.length > 0) {
             await queryRunner.query(`DELETE FROM ContactoEmail WHERE ContactoId NOT IN (${ContactoIds.join(',')}) `);
             await queryRunner.query(`DELETE FROM ContactoTelefono WHERE ContactoId NOT IN (${ContactoIds.join(',')}) `);
@@ -602,7 +603,7 @@ ${orderBy}`, [fechaActual])
         const ObjCliente = { ...req.body };
         let ObjClienteNew = { ClienteNewId: 0, infoDomicilio: {}, infoClienteContacto: {} }
         try {
-
+            console.log("ObjCliente ", ObjCliente)
             await queryRunner.startTransaction()
 
             const usuario = res.locals.userName
@@ -630,12 +631,6 @@ ${orderBy}`, [fechaActual])
             ObjClienteNew.infoDomicilio = await this.ClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId)
 
             ObjClienteNew.infoClienteContacto = await this.ClienteContactoUpdate(queryRunner, ObjCliente.infoClienteContacto, ClienteId)
-
-            //await this.inserClientetDomicilioOLD(queryRunner,ClienteId,ClienteDomicilioId,ObjCliente.ClienteDomicilioDomLugar,ObjCliente.ClienteDomicilioDomCalle,ObjCliente.ClienteDomicilioDomNro,
-            //     ObjCliente.ClienteDomicilioCodigoPostal,ObjCliente.ClienteDomicilioProvinciaId,ObjCliente.ClienteDomicilioLocalidadId,ObjCliente.ClienteDomicilioBarrioId,
-            // )
-
-            //let ObjClienteNew = await this.ClienteContactoOLD(queryRunner,ObjCliente,ClienteId)
 
             if (ClienteAdministradorId != null) {
                 await this.insertClienteAdministrador(queryRunner, ClienteId, ClienteAdministradorId, ObjCliente.ClienteFechaAlta, ObjCliente.AdministradorId)
