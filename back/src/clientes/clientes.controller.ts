@@ -399,7 +399,7 @@ ${orderBy}`, [fechaActual])
             //ObjClienteNew = await this.ClienteContacto(queryRunner,ObjCliente,ClienteId)
 
 
-            if (ObjCliente.files.length > 1) {
+            if (ObjCliente.files.length > 0) {
 
                 await FileUploadController.handlePDFUpload(ClienteId, 'Cliente', ObjCliente.files, usuario, ip)
             }
@@ -636,7 +636,8 @@ ${orderBy}`, [fechaActual])
                 await this.insertClienteAdministrador(queryRunner, ClienteId, ClienteAdministradorId, ObjCliente.ClienteFechaAlta, ObjCliente.AdministradorId)
             }
 
-            if (ObjCliente.files.length > 1) {
+            if (ObjCliente.files.length > 0) {
+
                 await FileUploadController.handlePDFUpload(ClienteId, 'Cliente', ObjCliente.files, usuario, ip)
             }
 
@@ -778,23 +779,23 @@ ${orderBy}`, [fechaActual])
 
 
         if (!form.ClienteFacturacionCUIT) {
-            throw new ClientException(`El campo CUIT NO pueden estar vacio.`)
+            throw new ClientException(`Debe completar el campo CUIT.`)
         }
 
         if (!form.ClienteFechaAlta) {
-            throw new ClientException(`El campo Fecha Inicial NO pueden estar vacio.`)
+            throw new ClientException(`Debe completar el campo Fecha Inicial.`)
         }
 
         if (!form.ClienteNombreFantasia) {
-            throw new ClientException(`El campo  Nombre Fantasía NO pueden estar vacio.`)
+            throw new ClientException(`Debe completar el campo Nombre Fantasia.`)
         }
 
         if (!form.ClienteCondicionAnteIVAId) {
-            throw new ClientException(`El campo Condición Ante IVA NO pueden estar vacio.`)
+            throw new ClientException(`Debe completar el campo Provincia ante IVA.`)
         }
 
         if (!form.ClienteApellidoNombre) {
-            throw new ClientException(`El campo Razón Social NO pueden estar vacio.`)
+            throw new ClientException(`Debe completar el campo Razón Social.`)
         }
 
 
@@ -804,19 +805,19 @@ ${orderBy}`, [fechaActual])
             //Domicilio
 
             if (!obj.ClienteDomicilioDomCalle) {
-                throw new ClientException(`El campo Dirección Calle NO pueden estar vacio.`)
+                throw new ClientException(`Debe completar el campo Dirección Calle.`)
             }
 
             if (!obj.ClienteDomicilioDomNro) {
-                throw new ClientException(`El campo Domicilio Nro NO pueden estar vacio.`)
+                throw new ClientException(`Debe completar el campo Domicilio Nro.`)
             }
 
             if (obj.ClienteDomicilioDomNro.length > 5) {
-                throw new ClientException(`El campo Domicilio Nro NO puede ser mayor a 5 digitos.`)
+                throw new ClientException(`Debe completar el campo Domicilio Nro.`)
             }
 
             if (!obj.ClienteDomicilioCodigoPostal) {
-                throw new ClientException(`El campo Cod Postal NO pueden estar vacio.`)
+                throw new ClientException(`Debe completar el campo Cod Postal.`)
             }
 
             if (obj.ClienteDomicilioCodigoPostal.length > 8) {
@@ -824,11 +825,11 @@ ${orderBy}`, [fechaActual])
             }
 
             if (!obj.ClienteDomicilioProvinciaId) {
-                throw new ClientException(`El campo Provincia Ante IVA NO pueden estar vacio.`)
+                throw new ClientException(`Debe completar el campo Provincia Ante IVA.`)
             }
 
             if (!obj.ClienteDomicilioLocalidadId) {
-                throw new ClientException(`El campo Localidad NO pueden estar vacio.`)
+                throw new ClientException(`Debe completar el campo Localidad.`)
             }
 
 

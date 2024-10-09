@@ -154,9 +154,11 @@ export class ObjetivosFormComponent {
 
 
   async load() {
-    
+    this.files = []
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
-
+   
+    let domicilioString = `${infoObjetivo.DomicilioDomCalle}, ${infoObjetivo.DomicilioDomNro}, ${infoObjetivo.DomicilioCodigoPostal}, 
+    ${infoObjetivo.DomicilioProvinciaId}, ${infoObjetivo.DomicilioLocalidadId}, ${infoObjetivo.DomicilioBarrioId}, ${infoObjetivo.DomicilioDomLugar}`.toLowerCase().replace(/\s+/g, '');
     this.infoCoordinadorCuenta().clear()
     this.infoRubro().clear()
     
@@ -164,14 +166,15 @@ export class ObjetivosFormComponent {
       this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
     });
 
-    infoObjetivo?.infoRubro.forEach((obj: any) => {
-      this.infoRubro().push(this.fb.group({ ...this.objRubro }))
-    });
-  
     if(infoObjetivo.infoCoordinadorCuenta.length == 0){
       this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
      
-    }     
+    }  
+
+    infoObjetivo?.infoRubro.forEach((obj: any) => {
+      this.infoRubro().push(this.fb.group({ ...this.objRubro }))
+    });
+    
     if(infoObjetivo.infoRubro.length == 0){
       this.infoRubro().push(this.fb.group({ ...this.objRubro }))
     }
@@ -187,24 +190,17 @@ export class ObjetivosFormComponent {
 
     this.formCli.get('ClienteId')?.disable();
 
+    console.log("infoObjetivo", infoObjetivo)
+
     setTimeout(() => {
       this.formCli.reset(infoObjetivo)
       this.formCli.patchValue({
         DomicilioProvinciaId: infoObjetivo.DomicilioProvinciaId,
         DomicilioLocalidadId: infoObjetivo.DomicilioLocalidadId,
         DomicilioBarrioId: infoObjetivo.DomicilioBarrioId,
+        DomicilioFulllAdress:domicilioString
         
       });
-
-      let domicilioString = `${infoObjetivo.DomicilioDomCalle}, ${infoObjetivo.DomicilioDomNro}, ${infoObjetivo.DomicilioCodigoPostal}, 
-      ${infoObjetivo.DomicilioProvinciaId}, ${infoObjetivo.DomicilioLocalidadId}, ${infoObjetivo.DomicilioBarrioId}, ${infoObjetivo.DomicilioDomLugar}`.toLowerCase().replace(/\s+/g, '');
-
-      this.formCli.patchValue({
-        DomicilioFulllAdress:domicilioString
-      });
-
-      this.formCli.markAsUntouched()
-      this.formCli.markAsPristine();
 
       this.isLoadSelect.set(true)
 
@@ -227,18 +223,14 @@ export class ObjetivosFormComponent {
     try {
         if (this.ObjetivoId()) {
           // este es para cuando es update
-
+         
           let result = await firstValueFrom(this.apiService.updateObjetivo(combinedData, this.ObjetivoId()))
           //this.formCli.reset(result.data)
           this.formCli.patchValue({
             infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
-            infoRubro: result.data.infoRubro
+            infoRubro: result.data.infoRubro,
           });
-
-          this.formCli.patchValue({
-            infoRubro: result.data.infoRubro
-          });
-
+        
           //this.edit.set(false)
 
         } else {
@@ -246,9 +238,9 @@ export class ObjetivosFormComponent {
 
           let result = await firstValueFrom(this.apiService.addObjetivo(combinedData))
           this.formCli.get('ClienteId')?.disable();
-          this.ObjetivoId.set(result.data.ObjetivoId)
+          this.ObjetivoId.set(result.data.ObjetivoNewId)
           this.ClienteId.set(result.data.ClienteId)
-          this.ClienteElementoDependienteId.set(result.data.ClienteElementoDependienteId)
+          this.ClienteElementoDependienteId.set(result.data.NewClienteElementoDependienteId)
           //this.addNew.set(true)
           
         }

@@ -55,8 +55,8 @@ export class FileUploadController extends BaseController {
 
           let ArchivosAnteriores = []
 
-          switch (TipoSearch) {
-            case "Cliente":
+          // switch (TipoSearch) {
+          //   case "Cliente":
                 ArchivosAnteriores = await dataSource.query(
                     `SELECT 
                         doc.doc_id AS id, 
@@ -69,9 +69,9 @@ export class FileUploadController extends BaseController {
                         doc.cliente_id = @0 AND
                         tipo.detalle = @1 `,
                     [id,TipoSearch])
-              break;
+          //break;
           
-          }
+          //}
     
           this.jsonRes(
             {

@@ -126,7 +126,7 @@
         <button nz-button *ngIf="infoRubro().controls.length == i+1" nzType="primary" class="add-button" (click)="addRubro($event)">
           <span nz-icon nzType="plus"></span>
         </button>
-        <button nz-button nzType="default" (click)="removeRubro(i, $event)">
+        <button *ngIf="infoRubro().length >= 2" nz-button nzType="default" (click)="removeRubro(i, $event)">
           <span nz-icon nzType="delete" nzTheme="outline" ></span>
         </button>
         </ng-template>
@@ -168,7 +168,7 @@
           <button nz-button *ngIf="infoCoordinadorCuenta().controls.length == i+1" nzType="primary" class="add-button" (click)="addCoordinadorCuenta($event)">
             <span nz-icon nzType="plus"></span>
           </button>
-          <button nz-button nzType="default" (click)="removeCordinadorCuenta(i, $event)">
+          <button *ngIf="infoCoordinadorCuenta().length >= 2" nz-button nzType="default" (click)="removeCordinadorCuenta(i, $event)">
             <span nz-icon nzType="delete" nzTheme="outline" ></span>
           </button>
     </nz-form-control> 
@@ -193,7 +193,7 @@
 <nz-form-item>
   <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
     <button nzType="primary" nz-button  (click)="save()" [nzLoading]="isLoading()" [disabled]="formCli.pristine && files.length === 0 " >
-      Guardar Cambios  {{files.length === 0}} - {{formCli.pristine}}
+      Guardar Cambios
     </button>
     <button nzType="primary" nz-button nzDanger  nz-popconfirm
     nzPopconfirmTitle="Esta seguro que quiere eliminar este Objetivo?"

@@ -172,7 +172,7 @@ export class ClientesFormComponent {
 
 
   async load() {
-
+    this.files = []
     let infoCliente = await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
     console.log("infoCliente ", infoCliente)
 
