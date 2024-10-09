@@ -114,9 +114,8 @@ export class ClientesFormComponent {
     ClienteApellidoNombre: "",
     ClienteNombreFantasia: "",
     ClienteFechaAlta: "",
-    ClienteContactoUltNro:0,
-    ClienteTelefonoUltNro:0,
-    ClienteEmailUltNro:0,
+    ContactoTelefonoUltNro:0,
+    ContactoEmailUltNro:0,
     MaxContactoId:0,
     AdministradorId:0,ClienteAdministradorUltNro:0,ClienteDomicilioUltNro:0,
     infoClienteContacto: this.fb.array([this.fb.group({ ...this.objClienteContacto })]), 
@@ -125,15 +124,15 @@ export class ClientesFormComponent {
     //infoDomicilioOriginal :  this.fb.array([this.fb.group({ ...this.objDomiclio })]),
     estado: 0,
   })
+  tipoTelefono: any;
+  optionsProvincia: any;
+  optionsLocalidad: any;
+  optionsBarrio: any;
+  optionsCondicionAnteIva: any;
   // $optionsProvincia: Observable<Provincia[]> | null = null;
   // $optionsLocalidad: Observable<Localidad[]> = of([]);
   // $optionsBarrio: Observable<Barrio[]> = of([]);
 
-  $tipoTelefono = this.searchService.getTipoTelefono();
-  $optionsProvincia = this.searchService.getProvincia();
-  $optionsLocalidad = this.searchService.getLocalidad();
-  $optionsBarrio = this.searchService.getBarrio();
-  $optionsCondicionAnteIva = this.searchService.getOptionsCondicionAnteIva();
 
   onChangePeriodo(result: Date): void {
     if (result) {
@@ -144,47 +143,13 @@ export class ClientesFormComponent {
     }
   }
 
-  ngOnInit() {
-    /*
-    const subscription: Subscription = this.objDomiclio.ClienteDomicilioProvinciaId.events.subscribe(event => {
-      //console.log(event.source.parent);
-    });
-
-
-    this.objDomiclio.ClienteDomicilioProvinciaId.valueChanges.subscribe(event => {
-      console.log('event',event)
-      //event.parent.ClienteDomicilioLocalidadId.setValue(null)
-  //    if (!this.isLoadSelect()) {
-      this.objDomiclio.ClienteDomicilioLocalidadId.setValue(null)
-      this.objDomiclio.ClienteDomicilioBarrioId.setValue(null)
-      
-  //      this.isLoadSelect.set(false)
-  //    }
-    })
-
-    this.objDomiclio.ClienteDomicilioLocalidadId.valueChanges.subscribe(event => {
-  //    if (!this.isLoadSelect()) {
-        this.objDomiclio.ClienteDomicilioBarrioId.setValue(null)
-  //      this.isLoadSelect.set(false)
-  //    }
-    })
-*/
-
-    // this.formCli.controls['ClienteDomicilioProvinciaId'].valueChanges.subscribe(event => {
-    //   if(!this.isLoadSelect()){
-    //     this.formCli.patchValue({
-    //       infoDomicilio.ClienteDomicilioLocalidadId:null})
-    //     this.isLoadSelect.set(false)
-    //   }
-        
-    // });
-    // this.formCli.controls['ClienteDomicilioLocalidadId'].valueChanges.subscribe(event => {
-    //   if(!this.isLoadSelect()){
-    //   this.formCli.patchValue({ClienteDomicilioBarrioId:null})
-    //   this.isLoadSelect.set(false)
-    //   }
-    // });
-
+  async ngOnInit() {
+    this.tipoTelefono = await firstValueFrom(this.searchService.getTipoTelefono())
+    this.optionsProvincia = await firstValueFrom(this.searchService.getProvincia())
+    this.optionsLocalidad = await firstValueFrom(this.searchService.getLocalidad())
+    this.optionsBarrio = await firstValueFrom(this.searchService.getBarrio())
+    this.optionsCondicionAnteIva = await firstValueFrom(this.searchService.getOptionsCondicionAnteIva())
+  
 
     effect(async () => {
       if (this.ClienteId()) {
