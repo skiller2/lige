@@ -844,15 +844,15 @@ ${orderBy}`, [fechaActual])
         for (const obj of form.infoClienteContacto) {
 
             if (!obj.nombre) {
-                throw new ClientException(`El campo Nombre en cliente contacto NO pueden estar vacio.`)
+                throw new ClientException(`Debe completar el campo Nombre en cliente contacto`)
             }
 
             if (!obj.ContactoApellido) {
-                throw new ClientException(`El campo Apellido en cliente contacto NO pueden estar vacio.`)
+                throw new ClientException(`Debe completar el campo Apellido en cliente contacto`)
             }
 
-            if (!obj.TipoTelefonoId) {
-                throw new ClientException(`El campo Tipo Telefono NO pueden estar vacio.`)
+            if (obj.telefono &&  !obj.TipoTelefonoId) {
+                throw new ClientException(`Debe completar el campo Tipo Telefono`)
             }
 
         }
