@@ -118,33 +118,26 @@ export class PersonalSearchComponent implements ControlValueAccessor {
 
       if (this._selectedId == '' || this._selectedId == '0') {
         this.valueExtendedEmitter.emit({})
-        this._selected.set('')
+        if (this._selected()!='')
+          this._selected.set('')
         this.propagateChange(this._selectedId)
         return
       }
   
-/*
-
-      if (!this._selectedId && this._selectedId !== null) {
-        this.valueExtendedEmitter.emit({})
-        this.propagateChange(this._selectedId)
-        return
-      }
-*/
       firstValueFrom(
         this.searchService
           .getPersonFromName('PersonalId', this._selectedId)
           .pipe(tap(res => {
-            if (res[0]?.PersonalId)
-            this.extendedOption = res[0]
+            if (res[0]?.PersonalId) this.extendedOption = res[0]
             this._selected.set(this._selectedId)
             this.valueExtendedEmitter.emit(this.extendedOption)
-            //if (val!=this._selected)
-            if (this.tmpInputVal != this._selected) {
+            if (this.tmpInputVal != this._selected()) {
               this.propagateChange(this._selectedId)
             }
+            
           }))
       )
+
     }
   }
 

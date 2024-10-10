@@ -14,9 +14,9 @@
   
     <nz-button-group >
       <a [routerLink]="['/', 'ges', 'objetivos','detalle']" (click)="edit.set(true)">
-        <button nz-button nzType="default" [disabled]="editObjetivoId? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+        <button nz-button nzType="default" [disabled]="editObjetivoId()? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
       </a>
-      <a [routerLink]="['/', 'ges', 'objetivos','alta']" (click)="edit.set(true)">
+      <a [routerLink]="['/', 'ges', 'objetivos','alta']" (click)="edit.set(true); editObjetivoId.set(0) ">
         <button nz-button nzType="default" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
       </a>
     </nz-button-group>
@@ -40,12 +40,12 @@
   
       <nz-tab>
         <a nz-tab-link routerLink="/ges/objetivos/detalle" >Detalle</a>
-         <app-objetivos-form [ObjetivoId]="editObjetivoId" [ClienteElementoDependienteId]="editClienteElementoDependienteId"  [ClienteId]="editClienteId" [edit]="edit()"></app-objetivos-form>
+         <app-objetivos-form [ObjetivoId]="editObjetivoId()" [ClienteElementoDependienteId]="editClienteElementoDependienteId"  [ClienteId]="editClienteId" [edit]="edit()"></app-objetivos-form>
       </nz-tab>
   
       <nz-tab> 
         <a nz-tab-link routerLink="/ges/objetivos/alta" >Alta </a>
-        <app-objetivos-form [edit]="edit()"></app-objetivos-form>
+        <app-objetivos-form [ObjetivoId]="editObjetivoId()" [edit]="edit()"></app-objetivos-form>
       </nz-tab>
   
     </nz-tabset>

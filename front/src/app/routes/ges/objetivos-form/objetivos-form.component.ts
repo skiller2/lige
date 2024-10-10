@@ -58,7 +58,6 @@ export class ObjetivosFormComponent {
     ClienteElementoDependienteRubroId:0,
     RubroId:0
   }
-  isLoadSelect= signal(false)
   edit = model(true)
   ObjetivoId = model(0)
   ClienteId = model(0)
@@ -90,7 +89,6 @@ export class ObjetivosFormComponent {
     ClienteElementoDependienteContratoUltNro:0,
     ClienteElementoDependienteDomicilioUltNro:0,
     RubroUltNro:0,
-    DomicilioFulllAdress:"",
     DomicilioId:0,DomicilioDomCalle: "",
     DomicilioDomNro:0, DomicilioCodigoPostal: 0,DomicilioDomLugar:null,
     DomicilioProvinciaId: null,DomicilioLocalidadId: null, DomicilioBarrioId: null,
@@ -116,29 +114,17 @@ export class ObjetivosFormComponent {
   }
 
   ngOnInit() {
-
-    this.formCli.controls['DomicilioProvinciaId'].valueChanges.subscribe(event => {
-
-      if(!this.isLoadSelect()){
-        this.formCli.patchValue({DomicilioLocalidadId:null})
-        this.isLoadSelect.set(false)
-      }
-        
-    });
-    this.formCli.controls['DomicilioLocalidadId'].valueChanges.subscribe(event => {
-      if(!this.isLoadSelect()){
-      this.formCli.patchValue({DomicilioBarrioId:null})
-      this.isLoadSelect.set(false)
-      }
-    });
-
-
-
     effect(async () => {
       if (this.ObjetivoId()) {
         await this.load()
+        this.formCli.markAsPristine()
       } else {
-        this.formCli.reset({ estado: 0 })
+        this.infoCoordinadorCuenta().clear()
+        this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
+        this.formCli.reset({})
+        this.formCli.markAsPristine()
+        this.formCli.enable();
+
       }
     }, { injector: this.injector });
 
@@ -186,27 +172,11 @@ export class ObjetivosFormComponent {
       this.infoCoordinadorCuenta().enable()
       this.infoRubro().enable()
     }
-     
+    
 
     this.formCli.get('ClienteId')?.disable();
 
-    console.log("infoObjetivo", infoObjetivo)
-
-    setTimeout(() => {
-      this.formCli.reset(infoObjetivo)
-      this.formCli.patchValue({
-        DomicilioProvinciaId: infoObjetivo.DomicilioProvinciaId,
-        DomicilioLocalidadId: infoObjetivo.DomicilioLocalidadId,
-        DomicilioBarrioId: infoObjetivo.DomicilioBarrioId,
-        DomicilioFulllAdress:domicilioString
-        
-      });
-
-      this.isLoadSelect.set(true)
-
-    }, 100);
-    
- 
+    this.formCli.reset(infoObjetivo)
   }
 
 

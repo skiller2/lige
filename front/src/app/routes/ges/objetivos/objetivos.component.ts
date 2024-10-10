@@ -43,7 +43,7 @@ export class ObjetivosComponent {
   gridOptions!: GridOption;
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
-  editObjetivoId = 0;
+  editObjetivoId= signal(0)
   editClienteId = 0
   editClienteElementoDependienteId = 0
   edit =signal(false)
@@ -99,7 +99,7 @@ export class ObjetivosComponent {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
     if (row?.id){
-      this.editObjetivoId = row.ObjetivoId
+      this.editObjetivoId.set(row.ObjetivoId)
       this.editClienteId = row.ClienteId
       this.editClienteElementoDependienteId = row.ClienteElementoDependienteId
     }
