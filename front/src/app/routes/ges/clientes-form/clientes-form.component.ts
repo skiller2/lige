@@ -154,8 +154,12 @@ export class ClientesFormComponent {
     effect(async () => {
       if (this.ClienteId()) {
         await this.load()
+        this.formCli.markAsPristine()
+
       } else {
         this.formCli.reset({ estado: 0 })
+        this.formCli.markAsPristine()
+
       }
     }, { injector: this.injector });
 
@@ -174,7 +178,6 @@ export class ClientesFormComponent {
   async load() {
     this.files = []
     let infoCliente = await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
-    console.log("infoCliente ", infoCliente)
 
     this.infoClienteContacto().clear()
     this.infoDomicilio().clear()
