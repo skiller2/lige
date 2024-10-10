@@ -90,6 +90,7 @@ export class ObjetivosFormComponent {
     ClienteElementoDependienteDomicilioUltNro:0,
     RubroUltNro:0,
     DomicilioId:0,DomicilioDomCalle: "",
+    DomicilioFulllAdress:"",
     DomicilioDomNro:0, DomicilioCodigoPostal: 0,DomicilioDomLugar:null,
     DomicilioProvinciaId: null,DomicilioLocalidadId: null, DomicilioBarrioId: null,
     infoCoordinadorCuenta: this.fb.array([this.fb.group({ ...this.objCoordinadorCuenta })]), 
@@ -143,8 +144,7 @@ export class ObjetivosFormComponent {
     this.files = []
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
    
-    let domicilioString = `${infoObjetivo.DomicilioDomCalle}, ${infoObjetivo.DomicilioDomNro}, ${infoObjetivo.DomicilioCodigoPostal}, 
-    ${infoObjetivo.DomicilioProvinciaId}, ${infoObjetivo.DomicilioLocalidadId}, ${infoObjetivo.DomicilioBarrioId}, ${infoObjetivo.DomicilioDomLugar}`.toLowerCase().replace(/\s+/g, '');
+   console.log("infoObjetivo",infoObjetivo)
     this.infoCoordinadorCuenta().clear()
     this.infoRubro().clear()
     
@@ -172,11 +172,19 @@ export class ObjetivosFormComponent {
       this.infoCoordinadorCuenta().enable()
       this.infoRubro().enable()
     }
-    
+
+    setTimeout(() => {
+      this.formCli.reset(infoObjetivo)
+      let domicilioString = `${infoObjetivo.DomicilioDomCalle}, ${infoObjetivo.DomicilioDomNro}, ${infoObjetivo.DomicilioCodigoPostal}, 
+      ${infoObjetivo.DomicilioProvinciaId}, ${infoObjetivo.DomicilioLocalidadId}, ${infoObjetivo.DomicilioBarrioId}, ${infoObjetivo.DomicilioDomLugar}`.toLowerCase().replace(/\s+/g, '');
+      this.formCli.patchValue({
+        DomicilioFulllAdress:domicilioString
+      });
+    }, 100);
 
     this.formCli.get('ClienteId')?.disable();
 
-    this.formCli.reset(infoObjetivo)
+    //this.formCli.reset(infoObjetivo)
   }
 
 
@@ -192,8 +200,16 @@ export class ObjetivosFormComponent {
     //console.log("combinedData ", combinedData)
     try {
         if (this.ObjetivoId()) {
+          let CordinadorCuenta = form.infoCoordinadorCuenta
+          let Rubro = form.infoRubro
           // este es para cuando es update
-         
+
+          if( CordinadorCuenta.length === 1 && !CordinadorCuenta[0]?.ObjetivoId && String(CordinadorCuenta[0]?.PersonaId) === '')
+            combinedData.infoCoordinadorCuenta = []   
+          
+          if( Rubro.length === 1 && !Rubro[0]?.ClienteElementoDependienteRubroId && String(Rubro[0]?.RubroId) === '')
+            combinedData.infoRubro = []
+
           let result = await firstValueFrom(this.apiService.updateObjetivo(combinedData, this.ObjetivoId()))
           //this.formCli.reset(result.data)
           this.formCli.patchValue({
@@ -204,6 +220,8 @@ export class ObjetivosFormComponent {
           //this.edit.set(false)
 
         } else {
+         
+
           // este es para cuando es un nuevo registro
 
           let result = await firstValueFrom(this.apiService.addObjetivo(combinedData))

@@ -1,5 +1,5 @@
 import { Component, inject, input, model, SimpleChanges, viewChild } from '@angular/core';
-import { BehaviorSubject, debounceTime, Observable, switchMap } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, Observable, switchMap } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -83,20 +83,21 @@ export class FileUploadComponent {
  
   async confirmDeleteArchivo( id: string, tipoDocumentDelete : boolean) {
     try {
+
       this.ArchivoIdForDelete = parseInt(id);
       if( tipoDocumentDelete){
-        console.log("fieldname ", this.files())
-        console.log("ArchivoIdForDelete ", this.ArchivoIdForDelete)
+
         const ArchivoFilter = this.files().filter((item) => item.fieldname === this.ArchivoIdForDelete)
         this.files.set(ArchivoFilter)
-         
-       this.notification.success('Respuesta', `Archivo borrado con exito `);
+        this.notification.success('Respuesta', `Archivo borrado con exito `)
 
       }else{
-        //await firstValueFrom( this.apiService.deleteArchivosLicencias(this.ArchivoIdForDelete))
+
+        await firstValueFrom(this.apiService.deleteArchivosLicencias(this.ArchivoIdForDelete))
+        this.formChange$.next('');
       }
 
-      //this.formChange$.next('');
+     
     } catch (error) {
       
     }

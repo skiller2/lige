@@ -164,16 +164,16 @@ export class ObjetivosController extends BaseController {
 					 
 
 					LEFT JOIN (SELECT cc.ClienteId, MAX(cc.ClienteContratoId) ClienteContratoId FROM  ClienteContrato cc WHERE EOMONTH(DATEFROMPARTS(@0,@1,1)) >= cc.ClienteContratoFechaDesde 
-                    AND ISNULL(cc.ClienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
-                    AND ISNULL(cc.ClienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
+                 --   AND ISNULL(cc.ClienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
+                  --  AND ISNULL(cc.ClienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
 					GROUP BY cc.ClienteId) clicon2 ON clicon2.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS null
 
 					 LEFT JOIN  ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId AND clicon.ClienteContratoId = clicon2.ClienteContratoId
 					 
 					 
 					LEFT JOIN (SELECT ec.ClienteId, ec.ClienteElementoDependienteId, MAX(ec.ClienteElementoDependienteContratoId) ClienteElementoDependienteContratoId FROM ClienteElementoDependienteContrato ec WHERE  EOMONTH(DATEFROMPARTS(@0,@1,1)) >= ec.ClienteElementoDependienteContratoFechaDesde 
-                    AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
-                    AND ISNULL(ec.ClienteElementoDependienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
+                 --   AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
+                 --   AND ISNULL(ec.ClienteElementoDependienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
                 GROUP BY ec.ClienteId, ec.ClienteElementoDependienteId
 						
 					) eledepcon2 ON eledepcon2.ClienteId = obj.ClienteId AND eledepcon2.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
@@ -274,9 +274,9 @@ export class ObjetivosController extends BaseController {
 
             return await queryRunner.query(`SELECT TOP 1 
                  domcli.ClienteElementoDependienteDomicilioId AS DomicilioId
-                ,domcli.ClienteElementoDependienteDomicilioDomCalle AS DomicilioDomCalle
-                ,domcli.ClienteElementoDependienteDomicilioDomNro AS DomicilioDomNro
-                ,domcli.ClienteElementoDependienteDomicilioCodigoPostal AS DomicilioCodigoPostal
+                ,TRIM(domcli.ClienteElementoDependienteDomicilioDomCalle) AS DomicilioDomCalle
+                ,TRIM(domcli.ClienteElementoDependienteDomicilioDomNro) AS DomicilioDomNro
+                ,TRIM(domcli.ClienteElementoDependienteDomicilioCodigoPostal) AS DomicilioCodigoPostal
                 ,domcli.ClienteElementoDependienteDomicilioPaisId AS DomicilioPaisId
                 ,domcli.ClienteElementoDependienteDomicilioProvinciaId AS DomicilioProvinciaId
                 ,domcli.ClienteElementoDependienteDomicilioLocalidadId AS DomicilioLocalidadId
@@ -294,9 +294,9 @@ export class ObjetivosController extends BaseController {
             
             return await queryRunner.query(`SELECT TOP 1 
                  domcli.ClienteDomicilioId AS DomicilioId
-                ,domcli.ClienteDomicilioDomCalle AS DomicilioDomCalle
-                ,domcli.ClienteDomicilioDomNro AS DomicilioDomNro
-                ,domcli.ClienteDomicilioCodigoPostal AS DomicilioCodigoPostal
+                ,TRIM(domcli.ClienteDomicilioDomCalle) AS DomicilioDomCalle
+                ,TRIM(domcli.ClienteDomicilioDomNro) AS DomicilioDomNro
+                ,TRIM(domcli.ClienteDomicilioCodigoPostal) AS DomicilioCodigoPostal
                 ,domcli.ClienteDomicilioPaisId AS DomicilioPaisId
                 ,domcli.ClienteDomicilioProvinciaId AS DomicilioProvinciaId
                 ,domcli.ClienteDomicilioLocalidadId AS DomicilioLocalidadId
@@ -345,7 +345,7 @@ export class ObjetivosController extends BaseController {
                 ,obj.ClienteId
                 ,obj.ClienteElementoDependienteId
                 ,eledep.ClienteElementoDependienteRubroUltNro as RubroUltNro
-                ,ISNULL(eledep.ClienteElementoDependienteDescripcion, cli.ClienteApellidoNombre) AS Descripcion
+                ,ISNULL(TRIM(eledep.ClienteElementoDependienteDescripcion), TRIM(cli.ClienteApellidoNombre)) AS Descripcion
                 ,suc.SucursalDescripcion
                 ,suc.SucursalId
                 ,ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde, clicon.ClienteContratoFechaDesde) AS ContratoFechaDesde
@@ -362,9 +362,9 @@ export class ObjetivosController extends BaseController {
                 SELECT cc.ClienteId
                     ,MAX(cc.ClienteContratoId) AS ClienteContratoId
                 FROM ClienteContrato cc
-                WHERE EOMONTH(DATEFROMPARTS(@3, @4, 1)) >= cc.ClienteContratoFechaDesde
-                    AND ISNULL(cc.ClienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@3,  @4, 1)
-                    AND ISNULL(cc.ClienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@3,  @4, 1)
+                WHERE 
+                EOMONTH(DATEFROMPARTS(@3, @4, 1)) >= cc.ClienteContratoFechaDesde
+        
                 GROUP BY cc.ClienteId
                 ) clicon2 ON clicon2.ClienteId = cli.ClienteId
                 AND obj.ClienteElementoDependienteId IS NULL
@@ -374,8 +374,7 @@ export class ObjetivosController extends BaseController {
                     ,MAX(ec.ClienteElementoDependienteContratoId) AS ClienteElementoDependienteContratoId
                 FROM ClienteElementoDependienteContrato ec
                 WHERE EOMONTH(DATEFROMPARTS(@3, @4, 1)) >= ec.ClienteElementoDependienteContratoFechaDesde
-                    AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@3, @4, 1)
-                    AND ISNULL(ec.ClienteElementoDependienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@3,  @4, 1)
+             --       AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@3, @4, 1)
                 GROUP BY ec.ClienteId
                     ,ec.ClienteElementoDependienteId
                 ) eledepcon2 ON eledepcon2.ClienteId = obj.ClienteId
@@ -457,7 +456,7 @@ export class ObjetivosController extends BaseController {
             //throw new ClientException(`estoy testeando`)
             await this.FormValidations(Obj)
             
-            const ClienteFechaAlta = new Date(Obj.ClienteFechaAlta)
+            const ClienteFechaAlta = new Date(Obj.ContratoFechaDesde)
             ClienteFechaAlta.setHours(0, 0, 0, 0)
 
             //update
@@ -465,10 +464,14 @@ export class ObjetivosController extends BaseController {
             if(Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
 
                 //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
-                await this.updateClienteElementoDependienteContratoTable(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.ContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
-                
-                let domicilioString = `${Obj.DomicilioDomCalle}, ${Obj.DomicilioDomNro}, ${Obj.DomicilioCodigoPostal}, ${Obj.DomicilioProvinciaId}, ${Obj.DomicilioLocalidadId}, ${Obj.DomicilioBarrioId}, ${Obj.DomicilioDomLugar}`.toLowerCase().replace(/\s+/g, '');;
 
+                if(Obj.ContratoId){
+                    await this.updateClienteElementoDependienteContratoTable(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.ContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
+                }else{
+                    await this.InsertClienteElementoDependienteContratoTable(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.ContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
+                }
+                
+                let domicilioString = `${Obj.DomicilioDomCalle}, ${Obj.DomicilioDomNro}, ${Obj.DomicilioCodigoPostal}, ${Obj.DomicilioProvinciaId}, ${Obj.DomicilioLocalidadId}, ${Obj.DomicilioBarrioId}, ${Obj.DomicilioDomLugar}`.toLowerCase().replace(/\s+/g, '');
                 //throw new ClientException(`estoy testeando`)
                 if(Obj.DomicilioFulllAdress != domicilioString){
 
@@ -497,7 +500,7 @@ export class ObjetivosController extends BaseController {
                 //SI EL ELEMENTO DEPENDIENTE ES NULL SOLO ACTUALIZA TABLAS DE CLIENTE
                 await  ClientesController.updateClienteDomicilioTable( queryRunner,Obj.ClienteId,Obj)
 
-                if(Obj.ContratoId != null){
+                if(Obj.ContratoId){
                     await this.updateClienteContratoTable(queryRunner,Obj.ClienteId,Obj.ContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
                 }else{
                     await this.insertClienteContratoTable(queryRunner,Obj.ClienteId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta,Obj.ClienteContratoUltNro)
@@ -572,10 +575,10 @@ export class ObjetivosController extends BaseController {
     async ObjetivoRubro(queryRunner:any,rubros:any,Objetivo:any,ClienteId:any,ClienteElementoDependienteId:any){
 
         let res
-        const RubroIds = rubros.map((row: { ClienteDomicilioId: any; }) => row.ClienteDomicilioId).filter((id) => id !== null && id !== undefined);
-        //console.log("RubroIds ", RubroIds)
+        const RubroIds = rubros.map((row: { ClienteElementoDependienteRubroId: any; }) => row.ClienteElementoDependienteRubroId).filter((id) => id !== null && id !== undefined);
+        console.log("RubroIds ", RubroIds)
         if (RubroIds.length > 0)
-            await queryRunner.query(`DELETE FROM ClienteDomicilio WHERE ClienteId = @0 AND ClienteDomicilioId NOT IN (${RubroIds.join(',')})`, [Objetivo])
+            await queryRunner.query(`DELETE FROM ClienteEleDepRubro WHERE ClienteId = @0 AND ClienteElementoDependienteId =@1 AND ClienteElementoDependienteRubroId NOT IN (${RubroIds.join(',')})`, [ClienteId,ClienteElementoDependienteId])
 
 
         if(ClienteElementoDependienteId)
@@ -683,6 +686,37 @@ export class ObjetivosController extends BaseController {
             [ClienteId,ClienteElementoDependienteId,ClienteElementoDependienteContratoId,FechaDesde, FechaHasta])
     }
 
+    async InsertClienteElementoDependienteContratoTable(queryRunner: any, 
+        ClienteId:any, 
+        ClienteElementoDependienteId:any,
+        ClienteElementoDependienteContratoId:any,
+        ClienteElementoDependienteContratoFechaDesde:any,
+        ClienteElementoDependienteContratoFechaHasta:any
+    ) {
+
+        ClienteElementoDependienteContratoId = (ClienteElementoDependienteContratoId != null) ? ClienteElementoDependienteContratoId + 1 : 0
+    
+        const FechaDesde = new Date(ClienteElementoDependienteContratoFechaDesde)
+        FechaDesde.setHours(0, 0, 0, 0)
+
+        let FechaHasta
+        if(ClienteElementoDependienteContratoFechaHasta){
+            FechaHasta = new Date(ClienteElementoDependienteContratoFechaHasta)
+            FechaHasta.setHours(0, 0, 0, 0)
+        }
+        
+
+        return await queryRunner.query(`
+            INSERT INTO ClienteElementoDependienteContrato 
+            (ClienteElementoDependienteContratoId,
+            ClienteId,
+            ClienteElementoDependienteId,
+            ClienteElementoDependienteContratoFechaDesde,
+            ClienteElementoDependienteContratoFechaHasta)
+            VALUES(@0,@1,@2,@3,@4)`,
+            [ClienteElementoDependienteContratoId++,ClienteId,ClienteElementoDependienteId,FechaDesde, FechaHasta])
+    }
+
     async updateClienteContratoTable(queryRunner: any, 
         ClienteId:any, 
         ClienteContratoId:any,
@@ -693,8 +727,11 @@ export class ObjetivosController extends BaseController {
         const FechaDesde = new Date(ClienteContratoFechaDesde)
         FechaDesde.setHours(0, 0, 0, 0)
 
-        const FechaHasta = new Date(ClienteContratoFechaHasta)
-        FechaHasta.setHours(0, 0, 0, 0)
+        let FechaHasta
+        if(ClienteContratoFechaHasta){
+            FechaHasta = new Date(ClienteContratoFechaHasta)
+            FechaHasta.setHours(0, 0, 0, 0)
+        }
 
         return await queryRunner.query(`
             UPDATE ClienteContrato
