@@ -749,7 +749,7 @@ export class ObjetivosController extends BaseController {
          }
  
          if(!form.DomicilioProvinciaId) {
-            throw new ClientException(`Debe completar el campo Provincia Ante IVA.`)
+            throw new ClientException(`Debe completar el campo Provincia.`)
          }
 
          if(!form.DomicilioLocalidadId) {

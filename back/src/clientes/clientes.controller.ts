@@ -516,10 +516,10 @@ ${orderBy}`, [fechaActual])
         let ClienteFacturacionId
         if (ObjCliente.ClienteFacturacionId) {
             ClienteFacturacionId = ObjCliente.ClienteFacturacionId
-            await this.updateFacturaTable(queryRunner, ClienteId, ObjCliente.ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.ClienteCondicionAnteIVAId);
+            await this.updateFacturaTable(queryRunner, ClienteId, ObjCliente.ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.CondicionAnteIVAId);
         } else {
             ClienteFacturacionId = 1;
-            await this.insertClienteFacturacion(queryRunner, ClienteId, ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.ClienteCondicionAnteIVAId, ClienteFechaAlta);
+            await this.insertClienteFacturacion(queryRunner, ClienteId, ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.CondicionAnteIVAId, ClienteFechaAlta);
             await this.updateClienteTableforFactura(queryRunner, ClienteId, ClienteFacturacionId);
         }
 
@@ -626,7 +626,7 @@ ${orderBy}`, [fechaActual])
 
             ObjClienteNew.ClienteNewId = ClienteId
 
-            this.insertClienteFacturacion(queryRunner, ClienteId, ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.ClienteCondicionAnteIVAId, ClienteFechaAlta)
+            this.insertClienteFacturacion(queryRunner, ClienteId, ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.CondicionAnteIVAId, ClienteFechaAlta)
 
             ObjClienteNew.infoDomicilio = await this.ClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId)
 
@@ -790,8 +790,8 @@ ${orderBy}`, [fechaActual])
             throw new ClientException(`Debe completar el campo Nombre Fantasia.`)
         }
 
-        if (!form.ClienteCondicionAnteIVAId) {
-            throw new ClientException(`Debe completar el campo Provincia ante IVA.`)
+        if (!form.CondicionAnteIVAId) {
+            throw new ClientException(`Debe completar el campo Condición ante IVA.`)
         }
 
         if (!form.ClienteApellidoNombre) {
@@ -825,7 +825,7 @@ ${orderBy}`, [fechaActual])
             }
 
             if (!obj.ClienteDomicilioProvinciaId) {
-                throw new ClientException(`Debe completar el campo Provincia Ante IVA.`)
+                throw new ClientException(`Debe completar el campo Provincia.`)
             }
 
             if (!obj.ClienteDomicilioLocalidadId) {

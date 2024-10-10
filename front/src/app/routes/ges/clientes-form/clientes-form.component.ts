@@ -109,7 +109,7 @@ export class ClientesFormComponent {
     id: 0,
     ClienteFacturacionCUIT: 0,
     ClienteFacturacionId:0,
-    ClienteCondicionAnteIVAId:0,
+    CondicionAnteIVAId:0,
     CondicionAnteIVADescripcion: "",
     ClienteApellidoNombre: "",
     ClienteNombreFantasia: "",
@@ -205,10 +205,7 @@ export class ClientesFormComponent {
     }
     setTimeout(() => {
       this.formCli.reset(infoCliente)
-      this.formCli.patchValue({
-        ClienteCondicionAnteIVAId: infoCliente.CondicionAnteIVAId
-      });
-     
+
      this.isLoadSelect.set(true)
     }, 100);
     { }
