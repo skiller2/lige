@@ -14,7 +14,7 @@
   
     <nz-button-group >
       <a [routerLink]="['/', 'ges', 'clientes','detalle']" (click)="setEdit(true)">
-        <button nz-button nzType="default" [disabled]="editClienteId? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+        <button nz-button nzType="default" [disabled]="editClienteId>0? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
       </a>
       <a [routerLink]="['/', 'ges', 'clientes','alta']" (click)="setEdit(false)">
         <button nz-button nzType="default" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
