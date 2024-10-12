@@ -49,7 +49,7 @@
         <nz-upload nzAccept="application/pdf" nzAction="/api/file-upload/upload" [nzData]="{
             valueFile:valueFile()
         }" nzName="pdf" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)" >
-          <button  nz-button [disabled]="(this.valueFile() == null)" >
+          <button  nz-button  >
             <span nz-icon nzType="upload"></span>
             Subir PDF
           </button>

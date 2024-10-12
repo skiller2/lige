@@ -1,10 +1,11 @@
-import { Component, inject, input, model, SimpleChanges, viewChild } from '@angular/core';
-import { BehaviorSubject, debounceTime, firstValueFrom, Observable, switchMap } from 'rxjs';
+import { Component, EventEmitter, forwardRef, inject, Input, input, model, output, Output, SimpleChanges, ViewChild, viewChild } from '@angular/core';
+import { BehaviorSubject, debounceTime, firstValueFrom, noop, Observable, switchMap, tap } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { CommonModule } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 
 @Component({
@@ -12,9 +13,16 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
   standalone: true,
   imports: [SHARED_IMPORTS,NzUploadModule,CommonModule],
   templateUrl: './file-upload.component.html',
-  styleUrl: './file-upload.component.less'
+  styleUrl: './file-upload.component.less',
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => FileUploadComponent),
+      multi: true,
+    },
+  ],
 })
-export class FileUploadComponent {
+export class FileUploadComponent implements ControlValueAccessor{
 
   uploading$ = new BehaviorSubject({loading:false,event:null});
   private apiService = inject(ApiService)
@@ -23,17 +31,23 @@ export class FileUploadComponent {
   files = model<any[]>([])
   private notification = inject(NzNotificationService)
   ArchivoIdForDelete = 0
+  
+  valueExtended = input()
+  valueExtendedEmitter = output<[]>();
+
   formChange$ = new BehaviorSubject('');
 
   idForSearh = input(0)
   textForSearch = input("")
-  
+
+ 
+  $formChange = new BehaviorSubject('');
   $files = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
       if(this.idForSearh() > 0 && this.textForSearch() != ""){
-        return this.apiService
-        .getArchivosAnteriores(this.idForSearh(),this.textForSearch())
+        this.files.set([])
+        return this.apiService.getArchivosAnteriores(this.idForSearh(),this.textForSearch())
       } else {
         return []
       }
@@ -65,15 +79,16 @@ export class FileUploadComponent {
         this.uploading$.next({ loading:false,event })
         break;
       case 'success':
+
         const Response = event.file.response
-       
         this.files.set([ ...this.files(), Response.data[0] ])
-        console.log("imprimo ",  this.files())
-       // console.log(this.ArchivosLicenciasAdd)
+  
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response) 
-        //this.fileUploaded = true;
-        //this.ngForm().form.markAsDirty()
+
+        this.valueExtendedEmitter
+        this.propagateChange(this.files())
+
         break
       default:
         break;
@@ -102,4 +117,21 @@ export class FileUploadComponent {
       
     }
   }
-}
+  ////////
+
+  private propagateChange: (_: any) => void = noop
+
+  registerOnChange(fn: any) {
+    this.propagateChange = fn
+  }
+
+  registerOnTouched(fn: any) {
+
+  }
+
+  writeValue(value: any) {
+  }
+
+
+} 
+

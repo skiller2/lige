@@ -123,6 +123,8 @@ export class ClientesFormComponent {
     infoDomicilio :  this.fb.array([this.fb.group({ ...this.objDomiclio })]),
     //infoDomicilioOriginal :  this.fb.array([this.fb.group({ ...this.objDomiclio })]),
     estado: 0,
+    files:[],
+    codigo:""
   })
   tipoTelefono: any;
   optionsProvincia: any;
@@ -205,7 +207,10 @@ export class ClientesFormComponent {
     }
     setTimeout(() => {
       this.formCli.reset(infoCliente)
-
+      this.formCli.patchValue({
+        codigo: infoCliente.id,
+      });
+      this.formCli.get('codigo')?.disable();
      this.isLoadSelect.set(true)
     }, 100);
     { }
@@ -214,13 +219,9 @@ export class ClientesFormComponent {
   async save() {
     this.isLoading.set(true)
     let form = this.formCli.value
-    let combinedData = {
-      ...form,
-      files: this.files
-    };
     try {
         if (this.ClienteId()) {
-          let result = await firstValueFrom(this.apiService.updateCliente(combinedData, this.ClienteId()))
+          let result = await firstValueFrom(this.apiService.updateCliente(form, this.ClienteId()))
 
           this.formCli.patchValue({
             infoClienteContacto: result.data.infoClienteContacto,
@@ -229,7 +230,7 @@ export class ClientesFormComponent {
 
         } else {
           //este es para cuando es un nuevo registro
-          let result =  await firstValueFrom(this.apiService.addCliente(combinedData))
+          let result =  await firstValueFrom(this.apiService.addCliente(form))
 
           this.formCli.patchValue({
             id:result.data.ClienteNewId,

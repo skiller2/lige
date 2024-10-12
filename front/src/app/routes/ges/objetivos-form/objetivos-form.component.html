@@ -2,6 +2,12 @@
 <form [formGroup]="formCli">
   <br>
   <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Código</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
+      <input nz-input placeholder="" formControlName="codigo" type="string" />
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cliente</nz-form-label>
     <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
       <app-cliente-search formControlName="ClienteId" />
@@ -184,7 +190,7 @@
 <nz-form-item>
 
   <nz-form-control>
-    <app-file-upload [valueFile]="formCli.value.ObjetivoId" [(files)]="files"   [idForSearh]="ObjetivoId()"
+    <app-file-upload formControlName="files"   [idForSearh]="formCli.value.id ?? 0"
     [textForSearch]="textForSearch" ></app-file-upload>
   </nz-form-control>
   
