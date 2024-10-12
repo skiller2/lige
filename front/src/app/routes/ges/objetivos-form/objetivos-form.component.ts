@@ -97,7 +97,8 @@ export class ObjetivosFormComponent {
     infoRubro: this.fb.array([this.fb.group({ ...this.objRubro })]), 
     estado: 0,
     files:[],
-    codigo:""
+    codigo: "",
+    DireccionModificada: false
   })
 
  
@@ -175,18 +176,12 @@ export class ObjetivosFormComponent {
       this.infoRubro().enable()
     }
 
-    setTimeout(() => {
-      this.formCli.reset(infoObjetivo)
-      let domicilioString = `${infoObjetivo.DomicilioDomCalle}, ${infoObjetivo.DomicilioDomNro}, ${infoObjetivo.DomicilioCodigoPostal}, 
-      ${infoObjetivo.DomicilioProvinciaId}, ${infoObjetivo.DomicilioLocalidadId}, ${infoObjetivo.DomicilioBarrioId}, ${infoObjetivo.DomicilioDomLugar}`.toLowerCase().replace(/\s+/g, '');
-      let pintCode = `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`;
-      console.log(pintCode)
-      this.formCli.patchValue({
-        DomicilioFulllAdress:domicilioString,
-        codigo: pintCode
-      });
-      
-    }, 100);
+    this.formCli.reset(infoObjetivo)
+    this.formCli.patchValue({
+      DireccionModificada:false,
+      codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`
+    });
+
 
     this.formCli.get('codigo')?.disable();
     this.formCli.get('ClienteId')?.disable();
