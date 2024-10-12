@@ -1,4 +1,4 @@
-import { Component, EventEmitter, forwardRef, inject, Input, input, model, output, Output, SimpleChanges, ViewChild, viewChild } from '@angular/core';
+import { Component, EventEmitter, forwardRef, inject, Input, input, model, output, Output, signal, SimpleChanges, ViewChild, viewChild } from '@angular/core';
 import { BehaviorSubject, debounceTime, firstValueFrom, noop, Observable, switchMap, tap } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
@@ -27,13 +27,13 @@ export class FileUploadComponent implements ControlValueAccessor{
   uploading$ = new BehaviorSubject({loading:false,event:null});
   private apiService = inject(ApiService)
   ArchivosAdd: any[] = []
-  valueFile = input()
-  files = model<any[]>([])
+  // valueFile = input()
+  files = signal<any[]>([])
   private notification = inject(NzNotificationService)
   ArchivoIdForDelete = 0
   
-  valueExtended = input()
-  valueExtendedEmitter = output<[]>();
+  // valueExtended = input()
+  // valueExtendedEmitter = output<[]>();
 
   formChange$ = new BehaviorSubject('');
 
@@ -86,7 +86,7 @@ export class FileUploadComponent implements ControlValueAccessor{
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response) 
 
-        this.valueExtendedEmitter
+       // this.valueExtendedEmitter
         this.propagateChange(this.files())
 
         break
