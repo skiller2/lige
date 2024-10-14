@@ -471,9 +471,8 @@ export class ObjetivosController extends BaseController {
                     await this.InsertClienteElementoDependienteContratoTable(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.ContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
                 }
                 
-                let domicilioString = `${Obj.DomicilioDomCalle}, ${Obj.DomicilioDomNro}, ${Obj.DomicilioCodigoPostal}, ${Obj.DomicilioProvinciaId}, ${Obj.DomicilioLocalidadId}, ${Obj.DomicilioBarrioId}, ${Obj.DomicilioDomLugar}`.toLowerCase().replace(/\s+/g, '');
                 //throw new ClientException(`estoy testeando`)
-                if(Obj.DomicilioFulllAdress != domicilioString){
+                if(Obj.DireccionModificada){
 
                     let ClienteElementoDependienteDomicilioUltNro  = Obj.ClienteElementoDependienteDomicilioUltNro + 1
 
@@ -518,7 +517,7 @@ export class ObjetivosController extends BaseController {
             
 
             if(Obj.files.length > 0){
-             await FileUploadController.handlePDFUpload(ObjetivoId,'Objetivo',Obj.files,usuario,ip ) 
+             await FileUploadController.handlePDFUpload(ObjetivoId,'OBJ',Obj.files,usuario,ip ) 
             }
 
             await queryRunner.commitTransaction()
@@ -942,7 +941,7 @@ export class ObjetivosController extends BaseController {
             //await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,MaxObjetivoPersonalJerarquicoId, maxRubro)
 
             if(Obj.files.length > 0){
-                await FileUploadController.handlePDFUpload(Obj.ObjetivoId,'Objetivo',Obj.files,usuario,ip ) 
+                await FileUploadController.handlePDFUpload(Obj.ObjetivoId,'OBJ',Obj.files,usuario,ip ) 
                }
 
             await queryRunner.commitTransaction()

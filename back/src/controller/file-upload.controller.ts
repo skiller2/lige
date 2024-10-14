@@ -41,6 +41,7 @@ export class FileUploadController extends BaseController {
     async getArchivosAnteriores(
         id: string,
         TipoSearch: string,
+        keyField:string,
         req: Request,
         res: Response,
         next: NextFunction
@@ -48,15 +49,12 @@ export class FileUploadController extends BaseController {
     
         try {
           const queryRunner = dataSource.createQueryRunner();
-          let usuario = res.locals.userName
-          let ip = this.getRemoteAddress(req)
-          let fechaActual = new Date()
-          //const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, fechaActual.getFullYear(), fechaActual.getMonth(), usuario, ip)
+          // let usuario = res.locals.userName
+          // let ip = this.getRemoteAddress(req)
+          // let fechaActual = new Date()
 
           let ArchivosAnteriores = []
 
-          // switch (TipoSearch) {
-          //   case "Cliente":
                 ArchivosAnteriores = await dataSource.query(
                     `SELECT 
                         doc.doc_id AS id, 
@@ -66,12 +64,10 @@ export class FileUploadController extends BaseController {
                     FROM lige.dbo.docgeneral doc
                      JOIN lige.dbo.doctipo tipo ON doc.doctipo_id = tipo.doctipo_id
                     WHERE 
-                        doc.cliente_id = @0 AND
-                        tipo.detalle = @1 `,
+                        doc.${keyField} = @0 AND
+                        tipo.doctipo_id = @1 `,
                     [id,TipoSearch])
-          //break;
-          
-          //}
+
     
           this.jsonRes(
             {
@@ -107,11 +103,11 @@ export class FileUploadController extends BaseController {
             const newFilePath = `${dirtmpNew}/${docgeneral}-${id}.pdf`;
             this.moveFile(`${file.fieldname}.pdf`, newFilePath, dirtmpNew);
 
-            let tipoCodigo = tipoUpload === "Cliente" ? "CLI" : tipoUpload === "Objetivo" ? "OBJ" : "";
+            //let tipoCodigo = tipoUpload === "Cliente" ? "CLI" : tipoUpload === "Objetivo" ? "OBJ" : "";
 
-            if(tipoCodigo == "")
+            if(!tipoUpload)
               throw new ClientException(`Error en el tipo de Codido al subir archivo `)
-            
+         
             await this.setArchivos(
                     queryRunner,
                     Number(docgeneral),
@@ -124,7 +120,7 @@ export class FileUploadController extends BaseController {
                     usuario,
                     ip,
                     fechaActual,
-                    tipoCodigo,
+                    tipoUpload,
                     null,
                     id
                   );
