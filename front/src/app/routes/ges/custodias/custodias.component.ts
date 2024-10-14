@@ -116,6 +116,10 @@ export class CustodiaComponent {
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
             totalRecords(this.angularGrid, 'cliente')
             columnTotal('facturacion', this.angularGrid)
+            columnTotal('cant_horas_exced', this.angularGrid)
+            columnTotal('impo_horas_exced', this.angularGrid)
+            columnTotal('cant_km_exced', this.angularGrid)
+            columnTotal('impo_km_exced', this.angularGrid)
         })
         if (this.apiService.isMobile())
             this.angularGrid.gridService.hideColumnByIds([])

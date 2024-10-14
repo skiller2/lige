@@ -316,23 +316,28 @@ export class ApiService {
             col.formatter= Formatters['complexObject']
 
           if (col.type == 'date')
-            col.formatter = Formatters['dateEuro']
-
-
-
+            col.formatter = Formatters['dateEuro'] 
+          else 
 
           if (String(col.type) == 'currency' || String(col.type) == 'money') {
             col.formatter = Formatters['multiple']
             col.params = { formatters: [Formatters['currency']], thousandSeparator: '.', decimalSeparator: ',' }
             col.type = 'float'
             col.cssClass = 'text-right'
-          }
+          } else
+
+          if (String(col.type) == 'float' || String(col.type) == 'decimal') {
+            col.formatter = Formatters['multiple']
+            col.params = { formatters: [Formatters['decimal']], thousandSeparator: '.', decimalSeparator: ',' }
+            col.type = 'float'
+            col.cssClass = 'text-right'
+          } else
 
           if (col.type == 'number') {
             col.formatter = Formatters['multiple']
             col.params = { formatters: [] }
             col.cssClass = 'text-right'
-          }
+          } else
 
           if (col.type == 'object')
             col.type = FieldType.object
