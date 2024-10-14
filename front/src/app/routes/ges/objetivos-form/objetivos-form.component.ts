@@ -18,6 +18,9 @@ import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 
+
+
+
 @Component({
   selector: 'app-objetivos-form',
   templateUrl: './objetivos-form.component.html',
@@ -38,6 +41,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     FileUploadComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  
 })
 
 
@@ -66,6 +70,7 @@ export class ObjetivosFormComponent {
   isLoading = signal(false)
   addNew = model()
   files = []
+
 
   
 
@@ -284,5 +289,6 @@ export class ObjetivosFormComponent {
     const form = this.formCli.value
     await firstValueFrom(this.apiService.deleteObjetivos(form))
   }
+
 
 }

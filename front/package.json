@@ -57,6 +57,7 @@
     "angular-slickgrid": "^8.8.1",
     "file-saver": "^2.0.5",
     "ng-zorro-antd": "^18.1.1",
+    "ngx-extended-pdf-viewer": "^22.0.0-alpha.0",
     "ngx-image-cropper": "^6.3.4",
     "ngx-tinymce": "^18.0.0",
     "pdf-lib": "^1.17.1",
