@@ -1,4 +1,4 @@
-@import '@slickgrid-universal/common/dist/styles/sass/sass-utilities';
+//@import '@slickgrid-universal/common/dist/styles/sass/sass-utilities';
 
 
 
@@ -51,6 +51,8 @@ $slick-link-color-hover:                                    darker($slick-link-c
 $slick-navbar-default-link-hover-color:	                    $slick-gray-dark !default;
 $slick-text-color:             			                        $slick-gray-dark !default;
 $slick-table-background:                                    transparent !default;
+$slick-grid-footer-display:                                 inline;
+$slick-grid-footer-cell-padding:                            2px 2px;
 
 /* cell */
 $slick-cell-active-border:                                  none !default;

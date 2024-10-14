@@ -53,11 +53,11 @@ export class AdelantoComponent {
     }
   }
 
-  columns$ = this.apiService.getCols('/api/adelantos/cols').pipe(map((cols) => {
+  columns$ = this.apiService.getCols('/api/adelantos/cols').pipe(map((cols: Column<any>[]) => {
     let mapped = cols.map((col: Column) => {
       if (col.id == 'PersonalPrestamoMonto') {
         col.editor = {
-          model: Editors.float,
+          model: Editors['float'],
           decimal: 2,
           valueStep: 1,
           minValue: 0,
@@ -89,7 +89,7 @@ export class AdelantoComponent {
           { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptions }
         )
         .pipe(
-          map(data => {
+          map((data:any) => {
             this.gridDataLen = data.list.length
             return data.list
           }),

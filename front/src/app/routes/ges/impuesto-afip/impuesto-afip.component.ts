@@ -104,12 +104,12 @@ export class ImpuestoAfipComponent {
   }
 
 
-  columns$ = this.apiService.getCols('/api/impuestos_afip/cols').pipe(map((cols) => {
+  columns$ = this.apiService.getCols('/api/impuestos_afip/cols').pipe(map((cols: Column<any>[]) => {
     let mapped = cols.map((col: any) => {
       if (col.id == 'monto') {
-        col.formatter = Formatters.multiple
+        col.formatter = Formatters['multiple']
         col.asyncPostRender = this.renderAngularComponent.bind(this)
-        col.params.formatters = [Formatters.currency]
+        col.params.formatters = [Formatters['currency']]
         col.params.component = CustomDescargaComprobanteComponent
         col.params.angularUtilService = this.angularUtilService
       }
@@ -143,7 +143,7 @@ export class ImpuestoAfipComponent {
           { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptions, toggle: this.toggle }
         )
         .pipe(
-          map(data => {
+          map((data:any) => {
             return data.list
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
@@ -162,7 +162,7 @@ export class ImpuestoAfipComponent {
           0
         )
         .pipe(
-          map(items => {
+          map((items:any) => {
             return {
               RegistrosConComprobantes: items.RegistrosConComprobantes,
               RegistrosSinComprobantes: items.RegistrosSinComprobantes,

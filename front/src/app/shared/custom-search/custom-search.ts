@@ -17,14 +17,11 @@ export function columnTotal(column: string, angularGrid: AngularGridInstance) {
             }
 
             totalDisplay = String((columnDetail.formatter) ? columnDetail.formatter(0, 0, gridDataTotal, columnDetail, null, angularGrid.slickGrid) : gridDataTotal)
-
-            columnFooter.style.paddingRight = '1px'
             columnFooter.classList.add(String(columnDetail?.cssClass));
         } else {
             totalDisplay = list.length.toString()
         }
         columnFooter.innerHTML = totalDisplay
-        // console.log('columnFooter.innerHTML', totalDisplay)
     }
 
 

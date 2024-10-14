@@ -1,5 +1,5 @@
 import { Component, EventEmitter, forwardRef, inject, Input, input, model, output, Output, signal, SimpleChanges, ViewChild, viewChild } from '@angular/core';
-import { BehaviorSubject, debounceTime, firstValueFrom, noop, Observable, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, noop, switchMap } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';

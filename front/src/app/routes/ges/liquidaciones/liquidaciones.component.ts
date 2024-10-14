@@ -278,7 +278,7 @@ export class LiquidacionesComponent {
           { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptions }
         )
         .pipe(
-          map(data => {
+          map((data:any) => {
             this.anio = periodo.getFullYear();
             this.mes = periodo.getMonth() + 1;
             // this.gridDataLen = data?.list?.length
@@ -371,7 +371,7 @@ export class LiquidacionesComponent {
     });
   }
 
-  columns$ = this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols) => {
+  columns$ = this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols: Column<any>[]) => {
     cols[6].asyncPostRender = this.renderAngularComponent.bind(this)
     cols[8].asyncPostRender = this.renderAngularComponent.bind(this)
 
@@ -383,48 +383,48 @@ export class LiquidacionesComponent {
     switch (value) {
       case "movimientosAutomaticos":
 
-        firstValueFrom(this.apiService.setmovimientosAutomaticos(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.setmovimientosAutomaticos(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next(''))))
         break;
 
       case "Asistencia":
 
-        firstValueFrom(this.apiService.setingresoPorAsistencia(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next('')))) //.subscribe(evt => {this.formChange$.next('')});
+        firstValueFrom(this.apiService.setingresoPorAsistencia(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next('')))) //.subscribe(evt => {this.formChange$.next('')});
         break;
 
       case "Licencias":
 
-        firstValueFrom(this.apiService.setingresoPorAsistenciaAdministrativosArt42(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.setingresoPorAsistenciaAdministrativosArt42(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next(''))))
         break;
 
 
       case "ingresosCoordinadorDeCuenta":
 
-        firstValueFrom(this.apiService.setingresosCoordinadorDeCuenta(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.setingresosCoordinadorDeCuenta(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next(''))))
         break;
 
       case "descuentoPorDeudaAnterior":
 
-        firstValueFrom(this.apiService.setdescuentoPorDeudaAnterior(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.setdescuentoPorDeudaAnterior(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next(''))))
         break;
 
       case "descuentos":
 
-        firstValueFrom(this.apiService.setdescuentos(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.setdescuentos(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next(''))))
         break;
 
       case "movimientoAcreditacionEnCuenta":
 
-        firstValueFrom(this.apiService.setmovimientoAcreditacionEnCuenta(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap(res => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.setmovimientoAcreditacionEnCuenta(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next(''))))
         break;
 
       case "generarRecibos":
 
-        firstValueFrom(this.apiService.generaRecibos(this.selectedPeriod.year, this.selectedPeriod.month, this.fechaRecibo()).pipe(tap(res => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.generaRecibos(this.selectedPeriod.year, this.selectedPeriod.month, this.fechaRecibo()).pipe(tap((_res: any) => this.formChange$.next(''))))
         break;
 
       case "generarReciboUnico":
 
-        firstValueFrom(this.apiService.generaReciboUnico(this.selectedPeriod.year, this.selectedPeriod.month, this.PersonalIdForReceip).pipe(tap(res => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.generaReciboUnico(this.selectedPeriod.year, this.selectedPeriod.month, this.PersonalIdForReceip).pipe(tap((_res: any) => this.formChange$.next(''))))
         break;
 
       default:
@@ -444,7 +444,7 @@ export class LiquidacionesComponent {
         id: 'delete',
         field: 'id',
         excludeFromHeaderMenu: false,
-        formatter: Formatters.icon,
+        formatter: Formatters['icon'],
         params: { iconCssClass: 'fa fa-trash pointer' },
         maxWidth: 30,
       },
@@ -461,7 +461,7 @@ export class LiquidacionesComponent {
         type: FieldType.string,
         maxWidth: 250,
         minWidth: 250,
-        formatter: Formatters.complexObject,
+        formatter: Formatters['complexObject'],
         params: {
           complexFieldLabel: 'des_movimiento.fullName',
         },
@@ -482,7 +482,7 @@ export class LiquidacionesComponent {
         type: FieldType.string,
         maxWidth: 250,
         minWidth: 250,
-        formatter: Formatters.complexObject,
+        formatter: Formatters['complexObject'],
         params: {
           complexFieldLabel: 'des_cuenta.fullName',
         },
@@ -503,7 +503,7 @@ export class LiquidacionesComponent {
         type: FieldType.string,
         maxWidth: 250,
         editor: {
-          model: Editors.text
+          model: Editors['text']
         }
       },
       {
@@ -511,7 +511,7 @@ export class LiquidacionesComponent {
         sortable: true,
         type: FieldType.string,
         maxWidth: 200,
-        formatter: Formatters.complexObject,
+        formatter: Formatters['complexObject'],
         params: {
           complexFieldLabel: 'ObjetivoDescripcion.fullName',
         },
@@ -532,7 +532,7 @@ export class LiquidacionesComponent {
         type: FieldType.string,
         maxWidth: 250,
         minWidth: 250,
-        formatter: Formatters.complexObject,
+        formatter: Formatters['complexObject'],
         params: {
           complexFieldLabel: 'ApellidoNombre.fullName',
         },
@@ -552,14 +552,14 @@ export class LiquidacionesComponent {
         type: FieldType.float,
         maxWidth: 200,
         // groupTotalsFormatter: GroupTotalFormatters.sumTotals,
-        formatter: Formatters.multiple,
+        formatter: Formatters['multiple'],
         params: {
-          formatters: [Formatters.currency],
+          formatters: [Formatters['currency']],
           // groupFormatterPrefix: '<b>Total</b>: ' 
         },
         cssClass: 'text-right',
         editor: {
-          model: Editors.float, decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000,
+          model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000,
         }
       }
     ];
@@ -697,7 +697,7 @@ export class LiquidacionesComponent {
     let periodoY = periodo.getFullYear();
     const valuePeriodo = periodoM + "/" + periodoY;
     if (altas.length > 0) {
-      this.apiService.setAgregarRegistros({ gridDataInsert: altas }, valuePeriodo).subscribe(evt => {
+      this.apiService.setAgregarRegistros({ gridDataInsert: altas }, valuePeriodo).subscribe((_res: any) => {
         this.formChange$.next('')
         this.cleanTable()
       });
@@ -709,7 +709,7 @@ export class LiquidacionesComponent {
     const periodo = this.liquidacionesForm.form.get('periodo')?.value
     if (this.NotificationIdForDelete > 0) {
       //(document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
-      this.apiService.setDeleteImportacion(this.NotificationIdForDelete, periodo.getFullYear(), periodo.getMonth() + 1).subscribe(evt => {
+      this.apiService.setDeleteImportacion(this.NotificationIdForDelete, periodo.getFullYear(), periodo.getMonth() + 1).subscribe((_evt:any) => {
         this.formChange$.next('')
       });
     }

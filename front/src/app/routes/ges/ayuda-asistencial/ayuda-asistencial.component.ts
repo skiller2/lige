@@ -59,11 +59,11 @@ export class AyudaAsistencialComponent {
         }
     });
 
-    columns$ = this.apiService.getCols('/api/ayuda-asistencial/cols').pipe(map((cols) => {
+    columns$ = this.apiService.getCols('/api/ayuda-asistencial/cols').pipe(map((cols: Column<any>[]) => {
         let mapped = cols.map((col: Column) => {
           if (col.id == 'PersonalPrestamoMonto') {
             col.editor = {
-              model: Editors.float,
+              model: Editors['float'],
               decimal: 2,
               valueStep: 1,
               minValue: 0,
@@ -74,7 +74,7 @@ export class AyudaAsistencialComponent {
           }
           if (col.id == 'PersonalPrestamoCantidadCuotas') {
             col.editor = {
-              model: Editors.integer,
+              model: Editors['integer'],
               valueStep: 1,
               minValue: 1,
               maxValue: 100,
@@ -84,7 +84,7 @@ export class AyudaAsistencialComponent {
           }
           if (col.id == 'PersonalPrestamoAplicaEl') {
             col.editor = {
-              model: Editors.text,
+              model: Editors['text'],
               alwaysSaveOnEnterKey: true,
               required: true
             }
@@ -101,7 +101,7 @@ export class AyudaAsistencialComponent {
                 { anio: this.selectedPeriod.year, mes: this.selectedPeriod.month, options: this.listOptions }
             )
             .pipe(
-                map(data => { return data }),
+                map((data:any) => { return data }),
                 doOnSubscribe(() => this.tableLoading$.next(true)),
                 tap({ complete: () => this.tableLoading$.next(false) })
             )

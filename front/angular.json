@@ -45,7 +45,9 @@
               "ajv-formats",
               "mockjs",
               "file-saver",
-              "extend"
+              "extend",
+              "dompurify",
+              "stream"
             ],
             "stylePreprocessorOptions": {
               "includePaths": [

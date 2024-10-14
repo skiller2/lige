@@ -6,8 +6,8 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { error } from 'pdf-lib';
 import { DownloadService } from './download.service';
 import { formatNumber } from '@angular/common';
-import { collectionFormatter, ExternalResource, FieldType, Formatters } from '@slickgrid-universal/common';
-import { AngularUtilService, Column, GridOption } from 'angular-slickgrid';
+import { collectionFormatter, ExternalResource, FieldType, Formatters,Column } from '@slickgrid-universal/common';
+import { AngularUtilService, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { HttpContext } from '@angular/common/http';
 import { ALLOW_ANONYMOUS } from '@delon/auth';
@@ -207,7 +207,7 @@ export class ApiService {
       enableColumnPicker: true,
       //enableExcelCopyBuffer: true,
       enableExcelExport: true,
-      externalResources: [xlsService],
+      externalResources: [xlsService as ExternalResource],
 
       enableAutoTooltip: true,
       enableFiltering: false,
@@ -308,27 +308,28 @@ export class ApiService {
     return this.http.get<any>(url).pipe(
       map((res: any) => {
         const mapped = res.data.map((col: Column) => {
+
           if(String(col.formatter)=='collectionFormatter')
             col.formatter = collectionFormatter
 
             if (String(col.formatter) == 'complexObject')
-            col.formatter= Formatters.complexObject
+            col.formatter= Formatters['complexObject']
 
           if (col.type == 'date')
-            col.formatter = Formatters.dateEuro
+            col.formatter = Formatters['dateEuro']
 
 
 
 
           if (String(col.type) == 'currency' || String(col.type) == 'money') {
-            col.formatter = Formatters.multiple
-            col.params = { formatters: [Formatters.currency], thousandSeparator: '.', decimalSeparator: ',' }
+            col.formatter = Formatters['multiple']
+            col.params = { formatters: [Formatters['currency']], thousandSeparator: '.', decimalSeparator: ',' }
             col.type = 'float'
             col.cssClass = 'text-right'
           }
 
           if (col.type == 'number') {
-            col.formatter = Formatters.multiple
+            col.formatter = Formatters['multiple']
             col.params = { formatters: [] }
             col.cssClass = 'text-right'
           }

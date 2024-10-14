@@ -175,7 +175,7 @@ export class CargaAsistenciaComponent {
                 type: FieldType.string,
                 maxWidth: 250,
                 minWidth: 170,
-                formatter: Formatters.complexObject,
+                formatter: Formatters['complexObject'],
                 exportWithFormatter: true,
                 params: {
                     complexFieldLabel: 'apellidoNombre.fullName',
@@ -200,7 +200,7 @@ export class CargaAsistenciaComponent {
                 type: FieldType.object,
                 maxWidth: 50,
                 minWidth: 50,
-                formatter: Formatters.complexObject,
+                formatter: Formatters['complexObject'],
                 params: {
                     complexFieldLabel: 'forma.fullName',
                     complexField: 'forma.fullName',
@@ -226,7 +226,7 @@ export class CargaAsistenciaComponent {
                 type: FieldType.string,
                 maxWidth: 100,
                 minWidth: 100,
-                formatter: Formatters.complexObject,
+                formatter: Formatters['complexObject'],
                 params: {
                     complexFieldLabel: 'categoria.fullName',
                 },
@@ -336,6 +336,10 @@ export class CargaAsistenciaComponent {
                     item[fld] = editCommand.editor.args.item[fld]
                 }
                 this.angularGridEdit.gridService.updateItemById(row.id, item)
+
+
+                this.updateTotals(editCommand.editor.args.column.id, this.angularGridEdit)
+
                 this.rowLocked = false
             }
         }
@@ -463,7 +467,7 @@ export class CargaAsistenciaComponent {
                 //                    decimalSeparator: ',',
                 //                },
                 cssClass: 'text-right',
-                editor: { model: Editors.float, decimal: 1 },
+                editor: { model: Editors['float'], decimal: 1 },
                 onCellChange: this.onHoursChange.bind(this),
                 excelExportOptions: {
                     width: 5,
@@ -740,10 +744,10 @@ export class CargaAsistenciaComponent {
         this.columnas.forEach((col: any, index: number) => {
             if (col.field.startsWith('day')) {
                 grandTotal[col.field] = this.angularGridEdit.slickGrid.getFooterRowColumn(col.field).innerText
-                aggregatorsArray.push(new Aggregators.Sum(col.field))
+                aggregatorsArray.push(new Aggregators['Sum'](col.field))
             }
             if (col.field.startsWith('total')) {
-                aggregatorsArray.push(new Aggregators.Sum(col.field))
+                aggregatorsArray.push(new Aggregators['Sum'](col.field))
             }
         })
         grandTotal.total = this.angularGridEdit.slickGrid.getFooterRowColumn('total').innerText

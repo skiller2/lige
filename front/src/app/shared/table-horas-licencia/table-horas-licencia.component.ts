@@ -106,7 +106,7 @@ export class TableHorasLicenciaComponent {
     return cols.map((col: Column) => {
       if (col.id == 'PersonalLicenciaAplicaPeriodoHorasMensuales') {
         col.editor = {
-          model: Editors.float,
+          model: Editors['float'],
           decimal: 2,
           valueStep: 1,
           minValue: 0,
@@ -169,7 +169,8 @@ export class TableHorasLicenciaComponent {
   async onHoursChange(e: Event, args: any) {
     const item = args.dataContext
     const res = await firstValueFrom(this.apiService.setchangehours(item))
-    item.total = res.data.total
+    item.total = res.data?.total
+    item.PersonalLicenciaAplicaPeriodoHorasMensuales = res.data?.PersonalLicenciaAplicaPeriodoHorasMensuales
 
     this.angularGridEdit.gridService.updateItemById(item.id, item)
   }
