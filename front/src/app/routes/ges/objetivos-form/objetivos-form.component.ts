@@ -66,7 +66,7 @@ export class ObjetivosFormComponent {
   isLoading = signal(false)
   addNew = model()
   files = []
-  textForSearch = "Objetivo"
+
   
 
   private apiService = inject(ApiService)
@@ -144,7 +144,7 @@ export class ObjetivosFormComponent {
 
 
   async load() {
-    this.files = []
+
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
    
    console.log("infoObjetivo",infoObjetivo)

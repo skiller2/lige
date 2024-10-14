@@ -68,7 +68,7 @@ export class ClientesFormComponent {
   selectedValueProvincia = null
   isLoading = signal(false)
   addNew = model()
-  files = []
+  //files = []
   textForSearch = "Cliente"
   
 
@@ -178,7 +178,7 @@ export class ClientesFormComponent {
 
 
   async load() {
-    this.files = []
+   // this.files = []
     let infoCliente = await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
 
     this.infoClienteContacto().clear()

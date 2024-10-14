@@ -76,8 +76,8 @@ FileUploadRouter.post("/downloadFile", [authMiddleware.verifyToken, authMiddlewa
   await fileUploadController.getByDownloadFile(req, res, next);
 });
 
-FileUploadRouter.get('/archivos_anteriores/:id/:TipoSearch', (req, res, next) => {
-  fileUploadController.getArchivosAnteriores(req.params.id, req.params.TipoSearch, req, res, next)
+FileUploadRouter.get('/archivos_anteriores/:id/:TipoSearch/:keyField', (req, res, next) => {
+  fileUploadController.getArchivosAnteriores(req.params.id, req.params.TipoSearch, req.params.keyField ,req, res, next)
 });
 
 FileUploadRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) => {

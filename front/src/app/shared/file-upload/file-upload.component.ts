@@ -31,23 +31,22 @@ export class FileUploadComponent implements ControlValueAccessor{
   files = signal<any[]>([])
   private notification = inject(NzNotificationService)
   ArchivoIdForDelete = 0
+  keyField = input("")
+  idForSearh = input(0)
+  textForSearch = input("")
   
   // valueExtended = input()
   // valueExtendedEmitter = output<[]>();
 
   formChange$ = new BehaviorSubject('');
 
-  idForSearh = input(0)
-  textForSearch = input("")
-
- 
   $formChange = new BehaviorSubject('');
   $files = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
       if(this.idForSearh() > 0 && this.textForSearch() != ""){
         this.files.set([])
-        return this.apiService.getArchivosAnteriores(this.idForSearh(),this.textForSearch())
+        return this.apiService.getArchivosAnteriores(this.idForSearh(),this.textForSearch(),this.keyField())
       } else {
         return []
       }
