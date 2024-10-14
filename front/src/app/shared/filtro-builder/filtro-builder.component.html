@@ -1,10 +1,10 @@
 <nz-card style="max-height: 150px; overflow: auto;">
-  @for (tag of localoptions.filtros; track $index) {
-  @if (tag.tagName) {
-  <nz-tag [nzMode]="(tag.closeable)?'closeable':'default'" (nzOnClose)="removeFiltro($index)">
-    <span class="app-tag-span">{{ tag.tagName }}</span>
-  </nz-tag>
-  }
+  @for (tag of localoptions.filtros; track tag) {
+    @if (tag.tagName !="") {
+      <nz-tag [nzMode]="(tag.closeable)?'closeable':'default'" (nzOnClose)="removeFiltro($index)">
+      <span class="app-tag-span">{{ tag.tagName }}</span>
+    </nz-tag>
+    }
   }
   <nz-tag *ngIf="!isFiltroBuilder" class="editable-tag" nzNoAnimation (click)="handleTagInteraction()">
     <span nz-icon nzType="plus"></span>
