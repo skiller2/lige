@@ -27,7 +27,7 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 })
 export class FileUploadComponent implements ControlValueAccessor{
 
-  constructor( ) { pdfDefaultOptions.assetsFolder = 'bleeding-edge' };
+  constructor( ) { pdfDefaultOptions.assetsFolder = 'assets/bleeding-edge' };
 
   uploading$ = new BehaviorSubject({loading:false,event:null});
   private apiService = inject(ApiService)
