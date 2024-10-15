@@ -458,17 +458,22 @@ export class PersonalController extends BaseController {
         SELECT DISTINCT per.PersonalId AS id, cuit.PersonalCUITCUILCUIT,
         CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
         per.PersonalNroLegajo, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
-        CONCAT(TRIM(sit.SituacionRevistaDescripcion), ' ', FORMAT(sitrev.PersonalSituacionRevistaDesde, 'dd/MM/yyyy'), ' ', FORMAT(sitrev.PersonalSituacionRevistaHasta, 'dd/MM/yyyy')) AS SituacionRevista,
+        CONCAT(TRIM(sitrev.SituacionRevistaDescripcion), ' ', FORMAT(sitrev.PersonalSituacionRevistaDesde, 'dd/MM/yyyy')) AS SituacionRevista,
         per.PersonalFechaIngreso
         FROM Personal per
-        JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND ((DATEPART(YEAR,sitrev.PersonalSituacionRevistaDesde)=@0 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaDesde)=@1) OR (DATEPART(YEAR,sitrev.PersonalSituacionRevistaHasta)=@0 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaHasta)=@1) OR (sitrev.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1)) AND ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@0,@1,1)))
-        LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+        LEFT JOIN (
+          SELECT p.PersonalId, s.SituacionRevistaDescripcion, MAX(p.PersonalSituacionRevistaDesde) PersonalSituacionRevistaDesde
+          FROM PersonalSituacionRevista p
+          JOIN SituacionRevista s
+          ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaHasta IS NULL
+          GROUP BY s.SituacionRevistaDescripcion, p.PersonalId
+        ) sitrev ON sitrev.PersonalId = per.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId
         LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
-        WHERE sitrev.PersonalSituacionRevistaHasta IS NULL AND cuit.PersonalCUITCUILHasta IS NULL
+        WHERE cuit.PersonalCUITCUILHasta IS NULL
         AND (${filterSql})
-        ${orderBy}`, [anio, mes])
+        ${orderBy}`)
   }
 
   async getGridList(req: any, res: Response, next: NextFunction) {
@@ -482,14 +487,14 @@ export class PersonalController extends BaseController {
 
       const lista:any[] = await this.listPersonalQuery(queryRunner, filterSql, orderBy)
 
-      let array: any[]=[]
-      for (const obj of lista) {
-        if (array.includes(obj.id)) {
-          console.log(obj);
-        }else{
-          array.push(obj.id)
-        }
-      }
+      // let array: any[]=[]
+      // for (const obj of lista) {
+      //   if (array.includes(obj.id)) {
+      //     console.log(obj);
+      //   }else{
+      //     array.push(obj.id)
+      //   }
+      // }
 
       await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
@@ -507,12 +512,89 @@ export class PersonalController extends BaseController {
         FROM SituacionRevista sit`)
   }
 
+  async addPersonalQuery(queryRunner:any, infoPersonal:any){
+    const nombre = infoPersonal
+    const apellido = infoPersonal
+    const cuit = infoPersonal
+    const nroLegajo = infoPersonal
+    const sucusalId = infoPersonal
+    const fechaAlta = infoPersonal
+    const fechaNacimiento = infoPersonal
+    const foto = infoPersonal
+    const nacionalidad = infoPersonal
+    const dniDorso = infoPersonal
+    const dniFrente = infoPersonal
+    return await queryRunner.query(`
+        INSERT Personal(
+            PersonalId, PersonalNroLegajo, PersonalApellido, PersonalNombre, PersonalApellidoNombre,
+            PersonalFechaSolicitudIngreso, 
+            aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod
+        )
+        VALUES ()`)
+  }
+
   async getSituacionRevista(req: any, res: Response, next: NextFunction){
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.startTransaction()
 
       const options = await this.getSituacionRevistaQuery(queryRunner)
+
+      await queryRunner.commitTransaction()
+      this.jsonRes(options, res);
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async addPersonal(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    const nombre = req.body
+    const apellido = req.body
+    const cuit = req.body
+    const nroLegajo = req.body
+    const sucusalId = req.body
+    const fechaAlta = req.body
+    const fechaNacimiento = req.body
+    const foto = req.body
+    const nacionalidad = req.body
+    const dniDorso = req.body
+    const dniFrente = req.body
+    try {
+      await queryRunner.startTransaction()
+
+      let max = await queryRunner.query(`
+        SELECT MAX(per.PersonalId)
+        FROM Personal per`)
+      max = max[0]+1
+
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res);
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async getSNacionalidadListQuery(queryRunner:any){
+    return await queryRunner.query(`
+        SELECT nac.NacionalidadId value, TRIM(nac.NacionalidadDescripcion) label
+        FROM Nacionalidad nac`)
+  }
+
+  async getNacionalidadList(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction()
+
+      console.log('options');
+      const options = await this.getSNacionalidadListQuery(queryRunner)
+      console.log('options',options);
 
       await queryRunner.commitTransaction()
       this.jsonRes(options, res);
