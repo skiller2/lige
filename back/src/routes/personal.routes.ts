@@ -1,12 +1,111 @@
-import { Router } from "express";
+import { Request, Router } from "express";
 import { personalController } from "../controller/controller.module";
 import { authMiddleware } from "../middlewares/middleware.module";
+import multer, { FileFilterCallback } from "multer";
+import { existsSync, mkdirSync } from "fs";
+import { ClientException } from "../controller/baseController";
+
+type DestinationCallback = (error: Error | null, destination: string) => void;
+
+const dirtmp = `${process.env.PATH_LICENCIA}/temp`;
+
+if (!existsSync(dirtmp)) {
+  mkdirSync(dirtmp, { recursive: true });
+}
+
+function generateRandomDigitNumber() {
+
+  let randomNumber = Math.random();
+  randomNumber *= Math.pow(10, 15);
+  randomNumber = Math.floor(randomNumber);
+
+  if (randomNumber < Math.pow(10, 14)) {
+    randomNumber += Math.pow(10, 14);
+  }
+
+  return randomNumber;
+}
+  
+const storage = multer.diskStorage({
+    destination: (
+      req: Request,
+      file: Express.Multer.File,
+      callback: DestinationCallback
+    ) => {
+      return callback(null, dirtmp);
+    },
+    filename: (
+      req: Request,
+      file: Express.Multer.File,
+      callback: DestinationCallback
+    ) => {
+      
+      const originalname = generateRandomDigitNumber();
+      file.fieldname = originalname.toString()
+      
+      //const originalname = file.uid;
+      console.log(file)
+      callback(null, `${originalname}.jpg`);
+    },
+  });
+  
+  const fileFilterJpg = (
+    request: Request,
+    file: Express.Multer.File,
+    callback: FileFilterCallback
+  ): void => {
+
+    if (file.mimetype !== "application/jpg") {
+      callback(new ClientException("El archivo no es del tipo JPG."));
+      return;
+    }
+
+    callback(null, true);
+  };
+  
+  const uploadJpg = multer({
+    storage: storage,
+    fileFilter: fileFilterJpg,
+  }).single("jpg");
 
 export const personalRouter = Router();
 const base = "";
 
 personalRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   personalController.getGridList(req, res, next)
+});
+
+personalRouter.post("/upload", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+  
+  uploadJpg(req, res, (err) => {
+    
+    // FILE SIZE ERROR
+    if (err instanceof multer.MulterError) {
+      return res.status(409).json({
+        msg: "Max file size 100MB allowed!",
+        data: [],
+        stamp: new Date(),
+      });
+    }
+  
+    else if (err) {
+      return res
+        .status(409)
+        .json({ msg: err.message, data: [], stamp: new Date() });
+    }
+  
+    else if (!req.file) {
+      return res
+        .status(409)
+        .json({ msg: "File is required!", data: [], stamp: new Date() });
+    }else{
+      return res
+        .status(200)
+        .json({ msg: "archivo subido con exito!", data: [req.file], stamp: new Date() });
+    }
+
+    
+  });
 });
 
 personalRouter.post(
@@ -17,6 +116,9 @@ personalRouter.post(
   }
 );
 
+personalRouter.post(`${base}/add`, authMiddleware.verifyToken, (req, res, next) => { personalController.addPersonal(req, res, next); });
+
+personalRouter.get(`/nacionalidad/options`, authMiddleware.verifyToken, (req, res, next) => { personalController.getNacionalidadList(req, res, next); });
 
 personalRouter.get('/sitrevista/options', authMiddleware.verifyToken, (req, res, next) => {
   personalController.getSituacionRevista(req, res, next)

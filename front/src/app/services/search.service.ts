@@ -904,4 +904,17 @@ export class SearchService {
     );
   }
 
+  getNacionalidadList(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/personal/nacionalidad/options`).pipe(
+      map(res => {
+        console.log('res.data', res.data);
+        
+        return res.data }),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }
