@@ -6,23 +6,28 @@ import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { CommonModule } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { pdfDefaultOptions } from 'ngx-extended-pdf-viewer';
+import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
+
 
 
 @Component({
   selector: 'app-file-upload',
   standalone: true,
-  imports: [SHARED_IMPORTS,NzUploadModule,CommonModule],
+  imports: [SHARED_IMPORTS,NzUploadModule,CommonModule,NgxExtendedPdfViewerModule],
   templateUrl: './file-upload.component.html',
   styleUrl: './file-upload.component.less',
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => FileUploadComponent),
-      multi: true,
+      multi: true
     },
   ],
 })
 export class FileUploadComponent implements ControlValueAccessor{
+
+  constructor( ) { pdfDefaultOptions.assetsFolder = 'bleeding-edge' };
 
   uploading$ = new BehaviorSubject({loading:false,event:null});
   private apiService = inject(ApiService)
@@ -34,7 +39,11 @@ export class FileUploadComponent implements ControlValueAccessor{
   keyField = input("")
   idForSearh = input(0)
   textForSearch = input("")
-  
+  isVisible = false
+
+  Fullpath = signal("")
+  FileName = signal("")
+
   // valueExtended = input()
   // valueExtendedEmitter = output<[]>();
 
@@ -58,6 +67,15 @@ export class FileUploadComponent implements ControlValueAccessor{
     if (changes['idForSearh']) {
       this.formChange$.next('');
     }
+  }
+
+  LoadArchivo(path: any, filename:any){
+
+    let pathValue = `${path}/${filename}`
+    this.Fullpath.set(pathValue)
+    this.FileName.set(filename)
+     this.isVisible = true;
+
   }
 
 
@@ -130,6 +148,15 @@ export class FileUploadComponent implements ControlValueAccessor{
 
   writeValue(value: any) {
   }
+
+  ///
+
+
+
+  handleCancel(): void {
+    this.isVisible = false;
+  }
+
 
 
 } 
