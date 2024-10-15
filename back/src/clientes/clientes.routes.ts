@@ -50,15 +50,15 @@ clientesRouter.get('/getBarrio', authMiddleware.verifyToken, (req, res, next) =>
   clientesController.getBarrioQuery(req, res, next) 
 })
 
-clientesRouter.post('/update/:id', authMiddleware.verifyToken, (req, res, next) => { 
+clientesRouter.post('/update/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => { 
   clientesController.updateCliente(req, res, next)
 } )
 
-clientesRouter.delete("/", authMiddleware.verifyToken, (req, res, next) => {
+clientesRouter.delete("/", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   clientesController.deleteCliente(req, res, next);
 });
 
-clientesRouter.post('/add', authMiddleware.verifyToken, (req, res, next) => { 
+clientesRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => { 
   clientesController.addCliente(req, res, next) 
 } )
 
