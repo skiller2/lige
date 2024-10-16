@@ -8,6 +8,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { pdfDefaultOptions } from 'ngx-extended-pdf-viewer';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
+import { HttpClient } from '@angular/common/http';
 
 
 
@@ -26,8 +27,13 @@ import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
   ],
 })
 export class FileUploadComponent implements ControlValueAccessor{
+  public src=signal<Blob>(new Blob())
+  private readonly http = inject(HttpClient);
 
-  constructor( ) { pdfDefaultOptions.assetsFolder = 'assets/bleeding-edge' };
+  constructor() {
+    pdfDefaultOptions.assetsFolder = 'assets/bleeding-edge'
+
+   };
 
   uploading$ = new BehaviorSubject({loading:false,event:null});
   private apiService = inject(ApiService)
@@ -69,10 +75,14 @@ export class FileUploadComponent implements ControlValueAccessor{
     }
   }
 
-  LoadArchivo(path: any, filename:any){
-
-    let pathValue = `${path}/${filename}`
-    this.Fullpath.set(pathValue)
+  LoadArchivo(documentId: any, filename:any){
+    this.http
+    //    .get('/assets/pdfs/Bootstrap-vs-Material-Design-vs-Prime-vs-Tailwind.pdf',
+        .post('api/carga-licencia/downloadLicencia',
+          { responseType: 'blob','documentId': documentId }
+        )
+        .subscribe((res:any) => this.src.set(res) );
+    
     this.FileName.set(filename)
      this.isVisible = true;
 

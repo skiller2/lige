@@ -262,9 +262,8 @@ export class CustodiaController extends BaseController {
         )
     }
 
-    async addRegistroPersonalCustodiaQuery(queryRunner: any, infoPersonal:any, usuario:any, ip:any){
+    async addRegistroPersonalCustodiaQuery(queryRunner: any, objetivo_custodia_id:number, infoPersonal:any, usuario:any, ip:any){
         const personal_id = infoPersonal.personalId
-        const objetivo_custodia_id = infoPersonal.objetivoCustodiaId
         const importe_personal = infoPersonal.importe? infoPersonal.importe : null
         const fechaActual = new Date()
         return await queryRunner.query(`INSERT lige.dbo.regpersonalcustodia(
@@ -275,8 +274,7 @@ export class CustodiaController extends BaseController {
         [personal_id, objetivo_custodia_id, importe_personal, usuario, ip, fechaActual])
     }
 
-    async addRegistroVehiculoCustodiaQuery(queryRunner: any, infoVehiculo:any, usuario:any, ip:any){
-        const objetivo_custodia_id = infoVehiculo.objetivoCustodiaId
+    async addRegistroVehiculoCustodiaQuery(queryRunner: any, objetivo_custodia_id:number, infoVehiculo:any, usuario:any, ip:any){
         const patente = infoVehiculo.patente
         const personal_id = infoVehiculo.duenoId
         const importe_vehiculo = infoVehiculo.importe? infoVehiculo.importe : null
@@ -436,6 +434,7 @@ export class CustodiaController extends BaseController {
 
     async addObjetivoCustodia(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
+        let errores = []
     
         try {
             await queryRunner.startTransaction()
@@ -459,71 +458,50 @@ export class CustodiaController extends BaseController {
             
             await this.addObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
-            let repPersonal = [], repVehiculo = [], errores = []
-            let vehiculoError = 0, personalError = 0
-            
+            var seen = {};
+            var hasDupPersonal = objetivoCustodia.personal.some(function (currentObject) {
+                return seen.hasOwnProperty(currentObject.personalId)
+                    || (seen[currentObject.personalId] = false);
+            });
+            if (hasDupPersonal.length>0)
+                errores.push(`Hay personal duplicado`)
+
+            await queryRunner.query(`DELETE FROM lige.dbo.regpersonalcustodia WHERE objetivo_custodia_id = @0`, [objetivoCustodiaId])
             for (const obj of objetivoCustodia.personal) {
-                if( obj.personalId ){
-                    let infoPersonal = {
-                        ...obj,
-                        objetivoCustodiaId
-                    }
+                if (obj.personalId) {
+                    if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
+                        errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
 
-                    //En caso de FINALIZAR custodia verificar los campos Importe de Personal
-                    if(this.valByEstado(objetivoCustodia.estado) && !infoPersonal.importe){
-                        personalError++
-                    }
-
-                    let rep = repPersonal.find((obj:any) => obj.personalId == infoPersonal.personalId)
-                    if (rep) {
-                        errores.push(`El personal ya tiene un registro existente en el formulario.`)
-                    }else{
-                        await this.addRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
-                        repPersonal.push(infoPersonal)
-                    }
+                    await this.addRegistroPersonalCustodiaQuery(queryRunner, objetivoCustodiaId, obj, usuario, ip)
                 }
             }
 
+            var hasDupVehiculos = objetivoCustodia.vehiculos.some(function (currentObject) {
+                return seen.hasOwnProperty(currentObject.patente)
+                    || (seen[currentObject.patente] = false);
+            });
+            if (hasDupVehiculos.length>0)
+                errores.push(`Hay vehículos duplicados`)
+
+            await queryRunner.query(`DELETE lige.dbo.regvehiculocustodia WHERE objetivo_custodia_id = @0`,[objetivoCustodiaId])
             for (const obj of objetivoCustodia.vehiculos) {
-                if( obj.patente ){
-                    let infoVehiculo = {
-                        ... obj,
-                        objetivoCustodiaId
-                    }
-
-                    //En caso de FINALIZAR custodia verificar los campos Importe de Vehiculos
-                    if(this.valByEstado(objetivoCustodia.estado) && !infoVehiculo.importe){
-                        vehiculoError++
-                    }
-                    if(this.valByEstado(objetivoCustodia.estado) && !infoVehiculo.duenoId){
-                        errores.push(`El campo Dueño de la patente ${obj.patente} NO pueden estar vacios.`)
-                    }
-
-                    let rep = repVehiculo.find((obj:any) => obj.patente == infoVehiculo.patente)
-                    if (rep) {
-                        errores.push(`La patente ${rep.patente} ya tiene un registro existente en el formulario.`)
-                    }else{
-                        await this.addRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
-                        repVehiculo.push(infoVehiculo)
-                    }
+                if (obj.patente) {
+                    if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
+                        errores.push(`El campo Importe de la patente ${obj.patente} NO pueden estar vacio.`)
+                    if(!obj.duenoId)
+                        errores.push(`El campo Dueño de la patente ${obj.patente} NO pueden estar vacio.`)
+                    await this.addRegistroVehiculoCustodiaQuery(queryRunner, objetivoCustodiaId, obj, usuario, ip)
                 }
             }
-                
-            if (repVehiculo.length == 0 && repPersonal.length == 0) {
-                errores.push(`Debe de haber por lo menos una persona y un vehículo (Patente y Dueño) por custodia.`)
-            }
 
-            if(personalError) {
-                errores.push(`Los campos Importe de cada Personal NO pueden estar vacios.`)
-            }
+            if (objetivoCustodia.vehiculos.length == 0)
+                errores.push(`Debe de haber por lo menos un vehículo (Patente y Dueño) por custodia.`)
 
-            if(vehiculoError) {
-                errores.push(`Los campos Importe de cada Vehiculo NO pueden estar vacios.`)
-            }
+            if (objetivoCustodia.personal.length == 0)
+                errores.push(`Debe de haber por lo menos una persona por custodia.`)
 
-            if (errores.length) {
+            if (errores.length)
                 throw new ClientException(errores.join(`\n`))
-            }
 
             await queryRunner.commitTransaction()
             return this.jsonRes({ custodiaId: objetivoCustodiaId }, res, 'Carga Exitosa');
@@ -615,6 +593,7 @@ export class CustodiaController extends BaseController {
 
     async updateObjetivoCustodia(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
+        let errores = []        
     
         try {
             await queryRunner.startTransaction()
@@ -629,9 +608,7 @@ export class CustodiaController extends BaseController {
             let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, custodiaId)
             infoCustodia= infoCustodia[0]
             delete infoCustodia.id
-            // delete infoCustodia.responsableId
             delete infoCustodia.responsable
-            // delete infoCustodia.estado
             
             if (!(await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')) && responsableId != infoCustodia.responsableId){
                 throw new ClientException(`Únicamente puede modificar el registro ${infoCustodia.responsable} o pertenecer al grupo 'Administracion'/'Liquidaciones'.`)
@@ -641,114 +618,56 @@ export class CustodiaController extends BaseController {
             if (valCustodiaForm instanceof ClientException)
                 throw valCustodiaForm
             
-            let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, custodiaId)
-            let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
-            
-            let cantCambios = 0, personalError = 0, vehiculoError = 0
-            let repPersonal = [], repVehiculo = [], errores = []
-            
-            for (const key in objetivoCustodia) {
-                //Verifico si hubo cambios
-                if ( infoCustodia[key] !== undefined && (infoCustodia[key] != objetivoCustodia[key])){
-                    cantCambios++
-                }
-            }
+//            let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, custodiaId)
+//            let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
 
+            var seen = {};
+            var hasDupPersonal = objetivoCustodia.personal.some(function (currentObject) {
+                return seen.hasOwnProperty(currentObject.personalId)
+                    || (seen[currentObject.personalId] = false);
+            });
+            if (hasDupPersonal.length>0)
+                errores.push(`Hay personal duplicado`)
+
+            await queryRunner.query(`DELETE FROM lige.dbo.regpersonalcustodia WHERE objetivo_custodia_id = @0`, [custodiaId])
             for (const obj of objetivoCustodia.personal) {
-                if( obj.personalId ){
-                    let infoPersonal = {
-                        ...obj,
-                        objetivoCustodiaId: custodiaId
-                    }
-                    //En caso de FINALIZAR custodia verificar los campos Importe de Personal
-                    if(this.valByEstado(objetivoCustodia.estado) && !infoPersonal.importe){
-                        personalError++
-                    }
-                    //Verifico que el personal no se repita
-                    let persona = null
-                    for (let index = 0; index < listPersonal.length; index++) {
-                        if(listPersonal[index].personalId == infoPersonal.personalId){
-                            persona = listPersonal[index]
-                            listPersonal.splice(index, 1)
-                            break
-                        }
-                    }
-                    if (!persona) { //Si el personal es nuevo AGREGAR
-                        let rep = repPersonal.find((obj:any) => obj.personalId == infoPersonal.personalId)
-                        if (rep) {
-                            errores.push(`El personal ya tiene un registro existente en el formulario.`)
-                        }else{
-                            await this.addRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
-                        }
-                    } else if (persona.importe != infoPersonal.importe) { //Si hubo un cambio en regpersonalcustodia ACTUALIZA
-                        await this.updateRegistroPersonalCustodiaQuery(queryRunner, infoPersonal, usuario, ip)
-                    }
-                    repPersonal.push(infoPersonal)
+                if (obj.personalId) {
+                    if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
+                        errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
+
+                    await this.addRegistroPersonalCustodiaQuery(queryRunner, custodiaId, obj, usuario, ip)
                 }
             }
+
+            var hasDupVehiculos = objetivoCustodia.vehiculos.some(function (currentObject) {
+                return seen.hasOwnProperty(currentObject.patente)
+                    || (seen[currentObject.patente] = false);
+            });
+            if (hasDupVehiculos.length>0)
+                errores.push(`Hay vehículos duplicados`)
+
+            await queryRunner.query(`DELETE lige.dbo.regvehiculocustodia WHERE objetivo_custodia_id = @0`,[custodiaId])
             for (const obj of objetivoCustodia.vehiculos) {
-                if( obj.patente ){
-                    let infoVehiculo = {
-                        ...obj,
-                        objetivoCustodiaId: custodiaId
-                    }
-                    //En caso de FINALIZAR custodia verificar los campos Importe de Vehiculos
-                    if(this.valByEstado(objetivoCustodia.estado) && !infoVehiculo.importe){
-                        vehiculoError++
-                    }
-                    if(this.valByEstado(objetivoCustodia.estado) && !infoVehiculo.duenoId){
-                        errores.push(`El campo Dueño de la patente ${obj.patente} NO pueden estar vacios.`)
-                    }
-                    //Verifico que la patente no se repita
-                    let vehiculo = null
-                    for (let index = 0; index < listVehiculo.length; index++) {
-                        if(listVehiculo[index].patente == infoVehiculo.patente){
-                            vehiculo = listVehiculo[index]
-                            listVehiculo.splice(index, 1)
-                            break
-                        }
-                    }
-                    if (!vehiculo) {
-                        let rep = repVehiculo.find((obj:any) => obj.patente == infoVehiculo.patente)
-                        if (rep) {
-                            errores.push(`La patente ${rep.patente} ya tiene un registro existente en el formulario.`)
-                        }else{
-                            await this.addRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
-                        }
-                    } else if (vehiculo.duenoId != infoVehiculo.duenoId || vehiculo.importe != infoVehiculo.importe || vehiculo.peaje != infoVehiculo.peaje){
-                        await this.updateRegistroVehiculoCustodiaQuery(queryRunner, infoVehiculo, usuario, ip)
-                    }
-                    repVehiculo.push(infoVehiculo)
+                if (obj.patente) {
+                    if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
+                        errores.push(`El campo Importe de la patente ${obj.patente} NO pueden estar vacio.`)
+                    if(!obj.duenoId)
+                        errores.push(`El campo Dueño de la patente ${obj.patente} NO pueden estar vacio.`)
+                    await this.addRegistroVehiculoCustodiaQuery(queryRunner, custodiaId, obj, usuario, ip)
                 }
             }
-            if (repVehiculo.length == 0 && repPersonal.length == 0) {
-                errores.push(`Debe de haber por lo menos una persona y un vehículo (Patente y Dueño) por custodia.`)
-            }
 
-            if(personalError) {
-                errores.push(`Los campos Importe de cada Personal NO pueden estar vacios.`)
-            }
+            if (objetivoCustodia.vehiculos.length == 0)
+                errores.push(`Debe de haber por lo menos un vehículo (Patente y Dueño) por custodia.`)
 
-            if(vehiculoError) {
-                errores.push(`Los campos Importe de cada Vehiculo NO pueden estar vacios.`)
-            }
+            if (objetivoCustodia.personal.length == 0)
+                errores.push(`Debe de haber por lo menos una persona por custodia.`)
 
-            if (errores.length) {
+            if (errores.length)
                 throw new ClientException(errores.join(`\n`))
-            }
 
-            //Si hubo un cambio en objetivocustodia ACTUALIZA
-            //if (cantCambios) {
-                await this.updateObjetivoCustodiaQuery(queryRunner, {...objetivoCustodia, id: custodiaId}, usuario, ip)
-            //}
+            await this.updateObjetivoCustodiaQuery(queryRunner, {...objetivoCustodia, id: custodiaId}, usuario, ip)
 
-            //Elimino los vehiculos y el personal que ya no pertenecen a este objetivo custodia
-            for (const obj of listPersonal) {
-                await this.deleteRegPersonalObjCustodiaQuery(queryRunner, custodiaId, obj.personalId)
-            }
-            for (const obj of listVehiculo) {
-                await this.deleteRegVehiculoObjCustodiaQuery(queryRunner, custodiaId, obj.patente)
-            }
 //            throw new ClientException('DEBUG')
             
             await queryRunner.commitTransaction()
