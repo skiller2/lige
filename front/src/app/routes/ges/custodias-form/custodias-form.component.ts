@@ -160,19 +160,13 @@ export class CustodiaFormComponent {
     async save() {
         this.isLoading.set(true)
         const form = this.formCus.value
-        // console.log('form', form);
         try {
             if (this.custodiaId()) {
                 await firstValueFrom(this.apiService.updateObjCustodia(form, this.custodiaId()))
-                if(form.estado === 4 && form.numFactura){
-                    this.edit.set(false)
-                }
             } else {
                 const res = await firstValueFrom(this.apiService.addObjCustodia(form))
-                // console.log('resutlado',res)
                 if (res.data.custodiaId)
                     this.custodiaId.set(Number(res.data.custodiaId))
-
             }
             this.formCus.markAsUntouched()
             this.formCus.markAsPristine()
