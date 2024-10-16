@@ -40,7 +40,8 @@
       <nz-date-picker
       nzFormat="yyyy-MM-dd"
       formControlName="ContratoFechaDesde"
-      (ngModelChange)="onChangePeriodo($event)"
+      (ngModelChange)="onChangePeriodo($event);formCli.patchValue({FechaModificada:true})"
+  
     ></nz-date-picker>
     </nz-form-control>
   </nz-form-item>
@@ -50,7 +51,7 @@
       <nz-date-picker
       nzFormat="yyyy-MM-dd"
       formControlName="ContratoFechaHasta"
-      (ngModelChange)="onChangePeriodo($event)"
+      (ngModelChange)="onChangePeriodo($event);formCli.patchValue({FechaModificada:true})"
     ></nz-date-picker>
     </nz-form-control>
   </nz-form-item>
@@ -191,7 +192,7 @@
 
   <nz-form-control>
     <app-file-upload formControlName="files"   [idForSearh]="formCli.value.id ?? 0"
-    [textForSearch]="'CLI'" [keyField]="'cliente_id'"  ></app-file-upload>
+    [textForSearch]="'OBJ'" [keyField]="'cliente_id'"  ></app-file-upload>
   </nz-form-control>
   
 </nz-form-item>
