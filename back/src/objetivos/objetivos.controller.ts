@@ -458,7 +458,7 @@ export class ObjetivosController extends BaseController {
 
             if(Obj.FechaModificada)
                 createNewContrato = await this.FormValidationsDate(queryRunner,Obj)
-           
+
  
             //throw new ClientException(`ESTOY TESTEANDO`)
             const ClienteFechaAlta = new Date(Obj.ContratoFechaDesde)
@@ -752,6 +752,19 @@ export class ObjetivosController extends BaseController {
         
         const ContratoFechaHastaOLD = form.ContratoFechaHastaOLD ? new Date(form.ContratoFechaHastaOLD) : null;
         const ContratoFechaHasta = form.ContratoFechaHasta ? new Date(form.ContratoFechaHasta) : null;
+
+        if(ContratoFechaDesde)
+            ContratoFechaDesde.setHours(0, 0, 0, 0)
+
+        if(ContratoFechaHasta)
+            ContratoFechaHasta.setHours(0, 0, 0, 0)
+
+        if(ContratoFechaDesdeOLD)
+            ContratoFechaDesdeOLD.setHours(0, 0, 0, 0)
+
+        if(ContratoFechaHastaOLD)
+            ContratoFechaHastaOLD.setHours(0, 0, 0, 0)
+
         
         const ValidatePeriodoAndDay = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
         const FechaCierre = new Date(ValidatePeriodoAndDay[0].FechaCierre);
@@ -774,7 +787,6 @@ export class ObjetivosController extends BaseController {
                 throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${fechaFormateada}`)
             } 
             if ( ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
-                console.log("entre aca")
                 throw new ClientException(`La fecha Hasta debe ser mayor  a la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
             }
 
@@ -792,7 +804,7 @@ export class ObjetivosController extends BaseController {
         
         // Desde < FecUltPer y Hasta > UltPer, se puede modificar el hasta, pero el nuevo hasta >= UltPer
         if (ContratoFechaDesdeOLD < FechaCierre && (!ContratoFechaHastaOLD || ContratoFechaHastaOLD > FechaCierre)) {
-            if (ContratoFechaHasta < FechaCierre) {
+            if (ContratoFechaHasta.getTime() <= FechaCierre.getTime()) {
                 throw new ClientException(`La fecha Hasta debe ser mayor a la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
             }
            
@@ -808,9 +820,6 @@ export class ObjetivosController extends BaseController {
                 throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${fechaFormateada}`)
             }
         }
-
-
-
 
         return false
 
