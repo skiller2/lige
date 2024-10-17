@@ -520,8 +520,7 @@ export class ObjetivosController extends BaseController {
            ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner,Obj.infoRubro,ObjetivoId,Obj.ClienteId,Obj.ClienteElementoDependienteId)
             //newObj = ObjRubro
             
-
-            if(Obj.files.length > 0){
+            if(Obj.files?.length > 0){
              await FileUploadController.handlePDFUpload(ObjetivoId,'OBJ',Obj.files,usuario,ip ) 
             }
 
@@ -841,9 +840,9 @@ export class ObjetivosController extends BaseController {
             throw new ClientException(`Debe completar el campo Sucursal.`)
         } 
 
-        // if(!form.ContratoFechaDesde) {
-        //    throw new ClientException(`Debe completar el campo Contrato Desde.`)
-        // }
+        if(!form.ContratoFechaDesde) {
+           throw new ClientException(`Debe completar el campo Contrato Desde.`)
+        }
 
         // if(!form.ContratoFechaHasta) {
         //     throw new ClientException(`El campo Contrato Hasta NO pueden estar vacio.`)
@@ -986,6 +985,9 @@ export class ObjetivosController extends BaseController {
             //validaciones
            
             await this.FormValidations(Obj)
+            let createNewContrato
+            if(Obj.FechaModificada)
+                createNewContrato = await this.FormValidationsDate(queryRunner,Obj)
             //throw new ClientException(`ESTOY TESTEANDO`)
             const newDate= new Date()
             newDate.setHours(0, 0, 0, 0)
@@ -1030,7 +1032,7 @@ export class ObjetivosController extends BaseController {
  
             //await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,MaxObjetivoPersonalJerarquicoId, maxRubro)
 
-            if(Obj.files.length > 0){
+            if(Obj.files?.length > 0){
                 await FileUploadController.handlePDFUpload(Obj.ObjetivoId,'OBJ',Obj.files,usuario,ip ) 
                }
 
