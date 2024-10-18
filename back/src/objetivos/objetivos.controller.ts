@@ -745,10 +745,12 @@ export class ObjetivosController extends BaseController {
     }
 
     async FormValidationsDate(queryRunner: any,form:any){
-    
         const newDate = new Date();
-        const ContratoFechaDesdeOLD = new Date(form.ContratoFechaDesdeOLD)
-        let ContratoFechaDesde = new Date(form.ContratoFechaDesde)
+        let ContratoFechaDesdeOLD
+        //si se convierte a ternario falla la validacion por q null date no es igual a null
+        if(form.ContratoFechaDesdeOLD){new Date(form.ContratoFechaDesdeOLD)}else{null} 
+
+        let ContratoFechaDesde =  form.ContratoFechaDesde ? new Date(form.ContratoFechaDesde) : null;
         
         const ContratoFechaHastaOLD = form.ContratoFechaHastaOLD ? new Date(form.ContratoFechaHastaOLD) : null;
         const ContratoFechaHasta = form.ContratoFechaHasta ? new Date(form.ContratoFechaHasta) : null;
@@ -759,8 +761,10 @@ export class ObjetivosController extends BaseController {
         if(ContratoFechaHasta)
             ContratoFechaHasta.setHours(0, 0, 0, 0)
 
-        if(ContratoFechaDesdeOLD)
+        if(ContratoFechaDesdeOLD){
             ContratoFechaDesdeOLD.setHours(0, 0, 0, 0)
+        }
+           
 
         if(ContratoFechaHastaOLD)
             ContratoFechaHastaOLD.setHours(0, 0, 0, 0)
@@ -778,7 +782,7 @@ export class ObjetivosController extends BaseController {
 
  
         // Fechas desde y hasta < Fecha del último periodo cerrado no se modifican.
-        if (ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre && ContratoFechaHastaOLD && ContratoFechaHastaOLD > FechaCierre) {
+        if (ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre && ContratoFechaHastaOLD && ContratoFechaHastaOLD < FechaCierre) {
 
             if (ContratoFechaDesde < FechaCierre) {
                 throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
@@ -794,14 +798,28 @@ export class ObjetivosController extends BaseController {
             return true  
         }
 
-        if (ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre ){
-        // no se puede modificar el desde si el old es menor a la fecha de cierre
-            if (ContratoFechaDesdeOLD.getTime() != ContratoFechaDesde.getTime()) {
-                throw new ClientException(`No se puede modificar la fecha desde ya que pertenece a un periodo ya cerrado`)
+        // validacion para cuando es un nuevo registro
+        if(!ContratoFechaDesdeOLD && !ContratoFechaHastaOLD){
+            if (ContratoFechaDesde.getTime() <= FechaCierre.getTime()) {
+                throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
             }
+            if (!ContratoFechaDesde) {
+                throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${fechaFormateada}`)
+            } 
+            if ( ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
+                throw new ClientException(`La fecha Hasta debe ser mayor  a la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
+            }
+            return true  
         }
 
+        // validacion para no ingresar fecha desde en un periodo ya cerrado
+        if (ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre) {
+            if (ContratoFechaDesdeOLD.getTime() !== ContratoFechaDesde.getTime()) {
+                throw new ClientException(`No se puede modificar la fecha desde ya que pertenece a un periodo ya cerrado`);
+            }
+        }
         
+    
         // Desde < FecUltPer y Hasta > UltPer, se puede modificar el hasta, pero el nuevo hasta >= UltPer
         if (ContratoFechaDesdeOLD < FechaCierre && (!ContratoFechaHastaOLD || ContratoFechaHastaOLD > FechaCierre)) {
             if (ContratoFechaHasta.getTime() <= FechaCierre.getTime()) {
@@ -985,11 +1003,11 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.ClienteId = Obj.ClienteId
             //validaciones
            
-            await this.FormValidations(Obj)
+            //await this.FormValidations(Obj)
             let createNewContrato
             if(Obj.FechaModificada)
                 createNewContrato = await this.FormValidationsDate(queryRunner,Obj)
-            //throw new ClientException(`ESTOY TESTEANDO`)
+            throw new ClientException(`ESTOY TESTEANDO`)
             const newDate= new Date()
             newDate.setHours(0, 0, 0, 0)
 
