@@ -388,6 +388,7 @@ export class ObjetivosController extends BaseController {
            
             WHERE obj.ObjetivoId = @0;`,
                 [ObjetivoId,ClienteId,ClienteElementoDependienteId,anio,mes])
+
         }else{
             return await queryRunner.query(`
                 SELECT cli.ClienteId AS id
@@ -698,8 +699,12 @@ export class ObjetivosController extends BaseController {
 
         if(!ContratoFechaDesde) {
             throw new ClientException(`Debe completar el campo Contrato Desde.`)
-         }
-       
+        }
+
+        if(ContratoFechaHasta && ContratoFechaDesde > ContratoFechaHasta  ) {
+            throw new ClientException(`La fecha desde no puede ser mayor a la fecha hasta`)
+        }
+      
         const ValidatePeriodoAndDay = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
         const FechaCierre = new Date(ValidatePeriodoAndDay[0].FechaCierre);
         const fechaFormateada = `${FechaCierre.getFullYear()}-${(FechaCierre.getMonth() + 1).toString().padStart(2, '0')}-${FechaCierre.getDate().toString().padStart(2, '0')}`;
@@ -763,7 +768,7 @@ export class ObjetivosController extends BaseController {
             if (!ContratoFechaDesde) {
                 throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${fechaFormateada}`)
             }
-        }
+        } 
 
         return false
 
@@ -831,6 +836,16 @@ export class ObjetivosController extends BaseController {
              }
 
          }
+
+         // Coordinador de cuenta
+
+         for(const obj of form.infoRubro){
+            if(!obj.RubroId) {
+                throw new ClientException(`Debe completar el campo Rubro.`)
+             }
+
+         }
+
 
         
 
