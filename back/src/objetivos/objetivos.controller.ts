@@ -522,7 +522,7 @@ export class ObjetivosController extends BaseController {
             
 
             if(Obj.files.length > 0){
-             await FileUploadController.handlePDFUpload(ObjetivoId,'Objetivo',Obj.files,usuario,ip ) 
+             await FileUploadController.handlePDFUpload(ObjetivoId,'Objetivo','OBJ','objetivo_id', Obj.files,usuario,ip ) 
             }
 
             await queryRunner.commitTransaction()
@@ -1034,7 +1034,7 @@ export class ObjetivosController extends BaseController {
             //await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,MaxObjetivoPersonalJerarquicoId, maxRubro)
 
             if(Obj.files.length > 0){
-                await FileUploadController.handlePDFUpload(Obj.ObjetivoId,'Objetivo',Obj.files,usuario,ip ) 
+                await FileUploadController.handlePDFUpload(Obj.ObjetivoId,'Objetivo','OBJ','objetivo_id',Obj.files,usuario,ip ) 
             }
 
             await queryRunner.commitTransaction()
