@@ -81,7 +81,11 @@ export class FileUploadComponent implements ControlValueAccessor{
         .post('api/carga-licencia/downloadLicencia',
           { responseType: 'blob','documentId': documentId }
         )
-        .subscribe((res:any) => this.src.set(res) );
+      .subscribe((res: any) => {
+        console.log('resultado',res)
+        this.src.set(new Blob(res))
+        
+       });
     
     this.FileName.set(filename)
      this.isVisible = true;

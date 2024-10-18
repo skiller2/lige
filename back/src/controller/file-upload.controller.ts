@@ -95,9 +95,8 @@ export class FileUploadController extends BaseController {
         const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, fechaActual.getFullYear(), fechaActual.getMonth(), usuario, ip);
     
         try {
-          const dirtmp = `${process.env.PATH_FILEUPLOAD}/temp`;
-          const dirtmpNew = `${process.env.PATH_FILEUPLOAD}/${tipoUpload}/${id}`;
-    
+          const dirtmpNew = `${process.env.PATH_DOCUMENTS}/${tipoUpload}/${id}`;
+          console.log('archivo',`${process.env.PATH_DOCUMENTS}/${tipoUpload}/${id}`)
           for (const file of Archivo) {
             let docgeneral = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
             const newFilePath = `${dirtmpNew}/${docgeneral}-${id}.pdf`;
@@ -134,7 +133,7 @@ export class FileUploadController extends BaseController {
       }
     
       static moveFile(filename: any, newFilePath: any, dirtmp: any) {
-        const originalFilePath = `${process.env.PATH_FILEUPLOAD}/temp/${filename}`;
+        const originalFilePath = `${process.env.PATH_DOCUMENTS}/temp/${filename}`;
         console.log("originalFilePath ", originalFilePath)
         console.log("newFilePath ", newFilePath)
     
@@ -204,7 +203,7 @@ export class FileUploadController extends BaseController {
       async deleleTemporalFiles(req, res, next) {
         try {
     
-          const tempFolderPath = path.join(process.env.PATH_FILEUPLOAD, 'temp');
+          const tempFolderPath = path.join(process.env.PATH_DOCUMENTS, 'temp');
           const files = await fs.promises.readdir(tempFolderPath);
           const limiteFecha = Date.now() - (24 * 60 * 60 * 1000);
           const deletePromises = files.map(async (file) => {

@@ -401,7 +401,7 @@ ${orderBy}`, [fechaActual])
 
             if (ObjCliente.files.length > 0) {
 
-                await FileUploadController.handlePDFUpload(ClienteId, 'CLI', ObjCliente.files, usuario, ip)
+                await FileUploadController.handlePDFUpload(ClienteId, 'Cliente', ObjCliente.files, usuario, ip)
             }
             await queryRunner.commitTransaction()
             return this.jsonRes(ObjClienteNew, res, 'Modificación  Exitosa');
@@ -638,7 +638,7 @@ ${orderBy}`, [fechaActual])
 
             if (ObjCliente.files.length > 0) {
 
-                await FileUploadController.handlePDFUpload(ClienteId, 'CLI', ObjCliente.files, usuario, ip)
+                await FileUploadController.handlePDFUpload(ClienteId, 'Cliente', ObjCliente.files, usuario, ip)
             }
 
             await queryRunner.commitTransaction()
