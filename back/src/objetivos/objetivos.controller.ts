@@ -1007,7 +1007,7 @@ export class ObjetivosController extends BaseController {
             let createNewContrato
             if(Obj.FechaModificada)
                 createNewContrato = await this.FormValidationsDate(queryRunner,Obj)
-            throw new ClientException(`ESTOY TESTEANDO`)
+//            throw new ClientException(`ESTOY TESTEANDO`)
             const newDate= new Date()
             newDate.setHours(0, 0, 0, 0)
 
