@@ -103,7 +103,10 @@ export class ObjetivosFormComponent {
     estado: 0,
     files:[],
     codigo: "",
-    DireccionModificada: false
+    DireccionModificada: false,
+    FechaModificada: false,
+    ContratoFechaDesdeOLD:"",
+    ContratoFechaHastaOLD:"",
   })
 
  
@@ -184,6 +187,9 @@ export class ObjetivosFormComponent {
     this.formCli.reset(infoObjetivo)
     this.formCli.patchValue({
       DireccionModificada:false,
+      FechaModificada:false,
+      ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
+      ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
       codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`
     });
 

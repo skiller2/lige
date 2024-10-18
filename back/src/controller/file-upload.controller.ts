@@ -96,7 +96,6 @@ export class FileUploadController extends BaseController {
     
         try {
           const dirtmpNew = `${process.env.PATH_DOCUMENTS}/${tipoUpload}/${id}`;
-          console.log('archivo',`${process.env.PATH_DOCUMENTS}/${tipoUpload}/${id}`)
           for (const file of Archivo) {
             let docgeneral = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
             const newFilePath = `${dirtmpNew}/${docgeneral}-${id}.pdf`;
