@@ -168,7 +168,19 @@ export class ObjetivosController extends BaseController {
                   --  AND ISNULL(cc.ClienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
 					GROUP BY cc.ClienteId) clicon2 ON clicon2.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS null
 
-					 LEFT JOIN  ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId AND clicon.ClienteContratoId = clicon2.ClienteContratoId
+				--LEFT JOIN  ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId AND clicon.ClienteContratoId = clicon2.ClienteContratoId
+
+                		LEFT JOIN (
+				    SELECT 
+				        cc.ClienteId, 
+				        cc.ClienteContratoId, 
+				        cc.ClienteContratoFechaDesde, 
+				        cc.ClienteContratoFechaHasta,
+				        ROW_NUMBER() OVER (PARTITION BY cc.ClienteId ORDER BY cc.ClienteContratoFechaDesde DESC) AS RowNum
+				    FROM ClienteContrato cc
+				    WHERE EOMONTH(DATEFROMPARTS(2024,10,1)) >= cc.ClienteContratoFechaDesde
+				) clicon ON clicon.ClienteId = cli.ClienteId 
+				    AND clicon.RowNum = 1   
 					 
 					 
 					LEFT JOIN (SELECT ec.ClienteId, ec.ClienteElementoDependienteId, MAX(ec.ClienteElementoDependienteContratoId) ClienteElementoDependienteContratoId FROM ClienteElementoDependienteContrato ec WHERE  EOMONTH(DATEFROMPARTS(@0,@1,1)) >= ec.ClienteElementoDependienteContratoFechaDesde 
@@ -179,9 +191,24 @@ export class ObjetivosController extends BaseController {
 					) eledepcon2 ON eledepcon2.ClienteId = obj.ClienteId AND eledepcon2.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
 					 
 					 
-					 LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId  AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId  AND eledepcon.ClienteElementoDependienteContratoId = eledepcon2.ClienteElementoDependienteContratoId
-                          
-   				LEFT JOIN (SELECT GrupoActividadObjetivoObjetivoId, MAX(GrupoActividadObjetivoId) GrupoActividadObjetivoId FROM GrupoActividadObjetivo
+				--LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId  AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId  AND eledepcon.ClienteElementoDependienteContratoId = eledepcon2.ClienteElementoDependienteContratoId
+                 
+                	LEFT JOIN (
+					    SELECT 
+					        ec.ClienteId, 
+					        ec.ClienteElementoDependienteId, 
+					        ec.ClienteElementoDependienteContratoId, 
+					        ec.ClienteElementoDependienteContratoFechaDesde, 
+					        ec.ClienteElementoDependienteContratoFechaHasta,
+					        ROW_NUMBER() OVER (PARTITION BY ec.ClienteId, ec.ClienteElementoDependienteId 
+					                           ORDER BY ec.ClienteElementoDependienteContratoFechaDesde DESC) AS RowNum
+					    FROM ClienteElementoDependienteContrato ec
+					    WHERE EOMONTH(DATEFROMPARTS(2024,10,1)) >= ec.ClienteElementoDependienteContratoFechaDesde
+					) eledepcon ON eledepcon.ClienteId = obj.ClienteId 
+					    AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+					    AND eledepcon.RowNum = 1       
+   				
+                LEFT JOIN (SELECT GrupoActividadObjetivoObjetivoId, MAX(GrupoActividadObjetivoId) GrupoActividadObjetivoId FROM GrupoActividadObjetivo
    				WHERE EOMONTH(DATEFROMPARTS(@0,@1,1)) >= GrupoActividadObjetivoDesde AND DATEFROMPARTS(@0,@1,1) <= ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') 
    				GROUP BY GrupoActividadObjetivoObjetivoId
 					) gap2 ON gap2.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId 
@@ -737,7 +764,7 @@ export class ObjetivosController extends BaseController {
                 throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${fechaFormateada}`)
             } 
             if ( ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
-                throw new ClientException(`La fecha Hasta debe ser mayor  a la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
+                throw new ClientException(`La fecha de cierre debe ser igual o mayor a la fecha limit. ${fechaFormateada}`)
             }
             return true  
         }
@@ -755,7 +782,7 @@ export class ObjetivosController extends BaseController {
         if (ContratoFechaDesdeOLD < FechaCierre && (!ContratoFechaHastaOLD || ContratoFechaHastaOLD > FechaCierre)) {
    
             if (ContratoFechaHasta &&ContratoFechaHasta.getTime() <= FechaCierre.getTime()) {
-                throw new ClientException(`La fecha Hasta debe ser mayor a la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
+                throw new ClientException(`La fecha de cierre debe ser igual o mayor a la fecha limite. ${fechaFormateada}`)
             }
             
         }
@@ -840,7 +867,7 @@ export class ObjetivosController extends BaseController {
          // Coordinador de cuenta
 
          for(const obj of form.infoRubro){
-            if(!obj.RubroId) {
+            if(obj.ClienteElementoDependienteRubroId && !obj.RubroId) {
                 throw new ClientException(`Debe completar el campo Rubro.`)
              }
 
