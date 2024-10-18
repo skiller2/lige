@@ -436,6 +436,72 @@ export class ObjetivosController extends BaseController {
        
     }
 
+    async validateDateAndCreateContrato(queryRunner:any,Obj:any){
+
+        let createNewContrato = false
+        let ContratoFechaDesde =  Obj.ContratoFechaDesde ? new Date(Obj.ContratoFechaDesde) : null
+        let ContratoFechaDesdeOLD =  Obj.ContratoFechaDesdeOLD ? new Date(Obj.ContratoFechaDesdeOLD) : null
+        const ContratoFechaHastaOLD = Obj.ContratoFechaHastaOLD ? new Date(Obj.ContratoFechaHastaOLD) : null
+        const ContratoFechaHasta = Obj.ContratoFechaHasta ? new Date(Obj.ContratoFechaHasta) : null
+
+        if(ContratoFechaDesde)
+            ContratoFechaDesde.setHours(0, 0, 0, 0)
+
+        if(ContratoFechaHasta)
+            ContratoFechaHasta.setHours(0, 0, 0, 0)
+
+        if(ContratoFechaDesdeOLD){
+            ContratoFechaDesdeOLD.setHours(0, 0, 0, 0)
+        }
+           
+        if(ContratoFechaHastaOLD)
+            ContratoFechaHastaOLD.setHours(0, 0, 0, 0)
+
+        if(!Obj.FechaModificada && !ContratoFechaDesdeOLD && !ContratoFechaHastaOLD)
+            throw new ClientException(`Debe completar el campo Contrato Desde.`)
+
+        if(Obj.FechaModificada)
+            createNewContrato = await this.FormValidationsDate(queryRunner,ContratoFechaDesde,ContratoFechaHasta,ContratoFechaDesdeOLD,ContratoFechaHastaOLD,Obj.FechaModificada)
+
+        //console.log("createNewContrato",createNewContrato)
+        //throw new ClientException(`ESTOY TESTEANDO`)
+
+        if(Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
+
+            //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
+
+            if(Obj.ContratoId && !createNewContrato){                
+                await queryRunner.query(`UPDATE ClienteElementoDependienteContrato SET ClienteElementoDependienteContratoFechaDesde = @3, ClienteElementoDependienteContratoFechaHasta = @4
+                    WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND ClienteElementoDependienteContratoId = @2`,
+                    [Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.ContratoId,ContratoFechaDesde, ContratoFechaHasta])
+            }else{
+           
+                let ClienteElementoDependienteContratoId = Obj.ContratoId ? Obj.ContratoId + 1 : 1
+    
+
+                 await queryRunner.query(`INSERT INTO ClienteElementoDependienteContrato (ClienteElementoDependienteContratoId,
+                    ClienteId,ClienteElementoDependienteId, ClienteElementoDependienteContratoFechaDesde,ClienteElementoDependienteContratoFechaHasta) VALUES(@0,@1,@2,@3,@4)`,
+                    [ClienteElementoDependienteContratoId++,Obj.ClienteId,Obj.ClienteElementoDependienteId,ContratoFechaDesde, ContratoFechaHasta])
+            
+            }    
+        }else{
+      
+            if(Obj.ContratoId && !createNewContrato){
+
+                await queryRunner.query(`UPDATE ClienteContrato SET ClienteContratoFechaDesde = @2, ClienteContratoFechaHasta @3 WHERE ClienteId = @0 AND ClienteContratoId = @1`,
+                    [Obj.ClienteId,Obj.ContratoId,ContratoFechaDesde, ContratoFechaHasta])
+            }else{
+
+                let ClienteContratoId = Obj.ClienteContratoUltNro == null ? 1 : Obj.ClienteContratoUltNro + 1
+        
+                 await queryRunner.query(`INSERT INTO ClienteContrato (ClienteContratoId,ClienteId, ClienteContratoFechaDesde, ClienteContratoFechaHasta ) VALUES (@0,@1,@2,@3)`,
+                    [ClienteContratoId,Obj.ClienteId,ContratoFechaDesde,ContratoFechaHasta])
+            } 
+                
+        }
+
+    }
+
     
     async updateObjetivo(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
@@ -452,31 +518,14 @@ export class ObjetivosController extends BaseController {
             console.log("voy a hacer update ", Obj)
             
             //validaciones
-            //await this.FormValidations(Obj)
-
-            let createNewContrato = false
-
-            if(Obj.FechaModificada)
-                createNewContrato = await this.FormValidationsDate(queryRunner,Obj)
-
- 
-            //throw new ClientException(`ESTOY TESTEANDO`)
-            const ClienteFechaAlta = new Date(Obj.ContratoFechaDesde)
-            ClienteFechaAlta.setHours(0, 0, 0, 0)
+            await this.FormValidations(Obj)
+            await this.validateDateAndCreateContrato(queryRunner,Obj)
 
             //update
 
             if(Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
 
                 //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
-
-                if(Obj.ContratoId && !createNewContrato){
-                    await this.updateClienteElementoDependienteContratoTable(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.ContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
-                }else{
-                    await this.InsertClienteElementoDependienteContratoTable(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.ContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
-                }
-                
-                //throw new ClientException(`estoy testeando`)
                 if(Obj.DireccionModificada){
 
                     let ClienteElementoDependienteDomicilioUltNro  = Obj.ClienteElementoDependienteDomicilioUltNro + 1
@@ -502,26 +551,14 @@ export class ObjetivosController extends BaseController {
     
             }else{
                 //SI EL ELEMENTO DEPENDIENTE ES NULL SOLO ACTUALIZA TABLAS DE CLIENTE
-                await  ClientesController.updateClienteDomicilioTable( queryRunner,Obj.ClienteId,Obj)
-
-                if(Obj.ContratoId && !createNewContrato){
-                    await this.updateClienteContratoTable(queryRunner,Obj.ClienteId,Obj.ContratoId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
-                }else{
-                    await this.insertClienteContratoTable(queryRunner,Obj.ClienteId,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta,Obj.ClienteContratoUltNro)
-                }
-               
+                await  ClientesController.updateClienteDomicilioTable( queryRunner,Obj.ClienteId,Obj)       
                 await this.updateClienteTable(queryRunner,Obj.ClienteId,Obj.SucursalId,Obj.Descripcion) 
                     
             }
             ObjObjetivoNew.infoCoordinadorCuenta= await this.ObjetivoCoordinador(queryRunner,Obj.infoCoordinadorCuenta,ObjetivoId)
-           // let ObjCoordinador = await this.ObjetivoCoordinador(queryRunner,Obj,ObjetivoId)
-           // newObj = ObjCoordinador
-            
-           ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner,Obj.infoRubro,ObjetivoId,Obj.ClienteId,Obj.ClienteElementoDependienteId)
-            //newObj = ObjRubro
-            
+            ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner,Obj.infoRubro,ObjetivoId,Obj.ClienteId,Obj.ClienteElementoDependienteId)
 
-            if(Obj.files.length > 0){
+            if(Obj.files?.length > 0){
              await FileUploadController.handlePDFUpload(ObjetivoId,'Objetivo','OBJ','objetivo_id', Obj.files,usuario,ip ) 
             }
 
@@ -547,27 +584,30 @@ export class ObjetivosController extends BaseController {
         let maxObjetivoPersonalJerarquico = ContactoId[0]['']; 
 
         for (const [idx, objetivo] of objetivos.entries()) {
-            if (objetivo.ObjetivoId){
-                await queryRunner.query(`UPDATE ObjetivoPersonalJerarquico SET ObjetivoPersonalJerarquicoComision = @2, ObjetivoPersonalJerarquicoDescuentos = @3
-                    WHERE  ObjetivoPersonalJerarquicoComo = 'C' AND ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1 `,
-                    [objetivo.PersonaId,Objetivo,objetivo.ObjetivoPersonalJerarquicoComision,objetivo.ObjetivoPersonalJerarquicoDescuentos])
-            } else {
-                maxObjetivoPersonalJerarquico++
 
-                await queryRunner.query(` INSERT INTO ObjetivoPersonalJerarquico (ObjetivoId,ObjetivoPersonalJerarquicoPersonalId,
-                    ObjetivoPersonalJerarquicoDesde,ObjetivoPersonalJerarquicoHasta,ObjetivoPersonalJerarquicoComo,ObjetivoPersonalJerarquicoComision,
-                    ObjetivoPersonalJerarquicoDescuentos) VALUES (@0, @1,@2,@3,@4,@5,@6); `,
-                    [ Objetivo,objetivo.PersonaId,Fecha, null,'C',objetivo.ObjetivoPersonalJerarquicoComision,objetivo.ObjetivoPersonalJerarquicoDescuentos])
+            if(objetivo.ObjetivoId && objetivo.PersonaId && objetivo.ObjetivoPersonalJerarquicoId){
+                if (objetivo.ObjetivoId){
+                    await queryRunner.query(`UPDATE ObjetivoPersonalJerarquico SET ObjetivoPersonalJerarquicoComision = @2, ObjetivoPersonalJerarquicoDescuentos = @3
+                        WHERE  ObjetivoPersonalJerarquicoComo = 'C' AND ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1 `,
+                        [objetivo.PersonaId,Objetivo,objetivo.ObjetivoPersonalJerarquicoComision,objetivo.ObjetivoPersonalJerarquicoDescuentos])
+                } else {
+                    maxObjetivoPersonalJerarquico++
+
+                    await queryRunner.query(` INSERT INTO ObjetivoPersonalJerarquico (ObjetivoId,ObjetivoPersonalJerarquicoPersonalId,
+                        ObjetivoPersonalJerarquicoDesde,ObjetivoPersonalJerarquicoHasta,ObjetivoPersonalJerarquicoComo,ObjetivoPersonalJerarquicoComision,
+                        ObjetivoPersonalJerarquicoDescuentos) VALUES (@0, @1,@2,@3,@4,@5,@6); `,
+                        [ Objetivo,objetivo.PersonaId,Fecha, null,'C',objetivo.ObjetivoPersonalJerarquicoComision,objetivo.ObjetivoPersonalJerarquicoDescuentos])
 
 
-                if(objetivo.ClienteElementoDependienteId != null && objetivo.ClienteElementoDependienteId != "null") {
-                    await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteContactoUltNro = @2
-                        WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `, [objetivo.ClienteId,objetivo.ClienteElementoDependienteId,maxObjetivoPersonalJerarquico])
-                }else{
-                        return await queryRunner.query(`UPDATE Cliente SET ClienteContactoUltNro = @1 WHERE ClienteId = @0`,[objetivo.ClienteId,maxObjetivoPersonalJerarquico])
-                }
-                objetivos[idx].ObjetivoId = maxObjetivoPersonalJerarquico
-            }      
+                    if(objetivo.ClienteElementoDependienteId != null && objetivo.ClienteElementoDependienteId != "null") {
+                        await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteContactoUltNro = @2
+                            WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `, [objetivo.ClienteId,objetivo.ClienteElementoDependienteId,maxObjetivoPersonalJerarquico])
+                    }else{
+                            return await queryRunner.query(`UPDATE Cliente SET ClienteContactoUltNro = @1 WHERE ClienteId = @0`,[objetivo.ClienteId,maxObjetivoPersonalJerarquico])
+                    }
+                    objetivos[idx].ObjetivoId = maxObjetivoPersonalJerarquico
+                }  
+            }       
           
         }
 
@@ -580,7 +620,6 @@ export class ObjetivosController extends BaseController {
 
         let res
         const RubroIds = rubros.map((row: { ClienteElementoDependienteRubroId: any; }) => row.ClienteElementoDependienteRubroId).filter((id) => id !== null && id !== undefined);
-        console.log("RubroIds ", RubroIds)
         if (RubroIds.length > 0)
             await queryRunner.query(`DELETE FROM ClienteEleDepRubro WHERE ClienteId = @0 AND ClienteElementoDependienteId =@1 AND ClienteElementoDependienteRubroId NOT IN (${RubroIds.join(',')})`, [ClienteId,ClienteElementoDependienteId])
 
@@ -593,51 +632,37 @@ export class ObjetivosController extends BaseController {
         let RubroUltNro = (res[0].RubroUltNro) ? res[0].RubroUltNro : 0
 
         for (const [idx, rubro] of rubros.entries()) {
-            if (rubro.ClienteElementoDependienteRubroId) {
+            if(rubro.ClienteElementoDependienteRubroId && rubro.RubroId){
 
-                await queryRunner.query(` UPDATE ClienteEleDepRubro SET ClienteElementoDependienteRubroClienteId = @1 WHERE ClienteId = @0 AND  ClienteElementoDependienteRubroId = @2`,
-                    [ClienteId,ClienteElementoDependienteId,rubro.RubroId])
+                if (rubro.ClienteElementoDependienteRubroId) {
 
-            } else {
+                    await queryRunner.query(` UPDATE ClienteEleDepRubro SET ClienteElementoDependienteRubroClienteId = @1 WHERE ClienteId = @0 AND  ClienteElementoDependienteRubroId = @2`,
+                        [ClienteId,ClienteElementoDependienteId,rubro.RubroId])
 
-                RubroUltNro++
+                } else {
 
-                await queryRunner.query(`INSERT INTO ClienteEleDepRubro (ClienteElementoDependienteRubroId,ClienteId,ClienteElementoDependienteId, ClienteElementoDependienteRubroClienteId )
-                    VALUES (@0, @1,@2,@3); `,[RubroUltNro,ClienteId,ClienteElementoDependienteId,rubro.RubroId])
+                    RubroUltNro++
 
-                if(ClienteElementoDependienteId != null && ClienteElementoDependienteId != "null") {
-                    await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteRubroUltNro = @2
-                            WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
-                            [ClienteId,ClienteElementoDependienteId,RubroUltNro])
-                }else{
+                    await queryRunner.query(`INSERT INTO ClienteEleDepRubro (ClienteElementoDependienteRubroId,ClienteId,ClienteElementoDependienteId, ClienteElementoDependienteRubroClienteId )
+                        VALUES (@0, @1,@2,@3); `,[RubroUltNro,ClienteId,ClienteElementoDependienteId,rubro.RubroId])
 
-                    await queryRunner.query(`UPDATE Cliente SET  ClienteRubroUltNro = @1 WHERE ClienteId = @0`,[ClienteId,RubroUltNro])
-        
-                }  
-               
-                rubros[idx].ClienteDomicilioId = RubroUltNro
+                    if(ClienteElementoDependienteId != null && ClienteElementoDependienteId != "null") {
+                        await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteRubroUltNro = @2
+                                WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
+                                [ClienteId,ClienteElementoDependienteId,RubroUltNro])
+                    }else{
+
+                        await queryRunner.query(`UPDATE Cliente SET  ClienteRubroUltNro = @1 WHERE ClienteId = @0`,[ClienteId,RubroUltNro])
+            
+                    }  
+                
+                    rubros[idx].ClienteDomicilioId = RubroUltNro
+                }
             }
         }
 
         return rubros
 
-    }
-
-    async insertClienteContratoTable(queryRunner: any,ClienteId:any,ClienteContratoFechaDesde:any,ClienteContratoFechaHasta:any,ClienteContratoUltNro:any ) {
-
-        let ClienteContratoId = ClienteContratoUltNro == null ? 1 : ClienteContratoUltNro + 1
-        
-        return await queryRunner.query(`INSERT INTO ClienteContrato (
-            ClienteContratoId,
-            ClienteId,
-            ClienteContratoFechaDesde,
-            ClienteContratoFechaHasta
-            ) VALUES (@0,@1,@2,@3)`,
-            [ClienteContratoId,
-             ClienteId,
-             ClienteContratoFechaDesde,
-             ClienteContratoFechaHasta,
-            ])
     }
 
     async updateClienteElementoDependienteTable(
@@ -669,121 +694,21 @@ export class ObjetivosController extends BaseController {
             [ClienteId,SucursalId,SucursalDescripcion])
     }
 
-    async updateClienteElementoDependienteContratoTable(queryRunner: any, 
-        ClienteId:any, 
-        ClienteElementoDependienteId:any,
-        ClienteElementoDependienteContratoId:any,
-        ClienteElementoDependienteContratoFechaDesde:any,
-        ClienteElementoDependienteContratoFechaHasta:any
-    ) {
+    async FormValidationsDate(queryRunner: any,ContratoFechaDesde:any,ContratoFechaHasta:any,ContratoFechaDesdeOLD:any,ContratoFechaHastaOLD:any,FechaModificada:any){
 
-        const FechaDesde = new Date(ClienteElementoDependienteContratoFechaDesde)
-        FechaDesde.setHours(0, 0, 0, 0)
-
-        const FechaHasta = new Date(ClienteElementoDependienteContratoFechaHasta)
-        FechaHasta.setHours(0, 0, 0, 0)
-
-        return await queryRunner.query(`
-            UPDATE ClienteElementoDependienteContrato
-            SET ClienteElementoDependienteContratoFechaDesde = @3, ClienteElementoDependienteContratoFechaHasta = @4
-            WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND ClienteElementoDependienteContratoId = @2`,
-            [ClienteId,ClienteElementoDependienteId,ClienteElementoDependienteContratoId,FechaDesde, FechaHasta])
-    }
-
-    async InsertClienteElementoDependienteContratoTable(queryRunner: any, 
-        ClienteId:any, 
-        ClienteElementoDependienteId:any,
-        ClienteElementoDependienteContratoId:any,
-        ClienteElementoDependienteContratoFechaDesde:any,
-        ClienteElementoDependienteContratoFechaHasta:any
-    ) {
-
-        ClienteElementoDependienteContratoId = (ClienteElementoDependienteContratoId != null) ? ClienteElementoDependienteContratoId + 1 : 0
-    
-        const FechaDesde = new Date(ClienteElementoDependienteContratoFechaDesde)
-        FechaDesde.setHours(0, 0, 0, 0)
-
-        let FechaHasta
-        if(ClienteElementoDependienteContratoFechaHasta){
-            FechaHasta = new Date(ClienteElementoDependienteContratoFechaHasta)
-            FechaHasta.setHours(0, 0, 0, 0)
-        }
-        
-
-        return await queryRunner.query(`
-            INSERT INTO ClienteElementoDependienteContrato 
-            (ClienteElementoDependienteContratoId,
-            ClienteId,
-            ClienteElementoDependienteId,
-            ClienteElementoDependienteContratoFechaDesde,
-            ClienteElementoDependienteContratoFechaHasta)
-            VALUES(@0,@1,@2,@3,@4)`,
-            [ClienteElementoDependienteContratoId++,ClienteId,ClienteElementoDependienteId,FechaDesde, FechaHasta])
-    }
-
-    async updateClienteContratoTable(queryRunner: any, 
-        ClienteId:any, 
-        ClienteContratoId:any,
-        ClienteContratoFechaDesde:any,
-        ClienteContratoFechaHasta:any
-    ) {
-
-        const FechaDesde = new Date(ClienteContratoFechaDesde)
-        FechaDesde.setHours(0, 0, 0, 0)
-
-        let FechaHasta
-        if(ClienteContratoFechaHasta){
-            FechaHasta = new Date(ClienteContratoFechaHasta)
-            FechaHasta.setHours(0, 0, 0, 0)
-        }
-
-        return await queryRunner.query(`
-            UPDATE ClienteContrato
-            SET ClienteContratoFechaDesde = @2, ClienteContratoFechaHasta @3
-            WHERE ClienteId = @0 AND ClienteContratoId = @1`,
-            [ClienteId,ClienteContratoId,FechaDesde, FechaHasta])
-    }
-
-    async FormValidationsDate(queryRunner: any,form:any){
-        const newDate = new Date();
-        let ContratoFechaDesdeOLD
-        //si se convierte a ternario falla la validacion por q null date no es igual a null
-        if(form.ContratoFechaDesdeOLD){new Date(form.ContratoFechaDesdeOLD)}else{null} 
-
-        let ContratoFechaDesde =  form.ContratoFechaDesde ? new Date(form.ContratoFechaDesde) : null;
-        
-        const ContratoFechaHastaOLD = form.ContratoFechaHastaOLD ? new Date(form.ContratoFechaHastaOLD) : null;
-        const ContratoFechaHasta = form.ContratoFechaHasta ? new Date(form.ContratoFechaHasta) : null;
-
-        if(ContratoFechaDesde)
-            ContratoFechaDesde.setHours(0, 0, 0, 0)
-
-        if(ContratoFechaHasta)
-            ContratoFechaHasta.setHours(0, 0, 0, 0)
-
-        if(ContratoFechaDesdeOLD){
-            ContratoFechaDesdeOLD.setHours(0, 0, 0, 0)
-        }
-           
-
-        if(ContratoFechaHastaOLD)
-            ContratoFechaHastaOLD.setHours(0, 0, 0, 0)
-
-        
+        if(!ContratoFechaDesde) {
+            throw new ClientException(`Debe completar el campo Contrato Desde.`)
+         }
+       
         const ValidatePeriodoAndDay = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
         const FechaCierre = new Date(ValidatePeriodoAndDay[0].FechaCierre);
-        
-        //////
         const fechaFormateada = `${FechaCierre.getFullYear()}-${(FechaCierre.getMonth() + 1).toString().padStart(2, '0')}-${FechaCierre.getDate().toString().padStart(2, '0')}`;
-        ///////////
 
-        if(!form.FechaModificada)
+        if(!FechaModificada)
             return false
 
- 
         // Fechas desde y hasta < Fecha del último periodo cerrado no se modifican.
         if (ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre && ContratoFechaHastaOLD && ContratoFechaHastaOLD < FechaCierre) {
-
             if (ContratoFechaDesde < FechaCierre) {
                 throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
             }
@@ -794,12 +719,12 @@ export class ObjetivosController extends BaseController {
                 throw new ClientException(`La fecha Hasta debe ser mayor  a la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
             }
 
-
             return true  
         }
 
         // validacion para cuando es un nuevo registro
         if(!ContratoFechaDesdeOLD && !ContratoFechaHastaOLD){
+
             if (ContratoFechaDesde.getTime() <= FechaCierre.getTime()) {
                 throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
             }
@@ -814,6 +739,7 @@ export class ObjetivosController extends BaseController {
 
         // validacion para no ingresar fecha desde en un periodo ya cerrado
         if (ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre) {
+
             if (ContratoFechaDesdeOLD.getTime() !== ContratoFechaDesde.getTime()) {
                 throw new ClientException(`No se puede modificar la fecha desde ya que pertenece a un periodo ya cerrado`);
             }
@@ -822,12 +748,12 @@ export class ObjetivosController extends BaseController {
     
         // Desde < FecUltPer y Hasta > UltPer, se puede modificar el hasta, pero el nuevo hasta >= UltPer
         if (ContratoFechaDesdeOLD < FechaCierre && (!ContratoFechaHastaOLD || ContratoFechaHastaOLD > FechaCierre)) {
-            if (ContratoFechaHasta.getTime() <= FechaCierre.getTime()) {
+   
+            if (ContratoFechaHasta &&ContratoFechaHasta.getTime() <= FechaCierre.getTime()) {
                 throw new ClientException(`La fecha Hasta debe ser mayor a la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
             }
-           
+            
         }
-
 
         // Desde > FecUltPer, se puede modificar si el nuevo Desde > FecUltPer y no puede quedar vacío
         if (ContratoFechaDesdeOLD > FechaCierre) {
@@ -859,9 +785,7 @@ export class ObjetivosController extends BaseController {
             throw new ClientException(`Debe completar el campo Sucursal.`)
         } 
 
-        if(!form.ContratoFechaDesde) {
-           throw new ClientException(`Debe completar el campo Contrato Desde.`)
-        }
+
 
         // if(!form.ContratoFechaHasta) {
         //     throw new ClientException(`El campo Contrato Hasta NO pueden estar vacio.`)
@@ -1002,24 +926,8 @@ export class ObjetivosController extends BaseController {
             const ip = this.getRemoteAddress(req)
             ObjObjetivoNew.ClienteId = Obj.ClienteId
             //validaciones
-           
-            //await this.FormValidations(Obj)
-            let createNewContrato
-            if(Obj.FechaModificada)
-                createNewContrato = await this.FormValidationsDate(queryRunner,Obj)
-            throw new ClientException(`ESTOY TESTEANDO`)
-            const newDate= new Date()
-            newDate.setHours(0, 0, 0, 0)
 
-            const ContratoDesde = new Date(Obj.ContratoFechaDesde)
-            ContratoDesde.setHours(0, 0, 0, 0)
-
-            let ContratoHasta
-            if(Obj.ContratoFechaHasta){
-                ContratoHasta = new Date(Obj.ContratoFechaHasta)
-                ContratoHasta.setHours(0, 0, 0, 0)
-            }
-           
+            await this.FormValidations(Obj)
 
             let infoMaxObjetivo = await queryRunner.query(`SELECT MAX(ObjetivoId) AS MaxObjetivoId FROM Objetivo`)
             let { MaxObjetivoId } = infoMaxObjetivo[0]
@@ -1034,15 +942,19 @@ export class ObjetivosController extends BaseController {
             //Agrego los valores al objeto original para retornar
             ObjObjetivoNew.ObjetivoNewId = MaxObjetivoId
             ObjObjetivoNew.NewClienteElementoDependienteId = ClienteElementoDependienteUltNro
-
+            Obj.ClienteElementoDependienteId = ClienteElementoDependienteUltNro
             let ClienteElementoDependienteDomicilioId = 1
+
+       
+          
             
             await this.insertClienteElementoDependienteSql(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.Descripcion,Obj.SucursalId,ClienteElementoDependienteDomicilioId)
             await this.updateCliente(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro)
             await this.inserClienteElementoDependienteDomicilio(queryRunner,Obj.ClienteId,ClienteElementoDependienteUltNro,ClienteElementoDependienteDomicilioId,Obj.DomicilioDomLugar,Obj.DomicilioDomCalle,Obj.DomicilioDomNro,
                 Obj.DomicilioCodigoPostal,Obj.DomicilioProvinciaId,Obj.DomicilioLocalidadId,Obj.DomicilioBarrioId )
 
-            await this.ClienteElementoDependienteContrato(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
+            //await this.ClienteElementoDependienteContrato(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
+            await this.validateDateAndCreateContrato(queryRunner,Obj)
             await this.insertObjetivoSql(queryRunner,Number(Obj.ClienteId),Obj.Descripcion,ClienteElementoDependienteUltNro,Obj.SucursalId)
 
 
@@ -1051,7 +963,7 @@ export class ObjetivosController extends BaseController {
  
             //await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,MaxObjetivoPersonalJerarquicoId, maxRubro)
 
-            if(Obj.files.length > 0){
+            if(Obj.files?.length > 0){
                 await FileUploadController.handlePDFUpload(Obj.ObjetivoId,'Objetivo','OBJ','objetivo_id',Obj.files,usuario,ip ) 
             }
 
