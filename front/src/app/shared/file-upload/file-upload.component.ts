@@ -45,7 +45,7 @@ export class FileUploadComponent implements ControlValueAccessor{
   keyField = input("")
   idForSearh = input(0)
   textForSearch = input("")
-  isVisible = false
+  modalViewerVisiable = signal(false)
 
   Fullpath = signal("")
   FileName = signal("")
@@ -76,17 +76,13 @@ export class FileUploadComponent implements ControlValueAccessor{
   }
 
   async LoadArchivo(documentId: any, filename:any){
-    
-    console.log('antes')
-  
+    this.modalViewerVisiable.set(false)
     const res = await firstValueFrom(this.http.post('api/file-upload/downloadFile',
-          { responseType: 'blob','documentId': documentId,filename:filename }
+      { 'documentId': documentId, filename: filename }, { responseType: 'blob' }
     ))
-    console.log('respuesta',res)
-//    this.src.set(new Blob(res))
-    
+    this.src.set(res)
     this.FileName.set(filename)
-     this.isVisible = true;
+    this.modalViewerVisiable.set(true)
 
   }
 
@@ -166,7 +162,7 @@ export class FileUploadComponent implements ControlValueAccessor{
 
 
   handleCancel(): void {
-    this.isVisible = false;
+    this.modalViewerVisiable.set(false)
   }
 
 

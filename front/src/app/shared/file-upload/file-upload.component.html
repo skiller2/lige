@@ -60,7 +60,7 @@
     </nz-form-control>
   </nz-form-item>
 
-  <nz-modal [(nzVisible)]="isVisible" nzTitle="" nzWidth="700" nzOkDisabled="true" (nzOnCancel)="handleCancel()" >
+  <nz-modal [(nzVisible)]="modalViewerVisiable" nzTitle="" nzWidth="700" nzOkDisabled="true" (nzOnCancel)="handleCancel()" >
     <ng-container *nzModalContent>
       <ngx-extended-pdf-viewer
           [src]="src()"
