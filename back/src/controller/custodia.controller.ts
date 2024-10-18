@@ -817,7 +817,10 @@ export class CustodiaController extends BaseController {
                 const ids: number[] = form.custodiasIds
                 const estado: number = form.estado
                 const numFactura: number = form.numFactura
-                
+               
+                if (estado == 4 && await this.hasGroup(req, 'Administrativo')==false)
+                    throw new ClientException(`Requiere ser miembro del grupo Administrativo`)
+
                 if (estado == 4 && !numFactura) {
                     throw new ClientException(`El Número de Factura es invalido.`)
                 }
