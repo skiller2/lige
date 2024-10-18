@@ -15,15 +15,23 @@ export class FileUploadController extends BaseController {
 
   async getByDownloadFile(req: any, res: Response, next: NextFunction) {
     const documentId = Number(req.body.documentId);
+    const filename = String(req.body.filename);
+    let finalurl = '', docname=''
     try {
+      if (documentId != 0) {
+        const document = await this.getFilesInfo(documentId);
+        finalurl = `${document[0]["path"]}`
+        docname = document[0]["name"]
+      } else if (filename) {
+        finalurl = `${process.env.PATH_DOCUMENTS}/temp/${filename}`
+        docname = filename
+      }
 
-      const document = await this.getFilesInfo(documentId);
-
-      const finalurl = `${document[0]["path"]}`
       if (!existsSync(finalurl))
-        throw new ClientException(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
+        throw new ClientException(`Archivo ${docname} no localizado`, { path: finalurl })
 
-      res.download(finalurl, document[0]["name"])
+
+      res.download(finalurl, docname)
 
     } catch (error) {
       return next(error)

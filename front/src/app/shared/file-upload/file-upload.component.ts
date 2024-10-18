@@ -75,17 +75,15 @@ export class FileUploadComponent implements ControlValueAccessor{
     }
   }
 
-  LoadArchivo(documentId: any, filename:any){
-    this.http
-    //    .get('/assets/pdfs/Bootstrap-vs-Material-Design-vs-Prime-vs-Tailwind.pdf',
-        .post('api/carga-licencia/downloadLicencia',
-          { responseType: 'blob','documentId': documentId }
-        )
-      .subscribe((res: any) => {
-        console.log('resultado',res)
-        this.src.set(new Blob(res))
-        
-       });
+  async LoadArchivo(documentId: any, filename:any){
+    
+    console.log('antes')
+  
+    const res = await firstValueFrom(this.http.post('api/file-upload/downloadFile',
+          { responseType: 'blob','documentId': documentId,filename:filename }
+    ))
+    console.log('respuesta',res)
+//    this.src.set(new Blob(res))
     
     this.FileName.set(filename)
      this.isVisible = true;
@@ -101,7 +99,7 @@ export class FileUploadComponent implements ControlValueAccessor{
     
         break;
       case 'progress':
-        debugger
+        //debugger
         break;
       case 'error':
         const Error = event.file.error
