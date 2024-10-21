@@ -172,7 +172,7 @@ export class LicenciaDrawerComponent {
         const Response = event.file.response
        
         this.ArchivosLicenciasAdd = [ ...this.ArchivosLicenciasAdd, Response.data[0] ]
-       // console.log(this.ArchivosLicenciasAdd)
+       console.log(this.ArchivosLicenciasAdd)
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response) 
         //this.fileUploaded = true;
