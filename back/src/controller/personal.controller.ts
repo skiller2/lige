@@ -4,7 +4,7 @@ import fetch, { Request } from "node-fetch";
 import { dataSource } from "../data-source";
 import { Response } from "express-serve-static-core";
 import { NextFunction } from "express";
-import { existsSync } from "fs";
+import { mkdirSync, renameSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
 
@@ -552,24 +552,82 @@ export class PersonalController extends BaseController {
 
   async addPersonal(req: any, res: Response, next: NextFunction){
     const queryRunner = dataSource.createQueryRunner();
-    const nombre = req.body
-    const apellido = req.body
-    const cuit = req.body
-    const nroLegajo = req.body
-    const sucusalId = req.body
-    const fechaAlta = req.body
-    const fechaNacimiento = req.body
-    const foto = req.body
-    const nacionalidad = req.body
-    const dniDorso = req.body
-    const dniFrente = req.body
+    let nombre:string = req.body.nombre
+    let apellido:string = req.body.apellido
+    const cuit:number = req.body.cuit
+    const nroLegajo:number = req.body.nroLegajo
+    const sucusalId:number = req.body.sucusalId
+    const fechaAlta = req.body.fechaAlta
+    const fechaNacimiento = req.body.fechaNacimiento
+    const foto = req.body.foto
+    const nacionalidadId:number = req.body.nacionalidad
+    const dniFrente = req.body.dniFrente
+    const dniDorso = req.body.dniDorso
     try {
       await queryRunner.startTransaction()
+
+      if (!nombre || !apellido || !cuit || !nroLegajo || !sucusalId || !nacionalidadId || !fechaAlta || !fechaNacimiento) {
+        throw new ClientException(`Los campos No pueden estar vacios.`);
+      }
+      nombre = nombre.toUpperCase()
+      apellido = apellido.toUpperCase()
+      const fullname:string = apellido + ', ' + nombre
 
       let max = await queryRunner.query(`
         SELECT MAX(per.PersonalId)
         FROM Personal per`)
       max = max[0]+1
+      
+      await queryRunner.query(`
+        INSERT INTO Personal (
+        PersonalId,
+        PersonalClasePersonal,
+        PersonalNroLegajo,
+        PersonalApellido,
+        PersonalNombre,
+        PersonalApellidoNombre,
+        PersonalFechaSolicitudIngreso,
+        PersonalFechaSolicitudAceptada,
+        PersonalFechaNacimiento,
+        PersonalNacionalidadId,
+        -- PersonalFotoId,
+        -- PersonalSucursalIngresoSucursalId,
+        -- PersonalSuActualSucursalPrincipalId
+        )
+        VALUES (@0,@1,@2,@3,@4,@5,@6,@6,@7,@8)`,[
+          max,
+          'A',
+          nroLegajo,
+          apellido,
+          nombre,
+          fullname,
+          fechaAlta,
+          fechaNacimiento,
+          nacionalidadId,
+        ])
+      
+      let dir
+      if (foto.length) {
+        let maxFoto = await queryRunner.query(`SELECT MAX(DocumentoImagenFotoId) FROM DocumentoImagenFoto`)
+        maxFoto = maxFoto[0] + 1
+        const dirFile = `${process.env.LINCE_PATH}/temp/${foto}.jpg`;
+        const newFilePath = `${process.env.IMAGE_FOTO_PATH}/${max}-${maxFoto}-FOTO.jpg`;
+        this.moveFile(dirFile, newFilePath);
+      }
+      if (dniFrente.length) {
+        let maxDoc = await queryRunner.query(`SELECT MAX(DocumentoImagenDocumentoId) FROM DocumentoImagenDocumento`)
+        maxDoc = maxDoc[0] + 1
+        const dirFile = `${process.env.LINCE_PATH}/temp/${dniFrente}.jpg`;
+        const newFilePath = `${process.env.IMAGE_DOCUMENTO_PATH}/${max}-${maxDoc}-FOTO.jpg`;
+        this.moveFile(dirFile, newFilePath);
+      }
+      if (dniDorso.length) {
+        let maxDoc = await queryRunner.query(`SELECT MAX(DocumentoImagenDocumentoId) FROM DocumentoImagenDocumento`)
+        maxDoc = maxDoc[0] + 1
+        const dirFile = `${process.env.LINCE_PATH}/temp/${dniDorso}.jpg`;
+        const newFilePath = `${process.env.IMAGE_DOCUMENTO_PATH}/${max}-${maxDoc}-FOTO.jpg`;
+        this.moveFile(dirFile, newFilePath);
+      }
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res);
@@ -592,9 +650,7 @@ export class PersonalController extends BaseController {
     try {
       await queryRunner.startTransaction()
 
-      console.log('options');
       const options = await this.getSNacionalidadListQuery(queryRunner)
-      console.log('options',options);
 
       await queryRunner.commitTransaction()
       this.jsonRes(options, res);
@@ -604,5 +660,17 @@ export class PersonalController extends BaseController {
     } finally {
       await queryRunner.release()
     }
+  }
+
+  moveFile(dirFile: any, newFilePath: any) {
+    console.log("dirFile ", dirFile)
+    console.log("newFilePath ", newFilePath)
+
+    if (!existsSync(dirFile)) {
+      mkdirSync(dirFile, { recursive: true })
+    }
+
+    renameSync(dirFile, newFilePath)
+
   }
 }

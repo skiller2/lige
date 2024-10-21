@@ -55,7 +55,7 @@ const storage = multer.diskStorage({
     callback: FileFilterCallback
   ): void => {
 
-    if (file.mimetype !== "application/jpg") {
+    if (file.mimetype !== "image/jpeg") {
       callback(new ClientException("El archivo no es del tipo JPG."));
       return;
     }
