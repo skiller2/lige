@@ -371,16 +371,16 @@ export class LiquidacionesBancoController extends BaseController {
               FROM Personal per
               JOIN PersonalPrestamo pre ON pre.PersonalId = per.PersonalId AND pre.PersonalPrestamoAprobado='S' AND ISNULL(pre.PersonalPrestamoLiquidoFinanzas,0) =0
               JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = 1
-              LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId AND ISNULL(perbanmax.PersonalBancoHasta,'9999-12-31') >= @2)
+              LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId AND ISNULL(perbanmax.PersonalBancoHasta,'9999-12-31') >= @0)
               LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-              LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@2 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= @2
+              LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@0 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= @0
               LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
             
               LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
               
       WHERE (${filterSql}) 
       ${orderBy}
-      `, [anio, mes, stmactual])
+      `, [stmactual,anio, mes])
 
   }
 

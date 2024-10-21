@@ -144,6 +144,7 @@ export class ObjetivosFormComponent {
       
       if (this.edit()) {
         this.formCli.enable()
+        this.formCli.get('codigo')?.disable();
       } else{
       }
     }, { injector: this.injector });
@@ -239,6 +240,7 @@ export class ObjetivosFormComponent {
           this.ObjetivoId.set(result.data.ObjetivoNewId)
           this.ClienteId.set(result.data.ClienteId)
           this.ClienteElementoDependienteId.set(result.data.NewClienteElementoDependienteId)
+   
           //this.addNew.set(true)
           
         }

@@ -33,11 +33,11 @@
                 nzDanger
                 nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
 
-                <span nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(filesAdd.destination,filesAdd.filename)" ></span>
+                <span nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(0,filesAdd.filename)" ></span>
 
              <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
               class="download-color" app-down-file [httpMethod]="'POST'"
-              [httpBody]="{'documentId': filesAdd.id}" httpUrl="api/file-upload/downloadFile"></a>
+              [httpBody]="{'documentId': 0, 'filename':filesAdd.filename}" httpUrl="api/file-upload/downloadFile"></a>
             <span> {{filesAdd.originalname}} </span>
           </div>
         </ng-container>
@@ -60,7 +60,7 @@
     </nz-form-control>
   </nz-form-item>
 
-  <nz-modal [(nzVisible)]="isVisible" nzTitle="" nzWidth="700" nzOkDisabled="true" (nzOnCancel)="handleCancel()" >
+  <nz-modal [(nzVisible)]="modalViewerVisiable" nzTitle="" nzWidth="700" nzOkDisabled="true" (nzOnCancel)="handleCancel()" >
     <ng-container *nzModalContent>
       <ngx-extended-pdf-viewer
           [src]="src()"

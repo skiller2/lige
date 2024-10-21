@@ -399,9 +399,9 @@ ${orderBy}`, [fechaActual])
             //ObjClienteNew = await this.ClienteContacto(queryRunner,ObjCliente,ClienteId)
 
 
-            if (ObjCliente.files.length > 0) {
+            if (ObjCliente.files?.length > 0) {
 
-                await FileUploadController.handlePDFUpload(ClienteId, 'CLI', ObjCliente.files, usuario, ip)
+                await FileUploadController.handlePDFUpload(ClienteId, 'Cliente', 'CLI','cliente_id', ObjCliente.files, usuario, ip)
             }
             await queryRunner.commitTransaction()
             return this.jsonRes(ObjClienteNew, res, 'Modificación  Exitosa');
@@ -631,14 +631,14 @@ ${orderBy}`, [fechaActual])
             ObjClienteNew.infoDomicilio = await this.ClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId)
 
             ObjClienteNew.infoClienteContacto = await this.ClienteContactoUpdate(queryRunner, ObjCliente.infoClienteContacto, ClienteId)
-
             if (ClienteAdministradorId != null) {
                 await this.insertClienteAdministrador(queryRunner, ClienteId, ClienteAdministradorId, ObjCliente.ClienteFechaAlta, ObjCliente.AdministradorId)
             }
 
-            if (ObjCliente.files.length > 0) {
 
-                await FileUploadController.handlePDFUpload(ClienteId, 'CLI', ObjCliente.files, usuario, ip)
+            if (ObjCliente.files?.length > 0) {
+
+                await FileUploadController.handlePDFUpload(ClienteId, 'Cliente', 'CLI','cliente_id', ObjCliente.files, usuario, ip)
             }
 
             await queryRunner.commitTransaction()
