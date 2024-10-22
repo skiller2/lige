@@ -3,7 +3,7 @@ import { PersonaObj } from "../schemas/personal.schemas";
 import fetch, { Request } from "node-fetch";
 import { dataSource } from "../data-source";
 import { Response } from "express-serve-static-core";
-import { NextFunction } from "express";
+import { NextFunction, query } from "express";
 import { mkdirSync, renameSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
@@ -79,7 +79,7 @@ const columns: any[] = [
     name: "Situacion Revista",
     field: "SituacionRevistaId",
     type: "number",
-    fieldName: "sit.SituacionRevistaId",
+    fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
     searchComponent: "inpurForSituacionRevistaSearch",
     searchType: "number",
     sortable: true,
@@ -462,11 +462,11 @@ export class PersonalController extends BaseController {
         per.PersonalFechaIngreso
         FROM Personal per
         LEFT JOIN (
-          SELECT p.PersonalId, s.SituacionRevistaDescripcion, MAX(p.PersonalSituacionRevistaDesde) PersonalSituacionRevistaDesde
+          SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion, MAX(p.PersonalSituacionRevistaDesde) PersonalSituacionRevistaDesde
           FROM PersonalSituacionRevista p
           JOIN SituacionRevista s
           ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaHasta IS NULL
-          GROUP BY s.SituacionRevistaDescripcion, p.PersonalId
+          GROUP BY s.SituacionRevistaDescripcion, p.PersonalId, p.PersonalSituacionRevistaSituacionId
         ) sitrev ON sitrev.PersonalId = per.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId
         LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId
@@ -606,27 +606,14 @@ export class PersonalController extends BaseController {
           nacionalidadId,
         ])
       
-      let dir
       if (foto.length) {
-        let maxFoto = await queryRunner.query(`SELECT MAX(DocumentoImagenFotoId) FROM DocumentoImagenFoto`)
-        maxFoto = maxFoto[0] + 1
-        const dirFile = `${process.env.LINCE_PATH}/temp/${foto}.jpg`;
-        const newFilePath = `${process.env.IMAGE_FOTO_PATH}/${max}-${maxFoto}-FOTO.jpg`;
-        this.moveFile(dirFile, newFilePath);
+        this.addFoto(queryRunner, max, foto)
       }
       if (dniFrente.length) {
-        let maxDoc = await queryRunner.query(`SELECT MAX(DocumentoImagenDocumentoId) FROM DocumentoImagenDocumento`)
-        maxDoc = maxDoc[0] + 1
-        const dirFile = `${process.env.LINCE_PATH}/temp/${dniFrente}.jpg`;
-        const newFilePath = `${process.env.IMAGE_DOCUMENTO_PATH}/${max}-${maxDoc}-FOTO.jpg`;
-        this.moveFile(dirFile, newFilePath);
+        this.addDocumento(queryRunner, max, dniFrente, 12)
       }
       if (dniDorso.length) {
-        let maxDoc = await queryRunner.query(`SELECT MAX(DocumentoImagenDocumentoId) FROM DocumentoImagenDocumento`)
-        maxDoc = maxDoc[0] + 1
-        const dirFile = `${process.env.LINCE_PATH}/temp/${dniDorso}.jpg`;
-        const newFilePath = `${process.env.IMAGE_DOCUMENTO_PATH}/${max}-${maxDoc}-FOTO.jpg`;
-        this.moveFile(dirFile, newFilePath);
+        this.addDocumento(queryRunner, max, dniDorso, 13)
       }
 
       await queryRunner.commitTransaction()
@@ -673,4 +660,55 @@ export class PersonalController extends BaseController {
     renameSync(dirFile, newFilePath)
 
   }
+
+  async addFoto(queryRunner:any, personalId:number, fieldname:string){
+    let maxFoto = await queryRunner.query(`SELECT MAX(DocumentoImagenFotoId) FROM DocumentoImagenFoto`)
+    maxFoto = maxFoto[0] + 1
+    const dirFile = `${process.env.LINCE_PATH}/temp/${fieldname}.jpg`;
+    const newFieldname = `${personalId}-${maxFoto}-FOTO.jpg`
+    const newFilePath = `${process.env.IMAGE_FOTO_PATH}/${newFieldname}`;
+    this.moveFile(dirFile, newFilePath);
+    await queryRunner.query(`
+      INSERT INTO DocumentoImagenFoto (
+      DocumentoImagenFotoId,
+      PersonalId,
+      DocumentoImagenFotoBlobTipoArchivo,
+      DocumentoImagenFotoBlobNombreArchivo,
+      DocumentoImagenParametroId,
+      DocumentoImagenParametroDirectorioId
+      )
+      VALUES(@0,@1,@2,@3,@4,@5)`,
+      [maxFoto,personalId,'jpg',newFieldname,7,1]
+    )
+    await queryRunner.query(`UPDATE Personal SET PersonalFotoId = @0 WHERE PersonalId = @1`,
+      [maxFoto,personalId]
+    )
+  }
+
+  async addDocumento(queryRunner:any, personalId:number, fieldname:string, parametro:number){
+    let maxFoto = await queryRunner.query(`SELECT MAX(DocumentoImagenDocumentoId) FROM DocumentoImagenDocumento`)
+    maxFoto = maxFoto[0] + 1
+    const dirFile: string  = `${process.env.LINCE_PATH}/temp/${fieldname}.jpg`;
+    let newFieldname: string = `${personalId}-${maxFoto}`
+    if (parametro == 13) {
+      newFieldname += `-DOCUMENDOR.jpg`
+    }else if(parametro == 12){
+      newFieldname += `-DOCUMENFREN.jpg`
+    }
+    const newFilePath: string  = `${process.env.IMAGE_DOCUMENTO_PATH}/${newFieldname}`;
+    this.moveFile(dirFile, newFilePath);
+    await queryRunner.query(`
+      INSERT INTO DocumentoImagenDocumento (
+      DocumentoImagenDocumentoId,
+      PersonalId,
+      DocumentoImagenDocumentoBlobTipoArchivo,
+      DocumentoImagenDocumentoBlobNombreArchivo,
+      DocumentoImagenParametroId,
+      DocumentoImagenParametroDirectorioId
+      )
+      VALUES(@0,@1,@2,@3,@4,@5)`,
+      [maxFoto, personalId, 'jpg', newFieldname, parametro, 1]
+    )
+  }
+
 }
