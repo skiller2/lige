@@ -547,19 +547,18 @@ export class ObjetivosController extends BaseController {
         // Obtener la hora, minutos y segundos
         const GrupoActividadObjetivoTiempo = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
 
-        let GrupoActividadObjetivoDesde = new Date(now); 
+        let GrupoActividadObjetivoDesde = now
         GrupoActividadObjetivoDesde.setHours(0, 0, 0, 0);
 
-    
-
         // Restar un día a la fecha
-        let GrupoActividadObjetivoHasta = new Date(GrupoActividadObjetivoDesde); 
+        let GrupoActividadObjetivoHasta = GrupoActividadObjetivoDesde; 
         GrupoActividadObjetivoHasta.setDate(GrupoActividadObjetivoHasta.getDate() - 1);
 
+        console.log("GrupoActividadObjetivoHasta ", GrupoActividadObjetivoHasta)
            if(infoActividad[0].GrupoActividadObjetivoId){
             await queryRunner.query(`UPDATE GrupoActividadObjetivo SET GrupoActividadObjetivoHasta = @3
                 WHERE  GrupoActividadObjetivoId = @0 AND GrupoActividadObjetivoObjetivoId = @1 AND GrupoActividadId = @2 AND ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') > @3`,
-                [infoActividad[0].GrupoActividadObjetivoId,GrupoActividadObjetivoObjetivoId,infoActividad[0].GrupoActividadId,GrupoActividadObjetivoHasta])
+                [infoActividad[0].GrupoActividadObjetivoId,GrupoActividadObjetivoObjetivoId,infoActividad[0].GrupoActividadOriginal,GrupoActividadObjetivoHasta])
            }
 
           
@@ -608,6 +607,7 @@ export class ObjetivosController extends BaseController {
             let newObj = []
 
             console.log("voy a hacer update ", Obj)
+
             //throw new ClientException(`test.`)
             //validaciones
             await this.FormValidations(Obj)
