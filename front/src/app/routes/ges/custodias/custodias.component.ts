@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model } from '@angular/core';
+import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
@@ -45,6 +45,7 @@ export class CustodiaComponent {
     // isLoadingForm = signal(false);
     cantReg = signal(0)
     impTotal = signal(0)
+    periodo = signal(new Date())
     selectedCli = signal<any[]>([])
     selectedCliInfo = signal<any[]>([])
     valueForm = signal<any[]>([])
@@ -60,6 +61,7 @@ export class CustodiaComponent {
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
     // private settingService = inject(SettingsService)
+    private injector = inject(Injector)
 
     columns$ = this.apiService.getCols('/api/custodia/cols')
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
@@ -67,7 +69,7 @@ export class CustodiaComponent {
     gridData$ = this.listCustodia$.pipe(
         debounceTime(500),
         switchMap(() => {
-            return this.searchService.getListaObjetivoCustodia({ options: this.listOptions })
+            return this.searchService.getListaObjetivoCustodia(this.listOptions , this.periodo())
                 .pipe(map(data => { return data }))
         })
     )
@@ -87,6 +89,12 @@ export class CustodiaComponent {
         else
             return false
     }
+
+    selectedPeriod = computed(() => {
+        if (this.periodo()) {
+            this.getGridData()
+        }
+      })
 
     async ngOnInit() {
         // const user: any = this.settingService.getUser()
@@ -109,6 +117,12 @@ export class CustodiaComponent {
             selectActiveRow: true
         }
 
+        effect(async () => {
+            // console.log('PERIODO',this.periodo());
+            if (this.periodo()) {
+                this.getGridData()
+            }
+        }, { injector: this.injector });
     }
 
     async angularGridReady(angularGrid: any) {

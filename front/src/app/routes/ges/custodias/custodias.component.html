@@ -27,8 +27,17 @@
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/cust/objetivos">Objetivos</a>
-
+      
       <ng-template nz-tab *ngIf="(columns$|async) as columnas">
+
+        <br>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
+          <nz-form-control [nzSpan]="5">
+            <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzFormat="MM/yyyy" />
+          </nz-form-control>
+        </nz-form-item>
+        
         <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)"
           [startFilters]="startFilters" />
 
