@@ -115,7 +115,7 @@
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
             <nz-select formControlName="ClienteDomicilioBarrioId" nzPlaceHolder="Barrio" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
               <ng-container *ngFor="let option of optionsBarrio" >
-                <nz-option *ngIf="option.ProvinciaId == control.value.ClienteDomicilioProvinciaId && option.LocalidadId == control.value.ClienteDomicilioLocalidadId " [nzValue]="option.BarrioId" [nzLabel]="option.BarrioDescripcion" ></nz-option> -->
+                <nz-option *ngIf="option.ProvinciaId == control.value.ClienteDomicilioProvinciaId && option.LocalidadId == control.value.ClienteDomicilioLocalidadId " [nzValue]="option.BarrioId" [nzLabel]="option.BarrioDescripcion" ></nz-option>
               </ng-container> 
             </nz-select>
           </nz-form-control>
@@ -123,10 +123,10 @@
           <!-- Columna para los botones -->
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2">
             <div class="button-group"  style="width: 100%">
-              <button nz-button nzType="primary" class="add-button" (click)="addDomicilio($event)">
+              <button nz-button nzType="primary" class="add-button" (click)="addDomicilio($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" >
                 <span nz-icon nzType="plus"></span>
               </button>
-              <button *ngIf="infoDomicilio().length >= 2" nz-button nzType="default" (click)="removeDomicilio(i, $event)">
+              <button *ngIf="infoDomicilio().length >= 2" nz-button nzType="default" (click)="removeDomicilio(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}" >
                 <span nz-icon nzType="delete" nzTheme="outline"></span>
               </button>
             </div>
@@ -192,10 +192,10 @@
             <input nz-input placeholder="" formControlName="correo" type="string" />
           </nz-input-group>
           <ng-template #controlClienteButton >
-            <button nz-button *ngIf="infoClienteContacto().controls.length == i+1" nzType="primary" class="add-button" (click)="addClienteContacto($event)">
+            <button nz-button *ngIf="infoClienteContacto().controls.length == i+1" nzType="primary" class="add-button" (click)="addClienteContacto($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" >
               <span nz-icon nzType="plus"></span>
             </button>
-            <button *ngIf="infoClienteContacto().length >= 2" nz-button nzType="default" (click)="removeClienteContacto(i, $event)">
+            <button *ngIf="infoClienteContacto().length >= 2" nz-button nzType="default" (click)="removeClienteContacto(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}" >
               <span nz-icon nzType="delete" nzTheme="outline" ></span>
             </button>
           </ng-template>
@@ -231,13 +231,13 @@
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
         <button nzType="primary" nz-button  (click)="save()" [nzLoading]="isLoading()" [disabled]="formCli.pristine" >
-          Guardar Cambios 
+          {{ 'app.btn.save' | i18n }}
         </button>
         <button nzType="primary" nz-button nzDanger  nz-popconfirm
         nzPopconfirmTitle="Esta seguro que quiere eliminar este Cliente?"
         (nzOnConfirm)="deleteCliente()"
         nzPopconfirmPlacement="top" *ngIf="edit()" [nzLoading]="isLoading()" [disabled]="!(formCli.pristine)" >
-          Borrar Cliente
+        {{ 'app.btn.delete' | i18n }}
         </button>
       </nz-form-control>
     </nz-form-item>

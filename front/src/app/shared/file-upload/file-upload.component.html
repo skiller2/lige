@@ -53,7 +53,7 @@
         <nz-upload nzAccept="application/pdf" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)" >
           <button  nz-button  >
             <span nz-icon nzType="upload"></span>
-            Subir PDF
+           {{ 'app.btn.pdf' | i18n }}"
           </button>
         </nz-upload>
       </ng-container>
