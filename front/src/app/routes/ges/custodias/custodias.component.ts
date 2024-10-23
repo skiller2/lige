@@ -73,7 +73,7 @@ export class CustodiaComponent {
     )
 
     fb = inject(FormBuilder)
-    objCusEstado = { clienteId: 0, estado: 0, numFactura: 0, custodiasIds: this.fb.array([this.fb.control(0)]) }
+    objCusEstado = { clienteId: 0, estado: null, numFactura: 0, custodiasIds: this.fb.array([this.fb.control(0)]) }
     formCusEstado = this.fb.group({
         custodia: this.fb.array([this.fb.group({ ...this.objCusEstado })])
     })
@@ -155,12 +155,16 @@ export class CustodiaComponent {
             } else {
                 clientesIds.push(reg.cliente?.id)
                 itemsByClientes.push({ clienteId: reg.cliente.id, clienteName: reg.cliente.fullName, cantReg: 1, total: reg.facturacion, cuit: 0, razonSocial: '', domicilio: '' })
-                valueForm.push({ clienteId: reg.cliente.id, estado: 0, numFactura: 0, custodiasIds: [reg.id] })
+                valueForm.push({ clienteId: reg.cliente.id, estado: null, numFactura: 0, custodiasIds: [reg.id] })
             }
         }
         this.selectedCli.set(clientesIds)
         this.selectedCliInfo.set(itemsByClientes)
         this.valueForm.set(valueForm)
+        if (this.formCusEstado.dirty) {
+            this.formCusEstado.markAsUntouched()
+            this.formCusEstado.markAsPristine()
+        }
     }
 
     getGridData(): void {
@@ -214,14 +218,13 @@ export class CustodiaComponent {
 
     async save() {
         this.isLoading.set(true)
-        this.editCustodiaId.set(0)
+        let aux = this.editCustodiaId()
+        this.editCustodiaId.update(a => 0)
         try {
             let values = this.custodia().value
             // console.log(values);
             await firstValueFrom(this.apiService.setEstado(values))
             this.listCustodia('')
-            let aux = this.editCustodiaId()
-            await this.editCustodiaId.set(0)
             this.editCustodiaId.set(aux)
             const selrow = this.angularGrid.dataView.getAllSelectedFilteredIds()
             if (selrow.length == 1) {

@@ -90,7 +90,7 @@
       </div>
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()">
+          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formCusEstado.pristine">
             Guardar Cambios
           </button>
         </nz-form-control>
