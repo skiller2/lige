@@ -8,13 +8,13 @@
         <nz-button-group style="text-align: right;">
           <!-- <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalLicenciaId>0)" ><span nz-icon nzType="edit"
             nzTheme="outline" ></span></button> -->
-          <button nz-button nzType="default" (click)="openDrawerforEdit()" ><span nz-icon nzType="edit"
+          <button nz-button nzType="default" (click)="openDrawerforEdit()" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" ><span nz-icon nzType="edit"
                   nzTheme="outline" ></span></button>
-          <button nz-button nzType="default" (click)="openDrawerforConsult()"  ><span nz-icon nzType="info-circle"
+          <button nz-button nzType="default" (click)="openDrawerforConsult()" nz-tooltip nzTooltipTitle="{{ 'app.icon.consult' | i18n }}" ><span nz-icon nzType="info-circle"
                   nzTheme="outline" ></span></button>
-          <button nz-button nzType="default" (click)="openDrawerforNew()"><span nz-icon nzType="plus"
+          <button nz-button nzType="default" (click)="openDrawerforNew()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus"
                   nzTheme="outline"></span></button>
-          <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="PersonalId() == 0"><span nz-icon nzType="menu-unfold" 
+          <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="PersonalId() == 0" nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold" 
                   nzTheme="outline"></span></button>
       </nz-button-group>
       </nz-form-item>

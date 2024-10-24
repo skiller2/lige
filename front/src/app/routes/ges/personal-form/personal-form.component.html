@@ -54,7 +54,7 @@
         [nzShowUploadList]="false" (nzChange)="uploadChange($event, 'foto')" >
           <button nz-button>
             <span nz-icon nzType="upload"></span>
-            Subir Foto
+            {{ 'app.btn.upload.photo' | i18n }}
           </button>
         </nz-upload>
         }@else{
@@ -88,7 +88,7 @@
       [nzShowUploadList]="false" (nzChange)="uploadChange($event, 'dniFrente')">
         <button nz-button>
           <span nz-icon nzType="upload"></span>
-          Subir DNI
+          {{ 'app.btn.upload.dni' | i18n }}
         </button>
       </nz-upload>
       }@else{
@@ -111,7 +111,7 @@
         [nzShowUploadList]="false" (nzChange)="uploadChange($event, 'dniDorso')" >
           <button nz-button>
             <span nz-icon nzType="upload"></span>
-            Subir DNI
+            {{ 'app.btn.upload.dni' | i18n }}
           </button>
         </nz-upload>
         }@else{

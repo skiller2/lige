@@ -1,7 +1,7 @@
 <ng-container>
     <button nz-button onclick="upload.click();"> 
         <span nz-icon nzType="upload"></span>
-        <span *ngIf="!($currentIsFile | async) ">Seleccione Archivo</span>
+        <span *ngIf="!($currentIsFile | async) ">{{ 'app.btn.file' | i18n }}</span>
 
         <span *ngIf="($currentFileName | async) as name ">{{name}}</span>
         <span *ngIf="($currentFileSize | async) as size ">{{size | nzBytes}} </span>

@@ -80,11 +80,11 @@
           <nz-input-group>
             <button nz-col nz-button nzType="primary" [nzLoading]="this.saveLoading$ | async"
               [disabled]="this.saveLoading$ | async" [nzSize]="'default'" (click)="SaveForm()">
-              <span nz-icon nzType="save" nzTheme="outline"></span>Grabar
+              <span nz-icon nzType="save" nzTheme="outline"></span>{{ 'app.btn.record' | i18n }}
             </button>
             <button nz-col nzDanger nz-button nzType="primary" [nzLoading]="this.deleteLoading$ | async"
-              [disabled]="this.deleteLoading$ | async" [nzSize]="'default'" (click)="DeleteForm()">
-              <span nz-icon nzType="delete" nzTheme="outline"></span>Eliminar
+              [disabled]="this.deleteLoading$ | async" [nzSize]="'default'" (click)="DeleteForm()" >
+              <span nz-icon nzType="delete" nzTheme="outline"></span> {{ 'app.btn.delete' | i18n }}
             </button>
           </nz-input-group>
         </nz-form-item>
