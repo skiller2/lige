@@ -12,26 +12,24 @@
             <nz-form-control [nzSpan]="16" style="text-align: right;" *ngIf="selectedObjetivoId>0">
                 <nz-button-group>
                     <button nz-button nzType="default" (click)="exportGrid()" *ngIf="gridDataInsert.length > 1 "><span
-                            nz-icon nzType="download"></span>XLS</button>
+                            nz-icon nzType="download"></span>{{ 'app.btn.name.xls' | i18n }}</button>
                     <button nz-button nzType="default"
                         [routerLink]="['/ges/asistencia_excepcion',{ObjetivoId:this.selectedObjetivoId}]"><span nz-icon
-                            nzType="right" nzTheme="outline"></span>Excepción</button>
+                            nzType="right" nzTheme="outline"></span>{{ 'app.btn.exception' | i18n }}</button>
                     <button nz-button nzType="default" nz-popconfirm
                         nzPopconfirmTitle="Cargo vigiladores del mes anterior?" (nzOnConfirm)="autocomplete()"
                         *ngIf="gridDataInsert.length <= 1 && gridOptionsEdit.editable"><span nz-icon nzType="copy"
-                            nzTheme="outline"></span>Copia mes anterior</button>
-
+                            nzTheme="outline"></span>{{'app.btn.copi.previous.month' | i18n }}</button>
+                         
                     <button nz-button nzType="primary" nz-popconfirm
                         *ngIf="(periodos && (periodos[0]?.ObjetivoAsistenciaAnoMesDesde == null || periodos[0]?.ObjetivoAsistenciaAnoMesHasta != null))"
                         nzPopconfirmTitle="Habilita carga asistencia?" [nzBeforeConfirm]=""
                         [nzPopconfirmShowArrow]="false" (nzOnConfirm)="setCargaAsistencia()"><span nz-icon nzType="plus"
-                            nzTheme="outline"></span>Inicia
-                        Carga</button>
+                            nzTheme="outline"></span>{{ 'app.btn.starloading' | i18n }}</button>
                     <button nz-button nzType="primary" nz-popconfirm nzPopconfirmTitle="Cierra carga asistencia?"
                         *ngIf="periodos &&  periodos[0]?.ObjetivoAsistenciaAnoMesHasta == null && periodos[0]?.ObjetivoAsistenciaAnoMesDesde != null"
-                        [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false" (nzOnConfirm)="endCargaAsistencia()" [disabled]="isLoadingCheck"><span
-                            nz-icon nzType="check" nzTheme="outline"></span>Finaliza
-                        Carga</button>
+                        [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false" (nzOnConfirm)="endCargaAsistencia()" [disabled]="isLoadingCheck" ><span
+                            nz-icon nzType="check" nzTheme="outline"></span>{{'app.btn.endloading' | i18n }} </button>
                 </nz-button-group>
             </nz-form-control>
         </nz-form-item>
@@ -40,7 +38,7 @@
             <nz-form-control [nzSpan]="21">
                 <ng-template #suffixReloadTpl>
                     <a (click)="formChange('', Busqueda.Objetivo)"><span nz-icon nzType="reload"
-                            nzTheme="outline"></span></a>
+                            nzTheme="outline" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"></span></a>
                 </ng-template>
                 <nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="width: 100%">
                     <app-objetivo-search [(ngModel)]="selectedObjetivoId" name="ObjetivoId"
@@ -70,9 +68,9 @@
                 <nz-form-control [nzSpan]="11" style="text-align: right;">
                     <nz-button-group>
                         <button nz-button nzType="default" (click)="openDrawer()"><span nz-icon nzType="user"
-                                nzTheme="outline"></span></button>
+                                nzTheme="outline"   nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"></span></button>
                         <button nz-button nzType="default" (click)="validaGrilla()" [disabled]="isLoadingCheck"><span nz-icon [nzType]="isLoadingCheck ? 'loading' : 'check'" 
-                                nzTheme="outline"></span></button>
+                                nzTheme="outline"  nz-tooltip nzTooltipTitle="{{ 'app.icon.aprobar' | i18n }}"></span></button>
                     </nz-button-group>
                 </nz-form-control>
 

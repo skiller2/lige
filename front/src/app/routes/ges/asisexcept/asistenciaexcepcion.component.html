@@ -164,7 +164,7 @@
 
       <button nz-col nzDanger nz-button nzType="primary" [nzSize]="'default'" (click)="endexception()"
         *ngIf="asistenciaexcepcion.controls['metodo']?.value && asistenciaexcepcion.controls['PersonalId']?.value && selectedObjetivoId">
-        <span nz-icon nzType="delete" nzTheme="outline"></span>Finaliza excepción</button>
+        <span nz-icon nzType="delete" nzTheme="outline"></span>{{ 'app.btn.exception.finish' | i18n }}</button>
     </nz-button-group>
 
   </form>
