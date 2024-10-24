@@ -13,10 +13,10 @@
     </ul>
   
     <nz-button-group >
-      <a [routerLink]="['/', 'ges', 'objetivos','detalle']" (click)="edit.set(true)">
+      <a [routerLink]="['/', 'ges', 'objetivos','detalle']" (click)="edit.set(true)" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
         <button nz-button nzType="default" [disabled]="editObjetivoId()? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
       </a>
-      <a [routerLink]="['/', 'ges', 'objetivos','alta']" (click)="edit.set(true); editObjetivoId.set(0) ">
+      <a [routerLink]="['/', 'ges', 'objetivos','alta']" (click)="edit.set(true); editObjetivoId.set(0) " nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
         <button nz-button nzType="default" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
       </a>
     </nz-button-group>

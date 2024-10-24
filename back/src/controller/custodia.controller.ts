@@ -72,10 +72,14 @@ const columnsObjCustodia: any[] = [
     {
         id:'fechaI' , name:'Fecha Inicio' , field:'fechaI',
         fieldName: "obj.fecha_inicio",
-        sortable: true,
         type: 'date',
         // maxWidth: 150,
         minWidth: 90,
+        searchComponent: "inpurForFechaSearch",
+        searchType: "date",
+        sortable: true,
+        searchHidden: false,
+        hidden: false,
     },
     {
         id:'origen' , name:'Origen' , field:'origen',
@@ -101,7 +105,6 @@ const columnsObjCustodia: any[] = [
         // maxWidth: 180,
         minWidth: 50,
     },
-
 
     {
         id: 'cant_modulos', name: 'Cant. módulos',
@@ -300,7 +303,9 @@ export class CustodiaController extends BaseController {
         [armaId, detalle])
     }
 
-    async listObjetivoCustodiaByResponsableQuery(queryRunner:any, filterSql:any, orderBy:any, responsableId?:number){
+    async listObjetivoCustodiaByResponsableQuery(queryRunner:any, filterSql:any, orderBy:any, periodo:Date, responsableId?:number){
+        const year = periodo.getFullYear()
+        const month = periodo.getMonth()+1
         let search = ''
         if (responsableId === undefined) {
             search = `1=1`
@@ -319,8 +324,8 @@ export class CustodiaController extends BaseController {
             JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
             LEFT JOIN lige.dbo.regvehiculocustodia regveh ON regveh.objetivo_custodia_id = obj.objetivo_custodia_id
             LEFT JOIN lige.dbo.regpersonalcustodia regper ON regper.objetivo_custodia_id = obj.objetivo_custodia_id
-            WHERE (${search}) AND (${filterSql}) 
-            ${orderBy}`)
+            WHERE (DATEPART(YEAR,obj.fecha_inicio)=@0 AND  DATEPART(MONTH, obj.fecha_inicio)=@1) AND (${search}) AND (${filterSql}) 
+            ${orderBy}`, [year, month])
     }
 
     async updateObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia:any, usuario:any, ip:any){
@@ -519,6 +524,7 @@ export class CustodiaController extends BaseController {
             await queryRunner.startTransaction()
             // const responsableId = 699
             const responsableId = res.locals.PersonalId
+            const periodo: Date = new Date(req.body.periodo)
             const options: Options = isOptions(req.body.options)? req.body.options : { filtros: [], sort: null };
             
             const filterSql = filtrosToSql(options.filtros, columnsObjCustodia);
@@ -526,9 +532,9 @@ export class CustodiaController extends BaseController {
             
             let result : any
             if (await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')){
-                result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, filterSql, orderBy)
+                result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, filterSql, orderBy, periodo)
             }else{
-                result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, filterSql, orderBy, responsableId)
+                result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, filterSql, orderBy, periodo, responsableId)
             }
 
             let list = result.map((obj : any) => {

@@ -131,7 +131,7 @@
   <nz-form-item>
     <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
       <button nzType="primary" nz-button *ngIf="formPer.enabled"  (click)="save()" [nzLoading]="isLoading()" [disabled]="formPer.pristine" >
-        Guardar Cambios
+        {{ 'app.btn.save' | i18n }}
       </button>
     </nz-form-control>
   </nz-form-item>

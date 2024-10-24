@@ -27,8 +27,17 @@
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/cust/objetivos">Objetivos</a>
-
+      
       <ng-template nz-tab *ngIf="(columns$|async) as columnas">
+
+        <br>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
+          <nz-form-control [nzSpan]="5">
+            <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzFormat="MM/yyyy" />
+          </nz-form-control>
+        </nz-form-item>
+        
         <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)"
           [startFilters]="startFilters" />
 
@@ -90,8 +99,8 @@
       </div>
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()">
-            Guardar Cambios
+          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formCusEstado.pristine">
+            {{ 'app.btn.save' | i18n }}
           </button>
         </nz-form-control>
       </nz-form-item>

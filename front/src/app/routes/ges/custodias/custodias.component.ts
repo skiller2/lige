@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model } from '@angular/core';
+import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
@@ -45,6 +45,7 @@ export class CustodiaComponent {
     // isLoadingForm = signal(false);
     cantReg = signal(0)
     impTotal = signal(0)
+    periodo = signal(new Date())
     selectedCli = signal<any[]>([])
     selectedCliInfo = signal<any[]>([])
     valueForm = signal<any[]>([])
@@ -60,6 +61,7 @@ export class CustodiaComponent {
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
     // private settingService = inject(SettingsService)
+    private injector = inject(Injector)
 
     columns$ = this.apiService.getCols('/api/custodia/cols')
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
@@ -67,13 +69,13 @@ export class CustodiaComponent {
     gridData$ = this.listCustodia$.pipe(
         debounceTime(500),
         switchMap(() => {
-            return this.searchService.getListaObjetivoCustodia({ options: this.listOptions })
+            return this.searchService.getListaObjetivoCustodia(this.listOptions , this.periodo())
                 .pipe(map(data => { return data }))
         })
     )
 
     fb = inject(FormBuilder)
-    objCusEstado = { clienteId: 0, estado: 0, numFactura: 0, custodiasIds: this.fb.array([this.fb.control(0)]) }
+    objCusEstado = { clienteId: 0, estado: null, numFactura: 0, custodiasIds: this.fb.array([this.fb.control(0)]) }
     formCusEstado = this.fb.group({
         custodia: this.fb.array([this.fb.group({ ...this.objCusEstado })])
     })
@@ -87,6 +89,12 @@ export class CustodiaComponent {
         else
             return false
     }
+
+    selectedPeriod = computed(() => {
+        if (this.periodo()) {
+            this.getGridData()
+        }
+      })
 
     async ngOnInit() {
         // const user: any = this.settingService.getUser()
@@ -109,6 +117,12 @@ export class CustodiaComponent {
             selectActiveRow: true
         }
 
+        effect(async () => {
+            // console.log('PERIODO',this.periodo());
+            if (this.periodo()) {
+                this.getGridData()
+            }
+        }, { injector: this.injector });
     }
 
     async angularGridReady(angularGrid: any) {
@@ -155,12 +169,16 @@ export class CustodiaComponent {
             } else {
                 clientesIds.push(reg.cliente?.id)
                 itemsByClientes.push({ clienteId: reg.cliente.id, clienteName: reg.cliente.fullName, cantReg: 1, total: reg.facturacion, cuit: 0, razonSocial: '', domicilio: '' })
-                valueForm.push({ clienteId: reg.cliente.id, estado: 0, numFactura: 0, custodiasIds: [reg.id] })
+                valueForm.push({ clienteId: reg.cliente.id, estado: null, numFactura: 0, custodiasIds: [reg.id] })
             }
         }
         this.selectedCli.set(clientesIds)
         this.selectedCliInfo.set(itemsByClientes)
         this.valueForm.set(valueForm)
+        if (this.formCusEstado.dirty) {
+            this.formCusEstado.markAsUntouched()
+            this.formCusEstado.markAsPristine()
+        }
     }
 
     getGridData(): void {
@@ -214,14 +232,13 @@ export class CustodiaComponent {
 
     async save() {
         this.isLoading.set(true)
-        this.editCustodiaId.set(0)
+        let aux = this.editCustodiaId()
+        this.editCustodiaId.update(a => 0)
         try {
             let values = this.custodia().value
             // console.log(values);
             await firstValueFrom(this.apiService.setEstado(values))
             this.listCustodia('')
-            let aux = this.editCustodiaId()
-            await this.editCustodiaId.set(0)
             this.editCustodiaId.set(aux)
             const selrow = this.angularGrid.dataView.getAllSelectedFilteredIds()
             if (selrow.length == 1) {

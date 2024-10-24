@@ -672,9 +672,9 @@ export class SearchService {
       )
   }
 
-  getListaObjetivoCustodia(filters: any){
+  getListaObjetivoCustodia(options: any, periodo:Date){
     return this.http
-      .post<ResponseJSON<any>>(`api/custodia/list`, filters)
+      .post<ResponseJSON<any>>(`api/custodia/list`, {options, periodo})
       .pipe(
         map(res => res.data),
         catchError(() => of([]))

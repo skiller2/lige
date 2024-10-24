@@ -6,6 +6,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { NgForm, FormArray, FormBuilder, ValueChangeEvent } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { RubroSearchComponent } from '../../../shared/rubro-search/rubro-search.component';
+import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad/grupo-actividad.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, startWith, Observable, of, filter, merge } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
@@ -38,7 +39,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     FiltroBuilderComponent,
     NzAutocompleteModule,
     NzSelectModule,
-    FileUploadComponent
+    FileUploadComponent,
+    GrupoActividadSearchComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   
@@ -61,6 +63,11 @@ export class ObjetivosFormComponent {
   objRubro = {
     ClienteElementoDependienteRubroId:0,
     RubroId:0
+  }
+  objActividad = {
+    GrupoActividadObjetivoId:0,
+    GrupoActividadId:0,
+    GrupoActividadOriginal:0
   }
   edit = model(true)
   ObjetivoId = model(0)
@@ -100,6 +107,7 @@ export class ObjetivosFormComponent {
     DomicilioProvinciaId: null,DomicilioLocalidadId: null, DomicilioBarrioId: null,
     infoCoordinadorCuenta: this.fb.array([this.fb.group({ ...this.objCoordinadorCuenta })]), 
     infoRubro: this.fb.array([this.fb.group({ ...this.objRubro })]), 
+    infoActividad: this.fb.array([this.fb.group({ ...this.objActividad })]), 
     estado: 0,
     files:[],
     codigo: "",
@@ -107,6 +115,7 @@ export class ObjetivosFormComponent {
     FechaModificada: false,
     ContratoFechaDesdeOLD:"",
     ContratoFechaHastaOLD:"",
+    GrupoActividadId:0
   })
 
  
@@ -159,6 +168,7 @@ export class ObjetivosFormComponent {
    console.log("infoObjetivo",infoObjetivo)
     this.infoCoordinadorCuenta().clear()
     this.infoRubro().clear()
+    this.infoActividad().clear()
     
     infoObjetivo?.infoCoordinadorCuenta.forEach((obj: any) => {
       this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
@@ -176,13 +186,23 @@ export class ObjetivosFormComponent {
     if(infoObjetivo.infoRubro.length == 0){
       this.infoRubro().push(this.fb.group({ ...this.objRubro }))
     }
+
+    infoObjetivo?.infoActividad.forEach((obj: any) => {
+      this.infoActividad().push(this.fb.group({ ...this.objActividad }))
+    });
+    
+    if(infoObjetivo.infoActividad.length == 0){
+      this.infoActividad().push(this.fb.group({ ...this.objActividad }))
+    }
     
     if (this.formCli.disabled){
       this.infoCoordinadorCuenta().disable()
       this.infoRubro().disable()
+      this.infoActividad().disable()
     }else {
       this.infoCoordinadorCuenta().enable()
       this.infoRubro().enable()
+      this.infoActividad().disable()
     }
 
     this.formCli.reset(infoObjetivo)
@@ -191,7 +211,8 @@ export class ObjetivosFormComponent {
       FechaModificada:false,
       ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
       ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
-      codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`
+      codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
+      GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId
     });
 
 
@@ -259,6 +280,10 @@ export class ObjetivosFormComponent {
 
   infoRubro(): FormArray {
     return this.formCli.get("infoRubro") as FormArray
+  }
+
+  infoActividad(): FormArray {
+    return this.formCli.get("infoActividad") as FormArray
   }
 
   addCoordinadorCuenta(e?: MouseEvent): void {
