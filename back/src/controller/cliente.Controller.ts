@@ -80,7 +80,7 @@ export class ClienteController extends BaseController {
       await queryRunner.commitTransaction()
       return this.jsonRes(infoCliente, res);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()

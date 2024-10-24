@@ -34,7 +34,7 @@ export class ImpuestosAfipController extends BaseController {
       }
       return tmpURL
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return error
     }
   }
@@ -92,7 +92,7 @@ export class ImpuestosAfipController extends BaseController {
       });
 
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -111,7 +111,7 @@ export class ImpuestosAfipController extends BaseController {
 
       return respuesta
     } catch (error) {
-      // this.rollbackTransaction(queryRunner)
+      // await this.rollbackTransaction(queryRunner)
       return error
     }
   }

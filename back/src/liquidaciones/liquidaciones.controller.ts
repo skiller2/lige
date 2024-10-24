@@ -396,7 +396,7 @@ export class LiquidacionesController extends BaseController {
 
       this.jsonRes({ list: [] }, res, `Se eliminaron con exito los registros `);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       //   await queryRunner.release();
@@ -466,7 +466,7 @@ export class LiquidacionesController extends BaseController {
 
       this.jsonRes({ list: [] }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       //   await queryRunner.release();
@@ -604,7 +604,7 @@ export class LiquidacionesController extends BaseController {
       copyFileSync(file.path, `${this.directory}/${newFilePath}`);
       this.jsonRes({}, res, `XLS Recibido y se procesaron ${contador} registros`);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release();

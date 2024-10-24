@@ -192,7 +192,7 @@ export class RecibosController extends BaseController {
 
     } catch (error) {
 
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       //   await queryRunner.release();
@@ -585,7 +585,7 @@ export class RecibosController extends BaseController {
       res.write(resBuffer, 'binary');
       res.end();
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
 

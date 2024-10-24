@@ -511,7 +511,7 @@ export class CustodiaController extends BaseController {
             await queryRunner.commitTransaction()
             return this.jsonRes({ custodiaId: objetivoCustodiaId }, res, 'Carga Exitosa');
         }catch (error) {
-            this.rollbackTransaction(queryRunner)
+            await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
             await queryRunner.release()
@@ -563,7 +563,7 @@ export class CustodiaController extends BaseController {
             await queryRunner.commitTransaction()
             return this.jsonRes(list, res)
         }catch (error) {
-            this.rollbackTransaction(queryRunner)
+            await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
             await queryRunner.release()
@@ -590,7 +590,7 @@ export class CustodiaController extends BaseController {
             await queryRunner.commitTransaction()
             return this.jsonRes(infoCustodia, res)
         }catch (error) {
-            this.rollbackTransaction(queryRunner)
+            await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
             await queryRunner.release()
@@ -679,7 +679,7 @@ export class CustodiaController extends BaseController {
             await queryRunner.commitTransaction()
             return this.jsonRes([], res, 'Carga Exitosa');
         }catch (error) {
-            this.rollbackTransaction(queryRunner)
+            await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
             await queryRunner.release()
@@ -737,7 +737,7 @@ export class CustodiaController extends BaseController {
             await queryRunner.commitTransaction()
             return this.jsonRes(list, res);
         } catch (error) {
-            this.rollbackTransaction(queryRunner)
+            await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
             await queryRunner.release()
@@ -761,7 +761,7 @@ export class CustodiaController extends BaseController {
             await queryRunner.commitTransaction()
             return this.jsonRes(list, res);
         } catch (error) {
-            this.rollbackTransaction(queryRunner)
+            await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
             await queryRunner.release()
@@ -782,7 +782,7 @@ export class CustodiaController extends BaseController {
             await queryRunner.commitTransaction()
             return this.jsonRes(list, res);
         } catch (error) {
-            this.rollbackTransaction(queryRunner)
+            await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
             await queryRunner.release()
@@ -802,7 +802,7 @@ export class CustodiaController extends BaseController {
             await queryRunner.commitTransaction()
             return this.jsonRes(list, res);
         } catch (error) {
-            this.rollbackTransaction(queryRunner)
+            await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
             await queryRunner.release()
@@ -884,7 +884,7 @@ export class CustodiaController extends BaseController {
             await queryRunner.commitTransaction()
             return this.jsonRes({}, res, 'Carga Exitosa');
         } catch (error) {
-            this.rollbackTransaction(queryRunner)
+            await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
             await queryRunner.release()

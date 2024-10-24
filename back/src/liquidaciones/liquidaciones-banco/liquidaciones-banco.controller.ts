@@ -511,7 +511,7 @@ export class LiquidacionesBancoController extends BaseController {
       return this.jsonRes([], res, `Se eliminó el archivo pendiente`);
 
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
 
@@ -614,7 +614,7 @@ export class LiquidacionesBancoController extends BaseController {
       return this.jsonRes([], res, `Se confirmaron ${liqmvbanco.length} movimientos`);
 
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
 
@@ -763,7 +763,7 @@ export class LiquidacionesBancoController extends BaseController {
       });
 
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -988,7 +988,7 @@ export class LiquidacionesBancoController extends BaseController {
 
       this.jsonRes({ list: [] }, res, `Se eliminó el registro `);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       //   await queryRunner.release();

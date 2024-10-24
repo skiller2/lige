@@ -443,7 +443,6 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     );
 
 
-    await queryRunner.startTransaction()
 
     if (alreadyExists.length == 0) {
       const now = new Date();
@@ -509,7 +508,6 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       );
 
     }
-    await queryRunner.commitTransaction()
     mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
     const newFilePath = `${this.directory
       }/${anioRequest}/${anioRequest}-${mesRequest
@@ -548,7 +546,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       if (!anioRequest) throw new ClientException("Faltó indicar el mes.");
 
       await queryRunner.connect();
-      await queryRunner.startTransaction();
+      //await queryRunner.startTransaction();
 
       let CUIT: string;
       let importeMonto: number;
@@ -564,6 +562,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         CUIT = cuitRequest;
 
         //Call to writefile
+        await queryRunner.startTransaction()
         await this.insertPDF(
           queryRunner,
           CUIT,
@@ -573,6 +572,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           file,
           null
         );
+        await queryRunner.commitTransaction()
+
       } else {
         const loadingTask = getDocument(file.path);
 
@@ -581,7 +582,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         let errList: Array<any> = [];
         for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
           //        for (let pagenum = 1; pagenum <= 1; pagenum++) {
-
+console.log('procesando',pagenum, document.numPages)
           const page = await document.getPage(pagenum);
 
           const textContent = await page.getTextContent();
@@ -642,6 +643,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             );
 
           try {
+            await queryRunner.startTransaction()
             await this.insertPDF(
               queryRunner,
               CUIT,
@@ -651,7 +653,9 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
               file,
               pagenum
             );
+            await queryRunner.commitTransaction()
           } catch (err: any) {
+            await this.rollbackTransaction(queryRunner)
             errList.push(err);
           }
         }
@@ -660,19 +664,18 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           errList.forEach((err) => {
             errTxt += err.message + "\n";
           });
-
-          //throw new ClientException(errTxt)
+          throw new ClientException(errTxt)
         }
       }
       // if (!file) throw new ClientException("File not recieved/did not pass filter.");
       // if (!anioRequest) throw new ClientException("No se especificó un año.");
       // if (!mesRequest) throw new ClientException("No se especificó un mes.");
 
-      await queryRunner.commitTransaction();
+      //await queryRunner.commitTransaction();
 
       this.jsonRes([], res, "PDF Recibido!");
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release();

@@ -415,7 +415,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       await queryRunner.commitTransaction()
       return this.jsonRes(list, res);
     }catch (error) {
-        this.rollbackTransaction(queryRunner)
+        await this.rollbackTransaction(queryRunner)
         return next(error)
     } finally {
         await queryRunner.release()
@@ -464,7 +464,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       await queryRunner.commitTransaction()
       return this.jsonRes(row[0], res, 'Carga Exitosa');
     }catch (error) {
-        this.rollbackTransaction(queryRunner)
+        await this.rollbackTransaction(queryRunner)
         return next(error)
     } finally {
         await queryRunner.release()
@@ -534,7 +534,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }finally{
       await queryRunner.release()
@@ -605,7 +605,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }finally{
       await queryRunner.release()
@@ -664,7 +664,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, 'Carga Exitosa');
     }catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -797,7 +797,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }finally{
       await queryRunner.release()
@@ -849,7 +849,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       await queryRunner.commitTransaction()
       return this.jsonRes(list, res);
     }catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -883,7 +883,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       await queryRunner.commitTransaction()
       return this.jsonRes({aplicaEl: max}, res, '');
     }catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
