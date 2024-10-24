@@ -22,7 +22,7 @@ export class DescuentoPorDeudaAnteriorController extends BaseController {
     try {
           return next(`Se procesaron cambios `)
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
         return next(`Se procesaron cambios `)

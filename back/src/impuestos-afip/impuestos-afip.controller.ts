@@ -411,6 +411,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     file,
     pagenum
   ) {
+    let updateFile=false
     const [personalIDQuery] = await queryRunner.query(
       `SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro, per.PersonalComprobantePagoAFIPUltNro, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre, excep.PersonalExencionCUIT 
       FROM PersonalCUITCUIL cuit 
@@ -443,8 +444,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     );
 
 
-    await queryRunner.startTransaction()
-
+    updateFile=false
     if (alreadyExists.length == 0) {
       const now = new Date();
 
@@ -493,47 +493,57 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         `UPDATE Personal SET PersonalOtroDescuentoUltNro = @0, PersonalComprobantePagoAFIPUltNro=@1 WHERE PersonalId = @2`,
         [PersonalOtroDescuentoUltNro, PersonalComprobantePagoAFIPUltNro,personalID]
       );
+      updateFile=true
 
-    } else {
-      if (PersonalExencionCUIT != 1) { 
-        throw new ClientException(
-          `Ya existe un descuento para el periodo ${anioRequest}-${mesRequest} y el CUIT ${CUIT} con importe ${alreadyExists[0].PersonalComprobantePagoAFIPImporte} distinto al cargado`
+    } else {  //Hay uno cargado
+
+
+
+      const PersonalComprobantePagoAFIPId = alreadyExists[0].PersonalComprobantePagoAFIPId    
+      const PersonalComprobantePagoAFIPImporte = alreadyExists[0].PersonalComprobantePagoAFIPImporte
+      if (PersonalComprobantePagoAFIPImporte != importeMonto) {
+        await queryRunner.query(
+          `UPDATE PersonalComprobantePagoAFIP SET PersonalComprobantePagoAFIPImporte=@2 WHERE PersonalComprobantePagoAFIPId = @0 AND PersonalId = @1`,
+          [PersonalComprobantePagoAFIPId, personalID, importeMonto]
         );
+
+        if (PersonalExencionCUIT != 1) {
+          await queryRunner.query(
+            `UPDATE PersonalOtroDescuento SET PersonalOtroDescuentoImporteVariable=@2 WHERE PersonalId = @1 AND PersonalOtroDescuentoDescuentoId=@3 AND PersonalOtroDescuentoAnoAplica=@4 AND PersonalOtroDescuentoMesesAplica=@5`,
+            [PersonalComprobantePagoAFIPId, personalID, importeMonto, Number(process.env.OTRO_DESCUENTO_ID), anioRequest, mesRequest]
+          );
+        }
+        updateFile=true
       }
 
-      const PersonalComprobantePagoAFIPId = alreadyExists[0].updPersonalComprobantePagoAFIPId    
-
-      await queryRunner.query(
-        `UPDATE PersonalComprobantePagoAFIP SET PersonalComprobantePagoAFIPImporte=@2 WHERE PersonalComprobantePagoAFIPId = @0 AND PersonalId = @1`,
-        [PersonalComprobantePagoAFIPId,personalID,importeMonto]
-      );
-
-    }
-    await queryRunner.commitTransaction()
-    mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
-    const newFilePath = `${this.directory
-      }/${anioRequest}/${anioRequest}-${mesRequest
-        .toString()
-        .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
-
-    if (existsSync(newFilePath)) {
-      unlinkSync(newFilePath)
     }
 
-    if (pagenum == null) {
-      copyFileSync(file.path, newFilePath);
-    } else {
-      const currentFileBuffer = readFileSync(file.path);
+    if (updateFile) {
+      mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
+      const newFilePath = `${this.directory
+        }/${anioRequest}/${anioRequest}-${mesRequest
+          .toString()
+          .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
 
-      const pdfDoc = await PDFDocument.create();
-      const srcDoc = await PDFDocument.load(currentFileBuffer);
+      if (existsSync(newFilePath)) {
+        unlinkSync(newFilePath)
+      }
 
-      const copiedPages = await pdfDoc.copyPages(srcDoc, [pagenum - 1]);
-      const [copiedPage] = copiedPages;
+      if (pagenum == null) {
+        copyFileSync(file.path, newFilePath);
+      } else {
+        const currentFileBuffer = readFileSync(file.path);
 
-      pdfDoc.addPage(copiedPage);
-      const buffer = await pdfDoc.save();
-      writeFileSync(newFilePath, buffer);
+        const pdfDoc = await PDFDocument.create();
+        const srcDoc = await PDFDocument.load(currentFileBuffer);
+
+        const copiedPages = await pdfDoc.copyPages(srcDoc, [pagenum - 1]);
+        const [copiedPage] = copiedPages;
+
+        pdfDoc.addPage(copiedPage);
+        const buffer = await pdfDoc.save();
+        writeFileSync(newFilePath, buffer);
+      }
     }
   }
 
@@ -548,7 +558,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       if (!anioRequest) throw new ClientException("Faltó indicar el mes.");
 
       await queryRunner.connect();
-      await queryRunner.startTransaction();
+      //await queryRunner.startTransaction();
 
       let CUIT: string;
       let importeMonto: number;
@@ -564,6 +574,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
         CUIT = cuitRequest;
 
         //Call to writefile
+        await queryRunner.startTransaction()
         await this.insertPDF(
           queryRunner,
           CUIT,
@@ -573,6 +584,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           file,
           null
         );
+        await queryRunner.commitTransaction()
+
       } else {
         const loadingTask = getDocument(file.path);
 
@@ -642,6 +655,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             );
 
           try {
+            await queryRunner.startTransaction()
             await this.insertPDF(
               queryRunner,
               CUIT,
@@ -651,7 +665,9 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
               file,
               pagenum
             );
+            await queryRunner.commitTransaction()
           } catch (err: any) {
+            await this.rollbackTransaction(queryRunner)
             errList.push(err);
           }
         }
@@ -660,19 +676,18 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           errList.forEach((err) => {
             errTxt += err.message + "\n";
           });
-
-          //throw new ClientException(errTxt)
+          throw new ClientException(errTxt)
         }
       }
       // if (!file) throw new ClientException("File not recieved/did not pass filter.");
       // if (!anioRequest) throw new ClientException("No se especificó un año.");
       // if (!mesRequest) throw new ClientException("No se especificó un mes.");
 
-      await queryRunner.commitTransaction();
+      //await queryRunner.commitTransaction();
 
       this.jsonRes([], res, "PDF Recibido!");
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release();

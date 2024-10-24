@@ -861,7 +861,7 @@ export class CargaLicenciaController extends BaseController {
       this.jsonRes({ list: [] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
 
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
 
@@ -962,7 +962,7 @@ export class CargaLicenciaController extends BaseController {
       await queryRunner.commitTransaction();
 
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
 
@@ -995,7 +995,7 @@ export class CargaLicenciaController extends BaseController {
       this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
 
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
 
@@ -1135,7 +1135,7 @@ export class CargaLicenciaController extends BaseController {
       }
       //this.jsonRes({}, res, 'PDF guardado con exito!');
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       //return next(error)
       return next('Error processing files:' + error)
     }
@@ -1319,7 +1319,7 @@ export class CargaLicenciaController extends BaseController {
       this.jsonRes(det[0], res, "Modificación con exito!");
 
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }

@@ -329,7 +329,7 @@ export class AuthController extends BaseController {
       //const tokenDecoded: any = decode(token);
       this.jsonRes({ token: token }, res);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:

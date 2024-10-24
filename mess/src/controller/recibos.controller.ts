@@ -49,7 +49,7 @@ export class RecibosController extends BaseController {
         }
       });
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -74,7 +74,7 @@ export class RecibosController extends BaseController {
       }
       return tmpURL
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return error
     }
   }
@@ -101,7 +101,7 @@ export class RecibosController extends BaseController {
       // await queryRunner.commitTransaction()
       return respuesta
     } catch (error) {
-      // this.rollbackTransaction(queryRunner)
+      // await this.rollbackTransaction(queryRunner)
       return error
     }
   }

@@ -1,3 +1,10 @@
+<nz-form-item>
+  <nz-form-label>Periodo</nz-form-label>
+  <nz-form-control >
+      <nz-date-picker nzMode="month" (onblur)="formChanged($event)"  (onInputChange)="formChanged($event)" nzFormat="MM/yyyy" />
+  </nz-form-control>
+</nz-form-item>
+<!--
 <nz-form-item ngModelGroup="periodo" #periodo="ngModelGroup">
   <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
   <nz-form-control>
@@ -23,3 +30,4 @@
     </nz-input-group>
   </nz-form-control>
 </nz-form-item>
+-->
