@@ -119,9 +119,8 @@ export class CustodiaComponent {
 
         effect(async () => {
             // console.log('PERIODO',this.periodo());
-            if (this.periodo()) {
-                this.getGridData()
-            }
+            const periodo = this.periodo()
+            this.getGridData()
         }, { injector: this.injector });
     }
 

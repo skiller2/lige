@@ -673,6 +673,7 @@ export class SearchService {
   }
 
   getListaObjetivoCustodia(options: any, periodo:Date){
+    if (!periodo) return of([]);
     return this.http
       .post<ResponseJSON<any>>(`api/custodia/list`, {options, periodo})
       .pipe(
