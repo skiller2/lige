@@ -150,6 +150,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     if (this.selections.operator == '') {
       switch (type) {
         case 'date':
+        case 'number':
         case 'float':
         case 'boolean':
           this.selections.operator = '='

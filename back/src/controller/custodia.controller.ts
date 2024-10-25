@@ -12,6 +12,7 @@ const columnsObjCustodia: any[] = [
         type: 'number',
         minWidth: 50,
         // minWidth: 10,
+        searchType:"number",
     },
     {
         id:'responsable' , name:'Responsable' , field:'responsable',
@@ -124,7 +125,7 @@ const columnsObjCustodia: any[] = [
         type: 'currency',
         //maxWidth: 110,
         minWidth: 80,
-        searchType:"number",
+        searchType:"float",
     },
     {
         id:'cant_horas_exced' , name:'Horas excedentes' , field:'cant_horas_exced',
@@ -133,7 +134,7 @@ const columnsObjCustodia: any[] = [
         type: 'float',
         //maxWidth: 110,
         minWidth: 60,
-        searchType:"number",
+        searchType:"float",
     },
     {
         id:'impo_horas_exced' , name:'Importe hora excedente' , field:'impo_horas_exced',
@@ -151,7 +152,7 @@ const columnsObjCustodia: any[] = [
         type: 'float',
         //maxWidth: 110,
         minWidth: 60,
-        searchType:"number",
+        searchType:"float",
     },
     {
         id:'impo_km_exced' , name:'Importe km excedente' , field:'impo_km_exced',
@@ -160,7 +161,7 @@ const columnsObjCustodia: any[] = [
         type: 'currency',
         //maxWidth: 110,
         minWidth: 80,
-        searchType:"number",
+        searchType:"float",
     },
     {
         id:'impo_peaje' , name:'Importe Peaje' , field:'impo_peaje',
@@ -169,7 +170,7 @@ const columnsObjCustodia: any[] = [
         type: 'currency',
         //maxWidth: 110,
         minWidth: 80,
-        searchType:"number",
+        searchType:"float",
     },
     {
         id:'facturacion' , name:'Importe a Facturar' , field:'facturacion',
@@ -178,7 +179,7 @@ const columnsObjCustodia: any[] = [
         type: 'currency',
         //maxWidth: 110,
         minWidth: 110,
-        searchType:"number",
+        searchType:"float",
     },
     {
         id:'estado' , name:'Estado' , field:'estado',
@@ -214,6 +215,17 @@ const columnsObjCustodia: any[] = [
         fieldName: "regveh.patente",
         // searchComponent:"inpurForPatenteSearch",
         searchType:"string",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Num Factura",
+        type: "number",
+        id: "NumFactura",
+        field: "Num Factura",
+        fieldName: "obj.num_factura",
+        searchType:"number",
         sortable: true,
         hidden: true,
         searchHidden: false
