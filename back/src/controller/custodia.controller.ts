@@ -453,7 +453,7 @@ export class CustodiaController extends BaseController {
             if (!responsableId) 
                 throw new ClientException(`No se a encontrado al personal responsable.`)
 
-            const valCustodiaForm = this.valCustodiaForm(req.body)
+            const valCustodiaForm = await this.valCustodiaForm(req.body, queryRunner)
             if (valCustodiaForm instanceof ClientException)
                 throw valCustodiaForm
 
@@ -620,7 +620,7 @@ export class CustodiaController extends BaseController {
                 throw new ClientException(`Únicamente puede modificar el registro ${infoCustodia.responsable} o pertenecer al grupo 'Administracion'/'Liquidaciones'.`)
             }
             
-            const valCustodiaForm = this.valCustodiaForm(objetivoCustodia)
+            const valCustodiaForm = await this.valCustodiaForm(objetivoCustodia, queryRunner)
             if (valCustodiaForm instanceof ClientException)
                 throw valCustodiaForm
             
@@ -694,7 +694,7 @@ export class CustodiaController extends BaseController {
         return this.jsonRes(estados, res)
     }
 
-    valCustodiaForm(custodiaForm: any) {
+    async valCustodiaForm(custodiaForm: any, queryRunner:any) {
         let errores : any[] = []
         if (!Number.isInteger(custodiaForm.estado)){
             errores.push(`El campo Estado NO pueden estar vacio`)
@@ -712,12 +712,24 @@ export class CustodiaController extends BaseController {
             errores.push(`Los campos pares Cant. e Importe de Km Excedentes deben de llenarse al mismo tiempo.`)
         }
         //En caso de FINALIZAR custodia verificar los campos
-        if(this.valByEstado(custodiaForm.estado) && (!custodiaForm.facturacion || !custodiaForm.fechaFinal || !custodiaForm.destino)){
-            errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios.`)
+        if(this.valByEstado(custodiaForm.estado)){ 
+            if (!custodiaForm.facturacion || !custodiaForm.fechaFinal || !custodiaForm.destino){
+                errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios.`)
+            }
+            if(custodiaForm.estado == 4 && !custodiaForm.numFactura){
+                errores.push(`El campo Num de Factura NO puede estar vacio.`)
+            }
         }
 
-        if(custodiaForm.estado == 4 && !custodiaForm.numFactura){
-            errores.push(`El campo Num de Factura NO puede estar vacio.`)
+        if (custodiaForm.fechaFinal) {
+            const fecha = new Date(custodiaForm.fechaFinal)
+            const periodo = await queryRunner.query(`
+                SELECT TOP 1 *, DATEADD(SECOND, -1, DATEADD(DAY, 1, EOMONTH(CONCAT(anio,'-',mes,'-',1)))) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC
+            `)
+            let fechaMin = new Date(periodo[0].FechaCierre)
+            if (fecha <= fechaMin) {
+                errores.push(`La Fecha Final de la custodia no puede ser menor al de un período ya cerrado.`)
+            }
         }
 
         if (errores.length) {
@@ -866,7 +878,7 @@ export class CustodiaController extends BaseController {
                     infoCustodia.estado = estado
                     if (estado ==4)
                         infoCustodia.numFactura = numFactura
-                    const valCustodiaForm = this.valCustodiaForm(infoCustodia)
+                    const valCustodiaForm = await this.valCustodiaForm(infoCustodia, queryRunner)
                     if (valCustodiaForm instanceof ClientException){
                         errores.push(`Codigo ${id}: ${valCustodiaForm.messageArr}`)
                         continue
