@@ -25,7 +25,7 @@
         </nz-form-control>
         <nz-form-control [nzSpan]="1">
           <nz-input-group >
-            <button nz-button nzType="default" [disabled]="PersonalId() == 0 && this.ngForm().value.PersonalId == 0 " (click)="openDrawerforConsultHistory()"><span nz-icon nzType="menu-unfold" 
+            <button nz-button nzType="default" [disabled]="PersonalId() == 0 && this.ngForm().value.PersonalId == 0 " (click)="openDrawerforConsultHistory()" nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold" 
               nzTheme="outline"></span></button>
               <!-- <button nz-button nzType="default" (click)="openDrawerforConsultHistory()"><span nz-icon nzType="menu-unfold" 
                 nzTheme="outline"></span></button> -->
@@ -150,7 +150,7 @@
             }" nzName="pdf" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)" >
               <button [disabled]="isSaving()"  nz-button  >
                 <span nz-icon nzType="upload"></span>
-                Subir PDF
+                {{ 'app.btn.pdf' | i18n }}
               </button>
             </nz-upload>
           </ng-container>
@@ -161,7 +161,7 @@
     }
     @if(this.ngForm().enabled) {
       <nz-form-item class="btnCenter">
-          <button nz-button nzType="primary" [disabled]="!ngForm().dirty" (click)="save()" [nzLoading]="isSaving()">Guardar</button>
+          <button nz-button nzType="primary" [disabled]="!ngForm().dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
           @if (this.ngForm().value.PersonalLicenciaId>0) {
           
           <button [disabled]="ngForm().dirty"

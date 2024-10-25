@@ -92,10 +92,10 @@
           <input nz-input placeholder="" formControlName="importe" type="number" />
         </nz-input-group>
         <ng-template #controlPersonalButton >
-          <button nz-button *ngIf="personal().controls.length == i+1 && formCus.enabled" nzType="primary" class="add-button" (click)="addPersonal($event)">
+          <button nz-button *ngIf="personal().controls.length == i+1 && formCus.enabled" nzType="primary" class="add-button" (click)="addPersonal($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
             <span nz-icon nzType="plus"></span>
           </button>
-          <button nz-button *ngIf="formCus.enabled"  nzType="default" (click)="removePersonal(i, $event)">
+          <button nz-button *ngIf="formCus.enabled"  nzType="default" (click)="removePersonal(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
             <span nz-icon nzType="delete" nzTheme="outline" ></span>
           </button>
         </ng-template>
@@ -128,10 +128,10 @@
           <input nz-input placeholder="" formControlName="peaje" type="number" />
         </nz-input-group>
         <ng-template #controlVehiculoButton >
-          <button nz-button *ngIf="vehiculos().controls.length == i+1 && formCus.enabled" nzType="primary" class="add-button" (click)="addVehiculo($event)">
+          <button nz-button *ngIf="vehiculos().controls.length == i+1 && formCus.enabled" nzType="primary" class="add-button" (click)="addVehiculo($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
             <span nz-icon nzType="plus"></span>
           </button>
-          <button nz-button nzType="default" *ngIf="formCus.enabled" (click)="removeVehiculo(i, $event)">
+          <button nz-button nzType="default" *ngIf="formCus.enabled" (click)="removeVehiculo(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.borrar' | i18n }}">
             <span nz-icon nzType="delete" nzTheme="outline" ></span>
           </button>
         </ng-template>
@@ -215,7 +215,7 @@
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
         <button nzType="primary" nz-button *ngIf="formCus.enabled"  (click)="save()" [nzLoading]="isLoading()" [disabled]="formCus.pristine" >
-          Guardar Cambios
+          {{ 'app.btn.save' | i18n }}
         </button>
       </nz-form-control>
     </nz-form-item>

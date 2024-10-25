@@ -249,7 +249,7 @@ export class CategoriasController extends BaseController {
       if (res)
         this.jsonRes({list:[] }, res, `Se procesaron ${pendientes.length} ascensos `);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release();

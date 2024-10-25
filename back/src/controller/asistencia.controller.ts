@@ -171,7 +171,7 @@ export class AsistenciaController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes([], res, `Período habilitado para el objetivo`);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:
@@ -255,7 +255,7 @@ export class AsistenciaController extends BaseController {
       this.jsonRes(periodo, res)
 
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:
@@ -304,7 +304,7 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes([], res, `Período finalizado para el objetivo ${cabecera[0].ObjetivoCodigo} ${cabecera[0].ObjetivoDescripcion}`)
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:
@@ -891,7 +891,7 @@ export class AsistenciaController extends BaseController {
       this.jsonRes([], res);
     } catch (error) {
       console.log('pase por aca', error);
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:
@@ -991,7 +991,7 @@ export class AsistenciaController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes([], res);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       // you need to release query runner which is manually created:
@@ -1052,7 +1052,7 @@ export class AsistenciaController extends BaseController {
       await queryRunner.commitTransaction();
       return this.jsonRes(result, res);
     } catch (error) {
-      //      this.rollbackTransaction(queryRunner)
+      //      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1607,7 +1607,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       );
       this.jsonRes(result, res);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1804,7 +1804,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       this.jsonRes({ asistencia: result, totalImporte, totalHoras }, res);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1866,7 +1866,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
 
     } catch (error) {
-      //      this.rollbackTransaction(queryRunner)
+      //      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -1896,7 +1896,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       this.jsonRes({ asistencia: result, totalImporte, totalHoras, totalHorasN, totalHorasC,totalHorasR }, res);
 
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }
@@ -2089,7 +2089,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       return this.jsonRes(result, res);
     } catch (error) {
 
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
 
       return next(error)
     } finally {
@@ -2347,7 +2347,7 @@ console.log('situacionesRevista',situacionesRevista)
       //      await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -2480,7 +2480,7 @@ console.log('situacionesRevista',situacionesRevista)
       //      await queryRunner.commitTransaction()
       this.jsonRes(listares, res);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -2502,7 +2502,7 @@ console.log('situacionesRevista',situacionesRevista)
 
       this.jsonRes([], res, 'Todas las personas se validaron correctamente');
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()

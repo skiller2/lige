@@ -265,7 +265,7 @@ export class ObjetivosController extends BaseController {
             await queryRunner.commitTransaction()
             return this.jsonRes(infObjetivo, res)
         } catch (error) {
-            this.rollbackTransaction(queryRunner)
+            await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
             await queryRunner.release()
@@ -661,7 +661,7 @@ export class ObjetivosController extends BaseController {
             await queryRunner.commitTransaction()
             return this.jsonRes(newObj, res, 'Modificación  Exitosa');
         }catch (error) {
-            this.rollbackTransaction(queryRunner)
+            await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
             await queryRunner.release()
@@ -978,7 +978,7 @@ export class ObjetivosController extends BaseController {
           await queryRunner.commitTransaction();
     
         } catch (error) {
-          this.rollbackTransaction(queryRunner)
+          await this.rollbackTransaction(queryRunner)
           return next(error)
         }
     
@@ -1091,7 +1091,7 @@ export class ObjetivosController extends BaseController {
             await queryRunner.commitTransaction()
             return this.jsonRes(ObjObjetivoNew, res, 'Carga  de nuevo registro exitoso');
         }catch (error) {
-            this.rollbackTransaction(queryRunner)
+            await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
             await queryRunner.release()

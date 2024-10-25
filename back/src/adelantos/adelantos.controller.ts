@@ -161,7 +161,7 @@ export class AdelantosController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes([], res, "Ayuda Asistencial eliminada.");
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release();
@@ -277,7 +277,7 @@ export class AdelantosController extends BaseController {
         PersonalPrestamoDia: today, //PersonalPrestamoDia
       }, res, "Ayuda Asistencial añadido.");
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release();

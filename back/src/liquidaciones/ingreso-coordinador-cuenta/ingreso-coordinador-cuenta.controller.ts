@@ -66,7 +66,7 @@ export class IngresoCoordinadorCuentaController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, `Se procesaron ${result.length} registros `);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       //   await queryRunner.release();

@@ -121,7 +121,7 @@ export class PersonalObjetivosController extends BaseController {
       await queryRunner.commitTransaction();
           return this.jsonRes([], res, `Se realizo la  eliminacion`);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
    

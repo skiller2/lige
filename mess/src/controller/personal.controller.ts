@@ -227,7 +227,7 @@ export class PersonalController extends BaseController {
 
       this.jsonRes({ codigo }, res);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     }
   }

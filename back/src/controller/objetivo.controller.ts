@@ -221,7 +221,7 @@ export class ObjetivoController extends BaseController {
       if (res)
         this.jsonRes({ list: [] }, res, `Se actualizaron los grupos `);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release();

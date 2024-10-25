@@ -22,7 +22,7 @@ export class MovimientoAcreditacionEnCuentaController extends BaseController {
     try {
           return next(`Se procesaron cambios `)
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
 //      return next(error)
     return next(`Se procesaron cambios `)
     } finally {

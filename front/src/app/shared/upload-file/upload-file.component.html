@@ -3,7 +3,7 @@
         <span nz-icon nzType="upload"></span>
         <ng-container *ngIf="$currentFile | async as file">
 
-            <span *ngIf="!file.name">Seleccione Archivo</span>
+            <span *ngIf="!file.name">{{ 'app.btn.file' | i18n }}</span>
 
             <span *ngIf="file.name">{{file.name +  ' ||  ' +(file.size | nzBytes)}}</span>
         

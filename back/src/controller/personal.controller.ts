@@ -499,7 +499,7 @@ export class PersonalController extends BaseController {
       await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -543,7 +543,7 @@ export class PersonalController extends BaseController {
       await queryRunner.commitTransaction()
       this.jsonRes(options, res);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -619,7 +619,7 @@ export class PersonalController extends BaseController {
       await queryRunner.commitTransaction()
       this.jsonRes({}, res);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -642,7 +642,7 @@ export class PersonalController extends BaseController {
       await queryRunner.commitTransaction()
       this.jsonRes(options, res);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
