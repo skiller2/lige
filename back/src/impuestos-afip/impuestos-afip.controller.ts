@@ -409,7 +409,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     mesRequest,
     importeMonto:number,
     file,
-    pagenum
+    pagenum,
+    forzado:boolean
   ) {
     let updateFile=false
     const [personalIDQuery] = await queryRunner.query(
@@ -518,7 +519,7 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
     }
 
-    if (updateFile) {
+    if (updateFile || forzado) {
       mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
       const newFilePath = `${this.directory
         }/${anioRequest}/${anioRequest}-${mesRequest
@@ -582,7 +583,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           mesRequest,
           importeMonto,
           file,
-          null
+          null,
+          forzado
         );
         await queryRunner.commitTransaction()
 
@@ -663,7 +665,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
               mesRequest,
               importeMonto,
               file,
-              pagenum
+              pagenum,
+              forzado
             );
             await queryRunner.commitTransaction()
           } catch (err: any) {
