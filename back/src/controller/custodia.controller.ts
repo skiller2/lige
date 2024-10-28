@@ -734,9 +734,9 @@ export class CustodiaController extends BaseController {
         }
 
         if (custodiaForm.fechaFinal) {
-            const fecha = new Date(custodiaForm.fechaFinal)
+            const fecha = new Date(custodiaForm.fechaFinal) 
             const periodo = await queryRunner.query(`
-                SELECT TOP 1 *, DATEADD(SECOND, -1, DATEADD(DAY, 1, EOMONTH(CONCAT(anio,'-',mes,'-',1)))) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC
+                SELECT TOP 1 *, CAST (EOMONTH(CONCAT(anio,'-',mes,'-',1)) AS DATETIME)+'23:59:59' AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC
             `)
             let fechaMin = new Date(periodo[0].FechaCierre)
             if (fecha <= fechaMin) {
