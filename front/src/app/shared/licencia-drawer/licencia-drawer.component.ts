@@ -13,6 +13,7 @@ import { PersonalSearchComponent } from '../personal-search/personal-search.comp
 import { CommonModule } from '@angular/common';
 import { SearchService } from '../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import  { FileUploadComponent } from "../../shared/file-upload/file-upload.component"
 import { log } from '@delon/util';
 
 export interface Option {
@@ -23,7 +24,7 @@ export interface Option {
 @Component({
   selector: 'app-licencia-drawer',
   standalone: true,
-  imports: [SHARED_IMPORTS,NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, EditorCategoriaComponent, InasistenciaSearchComponent, PersonalSearchComponent, CommonModule],
+  imports: [SHARED_IMPORTS,NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, EditorCategoriaComponent, InasistenciaSearchComponent, PersonalSearchComponent, CommonModule,FileUploadComponent],
   templateUrl: './licencia-drawer.component.html',
   styleUrl: './licencia-drawer.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,6 +51,7 @@ export class LicenciaDrawerComponent {
   PersonalLicenciaAplicaPeriodoHorasMensuales = signal(null)
   //selectedOption: string = "Indeterminado";
   options: any[] = [];
+  files = model([]);
   //fileUploaded = false;
  
 
@@ -93,7 +95,6 @@ export class LicenciaDrawerComponent {
         vals.categoria = { id: `${vals.PersonalLicenciaTipoAsociadoId}-${vals.PersonalLicenciaCategoriaPersonalId}`,categoriaId:vals.PersonalLicenciaCategoriaPersonalId,tipoId:vals.PersonalLicenciaTipoAsociadoId }
         vals.PersonalLicenciaTipoAsociadoId = vals.categoria.categoriaId
         vals.PersonalLicenciaCategoriaPersonalId = vals.categoria.tipoId
-
         vals.PersonalLicenciaHorasMensuales = Number(vals.PersonalLicenciaHorasMensuales)
         this.PersonalIdForEdit = vals.PersonalId
         this.SucursalId = vals.SucursalId
@@ -122,6 +123,7 @@ export class LicenciaDrawerComponent {
   async save() {
 
     this.isSaving.set(true)
+    let vals = this.ngForm().value
     try {
       const periodo = this.selectedPeriod()
 
@@ -130,7 +132,7 @@ export class LicenciaDrawerComponent {
       vals.PersonalLicenciaCategoriaPersonalId = vals.categoria.tipoId
       vals.anioRequest = periodo.year
       vals.mesRequest = periodo.month
-      vals.Archivos = this.ArchivosLicenciasAdd
+      vals.Archivos = this.files
       vals.PersonalIdForEdit = this.PersonalIdForEdit
       vals.PersonalLicenciaAplicaPeriodoHorasMensuales = this.PersonalLicenciaAplicaPeriodoHorasMensuales()
       const res = await firstValueFrom(this.apiService.setLicencia(vals))
@@ -152,37 +154,6 @@ export class LicenciaDrawerComponent {
     this.visible.set(false)
   }
 
-  uploadChange(event: any) {
-    switch (event.type) {
-      case 'start':
-        
-        this.uploading$.next({ loading: true, event })
-    
-        break;
-      case 'progress':
-        debugger
-        break;
-      case 'error':
-        const Error = event.file.error
-        if (Error.error.data?.list) {
-        }
-        this.uploading$.next({ loading:false,event })
-        break;
-      case 'success':
-        const Response = event.file.response
-       
-        this.ArchivosLicenciasAdd = [ ...this.ArchivosLicenciasAdd, Response.data[0] ]
-       console.log(this.ArchivosLicenciasAdd)
-        this.uploading$.next({ loading: false, event })
-        this.apiService.response(Response) 
-        //this.fileUploaded = true;
-        this.ngForm().form.markAsDirty()
-        break
-      default:
-        break;
-    }
-
-  }
 
   openDrawerforConsultHistory(){
     this.PersonalId.set(this.ngForm().value.PersonalId)

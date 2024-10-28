@@ -88,75 +88,15 @@
       </nz-form-item>
       @if (ngForm().form.value.PersonalId >0  ) {
         <!-- @if (this.PersonalId() >0 ) { -->
-         
-      <nz-form-item>
-        <nz-form-label [nzSpan]="5">Documentos </nz-form-label>
-        <nz-form-control>
-          <ng-container *ngFor="let licencia of $ArchivosLicencias | async" >
-            <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{licencia.nombre}}>
-              
-              <span 
-                nz-popconfirm
-                nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
-                (nzOnConfirm)="confirmDeleteArchivo(licencia.id,false)"
-                nzPopconfirmPlacement="top"
-                nz-button 
-                nzType="primary"
-                nzDanger
-                nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
-              <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->
-              <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
-                class="download-color" app-down-file [httpMethod]="'POST'"
-                [httpBody]="{'documentId': licencia.id}" httpUrl="api/carga-licencia/downloadLicencia"></a>
-              <span> {{licencia.id}}-{{licencia.nombre}} </span>
-            </div>
-          </ng-container>
-          @if(ArchivosLicenciasAdd.length > 0){
-            <ng-container  class="" *ngFor="let licenciaAdd of ArchivosLicenciasAdd ">
-              <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{licenciaAdd.fieldname}}>
-                
-                <span 
-                    nz-popconfirm
-                    nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
-                    (nzOnConfirm)="confirmDeleteArchivo(licenciaAdd.fieldname,true)"
-                    nzPopconfirmPlacement="top"
-                    nz-button 
-                    nzType="primary"
-                    nzDanger
-                    nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
-                <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
-                  class="download-color" app-down-file [httpMethod]="'POST'"
-                  [httpBody]="{'documentId': licenciaAdd.id}" httpUrl="api/carga-licencia/downloadLicencia"></a>
-                <span> {{licenciaAdd.originalname}} </span>
-              </div>
-            </ng-container>
-       }
-        </nz-form-control>
-
-       
-      </nz-form-item>
-
-     
+        
 
       @if(!ngForm().disabled) {
-      <nz-form-item >
-        <nz-form-control class="BtnUploadFile">
-          <ng-container>
-            <nz-upload nzAccept="application/pdf" nzAction="/api/carga-licencia/upload" [nzData]="{
-              anio:this.selectedPeriod().year, 
-              mes:this.selectedPeriod().month,
-              PersonalId:this.ngForm().value.PersonalId,
-              PersonalLicenciaId: this.ngForm().value.PersonalLicenciaId,
-            }" nzName="pdf" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)" >
-              <button [disabled]="isSaving()"  nz-button  >
-                <span nz-icon nzType="upload"></span>
-                {{ 'app.btn.pdf' | i18n }}
-              </button>
-            </nz-upload>
-          </ng-container>
-        </nz-form-control>
-      </nz-form-item>
-    }
+
+          <nz-form-control>
+            <app-file-upload name="files"   [idForSearh]="this.ngForm().value.PersonalId ?? 0"
+            [textForSearch]="'LIC'" [keyField]="'persona_id'"></app-file-upload>
+          </nz-form-control>
+      }
      
     }
     @if(this.ngForm().enabled) {

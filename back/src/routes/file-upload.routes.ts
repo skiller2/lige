@@ -9,8 +9,8 @@ import { tmpName } from "../server";
 
 type DestinationCallback = (error: Error | null, destination: string) => void;
 
-let dirtmp = `${process.env.PATH_DOCUMENTS}/temp`;
-
+let dirtmp = `${process.env.PATH_FILEUPLOAD}/temp`;
+console.log(".... dirtmp ", dirtmp)
 if (!existsSync(dirtmp)) {
   mkdirSync(dirtmp, { recursive: true });
 }
