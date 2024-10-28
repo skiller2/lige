@@ -80,7 +80,7 @@
           <nz-input-group>
             <button nz-col nz-button nzType="primary" [nzLoading]="this.saveLoading$ | async"
               [disabled]="this.saveLoading$ | async" [nzSize]="'default'" (click)="SaveForm()">
-              <span nz-icon nzType="save" nzTheme="outline"></span>{{ 'app.btn.record' | i18n }}
+              <span nz-icon nzType="save" nzTheme="outline"></span>{{ 'app.btn.save' | i18n }}
             </button>
             <button nz-col nzDanger nz-button nzType="primary" [nzLoading]="this.deleteLoading$ | async"
               [disabled]="this.deleteLoading$ | async" [nzSize]="'default'" (click)="DeleteForm()" >
