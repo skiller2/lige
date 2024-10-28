@@ -1,4 +1,3 @@
-import { log } from "console";
 import { ClientException } from "../../controller/baseController";
 import { CustomSort, Filtro, Options } from "../../schemas/filtro";
 import { findColumnByIndex } from "../comprobantes-utils/lista";
@@ -90,9 +89,9 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
               filterString.push(`${fieldName} IS NULL`)
             else {
               if (String(valorBusqueda).indexOf(';') == 0)
-                filterString.push(`${fieldName} = ${valorBusqueda}`)
+                filterString.push(`${fieldName} = ${String(valorBusqueda).replaceAll(',','.')}`)
               else 
-                filterString.push(`${fieldName} IN (${String(valorBusqueda).replaceAll(';',',')})`)
+                filterString.push(`${fieldName} IN (${String(valorBusqueda).replaceAll(',','.').replaceAll(';',',')})`)
             }
           }else if(type == 'date'){
                 const valor = valorBusqueda.split('/').reverse().join('/');
