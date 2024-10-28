@@ -86,19 +86,13 @@
           <textarea  rows="1" name="PersonalLicenciaDiagnosticoMedicoDiagnostico" ngModel nz-input ></textarea>
         </nz-textarea-count>
       </nz-form-item>
-      @if (ngForm().form.value.PersonalId >0  ) {
-        <!-- @if (this.PersonalId() >0 ) { -->
-        
-
-      @if(!ngForm().disabled) {
-
-          <nz-form-control>
-            <app-file-upload name="files"   [idForSearh]="this.ngForm().value.PersonalId ?? 0"
+ 
+         <nz-form-control>
+            <app-file-upload  ngModel name="files"   [idForSearh]="this.ngForm().value.PersonalId ?? 0"
             [textForSearch]="'LIC'" [keyField]="'persona_id'"></app-file-upload>
           </nz-form-control>
-      }
-     
-    }
+      
+
     @if(this.ngForm().enabled) {
       <nz-form-item class="btnCenter">
           <button nz-button nzType="primary" [disabled]="!ngForm().dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
