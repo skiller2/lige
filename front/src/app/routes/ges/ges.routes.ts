@@ -111,4 +111,9 @@ export const GesRoutes: Routes = [
     path: 'personal/:tab',
     loadComponent: () => import('./personal/personal.component').then(c => c.PersonalComponent),
   },
+  { path: 'acceso-bot', redirectTo: 'acceso-bot/listado' },
+  {
+    path: 'acceso-bot/:tab',
+    loadComponent: () => import('./acceso-bot/acceso-bot.component').then(c => c.AccesoBotComponent),
+  },
 ];

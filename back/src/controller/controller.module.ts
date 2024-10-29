@@ -35,6 +35,7 @@ import { FileUploadController } from "./file-upload.controller"
 import { ObjetivosController } from "../objetivos/objetivos.controller"
 import { AdministradorController } from "../controller/administrador.controller"
 import { RubroController } from "../controller/rubro.controller"
+import { AccesoBotController } from "../acceso-bot/acceso-bot.controller"
 
 
 export const infoController = new InfoController();
@@ -74,3 +75,4 @@ export const fileUploadController = new FileUploadController();
 export const objetivosController = new ObjetivosController();
 export const administradorController = new AdministradorController();
 export const rubroController = new RubroController();
+export const accesoBotController = new AccesoBotController();

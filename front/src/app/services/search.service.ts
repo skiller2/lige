@@ -691,6 +691,15 @@ export class SearchService {
       );
   }
 
+  getListAccessBot(filters: any){
+    return this.http
+      .post<ResponseJSON<any>>(`api/acceso-bot/list`, filters)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
   getListObjetivos(filters: any){
     return this.http
       .post<ResponseJSON<any>>(`api/objetivos/list`, filters)

@@ -29,6 +29,7 @@ import { FileUploadRouter } from "./file-upload.routes"
 import { objetivosRouter } from "../objetivos/objetivos.routes"
 import { administradorRouter } from "./administrador.routes";
 import { rubroRouter } from "./rubro.routes";
+import { accesoBotRouter } from "../acceso-bot/acceso.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -61,4 +62,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/objetivos",objetivosRouter)
   server.setRoute("/api/administrador",administradorRouter)
   server.setRoute("/api/rubro",rubroRouter)
+  server.setRoute("/api/acceso-bot",accesoBotRouter)
 }

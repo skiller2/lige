@@ -56,6 +56,12 @@
             "icon": "anticon-profile",
             "link": "/ges/personal"
           }
+          ,
+          {
+            "text": "Acceso BOT",
+            "icon": "anticon-profile",
+            "link": "/ges/acceso-bot"
+          }
         ]},        
         {
           "text": "Asistencia",
