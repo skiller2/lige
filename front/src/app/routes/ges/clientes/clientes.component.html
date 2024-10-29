@@ -8,7 +8,13 @@
       </li>
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'clientes', 'detalle']" (click)="setEdit(false)">Detalle</a>
+        <a [routerLink]="['/', 'ges', 'clientes', 'detalle']" (click)="setEdit(false)">
+          @if(this.edit()){
+            {{ 'app.edit.client' | i18n }}
+          }@else{
+            {{ 'app.detail' | i18n }}
+          }
+        </a>
       </li>
     </ul>
   
@@ -41,12 +47,12 @@
   
       <nz-tab>
         <a nz-tab-link routerLink="/ges/clientes/detalle" >Detalle</a>
-        <app-clientes-form [ClienteId]="editClienteId" [edit]="edit"></app-clientes-form>
+        <app-clientes-form [ClienteId]="editClienteId" [edit]="edit()"></app-clientes-form>
       </nz-tab>
   
       <nz-tab> 
         <a nz-tab-link routerLink="/ges/clientes/alta" >Alta </a>
-        <app-clientes-form [edit]="edit" [(addNew)]="addNew" ></app-clientes-form>
+        <app-clientes-form [edit]="edit()" [(addNew)]="addNew" ></app-clientes-form>
       </nz-tab>
   
     </nz-tabset>

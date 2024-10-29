@@ -16,6 +16,7 @@ import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { ClientesFormComponent } from "../clientes-form/clientes-form.component"
 
+
 @Component({
   selector: 'app-clientes',
   standalone: true,
@@ -43,7 +44,7 @@ export class ClientesComponent {
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
   editClienteId = 0;
-  edit : boolean = false
+  edit = signal(false)
   addNew = false
   excelExportService = new ExcelExportService()
   listCliente$ = new BehaviorSubject('')
@@ -108,6 +109,8 @@ export class ClientesComponent {
 
   getGridData(): void {
     this.listCliente$.next('');
+    this.edit.set(false) 
+  
   }
 
   listOptionsChange(options: any) {
@@ -116,7 +119,7 @@ export class ClientesComponent {
   }
 
   setEdit(value: boolean): void {
-      this.edit = value
+      this.edit.set(value) 
   }
 
 }

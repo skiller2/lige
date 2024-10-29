@@ -115,6 +115,7 @@ export class ObjetivosComponent {
 
   getGridData(): void {
     this.listObjetivos$.next('');
+    this.edit.set(false)
   }
 
   listOptionsChange(options: any) {

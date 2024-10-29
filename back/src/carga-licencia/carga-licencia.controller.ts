@@ -852,9 +852,9 @@ export class CargaLicenciaController extends BaseController {
 
       await queryRunner.query(`UPDATE Personal SET PersonalLicenciaUltNro = @1,PersonalSituacionRevistaUltNro = @2 where PersonalId = @0 `, [PersonalId, PersonalLicenciaUltNro, PersonalSituacionRevistaUltNro])
 
-      await FileUploadController.handlePDFUpload(PersonalLicenciaId, 'Licencia', 'LIC','cliente_id', req.file, usuario, ip)
-      
-
+      if(req.body.files?.length > 0){
+        await FileUploadController.handlePDFUpload(PersonalId, 'Licencia', 'LIC','persona_id', req.body.files, usuario, ip)
+      }
 
 //      throw new ClientException("DEBUG:  Paso bien")
       await queryRunner.commitTransaction();

@@ -8,7 +8,13 @@
       </li>
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'objetivos', 'detalle']" (click)="edit.set(false)">Detalle</a>
+        <a [routerLink]="['/', 'ges', 'objetivos', 'detalle']" (click)="edit.set(false)">
+          @if(this.edit()){
+            {{ 'app.edit.objetivo' | i18n }}
+          }@else{
+            {{ 'app.detail' | i18n }}
+          }
+        </a>
       </li>
     </ul>
   
