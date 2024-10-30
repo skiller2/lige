@@ -43,7 +43,7 @@ export class AccesoBotComponent {
   gridOptions!: GridOption;
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
-  editAcceso = 0;
+  editPersonaId  = 0;
   edit = signal(false)
   addNew = false
   excelExportService = new ExcelExportService()
@@ -97,7 +97,7 @@ export class AccesoBotComponent {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
     if (row?.id)
-      this.editAcceso = row.id
+      this.editPersonaId = row.id
 
   }
 

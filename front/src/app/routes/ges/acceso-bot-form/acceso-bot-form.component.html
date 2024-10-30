@@ -1,1 +1,92 @@
-<p>acceso-bot-form works!</p>
+
+  <ng-container >
+    <form nz-form ngForm >
+      <!-- <nz-form-item style="display:none">
+        <nz-form-label [nzSpan]="3">SucursalId</nz-form-label>
+        <nz-form-control [nzSpan]="19">
+          <input nz-input name="SucursalId" ngModel  />
+        </nz-form-control>
+      </nz-form-item> -->
+
+     
+
+      <nz-form-item class="imgContainer">
+
+        <nz-image-group  >
+            <img nz-image width="400px" nzSrc="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Biometric_Argentine_DNI_for_Citizens-Foreigners.png/640px-Biometric_Argentine_DNI_for_Citizens-Foreigners.png" alt="" />
+            <img nz-image width="400px" nzSrc="https://upload.wikimedia.org/wikipedia/commons/3/32/DNI_Argentina_2020_Reverso_01.jpg" alt="" />
+        </nz-image-group>
+   
+      </nz-form-item>
+
+      <nz-form-item class="imgContainer">
+        <nz-upload nzAction="https://www.mocky.io/v2/5cc8019d300000980a055e76" [nzHeaders]="{ authorization: 'authorization-text' }" (nzChange)="handleChange($event)">
+    
+
+      <button nz-button>
+        <span nz-icon nzType="upload"></span>
+        DNI Frente
+      </button>
+
+      <button nz-button>
+        <span nz-icon nzType="upload"></span>
+        DNI Dorso
+      </button>
+    </nz-upload>
+</nz-form-item>
+      <nz-form-item >
+        <nz-form-label [nzSpan]="7">Persona</nz-form-label>
+        <nz-form-control [nzSpan]="10">
+            <!-- <app-personal-search  name="PersonalId" ngModel  (valueExtendedChange)="ngForm().form.patchValue({SucursalId:$event.SucursalId}) "></app-personal-search>  -->
+            <app-personal-search  name="PersonalId" ngModel  (ngModelChange)="onPersonalIdChange($event)"></app-personal-search> 
+
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="7">DNI</nz-form-label>
+            <nz-form-control  [nzSpan]="10">
+                <input nz-input type="number" name="PersonalDocumentoNro" ngModel [disabled]="dniDisabled()"   />
+            </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="7">Números de Teléfono</nz-form-label>
+            <nz-form-control  [nzSpan]="10">
+                <input nz-input type="number" name="telefono" ngModel   />
+            </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="7">Código</nz-form-label>
+        <nz-form-control  [nzSpan]="5" >
+            <span>{{codigo()}}</span>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="7">Generar Nuevo Código</nz-form-label>
+        <nz-form-control  [nzSpan]="5">
+            <label nz-checkbox [(ngModel)]="checked"></label>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
+          <button nzType="primary" nz-button  (click)="save()" [nzLoading]="isLoading()"  >
+            {{ 'app.btn.save' | i18n }}
+          </button>
+          <button nzType="primary" nz-button nzDanger  nz-popconfirm
+          nzPopconfirmTitle="Esta seguro que quiere eliminar este Acceso?"
+          (nzOnConfirm)="deleteAcceso()"
+          nzPopconfirmPlacement="top" *ngIf="edit()" [nzLoading]="isLoading()"  >
+          {{ 'app.btn.delete' | i18n }}
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+
+      
+    </form>
+    <!-- <p>Debug Valores: {{ngForm().value | json }}</p> -->
+  </ng-container>
+

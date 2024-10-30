@@ -5,7 +5,7 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { QueryResult } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller"
 import { info } from "pdfjs-dist/types/src/shared/util";
-
+import { QueryRunner } from "typeorm";
 
 
 export class AccesoBotController extends BaseController {
@@ -125,5 +125,80 @@ export class AccesoBotController extends BaseController {
 
     }
 
-   
+    async getAccess(req: Request, res: Response, next: NextFunction) {
+        const PersonalId = Number(req.params.PersonalId)
+        const queryRunner = dataSource.createQueryRunner();
+    
+        try {
+    
+          let result = await this.getAccessQuery(queryRunner, PersonalId)
+          this.jsonRes(result[0], res);
+        } catch (error) {
+          return next(error)
+        }
+      }
+    
+      async getAccessQuery(queryRunner: QueryRunner,PersonalId: any) {
+        let selectquery = `SELECT
+                reg.personal_id AS PersonalId,
+                doc.PersonalDocumentoNro,
+                reg.telefono,
+                des_doc_ident AS codigo
+                FROM lige.dbo.regtelefonopersonal AS reg
+                JOIN personal AS per ON per.PersonalId = reg.personal_id
+
+                JOIN PersonalDocumento AS doc ON doc.PersonalId = reg.personal_id
+                AND doc.PersonalDocumentoId = ( SELECT MAX(docmax.PersonalDocumentoId) FROM PersonalDocumento docmax WHERE docmax.PersonalId = per.PersonalId)
+                    
+            WHERE reg.personal_id = @0 `
+    
+        const result = await queryRunner.query(selectquery, [PersonalId])
+        return result
+      }
+
+
+      async deleteAccess(req: Request, res: Response, next: NextFunction) {
+
+        const PersonalId = Number(req.params.PersonalId)
+
+        console.log("PersonalId ", PersonalId)
+        const queryRunner = dataSource.createQueryRunner();
+        try {
+          await queryRunner.connect();
+          await queryRunner.startTransaction();
+
+          await queryRunner.query(`DELETE FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0`, [PersonalId])
+
+          this.jsonRes({ list: [] }, res, `Acceso borrado con exito`);
+
+          await queryRunner.commitTransaction();
+    
+        } catch (error) {
+          await this.rollbackTransaction(queryRunner)
+          return next(error)
+        }
+    
+      }
+
+      async getAccessDni(req: Request, res: Response, next: NextFunction) {
+        const PersonalId = Number(req.params.PersonalId)
+        const queryRunner = dataSource.createQueryRunner();
+    
+        try {
+    
+          let result = await this.getAccessDniQuery(queryRunner, PersonalId)
+          this.jsonRes(result[0], res);
+        } catch (error) {
+          return next(error)
+        }
+      }
+    
+      async getAccessDniQuery(queryRunner: QueryRunner,PersonalId: any) {
+        let selectquery = ` SELECT PersonalDocumentoNro FROM PersonalDocumento docmax WHERE PersonalId = @0 AND TipoDocumentoId = 1`
+        const result = await queryRunner.query(selectquery, [PersonalId])
+        return result
+      }
+
+  
+    
 }

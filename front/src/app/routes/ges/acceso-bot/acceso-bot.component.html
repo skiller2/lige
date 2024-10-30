@@ -10,7 +10,7 @@
   
     <nz-button-group >
       <a [routerLink]="['/', 'ges', 'acceso-bot','detalle']" (click)="setEdit(true)" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
-        <button nz-button nzType="default" [disabled]="editAcceso>0? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+        <button nz-button nzType="default" [disabled]="editPersonaId > 0? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
       </a>
       <a [routerLink]="['/', 'ges', 'acceso-bot','alta']" (click)="setEdit(false)"  nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
         <button nz-button nzType="default" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
@@ -34,10 +34,15 @@
           </div>
         </ng-template>
       </nz-tab>
+
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/acceso-bot/detalle">Detalle</a>
+        <app-acceso-bot-form [PersonalId]="editPersonaId" [edit]="edit()"></app-acceso-bot-form>
+      </nz-tab>
   
       <nz-tab> 
-        <a nz-tab-link routerLink="/ges/acceso-bot/alta" >Alta </a>
-        <app-acceso-bot-form [edit]="edit()" [(addNew)]="addNew" ></app-acceso-bot-form> 
+        <a nz-tab-link routerLink="/ges/acceso-bot/alta">Alta </a>
+          <app-acceso-bot-form [edit]="edit()" [(addNew)]="addNew" ></app-acceso-bot-form> 
       </nz-tab>
   
     </nz-tabset>

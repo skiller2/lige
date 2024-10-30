@@ -820,6 +820,26 @@ export class ApiService {
 
   }
 
+  getAccesoBot(PersonalId: number) {
+
+    return this.http.get<ResponseJSON<any>>(`/api/acceso-bot/${PersonalId}`).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([])),
+
+    )
+
+  }
+
+  getAccesoBotDNI(PersonalId: number) {
+
+    return this.http.get<ResponseJSON<any>>(`/api/acceso-bot/dni/${PersonalId}`).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([])),
+
+    )
+
+  }
+
   setLicencia(vals: any) {
     return this.http.post<ResponseJSON<any>>(`/api/carga-licencia`, vals).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
@@ -845,6 +865,17 @@ export class ApiService {
     )
 
   }
+
+  deleteAccess(PersonalId: any) {
+    return this.http.delete<ResponseJSON<any>>(`/api/acceso-bot/${PersonalId}`).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+      catchError(() => of([])),
+
+    )
+
+  }
+
+
 
   deleteObjetivos(vals: any) {
     return this.http.delete<ResponseJSON<any>>(`/api/objetivos`,  vals ).pipe(
