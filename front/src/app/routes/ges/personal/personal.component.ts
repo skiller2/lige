@@ -46,11 +46,7 @@ export class PersonalComponent {
       debounceTime(500),
       switchMap(() => {
         return this.searchService.getPersonalList({ options: this.listOptions })
-          .pipe(map(data => {
-            console.log(data);
-            return data
-          })
-        )
+          .pipe(map(data => { return data }))
       })
   )
 
@@ -62,11 +58,11 @@ export class PersonalComponent {
       this.gridOptions.enableAutoSizeColumns = true
       this.gridOptions.showFooterRow = true
       this.gridOptions.createFooterRow = true
-      // this.gridOptions.enableCheckboxSelector = true
+      this.gridOptions.enableCheckboxSelector = true
       // this.gridOptions.rowSelectionOptions = {
       //     selectActiveRow: true
       // }
-
+      this.startFilters = [{field:'SituacionRevistaId', condition:'AND', operator:'=', value:'2', forced:false}]
   }
 
   async angularGridReady(angularGrid: any) {
@@ -84,6 +80,7 @@ export class PersonalComponent {
         this.personalId.set(this.angularGrid.dataView.getItemByIdx(e.detail.args.changedSelectedRows[0]).id)
     }else
         this.personalId.set(0)
+    // console.log('this.personalId', this.personalId());
   }
 
   listOptionsChange(options: any) {

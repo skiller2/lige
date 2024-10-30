@@ -323,6 +323,8 @@ export class PersonalController extends BaseController {
 
   async downloadPersonaImagen(PersonalId: number, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
+    console.log('PATH_ARCHIVOS', process.env.PATH_ARCHIVOS);
+    
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
     try {
       const fechaActual = new Date();
@@ -552,26 +554,27 @@ export class PersonalController extends BaseController {
 
   async addPersonal(req: any, res: Response, next: NextFunction){
     const queryRunner = dataSource.createQueryRunner();
-    let nombre:string = req.body.nombre
-    let apellido:string = req.body.apellido
-    const cuit:number = req.body.cuit
-    const nroLegajo:number = req.body.nroLegajo
-    const sucusalId:number = req.body.sucusalId
-    const fechaAlta = req.body.fechaAlta
-    const fechaNacimiento = req.body.fechaNacimiento
-    const foto = req.body.foto
-    const nacionalidadId:number = req.body.nacionalidad
-    const dniFrente = req.body.dniFrente
-    const dniDorso = req.body.dniDorso
+    let Nombre:string = req.body.Nombre
+    let Apellido:string = req.body.Apellido
+    const CUIT:number = req.body.CUIT
+    const NroLegajo:number = req.body.NroLegajo
+    const SucusalId:number = req.body.SucusalId
+    const SolicitudIngreso = new Date()
+    const FechaIngreso = req.body.FechaIngreso
+    const FechaNacimiento = req.body.FechaNacimiento
+    const foto = req.body.Foto
+    const NacionalidadId:number = req.body.NacionalidadId
+    const docFrente = req.body.docFrente
+    const docDorso = req.body.docDorso
     try {
       await queryRunner.startTransaction()
 
-      if (!nombre || !apellido || !cuit || !nroLegajo || !sucusalId || !nacionalidadId || !fechaAlta || !fechaNacimiento) {
+      if (!Nombre || !Apellido || !CUIT || !NroLegajo || !SucusalId || !NacionalidadId || !FechaIngreso || !FechaNacimiento) {
         throw new ClientException(`Los campos No pueden estar vacios.`);
       }
-      nombre = nombre.toUpperCase()
-      apellido = apellido.toUpperCase()
-      const fullname:string = apellido + ', ' + nombre
+      Nombre = Nombre.toUpperCase()
+      Apellido = Apellido.toUpperCase()
+      const fullname:string = Apellido + ', ' + Nombre
 
       let max = await queryRunner.query(`
         SELECT MAX(per.PersonalId)
@@ -591,29 +594,31 @@ export class PersonalController extends BaseController {
         PersonalFechaNacimiento,
         PersonalNacionalidadId,
         -- PersonalFotoId,
-        -- PersonalSucursalIngresoSucursalId,
-        -- PersonalSuActualSucursalPrincipalId
+        PersonalSucursalIngresoSucursalId,
+        PersonalSuActualSucursalPrincipalId
         )
-        VALUES (@0,@1,@2,@3,@4,@5,@6,@6,@7,@8)`,[
+        VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@10)`,[
           max,
           'A',
-          nroLegajo,
-          apellido,
-          nombre,
+          NroLegajo,
+          Apellido,
+          Nombre,
           fullname,
-          fechaAlta,
-          fechaNacimiento,
-          nacionalidadId,
+          SolicitudIngreso,
+          FechaIngreso,
+          FechaNacimiento,
+          NacionalidadId,
+          SucusalId,
         ])
       
       if (foto.length) {
         this.addFoto(queryRunner, max, foto)
       }
-      if (dniFrente.length) {
-        this.addDocumento(queryRunner, max, dniFrente, 12)
+      if (docFrente.length) {
+        this.addDocumento(queryRunner, max, docFrente, 12)
       }
-      if (dniDorso.length) {
-        this.addDocumento(queryRunner, max, dniDorso, 13)
+      if (docDorso.length) {
+        this.addDocumento(queryRunner, max, docDorso, 13)
       }
 
       await queryRunner.commitTransaction()
@@ -664,7 +669,7 @@ export class PersonalController extends BaseController {
   async addFoto(queryRunner:any, personalId:number, fieldname:string){
     let maxFoto = await queryRunner.query(`SELECT MAX(DocumentoImagenFotoId) FROM DocumentoImagenFoto`)
     maxFoto = maxFoto[0] + 1
-    const dirFile = `${process.env.LINCE_PATH}/temp/${fieldname}.jpg`;
+    const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.jpg`;
     const newFieldname = `${personalId}-${maxFoto}-FOTO.jpg`
     const newFilePath = `${process.env.IMAGE_FOTO_PATH}/${newFieldname}`;
     this.moveFile(dirFile, newFilePath);
@@ -688,7 +693,7 @@ export class PersonalController extends BaseController {
   async addDocumento(queryRunner:any, personalId:number, fieldname:string, parametro:number){
     let maxFoto = await queryRunner.query(`SELECT MAX(DocumentoImagenDocumentoId) FROM DocumentoImagenDocumento`)
     maxFoto = maxFoto[0] + 1
-    const dirFile: string  = `${process.env.LINCE_PATH}/temp/${fieldname}.jpg`;
+    const dirFile: string  = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.jpg`;
     let newFieldname: string = `${personalId}-${maxFoto}`
     if (parametro == 13) {
       newFieldname += `-DOCUMENDOR.jpg`
@@ -709,6 +714,117 @@ export class PersonalController extends BaseController {
       VALUES(@0,@1,@2,@3,@4,@5)`,
       [maxFoto, personalId, 'jpg', newFieldname, parametro, 1]
     )
+  }
+  
+  // async updatePersonal(req: any, res: Response, next: NextFunction){
+  //   const queryRunner = dataSource.createQueryRunner();
+  //   const personalId:number = req.body.personalId
+  //   let nombre:string = req.body.nombre
+  //   let apellido:string = req.body.apellido
+  //   const cuit:number = req.body.cuit
+  //   const nroLegajo:number = req.body.nroLegajo
+  //   const sucusalId:number = req.body.sucusalId
+  //   const fechaAlta = req.body.fechaAlta
+  //   const fechaNacimiento = req.body.fechaNacimiento
+  //   const foto = req.body.foto
+  //   const nacionalidadId:number = req.body.nacionalidad
+  //   const dniFrente = req.body.dniFrente
+  //   const dniDorso = req.body.dniDorso
+  //   try {
+  //     await queryRunner.startTransaction()
+
+  //     if (!nombre || !apellido || !cuit || !nroLegajo || !sucusalId || !nacionalidadId || !fechaAlta || !fechaNacimiento) {
+  //       throw new ClientException(`Los campos No pueden estar vacios.`);
+  //     }
+  //     nombre = nombre.toUpperCase()
+  //     apellido = apellido.toUpperCase()
+  //     const fullname:string = apellido + ', ' + nombre
+      
+  //     await queryRunner.query(`
+  //       UPDATE Personal SET
+  //       PersonalNroLegajo = @1,
+  //       PersonalApellido = @2,
+  //       PersonalNombre = @2,
+  //       PersonalApellidoNombre = @2,
+  //       PersonalFechaSolicitudIngreso = @2,
+  //       PersonalFechaSolicitudAceptada = @2,
+  //       PersonalFechaNacimiento = @2,
+  //       PersonalNacionalidadId = @2,
+  //       `,[
+  //         personalId,
+  //         nroLegajo,
+  //         apellido,
+  //         nombre,
+  //         fullname,
+  //         fechaAlta,
+  //         fechaNacimiento,
+  //         nacionalidadId,
+  //       ])
+      
+  //     if (foto.length) {
+  //       this.addFoto(queryRunner, personalId, foto)
+  //     }
+  //     if (dniFrente.length) {
+  //       this.addDocumento(queryRunner, personalId, dniFrente, 12)
+  //     }
+  //     if (dniDorso.length) {
+  //       this.addDocumento(queryRunner, personalId, dniDorso, 13)
+  //     }
+
+  //     await queryRunner.commitTransaction()
+  //     this.jsonRes({}, res);
+  //   } catch (error) {
+  //     this.rollbackTransaction(queryRunner)
+  //     return next(error)
+  //   } finally {
+  //     await queryRunner.release()
+  //   }
+  // }
+
+  async getFormDataById(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner()
+    const personalId = req.params.id
+    try {
+      await queryRunner.startTransaction()
+      
+      let data = await queryRunner.query(`
+        SELECT per.PersonalId ,TRIM(per.PersonalNombre) Nombre, TRIM(per.PersonalApellido) Apellido, per.PersonalNroLegajo NroLegajo,
+        cuit.PersonalCUITCUILCUIT CUIT , per.PersonalFechaIngreso FechaIngreso, per.PersonalFechaNacimiento FechaNacimiento,
+        per.PersonalSuActualSucursalPrincipalId SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion, nac.NacionalidadId, nac.NacionalidadDescripcion,
+        foto.DocumentoImagenFotoBlobNombreArchivo Foto
+        FROM Personal per
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+        LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId
+        LEFT JOIN Sucursal suc ON suc.SucursalId = per.PersonalSuActualSucursalPrincipalId
+        LEFT JOIN Nacionalidad nac ON nac.NacionalidadId = per.PersonalNacionalidadId
+        WHERE per.PersonalId = @0
+        `, [personalId]
+      )
+      data = data[0]
+      
+      const docs = await queryRunner
+      .query(`
+          SELECT doc.DocumentoImagenDocumentoBlobNombreArchivo, doc.DocumentoImagenParametroId
+          FROM DocumentoImagenDocumento doc
+          WHERE doc.PersonalId = @0
+        `, [personalId]
+      )
+      docs.forEach((doc:any)=>{
+        if(doc.DocumentoImagenParametroId==12)
+          data.docFrente = doc.DocumentoImagenDocumentoBlobNombreArchivo
+        if (doc.DocumentoImagenParametroId==13) {
+          data.docDorso = doc.DocumentoImagenDocumentoBlobNombreArchivo
+        }
+      })
+
+      await queryRunner.commitTransaction()
+      this.jsonRes(data, res);
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
   }
 
 }

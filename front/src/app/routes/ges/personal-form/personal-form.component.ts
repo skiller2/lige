@@ -1,5 +1,5 @@
-import { Component, Injector, viewChild, inject, signal, model, computed, ChangeDetectionStrategy } from '@angular/core';
-import { BehaviorSubject, debounceTime, map, switchMap, tap, noop } from 'rxjs';
+import { Component, Injector, viewChild, inject, signal, model, computed, ChangeDetectionStrategy, effect } from '@angular/core';
+import { BehaviorSubject, debounceTime, map, switchMap, tap, noop, firstValueFrom } from 'rxjs';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { CommonModule } from '@angular/common';
@@ -15,7 +15,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
   styleUrl: './personal-form.component.less',
   standalone: true,
   imports: [...SHARED_IMPORTS, CommonModule, NzUploadModule],
-  // changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
   
 export class PersonalFormComponent {
@@ -30,35 +30,35 @@ export class PersonalFormComponent {
   private notification = inject(NzNotificationService)
   urlUpload = '/api/personal/upload'
   uploading$ = new BehaviorSubject({loading:false,event:null});
+
+  inputs = { 
+    Nombre:'', Apellido:'', CUIT:0, NroLegajo:0, SucursalId:0, FechaIngreso:'',
+    FechaNacimiento:'', Foto:'', NacionalidadId:0, docDorso:'', docFrente:''
+  }
   
   fb = inject(FormBuilder)
-  formPer = this.fb.group({ nombre:'', apellido:'', cuit:0, nroLegajo:0,
-    sucusalId:0, fechaAlta:'', fechaNacimiento:'', foto:'', nacionalidadId:0, dniDorso:'', dniFrente:''
-  })
+  formPer = this.fb.group({ ...this.inputs })
 
-  $optionsSucusal = this.searchService.getSucursales();
+  $optionsSucursal = this.searchService.getSucursales();
   $optionsNacionalidad = this.searchService.getNacionalidadList();
 
-  cambios = computed(async () => {
-  });
-
   cuit():number {
-    const value = this.formPer.get("cuit")?.value
+    const value = this.formPer.get("CUIT")?.value
     if(value) return value
     else return 0
   }
   foto():string {
-    const value = this.formPer.get("foto")?.value
+    const value = this.formPer.get("Foto")?.value
     if(value) return value
     else return ''
   }
-  dniDorso():string {
-    const value = this.formPer.get("dniDorso")?.value
+  docDorso():string {
+    const value = this.formPer.get("docDorso")?.value
     if(value) return value
     else return ''
   }
-  dniFrente():string {
-    const value = this.formPer.get("dniFrente")?.value
+  docFrente():string {
+    const value = this.formPer.get("docFrente")?.value
     if(value) return value
     else return ''
   }
@@ -66,6 +66,24 @@ export class PersonalFormComponent {
   async ngOnInit(){
     let now : Date = new Date()
     this.periodo.set({anio: now.getFullYear(), mes: now.getMonth()+1})
+    effect(async () => {
+      console.log(`The personalId is: ${this.personalId()}`);
+      if (this.personalId()) {
+          await this.load()
+      } else {
+          
+      }
+    }, { injector: this.injector });
+  }
+
+  async load() {
+    let infoPersonal = await firstValueFrom(this.searchService.getPersonalInfoById(this.personalId()))
+    let values:any = {...this.inputs}
+    
+    for (const key in values) {
+      values[key] = infoPersonal[key]
+    }
+    this.formPer.reset(values)
   }
 
   uploadChange(event: any, input:string) {
@@ -131,7 +149,8 @@ export class PersonalFormComponent {
     let archivo = this.formPer.get(control)?.value;
     if (archivo) {
       const archivoFind = this.files().find((item) => item.fieldname == archivo)
-      return archivoFind.originalname
+      if (archivoFind) return archivoFind.originalname
+      return archivo
     }
     return ''
   }
@@ -140,15 +159,15 @@ export class PersonalFormComponent {
     try {
       let ArchivoIdForDelete = this.formPer.get(control)?.value;
       if( tipoDocumentDelete){
-        console.log("No se borro")
+        // console.log("No se borro")
         const ArchivoFilter = this.files().filter((item) => item.fieldname != ArchivoIdForDelete)
-        console.log("fieldname ", ArchivoFilter)
+        // console.log("fieldname ", ArchivoFilter)
         this.files.set(ArchivoFilter)
         this.formPer.get(control)?.setValue('')
         this.formPer.markAsTouched()
         this.notification.success('Respuesta', `Archivo borrado con exito `)
       }else{
-        console.log("Si se borro")
+        // console.log("Si se borro")
         // await firstValueFrom( this.apiService.deleteArchivosLicencias(ArchivoIdForDelete))
       }
 

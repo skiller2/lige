@@ -314,7 +314,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   async addFilter(field: string, condition: string, operator: string, value: string, forced: boolean) {
-    console.log('agrego',field)
     const fieldObj: any = this.fieldsToSelect().filter(x => x.field === field)[0]
     if (!fieldObj)
       return

@@ -7,11 +7,21 @@ import { ClientException } from "../controller/baseController";
 
 type DestinationCallback = (error: Error | null, destination: string) => void;
 
-const dirtmp = `${process.env.PATH_LICENCIA}/temp`;
+let dirtmp = `${process.env.PATH_DOCUMENTS}/temp`;
+console.log('dirtmp', dirtmp);
 
 if (!existsSync(dirtmp)) {
   mkdirSync(dirtmp, { recursive: true });
 }
+// const dirtmpfoto = `${process.env.IMAGE_FOTO_PATH}/temp`;
+// const dirtmpdoc = `${process.env.IMAGE_DOCUMENTO_PATH}/temp`;
+
+// if (!existsSync(dirtmpfoto)) {
+//   mkdirSync(dirtmpfoto, { recursive: true });
+// }
+// if (!existsSync(dirtmpdoc)) {
+//   mkdirSync(dirtmpdoc, { recursive: true });
+// }
 
 function generateRandomDigitNumber() {
 
@@ -32,6 +42,7 @@ const storage = multer.diskStorage({
       file: Express.Multer.File,
       callback: DestinationCallback
     ) => {
+      console.log('REQ: ',req);
       return callback(null, dirtmp);
     },
     filename: (
@@ -116,9 +127,17 @@ personalRouter.post(
   }
 );
 
-personalRouter.post(`${base}/add`, authMiddleware.verifyToken, (req, res, next) => { personalController.addPersonal(req, res, next); });
+personalRouter.post(`${base}/add`, authMiddleware.verifyToken, (req, res, next) => {
+  personalController.addPersonal(req, res, next);
+});
 
-personalRouter.get(`/nacionalidad/options`, authMiddleware.verifyToken, (req, res, next) => { personalController.getNacionalidadList(req, res, next); });
+personalRouter.get(`${base}/info/:id`, authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getFormDataById(req, res, next);
+});
+
+personalRouter.get(`/nacionalidad/options`, authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getNacionalidadList(req, res, next);
+});
 
 personalRouter.get('/sitrevista/options', authMiddleware.verifyToken, (req, res, next) => {
   personalController.getSituacionRevista(req, res, next)
