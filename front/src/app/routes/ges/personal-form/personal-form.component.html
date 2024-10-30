@@ -1,57 +1,56 @@
-@if (cambios()|async) {}
 <form [formGroup]="formPer">
   <br>
   <nz-form-item class="marginElement">
     <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3">Nombre</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="10" [nzLg]="7">
-      <input nz-input placeholder="" formControlName="nombre" type="text" />
+      <input nz-input placeholder="" formControlName="Nombre" type="text" />
     </nz-form-control>
         
     <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3">Apellido</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" >
-      <input nz-input placeholder="" formControlName="apellido" type="text" />
+      <input nz-input placeholder="" formControlName="Apellido" type="text" />
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item class="marginElement">
     <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3">CUIT</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="10" [nzLg]="7">
-      <input nz-input placeholder="" formControlName="cuit" type="number" />
+      <input nz-input placeholder="" formControlName="CUIT" type="number" />
     </nz-form-control>
         
     <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3">Nro de Asociado</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" >
-      <input nz-input placeholder="" formControlName="nroLegajo" type="number" />
+      <input nz-input placeholder="" formControlName="NroLegajo" type="number" />
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Sucusal</nz-form-label>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Sucursal</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7">
-      <nz-select formControlName="sucusalId" nzPlaceHolder="" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
-        <ng-container *ngFor="let option of $optionsSucusal | async" >
+      <nz-select formControlName="SucursalId" nzPlaceHolder="" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
+        <ng-container *ngFor="let option of $optionsSucursal | async" >
           <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion" ></nz-option>
         </ng-container>
       </nz-select>
     </nz-form-control>
 
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha de Alta</nz-form-label>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha de Ingreso</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <nz-date-picker formControlName="fechaAlta" ></nz-date-picker>
+      <nz-date-picker formControlName="FechaIngreso" ></nz-date-picker>
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha de Nacimiento</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7">
-      <nz-date-picker formControlName="fechaNacimiento" ></nz-date-picker>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
+      <nz-date-picker formControlName="FechaNacimiento" ></nz-date-picker>
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Foto</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
       @if(!foto().length){
         <nz-upload nzAccept="image/jpg" [nzAction]="urlUpload" nzName="jpg" [nzLimit]="1"
-        [nzShowUploadList]="false" (nzChange)="uploadChange($event, 'foto')" >
+        [nzShowUploadList]="false" (nzChange)="uploadChange($event, 'Foto')" >
           <button nz-button>
             <span nz-icon nzType="upload"></span>
             {{ 'app.btn.upload.photo' | i18n }}
@@ -59,13 +58,13 @@
         </nz-upload>
         }@else{
         <button nz-button nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
-        (nzOnConfirm)="confirmDeleteArchivo('foto',true)" nzPopconfirmPlacement="top">
+        (nzOnConfirm)="confirmDeleteArchivo('Foto',true)" nzPopconfirmPlacement="top">
           <span nz-button  nzType="primary" nzDanger nz-icon nzType="delete" nzTheme="outline" class="trash-color">
           </span>
             <!-- <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
               class="download-color" app-down-file [httpMethod]="'POST'"
               [httpBody]="{'documentId': licenciaAdd.id}" httpUrl="api/carga-licencia/downloadLicencia"></a> -->
-          <span> {{getOriginalName('foto')}} </span>
+          <span> {{getOriginalName('Foto')}} </span>
         </button>
         }
     </nz-form-control>
@@ -73,8 +72,8 @@
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Nacionalidad</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <nz-select formControlName="nacionalidadId" nzPlaceHolder="" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+      <nz-select formControlName="NacionalidadId" nzPlaceHolder="" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
         <ng-container *ngFor="let option of $optionsNacionalidad | async">
           <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
         </ng-container>
@@ -82,10 +81,10 @@
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">DNI - Frente</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
-      @if(!dniFrente().length){
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
+      @if(!docFrente().length){
       <nz-upload nzAccept="image/jpg" [nzAction]="urlUpload" nzName="jpg" [nzLimit]="1"
-      [nzShowUploadList]="false" (nzChange)="uploadChange($event, 'dniFrente')">
+      [nzShowUploadList]="false" (nzChange)="uploadChange($event, 'docFrente')">
         <button nz-button>
           <span nz-icon nzType="upload"></span>
           {{ 'app.btn.upload.dni' | i18n }}
@@ -93,22 +92,22 @@
       </nz-upload>
       }@else{
       <button nz-button nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
-      (nzOnConfirm)="confirmDeleteArchivo('dniFrente',true)" nzPopconfirmPlacement="top">
+      (nzOnConfirm)="confirmDeleteArchivo('docFrente',true)" nzPopconfirmPlacement="top">
         <span nz-button  nzType="primary" nzDanger nz-icon nzType="delete" nzTheme="outline" class="trash-color">
         </span>
           <!-- <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
             class="download-color" app-down-file [httpMethod]="'POST'"
             [httpBody]="{'documentId': licenciaAdd.id}" httpUrl="api/carga-licencia/downloadLicencia"></a> -->
-        <span> {{getOriginalName('dniFrente')}} </span>
+        <span> {{getOriginalName('docFrente')}} </span>
       </button>
       }
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">DNI - Dorso</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
-      @if(!dniDorso().length){
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
+      @if(!docDorso().length){
         <nz-upload nzAccept="image/jpg" [nzAction]="urlUpload" nzName="jpg" [nzLimit]="1"
-        [nzShowUploadList]="false" (nzChange)="uploadChange($event, 'dniDorso')" >
+        [nzShowUploadList]="false" (nzChange)="uploadChange($event, 'docDorso')" >
           <button nz-button>
             <span nz-icon nzType="upload"></span>
             {{ 'app.btn.upload.dni' | i18n }}
@@ -116,13 +115,13 @@
         </nz-upload>
         }@else{
         <button nz-button nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
-        (nzOnConfirm)="confirmDeleteArchivo('dniDorso',true)" nzPopconfirmPlacement="top">
+        (nzOnConfirm)="confirmDeleteArchivo('docDorso',true)" nzPopconfirmPlacement="top">
           <span nz-button  nzType="primary" nzDanger nz-icon nzType="delete" nzTheme="outline" class="trash-color">
           </span>
             <!-- <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
               class="download-color" app-down-file [httpMethod]="'POST'"
               [httpBody]="{'documentId': licenciaAdd.id}" httpUrl="api/carga-licencia/downloadLicencia"></a> -->
-          <span> {{getOriginalName('dniDorso')}} </span>
+          <span> {{getOriginalName('docDorso')}} </span>
         </button>
         }
     </nz-form-control>
