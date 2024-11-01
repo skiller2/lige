@@ -781,7 +781,7 @@ export class CargaLicenciaController extends BaseController {
         if (PersonalLicenciaDesde < PersonalSituacionRevistaDesde)
           throw new ClientException('La fecha desde no puede ser menor al desde de la última situación revista')
         else if (PersonalLicenciaDesde.getTime() == PersonalSituacionRevistaDesde.getTime() && PersonalSituacionRevistaSituacionId != 10) {
-          console.log('procedo a borrar')
+
           await queryRunner.query(`DELETE FROM PersonalSituacionRevista
             WHERE PersonalId = @0 AND PersonalSituacionRevistaId= @1`, [PersonalId, PersonalSituacionRevistaId])
         }
@@ -857,7 +857,7 @@ export class CargaLicenciaController extends BaseController {
           await this.addSituacionRevista(queryRunner, PersonalId, PersonalSituacionRevistaUltNro, this.addDays(PersonalLicenciaHasta, 1), null, '', PersonalSituacionRevistaSituacionId)
         }
 
-        throw new ClientException(`DEBUG:  Paso bien ${PersonalSituacionRevistaSituacionIdNot10}`)
+        //throw new ClientException(`DEBUG:  Paso bien ${PersonalSituacionRevistaSituacionIdNot10}`)
 
       }
 
