@@ -856,9 +856,6 @@ export class CargaLicenciaController extends BaseController {
           PersonalSituacionRevistaUltNro++
           await this.addSituacionRevista(queryRunner, PersonalId, PersonalSituacionRevistaUltNro, this.addDays(PersonalLicenciaHasta, 1), null, '', PersonalSituacionRevistaSituacionId)
         }
-
-        //throw new ClientException(`DEBUG:  Paso bien ${PersonalSituacionRevistaSituacionIdNot10}`)
-
       }
 
       await queryRunner.query(`UPDATE Personal SET PersonalLicenciaUltNro = @1,PersonalSituacionRevistaUltNro = @2 where PersonalId = @0 `, [PersonalId, PersonalLicenciaUltNro, PersonalSituacionRevistaUltNro])
