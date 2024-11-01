@@ -758,6 +758,17 @@ export class CargaLicenciaController extends BaseController {
 
       } else {  //INSERT
 
+        //Obtengo ultima situación distanta a la de Licencia
+        const sitrevant = await queryRunner.query(`
+          SELECT TOP 1 PersonalSituacionRevistaId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaDesde,PersonalSituacionRevistaHasta
+          FROM PersonalSituacionRevista
+          WHERE PersonalId = @0 AND PersonalSituacionRevistaSituacionId <> 10
+          ORDER BY PersonalSituacionRevistaDesde DESC, ISNULL(PersonalSituacionRevistaHasta,'9999-12-31') DESC
+      `, [PersonalId])
+      const  PersonalSituacionRevistaSituacionIdNot10  = sitrevant[0].PersonalSituacionRevistaSituacionId
+
+
+
         const sitrev = await queryRunner.query(`
           SELECT TOP 1 PersonalSituacionRevistaId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaDesde,PersonalSituacionRevistaHasta
           FROM PersonalSituacionRevista
@@ -827,7 +838,7 @@ export class CargaLicenciaController extends BaseController {
             PersonalLicenciaTipoAsociadoId,
             null,
 
-            PersonalSituacionRevistaSituacionId])
+            PersonalSituacionRevistaSituacionIdNot10])
 
         await this.UpdateDiagnosticoMedico(PersonalLicenciaDiagnosticoMedicoDiagnostico, PersonalId, PersonalLicenciaUltNro, PersonalLicenciaDesde, queryRunner)
 
@@ -846,7 +857,7 @@ export class CargaLicenciaController extends BaseController {
           await this.addSituacionRevista(queryRunner, PersonalId, PersonalSituacionRevistaUltNro, this.addDays(PersonalLicenciaHasta, 1), null, '', PersonalSituacionRevistaSituacionId)
         }
 
-
+        throw new ClientException(`DEBUG:  Paso bien ${PersonalSituacionRevistaSituacionIdNot10}`)
 
       }
 
@@ -856,7 +867,7 @@ export class CargaLicenciaController extends BaseController {
         await FileUploadController.handlePDFUpload(PersonalId, 'Licencia', 'LIC','persona_id', req.body.files, usuario, ip)
       }
 
-//      throw new ClientException("DEBUG:  Paso bien")
+
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
 
