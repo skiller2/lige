@@ -20,20 +20,15 @@
       </nz-form-item>
 
       <nz-form-item class="imgContainer">
-        <nz-upload nzAction="https://www.mocky.io/v2/5cc8019d300000980a055e76" [nzHeaders]="{ authorization: 'authorization-text' }" (nzChange)="handleChange($event)">
-    
 
-      <button nz-button>
-        <span nz-icon nzType="upload"></span>
-        DNI Frente
-      </button>
+        <div *ngIf="qrCodeResult">
+            <p>Contenido del QR: {{ qrCodeResult }}</p>
+        </div>
 
-      <button nz-button>
-        <span nz-icon nzType="upload"></span>
-        DNI Dorso
-      </button>
-    </nz-upload>
+  
 </nz-form-item>
+
+
       <nz-form-item >
         <nz-form-label [nzSpan]="7">Persona</nz-form-label>
         <nz-form-control [nzSpan]="10">
@@ -46,7 +41,7 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="7">DNI</nz-form-label>
             <nz-form-control  [nzSpan]="10">
-                <input nz-input type="number" name="PersonalDocumentoNro" ngModel [disabled]="dniDisabled()"   />
+                <input nz-input type="number" name="PersonalDocumentoNro" ngModel [readonly]="dniDisabled()"   />
             </nz-form-control>
       </nz-form-item>
 
@@ -60,20 +55,30 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="7">Código</nz-form-label>
         <nz-form-control  [nzSpan]="5" >
-            <span>{{codigo()}}</span>
+            <input nz-input ngModel name="codigo" ngModel [readonly]="true"   />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
         <nz-form-label [nzSpan]="7">Generar Nuevo Código</nz-form-label>
         <nz-form-control  [nzSpan]="5">
-            <label nz-checkbox [(ngModel)]="checked"></label>
+            <label nz-checkbox ngModel name="nuevoCodigo"  ></label>
         </nz-form-control>
       </nz-form-item>
 
+
+        <nz-form-control>
+          <app-file-upload ngModel name="files" [idForSearh]="this.PersonalId()" [textForSearch]="'LIC'" [keyField]="'persona_id'"></app-file-upload>
+        </nz-form-control>
+        
+      
       <nz-form-item>
-        <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
-          <button nzType="primary" nz-button  (click)="save()" [nzLoading]="isLoading()"  >
+        <nz-form-control style="display: flex; justify-content: center; align-items: center;">  
+           -  {{ files().length}}  
+          <!-- <button nzType="primary" nz-button  (click)="save()" [nzLoading]="isLoading()"   [disabled]="PersonalId() <= 0">
+            {{ 'app.btn.save' | i18n }}
+          </button> -->
+          <button nzType="primary" nz-button  (click)="save()" [nzLoading]="isLoading()" [disabled]="!ngForm().dirty">
             {{ 'app.btn.save' | i18n }}
           </button>
           <button nzType="primary" nz-button nzDanger  nz-popconfirm

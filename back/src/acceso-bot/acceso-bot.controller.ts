@@ -6,6 +6,13 @@ import { QueryResult } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller"
 import { info } from "pdfjs-dist/types/src/shared/util";
 import { QueryRunner } from "typeorm";
+import { fileURLToPath } from 'url';
+import { MultiFormatReader, BarcodeFormat, RGBLuminanceSource, BinaryBitmap, HybridBinarizer, NotFoundException } from '@zxing/library';
+import path from "path";
+import qrCode from 'qrcode-reader';
+import fs from "fs";
+import { Jimp  } from "jimp"
+
 
 
 export class AccesoBotController extends BaseController {
@@ -199,6 +206,116 @@ export class AccesoBotController extends BaseController {
         return result
       }
 
-  
+
+      async updateAcess(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+
+        try {
+            await queryRunner.startTransaction()
+            const usuario = res.locals.userName
+            const ip = this.getRemoteAddress(req)
+
+
+            let {
+                PersonalId,
+                PersonalDocumentoNro,
+                telefono,
+                codigo,
+                nuevoCodigo,
+                files
+          
+              } = req.body
+
+            //validaciones
+            //await this.FormValidations(ObjPersonalId)
+
+            if(files.length > 0)
+                await this.QrValidate(files)
+
+            const ClienteFechaAlta = new Date()
+            ClienteFechaAlta.setHours(0, 0, 0, 0)
+
+
+            //let ClienteAdministradorId = await this.ClienteAdministrador(queryRunner, ObjCliente, ClienteId)
+
+        
+            await queryRunner.commitTransaction()
+            return this.jsonRes(PersonalId, res, 'Modificación  Exitosa');
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+
+    async FormValidations(form: any) {
+
+
+        if (!form.PersonalDocumentoNro) {
+            throw new ClientException(`No posee DNI.`)
+        }
+
+        if (!form.PersonalId) {
+            throw new ClientException(`Debe completar el campo Persona.`)
+        }
+
+        if (!form.telefono || !/^(549)\d+$/.test(form.telefono)) {
+            throw new ClientException(`Debe completar el campo telefono con un número válido que comience con "549".`);
+        }
+
+        // if (form.files <= 0 || form.files > 2) {
+        //     throw new ClientException(`Debe cargar dos imagenes DNI frente y DNI Dorso".`);
+        // }
+
+
+    }
+
+
+    async QrValidate(files:any){
+
+    const results = [];
+
+    for (const file of files) {
+
+    const fullPath = path.join(file.destination, file.filename);
+    const normalizedPath = fullPath.replace(/\\/g, '/');
+
+        try {
+          
+            const readQRCode = async (fileName) => {
+                const filePath = normalizedPath
+                console.log("filePath ",filePath)
+                try {
+                    if (fs.existsSync(filePath)) {
+                        const img = await Jimp.read(fs.readFileSync(filePath));
+                        const qr = new qrCode();
+                        const value = await new Promise((resolve, reject) => {
+                            qr.callback = (err, v) => err != null ? reject(err) : resolve(v);
+                            qr.decode(img.bitmap);
+                        });
+                        return value;
+                    }
+                } catch (error) {
+                    return error.message
+                }
+            }
+            
+            readQRCode(normalizedPath).then(console.log).catch(console.log)
+        } catch (error) {
+            if (error instanceof NotFoundException) {
+            console.error(`No se encontró un código QR en la imagen ${file.filename}.`);
+            results.push({ error: "No se encontró un código QR en la imagen." });
+            } else {
+            console.error(`Error en la imagen ${file.filename}:`, error.message);
+            results.push({ error: error.message });
+            }
+        }
+    }
+
+    return results;
+
+    }
     
 }

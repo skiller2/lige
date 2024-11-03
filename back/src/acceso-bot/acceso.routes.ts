@@ -13,16 +13,19 @@ accesoBotRouter.post('/list', authMiddleware.verifyToken, (req, res, next) => {
   accesoBotController.list(req, res, next)
 })
 
-accesoBotRouter.get("/:PersonalId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+accesoBotRouter.get("/:PersonalId", authMiddleware.verifyToken, (req, res, next) => {
   accesoBotController.getAccess(req, res, next);
 });
 
-accesoBotRouter.get("/dni/:PersonalId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+accesoBotRouter.get("/dni/:PersonalId", authMiddleware.verifyToken, (req, res, next) => {
   accesoBotController.getAccessDni(req, res, next);
 });
 
-accesoBotRouter.delete("/:PersonalId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+accesoBotRouter.delete("/:PersonalId", authMiddleware.verifyToken, (req, res, next) => {
   accesoBotController.deleteAccess(req, res, next);
 });
 
+accesoBotRouter.post('/', authMiddleware.verifyToken, (req, res, next) => { 
+  accesoBotController.updateAcess(req, res, next)
+} )
 

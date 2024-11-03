@@ -32,6 +32,7 @@
       "util": "^0.12.5"
    },
    "dependencies": {
+      "@zxing/library": "^0.21.3",
       "bcryptjs": "^2.4.3",
       "dotenv": "^16.3.1",
       "es-dirname": "^0.1.0",
@@ -39,6 +40,7 @@
       "express": "^4.18.2",
       "express-rate-limit": "^6.7.1",
       "helmet": "^4.6.0",
+      "jimp": "^1.6.0",
       "jsonwebtoken": "^9.0.2",
       "ldapts": "^6.0.0",
       "moment": "^2.30.1",
@@ -54,6 +56,7 @@
       "pdfjs-dist": "^4.0.189",
       "pdfkit": "^0.14.0",
       "puppeteer": "^21.10.0",
+      "qrcode-reader": "^1.0.4",
       "remove": "^0.1.5",
       "typeorm": "^0.3.20"
    },

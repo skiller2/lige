@@ -107,7 +107,6 @@ export class FileUploadComponent implements ControlValueAccessor{
 
         const Response = event.file.response
         this.files.set([ ...this.files(), Response.data[0] ])
-  
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response) 
 
