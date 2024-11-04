@@ -1,54 +1,76 @@
-
 <nz-card class="small-margin">
-    <nz-form-item>
-        <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
-        <nz-form-control>
-          <nz-date-picker nzMode="month"  [(ngModel)]="periodo" />
-        </nz-form-control>
-        <nz-button-group style="text-align: right;">
-          <!-- <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalLicenciaId>0)" ><span nz-icon nzType="edit"
-            nzTheme="outline" ></span></button> -->
-          <button nz-button nzType="default" (click)="openDrawerforEdit()" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" ><span nz-icon nzType="edit"
-                  nzTheme="outline" ></span></button>
-          <button nz-button nzType="default" (click)="openDrawerforConsult()" nz-tooltip nzTooltipTitle="{{ 'app.icon.consult' | i18n }}" ><span nz-icon nzType="info-circle"
-                  nzTheme="outline" ></span></button>
-          <button nz-button nzType="default" (click)="openDrawerforNew()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus"
-                  nzTheme="outline"></span></button>
-          <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="PersonalId() == 0" nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold" 
-                  nzTheme="outline"></span></button>
-      </nz-button-group>
-      </nz-form-item>
-
-
-      <ul nz-menu nzMode="horizontal">
+  <div nz-row>
+    <div nz-col nzSpan="6">
+      <nz-form-control>
+        <nz-date-picker nzMode="month" [(ngModel)]="periodo" />
+      </nz-form-control>
+    </div>
+    <div nz-col nzSpan="13">
+      <ul nz-menu nzMode="horizontal" style="display: inline-block;">
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'carga_licencias','Licencias']"  (click)="inputConsult(true)">Licencias</a>
+          <a [routerLink]="['/', 'ges', 'carga_licencias','Licencias']" (click)="inputConsult(true)">Licencias</a>
         </li>
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'carga_licencias','horasLicencia']"  (click)="inputConsult(false)">Horas de licencia </a>
+          <a [routerLink]="['/', 'ges', 'carga_licencias','horasLicencia']" (click)="inputConsult(false)">Horas de
+            licencia
+          </a>
         </li>
       </ul>
-      
-      <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
-        <nz-tab>
-          <a nz-tab-link routerLink="/ges/carga_licencias/Licencias">Alta de licencia</a>
-          <ng-template nz-tab>
-            
-            <app-table-abm-licencia gridId="gridEdit1" [RefreshLicencia]="RefreshLicencia" (valueGridEvent)="actualizarValorDrawer($event)" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-table-abm-licencia>
-  
-          </ng-template>
-        </nz-tab>
-        <nz-tab>
-          <a nz-tab-link routerLink="/ges/carga_licencias/horasLicencia">Horas de licencia</a>
-          <ng-template nz-tab>
-            
-            <app-table-horas-licencia gridId="gridEdit2" (valueGridEvent)="actualizarValorDrawer($event)" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-table-horas-licencia>
-          </ng-template>
-        </nz-tab>
-      
-      </nz-tabset>
-  </nz-card>
-<app-licencia-drawer [(RefreshLicencia)]="RefreshLicencia" [(visibleHistorial)]="visibleHistorial" [selectedPeriod]="selectedPeriod()" [openDrawerForConsult]="openDrawerForConsult" [tituloDrawer] = "tituloDrawer" [(visible)]="visibleDrawer"  [(PersonalId)]="PersonalId"  [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
-<app-licencia-historial-drawer [(visibleHistorial)]="visibleHistorial" [PersonalId]="PersonalId()" ></app-licencia-historial-drawer>
+    </div>
+    <div nz-col nzSpan="5">
+      <nz-button-group style="text-align: right;">
+        <!-- <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalLicenciaId>0)" ><span nz-icon nzType="edit"
+                nzTheme="outline" ></span></button> -->
+        <button nz-button nzType="default" (click)="openDrawerforEdit()" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+        <button nz-button nzType="default" (click)="openDrawerforConsult()" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.consult' | i18n }}"><span nz-icon nzType="info-circle"
+            nzTheme="outline"></span></button>
+        <button nz-button nzType="default" (click)="openDrawerforNew()" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+        <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="PersonalId() == 0"
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold"
+            nzTheme="outline"></span></button>
+      </nz-button-group>
+
+    </div>
+  </div>
+
+
+
+
+
+
+
+
+
+  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/carga_licencias/Licencias">Alta de licencia</a>
+      <ng-template nz-tab>
+
+        <app-table-abm-licencia gridId="gridEdit1" [RefreshLicencia]="RefreshLicencia"
+          (valueGridEvent)="actualizarValorDrawer($event)" [anio]="selectedPeriod().year"
+          [mes]="selectedPeriod().month"></app-table-abm-licencia>
+
+      </ng-template>
+    </nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/carga_licencias/horasLicencia">Horas de licencia</a>
+      <ng-template nz-tab>
+
+        <app-table-horas-licencia gridId="gridEdit2" (valueGridEvent)="actualizarValorDrawer($event)"
+          [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-table-horas-licencia>
+      </ng-template>
+    </nz-tab>
+
+  </nz-tabset>
+</nz-card>
+<app-licencia-drawer [(RefreshLicencia)]="RefreshLicencia" [(visibleHistorial)]="visibleHistorial"
+  [selectedPeriod]="selectedPeriod()" [openDrawerForConsult]="openDrawerForConsult" [tituloDrawer]="tituloDrawer"
+  [(visible)]="visibleDrawer" [(PersonalId)]="PersonalId"
+  [PersonalLicenciaId]="PersonalLicenciaId"></app-licencia-drawer>
+<app-licencia-historial-drawer [(visibleHistorial)]="visibleHistorial"
+  [PersonalId]="PersonalId()"></app-licencia-historial-drawer>

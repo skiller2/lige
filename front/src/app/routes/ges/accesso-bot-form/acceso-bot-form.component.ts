@@ -11,9 +11,11 @@ import { CommonModule } from '@angular/common';
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { NzFlexModule } from 'ng-zorro-antd/flex';
+import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
+import {  DecodeHintType, MultiFormatReader, NotFoundException } from '@zxing/library';
+import { BrowserMultiFormatReader, BarcodeFormat } from '@zxing/browser';
 
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzUploadChangeParam } from 'ng-zorro-antd/upload';
+
 
 import { log } from '@delon/util';
 
@@ -22,7 +24,7 @@ import { log } from '@delon/util';
   standalone: true,
   imports: [
     SHARED_IMPORTS,
-    CommonModule,PersonalSearchComponent,NzFlexModule,NzUploadModule],
+    CommonModule,PersonalSearchComponent,NzFlexModule,NzUploadModule,FileUploadComponent],
   templateUrl: './acceso-bot-form.component.html',
   styleUrl: './acceso-bot-form.component.less'
 })
@@ -30,16 +32,16 @@ import { log } from '@delon/util';
 export class AccesoBotFormComponent {
   ngForm = viewChild.required(NgForm);
   edit = model(true)
-  isLoading = signal(false)
   addNew = model()
-  checked = true
+  isLoading = signal(false)
   PersonalId = model(0)
   private injector = inject(Injector)
   private apiService = inject(ApiService)
   codigo = signal(0)
   dniDisabled = signal(true)
-  formChange$ = new BehaviorSubject('');
-
+  formChange$ = new BehaviorSubject('')
+  images =  signal<any[]>([])
+  files = signal([])
 
   async ngOnInit() {
 
@@ -51,13 +53,45 @@ export class AccesoBotFormComponent {
 
   }
 
-  async load() {
-    console.log("load")
-     this.ngForm().form.reset()
+  qrCodeUrl = 'https://i.postimg.cc/L4YSs4p8/Screenshot-78.png';
+  qrCodeResult: string | null = null;
 
+  constructor() {
+    this.decodeQrCodeFromUrl(this.qrCodeUrl);
+  }
+
+  async decodeQrCodeFromUrl(url: string): Promise<void> {
+    const reader = new BrowserMultiFormatReader();
+    try {
+      const img = await this.loadImage(url);
+      const result = await reader.decodeFromImageElement(img);
+      this.qrCodeResult = result.getText();
+      console.log('Contenido del QR:', this.qrCodeResult);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        console.error('No se encontró un código QR en la imagen.');
+      } else {
+        console.error('Error al leer el código QR:', error);
+      }
+    }
+  }
+
+  private loadImage(url: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous'; // Esto es necesario para evitar problemas de CORS
+      img.src = url;
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+    });
+  }
+
+  async load() {
+
+     this.ngForm().form.reset()
+     console.log("load" ,  this.ngForm().form)
       if (this.PersonalId() > 0) {
-        let vals = await firstValueFrom(this.apiService.getAccesoBot(this.PersonalId()));
-        console.log("vals ", vals)
+       let vals = await firstValueFrom(this.apiService.getAccesoBot(this.PersonalId()));
         this.codigo.set(vals.codigo.split("@")[0])
         this.ngForm().form.patchValue(vals)
         this.ngForm().form.markAsUntouched()
@@ -71,34 +105,21 @@ export class AccesoBotFormComponent {
 
 
   async save() {
-    // this.isLoading.set(true)
-    // let form = this.formCli.value
+
+    this.isLoading.set(true)
+    let vals = this.ngForm().value
+ 
     try {
-        // if (this.ClienteId()) {
-        //   let result = await firstValueFrom(this.apiService.updateCliente(form, this.ClienteId()))
+         if (this.PersonalId()) {
+          
+         vals.Archivos = this.files
+         vals.PersonalId = this.PersonalId()
+         let result = await firstValueFrom(this.apiService.updateAccess(vals))
 
-        //   this.formCli.patchValue({
-        //     infoClienteContacto: result.data.infoClienteContacto,
-        //     infoDomicilio:result.data.infoDomicilio,
-        //   });
-
-        // } else {
-        //   //este es para cuando es un nuevo registro
-        //   let result =  await firstValueFrom(this.apiService.addCliente(form))
-
-        //   this.formCli.patchValue({
-        //     id:result.data.ClienteNewId,
-        //     infoClienteContacto: result.data.infoClienteContacto,
-        //     infoDomicilio:result.data.infoDomicilio,
-        //   });
-
-        //   this.ClienteId.set(result.data.ClienteNewId)
-
-         
-        // }
+         }
         
-        // this.formCli.markAsUntouched()
-        // this.formCli.markAsPristine()
+         this.ngForm().form.markAsUntouched()
+         this.ngForm().form.markAsPristine()
       } catch (e) {
           
       }
@@ -112,25 +133,13 @@ export class AccesoBotFormComponent {
   async onPersonalIdChange(newPersonalId: any) {
     if(newPersonalId > 0){
       let vals = await firstValueFrom(this.apiService.getAccesoBotDNI(newPersonalId))
+      this.PersonalId.set(newPersonalId)
       this.ngForm().form.patchValue({
         PersonalDocumentoNro: vals.PersonalDocumentoNro
       }
       )
     }
     
-  }
-
-  constructor(private msg: NzMessageService) {}
-
-  handleChange(info: NzUploadChangeParam): void {
-    if (info.file.status !== 'uploading') {
-      console.log(info.file, info.fileList);
-    }
-    if (info.file.status === 'done') {
-      this.msg.success(`${info.file.name} file uploaded successfully`);
-    } else if (info.file.status === 'error') {
-      this.msg.error(`${info.file.name} file upload failed.`);
-    }
   }
 
 }

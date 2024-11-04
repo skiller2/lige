@@ -966,6 +966,12 @@ export class ApiService {
     )
   }
 
+  updateAccess(persona:any) {
+    return this.http.post<ResponseJSON<any>>(`/api/acceso-bot`, persona).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
   updateObjetivo(objetivo: any, ObjetivoId: any) {
     return this.http.post<ResponseJSON<any>>(`/api/objetivos/update/${ObjetivoId}`, objetivo).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),

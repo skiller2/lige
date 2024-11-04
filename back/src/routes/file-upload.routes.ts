@@ -46,7 +46,8 @@ const storage = multer.diskStorage({
       
       //const originalname = file.uid;
       console.log(file)
-      callback(null, `${originalname}.pdf`);
+      let type = file.mimetype.split("/")[1]
+      callback(null, `${originalname}.${type}`);
     },
   });
   
@@ -55,8 +56,8 @@ const storage = multer.diskStorage({
     file: Express.Multer.File,
     callback: FileFilterCallback
   ): void => {
-
-    if (file.mimetype !== "application/pdf") {
+    const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
+    if (!allowedMimeTypes.includes(file.mimetype)) {
       callback(new ClientException("El archivo no es del tipo PDF."));
       return;
     }
@@ -67,6 +68,7 @@ const storage = multer.diskStorage({
   const uploadPdf = multer({
     storage: storage,
     fileFilter: fileFilterPdf,
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB en bytes
   }).single("pdf");
 
 export const FileUploadRouter = Router();

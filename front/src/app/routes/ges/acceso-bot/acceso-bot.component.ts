@@ -14,7 +14,7 @@ import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.comp
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
-import { AccesoBotFormComponent } from "../acceso-bot-form/acceso-bot-form.component"
+import { AccesoBotFormComponent } from "../accesso-bot-form/acceso-bot-form.component"
 
 
 
