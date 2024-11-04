@@ -16,6 +16,7 @@ import { CustodiaFormComponent } from "../custodias-form/custodias-form.componen
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { FormBuilder, FormArray } from '@angular/forms';
+import { CustodiasPersonalDrawerComponent } from "../../../shared/custodias-personal-drawer/custodias-personal-drawer.component";
 
 @Component({
     selector: 'app-custodias',
@@ -24,7 +25,10 @@ import { FormBuilder, FormArray } from '@angular/forms';
     standalone: true,
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, FiltroBuilderComponent, CustodiaFormComponent],
+    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent,
+        DetallePersonaComponent, FiltroBuilderComponent, CustodiaFormComponent,
+        CustodiasPersonalDrawerComponent
+    ],
     changeDetection: ChangeDetectionStrategy.OnPush,
 
 })
@@ -41,6 +45,7 @@ export class CustodiaComponent {
     estado = signal(true);
     edit = signal(false);
     visible = signal(false);
+    visiblePersonal = signal(false);
     isLoading = signal(false);
     // isLoadingForm = signal(false);
     cantReg = signal(0)
@@ -193,8 +198,9 @@ export class CustodiaComponent {
         this.edit.set(value)
     }
 
-    setVisible(value: boolean): void {
-        this.visible.set(value)
+    setVisiblePersonal(): void {
+        const boolean = this.visiblePersonal()
+        this.visiblePersonal.set(!boolean)
     }
 
     listCustodia(event: any) {
@@ -249,5 +255,9 @@ export class CustodiaComponent {
 
         }
         this.isLoading.set(false)
+    }
+
+    setVisible(value: boolean): void {
+        this.visible.set(value)
     }
 }
