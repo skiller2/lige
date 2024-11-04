@@ -1998,11 +1998,12 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       }
 
       //Validaciónes de los días del mes
+
       const valsDiasMes = await this.valsDiasMes(req.body, queryRunner, personal)
-      // const valsDiasMes = await this.valsDiasMes(req.body, queryRunner)
       if (valsDiasMes instanceof ClientException) {
         throw valsDiasMes
       }
+
       let columnsDays = valsDiasMes.columnsDays
       let columnsDay = valsDiasMes.columnsDay
       let valueColumnsDays = valsDiasMes.valueColumnsDays
@@ -2217,7 +2218,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     SELECT sit.PersonalSituacionRevistaId, sit.PersonalSituacionRevistaSituacionId, sr.SituacionRevistaDescripcion, sit.PersonalSituacionRevistaDesde desde, ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') hasta
     FROM PersonalSituacionRevista sit
     JOIN SituacionRevista sr ON sr.SituacionRevistaId = sit.PersonalSituacionRevistaSituacionId 
-    WHERE sit.PersonalId = @0  AND sit.PersonalSituacionRevistaSituacionId NOT IN (2,4,5,6,10,11,12,20,23,26)
+    WHERE sit.PersonalId = @0  AND sit.PersonalSituacionRevistaSituacionId NOT IN (2,5,11,12,20,26) -- (2,4,5,6,10,11,12,20,23,26)
     AND sit.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
     AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
 
@@ -2282,7 +2283,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
           const licencia = licencias.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
           if (licencia && (formaLiquidacion != 'A')) {
-            // throw new ClientException(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta)}. dia:${numdia}`)
             errores.push(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta2)}. dia:${numdia} horas:${horas}`)
           }
 
