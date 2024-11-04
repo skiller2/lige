@@ -185,7 +185,11 @@ export class CustodiaFormComponent {
                 auxKey = 'cant' + auxKey
                 if (form[auxKey] !== undefined) {
                     let cant = form[auxKey] ? form[auxKey] : 0
-                    facturacion += (form[key] * cant);
+                    let total = form[key] * cant
+                    if (total.toString().split('.')[1] && total.toString().split('.')[1].length > 2) {
+                        total = parseFloat((total).toFixed(2))
+                    }
+                    facturacion += total;
                 } else {
                     facturacion += form[key];
                 }
