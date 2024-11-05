@@ -7,11 +7,11 @@ import { FileUploadController } from "../controller/file-upload.controller"
 import { info } from "pdfjs-dist/types/src/shared/util";
 import { QueryRunner } from "typeorm";
 import { fileURLToPath } from 'url';
-import { MultiFormatReader, BarcodeFormat, RGBLuminanceSource, BinaryBitmap, HybridBinarizer, NotFoundException } from '@zxing/library';
+import { MultiFormatReader, BarcodeFormat, RGBLuminanceSource, BinaryBitmap, HybridBinarizer, NotFoundException, DecodeHintType, Binarizer, BrowserPDF417Reader } from '@zxing/library';
 import path from "path";
 import qrCode from 'qrcode-reader';
 import fs from "fs";
-import { Jimp  } from "jimp"
+import { Jimp } from "jimp"
 
 
 
@@ -59,7 +59,7 @@ export class AccesoBotController extends BaseController {
             hidden: false,
             searchHidden: false
         },
-        
+
         {
             name: "DNI",
             type: "number",
@@ -80,7 +80,7 @@ export class AccesoBotController extends BaseController {
             hidden: false,
             searchHidden: false
         }
-       
+
     ];
 
     async getGridCols(req, res) {
@@ -98,7 +98,7 @@ export class AccesoBotController extends BaseController {
         try {
 
             const regtelefonopersonal = await queryRunner.query(
-            `SELECT
+                `SELECT
                 reg.personal_id AS id,
                 per.PersonalApellidoNombre AS Nombre, 
                 cuit.PersonalCUITCUILCUIT,
@@ -135,17 +135,17 @@ export class AccesoBotController extends BaseController {
     async getAccess(req: Request, res: Response, next: NextFunction) {
         const PersonalId = Number(req.params.PersonalId)
         const queryRunner = dataSource.createQueryRunner();
-    
+
         try {
-    
-          let result = await this.getAccessQuery(queryRunner, PersonalId)
-          this.jsonRes(result[0], res);
+
+            let result = await this.getAccessQuery(queryRunner, PersonalId)
+            this.jsonRes(result[0], res);
         } catch (error) {
-          return next(error)
+            return next(error)
         }
-      }
-    
-      async getAccessQuery(queryRunner: QueryRunner,PersonalId: any) {
+    }
+
+    async getAccessQuery(queryRunner: QueryRunner, PersonalId: any) {
         let selectquery = `SELECT
                 reg.personal_id AS PersonalId,
                 doc.PersonalDocumentoNro,
@@ -158,56 +158,56 @@ export class AccesoBotController extends BaseController {
                 AND doc.PersonalDocumentoId = ( SELECT MAX(docmax.PersonalDocumentoId) FROM PersonalDocumento docmax WHERE docmax.PersonalId = per.PersonalId)
                     
             WHERE reg.personal_id = @0 `
-    
+
         const result = await queryRunner.query(selectquery, [PersonalId])
         return result
-      }
+    }
 
 
-      async deleteAccess(req: Request, res: Response, next: NextFunction) {
+    async deleteAccess(req: Request, res: Response, next: NextFunction) {
 
         const PersonalId = Number(req.params.PersonalId)
 
         console.log("PersonalId ", PersonalId)
         const queryRunner = dataSource.createQueryRunner();
         try {
-          await queryRunner.connect();
-          await queryRunner.startTransaction();
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
 
-          await queryRunner.query(`DELETE FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0`, [PersonalId])
+            await queryRunner.query(`DELETE FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0`, [PersonalId])
 
-          this.jsonRes({ list: [] }, res, `Acceso borrado con exito`);
+            this.jsonRes({ list: [] }, res, `Acceso borrado con exito`);
 
-          await queryRunner.commitTransaction();
-    
+            await queryRunner.commitTransaction();
+
         } catch (error) {
-          await this.rollbackTransaction(queryRunner)
-          return next(error)
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
         }
-    
-      }
 
-      async getAccessDni(req: Request, res: Response, next: NextFunction) {
+    }
+
+    async getAccessDni(req: Request, res: Response, next: NextFunction) {
         const PersonalId = Number(req.params.PersonalId)
         const queryRunner = dataSource.createQueryRunner();
-    
+
         try {
-    
-          let result = await this.getAccessDniQuery(queryRunner, PersonalId)
-          this.jsonRes(result[0], res);
+
+            let result = await this.getAccessDniQuery(queryRunner, PersonalId)
+            this.jsonRes(result[0], res);
         } catch (error) {
-          return next(error)
+            return next(error)
         }
-      }
-    
-      async getAccessDniQuery(queryRunner: QueryRunner,PersonalId: any) {
+    }
+
+    async getAccessDniQuery(queryRunner: QueryRunner, PersonalId: any) {
         let selectquery = ` SELECT PersonalDocumentoNro FROM PersonalDocumento docmax WHERE PersonalId = @0 AND TipoDocumentoId = 1`
         const result = await queryRunner.query(selectquery, [PersonalId])
         return result
-      }
+    }
 
 
-      async updateAcess(req: any, res: Response, next: NextFunction) {
+    async updateAcess(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
 
         try {
@@ -223,13 +223,13 @@ export class AccesoBotController extends BaseController {
                 codigo,
                 nuevoCodigo,
                 files
-          
-              } = req.body
+
+            } = req.body
 
             //validaciones
             //await this.FormValidations(ObjPersonalId)
 
-            if(files.length > 0)
+            if (files.length > 0)
                 await this.QrValidate(files)
 
             const ClienteFechaAlta = new Date()
@@ -238,7 +238,7 @@ export class AccesoBotController extends BaseController {
 
             //let ClienteAdministradorId = await this.ClienteAdministrador(queryRunner, ObjCliente, ClienteId)
 
-        
+
             await queryRunner.commitTransaction()
             return this.jsonRes(PersonalId, res, 'Modificación  Exitosa');
         } catch (error) {
@@ -273,49 +273,82 @@ export class AccesoBotController extends BaseController {
     }
 
 
-    async QrValidate(files:any){
+    async QrValidate(files: any) {
 
-    const results = [];
+        const results = [];
 
-    for (const file of files) {
+        for (const file of files) {
 
-    const fullPath = path.join(file.destination, file.filename);
-    const normalizedPath = fullPath.replace(/\\/g, '/');
+            const fullPath = path.join(file.destination, file.filename);
+            const normalizedPath = fullPath.replace(/\\/g, '/');
 
-        try {
-          
-            const readQRCode = async (fileName) => {
-                const filePath = normalizedPath
-                console.log("filePath ",filePath)
-                try {
-                    if (fs.existsSync(filePath)) {
-                        const img = await Jimp.read(fs.readFileSync(filePath));
-                        const qr = new qrCode();
-                        const value = await new Promise((resolve, reject) => {
-                            qr.callback = (err, v) => err != null ? reject(err) : resolve(v);
-                            qr.decode(img.bitmap);
-                        });
-                        return value;
+            try {
+
+                const readQRCode = async (fileName) => {
+                    const filePath = normalizedPath
+                    console.log("filePath ", filePath)
+                    try {
+                        if (fs.existsSync(filePath)) {
+                            const img = await Jimp.read(fs.readFileSync(filePath));
+                            const qr = new qrCode();
+                            const value = await new Promise((resolve, reject) => {
+                                qr.callback = (err, v) => err != null ? reject(err) : resolve(v);
+                                qr.decode(img.bitmap);
+                            });
+                            return value;
+                        }
+                    } catch (error) {
+                        return error.message
                     }
-                } catch (error) {
-                    return error.message
+                }
+
+                readQRCode(normalizedPath).then(console.log).catch(console.log)
+            } catch (error) {
+                if (error instanceof NotFoundException) {
+                    console.error(`No se encontró un código QR en la imagen ${file.filename}.`);
+                    results.push({ error: "No se encontró un código QR en la imagen." });
+                } else {
+                    console.error(`Error en la imagen ${file.filename}:`, error.message);
+                    results.push({ error: error.message });
                 }
             }
-            
-            readQRCode(normalizedPath).then(console.log).catch(console.log)
-        } catch (error) {
-            if (error instanceof NotFoundException) {
-            console.error(`No se encontró un código QR en la imagen ${file.filename}.`);
-            results.push({ error: "No se encontró un código QR en la imagen." });
-            } else {
-            console.error(`Error en la imagen ${file.filename}:`, error.message);
-            results.push({ error: error.message });
-            }
         }
+
+        return results;
+
     }
 
-    return results;
+    async ValidateImgCode(files: any) {
+
+        const results = [];
+
+        for (const file of files) {
+
+            const fullPath = path.join(file.destination, file.filename);
+            const normalizedPath = fullPath.replace(/\\/g, '/');
+
+
+            const resBuffer = Buffer.from(fs.readFileSync(normalizedPath));
+
+
+            const hints = new Map();
+            const formats = [BarcodeFormat.QR_CODE, BarcodeFormat.DATA_MATRIX/*, ...*/];
+            
+            hints.set(DecodeHintType.POSSIBLE_FORMATS, formats);
+            
+            const reader = new MultiFormatReader();
+            
+            const luminanceSource = new RGBLuminanceSource(resBuffer, imgWidth, imgHeight);
+            const binaryBitmap = new BinaryBitmap(new HybridBinarizer(luminanceSource));
+//            let reader = new FileReader()
+            
+            
+            reader.decode(binaryBitmap, hints);
+
+        }
+
+        return results;
 
     }
-    
+
 }
