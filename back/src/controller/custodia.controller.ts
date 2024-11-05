@@ -232,6 +232,118 @@ const columnsObjCustodia: any[] = [
     },
 ]
 
+const columnsPersonalCustodia: any[] = [
+    {
+        id:'id' , name:'id' , field:'id',
+        // fieldName: "",
+        type: 'string',
+        searchType:"string",
+        sortable: true,
+        hidden: true,
+        searchHidden: true
+    },
+    {
+        id: "ApellidoNombre",
+        name: "Apellido Nombre",
+        field: "ApellidoNombre",
+        type: "string",
+        fieldName: "per.PersonalId",
+        searchComponent: "inpurForPersonalSearch",
+        searchType: "number",
+        sortable: true,
+        searchHidden: false,
+        hidden: false,
+    },
+    {
+        id:'objetivo_custodia_id' , name:'Codigo' , field:'objetivo_custodia_id',
+        fieldName: "obj.objetivo_custodia_id",
+        type: 'number',
+        searchType:"number",
+        sortable: true,
+        searchHidden: false,
+        hidden: false,
+    },
+    {
+        id:'cliente' , name:'Cliente' , field:'cliente',
+        fieldName: "cli.ClienteId",
+        type: 'string',
+        formatter: 'complexObject',
+        params: {
+            complexFieldLabel: 'cliente.fullName',
+        },
+        searchComponent:"inpurForClientSearch",
+        searchType:"number",
+        sortable: true,
+        searchHidden: false,
+        hidden: false,
+    },
+    {
+        id:'fecha_inicio' , name:'Fecha Inicio' , field:'fecha_inicio',
+        fieldName: "obj.fecha_inicio",
+        type: 'date',
+        // maxWidth: 150,
+        minWidth: 90,
+        searchComponent: "inpurForFechaSearch",
+        searchType: "date",
+        sortable: true,
+        searchHidden: false,
+        hidden: false,
+    },
+    {
+        id:'fecha_fin' , name:'Fecha Fin' , field:'fecha_fin',
+        fieldName: "obj.fecha_fin",
+        type: 'date',
+        // maxWidth: 150,
+        minWidth: 90,
+        searchComponent: "inpurForFechaSearch",
+        searchType: "date",
+        sortable: true,
+        searchHidden: false,
+        hidden: false,
+    },
+    {
+        id:'estado' , name:'Estado' , field:'estado',
+        fieldName: "obj.estado",
+        type: 'string',
+        formatter: 'complexObject',
+        params: {
+            complexFieldLabel: 'estado.label',
+        },
+        searchComponent:"inpurForEstadoCustSearch",
+        searchType:"number",
+        sortable: true,
+        searchHidden: false,
+        hidden: false,
+    },
+    {
+        id:'categoria' , name:'Categoria' , field:'categoria',
+        // fieldName: "obj.objetivo_custodia_id",
+        type: 'string',
+        searchType:"string",
+        sortable: true,
+        searchHidden: true,
+        hidden: false,
+    },
+    {
+        id:'tipo_importe' , name:'Tipo de Importe' , field:'tipo_importe',
+        // fieldName: "obj.objetivo_custodia_id",
+        type: 'string',
+        searchType:"string",
+        sortable: true,
+        searchHidden: true,
+        hidden: false,
+    },
+    {
+        id:'importe' , name:'Importe' , field:'importe',
+        // fieldName: "obj.impo_facturar",
+        type: 'currency',
+        searchType:"float",
+        sortable: true,
+        searchHidden: true,
+        hidden: false,
+    },
+]
+
 const estados : any[] = [
     { value: 0, label: 'Pendiente' },
     { value: 1, label: 'Finalizado' },
@@ -698,8 +810,12 @@ export class CustodiaController extends BaseController {
         }
     }
 
-    async getGridColumns(req: any, res: Response, next: NextFunction) {
+    async getGridCustodiaColumns(req: any, res: Response, next: NextFunction) {
         return this.jsonRes(columnsObjCustodia, res)
+    }
+
+    async getGridPersonalColumns(req: any, res: Response, next: NextFunction) {
+        return this.jsonRes(columnsPersonalCustodia, res)
     }
 
     async getEstados(req: any, res: Response, next: NextFunction) {
@@ -908,6 +1024,57 @@ export class CustodiaController extends BaseController {
             await queryRunner.commitTransaction()
             return this.jsonRes({}, res, 'Carga Exitosa');
         } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+    async listPersonalCustodia(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        try{
+            await queryRunner.startTransaction()
+            const periodo: Date = new Date(req.body.periodo)
+            const year = periodo.getFullYear()
+            const month = periodo.getMonth()+1
+            const options: Options = isOptions(req.body.options)? req.body.options : { filtros: [], sort: null };
+            
+            const filterSql = filtrosToSql(options.filtros, columnsObjCustodia);
+            const orderBy = orderToSQL(options.sort)
+            
+            let result = await queryRunner.query(`
+                SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+                obj.objetivo_custodia_id, obj.cliente_id, TRIM(cli.ClienteApellidoNombre) cliente,
+                obj.fecha_inicio, obj.fecha_fin, obj.estado,
+                regp.importe_personal AS importe, 'Personal' AS tipo_importe, '' AS categoria
+                FROM dbo.Personal AS per
+                INNER JOIN lige.dbo.regpersonalcustodia regp ON per.PersonalId= regp.personal_id
+                INNER JOIN lige.dbo.objetivocustodia obj ON regp.objetivo_custodia_id= obj.objetivo_custodia_id
+                INNER JOIN dbo.Cliente cli ON cli.ClienteId = obj.cliente_id
+                WHERE (DATEPART(YEAR,obj.fecha_inicio)=@0 AND  DATEPART(MONTH, obj.fecha_inicio)=@1) AND (${filterSql}) 
+                ${orderBy}
+                UNION ALL
+                SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+                obj.objetivo_custodia_id, obj.cliente_id, TRIM(cli.ClienteApellidoNombre) cliente,
+                obj.fecha_inicio, obj.fecha_fin, obj.estado,
+                regv.importe_vehiculo AS importe, 'Vehiculo' AS tipo_importe,  '' AS categoria
+                FROM dbo.Personal AS per
+                INNER JOIN lige.dbo.regvehiculocustodia regv ON per.PersonalId= regv.personal_id
+                INNER JOIN lige.dbo.objetivocustodia obj ON regv.objetivo_custodia_id= obj.objetivo_custodia_id
+                INNER JOIN dbo.Cliente cli ON cli.ClienteId = obj.cliente_id
+                WHERE (DATEPART(YEAR,obj.fecha_inicio)=@0 AND  DATEPART(MONTH, obj.fecha_inicio)=@1) AND (${filterSql}) 
+                ${orderBy}
+                `, [year, month]
+            )
+            let list = result.map((obj : any, index:number) => {
+                obj.id = index+1
+                return obj
+            })
+
+            await queryRunner.commitTransaction()
+            return this.jsonRes(list, res)
+        }catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {

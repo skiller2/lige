@@ -682,6 +682,16 @@ export class SearchService {
       );
   }
 
+  getListaPersonalCustodia(options: any, periodo:Date){
+    if (!periodo) return of([]);
+    return this.http
+      .post<ResponseJSON<any>>(`api/custodia/personallist`, {options, periodo})
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
   getListaClientes(filters: any){
     return this.http
       .post<ResponseJSON<any>>(`api/clientes/list`, filters)
