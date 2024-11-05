@@ -1,0 +1,5 @@
+<div class="gridDetalleContainer container-fluid" *ngIf="(columnsPersonal$|async) as columnas">
+  <angular-slickgrid gridId="gridDetalle" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptionsPersonal"
+    [dataset]="(gridDataPersonal$ | async) || []" (onAngularGridCreated)="angularGridReady($event)">
+  </angular-slickgrid>
+</div>

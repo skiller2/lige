@@ -16,21 +16,20 @@ import { columnTotal, totalRecords } from "../custom-search/custom-search"
 import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.component';
 
 @Component({
-    selector: 'app-custodias-personal-drawer',
+    selector: 'app-custodias-personal-detalle',
     standalone: true,
     imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, PersonalSearchComponent, CommonModule],
-    templateUrl: './custodias-personal-drawer.component.html',
-    styleUrl: './custodias-personal-drawer.component.less',
+    templateUrl: './custodias-personal-detalle.component.html',
+    styleUrl: './custodias-personal-detalle.component.less',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
-export class CustodiasPersonalDrawerComponent {
+export class CustodiasPersonalDetalleComponent {
     angularGridPersonal!: AngularGridInstance;
     gridOptionsPersonal!: GridOption;
     gridDataInsertPersonal: any[] = [];
     excelExportServicePersonal = new ExcelExportService();
     periodo = input(new Date())
-    visible = model<boolean>(false)
     listCustodiaPersonal$ = new BehaviorSubject('');
     listOptions: listOptionsT = {
         filtros: [],
@@ -39,7 +38,7 @@ export class CustodiasPersonalDrawerComponent {
     detailViewRowCount = 1;
     placement: NzDrawerPlacement = 'left';
 
-    private angularUtilService = inject(AngularUtilService)
+    private angularUtilServicePersonal = inject(AngularUtilService)
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
     private injector = inject(Injector)
@@ -49,13 +48,13 @@ export class CustodiasPersonalDrawerComponent {
     gridDataPersonal$ = this.listCustodiaPersonal$.pipe(
         debounceTime(500),
         switchMap(() => {
-            return this.searchService.getListaObjetivoCustodia(this.listOptions , this.periodo())
+            return this.searchService.getListaPersonalCustodia(this.listOptions , this.periodo())
                 .pipe(map(data => { return data }))
         })
     )
 
     async ngOnInit() {
-        this.gridOptionsPersonal = this.apiService.getDefaultGridOptions('.gridDetalleContainer', this.detailViewRowCount, this.excelExportServicePersonal, this.angularUtilService, this, RowDetailViewComponent)
+        this.gridOptionsPersonal = this.apiService.getDefaultGridOptions('.gridDetalleContainer', this.detailViewRowCount, this.excelExportServicePersonal, this.angularUtilServicePersonal, this, RowDetailViewComponent)
         this.gridOptionsPersonal.enableRowDetailView = false
         this.gridOptionsPersonal.editable = false
         this.gridOptionsPersonal.autoEdit = true
@@ -93,11 +92,6 @@ export class CustodiasPersonalDrawerComponent {
           filename: 'detalle-personal-custodia',
           format: FileType.xlsx
         });
-    }
-
-    renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
-        const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
-        cellNode.replaceChildren(componentOutput.domElement)
     }
 
 }

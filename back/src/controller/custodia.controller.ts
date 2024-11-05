@@ -276,30 +276,29 @@ const columnsPersonalCustodia: any[] = [
         sortable: true,
         searchHidden: false,
         hidden: false,
+        minWidth: 100,
     },
     {
         id:'fecha_inicio' , name:'Fecha Inicio' , field:'fecha_inicio',
         fieldName: "obj.fecha_inicio",
         type: 'date',
-        // maxWidth: 150,
-        minWidth: 90,
         searchComponent: "inpurForFechaSearch",
         searchType: "date",
         sortable: true,
         searchHidden: false,
         hidden: false,
+        maxWidth: 120,
     },
     {
         id:'fecha_fin' , name:'Fecha Fin' , field:'fecha_fin',
         fieldName: "obj.fecha_fin",
         type: 'date',
-        // maxWidth: 150,
-        minWidth: 90,
         searchComponent: "inpurForFechaSearch",
         searchType: "date",
         sortable: true,
         searchHidden: false,
         hidden: false,
+        maxWidth: 120,
     },
     {
         id:'estado' , name:'Estado' , field:'estado',
@@ -1069,6 +1068,9 @@ export class CustodiaController extends BaseController {
             )
             let list = result.map((obj : any, index:number) => {
                 obj.id = index+1
+                obj.estado = estados[obj.estado]
+                obj.cliente = { id: obj.clienteId, fullName: obj.cliente}
+                delete obj.clienteId
                 return obj
             })
 
