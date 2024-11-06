@@ -376,11 +376,11 @@ export class CustodiaController extends BaseController {
         const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
         return queryRunner.query(`
-            INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, 
+            INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, desc_requirente,
                 descripcion, fecha_inicio, origen, fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced,
-                impo_horas_exced, cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, desc_facturacion, num_factura, estado, 
+                impo_horas_exced, cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, desc_facturacion, num_factura, estado,
                 aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-            VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @19, @20, @21, @22)`, 
+            VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @22, @20, @21, @22)`, 
             [objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, descripcion, fecha_inicio, origen, 
                 fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced, impo_horas_exced, 
                 cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, desc_facturacion, num_factura, estado, 
