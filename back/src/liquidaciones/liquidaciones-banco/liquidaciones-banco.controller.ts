@@ -754,8 +754,9 @@ export class LiquidacionesBancoController extends BaseController {
         file.end()
 
         await once(file, 'finish')
-      }
+      } else if (BancoId == 10) { //Banco Macro 
 
+      }
 
       res.download(tmpfilename, fileName, async (msg) => {
 
