@@ -1,21 +1,28 @@
 <nz-card class="small-margin">
   <form nz-form #objpendForm="ngForm">
     <ng-container>
-      <ul nz-menu nzMode="horizontal">
-        <li nz-menu-item nzSelected (click)="selectedTabIndex = 0">
-          <span nz-icon nzType=""></span>
-          Documentos
-        </li>
-        <li nz-submenu nzTitle="Acciones" *ngIf="selectedTabIndex == 0">
-          <ul>
-            <li nz-menu-item (click)="exportGrid()">
-              <span nz-icon nzType="download"></span>XLS
-            </li>
-          </ul>
-        </li>
-      </ul>
-
-      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
+      <div nz-col nzSpan="3">
+        <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
+      </div>
+      <div nz-row class="contentStyle">
+        <div nz-col nzSpan="13" class="listStyle">
+          <ul nz-menu nzMode="horizontal" style="display: flex;">
+          <li nz-menu-item nzSelected (click)="selectedTabIndex = 0">
+            <span nz-icon nzType=""></span>
+            Documentos
+          </li>
+          <li nz-submenu nzTitle="Acciones" *ngIf="selectedTabIndex == 0">
+            <ul>
+              <li nz-menu-item (click)="exportGrid()">
+                <span nz-icon nzType="download"></span>XLS
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+      
+      
 
       <nz-tabset nzCentered [(nzSelectedIndex)]="selectedTabIndex" class="hide-ant-tabs-nav">
         <nz-tab [nzForceRender]="false">

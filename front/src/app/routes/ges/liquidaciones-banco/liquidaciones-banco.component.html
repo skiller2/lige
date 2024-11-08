@@ -1,13 +1,16 @@
 <nz-card class="small-margin">
   <form nz-form #liquidacionesForm="ngForm">
 
-    <nz-form-item>
-      <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
+    <div nz-col nzSpan="12">
       <nz-form-control>
+      <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
         <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
       </nz-form-control>
-    </nz-form-item>
-    <ul nz-menu nzMode="horizontal">
+    </div>
+
+    <div nz-row class="contentStyle">
+      <div nz-col nzSpan="13" class="listStyle">
+        <ul nz-menu nzMode="horizontal" style="display: flex;">
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'liquidacion_banco','listado']">Listado</a>
@@ -64,7 +67,8 @@
         <a [routerLink]="['/', 'ges', 'liquidacion_banco','moviemientospendientes']">Movimientos Pendientes</a>
       </li>
     </ul>
-
+  </div>
+</div>
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
       <nz-tab>
         <a nz-tab-link routerLink="/ges/liquidacion_banco/listado">Listado</a>
