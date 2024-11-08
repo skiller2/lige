@@ -92,7 +92,7 @@ export class AccesoBotFormComponent {
      console.log("load" ,  this.ngForm().form)
       if (this.PersonalId() > 0) {
        let vals = await firstValueFrom(this.apiService.getAccesoBot(this.PersonalId()));
-        this.codigo.set(vals.codigo.split("@")[0])
+        //this.codigo.set(vals.codigo.split("@")[0])
         this.ngForm().form.patchValue(vals)
         this.ngForm().form.markAsUntouched()
         this.ngForm().form.markAsPristine()
@@ -108,16 +108,20 @@ export class AccesoBotFormComponent {
 
     this.isLoading.set(true)
     let vals = this.ngForm().value
- 
+    let result
     try {
          if (this.PersonalId()) {
           
          vals.Archivos = this.files
          vals.PersonalId = this.PersonalId()
-         let result = await firstValueFrom(this.apiService.updateAccess(vals))
+         result =  firstValueFrom(this.apiService.updateAccess(vals))
+
+         }else{
+
+           result = firstValueFrom(this.apiService.addAccessBot(vals))
 
          }
-        
+         this.ngForm().form.patchValue(result)
          this.ngForm().form.markAsUntouched()
          this.ngForm().form.markAsPristine()
       } catch (e) {
@@ -133,7 +137,7 @@ export class AccesoBotFormComponent {
   async onPersonalIdChange(newPersonalId: any) {
     if(newPersonalId > 0){
       let vals = await firstValueFrom(this.apiService.getAccesoBotDNI(newPersonalId))
-      this.PersonalId.set(newPersonalId)
+      // this.PersonalId.set(newPersonalId)
       this.ngForm().form.patchValue({
         PersonalDocumentoNro: vals.PersonalDocumentoNro
       }

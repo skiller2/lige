@@ -966,8 +966,14 @@ export class ApiService {
     )
   }
 
-  updateAccess(persona:any) {
-    return this.http.post<ResponseJSON<any>>(`/api/acceso-bot`, persona).pipe(
+  updateAccess(parameters:any) {
+    return this.http.post<ResponseJSON<any>>(`/api/acceso-bot`, parameters).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  addAccessBot(parameters: any) {
+    return this.http.post<ResponseJSON<any>>('/api/acceso-bot/add', parameters).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }

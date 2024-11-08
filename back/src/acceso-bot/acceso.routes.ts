@@ -29,3 +29,6 @@ accesoBotRouter.post('/', authMiddleware.verifyToken, (req, res, next) => {
   accesoBotController.updateAcess(req, res, next)
 } )
 
+accesoBotRouter.post('/add', authMiddleware.verifyToken, (req, res, next) => { 
+  accesoBotController.addAccess(req, res, next) 
+} )
