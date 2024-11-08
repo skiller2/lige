@@ -215,6 +215,8 @@ export class AccesoBotController extends BaseController {
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
 
+            const fecha = new Date()
+            fecha.setHours(0, 0, 0, 0)
 
             let {
                 PersonalId,
@@ -225,22 +227,31 @@ export class AccesoBotController extends BaseController {
                 files
 
             } = req.body
+            
+            let numeroAleatorio
+            let newArray = {...req.body}
+            console.log(newArray)
 
             //validaciones
-            //await this.FormValidations(ObjPersonalId)
+            await this.FormValidations(req.body)
+
+            if(nuevoCodigo){
+
+                numeroAleatorio = await this.generarNumeroAleatorio()
+                newArray.codigo = numeroAleatorio
+            }
+           
 
             if (files.length > 0)
                 await this.QrValidate(files)
 
-            const ClienteFechaAlta = new Date()
-            ClienteFechaAlta.setHours(0, 0, 0, 0)
+            // Falta definir que estan ok los archivos y actualizar en la tabla correspondiente
 
-
-            //let ClienteAdministradorId = await this.ClienteAdministrador(queryRunner, ObjCliente, ClienteId)
+            await this.AccesoBotEditQuery(queryRunner,telefono,codigo,PersonalId,PersonalDocumentoNro,usuario,ip,fecha)
 
 
             await queryRunner.commitTransaction()
-            return this.jsonRes(PersonalId, res, 'Modificación  Exitosa');
+            return this.jsonRes(newArray, res, 'Modificación  Exitosa');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
@@ -248,6 +259,79 @@ export class AccesoBotController extends BaseController {
             await queryRunner.release()
         }
     }
+
+    async addAccess(req: any, res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+
+        try {
+            const usuario = res.locals.userName
+            const ip = this.getRemoteAddress(req)
+
+            const fecha = new Date()
+            fecha.setHours(0, 0, 0, 0)
+
+            await queryRunner.startTransaction()
+
+            let {files } = req.body
+            
+            let numeroAleatorio
+            let newArray = {...req.body}
+
+            //validaciones
+            await this.FormValidations(req.body)
+
+            numeroAleatorio = await this.generarNumeroAleatorio()
+
+            if (files.length > 0)
+                await this.QrValidate(files)
+
+            // Falta definir que estan ok los archivos y guardarlos en la tabla correspondiente
+
+            await this.AccesoBotNewQuery(queryRunner,newArray,usuario,ip,fecha)
+
+            await queryRunner.commitTransaction()
+            return this.jsonRes(newArray, res, 'Carga de registro Exitosa');
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
+    }
+
+    async AccesoBotNewQuery(queryRunner:any,newArray:any,usuario:any,ip:any,fecha:any) {
+
+        await queryRunner.query(`INSERT INTO lige.dbo.regtelefonopersonal 
+            (
+            	personal_id,
+                telefono,
+                aud_usuario_ins,
+                aud_ip_ins,
+                aud_fecha_ins,
+                aud_usuario_mod,
+                aud_ip_mod,
+                aud_fecha_mod,
+                codigo,
+                des_doc_ident 
+            ) 
+            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9`, [newArray.PersonalId,newArray.telefono,usuario,ip,fecha,usuario,ip.fecha,newArray.codigo,null])
+
+
+    }
+
+    async AccesoBotEditQuery(queryRunner:any,telefono:any,codigo:any,PersonalId:any,PersonalDocumentoNro:any,usuario:any,ip:any,fecha:any) {
+
+        await queryRunner.query(`UPDATE lige.dbo.regtelefonopersonal
+            SET telefono=@0,codigo = @1, aud_usuario_mod = @3, aud_ip_mod = @4 ,aud_fecha_mod = @5,
+            WHERE Personal_id = @2`, [telefono,codigo,PersonalId,usuario,ip,fecha])
+
+
+    }
+
+    async generarNumeroAleatorio() {
+        return Math.floor(100000 + Math.random() * 900000);
+    }
+
 
 
     async FormValidations(form: any) {
@@ -265,9 +349,9 @@ export class AccesoBotController extends BaseController {
             throw new ClientException(`Debe completar el campo telefono con un número válido que comience con "549".`);
         }
 
-        // if (form.files <= 0 || form.files > 2) {
-        //     throw new ClientException(`Debe cargar dos imagenes DNI frente y DNI Dorso".`);
-        // }
+        if (form.files.length == 1 || form.files.length > 2) {
+            throw new ClientException(`Debe cargar dos imagenes DNI frente y DNI Dorso".`);
+        }
 
 
     }
@@ -337,11 +421,12 @@ export class AccesoBotController extends BaseController {
             
             const reader = new MultiFormatReader();
             
-            const luminanceSource = new RGBLuminanceSource(new Uint8ClampedArray(resBuffer.buffer), 400, 500);
+            const luminanceSource = new RGBLuminanceSource(resBuffer, imgWidth, imgHeight);
             const binaryBitmap = new BinaryBitmap(new HybridBinarizer(luminanceSource));
+//            let reader = new FileReader()
             
             
-            reader.decode(binaryBitmap, hints);
+           // reader.decode(binaryBitmap, hints);
 
         }
 

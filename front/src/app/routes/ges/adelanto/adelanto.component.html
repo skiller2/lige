@@ -1,5 +1,17 @@
 <nz-card class="small-margin">
-  <ul nz-menu nzMode="horizontal">
+
+  <div nz-col nzSpan="12">
+    <nz-form-control>
+      
+    <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
+      <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
+    </nz-form-control>
+  </div>
+
+  
+  <div nz-row class="contentStyle">
+    <div nz-col nzSpan="13" class="listStyle">
+      <ul nz-menu nzMode="horizontal" style="display: flex;">
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
       <a [routerLink]="['/', 'ges', 'adelanto','listado']">Listado</a>
@@ -17,14 +29,16 @@
       </ul>
     </li>
   </ul>
+  </div>
+</div>
   <form nz-form #adelanto="ngForm" class="">
 
-    <nz-form-item>
+    <!-- <nz-form-item>
       <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
       <nz-form-control>
         <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
       </nz-form-control>
-    </nz-form-item>
+    </nz-form-item> -->
 
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
       <nz-tab>
