@@ -7,7 +7,7 @@ import { FileUploadController } from "../controller/file-upload.controller"
 import { info } from "pdfjs-dist/types/src/shared/util";
 import { QueryRunner } from "typeorm";
 import { fileURLToPath } from 'url';
-import { MultiFormatReader, BarcodeFormat, RGBLuminanceSource, BinaryBitmap, HybridBinarizer, NotFoundException, DecodeHintType, Binarizer, BrowserPDF417Reader } from '@zxing/library';
+import { MultiFormatReader, BarcodeFormat, RGBLuminanceSource, BinaryBitmap, HybridBinarizer, NotFoundException, DecodeHintType, Binarizer,QRCodeReader } from '@zxing/library';
 import path from "path";
 import qrCode from 'qrcode-reader';
 import fs from "fs";
@@ -329,8 +329,7 @@ export class AccesoBotController extends BaseController {
 
 
             const resBuffer = Buffer.from(fs.readFileSync(normalizedPath));
-
-
+            
             const hints = new Map();
             const formats = [BarcodeFormat.QR_CODE, BarcodeFormat.DATA_MATRIX/*, ...*/];
             
@@ -338,9 +337,8 @@ export class AccesoBotController extends BaseController {
             
             const reader = new MultiFormatReader();
             
-            const luminanceSource = new RGBLuminanceSource(resBuffer, imgWidth, imgHeight);
+            const luminanceSource = new RGBLuminanceSource(new Uint8ClampedArray(resBuffer.buffer), 400, 500);
             const binaryBitmap = new BinaryBitmap(new HybridBinarizer(luminanceSource));
-//            let reader = new FileReader()
             
             
             reader.decode(binaryBitmap, hints);

@@ -61,6 +61,3 @@ webServer.init()
   })
 
 await botServer.init()
-
-//const cnv = new Canvas(1, 1)
-//const shp = new Sharp()
