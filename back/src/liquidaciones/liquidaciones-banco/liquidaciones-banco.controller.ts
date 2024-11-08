@@ -633,16 +633,17 @@ export class LiquidacionesBancoController extends BaseController {
       let options: any = getOptionsFromRequest(req);
       const BancoId = Number(req.body.BancoId)
       const tabIndex = Number(req.body.tabIndex) //0-banco 1-adelanto
-
+      const isTest = req.body.isTest 
+      let fileTest = isTest ? "-TEST" : ""
       const formattedMonth = String(periodo.month).padStart(2, "0");
       let fileName = `${periodo.year}-${formattedMonth}-banco-${(new Date()).toISOString()}.xlsx`
-      const tmpfilename = `${directory}/${tmpName(directory)}`;
+      const tmpfilename = `${directory}/${tmpName(directory)}${fileTest}`;
       let banco
 
       let fechaActual = new Date()
       let ip = this.getRemoteAddress(req)
       let usuario = res.locals.userName
-
+      
 
       options.filtros.push({ index: 'BancoId', condition: 'AND', operador: '=', valor: [BancoId] })
 
@@ -732,8 +733,8 @@ export class LiquidacionesBancoController extends BaseController {
         const file = createWriteStream(tmpfilename, {
           flags: 'a' // 'a' means appending (old data will be preserved)
         })
-        fileName = `${periodo.year}-${formattedMonth}-banco-${(new Date()).toISOString()}.txt`
-        fileName = `${CUITEmpresa.toString().substring(0, 11)}500000001${FechaEnvio.substring(0, 8)}${nro_envio.toString().padStart(5, '0')}.txt`
+        fileName = `${periodo.year}-${formattedMonth}-banco-${(new Date()).toISOString()}${fileTest}.txt`
+        fileName = `${CUITEmpresa.toString().substring(0, 11)}500000001${FechaEnvio.substring(0, 8)}${nro_envio.toString().padStart(5, '0')}${fileTest}.txt`
         file.write(format("H%s500000001%s%s OP                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           \r\n",
           CUITEmpresa.toString().substring(0, 11), nro_envio.toString().padStart(5, '0'), FechaEnvio.substring(0, 8)))
         let rowNum = 2
@@ -755,12 +756,42 @@ export class LiquidacionesBancoController extends BaseController {
 
         await once(file, 'finish')
       } else if (BancoId == 10) { //Banco Macro 
+        const file = createWriteStream(tmpfilename, {
+          flags: 'a'
+        })
+  
+        fileName = `${periodo.year}-${formattedMonth}-banco-${(new Date()).toISOString()}${fileTest}.txt`
+        fileName = `${CUITEmpresa.toString().substring(0, 11)}500000001${FechaEnvio.substring(0, 8)}${nro_envio.toString().padStart(5, '0')}${fileTest}.txt`
+
+        let total = 0
+        console.log("registros ", banco)
+        for (const row of banco) {
+          const PersonalApellido = row.PersonalApellidoNombre.split(",")[0].split(" ")[0].replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
+
+          file.write(format("\r\n", 
+            "",// legajo no es obligatorio
+            row.PersonalCUITCUILCUIT.toString().substring(0, 11), 
+            PersonalApellido.toString(), 
+            "", // Se informa el cbu por lo que cuenta se queda en blanco
+            row.PersonalBancoCBU.toString(), 
+            row.importe.toFixed(2),
+            "" // comprobante no es obligatorio
+            ))
+          
+          total += Math.trunc(row.importe * 100)
+        }
+        file.end()
+        await once(file, 'finish')
 
       }
 
       res.download(tmpfilename, fileName, async (msg) => {
 
-        await queryRunner.commitTransaction();
+        if(isTest)
+          await this.rollbackTransaction(queryRunner)
+        else  
+          await queryRunner.commitTransaction();
+
       });
 
     } catch (error) {
