@@ -421,12 +421,11 @@ export class AccesoBotController extends BaseController {
             
             const reader = new MultiFormatReader();
             
-            const luminanceSource = new RGBLuminanceSource(resBuffer, imgWidth, imgHeight);
+            const luminanceSource = new RGBLuminanceSource(new Uint8ClampedArray(resBuffer.buffer), 400, 500);
             const binaryBitmap = new BinaryBitmap(new HybridBinarizer(luminanceSource));
-//            let reader = new FileReader()
             
             
-           // reader.decode(binaryBitmap, hints);
+            reader.decode(binaryBitmap, hints);
 
         }
 
