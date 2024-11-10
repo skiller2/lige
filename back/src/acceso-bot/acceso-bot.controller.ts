@@ -5,6 +5,7 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { QueryResult } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller"
 import { info } from "pdfjs-dist/types/src/shared/util";
+import {  existsSync} from "fs";
 import { QueryRunner } from "typeorm";
 import { fileURLToPath } from 'url';
 import { MultiFormatReader, BarcodeFormat, RGBLuminanceSource, BinaryBitmap, HybridBinarizer, NotFoundException, DecodeHintType, Binarizer,QRCodeReader } from '@zxing/library';
@@ -140,17 +141,19 @@ export class AccesoBotController extends BaseController {
 
             let result = await this.getAccessQuery(queryRunner, PersonalId)
             this.jsonRes(result[0], res);
+
         } catch (error) {
             return next(error)
         }
     }
+
 
     async getAccessQuery(queryRunner: QueryRunner, PersonalId: any) {
         let selectquery = `SELECT
                 reg.personal_id AS PersonalId,
                 doc.PersonalDocumentoNro,
                 reg.telefono,
-                des_doc_ident AS codigo
+                codigo AS codigo
                 FROM lige.dbo.regtelefonopersonal AS reg
                 JOIN personal AS per ON per.PersonalId = reg.personal_id
 
@@ -432,5 +435,32 @@ export class AccesoBotController extends BaseController {
         return results;
 
     }
+
+    async downloadDniImagen(PersonalId: number, DocumentoImagenParametroId:Number,res: Response, next: NextFunction) {
+        const queryRunner = dataSource.createQueryRunner();
+        console.log('PATH_DOCUMENTS', process.env.PATH_DOCUMENTS);
+        
+        const pathArchivos = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' 
+        try {
+          const ds = await queryRunner
+            .query(`SELECT DocumentoImagenDocumentoBlobNombreArchivo,DocumentoImagenParametroId 
+                from DocumentoImagenDocumento WHERE PersonalId = @0 AND DocumentoImagenParametroId = @1 `,
+              [PersonalId,DocumentoImagenParametroId]
+            )
+    
+          if (ds.length == 0)
+            throw new ClientException(`Documento no existe para la persona`);
+    
+          const downloadPath = `${pathArchivos}/Documentos/${ds[0].DocumentoImagenDocumentoBlobNombreArchivo}`;
+          
+          if (!existsSync(downloadPath))
+            throw new ClientException(`El archivo no existe`,{'path':downloadPath});
+    
+          res.download(downloadPath, ds[0].DocumentoImagenDocumentoBlobNombreArchivo, (msg) => {});
+    
+        } catch (error) {
+          return next(error)
+        }
+      }
 
 }

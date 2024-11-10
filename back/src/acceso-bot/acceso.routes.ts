@@ -32,3 +32,12 @@ accesoBotRouter.post('/', authMiddleware.verifyToken, (req, res, next) => {
 accesoBotRouter.post('/add', authMiddleware.verifyToken, (req, res, next) => { 
   accesoBotController.addAccess(req, res, next) 
 } )
+
+accesoBotRouter.get(`/downloadImagen/:personalId/:documentoImagenParametroId`, (req, res,next) => {
+  accesoBotController.downloadDniImagen(
+    Number(req.params.personalId),
+    Number(req.params.documentoImagenParametroId),
+    res,
+    next
+  );
+});
