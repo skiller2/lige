@@ -73,7 +73,7 @@ const columnasPersonalxResponsable: any[] = [
     id: "retiroG_importe",
     field: "retiroG_importe",
     fieldName: "retiroG_importe",
-    sortable: false,
+    sortable: true,
     hidden: false
   },
 ];
