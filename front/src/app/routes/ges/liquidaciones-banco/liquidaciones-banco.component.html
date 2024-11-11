@@ -62,6 +62,15 @@
           >
             <span nz-icon nzType="plus" nzTheme="outline"></span>Elimina archivo pendiente banco Patagonia
           </li>
+          <li nz-menu-item  nz-popconfirm
+          nzPopconfirmTitle="Elimina mobimientos pendientes banco Macro?"
+          [nzBeforeConfirm]=""
+          [nzPopconfirmShowArrow]="false"
+          (nzOnConfirm)="eliminaMovimientosBanco($event,10)"
+          
+          >
+            <span nz-icon nzType="plus" nzTheme="outline"></span>Elimina archivo pendiente banco Macro
+          </li>
         </ul>
 
       </li>
