@@ -7,7 +7,7 @@ import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } fr
 import { NgForm } from '@angular/forms';
 import { PersonalSearchComponent } from '../personal-search/personal-search.component';
 import { CommonModule } from '@angular/common';
-import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters, Grouping } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters, Grouping, SlickGrid } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ApiService } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
@@ -46,12 +46,15 @@ export class CustodiasPersonalDetalleComponent {
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
     private injector = inject(Injector)
+    public grupo = signal('persona')
 
     columns$ = this.apiService.getCols('/api/custodia/personalcols').pipe(map((cols: any) => {
         let mapped:any = cols.map((col: Column) => {
             if (col.id == "importe") {
-                col.formatter = Formatters['decimal']
                 col.groupTotalsFormatter = this.sumTotalsFormatterCustom
+
+//                col.groupTotalsFormatter = GroupTotalFormatters['sumTotalsCurrencyFormatter']
+
             }
             return col
         });
@@ -86,7 +89,7 @@ export class CustodiasPersonalDetalleComponent {
 
         effect(async () => {
             const periodo = this.periodo()
-            this.listCustodiaPersonal('')   
+            this.listCustodiaPersonal('')
         }, { injector: this.injector });
     }
 
@@ -101,10 +104,12 @@ export class CustodiasPersonalDetalleComponent {
         this.angularGrid = angularGrid.detail
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
             totalRecords(this.angularGrid, 'ApellidoNombre')
-            // columnTotal('facturacion', this.angularGrid)
+            columnTotal('importe', this.angularGrid)
         })
         if (this.apiService.isMobile())
             this.angularGrid.gridService.hideColumnByIds([])
+        this.changeGrupo('persona')
+
     }
 
     listOptionsChange(options: any) {
@@ -125,40 +130,39 @@ export class CustodiasPersonalDetalleComponent {
     }
 
     
-    sumTotalsFormatterCustom(totals: any, columnDef: any) {
+    sumTotalsFormatterCustom(totals: any, columnDef: Column, grid:SlickGrid) {
         const val = totals.sum && totals.sum[columnDef.field]
-        if (val != null && totals.group.count > 1) {
-            return val
+        return  String((columnDef.formatter) ? columnDef.formatter(0, 0, val, columnDef, null, grid) : val)
+    }
+
+    changeGrupo(grupo: any) {
+        let grouping:Grouping
+        switch (grupo) {
+            case 'persona':
+                grouping = {
+                    getter: 'ApellidoNombre',
+                    aggregators: [new Aggregators['Sum']('importe')],
+                    formatter: (g) => `${g.value} (${g.count} items)`,
+                    aggregateCollapsed: true,
+                    lazyTotalsCalculation: true,
+                };
+                break;
+            case 'tipotipoimporte':
+                grouping = {
+                    getter: 'tipo_importe',
+                    aggregators: [new Aggregators['Sum']('importe')],
+                    formatter: (g) => `${g.value} (${g.count} items)`,
+                    aggregateCollapsed: true,
+                    lazyTotalsCalculation: true,
+                };
+                break;
+        
+            default:
+                grouping = {}
+                break;
         }
-        return '';
-    }
-
-    groupByForma() {
-        const grouping: Grouping = {
-            getter: 'tipo_importe',
-            aggregators: [new Aggregators['Sum']('importe')],
-            formatter: (g) => `${g.value} (${g.count} items)`,
-            aggregateCollapsed: true,
-            lazyTotalsCalculation: true,
-        };
         this.angularGrid.dataView.setGrouping(grouping);
         this.angularGrid.slickGrid.invalidate()
-    }
 
-    groupByPersona() {
-        const grouping: Grouping = {
-            getter: 'ApellidoNombre',
-            aggregators: [new Aggregators['Sum']('importe')],
-            formatter: (g) => `${g.value} (${g.count} items)`,
-            aggregateCollapsed: true,
-            lazyTotalsCalculation: true,
-        };
-        this.angularGrid.dataView.setGrouping(grouping);
-        this.angularGrid.slickGrid.invalidate()
     }
-
-    clearGrouping() {
-        this.angularGrid.dataView.setGrouping([]);
-    }
-
 }
