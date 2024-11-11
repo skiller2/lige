@@ -245,10 +245,15 @@ export class AccesoBotController extends BaseController {
             }
            
 
-            if (files.length > 0)
+            if (files.length > 0){
+
                 await this.QrValidate(files)
 
-            // Falta definir que estan ok los archivos y actualizar en la tabla correspondiente
+                // Falta definir que estan ok los archivos y guardarlos en la tabla correspondiente
+                let isFrente = 12
+                await this.DocumentoImagenDocumento(queryRunner,files,newArray.PersonalId,isFrente)   
+
+            }
 
             await this.AccesoBotEditQuery(queryRunner,telefono,codigo,PersonalId,PersonalDocumentoNro,usuario,ip,fecha)
 
@@ -285,10 +290,15 @@ export class AccesoBotController extends BaseController {
 
             numeroAleatorio = await this.generarNumeroAleatorio()
 
-            if (files.length > 0)
+            if (files.length > 0){
+
                 await this.QrValidate(files)
 
-            // Falta definir que estan ok los archivos y guardarlos en la tabla correspondiente
+                // Falta definir que estan ok los archivos y guardarlos en la tabla correspondiente
+                let isFrente = 12
+                await this.DocumentoImagenDocumento(queryRunner,files,newArray.PersonalId,isFrente)   
+
+            }
 
             await this.AccesoBotNewQuery(queryRunner,newArray,usuario,ip,fecha)
 
@@ -300,6 +310,60 @@ export class AccesoBotController extends BaseController {
         } finally {
             await queryRunner.release()
         }
+    }
+
+    async DocumentoImagenDocumento(queryRunner:any,files:any,PersonalId:any,isFrente:any){
+
+       // 12 es frente
+       // 13 es dorso
+       
+       // determinar cuando valida el dni q el archivo validado es el frente para su correspondiente guardado
+       isFrente = isFrente === 12 ? isFrente : 13
+
+       for (const file of files) {
+
+           let exisfile
+           let typefile = file.split(".")[1]
+           // es esta parte valido si tiene cargo previamente el dni de frente o de dorso antes de crearlo o actualizarlo
+           if(isFrente === 12 ){
+            exisfile =  await queryRunner.query(`SELECT DocumentoImagenDocumentoBlobNombreArchivo from DocumentoImagenDocumento
+                WHERE PersonalId = @0 AND DocumentoImagenParametroId = @1`,[PersonalId,isFrente])
+           }else{
+            exisfile = await queryRunner.query(`SELECT DocumentoImagenDocumentoBlobNombreArchivo from DocumentoImagenDocumento 
+                WHERE PersonalId = @0 AND DocumentoImagenParametroId = @1`,[PersonalId,isFrente])
+           }
+        
+            // Verificar si hay registros
+ 
+            if (exisfile.length > 0) {
+                
+                let nameFile = isFrente === 12 ? `${PersonalId}-${exisfile[0].DocumentoImagenDocumentoId}-DOCUMENFREN.${typefile}` : `${PersonalId }-${exisfile[0].DocumentoImagenDocumentoId}-DOCUMENDOR.${typefile}`
+
+                await queryRunner.query(`UPDATE DocumentoImagenDocumento
+                        SET DocumentoImagenDocumentoBlobNombreArchivo = @2
+                        WHERE PersonalId = @0 AND DocumentoImagenParametroId = @1`,[PersonalId,isFrente,nameFile])
+
+            } else {
+
+                let nameFile = isFrente === 12 ? `${PersonalId}-${exisfile[0].DocumentoImagenDocumentoId}-DOCUMENFREN.${typefile}` : `${PersonalId }-${exisfile[0].DocumentoImagenDocumentoId}-DOCUMENDOR.${typefile}`
+                
+                const DocumentoImagen = await queryRunner.query(`SELECT IDENT_CURRENT('DocumentoImagenDocumento')`)
+                let DocumentoImagenId = DocumentoImagen[0][''] + 1;
+
+
+                await queryRunner.query(`INSERT INTO DocumentoImagenDocumento (
+                    DocumentoImagenDocumentoId,
+                    PersonalId,
+                    DocumentoImagenDocumentoBlobTipoArchivo,
+                    DocumentoImagenDocumentoBlobNombreArchivo,
+                    DocumentoImagenParametroId,
+                    DocumentoImagenParametroDirectorioId ) 
+                    VALUES ( @0,@1,@2,@3,@4,@5)`,[DocumentoImagenId,PersonalId,typefile,nameFile,isFrente,1])
+
+            }
+
+        }
+
     }
 
     async AccesoBotNewQuery(queryRunner:any,newArray:any,usuario:any,ip:any,fecha:any) {
@@ -438,9 +502,9 @@ export class AccesoBotController extends BaseController {
 
     async downloadDniImagen(PersonalId: number, DocumentoImagenParametroId:Number,res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
-        console.log('PATH_DOCUMENTS', process.env.PATH_DOCUMENTS);
+        console.log('PATH_DNI', process.env.PATH_DNI);
         
-        const pathArchivos = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' 
+        const pathArchivos = (process.env.PATH_DNI) ? process.env.PATH_DNI : '.' 
         try {
           const ds = await queryRunner
             .query(`SELECT DocumentoImagenDocumentoBlobNombreArchivo,DocumentoImagenParametroId 
@@ -451,7 +515,7 @@ export class AccesoBotController extends BaseController {
           if (ds.length == 0)
             throw new ClientException(`Documento no existe para la persona`);
     
-          const downloadPath = `${pathArchivos}/Documentos/${ds[0].DocumentoImagenDocumentoBlobNombreArchivo}`;
+          const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenDocumentoBlobNombreArchivo}`;
           
           if (!existsSync(downloadPath))
             throw new ClientException(`El archivo no existe`,{'path':downloadPath});
