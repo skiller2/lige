@@ -34,7 +34,7 @@
             <span nz-icon nzType="download"></span> Generar Banco Patagonia
           </li>
           <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{anio, mes, options: listOptions, BancoId:10,tabIndex, isTest:true}"
+            [httpBody]="{anio, mes, options: listOptions, BancoId:10,tabIndex}"
             httpUrl="api/liquidaciones/download/banco/">
             <span nz-icon nzType="download"></span> Generar Banco Macro
           </li>
