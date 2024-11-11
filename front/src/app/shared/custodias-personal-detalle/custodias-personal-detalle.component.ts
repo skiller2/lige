@@ -7,7 +7,7 @@ import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } fr
 import { NgForm } from '@angular/forms';
 import { PersonalSearchComponent } from '../personal-search/personal-search.component';
 import { CommonModule } from '@angular/common';
-import { AngularGridInstance, AngularUtilService, GridOption, FileType, SlickGrid, Column } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters, Grouping } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ApiService } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
@@ -47,7 +47,16 @@ export class CustodiasPersonalDetalleComponent {
     private apiService = inject(ApiService)
     private injector = inject(Injector)
 
-    columns$ = this.apiService.getCols('/api/custodia/personalcols')
+    columns$ = this.apiService.getCols('/api/custodia/personalcols').pipe(map((cols: any) => {
+        let mapped:any = cols.map((col: Column) => {
+            if (col.id == "importe") {
+                col.formatter = Formatters['decimal']
+                col.groupTotalsFormatter = this.sumTotalsFormatterCustom
+            }
+            return col
+        });
+        return mapped
+    }))
 
     gridDetalleData$ = this.listCustodiaPersonal$.pipe(
         debounceTime(500),
@@ -65,6 +74,15 @@ export class CustodiasPersonalDetalleComponent {
         this.gridDetalleOptions.enableAutoSizeColumns = true
         this.gridDetalleOptions.showFooterRow = true
         this.gridDetalleOptions.createFooterRow = true
+
+        this.gridDetalleOptions.enableGrouping = true
+        // this.gridDetalleOptions.createTopHeaderPanel = true
+        // this.gridDetalleOptions.showTopHeaderPanel = true
+        // this.gridDetalleOptions.topHeaderPanelHeight = 35
+
+        // this.gridDetalleOptions.createPreHeaderPanel = true
+        // this.gridDetalleOptions.showPreHeaderPanel = true
+        // this.gridDetalleOptions.preHeaderPanelHeight = 26
 
         effect(async () => {
             const periodo = this.periodo()
@@ -104,6 +122,43 @@ export class CustodiasPersonalDetalleComponent {
     renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
         const componentOutput = this.angularUtilServicePersonal.createAngularComponent(CustomLinkComponent)
         cellNode.replaceChildren(componentOutput.domElement)
+    }
+
+    
+    sumTotalsFormatterCustom(totals: any, columnDef: any) {
+        const val = totals.sum && totals.sum[columnDef.field]
+        if (val != null && totals.group.count > 1) {
+            return val
+        }
+        return '';
+    }
+
+    groupByForma() {
+        const grouping: Grouping = {
+            getter: 'tipo_importe',
+            aggregators: [new Aggregators['Sum']('importe')],
+            formatter: (g) => `${g.value} (${g.count} items)`,
+            aggregateCollapsed: true,
+            lazyTotalsCalculation: true,
+        };
+        this.angularGrid.dataView.setGrouping(grouping);
+        this.angularGrid.slickGrid.invalidate()
+    }
+
+    groupByPersona() {
+        const grouping: Grouping = {
+            getter: 'ApellidoNombre',
+            aggregators: [new Aggregators['Sum']('importe')],
+            formatter: (g) => `${g.value} (${g.count} items)`,
+            aggregateCollapsed: true,
+            lazyTotalsCalculation: true,
+        };
+        this.angularGrid.dataView.setGrouping(grouping);
+        this.angularGrid.slickGrid.invalidate()
+    }
+
+    clearGrouping() {
+        this.angularGrid.dataView.setGrouping([]);
     }
 
 }
