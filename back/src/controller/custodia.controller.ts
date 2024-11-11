@@ -847,7 +847,7 @@ export class CustodiaController extends BaseController {
                 errores.push(`El campo Num de Factura NO puede estar vacio.`)
             }
         }
-
+/*
         if (custodiaForm.fechaFinal) {
             const fecha = new Date(custodiaForm.fechaFinal) 
             const periodo = await queryRunner.query(`
@@ -858,7 +858,7 @@ export class CustodiaController extends BaseController {
                 errores.push(`La Fecha Final de la custodia no puede ser menor al de un período ya cerrado.`)
             }
         }
-
+*/
         if (errores.length) {
             return new ClientException(errores.join(`\n`))
         }
