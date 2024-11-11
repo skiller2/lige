@@ -766,12 +766,13 @@ export class LiquidacionesBancoController extends BaseController {
         let total = 0
         console.log("registros ", banco)
         for (const row of banco) {
-          const PersonalApellido = row.PersonalApellidoNombre.split(",")[0].split(" ")[0].replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
+          //const PersonalApellido = row.PersonalApellidoNombre.split(",")[0].split(" ")[0].replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
+          const PersonalApellidoNombre = row.PersonalApellidoNombre.replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").slice(0, 64); 
 
           file.write(format("\r\n", 
             "",// legajo no es obligatorio
             row.PersonalCUITCUILCUIT.toString().substring(0, 11), 
-            PersonalApellido.toString(), 
+            PersonalApellidoNombre.toString(), 
             "", // Se informa el cbu por lo que cuenta se queda en blanco
             row.PersonalBancoCBU.toString(), 
             row.importe.toFixed(2),

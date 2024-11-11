@@ -116,6 +116,7 @@ export class LicenciaDrawerComponent {
 
         }
     
+        this.ngForm().form.get('PersonalLicenciaSituacionRevistaId')?.disable();
       }
     }
     return true
