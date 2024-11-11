@@ -1,13 +1,16 @@
 <nz-card class="small-margin">
   <ng-container>
-    <h4>Agrupación:</h4>
-    <!-- <nz-button-group> -->
-      <button nz-button (click)="groupByPersona()" nzSize="small">Por Persona</button>
-      <button nz-button (click)="groupByForma()" nzSize="small">Por Tipo de Importe</button>
-      <button nz-button (click)="clearGrouping()" nzType="primary" nzSize="small">Desagrupar</button>
-    <!-- </nz-button-group> -->
-    <br />
-    <br />
+    <div nz-row nzSpan="12">
+      <nz-form-label [nzSpan]="2">Agrupar</nz-form-label>
+      <nz-form-control [nzSpan]="4">
+        <nz-select [(ngModel)]="grupo" (ngModelChange)="changeGrupo($event)" [ngModelOptions]="{standalone: true}" [nzDropdownMatchSelectWidth]="false">
+          <nz-option nzValue="" nzLabel="Sin grupo"></nz-option>
+          <nz-option nzValue="persona" nzLabel="Por persona"></nz-option>
+          <!-- <nz-option nzValue="tipoimporte" nzLabel="Por tipo importe"></nz-option> -->
+        </nz-select>
+      </nz-form-control>
+    </div>
+
     <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)"
       [startFilters]="startFilters" />
     <div class="gridDetalleContainer container-fluid" *ngIf="(columns$|async) as columnas">
