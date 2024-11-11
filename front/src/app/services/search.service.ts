@@ -24,6 +24,7 @@ import { ResponseBySearchAdministrador,SearchAdmind } from 'src/app/shared/schem
 import { ResponseBySearchRubro,SearchRubro } from 'src/app/shared/schemas/rubro.schemas';
 
 import { ResponseBySearchInasistencia,SearchInasistencia } from 'src/app/shared/schemas/inasistencia.schemas';
+import { ResponseBySearchSituacionRevista,SearchSituacionRevista } from 'src/app/shared/schemas/situacionrevista.shemas';
 import {
   Objetivo,
   ObjetivoInfo,
@@ -169,9 +170,35 @@ export class SearchService {
       );
   }
 
+  getSituacionRevistaSearch(fieldName: string, values: string): Observable<SearchSituacionRevista[]> {
+    if (!values || values == '') {
+      return of([]);
+    }
+    return this.http
+      .post<ResponseJSON<ResponseBySearchSituacionRevista>>('api/situacion-revista/search', {
+        fieldName: fieldName,
+        value: values,
+      })
+      .pipe(
+        map(res => {
+          if (res.data.recordsArray) return res.data.recordsArray;
+          else return [];
+        }),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
   getInasistenciaFromName(fieldName: string, values: string): Observable<SearchInasistencia[]> {
     return this.getInasistenciaSearch(fieldName, values)
   }
+
+  getSituacionRevistaFromName(fieldName: string, values: string): Observable<SearchSituacionRevista[]> {
+    return this.getSituacionRevistaSearch(fieldName, values)
+  }
+
 
   //rubro
 

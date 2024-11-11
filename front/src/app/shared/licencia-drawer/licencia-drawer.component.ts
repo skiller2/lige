@@ -9,6 +9,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { EditorCategoriaComponent } from 'src/app/shared/editor-categoria/editor-categoria.component';
 import { InasistenciaSearchComponent } from 'src/app/shared/inasistencia-search/inasistencia-search.component';
+import { SituacionRevistaSearchComponent } from 'src/app/shared/situacionrevista-search/situacionrevista-search.component';
 import { PersonalSearchComponent } from '../personal-search/personal-search.component';
 import { CommonModule } from '@angular/common';
 import { SearchService } from '../../services/search.service';
@@ -24,7 +25,7 @@ export interface Option {
 @Component({
   selector: 'app-licencia-drawer',
   standalone: true,
-  imports: [SHARED_IMPORTS,NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, EditorCategoriaComponent, InasistenciaSearchComponent, PersonalSearchComponent, CommonModule,FileUploadComponent],
+  imports: [SHARED_IMPORTS,NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, EditorCategoriaComponent, InasistenciaSearchComponent, PersonalSearchComponent, CommonModule,FileUploadComponent,SituacionRevistaSearchComponent],
   templateUrl: './licencia-drawer.component.html',
   styleUrl: './licencia-drawer.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -91,7 +92,7 @@ export class LicenciaDrawerComponent {
       const per = this.selectedPeriod()
       if (this.PersonalLicenciaId() > 0) {
         let vals = await firstValueFrom(this.apiService.getLicencia(per.year, per.month, this.PersonalId(), this.PersonalLicenciaId()));
-        //console.log("vals ", vals)
+        console.log("vals ", vals)
         vals.categoria = { id: `${vals.PersonalLicenciaTipoAsociadoId}-${vals.PersonalLicenciaCategoriaPersonalId}`,categoriaId:vals.PersonalLicenciaCategoriaPersonalId,tipoId:vals.PersonalLicenciaTipoAsociadoId }
         vals.PersonalLicenciaTipoAsociadoId = vals.categoria.categoriaId
         vals.PersonalLicenciaCategoriaPersonalId = vals.categoria.tipoId

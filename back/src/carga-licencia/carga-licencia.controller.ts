@@ -1041,6 +1041,7 @@ export class CargaLicenciaController extends BaseController {
     tli.TipoInasistenciaDescripcion,
     tli.TipoInasistenciaApartado,
     lic.PersonalLicenciaDesde,
+    lic.PersonalLicenciaSituacionRevistaId,
     ISNULL(lic.PersonalLicenciaTermina, lic.PersonalLicenciaHasta) PersonalLicenciaHasta,
     cat.CategoriaPersonalDescripcion,
     lic.PersonalLicenciaObservacion,

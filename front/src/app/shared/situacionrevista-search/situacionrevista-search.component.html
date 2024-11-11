@@ -1,0 +1,14 @@
+<nz-select #isc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }" 
+  (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Situacion Revista, Código"
+  nzShowSearch nzServerSearch (nzOnSearch)="search($event)" >
+  <ng-container *ngFor="let option of $optionsArray | async">
+    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.SituacionRevistaId"
+      nzLabel="{{ option.SituacionRevistaDescripcion }} ({{option.SituacionRevistaId}})" />
+  </ng-container>
+  <nz-option *ngIf="extendedOption.SituacionRevistaId > 0" [nzValue]="extendedOption.SituacionRevistaId"
+    [nzLabel]="extendedOption.SituacionRevistaDescripcion" />
+  <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
+    <span nz-icon nzType="loading" class="loading-icon"></span>
+    Cargando datos...
+  </nz-option>
+</nz-select>
