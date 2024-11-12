@@ -49,7 +49,9 @@ export class AccesoBotFormComponent {
       if (this.PersonalId()) {
         await this.load()
       }
-    }, { injector: this.injector });
+    }, { injector: this.injector,
+         allowSignalWrites:true
+    });
 
   }
 
@@ -89,16 +91,13 @@ export class AccesoBotFormComponent {
   async load() {
 
      this.ngForm().form.reset()
-     console.log("load" ,  this.ngForm().form)
       if (this.PersonalId() > 0) {
        let vals = await firstValueFrom(this.apiService.getAccesoBot(this.PersonalId()));
         //this.codigo.set(vals.codigo.split("@")[0])
         this.ngForm().form.patchValue(vals)
         this.ngForm().form.markAsUntouched()
         this.ngForm().form.markAsPristine()
-
       }
-
       return true
       { }
    }
@@ -113,7 +112,7 @@ export class AccesoBotFormComponent {
          if (this.PersonalId()) {
           
          vals.Archivos = this.files
-         vals.PersonalId = this.PersonalId()
+         //vals.PersonalId = this.PersonalId()
          result =  firstValueFrom(this.apiService.updateAccess(vals))
 
          }else{
