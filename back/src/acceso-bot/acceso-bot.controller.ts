@@ -478,10 +478,10 @@ export class AccesoBotController extends BaseController {
 
     }
 
-    async downloadDniImagen(PersonalId: number, DocumentoImagenParametroId:Number,res: Response, next: NextFunction) {
+    async downloadImagen(PersonalId: any, DocumentoImagenParametroId:Number,res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         console.log('PATH_DNI', process.env.PATH_DNI);
-        
+        console.log("PersonalId ",PersonalId)
         const pathArchivos = (process.env.PATH_DNI) ? process.env.PATH_DNI : '.' 
         try {
 
@@ -511,6 +511,24 @@ export class AccesoBotController extends BaseController {
         } catch (error) {
           return next(error)
         }
-      }
+    }
 
+
+    async downloadDniImagen(url: any,res: Response, next: NextFunction) {
+
+        try {
+console.log()
+          const downloadPath = url;
+          
+          if (!existsSync(downloadPath))
+            throw new ClientException(`El archivo no existe`,{'path':downloadPath});
+    
+          res.download(downloadPath, url.split("/")[4], (msg) => {});
+    
+        } catch (error) {
+          return next(error)
+        }
+    }
+
+   
 }

@@ -839,6 +839,20 @@ export class ApiService {
     )
 
   }
+  
+  getUrlTest(url: any): Observable<Blob> {
+    console.log("Solicitando archivo para URL:", url);
+  
+    return this.http.get(`/api/acceso-bot/downloadImagenDni/${url}`, {
+      responseType: 'blob', 
+    }).pipe(
+      tap(() => console.log("Archivo recibido con éxito")),
+      catchError((error) => {
+        console.error("Error al realizar la solicitud HTTP:", error);
+        return throwError(() => new Error("No se pudo descargar el archivo"));
+      })
+    );
+  }
 
   setLicencia(vals: any) {
     return this.http.post<ResponseJSON<any>>(`/api/carga-licencia`, vals).pipe(

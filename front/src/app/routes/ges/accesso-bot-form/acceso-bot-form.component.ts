@@ -56,18 +56,18 @@ export class AccesoBotFormComponent {
   }
 
   qrCodeUrl = 'https://i.postimg.cc/L4YSs4p8/Screenshot-78.png';
-  qrCodeResult: string | null = null;
+  qrCodeResult = signal("")
 
-  constructor() {
-    this.decodeQrCodeFromUrl(this.qrCodeUrl);
-  }
+  // constructor() {
+  //   this.decodeQrCodeFromUrl(this.qrCodeUrl);
+  // }
 
   async decodeQrCodeFromUrl(url: string): Promise<void> {
     const reader = new BrowserMultiFormatReader();
     try {
       const img = await this.loadImage(url);
       const result = await reader.decodeFromImageElement(img);
-      this.qrCodeResult = result.getText();
+      this.qrCodeResult.set(result.getText())
       console.log('Contenido del QR:', this.qrCodeResult);
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -109,18 +109,27 @@ export class AccesoBotFormComponent {
     let vals = this.ngForm().value
     let result
     try {
+
+        
          if (this.PersonalId()) {
           
-         vals.Archivos = this.files
-         //vals.PersonalId = this.PersonalId()
-         result =  firstValueFrom(this.apiService.updateAccess(vals))
+        
+        //  vals.Archivos = this.files
+        //  //vals.PersonalId = this.PersonalId()
+          //result = await firstValueFrom(this.apiService.updateAccess(vals))
 
-         }else{
+          }else{
 
-           result = firstValueFrom(this.apiService.addAccessBot(vals))
-
+        //    result = firstValueFrom(this.apiService.addAccessBot(vals))
+ 
          }
-         this.ngForm().form.patchValue(result)
+
+         let imageUrlpath = await firstValueFrom(this.apiService.getUrlTest(vals.files[0].filename))
+         console.log("imageUrlpath ", imageUrlpath)
+         this.decodeQrCodeFromUrl("api/acceso-bot/downloadImagen/341/12")
+ 
+
+        // this.ngForm().form.patchValue(result)
          this.ngForm().form.markAsUntouched()
          this.ngForm().form.markAsPristine()
       } catch (e) {
@@ -128,6 +137,7 @@ export class AccesoBotFormComponent {
       }
       this.isLoading.set(false)
   }
+
 
   async deleteAcceso() {
      await firstValueFrom(this.apiService.deleteAccess(this.PersonalId()))

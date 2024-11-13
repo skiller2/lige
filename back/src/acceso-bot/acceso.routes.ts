@@ -1,7 +1,7 @@
 import { Router } from "express"
 import { authMiddleware } from "../middlewares/middleware.module";
 import { accesoBotController} from "../controller/controller.module";
-
+import {  existsSync} from "fs";
 export const accesoBotRouter = Router();
 
 
@@ -34,10 +34,36 @@ accesoBotRouter.post('/add', authMiddleware.verifyToken, (req, res, next) => {
 } )
 
 accesoBotRouter.get(`/downloadImagen/:personalId/:documentoImagenParametroId`, (req, res,next) => {
-  accesoBotController.downloadDniImagen(
-    Number(req.params.personalId),
+  accesoBotController.downloadImagen(
+    req.params.personalId,
     Number(req.params.documentoImagenParametroId),
     res,
     next
   );
+});
+
+accesoBotRouter.get(`/downloadImagenDni/:path`, (req, res) => {
+  const { path } = req.params;
+  const filePath = `${process.env.PATH_DOCUMENTS}/temp/${path}`;
+
+  console.log(".........", filePath);
+
+  if (!existsSync(filePath)) {
+    return res.status(404).send('Archivo no encontrado');
+  }
+
+  try {
+    res.setHeader('Content-Type', 'application/octet-stream'); // Asegura el encabezado para descargas
+    res.download(filePath, path, (err) => {
+      if (err) {
+        console.error('Error al descargar el archivo:', err);
+        res.status(500).send('Error al procesar la descarga');
+      } else {
+        console.log('Archivo enviado con éxito');
+      }
+    });
+  } catch (error) {
+    console.error('Error en el servidor:', error);
+    res.status(500).send('Error interno del servidor');
+  }
 });
