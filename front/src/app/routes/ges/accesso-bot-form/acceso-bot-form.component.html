@@ -13,8 +13,15 @@
       <nz-form-item class="imgContainer">
 
         <nz-image-group  >
-          <img  nz-image width="400px" nzSrc="api/acceso-bot/downloadImagen/{{this.PersonalId()}}/12" nzFallback="./assets/dummy-person-image.jpg" />
-          <img  nz-image width="400px" nzSrc="api/acceso-bot/downloadImagen/{{this.PersonalId()}}/13" nzFallback="./assets/dummy-person-image.jpg" />
+          <!-- <img  nz-image width="400px" nzSrc="api/acceso-bot/downloadImagen/{{this.PersonalId()}}/12" nzFallback="./assets/dummy-person-image.jpg" />
+          <img  nz-image width="400px" nzSrc="api/acceso-bot/downloadImagen/{{this.PersonalId()}}/13" nzFallback="./assets/dummy-person-image.jpg" /> -->
+          <img
+          *ngFor="let image of images()"
+          nz-image
+          width="400px"
+          [nzSrc]="image.src"
+          [nzFallback]="image.fallback"
+        />
 
         </nz-image-group> 
    

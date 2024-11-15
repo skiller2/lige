@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, effect, Injector,  } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, effect, Injector, SimpleChanges,  } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { FormControl, NgForm } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -40,7 +40,8 @@ export class AccesoBotFormComponent {
   codigo = signal(0)
   dniDisabled = signal(true)
   formChange$ = new BehaviorSubject('')
-  images =  signal<any[]>([])
+  //images =  signal<any[]>([])
+  images = signal<{ src: string; fallback: string }[]>([]);
   files = signal([])
 
   async ngOnInit() {
@@ -94,6 +95,7 @@ export class AccesoBotFormComponent {
       if (this.PersonalId() > 0) {
        let vals = await firstValueFrom(this.apiService.getAccesoBot(this.PersonalId()));
         //this.codigo.set(vals.codigo.split("@")[0])
+        this.updateImages()
         this.ngForm().form.patchValue(vals)
         this.ngForm().form.markAsUntouched()
         this.ngForm().form.markAsPristine()
@@ -101,6 +103,22 @@ export class AccesoBotFormComponent {
       return true
       { }
    }
+
+
+  updateImages(): void {
+
+    this.images.set([
+      {
+        src: `api/acceso-bot/downloadImagen/${this.PersonalId()}/12`,
+        fallback: './assets/dummy-person-image.jpg'
+      },
+      {
+        src: `api/acceso-bot/downloadImagen/${this.PersonalId()}/13`,
+        fallback: './assets/dummy-person-image.jpg'
+      }
+    ]);
+  }
+
 
 
   async save() {
@@ -124,9 +142,12 @@ export class AccesoBotFormComponent {
  
          }
 
-         let imageUrlpath = await firstValueFrom(this.apiService.getUrlTest(vals.files[0].filename))
-         console.log("imageUrlpath ", imageUrlpath)
-         this.decodeQrCodeFromUrl("api/acceso-bot/downloadImagen/341/12")
+         //let imageUrlpath = await firstValueFrom(this.apiService.getUrlTest(vals.files[0].filename))
+         console.log("imageUrlpath ", vals.files[0].filename)
+         
+         let imageNewDni = `api/acceso-bot/downloadImagenDni/${vals.files[0].filename}`
+         console.log(".......... ",imageNewDni)
+         this.decodeQrCodeFromUrl(imageNewDni)
  
 
         // this.ngForm().form.patchValue(result)
@@ -147,6 +168,8 @@ export class AccesoBotFormComponent {
     if(newPersonalId > 0){
       let vals = await firstValueFrom(this.apiService.getAccesoBotDNI(newPersonalId))
       // this.PersonalId.set(newPersonalId)
+      this.PersonalId.set(newPersonalId)
+      this.updateImages()
       this.ngForm().form.patchValue({
         PersonalDocumentoNro: vals.PersonalDocumentoNro
       }

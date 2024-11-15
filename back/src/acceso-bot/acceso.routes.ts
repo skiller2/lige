@@ -42,28 +42,37 @@ accesoBotRouter.get(`/downloadImagen/:personalId/:documentoImagenParametroId`, (
   );
 });
 
-accesoBotRouter.get(`/downloadImagenDni/:path`, (req, res) => {
-  const { path } = req.params;
-  const filePath = `${process.env.PATH_DOCUMENTS}/temp/${path}`;
-
-  console.log(".........", filePath);
-
-  if (!existsSync(filePath)) {
-    return res.status(404).send('Archivo no encontrado');
-  }
-
-  try {
-    res.setHeader('Content-Type', 'application/octet-stream'); // Asegura el encabezado para descargas
-    res.download(filePath, path, (err) => {
-      if (err) {
-        console.error('Error al descargar el archivo:', err);
-        res.status(500).send('Error al procesar la descarga');
-      } else {
-        console.log('Archivo enviado con éxito');
-      }
-    });
-  } catch (error) {
-    console.error('Error en el servidor:', error);
-    res.status(500).send('Error interno del servidor');
-  }
+accesoBotRouter.get(`/downloadImagenDni/:path`, (req, res,next) => {
+  accesoBotController.downloadImagenDNI(
+    req.params.path,
+    res,
+    next
+  );
 });
+
+
+// accesoBotRouter.get(`/downloadImagenDni/:path`, (req, res) => {
+//   const { path } = req.params;
+//   const filePath = `${process.env.PATH_DOCUMENTS}/temp/${path}`;
+
+//   console.log(".........", filePath);
+
+//   if (!existsSync(filePath)) {
+//     return res.status(404).send('Archivo no encontrado');
+//   }
+
+//   try {
+//     res.setHeader('Content-Type', 'application/octet-stream'); // Asegura el encabezado para descargas
+//     res.download(filePath, path, (err) => {
+//       if (err) {
+//         console.error('Error al descargar el archivo:', err);
+//         res.status(500).send('Error al procesar la descarga');
+//       } else {
+//         console.log('Archivo enviado con éxito');
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Error en el servidor:', error);
+//     res.status(500).send('Error interno del servidor');
+//   }
+// });

@@ -478,6 +478,26 @@ export class AccesoBotController extends BaseController {
 
     }
 
+    async downloadImagenDNI(path: any,res: Response, next: NextFunction) {
+
+        console.log('PATH_DOCUMENTS', process.env.PATH_DOCUMENTS);
+
+        const pathArchivos = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' 
+        try {
+
+    
+          const downloadPath = `${pathArchivos}/temp/${path}`;
+          
+          if (!existsSync(downloadPath))
+            throw new ClientException(`El archivo no existe`,{'path':downloadPath});
+    
+          res.download(downloadPath, path, (msg) => {});
+    
+        } catch (error) {
+          return next(error)
+        }
+    }
+
     async downloadImagen(PersonalId: any, DocumentoImagenParametroId:Number,res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         console.log('PATH_DNI', process.env.PATH_DNI);
@@ -507,23 +527,6 @@ export class AccesoBotController extends BaseController {
             throw new ClientException(`El archivo no existe`,{'path':downloadPath});
     
           res.download(downloadPath, ds[0].DocumentoImagenDocumentoBlobNombreArchivo, (msg) => {});
-    
-        } catch (error) {
-          return next(error)
-        }
-    }
-
-
-    async downloadDniImagen(url: any,res: Response, next: NextFunction) {
-
-        try {
-console.log()
-          const downloadPath = url;
-          
-          if (!existsSync(downloadPath))
-            throw new ClientException(`El archivo no existe`,{'path':downloadPath});
-    
-          res.download(downloadPath, url.split("/")[4], (msg) => {});
     
         } catch (error) {
           return next(error)
