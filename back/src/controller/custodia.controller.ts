@@ -182,6 +182,17 @@ const columnsObjCustodia: any[] = [
         searchType:"float",
     },
     {
+        id:'fecha_liquidacion' , name:'Fecha Liquidacion' , field:'fecha_liquidacion',
+        fieldName: "obj.fecha_liquidacion",
+        type: 'date',
+        searchComponent: "inpurForFechaSearch",
+        searchType: "date",
+        sortable: true,
+        searchHidden: false,
+        hidden: false,
+        maxWidth: 120,
+    },
+    {
         id:'estado' , name:'Estado' , field:'estado',
         fieldName: "obj.estado",
         sortable: true,
@@ -301,6 +312,17 @@ const columnsPersonalCustodia: any[] = [
         maxWidth: 120,
     },
     {
+        id:'fecha_liquidacion' , name:'Fecha Liquidacion' , field:'fecha_liquidacion',
+        fieldName: "obj.fecha_liquidacion",
+        type: 'date',
+        searchComponent: "inpurForFechaSearch",
+        searchType: "date",
+        sortable: true,
+        searchHidden: false,
+        hidden: false,
+        maxWidth: 120,
+    },
+    {
         id:'estado' , name:'Estado' , field:'estado',
         fieldName: "obj.estado",
         type: 'string',
@@ -349,6 +371,7 @@ const estados : any[] = [
     { value: 2, label: 'Cancelado' },
     { value: 3, label: 'A facturar' },
     { value: 4, label: 'Facturado' },
+    { value: 5, label: 'Fecha de Liquidacion' },
 ]// value = tipo , label = descripcion
 
 export class CustodiaController extends BaseController {
@@ -375,16 +398,17 @@ export class CustodiaController extends BaseController {
         const desc_facturacion= objetivoCustodia.desc_facturacion? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
+        const fecha_liquidacion = objetivoCustodia.fecha_liquidacion? objetivoCustodia.fecha_liquidacion.setHours(0, 0, 0, 0) : null
         return queryRunner.query(`
             INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, desc_requirente,
                 descripcion, fecha_inicio, origen, fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced,
                 impo_horas_exced, cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, desc_facturacion, num_factura, estado,
-                aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-            VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @22, @20, @21, @22)`, 
+                , fecha_liquidacion, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+            VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @22, @23, @21, @22, @23)`, 
             [objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, descripcion, fecha_inicio, origen, 
                 fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced, impo_horas_exced, 
                 cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, desc_facturacion, num_factura, estado, 
-                usuario, ip, fechaActual]
+                fecha_liquidacion, usuario, ip, fechaActual]
         )
     }
 
@@ -440,14 +464,15 @@ export class CustodiaController extends BaseController {
             obj.cliente_id clienteId, obj.desc_requirente, obj.descripcion, obj.fecha_inicio, 
             obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente,
             CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) responsable, obj.impo_facturar facturacion,
-            obj.desc_facturacion,
+            obj.desc_facturacion, obj.fecha_liquidacion,
             obj.impo_peaje, obj.impo_km_exced, obj.cant_km_exced,obj.impo_horas_exced, obj.cant_horas_exced,obj.importe_modulos,obj.cant_modulos
             FROM lige.dbo.objetivocustodia obj
             JOIN Personal per ON per.PersonalId = obj.responsable_id
             JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
             LEFT JOIN lige.dbo.regvehiculocustodia regveh ON regveh.objetivo_custodia_id = obj.objetivo_custodia_id
             LEFT JOIN lige.dbo.regpersonalcustodia regper ON regper.objetivo_custodia_id = obj.objetivo_custodia_id
-            WHERE (DATEPART(YEAR,obj.fecha_inicio)=@0 AND  DATEPART(MONTH, obj.fecha_inicio)=@1) AND (${search}) AND (${filterSql}) 
+            WHERE (obj.fecha_liquidacion IS NULL OR obj.estado != 4 OR (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1))
+            AND (${search}) AND (${filterSql}) 
             ${orderBy}`, [year, month])
     }
 
@@ -472,17 +497,18 @@ export class CustodiaController extends BaseController {
         const desc_facturacion = objetivoCustodia.desc_facturacion? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
+        const fecha_liquidacion = objetivoCustodia.fecha_liquidacion? objetivoCustodia.fecha_liquidacion.setHours(0, 0, 0, 0) : null
         return queryRunner.query(`
         UPDATE lige.dbo.objetivocustodia 
         SET cliente_id = @1, desc_requirente = @2, descripcion = @3, fecha_inicio = @4, origen = @5, 
         fecha_fin = @6, destino = @7, cant_modulos = @8, importe_modulos = @9, cant_horas_exced = @10, 
         impo_horas_exced = @11, cant_km_exced = @12, impo_km_exced = @13, impo_peaje = @14,  
-        impo_facturar = @15, desc_facturacion = @16, num_factura = @17, estado = @18, 
-        aud_usuario_mod = @19, aud_ip_mod = @20, aud_fecha_mod = @21
+        impo_facturar = @15, desc_facturacion = @16, num_factura = @17, estado = @18, fecha_liquidacion = @19,
+        aud_usuario_mod = @20, aud_ip_mod = @21, aud_fecha_mod = @22
         WHERE objetivo_custodia_id = @0`, 
         [objetivo_custodia_id, cliente_id, desc_requirente, descripcion, fecha_inicio, origen, fecha_fin, destino, 
             cant_modulos, importe_modulos, cant_horas_exced, impo_horas_exced, cant_km_exced, impo_km_exced, 
-            impo_peaje, impo_facturar, desc_facturacion, num_factura, estado, usuario, ip, fechaActual
+            impo_peaje, impo_facturar, desc_facturacion, num_factura, estado, fecha_liquidacion, usuario, ip, fechaActual
         ])
     }
 
@@ -518,7 +544,8 @@ export class CustodiaController extends BaseController {
         obj.cliente_id clienteId, obj.desc_requirente descRequirente, obj.descripcion, obj.fecha_inicio fechaInicio, obj.origen, 
         obj.fecha_fin fechaFinal, obj.destino, obj.cant_modulos cantModulos, obj.importe_modulos impoModulos, 
         obj.cant_horas_exced cantHorasExced, obj.impo_horas_exced impoHorasExced, obj.cant_km_exced cantKmExced, obj.desc_facturacion,
-        obj.impo_km_exced impoKmExced, obj.impo_peaje impoPeaje, obj.impo_facturar facturacion, obj.estado, obj.num_factura numFactura
+        obj.impo_km_exced impoKmExced, obj.impo_peaje impoPeaje, obj.impo_facturar facturacion, obj.estado, obj.num_factura numFactura,
+        obj.fecha_liquidacion
         FROM lige.dbo.objetivocustodia obj
         INNER JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
         INNER JOIN Personal per ON per.PersonalId = obj.responsable_id
@@ -576,13 +603,15 @@ export class CustodiaController extends BaseController {
             if (!responsableId) 
                 throw new ClientException(`No se a encontrado al personal responsable.`)
 
-            const valCustodiaForm = await this.valCustodiaForm(req.body, queryRunner)
+            const valCustodiaForm = this.valCustodiaForm(req.body, queryRunner)
             if (valCustodiaForm instanceof ClientException)
                 throw valCustodiaForm
 
             const objetivoCustodiaId = await this.getProxNumero(queryRunner, `objetivocustodia`, usuario, ip)
 
-            const objetivoCustodia = {...req.body, responsableId, id: objetivoCustodiaId}
+            const fecha_liquidacion = (req.body.estado == 5 || this.valByEstado(req.body.estado))? new Date() : null
+
+            const objetivoCustodia = {...req.body, responsableId, id: objetivoCustodiaId, fecha_liquidacion}
             
             await this.addObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
@@ -597,8 +626,14 @@ export class CustodiaController extends BaseController {
             await queryRunner.query(`DELETE FROM lige.dbo.regpersonalcustodia WHERE objetivo_custodia_id = @0`, [objetivoCustodiaId])
             for (const obj of objetivoCustodia.personal) {
                 if (obj.personalId) {
-                    if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
+                    //Validaciones para fecha_liquidacion
+                    if (fecha_liquidacion && !obj.importe ) {
                         errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
+                        break
+                    }
+
+                    // if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
+                    //     errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
 
                     await this.addRegistroPersonalCustodiaQuery(queryRunner, objetivoCustodiaId, obj, usuario, ip)
                 }
@@ -614,10 +649,15 @@ export class CustodiaController extends BaseController {
             await queryRunner.query(`DELETE lige.dbo.regvehiculocustodia WHERE objetivo_custodia_id = @0`,[objetivoCustodiaId])
             for (const obj of objetivoCustodia.vehiculos) {
                 if (obj.patente) {
-                    if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
-                        errores.push(`El campo Importe de la patente ${obj.patente} NO pueden estar vacio.`)
+                    if (fecha_liquidacion && (!obj.importe  || !obj.duenoId  || obj.peaje === null)) {
+                        errores.push(`Los campos relacionados a la Patente ${obj.patente} NO pueden estar vacio.`)
+                        continue
+                    }
+                    // if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
+                    //     errores.push(`El campo Importe de la patente ${obj.patente} NO pueden estar vacio.`)
                     if(!obj.duenoId)
                         errores.push(`El campo Dueño de la patente ${obj.patente} NO pueden estar vacio.`)
+
                     await this.addRegistroVehiculoCustodiaQuery(queryRunner, objetivoCustodiaId, obj, usuario, ip)
                 }
             }
@@ -732,7 +772,6 @@ export class CustodiaController extends BaseController {
             const responsableId = res.locals.PersonalId
             const custodiaId = req.params.id
             const objetivoCustodia = { ...req.body }
-            // console.log('quehay',req.body)
 
             let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, custodiaId)
             infoCustodia= infoCustodia[0]
@@ -742,13 +781,30 @@ export class CustodiaController extends BaseController {
             if (!(await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')) && responsableId != infoCustodia.responsableId){
                 throw new ClientException(`Únicamente puede modificar el registro ${infoCustodia.responsable} o pertenecer al grupo 'Administracion'/'Liquidaciones'.`)
             }
+
+            if (infoCustodia.estado == 4) {
+                throw new ClientException(`No se puede modificar los registros con estado Facturado.`)
+            }
             
-            const valCustodiaForm = await this.valCustodiaForm(objetivoCustodia, queryRunner)
+            const valCustodiaForm = this.valCustodiaForm(objetivoCustodia, queryRunner)
             if (valCustodiaForm instanceof ClientException)
                 throw valCustodiaForm
-            
-//            let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, custodiaId)
-//            let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
+
+            if (objetivoCustodia.fechaFinal && objetivoCustodia.fechaFinal != infoCustodia.fechaFinal) {
+                const fecha = new Date(objetivoCustodia.fechaFinal) 
+                const periodo = await queryRunner.query(`
+                    SELECT TOP 1 *, CAST (EOMONTH(CONCAT(anio,'-',mes,'-',1)) AS DATETIME)+'23:59:59' AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC
+                `)
+                let fechaMin = new Date(periodo[0].FechaCierre)
+                if (fecha <= fechaMin) {
+                    errores.push(`La Fecha Final de la custodia no puede ser menor al de un período ya cerrado.`)
+                }
+            }
+
+            if (infoCustodia.fecha_liquidacion) {
+                var listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, custodiaId)
+                var listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
+            }
 
             var seen = {};
             var hasDupPersonal = objetivoCustodia.personal.some(function (currentObject) {
@@ -761,8 +817,18 @@ export class CustodiaController extends BaseController {
             await queryRunner.query(`DELETE FROM lige.dbo.regpersonalcustodia WHERE objetivo_custodia_id = @0`, [custodiaId])
             for (const obj of objetivoCustodia.personal) {
                 if (obj.personalId) {
-                    if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
+                    //Validaciones para fecha_liquidacion
+                    if ((objetivoCustodia.estado == 5 || (this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion)) && !obj.importe ) {
                         errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
+                        break
+                    }
+                    if (infoCustodia.fecha_liquidacion && !this.comparePersonal(obj, listPersonal)) {
+                        errores.push(`NO se pueden modificar los campos del Personal.`)
+                        break
+                    }
+                    //
+                    // if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
+                    //     errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
 
                     await this.addRegistroPersonalCustodiaQuery(queryRunner, custodiaId, obj, usuario, ip)
                 }
@@ -778,10 +844,21 @@ export class CustodiaController extends BaseController {
             await queryRunner.query(`DELETE lige.dbo.regvehiculocustodia WHERE objetivo_custodia_id = @0`,[custodiaId])
             for (const obj of objetivoCustodia.vehiculos) {
                 if (obj.patente) {
-                    if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
-                        errores.push(`El campo Importe de la patente ${obj.patente} NO pueden estar vacio.`)
+                    //Validaciones para fecha_liquidacion
+                    if ((objetivoCustodia.estado == 5 || (this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion)) && (!obj.importe  || !obj.duenoId  || obj.peaje === null)) {
+                        errores.push(`Los campos relacionados a la Patente ${obj.patente} NO pueden estar vacio.`)
+                        continue
+                    }
+                    if (infoCustodia.fecha_liquidacion && !this.compareVehiculo(obj, listVehiculo)) {
+                        errores.push(`NO se pueden modificar los campos de la Patente ${obj.patente}.`)
+                        continue
+                    }
+                    //
+                    // if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
+                    //     errores.push(`El campo Importe de la Patente ${obj.patente} NO pueden estar vacio.`)
                     if(!obj.duenoId)
-                        errores.push(`El campo Dueño de la patente ${obj.patente} NO pueden estar vacio.`)
+                        errores.push(`El campo Dueño de la Patente ${obj.patente} NO pueden estar vacio.`)
+
                     await this.addRegistroVehiculoCustodiaQuery(queryRunner, custodiaId, obj, usuario, ip)
                 }
             }
@@ -795,7 +872,9 @@ export class CustodiaController extends BaseController {
             if (errores.length)
                 throw new ClientException(errores.join(`\n`))
 
-            await this.updateObjetivoCustodiaQuery(queryRunner, {...objetivoCustodia, id: custodiaId}, usuario, ip)
+            let fecha_liquidacion = ((objetivoCustodia.estado == 5 || (this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion))? new Date() : null)
+
+            await this.updateObjetivoCustodiaQuery( queryRunner, {...objetivoCustodia, id: custodiaId, fecha_liquidacion }, usuario, ip)
 
 //            throw new ClientException('DEBUG')
             
@@ -821,7 +900,7 @@ export class CustodiaController extends BaseController {
         return this.jsonRes(estados, res)
     }
 
-    async valCustodiaForm(custodiaForm: any, queryRunner:any) {
+    valCustodiaForm(custodiaForm: any, queryRunner:any) {
         let errores : any[] = []
         if (!Number.isInteger(custodiaForm.estado)){
             errores.push(`El campo Estado NO pueden estar vacio`)
@@ -847,18 +926,11 @@ export class CustodiaController extends BaseController {
                 errores.push(`El campo Num de Factura NO puede estar vacio.`)
             }
         }
-/*
-        if (custodiaForm.fechaFinal) {
-            const fecha = new Date(custodiaForm.fechaFinal) 
-            const periodo = await queryRunner.query(`
-                SELECT TOP 1 *, CAST (EOMONTH(CONCAT(anio,'-',mes,'-',1)) AS DATETIME)+'23:59:59' AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC
-            `)
-            let fechaMin = new Date(periodo[0].FechaCierre)
-            if (fecha <= fechaMin) {
-                errores.push(`La Fecha Final de la custodia no puede ser menor al de un período ya cerrado.`)
-            }
+
+        if (custodiaForm.fechaFinal && custodiaForm.fechaFinal <= custodiaForm.fechaInicio) {
+            errores.push(`La Fecha Final no puede ser menor o igual a la Fecha Inicial.`)
         }
-*/
+
         if (errores.length) {
             return new ClientException(errores.join(`\n`))
         }
@@ -1003,9 +1075,9 @@ export class CustodiaController extends BaseController {
                     }
 
                     infoCustodia.estado = estado
-                    if (estado ==4)
+                    if (estado == 4)
                         infoCustodia.numFactura = numFactura
-                    const valCustodiaForm = await this.valCustodiaForm(infoCustodia, queryRunner)
+                    const valCustodiaForm = this.valCustodiaForm(infoCustodia, queryRunner)
                     if (valCustodiaForm instanceof ClientException){
                         errores.push(`Codigo ${id}: ${valCustodiaForm.messageArr}`)
                         continue
@@ -1039,7 +1111,7 @@ export class CustodiaController extends BaseController {
             const month = periodo.getMonth()+1
             const options: Options = isOptions(req.body.options)? req.body.options : { filtros: [], sort: null };
             
-            const filterSql = filtrosToSql(options.filtros, columnsObjCustodia);
+            const filterSql = filtrosToSql(options.filtros, columnsPersonalCustodia);
             const orderBy = orderToSQL(options.sort)
             
             let result = await queryRunner.query(`
@@ -1089,12 +1161,12 @@ export class CustodiaController extends BaseController {
     valByEstado(estado:any):boolean {
         switch (typeof estado) {
             case 'string':
-                if (estado === 'Finalizado' || estado === 'A facturar' || estado === 'Facturado') 
+                if (estado == 'Finalizado' || estado == 'A facturar' || estado == 'Facturado') 
                     return true
                 else
                     return false
             case 'number':
-                if (estado === 1 || estado === 3 || estado === 4)
+                if (estado == 1 || estado == 3 || estado == 4)
                     return true
                 else
                     return false
@@ -1102,4 +1174,15 @@ export class CustodiaController extends BaseController {
                 return false
         }
     }
+
+    comparePersonal(per:any, list:any[]):boolean {
+        let result: any = list.find((obj) => (obj.personalId == per.personalId && obj.importe == per.importe))
+        return result? true : false
+    }
+
+    compareVehiculo(veh:any, list:any[]):boolean {
+        let result: any = list.find((obj) => (obj.patente == veh.patente && obj.importe == veh.importe && obj.duenoId == veh.duenoId && obj.peaje == veh.peaje))
+        return result? true : false
+    }
+
 }
