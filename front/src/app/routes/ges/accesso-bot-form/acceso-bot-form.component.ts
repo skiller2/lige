@@ -49,7 +49,8 @@ export class AccesoBotFormComponent {
 
   async ngOnInit() {
     effect(async () => {
-      if (this.PersonalId()) {
+
+      if (this.edit()) {
         await this.load()
       }
     }, { injector: this.injector,
@@ -87,6 +88,7 @@ export class AccesoBotFormComponent {
      this.ngForm().form.reset()
       if (this.PersonalId() > 0) {
        let vals = await firstValueFrom(this.apiService.getAccesoBot(this.PersonalId()));
+       console.log(vals)
         //this.codigo.set(vals.codigo.split("@")[0])
         //this.updateImages()
         this.ngForm().form.patchValue(vals)
@@ -126,7 +128,7 @@ export class AccesoBotFormComponent {
       // evaluacion de imagenes
       newFileArray = [];
 
-      if(vals.files.length > 1 && vals.files.length < 3){
+      if(vals.files?.length > 1 && vals.files?.length < 3){
         for (const value of vals.files) {
           let imageNewDni = `api/acceso-bot/downloadImagenDni/${value.filename}`
           await this.decodeQrCodeFromUrl(imageNewDni)
@@ -142,23 +144,22 @@ export class AccesoBotFormComponent {
           throw new Error('No se encontró un código QR en la imagen.')
         }
         
-      }else if(vals.files.length ==  1){
+      }else if(vals.files?.length ==  1){
         throw new Error('Tiene que cargar los dos lados del DNI.')
       }
 
       //agregar o actualizar
-      if (this.PersonalId()) {
-          
-        //vals.Archivos = newFileArray
+      if (this.edit() ) 
         result = await firstValueFrom(this.apiService.updateAccess(vals))
-
-        }else{
-
-        result = firstValueFrom(this.apiService.addAccessBot(vals))
- 
-        }
-
-        this.ngForm().form.patchValue(result)
+      else
+        result = await firstValueFrom(this.apiService.addAccessBot(vals))
+        
+        this.updateImages()
+        this.ngForm().form.patchValue({
+          telefono: result.data.telefono,
+          codigo:result.data.codigo,
+        })
+        //this.ngForm().form.patchValue(result.data)
         this.ngForm().form.markAsUntouched()
         this.ngForm().form.markAsPristine()
 
@@ -186,11 +187,10 @@ export class AccesoBotFormComponent {
       // this.PersonalId.set(newPersonalId)
       this.PersonalId.set(newPersonalId)
       this.updateImages()
-      console.log("paso por aca es edit",this.edit())
       if(this.edit())
         this.ngForm().form.patchValue({ PersonalDocumentoNro: vals.PersonalDocumentoNro})
       else
-        this.ngForm().form.patchValue({nuevoCodigo:true })
+        this.ngForm().form.patchValue({PersonalDocumentoNro: vals.PersonalDocumentoNro,nuevoCodigo:true })
       
     }
     
