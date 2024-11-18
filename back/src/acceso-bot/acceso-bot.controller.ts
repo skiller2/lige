@@ -234,7 +234,7 @@ export class AccesoBotController extends BaseController {
             let numeroAleatorio
             let newArray = {...req.body}
             console.log(newArray)
-
+            //throw new ClientException(`test.`)
             //validaciones
             await this.FormValidations(req.body)
 
@@ -244,19 +244,15 @@ export class AccesoBotController extends BaseController {
                 newArray.codigo = numeroAleatorio
             }
            
-
+            await this.AccesoBotEditQuery(queryRunner,telefono,codigo,PersonalId,PersonalDocumentoNro,usuario,ip,fecha)
+            
             if (files.length > 0){
 
-                await this.QrValidate(files)
-
-                // Falta definir que estan ok los archivos y guardarlos en la tabla correspondiente
-                let isFrente = 12
-                await this.DocumentoImagenDocumento(queryRunner,files,newArray.PersonalId,isFrente)   
+                //await this.QrValidate(files)
+                await this.DocumentoImagenDocumento(queryRunner,files,newArray.PersonalId,newArray.esFrenteODorso)  
+               
 
             }
-
-            await this.AccesoBotEditQuery(queryRunner,telefono,codigo,PersonalId,PersonalDocumentoNro,usuario,ip,fecha)
-
 
             await queryRunner.commitTransaction()
             return this.jsonRes(newArray, res, 'Modificación  Exitosa');
@@ -277,7 +273,7 @@ export class AccesoBotController extends BaseController {
 
             const fecha = new Date()
             fecha.setHours(0, 0, 0, 0)
-
+            //throw new ClientException(`test.`)
             await queryRunner.startTransaction()
 
             let {files } = req.body
@@ -292,11 +288,10 @@ export class AccesoBotController extends BaseController {
 
             if (files.length > 0){
 
-                await this.QrValidate(files)
+                //await this.QrValidate(files)
 
                 // Falta definir que estan ok los archivos y guardarlos en la tabla correspondiente
-                let isFrente = 12
-                await this.DocumentoImagenDocumento(queryRunner,files,newArray.PersonalId,isFrente)   
+                await this.DocumentoImagenDocumento(queryRunner,files,newArray.PersonalId,newArray.esFrenteODorso) 
 
             }
 
@@ -340,6 +335,8 @@ export class AccesoBotController extends BaseController {
                     DocumentoImagenParametroDirectorioId ) 
                 VALUES ( @0,@1,@2,@3,@4,@5)`,[DocumentoImagenId,PersonalId,typefile,nameFile,isFrente,1])
 
+            
+            await FileUploadController.moveFile(file.filename, `${process.env.PATH_DNI}/${nameFile}`, process.env.PATH_DNI);   
         }
 
     }

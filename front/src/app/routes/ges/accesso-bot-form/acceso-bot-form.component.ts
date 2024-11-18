@@ -17,6 +17,7 @@ import { BrowserMultiFormatReader, BarcodeFormat } from '@zxing/browser';
 
 
 
+
 import { log } from '@delon/util';
 
 @Component({
@@ -24,7 +25,7 @@ import { log } from '@delon/util';
   standalone: true,
   imports: [
     SHARED_IMPORTS,
-    CommonModule,PersonalSearchComponent,NzFlexModule,NzUploadModule,FileUploadComponent],
+    CommonModule,PersonalSearchComponent,NzFlexModule,NzUploadModule,FileUploadComponent ],
   templateUrl: './acceso-bot-form.component.html',
   styleUrl: './acceso-bot-form.component.less'
 })
@@ -40,12 +41,13 @@ export class AccesoBotFormComponent {
   codigo = signal(0)
   dniDisabled = signal(true)
   formChange$ = new BehaviorSubject('')
-  //images =  signal<any[]>([])
-  images = signal<{ src: string; fallback: string }[]>([]);
+  private notification = inject(NzNotificationService)
+  images = signal<{ src: string; fallback: string }[]>([])
   files = signal([])
+  qrCodeResult = signal("")
+  dniFresteDorso = signal(0)
 
   async ngOnInit() {
-
     effect(async () => {
       if (this.PersonalId()) {
         await this.load()
@@ -56,26 +58,17 @@ export class AccesoBotFormComponent {
 
   }
 
-  qrCodeUrl = 'https://i.postimg.cc/L4YSs4p8/Screenshot-78.png';
-  qrCodeResult = signal("")
-
-  // constructor() {
-  //   this.decodeQrCodeFromUrl(this.qrCodeUrl);
-  // }
-
   async decodeQrCodeFromUrl(url: string): Promise<void> {
     const reader = new BrowserMultiFormatReader();
     try {
       const img = await this.loadImage(url);
       const result = await reader.decodeFromImageElement(img);
+      console.log("funciono")
       this.qrCodeResult.set(result.getText())
-      console.log('Contenido del QR:', this.qrCodeResult);
+      //console.log('Contenido del QR:', this.qrCodeResult);
+      this.dniFresteDorso.set(12)
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        console.error('No se encontró un código QR en la imagen.');
-      } else {
-        console.error('Error al leer el código QR:', error);
-      }
+      this.dniFresteDorso.set(0)
     }
   }
 
@@ -95,7 +88,7 @@ export class AccesoBotFormComponent {
       if (this.PersonalId() > 0) {
        let vals = await firstValueFrom(this.apiService.getAccesoBot(this.PersonalId()));
         //this.codigo.set(vals.codigo.split("@")[0])
-        this.updateImages()
+        //this.updateImages()
         this.ngForm().form.patchValue(vals)
         this.ngForm().form.markAsUntouched()
         this.ngForm().form.markAsPristine()
@@ -105,7 +98,7 @@ export class AccesoBotFormComponent {
    }
 
 
-  updateImages(): void {
+  async updateImages() {
 
     this.images.set([
       {
@@ -126,39 +119,62 @@ export class AccesoBotFormComponent {
     this.isLoading.set(true)
     let vals = this.ngForm().value
     let result
+    let newFileArray: any[] = [];
+    console.log("vals ", vals)
     try {
 
-        
-         if (this.PersonalId()) {
+      // evaluacion de imagenes
+      newFileArray = [];
+
+      if(vals.files.length > 1 && vals.files.length < 3){
+        for (const value of vals.files) {
+          let imageNewDni = `api/acceso-bot/downloadImagenDni/${value.filename}`
+          await this.decodeQrCodeFromUrl(imageNewDni)
+          value.esFrenteODorso = this.dniFresteDorso()
+          newFileArray.push({ ...value })
           
+        }
+
+        const cantidadFrenteODorso = newFileArray.filter((file: { filename: string; esFrenteODorso?: number }) => file.esFrenteODorso === 12).length
+        const existeFrenteODorso = cantidadFrenteODorso === 1
+
+        if (!existeFrenteODorso) {
+          throw new Error('No se encontró un código QR en la imagen.')
+        }
         
-        //  vals.Archivos = this.files
-        //  //vals.PersonalId = this.PersonalId()
-          //result = await firstValueFrom(this.apiService.updateAccess(vals))
-
-          }else{
-
-        //    result = firstValueFrom(this.apiService.addAccessBot(vals))
- 
-         }
-
-         //let imageUrlpath = await firstValueFrom(this.apiService.getUrlTest(vals.files[0].filename))
-         console.log("imageUrlpath ", vals.files[0].filename)
-         
-         let imageNewDni = `api/acceso-bot/downloadImagenDni/${vals.files[0].filename}`
-         console.log(".......... ",imageNewDni)
-         this.decodeQrCodeFromUrl(imageNewDni)
- 
-
-        // this.ngForm().form.patchValue(result)
-         this.ngForm().form.markAsUntouched()
-         this.ngForm().form.markAsPristine()
-      } catch (e) {
-          
+      }else if(vals.files.length ==  1){
+        throw new Error('Tiene que cargar los dos lados del DNI.')
       }
-      this.isLoading.set(false)
-  }
 
+      //agregar o actualizar
+      if (this.PersonalId()) {
+          
+        //vals.Archivos = newFileArray
+        result = await firstValueFrom(this.apiService.updateAccess(vals))
+
+        }else{
+
+        result = firstValueFrom(this.apiService.addAccessBot(vals))
+ 
+        }
+
+        this.ngForm().form.patchValue(result)
+        this.ngForm().form.markAsUntouched()
+        this.ngForm().form.markAsPristine()
+
+      } catch (error:any) {
+        this.createNotification('error', error.message);
+      }
+    this.isLoading.set(false)
+  } 
+
+  createNotification(type: string, message:any): void {
+    this.notification.create(
+      type,
+      '',
+      message
+    );
+  }
 
   async deleteAcceso() {
      await firstValueFrom(this.apiService.deleteAccess(this.PersonalId()))
@@ -170,10 +186,12 @@ export class AccesoBotFormComponent {
       // this.PersonalId.set(newPersonalId)
       this.PersonalId.set(newPersonalId)
       this.updateImages()
-      this.ngForm().form.patchValue({
-        PersonalDocumentoNro: vals.PersonalDocumentoNro
-      }
-      )
+      console.log("paso por aca es edit",this.edit())
+      if(this.edit())
+        this.ngForm().form.patchValue({ PersonalDocumentoNro: vals.PersonalDocumentoNro})
+      else
+        this.ngForm().form.patchValue({nuevoCodigo:true })
+      
     }
     
   }

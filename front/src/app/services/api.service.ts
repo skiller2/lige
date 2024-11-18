@@ -830,6 +830,7 @@ export class ApiService {
 
   }
 
+
   getAccesoBotDNI(PersonalId: number) {
 
     return this.http.get<ResponseJSON<any>>(`/api/acceso-bot/dni/${PersonalId}`).pipe(
