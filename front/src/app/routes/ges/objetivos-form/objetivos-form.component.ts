@@ -78,7 +78,6 @@ export class ObjetivosFormComponent {
   addNew = model()
   files = []
 
-
   
 
   private apiService = inject(ApiService)
@@ -90,6 +89,7 @@ export class ObjetivosFormComponent {
   formCli = this.fb.group({
     id: 0,
     ClienteId: 0,
+    clienteOld: 0,
     ClienteElementoDependienteId:0,
     ObjetivoId:0,
     Descripcion:"",
@@ -212,12 +212,13 @@ export class ObjetivosFormComponent {
       ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
       ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
       codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
-      GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId
+      GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
+      clienteOld:this.ClienteId()
     });
 
 
     this.formCli.get('codigo')?.disable();
-    this.formCli.get('ClienteId')?.disable();
+    //this.formCli.get('ClienteId')?.disable();
 
     //this.formCli.reset(infoObjetivo)
   }

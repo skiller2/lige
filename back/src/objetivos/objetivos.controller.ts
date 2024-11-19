@@ -540,6 +540,56 @@ export class ObjetivosController extends BaseController {
 
     }
 
+    async validateCliente(queryRunner:any,Obj:any){
+
+        //oobjetivo
+        //ElementoDependiente
+        // donse se guarda el archivo archivo
+
+        if(Obj.ClienteId !== Obj.clienteOld){
+
+            let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT ClienteElementoDependienteUltNro AS ClienteElementoDependienteUltNro FROM Cliente WHERE ClienteId = @0`,[Number(Obj.ClienteId)])
+            let { ClienteElementoDependienteUltNro } = infoMaxClienteElementoDependiente[0]
+            ClienteElementoDependienteUltNro = ClienteElementoDependienteUltNro == null ? 1 :ClienteElementoDependienteUltNro
+
+            //ClienteElementoDependienteDomicilio
+            await queryRunner.query(`UPDATE ClienteElementoDependienteDomicilio SET ClienteId = @3  WHERE  ClienteId = @0 AND ClienteElementoDependienteId = @`,
+                [Obj.clienteOld,Obj.ClienteElementoDependienteId,Obj.ClienteId])
+            
+            //ClienteElementoDependienteContrato
+            await queryRunner.query(`UPDATE ClienteElementoDependienteContrato SET ClienteId = @3  WHERE  ClienteId = @0 AND ClienteElementoDependienteId = @`,
+                    [Obj.clienteOld,Obj.ClienteElementoDependienteId,Obj.ClienteId])
+
+            //ClienteEleDepRubro
+             await queryRunner.query(`UPDATE ClienteEleDepRubro SET ClienteId = @3  WHERE  ClienteId = @0 AND ClienteElementoDependienteId = @`,
+                [Obj.clienteOld,Obj.ClienteElementoDependienteId,Obj.ClienteId])
+
+            //Cliente Elemento Dependiente
+            await this.deleteClienteElementoDependienteQuery(queryRunner,Number(Obj.ClienteId),Number(Obj.ClienteElementoDependienteId))
+            let ClienteElementoDependienteDomicilioId = 1
+            await this.insertClienteElementoDependienteSql(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.Descripcion,Obj.SucursalId,ClienteElementoDependienteDomicilioId)
+   
+            //objetivo 
+
+            // await this.deleteObjetivoQuery(queryRunner,Number(Obj.ObjetivoId),Number(Obj.ClienteId))
+            // await this.insertObjetivoSql(queryRunner,Number(Obj.ClienteId),Obj.Descripcion,ClienteElementoDependienteUltNro,Obj.SucursalId)
+
+            await queryRunner.query(` UPDATE Objetivo SET ClienteId = @0, ObjetivoDescripcion = @1, ClienteElementoDependienteId = @2, ObjetivoSucursalUltNro = @3 
+                WHERE ObjetivoID = @4 `,
+                 [Obj.ClienteId, Obj.ObjetivoDescripcion, ClienteElementoDependienteUltNro, Obj.ObjetivoSucursalUltNro, Obj.ObjetivoID]);
+
+            //objetivopersonal jerarquico
+            //se modifico objetivo no es necesario modificar el personal jerarquico
+        
+            // cliente
+            await this.updateCliente(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro)
+
+         
+        }
+        
+
+    }
+
     async grupoActividad (queryRunner:any,infoActividad:any,GrupoActividadObjetivoObjetivoId:any,GrupoActividadObjetivoPuesto:any, GrupoActividadObjetivoUsuarioId:any){
 
         const now = new Date();
@@ -607,6 +657,8 @@ export class ObjetivosController extends BaseController {
             let newObj = []
 
             console.log("voy a hacer update ", Obj)
+
+           //await this.validateCliente(queryRunner,Obj)
 
             //throw new ClientException(`test.`)
             //validaciones
