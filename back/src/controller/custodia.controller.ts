@@ -1144,7 +1144,7 @@ export class CustodiaController extends BaseController {
                 UNION ALL
                 SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
                 obj.objetivo_custodia_id, obj.cliente_id, TRIM(cli.ClienteApellidoNombre) cliente,
-                obj.fecha_inicio, obj.fecha_fin, obj.estado,
+                obj.fecha_inicio, obj.fecha_fin, obj.estado, obj.fecha_liquidacion,
                 regv.importe_vehiculo AS importe, 'Vehiculo' AS tipo_importe,  '' AS categoria
                 FROM dbo.Personal AS per
                 INNER JOIN lige.dbo.regvehiculocustodia regv ON per.PersonalId= regv.personal_id
