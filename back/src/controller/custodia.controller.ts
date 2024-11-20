@@ -652,8 +652,8 @@ export class CustodiaController extends BaseController {
             await queryRunner.query(`DELETE lige.dbo.regvehiculocustodia WHERE objetivo_custodia_id = @0`,[objetivoCustodiaId])
             for (const obj of objetivoCustodia.vehiculos) {
                 if (obj.patente) {
-                    if (fecha_liquidacion && (!obj.importe  || !obj.duenoId  || obj.peaje === null)) {
-                        errores.push(`Los campos relacionados a la Patente ${obj.patente} NO pueden estar vacio.`)
+                    if (fecha_liquidacion && (!obj.importe  || !obj.duenoId )) {
+                        errores.push(`Los campos relacionados la vehículo ${obj.patente} NO pueden estar vacio.`)
                         continue
                     }
                     // if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
