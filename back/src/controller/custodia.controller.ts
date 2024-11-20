@@ -370,8 +370,7 @@ const estados : any[] = [
     { value: 1, label: 'Finalizado' },
     { value: 2, label: 'Cancelado' },
     { value: 3, label: 'A facturar' },
-    { value: 4, label: 'Facturado' },
-    { value: 5, label: 'Fecha de Liquidacion' },
+    { value: 4, label: 'Facturado' }
 ]// value = tipo , label = descripcion
 
 export class CustodiaController extends BaseController {
@@ -471,7 +470,7 @@ export class CustodiaController extends BaseController {
             JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
             LEFT JOIN lige.dbo.regvehiculocustodia regveh ON regveh.objetivo_custodia_id = obj.objetivo_custodia_id
             LEFT JOIN lige.dbo.regpersonalcustodia regper ON regper.objetivo_custodia_id = obj.objetivo_custodia_id
-            WHERE (obj.fecha_liquidacion IS NULL OR obj.estado != 4 OR (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1))
+            WHERE ((obj.fecha_liquidacion IS NULL AND obj.estado IN (0)) OR (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1))
             AND (${search}) AND (${filterSql}) 
             ${orderBy}`, [year, month])
     }
@@ -609,7 +608,7 @@ export class CustodiaController extends BaseController {
 
             const objetivoCustodiaId = await this.getProxNumero(queryRunner, `objetivocustodia`, usuario, ip)
 
-            const fecha_liquidacion = (req.body.estado == 5 || this.valByEstado(req.body.estado))? new Date() : null
+            const fecha_liquidacion = (this.valByEstado(req.body.estado)) ? new Date() : null
 
             const objetivoCustodia = {...req.body, responsableId, id: objetivoCustodiaId, fecha_liquidacion}
             
@@ -818,7 +817,7 @@ export class CustodiaController extends BaseController {
             for (const obj of objetivoCustodia.personal) {
                 if (obj.personalId) {
                     //Validaciones para fecha_liquidacion
-                    if ((objetivoCustodia.estado == 5 || (this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion)) && !obj.importe ) {
+                    if (((this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion)) && !obj.importe ) {
                         errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
                         break
                     }
@@ -845,7 +844,7 @@ export class CustodiaController extends BaseController {
             for (const obj of objetivoCustodia.vehiculos) {
                 if (obj.patente) {
                     //Validaciones para fecha_liquidacion
-                    if ((objetivoCustodia.estado == 5 || (this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion)) && (!obj.importe  || !obj.duenoId  || obj.peaje === null)) {
+                    if (((this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion)) && (!obj.importe  || !obj.duenoId  || obj.peaje === null)) {
                         errores.push(`Los campos relacionados a la Patente ${obj.patente} NO pueden estar vacio.`)
                         continue
                     }
@@ -872,7 +871,7 @@ export class CustodiaController extends BaseController {
             if (errores.length)
                 throw new ClientException(errores.join(`\n`))
 
-            let fecha_liquidacion = ((objetivoCustodia.estado == 5 || (this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion))? new Date() : null)
+            let fecha_liquidacion = (((this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion))? new Date() : null)
 
             await this.updateObjetivoCustodiaQuery( queryRunner, {...objetivoCustodia, id: custodiaId, fecha_liquidacion }, usuario, ip)
 
@@ -1123,7 +1122,7 @@ export class CustodiaController extends BaseController {
                 INNER JOIN lige.dbo.regpersonalcustodia regp ON per.PersonalId= regp.personal_id
                 INNER JOIN lige.dbo.objetivocustodia obj ON regp.objetivo_custodia_id= obj.objetivo_custodia_id
                 INNER JOIN dbo.Cliente cli ON cli.ClienteId = obj.cliente_id
-                WHERE (DATEPART(YEAR,obj.fecha_inicio)=@0 AND  DATEPART(MONTH, obj.fecha_inicio)=@1) AND (${filterSql}) 
+                WHERE (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1) AND (${filterSql}) 
                 ${orderBy}
                 UNION ALL
                 SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
@@ -1134,7 +1133,7 @@ export class CustodiaController extends BaseController {
                 INNER JOIN lige.dbo.regvehiculocustodia regv ON per.PersonalId= regv.personal_id
                 INNER JOIN lige.dbo.objetivocustodia obj ON regv.objetivo_custodia_id= obj.objetivo_custodia_id
                 INNER JOIN dbo.Cliente cli ON cli.ClienteId = obj.cliente_id
-                WHERE (DATEPART(YEAR,obj.fecha_inicio)=@0 AND  DATEPART(MONTH, obj.fecha_inicio)=@1) AND (${filterSql}) 
+                WHERE (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1) AND (${filterSql}) 
                 ${orderBy}
                 `, [year, month]
             )

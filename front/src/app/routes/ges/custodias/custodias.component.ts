@@ -132,6 +132,7 @@ export class CustodiaComponent {
             columnTotal('impo_horas_exced', this.angularGrid)
             columnTotal('cant_km_exced', this.angularGrid)
             columnTotal('impo_km_exced', this.angularGrid)
+            columnTotal('cant_modulos', this.angularGrid)
         })
         if (this.apiService.isMobile())
             this.angularGrid.gridService.hideColumnByIds([])
