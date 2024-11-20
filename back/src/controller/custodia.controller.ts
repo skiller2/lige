@@ -779,7 +779,6 @@ export class CustodiaController extends BaseController {
             let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, custodiaId)
             infoCustodia = infoCustodia[0]
             
-console.log('fecha_liquidacion0',infoCustodia.fecha_liquidacion)
 
             delete infoCustodia.id
             delete infoCustodia.responsable
@@ -1134,7 +1133,7 @@ console.log('fecha_liquidacion0',infoCustodia.fecha_liquidacion)
             let result = await queryRunner.query(`
                 SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
                 obj.objetivo_custodia_id, obj.cliente_id, TRIM(cli.ClienteApellidoNombre) cliente,
-                obj.fecha_inicio, obj.fecha_fin, obj.estado,
+                obj.fecha_inicio, obj.fecha_fin, obj.estado, obj.fecha_liquidacion,
                 regp.importe_personal AS importe, 'Personal' AS tipo_importe, '' AS categoria
                 FROM dbo.Personal AS per
                 INNER JOIN lige.dbo.regpersonalcustodia regp ON per.PersonalId= regp.personal_id
