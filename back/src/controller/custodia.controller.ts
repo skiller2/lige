@@ -788,7 +788,7 @@ export class CustodiaController extends BaseController {
             const valCustodiaForm = this.valCustodiaForm(objetivoCustodia, queryRunner)
             if (valCustodiaForm instanceof ClientException)
                 throw valCustodiaForm
-
+/*
             if (objetivoCustodia.fechaFinal && objetivoCustodia.fechaFinal != infoCustodia.fechaFinal) {
                 const fecha = new Date(objetivoCustodia.fechaFinal) 
                 const periodo = await queryRunner.query(`
@@ -799,7 +799,7 @@ export class CustodiaController extends BaseController {
                     errores.push(`La Fecha Final de la custodia no puede ser menor al de un período ya cerrado.`)
                 }
             }
-
+*/
             if (infoCustodia.fecha_liquidacion) {
                 var listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, custodiaId)
                 var listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
