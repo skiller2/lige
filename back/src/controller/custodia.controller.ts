@@ -402,7 +402,7 @@ export class CustodiaController extends BaseController {
             INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, desc_requirente,
                 descripcion, fecha_inicio, origen, fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced,
                 impo_horas_exced, cant_km_exced, impo_km_exced, impo_peaje, impo_facturar, desc_facturacion, num_factura, estado,
-                , fecha_liquidacion, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
+                fecha_liquidacion, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
             VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @22, @23, @21, @22, @23)`, 
             [objetivo_custodia_id, responsable_id, cliente_id, desc_requirente, descripcion, fecha_inicio, origen, 
                 fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced, impo_horas_exced, 
@@ -497,8 +497,10 @@ export class CustodiaController extends BaseController {
         const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
 
-        const fecha_liquidacion = ((estado == 1 || estado == 3 || estado == 4) && objetivoCustodia.fecha_liquidacion == null) ? fechaActual : objetivoCustodia.fecha_liquidacion
-        
+
+        let fecha_liquidacion = ((estado == 1 || estado == 3 || estado == 4) && objetivoCustodia.fecha_liquidacion == null) ? fechaActual : objetivoCustodia.fecha_liquidacion
+        if (estado != 1 && estado != 3 && estado != 4)
+            fecha_liquidacion = null
         return queryRunner.query(`
         UPDATE lige.dbo.objetivocustodia 
         SET cliente_id = @1, desc_requirente = @2, descripcion = @3, fecha_inicio = @4, origen = @5, 
@@ -775,7 +777,10 @@ export class CustodiaController extends BaseController {
             const objetivoCustodia = { ...req.body }
 
             let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, custodiaId)
-            infoCustodia= infoCustodia[0]
+            infoCustodia = infoCustodia[0]
+            
+console.log('fecha_liquidacion0',infoCustodia.fecha_liquidacion)
+
             delete infoCustodia.id
             delete infoCustodia.responsable
             
@@ -873,7 +878,7 @@ export class CustodiaController extends BaseController {
             if (errores.length)
                 throw new ClientException(errores.join(`\n`))
 
-
+            objetivoCustodia.fecha_liquidacion = infoCustodia.fecha_liquidacion
             await this.updateObjetivoCustodiaQuery( queryRunner, {...objetivoCustodia, id: custodiaId }, usuario, ip)
 
 //            throw new ClientException('DEBUG')
@@ -918,7 +923,7 @@ export class CustodiaController extends BaseController {
             errores.push(`Los campos pares Cant. e Importe de Km Excedentes deben de llenarse al mismo tiempo.`)
         }
         //En caso de FINALIZAR custodia verificar los campos
-
+/*
         switch (custodiaForm.estado) {
             case 0:
             break;
@@ -929,7 +934,7 @@ export class CustodiaController extends BaseController {
             case 0:
             break;
         }
-
+*/
         if(this.valByEstado(custodiaForm.estado)){ 
             if (!custodiaForm.facturacion || !custodiaForm.fechaFinal || !custodiaForm.destino){
                 errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios.`)
