@@ -496,7 +496,9 @@ export class CustodiaController extends BaseController {
         const desc_facturacion = objetivoCustodia.desc_facturacion? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado? objetivoCustodia.estado : 0
         const fechaActual = new Date()
-        const fecha_liquidacion = objetivoCustodia.fecha_liquidacion? objetivoCustodia.fecha_liquidacion.setHours(0, 0, 0, 0) : null
+
+        const fecha_liquidacion = ((estado == 1 || estado == 3 || estado == 4) && objetivoCustodia.fecha_liquidacion == null) ? fechaActual : objetivoCustodia.fecha_liquidacion
+        
         return queryRunner.query(`
         UPDATE lige.dbo.objetivocustodia 
         SET cliente_id = @1, desc_requirente = @2, descripcion = @3, fecha_inicio = @4, origen = @5, 
@@ -871,9 +873,8 @@ export class CustodiaController extends BaseController {
             if (errores.length)
                 throw new ClientException(errores.join(`\n`))
 
-            let fecha_liquidacion = (((this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion))? new Date() : null)
 
-            await this.updateObjetivoCustodiaQuery( queryRunner, {...objetivoCustodia, id: custodiaId, fecha_liquidacion }, usuario, ip)
+            await this.updateObjetivoCustodiaQuery( queryRunner, {...objetivoCustodia, id: custodiaId }, usuario, ip)
 
 //            throw new ClientException('DEBUG')
             
@@ -917,6 +918,18 @@ export class CustodiaController extends BaseController {
             errores.push(`Los campos pares Cant. e Importe de Km Excedentes deben de llenarse al mismo tiempo.`)
         }
         //En caso de FINALIZAR custodia verificar los campos
+
+        switch (custodiaForm.estado) {
+            case 0:
+            break;
+            case 0:
+            break;
+            case 0:
+            break;
+            case 0:
+            break;
+        }
+
         if(this.valByEstado(custodiaForm.estado)){ 
             if (!custodiaForm.facturacion || !custodiaForm.fechaFinal || !custodiaForm.destino){
                 errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios.`)
