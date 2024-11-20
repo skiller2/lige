@@ -190,7 +190,7 @@ const columnsObjCustodia: any[] = [
         sortable: true,
         searchHidden: false,
         hidden: false,
-        maxWidth: 120,
+        minWidth: 110,
     },
     {
         id:'estado' , name:'Estado' , field:'estado',

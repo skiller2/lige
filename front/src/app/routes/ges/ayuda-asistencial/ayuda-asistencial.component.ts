@@ -35,6 +35,7 @@ export class AyudaAsistencialComponent {
     loadingApr = signal(false)
     loadingCuo = signal(false)
     refresh = signal(0)
+    rowsError = signal<number[]>([])
     visibleDrawer : boolean = false
     selectedPeriod = { year: 0, month: 0 };
     angularGrid!: AngularGridInstance;
@@ -118,6 +119,8 @@ export class AyudaAsistencialComponent {
         this.gridOptions.rowSelectionOptions = {
             selectActiveRow: false
         }
+        this.gridOptions.cellHighlightCssClass = 'changed'
+        this.gridOptions.enableCellNavigation = true
 
         this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
             editCommand.execute();
@@ -198,6 +201,7 @@ export class AyudaAsistencialComponent {
 
     async rechazarReg(){
         this.loadingRec.set(true)
+        this.rowsError.set([])
         const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
         // console.log(ids,this.rows);
         try {
@@ -205,15 +209,16 @@ export class AyudaAsistencialComponent {
             this.formChange('')
         } catch (error:any) {
             let rows : any[] = error.error.data
-            if (rows.length) {
-                // this.angularGrid.gridService.highlightRow(error.error.data, 10000)
-            }
+            // console.log('ERROR:',rows)
+            this.rowsError.set(rows)
         }
+        this.changeBackgroundColor()
         this.loadingRec.set(false)
     }
 
     async aprobarReg(){
         this.loadingApr.set(true)
+        this.rowsError.set([])
         const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
         // console.log(ids,this.rows);
         try {
@@ -221,10 +226,10 @@ export class AyudaAsistencialComponent {
             this.formChange('')
         } catch (error:any) {
             let rows : any[] = error.error.data
-            if (rows.length) {
-                // this.angularGrid.gridService.highlightRow(error.error.data, 10000)
-            }
+            // console.log('ERROR:',rows)
+            this.rowsError.set(rows)
         }
+        this.changeBackgroundColor()
         this.loadingApr.set(false)
     }
 
@@ -244,5 +249,44 @@ export class AyudaAsistencialComponent {
     openDrawer(): void {
         this.visibleDrawer = true
         this.tituloDrawer = "Alta"
-      }
+    }
+
+    changeBackgroundColor() {
+        this.angularGrid.dataView.getItemMetadata = this.updateItemMetadata(this.angularGrid.dataView.getItemMetadata);
+        
+        const selectedRows = this.angularGrid.slickGrid.getSelectedRows();
+        const rowsError = this.rowsError()
+        const newSelectedRows = selectedRows.filter(num => !rowsError.includes(num))
+        this.angularGrid.slickGrid.setSelectedRows(newSelectedRows);
+
+        this.gridObj.invalidate();
+        this.gridObj.render();
+    }
+    
+    updateItemMetadata(previousItemMetadata: any) {
+        const newCssClass = 'element-add-no-complete';
+    
+        return (rowNumber: number) => {
+          const item = this.angularGrid.dataView.getItem(rowNumber);
+          
+          let meta = {
+            cssClasses: ''
+          };
+          if (typeof previousItemMetadata === 'object') {
+            meta = previousItemMetadata(rowNumber);
+          }
+    
+          if (meta && item) {
+            const row = this.rowsError();
+            if (row.find((num) => num == rowNumber)) {
+              meta.cssClasses = (meta.cssClasses || '') + ' ' + newCssClass;
+            }else{
+                meta.cssClasses = ''
+            }
+          }
+    
+          return meta;
+        };
+    }
+
 }
