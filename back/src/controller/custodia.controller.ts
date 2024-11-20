@@ -424,7 +424,7 @@ export class CustodiaController extends BaseController {
     }
 
     async addRegistroVehiculoCustodiaQuery(queryRunner: any, objetivo_custodia_id:number, infoVehiculo:any, usuario:any, ip:any){
-        const patente = infoVehiculo.patente
+        const patente = String(infoVehiculo.patente)
         const personal_id = infoVehiculo.duenoId
         const importe_vehiculo = infoVehiculo.importe? infoVehiculo.importe : null
         const peaje_vehiculo = infoVehiculo.peaje? infoVehiculo.peaje : null
@@ -434,7 +434,7 @@ export class CustodiaController extends BaseController {
             aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod
         )
         VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @5, @6, @7)`, 
-        [patente, objetivo_custodia_id, personal_id, importe_vehiculo, peaje_vehiculo, usuario, ip, fechaActual])
+        [patente.toUpperCase(), objetivo_custodia_id, personal_id, importe_vehiculo, peaje_vehiculo, usuario, ip, fechaActual])
     }
 
     async addRegistroArmaCustodiaQuery(queryRunner: any, arma_id:any, objetivoCustodiaId: any){
