@@ -623,7 +623,7 @@ export class CustodiaController extends BaseController {
                 return seen.hasOwnProperty(currentObject.personalId)
                     || (seen[currentObject.personalId] = false);
             });
-            if (hasDupPersonal.length>0)
+            if (hasDupPersonal)
                 errores.push(`Hay personal duplicado`)
 
             await queryRunner.query(`DELETE FROM lige.dbo.regpersonalcustodia WHERE objetivo_custodia_id = @0`, [objetivoCustodiaId])
@@ -646,7 +646,7 @@ export class CustodiaController extends BaseController {
                 return seen.hasOwnProperty(currentObject.patente)
                     || (seen[currentObject.patente] = false);
             });
-            if (hasDupVehiculos.length>0)
+            if (hasDupVehiculos)
                 errores.push(`Hay vehículos duplicados`)
 
             await queryRunner.query(`DELETE lige.dbo.regvehiculocustodia WHERE objetivo_custodia_id = @0`,[objetivoCustodiaId])
@@ -656,20 +656,18 @@ export class CustodiaController extends BaseController {
                         errores.push(`Los campos relacionados la vehículo ${obj.patente} NO pueden estar vacio.`)
                         continue
                     }
-                    // if(this.valByEstado(objetivoCustodia.estado) && !obj.importe)
-                    //     errores.push(`El campo Importe de la patente ${obj.patente} NO pueden estar vacio.`)
                     if(!obj.duenoId)
-                        errores.push(`El campo Dueño de la patente ${obj.patente} NO pueden estar vacio.`)
+                        errores.push(`Debe completar el campo Dueño del vehículo ${obj.patente}`)
 
                     await this.addRegistroVehiculoCustodiaQuery(queryRunner, objetivoCustodiaId, obj, usuario, ip)
                 }
             }
 
             if (objetivoCustodia.vehiculos.length == 0)
-                errores.push(`Debe de haber por lo menos un vehículo (Patente y Dueño) por custodia.`)
+                errores.push(`Debe haber al menos un vehículo por custodia.`)
 
             if (objetivoCustodia.personal.length == 0)
-                errores.push(`Debe de haber por lo menos una persona por custodia.`)
+                errores.push(`Debe de haber al menos una persona por custodia.`)
 
             if (errores.length)
                 throw new ClientException(errores.join(`\n`))
@@ -816,7 +814,7 @@ export class CustodiaController extends BaseController {
                 return seen.hasOwnProperty(currentObject.personalId)
                     || (seen[currentObject.personalId] = false);
             });
-            if (hasDupPersonal.length>0)
+            if (hasDupPersonal)
                 errores.push(`Hay personal duplicado`)
 
             await queryRunner.query(`DELETE FROM lige.dbo.regpersonalcustodia WHERE objetivo_custodia_id = @0`, [custodiaId])
@@ -843,14 +841,13 @@ export class CustodiaController extends BaseController {
                 return seen.hasOwnProperty(currentObject.patente)
                     || (seen[currentObject.patente] = false);
             });
-            if (hasDupVehiculos.length>0)
+            if (hasDupVehiculos)
                 errores.push(`Hay vehículos duplicados`)
-
             await queryRunner.query(`DELETE lige.dbo.regvehiculocustodia WHERE objetivo_custodia_id = @0`,[custodiaId])
             for (const obj of objetivoCustodia.vehiculos) {
                 if (obj.patente) {
                     //Validaciones para fecha_liquidacion
-                    if (((this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion)) && (!obj.importe  || !obj.duenoId  || obj.peaje === null)) {
+                    if (((this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion)) && (!obj.importe  || !obj.duenoId )) {
                         errores.push(`Los campos relacionados a la Patente ${obj.patente} NO pueden estar vacio.`)
                         continue
                     }
@@ -873,7 +870,7 @@ export class CustodiaController extends BaseController {
 
             if (objetivoCustodia.personal.length == 0)
                 errores.push(`Debe de haber por lo menos una persona por custodia.`)
-
+console.log('errores.length',errores)
             if (errores.length)
                 throw new ClientException(errores.join(`\n`))
 
