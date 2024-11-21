@@ -380,7 +380,7 @@ export class LiquidacionesBancoController extends BaseController {
               
       WHERE (${filterSql}) 
       ${orderBy}
-      `, [stmactual,anio, mes])
+      `, [stmactual, anio, mes])
 
   }
 
@@ -535,7 +535,7 @@ export class LiquidacionesBancoController extends BaseController {
       const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
 
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
-          throw new ClientException(`Los recibos para este periodo ya se generaron`)
+        throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
       const liqmvbanco = await queryRunner.query('SELECT mv.*, ban.BancoDescripcion, per.anio, per.mes FROM lige.dbo.liqmvbanco mv JOIN Banco ban ON ban.BancoId = mv.banco_id JOIN lige.dbo.liqmaperiodo per ON per.periodo_id=mv.periodo_id', [])
 
@@ -555,7 +555,7 @@ export class LiquidacionesBancoController extends BaseController {
             row.periodo_id,
               tipo_movimiento_id,
               fechaActual,
-            `Banco: ${row.BancoDescripcion.trim()}, Envio: ${row.envio_nro}, CBU ${LiquidacionesBancoController.isEmpty(row.cbu)?'No especificado':row.cbu}`,
+            `Banco: ${row.BancoDescripcion.trim()}, Envio: ${row.envio_nro}, CBU ${LiquidacionesBancoController.isEmpty(row.cbu) ? 'No especificado' : row.cbu}`,
               null,
             row.persona_id,
             row.importe,
@@ -594,7 +594,7 @@ export class LiquidacionesBancoController extends BaseController {
             row.periodo_id,
               tipo_movimiento_id,
               fechaActual,
-            `Banco: ${row.BancoDescripcion.trim()}, Envio: ${row.envio_nro}, CBU ${LiquidacionesBancoController.isEmpty(row.cbu)?'No especificado':row.cbu}`,
+            `Banco: ${row.BancoDescripcion.trim()}, Envio: ${row.envio_nro}, CBU ${LiquidacionesBancoController.isEmpty(row.cbu) ? 'No especificado' : row.cbu}`,
               null,
             row.persona_id,
             row.importe,
@@ -604,7 +604,7 @@ export class LiquidacionesBancoController extends BaseController {
             ])
 
 
-       }
+        }
 
       }
 
@@ -633,7 +633,7 @@ export class LiquidacionesBancoController extends BaseController {
       let options: any = getOptionsFromRequest(req);
       const BancoId = Number(req.body.BancoId)
       const tabIndex = Number(req.body.tabIndex) //0-banco 1-adelanto
-      const isTest = req.body.isTest 
+      const isTest = req.body.isTest
       let fileTest = isTest ? "-TEST" : ""
       const formattedMonth = String(periodo.month).padStart(2, "0");
       let fileName = `${periodo.year}-${formattedMonth}-banco-${(new Date()).toISOString()}.xlsx`
@@ -643,7 +643,7 @@ export class LiquidacionesBancoController extends BaseController {
       let fechaActual = new Date()
       let ip = this.getRemoteAddress(req)
       let usuario = res.locals.userName
-      
+
 
       options.filtros.push({ index: 'BancoId', condition: 'AND', operador: '=', valor: [BancoId] })
 
@@ -688,7 +688,7 @@ export class LiquidacionesBancoController extends BaseController {
           VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9,
           @10, @11, @12)`,
           [
-            BancoId, periodo_id, nro_envio, row.PersonalId, row.importe, row.PersonalBancoCBU, row.ind_imputacion, fechaActual, row.tipocuenta_id,row.clave_id,
+            BancoId, periodo_id, nro_envio, row.PersonalId, row.importe, row.PersonalBancoCBU, row.ind_imputacion, fechaActual, row.tipocuenta_id, row.clave_id,
             usuario, ip, fechaActual
           ]
         );
@@ -759,7 +759,7 @@ export class LiquidacionesBancoController extends BaseController {
         const file = createWriteStream(tmpfilename, {
           flags: 'a'
         })
-  
+
         fileName = `${periodo.year}-${formattedMonth}-banco-${(new Date()).toISOString()}${fileTest}.txt`
         fileName = `${CUITEmpresa.toString().substring(0, 11)}500000001${FechaEnvio.substring(0, 8)}${nro_envio.toString().padStart(5, '0')}${fileTest}.txt`
 
@@ -767,18 +767,18 @@ export class LiquidacionesBancoController extends BaseController {
         console.log("registros ", banco)
         for (const row of banco) {
           //const PersonalApellido = row.PersonalApellidoNombre.split(",")[0].split(" ")[0].replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
-          const PersonalApellidoNombre = row.PersonalApellidoNombre.replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").slice(0, 64); 
+          const PersonalApellidoNombre = row.PersonalApellidoNombre.replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").slice(0, 64).trim();
 
-          file.write(format("\r\n", 
+          file.write(format("%s\t%s\t%s\t%s\t%s\t%s\t%s\r\n",
             "",// legajo no es obligatorio
-            row.PersonalCUITCUILCUIT.toString().substring(0, 11), 
-            PersonalApellidoNombre.toString(), 
+            row.PersonalCUITCUILCUIT.toString().substring(0, 11),
+            PersonalApellidoNombre.toString(),
             "", // Se informa el cbu por lo que cuenta se queda en blanco
-            row.PersonalBancoCBU.toString(), 
+            row.PersonalBancoCBU.toString(),
             row.importe.toFixed(2),
             "" // comprobante no es obligatorio
-            ))
-          
+          ))
+
           total += Math.trunc(row.importe * 100)
         }
         file.end()
@@ -788,9 +788,9 @@ export class LiquidacionesBancoController extends BaseController {
 
       res.download(tmpfilename, fileName, async (msg) => {
 
-        if(isTest)
+        if (isTest)
           await this.rollbackTransaction(queryRunner)
-        else  
+        else
           await queryRunner.commitTransaction();
 
       });

@@ -374,13 +374,13 @@ const estados: any[] = [
 ]// value = tipo , label = descripcion
 
 export class CustodiaController extends BaseController {
-    static async listCustodiasPendientes(anio:number,mes:number) {
+    static async listCustodiasPendientes(anio: number, mes: number) {
         const queryRunner = dataSource.createQueryRunner();
         return queryRunner.query(`SELECT c.fecha_inicio, c.responsable_id, p.PersonalId, CONCAT (TRIM(p.PersonalApellido),', ',TRIM(p.PersonalNombre)) ResponsableDetalle
             FROM lige.dbo.objetivocustodia c 
             JOIN Personal p ON p.PersonalId = c.responsable_id 
             WHERE c.fecha_liquidacion IS NULL AND c.estado = 0
-        `,[anio,mes])
+        `, [anio, mes])
     }
 
     async addObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia: any, usuario: any, ip: any) {
@@ -405,7 +405,8 @@ export class CustodiaController extends BaseController {
         const desc_facturacion = objetivoCustodia.desc_facturacion ? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado ? objetivoCustodia.estado : 0
         const fechaActual = new Date()
-        const fecha_liquidacion = objetivoCustodia.fecha_liquidacion ? objetivoCustodia.fecha_liquidacion.setHours(0, 0, 0, 0) : null
+        const fecha_liquidacion = (this.valByEstado(estado)) ? new Date() : null
+
         return queryRunner.query(`
             INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, desc_requirente,
                 descripcion, fecha_inicio, origen, fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced,
@@ -614,6 +615,9 @@ export class CustodiaController extends BaseController {
             if (!responsableId)
                 throw new ClientException(`No se a encontrado al personal responsable.`)
 
+
+
+
             const valCustodiaForm = this.valCustodiaForm(req.body, queryRunner)
             if (valCustodiaForm instanceof ClientException)
                 throw valCustodiaForm
@@ -624,19 +628,34 @@ export class CustodiaController extends BaseController {
 
             const objetivoCustodia = { ...req.body, responsableId, id: objetivoCustodiaId, fecha_liquidacion }
 
+
+            const periodo = await queryRunner.query(`
+                SELECT TOP 1 *, CAST (EOMONTH(CONCAT(anio,'-',mes,'-',1)) AS DATETIME)+'23:59:59' AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC
+            `)
+
+            if (new Date(objetivoCustodia.fechaInicio) <= new Date(periodo[0].FechaCierre))
+                errores.push(`La Fecha inicio de la custodia no puede estar comprendida en un período ya cerrado`)
+
+
+
+
             await this.addObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
             var seen = {};
             var hasDupPersonal = objetivoCustodia.personal.some(function (currentObject) {
+                if (!currentObject.personalId) return false
                 return seen.hasOwnProperty(currentObject.personalId)
                     || (seen[currentObject.personalId] = false);
             });
             if (hasDupPersonal)
                 errores.push(`Hay personal duplicado`)
 
+
             await queryRunner.query(`DELETE FROM lige.dbo.regpersonalcustodia WHERE objetivo_custodia_id = @0`, [objetivoCustodiaId])
+            let errorCantPersonal:boolean = true
             for (const obj of objetivoCustodia.personal) {
                 if (obj.personalId) {
+                    errorCantPersonal = false
                     //Validaciones para fecha_liquidacion
                     if (fecha_liquidacion && !obj.importe) {
                         errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
@@ -651,6 +670,7 @@ export class CustodiaController extends BaseController {
             }
 
             var hasDupVehiculos = objetivoCustodia.vehiculos.some(function (currentObject) {
+                if (!currentObject.patente) return false
                 return seen.hasOwnProperty(currentObject.patente)
                     || (seen[currentObject.patente] = false);
             });
@@ -658,23 +678,27 @@ export class CustodiaController extends BaseController {
                 errores.push(`Hay vehículos duplicados`)
 
             await queryRunner.query(`DELETE lige.dbo.regvehiculocustodia WHERE objetivo_custodia_id = @0`, [objetivoCustodiaId])
+            let errorCantVehiculo:boolean = true
             for (const obj of objetivoCustodia.vehiculos) {
                 if (obj.patente) {
+                    errorCantVehiculo = false
                     if (fecha_liquidacion && (!obj.importe || !obj.duenoId)) {
-                        errores.push(`Los campos relacionados la vehículo ${obj.patente} NO pueden estar vacio.`)
+                        errores.push(`Los campos relacionados al vehículo ${obj.patente} NO pueden estar vacíos.`)
                         continue
                     }
-                    if (!obj.duenoId)
+                    if (!obj.duenoId){
                         errores.push(`Debe completar el campo Dueño del vehículo ${obj.patente}`)
+                        continue
+                    }
 
                     await this.addRegistroVehiculoCustodiaQuery(queryRunner, objetivoCustodiaId, obj, usuario, ip)
                 }
             }
 
-            if (objetivoCustodia.vehiculos.length == 0)
+            if (errorCantVehiculo)
                 errores.push(`Debe haber al menos un vehículo por custodia.`)
 
-            if (objetivoCustodia.personal.length == 0)
+            if (errorCantPersonal)
                 errores.push(`Debe de haber al menos una persona por custodia.`)
 
             if (errores.length)
@@ -800,18 +824,6 @@ export class CustodiaController extends BaseController {
             const valCustodiaForm = this.valCustodiaForm(objetivoCustodia, queryRunner)
             if (valCustodiaForm instanceof ClientException)
                 throw valCustodiaForm
-            /*
-                        if (objetivoCustodia.fechaFinal && objetivoCustodia.fechaFinal != infoCustodia.fechaFinal) {
-                            const fecha = new Date(objetivoCustodia.fechaFinal) 
-                            const periodo = await queryRunner.query(`
-                                SELECT TOP 1 *, CAST (EOMONTH(CONCAT(anio,'-',mes,'-',1)) AS DATETIME)+'23:59:59' AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC
-                            `)
-                            let fechaMin = new Date(periodo[0].FechaCierre)
-                            if (fecha <= fechaMin) {
-                                errores.push(`La Fecha Final de la custodia no puede ser menor al de un período ya cerrado.`)
-                            }
-                        }
-            */
             if (infoCustodia.fecha_liquidacion) {
                 var listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, custodiaId)
                 var listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
@@ -819,6 +831,7 @@ export class CustodiaController extends BaseController {
 
             var seen = {};
             var hasDupPersonal = objetivoCustodia.personal.some(function (currentObject) {
+                if (!currentObject.personalId) return false
                 return seen.hasOwnProperty(currentObject.personalId)
                     || (seen[currentObject.personalId] = false);
             });
@@ -826,7 +839,9 @@ export class CustodiaController extends BaseController {
                 errores.push(`Hay personal duplicado`)
 
             await queryRunner.query(`DELETE FROM lige.dbo.regpersonalcustodia WHERE objetivo_custodia_id = @0`, [custodiaId])
+            let errorCantPersonal:boolean = true
             for (const obj of objetivoCustodia.personal) {
+                errorCantPersonal = false
                 if (obj.personalId) {
                     //Validaciones para fecha_liquidacion
                     if (((this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion)) && !obj.importe) {
@@ -846,13 +861,16 @@ export class CustodiaController extends BaseController {
             }
 
             var hasDupVehiculos = objetivoCustodia.vehiculos.some(function (currentObject) {
+                if (!currentObject.patente) return false
                 return seen.hasOwnProperty(currentObject.patente)
                     || (seen[currentObject.patente] = false);
             });
             if (hasDupVehiculos)
                 errores.push(`Hay vehículos duplicados`)
             await queryRunner.query(`DELETE lige.dbo.regvehiculocustodia WHERE objetivo_custodia_id = @0`, [custodiaId])
+            let errorCantVehiculo:boolean = true
             for (const obj of objetivoCustodia.vehiculos) {
+                errorCantVehiculo = false
                 if (obj.patente) {
                     //Validaciones para fecha_liquidacion
                     if (((this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion)) && (!obj.importe || !obj.duenoId)) {
@@ -873,12 +891,12 @@ export class CustodiaController extends BaseController {
                 }
             }
 
-            if (objetivoCustodia.vehiculos.length == 0)
+            if (errorCantVehiculo)
                 errores.push(`Debe de haber por lo menos un vehículo (Patente y Dueño) por custodia.`)
 
-            if (objetivoCustodia.personal.length == 0)
+            if (errorCantPersonal)
                 errores.push(`Debe de haber por lo menos una persona por custodia.`)
-            console.log('errores.length', errores)
+            // console.log('errores.length', errores)
             if (errores.length)
                 throw new ClientException(errores.join(`\n`))
 
