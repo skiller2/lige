@@ -205,11 +205,12 @@
           </ng-container>
         </nz-select>
       </nz-form-control>
-
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5" *ngIf="numFactura()">Número de Factura</nz-form-label>
+@if (numFactura()){
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5" >Número de Factura</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <input nz-input *ngIf="numFactura()" placeholder="" formControlName="numFactura" type="number" />
+        <input nz-input  placeholder="" formControlName="numFactura" type="number" />
       </nz-form-control>
+    }
     </nz-form-item>
     <br>
     <nz-form-item>

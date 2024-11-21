@@ -6,6 +6,7 @@ import { objetivosPendasisController } from "./controller.module";
 import { ObjetivosPendasisController } from "src/objetivos-pendasis/objetivos-pendasis.controller";
 import { isNumberObject } from "util/types";
 import { AsistenciaController } from "./asistencia.controller";
+import { CustodiaController } from "./custodia.controller";
 
 export class InitController extends BaseController {
   getCategoriasPendientes(req: Request, res: Response, next: NextFunction) {
@@ -66,6 +67,41 @@ export class InitController extends BaseController {
 
 
       this.jsonRes({ objetivosSinAsistencia: data, objetivosSinAsistenciaTotal: total, anio: anio, mes: mes }, res);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async getCustodiasPendientes(req: Request, res: Response, next: NextFunction) {
+    const con = dataSource;
+    const anio = Number(req.params.anio)
+    const mes = Number(req.params.mes)
+
+    try {
+      const result = await CustodiaController.listCustodiasPendientes(anio,mes)
+
+      let porGrupo: { ResponsableDetalle: string; CantidadCustodias: number; }[] = []
+      let data: { x: string; y: any; }[] = []
+      let total = 0
+
+
+      result.forEach(rec => {
+        const cant: number = (Number(porGrupo[rec.PersonalId]?.CantidadCustodias) > 0) ? porGrupo[rec.PersonalId].CantidadCustodias : 0
+        const PersonalId = (rec.PersonalId) ? rec.PersonalId : 0
+        const ResponsableDetalle = (rec.ResponsableDetalle) ? rec.ResponsableDetalle : 'Sin Grupo'
+        porGrupo[PersonalId] = { ResponsableDetalle, CantidadCustodias: cant + 1 }
+        total++
+      })
+
+
+      for (const row of porGrupo) {
+        if (row)
+          data.push({ x: row.ResponsableDetalle, y: row.CantidadCustodias })
+      }
+      data.sort((a, b) => b.y - a.y);
+
+
+      this.jsonRes({ custodiasPendientes: data, custodiasPendientesTotal: total, anio: anio, mes: mes }, res);
     } catch (error) {
       return next(error);
     }

@@ -7,8 +7,108 @@ import { mkdirSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "f
 import xlsx from 'node-xlsx';
 import { recibosController } from "src/controller/controller.module";
 import { QueryRunner } from "typeorm"
+import { FileUploadController } from "src/controller/file-upload.controller";
+
+
+
 
 export class LiquidacionesController extends BaseController {
+
+  getDuplicates(arr, key) {
+    const map = {};
+    const duplicates = [];
+
+    arr.forEach(item => {
+      const keyValue = item[key];
+      if (map[keyValue]) {
+        duplicates.push(item);
+      } else {
+        map[keyValue] = true;
+      }
+    });
+
+    return duplicates;
+  }
+
+  async procesaCBU(req: any, res: any, next: any) {
+    const files = req.body.files
+    const fechaDesde = new Date(req.body.fechaDesde)
+    const banco_id = Number(req.body.banco_id)
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      if (files?.length == 0)
+        throw new ClientException(`Debe seleccionar un archivo`);
+
+      const filePath = `${process.env.PATH_DOCUMENTS}/temp/${files[0].filename}`;
+      const workSheetsFromBuffer = xlsx.parse(readFileSync(filePath))
+      const sheet1 = workSheetsFromBuffer[0];
+
+      let cant = 0
+      let fechaAyer = new Date(fechaDesde)
+      fechaAyer.setDate(fechaAyer.getDate() - 1);
+      fechaAyer.setHours(0, 0, 0, 0)
+
+      fechaDesde.setHours(0, 0, 0, 0)
+
+      const dups = this.getDuplicates(sheet1.data, 0)
+      
+      let tmp = dups.map((row)=>row[1])
+      if (tmp.length >0)
+        throw new ClientException(`Hay ${tmp.length} CUITs repetidos ${tmp.toString()}`)
+      
+      for (const row of sheet1.data) {
+        const cuitTmp = String(row[1]).match(/[0-9]{11}/)
+        if (!cuitTmp)
+          continue
+        const cuit = cuitTmp[0]
+        const cbuOld = row[5]
+        const cbu = row[7]
+
+        const personabanco = await dataSource.query(
+          `SELECT cuit.PersonalCUITCUILCUIT, per.PersonalId, per.PersonalBancoUltNro, ban.PersonalBancoDesde, ban.PersonalBancoId, ban.PersonalBancoCBU FROM Personal per
+          JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId
+          LEFT JOIN PersonalBanco ban ON ban.PersonalId = per.PersonalId AND ISNULL(ban.PersonalBancoHasta,'9999-12-31')>@2 AND ban.PersonalBancoBancoId = @0
+          WHERE cuit.PersonalCUITCUILCUIT = @1`, [banco_id, cuit, fechaAyer]
+        )
+        if (!personabanco[0])
+          throw new ClientException(`No se encontró persona para el cuit ${cuit}`)
+
+        const PersonalId = personabanco[0].PersonalId
+        const PersonalBancoId = personabanco[0].PersonalBancoId
+        const PersonalBancoCBU = personabanco[0].PersonalBancoCBU
+        const PersonalBancoUltNro = Number(personabanco[0].PersonalBancoUltNro) + 1
+        if (PersonalBancoCBU == cbu)
+          continue
+
+        await dataSource.query(
+          `UPDATE PersonalBanco SET PersonalBancoHasta=@0 WHERE PersonalId=@1 AND ISNULL(PersonalBancoHasta,'9999-12-31') > @0`, [fechaAyer, PersonalId])
+
+        await dataSource.query(`INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoBancoSucursalId, PersonalBancoCBU, PersonalBancoCC, PersonalBancoCA, PersonalBancoCuentaSueldo, PersonalBancoDesde, PersonalBancoHasta, PersonalBancoAlias)
+                      VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10)`,
+          [PersonalId, PersonalBancoUltNro, banco_id, null, cbu, null, null, 1, fechaDesde, null, null])
+
+        await dataSource.query(
+          `UPDATE Personal SET PersonalBancoUltNro=@0 WHERE PersonalId=@1`, [PersonalBancoUltNro, PersonalId]
+        )
+        cant++
+      }
+
+
+      //      throw new ClientException(`Tengo banco_id ${banco_id}`);
+      this.jsonRes({ list: [] }, res, `Se Procesaron ${cant} CBUs `);
+
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    }
+
+  }
+
   async getPeriodoStatus(req: Request, res: Response, next: NextFunction) {
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
@@ -379,10 +479,10 @@ export class LiquidacionesController extends BaseController {
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
 
       const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
-  
+
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
         throw new ClientException(`Los recibos para este periodo ya se generaron, no se pueden eliminar `)
-  
+
 
       await queryRunner.query(
         `UPDATE lige.dbo.convalorimpoexpo SET ind_eliminado = 1 WHERE impoexpo_id = @0`,

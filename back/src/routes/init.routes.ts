@@ -40,3 +40,7 @@ initRouter.get(`${base}/stats/clientesactivos`, authMiddleware.verifyToken, (req
 initRouter.get(`${base}/stats/cambioscategoria`, authMiddleware.verifyToken, (req, res, next) => {
 	initController.getCategoriasPendientes(req, res, next)
 })
+
+initRouter.get(`${base}/stats/custodiaspendientes/:anio/:mes`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getCustodiasPendientes(req, res, next)
+})

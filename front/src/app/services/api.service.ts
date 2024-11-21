@@ -17,6 +17,11 @@ import { ALLOW_ANONYMOUS } from '@delon/auth';
   providedIn: 'root',
 })
 export class ApiService {
+  processCBUFile(files: never[], fechaDesde: Date, banco_id: number): Observable<unknown> {
+    return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/procesacbu', { files,fechaDesde,banco_id }).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
   addAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number) {
     return this.http.post<ResponseJSON<any>>('api/asistencia/periodo/inicio', { anio, mes, ObjetivoId }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),

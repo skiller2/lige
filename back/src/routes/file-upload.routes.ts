@@ -47,6 +47,8 @@ const storage = multer.diskStorage({
       //const originalname = file.uid;
       console.log(file)
       let type = file.mimetype.split("/")[1]
+      if (type == "vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        type="xlsx"
       callback(null, `${originalname}.${type}`);
     },
   });
@@ -56,9 +58,9 @@ const storage = multer.diskStorage({
     file: Express.Multer.File,
     callback: FileFilterCallback
   ): void => {
-    const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png"];
+    const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"];
     if (!allowedMimeTypes.includes(file.mimetype)) {
-      callback(new ClientException("El archivo no es del tipo PDF."));
+      callback(new ClientException(`El archivo no es del tipo seleccionado, ${file.mimetype}`));
       return;
     }
 

@@ -54,10 +54,7 @@ export class CustodiaFormComponent {
     }
     numFactura():boolean {
         const value = this.formCus.get("estado")?.value
-        if(value == 3 || value == 4)
-            return true
-        else
-        return false
+        return (value == 4)
     }
 
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
