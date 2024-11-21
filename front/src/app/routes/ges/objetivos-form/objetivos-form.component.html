@@ -84,7 +84,7 @@
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cod Postal </nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <input nz-input placeholder="" formControlName="DomicilioCodigoPostal" type="text" (nzBlur)="formCli.patchValue({DireccionModificada:true})"/>
+      <input nz-input placeholder="" formControlName="DomicilioCodigoPostal" type="text" (input)="formCli.patchValue({DireccionModificada:true})"/>
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Provincia</nz-form-label>

@@ -245,9 +245,12 @@ export class ObjetivosFormComponent {
 
           let result = await firstValueFrom(this.apiService.updateObjetivo(form, this.ObjetivoId()))
           //this.formCli.reset(result.data)
+          //console.log("result ", result)
           this.formCli.patchValue({
             infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
             infoRubro: result.data.infoRubro,
+            codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
+            clienteOld: result.data.ClienteId
           });
         
           //this.edit.set(false)
