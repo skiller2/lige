@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, ViewChild, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NgForm } from '@angular/forms';
@@ -26,6 +26,7 @@ import {
 } from 'rxjs';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { LoadingService } from '@delon/abc/loading';
+import { FileUploadComponent } from 'src/app/shared/file-upload/file-upload.component';
 
 @Component({
   selector: 'app-liquidaciones',
@@ -39,7 +40,8 @@ import { LoadingService } from '@delon/abc/loading';
     FiltroBuilderComponent,
     RowPreloadDetailComponent,
     RowDetailViewComponent,
-    MovimientosPendientes
+    MovimientosPendientes,
+    FileUploadComponent
   ],
   providers: [AngularUtilService]
 })
@@ -67,7 +69,8 @@ export class LiquidacionesBancoComponent {
   gridOptionsAyuda!: GridOption;
   selectedPeriod = { year: 0, month: 0 };
   tabIndex = 0
-
+  fechaDesdeCBU = signal(new Date())
+  filesCBU = signal([])
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   angularGridAyuda!: AngularGridInstance;
@@ -347,5 +350,13 @@ export class LiquidacionesBancoComponent {
 
   }
   */
+  async importCBU(banco_id: number) {
+    console.log('files', this.filesCBU())
+    try {
+      await firstValueFrom(this.apiService.processCBUFile(this.filesCBU(),this.fechaDesdeCBU(),banco_id))
+    } catch (e) {
 
+    }
+    
+  }
 }

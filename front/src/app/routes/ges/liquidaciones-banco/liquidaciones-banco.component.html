@@ -71,6 +71,20 @@
           >
             <span nz-icon nzType="plus" nzTheme="outline"></span>Elimina archivo pendiente banco Macro
           </li>
+
+          <li nz-menu-item nz-popconfirm [nzPopconfirmTitle]="confirmImporteCBU" [nzBeforeConfirm]=""
+            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="importCBU(10)">
+            <span nz-icon nzType="plus" nzTheme="outline"></span> Importa Archivo CBU Banco Macro
+          </li>
+          <ng-template #confirmImporteCBU>
+            <span>Importa CBUs desde fecha </span>
+            <nz-date-picker [(ngModel)]="fechaDesdeCBU" [ngModelOptions]="{standalone: true}" />
+            <app-file-upload [(ngModel)]="filesCBU" [ngModelOptions]="{standalone: true}" [idForSearh]="10" keyField=""></app-file-upload>
+
+            <span>?</span>
+          </ng-template>
+
+
         </ul>
 
       </li>
