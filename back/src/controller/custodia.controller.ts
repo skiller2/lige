@@ -374,13 +374,13 @@ const estados: any[] = [
 ]// value = tipo , label = descripcion
 
 export class CustodiaController extends BaseController {
-    static async listCustodiasPendientes(anio:number,mes:number) {
+    static async listCustodiasPendientes(anio: number, mes: number) {
         const queryRunner = dataSource.createQueryRunner();
         return queryRunner.query(`SELECT c.fecha_inicio, c.responsable_id, p.PersonalId, CONCAT (TRIM(p.PersonalApellido),', ',TRIM(p.PersonalNombre)) ResponsableDetalle
             FROM lige.dbo.objetivocustodia c 
             JOIN Personal p ON p.PersonalId = c.responsable_id 
             WHERE c.fecha_liquidacion IS NULL AND c.estado = 0
-        `,[anio,mes])
+        `, [anio, mes])
     }
 
     async addObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia: any, usuario: any, ip: any) {
@@ -405,7 +405,8 @@ export class CustodiaController extends BaseController {
         const desc_facturacion = objetivoCustodia.desc_facturacion ? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado ? objetivoCustodia.estado : 0
         const fechaActual = new Date()
-        const fecha_liquidacion = objetivoCustodia.fecha_liquidacion ? objetivoCustodia.fecha_liquidacion.setHours(0, 0, 0, 0) : null
+        const fecha_liquidacion = (this.valByEstado(estado)) ? new Date() : null
+
         return queryRunner.query(`
             INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, desc_requirente,
                 descripcion, fecha_inicio, origen, fecha_fin, destino, cant_modulos, importe_modulos, cant_horas_exced,
@@ -614,6 +615,9 @@ export class CustodiaController extends BaseController {
             if (!responsableId)
                 throw new ClientException(`No se a encontrado al personal responsable.`)
 
+
+
+
             const valCustodiaForm = this.valCustodiaForm(req.body, queryRunner)
             if (valCustodiaForm instanceof ClientException)
                 throw valCustodiaForm
@@ -624,6 +628,17 @@ export class CustodiaController extends BaseController {
 
             const objetivoCustodia = { ...req.body, responsableId, id: objetivoCustodiaId, fecha_liquidacion }
 
+
+            const periodo = await queryRunner.query(`
+                SELECT TOP 1 *, CAST (EOMONTH(CONCAT(anio,'-',mes,'-',1)) AS DATETIME)+'23:59:59' AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC
+            `)
+
+            if (new Date(objetivoCustodia.fechaInicio) <= new Date(periodo[0].FechaCierre))
+                errores.push(`La Fecha inicio de la custodia no puede estar comprendida en un período ya cerrado`)
+
+
+
+
             await this.addObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
             var seen = {};
@@ -633,6 +648,8 @@ export class CustodiaController extends BaseController {
             });
             if (hasDupPersonal)
                 errores.push(`Hay personal duplicado`)
+
+
 
             await queryRunner.query(`DELETE FROM lige.dbo.regpersonalcustodia WHERE objetivo_custodia_id = @0`, [objetivoCustodiaId])
             for (const obj of objetivoCustodia.personal) {
@@ -652,8 +669,10 @@ export class CustodiaController extends BaseController {
 
             var hasDupVehiculos = objetivoCustodia.vehiculos.some(function (currentObject) {
                 return seen.hasOwnProperty(currentObject.patente)
-                    || (seen[currentObject.patente] = false);
+                    || (seen[currentObject.patente] === false);
             });
+
+            console.log('objetivoCustodia.vehiculos',objetivoCustodia.vehiculos)
             if (hasDupVehiculos)
                 errores.push(`Hay vehículos duplicados`)
 
@@ -800,18 +819,6 @@ export class CustodiaController extends BaseController {
             const valCustodiaForm = this.valCustodiaForm(objetivoCustodia, queryRunner)
             if (valCustodiaForm instanceof ClientException)
                 throw valCustodiaForm
-            /*
-                        if (objetivoCustodia.fechaFinal && objetivoCustodia.fechaFinal != infoCustodia.fechaFinal) {
-                            const fecha = new Date(objetivoCustodia.fechaFinal) 
-                            const periodo = await queryRunner.query(`
-                                SELECT TOP 1 *, CAST (EOMONTH(CONCAT(anio,'-',mes,'-',1)) AS DATETIME)+'23:59:59' AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC
-                            `)
-                            let fechaMin = new Date(periodo[0].FechaCierre)
-                            if (fecha <= fechaMin) {
-                                errores.push(`La Fecha Final de la custodia no puede ser menor al de un período ya cerrado.`)
-                            }
-                        }
-            */
             if (infoCustodia.fecha_liquidacion) {
                 var listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, custodiaId)
                 var listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, custodiaId)
