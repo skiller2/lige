@@ -116,7 +116,7 @@ export class InitV1Component implements OnInit {
   objetivosSinAsistencia$ = this.statssinAsistencia();
   objetivosSinAsistenciaCur$ = this.statssinAsistenciaCur();
   licenciasInconsistentes$ = this.statsLicenciasInconsistentes()
-
+  custodiasPendientes$ = this.statsCustodiasPendientes();
   webSite!: any[];
   salesData!: any[];
   offlineChartData!: any[];
@@ -184,6 +184,15 @@ export class InitV1Component implements OnInit {
     const anio = stmactual.getFullYear();
     return this.http.get(
       `/api/init/stats/objetivossinasistencia/${anio}/${mes}`
+    );
+  }
+
+  statsCustodiasPendientes(): Observable<any> {
+    const stmactual = new Date();
+    const mes = stmactual.getMonth() + 1;
+    const anio = stmactual.getFullYear();
+    return this.http.get(
+      `/api/init/stats/custodiaspendientes/${anio}/${mes}`
     );
   }
 
