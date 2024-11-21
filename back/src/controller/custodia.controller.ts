@@ -680,7 +680,7 @@ export class CustodiaController extends BaseController {
             for (const obj of objetivoCustodia.vehiculos) {
                 if (obj.patente) {
                     if (fecha_liquidacion && (!obj.importe || !obj.duenoId)) {
-                        errores.push(`Los campos relacionados la vehículo ${obj.patente} NO pueden estar vacio.`)
+                        errores.push(`Los campos relacionados al vehículo ${obj.patente} NO pueden estar vacíos.`)
                         continue
                     }
                     if (!obj.duenoId)
