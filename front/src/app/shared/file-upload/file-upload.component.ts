@@ -9,13 +9,13 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { pdfDefaultOptions } from 'ngx-extended-pdf-viewer';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 import { HttpClient } from '@angular/common/http';
-
+import { NzImageModule } from 'ng-zorro-antd/image';
 
 
 @Component({
   selector: 'app-file-upload',
   standalone: true,
-  imports: [SHARED_IMPORTS,NzUploadModule,CommonModule,NgxExtendedPdfViewerModule],
+  imports: [SHARED_IMPORTS,NzUploadModule,CommonModule,NgxExtendedPdfViewerModule,NzImageModule],
   templateUrl: './file-upload.component.html',
   styleUrl: './file-upload.component.less',
   providers: [
@@ -46,7 +46,7 @@ export class FileUploadComponent implements ControlValueAccessor{
   idForSearh = input(0)
   textForSearch = input("")
   modalViewerVisiable = signal(false)
-
+  blobUrl = ""
   Fullpath = signal("")
   FileName = signal("")
 
@@ -83,11 +83,18 @@ export class FileUploadComponent implements ControlValueAccessor{
     this.src.set(res)
     this.FileName.set(filename)
     this.modalViewerVisiable.set(true)
+  }
 
+   async LoadArchivoPreview(documentId: any, filename:any){
+    const res =  await firstValueFrom(this.http.post('api/file-upload/downloadFile',
+      { 'documentId': documentId, filename: filename }, { responseType: 'blob' }
+    ))
+    return res
   }
 
 
-  uploadChange(event: any) {
+
+  async uploadChange(event: any) {
     switch (event.type) {
       case 'start':
         
@@ -106,10 +113,12 @@ export class FileUploadComponent implements ControlValueAccessor{
       case 'success':
 
         const Response = event.file.response
+        var url = await this.triggerFunction(Response.data[0].fieldname,Response.data[0].mimetype)
+        Response.data[0].fileUrl = url
         this.files.set([ ...this.files(), Response.data[0] ])
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response) 
-
+        console.log("files ", this.files())
        // this.valueExtendedEmitter
         this.propagateChange(this.files())
 
@@ -118,6 +127,14 @@ export class FileUploadComponent implements ControlValueAccessor{
         break;
     }
 
+  }
+
+  async triggerFunction(fieldname: any,mimetype:any) {
+
+    console.log("Response.data[0].fieldname ", fieldname)
+    let src = await this.LoadArchivoPreview(0, `${fieldname}.${mimetype.split("/")[1]}`)
+    this.blobUrl =  await URL.createObjectURL(src)
+    return this.blobUrl
   }
  
   async confirmDeleteArchivo( id: string, tipoDocumentDelete : boolean) {
@@ -142,6 +159,14 @@ export class FileUploadComponent implements ControlValueAccessor{
     }
   }
   ////////
+
+  ngOnDestroy() {
+    this.files().forEach(file => {
+      if (file.fileUrl) {
+        URL.revokeObjectURL(file.fileUrl)
+      }
+    })
+  }
 
   private propagateChange: (_: any) => void = noop
 

@@ -22,9 +22,9 @@
       @if(files().length > 0){
         <ng-container  class="" *ngFor="let filesAdd of files() ">
           <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{filesAdd.fieldname}}>
-            
+            <img nz-image width="90px" height="100px" [nzSrc]="filesAdd.fileUrl"  alt="" />
             <span 
-                nz-popconfirm
+                nz-popconfirm 
                 nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
                 (nzOnConfirm)="confirmDeleteArchivo(filesAdd.fieldname,true)"
                 nzPopconfirmPlacement="top"
@@ -33,7 +33,7 @@
                 nzDanger
                 nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
 
-                <span nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(0,filesAdd.filename)" ></span>
+                <span *ngIf="!filesAdd.mimetype.includes('image')"  nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(0,filesAdd.filename)" ></span>
 
              <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
               class="download-color" app-down-file [httpMethod]="'POST'"
