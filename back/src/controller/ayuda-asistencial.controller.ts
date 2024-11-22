@@ -704,11 +704,19 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
     const importe = req.body.importe
     const cantCuotas = req.body.cantCuotas
     const ip = req.socket.remoteAddress
+    let errors:string[] = []
     try {
       await queryRunner.startTransaction()
 
-      if (!formaId) throw new ClientException("Falta cargar el Tipo.");
-      if (!personalId) throw new ClientException("Falta cargar la Persona.");
+      if (!personalId) errors.push("Falta cargar la Persona.");
+      if (!formaId) errors.push("Falta cargar el Tipo.");
+      if (!req.body.aplicaEl) errors.push("Falta cargar Aplica El.");
+      if (!cantCuotas) errors.push("Falta cargar la Cant. de Cuotas.");
+      if (!importe) errors.push("Falta cargar el Importe.");
+
+      if (errors.length) {
+        throw new ClientException(errors.join(`\n`))
+      }
 
       const forma = optionsSelect.find((obj: any) =>  obj.value == formaId )
       
@@ -793,7 +801,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
         );
 
       }
-      
+      throw new ClientException(`todo bien.`)
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
