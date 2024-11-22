@@ -129,12 +129,13 @@ export class FileUploadComponent implements ControlValueAccessor{
 
   }
 
-  async triggerFunction(fieldname: any,mimetype:any) {
 
-    console.log("Response.data[0].fieldname ", fieldname)
+   async triggerFunction(fieldname: any,mimetype:any) {
+
     let src = await this.LoadArchivoPreview(0, `${fieldname}.${mimetype.split("/")[1]}`)
     this.blobUrl =  await URL.createObjectURL(src)
     return this.blobUrl
+    
   }
  
   async confirmDeleteArchivo( id: string, tipoDocumentDelete : boolean) {

@@ -202,7 +202,16 @@ export class AccesoBotController extends BaseController {
     }
 
     async getAccessDniQuery(queryRunner: QueryRunner, PersonalId: any) {
-        let selectquery = ` SELECT PersonalDocumentoNro FROM PersonalDocumento docmax WHERE PersonalId = @0 AND TipoDocumentoId = 1`
+        let selectquery = `SELECT docmax.PersonalDocumentoNro,tel.PersonalTelefonoNro
+        FROM PersonalDocumento docmax
+        INNER JOIN PersonalTelefono tel ON docmax.PersonalId = tel.PersonalId
+        WHERE docmax.PersonalId = @0
+        AND docmax.TipoDocumentoId = 1
+        AND tel.PersonalTelefonoId = (
+            SELECT MAX(PersonalTelefonoId)
+            FROM PersonalTelefono
+            WHERE PersonalId = docmax.PersonalId
+    );`
         const result = await queryRunner.query(selectquery, [PersonalId])
         return result
     }
@@ -282,6 +291,10 @@ export class AccesoBotController extends BaseController {
 
             //validaciones
             await this.FormValidations(req.body)
+
+            if (!req.body.codigo) {
+                throw new ClientException(`Debe Marcar la opcion de generar un nuevo codigo.`)
+            }
 
             numeroAleatorio = await this.generarNumeroAleatorio()
             newArray.codigo = numeroAleatorio
@@ -483,20 +496,22 @@ export class AccesoBotController extends BaseController {
         const pathArchivos = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' 
         try {
 
-    
           const downloadPath = `${pathArchivos}/temp/${path}`;
           
-          if (!existsSync(downloadPath))
-            throw new ClientException(`El archivo no existe`,{'path':downloadPath});
-    
-          res.download(downloadPath, path, (msg) => {});
+          if (existsSync(downloadPath))
+            res.download(downloadPath, path, (msg) => {});
+        
     
         } catch (error) {
           return next(error)
         }
     }
 
-    async downloadImagen(PersonalId: any, DocumentoImagenParametroId:Number,res: Response, next: NextFunction) {
+    async getByDownloadFileDni(req: any, res: Response, next: NextFunction) {
+
+        const PersonalId = Number(req.body.PersonalId);
+        const DocumentoImagenParametroId = String(req.body.id);
+
         const queryRunner = dataSource.createQueryRunner();
         const pathArchivos = (process.env.PATH_DNI) ? process.env.PATH_DNI : '.' 
         try {
@@ -514,20 +529,15 @@ export class AccesoBotController extends BaseController {
               [PersonalId,DocumentoImagenParametroId]
             )
     
-          if (ds.length == 0)
-            throw new ClientException(`Documento no existe para la persona`);
-    
-          const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenDocumentoBlobNombreArchivo}`;
+          const downloadPath = `${pathArchivos}/${ds[0]?.DocumentoImagenDocumentoBlobNombreArchivo}`
           
-          if (!existsSync(downloadPath))
-            throw new ClientException(`El archivo no existe`,{'path':downloadPath});
+          if (existsSync(downloadPath))
+            res.download(downloadPath, ds[0].DocumentoImagenDocumentoBlobNombreArchivo)
     
-          res.download(downloadPath, ds[0].DocumentoImagenDocumentoBlobNombreArchivo, (msg) => {});
-    
+          
         } catch (error) {
           return next(error)
         }
     }
 
-   
 }

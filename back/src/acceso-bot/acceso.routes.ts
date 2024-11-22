@@ -25,6 +25,12 @@ accesoBotRouter.delete("/:PersonalId", authMiddleware.verifyToken, (req, res, ne
   accesoBotController.deleteAccess(req, res, next);
 });
 
+
+
+accesoBotRouter.post("/filedni", authMiddleware.verifyToken,  (req, res, next) => {
+   accesoBotController.getByDownloadFileDni(req, res, next);
+});
+
 accesoBotRouter.post('/', authMiddleware.verifyToken, (req, res, next) => { 
   accesoBotController.updateAcess(req, res, next)
 } )
@@ -33,15 +39,6 @@ accesoBotRouter.post('/add', authMiddleware.verifyToken, (req, res, next) => {
   accesoBotController.addAccess(req, res, next) 
 } )
 
-accesoBotRouter.get(`/downloadImagen/:personalId/:documentoImagenParametroId`,(req, res,next) => {
-  accesoBotController.downloadImagen(
-    Number(req.params.personalId),
-    Number(req.params.documentoImagenParametroId),
-    res,
-    next
-  );
-});
-
 accesoBotRouter.get(`/downloadImagenDni/:path`, (req, res,next) => {
   accesoBotController.downloadImagenDNI(
     req.params.path,
@@ -49,4 +46,6 @@ accesoBotRouter.get(`/downloadImagenDni/:path`, (req, res,next) => {
     next
   );
 });
+
+
 
