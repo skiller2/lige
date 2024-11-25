@@ -63,6 +63,9 @@ export class ClientesComponent {
 
     columns$ = this.apiService.getCols('/api/clientes/cols')
 
+
+    child = viewChild.required(ClientesFormComponent)
+
     gridData$ = this.listCliente$.pipe(
         debounceTime(500),
         switchMap(() => {
@@ -73,6 +76,7 @@ export class ClientesComponent {
           )
         })
     )
+
 
     async ngOnInit(){
 
@@ -120,6 +124,8 @@ export class ClientesComponent {
 
   setEdit(value: boolean): void {
       this.edit.set(value) 
+      this.child().ejecutarFuncion()
+ 
   }
 
 }
