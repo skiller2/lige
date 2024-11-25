@@ -49,6 +49,7 @@ export class FileUploadComponent implements ControlValueAccessor{
   blobUrl = ""
   Fullpath = signal("")
   FileName = signal("")
+  fileAccept = input("")
 
   // valueExtended = input()
   // valueExtendedEmitter = output<[]>();

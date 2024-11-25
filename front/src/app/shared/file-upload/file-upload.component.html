@@ -31,7 +31,7 @@
                 nz-button 
                 nzType="primary"
                 nzDanger
-                nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
+                nz-icon nzType="delete" nzTheme="outline" class="trash-color cursor-pointer"></span>
 
                 <span *ngIf="!filesAdd.mimetype.includes('image')"  nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(0,filesAdd.filename)" ></span>
 
@@ -50,7 +50,10 @@
 <nz-form-item >
     <nz-form-control class="BtnUploadFile">
       <ng-container>
-        <nz-upload nzAccept=".pdf,image/*" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)" >
+   <!-- image/*
+        .pdf
+        .pdf,image/* -->
+        <nz-upload [nzAccept]="fileAccept()" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)" >
           <button  nz-button  >
             <span nz-icon nzType="upload"></span>
            {{ 'app.btn.file' | i18n }}
