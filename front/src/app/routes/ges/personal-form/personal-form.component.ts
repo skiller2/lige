@@ -9,6 +9,19 @@ import { NgForm, FormArray, FormBuilder } from '@angular/forms';
 import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 
+const tipoArchivo = [
+  {
+    label:'Foto',
+    value:7
+  },{
+    label:'docFrente',
+    value:12
+  },{
+    label:'docDorso',
+    value:13
+  }
+]
+
 @Component({
   selector: 'app-personal-form',
   templateUrl: './personal-form.component.html',
@@ -30,6 +43,7 @@ export class PersonalFormComponent {
   private notification = inject(NzNotificationService)
   urlUpload = '/api/personal/upload'
   uploading$ = new BehaviorSubject({loading:false,event:null});
+  
 
   inputs = { 
     Nombre:'', Apellido:'', CUIT:0, NroLegajo:0, SucursalId:0, FechaIngreso:'',
@@ -42,11 +56,11 @@ export class PersonalFormComponent {
   $optionsSucursal = this.searchService.getSucursales();
   $optionsNacionalidad = this.searchService.getNacionalidadList();
 
-  cuit():number {
-    const value = this.formPer.get("CUIT")?.value
-    if(value) return value
-    else return 0
-  }
+  // cuit():number {
+  //   const value = this.formPer.get("CUIT")?.value
+  //   if(value) return value
+  //   else return 0
+  // }
   foto():string {
     const value = this.formPer.get("Foto")?.value
     if(value) return value
@@ -67,7 +81,6 @@ export class PersonalFormComponent {
     let now : Date = new Date()
     this.periodo.set({anio: now.getFullYear(), mes: now.getMonth()+1})
     effect(async () => {
-      console.log(`The personalId is: ${this.personalId()}`);
       if (this.personalId()) {
           await this.load()
       } else {
@@ -84,6 +97,12 @@ export class PersonalFormComponent {
       values[key] = infoPersonal[key]
     }
     this.formPer.reset(values)
+
+    let arrayFiles : any[] = []
+    if (infoPersonal.Foto){arrayFiles.push({ fieldname: infoPersonal.Foto, originalname: infoPersonal.Foto, save:true})}
+    if (infoPersonal.docDorso){arrayFiles.push({ fieldname: infoPersonal.docDorso, originalname: infoPersonal.docDorso, save:true})}
+    if (infoPersonal.docFrente){arrayFiles.push({ fieldname: infoPersonal.docFrente, originalname: infoPersonal.docFrente, save:true})}
+    this.files.set(arrayFiles)
   }
 
   uploadChange(event: any, input:string) {
@@ -104,8 +123,11 @@ export class PersonalFormComponent {
         break;
       case 'success':
         const Response = event.file.response
+        Response.data[0].save = false
+        Response.data[0].control = input
+
         this.files.set([ ...this.files(), Response.data[0] ])
-        console.log(this.files());
+        // console.log(this.files());
         this.formPer.get(input)?.setValue(Response.data[0].fieldname)
   
         this.uploading$.next({ loading: false, event })
@@ -130,13 +152,15 @@ export class PersonalFormComponent {
   async save() {
     this.isLoading.set(true)
     const form = this.formPer.value
-    console.log('form', form);
+    let newFiles = this.files()
     try {
       if (this.personalId()) {
         
       }else{
-
+        await firstValueFrom( this.apiService.addPersonal(form))
       }
+      // console.log('newFiles', newFiles);
+      this.files.set(newFiles)
       // this.formPer.markAsUntouched()
       // this.formPer.markAsPristine()
     } catch (e) {
@@ -155,21 +179,23 @@ export class PersonalFormComponent {
     return ''
   }
 
-  async confirmDeleteArchivo( control: string, tipoDocumentDelete : boolean) {
+  async confirmDeleteArchivo( control: string) {
     try {
       let ArchivoIdForDelete = this.formPer.get(control)?.value;
-      if( tipoDocumentDelete){
-        // console.log("No se borro")
-        const ArchivoFilter = this.files().filter((item) => item.fieldname != ArchivoIdForDelete)
-        // console.log("fieldname ", ArchivoFilter)
-        this.files.set(ArchivoFilter)
-        this.formPer.get(control)?.setValue('')
-        this.formPer.markAsTouched()
-        this.notification.success('Respuesta', `Archivo borrado con exito `)
-      }else{
+      const archivo = this.files().find((item) => item.fieldname == ArchivoIdForDelete)
+      if( archivo.save ){
         // console.log("Si se borro")
-        // await firstValueFrom( this.apiService.deleteArchivosLicencias(ArchivoIdForDelete))
+        const personalId = this.personalId()
+        const tipo:any = tipoArchivo.find(obj => obj.label == control)
+        await firstValueFrom( this.apiService.deleteArchivoPersonal(personalId, tipo.value))
+      }else{
+        // console.log("No se borro")
+        this.notification.success('Respuesta', `Archivo borrado con exito `)
       }
+      const newFiles = this.files().filter((item) => item.fieldname != ArchivoIdForDelete)
+      this.files.set(newFiles)
+      this.formPer.get(control)?.setValue('')
+      this.formPer.markAsTouched()
 
     } catch (error) {
       
