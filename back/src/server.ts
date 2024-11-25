@@ -7,6 +7,7 @@ import { createServer } from "http";
 import { ClientException } from "./controller/baseController";
 
 import dotenv from "dotenv"
+import { exit } from "process";
 
 dotenv.config()
 export const tmpName = (dir: string) => {
@@ -70,6 +71,11 @@ const errorResponder = (
   } else if (error instanceof QueryFailedError) {
     if (error.message.indexOf('Violation') > 0) {
       message = ['El registro ya existe']
+      status = 409
+    }
+    const error2:any=error
+    if (error2.number ==8152 ||  error.message.indexOf('data would be truncated') > 0) {
+      message = ['Tamaño del dato muy largo']
       status = 409
     }
   }
