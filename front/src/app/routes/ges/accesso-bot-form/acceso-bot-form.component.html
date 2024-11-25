@@ -9,9 +9,8 @@
           <img
           *ngFor="let image of images()"
           nz-image
-          width="400px"
+          class="imgStyle"
           [nzSrc]="image.src"
-          [nzFallback]="image.fallback"
         />
 
         </nz-image-group> 

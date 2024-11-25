@@ -292,7 +292,8 @@ export class AccesoBotController extends BaseController {
             //validaciones
             await this.FormValidations(req.body)
 
-            if (!req.body.codigo) {
+            
+            if (!req.body.nuevoCodigo) {
                 throw new ClientException(`Debe Marcar la opcion de generar un nuevo codigo.`)
             }
 
@@ -533,7 +534,8 @@ export class AccesoBotController extends BaseController {
           
           if (existsSync(downloadPath))
             res.download(downloadPath, ds[0].DocumentoImagenDocumentoBlobNombreArchivo)
-    
+         else
+            res.status(204).send()
           
         } catch (error) {
           return next(error)

@@ -51,8 +51,8 @@ export class AccesoBotComponent {
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
-  };
-  
+  }
+
   formChange$ = new BehaviorSubject('');
   startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
 

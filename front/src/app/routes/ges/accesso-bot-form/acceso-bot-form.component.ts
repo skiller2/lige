@@ -40,7 +40,7 @@ export class AccesoBotFormComponent {
   dniDisabled = signal(true)
   formChange$ = new BehaviorSubject('')
   private notification = inject(NzNotificationService)
-  images = signal<{ src: string; fallback: string }[]>([])
+  images = signal<{ src: string }[]>([])
   files = signal([])
   qrCodeResult = signal("")
   dniFresteDorso = signal(0)
@@ -48,9 +48,11 @@ export class AccesoBotFormComponent {
 
   async ngOnInit() {
     effect(async () => {
-
+     
       if (this.edit()) {
         await this.load()
+      } else{
+        this.ngForm().form.reset()
       }
     }, { injector: this.injector,
          allowSignalWrites:true
@@ -58,12 +60,12 @@ export class AccesoBotFormComponent {
 
   }
 
+
   async decodeQrCodeFromUrl(url: string): Promise<void> {
     const reader = new BrowserMultiFormatReader();
     try {
       const img = await this.loadImage(url);
       const result = await reader.decodeFromImageElement(img);
-      console.log("funciono")
       this.qrCodeResult.set(result.getText())
       //console.log('Contenido del QR:', this.qrCodeResult);
       this.dniFresteDorso.set(12)
@@ -100,12 +102,10 @@ export class AccesoBotFormComponent {
     this.images.set([])
     this.images.set([
       {
-        src: await this.LoadArchivoPreview(this.PersonalId(), 12),
-        fallback: './assets/dummy-person-image.jpg'
+        src: await this.LoadArchivoPreview(this.PersonalId(), 12)
       },
       {
-        src: await this.LoadArchivoPreview(this.PersonalId(), 13),
-        fallback: './assets/dummy-person-image.jpg'
+        src: await this.LoadArchivoPreview(this.PersonalId(), 13)
       }
     ]);
     
@@ -113,8 +113,10 @@ export class AccesoBotFormComponent {
 
   async LoadArchivoPreview(PersonalId: any, id:any){
 
+      let url = "./assets/dummy-person-image.jpg"
       const res = await firstValueFrom(this.http.post('api/acceso-bot/filedni',  { PersonalId, id },  { responseType: 'blob' } ))
-      const url = URL.createObjectURL(res)
+      if(res)
+       url = URL.createObjectURL(res)
       return url
 
   }
@@ -125,7 +127,6 @@ export class AccesoBotFormComponent {
     let vals = this.ngForm().value
     let result
     let newFileArray: any[] = [];
-    console.log("vals ", vals)
     let createNotification = false
     try {
 
@@ -163,12 +164,13 @@ export class AccesoBotFormComponent {
         if (this.edit()) 
           result = await firstValueFrom(this.apiService.updateAccess(vals))
         else
-        result = await firstValueFrom(this.apiService.addAccessBot(vals))
+          result = await firstValueFrom(this.apiService.addAccessBot(vals))
+
         await this.updateImages()
-          this.ngForm().form.patchValue({
+        this.ngForm().form.patchValue({
             telefono: result.data.telefono,
             codigo:result.data.codigo,
-          })
+        })
       }
      
 
@@ -215,7 +217,6 @@ export class AccesoBotFormComponent {
     if(newPersonalId > 0){
       let vals = await firstValueFrom(this.apiService.getAccesoBotDNI(newPersonalId))
       // this.PersonalId.set(newPersonalId)
-      console.log("vals ", vals)
       this.PersonalId.set(newPersonalId)
       this.updateImages()
       if(this.edit())
