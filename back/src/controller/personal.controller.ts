@@ -7,6 +7,11 @@ import { NextFunction, query } from "express";
 import { mkdirSync, renameSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
+import { promisify } from 'util';
+import * as fs from 'fs';
+
+const stat = promisify(fs.stat);
+const unlink = promisify(fs.unlink);
 
 const columns: any[] = [
   {
@@ -558,14 +563,17 @@ export class PersonalController extends BaseController {
     let Apellido:string = req.body.Apellido
     const CUIT:number = req.body.CUIT
     const NroLegajo:number = req.body.NroLegajo
-    const SucusalId:number = req.body.SucusalId
-    const SolicitudIngreso = new Date()
-    const FechaIngreso = req.body.FechaIngreso
+    const SucusalId:number = req.body.SucursalId
+    // const SolicitudIngreso = new Date()
+    let FechaIngreso = req.body.FechaIngreso
     const FechaNacimiento = req.body.FechaNacimiento
     const foto = req.body.Foto
     const NacionalidadId:number = req.body.NacionalidadId
     const docFrente = req.body.docFrente
     const docDorso = req.body.docDorso
+    let now = new Date()
+    now.setHours(0, 0, 0, 0)
+    FechaIngreso.setHours(0, 0, 0, 0)
     try {
       await queryRunner.startTransaction()
 
@@ -575,15 +583,28 @@ export class PersonalController extends BaseController {
       Nombre = Nombre.toUpperCase()
       Apellido = Apellido.toUpperCase()
       const fullname:string = Apellido + ', ' + Nombre
-
-      let max = await queryRunner.query(`
-        SELECT MAX(per.PersonalId)
-        FROM Personal per`)
-      max = max[0]+1
+      const PersonalEstado = 'POSTULANTE'
+      const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (${PersonalEstado} -CUIT ${CUIT} - Leg.:${NroLegajo})`
       
+      let Personal = await queryRunner.query(`
+        SELECT per.PersonalId
+        FROM Personal per
+        WHERE per.PersonalNroLegajo IN (@0)
+      `, [NroLegajo, CUIT])
+      if (Personal.length) {
+        throw new ClientException(`El NroLegajo esta en uso.`);
+      }
+      Personal = await queryRunner.query(`
+        SELECT cuit.PersonalId
+        FROM PersonalCUITCUIL cuit 
+        WHERE cuit.PersonalCUITCUILCUIT IN (@0)
+      `, [CUIT])
+      if (Personal.length) {
+        throw new ClientException(`El CUIT ya fue registrado.`);
+      }
+
       await queryRunner.query(`
         INSERT INTO Personal (
-        PersonalId,
         PersonalClasePersonal,
         PersonalNroLegajo,
         PersonalApellido,
@@ -591,38 +612,62 @@ export class PersonalController extends BaseController {
         PersonalApellidoNombre,
         PersonalFechaSolicitudIngreso,
         PersonalFechaSolicitudAceptada,
+        PersonalFechaPreIngreso,
+        PersonalFechaIngreso,
         PersonalFechaNacimiento,
         PersonalNacionalidadId,
         -- PersonalFotoId,
         PersonalSucursalIngresoSucursalId,
-        PersonalSuActualSucursalPrincipalId
+        PersonalSuActualSucursalPrincipalId,
+        PersonalEstado,
+        PersonalApellidoNombreDNILegajo
         )
-        VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@10)`,[
-          max,
+        VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@7,@8,@9,@9,@10,@11)`,[
           'A',
           NroLegajo,
           Apellido,
           Nombre,
           fullname,
-          SolicitudIngreso,
+          now,
           FechaIngreso,
           FechaNacimiento,
           NacionalidadId,
           SucusalId,
-        ])
-      
-      if (foto.length) {
-        this.addFoto(queryRunner, max, foto)
+          PersonalEstado,
+          ApellidoNombreDNILegajo
+      ])
+        
+      let PersonalId = await queryRunner.query(`
+        SELECT per.PersonalId
+        FROM Personal per
+        WHERE per.PersonalNroLegajo = @0 AND per.PersonalApellido = @1 AND per.PersonalNombre = @2
+      `, [NroLegajo,Apellido,Nombre])
+      PersonalId = PersonalId[0].PersonalId
+
+      await queryRunner.query(`
+        INSERT INTO PersonalCUITCUIL (
+        PersonalId,
+        PersonalCUITCUILId,
+        PersonalCUITCUILEs,
+        PersonalCUITCUILCUIT,
+        PersonalCUITCUILDesde
+        )
+        VALUES (@0,@1,@2,@3,@4)`,
+        [ PersonalId, 1, 'T', CUIT, now]
+      )
+
+      if (Number(foto)) {
+        await this.addFoto(queryRunner, PersonalId, foto)
       }
-      if (docFrente.length) {
-        this.addDocumento(queryRunner, max, docFrente, 12)
+      if (Number(docFrente)) {
+        await this.addDocumento(queryRunner, PersonalId, docFrente, 12)
       }
-      if (docDorso.length) {
-        this.addDocumento(queryRunner, max, docDorso, 13)
+      if (Number(docDorso)) {
+        await this.addDocumento(queryRunner, PersonalId, docDorso, 13)
       }
 
       await queryRunner.commitTransaction()
-      this.jsonRes({}, res);
+      return this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -631,7 +676,7 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async getSNacionalidadListQuery(queryRunner:any){
+  async getNacionalidadListQuery(queryRunner:any){
     return await queryRunner.query(`
         SELECT nac.NacionalidadId value, TRIM(nac.NacionalidadDescripcion) label
         FROM Nacionalidad nac`)
@@ -642,7 +687,7 @@ export class PersonalController extends BaseController {
     try {
       await queryRunner.startTransaction()
 
-      const options = await this.getSNacionalidadListQuery(queryRunner)
+      const options = await this.getNacionalidadListQuery(queryRunner)
 
       await queryRunner.commitTransaction()
       this.jsonRes(options, res);
@@ -666,35 +711,48 @@ export class PersonalController extends BaseController {
 
   }
 
-  async addFoto(queryRunner:any, personalId:number, fieldname:string){
-    let maxFoto = await queryRunner.query(`SELECT MAX(DocumentoImagenFotoId) FROM DocumentoImagenFoto`)
-    maxFoto = maxFoto[0] + 1
-    const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.jpg`;
-    const newFieldname = `${personalId}-${maxFoto}-FOTO.jpg`
-    const newFilePath = `${process.env.IMAGE_FOTO_PATH}/${newFieldname}`;
-    this.moveFile(dirFile, newFilePath);
+  async addFoto(queryRunner:any, personalId:number, fieldname:string) {
     await queryRunner.query(`
       INSERT INTO DocumentoImagenFoto (
-      DocumentoImagenFotoId,
       PersonalId,
       DocumentoImagenFotoBlobTipoArchivo,
-      DocumentoImagenFotoBlobNombreArchivo,
+      DocumentoImagenParametroId,
+      DocumentoImagenParametroDirectorioId
+      )
+      VALUES(@0,@1,@2,@3)`,
+      [personalId,'jpg',7,1]
+    )
+    let fotoId = await queryRunner.query(`SELECT DocumentoImagenFotoId fotoId FROM DocumentoImagenFoto WHERE PersonalId IN (@0)`,[personalId])
+    fotoId = fotoId[0].fotoId
+
+    const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.jpg`;
+    const newFieldname = `${personalId}-${fotoId}-FOTO.jpg`
+    const newFilePath = `${process.env.IMAGE_FOTO_PATH}/${newFieldname}`;
+    this.moveFile(dirFile, newFilePath);
+    await queryRunner.query(`UPDATE DocumentoImagenFoto SET DocumentoImagenFotoBlobNombreArchivo = @0 WHERE PersonalId = @1`,
+      [newFieldname, personalId]
+    )
+    await queryRunner.query(`UPDATE Personal SET PersonalFotoId = @0 WHERE PersonalId = @1`,
+      [fotoId, personalId]
+    )
+    return newFieldname
+  }
+
+  async addDocumento(queryRunner:any, personalId:number, fieldname:string, parametro:number){
+    await queryRunner.query(`
+      INSERT INTO DocumentoImagenDocumento (
+      PersonalId,
+      DocumentoImagenDocumentoBlobTipoArchivo,
       DocumentoImagenParametroId,
       DocumentoImagenParametroDirectorioId
       )
       VALUES(@0,@1,@2,@3,@4,@5)`,
-      [maxFoto,personalId,'jpg',newFieldname,7,1]
+      [personalId, 'jpg', parametro, 1]
     )
-    await queryRunner.query(`UPDATE Personal SET PersonalFotoId = @0 WHERE PersonalId = @1`,
-      [maxFoto,personalId]
-    )
-  }
-
-  async addDocumento(queryRunner:any, personalId:number, fieldname:string, parametro:number){
-    let maxFoto = await queryRunner.query(`SELECT MAX(DocumentoImagenDocumentoId) FROM DocumentoImagenDocumento`)
-    maxFoto = maxFoto[0] + 1
+    let docId = await queryRunner.query(`SELECT DocumentoImagenDocumentoId docId FROM DocumentoImagenDocumento WHEREPersonalId IN (@0)`,[personalId])
+    docId = docId[0].docId
     const dirFile: string  = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.jpg`;
-    let newFieldname: string = `${personalId}-${maxFoto}`
+    let newFieldname: string = `${personalId}-${docId}`
     if (parametro == 13) {
       newFieldname += `-DOCUMENDOR.jpg`
     }else if(parametro == 12){
@@ -702,18 +760,10 @@ export class PersonalController extends BaseController {
     }
     const newFilePath: string  = `${process.env.IMAGE_DOCUMENTO_PATH}/${newFieldname}`;
     this.moveFile(dirFile, newFilePath);
-    await queryRunner.query(`
-      INSERT INTO DocumentoImagenDocumento (
-      DocumentoImagenDocumentoId,
-      PersonalId,
-      DocumentoImagenDocumentoBlobTipoArchivo,
-      DocumentoImagenDocumentoBlobNombreArchivo,
-      DocumentoImagenParametroId,
-      DocumentoImagenParametroDirectorioId
-      )
-      VALUES(@0,@1,@2,@3,@4,@5)`,
-      [maxFoto, personalId, 'jpg', newFieldname, parametro, 1]
+    await queryRunner.query(`UPDATE DocumentoImagenDocumento SET DocumentoImagenDocumentoBlobNombreArchivo = @0 WHERE PersonalId = @1`,
+      [newFieldname, personalId]
     )
+    return newFieldname
   }
   
   // async updatePersonal(req: any, res: Response, next: NextFunction){
@@ -825,6 +875,78 @@ export class PersonalController extends BaseController {
     } finally {
       await queryRunner.release()
     }
+  }
+
+  async deleteArchivo(req: any, res: Response, next: NextFunction) {
+    const personalId = req.body.id
+    const tipo = req.body.tipo
+    let document:any
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+      
+      switch (tipo) {
+        case 7:
+          document = await queryRunner.query(`
+            SELECT foto.PersonalId, CONCAT(dir.DocumentoImagenParametroDirectorioPath, foto.DocumentoImagenFotoBlobNombreArchivo) path, foto.DocumentoImagenFotoBlobNombreArchivo archivo
+            FROM DocumentoImagenFoto foto
+            JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+            WHERE foto.PersonalId = @0 AND foto.DocumentoImagenParametroId = @1
+          `, [personalId, tipo]);
+          break;
+        case 13:
+        case 14:
+          document = await queryRunner.query(`
+            SELECT doc.PersonalId, CONCAT(dir.DocumentoImagenParametroDirectorioPath, doc.DocumentoImagenDocumentoBlobNombreArchivo) path, doc.DocumentoImagenDocumentoBlobNombreArchivo archivo
+            FROM DocumentoImagenDocumento doc
+            JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+            WHERE doc.PersonalId = @0 AND doc.DocumentoImagenParametroId = @1
+          `, [personalId, tipo]);
+      
+        default:
+          throw new ClientException(`No se encontro el tipo de Archivo.`);
+      }
+      
+      const url = `${process.env.LINCE_PATH}/${document[0]["path"]}`
+
+      if (document.length > 0) {
+        if (!existsSync(url)) {
+          console.log(`Archivo ${document[0]["archivo"]} no localizado`, { path: url })
+        } else {
+          await unlink(url);
+        }
+
+        
+
+        switch (tipo) {
+          case 7:
+            document = await queryRunner.query(`
+              DELETE FROM DocumentoImagenFoto
+              WHERE doc_id = @0 WHERE foto.PersonalId = @0 AND foto.DocumentoImagenParametroId = @1
+            `, [personalId, tipo]);
+            break;
+          case 13:
+          case 14:
+            document = await queryRunner.query(`
+              DELETE FROM DocumentoImagenDocumento
+              WHERE doc.PersonalId = @0 AND doc.DocumentoImagenParametroId = @1
+            `, [personalId, tipo]);
+        
+          default:
+            throw new ClientException(`No se encontro el tipo de Archivo.`);
+        }
+
+        await queryRunner.commitTransaction();
+      }
+
+      this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
+
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    }
+
   }
 
 }

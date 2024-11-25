@@ -86,6 +86,10 @@ personalRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGrou
   personalController.getGridList(req, res, next)
 });
 
+personalRouter.post('/deleteArchivo', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+  personalController.deleteArchivo(req, res, next)
+});
+
 personalRouter.post("/upload", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   
   uploadJpg(req, res, (err) => {

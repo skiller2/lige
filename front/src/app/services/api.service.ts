@@ -1044,6 +1044,20 @@ export class ApiService {
     )
   }
 
+  deleteArchivoPersonal(personalId: any, tipo:number) {
+    return this.http.delete<ResponseJSON<any>>('/api/personal/deleteArchivo', {personalId, tipo}).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+      catchError(() => of([])),
+    )
+  }
+
+  addPersonal(parameter: any){
+    return this.http.post<ResponseJSON<any>>('/api/personal/add', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+      catchError(() => of({}))
+    );
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {
