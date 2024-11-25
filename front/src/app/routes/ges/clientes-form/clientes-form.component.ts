@@ -70,7 +70,8 @@ export class ClientesFormComponent {
   addNew = model()
   //files = []
   textForSearch = "Cliente"
-  
+  constructor(private cdr: ChangeDetectorRef) {}
+
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
@@ -134,6 +135,7 @@ export class ClientesFormComponent {
   // $optionsProvincia: Observable<Provincia[]> | null = null;
   // $optionsLocalidad: Observable<Localidad[]> = of([]);
   // $optionsBarrio: Observable<Barrio[]> = of([]);
+  trigger = signal(false); // Señal que actúa como disparador
 
 
   onChangePeriodo(result: Date): void {
@@ -153,32 +155,42 @@ export class ClientesFormComponent {
     this.optionsCondicionAnteIva = await firstValueFrom(this.searchService.getOptionsCondicionAnteIva())
   
 
-    effect(async () => {
-      if (this.ClienteId()) {
-        await this.load()
-        this.formCli.markAsPristine()
+    // effect(async () => {
 
-      } else {
-        this.formCli.reset({ estado: 0 })
-        this.formCli.markAsPristine()
+    //   console.log("ejecuto el efect")
 
-      }
-    }, { injector: this.injector });
-
-    effect(async () => {
+    //   if (this.ClienteId()) 
+    //     await this.load()
+    //   else 
+    //     this.formCli.reset({ estado: 0 })
       
-      if (this.edit()) {
-        this.formCli.enable()
-      } else{
-       
-      }
-    }, { injector: this.injector });
+        
+    //   if (this.edit()) 
+    //     this.formCli.enable()
+        
 
+    //   this.formCli.get('codigo')?.disable()
+    //   this.formCli.markAsPristine()
+
+      
+    // }, { injector: this.injector });
+
+  }
+
+  async ejecutarFuncion() {
+
+  
+    //this.formCli.patchValue({ClienteFacturacionCUIT: 11111 });
+    
+    this.formCli.reset({ ClienteFacturacionCUIT: 0 })
+    this.formCli.markAsPristine()
+    console.log('Función en el hijo ejecutada desde el padre ', this.formCli.value)
   }
 
 
   async load() {
    // this.files = []
+   
     let infoCliente = await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
 
     this.infoClienteContacto().clear()
@@ -210,9 +222,10 @@ export class ClientesFormComponent {
       this.formCli.patchValue({
         codigo: infoCliente.id,
       });
-      this.formCli.get('codigo')?.disable();
+      this.formCli.get('codigo')?.disable()
      this.isLoadSelect.set(true)
-    }, 100);
+    }, 100)
+   
     { }
   }
 

@@ -22,7 +22,7 @@
       @if(files().length > 0){
         <ng-container  class="" *ngFor="let filesAdd of files() ">
           <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{filesAdd.fieldname}}>
-            <img nz-image width="90px" height="100px" [nzSrc]="filesAdd.fileUrl"  alt="" />
+            <img nz-image width="120px" height="90px" [nzSrc]="filesAdd.fileUrl"  alt="" *ngIf="!filesAdd.mimetype.includes('pdf')" />
             <span 
                 nz-popconfirm 
                 nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"

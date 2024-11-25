@@ -1,26 +1,16 @@
 
   <ng-container >
     <form nz-form ngForm >
-      <!-- <nz-form-item style="display:none">
-        <nz-form-label [nzSpan]="3">SucursalId</nz-form-label>
-        <nz-form-control [nzSpan]="19">
-          <input nz-input name="SucursalId" ngModel  />
-        </nz-form-control>
-      </nz-form-item> -->
-
-     
-
+ 
       <nz-form-item class="imgContainer">
 
         <nz-image-group  >
-          <!-- <img  nz-image width="400px" nzSrc="api/acceso-bot/downloadImagen/{{this.PersonalId()}}/12" nzFallback="./assets/dummy-person-image.jpg" />
-          <img  nz-image width="400px" nzSrc="api/acceso-bot/downloadImagen/{{this.PersonalId()}}/13" nzFallback="./assets/dummy-person-image.jpg" /> -->
+
           <img
           *ngFor="let image of images()"
           nz-image
-          width="400px"
+          class="imgStyle"
           [nzSrc]="image.src"
-          [nzFallback]="image.fallback"
         />
 
         </nz-image-group> 
