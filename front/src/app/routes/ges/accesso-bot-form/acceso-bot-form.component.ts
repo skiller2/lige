@@ -218,9 +218,10 @@ export class AccesoBotFormComponent {
       let vals = await firstValueFrom(this.apiService.getAccesoBotDNI(newPersonalId))
       // this.PersonalId.set(newPersonalId)
       this.PersonalId.set(newPersonalId)
+      this.edit.set(vals.isNew)
       this.updateImages()
       if(this.edit())
-        this.ngForm().form.patchValue({ PersonalDocumentoNro: vals.PersonalDocumentoNro,telefono:Number(vals.PersonalTelefonoNro)})
+        this.ngForm().form.patchValue({ PersonalDocumentoNro: vals.PersonalDocumentoNro,telefono:Number(vals.telefono)})
       else
         this.ngForm().form.patchValue({PersonalDocumentoNro: vals.PersonalDocumentoNro,telefono:Number(vals.PersonalTelefonoNro),nuevoCodigo:true })
       

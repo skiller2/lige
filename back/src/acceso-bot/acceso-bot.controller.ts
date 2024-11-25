@@ -193,8 +193,19 @@ export class AccesoBotController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
 
         try {
+            let result
 
-            let result = await this.getAccessDniQuery(queryRunner, PersonalId)
+            let resultgetAccessQuery = await this.getAccessQuery(queryRunner, PersonalId)
+
+            if (!resultgetAccessQuery || resultgetAccessQuery.length === 0) {
+               result = await this.getAccessDniQuery(queryRunner, PersonalId)
+               result[0].isNew = false
+            } else {
+                result = resultgetAccessQuery
+                result[0].isNew = true
+            }
+
+            //let resultgetAccessDniQuery = await this.getAccessDniQuery(queryRunner, PersonalId)
             this.jsonRes(result[0], res);
         } catch (error) {
             return next(error)

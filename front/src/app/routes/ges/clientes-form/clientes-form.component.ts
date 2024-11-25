@@ -155,33 +155,30 @@ export class ClientesFormComponent {
     this.optionsCondicionAnteIva = await firstValueFrom(this.searchService.getOptionsCondicionAnteIva())
   
 
-    // effect(async () => {
+    effect(async () => {
 
-    //   console.log("ejecuto el efect")
+      console.log("ejecuto el efect")
 
-    //   if (this.ClienteId()) 
-    //     await this.load()
-    //   else 
-    //     this.formCli.reset({ estado: 0 })
+      if (this.ClienteId()) 
+        await this.load()
+      else 
+        this.formCli.reset({ estado: 0 })
       
         
-    //   if (this.edit()) 
-    //     this.formCli.enable()
+      if (this.edit()) 
+        this.formCli.enable()
         
 
-    //   this.formCli.get('codigo')?.disable()
-    //   this.formCli.markAsPristine()
+      this.formCli.get('codigo')?.disable()
+      this.formCli.markAsPristine()
 
       
-    // }, { injector: this.injector });
+    }, { injector: this.injector });
 
   }
 
   async ejecutarFuncion() {
 
-  
-    //this.formCli.patchValue({ClienteFacturacionCUIT: 11111 });
-    
     this.formCli.reset({ ClienteFacturacionCUIT: 0 })
     this.formCli.markAsPristine()
     console.log('Función en el hijo ejecutada desde el padre ', this.formCli.value)
