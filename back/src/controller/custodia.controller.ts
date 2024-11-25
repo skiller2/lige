@@ -841,8 +841,8 @@ export class CustodiaController extends BaseController {
             await queryRunner.query(`DELETE FROM lige.dbo.regpersonalcustodia WHERE objetivo_custodia_id = @0`, [custodiaId])
             let errorCantPersonal:boolean = true
             for (const obj of objetivoCustodia.personal) {
-                errorCantPersonal = false
                 if (obj.personalId) {
+                    errorCantPersonal = false
                     //Validaciones para fecha_liquidacion
                     if (((this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion)) && !obj.importe) {
                         errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
@@ -870,8 +870,8 @@ export class CustodiaController extends BaseController {
             await queryRunner.query(`DELETE lige.dbo.regvehiculocustodia WHERE objetivo_custodia_id = @0`, [custodiaId])
             let errorCantVehiculo:boolean = true
             for (const obj of objetivoCustodia.vehiculos) {
-                errorCantVehiculo = false
                 if (obj.patente) {
+                    errorCantVehiculo = false
                     //Validaciones para fecha_liquidacion
                     if (((this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion)) && (!obj.importe || !obj.duenoId)) {
                         errores.push(`Los campos relacionados a la Patente ${obj.patente} NO pueden estar vacio.`)
