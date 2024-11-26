@@ -733,8 +733,10 @@ export class ObjetivosController extends BaseController {
 
         for (const [idx, objetivo] of objetivos.entries()) {
 
-            if(objetivo.ObjetivoId && objetivo.PersonaId && objetivo.ObjetivoPersonalJerarquicoId){
+            if(Objetivo && objetivo.PersonaId){
+  
                 if (objetivo.ObjetivoId){
+
                     await queryRunner.query(`UPDATE ObjetivoPersonalJerarquico SET ObjetivoPersonalJerarquicoComision = @2, ObjetivoPersonalJerarquicoDescuentos = @3
                         WHERE  ObjetivoPersonalJerarquicoComo = 'C' AND ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1 `,
                         [objetivo.PersonaId,Objetivo,objetivo.ObjetivoPersonalJerarquicoComision,objetivo.ObjetivoPersonalJerarquicoDescuentos])
@@ -748,9 +750,11 @@ export class ObjetivosController extends BaseController {
 
 
                     if(objetivo.ClienteElementoDependienteId != null && objetivo.ClienteElementoDependienteId != "null") {
+
                         await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteContactoUltNro = @2
                             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `, [objetivo.ClienteId,objetivo.ClienteElementoDependienteId,maxObjetivoPersonalJerarquico])
                     }else{
+
                             return await queryRunner.query(`UPDATE Cliente SET ClienteContactoUltNro = @1 WHERE ClienteId = @0`,[objetivo.ClienteId,maxObjetivoPersonalJerarquico])
                     }
                     objetivos[idx].ObjetivoId = maxObjetivoPersonalJerarquico
@@ -1096,13 +1100,13 @@ export class ObjetivosController extends BaseController {
             const ip = this.getRemoteAddress(req)
             ObjObjetivoNew.ClienteId = Obj.ClienteId
             //validaciones
-
+           
             await this.FormValidations(Obj)
 
-            let infoMaxObjetivo = await queryRunner.query(`SELECT MAX(ObjetivoId) AS MaxObjetivoId FROM Objetivo`)
-            let { MaxObjetivoId } = infoMaxObjetivo[0]
+        
+            let infoMaxObjetivo = await queryRunner.query(`SELECT IDENT_CURRENT('Objetivo')`)
+            let  MaxObjetivoId = infoMaxObjetivo[0][''] 
             MaxObjetivoId++
-
             
             let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT ClienteElementoDependienteUltNro AS ClienteElementoDependienteUltNro FROM Cliente WHERE ClienteId = @0`,[Number(Obj.ClienteId)])
             let { ClienteElementoDependienteUltNro } = infoMaxClienteElementoDependiente[0]
@@ -1114,8 +1118,6 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.NewClienteElementoDependienteId = ClienteElementoDependienteUltNro
             Obj.ClienteElementoDependienteId = ClienteElementoDependienteUltNro
             let ClienteElementoDependienteDomicilioId = 1
-
-       
           
             
             await this.insertClienteElementoDependienteSql(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.Descripcion,Obj.SucursalId,ClienteElementoDependienteDomicilioId)
@@ -1126,7 +1128,6 @@ export class ObjetivosController extends BaseController {
             //await this.ClienteElementoDependienteContrato(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
             await this.validateDateAndCreateContrato(queryRunner,Obj)
             await this.insertObjetivoSql(queryRunner,Number(Obj.ClienteId),Obj.Descripcion,ClienteElementoDependienteUltNro,Obj.SucursalId)
-
 
             ObjObjetivoNew.infoCoordinadorCuenta= await this.ObjetivoCoordinador(queryRunner,Obj.infoCoordinadorCuenta,MaxObjetivoId)
             ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner,Obj.infoRubro,MaxObjetivoId,Obj.ClienteId,ClienteElementoDependienteUltNro)
