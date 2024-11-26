@@ -1104,9 +1104,6 @@ export class ObjetivosController extends BaseController {
             await this.FormValidations(Obj)
 
         
-            let infoMaxObjetivo = await queryRunner.query(`SELECT IDENT_CURRENT('Objetivo')`)
-            let  MaxObjetivoId = infoMaxObjetivo[0][''] 
-            MaxObjetivoId++
             
             let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT ClienteElementoDependienteUltNro AS ClienteElementoDependienteUltNro FROM Cliente WHERE ClienteId = @0`,[Number(Obj.ClienteId)])
             let { ClienteElementoDependienteUltNro } = infoMaxClienteElementoDependiente[0]
@@ -1114,7 +1111,6 @@ export class ObjetivosController extends BaseController {
            
            
             //Agrego los valores al objeto original para retornar
-            ObjObjetivoNew.ObjetivoNewId = MaxObjetivoId
             ObjObjetivoNew.NewClienteElementoDependienteId = ClienteElementoDependienteUltNro
             Obj.ClienteElementoDependienteId = ClienteElementoDependienteUltNro
             let ClienteElementoDependienteDomicilioId = 1
@@ -1129,13 +1125,19 @@ export class ObjetivosController extends BaseController {
             await this.validateDateAndCreateContrato(queryRunner,Obj)
             await this.insertObjetivoSql(queryRunner,Number(Obj.ClienteId),Obj.Descripcion,ClienteElementoDependienteUltNro,Obj.SucursalId)
 
-            ObjObjetivoNew.infoCoordinadorCuenta= await this.ObjetivoCoordinador(queryRunner,Obj.infoCoordinadorCuenta,MaxObjetivoId)
-            ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner,Obj.infoRubro,MaxObjetivoId,Obj.ClienteId,ClienteElementoDependienteUltNro)
+            let infoMaxObjetivo = await queryRunner.query(`SELECT IDENT_CURRENT('Objetivo')`)
+            const  ObjetivoID = infoMaxObjetivo[0][''] 
+
+            ObjObjetivoNew.ObjetivoNewId = ObjetivoID
+
+
+            ObjObjetivoNew.infoCoordinadorCuenta= await this.ObjetivoCoordinador(queryRunner,Obj.infoCoordinadorCuenta,ObjetivoID)
+            ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner,Obj.infoRubro,ObjetivoID,Obj.ClienteId,ClienteElementoDependienteUltNro)
  
             //await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,MaxObjetivoPersonalJerarquicoId, maxRubro)
 
             if(infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId)
-                await this.grupoActividad (queryRunner,Obj.infoActividad,MaxObjetivoId,ip, usuario)
+                await this.grupoActividad (queryRunner,Obj.infoActividad,ObjetivoID,ip, usuario)
 
             if(Obj.files?.length > 0){
                 await FileUploadController.handlePDFUpload(Obj.ObjetivoId,'Objetivo','OBJ','objetivo_id',Obj.files,usuario,ip ) 
