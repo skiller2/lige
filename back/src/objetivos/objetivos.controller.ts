@@ -640,7 +640,7 @@ export class ObjetivosController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
     
         try {
-            await queryRunner.startTransaction()
+         
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
             const ObjetivoId = Number(req.params.id)
@@ -653,7 +653,21 @@ export class ObjetivosController extends BaseController {
 
             //throw new ClientException(`test.`)
             //validaciones
+            await queryRunner.startTransaction()
+
             await this.FormValidations(Obj)
+
+            //validacion de barrio
+            if(Obj.DomicilioProvinciaId && Obj.DomicilioLocalidadId && !Obj.DomicilioBarrioId) {
+           
+                let queryBarrio =  await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
+                  [Obj.DomicilioProvinciaId,Obj.DomicilioLocalidadId])
+
+                  if (queryBarrio || queryBarrio.length > 0) 
+                      throw new ClientException(`Debe completar el campo barrio.`)
+                  
+            }
+            
             await this.validateDateAndCreateContrato(queryRunner,Obj)
 
             //update
@@ -979,6 +993,8 @@ export class ObjetivosController extends BaseController {
             throw new ClientException(`Debe completar el campo Localidad.`)
          }
 
+        
+
          
 
         // Coordinador de cuenta
@@ -1094,15 +1110,26 @@ export class ObjetivosController extends BaseController {
         let newObj = []
         try {
 
-            await queryRunner.startTransaction()
-
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
             ObjObjetivoNew.ClienteId = Obj.ClienteId
             //validaciones
-           
+            await queryRunner.startTransaction()
+
             await this.FormValidations(Obj)
 
+             //validacion de barrio
+            if(Obj.DomicilioProvinciaId && Obj.DomicilioLocalidadId && !Obj.DomicilioBarrioId) {
+           
+                let queryBarrio =  await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
+                  [Obj.DomicilioProvinciaId,Obj.DomicilioLocalidadId])
+
+                  if (queryBarrio || queryBarrio.length > 0) 
+                      throw new ClientException(`Debe completar el campo barrio.`)
+                  
+            }
+
+            //throw new ClientException(`test`)
         
             
             let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT ClienteElementoDependienteUltNro AS ClienteElementoDependienteUltNro FROM Cliente WHERE ClienteId = @0`,[Number(Obj.ClienteId)])
@@ -1140,7 +1167,7 @@ export class ObjetivosController extends BaseController {
                 await this.grupoActividad (queryRunner,Obj.infoActividad,ObjetivoID,ip, usuario)
 
             if(Obj.files?.length > 0){
-                await FileUploadController.handlePDFUpload(Obj.ObjetivoId,'Objetivo','OBJ','objetivo_id',Obj.files,usuario,ip ) 
+                await FileUploadController.handlePDFUpload(ObjetivoID,'Objetivo','OBJ','objetivo_id',Obj.files,usuario,ip ) 
             }
 
             await queryRunner.commitTransaction()
