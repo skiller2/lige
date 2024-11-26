@@ -125,7 +125,7 @@ export class ClientesComponent {
 
   setEdit(value: boolean): void {
       this.edit.set(value) 
-      this.child().ejecutarFuncion()
+      this.child().newRecord()
  
   }
 

@@ -177,13 +177,21 @@ export class ClientesFormComponent {
 
   }
 
-  async ejecutarFuncion() {
-
-    this.formCli.reset({ ClienteFacturacionCUIT: 0 })
-    this.formCli.markAsPristine()
-    console.log('Función en el hijo ejecutada desde el padre ', this.formCli.value)
+  async newRecord() {
+    this.formCli.get('codigo')?.disable()
+    this.formCli.reset()
+    //this.formCli.markAsPristine()
   }
 
+  async viewRecord(readonly:boolean) {
+    if (this.ClienteId()) 
+      await this.load()
+    if (readonly)
+      this.formCli.disable()
+    else
+      this.formCli.enable()
+    this.formCli.get('codigo')?.disable()
+  }
 
   async load() {
    // this.files = []
