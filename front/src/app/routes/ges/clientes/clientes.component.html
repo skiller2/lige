@@ -28,7 +28,7 @@
     </nz-button-group>
     </div>
   
-    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
   
       <nz-tab>
         <a nz-tab-link routerLink="/ges/clientes/listado" >Clientes</a>
