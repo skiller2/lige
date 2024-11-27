@@ -86,6 +86,10 @@ export class ClientesComponent {
       this.gridOptions.enableRowDetailView = this.apiService.isMobile()
       this.gridOptions.showFooterRow = true
       this.gridOptions.createFooterRow = true
+
+
+      const initialTabEvent = { index: 0 }
+      this.onTabsetChange(initialTabEvent)
   }
 
     async angularGridReady(angularGrid: any) {
@@ -125,8 +129,17 @@ export class ClientesComponent {
 
   setEdit(value: boolean): void {
       this.edit.set(value) 
-      this.child().newRecord()
- 
+
+  }
+
+  onTabsetChange(_event: any) {
+   let indexTab =  _event.index
+
+   if(indexTab === 0)
+    this.child().newRecord()
+   else
+    this.child().viewRecord(this.edit())
+
   }
 
 }
