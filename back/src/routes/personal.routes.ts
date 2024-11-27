@@ -13,15 +13,6 @@ console.log('dirtmp', dirtmp);
 if (!existsSync(dirtmp)) {
   mkdirSync(dirtmp, { recursive: true });
 }
-// const dirtmpfoto = `${process.env.IMAGE_FOTO_PATH}/temp`;
-// const dirtmpdoc = `${process.env.IMAGE_DOCUMENTO_PATH}/temp`;
-
-// if (!existsSync(dirtmpfoto)) {
-//   mkdirSync(dirtmpfoto, { recursive: true });
-// }
-// if (!existsSync(dirtmpdoc)) {
-//   mkdirSync(dirtmpdoc, { recursive: true });
-// }
 
 function generateRandomDigitNumber() {
 
@@ -133,6 +124,10 @@ personalRouter.post(
 
 personalRouter.post(`${base}/add`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.addPersonal(req, res, next);
+});
+
+personalRouter.post(`${base}/update/:id`, authMiddleware.verifyToken, (req, res, next) => {
+  personalController.updatePersonal(req, res, next);
 });
 
 personalRouter.get(`${base}/info/:id`, authMiddleware.verifyToken, (req, res, next) => {

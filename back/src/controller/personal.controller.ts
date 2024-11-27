@@ -519,25 +519,53 @@ export class PersonalController extends BaseController {
         FROM SituacionRevista sit`)
   }
 
-  async addPersonalQuery(queryRunner:any, infoPersonal:any){
-    const nombre = infoPersonal
-    const apellido = infoPersonal
-    const cuit = infoPersonal
-    const nroLegajo = infoPersonal
-    const sucusalId = infoPersonal
-    const fechaAlta = infoPersonal
-    const fechaNacimiento = infoPersonal
-    const foto = infoPersonal
-    const nacionalidad = infoPersonal
-    const dniDorso = infoPersonal
-    const dniFrente = infoPersonal
-    return await queryRunner.query(`
-        INSERT Personal(
-            PersonalId, PersonalNroLegajo, PersonalApellido, PersonalNombre, PersonalApellidoNombre,
-            PersonalFechaSolicitudIngreso, 
-            aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod
-        )
-        VALUES ()`)
+  async addPersonalQuery(
+    queryRunner:any,
+    NroLegajo:number,
+    Apellido:string,
+    Nombre:string,
+    fullname:string,
+    now:Date,
+    FechaIngreso:Date,
+    FechaNacimiento:Date,
+    NacionalidadId:number,
+    SucusalId:number,
+    PersonalEstado:string,
+    ApellidoNombreDNILegajo:string
+  ){
+    await queryRunner.query(`
+      INSERT INTO Personal (
+      PersonalClasePersonal,
+      PersonalNroLegajo,
+      PersonalApellido,
+      PersonalNombre,
+      PersonalApellidoNombre,
+      PersonalFechaSolicitudIngreso,
+      PersonalFechaSolicitudAceptada,
+      PersonalFechaPreIngreso,
+      PersonalFechaIngreso,
+      PersonalFechaNacimiento,
+      PersonalNacionalidadId,
+      -- PersonalFotoId,
+      PersonalSucursalIngresoSucursalId,
+      PersonalSuActualSucursalPrincipalId,
+      PersonalEstado,
+      PersonalApellidoNombreDNILegajo
+      )
+      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@7,@8,@9,@9,@10,@11)`,[
+        'A',
+        NroLegajo,
+        Apellido,
+        Nombre,
+        fullname,
+        now,
+        FechaIngreso,
+        FechaNacimiento,
+        NacionalidadId,
+        SucusalId,
+        PersonalEstado,
+        ApellidoNombreDNILegajo
+    ])
   }
 
   async getSituacionRevista(req: any, res: Response, next: NextFunction){
@@ -565,8 +593,8 @@ export class PersonalController extends BaseController {
     const NroLegajo:number = req.body.NroLegajo
     const SucusalId:number = req.body.SucursalId
     // const SolicitudIngreso = new Date()
-    let FechaIngreso = req.body.FechaIngreso
-    const FechaNacimiento = req.body.FechaNacimiento
+    let FechaIngreso:Date = new Date(req.body.FechaIngreso)
+    let FechaNacimiento:Date = new Date(req.body.FechaNacimiento)
     const foto = req.body.Foto
     const NacionalidadId:number = req.body.NacionalidadId
     const docFrente = req.body.docFrente
@@ -574,6 +602,7 @@ export class PersonalController extends BaseController {
     let now = new Date()
     now.setHours(0, 0, 0, 0)
     FechaIngreso.setHours(0, 0, 0, 0)
+    FechaNacimiento.setHours(0, 0, 0, 0)
     try {
       await queryRunner.startTransaction()
 
@@ -603,39 +632,9 @@ export class PersonalController extends BaseController {
         throw new ClientException(`El CUIT ya fue registrado.`);
       }
 
-      await queryRunner.query(`
-        INSERT INTO Personal (
-        PersonalClasePersonal,
-        PersonalNroLegajo,
-        PersonalApellido,
-        PersonalNombre,
-        PersonalApellidoNombre,
-        PersonalFechaSolicitudIngreso,
-        PersonalFechaSolicitudAceptada,
-        PersonalFechaPreIngreso,
-        PersonalFechaIngreso,
-        PersonalFechaNacimiento,
-        PersonalNacionalidadId,
-        -- PersonalFotoId,
-        PersonalSucursalIngresoSucursalId,
-        PersonalSuActualSucursalPrincipalId,
-        PersonalEstado,
-        PersonalApellidoNombreDNILegajo
-        )
-        VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@7,@8,@9,@9,@10,@11)`,[
-          'A',
-          NroLegajo,
-          Apellido,
-          Nombre,
-          fullname,
-          now,
-          FechaIngreso,
-          FechaNacimiento,
-          NacionalidadId,
-          SucusalId,
-          PersonalEstado,
-          ApellidoNombreDNILegajo
-      ])
+      this.addPersonalQuery(queryRunner, NroLegajo, Apellido, Nombre, fullname, now, FechaIngreso,
+        FechaNacimiento, NacionalidadId, SucusalId, PersonalEstado, ApellidoNombreDNILegajo
+      )
         
       let PersonalId = await queryRunner.query(`
         SELECT per.PersonalId
@@ -726,8 +725,8 @@ export class PersonalController extends BaseController {
     fotoId = fotoId[0].fotoId
 
     const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.jpg`;
-    const newFieldname = `${personalId}-${fotoId}-FOTO.jpg`
-    const newFilePath = `${process.env.IMAGE_FOTO_PATH}/${newFieldname}`;
+    const newFieldname = `${personalId}-${fotoId}-FOTO`
+    const newFilePath = `${process.env.IMAGE_FOTO_PATH}/${newFieldname}.jpg`;
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`UPDATE DocumentoImagenFoto SET DocumentoImagenFotoBlobNombreArchivo = @0 WHERE PersonalId = @1`,
       [newFieldname, personalId]
@@ -746,90 +745,116 @@ export class PersonalController extends BaseController {
       DocumentoImagenParametroId,
       DocumentoImagenParametroDirectorioId
       )
-      VALUES(@0,@1,@2,@3,@4,@5)`,
+      VALUES(@0,@1,@2,@3)`,
       [personalId, 'jpg', parametro, 1]
     )
-    let docId = await queryRunner.query(`SELECT DocumentoImagenDocumentoId docId FROM DocumentoImagenDocumento WHEREPersonalId IN (@0)`,[personalId])
+    let docId = await queryRunner.query(`SELECT DocumentoImagenDocumentoId docId FROM DocumentoImagenDocumento WHERE PersonalId IN (@0)`,[personalId])
     docId = docId[0].docId
     const dirFile: string  = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.jpg`;
     let newFieldname: string = `${personalId}-${docId}`
     if (parametro == 13) {
-      newFieldname += `-DOCUMENDOR.jpg`
+      newFieldname += `-DOCUMENDOR`
     }else if(parametro == 12){
-      newFieldname += `-DOCUMENFREN.jpg`
+      newFieldname += `-DOCUMENFREN`
     }
-    const newFilePath: string  = `${process.env.IMAGE_DOCUMENTO_PATH}/${newFieldname}`;
+    const newFilePath: string  = `${process.env.IMAGE_DOCUMENTO_PATH}/${newFieldname}.jpg`;
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`UPDATE DocumentoImagenDocumento SET DocumentoImagenDocumentoBlobNombreArchivo = @0 WHERE PersonalId = @1`,
       [newFieldname, personalId]
     )
     return newFieldname
   }
+
+  async updatePersonalQuery(
+    queryRunner:any,
+    PersonalId:number,
+    NroLegajo:number,
+    Apellido:string,
+    Nombre:string,
+    fullname:string,
+    FechaIngreso:Date,
+    FechaNacimiento:Date,
+    NacionalidadId:number,
+  ){
+    return await queryRunner.query(`
+      UPDATE Personal SET
+      PersonalNroLegajo = @1,
+      PersonalApellido = @2,
+      PersonalNombre = @3,
+      PersonalApellidoNombre = @4,
+      PersonalFechaPreIngreso = @5,
+      PersonalFechaIngreso = @5,
+      PersonalFechaNacimiento = @6,
+      PersonalNacionalidadId = @7
+      WHERE PersonalId = @0
+      `,[PersonalId, NroLegajo, Apellido, Nombre, fullname, FechaIngreso, FechaNacimiento, NacionalidadId])
+  }
   
-  // async updatePersonal(req: any, res: Response, next: NextFunction){
-  //   const queryRunner = dataSource.createQueryRunner();
-  //   const personalId:number = req.body.personalId
-  //   let nombre:string = req.body.nombre
-  //   let apellido:string = req.body.apellido
-  //   const cuit:number = req.body.cuit
-  //   const nroLegajo:number = req.body.nroLegajo
-  //   const sucusalId:number = req.body.sucusalId
-  //   const fechaAlta = req.body.fechaAlta
-  //   const fechaNacimiento = req.body.fechaNacimiento
-  //   const foto = req.body.foto
-  //   const nacionalidadId:number = req.body.nacionalidad
-  //   const dniFrente = req.body.dniFrente
-  //   const dniDorso = req.body.dniDorso
-  //   try {
-  //     await queryRunner.startTransaction()
+  async updatePersonal(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    const PersonalId:number = Number(req.params.id)
+    let Nombre:string = req.body.Nombre
+    let Apellido:string = req.body.Apellido
+    const CUIT:number = req.body.CUIT
+    const NroLegajo:number = req.body.NroLegajo
+    const SucursalId:number = req.body.SucursalId
+    let FechaIngreso:Date = new Date(req.body.FechaIngreso)
+    let FechaNacimiento:Date = new Date(req.body.FechaNacimiento)
+    const Foto = req.body.Foto
+    const NacionalidadId:number = req.body.NacionalidadId
+    const docFrente = req.body.docFrente
+    const docDorso = req.body.docDorso
+    let now = new Date()
+    now.setHours(0, 0, 0, 0)
+    FechaIngreso.setHours(0, 0, 0, 0)
+    FechaNacimiento.setHours(0, 0, 0, 0)
+    try {
+      await queryRunner.startTransaction()
 
-  //     if (!nombre || !apellido || !cuit || !nroLegajo || !sucusalId || !nacionalidadId || !fechaAlta || !fechaNacimiento) {
-  //       throw new ClientException(`Los campos No pueden estar vacios.`);
-  //     }
-  //     nombre = nombre.toUpperCase()
-  //     apellido = apellido.toUpperCase()
-  //     const fullname:string = apellido + ', ' + nombre
+      if (!Nombre || !Apellido || !CUIT || !NroLegajo || !SucursalId || !FechaIngreso || !FechaNacimiento || !NacionalidadId) {
+        throw new ClientException(`Los campos No pueden estar vacios.`);
+      }
+      Nombre = Nombre.toUpperCase()
+      Apellido = Apellido.toUpperCase()
+      const fullname:string = Apellido + ', ' + Nombre
       
-  //     await queryRunner.query(`
-  //       UPDATE Personal SET
-  //       PersonalNroLegajo = @1,
-  //       PersonalApellido = @2,
-  //       PersonalNombre = @2,
-  //       PersonalApellidoNombre = @2,
-  //       PersonalFechaSolicitudIngreso = @2,
-  //       PersonalFechaSolicitudAceptada = @2,
-  //       PersonalFechaNacimiento = @2,
-  //       PersonalNacionalidadId = @2,
-  //       `,[
-  //         personalId,
-  //         nroLegajo,
-  //         apellido,
-  //         nombre,
-  //         fullname,
-  //         fechaAlta,
-  //         fechaNacimiento,
-  //         nacionalidadId,
-  //       ])
+      await this.updatePersonalQuery(queryRunner, PersonalId, NroLegajo, Apellido, Nombre, fullname, FechaIngreso, FechaNacimiento, NacionalidadId)
       
-  //     if (foto.length) {
-  //       this.addFoto(queryRunner, personalId, foto)
-  //     }
-  //     if (dniFrente.length) {
-  //       this.addDocumento(queryRunner, personalId, dniFrente, 12)
-  //     }
-  //     if (dniDorso.length) {
-  //       this.addDocumento(queryRunner, personalId, dniDorso, 13)
-  //     }
+      let PersonalCUITCUIL = await queryRunner.query(`
+        SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0`, [PersonalId]
+      )
+      if (PersonalCUITCUIL[0].cuit != CUIT) {
+        await queryRunner.query(`
+          UPDATE PersonalCUITCUIL SET
+          PersonalCUITCUILCUIT = @1,
+          PersonalCUITCUILDesde = @2
+          WHERE PersonalId = @0`,
+          [ PersonalId, CUIT, now]
+        )
+      }
+      let response:any = {}
+      if (Number(Foto)) {
+        let file = await this.addFoto(queryRunner, PersonalId, Foto)
+        response.Foto = file
+      }
+      if (Number(docFrente)) {
+        let file = await this.addDocumento(queryRunner, PersonalId, docFrente, 12)
+        response.docFrente = file
+      }
+      if (Number(docDorso)) {
+        let file = await this.addDocumento(queryRunner, PersonalId, docDorso, 13)
+        response.docDorso = file
+      }
 
-  //     await queryRunner.commitTransaction()
-  //     this.jsonRes({}, res);
-  //   } catch (error) {
-  //     this.rollbackTransaction(queryRunner)
-  //     return next(error)
-  //   } finally {
-  //     await queryRunner.release()
-  //   }
-  // }
+      await queryRunner.commitTransaction()
+      this.jsonRes(response, res, 'Carga Exitosa');
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
 
   async getFormDataById(req: any, res: Response, next: NextFunction){
     const queryRunner = dataSource.createQueryRunner()
