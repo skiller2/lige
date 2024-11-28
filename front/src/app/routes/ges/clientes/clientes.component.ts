@@ -125,10 +125,10 @@ export class ClientesComponent {
       case 3: //INSERT
         this.childAlta().newRecord()
         break
-      case 2: //EDIT
+      case 2: //DETAIL
         this.childDeta().viewRecord(true)
         break;
-      case 1: //DETAIL
+      case 1: //EDIT
         this.childEdit().viewRecord(false)
         break;
         default:

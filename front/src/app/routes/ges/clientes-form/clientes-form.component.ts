@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, Input, input, } from '@angular/core';
+import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, Input, input, output, } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
@@ -66,7 +66,7 @@ export class ClientesFormComponent {
   ClienteId = model(0)
   selectedValueProvincia = null
   isLoading = signal(false)
-  addNew = model()
+  onAddorUpdate = output()
   //files = []
   textForSearch = "Cliente"
 
@@ -272,6 +272,7 @@ export class ClientesFormComponent {
         
     }
     this.isLoading.set(false)
+    this.onAddorUpdate.emit()
 }
 
   infoDomicilio(): FormArray {
@@ -324,6 +325,7 @@ export class ClientesFormComponent {
   async deleteCliente() {
     const form = this.formCli.value
     await firstValueFrom(this.apiService.deleteCliente(form))
+    this.onAddorUpdate.emit()
   }
 
 }
