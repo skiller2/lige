@@ -921,7 +921,7 @@ export class ObjetivosController extends BaseController {
         // Desde < FecUltPer y Hasta > UltPer, se puede modificar el hasta, pero el nuevo hasta >= UltPer
         if (ContratoFechaDesdeOLD < FechaCierre && (!ContratoFechaHastaOLD || ContratoFechaHastaOLD > FechaCierre)) {
    
-            if (ContratoFechaHasta &&ContratoFechaHasta.getTime() <= FechaCierre.getTime()) {
+            if (ContratoFechaHasta && ContratoFechaHasta.getTime() < FechaCierre.getTime()) {
                 throw new ClientException(`La fecha de cierre debe ser igual o mayor a la fecha limite. ${fechaFormateada}`)
             }
             
