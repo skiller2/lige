@@ -43,10 +43,7 @@ export class ClientesComponent {
   gridOptions!: GridOption;
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
-  editClienteId = 0;
-  edit = signal(false)
-  consult = signal(false)
-  addNew = false
+  editClienteId = signal(0);
   excelExportService = new ExcelExportService()
   listCliente$ = new BehaviorSubject('')
   listOptions: listOptionsT = {
@@ -67,7 +64,9 @@ export class ClientesComponent {
 
 
 //  child = viewChild.required(ClientesFormComponent)
-  child = viewChild.required<ClientesFormComponent>('clienteFormAlta')
+  childAlta = viewChild.required<ClientesFormComponent>('clienteFormAlta')
+  childDeta = viewChild.required<ClientesFormComponent>('clienteFormDeta')
+  childEdit = viewChild.required<ClientesFormComponent>('clienteFormEdit')
 
     gridData$ = this.listCliente$.pipe(
         debounceTime(500),
@@ -108,7 +107,7 @@ export class ClientesComponent {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
     if (row?.id)
-      this.editClienteId = row.id
+      this.editClienteId.set(row.id)
 
   }
 
@@ -120,8 +119,6 @@ export class ClientesComponent {
 
   getGridData(): void {
     this.listCliente$.next('');
-    this.edit.set(false) 
-  
   }
 
   listOptionsChange(options: any) {
@@ -129,34 +126,21 @@ export class ClientesComponent {
       this.listCliente$.next('');
   }
 
-  setEdit(value: boolean): void {
-      this.edit.set(value) 
-      this.consult.set(false)
-      //console.log("paso pro aca ", this.indexTab )
-      // if(this.indexTab === 0)
-      //   this.child().newRecord()
-      //  else
-      //   this.child().viewRecord(this.edit(),this.editClienteId)
-
-      this.child().newRecord()
-  }
-
-  setConsult() {
-    this.edit.set(false) 
-    this.consult.set(true)
-
-    this.child().newRecord()
-}
-
   onTabsetChange(_event: any) {
-  let indexTab =  _event.index
+    switch (_event.index) {
+      case 3: //INSERT
+        this.childAlta().newRecord()
+        break
+      case 2: //EDIT
+        this.childDeta().viewRecord(true)
+        break;
+      case 1: //DETAIL
+        this.childEdit().viewRecord(false)
+        break;
+        default:
+        break;
+    }
 
-
-     console.log("paso pro aca ", indexTab )
-      if(indexTab === 3)
-        this.child().newRecord()
-       else
-        this.child().viewRecord(this.edit(),this.editClienteId)
   }
 
 }

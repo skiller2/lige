@@ -182,24 +182,26 @@ export class ClientesFormComponent {
   }
 
   async newRecord() {
-    // // this.formCli.get('codigo')?.disable()
-    // // this.formCli.reset()
-    // // //this.formCli.markAsPristine()
+    this.formCli.reset()
+    this.formCli.get('codigo')?.enable()
+    this.formCli.markAsPristine()
     //await this.userEfectFuntion()
+    this.formCli.get('codigo')?.disable()
+
   }
 
-  async viewRecord(readonly:boolean,ClienteId:any ) {
+  async viewRecord(readonly:boolean) {
     //await this.userEfectFuntion()
-    console.log("ClientId signal ", this.ClienteId())
+      console.log("ClientId signal ", this.ClienteId() )
+      if (this.ClienteId()) 
+        await this.load()
+      if (readonly)
+        this.formCli.disable()
+      else
+        this.formCli.enable()
+      this.formCli.get('codigo')?.disable()
+        
 
-    this.ClienteId.set(ClienteId)
-    if (ClienteId) 
-      await this.load()
-    if (readonly)
-      this.formCli.disable()
-    else
-      this.formCli.enable()
-    this.formCli.get('codigo')?.disable()
    }
 
   async load() {
