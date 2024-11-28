@@ -45,6 +45,7 @@ export class ClientesComponent {
   detailViewRowCount = 1;
   editClienteId = 0;
   edit = signal(false)
+  consult = signal(false)
   addNew = false
   excelExportService = new ExcelExportService()
   listCliente$ = new BehaviorSubject('')
@@ -52,7 +53,8 @@ export class ClientesComponent {
     filtros: [],
     sort: null,
   };
-  
+
+
   formChange$ = new BehaviorSubject('');
   startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
 
@@ -88,8 +90,8 @@ export class ClientesComponent {
       this.gridOptions.createFooterRow = true
 
 
-      const initialTabEvent = { index: 0 }
-      this.onTabsetChange(initialTabEvent)
+      //const initialTabEvent = { index: 0 }
+      //this.onTabsetChange(initialTabEvent)
   }
 
     async angularGridReady(angularGrid: any) {
@@ -129,17 +131,32 @@ export class ClientesComponent {
 
   setEdit(value: boolean): void {
       this.edit.set(value) 
+      this.consult.set(false)
+      //console.log("paso pro aca ", this.indexTab )
+      // if(this.indexTab === 0)
+      //   this.child().newRecord()
+      //  else
+      //   this.child().viewRecord(this.edit(),this.editClienteId)
 
+      this.child().newRecord()
   }
 
-  onTabsetChange(_event: any) {
-   let indexTab =  _event.index
+  setConsult() {
+    this.edit.set(false) 
+    this.consult.set(true)
 
-   if(indexTab === 0)
     this.child().newRecord()
-   else
-    this.child().viewRecord(this.edit())
+}
 
+  onTabsetChange(_event: any) {
+  let indexTab =  _event.index
+
+
+     console.log("paso pro aca ", indexTab )
+      if(indexTab === 3)
+        this.child().newRecord()
+       else
+        this.child().viewRecord(this.edit(),this.editClienteId)
   }
 
 }

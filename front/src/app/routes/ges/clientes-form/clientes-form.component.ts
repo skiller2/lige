@@ -64,6 +64,7 @@ export class ClientesFormComponent {
   periodo = signal({ year: 0, month: 0 })
   personalId = signal(0)
   edit = model(true)
+  consult = input<boolean>(false)
   ClienteId = model(0)
   selectedValueProvincia = null
   isLoading = signal(false)
@@ -132,10 +133,7 @@ export class ClientesFormComponent {
   optionsLocalidad: any;
   optionsBarrio: any;
   optionsCondicionAnteIva: any;
-  // $optionsProvincia: Observable<Provincia[]> | null = null;
-  // $optionsLocalidad: Observable<Localidad[]> = of([]);
-  // $optionsBarrio: Observable<Barrio[]> = of([]);
-  trigger = signal(false); // Señal que actúa como disparador
+
 
 
   onChangePeriodo(result: Date): void {
@@ -153,45 +151,56 @@ export class ClientesFormComponent {
     this.optionsLocalidad = await firstValueFrom(this.searchService.getLocalidad())
     this.optionsBarrio = await firstValueFrom(this.searchService.getBarrio())
     this.optionsCondicionAnteIva = await firstValueFrom(this.searchService.getOptionsCondicionAnteIva())
-  
 
-    effect(async () => {
+    await this.userEfectFuntion()
+  }
 
-      console.log("ejecuto el efect")
+  async userEfectFuntion(){
 
-      if (this.ClienteId()) 
-        await this.load()
-      else 
-        this.formCli.reset({ estado: 0 })
+    // effect(async () => {
+
+    //   console.log("ejecuto el efect")
+    //   this.formCli.reset()
+
+    //   if (this.ClienteId()) 
+    //     await this.load()
+    //   else 
+    //     this.formCli.reset({ estado: 0 })
       
         
-      if (this.edit()) 
-        this.formCli.enable()
-        
+    //   if (this.edit()) 
+    //     this.formCli.enable()
 
-      this.formCli.get('codigo')?.disable()
-      this.formCli.markAsPristine()
+    //   if(this.consult())
+    //     this.formCli.disable()
+
+    //   this.formCli.get('codigo')?.disable()
+    //   this.formCli.markAsPristine()
 
       
-    }, { injector: this.injector });
-
+    // }, { injector: this.injector });
   }
 
   async newRecord() {
-    this.formCli.get('codigo')?.disable()
-    this.formCli.reset()
-    //this.formCli.markAsPristine()
+    // // this.formCli.get('codigo')?.disable()
+    // // this.formCli.reset()
+    // // //this.formCli.markAsPristine()
+    //await this.userEfectFuntion()
   }
 
-  async viewRecord(readonly:boolean) {
-    if (this.ClienteId()) 
+  async viewRecord(readonly:boolean,ClienteId:any ) {
+    //await this.userEfectFuntion()
+    console.log("ClientId signal ", this.ClienteId())
+
+    this.ClienteId.set(ClienteId)
+    if (ClienteId) 
       await this.load()
     if (readonly)
       this.formCli.disable()
     else
       this.formCli.enable()
     this.formCli.get('codigo')?.disable()
-  }
+   }
 
   async load() {
    // this.files = []
@@ -222,15 +231,15 @@ export class ClientesFormComponent {
       this.infoDomicilio().disable()
       this.infoClienteContacto().disable()
     }
-    setTimeout(() => {
-      this.formCli.reset(infoCliente)
-      this.formCli.patchValue({
+    
+    this.formCli.reset(infoCliente)
+    this.formCli.patchValue({
         codigo: infoCliente.id,
-      });
-      this.formCli.get('codigo')?.disable()
-     this.isLoadSelect.set(true)
-    }, 100)
-   
+    });
+    this.formCli.get('codigo')?.disable()
+    //this.cdr.detectChanges(); // Asegúrate de que la vista se actualice.
+
+   console.log(" this.formCli.value ",  this.formCli.value)
     { }
   }
 

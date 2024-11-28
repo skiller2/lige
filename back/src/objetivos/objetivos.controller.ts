@@ -663,7 +663,7 @@ export class ObjetivosController extends BaseController {
                 let queryBarrio =  await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
                   [Obj.DomicilioProvinciaId,Obj.DomicilioLocalidadId])
 
-                  if (queryBarrio || queryBarrio.length > 0) 
+                  if (queryBarrio && queryBarrio.length > 0) 
                       throw new ClientException(`Debe completar el campo barrio.`)
                   
             }
@@ -1124,7 +1124,7 @@ export class ObjetivosController extends BaseController {
                 let queryBarrio =  await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
                   [Obj.DomicilioProvinciaId,Obj.DomicilioLocalidadId])
 
-                  if (queryBarrio || queryBarrio.length > 0) 
+                  if (queryBarrio && queryBarrio.length > 0) 
                       throw new ClientException(`Debe completar el campo barrio.`)
                   
             }
