@@ -63,7 +63,6 @@ export class ClientesFormComponent {
   isLoadSelect= signal(false)
   periodo = signal({ year: 0, month: 0 })
   personalId = signal(0)
-  edit = signal(true)
   ClienteId = model(0)
   selectedValueProvincia = null
   isLoading = signal(false)
@@ -188,7 +187,6 @@ export class ClientesFormComponent {
   }
 
   async viewRecord(readonly:boolean) {
-      this.edit.set(!readonly)
       if (this.ClienteId()) 
         await this.load()
       if (readonly)
