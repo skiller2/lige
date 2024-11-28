@@ -111,12 +111,6 @@ export class ClientesComponent {
 
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['addNew']) {
-      this.listCliente$.next('');
-    }
-  }
-
   getGridData(): void {
     this.listCliente$.next('');
   }
