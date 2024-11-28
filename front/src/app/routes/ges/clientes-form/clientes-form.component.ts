@@ -63,16 +63,13 @@ export class ClientesFormComponent {
   isLoadSelect= signal(false)
   periodo = signal({ year: 0, month: 0 })
   personalId = signal(0)
-  edit = model(true)
-  consult = input<boolean>(false)
+  edit = signal(true)
   ClienteId = model(0)
   selectedValueProvincia = null
   isLoading = signal(false)
   addNew = model()
   //files = []
   textForSearch = "Cliente"
-  constructor(private cdr: ChangeDetectorRef) {}
-
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
@@ -191,8 +188,7 @@ export class ClientesFormComponent {
   }
 
   async viewRecord(readonly:boolean) {
-    //await this.userEfectFuntion()
-      console.log("ClientId signal ", this.ClienteId() )
+      this.edit.set(!readonly)
       if (this.ClienteId()) 
         await this.load()
       if (readonly)
@@ -200,7 +196,7 @@ export class ClientesFormComponent {
       else
         this.formCli.enable()
       this.formCli.get('codigo')?.disable()
-        
+      this.formCli.markAsPristine()        
 
    }
 

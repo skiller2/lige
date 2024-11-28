@@ -120,7 +120,7 @@
           </nz-form-control>
 
           <!-- Columna para los botones -->
-          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2" *ngIf="!consult()">
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2" *ngIf="edit()">
             <div class="button-group"  style="width: 100%">
               <button nz-button nzType="primary" class="add-button" (click)="addDomicilio($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" >
                 <span nz-icon nzType="plus"></span>
@@ -187,16 +187,18 @@
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2" [ngClass]="'btn-margintop'" > Correo </nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="7" [ngClass]="'btn-margintop'">
-        <nz-input-group style="width: 100%" [nzAddOnAfter]="controlClienteButton" nzSearch  *ngIf="!consult()">
+        <nz-input-group style="width: 100%" [nzAddOnAfter]="controlClienteButton" nzSearch>
             <input nz-input placeholder="" formControlName="correo" type="string" />
           </nz-input-group>
           <ng-template #controlClienteButton >
+            @if (edit()){
             <button nz-button *ngIf="infoClienteContacto().controls.length == i+1" nzType="primary" class="add-button" (click)="addClienteContacto($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" >
               <span nz-icon nzType="plus"></span>
             </button>
             <button *ngIf="infoClienteContacto().length >= 2" nz-button nzType="default" (click)="removeClienteContacto(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}" >
               <span nz-icon nzType="delete" nzTheme="outline" ></span>
             </button>
+          }
           </ng-template>
       </nz-form-control> 
     
@@ -220,14 +222,14 @@
   
     <nz-form-item>
 
-      <nz-form-control *ngIf="!consult()">
+      <nz-form-control *ngIf="edit()">
         <app-file-upload formControlName="files"   [idForSearh]="formCli.value.id ?? 0"
         [textForSearch]="'CLI'" [keyField]="'cliente_id'"></app-file-upload>
       </nz-form-control>
       
     </nz-form-item>
 
-    <nz-form-item *ngIf="!consult()">
+    <nz-form-item *ngIf="edit()">
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
         <button nzType="primary" nz-button  (click)="save()" [nzLoading]="isLoading()" [disabled]="formCli.pristine" >
           {{ 'app.btn.save' | i18n }}
@@ -235,7 +237,7 @@
         <button nzType="primary" nz-button nzDanger  nz-popconfirm
         nzPopconfirmTitle="Esta seguro que quiere eliminar este Cliente?"
         (nzOnConfirm)="deleteCliente()"
-        nzPopconfirmPlacement="top" *ngIf="edit()" [nzLoading]="isLoading()" [disabled]="!(formCli.pristine)" >
+        nzPopconfirmPlacement="top" *ngIf="ClienteId()" [nzLoading]="isLoading()" [disabled]="!(formCli.pristine)" >
         {{ 'app.btn.delete' | i18n }}
         </button>
       </nz-form-control>
