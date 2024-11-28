@@ -8,6 +8,7 @@ import { SearchService } from 'src/app/services/search.service';
 import { NgForm, FormArray, FormBuilder } from '@angular/forms';
 import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 
 const tipoArchivo = [
   {
@@ -27,7 +28,7 @@ const tipoArchivo = [
   templateUrl: './personal-form.component.html',
   styleUrl: './personal-form.component.less',
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, NzUploadModule],
+  imports: [...SHARED_IMPORTS, CommonModule, NzUploadModule, FileUploadComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
   
@@ -56,11 +57,6 @@ export class PersonalFormComponent {
   $optionsSucursal = this.searchService.getSucursales();
   $optionsNacionalidad = this.searchService.getNacionalidadList();
 
-  // cuit():number {
-  //   const value = this.formPer.get("CUIT")?.value
-  //   if(value) return value
-  //   else return 0
-  // }
   foto():string {
     const value = this.formPer.get("Foto")?.value
     if(value) return value
@@ -151,21 +147,35 @@ export class PersonalFormComponent {
 
   async save() {
     this.isLoading.set(true)
-    const form = this.formPer.value
-    let newFiles = this.files()
+    const values:any = this.formPer.value
+    let files = [...this.files()]
+    console.log('files', files);
     try {
       if (this.personalId()) {
+        let newFiles:any = await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))
+        newFiles = newFiles.data
+        
+        // for (const key in newFiles) {
+        //   console.log(key,values[key], Number.isInteger(values[key]), Number(values[key]), values.hasOwnProperty(key));
+        //   this.formPer.get(key)?.setValue(Number(newFiles[key]))
+        //   let index:number = files.findIndex(obj =>{obj.control == key})
+        //   files[index].save = true
+        //   files[index].fieldname = newFiles[key]
+        //   console.log('EDITE');
+        //   console.log(files[index].save, files[index].fieldname);
+          
+        // }
         
       }else{
-        await firstValueFrom( this.apiService.addPersonal(form))
+        await firstValueFrom( this.apiService.addPersonal(values))
       }
-      // console.log('newFiles', newFiles);
-      this.files.set(newFiles)
       // this.formPer.markAsUntouched()
       // this.formPer.markAsPristine()
     } catch (e) {
       
     }
+    console.log('files', files);
+    this.files.set(files)
     this.isLoading.set(false)
   }
 
