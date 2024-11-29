@@ -1,4 +1,4 @@
-import { Component, Injector, viewChild, inject, signal, model, computed, ChangeDetectionStrategy, effect } from '@angular/core';
+import { Component, Injector, viewChild, inject, signal, model, computed, ChangeDetectionStrategy, effect, input } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap, noop, firstValueFrom } from 'rxjs';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
@@ -40,7 +40,7 @@ export class PersonalFormComponent {
   isLoading = signal(false);
   periodo= signal({anio:0, mes:0})
   files = signal<any[]>([])
-  personalId = model(0);
+  personalId = input(0);
   private notification = inject(NzNotificationService)
   urlUpload = '/api/personal/upload'
   uploading$ = new BehaviorSubject({loading:false,event:null});

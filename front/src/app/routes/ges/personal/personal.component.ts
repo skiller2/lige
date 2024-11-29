@@ -11,6 +11,9 @@ import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 import { PersonalFormComponent } from '../personal-form/personal-form.component';
+import { LicenciaHistorialDrawerComponent } from '../../../shared/licencia-historial-drawer/licencia-historial-drawer.component'
+import { PersonalObjetivoDrawerComponent } from '../../../shared/personal-objetivo-drawer/personal-objetivo-drawer.component'
+import { PersonalCustodiasDrawerComponent } from '../../../shared/personal-custodias-drawer/personal-custodias-drawer.component'
 
 @Component({
     selector: 'app-personal',
@@ -18,7 +21,9 @@ import { PersonalFormComponent } from '../personal-form/personal-form.component'
     styleUrl: './personal.component.less',
     standalone: true,
     // encapsulation: ViewEncapsulation.None,
-    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, PersonalFormComponent],
+    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule,
+      PersonalSearchComponent, PersonalFormComponent, LicenciaHistorialDrawerComponent,
+      PersonalObjetivoDrawerComponent, PersonalCustodiasDrawerComponent, ],
     providers: [AngularUtilService, ExcelExportService],
 })
   
@@ -40,6 +45,9 @@ export class PersonalComponent {
     private apiService = inject(ApiService)
 
     personalId = signal(0)
+    visibleHistorial = model<boolean>(false)
+    visibleObjetivo = model<boolean>(false)
+    visibleCustodias = model<boolean>(false)
 
     columns$ = this.apiService.getCols('/api/personal/cols')
     gridData$ = this.listPersonal$.pipe(
@@ -80,7 +88,7 @@ export class PersonalComponent {
         this.personalId.set(this.angularGrid.dataView.getItemByIdx(e.detail.args.changedSelectedRows[0]).id)
     }else
         this.personalId.set(0)
-    // console.log('this.personalId', this.personalId());
+    console.log('this.personalId', this.personalId());
   }
 
   listOptionsChange(options: any) {
@@ -90,6 +98,18 @@ export class PersonalComponent {
 
   getGridData(): void {
     this.listPersonal$.next('');
+  }
+
+  openDrawerforConsultHistory(): void{
+    this.visibleHistorial.set(true) 
+  }
+
+  openDrawerforConsultObjective(): void{
+    this.visibleObjetivo.set(true) 
+  }
+
+  openDrawerforConsultCustodias(): void{
+    this.visibleCustodias.set(true) 
   }
 
 }
