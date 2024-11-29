@@ -1,0 +1,58 @@
+<nz-drawer [nzClosable]="false" [nzVisible]="visibleObjetivo()" [nzPlacement]="placement" [nzWidth]="640"
+  [nzTitle]="'Listado de Objetivos: '  + PersonalNombre()" (nzOnClose)="visibleObjetivo.set(false)">
+  <ng-container *nzDrawerContent>
+    <nz-form-control *ngIf="$listaAsistenciaPer | async as listaAsistenciaPer ">
+        <nz-table #asistPer [nzData]="listaAsistenciaPer.asistencia" nzSize="small" [nzPageSize]="100000000"
+          [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Objetivo</th>
+              <th>Categoría</th>
+              <th>Horas</th>
+              <!-- <th>Valor Hora</th> -->
+              <th>Excepción</th>
+              <!-- <th>Importe Total</th> -->
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let data of asistPer.data" class="">
+              <td title="{{ data.ObjetivoId }}">
+                {{ data.ObjetivoCodigo }}
+              </td>
+              <td>
+                <a [routerLink]="['/', 'ges', 'detalle_asistencia','objetivo',{ ObjetivoId:data.ObjetivoId }]"
+                  [textContent]="data.ObjetivoDescripcion">
+                </a>
+              </td>
+              <td>{{ data.CategoriaPersonalDescripcion }}</td>
+              <td>{{ data.totalhorascalc }}</td>
+              <!-- <td>
+                <span *ngIf="data.ValorHoraArt14Categoria < 1">{{
+                  data.ValorHoraNorm | currency
+                  }}</span>
+              </td> -->
+
+              <td>
+                <span *ngIf="data.PersonalArt14SumaFija">Suma fija {{ data.PersonalArt14SumaFija | currency
+                  }}</span>
+                <span *ngIf="data.PersonalArt14Horas">Horas {{ data.PersonalArt14Horas }}</span>
+                <span *ngIf="data.art14CategoriaDescripcion">Equivalencia {{ data.art14CategoriaDescripcion }}
+                  {{ data.ValorHoraArt14Categoria | currency }}
+                </span>
+                <span *ngIf="data.PersonalArt14AdicionalHora">Adicional Hora
+                  {{ data.PersonalArt14AdicionalHora | currency }}</span>
+              </td>
+              <!-- <td>{{ data.totalminutoscalcimporteconart14 | currency }}</td> -->
+
+              <!-- td>
+          <a>Action 一 {{data.name}}</a>
+          <nz-divider nzType="vertical"></nz-divider>
+          <a>Delete</a>
+        </td -->
+            </tr>
+          </tbody>
+        </nz-table>
+    </nz-form-control>
+  </ng-container>
+</nz-drawer>
