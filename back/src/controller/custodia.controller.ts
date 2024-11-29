@@ -1180,8 +1180,8 @@ export class CustodiaController extends BaseController {
             let list = result.map((obj: any, index: number) => {
                 obj.id = index + 1
                 obj.estado = estados[obj.estado]
-                obj.cliente = { id: obj.clienteId, fullName: obj.cliente }
-                delete obj.clienteId
+                obj.cliente = { id: obj.cliente_id, fullName: obj.cliente }
+                delete obj.cliente_id
                 return obj
             })
 

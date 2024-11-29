@@ -1,0 +1,30 @@
+<nz-drawer [nzClosable]="false" [nzVisible]="visibleCustodias()" [nzPlacement]="placement" [nzWidth]="640"
+  [nzTitle]="'Listado de Custodias: '  + PersonalNombre()" (nzOnClose)="visibleCustodias.set(false)">
+  <ng-container *nzDrawerContent>
+    <nz-form-control *ngIf="$listaCustodiaPer | async as listaCustodiaPer ">
+        <nz-table #custPer [nzData]="listaCustodiaPer" nzSize="small" [nzPageSize]="100000000"
+          [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Cliente</th>
+              <th>Fecha Inicio</th>
+              <th>Fecha Fin</th>
+              <th>Estado</th>
+              <th>Tipo de Importe</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let data of custPer.data" class="">
+              <td>{{ data.objetivo_custodia_id }}</td>
+              <td>{{ data.cliente.fullName }}</td>
+              <td>{{ data.fecha_inicio }}</td>
+              <td>{{ data.fecha_fin }}</td>
+              <td>{{ data.estado.label }}</td>
+              <td>{{ data.tipo_importe }}</td>
+            </tr>
+          </tbody>
+        </nz-table>
+    </nz-form-control>
+  </ng-container>
+</nz-drawer>
