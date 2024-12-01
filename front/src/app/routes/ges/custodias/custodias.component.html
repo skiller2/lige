@@ -56,14 +56,14 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/cust/detalle">Detalle</a>
       <ng-template nz-tab>
-        <app-custodias-form [custodiaId]="editCustodiaId()" [edit]="edit() && estado()"></app-custodias-form>
+        <app-custodias-form [custodiaId]="editCustodiaId()" [edit]="edit() && estado()" [anio]="periodo().getFullYear()" [mes]="periodo().getMonth()+1"></app-custodias-form>
       </ng-template>
     </nz-tab>
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/cust/alta">Alta</a>
       <ng-template nz-tab>
-        <app-custodias-form [custodiaId]="editCustodiaId()" [edit]="true"></app-custodias-form>
+        <app-custodias-form [custodiaId]="editCustodiaId()" [edit]="true" [anio]="periodo().getFullYear()" [mes]="periodo().getMonth()+1" ></app-custodias-form>
       </ng-template>
     </nz-tab>
 

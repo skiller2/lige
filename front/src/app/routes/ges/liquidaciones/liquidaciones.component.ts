@@ -391,6 +391,11 @@ export class LiquidacionesComponent {
         firstValueFrom(this.apiService.setingresoPorAsistencia(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next('')))) //.subscribe(evt => {this.formChange$.next('')});
         break;
 
+      case "Custodia":
+
+        firstValueFrom(this.apiService.setingresoPorCustodia(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next('')))) //.subscribe(evt => {this.formChange$.next('')});
+        break;
+
       case "Licencias":
 
         firstValueFrom(this.apiService.setingresoPorAsistenciaAdministrativosArt42(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next(''))))

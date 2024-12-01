@@ -636,6 +636,18 @@ export class ApiService {
     )
 
   }
+  
+  setingresoPorCustodia(anio: number, mes: number) {
+    const parameter = { anio, mes }
+    this.notification.success('Respuesta', `Inicio Ingreso por Custodia`);
+
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/ingresoPorCustodia', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
+
+
   setingresoPorAsistenciaAdministrativosArt42(anio: number, mes: number) {
     const parameter = { anio, mes }
     this.notification.success('Respuesta', `Inicio Ingreso por Licencias`);

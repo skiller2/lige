@@ -25,12 +25,14 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 export class CustodiaFormComponent {
 
     isLoading = signal(false);
-    periodo = signal({ year: 0, month: 0 });
     objPersonal = { personalId: 0, importe: null }
     objVehiculo = { patente: '', duenoId: 0, importe: null, peaje: null }
     personalId = signal(0);
     custodiaId = model(0);
     edit = model(true)
+
+    anio = input(0)
+    mes = input(0)
 
     optionsDescRequirente: Array<any> = []
 
@@ -113,17 +115,17 @@ export class CustodiaFormComponent {
         }
 
 
-        const currDate = new Date()
-        this.periodo.set({year:currDate.getFullYear(),month:currDate.getMonth()+1})
     }
 
     onChangePeriodo(result: Date): void {
+/*
         if (result) {
             const date = new Date(result)
             const year = date.getFullYear()
             const month = date.getMonth() + 1
             this.periodo.set({ year, month })
         }
+*/
     }
 
     addPersonal(e?: MouseEvent): void {
@@ -157,9 +159,10 @@ export class CustodiaFormComponent {
     async save() {
         this.isLoading.set(true)
         const form = this.formCus.value
+
         try {
             if (this.custodiaId()) {
-                await firstValueFrom(this.apiService.updateObjCustodia(form, this.custodiaId()))
+                await firstValueFrom(this.apiService.updateObjCustodia({ ...form,anio:this.anio(),mes:this.mes() }, this.custodiaId()))
             } else {
                 const res = await firstValueFrom(this.apiService.addObjCustodia(form))
                 if (res.data.custodiaId)
