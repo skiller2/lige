@@ -416,7 +416,6 @@ export class CustodiaController extends BaseController {
 
         if (new Date(periodo[0].FechaCierre) > fechaLiquidacionNew && this.valByEstado(estado))
             throw new ClientException(`No se puede cerrar la custodia en el período ${objetivoCustodia.mes}/${objetivoCustodia.anio}`)
-throw new ClientException(`No se puede cerrar la custodia en el período ${objetivoCustodia.mes}/${objetivoCustodia.anio}`)
 
 
         const fecha_liquidacion = (this.valByEstado(estado)) ? fechaLiquidacionNew : null
@@ -1173,7 +1172,8 @@ throw new ClientException(`No se puede cerrar la custodia en el período ${objet
             obj.fecha_inicio, obj.fecha_fin, obj.estado, obj.fecha_liquidacion,
             regp.importe_personal AS importe, 
             'Personal' AS tipo_importe, 
-            '' AS categoria
+            '' AS categoria,
+            '' AS patente
             FROM dbo.Personal AS per
             INNER JOIN lige.dbo.regpersonalcustodia regp ON per.PersonalId= regp.personal_id
             INNER JOIN lige.dbo.objetivocustodia obj ON regp.objetivo_custodia_id= obj.objetivo_custodia_id
@@ -1186,7 +1186,8 @@ throw new ClientException(`No se puede cerrar la custodia en el período ${objet
             obj.fecha_inicio, obj.fecha_fin, obj.estado, obj.fecha_liquidacion,
             (ISNULL(regv.importe_vehiculo,0)+ISNULL(regv.peaje_vehiculo,0)) AS importe, 
             'Vehiculo' AS tipo_importe, 
-            '' AS categoria
+            '' AS categoria,
+            regv.patente
             FROM dbo.Personal AS per
             INNER JOIN lige.dbo.regvehiculocustodia regv ON per.PersonalId= regv.personal_id
             INNER JOIN lige.dbo.objetivocustodia obj ON regv.objetivo_custodia_id= obj.objetivo_custodia_id

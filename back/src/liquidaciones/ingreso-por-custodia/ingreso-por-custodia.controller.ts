@@ -42,13 +42,9 @@ export class IngresoPorCustodiaController extends BaseController {
         throw new ClientException(`Mes ${mes} no válido `)
 
 
-
-
-
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      //const result = await AsistenciaController.getObjetivoAsistencia(anio, mes, [], queryRunner)
       const result = await CustodiaController.listPersonalCustodiaQuery({}, queryRunner, anio, mes)
 
       await queryRunner.query(
@@ -57,13 +53,11 @@ export class IngresoPorCustodiaController extends BaseController {
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
 
       for (const row of result) {
- //        const detalle = `Horas ${row.totalhorascalc}, Categoría ${((row.rt14CategoriaDescripcion != undefined) ? row.rt14CategoriaDescripcion : row.CategoriaPersonalDescripcion).trim()}  `
-
-        const detalle = `Horas ${row.totalhorascalc}, Categoría ${row.CategoriaPersonalDescripcion.trim()}`
+        const detalle = `${row.tipo_importe} ${row.patente}`
         await queryRunner.query(
-          `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas, tipo_asociado_id, categoria_personal_id,
+          `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, custodia_id, importe,horas, tipo_asociado_id, categoria_personal_id,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14,@15,@16)
+              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14,@15,@16,@17)
                      `,
           [
             ++movimiento_id,
@@ -71,117 +65,16 @@ export class IngresoPorCustodiaController extends BaseController {
             tipo_movimiento_id,
             fechaActual,
             detalle,
-            row.ObjetivoId,
+            null,
             row.PersonalId,
-            row.totalhorascalc * row.ValorHoraNorm,
-            row.totalhorascalc,
-            row.ObjetivoAsistenciaTipoAsociadoId,
-            row.ObjetivoAsistenciaCategoriaPersonalId,
+            row.objetivo_custodia_id,
+            row.importe,
+            0, //horas
+            0, //TipoAsociadoId,
+            0, //CategoriaPersonalId,
             usuario, ip, fechaActual, usuario, ip, fechaActual,
           ]
         );
-
-        if (row.PersonalArt14Horas) {
-          const detalle = `Art.17 Horas adicionales ${row.PersonalArt14Horas}`
-          await queryRunner.query(
-            `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas, tipo_asociado_id, categoria_personal_id,
-             aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14,@15,@16)
-                     `,
-            [
-              ++movimiento_id,
-              periodo_id,
-              tipo_movimiento_id,
-              fechaActual,
-              detalle,
-              row.ObjetivoId,
-              row.PersonalId,
-              row.PersonalArt14Horas*row.ValorHoraNorm,
-              row.PersonalArt14Horas,
-              row.ObjetivoAsistenciaTipoAsociadoId,
-              row.ObjetivoAsistenciaCategoriaPersonalId,
-              usuario, ip, fechaActual, usuario, ip, fechaActual,
-            ]
-          );
-        }
-
-
-        if (row.ValorHoraArt14Categoria > 0) {
-          //console.log('Dif categoria',row.art14CategoriaDescripcion,row.ValorHoraArt14Categoria)
-          const detalle = `Art.17 Equivalencia ${row.art14CategoriaDescripcion.trim()}, horas:${row.totalhorascalc+row.PersonalArt14Horas}`
-          await queryRunner.query(
-            `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,tipo_asociado_id, categoria_personal_id,
-             aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14,@15,@16)
-                     `,
-            [
-              ++movimiento_id,
-              periodo_id,
-              tipo_movimiento_id,
-              fechaActual,
-              detalle,
-              row.ObjetivoId,
-              row.PersonalId,
-              (row.totalhorascalc+row.PersonalArt14Horas) * (row.ValorHoraArt14Categoria-row.ValorHoraNorm),
-              row.totalhorascalc + row.PersonalArt14Horas,
-              row.PersonalArt14TipoAsociadoId,
-              row.PersonalArt14CategoriaId,
-              usuario, ip, fechaActual, usuario, ip, fechaActual,
-            ]
-          );
-        }
-
-
-        if (row.PersonalArt14AdicionalHora) {
-          const detalle = `Art.17 Importe Adicional Horas ${row.totalhorascalc+row.PersonalArt14Horas}`
-          await queryRunner.query(
-            `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,tipo_asociado_id, categoria_personal_id,
-             aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14,@15,@16)
-                     `,
-            [
-              ++movimiento_id,
-              periodo_id,
-              tipo_movimiento_id,
-              fechaActual,
-              detalle,
-              row.ObjetivoId,
-              row.PersonalId,
-              (row.totalhorascalc+row.PersonalArt14Horas)*row.PersonalArt14AdicionalHora,
-              row.totalhorascalc + row.PersonalArt14Horas,
-              row.ObjetivoAsistenciaTipoAsociadoId,
-              row.ObjetivoAsistenciaCategoriaPersonalId,
-              usuario, ip, fechaActual, usuario, ip, fechaActual,
-            ]
-          );
-        }
-
-        if (row.PersonalArt14SumaFija) {
-          const detalle = `Art.17 Suma fija`
-          await queryRunner.query(
-            `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,tipo_asociado_id, categoria_personal_id,
-             aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
-              VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13,@14,@15,@16)
-                     `,
-            [
-              ++movimiento_id,
-              periodo_id,
-              tipo_movimiento_id,
-              fechaActual,
-              detalle,
-              row.ObjetivoId,
-              row.PersonalId,
-              row.PersonalArt14SumaFija,
-              0,
-              row.ObjetivoAsistenciaTipoAsociadoId,
-              row.ObjetivoAsistenciaCategoriaPersonalId,
-              usuario, ip, fechaActual, usuario, ip, fechaActual,
-            ]
-          );
-        }
-
-        
-
       }
 
       await queryRunner.commitTransaction();
