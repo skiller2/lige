@@ -96,6 +96,9 @@ export class DetalleAsistenciaComponent {
   listaIngresosPerTotalHoras = 0
   listaIngresosExtraPerTotalHoras = 0
   //listaAsistenciaObjTotalHoras = 0
+  listaCustodiasPerTotal = 0
+  listaCustodiasPerTotalHoras = 0
+
   objetivoIdSelected = 0;
 
   personalIdlist = signal([])
@@ -200,6 +203,24 @@ export class DetalleAsistenciaComponent {
         //          tap({ complete: () => this.tableLoading$.next(false) })
         (
           (tap(data => { this.listaAsistenciaPerTotal = data.totalImporte, this.listaAsistenciaPerTotalHoras = data.totalHoras }))
+
+        )
+    )
+  );
+  $listaCustodiasPer = this.$selectedPersonalIdChange.pipe(
+    debounceTime(500),
+    switchMap(PersonalId =>
+      this.searchService
+        .getCustodiasPersona(
+          Number(PersonalId),
+          this.selectedPeriod().year,
+          this.selectedPeriod().month
+        )
+        .pipe
+        //          doOnSubscribe(() => this.tableLoading$.next(true)),
+        //          tap({ complete: () => this.tableLoading$.next(false) })
+        (
+          (tap(data => { this.listaCustodiasPerTotal = data.totalImporte, this.listaCustodiasPerTotalHoras = data.totalHoras }))
 
         )
     )
