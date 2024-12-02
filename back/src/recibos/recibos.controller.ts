@@ -290,7 +290,7 @@ export class RecibosController extends BaseController {
           htmlDeposito += `<tr><td>${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
           break
         case "I":
-          htmlIngreso += `<tr><td>${liquidacionElement.detalle} ${(liquidacionElement.ClienteId) ? liquidacionElement.ClienteId + '/' + liquidacionElement.ClienteElementoDependienteId : ''}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
+          htmlIngreso += `<tr><td>${liquidacionElement.detalle} ${liquidacionElement.custodia_id? 'Custodia '+liquidacionElement.custodia_id:''} ${(liquidacionElement.ClienteId) ? liquidacionElement.ClienteId + '/' + liquidacionElement.ClienteElementoDependienteId : ''}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
           retenciones += liquidacionElement.SumaImporte
           break
         default:
@@ -393,6 +393,7 @@ export class RecibosController extends BaseController {
     liq.tipo_movimiento_id, 
     tip.des_movimiento, 
     liq.detalle,
+    liq.custodia_id,
     obj.ClienteId,
     ISNULL(obj.ClienteElementoDependienteId,0) ClienteElementoDependienteId,
     SUM(liq.importe) AS SumaImporte, 
@@ -403,8 +404,8 @@ export class RecibosController extends BaseController {
     WHERE  liq.periodo_id = @0 AND  liq.tipocuenta_id = 'G' AND  liq.persona_id = @1
     GROUP BY 
     liq.persona_id, 
-	 obj.ClienteId,
-    obj.ClienteElementoDependienteId,
+	 obj.ClienteId, obj.ClienteElementoDependienteId,
+       liq.custodia_id,
     liq.detalle,
     liq.tipo_movimiento_id, 
     tip.des_movimiento, 
