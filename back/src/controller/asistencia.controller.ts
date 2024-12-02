@@ -1401,7 +1401,11 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, personalIdList)
 
-      const resAsisAdmArt42 = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, personalIdList,[],false,false)
+      const resAsisAdmArt42 = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, personalIdList, [], false, false)
+      
+      const resCustodias = await CustodiaController.listPersonalCustodiaQuery({filtros:[{index: "ApellidoNombre", valor: personalIdList, operador:"=", condition:"AND"}]}, queryRunner, anio, mes)
+
+
       const resIngreExtra = await AsistenciaController.getIngresosExtra(anio, mes, queryRunner, personalIdList)
 
       for (const row of resAsisObjetiv) {
@@ -1421,6 +1425,15 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           personal[key].retiroG_importe = personal[key].ingresosG_importe
         }
 
+      }
+
+      for (const row of resCustodias) {
+        const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
+        if (key>=0 && row.total>0) {
+          personal[key].ingresosG_importe += row.total
+          personal[key].ingresos_horas += row.horas
+          personal[key].retiroG_importe = personal[key].ingresosG_importe
+        }
       }
 
       for (const row of resIngreExtra) {
