@@ -236,8 +236,6 @@ export class ClientesFormComponent {
     });
     this.formCli.get('codigo')?.disable()
     //this.cdr.detectChanges(); // Asegúrate de que la vista se actualice.
-
-   this.onAddorUpdate.emit()
     { }
   }
 

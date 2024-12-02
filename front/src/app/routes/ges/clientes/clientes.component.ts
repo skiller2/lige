@@ -80,7 +80,7 @@ export class ClientesComponent {
     ) 
 
     async handleAddOrUpdate(){
-      this.ngOnInit()
+      this.listCliente$.next('')
     }
 
 
@@ -116,12 +116,12 @@ export class ClientesComponent {
   }
 
   getGridData(): void {
-    this.listCliente$.next('');
+    this.listCliente$.next('')
   }
 
   listOptionsChange(options: any) {
-      this.listOptions = options;
-      this.listCliente$.next('');
+      this.listOptions = options
+      this.listCliente$.next('')
   }
 
   onTabsetChange(_event: any) {

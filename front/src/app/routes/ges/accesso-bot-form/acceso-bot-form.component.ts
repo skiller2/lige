@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, effect, Injector, SimpleChanges,  } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, effect, Injector, SimpleChanges, output, } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { FormControl, NgForm } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -45,20 +45,30 @@ export class AccesoBotFormComponent {
   qrCodeResult = signal("")
   dniFresteDorso = signal(0)
   private readonly http = inject(HttpClient);
+  onAddorUpdate = output()
 
   async ngOnInit() {
-    effect(async () => {
+    // effect(async () => {
      
-      if (this.edit()) {
-        await this.load()
-      } else{
-        this.ngForm().form.reset()
-      }
-    }, { injector: this.injector,
-         allowSignalWrites:true
-    });
+    //   if (this.edit()) {
+    //     await this.load()
+    //   } else{
+    //     this.ngForm().form.reset()
+    //   }
+    // }, { injector: this.injector,
+    //      allowSignalWrites:true
+    // });
 
   }
+
+  async newRecord() {
+    this.ngForm().form.reset()
+  }
+
+  async viewRecord(readonly:boolean) {
+    if (this.edit()) 
+      await this.load()
+   }
 
 
   async decodeQrCodeFromUrl(url: string): Promise<void> {
@@ -173,7 +183,7 @@ export class AccesoBotFormComponent {
         })
       }
      
-
+     this.onAddorUpdate.emit()
      this.ngForm().form.markAsUntouched()
      this.ngForm().form.markAsPristine()
 
@@ -230,4 +240,5 @@ export class AccesoBotFormComponent {
   }
 
 }
+
 
