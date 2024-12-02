@@ -3,7 +3,7 @@
     <ul nz-menu nzMode="horizontal">
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'personal','listado']">Listado</a>
+        <a [routerLink]="['/', 'ges', 'personal','listado']" (click)="getGridData()">Listado</a>
       </li>
       <!-- <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
@@ -13,10 +13,20 @@
     <nz-button-group>
       <button nz-button nzType="default" [disabled]="personalId()? false : true"
         [routerLink]="['/', 'ges', 'personal','detalle']"  nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit"
-          nzTheme="outline"></span></button>
+        nzTheme="outline"></span></button>
       <button nz-button nzType="default"
-        [routerLink]="['/', 'ges', 'personal','carga']" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-    </nz-button-group>
+        [routerLink]="['/', 'ges', 'personal','carga']" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus"
+        nzTheme="outline"></span></button>
+      <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]="personalId() == 0"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold"
+        nzTheme="outline"></span></button>
+      <button nz-button nzType="default" (click)="openDrawerforConsultObjective()" [disabled]="personalId() == 0"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.objectives' | i18n }}"><span nz-icon nzType="menu-unfold"
+        nzTheme="outline"></span></button>
+      <button nz-button nzType="default" (click)="openDrawerforConsultCustodias()" [disabled]="personalId() == 0"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.custody' | i18n }}"><span nz-icon nzType="car"
+        nzTheme="outline"></span></button>
+     </nz-button-group>
   </div>
     <!-- <form nz-form #formAsist="ngForm" class="">
       <br>
@@ -55,3 +65,9 @@
     </nz-tabset>
     
 </nz-card>
+<app-licencia-historial-drawer [(visibleHistorial)]="visibleHistorial"
+  [PersonalId]="personalId()"></app-licencia-historial-drawer>
+<app-personal-objetivo-drawer [(visibleObjetivo)]="visibleObjetivo"
+[PersonalId]="personalId()"></app-personal-objetivo-drawer>
+<app-personal-custodias-drawer [(visibleCustodias)]="visibleCustodias"
+[PersonalId]="personalId()"></app-personal-custodias-drawer>

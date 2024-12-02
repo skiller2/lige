@@ -13,6 +13,7 @@ import { CategoriasController } from "../categorias-cambio/categorias-cambio.con
 import { ObjetivosPendasisController } from "../objetivos-pendasis/objetivos-pendasis.controller";
 import { MovimientosAutomaticosController } from "../liquidaciones/movimientos-automaticos/movimientos-automaticos.controller";
 import { IngresoPorAsistenciaController } from "../liquidaciones/ingreso-por-asistencia/ingreso-por-asistencia.controller";
+import { IngresoPorCustodiaController } from "../liquidaciones/ingreso-por-custodia/ingreso-por-custodia.controller";
 import { IngresoAsistenciaAdministrativosArt42Controller } from "../liquidaciones/ingreso-asistencia-administrativos-art42/ingreso-asistencia-administrativos-art42.controller";
 import { IngresoCoordinadorCuentaController } from "../liquidaciones/ingreso-coordinador-cuenta/ingreso-coordinador-cuenta.controller";
 import { DescuentoPorDeudaAnteriorController } from "../liquidaciones/descuento-deuda-anterior/descuento-deduda-anterior.controller";
@@ -55,6 +56,7 @@ export const objetivosPendasisController = new ObjetivosPendasisController();
 export const telefoniaController = new TelefoniaController();
 export const movimientosAutomaticosController = new MovimientosAutomaticosController();
 export const ingresoPorAsistenciaController = new IngresoPorAsistenciaController();
+export const ingresoPorCustodiaController = new IngresoPorCustodiaController();
 export const ingresoAsistenciaAdministrativosArt42Controller = new IngresoAsistenciaAdministrativosArt42Controller();
 export const ingresoCoordinadorCuentaController = new IngresoCoordinadorCuentaController();
 export const descuentoPorDeudaAnteriorController = new DescuentoPorDeudaAnteriorController();

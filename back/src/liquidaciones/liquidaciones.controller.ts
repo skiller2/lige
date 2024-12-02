@@ -348,6 +348,17 @@ export class LiquidacionesController extends BaseController {
       searchHidden: false
     },
     {
+      name: "Custodia",
+      type: "string",
+      id: "CustodiaDescripcion",
+      field: "CustodiaDescripcion",
+      fieldName: "li.custodia_id",
+      searchComponent: "inpurForCustodiaSearch",
+      searchType: "number",
+      sortable: true,
+      searchHidden: false
+    },
+    {
       name: "CUIT",
       type: "string",
       id: "PersonalCUITCUILCUIT",
@@ -428,7 +439,7 @@ export class LiquidacionesController extends BaseController {
     try {
 
       const liqudacion = await dataSource.query(
-        `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,obj.ObjetivoDescripcion,CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
+        `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,obj.ObjetivoDescripcion,CONCAT(cus.objetivo_custodia_id, ' ', cli.ClienteDenominacion,' ',FORMAT (cus.fecha_inicio,'dd/MM/yyyy') ) AS CustodiaDescripcion,  CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
         li.tipocuenta_id, li.importe * tipomo.signo AS importe, li.tipo_movimiento_id, li.persona_id,li.objetivo_id, li.horas, cuit.PersonalCUITCUILCUIT,
         cat.CategoriaPersonalDescripcion
         FROM lige.dbo.liqmamovimientos AS li
@@ -438,6 +449,8 @@ export class LiquidacionesController extends BaseController {
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pers.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = pers.PersonalId) 
         LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId=li.tipo_asociado_id AND cat.CategoriaPersonalId =li.categoria_personal_id
         LEFT JOIN Objetivo AS obj ON li.objetivo_id = obj.ObjetivoId
+        LEFT JOIN lige.dbo.objetivocustodia AS cus ON cus.objetivo_custodia_id = li.custodia_id
+        LEFT JOIN Cliente AS cli ON cli.ClienteId = cus.cliente_id
         WHERE per.anio = @0 AND per.mes = @1 AND (${filterSql}) 
        ${orderBy}
         `, [anio, mes])

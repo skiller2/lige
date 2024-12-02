@@ -66,6 +66,10 @@
 
       <li nz-submenu nzTitle="Acciones">
         <ul style="width: auto !important">
+          <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros de Custodias?" [nzBeforeConfirm]=""
+            [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('Custodia')">
+            <span nz-icon nzType="plus" nzTheme="outline"></span>Custodias
+          </li>
           <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Genero registros de Asistencia?" [nzBeforeConfirm]=""
             [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('Asistencia')">
             <span nz-icon nzType="plus" nzTheme="outline"></span>Asistencia

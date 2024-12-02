@@ -48,7 +48,6 @@
           [nzShowTime]="{ nzFormat: 'HH:mm' }"
           nzFormat="yyyy-MM-dd HH:mm"
           formControlName="fechaInicio"
-          (ngModelChange)="onChangePeriodo($event)"
         ></nz-date-picker>
       </nz-form-control>
     </nz-form-item>
@@ -83,7 +82,7 @@
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3">Personal</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="10" [nzLg]="7">
-        <app-personal-search formControlName="personalId" [anio]="periodo().year" [mes]="periodo().month"/>
+        <app-personal-search formControlName="personalId" [anio]="anio()" [mes]="mes()"/>
       </nz-form-control> 
         
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe</nz-form-label>
@@ -114,7 +113,7 @@
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2"> Dueño </nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <app-personal-search formControlName="duenoId" [anio]="periodo().year" [mes]="periodo().month"/>
+        <app-personal-search formControlName="duenoId" [anio]="anio()" [mes]="mes()"/>
       </nz-form-control>
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2">Importe</nz-form-label>

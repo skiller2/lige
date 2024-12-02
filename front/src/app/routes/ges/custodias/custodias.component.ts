@@ -73,7 +73,7 @@ export class CustodiaComponent {
     gridData$ = this.listCustodia$.pipe(
         debounceTime(500),
         switchMap(() => {
-            return this.searchService.getListaObjetivoCustodia(this.listOptions , this.periodo())
+            return this.searchService.getListaObjetivoCustodia(this.listOptions, this.periodo())
                 .pipe(map(data => { return data }))
         })
     )
@@ -98,7 +98,7 @@ export class CustodiaComponent {
         if (this.periodo()) {
             this.getGridData()
         }
-      })
+    })
 
     async ngOnInit() {
 
@@ -117,9 +117,27 @@ export class CustodiaComponent {
 
         effect(async () => {
             // console.log('PERIODO',this.periodo());
-            const periodo = this.periodo()
+            const periodo = this.periodo() //para que triggee
+            localStorage.setItem('anio',String(this.periodo().getFullYear()))
+            localStorage.setItem('mes',String(this.periodo().getMonth()+1))
             this.getGridData()
         }, { injector: this.injector });
+
+
+        const now = new Date()
+        const anio =
+            Number(localStorage.getItem('anio')) > 0
+                ? Number(localStorage.getItem('anio'))
+                : now.getFullYear();
+        const mes =
+            Number(localStorage.getItem('mes')) > 0
+                ? Number(localStorage.getItem('mes'))
+                : now.getMonth() + 1;
+
+        this.periodo.set(new Date(anio, mes - 1, 1));
+
+
+
     }
 
     async angularGridReady(angularGrid: any) {

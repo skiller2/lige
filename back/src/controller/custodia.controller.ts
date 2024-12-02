@@ -3,6 +3,7 @@ import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
+import { QueryRunner } from "typeorm";
 
 const columnsObjCustodia: any[] = [
     {
@@ -374,6 +375,7 @@ const estados: any[] = [
 ]// value = tipo , label = descripcion
 
 export class CustodiaController extends BaseController {
+
     static async listCustodiasPendientes(anio: number, mes: number) {
         const queryRunner = dataSource.createQueryRunner();
         return queryRunner.query(`SELECT c.fecha_inicio, c.responsable_id, p.PersonalId, CONCAT (TRIM(p.PersonalApellido),', ',TRIM(p.PersonalNombre)) ResponsableDetalle
@@ -405,7 +407,18 @@ export class CustodiaController extends BaseController {
         const desc_facturacion = objetivoCustodia.desc_facturacion ? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado ? objetivoCustodia.estado : 0
         const fechaActual = new Date()
-        const fecha_liquidacion = (this.valByEstado(estado)) ? new Date() : null
+        const fechaLiquidacionLast = new Date(objetivoCustodia.anio, objetivoCustodia.mes, 0,20,59,59,999)
+        const fechaLiquidacionNew = (fechaActual > fechaLiquidacionLast) ? fechaLiquidacionLast : fechaActual
+
+        const periodo = await queryRunner.query(`
+            SELECT TOP 1 *, CAST (EOMONTH(CONCAT(anio,'-',mes,'-',1)) AS DATETIME)+'23:59:59' AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC
+        `)
+
+        if (new Date(periodo[0].FechaCierre) > fechaLiquidacionNew && this.valByEstado(estado))
+            throw new ClientException(`No se puede cerrar la custodia en el período ${objetivoCustodia.mes}/${objetivoCustodia.anio}`)
+
+
+        const fecha_liquidacion = (this.valByEstado(estado)) ? fechaLiquidacionNew : null
 
         return queryRunner.query(`
             INSERT lige.dbo.objetivocustodia(objetivo_custodia_id, responsable_id, cliente_id, desc_requirente,
@@ -505,9 +518,17 @@ export class CustodiaController extends BaseController {
         const desc_facturacion = objetivoCustodia.desc_facturacion ? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado ? objetivoCustodia.estado : 0
         const fechaActual = new Date()
+        const fechaLiquidacionLast = new Date(objetivoCustodia.anio, objetivoCustodia.mes, 0,20,59,59,999)
+        const fechaLiquidacionNew = (fechaActual > fechaLiquidacionLast) ? fechaLiquidacionLast : fechaActual
 
+        const periodo = await queryRunner.query(`
+            SELECT TOP 1 *, CAST (EOMONTH(CONCAT(anio,'-',mes,'-',1)) AS DATETIME)+'23:59:59' AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC
+        `)
 
-        let fecha_liquidacion = ((estado == 1 || estado == 3 || estado == 4) && objetivoCustodia.fecha_liquidacion == null) ? fechaActual : objetivoCustodia.fecha_liquidacion
+        if (new Date(periodo[0].FechaCierre) > fechaLiquidacionNew && (estado == 1 || estado == 3 || estado == 4) && objetivoCustodia.fecha_liquidacion == null)
+            throw new ClientException(`No se puede cerrar la custodia en el período ${objetivoCustodia.mes}/${objetivoCustodia.anio}`)
+
+        let fecha_liquidacion = ((estado == 1 || estado == 3 || estado == 4) && objetivoCustodia.fecha_liquidacion == null) ? fechaLiquidacionNew : objetivoCustodia.fecha_liquidacion
         if (estado != 1 && estado != 3 && estado != 4)
             fecha_liquidacion = null
         return queryRunner.query(`
@@ -903,7 +924,7 @@ export class CustodiaController extends BaseController {
             objetivoCustodia.fecha_liquidacion = infoCustodia.fecha_liquidacion
             await this.updateObjetivoCustodiaQuery(queryRunner, { ...objetivoCustodia, id: custodiaId }, usuario, ip)
 
-            //            throw new ClientException('DEBUG')
+//                        throw new ClientException('DEBUG')
 
             await queryRunner.commitTransaction()
             return this.jsonRes([], res, 'Carga Exitosa');
@@ -1141,51 +1162,62 @@ export class CustodiaController extends BaseController {
         }
     }
 
+    static async listPersonalCustodiaQuery(options:any, queryRunner:QueryRunner, anio:number, mes:number) {
+        const filterSql = filtrosToSql(options.filtros, columnsPersonalCustodia);
+        const orderBy = orderToSQL(options.sort)
+
+        return queryRunner.query(`
+            SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+            obj.objetivo_custodia_id, obj.cliente_id, TRIM(cli.ClienteApellidoNombre) cliente,
+            obj.fecha_inicio, obj.fecha_fin, obj.estado, obj.fecha_liquidacion,
+            regp.importe_personal AS importe, 
+            'Personal' AS tipo_importe, 
+            '' AS categoria,
+            '' AS patente
+            FROM dbo.Personal AS per
+            INNER JOIN lige.dbo.regpersonalcustodia regp ON per.PersonalId= regp.personal_id
+            INNER JOIN lige.dbo.objetivocustodia obj ON regp.objetivo_custodia_id= obj.objetivo_custodia_id
+            INNER JOIN dbo.Cliente cli ON cli.ClienteId = obj.cliente_id
+            WHERE (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1) AND (${filterSql}) 
+            ${orderBy}
+            UNION ALL
+            SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+            obj.objetivo_custodia_id, obj.cliente_id, TRIM(cli.ClienteApellidoNombre) cliente,
+            obj.fecha_inicio, obj.fecha_fin, obj.estado, obj.fecha_liquidacion,
+            (ISNULL(regv.importe_vehiculo,0)+ISNULL(regv.peaje_vehiculo,0)) AS importe, 
+            'Vehiculo' AS tipo_importe, 
+            '' AS categoria,
+            regv.patente
+            FROM dbo.Personal AS per
+            INNER JOIN lige.dbo.regvehiculocustodia regv ON per.PersonalId= regv.personal_id
+            INNER JOIN lige.dbo.objetivocustodia obj ON regv.objetivo_custodia_id= obj.objetivo_custodia_id
+            INNER JOIN dbo.Cliente cli ON cli.ClienteId = obj.cliente_id
+            WHERE (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1) AND (${filterSql}) 
+            ${orderBy}
+            `, [anio, mes]
+        )
+    }
+
     async listPersonalCustodia(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         try {
-            await queryRunner.startTransaction()
             const periodo: Date = new Date(req.body.periodo)
-            const year = periodo.getFullYear()
-            const month = periodo.getMonth() + 1
+            const anio = periodo.getFullYear()
+            const mes = periodo.getMonth() + 1
             const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
 
-            const filterSql = filtrosToSql(options.filtros, columnsPersonalCustodia);
-            const orderBy = orderToSQL(options.sort)
+            const result = await CustodiaController.listPersonalCustodiaQuery(options, queryRunner, anio, mes)
 
-            let result = await queryRunner.query(`
-                SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
-                obj.objetivo_custodia_id, obj.cliente_id, TRIM(cli.ClienteApellidoNombre) cliente,
-                obj.fecha_inicio, obj.fecha_fin, obj.estado, obj.fecha_liquidacion,
-                regp.importe_personal AS importe, 'Personal' AS tipo_importe, '' AS categoria
-                FROM dbo.Personal AS per
-                INNER JOIN lige.dbo.regpersonalcustodia regp ON per.PersonalId= regp.personal_id
-                INNER JOIN lige.dbo.objetivocustodia obj ON regp.objetivo_custodia_id= obj.objetivo_custodia_id
-                INNER JOIN dbo.Cliente cli ON cli.ClienteId = obj.cliente_id
-                WHERE (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1) AND (${filterSql}) 
-                ${orderBy}
-                UNION ALL
-                SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
-                obj.objetivo_custodia_id, obj.cliente_id, TRIM(cli.ClienteApellidoNombre) cliente,
-                obj.fecha_inicio, obj.fecha_fin, obj.estado, obj.fecha_liquidacion,
-                regv.importe_vehiculo AS importe, 'Vehiculo' AS tipo_importe,  '' AS categoria
-                FROM dbo.Personal AS per
-                INNER JOIN lige.dbo.regvehiculocustodia regv ON per.PersonalId= regv.personal_id
-                INNER JOIN lige.dbo.objetivocustodia obj ON regv.objetivo_custodia_id= obj.objetivo_custodia_id
-                INNER JOIN dbo.Cliente cli ON cli.ClienteId = obj.cliente_id
-                WHERE (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1) AND (${filterSql}) 
-                ${orderBy}
-                `, [year, month]
-            )
+
+
             let list = result.map((obj: any, index: number) => {
                 obj.id = index + 1
                 obj.estado = estados[obj.estado]
-                obj.cliente = { id: obj.clienteId, fullName: obj.cliente }
-                delete obj.clienteId
+                obj.cliente = { id: obj.cliente_id, fullName: obj.cliente }
+                delete obj.cliente_id
                 return obj
             })
 
-            await queryRunner.commitTransaction()
             return this.jsonRes(list, res)
         } catch (error) {
             await this.rollbackTransaction(queryRunner)

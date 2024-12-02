@@ -3,6 +3,7 @@ import { authMiddleware } from "../middlewares/middleware.module";
 import {
   movimientosAutomaticosController,
   ingresoPorAsistenciaController,
+  ingresoPorCustodiaController,
   ingresoAsistenciaAdministrativosArt42Controller,
   ingresoCoordinadorCuentaController,
   descuentoPorDeudaAnteriorController,
@@ -83,6 +84,10 @@ liquidacionesRouter.post('/movimientosAutomaticos', [authMiddleware.verifyToken,
 
 liquidacionesRouter.post('/ingresoPorAsistencia', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], async (req, res, next) => {
   await ingresoPorAsistenciaController.procesaCambios(req, res, next)
+})
+
+liquidacionesRouter.post('/ingresoPorCustodia', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], async (req, res, next) => {
+  await ingresoPorCustodiaController.procesaCambios(req, res, next)
 })
 
 liquidacionesRouter.post('/ingresoPorAsistenciaAdministrativosArt42', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], async (req, res, next) => {
