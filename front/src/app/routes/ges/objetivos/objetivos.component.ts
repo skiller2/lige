@@ -118,18 +118,18 @@ export class ObjetivosComponent {
   // }
 
   getGridData(): void {
-    this.listObjetivos$.next('');
+    this.listObjetivos$.next('')
     this.edit.set(false)
   }
 
   async handleAddOrUpdate(){
-    this.ngOnInit()
+    this.listObjetivos$.next('')
   }
 
 
   listOptionsChange(options: any) {
-      this.listOptions = options;
-      this.listObjetivos$.next('');
+      this.listOptions = options
+      this.listObjetivos$.next('')
   }
 
   onTabsetChange(_event: any) {

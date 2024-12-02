@@ -65,7 +65,7 @@
   
       <nz-tab>
         <a nz-tab-link routerLink="/ges/clientes/editar" >Editar</a>
-        <app-clientes-form #clienteFormEdit [ClienteId]="editClienteId()"></app-clientes-form>
+        <app-clientes-form #clienteFormEdit [ClienteId]="editClienteId()" (onAddorUpdate)="handleAddOrUpdate()"></app-clientes-form>
       </nz-tab>
 
       <nz-tab>

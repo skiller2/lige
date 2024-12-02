@@ -53,6 +53,9 @@ export class AccesoBotComponent {
     sort: null,
   }
 
+  childAlta = viewChild.required<AccesoBotFormComponent>('AccesoBotFormAlta')
+  childEdit = viewChild.required<AccesoBotFormComponent>('AccesoBotFormEdit')
+
   formChange$ = new BehaviorSubject('');
   startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
 
@@ -73,6 +76,10 @@ export class AccesoBotComponent {
           )
         })
     )
+
+    async handleAddOrUpdate(){
+      this.list$.next('')
+    }
 
     async ngOnInit(){
 
@@ -103,23 +110,37 @@ export class AccesoBotComponent {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['addNew']) {
-      this.list$.next('');
+      this.list$.next('')
     }
   }
 
   getGridData(): void {
-    this.list$.next('');
+    this.list$.next('')
     this.edit.set(false) 
   
   }
 
   listOptionsChange(options: any) {
-      this.listOptions = options;
-      this.list$.next('');
+      this.listOptions = options
+      this.list$.next('')
   }
 
   setEdit(value: boolean): void {
       this.edit.set(value) 
+  }
+
+  onTabsetChange(_event: any) {
+    switch (_event.index) {
+      case 2: //INSERT
+        this.childAlta().newRecord()
+        break
+      case 1: //EDIT
+       this.childEdit().viewRecord(false)
+        break;
+        default:
+        break;
+    }
+
   }
 
 }

@@ -238,7 +238,6 @@ export class ObjetivosFormComponent {
 
 
     this.formCli.get('codigo')?.disable()
-    this.onAddorUpdate.emit()
     //this.formCli.get('ClienteId')?.disable();
 
     //this.formCli.reset(infoObjetivo)
@@ -348,6 +347,8 @@ export class ObjetivosFormComponent {
   async deleteObjetivo() {
     const form = this.formCli.value
     await firstValueFrom(this.apiService.deleteObjetivos(form))
+    this.onAddorUpdate.emit()
+    
   }
 
 
