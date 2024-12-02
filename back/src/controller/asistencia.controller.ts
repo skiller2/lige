@@ -4,6 +4,7 @@ import { dataSource } from "../data-source";
 import { QueryRunner } from "typeorm";
 import { ObjetivoController } from "./objetivo.controller";
 import { filtrosToSql, orderToSQL } from "src/impuestos-afip/filtros-utils/filtros";
+import { CustodiaController } from "./custodia.controller";
 
 class ClientExceptionArt14 extends ClientException {
   constructor(metodo: string) {
@@ -1803,6 +1804,29 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
 
       this.jsonRes({ asistencia: result, totalImporte, totalHoras }, res);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    }
+  }
+  async getCustodiasPorPersona(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const personalId = req.params.personalId;
+      const anio = req.params.anio;
+      const mes = req.params.mes;
+      var desde = new Date(anio, mes - 1, 1);
+
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+        throw new ClientException(`No tiene permiso para obtener información de asistencia`)
+
+      const result = await CustodiaController.listPersonalCustodiaQuery({filtros:[{index: "ApellidoNombre", valor: [personalId], operador:"=", condition:"AND"}]}, queryRunner, anio, mes)
+
+      const totalImporte = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
+      const totalHoras = 0
+
+
+      this.jsonRes({ custodias: result, totalImporte, totalHoras }, res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
