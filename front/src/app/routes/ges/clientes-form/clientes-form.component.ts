@@ -141,6 +141,8 @@ export class ClientesFormComponent {
     }
   }
 
+
+
   async ngOnInit() {
     this.tipoTelefono = await firstValueFrom(this.searchService.getTipoTelefono())
     this.optionsProvincia = await firstValueFrom(this.searchService.getProvincia())
@@ -235,7 +237,7 @@ export class ClientesFormComponent {
     this.formCli.get('codigo')?.disable()
     //this.cdr.detectChanges(); // Asegúrate de que la vista se actualice.
 
-   console.log(" this.formCli.value ",  this.formCli.value)
+   this.onAddorUpdate.emit()
     { }
   }
 

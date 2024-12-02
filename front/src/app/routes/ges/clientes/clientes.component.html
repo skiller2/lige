@@ -76,7 +76,7 @@
   
       <nz-tab> 
         <a nz-tab-link routerLink="/ges/clientes/alta" >Alta </a>
-        <app-clientes-form #clienteFormAlta></app-clientes-form>
+        <app-clientes-form #clienteFormAlta (onAddorUpdate)="handleAddOrUpdate()"></app-clientes-form>
       </nz-tab>
   
     </nz-tabset>

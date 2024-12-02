@@ -142,10 +142,10 @@
         
       </nz-input-group>
       <ng-template #controlRol >
-        <button nz-button *ngIf="infoRubro().controls.length == i+1" nzType="primary" class="add-button" (click)="addRubro($event)"  nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+        <button  nz-button *ngIf="infoRubro().controls.length == i+1 && formCli.enabled" nzType="primary" class="add-button" (click)="addRubro($event)"  nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
           <span nz-icon nzType="plus"></span>
         </button>
-        <button *ngIf="infoRubro().length >= 2" nz-button nzType="default" (click)="removeRubro(i, $event)"  nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+        <button *ngIf="infoRubro().length >= 2 && formCli.enabled" nz-button nzType="default" (click)="removeRubro(i, $event)"  nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
           <span nz-icon nzType="delete" nzTheme="outline" ></span>
         </button>
         </ng-template>
@@ -184,10 +184,10 @@
       <label nz-checkbox formControlName="ObjetivoPersonalJerarquicoDescuentos" >
         <span>Se aplica descuento</span>
       </label>
-          <button nz-button *ngIf="infoCoordinadorCuenta().controls.length == i+1" nzType="primary" class="add-button" (click)="addCoordinadorCuenta($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" >
+          <button  nz-button *ngIf="infoCoordinadorCuenta().controls.length == i+1 && formCli.enabled" nzType="primary" class="add-button" (click)="addCoordinadorCuenta($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" >
             <span nz-icon nzType="plus"></span>
           </button>
-          <button *ngIf="infoCoordinadorCuenta().length >= 2" nz-button nzType="default" (click)="removeCordinadorCuenta(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}" >
+          <button *ngIf="infoCoordinadorCuenta().length >= 2 && formCli.enabled" nz-button nzType="default" (click)="removeCordinadorCuenta(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}" >
             <span nz-icon nzType="delete" nzTheme="outline" ></span>
           </button>
     </nz-form-control> 
@@ -202,13 +202,13 @@
 
 <nz-form-item>
 
-  <nz-form-control>
+  <nz-form-control *ngIf="formCli.enabled">
     <app-file-upload formControlName="files"   [idForSearh]="formCli.value.id ?? 0"
     [textForSearch]="'OBJ'" keyField="objetivo_id"  ></app-file-upload>
   </nz-form-control>
   
 </nz-form-item>
-<nz-form-item>
+<nz-form-item *ngIf="formCli.enabled">
   <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
     <button nzType="primary" nz-button  (click)="save()" [nzLoading]="isLoading()" [disabled]="formCli.pristine" >
       {{ 'app.btn.save' | i18n }}
@@ -216,7 +216,7 @@
     <button nzType="primary" nz-button nzDanger  nz-popconfirm
     nzPopconfirmTitle="Esta seguro que quiere eliminar este Objetivo?"
     (nzOnConfirm)="deleteObjetivo()"
-    nzPopconfirmPlacement="top" *ngIf="edit()" [nzLoading]="isLoading()" [disabled]="!(formCli.pristine)" >
+    nzPopconfirmPlacement="top"  [nzLoading]="isLoading()" [disabled]="!(formCli.pristine)" >
     {{ 'app.btn.delete' | i18n }}
     </button>
   </nz-form-control>

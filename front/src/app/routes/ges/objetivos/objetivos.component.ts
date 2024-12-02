@@ -65,6 +65,10 @@ export class ObjetivosComponent {
 
     columns$ = this.apiService.getCols('/api/objetivos/cols')
 
+    childAlta = viewChild.required<ObjetivosFormComponent>('objetivoFormAlta')
+    childDeta = viewChild.required<ObjetivosFormComponent>('objetivoFormDeta')
+    childEdit = viewChild.required<ObjetivosFormComponent>('objetivoFormEdit')
+
     gridData$ = this.listObjetivos$.pipe(
         debounceTime(500),
         switchMap(() => {
@@ -118,8 +122,30 @@ export class ObjetivosComponent {
     this.edit.set(false)
   }
 
+  async handleAddOrUpdate(){
+    this.ngOnInit()
+  }
+
+
   listOptionsChange(options: any) {
       this.listOptions = options;
       this.listObjetivos$.next('');
+  }
+
+  onTabsetChange(_event: any) {
+    switch (_event.index) {
+      case 3: //INSERT
+       this.childAlta().newRecord()
+        break
+      case 2: //DETAIL
+        this.childDeta().viewRecord(true)
+        break;
+      case 1: //EDIT
+        this.childEdit().viewRecord(false)
+        break;
+        default:
+        break;
+    }
+
   }
 }

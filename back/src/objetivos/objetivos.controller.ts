@@ -1107,6 +1107,7 @@ export class ObjetivosController extends BaseController {
         const infoActividad  =  {...Obj.infoActividad}
         let ObjObjetivoNew = { ClienteId:0,ObjetivoNewId:0,NewClienteElementoDependienteId:0,infoRubro: {}, infoCoordinadorCuenta: {} }
         console.log("Insert ",Obj)
+        //throw new ClientException(`test`)
         let newObj = []
         try {
 
@@ -1133,9 +1134,10 @@ export class ObjetivosController extends BaseController {
         
             
             let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT ClienteElementoDependienteUltNro AS ClienteElementoDependienteUltNro FROM Cliente WHERE ClienteId = @0`,[Number(Obj.ClienteId)])
+            console.log("infoMaxClienteElementoDependiente ", infoMaxClienteElementoDependiente)
             let { ClienteElementoDependienteUltNro } = infoMaxClienteElementoDependiente[0]
             ClienteElementoDependienteUltNro = ClienteElementoDependienteUltNro == null ? 1 :ClienteElementoDependienteUltNro + 1
-           
+            console.log("ClienteElementoDependienteUltNro ", ClienteElementoDependienteUltNro)
            
             //Agrego los valores al objeto original para retornar
             ObjObjetivoNew.NewClienteElementoDependienteId = ClienteElementoDependienteUltNro

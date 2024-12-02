@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, Input, input, } from '@angular/core';
+import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, Input, input, output, } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, FieldType, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, FileType, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
@@ -69,13 +69,13 @@ export class ObjetivosFormComponent {
     GrupoActividadId:0,
     GrupoActividadOriginal:0
   }
-  edit = model(true)
   ObjetivoId = model(0)
   ClienteId = model(0)
   ClienteElementoDependienteId = model(0)
   selectedValueProvincia = null
   isLoading = signal(false)
   addNew = model()
+  onAddorUpdate = output()
   files = []
 
   
@@ -135,37 +135,57 @@ export class ObjetivosFormComponent {
   }
 
   ngOnInit() {
-    effect(async () => {
-      if (this.ObjetivoId()) {
-        await this.load()
-        this.formCli.markAsPristine()
-      } else {
-        this.infoCoordinadorCuenta().clear()
-        this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-        this.formCli.reset({})
-        this.formCli.markAsPristine()
-        this.formCli.enable();
+    // effect(async () => {
+    //   if (this.ObjetivoId()) {
+    //     await this.load()
+    //     this.formCli.markAsPristine()
+    //   } else {
+    //     this.infoCoordinadorCuenta().clear()
+    //     this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
+    //     this.formCli.reset({})
+    //     this.formCli.markAsPristine()
+    //     this.formCli.enable();
 
-      }
-    }, { injector: this.injector });
+    //   }
+    // }, { injector: this.injector });
 
-    effect(async () => {
+    // effect(async () => {
       
-      if (this.edit()) {
-        this.formCli.enable()
-        this.formCli.get('codigo')?.disable();
-      } else{
-      }
-    }, { injector: this.injector });
+    //   if (this.edit()) {
+    //     this.formCli.enable()
+    //     this.formCli.get('codigo')?.disable();
+    //   } else{
+    //   }
+    // }, { injector: this.injector });
 
   }
+
+  async newRecord() {
+    this.formCli.reset()
+    this.formCli.get('codigo')?.disable()
+    this.formCli.markAsPristine()
+    //await this.userEfectFuntion()
+
+  }
+
+  async viewRecord(readonly:boolean) {
+      if (this.ObjetivoId()) 
+        await this.load()
+      if (readonly)
+        this.formCli.disable()
+      else
+        this.formCli.enable()
+      this.formCli.get('codigo')?.disable()
+      this.formCli.markAsPristine()        
+
+   }
+
 
 
   async load() {
 
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
    
-   console.log("infoObjetivo",infoObjetivo)
     this.infoCoordinadorCuenta().clear()
     this.infoRubro().clear()
     this.infoActividad().clear()
@@ -217,7 +237,8 @@ export class ObjetivosFormComponent {
     });
 
 
-    this.formCli.get('codigo')?.disable();
+    this.formCli.get('codigo')?.disable()
+    this.onAddorUpdate.emit()
     //this.formCli.get('ClienteId')?.disable();
 
     //this.formCli.reset(infoObjetivo)
@@ -265,11 +286,13 @@ export class ObjetivosFormComponent {
           this.ObjetivoId.set(result.data.ObjetivoNewId)
           this.ClienteId.set(result.data.ClienteId)
           this.ClienteElementoDependienteId.set(result.data.NewClienteElementoDependienteId)
-   
+          this.formCli.patchValue({
+            codigo: `${result.data.ClienteId}/${result.data.NewClienteElementoDependienteId}`,
+          })
           //this.addNew.set(true)
           
         }
-        
+        this.onAddorUpdate.emit()
         this.formCli.markAsUntouched()
         this.formCli.markAsPristine()
     } catch (e) {

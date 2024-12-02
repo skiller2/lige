@@ -77,7 +77,11 @@ export class ClientesComponent {
             })
           )
         })
-    )
+    ) 
+
+    async handleAddOrUpdate(){
+      this.ngOnInit()
+    }
 
 
     async ngOnInit(){
