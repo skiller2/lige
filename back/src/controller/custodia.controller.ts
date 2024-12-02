@@ -356,6 +356,15 @@ const columnsPersonalCustodia: any[] = [
         hidden: false,
     },
     {
+        id: 'horas', name: 'Horas', field: 'horas',
+        // fieldName: "obj.impo_facturar",
+        type: 'number',
+        searchType: "float",
+        sortable: true,
+        searchHidden: true,
+        hidden: false,
+    },
+    {
         id: 'importe', name: 'Importe', field: 'importe',
         // fieldName: "obj.impo_facturar",
         type: 'currency',
@@ -1171,7 +1180,7 @@ export class CustodiaController extends BaseController {
             obj.objetivo_custodia_id, obj.cliente_id, TRIM(cli.ClienteApellidoNombre) cliente,
             obj.fecha_inicio, obj.fecha_fin, obj.estado, obj.fecha_liquidacion,
             regp.importe_personal AS importe,
-            ABS(DATEDIFF(minute, obj.fecha_inicio,obj.fecha_fin) / 60) AS horas, 
+            ABS(CEILING(CONVERT(FLOAT,DATEDIFF(minute, obj.fecha_inicio,obj.fecha_fin)) / 60)) AS horas, 
             'Personal' AS tipo_importe, 
             '' AS categoria,
             '' AS patente
