@@ -612,7 +612,7 @@ ${orderBy}`, [fechaActual])
     async addCliente(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         const ObjCliente = { ...req.body };
-        let ObjClienteNew = { ClienteNewId: 0, infoDomicilio: {}, infoClienteContacto: {} }
+        let ObjClienteNew = { ClienteNewId: 0, infoDomicilio: {}, infoClienteContacto: {}, ClienteFacturacionIdNew:0 }
         try {
             console.log("ObjCliente ", ObjCliente)
             await queryRunner.startTransaction()
@@ -647,6 +647,7 @@ ${orderBy}`, [fechaActual])
             const ClienteId = await this.insertCliente(queryRunner, ObjCliente.ClienteNombreFantasia, ObjCliente.ClienteApellidoNombre, ClienteFechaAlta, ClienteDomicilioUltNro, ClienteAdministradorId)
 
             ObjClienteNew.ClienteNewId = ClienteId
+            ObjClienteNew.ClienteFacturacionIdNew = ClienteFacturacionId
 
             this.insertClienteFacturacion(queryRunner, ClienteId, ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.CondicionAnteIVAId, ClienteFechaAlta)
 

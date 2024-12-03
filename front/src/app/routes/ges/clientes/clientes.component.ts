@@ -39,11 +39,12 @@ export class ClientesComponent {
   public router = inject(Router);
   public route = inject(ActivatedRoute);
 
-  angularGrid!: AngularGridInstance;
-  gridOptions!: GridOption;
-  gridDataInsert: any[] = [];
-  detailViewRowCount = 1;
-  editClienteId = signal(0);
+  angularGrid!: AngularGridInstance
+  gridOptions!: GridOption
+  gridDataInsert: any[] = []
+  detailViewRowCount = 1
+  editClienteId = signal(0)
+  childIsPristine = signal(true)
   excelExportService = new ExcelExportService()
   listCliente$ = new BehaviorSubject('')
   listOptions: listOptionsT = {
@@ -83,7 +84,6 @@ export class ClientesComponent {
       this.listCliente$.next('')
     }
 
-
     async ngOnInit(){
 
       this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -95,6 +95,14 @@ export class ClientesComponent {
 
       //const initialTabEvent = { index: 0 }
       //this.onTabsetChange(initialTabEvent)
+
+   
+  }
+
+  onPristineChange(isPristine: boolean) {
+    console.log('¿El formulario hijo está pristin?', isPristine)
+    this.childIsPristine.set(isPristine)
+
   }
 
     async angularGridReady(angularGrid: any) {
