@@ -38,6 +38,7 @@ import { AdministradorController } from "../controller/administrador.controller"
 import { RubroController } from "../controller/rubro.controller"
 import { AccesoBotController } from "../acceso-bot/acceso-bot.controller"
 import { SituacionRevistaController } from "../controller/situacionrevista.controller"
+import { ResidenciaController } from "../controller/residencia.controller"
 
 
 
@@ -81,3 +82,4 @@ export const administradorController = new AdministradorController();
 export const rubroController = new RubroController();
 export const accesoBotController = new AccesoBotController();
 export const situacionRevistaController = new SituacionRevistaController();
+export const residenciaController = new ResidenciaController();

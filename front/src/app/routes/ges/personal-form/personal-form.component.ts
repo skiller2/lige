@@ -76,13 +76,13 @@ export class PersonalFormComponent {
   async ngOnInit(){
     let now : Date = new Date()
     this.periodo.set({anio: now.getFullYear(), mes: now.getMonth()+1})
-    effect(async () => {
-      if (this.personalId()) {
-          await this.load()
-      } else {
+    // effect(async () => {
+    //   if (this.personalId()) {
+    //       await this.load()
+    //   } else {
           
-      }
-    }, { injector: this.injector });
+    //   }
+    // }, { injector: this.injector });
   }
 
   async load() {

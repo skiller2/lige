@@ -24,7 +24,10 @@
         nz-tooltip nzTooltipTitle="{{ 'app.icon.objectives' | i18n }}"><span nz-icon nzType="menu-unfold"
         nzTheme="outline"></span></button>
       <button nz-button nzType="default" (click)="openDrawerforConsultCustodias()" [disabled]="personalId() == 0"
-        nz-tooltip nzTooltipTitle="{{ 'app.icon.custody' | i18n }}"><span nz-icon nzType="car"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.custody' | i18n }}"><span nz-icon nzType="menu-unfold"
+        nzTheme="outline"></span></button>
+        <button nz-button nzType="default" (click)="openDrawerforConsultDomicilio()" [disabled]="personalId() == 0"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.home' | i18n }}"><span nz-icon nzType="menu-unfold"
         nzTheme="outline"></span></button>
      </nz-button-group>
   </div>
@@ -38,7 +41,7 @@
       </nz-form-item>
     </form> -->
   
-    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" >
       <nz-tab>
         <a nz-tab-link routerLink="/ges/personal/listado">Listado</a>
         <ng-template nz-tab *ngIf="(columns$|async) as columnas">
@@ -60,14 +63,16 @@
       </nz-tab>
       <nz-tab>
         <a nz-tab-link routerLink="/ges/personal/detalle">Detalle</a>
-        <app-personal-form [personalId]="personalId()"></app-personal-form>
+        <app-personal-form #perForm [personalId]="personalId()"></app-personal-form>
       </nz-tab>
     </nz-tabset>
     
 </nz-card>
-<app-licencia-historial-drawer [(visibleHistorial)]="visibleHistorial"
+<app-licencia-historial-drawer #licHistDrawer [(visibleHistorial)]="visibleHistorial"
   [PersonalId]="personalId()"></app-licencia-historial-drawer>
-<app-personal-objetivo-drawer [(visibleObjetivo)]="visibleObjetivo"
+<app-personal-objetivo-drawer #objDrawer [(visibleObjetivo)]="visibleObjetivo"
 [PersonalId]="personalId()"></app-personal-objetivo-drawer>
-<app-personal-custodias-drawer [(visibleCustodias)]="visibleCustodias"
+<app-personal-custodias-drawer #custDrawer [(visibleCustodias)]="visibleCustodias"
 [PersonalId]="personalId()"></app-personal-custodias-drawer>
+<app-personal-domicilio-drawer #domDrawer [(visibleDomicilio)]="visibleDomicilio"
+[PersonalId]="personalId()"></app-personal-domicilio-drawer>
