@@ -336,7 +336,7 @@
           </nz-form-control>
         </nz-form-item>
 
-@if ($listaExcepcionesPer | async; as listaExcepcionesPer ) { @if (listaExcepcionesPer.length) {
+@if ($listaExcepcionesPer | async; as listaExcepcionesPer ) { @if (listaExcepcionesPer?.length) {
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Excepción</nz-form-label>
@@ -386,7 +386,7 @@
           </nz-form-control>
         </nz-form-item>
       }}
-@if ($listaAsistenciaPer | async; as listaAsistenciaPer ) { @if (listaAsistenciaPer.asistencia.length) {
+@if ($listaAsistenciaPer | async; as listaAsistenciaPer ) { @if (listaAsistenciaPer.asistencia?.length) {
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Asistencia</nz-form-label>
@@ -445,7 +445,7 @@
           </nz-form-control>
         </nz-form-item>
   }}
-@if ($listaIngresosPer | async; as listaIngresosPer ) { @if (listaIngresosPer.ingresos.length) {
+@if ($listaIngresosPer | async; as listaIngresosPer ) { @if (listaIngresosPer.ingresos?.length) {
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Licencias</nz-form-label>
           <nz-form-control>
@@ -475,7 +475,7 @@
           </nz-form-control>
         </nz-form-item>
       }}
-@if ($listaCustodiasPer | async; as listaCustodiasPer ) { @if (listaCustodiasPer.custodias.length) {
+@if ($listaCustodiasPer | async; as listaCustodiasPer ) { @if (listaCustodiasPer.custodias?.length) {
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Custodias</nz-form-label>
           <nz-form-control >
@@ -496,7 +496,7 @@
                   <td>{{ data.objetivo_custodia_id }}</td>
                   <td>{{ data.fecha_inicio | date }} - {{ data.fecha_fin | date }}</td>
                   <td>{{ data.cliente }}</td>
-                  <td>{{ data.tipo_importe }}</td>
+                  <td>{{ data.tipo_importe }} {{ data.patente }}</td>
                   <td>{{ data.horas }}</td>
                   <td>{{ data.importe | currency }}</td>
                 </tr>
@@ -505,7 +505,7 @@
           </nz-form-control>
         </nz-form-item>
 }}
-@if ($listaIngresosExtraPer | async; as listaIngresosExtraPer ) { @if (listaIngresosExtraPer.ingresos.length) {
+@if ($listaIngresosExtraPer | async; as listaIngresosExtraPer ) { @if (listaIngresosExtraPer.ingresos?.length) {
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Ingresos Extra</nz-form-label>
