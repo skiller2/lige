@@ -990,4 +990,40 @@ export class SearchService {
     );
   }
 
+  getPaises(): Observable<any> {
+    return this.http.post<ResponseJSON<any>>(`api/residencia/paises`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getProvinciasByPais(paisId:number): Observable<any> {
+    if (!paisId) {
+      return of([]);
+    }
+    return this.http.post<ResponseJSON<any>>(`api/residencia/provincias`, {paisId}).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getLocalidadesByProvincia(paisId:number, provinciaId:number): Observable<any> {
+    if (!paisId || !provinciaId) {
+      return of([]);
+    }
+    return this.http.post<ResponseJSON<any>>(`api/residencia/localidades`, {paisId, provinciaId}).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }
