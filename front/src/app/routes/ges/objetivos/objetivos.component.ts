@@ -48,6 +48,7 @@ export class ObjetivosComponent {
   editClienteElementoDependienteId = 0
   edit =signal(false)
   addNew = false
+  childIsPristine = signal(true)
   excelExportService = new ExcelExportService()
   listObjetivos$ = new BehaviorSubject('')
   listOptions: listOptionsT = {
@@ -126,6 +127,10 @@ export class ObjetivosComponent {
     this.listObjetivos$.next('')
   }
 
+  onPristineChange(isPristine: boolean) {
+    this.childIsPristine.set(isPristine)
+
+  }
 
   listOptionsChange(options: any) {
       this.listOptions = options

@@ -214,7 +214,7 @@ ${orderBy}`, [fechaActual])
                 ,domcli.ClienteDomicilioProvinciaId
                 ,domcli.ClienteDomicilioLocalidadId
                 ,domcli.ClienteDomicilioBarrioId
-                ,domcli.ClienteDomicilioDomLugar AS ClienteDomicilioDomLugar
+                ,TRIM(domcli.ClienteDomicilioDomLugar) AS ClienteDomicilioDomLugar
             FROM ClienteDomicilio AS domcli
             WHERE domcli.ClienteId = @0
                 AND domcli.ClienteDomicilioActual = 1
@@ -612,9 +612,11 @@ ${orderBy}`, [fechaActual])
     async addCliente(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         const ObjCliente = { ...req.body };
-        let ObjClienteNew = { ClienteNewId: 0, infoDomicilio: {}, infoClienteContacto: {}, ClienteFacturacionIdNew:0 }
+        let ObjClienteNew = { ClienteId: 0, infoDomicilio: {}, infoClienteContacto: {}, ClienteFacturacionId:0 }
         try {
             console.log("ObjCliente ", ObjCliente)
+            await this.FormValidations(ObjCliente)
+
             await queryRunner.startTransaction()
 
             const usuario = res.locals.userName
@@ -622,7 +624,6 @@ ${orderBy}`, [fechaActual])
 
             //validaciones
 
-            await this.FormValidations(ObjCliente)
 
             //validacion de barrio
             if(ObjCliente.DomicilioProvinciaId && ObjCliente.DomicilioLocalidadId && !ObjCliente.DomicilioBarrioId) {
@@ -646,8 +647,8 @@ ${orderBy}`, [fechaActual])
 
             const ClienteId = await this.insertCliente(queryRunner, ObjCliente.ClienteNombreFantasia, ObjCliente.ClienteApellidoNombre, ClienteFechaAlta, ClienteDomicilioUltNro, ClienteAdministradorId)
 
-            ObjClienteNew.ClienteNewId = ClienteId
-            ObjClienteNew.ClienteFacturacionIdNew = ClienteFacturacionId
+            ObjClienteNew.ClienteId = ClienteId
+            ObjClienteNew.ClienteFacturacionId = ClienteFacturacionId
 
             await this.insertClienteFacturacion(queryRunner, ClienteId, ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.CondicionAnteIVAId, ClienteFechaAlta)
 

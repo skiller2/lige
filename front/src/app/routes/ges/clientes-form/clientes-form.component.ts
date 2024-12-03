@@ -168,7 +168,7 @@ export class ClientesFormComponent {
     //await this.userEfectFuntion()
     this.formCli.get('codigo')?.disable()
 
-    if(this.ClienteId() && this.ClienteId() > 0){
+    if( this.ClienteId() > 0){
       this.formCli.reset()
         this.formCli.markAsPristine()
     }
@@ -242,13 +242,12 @@ export class ClientesFormComponent {
         } else {
           //este es para cuando es un nuevo registro
           let result =  await firstValueFrom(this.apiService.addCliente(form))
-          console.log("result ", result)
           this.formCli.patchValue({
-            id:result.data.ClienteNewId,
+            id:result.data.ClienteId,
             infoClienteContacto: result.data.infoClienteContacto,
             infoDomicilio:result.data.infoDomicilio,
-            codigo: result.data.ClienteNewId,
-            ClienteFacturacionId:result.data.ClienteFacturacionIdNew
+            codigo: result.data.ClienteId,
+            ClienteFacturacionId:result.data.ClienteFacturacionId
           });
 
           this.ClienteId.set(result.data.ClienteNewId)
@@ -258,11 +257,12 @@ export class ClientesFormComponent {
         
         this.formCli.markAsUntouched()
         this.formCli.markAsPristine()
+        this.onAddorUpdate.emit()
     } catch (e) {
         
     }
     this.isLoading.set(false)
-    this.onAddorUpdate.emit()
+
 }
 
   infoDomicilio(): FormArray {
