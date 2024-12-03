@@ -32,7 +32,7 @@ const listaColumnas: any[] = [
         fieldName: "Codigo",
         sortable: true,
         hidden: false,
-        searchHidden: false
+        searchHidden: true
     },
     {
         name: "Cliente",
