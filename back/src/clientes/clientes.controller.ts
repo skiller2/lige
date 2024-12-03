@@ -648,7 +648,7 @@ ${orderBy}`, [fechaActual])
 
             ObjClienteNew.ClienteNewId = ClienteId
 
-            this.insertClienteFacturacion(queryRunner, ClienteId, ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.CondicionAnteIVAId, ClienteFechaAlta)
+            await this.insertClienteFacturacion(queryRunner, ClienteId, ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.CondicionAnteIVAId, ClienteFechaAlta)
 
             ObjClienteNew.infoDomicilio = await this.ClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId)
 
