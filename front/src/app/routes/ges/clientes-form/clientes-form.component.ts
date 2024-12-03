@@ -67,6 +67,8 @@ export class ClientesFormComponent {
   selectedValueProvincia = null
   isLoading = signal(false)
   onAddorUpdate = output()
+  pristineChange = output<boolean>()
+
   //files = []
   textForSearch = "Cliente"
 
@@ -150,41 +152,27 @@ export class ClientesFormComponent {
     this.optionsBarrio = await firstValueFrom(this.searchService.getBarrio())
     this.optionsCondicionAnteIva = await firstValueFrom(this.searchService.getOptionsCondicionAnteIva())
 
-    await this.userEfectFuntion()
+    this.formCli.statusChanges.subscribe(() => {
+       this.checkPristine();
+    });
   }
 
-  async userEfectFuntion(){
-
-    // effect(async () => {
-
-    //   console.log("ejecuto el efect")
-    //   this.formCli.reset()
-
-    //   if (this.ClienteId()) 
-    //     await this.load()
-    //   else 
-    //     this.formCli.reset({ estado: 0 })
-      
-        
-    //   if (this.edit()) 
-    //     this.formCli.enable()
-
-    //   if(this.consult())
-    //     this.formCli.disable()
-
-    //   this.formCli.get('codigo')?.disable()
-    //   this.formCli.markAsPristine()
-
-      
-    // }, { injector: this.injector });
+   checkPristine() {
+    this.pristineChange.emit(this.formCli.pristine);
   }
+
 
   async newRecord() {
-    this.formCli.reset()
+   
     this.formCli.get('codigo')?.enable()
-    this.formCli.markAsPristine()
     //await this.userEfectFuntion()
     this.formCli.get('codigo')?.disable()
+
+    if(this.ClienteId() && this.ClienteId() > 0){
+      this.formCli.reset()
+        this.formCli.markAsPristine()
+    }
+ 
 
   }
 
@@ -254,11 +242,13 @@ export class ClientesFormComponent {
         } else {
           //este es para cuando es un nuevo registro
           let result =  await firstValueFrom(this.apiService.addCliente(form))
-
+          console.log("result ", result)
           this.formCli.patchValue({
             id:result.data.ClienteNewId,
             infoClienteContacto: result.data.infoClienteContacto,
             infoDomicilio:result.data.infoDomicilio,
+            codigo: result.data.ClienteNewId,
+            ClienteFacturacionId:result.data.ClienteFacturacionIdNew
           });
 
           this.ClienteId.set(result.data.ClienteNewId)
