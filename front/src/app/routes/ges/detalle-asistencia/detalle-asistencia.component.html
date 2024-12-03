@@ -273,7 +273,7 @@
               listaDescuentosPerTotalG | currency }} </span>
             <span> ({{ listaIngresosPerTotal + listaAsistenciaPerTotal + listaCustodiasPerTotal + listaIngresosExtraPerTotalG | currency }} - {{
               listaDescuentosPerTotalG |
-              currency }})</span><span>, total horas: {{ listaAsistenciaPerTotalHoras +
+              currency }})</span><span>, total horas: {{ listaAsistenciaPerTotalHoras + listaCustodiasPerTotalHoras +
               listaIngresosPerTotalHoras}}</span>
           </nz-form-control>
         </nz-form-item>
@@ -479,7 +479,8 @@
                   <th>Código</th>
                   <th>Fecha</th>
                   <th>Cliente</th>
-                  <th>Importe</th>
+                  <th>Horas</th>
+                  <th>Importe Total</th>
                 </tr>
               </thead>
               <tbody>
@@ -487,6 +488,7 @@
                   <td>{{ data.objetivo_custodia_id }}</td>
                   <td>{{ data.fecha_inicio | date }} - {{ data.fecha_fin | date }}</td>
                   <td>{{ data.cliente }}</td>
+                  <td>{{ data.horas }}</td>
                   <td>{{ data.importe | currency }}</td>
                 </tr>
               </tbody>

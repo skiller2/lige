@@ -356,6 +356,15 @@ const columnsPersonalCustodia: any[] = [
         hidden: false,
     },
     {
+        id: 'horas', name: 'Horas', field: 'horas',
+        // fieldName: "obj.impo_facturar",
+        type: 'number',
+        searchType: "float",
+        sortable: true,
+        searchHidden: true,
+        hidden: false,
+    },
+    {
         id: 'importe', name: 'Importe', field: 'importe',
         // fieldName: "obj.impo_facturar",
         type: 'currency',
@@ -1170,7 +1179,8 @@ export class CustodiaController extends BaseController {
             SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
             obj.objetivo_custodia_id, obj.cliente_id, TRIM(cli.ClienteApellidoNombre) cliente,
             obj.fecha_inicio, obj.fecha_fin, obj.estado, obj.fecha_liquidacion,
-            regp.importe_personal AS importe, 
+            regp.importe_personal AS importe,
+            ABS(CEILING(CONVERT(FLOAT,DATEDIFF(minute, obj.fecha_inicio,obj.fecha_fin)) / 60)) AS horas, 
             'Personal' AS tipo_importe, 
             '' AS categoria,
             '' AS patente
@@ -1184,7 +1194,8 @@ export class CustodiaController extends BaseController {
             SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
             obj.objetivo_custodia_id, obj.cliente_id, TRIM(cli.ClienteApellidoNombre) cliente,
             obj.fecha_inicio, obj.fecha_fin, obj.estado, obj.fecha_liquidacion,
-            (ISNULL(regv.importe_vehiculo,0)+ISNULL(regv.peaje_vehiculo,0)) AS importe, 
+            (ISNULL(regv.importe_vehiculo,0)+ISNULL(regv.peaje_vehiculo,0)) AS importe,
+            0 AS horas, 
             'Vehiculo' AS tipo_importe, 
             '' AS categoria,
             regv.patente

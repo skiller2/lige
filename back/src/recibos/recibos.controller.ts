@@ -290,7 +290,7 @@ export class RecibosController extends BaseController {
           htmlDeposito += `<tr><td>${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
           break
         case "I":
-          htmlIngreso += `<tr><td>${liquidacionElement.detalle} ${(liquidacionElement.ClienteId) ? liquidacionElement.ClienteId + '/' + liquidacionElement.ClienteElementoDependienteId : ''}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
+          htmlIngreso += `<tr><td>${liquidacionElement.detalle} ${liquidacionElement.custodia_id? 'Custodia '+liquidacionElement.custodia_id+' '+liquidacionElement.ClienteDenominacion : ''} ${(liquidacionElement.ClienteId) ? liquidacionElement.ClienteId + '/' + liquidacionElement.ClienteElementoDependienteId : ''}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
           retenciones += liquidacionElement.SumaImporte
           break
         default:
@@ -396,19 +396,27 @@ export class RecibosController extends BaseController {
     obj.ClienteId,
     ISNULL(obj.ClienteElementoDependienteId,0) ClienteElementoDependienteId,
     SUM(liq.importe) AS SumaImporte, 
-    tip.indicador_recibo AS indicador
+    tip.indicador_recibo AS indicador,
+    cli.ClienteDenominacion,
+    liq.custodia_id
     FROM  lige.dbo.liqmamovimientos AS liq
     JOIN  lige.dbo.liqcotipomovimiento AS tip ON tip.tipo_movimiento_id = liq.tipo_movimiento_id
     LEFT JOIN Objetivo obj ON obj.ObjetivoId = liq.objetivo_id
+    LEFT JOIN lige.dbo.objetivocustodia cus ON cus.objetivo_custodia_id = liq.custodia_id
+    LEFT JOIN Cliente cli ON cli.ClienteId = ISNULL(obj.ClienteId, cus.cliente_id)
+    
     WHERE  liq.periodo_id = @0 AND  liq.tipocuenta_id = 'G' AND  liq.persona_id = @1
     GROUP BY 
     liq.persona_id, 
 	 obj.ClienteId,
     obj.ClienteElementoDependienteId,
+    liq.custodia_id,
     liq.detalle,
     liq.tipo_movimiento_id, 
     tip.des_movimiento, 
-    tip.indicador_recibo`, [periodo_id, user_id])
+    tip.indicador_recibo,
+    cli.ClienteDenominacion`
+    , [periodo_id, user_id])
 
   }
 

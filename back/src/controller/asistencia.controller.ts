@@ -1396,12 +1396,14 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       for (let ds of personal)
         personalIdList.push(ds.PersonalId)
 
-
       const resDescuentos = await AsistenciaController.getDescuentos(anio, mes, personalIdList)
 
       const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, personalIdList)
 
-      const resAsisAdmArt42 = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, personalIdList,[],false,false)
+      const resAsisAdmArt42 = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, personalIdList, [], false, false)
+      
+      const resCustodias = await CustodiaController.listPersonalCustodiaQuery({filtros:[{index: "ApellidoNombre", valor: personalIdList, operador:"=", condition:"AND"}]}, queryRunner, anio, mes)
+
       const resIngreExtra = await AsistenciaController.getIngresosExtra(anio, mes, queryRunner, personalIdList)
 
       for (const row of resAsisObjetiv) {
@@ -1415,12 +1417,21 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       for (const row of resAsisAdmArt42) {
         const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
-        if (key>=0 && row.total>0) {
+        if (key >= 0 && row.total > 0) {
           personal[key].ingresosG_importe += row.total
-          personal[key].ingresos_horas += row.horas
+          personal[key].ingresos_horas  += row.PersonalLicenciaAplicaPeriodoHorasMensuales
           personal[key].retiroG_importe = personal[key].ingresosG_importe
         }
 
+      }
+
+      for (const row of resCustodias) {
+        const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
+        if (key >= 0 && row.importe > 0) {
+          personal[key].ingresosG_importe += row.importe
+          personal[key].ingresos_horas += row.horas
+          personal[key].retiroG_importe = personal[key].ingresosG_importe
+        }
       }
 
       for (const row of resIngreExtra) {
@@ -1532,7 +1543,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const result = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [personalId],[],false,false)
 
       const total = result.map(row => row.total).reduce((prev, curr) => prev + curr, 0)
-      const totalHoras = result.map(row => row.horas).reduce((prev, curr) => prev + curr, 0)
+      const totalHoras = result.map(row => row.PersonalLicenciaAplicaPeriodoHorasMensuales).reduce((prev, curr) => prev + curr, 0)
 
       this.jsonRes({ ingresos: result, total, totalHoras }, res);
     } catch (error) {
@@ -1823,8 +1834,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const result = await CustodiaController.listPersonalCustodiaQuery({filtros:[{index: "ApellidoNombre", valor: [personalId], operador:"=", condition:"AND"}]}, queryRunner, anio, mes)
 
       const totalImporte = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
-      const totalHoras = 0
-
+      const totalHoras = result.map(row => row.horas).reduce((prev, curr) => prev + curr, 0)
 
       this.jsonRes({ custodias: result, totalImporte, totalHoras }, res);
     } catch (error) {
