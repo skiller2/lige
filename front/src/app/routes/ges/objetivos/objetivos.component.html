@@ -74,7 +74,8 @@
       <nz-tab> 
         <a nz-tab-link routerLink="/ges/objetivos/alta" >Alta </a>
         <app-objetivos-form #objetivoFormAlta  
-        (onAddorUpdate)="handleAddOrUpdate()"></app-objetivos-form>
+        (onAddorUpdate)="handleAddOrUpdate()" 
+        (pristineChange)="onPristineChange($event)"></app-objetivos-form>
       </nz-tab>
 
     </nz-tabset>

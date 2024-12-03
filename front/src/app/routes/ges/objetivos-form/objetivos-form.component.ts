@@ -77,7 +77,7 @@ export class ObjetivosFormComponent {
   addNew = model()
   onAddorUpdate = output()
   files = []
-
+  pristineChange = output<boolean>()
   
 
   private apiService = inject(ApiService)
@@ -135,29 +135,15 @@ export class ObjetivosFormComponent {
   }
 
   ngOnInit() {
-    // effect(async () => {
-    //   if (this.ObjetivoId()) {
-    //     await this.load()
-    //     this.formCli.markAsPristine()
-    //   } else {
-    //     this.infoCoordinadorCuenta().clear()
-    //     this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-    //     this.formCli.reset({})
-    //     this.formCli.markAsPristine()
-    //     this.formCli.enable();
+  
+    this.formCli.statusChanges.subscribe(() => {
+      this.checkPristine();
+   });
 
-    //   }
-    // }, { injector: this.injector });
+  }
 
-    // effect(async () => {
-      
-    //   if (this.edit()) {
-    //     this.formCli.enable()
-    //     this.formCli.get('codigo')?.disable();
-    //   } else{
-    //   }
-    // }, { injector: this.injector });
-
+  checkPristine() {
+    this.pristineChange.emit(this.formCli.pristine);
   }
 
   async newRecord() {

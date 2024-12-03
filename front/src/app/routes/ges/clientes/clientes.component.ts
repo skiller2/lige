@@ -100,7 +100,6 @@ export class ClientesComponent {
   }
 
   onPristineChange(isPristine: boolean) {
-    console.log('¿El formulario hijo está pristin?', isPristine)
     this.childIsPristine.set(isPristine)
 
   }
@@ -133,6 +132,7 @@ export class ClientesComponent {
   }
 
   onTabsetChange(_event: any) {
+    console.log("_event.index ", _event.index)
     switch (_event.index) {
       case 3: //INSERT
         this.childAlta().newRecord()
