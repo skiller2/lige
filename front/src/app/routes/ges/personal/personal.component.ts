@@ -1,4 +1,4 @@
-import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation } from '@angular/core';
+import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, FileType, GridOption, SlickGrid } from 'angular-slickgrid';
 import { columnTotal, totalRecords } from 'src/app/shared/custom-search/custom-search';
@@ -14,6 +14,7 @@ import { PersonalFormComponent } from '../personal-form/personal-form.component'
 import { LicenciaHistorialDrawerComponent } from '../../../shared/licencia-historial-drawer/licencia-historial-drawer.component'
 import { PersonalObjetivoDrawerComponent } from '../../../shared/personal-objetivo-drawer/personal-objetivo-drawer.component'
 import { PersonalCustodiasDrawerComponent } from '../../../shared/personal-custodias-drawer/personal-custodias-drawer.component'
+import { PersonalDomicilioDrawerComponent } from '../../../shared/personal-domicilio-drawer/personal-domicilio-drawer.component'
 
 @Component({
     selector: 'app-personal',
@@ -23,8 +24,10 @@ import { PersonalCustodiasDrawerComponent } from '../../../shared/personal-custo
     // encapsulation: ViewEncapsulation.None,
     imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule,
       PersonalSearchComponent, PersonalFormComponent, LicenciaHistorialDrawerComponent,
-      PersonalObjetivoDrawerComponent, PersonalCustodiasDrawerComponent, ],
+      PersonalObjetivoDrawerComponent, PersonalCustodiasDrawerComponent, PersonalDomicilioDrawerComponent,
+    ],
     providers: [AngularUtilService, ExcelExportService],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
   
 export class PersonalComponent {
@@ -48,6 +51,13 @@ export class PersonalComponent {
     visibleHistorial = model<boolean>(false)
     visibleObjetivo = model<boolean>(false)
     visibleCustodias = model<boolean>(false)
+    visibleDomicilio = model<boolean>(false)
+
+    // childLicHistDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('licHistDrawer')
+    // childObjDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('objDrawer')
+    // childCustDrawer = viewChild.required<PersonalCustodiasDrawerComponent>('custDrawer')
+    // childDomDrawer = viewChild.required<PersonalDomicilioDrawerComponent>('domDrawer')
+    childPerFormDrawer = viewChild.required<PersonalFormComponent>('perForm')
 
     columns$ = this.apiService.getCols('/api/personal/cols')
     gridData$ = this.listPersonal$.pipe(
@@ -56,7 +66,7 @@ export class PersonalComponent {
         return this.searchService.getPersonalList({ options: this.listOptions })
           .pipe(map(data => { return data }))
       })
-  )
+    )
 
     async ngOnInit(){
       this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -88,7 +98,7 @@ export class PersonalComponent {
         this.personalId.set(this.angularGrid.dataView.getItemByIdx(e.detail.args.changedSelectedRows[0]).id)
     }else
         this.personalId.set(0)
-    console.log('this.personalId', this.personalId());
+    // console.log('this.personalId', this.personalId());
   }
 
   listOptionsChange(options: any) {
@@ -110,6 +120,23 @@ export class PersonalComponent {
 
   openDrawerforConsultCustodias(): void{
     this.visibleCustodias.set(true) 
+  }
+
+  openDrawerforConsultDomicilio(): void{
+    this.visibleDomicilio.set(true) 
+  }
+
+  onTabsetChange(_event: any) {
+    switch (_event.index) {
+      case 2: //EDIT
+      this.childPerFormDrawer().load()
+        break;
+      case 1: 
+        break;
+        default:
+        break;
+    }
+
   }
 
 }

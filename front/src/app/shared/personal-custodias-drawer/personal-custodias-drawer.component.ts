@@ -17,7 +17,6 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
     standalone: true,
     imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule],
     providers: [AngularUtilService],
-    // changeDetection: ChangeDetectionStrategy.OnPush,
 })
   
 export class PersonalCustodiasDrawerComponent {
@@ -30,10 +29,10 @@ export class PersonalCustodiasDrawerComponent {
 
     constructor(
         private searchService: SearchService,
-        private apiService: ApiService,
-        private router: Router,
-        private route: ActivatedRoute,
-        private settingService: SettingsService,
+        // private apiService: ApiService,
+        // private router: Router,
+        // private route: ActivatedRoute,
+        // private settingService: SettingsService,
     ) { }
     private destroy$ = new Subject();
 
