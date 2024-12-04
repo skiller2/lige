@@ -529,7 +529,10 @@ export class CustodiaController extends BaseController {
         const fechaActual = new Date()
         const fechaLiquidacionLast = new Date(objetivoCustodia.anio, objetivoCustodia.mes, 0,20,59,59,999)
         const fechaLiquidacionNew = (fechaActual > fechaLiquidacionLast) ? fechaLiquidacionLast : fechaActual
-        const fecha_liquidacion = (!objetivoCustodia.fecha_liquidacion && (estado == 1 || estado == 3 || estado == 4))? fechaLiquidacionNew : objetivoCustodia.fecha_liquidacion
+        let fecha_liquidacion = (!objetivoCustodia.fecha_liquidacion && (estado == 1 || estado == 3 || estado == 4))? fechaLiquidacionNew : objetivoCustodia.fecha_liquidacion
+
+        if (estado != 1 && estado != 3 && estado != 4)
+            fecha_liquidacion = null
 
         const periodo = await queryRunner.query(`
             SELECT TOP 1 *, CAST (EOMONTH(CONCAT(anio,'-',mes,'-',1)) AS DATETIME)+'23:59:59' AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC
@@ -927,7 +930,6 @@ export class CustodiaController extends BaseController {
             if (errores.length)
                 throw new ClientException(errores.join(`\n`))
 
-            if(objetivoCustodia.estado == 0) infoCustodia.fecha_liquidacion = null
             objetivoCustodia.fecha_liquidacion = infoCustodia.fecha_liquidacion
             objetivoCustodia.id = custodiaId
             await this.updateObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
