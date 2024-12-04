@@ -657,7 +657,7 @@ export class CustodiaController extends BaseController {
 
             const fecha_liquidacion = (this.valByEstado(req.body.estado)) ? new Date() : null
 
-            const objetivoCustodia = { ...req.body, responsableId, id: objetivoCustodiaId, fecha_liquidacion }
+            const objetivoCustodia = { ...req.body, responsableId, id: objetivoCustodiaId}
 
 
             const periodo = await queryRunner.query(`
@@ -667,6 +667,8 @@ export class CustodiaController extends BaseController {
             if (new Date(objetivoCustodia.fechaInicio) <= new Date(periodo[0].FechaCierre))
                 errores.push(`La Fecha inicio de la custodia no puede estar comprendida en un período ya cerrado`)
 
+            if (new Date(objetivoCustodia.fechaInicio).getFullYear() != objetivoCustodia.anio || new Date(objetivoCustodia.fechaInicio).getMonth()+1 != objetivoCustodia.mes)
+                errores.push(`La Fecha inicio debe pertenecer al período seleccionado ${objetivoCustodia.mes}/${objetivoCustodia.anio}`)
 
 
 
