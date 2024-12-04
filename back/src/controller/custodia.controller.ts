@@ -837,7 +837,6 @@ export class CustodiaController extends BaseController {
             let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, custodiaId)
             infoCustodia = infoCustodia[0]
 
-
             delete infoCustodia.id
             delete infoCustodia.responsable
 
@@ -928,8 +927,10 @@ export class CustodiaController extends BaseController {
             if (errores.length)
                 throw new ClientException(errores.join(`\n`))
 
+            if(objetivoCustodia.estado == 0) infoCustodia.fecha_liquidacion = null
             objetivoCustodia.fecha_liquidacion = infoCustodia.fecha_liquidacion
-            await this.updateObjetivoCustodiaQuery(queryRunner, { ...objetivoCustodia, id: custodiaId }, usuario, ip)
+            objetivoCustodia.id = custodiaId
+            await this.updateObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
 //                        throw new ClientException('DEBUG')
 
