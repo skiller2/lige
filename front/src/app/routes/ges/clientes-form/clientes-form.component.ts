@@ -62,9 +62,7 @@ export class ClientesFormComponent {
   public router = inject(Router);
   isLoadSelect= signal(false)
   periodo = signal({ year: 0, month: 0 })
-  personalId = signal(0)
   ClienteId = model(0)
-  selectedValueProvincia = null
   isLoading = signal(false)
   onAddorUpdate = output()
   pristineChange = output<boolean>()
@@ -163,17 +161,13 @@ export class ClientesFormComponent {
 
 
   async newRecord() {
-   
-    this.formCli.get('codigo')?.enable()
-    //await this.userEfectFuntion()
+    this.formCli.enable()
     this.formCli.get('codigo')?.disable()
 
     if( this.ClienteId() > 0){
       this.formCli.reset()
-        this.formCli.markAsPristine()
+      this.formCli.markAsPristine()
     }
- 
-
   }
 
   async viewRecord(readonly:boolean) {
