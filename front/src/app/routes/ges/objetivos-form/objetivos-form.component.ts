@@ -147,11 +147,13 @@ export class ObjetivosFormComponent {
   }
 
   async newRecord() {
-    this.formCli.reset()
+   
     this.formCli.get('codigo')?.disable()
-    this.formCli.markAsPristine()
-    //await this.userEfectFuntion()
-
+   
+     if( !this.ObjetivoId() || this.ObjetivoId() > 0){
+      this.formCli.reset()
+      this.formCli.markAsPristine()
+    }
   }
 
   async viewRecord(readonly:boolean) {

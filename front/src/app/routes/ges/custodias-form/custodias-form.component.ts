@@ -1,13 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, Input, input, } from '@angular/core';
-import { SHARED_IMPORTS, listOptionsT } from '@shared';
+import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, effect, ChangeDetectionStrategy, signal, model, Input, input, } from '@angular/core';
+import { SHARED_IMPORTS} from '@shared';
 // import { Observable } from 'rxjs';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService } from '../../../services/api.service';
 import { NgForm, FormArray, FormBuilder } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap } from 'rxjs';
-import { SearchService } from 'src/app/services/search.service';
+import { firstValueFrom } from 'rxjs';
+import { SearchService } from '../../../services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 
@@ -164,7 +164,7 @@ export class CustodiaFormComponent {
             if (this.custodiaId()) {
                 await firstValueFrom(this.apiService.updateObjCustodia({ ...form,anio:this.anio(),mes:this.mes() }, this.custodiaId()))
             } else {
-                const res = await firstValueFrom(this.apiService.addObjCustodia(form))
+                const res = await firstValueFrom(this.apiService.addObjCustodia({ ...form,anio:this.anio(),mes:this.mes() }))
                 if (res.data.custodiaId)
                     this.custodiaId.set(Number(res.data.custodiaId))
             }
