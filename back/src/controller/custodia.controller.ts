@@ -1212,9 +1212,9 @@ export class CustodiaController extends BaseController {
             SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
             obj.objetivo_custodia_id, obj.cliente_id, TRIM(cli.ClienteDenominacion) cliente,
             obj.fecha_inicio, obj.fecha_fin, obj.estado, obj.fecha_liquidacion,
-            ROUND (CONVERT (FLOAT,obj.impo_facturar * 3.5 / 100),2) AS importe,
+            ROUND (CONVERT (FLOAT,obj.impo_facturar * (IIF(obj.cliente_id=798,1,3.5)) / 100),2) AS importe,
             0 AS horas, 
-            'Jefe Área 3,5%' AS tipo_importe, 
+            'Jefe Área' AS tipo_importe, 
             '' AS categoria,
             '' AS patente
             FROM lige.dbo.objetivocustodia obj 
