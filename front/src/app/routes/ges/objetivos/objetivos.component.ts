@@ -15,6 +15,8 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { ObjetivosFormComponent } from "../objetivos-form/objetivos-form.component"
+import { ContratoHistorialDrawerComponent } from '../../../shared/contrato-historial-drawer/contrato-historial-drawer.component'
+
 
 @Component({
   selector: 'app-objetivos',
@@ -31,6 +33,7 @@ import { ObjetivosFormComponent } from "../objetivos-form/objetivos-form.compone
     ObjetivosFormComponent,
     DetallePersonaComponent,
     FiltroBuilderComponent,
+    ContratoHistorialDrawerComponent
     ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -44,10 +47,11 @@ export class ObjetivosComponent {
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
   editObjetivoId= signal(0)
-  editClienteId = 0
-  editClienteElementoDependienteId = 0
+  editClienteId = signal(0)
+  editClienteElementoDependienteId = signal(0)
   edit =signal(false)
   addNew = false
+  visibleHistorial = model<boolean>(false)
   childIsPristine = signal(true)
   excelExportService = new ExcelExportService()
   listObjetivos$ = new BehaviorSubject('')
@@ -105,8 +109,8 @@ export class ObjetivosComponent {
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
     if (row?.id){
       this.editObjetivoId.set(row.ObjetivoId)
-      this.editClienteId = row.ClienteId
-      this.editClienteElementoDependienteId = row.ClienteElementoDependienteId
+      this.editClienteId.set(row.ClienteId)
+      this.editClienteElementoDependienteId.set(row.ClienteElementoDependienteId)
     }
     
 
@@ -138,6 +142,7 @@ export class ObjetivosComponent {
   }
 
   onTabsetChange(_event: any) {
+    console.log("event.index ", _event.index)
     switch (_event.index) {
       case 3: //INSERT
        this.childAlta().newRecord()
@@ -153,4 +158,11 @@ export class ObjetivosComponent {
     }
 
   }
+
+  openDrawerforConsultHistory(): void{
+
+    this.visibleHistorial.set(true)
+       
+  }
+
 }

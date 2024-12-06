@@ -652,6 +652,17 @@ export class SearchService {
         })
       );
   }
+
+  getObjetivoById(id: number): Observable<any> {
+    if (!id) return of([]);    
+    return this.http.get<ResponseJSON<PersonaObj>>(`api/objetivos/${id}`).pipe(
+        map(res => res.data),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
   
   getTelefonosPersona(id: number): Observable<any> {
     if (!id) return of([]);    

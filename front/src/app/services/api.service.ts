@@ -544,6 +544,37 @@ export class ApiService {
       catchError(() => of([]))
     );
 
+    
+  }
+
+  getListCargaContratoHistory(filters: any, anio: any, mes: any, ObjetivoId:any, ClienteElementoDependienteId:any, ClienteId:any) {
+
+    const parameter = { filters, anio, mes, ObjetivoId, ClienteElementoDependienteId,ClienteId}
+    return this.http.post<ResponseJSON<any>>('/api/objetivos/listHistoryContrato', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+  }
+
+  getListCargaGrupoActividadHistory(filters: any, anio: any, mes: any, ObjetivoId:any, ClienteElementoDependienteId:any, ClienteId:any) {
+
+    const parameter = { filters, anio, mes, ObjetivoId, ClienteElementoDependienteId,ClienteId}
+    return this.http.post<ResponseJSON<any>>('/api/objetivos/listHistoryGrupoActividad', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+  }
+
+  getListCargaDomicilioHistory(filters: any, anio: any, mes: any, ObjetivoId:any, ClienteElementoDependienteId:any, ClienteId:any) {
+
+    const parameter = { filters, anio, mes, ObjetivoId, ClienteElementoDependienteId,ClienteId}
+    return this.http.post<ResponseJSON<any>>('/api/objetivos/listHistoryDomicilio', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
   }
 
   

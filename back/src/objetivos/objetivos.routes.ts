@@ -33,5 +33,28 @@ objetivosRouter.post('/add', authMiddleware.verifyToken, (req, res, next) => {
   objetivosController.addObjetivo(req, res, next) 
 } )
 
+//////////
 
+objetivosRouter.get("/colsHistoryContrato", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res) => {
+  objetivosController.getGridColsHistoryContrato(req, res);
+});
 
+objetivosRouter.get("/colsHistoryDomicilio", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res) => {
+  objetivosController.getGridColsHistoryDomicilio(req, res);
+});
+
+objetivosRouter.get("/colsHistoryGrupoActividad", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res) => {
+  objetivosController.getGridColsHistoryGrupoActiviadad(req, res);
+});
+
+objetivosRouter.post("/listHistoryContrato", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+  objetivosController.listHistoryContrato(req, res, next);
+});
+
+objetivosRouter.post("/listHistoryDomicilio", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+  objetivosController.listHistoryDomicilio(req, res, next);
+});
+
+objetivosRouter.post("/listHistoryGrupoActividad", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+  objetivosController.listHistoryGrupoActividad(req, res, next);
+});

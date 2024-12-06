@@ -123,6 +123,160 @@ const listaColumnas: any[] = [
 ];
 
 
+const columnasGrillaHistoryContrato: any[] = [
+
+    {
+      name: "id",
+      type: "number",
+      id: "id",
+      field: "id",
+      fieldName: "id",
+      hidden: true,
+      searchHidden: true,
+      sortable: true
+    },
+    {
+      name: "Desde",
+      type: "date",
+      id: "desde",
+      field: "desde",
+      fieldName: "clie.ClienteElementoDependienteContratoFechaDesde",
+      hidden: false,
+      searchHidden: false,
+      sortable: false
+    },
+    {
+      name: "Hasta",
+      type: "date",
+      id: "hasta",
+      field: "hasta",
+      fieldName: "clie.ClienteElementoDependienteContratoFechaHasta",
+      hidden: false,
+      searchHidden: false,
+      sortable: false
+    },
+    {
+      name: "Horas Mensuales",
+      type: "string",
+      id: "horas",
+      field: "horas",
+      fieldName: "clie.ClienteElementoDependienteContratoHorasMensuales",
+      hidden: false,
+      searchHidden: false,
+      sortable: false
+    }
+  ];
+
+const columnasGrillaHistoryDomicilio: any[] = [
+
+    {
+      name: "id",
+      type: "number",
+      id: "id",
+      field: "id",
+      fieldName: "id",
+      hidden: true,
+      searchHidden: true,
+      sortable: true
+    },
+    {
+      name: "Calle",
+      type: "string",
+      id: "calle",
+      field: "calle",
+      fieldName: "dom.ClienteElementoDependienteDomicilioDomCalle",
+      hidden: false,
+      searchHidden: false,
+      sortable: false
+    },
+    {
+      name: "Codigo Postal",
+      type: "string",
+      id: "postal",
+      field: "postal",
+      fieldName: "dom.ClienteElementoDependienteDomicilioCodigoPostal",
+      hidden: false,
+      searchHidden: false,
+      sortable: false
+    },
+    {
+        name: "Provincia",
+        type: "string",
+        id: "provincia",
+        field: "provincia",
+        fieldName: "rov.provinciadescripcion",
+        hidden: false,
+        searchHidden: false,
+        sortable: false
+      },
+      {
+        name: "Localidad",
+        type: "string",
+        id: "localidad",
+        field: "localidad",
+        fieldName: "local.localidaddescripcion",
+        hidden: false,
+        searchHidden: false,
+        sortable: false
+      },
+      {
+        name: "Barrio",
+        type: "string",
+        id: "barrio",
+        field: "barrio",
+        fieldName: "bar.barriodescripcion",
+        hidden: false,
+        searchHidden: false,
+        sortable: false
+      },
+  ];
+
+  const columnasGrillaHistoryGrupoActividad: any[] = [
+
+    {
+      name: "id",
+      type: "number",
+      id: "id",
+      field: "id",
+      fieldName: "id",
+      hidden: true,
+      searchHidden: true,
+      sortable: true
+    },
+    {
+      name: "Grupo Actividad",
+      type: "string",
+      id: "detalle",
+      field: "detalle",
+      fieldName: "acti.grupoactividadDetalle",
+      hidden: false,
+      searchHidden: false,
+      sortable: false
+    },
+    {
+        name: "Desde",
+        type: "date",
+        id: "desde",
+        field: "desde",
+        fieldName: "grup.GrupoActividadObjetivoDesde",
+        hidden: false,
+        searchHidden: false,
+        sortable: false
+      },
+      {
+        name: "Hasta",
+        type: "date",
+        id: "hasta",
+        field: "hasta",
+        fieldName: "grup.GrupoActividadObjetivoHasta",
+        hidden: false,
+        searchHidden: false,
+        sortable: false
+      },
+  ];
+
+
+
 export class ObjetivosController extends BaseController {
 
     
@@ -1295,6 +1449,169 @@ export class ObjetivosController extends BaseController {
              ClienteElementoDependienteDomicilioUltNro,
              ClienteElementoDependienteSucursalId])
     }
+
+
+    async getGridColsHistoryContrato(req, res) {
+        this.jsonRes(columnasGrillaHistoryContrato, res);
+    }
+
+    async getGridColsHistoryDomicilio(req, res) {
+        this.jsonRes(columnasGrillaHistoryDomicilio, res);
+    }
+
+    async getGridColsHistoryGrupoActiviadad(req, res) {
+        this.jsonRes(columnasGrillaHistoryGrupoActividad, res);
+    }
+
+
+    async listHistoryContrato(
+        req: any,
+        res: Response,
+        next: NextFunction
+      ) {
+
+        let fechaActual = new Date()
+        const anio = Number(fechaActual.getFullYear())
+        const mes = Number(fechaActual.getMonth())
+        const ObjetivoId = req.body.ObjetivoId
+        const queryRunner = dataSource.createQueryRunner();
+        const ClienteElementoDependienteId = req.body.ClienteElementoDependienteId
+        const ClienteId = req.body.ClienteId
+
+        try {
+
+            let listCargaContratoHistory
+
+            if(ClienteElementoDependienteId && ClienteElementoDependienteId > 0)
+                //ClienteElementoDependienteContrato 
+                listCargaContratoHistory = await queryRunner.query(`SELECT 
+                       ROW_NUMBER() OVER (ORDER BY clie.ClienteElementoDependienteContratoFechaDesde, 
+                                clie.ClienteElementoDependienteContratoFechaHasta, 
+                                clie.ClienteElementoDependienteContratoHorasMensuales) AS id,
+                clie.ClienteElementoDependienteContratoFechaDesde as desde ,
+                clie.ClienteElementoDependienteContratoFechaHasta as hasta,
+                clie.ClienteElementoDependienteContratoHorasMensuales as horas
+                FROM  ClienteElementoDependienteContrato as clie
+                WHERE ClienteElementoDependienteId = @1 AND ClienteId = @0`,[ClienteId,ClienteElementoDependienteId])
+
+            // else
+            //     //ClienteContrato
+            //     listCargaContratoHistory = await queryRunner.query(`SELECT 
+            //         ClienteContratoFechaDesde as desde,
+            //         ClienteContratoFechaHasta as hasta,
+            //         ClienteContratoHorasMensuales as horas
+            //         FROM  ClienteContrato
+            //         WHERE  ClienteId = @0`,[ClienteId])
+
+          this.jsonRes(
+            {
+              total: listCargaContratoHistory.length,
+              list: listCargaContratoHistory,
+            },
+            res
+          );
+    
+        } catch (error) {
+          return next(error)
+        }
+      }
+
+
+    async listHistoryDomicilio(
+        req: any,
+        res: Response,
+        next: NextFunction
+      ) {
+
+        let fechaActual = new Date()
+        const anio = Number(fechaActual.getFullYear())
+        const mes = Number(fechaActual.getMonth())
+        const ObjetivoId = req.body.ObjetivoId
+        const queryRunner = dataSource.createQueryRunner();
+        const ClienteElementoDependienteId = req.body.ClienteElementoDependienteId
+        const ClienteId = req.body.ClienteId
+
+        try {
+
+            let listCargaContratoHistory
+
+            if(ClienteElementoDependienteId && ClienteElementoDependienteId > 0) 
+                listCargaContratoHistory = await queryRunner.query(`  
+                SELECT ROW_NUMBER() OVER (ORDER BY dom.ClienteElementoDependienteDomicilioId) AS id,  
+                    CONCAT(dom.ClienteElementoDependienteDomicilioDomCalle, ' ', ISNULL(dom.ClienteElementoDependienteDomicilioDomNro, 0)) AS calle,
+                    dom.ClienteElementoDependienteDomicilioCodigoPostal AS postal,
+                    prov.provinciadescripcion AS provincia,
+                    local.localidaddescripcion AS localidad,
+                    bar.barriodescripcion AS barrio
+                FROM ClienteElementoDependienteDomicilio dom
+                LEFT JOIN  provincia prov ON prov.provinciaid = dom.ClienteElementoDependienteDomicilioProvinciaid
+                        AND prov.PaisId = 1
+                LEFT JOIN  localidad local ON local.provinciaid = dom.ClienteElementoDependienteDomicilioProvinciaid
+                    AND local.localidadid = dom.ClienteElementoDependienteDomicilioLocalidadid AND local.PaisId = 1
+                LEFT JOIN  barrio bar ON bar.provinciaid = dom.ClienteElementoDependienteDomicilioProvinciaid
+                    AND bar.localidadid = dom.ClienteElementoDependienteDomicilioLocalidadid 
+                    AND bar.BarrioId = dom.ClienteElementoDependienteDomicilioBarrioId
+                    AND bar.PaisId = 1
+                WHERE  ClienteElementoDependienteId = @1 AND ClienteId = @0;`,[ClienteId,ClienteElementoDependienteId])
+
+            console.log("domicilio....")
+
+          this.jsonRes(
+            {
+              total: listCargaContratoHistory.length,
+              list: listCargaContratoHistory,
+            },
+            res
+          );
+    
+        } catch (error) {
+          return next(error)
+        }
+      }
+
+    async listHistoryGrupoActividad(
+        req: any,
+        res: Response,
+        next: NextFunction
+      ) {
+
+        let fechaActual = new Date()
+        const anio = Number(fechaActual.getFullYear())
+        const mes = Number(fechaActual.getMonth())
+        const ObjetivoId = req.body.ObjetivoId
+        const queryRunner = dataSource.createQueryRunner();
+        const ClienteElementoDependienteId = req.body.ClienteElementoDependienteId
+        const ClienteId = req.body.ClienteId
+
+        try {
+
+            let listCargaContratoHistory
+
+            if(ClienteElementoDependienteId && ClienteElementoDependienteId > 0) 
+                listCargaContratoHistory = await queryRunner.query(`  
+                SELECT 
+                    ROW_NUMBER() OVER (ORDER BY grup.GrupoActividadObjetivoId) AS id,  
+                    acti.grupoactividadDetalle AS detalle,
+                    grup.GrupoActividadObjetivoDesde AS desde,
+                    grup.GrupoActividadObjetivoHasta AS hasta
+                FROM GrupoActividadObjetivo grup
+                LEFT JOIN grupoactividad acti 
+                    ON acti.GrupoActividadId = grup.GrupoActividadId
+                WHERE GrupoActividadObjetivoObjetivoId = @0;`,[ObjetivoId])
+
+          this.jsonRes(
+            {
+              total: listCargaContratoHistory.length,
+              list: listCargaContratoHistory,
+            },
+            res
+          );
+    
+        } catch (error) {
+          return next(error)
+        }
+      }
+          
     
 
 }
