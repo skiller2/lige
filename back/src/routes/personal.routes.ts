@@ -8,7 +8,6 @@ import { ClientException } from "../controller/baseController";
 type DestinationCallback = (error: Error | null, destination: string) => void;
 
 let dirtmp = `${process.env.PATH_DOCUMENTS}/temp`;
-console.log('dirtmp', dirtmp);
 
 if (!existsSync(dirtmp)) {
   mkdirSync(dirtmp, { recursive: true });
@@ -73,14 +72,15 @@ const storage = multer.diskStorage({
 export const personalRouter = Router();
 const base = "";
 
+personalRouter.get(`${base}/domicilio/:id`, authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getDomicilioByPersonalId(req, res, next);
+});
 personalRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   personalController.getGridList(req, res, next)
 });
-
 personalRouter.post('/deleteArchivo', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   personalController.deleteArchivo(req, res, next)
 });
-
 personalRouter.post("/upload", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   
   uploadJpg(req, res, (err) => {

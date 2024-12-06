@@ -36,7 +36,6 @@ export class PersonalCustodiasDrawerComponent {
     ) { }
     private destroy$ = new Subject();
 
-    // $selectedObjetivoIdChange = new BehaviorSubject('');
     selectedPersonalIdChange$ = new BehaviorSubject('');
 
     $listaCustodiaPer = this.selectedPersonalIdChange$.pipe(

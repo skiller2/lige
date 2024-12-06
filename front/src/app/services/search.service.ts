@@ -1026,4 +1026,28 @@ export class SearchService {
     );
   }
 
+  getBarriosByLocalidad(paisId:number, provinciaId:number, localidadId:number): Observable<any> {
+    if (!paisId || !provinciaId || !localidadId) {
+      return of([]);
+    }
+    return this.http.post<ResponseJSON<any>>(`api/residencia/barrios`, {paisId, provinciaId, localidadId}).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getDomicilioByPersonal(id: number): Observable<any> {
+    if (!id) return of([]);    
+    return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/domicilio/${id}`).pipe(
+        map(res => res.data),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
 }
