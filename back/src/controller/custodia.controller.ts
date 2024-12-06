@@ -416,7 +416,7 @@ export class CustodiaController extends BaseController {
         const desc_facturacion = objetivoCustodia.desc_facturacion ? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado ? objetivoCustodia.estado : 0
         const fechaActual = new Date()
-        const fechaLiquidacionLast = new Date(objetivoCustodia.anio, objetivoCustodia.mes, 0,20,59,59,999)
+        const fechaLiquidacionLast = new Date(objetivoCustodia.anio, objetivoCustodia.mes, 0, 20, 59, 59, 999)
         const fechaLiquidacionNew = (fechaActual > fechaLiquidacionLast) ? fechaLiquidacionLast : fechaActual
 
         const periodo = await queryRunner.query(`
@@ -527,9 +527,9 @@ export class CustodiaController extends BaseController {
         const desc_facturacion = objetivoCustodia.desc_facturacion ? objetivoCustodia.desc_facturacion : null
         const estado = objetivoCustodia.estado ? objetivoCustodia.estado : 0
         const fechaActual = new Date()
-        const fechaLiquidacionLast = new Date(objetivoCustodia.anio, objetivoCustodia.mes, 0,20,59,59,999)
+        const fechaLiquidacionLast = new Date(objetivoCustodia.anio, objetivoCustodia.mes, 0, 20, 59, 59, 999)
         const fechaLiquidacionNew = (fechaActual > fechaLiquidacionLast) ? fechaLiquidacionLast : fechaActual
-        let fecha_liquidacion = (!objetivoCustodia.fecha_liquidacion && (estado == 1 || estado == 3 || estado == 4))? fechaLiquidacionNew : objetivoCustodia.fecha_liquidacion
+        let fecha_liquidacion = (!objetivoCustodia.fecha_liquidacion && (estado == 1 || estado == 3 || estado == 4)) ? fechaLiquidacionNew : objetivoCustodia.fecha_liquidacion
 
         if (estado != 1 && estado != 3 && estado != 4)
             fecha_liquidacion = null
@@ -540,7 +540,7 @@ export class CustodiaController extends BaseController {
 
         if (new Date(periodo[0].FechaCierre) > fechaLiquidacionNew && (estado == 1 || estado == 3 || estado == 4) && objetivoCustodia.fecha_liquidacion == null)
             throw new ClientException(`No se puede cerrar la custodia en el período ${objetivoCustodia.mes}/${objetivoCustodia.anio}`)
-        
+
         return queryRunner.query(`
         UPDATE lige.dbo.objetivocustodia 
         SET cliente_id = @1, desc_requirente = @2, descripcion = @3, fecha_inicio = @4, origen = @5, 
@@ -657,7 +657,7 @@ export class CustodiaController extends BaseController {
 
             const fecha_liquidacion = (this.valByEstado(req.body.estado)) ? new Date() : null
 
-            const objetivoCustodia = { ...req.body, responsableId, id: objetivoCustodiaId}
+            const objetivoCustodia = { ...req.body, responsableId, id: objetivoCustodiaId }
 
 
             const periodo = await queryRunner.query(`
@@ -667,7 +667,7 @@ export class CustodiaController extends BaseController {
             if (new Date(objetivoCustodia.fechaInicio) <= new Date(periodo[0].FechaCierre))
                 errores.push(`La Fecha inicio de la custodia no puede estar comprendida en un período ya cerrado`)
 
-            if (new Date(objetivoCustodia.fechaInicio).getFullYear() != objetivoCustodia.anio || new Date(objetivoCustodia.fechaInicio).getMonth()+1 != objetivoCustodia.mes)
+            if (new Date(objetivoCustodia.fechaInicio).getFullYear() != objetivoCustodia.anio || new Date(objetivoCustodia.fechaInicio).getMonth() + 1 != objetivoCustodia.mes)
                 errores.push(`La Fecha inicio debe pertenecer al período seleccionado ${objetivoCustodia.mes}/${objetivoCustodia.anio}`)
 
 
@@ -685,7 +685,7 @@ export class CustodiaController extends BaseController {
 
 
             await queryRunner.query(`DELETE FROM lige.dbo.regpersonalcustodia WHERE objetivo_custodia_id = @0`, [objetivoCustodiaId])
-            let errorCantPersonal:boolean = true
+            let errorCantPersonal: boolean = true
             for (const obj of objetivoCustodia.personal) {
                 if (obj.personalId) {
                     errorCantPersonal = false
@@ -711,7 +711,7 @@ export class CustodiaController extends BaseController {
                 errores.push(`Hay vehículos duplicados`)
 
             await queryRunner.query(`DELETE lige.dbo.regvehiculocustodia WHERE objetivo_custodia_id = @0`, [objetivoCustodiaId])
-            let errorCantVehiculo:boolean = true
+            let errorCantVehiculo: boolean = true
             for (const obj of objetivoCustodia.vehiculos) {
                 if (obj.patente) {
                     errorCantVehiculo = false
@@ -719,7 +719,7 @@ export class CustodiaController extends BaseController {
                         errores.push(`Los campos relacionados al vehículo ${obj.patente} NO pueden estar vacíos.`)
                         continue
                     }
-                    if (!obj.duenoId){
+                    if (!obj.duenoId) {
                         errores.push(`Debe completar el campo Dueño del vehículo ${obj.patente}`)
                         continue
                     }
@@ -875,7 +875,7 @@ export class CustodiaController extends BaseController {
                 errores.push(`Hay personal duplicado`)
 
             await queryRunner.query(`DELETE FROM lige.dbo.regpersonalcustodia WHERE objetivo_custodia_id = @0`, [custodiaId])
-            let errorCantPersonal:boolean = true
+            let errorCantPersonal: boolean = true
             for (const obj of objetivoCustodia.personal) {
                 if (obj.personalId) {
                     errorCantPersonal = false
@@ -904,7 +904,7 @@ export class CustodiaController extends BaseController {
             if (hasDupVehiculos)
                 errores.push(`Hay vehículos duplicados`)
             await queryRunner.query(`DELETE lige.dbo.regvehiculocustodia WHERE objetivo_custodia_id = @0`, [custodiaId])
-            let errorCantVehiculo:boolean = true
+            let errorCantVehiculo: boolean = true
             for (const obj of objetivoCustodia.vehiculos) {
                 if (obj.patente) {
                     errorCantVehiculo = false
@@ -940,7 +940,7 @@ export class CustodiaController extends BaseController {
             objetivoCustodia.id = custodiaId
             await this.updateObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
-//                        throw new ClientException('DEBUG')
+            //                        throw new ClientException('DEBUG')
 
             await queryRunner.commitTransaction()
             return this.jsonRes([], res, 'Carga Exitosa');
@@ -1121,7 +1121,7 @@ export class CustodiaController extends BaseController {
                 for (const id of ids) {
                     let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, id)
                     infoCustodia = infoCustodia[0]
-                    
+
                     if (infoCustodia.responsableId != responsableId) {
                         errores.push(`Codigo ${id}: Solo el responsable puede modificar la custodia.`)
                         continue
@@ -1182,12 +1182,12 @@ export class CustodiaController extends BaseController {
         }
     }
 
-    static async listPersonalCustodiaQuery(options:any, queryRunner:QueryRunner, anio:number, mes:number, responsableId?: number) {
+    static async listPersonalCustodiaQuery(options: any, queryRunner: QueryRunner, anio: number, mes: number, responsableId?: number) {
         const filterSql = filtrosToSql(options.filtros, columnsPersonalCustodia);
         const orderBy = orderToSQL(options.sort)
 
         let search = ''
-        if (responsableId ==0) {
+        if (responsableId == 0) {
             search = `1=1`
         } else {
             search = `obj.responsable_id IN (${responsableId})`
@@ -1253,9 +1253,9 @@ export class CustodiaController extends BaseController {
             const mes = periodo.getMonth() + 1
             const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
 
-            let result:any
+            let result: any
             if (await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')) {
-                result = await CustodiaController.listPersonalCustodiaQuery(options, queryRunner, anio, mes,0)
+                result = await CustodiaController.listPersonalCustodiaQuery(options, queryRunner, anio, mes, 0)
             } else {
                 result = await CustodiaController.listPersonalCustodiaQuery(options, queryRunner, anio, mes, responsableId)
             }
@@ -1297,12 +1297,12 @@ export class CustodiaController extends BaseController {
     }
 
     comparePersonal(per: any, list: any[]): boolean {
-        let result: any = list.find((obj:any) => (obj.personalId == per.personalId && obj.importe == per.importe))
+        let result: any = list.find((obj: any) => (obj.personalId == per.personalId && obj.importe == per.importe))
         return result ? true : false
     }
 
     compareVehiculo(veh: any, list: any[]): boolean {
-        let result: any = list.find((obj:any) => (obj.patente == veh.patente && obj.importe == veh.importe && obj.duenoId == veh.duenoId && obj.peaje == veh.peaje))
+        let result: any = list.find((obj: any) => (obj.patente == veh.patente && obj.importe == veh.importe && obj.duenoId == veh.duenoId && obj.peaje == veh.peaje))
         return result ? true : false
     }
 
