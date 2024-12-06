@@ -16,7 +16,7 @@ const columnsObjCustodia: any[] = [
         searchType: "number",
     },
     {
-        id: 'responsable', name: 'Responsable', field: 'responsable',
+        id: 'responsable', name: 'Responsable', field: 'responsable.fullName',
         fieldName: "obj.responsable_id",
         sortable: true,
         type: 'string',
@@ -30,7 +30,7 @@ const columnsObjCustodia: any[] = [
         minWidth: 100,
     },
     {
-        id: 'cliente', name: 'Cliente', field: 'cliente',
+        id: 'cliente', name: 'Cliente', field: 'cliente.fullName',
         fieldName: "cli.ClienteId",
         sortable: true,
         type: 'string',
@@ -194,7 +194,7 @@ const columnsObjCustodia: any[] = [
         minWidth: 110,
     },
     {
-        id: 'estado', name: 'Estado', field: 'estado',
+        id: 'estado', name: 'Estado', field: 'estado.label',
         fieldName: "obj.estado",
         sortable: true,
         type: 'string',
@@ -276,7 +276,7 @@ const columnsPersonalCustodia: any[] = [
         hidden: false,
     },
     {
-        id: 'cliente', name: 'Cliente', field: 'cliente',
+        id: 'cliente', name: 'Cliente', field: 'cliente.fullName',
         fieldName: "cli.ClienteId",
         type: 'string',
         formatter: 'complexObject',
