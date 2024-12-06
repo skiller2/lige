@@ -1124,7 +1124,10 @@ export class CustodiaController extends BaseController {
                 const estado: number = form.estado
                 const numFactura: number = form.numFactura
 
-                if (estado == 4 && await this.hasGroup(req, 'Administrativo') == false)
+                const authorizedEdit:boolean = await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')
+                const adminEdit:boolean = await this.hasGroup(req, 'administrativo')
+
+                if (estado == 4 && !adminEdit)
                     throw new ClientException(`Requiere ser miembro del grupo Administrativo`)
 
                 if (estado == 4 && !numFactura) {
@@ -1135,7 +1138,7 @@ export class CustodiaController extends BaseController {
                     let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, id)
                     infoCustodia = infoCustodia[0]
 
-                    if (infoCustodia.responsableId != responsableId) {
+                    if (!authorizedEdit && infoCustodia.responsableId != responsableId ) {
                         errores.push(`Codigo ${id}: Solo el responsable puede modificar la custodia.`)
                         continue
                     }
