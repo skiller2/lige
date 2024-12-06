@@ -1135,8 +1135,8 @@ export class CustodiaController extends BaseController {
                     let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, id)
                     infoCustodia = infoCustodia[0]
 
-                    if (infoCustodia.responsableId != responsableId && await this.hasGroup(req, 'Administrativo') == false) {
-                        errores.push(`Codigo ${id}: Solo el responsable puede modificar la custodia.`)
+                    if (infoCustodia.responsableId != responsableId && await this.hasGroup(req, 'Administrativo') == false && await this.hasGroup(req, 'Liquidaciones') == false) {
+                        errores.push(`Codigo ${id}: Solo el responsable puede modificar la custodia o grupos Administrativo/Liquidaciones.`)
                         continue
                     }
                     //Validaciones
