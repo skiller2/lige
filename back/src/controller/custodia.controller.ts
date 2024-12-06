@@ -267,6 +267,19 @@ const columnsPersonalCustodia: any[] = [
         hidden: false,
     },
     {
+        id: "ApellidoNombreResponsable",
+        name: "Responsable",
+        field: "ApellidoNombreResponsable",
+        type: "string",
+        fieldName: "perres.PersonalId",
+        searchComponent: "inpurForPersonalSearch",
+        searchType: "number",
+        sortable: true,
+        searchHidden: false,
+        hidden: false,
+    },
+
+    {
         id: 'objetivo_custodia_id', name: 'Codigo', field: 'objetivo_custodia_id',
         fieldName: "obj.objetivo_custodia_id",
         type: 'number',
@@ -1194,7 +1207,9 @@ export class CustodiaController extends BaseController {
         }
 
         return queryRunner.query(`
-            SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+            SELECT per.PersonalId, 
+            CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+            CONCAT(TRIM(perres.PersonalApellido),', ', TRIM(perres.PersonalNombre)) AS ApellidoNombreResponsable,
             obj.objetivo_custodia_id, obj.cliente_id, TRIM(cli.ClienteDenominacion) cliente,
             obj.fecha_inicio, obj.fecha_fin, obj.estado, obj.fecha_liquidacion,
             regp.importe_personal AS importe,
@@ -1206,11 +1221,14 @@ export class CustodiaController extends BaseController {
             INNER JOIN lige.dbo.regpersonalcustodia regp ON per.PersonalId= regp.personal_id
             INNER JOIN lige.dbo.objetivocustodia obj ON regp.objetivo_custodia_id= obj.objetivo_custodia_id
             INNER JOIN lige.dbo.Cliente cli ON cli.ClienteId = obj.cliente_id
+            INNER JOIN lige.dbo.Personal perres ON perres.PersonalId = obj.responsable_id
             WHERE (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1)
             AND (${search}) AND (${filterSql}) 
             ${orderBy}
             UNION ALL
-            SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+            SELECT per.PersonalId, 
+            CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+            CONCAT(TRIM(perres.PersonalApellido),', ', TRIM(perres.PersonalNombre)) AS ApellidoNombreResponsable,
             obj.objetivo_custodia_id, obj.cliente_id, TRIM(cli.ClienteDenominacion) cliente,
             obj.fecha_inicio, obj.fecha_fin, obj.estado, obj.fecha_liquidacion,
             (ISNULL(regv.importe_vehiculo,0)+ISNULL(regv.peaje_vehiculo,0)) AS importe,
@@ -1222,11 +1240,14 @@ export class CustodiaController extends BaseController {
             INNER JOIN lige.dbo.regvehiculocustodia regv ON per.PersonalId= regv.personal_id
             INNER JOIN lige.dbo.objetivocustodia obj ON regv.objetivo_custodia_id= obj.objetivo_custodia_id
             INNER JOIN lige.dbo.Cliente cli ON cli.ClienteId = obj.cliente_id
+            INNER JOIN lige.dbo.Personal perres ON perres.PersonalId = obj.responsable_id
             WHERE (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1)
             AND (${search}) AND (${filterSql}) 
             ${orderBy}
             UNION ALL
-            SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+            SELECT per.PersonalId, 
+            CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+            CONCAT(TRIM(perres.PersonalApellido),', ', TRIM(perres.PersonalNombre)) AS ApellidoNombreResponsable,
             obj.objetivo_custodia_id, obj.cliente_id, TRIM(cli.ClienteDenominacion) cliente,
             obj.fecha_inicio, obj.fecha_fin, obj.estado, obj.fecha_liquidacion,
             ROUND (CONVERT (FLOAT,obj.impo_facturar * (IIF(obj.cliente_id=798,1,3.5)) / 100),2) AS importe,
@@ -1237,6 +1258,7 @@ export class CustodiaController extends BaseController {
             FROM lige.dbo.objetivocustodia obj 
             INNER JOIN lige.dbo.Personal AS per ON per.PersonalId = obj.responsable_id
             INNER JOIN lige.dbo.Cliente cli ON cli.ClienteId = obj.cliente_id
+            INNER JOIN lige.dbo.Personal perres ON perres.PersonalId = obj.responsable_id
             WHERE (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1)
             AND (${search}) AND (${filterSql}) 
             ${orderBy}            
