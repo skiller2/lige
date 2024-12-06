@@ -48,7 +48,10 @@ export class PersonalFormComponent {
 
   inputs = { 
     Nombre:'', Apellido:'', CUIT:0, NroLegajo:0, SucursalId:0, FechaIngreso:'',
-    FechaNacimiento:'', Foto:'', NacionalidadId:0, docDorso:'', docFrente:''
+    FechaNacimiento:'', Foto:'', NacionalidadId:0, docDorso:'', docFrente:'',
+    calle:'', numero:'', piso:'', departamento:'', esquinaA:'', esquinaB:'', //Domicilio
+    bloque:'', edificio:'', cuerpo:'', codPostal:'', paisId:0, provinciaId:0, //Domicilio
+    localidadId:0, barrioId:0, //Domicilio
   }
   
   fb = inject(FormBuilder)
@@ -72,6 +75,46 @@ export class PersonalFormComponent {
     if(value) return value
     else return ''
   }
+  paisId():number {
+    const value = this.formPer.get("paisId")?.value
+    if(value) return value
+    else return 0
+  }
+  provinciaId():number {
+      const value = this.formPer.get("provinciaId")?.value
+      if(value) return value
+      else return 0
+  }
+  localidadId():number {
+      const value = this.formPer.get("localidadId")?.value
+      if(value) return value
+      else return 0
+  }
+
+  $selectedLocalidadIdChange = new BehaviorSubject('');
+  $selectedProvinciaIdChange = new BehaviorSubject('');
+  $selectedPaisIdChange = new BehaviorSubject('');
+
+  $optionsPais = this.searchService.getPaises();
+
+  $optionsProvincia = this.$selectedPaisIdChange.pipe(
+      debounceTime(500),
+      switchMap(() =>{
+          return this.searchService.getProvinciasByPais(this.paisId())
+      })
+  );
+  $optionsLocalidad = this.$selectedProvinciaIdChange.pipe(
+      debounceTime(500),
+      switchMap(() =>{
+          return this.searchService.getLocalidadesByProvincia(this.paisId(), this.provinciaId())
+      })
+  );
+  $optionsBarrio = this.$selectedLocalidadIdChange.pipe(
+    debounceTime(500),
+    switchMap(() =>{
+        return this.searchService.getBarriosByLocalidad(this.paisId(), this.provinciaId(), this.localidadId())
+    })
+);
 
   async ngOnInit(){
     let now : Date = new Date()
@@ -174,7 +217,7 @@ export class PersonalFormComponent {
     } catch (e) {
       
     }
-    console.log('files', files);
+    // console.log('files', files);
     this.files.set(files)
     this.isLoading.set(false)
   }
@@ -211,5 +254,26 @@ export class PersonalFormComponent {
       
     }
   }
+
+  selectedPaisChange(event: any):void{
+    this.formPer.get('provinciaId')?.reset()
+    this.formPer.get('localidadId')?.reset()
+    this.formPer.get('barrioId')?.reset()
+    this.$selectedPaisIdChange.next('')
+    this.$selectedProvinciaIdChange.next('')
+    this.$selectedLocalidadIdChange.next('')
+}
+
+  selectedProvinciaChange(event: any):void{
+      this.formPer.get('localidadId')?.reset()
+      this.formPer.get('barrioId')?.reset()
+      this.$selectedProvinciaIdChange.next('')
+      this.$selectedLocalidadIdChange.next('')
+  }
+
+  selectedLocalidadChange(event: any):void{
+    this.formPer.get('barrioId')?.reset()
+    this.$selectedLocalidadIdChange.next('')
+}
 
 }

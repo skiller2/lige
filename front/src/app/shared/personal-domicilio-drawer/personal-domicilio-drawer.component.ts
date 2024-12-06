@@ -29,68 +29,28 @@ export class PersonalDomicilioDrawerComponent {
 
     constructor(
         private searchService: SearchService,
-        private apiService: ApiService,
-        private router: Router,
-        private route: ActivatedRoute,
-        private settingService: SettingsService,
     ) { }
     private destroy$ = new Subject();
 
-    fb = inject(FormBuilder)
-    formDom = this.fb.group({
-        calle:'', numero:'', piso:'', departamento:'', esquinaA:'', esquinaB:'',
-        bloque:'', edificio:'', cuerpo:'', codPostal:'', paisId:0, provinciaId:0,
-        localidadId:0, barrioId:0
-    })
-
-    paisId():number {
-        const value = this.formDom.get("paisId")?.value
-        if(value) return value
-        else return 0
-    }
-    provinciaId():number {
-        const value = this.formDom.get("provinciaId")?.value
-        if(value) return value
-        else return 0
-    }
-    // localidadId():number {
-    //     const value = this.formDom.get("localidadId")?.value
-    //     if(value) return value
-    //     else return 0
-    // }
-
-    $selectedObjetivoIdChange = new BehaviorSubject('');
     selectedPersonalIdChange$ = new BehaviorSubject('');
 
-    $optionsPais = this.searchService.getPaises();
-    // $optionsProvincia = this.searchService.getProvinciasByPais(this.paisId());
-    $optionsLocalidad = this.searchService.getLocalidadesByProvincia(this.paisId(), this.provinciaId());
-
-    $optionsProvincia = this.selectedPersonalIdChange$.pipe(
+    $listaDomicilioPer = this.selectedPersonalIdChange$.pipe(
         debounceTime(500),
         switchMap(() =>{
-            return this.searchService.getProvinciasByPais(this.paisId())
+            setTimeout(async () => {
+                const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
+                this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
+            }, 0);
+            return this.searchService.getDomicilioByPersonal(Number(this.PersonalId()))
         })
     );
 
     async ngOnInit(){
+        this.selectedPersonalIdChange$.next('');
     }
 
     ngOnDestroy(): void {
         this.destroy$.next('');
         this.destroy$.complete();
     }
-
-    async save() {
-        this.isLoading.set(true)
-        const form = this.formDom.value
-        console.log('value', form);
-        try {
-
-        } catch (e) {
-            
-        }
-        this.isLoading.set(false)
-    }
-
 }

@@ -39,7 +39,7 @@ export class ResidenciaController extends BaseController {
     
     async getProvinciasByPais(req: any, res: Response, next: NextFunction){
         const queryRunner = dataSource.createQueryRunner();
-        const paisId:number = req.body.paidId
+        const paisId:number = req.body.paisId
         try {
           await queryRunner.startTransaction()
     
@@ -66,7 +66,7 @@ export class ResidenciaController extends BaseController {
     async getLocalidadByProvincia(req: any, res: Response, next: NextFunction){
         const queryRunner = dataSource.createQueryRunner();
         const provinciaId:number = req.body.provinciaId
-        const paisId:number = req.body.paidId
+        const paisId:number = req.body.paisId
         try {
           await queryRunner.startTransaction()
     
@@ -81,4 +81,32 @@ export class ResidenciaController extends BaseController {
           await queryRunner.release()
         }
     }
+
+    private async getBarrioByLocalidadQuery(queryRunner:any, paisId:number, provinciaId:number, localidadId:number){
+      return await queryRunner.query(`
+          SELECT bar.BarrioId value, TRIM(bar.BarrioDescripcion) label
+          FROM Barrio bar
+          WHERE bar.PaisId IN (@0) AND bar.ProvinciaId IN (@1) AND bar.LocalidadId IN (@2)
+          `,[paisId, provinciaId, localidadId])
+    }
+  
+  async getBarrioByLocalidad(req: any, res: Response, next: NextFunction){
+      const queryRunner = dataSource.createQueryRunner();
+      const localidadId:number = req.body.localidadId
+      const provinciaId:number = req.body.provinciaId
+      const paisId:number = req.body.paisId
+      try {
+        await queryRunner.startTransaction()
+  
+        const options = await this.getBarrioByLocalidadQuery(queryRunner, paisId, provinciaId, localidadId)
+        
+        await queryRunner.commitTransaction()
+        this.jsonRes(options, res);
+      } catch (error) {
+        await this.rollbackTransaction(queryRunner)
+        return next(error)
+      } finally {
+        await queryRunner.release()
+      }
+  }
 }

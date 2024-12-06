@@ -974,4 +974,39 @@ export class PersonalController extends BaseController {
 
   }
 
+  async getDomicilioByPersonalId(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    const PersonalId:number = Number(req.params.id)
+    try {
+      await queryRunner.startTransaction()
+
+      let domicilios = await queryRunner.query(`
+        SELECT dom.PersonalDomicilioId, dom.PersonalId , dom.PersonalDomicilioDomCalle Calle, dom.PersonalDomicilioDomNro Numero, dom.PersonalDomicilioDomPiso Piso,
+        dom.PersonalDomicilioDomDpto Departamento, dom.PersonalDomicilioEntreEsquina EsquinaA, dom.PersonalDomicilioEntreEsquinaY EsquinaB, dom.PersonalDomicilioDomBloque Bloque,
+        dom.PersonalDomicilioDomEdificio Edificio, dom.PersonalDomicilioDomCuerpo Cuerpo, dom.PersonalDomicilioCodigoPostal CodigoPostal,
+        IIF(ISNULL(dom.PersonalDomicilioActual, 0) = 0, '', 'Actual') Estado,
+        pais.PaisId , pais.PaisDescripcion Pais,
+        pro.ProvinciaId , pro.ProvinciaDescripcion Provincia,
+        loc.LocalidadId , loc.LocalidadDescripcion Localidad,
+        bar.BarrioId , bar.BarrioDescripcion Barrio
+        FROM PersonalDomicilio dom
+        LEFT JOIN Pais pais ON pais.PaisId = dom.PersonalDomicilioPaisId
+        LEFT JOIN Provincia pro ON pro.ProvinciaId = dom.PersonalDomicilioProvinciaId AND pro.PaisId = dom.PersonalDomicilioPaisId
+        LEFT JOIN Localidad loc ON loc.LocalidadId = dom.PersonalDomicilioLocalidadId AND loc.ProvinciaId = dom.PersonalDomicilioProvinciaId AND loc.PaisId = dom.PersonalDomicilioPaisId
+        LEFT JOIN Barrio bar ON bar.BarrioId = dom.PersonalDomicilioBarrioId AND bar.LocalidadId = dom.PersonalDomicilioLocalidadId AND bar.ProvinciaId = dom.PersonalDomicilioProvinciaId AND bar.PaisId = dom.PersonalDomicilioPaisId
+        WHERE dom.PersonalId = @0
+        ORDER BY dom.PersonalDomicilioActual DESC
+        `, [PersonalId]
+      )
+
+      await queryRunner.commitTransaction()
+      this.jsonRes(domicilios, res);
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
 }

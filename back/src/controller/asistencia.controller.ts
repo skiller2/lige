@@ -1402,7 +1402,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       const resAsisAdmArt42 = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, personalIdList, [], false, false)
       
-      const resCustodias = await CustodiaController.listPersonalCustodiaQuery({filtros:[{index: "ApellidoNombre", valor: personalIdList, operador:"=", condition:"AND"}]}, queryRunner, anio, mes)
+      const resCustodias = await CustodiaController.listPersonalCustodiaQuery({filtros:[{index: "ApellidoNombre", valor: personalIdList, operador:"=", condition:"AND"}]}, queryRunner, anio, mes,0)
 
       const resIngreExtra = await AsistenciaController.getIngresosExtra(anio, mes, queryRunner, personalIdList)
 
@@ -1831,7 +1831,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de asistencia`)
 
-      const result = await CustodiaController.listPersonalCustodiaQuery({filtros:[{index: "ApellidoNombre", valor: [personalId], operador:"=", condition:"AND"}]}, queryRunner, anio, mes)
+      const result = await CustodiaController.listPersonalCustodiaQuery({filtros:[{index: "ApellidoNombre", valor: [personalId], operador:"=", condition:"AND"}]}, queryRunner, anio, mes,0)
 
       const totalImporte = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
       const totalHoras = result.map(row => row.horas).reduce((prev, curr) => prev + curr, 0)

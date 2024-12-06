@@ -129,6 +129,112 @@
     </nz-form-control>
   </nz-form-item>
 
+  <div class="input-container1">
+    <div class="input-label">Domicilio</div>
+  </div>
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzMd]="3">Calle</nz-form-label>
+    <nz-form-control [nzMd]="11">
+      <input nz-input placeholder="" formControlName="calle" type="text"/>
+    </nz-form-control>
+    <nz-form-label [nzMd]="2">Nro</nz-form-label>
+    <nz-form-control [nzMd]="4">
+      <input nz-input placeholder="" formControlName="numero" type="text"/>
+    </nz-form-control>
+  </nz-form-item>
+
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzMd]="3">Entre</nz-form-label>
+    <nz-form-control [nzMd]="5">
+        <input nz-input placeholder="" formControlName="esquinaA" type="text"/>
+    </nz-form-control>
+    <nz-form-control [nzMd]="1" style="text-align: center;">
+      y
+    </nz-form-control>
+    <nz-form-control [nzMd]="5">
+        <input nz-input placeholder="" formControlName="esquinaB" type="text"/>
+    </nz-form-control>
+    <nz-form-label [nzMd]="2">Cod.Postal</nz-form-label>
+    <nz-form-control [nzMd]="4">
+        <input nz-input placeholder="" formControlName="codPostal" type="text"/>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzMd]="3">Edificio</nz-form-label>
+    <nz-form-control [nzMd]="6">
+        <input nz-input placeholder="" formControlName="edificio" type="text"/>
+    </nz-form-control>
+    <nz-form-label [nzMd]="2">Departamento</nz-form-label>
+    <nz-form-control [nzMd]="5">
+        <input nz-input placeholder="" formControlName="departamento" type="text"/>
+    </nz-form-control>
+    <nz-form-label [nzMd]="1">Piso</nz-form-label>
+    <nz-form-control [nzMd]="3">
+        <input nz-input placeholder="" formControlName="piso" type="text"/>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzMd]="3">Bloque</nz-form-label>
+    <nz-form-control [nzMd]="6">
+        <input nz-input placeholder="" formControlName="bloque" type="text"/>
+    </nz-form-control>
+    
+    <nz-form-label [nzMd]="2">Cuerpo</nz-form-label>
+    <nz-form-control [nzMd]="6">
+        <input nz-input placeholder="" formControlName="cuerpo" type="text"/>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzMd]="3">Pais</nz-form-label>
+    <nz-form-control [nzMd]="6">
+      <nz-select formControlName="paisId" nzPlaceHolder="" nzAllowClear
+      [nzDropdownMatchSelectWidth]="false" style="width: 100%"
+      (ngModelChange)="selectedPaisChange($event)">
+        <ng-container *ngFor="let option of $optionsPais | async">
+          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+        </ng-container>
+      </nz-select>
+    </nz-form-control>
+    
+    <nz-form-label [nzMd]="5">Provincia</nz-form-label>
+    <nz-form-control [nzMd]="6">
+      <nz-select formControlName="provinciaId" nzPlaceHolder="" nzAllowClear
+      [nzDropdownMatchSelectWidth]="false" style="width: 100%"
+      (ngModelChange)="selectedProvinciaChange($event)" >
+        <ng-container *ngFor="let option of $optionsProvincia | async">
+          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+        </ng-container>
+      </nz-select>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzMd]="3" >Localidad</nz-form-label>
+    <nz-form-control [nzMd]="6">
+      <nz-select formControlName="localidadId" nzPlaceHolder="" nzAllowClear
+      [nzDropdownMatchSelectWidth]="false" style="width: 100%"
+      (ngModelChange)="selectedLocalidadChange($event)" >
+        <ng-container *ngFor="let option of $optionsLocalidad | async">
+          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+        </ng-container>
+      </nz-select>
+    </nz-form-control>
+      
+    <nz-form-label [nzMd]="5">Barrio</nz-form-label>
+    <nz-form-control [nzMd]="6">
+      <nz-select formControlName="barrioId" nzPlaceHolder="" nzAllowClear
+      [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+        <ng-container *ngFor="let option of $optionsBarrio | async">
+          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+        </ng-container>
+      </nz-select>
+    </nz-form-control>
+  </nz-form-item>
+
   <nz-form-item>
     <nz-form-control style="display: flex; justify-content: center; align-items: center;">    
       <button nzType="primary" nz-button *ngIf="formPer.enabled"  (click)="save()" [nzLoading]="isLoading()" [disabled]="formPer.pristine" >
