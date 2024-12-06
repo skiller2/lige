@@ -1182,12 +1182,12 @@ export class CustodiaController extends BaseController {
         }
     }
 
-    async listPersonalCustodiaQuery(options:any, queryRunner:QueryRunner, anio:number, mes:number, responsableId?: number) {
+    static async listPersonalCustodiaQuery(options:any, queryRunner:QueryRunner, anio:number, mes:number, responsableId?: number) {
         const filterSql = filtrosToSql(options.filtros, columnsPersonalCustodia);
         const orderBy = orderToSQL(options.sort)
 
         let search = ''
-        if (responsableId === undefined) {
+        if (responsableId ==0) {
             search = `1=1`
         } else {
             search = `obj.responsable_id IN (${responsableId})`
@@ -1255,9 +1255,9 @@ export class CustodiaController extends BaseController {
 
             let result:any
             if (await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')) {
-                result = await this.listPersonalCustodiaQuery(options, queryRunner, anio, mes)
+                result = await CustodiaController.listPersonalCustodiaQuery(options, queryRunner, anio, mes,0)
             } else {
-                result = await this.listPersonalCustodiaQuery(options, queryRunner, anio, mes, responsableId)
+                result = await CustodiaController.listPersonalCustodiaQuery(options, queryRunner, anio, mes, responsableId)
             }
 
             let list = result.map((obj: any, index: number) => {
