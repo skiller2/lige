@@ -45,7 +45,7 @@ export class IngresoPorCustodiaController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      const result = await CustodiaController.listPersonalCustodiaQuery({}, queryRunner, anio, mes)
+      const result = await CustodiaController.listPersonalCustodiaQuery({}, queryRunner, anio, mes,0)
 
       await queryRunner.query(
         `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `,[ periodo_id, tipo_movimiento_id ])

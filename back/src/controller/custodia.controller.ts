@@ -1139,7 +1139,7 @@ export class CustodiaController extends BaseController {
                     infoCustodia = infoCustodia[0]
 
                     if (!authorizedEdit && infoCustodia.responsableId != responsableId ) {
-                        errores.push(`Codigo ${id}: Solo el responsable puede modificar la custodia.`)
+                        errores.push(`Codigo ${id}: Solo el responsable puede modificar la custodia o grupos Administrativo/Liquidaciones.`)
                         continue
                     }
                     //Validaciones
