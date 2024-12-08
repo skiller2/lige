@@ -82,7 +82,6 @@ export class TableHistorialContratoComponent {
   ObjetivoId = input(0)
   ClienteId = input(0)
   ClienteElementoDependienteId = input(0)
-  ObjetivoNombre = model('')
   excelExportService = new ExcelExportService()
   //gridObj!: SlickGrid;
   detailViewRowCount = 9
@@ -198,7 +197,7 @@ export class TableHistorialContratoComponent {
     this.gridOptionsGrupoActividad.showFooterRow = true
     this.gridOptionsGrupoActividad.createFooterRow = true
 
-    this.ObjetivoNombre.set('')
+    //this.ObjetivoNombre.set('')
   }
 
   async angularGridReadyDomicilio(angularGrid: any) {

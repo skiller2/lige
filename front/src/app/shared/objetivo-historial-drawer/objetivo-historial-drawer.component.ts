@@ -19,21 +19,21 @@ export interface Option {
 }
 
 @Component({
-  selector: 'app-contrato-historial-drawer',
+  selector: 'app-objetivo-historial-drawer',
   standalone: true,
   imports: [SHARED_IMPORTS,NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, CommonModule,TableHistorialContratoComponent],
-  templateUrl: './contrato-historial-drawer.component.html',
-  styleUrl: './contrato-historial-drawer.component.less',
+  templateUrl: './objetivo-historial-drawer.component.html',
+  styleUrl: './objetivo-historial-drawer.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 
 
 
-export class ContratoHistorialDrawerComponent {
+export class ObjetivoHistorialDrawerComponent {
   ObjetivoId = input(0)
   ClienteId = input(0)
   ClienteElementoDependienteId = input(0)
-  ObjetivoNombre = model<string>("")
+  ObjetivoNombre = input<string>("")
 
   visibleHistorial = model<boolean>(false)
   placement: NzDrawerPlacement = 'left';

@@ -2,7 +2,7 @@
   [nzWidth]="900" [nzTitle]="'Historial: '  + ObjetivoNombre()" (nzOnClose)="visibleHistorial.set(false)">
     <ng-container *nzDrawerContent >
       @if (visibleHistorial()) {
-        <app-table-historial-contrato [ObjetivoId]="ObjetivoId()" [ClienteId]="ClienteId()" [ClienteElementoDependienteId]="ClienteElementoDependienteId()" [(ObjetivoNombre)]="ObjetivoNombre"></app-table-historial-contrato>
+        <app-table-historial-contrato [ObjetivoId]="ObjetivoId()" [ClienteId]="ClienteId()" [ClienteElementoDependienteId]="ClienteElementoDependienteId()" ></app-table-historial-contrato>
       }
     </ng-container>
 </nz-drawer>

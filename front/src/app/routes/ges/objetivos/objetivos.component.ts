@@ -15,7 +15,7 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { ObjetivosFormComponent } from "../objetivos-form/objetivos-form.component"
-import { ContratoHistorialDrawerComponent } from '../../../shared/contrato-historial-drawer/contrato-historial-drawer.component'
+import { ObjetivoHistorialDrawerComponent } from '../../../shared/objetivo-historial-drawer/objetivo-historial-drawer.component'
 
 
 @Component({
@@ -33,7 +33,7 @@ import { ContratoHistorialDrawerComponent } from '../../../shared/contrato-histo
     ObjetivosFormComponent,
     DetallePersonaComponent,
     FiltroBuilderComponent,
-    ContratoHistorialDrawerComponent
+    ObjetivoHistorialDrawerComponent
     ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -48,6 +48,7 @@ export class ObjetivosComponent {
   detailViewRowCount = 1;
   editObjetivoId= signal(0)
   editClienteId = signal(0)
+  ObjetivoNombre = signal("")
   editClienteElementoDependienteId = signal(0)
   edit =signal(false)
   addNew = false
@@ -111,6 +112,8 @@ export class ObjetivosComponent {
       this.editObjetivoId.set(row.ObjetivoId)
       this.editClienteId.set(row.ClienteId)
       this.editClienteElementoDependienteId.set(row.ClienteElementoDependienteId)
+      //
+      this.ObjetivoNombre.set(`${row.ClienteApellidoNombre} - ${row.Descripcion}`)
     }
     
 
@@ -142,7 +145,6 @@ export class ObjetivosComponent {
   }
 
   onTabsetChange(_event: any) {
-    console.log("event.index ", _event.index)
     switch (_event.index) {
       case 3: //INSERT
        this.childAlta().newRecord()

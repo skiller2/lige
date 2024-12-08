@@ -86,10 +86,11 @@
     </nz-tabset>
 
 
-    <app-contrato-historial-drawer 
+    <app-objetivo-historial-drawer 
      [(visibleHistorial)]="visibleHistorial"
      [ClienteId]="editClienteId()" 
      [ObjetivoId]="editObjetivoId()" 
-     [ClienteElementoDependienteId]="editClienteElementoDependienteId()"></app-contrato-historial-drawer>
+     [ObjetivoNombre]="ObjetivoNombre()"
+     [ClienteElementoDependienteId]="editClienteElementoDependienteId()"></app-objetivo-historial-drawer>
 
   </nz-card>

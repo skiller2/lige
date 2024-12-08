@@ -159,10 +159,14 @@ export class ObjetivosFormComponent {
   async viewRecord(readonly:boolean) {
       if (this.ObjetivoId()) 
         await this.load()
-      if (readonly)
+      if (readonly){
         this.formCli.disable()
-      else
+        this.formCli.get('GrupoActividadId')?.disable()
+        this.formCli.get('RubroId')?.disable()
+      }else{
         this.formCli.enable()
+      }
+        
       this.formCli.get('codigo')?.disable()
       this.formCli.markAsPristine()        
 
@@ -227,7 +231,8 @@ export class ObjetivosFormComponent {
 
     this.formCli.get('codigo')?.disable()
     //this.formCli.get('ClienteId')?.disable();
-
+    this.formCli.get('GrupoActividadId')?.disable()
+    this.formCli.get('RubroId')?.disable()
     //this.formCli.reset(infoObjetivo)
   }
 
