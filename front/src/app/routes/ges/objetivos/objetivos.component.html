@@ -8,7 +8,7 @@
         <a [routerLink]="['/', 'ges', 'objetivos','editar']"  nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
           <button nz-button nzType="default" [disabled]="editObjetivoId()? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
         </a>
-        <a [routerLink]="['/', 'ges', 'objetivos','detalle']" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
+        <a [routerLink]="['/', 'ges', 'objetivos','detalle']" nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}">
           <button nz-button nzType="default" [disabled]="editObjetivoId()? false : true"><span nz-icon nzType="info-circle" nzTheme="outline"></span></button>
         </a>
         <a [routerLink]="['/', 'ges', 'objetivos','alta']"  nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
@@ -30,11 +30,11 @@
       <ul nz-menu nzMode="horizontal" style="display: flex;">
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'objetivos', 'listado']" (click)="getGridData()" >Objetivos</a>
+          <a [routerLink]="['/', 'ges', 'objetivos', 'listado']" (click)="getGridData()" >{{ 'app.icon.objectives' | i18n }} </a>
         </li>
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'objetivos', 'detalle']">Detalle</a>
+          <a [routerLink]="['/', 'ges', 'objetivos', 'detalle']">{{ 'app.detail' | i18n }} </a>
         </li>
       </ul>
     </div>
@@ -46,7 +46,7 @@
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
   
       <nz-tab>
-        <a nz-tab-link routerLink="/ges/objetivos/listado" >Objetivos</a>
+        <a nz-tab-link routerLink="/ges/objetivos/listado" >{{ 'app.icon.objectives' | i18n }} </a>
         <ng-template nz-tab *ngIf="(columns$|async) as columnas">
           <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters" />
   
@@ -60,7 +60,7 @@
       </nz-tab>
   
       <nz-tab>
-        <a nz-tab-link routerLink="/ges/objetivos/editar" >Editar</a>
+        <a nz-tab-link routerLink="/ges/objetivos/editar" >{{ 'app.icon.edit' | i18n }}</a>
          <app-objetivos-form #objetivoFormEdit  
          (onAddorUpdate)="handleAddOrUpdate()" 
          [ObjetivoId]="editObjetivoId()" 
@@ -69,7 +69,7 @@
       </nz-tab>
 
       <nz-tab>
-        <a nz-tab-link routerLink="/ges/objetivos/detalle" >Detalle</a>
+        <a nz-tab-link routerLink="/ges/objetivos/detalle" >{{ 'app.detail' | i18n }}</a>
          <app-objetivos-form #objetivoFormDeta 
          [ObjetivoId]="editObjetivoId()" 
          [ClienteElementoDependienteId]="editClienteElementoDependienteId()"  
@@ -77,7 +77,7 @@
       </nz-tab>
   
       <nz-tab> 
-        <a nz-tab-link routerLink="/ges/objetivos/alta" >Alta </a>
+        <a nz-tab-link routerLink="/ges/objetivos/alta" >{{ 'app.alta' | i18n }}</a>
         <app-objetivos-form #objetivoFormAlta  
         (onAddorUpdate)="handleAddOrUpdate()" 
         (pristineChange)="onPristineChange($event)"></app-objetivos-form>

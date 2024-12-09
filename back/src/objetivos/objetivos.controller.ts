@@ -154,16 +154,6 @@ const columnasGrillaHistoryContrato: any[] = [
       hidden: false,
       searchHidden: false,
       sortable: false
-    },
-    {
-      name: "Horas Mensuales",
-      type: "string",
-      id: "horas",
-      field: "horas",
-      fieldName: "clie.ClienteElementoDependienteContratoHorasMensuales",
-      hidden: false,
-      searchHidden: false,
-      sortable: false
     }
   ];
 
@@ -199,6 +189,16 @@ const columnasGrillaHistoryDomicilio: any[] = [
       searchHidden: false,
       sortable: false
     },
+    {
+        name: "Complemento",
+        type: "string",
+        id: "DomicilioDomLugar",
+        field: "DomicilioDomLugar",
+        fieldName: "dom.ClienteElementoDependienteDomicilioDomLugar",
+        hidden: false,
+        searchHidden: false,
+        sortable: false
+      },
     {
         name: "Provincia",
         type: "string",
@@ -273,8 +273,10 @@ const columnasGrillaHistoryDomicilio: any[] = [
         searchHidden: false,
         sortable: false
       },
-  ];
+     
 
+  ];
+  
 
 
 export class ObjetivosController extends BaseController {
@@ -1489,8 +1491,7 @@ export class ObjetivosController extends BaseController {
                                 clie.ClienteElementoDependienteContratoFechaHasta, 
                                 clie.ClienteElementoDependienteContratoHorasMensuales) AS id,
                 clie.ClienteElementoDependienteContratoFechaDesde as desde ,
-                clie.ClienteElementoDependienteContratoFechaHasta as hasta,
-                clie.ClienteElementoDependienteContratoHorasMensuales as horas
+                clie.ClienteElementoDependienteContratoFechaHasta as hasta
                 FROM  ClienteElementoDependienteContrato as clie
                 WHERE ClienteElementoDependienteId = @1 AND ClienteId = @0`,[ClienteId,ClienteElementoDependienteId])
 
@@ -1542,7 +1543,8 @@ export class ObjetivosController extends BaseController {
                     dom.ClienteElementoDependienteDomicilioCodigoPostal AS postal,
                     prov.provinciadescripcion AS provincia,
                     local.localidaddescripcion AS localidad,
-                    bar.barriodescripcion AS barrio
+                    bar.barriodescripcion AS barrio,
+                    dom.ClienteElementoDependienteDomicilioDomLugar AS DomicilioDomLugar
                 FROM ClienteElementoDependienteDomicilio dom
                 LEFT JOIN  provincia prov ON prov.provinciaid = dom.ClienteElementoDependienteDomicilioProvinciaid
                         AND prov.PaisId = 1
