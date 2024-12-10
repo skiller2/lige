@@ -147,13 +147,13 @@
   <nz-form-item class="marginElement">
     <nz-form-label [nzMd]="3">Entre</nz-form-label>
     <nz-form-control [nzMd]="5">
-        <input nz-input placeholder="" formControlName="esquinaA" type="text"/>
+        <input nz-input placeholder="" formControlName="esquina" type="text"/>
     </nz-form-control>
     <nz-form-control [nzMd]="1" style="text-align: center;">
       y
     </nz-form-control>
     <nz-form-control [nzMd]="5">
-        <input nz-input placeholder="" formControlName="esquinaB" type="text"/>
+        <input nz-input placeholder="" formControlName="esquinaY" type="text"/>
     </nz-form-control>
     <nz-form-label [nzMd]="2">Cod.Postal</nz-form-label>
     <nz-form-control [nzMd]="4">
@@ -234,6 +234,111 @@
       </nz-select>
     </nz-form-control>
   </nz-form-item>
+  
+  <div class="input-container1">
+    <div class="input-label">Telefono</div>
+  </div>
+
+  <div formArrayName="telefonos">
+    <nz-form-item class="marginElement" *ngFor="let control of telefonos().controls; let i = index" [formGroupName]="i">
+
+      <nz-form-label [nzMd]="2">Lugar</nz-form-label>
+      <nz-form-control [nzMd]="2">
+        <nz-select formControlName="lugarTelefonoId" nzPlaceHolder="" nzAllowClear
+        [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
+          <ng-container *ngFor="let option of $optionsTelefonoLugar | async">
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+          </ng-container>
+        </nz-select>
+      </nz-form-control>
+        
+      <nz-form-label [nzMd]="1">Tipo</nz-form-label>
+      <nz-form-control [nzMd]="2">
+        <nz-select formControlName="tipoTelefonoId" nzPlaceHolder="" nzAllowClear
+        [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
+          <ng-container *ngFor="let option of $optionsTelefonoTipo | async">
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+          </ng-container>
+        </nz-select>
+      </nz-form-control>
+
+      <nz-form-label [nzMd]="2">Cod.Pais</nz-form-label>
+      <nz-form-control [nzMd]="2">
+          <input nz-input placeholder="" formControlName="codigoPais" type="text"/>
+      </nz-form-control>
+
+      <nz-form-label [nzMd]="2">Cod.Area</nz-form-label>
+      <nz-form-control [nzMd]="2">
+          <input nz-input placeholder="" formControlName="codigoArea" type="text"/>
+      </nz-form-control>
+
+      <nz-form-label [nzMd]="2">Numero Telefono</nz-form-label>
+      <nz-form-control [nzMd]="4">
+        <nz-input-group style="width: 100%" [nzAddOnAfter]="controlTelefonoButton" nzSearch>
+          <input nz-input placeholder="" formControlName="telefonoNum" type="text"/>
+        </nz-input-group>
+        <ng-template #controlTelefonoButton >
+          <button nz-button *ngIf="telefonos().controls.length == i+1 && formPer.enabled" nzType="primary" class="add-button" (click)="addTelefono($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+            <span nz-icon nzType="plus"></span>
+          </button>
+          <button nz-button nzType="default" *ngIf="formPer.enabled" (click)="removeTelefono(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.borrar' | i18n }}">
+            <span nz-icon nzType="delete" nzTheme="outline" ></span>
+          </button>
+        </ng-template>
+      </nz-form-control>
+
+    </nz-form-item>
+  </div>
+
+  <div class="input-container1">
+    <div class="input-label">Estudios</div>
+  </div>
+
+  <div formArrayName="estudios">
+    <nz-form-item class="marginElement" *ngFor="let control of estudios().controls; let i = index" [formGroupName]="i">
+
+      <nz-form-label [nzMd]="3">Tipo</nz-form-label>
+      <nz-form-control [nzMd]="2">
+        <nz-select formControlName="tipoEstudioId" nzPlaceHolder="" nzAllowClear
+        [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
+          <ng-container *ngFor="let option of $optionsEstudioTipo | async">
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+          </ng-container>
+        </nz-select>
+      </nz-form-control>
+      
+      <nz-form-label [nzMd]="2">Estado</nz-form-label>
+      <nz-form-control [nzMd]="2">
+        <nz-select formControlName="estadoEstudioId" nzPlaceHolder="" nzAllowClear
+        [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
+          <ng-container *ngFor="let option of $optionsEstudioEstado | async">
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+          </ng-container>
+        </nz-select>
+      </nz-form-control>
+
+      <nz-form-label [nzMd]="2">Titulo</nz-form-label>
+      <nz-form-control [nzMd]="5">
+        <input nz-input placeholder="" formControlName="estudioTitulo" type="text"/>
+      </nz-form-control>
+
+      <nz-form-label [nzMd]="2">Año</nz-form-label>
+      <nz-form-control [nzMd]="2">
+        <nz-input-group style="width: 100%" [nzAddOnAfter]="controlEstudioButton" nzSearch>
+          <input nz-input placeholder="" formControlName="estudioAnio" type="number"/>
+        </nz-input-group>
+        <ng-template #controlEstudioButton >
+          <button nz-button *ngIf="estudios().controls.length == i+1 && formPer.enabled" nzType="primary" class="add-button" (click)="addEstudio($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+            <span nz-icon nzType="plus"></span>
+          </button>
+          <button nz-button nzType="default" *ngIf="formPer.enabled" (click)="removeEstudio(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.borrar' | i18n }}">
+            <span nz-icon nzType="delete" nzTheme="outline" ></span>
+          </button>
+        </ng-template>
+      </nz-form-control>
+
+    </nz-form-item>
+  </div>
 
   <nz-form-item>
     <nz-form-control style="display: flex; justify-content: center; align-items: center;">    

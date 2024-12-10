@@ -1061,4 +1061,44 @@ export class SearchService {
       );
   }
 
+  getLugarTelefonoList(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/telefonia/lugar/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getTipoTelefonoList(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/telefonia/tipo/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getEstadoEstudioList(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/estudio/estado/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getTipoEstudioList(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/estudio/tipo/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }

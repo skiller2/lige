@@ -571,18 +571,12 @@ export class PersonalController extends BaseController {
   async getSituacionRevista(req: any, res: Response, next: NextFunction){
     const queryRunner = dataSource.createQueryRunner();
     try {
-      await queryRunner.startTransaction()
-
       const options = await this.getSituacionRevistaQuery(queryRunner)
 
-      await queryRunner.commitTransaction()
       this.jsonRes(options, res);
     } catch (error) {
-      await this.rollbackTransaction(queryRunner)
       return next(error)
-    } finally {
-      await queryRunner.release()
-    }
+    } 
   }
 
   async addPersonal(req: any, res: Response, next: NextFunction){
@@ -684,17 +678,11 @@ export class PersonalController extends BaseController {
   async getNacionalidadList(req: any, res: Response, next: NextFunction){
     const queryRunner = dataSource.createQueryRunner();
     try {
-      await queryRunner.startTransaction()
-
       const options = await this.getNacionalidadListQuery(queryRunner)
 
-      await queryRunner.commitTransaction()
       this.jsonRes(options, res);
     } catch (error) {
-      await this.rollbackTransaction(queryRunner)
       return next(error)
-    } finally {
-      await queryRunner.release()
     }
   }
 
@@ -860,18 +848,22 @@ export class PersonalController extends BaseController {
     const queryRunner = dataSource.createQueryRunner()
     const personalId = req.params.id
     try {
-      await queryRunner.startTransaction()
-      
       let data = await queryRunner.query(`
         SELECT per.PersonalId ,TRIM(per.PersonalNombre) Nombre, TRIM(per.PersonalApellido) Apellido, per.PersonalNroLegajo NroLegajo,
         cuit.PersonalCUITCUILCUIT CUIT , per.PersonalFechaIngreso FechaIngreso, per.PersonalFechaNacimiento FechaNacimiento,
         per.PersonalSuActualSucursalPrincipalId SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion, nac.NacionalidadId, nac.NacionalidadDescripcion,
-        foto.DocumentoImagenFotoBlobNombreArchivo Foto
+        foto.DocumentoImagenFotoBlobNombreArchivo Foto,
+        TRIM(dom.PersonalDomicilioDomCalle) calle, TRIM(dom.PersonalDomicilioDomNro) numero, dom.PersonalDomicilioDomPiso piso,
+        dom.PersonalDomicilioDomDpto departamento, dom.PersonalDomicilioEntreEsquina esquina, dom.PersonalDomicilioEntreEsquinaY esquinaY,
+        dom.PersonalDomicilioDomBloque bloque, dom.PersonalDomicilioDomEdificio edificio, dom.PersonalDomicilioDomCuerpo cuerpo,
+        TRIM(dom.PersonalDomicilioCodigoPostal) codPostal, dom.PersonalDomicilioPaisId paisId, dom.PersonalDomicilioProvinciaId provinciaId,
+        dom.PersonalDomicilioLocalidadId localidadId, dom.PersonalDomicilioBarrioId barrioId
         FROM Personal per
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId
         LEFT JOIN Sucursal suc ON suc.SucursalId = per.PersonalSuActualSucursalPrincipalId
         LEFT JOIN Nacionalidad nac ON nac.NacionalidadId = per.PersonalNacionalidadId
+        LEFT JOIN PersonalDomicilio dom ON dom.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual IN (1)
         WHERE per.PersonalId = @0
         `, [personalId]
       )
@@ -884,6 +876,22 @@ export class PersonalController extends BaseController {
           WHERE doc.PersonalId = @0
         `, [personalId]
       )
+      const telefonos = await queryRunner
+      .query(`
+          SELECT tel.PersonalTelefonoId, tel.LugarTelefonoId lugarTelefonoId, tel.TipoTelefonoId tipoTelefonoId,
+          tel.PersonalTelefonoCodigoPais codigoPais, tel.PersonalTelefonoCodigoArea codigoArea, tel.PersonalTelefonoNro telefonoNum
+          FROM PersonalTelefono tel
+          WHERE tel.PersonalId IN (@0) AND tel.PersonalTelefonoInactivo IS NULL
+        `, [personalId]
+      )
+      const estudios = await queryRunner
+      .query(`
+          SELECT est.PersonalEstudioId, est.TipoEstudioId, est.TipoEstudioId tipoEstudioId, est.EstadoEstudioId estadoEstudioId,
+          est.PersonalEstudioTitulo estudioTitulo, est.PersonalEstudioAno estudioAnio
+          FROM PersonalEstudio est
+          WHERE est.PersonalId IN (@0)
+        `, [personalId]
+      )
       docs.forEach((doc:any)=>{
         if(doc.DocumentoImagenParametroId==12)
           data.docFrente = doc.DocumentoImagenDocumentoBlobNombreArchivo
@@ -891,15 +899,13 @@ export class PersonalController extends BaseController {
           data.docDorso = doc.DocumentoImagenDocumentoBlobNombreArchivo
         }
       })
+      data.telefonos = telefonos
+      data.estudios = estudios
 
-      await queryRunner.commitTransaction()
       this.jsonRes(data, res);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
       return next(error)
-    } finally {
-      await queryRunner.release()
-    }
+    } 
   }
 
   async deleteArchivo(req: any, res: Response, next: NextFunction) {
@@ -978,8 +984,6 @@ export class PersonalController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const PersonalId:number = Number(req.params.id)
     try {
-      await queryRunner.startTransaction()
-
       let domicilios = await queryRunner.query(`
         SELECT dom.PersonalDomicilioId, dom.PersonalId , dom.PersonalDomicilioDomCalle Calle, dom.PersonalDomicilioDomNro Numero, dom.PersonalDomicilioDomPiso Piso,
         dom.PersonalDomicilioDomDpto Departamento, dom.PersonalDomicilioEntreEsquina EsquinaA, dom.PersonalDomicilioEntreEsquinaY EsquinaB, dom.PersonalDomicilioDomBloque Bloque,
@@ -999,13 +1003,9 @@ export class PersonalController extends BaseController {
         `, [PersonalId]
       )
 
-      await queryRunner.commitTransaction()
       this.jsonRes(domicilios, res);
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
       return next(error)
-    } finally {
-      await queryRunner.release()
     }
   }
 

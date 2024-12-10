@@ -45,20 +45,27 @@ export class PersonalFormComponent {
   urlUpload = '/api/personal/upload'
   uploading$ = new BehaviorSubject({loading:false,event:null});
   
-
+  fb = inject(FormBuilder)
+  objTelefono = {lugarTelefonoId:0, tipoTelefonoId:0, codigoPais:'', codigoArea:0, telefonoNum:0}
+  objEstudio = {tipoEstudioId:0, estadoEstudioId:0, estudioTitulo:'', estudioAnio:0}
   inputs = { 
     Nombre:'', Apellido:'', CUIT:0, NroLegajo:0, SucursalId:0, FechaIngreso:'',
     FechaNacimiento:'', Foto:'', NacionalidadId:0, docDorso:'', docFrente:'',
-    calle:'', numero:'', piso:'', departamento:'', esquinaA:'', esquinaB:'', //Domicilio
+    calle:'', numero:'', piso:'', departamento:'', esquina:'', esquinaY:'', //Domicilio
     bloque:'', edificio:'', cuerpo:'', codPostal:'', paisId:0, provinciaId:0, //Domicilio
     localidadId:0, barrioId:0, //Domicilio
+    telefonos: this.fb.array([this.fb.group({...this.objTelefono})]),
+    estudios: this.fb.array([this.fb.group({...this.objEstudio})]),
   }
   
-  fb = inject(FormBuilder)
   formPer = this.fb.group({ ...this.inputs })
 
   $optionsSucursal = this.searchService.getSucursales();
   $optionsNacionalidad = this.searchService.getNacionalidadList();
+  $optionsTelefonoLugar = this.searchService.getLugarTelefonoList();
+  $optionsTelefonoTipo = this.searchService.getTipoTelefonoList();
+  $optionsEstudioEstado = this.searchService.getEstadoEstudioList();
+  $optionsEstudioTipo = this.searchService.getTipoEstudioList();
 
   foto():string {
     const value = this.formPer.get("Foto")?.value
@@ -89,6 +96,12 @@ export class PersonalFormComponent {
       const value = this.formPer.get("localidadId")?.value
       if(value) return value
       else return 0
+  }
+  telefonos():FormArray {
+    return this.formPer.get("telefonos") as FormArray
+  }
+  estudios():FormArray {
+    return this.formPer.get("estudios") as FormArray
   }
 
   $selectedLocalidadIdChange = new BehaviorSubject('');
@@ -135,6 +148,21 @@ export class PersonalFormComponent {
     for (const key in values) {
       values[key] = infoPersonal[key]
     }
+    this.telefonos().clear()
+    this.estudios().clear()
+
+    infoPersonal.telefonos.forEach((obj:any) => {
+        this.telefonos().push(this.fb.group({...this.objTelefono}))
+    });
+    if (this.telefonos().length == 0)
+        this.telefonos().push(this.fb.group({...this.objTelefono}))
+    
+    infoPersonal.estudios.forEach((obj:any) => {
+        this.estudios().push(this.fb.group({...this.objEstudio}))
+    });
+    if (this.estudios().length == 0)
+        this.estudios().push(this.fb.group({...this.objEstudio}))
+
     this.formPer.reset(values)
 
     let arrayFiles : any[] = []
@@ -262,7 +290,7 @@ export class PersonalFormComponent {
     this.$selectedPaisIdChange.next('')
     this.$selectedProvinciaIdChange.next('')
     this.$selectedLocalidadIdChange.next('')
-}
+  }
 
   selectedProvinciaChange(event: any):void{
       this.formPer.get('localidadId')?.reset()
@@ -274,6 +302,30 @@ export class PersonalFormComponent {
   selectedLocalidadChange(event: any):void{
     this.formPer.get('barrioId')?.reset()
     this.$selectedLocalidadIdChange.next('')
-}
+  }
+
+  addTelefono(e?: MouseEvent): void {
+    e?.preventDefault();
+    this.telefonos().push(this.fb.group({...this.objTelefono}))
+  }
+
+  addEstudio(e?: MouseEvent): void {
+    e?.preventDefault();
+    this.estudios().push(this.fb.group({...this.objEstudio}))
+  }
+
+  removeTelefono(index: number, e: MouseEvent): void {
+    e.preventDefault();
+    if (this.telefonos().controls.length > 1 ) {
+        this.telefonos().removeAt(index)
+    }
+  }
+
+  removeEstudio(index: number, e: MouseEvent): void {
+    e.preventDefault();
+    if (this.estudios().controls.length > 1 ) {
+        this.estudios().removeAt(index)
+    }
+  }
 
 }

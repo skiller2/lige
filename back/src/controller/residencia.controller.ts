@@ -15,17 +15,11 @@ export class ResidenciaController extends BaseController {
     async getPaises(req: any, res: Response, next: NextFunction){
         const queryRunner = dataSource.createQueryRunner();
         try {
-          await queryRunner.startTransaction()
-    
           const options = await this.getPaisesQuery(queryRunner)
-    
-          await queryRunner.commitTransaction()
+
           this.jsonRes(options, res);
         } catch (error) {
-          await this.rollbackTransaction(queryRunner)
           return next(error)
-        } finally {
-          await queryRunner.release()
         }
     }
 
@@ -41,17 +35,11 @@ export class ResidenciaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         const paisId:number = req.body.paisId
         try {
-          await queryRunner.startTransaction()
-    
           const options = await this.getProvinciasByPaisQuery(queryRunner, paisId)
-    
-          await queryRunner.commitTransaction()
+
           this.jsonRes(options, res);
         } catch (error) {
-          await this.rollbackTransaction(queryRunner)
           return next(error)
-        } finally {
-          await queryRunner.release()
         }
     }
 
@@ -68,17 +56,11 @@ export class ResidenciaController extends BaseController {
         const provinciaId:number = req.body.provinciaId
         const paisId:number = req.body.paisId
         try {
-          await queryRunner.startTransaction()
-    
           const options = await this.getLocalidadesByProvinciaQuery(queryRunner, paisId, provinciaId)
-    
-          await queryRunner.commitTransaction()
+
           this.jsonRes(options, res);
         } catch (error) {
-          await this.rollbackTransaction(queryRunner)
           return next(error)
-        } finally {
-          await queryRunner.release()
         }
     }
 
@@ -96,17 +78,11 @@ export class ResidenciaController extends BaseController {
       const provinciaId:number = req.body.provinciaId
       const paisId:number = req.body.paisId
       try {
-        await queryRunner.startTransaction()
-  
         const options = await this.getBarrioByLocalidadQuery(queryRunner, paisId, provinciaId, localidadId)
         
-        await queryRunner.commitTransaction()
         this.jsonRes(options, res);
       } catch (error) {
-        await this.rollbackTransaction(queryRunner)
         return next(error)
-      } finally {
-        await queryRunner.release()
       }
   }
 }

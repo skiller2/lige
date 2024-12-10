@@ -701,6 +701,39 @@ export class TelefoniaController extends BaseController {
     }
   }
 
+  private async getLugarTelefonoQuery(queryRunner:any){
+    return await queryRunner.query(`
+        SELECT lug.LugarTelefonoId value, TRIM(lug.LugarTelefonoDescripcion) label
+        FROM LugarTelefono lug`)
+  }
+
+  async getLugarTelefono(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await this.getLugarTelefonoQuery(queryRunner)
+
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  private async getTipoTelefonoQuery(queryRunner:any){
+    return await queryRunner.query(`
+        SELECT tipo.TipoTelefonoId value, TRIM(tipo.TipoTelefonoDescripcion) label
+        FROM TipoTelefono tipo`)
+  }
+
+  async getTipoTelefono(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await this.getTipoTelefonoQuery(queryRunner)
+
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
 
 }
 
