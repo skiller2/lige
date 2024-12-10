@@ -65,12 +65,12 @@
       </nz-form-item>
 
 
-        <nz-form-control>
+        <nz-form-control *ngIf="ngForm().enabled">
           <app-file-upload ngModel name="files" [idForSearh]="this.PersonalId()" [textForSearch]="'DOC'" [fileAccept]="'image/*'" [keyField]="'persona_id'"></app-file-upload>
         </nz-form-control>
         
       
-      <nz-form-item>
+      <nz-form-item *ngIf="ngForm().enabled">
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">  
           <!-- <button nzType="primary" nz-button  (click)="save()" [nzLoading]="isLoading()"   [disabled]="PersonalId() <= 0">
             {{ 'app.btn.save' | i18n }}

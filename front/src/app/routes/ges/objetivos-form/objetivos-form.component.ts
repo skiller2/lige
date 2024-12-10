@@ -150,7 +150,7 @@ export class ObjetivosFormComponent {
    
     this.formCli.get('codigo')?.disable()
    
-     if( !this.ObjetivoId() || this.ObjetivoId() > 0){
+     if( !this.ObjetivoId() && this.ObjetivoId() > 0){
       this.formCli.reset()
       this.formCli.markAsPristine()
     }

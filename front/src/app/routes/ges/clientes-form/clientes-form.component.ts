@@ -163,7 +163,8 @@ export class ClientesFormComponent {
   async newRecord() {
     this.formCli.enable()
     this.formCli.get('codigo')?.disable()
-    if( !this.ClienteId() || this.ClienteId() > 0){
+    console.log("this.ClienteId() ", this.ClienteId())
+    if( !this.ClienteId() && this.ClienteId() > 0){
       this.formCli.reset()
       this.formCli.markAsPristine()
     }

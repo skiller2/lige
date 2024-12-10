@@ -93,6 +93,8 @@ export class ObjetivosComponent {
       this.gridOptions.enableRowDetailView = this.apiService.isMobile()
       this.gridOptions.showFooterRow = true
       this.gridOptions.createFooterRow = true
+
+      
   }
 
     async angularGridReady(angularGrid: any) {

@@ -4,10 +4,13 @@
 
     <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse;">
       <nz-button-group >
-        <a [routerLink]="['/', 'ges', 'acceso-bot','detalle']" (click)="setEdit(true)" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
+        <a [routerLink]="['/', 'ges', 'acceso-bot','editar']" (click)="setEdit(true)" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
           <button nz-button nzType="default" [disabled]="editPersonaId > 0? false : true"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
         </a>
-        <a [routerLink]="['/', 'ges', 'acceso-bot','alta']" (click)="setEdit(false)"  nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+        <a [routerLink]="['/', 'ges', 'acceso-bot','detalle']" (click)="setEdit(false)"  nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}">
+          <button nz-button nzType="default" [disabled]="editPersonaId > 0? false : true"><span nz-icon nzType="info-circle" nzTheme="outline"></span></button>
+        </a>
+        <a [routerLink]="['/', 'ges', 'acceso-bot','alta']"  (click)="setEdit(false)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
           <button nz-button nzType="default" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
         </a>
       </nz-button-group>
@@ -24,7 +27,14 @@
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'ges', 'acceso-bot', 'listado']" (click)="getGridData()" >Personas</a>
         </li>
+        @if(!childIsPristine()){
+          <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <a [routerLink]="['/', 'ges', 'acceso-bot', 'alta']">{{ 'app.alta' | i18n }}</a>
+          </li>
+        }
       </ul>
+    
     </div>
   
   </div>
@@ -33,7 +43,7 @@
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
   
       <nz-tab>
-        <a nz-tab-link routerLink="/ges/acceso-bot/listado" >Persona</a>
+        <a nz-tab-link routerLink="/ges/acceso-bot/listado" >{{ 'app.icon.persona' | i18n }}</a>
   
         <ng-template nz-tab *ngIf="(columns$|async) as columnas">
           <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters" />
@@ -48,13 +58,22 @@
       </nz-tab>
 
       <nz-tab>
-        <a nz-tab-link routerLink="/ges/acceso-bot/detalle">Detalle</a>
+        <a nz-tab-link routerLink="/ges/acceso-bot/editar">{{ 'app.edit' | i18n }}</a>
         <app-acceso-bot-form #AccesoBotFormEdit [PersonalId]="editPersonaId" [edit]="edit()" (onAddorUpdate)="handleAddOrUpdate()"></app-acceso-bot-form>
+      </nz-tab>
+
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/acceso-bot/detalle">{{ 'app.detail' | i18n }}</a>
+        <app-acceso-bot-form #AccesoBotFormDeta [PersonalId]="editPersonaId" [edit]="edit()" (onAddorUpdate)="handleAddOrUpdate()"></app-acceso-bot-form>
       </nz-tab>
   
       <nz-tab> 
-        <a nz-tab-link routerLink="/ges/acceso-bot/alta">Alta </a>
-          <app-acceso-bot-form #AccesoBotFormAlta [edit]="edit()" [(addNew)]="addNew" (onAddorUpdate)="handleAddOrUpdate()"></app-acceso-bot-form> 
+        <a nz-tab-link routerLink="/ges/acceso-bot/alta">{{ 'app.alta' | i18n }} </a>
+          <app-acceso-bot-form #AccesoBotFormAlta
+          [edit]="edit()" 
+          [(addNew)]="addNew"
+          (onAddorUpdate)="handleAddOrUpdate()"
+          (pristineChange)="onPristineChange($event)"></app-acceso-bot-form> 
       </nz-tab>
   
     </nz-tabset>

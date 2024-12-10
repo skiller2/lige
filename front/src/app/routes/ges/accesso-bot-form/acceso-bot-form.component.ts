@@ -46,29 +46,33 @@ export class AccesoBotFormComponent {
   dniFresteDorso = signal(0)
   private readonly http = inject(HttpClient);
   onAddorUpdate = output()
+  pristineChange = output<boolean>()
 
   async ngOnInit() {
-    // effect(async () => {
-     
-    //   if (this.edit()) {
-    //     await this.load()
-    //   } else{
-    //     this.ngForm().form.reset()
-    //   }
-    // }, { injector: this.injector,
-    //      allowSignalWrites:true
-    // });
+    this.ngForm().form.statusChanges.subscribe(() => {
+      this.checkPristine();
+   });
 
   }
 
   async newRecord() {
-    this.ngForm().form.reset()
+    
+    if( !this.PersonalId() && this.PersonalId() > 0){
+      this.ngForm().form.reset()
+    }
   }
 
   async viewRecord(readonly:boolean) {
+
+    await this.load()
+
     if (this.edit()) 
-      await this.load()
+      this.ngForm().form.enable()
+    else
+      this.ngForm().form.disable()
+  
    }
+ 
 
 
   async decodeQrCodeFromUrl(url: string): Promise<void> {
@@ -92,6 +96,10 @@ export class AccesoBotFormComponent {
       img.onload = () => resolve(img);
       img.onerror = reject;
     });
+  }
+
+  checkPristine() {
+    this.pristineChange.emit( this.ngForm().form.pristine);
   }
 
   async load() {

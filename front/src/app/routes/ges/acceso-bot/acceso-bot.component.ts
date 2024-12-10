@@ -45,6 +45,7 @@ export class AccesoBotComponent {
   detailViewRowCount = 1;
   editPersonaId  = 0;
   edit = signal(false)
+  childIsPristine = signal(true)
   addNew = false
   excelExportService = new ExcelExportService()
   list$ = new BehaviorSubject('')
@@ -54,6 +55,7 @@ export class AccesoBotComponent {
   }
 
   childAlta = viewChild.required<AccesoBotFormComponent>('AccesoBotFormAlta')
+  childDeta = viewChild.required<AccesoBotFormComponent>('AccesoBotFormDeta')
   childEdit = viewChild.required<AccesoBotFormComponent>('AccesoBotFormEdit')
 
   formChange$ = new BehaviorSubject('');
@@ -129,13 +131,21 @@ export class AccesoBotComponent {
       this.edit.set(value) 
   }
 
+  onPristineChange(isPristine: boolean) {
+    this.childIsPristine.set(isPristine)
+
+  }
+
   onTabsetChange(_event: any) {
     switch (_event.index) {
-      case 2: //INSERT
+      case 3: //INSERT
         this.childAlta().newRecord()
         break
+      case 2: //DETAIL
+        this.childDeta().viewRecord(true)
+        break;
       case 1: //EDIT
-       this.childEdit().viewRecord(false)
+        this.childEdit().viewRecord(false)
         break;
         default:
         break;
