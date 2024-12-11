@@ -30,6 +30,7 @@ export class CustodiaFormComponent {
     personalId = signal(0);
     custodiaId = model(0);
     edit = model(true)
+    costo = signal(0)
 
     anio = input(0)
     mes = input(0)
@@ -57,6 +58,10 @@ export class CustodiaFormComponent {
     numFactura():boolean {
         const value = this.formCus.get("estado")?.value
         return (value == 4)
+    }
+    facturacion():number {
+        const value = this.formCus.get("facturacion")?.value
+        return value? value : 0
     }
 
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
@@ -106,7 +111,7 @@ export class CustodiaFormComponent {
             this.vehiculos().push(this.fb.group({...this.objVehiculo}))
 
         this.formCus.reset(infoCust)
-
+        this.onChangeCosto()
         
         if (this.edit()) {
             this.formCus.enable()
@@ -218,6 +223,19 @@ export class CustodiaFormComponent {
                 this.optionsDescRequirente = res
             }
         }
+    }
+
+    onChangeCosto() {
+        let costo = 0
+        let personal = this.personal()
+        let vehiculos = this.vehiculos()
+        personal.value.forEach((obj:any)=>{costo += obj.importe})
+        vehiculos.value.forEach((obj:any)=>{costo += (obj.importe + obj.peaje)})
+        this.costo.set(costo)
+    }
+
+    getDiferencia():number{
+        return this.facturacion() - this.costo()
     }
 
 }

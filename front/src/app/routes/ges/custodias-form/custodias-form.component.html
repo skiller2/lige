@@ -88,7 +88,7 @@
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" >
         <nz-input-group style="width: 100%"  [nzAddOnAfter]="controlPersonalButton" nzSearch>
-          <input nz-input placeholder="" formControlName="importe" type="number" />
+          <input nz-input placeholder="" formControlName="importe" type="number" (ngModelChange)="onChangeCosto()" />
         </nz-input-group>
         <ng-template #controlPersonalButton >
           <button nz-button *ngIf="personal().controls.length == i+1 && formCus.enabled" nzType="primary" class="add-button" (click)="addPersonal($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
@@ -118,13 +118,13 @@
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2">Importe</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">
-        <input nz-input placeholder="" formControlName="importe" type="number" />
+        <input nz-input placeholder="" formControlName="importe" type="number" (ngModelChange)="onChangeCosto()"/>
       </nz-form-control>
 
       <nz-form-label  [nzXs]="24" [nzSm]="24" [nzMd]="2">Peaje</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="controlVehiculoButton" nzSearch>
-          <input nz-input placeholder="" formControlName="peaje" type="number" />
+          <input nz-input placeholder="" formControlName="peaje" type="number" (ngModelChange)="onChangeCosto()"/>
         </nz-input-group>
         <ng-template #controlVehiculoButton >
           <button nz-button *ngIf="vehiculos().controls.length == i+1 && formCus.enabled" nzType="primary" class="add-button" (click)="addVehiculo($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
@@ -183,11 +183,18 @@
         <input nz-input placeholder="" formControlName="impoPeaje" type="number" (ngModelChange)="onChangeImpo()" />
       </nz-form-control>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Importe a Facturar</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="3">Importe a Facturar</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
         <input nz-input placeholder="" formControlName="facturacion" type="number" readonly/>
       </nz-form-control>
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Diferencia</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2">
+        <p [ngClass]="getDiferencia() < 0? 'negative' : 'positive'">${{getDiferencia()}}</p>
+        <!-- <input nz-input placeholder="" formControlName="facturacion" type="number" readonly/> -->
+      </nz-form-control>
     </nz-form-item>
+
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Despacho/Operación/Referencia</nz-form-label>
       <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
@@ -204,7 +211,7 @@
           </ng-container>
         </nz-select>
       </nz-form-control>
-@if (numFactura()){
+    @if (numFactura()){
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5" >Número de Factura</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <input nz-input  placeholder="" formControlName="numFactura" type="number" />

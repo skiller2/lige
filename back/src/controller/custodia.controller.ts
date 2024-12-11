@@ -183,6 +183,14 @@ const columnsObjCustodia: any[] = [
         searchType: "float",
     },
     {
+        id: "diferencia", name: "Diferencia", field: "diferencia",
+        type: "currency",
+        sortable: true,
+        hidden: false,
+        searchHidden: true,
+        minWidth: 110,
+    },
+    {
         id: 'fecha_liquidacion', name: 'Fecha Liquidacion', field: 'fecha_liquidacion',
         fieldName: "obj.fecha_liquidacion",
         type: 'date',
@@ -508,12 +516,21 @@ export class CustodiaController extends BaseController {
             obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) cliente,
             CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) responsable, obj.impo_facturar facturacion,
             obj.desc_facturacion, obj.fecha_liquidacion,
-            obj.impo_peaje, obj.impo_km_exced, obj.cant_km_exced,obj.impo_horas_exced, obj.cant_horas_exced,obj.importe_modulos,obj.cant_modulos
+            obj.impo_peaje, obj.impo_km_exced, obj.cant_km_exced,obj.impo_horas_exced, obj.cant_horas_exced,obj.importe_modulos,obj.cant_modulos,
+            (obj.impo_facturar - (regveh.COSTO + regper.COSTO)) diferencia
             FROM lige.dbo.objetivocustodia obj
             JOIN Personal per ON per.PersonalId = obj.responsable_id
             JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
-            LEFT JOIN lige.dbo.regvehiculocustodia regveh ON regveh.objetivo_custodia_id = obj.objetivo_custodia_id
-            LEFT JOIN lige.dbo.regpersonalcustodia regper ON regper.objetivo_custodia_id = obj.objetivo_custodia_id
+            LEFT JOIN (
+                SELECT regveh.objetivo_custodia_id , (SUM(ISNULL(regveh.importe_vehiculo,0) + ISNULL(regveh.peaje_vehiculo,0))) COSTO
+                FROM lige.dbo.regvehiculocustodia regveh
+                GROUP BY regveh.objetivo_custodia_id
+            ) regveh ON regveh.objetivo_custodia_id = obj.objetivo_custodia_id
+            LEFT JOIN (
+                SELECT regper.objetivo_custodia_id , SUM(ISNULL(regper.importe_personal,0)) COSTO
+                FROM lige.dbo.regpersonalcustodia regper
+                GROUP BY regper.objetivo_custodia_id
+            ) regper ON regper.objetivo_custodia_id = obj.objetivo_custodia_id
             WHERE ((obj.fecha_liquidacion IS NULL AND obj.estado IN (0)) OR (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1))
             AND (${search}) AND (${filterSql}) 
             ${orderBy}`, [year, month])
@@ -800,6 +817,7 @@ export class CustodiaController extends BaseController {
                     cant_km_exced: obj.cant_km_exced,
                     impo_km_exced: obj.impo_km_exced,
                     impo_peaje: obj.impo_peaje,
+                    diferencia: obj.diferencia
                 }
             })
             await queryRunner.commitTransaction()
