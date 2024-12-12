@@ -502,14 +502,20 @@ export class CustodiaController extends BaseController {
     }
 
     async listObjetivoCustodiaByResponsableQuery(queryRunner: any, filterSql: any, orderBy: any, periodo: Date, responsableId?: number) {
-        const year = periodo.getFullYear()
-        const month = periodo.getMonth() + 1
+        console.log('periodo', periodo);
+        let year = 0
+        let month = 0
+        let condition = ''
+        if (periodo){
+            condition = `(obj.fecha_liquidacion IS NULL AND obj.estado IN (0)) OR (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1)`
+            year = periodo.getFullYear()
+            month = periodo.getMonth() + 1
+        }else condition = `1=1`
         let search = ''
-        if (responsableId === undefined) {
-            search = `1=1`
-        } else {
-            search = `obj.responsable_id IN (${responsableId})`
-        }
+
+        if (responsableId === undefined)  search = `1=1`
+        else search = `obj.responsable_id IN (${responsableId})`
+
         return await queryRunner.query(`
             SELECT DISTINCT obj.objetivo_custodia_id id, obj.responsable_id responsableId,
             obj.cliente_id clienteId, obj.desc_requirente, obj.descripcion, obj.fecha_inicio, 
@@ -531,7 +537,7 @@ export class CustodiaController extends BaseController {
                 FROM lige.dbo.regpersonalcustodia regper
                 GROUP BY regper.objetivo_custodia_id
             ) regper ON regper.objetivo_custodia_id = obj.objetivo_custodia_id
-            WHERE ((obj.fecha_liquidacion IS NULL AND obj.estado IN (0)) OR (DATEPART(YEAR,obj.fecha_liquidacion)=@0 AND  DATEPART(MONTH, obj.fecha_liquidacion)=@1))
+            WHERE (${condition})
             AND (${search}) AND (${filterSql}) 
             ${orderBy}`, [year, month])
     }
@@ -783,7 +789,7 @@ export class CustodiaController extends BaseController {
             await queryRunner.startTransaction()
             // const responsableId = 699
             const responsableId = res.locals.PersonalId
-            const periodo: Date = new Date(req.body.periodo)
+            const periodo: Date = req.body.periodo? new Date(req.body.periodo) : null
             const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
 
             const filterSql = filtrosToSql(options.filtros, columnsObjCustodia);

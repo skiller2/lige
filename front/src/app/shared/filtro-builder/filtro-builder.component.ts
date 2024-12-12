@@ -177,7 +177,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         this.selections as any,
         value,
         `${this.selections.field.name} ${this.selections.operator} ${this.selections.label}`,
-        !this.selections.forced
+        !this.selections.forced,
+        (this.selections.field.type) ? this.selections.field.type : 'string'
       )
     }
     this.resetSelections();
@@ -199,13 +200,15 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     selections: { field: any; condition: any; operator: any },
     valueToFilter: any[],
     tagName: string,
-    closeable: boolean
+    closeable: boolean,
+    type:string
   ): Filtro {
     const filtro = {
       index: selections.field.field,
       condition: selections.condition,
       operador: selections.operator,
       valor: valueToFilter,
+      type: type,
       tagName,
       closeable
   

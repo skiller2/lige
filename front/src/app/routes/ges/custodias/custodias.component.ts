@@ -73,7 +73,7 @@ export class CustodiaComponent {
     gridData$ = this.listCustodia$.pipe(
         debounceTime(500),
         switchMap(() => {
-            return this.searchService.getListaObjetivoCustodia(this.listOptions, this.periodo())
+            return this.apiService.getListaObjetivoCustodia(this.listOptions, this.periodo())
                 .pipe(map(data => { return data }))
         })
     )
@@ -94,11 +94,11 @@ export class CustodiaComponent {
             return false
     }
 
-    selectedPeriod = computed(() => {
-        if (this.periodo()) {
-            this.getGridData()
-        }
-    })
+    // selectedPeriod = computed(() => {
+    //     if (this.periodo()) {
+    //         this.getGridData()
+    //     }
+    // })
 
     async ngOnInit() {
 
@@ -118,9 +118,11 @@ export class CustodiaComponent {
         effect(async () => {
             // console.log('PERIODO',this.periodo());
             const periodo = this.periodo() //para que triggee
-            localStorage.setItem('anio',String(this.periodo().getFullYear()))
-            localStorage.setItem('mes',String(this.periodo().getMonth()+1))
-            this.getGridData()
+            if(periodo){
+                localStorage.setItem('anio',String(this.periodo().getFullYear()))
+                localStorage.setItem('mes',String(this.periodo().getMonth()+1))
+            }
+            this.listCustodia('')
         }, { injector: this.injector });
 
 
@@ -196,10 +198,6 @@ export class CustodiaComponent {
             this.formCusEstado.markAsUntouched()
             this.formCusEstado.markAsPristine()
         }
-    }
-
-    getGridData(): void {
-        this.listCustodia('')
     }
 
     listOptionsChange(options: any) {

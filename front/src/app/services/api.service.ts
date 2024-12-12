@@ -1114,6 +1114,19 @@ export class ApiService {
     );
   }
 
+  getListaObjetivoCustodia(options: any, periodo:Date){
+    if (!periodo && !options.filtros.length){
+      this.notification.error('Error', `No se encontraron datos porque no ha ingresado un filtro. Por favor, ingrese al menos un filtro o un período.`);
+      return of([]);
+    }
+    return this.http
+      .post<ResponseJSON<any>>(`api/custodia/list`, {options, periodo})
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {
