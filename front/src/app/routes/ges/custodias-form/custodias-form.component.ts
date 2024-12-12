@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, effect, ChangeDetectionStrategy, signal, model, Input, input, } from '@angular/core';
+import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, effect, ChangeDetectionStrategy, signal, model, Input, input, computed, } from '@angular/core';
 import { SHARED_IMPORTS} from '@shared';
 // import { Observable } from 'rxjs';
 import { ApiService } from '../../../services/api.service';
@@ -31,6 +31,13 @@ export class CustodiaFormComponent {
     custodiaId = model(0);
     edit = model(true)
     costo = signal(0)
+    facturacion = signal(0)
+    diferencia = computed(() => {
+            if (this.costo()||this.facturacion())
+                return (this.facturacion() > 0) ? 100-this.costo() * 100 / this.facturacion() : 0
+            else
+                return 0
+        });    
 
     anio = input(0)
     mes = input(0)
@@ -58,10 +65,6 @@ export class CustodiaFormComponent {
     numFactura():boolean {
         const value = this.formCus.get("estado")?.value
         return (value == 4)
-    }
-    facturacion():number {
-        const value = this.formCus.get("facturacion")?.value
-        return value? value : 0
     }
 
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
@@ -112,6 +115,7 @@ export class CustodiaFormComponent {
 
         this.formCus.reset(infoCust)
         this.onChangeCosto()
+        this.onChangeImpo()
         
         if (this.edit()) {
             this.formCus.enable()
@@ -201,6 +205,7 @@ export class CustodiaFormComponent {
             }
         }
         this.formCus.controls['facturacion'].patchValue(facturacion)
+        this.facturacion.set(facturacion)
     }
 
     async searchDueno(index: number) {
@@ -234,8 +239,5 @@ export class CustodiaFormComponent {
         this.costo.set(costo)
     }
 
-    getDiferencia():number{
-        return this.facturacion() - this.costo()
-    }
 
 }

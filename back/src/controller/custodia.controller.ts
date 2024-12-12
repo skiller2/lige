@@ -184,7 +184,7 @@ const columnsObjCustodia: any[] = [
     },
     {
         id: "diferencia", name: "Diferencia", field: "diferencia",
-        type: "currency",
+        type: "float",
         sortable: true,
         hidden: false,
         searchHidden: true,
@@ -523,7 +523,7 @@ export class CustodiaController extends BaseController {
             CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) responsable, obj.impo_facturar facturacion,
             obj.desc_facturacion, obj.fecha_liquidacion,
             obj.impo_peaje, obj.impo_km_exced, obj.cant_km_exced,obj.impo_horas_exced, obj.cant_horas_exced,obj.importe_modulos,obj.cant_modulos,
-            (obj.impo_facturar - (regveh.COSTO + regper.COSTO)) diferencia
+            IIF(obj.impo_facturar>0,100-(regveh.COSTO + regper.COSTO)*100/obj.impo_facturar,0) diferencia
             FROM lige.dbo.objetivocustodia obj
             JOIN Personal per ON per.PersonalId = obj.responsable_id
             JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
@@ -1148,7 +1148,7 @@ export class CustodiaController extends BaseController {
                 const estado: number = form.estado
                 const numFactura: number = form.numFactura
 
-                const authorizedEdit:boolean = await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')
+                const authEditAdmin:boolean = await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')
                 const adminEdit:boolean = await this.hasGroup(req, 'administrativo')
 
                 if (estado == 4 && !adminEdit)
@@ -1162,12 +1162,17 @@ export class CustodiaController extends BaseController {
                     let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, id)
                     infoCustodia = infoCustodia[0]
 
-                    if (!authorizedEdit && infoCustodia.responsableId != responsableId ) {
+                    if (!authEditAdmin && infoCustodia.responsableId != responsableId ) {
                         errores.push(`Codigo ${id}: Solo el responsable puede modificar la custodia o grupos Administrativo/Liquidaciones.`)
                         continue
                     }
+
+                    if (!authEditAdmin && estado == 4) { 
+                        errores.push(`Codigo ${id}: Solo los grupos Administrativo/Liquidaciones, pueden grabar estado Facturado`)
+                        continue
+                    }
                     //Validaciones
-                    if (infoCustodia.estado == 4) {
+                    if (infoCustodia.estado == 4 && estado != infoCustodia.estado) {
                         errores.push(`Codigo ${id}: No se puede modificar el estado.`)
                         continue
                     }
