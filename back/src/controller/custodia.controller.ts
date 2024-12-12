@@ -1142,7 +1142,7 @@ export class CustodiaController extends BaseController {
                 const estado: number = form.estado
                 const numFactura: number = form.numFactura
 
-                const authorizedEdit:boolean = await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')
+                const authEditAdmin:boolean = await this.hasGroup(req, 'liquidaciones') || await this.hasGroup(req, 'administrativo')
                 const adminEdit:boolean = await this.hasGroup(req, 'administrativo')
 
                 if (estado == 4 && !adminEdit)
@@ -1156,12 +1156,17 @@ export class CustodiaController extends BaseController {
                     let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, id)
                     infoCustodia = infoCustodia[0]
 
-                    if (!authorizedEdit && infoCustodia.responsableId != responsableId ) {
+                    if (!authEditAdmin && infoCustodia.responsableId != responsableId ) {
                         errores.push(`Codigo ${id}: Solo el responsable puede modificar la custodia o grupos Administrativo/Liquidaciones.`)
                         continue
                     }
+
+                    if (!authEditAdmin && estado == 4) { 
+                        errores.push(`Codigo ${id}: Solo los grupos Administrativo/Liquidaciones, pueden grabar estado Facturado`)
+                        continue
+                    }
                     //Validaciones
-                    if (infoCustodia.estado == 4) {
+                    if (infoCustodia.estado == 4 && estado != infoCustodia.estado) {
                         errores.push(`Codigo ${id}: No se puede modificar el estado.`)
                         continue
                     }
