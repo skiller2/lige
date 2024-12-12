@@ -235,7 +235,7 @@ export class CustodiaFormComponent {
     }
 
     getDiferencia():number{
-        return this.facturacion() - this.costo()
+        return (this.facturacion()>0)? this.costo() * 100 / this.facturacion():0
     }
 
 }
