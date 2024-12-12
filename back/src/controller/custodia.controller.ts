@@ -517,7 +517,7 @@ export class CustodiaController extends BaseController {
             CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) responsable, obj.impo_facturar facturacion,
             obj.desc_facturacion, obj.fecha_liquidacion,
             obj.impo_peaje, obj.impo_km_exced, obj.cant_km_exced,obj.impo_horas_exced, obj.cant_horas_exced,obj.importe_modulos,obj.cant_modulos,
-            IIF(obj.impo_facturar>0,(regveh.COSTO + regper.COSTO)*100/obj.impo_facturar,0) diferencia
+            IIF(obj.impo_facturar>0,100-(regveh.COSTO + regper.COSTO)*100/obj.impo_facturar,0) diferencia
             FROM lige.dbo.objetivocustodia obj
             JOIN Personal per ON per.PersonalId = obj.responsable_id
             JOIN Cliente cli ON cli.ClienteId = obj.cliente_id

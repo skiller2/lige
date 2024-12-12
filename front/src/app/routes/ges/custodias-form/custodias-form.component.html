@@ -190,7 +190,7 @@
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Diferencia</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2">
-        <p [ngClass]="getDiferencia() < 0? 'negative' : 'positive'">%{{getDiferencia()|number : '1.2-2'}}</p>
+        <p [ngClass]="diferencia() < 0? 'negative' : 'positive'">%{{diferencia()|number : '1.2-2'}}</p>
         <!-- <input nz-input placeholder="" formControlName="facturacion" type="number" readonly/> -->
       </nz-form-control>
     </nz-form-item>
