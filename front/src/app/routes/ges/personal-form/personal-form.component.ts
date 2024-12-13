@@ -40,20 +40,21 @@ export class PersonalFormComponent {
   isLoading = signal(false);
   periodo= signal({anio:0, mes:0})
   files = signal<any[]>([])
+  enableSelectReset = signal<boolean>(true)
   personalId = input(0);
   private notification = inject(NzNotificationService)
   urlUpload = '/api/personal/upload'
   uploading$ = new BehaviorSubject({loading:false,event:null});
   
   fb = inject(FormBuilder)
-  objTelefono = {lugarTelefonoId:0, tipoTelefonoId:0, codigoPais:'', codigoArea:0, telefonoNum:0}
-  objEstudio = {tipoEstudioId:0, estadoEstudioId:0, estudioTitulo:'', estudioAnio:0}
+  objTelefono = {PersonalTelefonoId:0, LugarTelefonoId:0, TipoTelefonoId:0, CodigoPais:'', CodigoArea:'', TelefonoNro:''}
+  objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', EstudioAno:null}
   inputs = { 
-    Nombre:'', Apellido:'', CUIT:0, NroLegajo:0, SucursalId:0, FechaIngreso:'',
+    Nombre:'', Apellido:'', CUIT:null, NroLegajo:null, SucursalId:0, FechaIngreso:'',
     FechaNacimiento:'', Foto:'', NacionalidadId:0, docDorso:'', docFrente:'',
-    calle:'', numero:'', piso:'', departamento:'', esquina:'', esquinaY:'', //Domicilio
-    bloque:'', edificio:'', cuerpo:'', codPostal:'', paisId:0, provinciaId:0, //Domicilio
-    localidadId:0, barrioId:0, //Domicilio
+    Calle:'', Nro:'', Piso:'', Dpto:'', Esquina:'', EsquinaY:'', //Domicilio
+    Bloque:'', Edificio:'', Cuerpo:'', CodigoPostal:'', PaisId:0, ProvinciaId:0, //Domicilio
+    LocalidadId:0, BarrioId:0, PersonalDomicilioId:0,//Domicilio
     telefonos: this.fb.array([this.fb.group({...this.objTelefono})]),
     estudios: this.fb.array([this.fb.group({...this.objEstudio})]),
   }
@@ -83,17 +84,17 @@ export class PersonalFormComponent {
     else return ''
   }
   paisId():number {
-    const value = this.formPer.get("paisId")?.value
+    const value = this.formPer.get("PaisId")?.value
     if(value) return value
     else return 0
   }
   provinciaId():number {
-      const value = this.formPer.get("provinciaId")?.value
+      const value = this.formPer.get("ProvinciaId")?.value
       if(value) return value
       else return 0
   }
   localidadId():number {
-      const value = this.formPer.get("localidadId")?.value
+      const value = this.formPer.get("LocalidadId")?.value
       if(value) return value
       else return 0
   }
@@ -142,6 +143,7 @@ export class PersonalFormComponent {
   }
 
   async load() {
+    this.enableSelectReset.set(false)
     let infoPersonal = await firstValueFrom(this.searchService.getPersonalInfoById(this.personalId()))
     let values:any = {...this.inputs}
     
@@ -164,12 +166,17 @@ export class PersonalFormComponent {
         this.estudios().push(this.fb.group({...this.objEstudio}))
 
     this.formPer.reset(values)
+    console.log(this.formPer.value);
+    console.log(this.paisId(), this.provinciaId(), this.localidadId());
+    
+    
 
     let arrayFiles : any[] = []
     if (infoPersonal.Foto){arrayFiles.push({ fieldname: infoPersonal.Foto, originalname: infoPersonal.Foto, save:true})}
     if (infoPersonal.docDorso){arrayFiles.push({ fieldname: infoPersonal.docDorso, originalname: infoPersonal.docDorso, save:true})}
     if (infoPersonal.docFrente){arrayFiles.push({ fieldname: infoPersonal.docFrente, originalname: infoPersonal.docFrente, save:true})}
     this.files.set(arrayFiles)
+    this.enableSelectReset.set(true)
   }
 
   uploadChange(event: any, input:string) {
@@ -220,7 +227,8 @@ export class PersonalFormComponent {
     this.isLoading.set(true)
     const values:any = this.formPer.value
     let files = [...this.files()]
-    console.log('files', files);
+    // console.log('files', files);
+    // console.log('values', values);
     try {
       if (this.personalId()) {
         let newFiles:any = await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))
@@ -284,23 +292,28 @@ export class PersonalFormComponent {
   }
 
   selectedPaisChange(event: any):void{
-    this.formPer.get('provinciaId')?.reset()
-    this.formPer.get('localidadId')?.reset()
-    this.formPer.get('barrioId')?.reset()
+    if (this.enableSelectReset()){
+      this.formPer.get('ProvinciaId')?.reset()
+      this.formPer.get('LocalidadId')?.reset()
+      this.formPer.get('BarrioId')?.reset()
+    }
     this.$selectedPaisIdChange.next('')
     this.$selectedProvinciaIdChange.next('')
     this.$selectedLocalidadIdChange.next('')
   }
 
   selectedProvinciaChange(event: any):void{
-      this.formPer.get('localidadId')?.reset()
-      this.formPer.get('barrioId')?.reset()
-      this.$selectedProvinciaIdChange.next('')
-      this.$selectedLocalidadIdChange.next('')
+    if (this.enableSelectReset()){
+      this.formPer.get('LocalidadId')?.reset()
+      this.formPer.get('BarrioId')?.reset()
+    }
+    this.$selectedProvinciaIdChange.next('')
+    this.$selectedLocalidadIdChange.next('')
   }
 
   selectedLocalidadChange(event: any):void{
-    this.formPer.get('barrioId')?.reset()
+    if (this.enableSelectReset()) 
+      this.formPer.get('BarrioId')?.reset()
     this.$selectedLocalidadIdChange.next('')
   }
 
