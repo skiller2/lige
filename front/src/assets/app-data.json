@@ -179,6 +179,11 @@
           "text": "Objetivos",
           "link": "/ges/objetivos",
           "icon": "anticon-profile"
+        },
+        {
+          "text": "Precios de Productos",
+          "link": "/ges/precios_productos",
+          "icon": "anticon-profile"
         }
       ]
     }
