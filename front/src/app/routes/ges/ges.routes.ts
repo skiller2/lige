@@ -116,4 +116,9 @@ export const GesRoutes: Routes = [
     path: 'acceso-bot/:tab',
     loadComponent: () => import('./acceso-bot/acceso-bot.component').then(c => c.AccesoBotComponent),
   },
+  { path: 'precios_productos', redirectTo: 'precios_productos/precios' },
+  {
+    path: 'precios_productos/:tab',
+    loadComponent: () => import('./precios-productos/precios-productos.component').then(c => c.PreciosProductosComponent),
+  },
 ];

@@ -748,6 +748,15 @@ export class SearchService {
       );
   }
 
+  getListaPrecioProductos(filters: any){
+    return this.http
+      .post<ResponseJSON<any>>(`api/precios-productos/list`, filters)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
   getListAccessBot(filters: any){
     return this.http
       .post<ResponseJSON<any>>(`api/acceso-bot/list`, filters)
