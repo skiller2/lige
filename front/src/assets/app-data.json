@@ -112,6 +112,17 @@
           ]
         },
         {
+          "text": "Productos",
+          "icon": "anticon-profile",
+          "children": [
+            {
+              "text": "Precios",
+              "icon": "anticon-profile",
+              "link": "/lpv/precios_productos"
+            }
+          ]
+        },
+        {
           "text": "Tipo Documento",
           "link": "/ges/tipo_documento",
           "icon": "anticon-profile"
@@ -179,12 +190,8 @@
           "text": "Objetivos",
           "link": "/ges/objetivos",
           "icon": "anticon-profile"
-        },
-        {
-          "text": "Precios de Productos",
-          "link": "/ges/precios_productos",
-          "icon": "anticon-profile"
         }
+        
       ]
     }
   ],
