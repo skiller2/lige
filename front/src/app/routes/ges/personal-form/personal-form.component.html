@@ -135,11 +135,11 @@
   <nz-form-item class="marginElement">
     <nz-form-label [nzMd]="3">Calle</nz-form-label>
     <nz-form-control [nzMd]="11">
-      <input nz-input placeholder="" formControlName="calle" type="text"/>
+      <input nz-input placeholder="" formControlName="Calle" type="text"/>
     </nz-form-control>
     <nz-form-label [nzMd]="2">Nro</nz-form-label>
     <nz-form-control [nzMd]="4">
-      <input nz-input placeholder="" formControlName="numero" type="text"/>
+      <input nz-input placeholder="" formControlName="Nro" type="text"/>
     </nz-form-control>
   </nz-form-item>
 
@@ -147,51 +147,51 @@
   <nz-form-item class="marginElement">
     <nz-form-label [nzMd]="3">Entre</nz-form-label>
     <nz-form-control [nzMd]="5">
-        <input nz-input placeholder="" formControlName="esquina" type="text"/>
+        <input nz-input placeholder="" formControlName="Esquina" type="text"/>
     </nz-form-control>
     <nz-form-control [nzMd]="1" style="text-align: center;">
       y
     </nz-form-control>
     <nz-form-control [nzMd]="5">
-        <input nz-input placeholder="" formControlName="esquinaY" type="text"/>
+        <input nz-input placeholder="" formControlName="EsquinaY" type="text"/>
     </nz-form-control>
     <nz-form-label [nzMd]="2">Cod.Postal</nz-form-label>
     <nz-form-control [nzMd]="4">
-        <input nz-input placeholder="" formControlName="codPostal" type="text"/>
+        <input nz-input placeholder="" formControlName="CodigoPostal" type="text"/>
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzMd]="3">Edificio</nz-form-label>
     <nz-form-control [nzMd]="6">
-        <input nz-input placeholder="" formControlName="edificio" type="text"/>
+        <input nz-input placeholder="" formControlName="Edificio" type="text"/>
     </nz-form-control>
     <nz-form-label [nzMd]="2">Departamento</nz-form-label>
     <nz-form-control [nzMd]="5">
-        <input nz-input placeholder="" formControlName="departamento" type="text"/>
+        <input nz-input placeholder="" formControlName="Dpto" type="text"/>
     </nz-form-control>
     <nz-form-label [nzMd]="1">Piso</nz-form-label>
     <nz-form-control [nzMd]="3">
-        <input nz-input placeholder="" formControlName="piso" type="text"/>
+        <input nz-input placeholder="" formControlName="Piso" type="text"/>
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzMd]="3">Bloque</nz-form-label>
     <nz-form-control [nzMd]="6">
-        <input nz-input placeholder="" formControlName="bloque" type="text"/>
+        <input nz-input placeholder="" formControlName="Bloque" type="text"/>
     </nz-form-control>
     
     <nz-form-label [nzMd]="2">Cuerpo</nz-form-label>
     <nz-form-control [nzMd]="6">
-        <input nz-input placeholder="" formControlName="cuerpo" type="text"/>
+        <input nz-input placeholder="" formControlName="Cuerpo" type="text"/>
     </nz-form-control>
   </nz-form-item>
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzMd]="3">Pais</nz-form-label>
     <nz-form-control [nzMd]="6">
-      <nz-select formControlName="paisId" nzPlaceHolder="" nzAllowClear
+      <nz-select formControlName="PaisId" nzPlaceHolder="" nzAllowClear
       [nzDropdownMatchSelectWidth]="false" style="width: 100%"
       (ngModelChange)="selectedPaisChange($event)">
         <ng-container *ngFor="let option of $optionsPais | async">
@@ -202,7 +202,7 @@
     
     <nz-form-label [nzMd]="5">Provincia</nz-form-label>
     <nz-form-control [nzMd]="6">
-      <nz-select formControlName="provinciaId" nzPlaceHolder="" nzAllowClear
+      <nz-select formControlName="ProvinciaId" nzPlaceHolder="" nzAllowClear
       [nzDropdownMatchSelectWidth]="false" style="width: 100%"
       (ngModelChange)="selectedProvinciaChange($event)" >
         <ng-container *ngFor="let option of $optionsProvincia | async">
@@ -215,7 +215,7 @@
   <nz-form-item class="marginElement">
     <nz-form-label [nzMd]="3" >Localidad</nz-form-label>
     <nz-form-control [nzMd]="6">
-      <nz-select formControlName="localidadId" nzPlaceHolder="" nzAllowClear
+      <nz-select formControlName="LocalidadId" nzPlaceHolder="" nzAllowClear
       [nzDropdownMatchSelectWidth]="false" style="width: 100%"
       (ngModelChange)="selectedLocalidadChange($event)" >
         <ng-container *ngFor="let option of $optionsLocalidad | async">
@@ -226,7 +226,7 @@
       
     <nz-form-label [nzMd]="5">Barrio</nz-form-label>
     <nz-form-control [nzMd]="6">
-      <nz-select formControlName="barrioId" nzPlaceHolder="" nzAllowClear
+      <nz-select formControlName="BarrioId" nzPlaceHolder="" nzAllowClear
       [nzDropdownMatchSelectWidth]="false" style="width: 100%">
         <ng-container *ngFor="let option of $optionsBarrio | async">
           <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
@@ -244,7 +244,7 @@
 
       <nz-form-label [nzMd]="2">Lugar</nz-form-label>
       <nz-form-control [nzMd]="2">
-        <nz-select formControlName="lugarTelefonoId" nzPlaceHolder="" nzAllowClear
+        <nz-select formControlName="LugarTelefonoId" nzPlaceHolder="" nzAllowClear
         [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
           <ng-container *ngFor="let option of $optionsTelefonoLugar | async">
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
@@ -254,7 +254,7 @@
         
       <nz-form-label [nzMd]="1">Tipo</nz-form-label>
       <nz-form-control [nzMd]="2">
-        <nz-select formControlName="tipoTelefonoId" nzPlaceHolder="" nzAllowClear
+        <nz-select formControlName="TipoTelefonoId" nzPlaceHolder="" nzAllowClear
         [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
           <ng-container *ngFor="let option of $optionsTelefonoTipo | async">
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
@@ -264,18 +264,18 @@
 
       <nz-form-label [nzMd]="2">Cod.Pais</nz-form-label>
       <nz-form-control [nzMd]="2">
-          <input nz-input placeholder="" formControlName="codigoPais" type="text"/>
+          <input nz-input placeholder="" formControlName="CodigoPais" type="text"/>
       </nz-form-control>
 
       <nz-form-label [nzMd]="2">Cod.Area</nz-form-label>
       <nz-form-control [nzMd]="2">
-          <input nz-input placeholder="" formControlName="codigoArea" type="text"/>
+          <input nz-input placeholder="" formControlName="CodigoArea" type="text"/>
       </nz-form-control>
 
       <nz-form-label [nzMd]="2">Numero Telefono</nz-form-label>
       <nz-form-control [nzMd]="4">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="controlTelefonoButton" nzSearch>
-          <input nz-input placeholder="" formControlName="telefonoNum" type="text"/>
+          <input nz-input placeholder="" formControlName="TelefonoNro" type="text"/>
         </nz-input-group>
         <ng-template #controlTelefonoButton >
           <button nz-button *ngIf="telefonos().controls.length == i+1 && formPer.enabled" nzType="primary" class="add-button" (click)="addTelefono($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
@@ -299,7 +299,7 @@
 
       <nz-form-label [nzMd]="3">Tipo</nz-form-label>
       <nz-form-control [nzMd]="2">
-        <nz-select formControlName="tipoEstudioId" nzPlaceHolder="" nzAllowClear
+        <nz-select formControlName="TipoEstudioId" nzPlaceHolder="" nzAllowClear
         [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
           <ng-container *ngFor="let option of $optionsEstudioTipo | async">
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
@@ -309,7 +309,7 @@
       
       <nz-form-label [nzMd]="2">Estado</nz-form-label>
       <nz-form-control [nzMd]="2">
-        <nz-select formControlName="estadoEstudioId" nzPlaceHolder="" nzAllowClear
+        <nz-select formControlName="EstadoEstudioId" nzPlaceHolder="" nzAllowClear
         [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
           <ng-container *ngFor="let option of $optionsEstudioEstado | async">
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
@@ -319,13 +319,13 @@
 
       <nz-form-label [nzMd]="2">Titulo</nz-form-label>
       <nz-form-control [nzMd]="5">
-        <input nz-input placeholder="" formControlName="estudioTitulo" type="text"/>
+        <input nz-input placeholder="" formControlName="EstudioTitulo" type="text"/>
       </nz-form-control>
 
       <nz-form-label [nzMd]="2">Año</nz-form-label>
       <nz-form-control [nzMd]="2">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="controlEstudioButton" nzSearch>
-          <input nz-input placeholder="" formControlName="estudioAnio" type="number"/>
+          <input nz-input placeholder="" formControlName="EstudioAno" type="number"/>
         </nz-input-group>
         <ng-template #controlEstudioButton >
           <button nz-button *ngIf="estudios().controls.length == i+1 && formPer.enabled" nzType="primary" class="add-button" (click)="addEstudio($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
