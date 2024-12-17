@@ -70,7 +70,6 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/situacion-revista",situacionrevistaRouter)
   server.setRoute("/api/residencia",residenciaRouter)
   server.setRoute("/api/estudio",estudioRouter)
-  server.setRoute("/api/estudio",estudioRouter)
   server.setRoute("/api/precios-productos",preciosProductosRouter)
 
 }

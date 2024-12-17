@@ -41,40 +41,8 @@
   </nz-form-item>
 
   <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha de Nacimiento</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
-      <nz-date-picker formControlName="FechaNacimiento" ></nz-date-picker>
-    </nz-form-control>
-
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Foto</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <!-- <app-file-upload  ngModel name="files"   [idForSearh]="this.personalId() ?? 0"
-            [textForSearch]="''" [keyField]="'persona_id'"></app-file-upload> -->
-      @if(!foto().length){
-        <nz-upload nzAccept="image/jpg" [nzAction]="urlUpload" nzName="jpg" [nzLimit]="1"
-        [nzShowUploadList]="false" (nzChange)="uploadChange($event, 'Foto')" >
-          <button nz-button>
-            <span nz-icon nzType="upload"></span>
-            {{ 'app.btn.upload.photo' | i18n }}
-          </button>
-        </nz-upload>
-        }@else{
-        <button nz-button nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
-        (nzOnConfirm)="confirmDeleteArchivo('Foto')" nzPopconfirmPlacement="top">
-          <span nz-button  nzType="primary" nzDanger nz-icon nzType="delete" nzTheme="outline" class="trash-color">
-          </span>
-            <!-- <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
-              class="download-color" app-down-file [httpMethod]="'POST'"
-              [httpBody]="{'documentId': licenciaAdd.id}" httpUrl="api/carga-licencia/downloadLicencia"></a> -->
-          <span> {{getOriginalName('Foto')}} </span>
-        </button>
-        }
-    </nz-form-control>
-  </nz-form-item>
-
-  <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Nacionalidad</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7">
       <nz-select formControlName="NacionalidadId" nzPlaceHolder="" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
         <ng-container *ngFor="let option of $optionsNacionalidad | async">
           <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
@@ -82,50 +50,30 @@
       </nz-select>
     </nz-form-control>
 
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">DNI - Frente</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
-      @if(!docFrente().length){
-      <nz-upload nzAccept="image/jpg" [nzAction]="urlUpload" nzName="jpg" [nzLimit]="1"
-      [nzShowUploadList]="false" (nzChange)="uploadChange($event, 'docFrente')">
-        <button nz-button>
-          <span nz-icon nzType="upload"></span>
-          {{ 'app.btn.upload.dni' | i18n }}
-        </button>
-      </nz-upload>
-      }@else{
-      <button nz-button nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
-      (nzOnConfirm)="confirmDeleteArchivo('docFrente')" nzPopconfirmPlacement="top">
-        <span nz-button  nzType="primary" nzDanger nz-icon nzType="delete" nzTheme="outline" class="trash-color">
-        </span>
-          <!-- <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
-            class="download-color" app-down-file [httpMethod]="'POST'"
-            [httpBody]="{'documentId': licenciaAdd.id}" httpUrl="api/carga-licencia/downloadLicencia"></a> -->
-        <span> {{getOriginalName('docFrente')}} </span>
-      </button>
-      }
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha de Nacimiento</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+      <nz-date-picker formControlName="FechaNacimiento" ></nz-date-picker>
     </nz-form-control>
 
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">DNI - Dorso</nz-form-label>
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Foto</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
-      @if(!docDorso().length){
-        <nz-upload nzAccept="image/jpg" [nzAction]="urlUpload" nzName="jpg" [nzLimit]="1"
-        [nzShowUploadList]="false" (nzChange)="uploadChange($event, 'docDorso')" >
-          <button nz-button>
-            <span nz-icon nzType="upload"></span>
-            {{ 'app.btn.upload.dni' | i18n }}
-          </button>
-        </nz-upload>
-        }@else{
-        <button nz-button nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
-        (nzOnConfirm)="confirmDeleteArchivo('docDorso')" nzPopconfirmPlacement="top">
-          <span nz-button  nzType="primary" nzDanger nz-icon nzType="delete" nzTheme="outline" class="trash-color">
-          </span>
-            <!-- <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
-              class="download-color" app-down-file [httpMethod]="'POST'"
-              [httpBody]="{'documentId': licenciaAdd.id}" httpUrl="api/carga-licencia/downloadLicencia"></a> -->
-          <span> {{getOriginalName('docDorso')}} </span>
-        </button>
-        }
+        <app-file-upload formControlName="Foto" [idForSearh]="this.personalId()" [textForSearch]="'FOTO'"
+        [keyField]="'PersonalId'" [tableForSearch]="'DocumentoImagenFoto'" [dataBaseForSearch]="'Produccion'"></app-file-upload>
+    </nz-form-control>
+
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">DNI - Frente</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
+      <app-file-upload formControlName="docFrente" [idForSearh]="this.personalId()" [textForSearch]="'DOCUMENFREN'"
+        [keyField]="'PersonalId'" [tableForSearch]="'DocumentoImagenDocumento'" [dataBaseForSearch]="'Produccion'"></app-file-upload>
+    </nz-form-control>
+
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">DNI - Dorso</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
+        <app-file-upload formControlName="docDorso" [idForSearh]="this.personalId()" [textForSearch]="'DOCUMENDOR'"
+        [keyField]="'PersonalId'" [tableForSearch]="'DocumentoImagenDocumento'" [dataBaseForSearch]="'Produccion'"></app-file-upload>
     </nz-form-control>
   </nz-form-item>
 

@@ -16,10 +16,32 @@ export class FileUploadController extends BaseController {
   async getByDownloadFile(req: any, res: Response, next: NextFunction) {
     const documentId = Number(req.body.documentId);
     const filename = String(req.body.filename);
+    const tableSearch = String(req.body.tableSearch);
+    const dataBase = String(req.body.dataBase);
     let finalurl = '', docname=''
     try {
       if (documentId != 0) {
-        const document = await this.getFilesInfo(documentId);
+        let document
+        switch (dataBase) {
+          case 'Produccion':
+            document = await dataSource.query(
+              `SELECT 
+                doc.${tableSearch}Id AS id, 
+                CONCAT('./', TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableSearch}BlobNombreArchivo)) path, 
+                doc.${tableSearch}BlobNombreArchivo AS name
+            FROM ${tableSearch} doc
+            JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+            WHERE doc.${tableSearch}Id = @0`, [documentId])
+            break;
+        case 'lige':
+            document = await this.getFilesInfo(documentId);
+            break;
+        default:
+            throw new ClientException(`Falla en busqueda de Archivo`)
+            break;
+        }
+        console.log('document', document);
+        
         finalurl = `${document[0]["path"]}`
         docname = document[0]["name"]
       } else if (filename) {
@@ -29,7 +51,6 @@ export class FileUploadController extends BaseController {
 
       if (!existsSync(finalurl))
         throw new ClientException(`Archivo ${docname} no localizado`, { path: finalurl })
-
 
       res.download(finalurl, docname)
 
@@ -47,14 +68,15 @@ export class FileUploadController extends BaseController {
   }
 
   async getArchivosAnteriores(
-    id: string,
-    TipoSearch: string,
-    keyField: string,
     req: Request,
     res: Response,
     next: NextFunction
   ) {
-
+    const id = req.params.id
+    const TipoSearch = req.params.TipoSearch
+    const keyField = req.params.keyField
+    const tableSearch = req.params.tableSearch
+    const dataBase = req.params.dataBase
     try {
       const queryRunner = dataSource.createQueryRunner();
       // let usuario = res.locals.userName
@@ -62,20 +84,45 @@ export class FileUploadController extends BaseController {
       // let fechaActual = new Date()
 
       let ArchivosAnteriores = []
+      switch (dataBase) {
+        case 'Produccion':
+          ArchivosAnteriores = await queryRunner.query(
+            `SELECT 
+                doc.${tableSearch}Id AS id, 
+                CONCAT('./', TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableSearch}BlobNombreArchivo)) path, 
+                doc.${tableSearch}BlobNombreArchivo AS nombre  
+                -- doc.aud_fecha_ins AS fecha 
+            FROM ${tableSearch} doc
+            JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+            JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+            WHERE 
+                doc.${keyField} = @0 AND param.DocumentoImagenParametroDe = @1`,
+            [id, TipoSearch])
 
-      ArchivosAnteriores = await dataSource.query(
-        `SELECT 
-                        doc.doc_id AS id, 
-                        doc.path, 
-                        doc.nombre_archivo AS nombre,  
-                        doc.aud_fecha_ins AS fecha 
-                    FROM lige.dbo.docgeneral doc
-                     JOIN lige.dbo.doctipo tipo ON doc.doctipo_id = tipo.doctipo_id
-                    WHERE 
-                        doc.${keyField} = @0 AND
-                        tipo.doctipo_id = @1 `,
-        [id, TipoSearch])
+          break;
 
+        case 'lige':
+          ArchivosAnteriores = await queryRunner.query(
+            `SELECT 
+                doc.doc_id AS id, 
+                doc.path, 
+                doc.nombre_archivo AS nombre,  
+                doc.aud_fecha_ins AS fecha 
+            FROM lige.dbo.docgeneral doc
+            JOIN lige.dbo.doctipo tipo ON doc.doctipo_id = tipo.doctipo_id
+            WHERE 
+                doc.${keyField} = @0 AND
+                tipo.doctipo_id = @1 `,
+            [id, TipoSearch])
+          
+          break;
+      
+        default:
+          throw new ClientException(`Falla en busqueda de Archivo`)
+          break;
+      }
+      console.log('ArchivosAnteriores', ArchivosAnteriores);
+      
 
       this.jsonRes(
         {

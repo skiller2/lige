@@ -224,7 +224,8 @@
 
       <nz-form-control *ngIf="formCli.enabled">
         <app-file-upload formControlName="files"   [idForSearh]="formCli.value.id ?? 0"
-        [textForSearch]="'CLI'" [keyField]="'cliente_id'"></app-file-upload>
+        [textForSearch]="'CLI'" [keyField]="'cliente_id'" [tableForSearch]="'docgeneral'"
+        [dataBaseForSearch]="'lige'"></app-file-upload>
       </nz-form-control>
       
     </nz-form-item>

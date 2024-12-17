@@ -8,7 +8,7 @@ import { SearchService } from 'src/app/services/search.service';
 import { NgForm, FormArray, FormBuilder } from '@angular/forms';
 import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
+import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 
 const tipoArchivo = [
   {
@@ -39,7 +39,6 @@ export class PersonalFormComponent {
   private injector = inject(Injector)
   isLoading = signal(false);
   periodo= signal({anio:0, mes:0})
-  files = signal<any[]>([])
   enableSelectReset = signal<boolean>(true)
   personalId = input(0);
   private notification = inject(NzNotificationService)
@@ -51,7 +50,7 @@ export class PersonalFormComponent {
   objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', EstudioAno:null}
   inputs = { 
     Nombre:'', Apellido:'', CUIT:null, NroLegajo:null, SucursalId:0, FechaIngreso:'',
-    FechaNacimiento:'', Foto:'', NacionalidadId:0, docDorso:'', docFrente:'',
+    FechaNacimiento:'', Foto:[], NacionalidadId:0, docDorso:[], docFrente:[],
     Calle:'', Nro:'', Piso:'', Dpto:'', Esquina:'', EsquinaY:'', //Domicilio
     Bloque:'', Edificio:'', Cuerpo:'', CodigoPostal:'', PaisId:0, ProvinciaId:0, //Domicilio
     LocalidadId:0, BarrioId:0, PersonalDomicilioId:0,//Domicilio
@@ -167,72 +166,19 @@ export class PersonalFormComponent {
 
     this.formPer.reset(values)
     console.log(this.formPer.value);
-    console.log(this.paisId(), this.provinciaId(), this.localidadId());
     
-    
-
-    let arrayFiles : any[] = []
-    if (infoPersonal.Foto){arrayFiles.push({ fieldname: infoPersonal.Foto, originalname: infoPersonal.Foto, save:true})}
-    if (infoPersonal.docDorso){arrayFiles.push({ fieldname: infoPersonal.docDorso, originalname: infoPersonal.docDorso, save:true})}
-    if (infoPersonal.docFrente){arrayFiles.push({ fieldname: infoPersonal.docFrente, originalname: infoPersonal.docFrente, save:true})}
-    this.files.set(arrayFiles)
     this.enableSelectReset.set(true)
-  }
-
-  uploadChange(event: any, input:string) {
-    switch (event.type) {
-      case 'start':
-        
-        this.uploading$.next({ loading: true, event })
-    
-        break;
-      case 'progress':
-        debugger
-        break;
-      case 'error':
-        const Error = event.file.error
-        if (Error.error.data?.list) {
-        }
-        this.uploading$.next({ loading:false,event })
-        break;
-      case 'success':
-        const Response = event.file.response
-        Response.data[0].save = false
-        Response.data[0].control = input
-
-        this.files.set([ ...this.files(), Response.data[0] ])
-        // console.log(this.files());
-        this.formPer.get(input)?.setValue(Response.data[0].fieldname)
-  
-        this.uploading$.next({ loading: false, event })
-        this.apiService.response(Response) 
-
-        this.formPer.markAsTouched()
-        this.formPer.markAsDirty()
-        this.propagateChange(this.files())
-        break
-      default:
-        break;
-    }
-
-  }
-
-  private propagateChange: (_: any) => void = noop
-
-  registerOnChange(fn: any) {
-    this.propagateChange = fn
   }
 
   async save() {
     this.isLoading.set(true)
     const values:any = this.formPer.value
-    let files = [...this.files()]
     // console.log('files', files);
-    // console.log('values', values);
+    console.log('values', values);
     try {
       if (this.personalId()) {
-        let newFiles:any = await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))
-        newFiles = newFiles.data
+        // let newFiles:any = await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))
+        // newFiles = newFiles.data
         
         // for (const key in newFiles) {
         //   console.log(key,values[key], Number.isInteger(values[key]), Number(values[key]), values.hasOwnProperty(key));
@@ -246,49 +192,14 @@ export class PersonalFormComponent {
         // }
         
       }else{
-        await firstValueFrom( this.apiService.addPersonal(values))
+        // await firstValueFrom( this.apiService.addPersonal(values))
       }
-      // this.formPer.markAsUntouched()
-      // this.formPer.markAsPristine()
+      this.formPer.markAsUntouched()
+      this.formPer.markAsPristine()
     } catch (e) {
       
     }
-    // console.log('files', files);
-    this.files.set(files)
     this.isLoading.set(false)
-  }
-
-  getOriginalName(control: string):string {
-    let archivo = this.formPer.get(control)?.value;
-    if (archivo) {
-      const archivoFind = this.files().find((item) => item.fieldname == archivo)
-      if (archivoFind) return archivoFind.originalname
-      return archivo
-    }
-    return ''
-  }
-
-  async confirmDeleteArchivo( control: string) {
-    try {
-      let ArchivoIdForDelete = this.formPer.get(control)?.value;
-      const archivo = this.files().find((item) => item.fieldname == ArchivoIdForDelete)
-      if( archivo.save ){
-        // console.log("Si se borro")
-        const personalId = this.personalId()
-        const tipo:any = tipoArchivo.find(obj => obj.label == control)
-        await firstValueFrom( this.apiService.deleteArchivoPersonal(personalId, tipo.value))
-      }else{
-        // console.log("No se borro")
-        this.notification.success('Respuesta', `Archivo borrado con exito `)
-      }
-      const newFiles = this.files().filter((item) => item.fieldname != ArchivoIdForDelete)
-      this.files.set(newFiles)
-      this.formPer.get(control)?.setValue('')
-      this.formPer.markAsTouched()
-
-    } catch (error) {
-      
-    }
   }
 
   selectedPaisChange(event: any):void{

@@ -675,16 +675,12 @@ export class PersonalController extends BaseController {
       if (errors.length)
         throw new ClientException(errors.join(`\n`))
 
-      if (Number(foto)) {
-        await this.addFoto(queryRunner, PersonalId, foto)
-      }
-      if (Number(docFrente)) {
-        await this.addDocumento(queryRunner, PersonalId, docFrente, 12)
-      }
-      if (Number(docDorso)) {
-        await this.addDocumento(queryRunner, PersonalId, docDorso, 13)
-      }
-
+      if (foto.length) await this.setFoto(queryRunner, PersonalId, foto[0])
+      
+      if (docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente[0], 12)
+      
+      if (docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso[0], 13)
+      
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
@@ -814,9 +810,8 @@ export class PersonalController extends BaseController {
   }
 
   moveFile(dirFile: any, newFilePath: any) {
-    console.log("dirFile ", dirFile)
-    console.log("newFilePath ", newFilePath)
-
+    // console.log("dirFile ", dirFile)
+    // console.log("newFilePath ", newFilePath)
     if (!existsSync(dirFile)) {
       mkdirSync(dirFile, { recursive: true })
     }
@@ -825,59 +820,80 @@ export class PersonalController extends BaseController {
 
   }
 
-  async addFoto(queryRunner:any, personalId:any, fieldname:string) {
-    await queryRunner.query(`
-      INSERT INTO DocumentoImagenFoto (
-      PersonalId,
-      DocumentoImagenFotoBlobTipoArchivo,
-      DocumentoImagenParametroId,
-      DocumentoImagenParametroDirectorioId
-      )
-      VALUES(@0,@1,@2,@3)`,
-      [personalId,'jpg',7,1]
-    )
+  async setFoto(queryRunner:any, personalId:any, file:any) {
+    const type = file.mimeType.split('/')[1]
+    const fieldname = file.fieldname
     let fotoId = await queryRunner.query(`SELECT DocumentoImagenFotoId fotoId FROM DocumentoImagenFoto WHERE PersonalId IN (@0)`,[personalId])
+    if (fotoId.length) {
+      await queryRunner.query(`
+        INSERT INTO DocumentoImagenFoto (
+        PersonalId,
+        DocumentoImagenFotoBlobTipoArchivo,
+        DocumentoImagenParametroId,
+        DocumentoImagenParametroDirectorioId
+        )
+        VALUES(@0,@1,@2,@3)`,
+        [personalId,type,7,1]
+      )
+      fotoId = await queryRunner.query(`SELECT DocumentoImagenFotoId fotoId FROM DocumentoImagenFoto WHERE PersonalId IN (@0)`,[personalId])
+    }
+    
     fotoId = fotoId[0].fotoId
-
-    const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.jpg`;
+    const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
     const newFieldname = `${personalId}-${fotoId}-FOTO`
-    const newFilePath = `${process.env.IMAGE_FOTO_PATH}/${newFieldname}.jpg`;
+    const newFilePath = `${process.env.IMAGE_FOTO_PATH}/${newFieldname}.${type}`;
     this.moveFile(dirFile, newFilePath);
-    await queryRunner.query(`UPDATE DocumentoImagenFoto SET DocumentoImagenFotoBlobNombreArchivo = @0 WHERE PersonalId = @1`,
-      [newFieldname, personalId]
+    await queryRunner.query(`
+      UPDATE DocumentoImagenFoto SET
+      DocumentoImagenFotoBlobNombreArchivo = @1,
+      DocumentoImagenFotoBlobTipoArchivo = @2,
+      DocumentoImagenParametroId = @3,
+      DocumentoImagenParametroDirectorioId = @4
+      WHERE PersonalId = @0`,
+      [personalId, newFieldname, type, 7, 1]
     )
     await queryRunner.query(`UPDATE Personal SET PersonalFotoId = @0 WHERE PersonalId = @1`,
       [fotoId, personalId]
     )
-    return newFieldname
   }
 
-  async addDocumento(queryRunner:any, personalId:any, fieldname:string, parametro:number){
-    await queryRunner.query(`
-      INSERT INTO DocumentoImagenDocumento (
-      PersonalId,
-      DocumentoImagenDocumentoBlobTipoArchivo,
-      DocumentoImagenParametroId,
-      DocumentoImagenParametroDirectorioId
-      )
-      VALUES(@0,@1,@2,@3)`,
-      [personalId, 'jpg', parametro, 1]
-    )
+  async setDocumento(queryRunner:any, personalId:any, file:any, parametro:number){
+    const type = file.mimeType.split('/')[1]
+    const fieldname = file.fieldname
     let docId = await queryRunner.query(`SELECT DocumentoImagenDocumentoId docId FROM DocumentoImagenDocumento WHERE PersonalId IN (@0)`,[personalId])
+    if (docId.length) {
+      await queryRunner.query(`
+        INSERT INTO DocumentoImagenDocumento (
+        PersonalId,
+        DocumentoImagenDocumentoBlobTipoArchivo,
+        DocumentoImagenParametroId,
+        DocumentoImagenParametroDirectorioId
+        )
+        VALUES(@0,@1,@2,@3)`,
+        [personalId, type, parametro, 1]
+      )
+      docId = await queryRunner.query(`SELECT DocumentoImagenDocumentoId docId FROM DocumentoImagenDocumento WHERE PersonalId IN (@0)`,[personalId])
+    }
+
     docId = docId[0].docId
-    const dirFile: string  = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.jpg`;
+    const dirFile: string  = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
     let newFieldname: string = `${personalId}-${docId}`
     if (parametro == 13) {
       newFieldname += `-DOCUMENDOR`
     }else if(parametro == 12){
       newFieldname += `-DOCUMENFREN`
     }
-    const newFilePath: string  = `${process.env.IMAGE_DOCUMENTO_PATH}/${newFieldname}.jpg`;
+    const newFilePath: string  = `${process.env.IMAGE_DOCUMENTO_PATH}/${newFieldname}.${type}`;
     this.moveFile(dirFile, newFilePath);
-    await queryRunner.query(`UPDATE DocumentoImagenDocumento SET DocumentoImagenDocumentoBlobNombreArchivo = @0 WHERE PersonalId = @1`,
-      [newFieldname, personalId]
+    await queryRunner.query(`
+      UPDATE DocumentoImagenDocumento SET
+      DocumentoImagenDocumentoBlobNombreArchivo = @1,
+      DocumentoImagenDocumentoBlobTipoArchivo = @2,
+        DocumentoImagenParametroId = @3,
+        DocumentoImagenParametroDirectorioId = @4
+      WHERE PersonalId = @0`,
+      [personalId, newFieldname, type, parametro, 1]
     )
-    return newFieldname
   }
 
   async updatePersona(queryRunner:any, PersonalId:number, infoPersonal:any ){
@@ -1115,18 +1131,12 @@ export class PersonalController extends BaseController {
         )
       }
       let response:any = {}
-      if (Number(Foto)) {
-        let file = await this.addFoto(queryRunner, PersonalId, Foto)
-        response.Foto = file
-      }
-      if (Number(docFrente)) {
-        let file = await this.addDocumento(queryRunner, PersonalId, docFrente, 12)
-        response.docFrente = file
-      }
-      if (Number(docDorso)) {
-        let file = await this.addDocumento(queryRunner, PersonalId, docDorso, 13)
-        response.docDorso = file
-      }
+      if (Foto.length) await this.setFoto(queryRunner, PersonalId, Foto)
+      
+      if (docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente, 12)
+      
+      if (docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso, 13)
+      
 
       await queryRunner.commitTransaction()
       this.jsonRes(response, res, 'Carga Exitosa');
@@ -1143,7 +1153,7 @@ export class PersonalController extends BaseController {
       SELECT per.PersonalId ,TRIM(per.PersonalNombre) Nombre, TRIM(per.PersonalApellido) Apellido, per.PersonalNroLegajo NroLegajo,
       cuit.PersonalCUITCUILCUIT CUIT , per.PersonalFechaIngreso FechaIngreso, per.PersonalFechaNacimiento FechaNacimiento,
       per.PersonalSuActualSucursalPrincipalId SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion, nac.NacionalidadId, TRIM(nac.NacionalidadDescripcion),
-      foto.DocumentoImagenFotoBlobNombreArchivo Foto,
+      --foto.DocumentoImagenFotoBlobNombreArchivo Foto,
       TRIM(dom.PersonalDomicilioDomCalle) Calle, TRIM(dom.PersonalDomicilioDomNro) Nro, TRIM(dom.PersonalDomicilioDomPiso) Piso,
       TRIM(dom.PersonalDomicilioDomDpto) Dpto, TRIM(dom.PersonalDomicilioEntreEsquina) Esquina, TRIM(dom.PersonalDomicilioEntreEsquinaY) EsquinaY,
       TRIM(dom.PersonalDomicilioDomBloque) Bloque, TRIM(dom.PersonalDomicilioDomEdificio) Edificio, TRIM(dom.PersonalDomicilioDomCuerpo) Cuerpo,
@@ -1182,7 +1192,7 @@ export class PersonalController extends BaseController {
 
   private async getFormEstudiosByPersonalIdQuery(queryRunner:any, personalId:any){
     return await queryRunner.query(`
-        SELECT est.PersonalEstudioId, est.TipoEstudioId, est.TipoEstudioId, est.EstadoEstudioId,
+        SELECT est.PersonalEstudioId, est.TipoEstudioId, est.EstadoEstudioId,
         TRIM(est.PersonalEstudioTitulo) EstudioTitulo, est.PersonalEstudioAno EstudioAno
         FROM PersonalEstudio est
         WHERE est.PersonalId IN (@0)
@@ -1196,17 +1206,17 @@ export class PersonalController extends BaseController {
     try {
       let data = await this.getFormPersonByIdQuery(queryRunner, personalId)
       
-      const docs = await this.getFormDocumnetosByPersonalIdQuery(queryRunner, personalId)
+      // const docs = await this.getFormDocumnetosByPersonalIdQuery(queryRunner, personalId)
       const telefonos = await this.getFormTelefonosByPersonalIdQuery(queryRunner, personalId)
       const estudios = await this.getFormEstudiosByPersonalIdQuery(queryRunner, personalId)
 
-      docs.forEach((doc:any)=>{
-        if(doc.DocumentoImagenParametroId==12)
-          data.docFrente = doc.DocumentoImagenDocumentoBlobNombreArchivo
-        if (doc.DocumentoImagenParametroId==13) {
-          data.docDorso = doc.DocumentoImagenDocumentoBlobNombreArchivo
-        }
-      })
+      // docs.forEach((doc:any)=>{
+      //   if(doc.DocumentoImagenParametroId==12)
+      //     data.docFrente = doc.DocumentoImagenDocumentoBlobNombreArchivo
+      //   if (doc.DocumentoImagenParametroId==13) {
+      //     data.docDorso = doc.DocumentoImagenDocumentoBlobNombreArchivo
+      //   }
+      // })
       data.telefonos = telefonos
       data.estudios = estudios
       console.log('DATA',data);

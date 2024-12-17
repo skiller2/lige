@@ -45,6 +45,8 @@ export class FileUploadComponent implements ControlValueAccessor{
   keyField = input("")
   idForSearh = input(0)
   textForSearch = input("")
+  tableForSearch = input("")
+  dataBaseForSearch = input("")
   modalViewerVisiable = signal(false)
   blobUrl = ""
   Fullpath = signal("")
@@ -60,9 +62,9 @@ export class FileUploadComponent implements ControlValueAccessor{
   $files = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
-      if(this.idForSearh() > 0 && this.textForSearch() != ""){
+      if(this.idForSearh() > 0 && this.textForSearch() != "" && this.tableForSearch() != "" && this.dataBaseForSearch() != ""){
         this.files.set([])
-        return this.apiService.getArchivosAnteriores(this.idForSearh(),this.textForSearch(),this.keyField())
+        return this.apiService.getArchivosAnteriores(this.idForSearh(),this.textForSearch(),this.keyField(),this.tableForSearch(),this.dataBaseForSearch())
       } else {
         return []
       }
@@ -77,9 +79,11 @@ export class FileUploadComponent implements ControlValueAccessor{
   }
 
   async LoadArchivo(documentId: any, filename:any){
+    console.log('LoadArchivo');
+    
     this.modalViewerVisiable.set(false)
     const res = await firstValueFrom(this.http.post('api/file-upload/downloadFile',
-      { 'documentId': documentId, filename: filename }, { responseType: 'blob' }
+      { 'documentId': documentId, filename: filename , tableForSearch: this.tableForSearch(), dataBaseForSearch: this.dataBaseForSearch()}, { responseType: 'blob' }
     ))
     this.src.set(res)
     this.FileName.set(filename)
@@ -87,8 +91,9 @@ export class FileUploadComponent implements ControlValueAccessor{
   }
 
    async LoadArchivoPreview(documentId: any, filename:any){
+    console.log('LoadArchivoPreview');
     const res =  await firstValueFrom(this.http.post('api/file-upload/downloadFile',
-      { 'documentId': documentId, filename: filename }, { responseType: 'blob' }
+      { 'documentId': documentId, filename: filename, tableSearch: this.tableForSearch(), dataBase: this.dataBaseForSearch() }, { responseType: 'blob' }
     ))
     return res
   }
