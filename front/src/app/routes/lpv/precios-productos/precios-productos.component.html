@@ -18,23 +18,22 @@
       </div>
   
     </div>
-  
-  
+
         <div nz-row class="contentStyle">
           <div nz-col nzSpan="13" class="listStyle">
             <ul nz-menu nzMode="horizontal" style="display: flex;">
               <li nz-menu-item nzMatchRouter>
                 <span nz-icon nzType=""></span>
-                <a [routerLink]="['/', 'ges', 'precios_productos', 'precios']" >{{ 'app.precios' | i18n }}</a>
+                <a [routerLink]="['/', 'lpv', 'precios_productos', 'precios']" >{{ 'app.precios' | i18n }}</a>
+              </li>
+              <!-- <li nz-menu-item nzMatchRouter>
+                <span nz-icon nzType=""></span>
+                <a [routerLink]="['/', 'lpv', 'precios_productos', 'detalle']">{{ 'app.detail' | i18n }}</a>
               </li>
               <li nz-menu-item nzMatchRouter>
                 <span nz-icon nzType=""></span>
-                <a [routerLink]="['/', 'ges', 'precios_productos', 'detalle']">{{ 'app.detail' | i18n }}</a>
-              </li>
-              <li nz-menu-item nzMatchRouter>
-                <span nz-icon nzType=""></span>
-                <a [routerLink]="['/', 'ges', 'precios_productos', 'detalle_productos']">{{ 'app.productdetail' | i18n }}</a>
-              </li>
+                <a [routerLink]="['/', 'lpv', 'precios_productos', 'detalle_productos']">{{ 'app.productdetail' | i18n }}</a>
+              </li> -->
             </ul>
           </div>
         
@@ -43,29 +42,36 @@
       <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav"  >
     
         <nz-tab>
-          <a nz-tab-link routerLink="/ges/precios_productos/precios" >{{ 'app.precios' | i18n }}</a>
+          <a nz-tab-link routerLink="/lpv/precios_productos/precios" >{{ 'app.precios' | i18n }}</a>
     
           <ng-template nz-tab *ngIf="(columns$|async) as columnas">
             <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters" />
     
-            <div class="gridListContainer container-fluid" >
+            <!-- <div class="gridListContainer container-fluid" >
               <angular-slickgrid gridId="grid" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptions"
                 [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
                 (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
               </angular-slickgrid>
+            </div> -->
+            <div class="gridContainer2 container-fluid">
+              <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnDefinitions | colsFilter"
+              [gridOptions]="gridOptionsEdit" [dataset]="(gridData$ | async) || []"
+              (onAngularGridCreated)="angularGridReadyEdit($event)">
+              <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
+            </angular-slickgrid>
             </div>
           </ng-template>
         </nz-tab>
     
-        <nz-tab>
-          <a nz-tab-link routerLink="/ges/precios_productos/detalle" >{{ 'app.detail' | i18n }} </a>
-          <!-- <app-clientes-form #clienteFormEdit [ClienteId]="editClienteId()" (onAddorUpdate)="handleAddOrUpdate()"></app-clientes-form> -->
+        <!-- <nz-tab>
+          <a nz-tab-link routerLink="/lpv/precios_productos/detalle" >{{ 'app.detail' | i18n }} </a>
+           <app-clientes-form #clienteFormEdit [ClienteId]="editClienteId()" (onAddorUpdate)="handleAddOrUpdate()"></app-clientes-form> 
         </nz-tab>
 
         <nz-tab>
-            <a nz-tab-link routerLink="/ges/precios_productos/detalle_prodcutos" >{{ 'app.productdetail' | i18n }} </a>
-            <!-- <app-clientes-form #clienteFormEdit [ClienteId]="editClienteId()" (onAddorUpdate)="handleAddOrUpdate()"></app-clientes-form> -->
-          </nz-tab>
+            <a nz-tab-link routerLink="/lpv/precios_productos/detalle_prodcutos" >{{ 'app.productdetail' | i18n }} </a>
+             <app-clientes-form #clienteFormEdit [ClienteId]="editClienteId()" (onAddorUpdate)="handleAddOrUpdate()"></app-clientes-form> 
+          </nz-tab> -->
   
        
     

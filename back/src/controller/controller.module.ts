@@ -41,6 +41,7 @@ import { SituacionRevistaController } from "../controller/situacionrevista.contr
 import { ResidenciaController } from "../controller/residencia.controller"
 import { EstudioController } from "../controller/estudio.controller"
 import { PreciosProductosController } from "../precios-productos/precios-productos.controller"
+import { DescripcionProductoController } from "./descripcion-producto.controller"
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -85,3 +86,4 @@ export const situacionRevistaController = new SituacionRevistaController();
 export const residenciaController = new ResidenciaController();
 export const estudioController = new EstudioController();
 export const preciosProductosController = new PreciosProductosController();
+export const descripcionProductoController = new DescripcionProductoController();

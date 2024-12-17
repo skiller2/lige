@@ -1,0 +1,9 @@
+<nz-select #eto [(ngModel)]="selectedId" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
+   (ngModelChange)="onChange($event)" nzAllowClear nzPlaceHolder="Tipo Sucursal"
+  nzShowSearch >
+  <ng-container *ngFor="let option of optionsArray">
+    <nz-option [nzValue]="option.SucursalId"
+      [nzLabel]="option.SucursalDescripcion" />
+  </ng-container>
+</nz-select> 
+
