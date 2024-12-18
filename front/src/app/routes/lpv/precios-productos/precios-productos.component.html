@@ -8,7 +8,7 @@
             <button nz-button nzType="default" ><span nz-icon nzType="edit" nzTheme="outline"></span></button>
           </a>
           <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-            <button nz-button nzType="default" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+            <button nz-button nzType="default" (click)="addNewItem()" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
           </a>
           <a  nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
             <button nz-button nzType="default"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
@@ -56,7 +56,8 @@
             <div class="gridContainer2 container-fluid">
               <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnDefinitions | colsFilter"
               [gridOptions]="gridOptionsEdit" [dataset]="(gridData$ | async) || []"
-              (onAngularGridCreated)="angularGridReadyEdit($event)">
+              (onAngularGridCreated)="angularGridReadyEdit($event)"
+              (onCellChange)="onCellChanged($event)">
               <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
             </angular-slickgrid>
             </div>

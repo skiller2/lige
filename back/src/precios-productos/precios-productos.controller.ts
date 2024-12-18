@@ -125,7 +125,7 @@ export class PreciosProductosController extends BaseController {
                     prod.ind_activo AS activo,  
                     tip.des_tipo_producto AS descripcionTipoProducto,
                     vent.importe AS importe,
-                    vent.importe_desde AS desde,
+                    FORMAT(vent.importe_desde, 'yyyy-MM-dd') AS desde,
                     suc.SucursalId, 
                     suc.SucursalDescripcion
                 FROM lige.dbo.lpv_productos prod
@@ -142,6 +142,39 @@ export class PreciosProductosController extends BaseController {
             );
 
         } catch (error) {
+            return next(error)
+        }
+
+    }
+
+
+    
+    async changecell(req: any, res: Response, next: NextFunction) {
+
+        //const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
+       // const orderBy = orderToSQL(req.body.options.sort)
+        const queryRunner = dataSource.createQueryRunner();
+        const fechaActual = new Date()
+        const params = req.body
+
+        try {
+
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
+            const codigoExist = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_productos WHERE cod_producto = @0`, [params.codigo])
+
+            if (codigoExist.length > 0) {
+                console.log('El código existe - es update')
+
+              } else {
+                console.log('El código no existe - es nuevo')
+              
+            }
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+           await this.rollbackTransaction(queryRunner)
             return next(error)
         }
 

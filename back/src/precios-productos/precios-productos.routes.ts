@@ -11,4 +11,10 @@ preciosProductosRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
   preciosProductosRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])],  (req, res, next) => {
     preciosProductosController.listPrecios(req, res, next)
 })
+
+
+preciosProductosRouter.post('/changecell', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])],  (req, res, next) => {
+  preciosProductosController.changecell(req, res, next)
+})
+
   
