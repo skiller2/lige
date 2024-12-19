@@ -16,6 +16,7 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { ClientesFormComponent } from "../../ges/clientes-form/clientes-form.component"
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { SucursalSearchComponent } from "../../../shared/sucursal-search/sucursal-search.component"
 import { DescripcionProductoSearchComponent } from "../../../shared/descripcion-producto-search/descripcion-producto-search.component"
 
@@ -43,7 +44,9 @@ export class PreciosProductosComponent {
   private searchService = inject(SearchService)
   private angularUtilService = inject(AngularUtilService)
   formChange$ = new BehaviorSubject('')
-  columnDefinitions: Column[] = [];
+  private readonly messageSrv = inject(NzMessageService);
+  columnDefinitions: Column[] = []
+  itemAddActive = false
   listPrecios$ = new BehaviorSubject('')
   editProducto = signal(0)
   listOptions: listOptionsT = {
@@ -170,15 +173,13 @@ export class PreciosProductosComponent {
       {
         id: 'desde', name: 'Desde', field: 'desde',
         sortable: true,
-        type: FieldType.string,
+        exportWithFormatter: true,
+        type: FieldType.date,
         maxWidth: 250,
         minWidth: 250,
         formatter: Formatters['complexObject'],
-        params: {
-          complexFieldLabel: 'inpurForFechaSearch',
-        },
         editor: {
-          model: Editors['text']
+          model: Editors['date']
         },
       },
       {
@@ -202,7 +203,7 @@ export class PreciosProductosComponent {
 
     ];
 
-    this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
 
     this.gridOptionsEdit.enableRowDetailView = this.apiService.isMobile()
     this.gridOptionsEdit.showFooterRow = true
@@ -225,9 +226,15 @@ export class PreciosProductosComponent {
  
   }
 
-  addNewItem(insertPosition?: 'bottom') {
-    const newItem1 = this.createNewItem(1);
-    this.angularGridEdit.gridService.addItem(newItem1, { position: insertPosition, highlightRow: false, scrollRowIntoView: false, triggerEvent: false });
+  addNewItem() {
+    if(!this.itemAddActive){
+      const newItem1 = this.createNewItem(1);
+      this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
+      this.itemAddActive = true
+    }else{
+      this.messageSrv.error('Termine la carga del registro activo, antes de iniciar otra');
+    }
+    
   }
 
   createNewItem(incrementIdByHowMany = 1) {
@@ -299,6 +306,19 @@ export class PreciosProductosComponent {
   //   if (this.apiService.isMobile())
   //       this.angularGridEdit.gridService.hideColumnByIds([])
   // }
+
+
+  async onCellChanged(e: any) {
+   
+    await firstValueFrom(this.apiService.onchangecellPrecioProducto(e.detail.args.item).pipe(
+      tap(res => this.formChange$.next('')
+        )
+      )
+    )
+
+    
+
+  }
 
 
 
