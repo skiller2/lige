@@ -40,7 +40,7 @@ export class FileUploadController extends BaseController {
             throw new ClientException(`Falla en busqueda de Archivo`)
             break;
         }
-        console.log('document', document);
+        // console.log('document', document);
         
         finalurl = `${document[0]["path"]}`
         docname = document[0]["name"]
@@ -121,7 +121,7 @@ export class FileUploadController extends BaseController {
           throw new ClientException(`Falla en busqueda de Archivo`)
           break;
       }
-      console.log('ArchivosAnteriores', ArchivosAnteriores);
+      // console.log('ArchivosAnteriores', ArchivosAnteriores);
       
 
       this.jsonRes(
@@ -185,8 +185,8 @@ export class FileUploadController extends BaseController {
 
   static moveFile(filename: any, newFilePath: any, dirtmp: any) {
     const originalFilePath = `${process.env.PATH_DOCUMENTS}/temp/${filename}`;
-    console.log("originalFilePath ", originalFilePath)
-    console.log("newFilePath ", newFilePath)
+    // console.log("originalFilePath ", originalFilePath)
+    // console.log("newFilePath ", newFilePath)
 
     if (!existsSync(dirtmp)) {
       mkdirSync(dirtmp, { recursive: true });
@@ -280,7 +280,7 @@ export class FileUploadController extends BaseController {
 
         if (fechaCreacion < limiteFecha) {
           await unlink(filePath);
-          console.log(`Archivo ${file} borrado.`);
+          // console.log(`Archivo ${file} borrado.`);
         }
       });
 

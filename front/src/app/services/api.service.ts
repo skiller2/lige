@@ -1126,6 +1126,13 @@ export class ApiService {
         catchError(() => of([]))
       );
   }
+  
+  setSitRevista(PersonalId:number, values:any){
+    return this.http.post<ResponseJSON<any>>(`/api/personal/setsitrevista/${PersonalId}`, values).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+      catchError(() => of({}))
+    );
+  }
 
 }
 

@@ -973,7 +973,7 @@ export class SearchService {
       );
   }
 
-  getSitRevista(): Observable<any> {
+  getSitRevistaOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/personal/sitrevista/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -1102,6 +1102,17 @@ export class SearchService {
 
   getTipoEstudioList(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/estudio/tipo/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getHistoriaSituacionRevistaPersona(id: number): Observable<any> {
+    if (!id) return of([]);
+    return this.http.get<ResponseJSON<any>>(`api/personal/historial/sitrevista/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');

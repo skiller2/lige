@@ -1,0 +1,59 @@
+<nz-drawer [nzClosable]="false" [nzVisible]="visibleSitRevista()" [nzPlacement]="placement" [nzWidth]="700"
+[nzTitle]="'Historial de Situacion de Revista: '  + PersonalNombre()" (nzOnClose)="visibleSitRevista.set(false)">
+  <ng-container *nzDrawerContent>
+
+    <nz-card nzType="inner" nzTitle="Agregar Nueva Situacion de Revista">
+      <form [formGroup]="formSitRevista">
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Situacion de Revista</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="SituacionId" nzPlaceHolder="Situacion de Revista" nzAllowClear
+            [nzDropdownMatchSelectWidth]="false">
+            <ng-container *ngFor="let option of $optionsSitRevista | async">
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            </ng-container>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Motivo</nz-form-label>
+        <nz-form-control>
+          <input nz-input placeholder="" formControlName="Motivo" type="text" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formSitRevista.pristine">
+            {{ 'app.btn.save' | i18n }}
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+
+      </form>
+    </nz-card>
+
+    <nz-form-control *ngIf="$listaSitRevistaPer | async as listaSitRevistaPer ">
+      <nz-table #sitRevistaPer [nzData]="listaSitRevistaPer" nzSize="small" [nzPageSize]="100000000"
+        [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+        <thead>
+          <tr>
+            <th>Situacion de Revista</th>
+            <th>Motivo</th>
+            <th>Desde</th>
+            <th>Hasta</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let data of sitRevistaPer.data" class="">
+            <td>{{ data.Descripcion }}</td>
+            <td>{{ data.Motivo }}</td>
+            <td>{{ data.Desde }}</td>
+            <td>{{ data.Hasta }}</td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </nz-form-control>
+  </ng-container>
+</nz-drawer>

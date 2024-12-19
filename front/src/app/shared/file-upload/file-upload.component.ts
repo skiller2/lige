@@ -79,7 +79,6 @@ export class FileUploadComponent implements ControlValueAccessor{
   }
 
   async LoadArchivo(documentId: any, filename:any){
-    console.log('LoadArchivo');
     
     this.modalViewerVisiable.set(false)
     const res = await firstValueFrom(this.http.post('api/file-upload/downloadFile',
@@ -91,7 +90,6 @@ export class FileUploadComponent implements ControlValueAccessor{
   }
 
    async LoadArchivoPreview(documentId: any, filename:any){
-    console.log('LoadArchivoPreview');
     const res =  await firstValueFrom(this.http.post('api/file-upload/downloadFile',
       { 'documentId': documentId, filename: filename, tableSearch: this.tableForSearch(), dataBase: this.dataBaseForSearch() }, { responseType: 'blob' }
     ))
