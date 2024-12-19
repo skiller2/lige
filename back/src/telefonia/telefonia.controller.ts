@@ -30,7 +30,7 @@ export class TelefoniaController extends BaseController {
     },
     {
       name: "Teléfono Número",
-      type: "number",
+      type: "string",
       id: "TelefoniaNro",
       field: "TelefoniaNro",
       fieldName: "tel.TelefoniaNro",
