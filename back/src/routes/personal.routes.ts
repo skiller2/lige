@@ -1,117 +1,17 @@
-import { Request, Router } from "express";
+import { Router } from "express";
 import { personalController } from "../controller/controller.module";
 import { authMiddleware } from "../middlewares/middleware.module";
 import multer, { FileFilterCallback } from "multer";
-import { existsSync, mkdirSync } from "fs";
-import { ClientException } from "../controller/baseController";
-
-type DestinationCallback = (error: Error | null, destination: string) => void;
-
-let dirtmp = `${process.env.PATH_DOCUMENTS}/temp`;
-
-if (!existsSync(dirtmp)) {
-  mkdirSync(dirtmp, { recursive: true });
-}
-
-function generateRandomDigitNumber() {
-
-  let randomNumber = Math.random();
-  randomNumber *= Math.pow(10, 15);
-  randomNumber = Math.floor(randomNumber);
-
-  if (randomNumber < Math.pow(10, 14)) {
-    randomNumber += Math.pow(10, 14);
-  }
-
-  return randomNumber;
-}
-  
-const storage = multer.diskStorage({
-    destination: (
-      req: Request,
-      file: Express.Multer.File,
-      callback: DestinationCallback
-    ) => {
-      console.log('REQ: ',req);
-      return callback(null, dirtmp);
-    },
-    filename: (
-      req: Request,
-      file: Express.Multer.File,
-      callback: DestinationCallback
-    ) => {
-      
-      const originalname = generateRandomDigitNumber();
-      file.fieldname = originalname.toString()
-      
-      //const originalname = file.uid;
-      console.log(file)
-      callback(null, `${originalname}.jpg`);
-    },
-  });
-  
-  const fileFilterJpg = (
-    request: Request,
-    file: Express.Multer.File,
-    callback: FileFilterCallback
-  ): void => {
-
-    if (file.mimetype !== "image/jpeg") {
-      callback(new ClientException("El archivo no es del tipo JPG."));
-      return;
-    }
-
-    callback(null, true);
-  };
-  
-  const uploadJpg = multer({
-    storage: storage,
-    fileFilter: fileFilterJpg,
-  }).single("jpg");
 
 export const personalRouter = Router();
 const base = "";
 
-personalRouter.get(`${base}/domicilio/:id`, authMiddleware.verifyToken, (req, res, next) => {
-  personalController.getDomicilioByPersonalId(req, res, next);
-});
 personalRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   personalController.getGridList(req, res, next)
 });
+
 personalRouter.post('/deleteArchivo', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   personalController.deleteArchivo(req, res, next)
-});
-personalRouter.post("/upload", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
-  
-  uploadJpg(req, res, (err) => {
-    
-    // FILE SIZE ERROR
-    if (err instanceof multer.MulterError) {
-      return res.status(409).json({
-        msg: "Max file size 100MB allowed!",
-        data: [],
-        stamp: new Date(),
-      });
-    }
-  
-    else if (err) {
-      return res
-        .status(409)
-        .json({ msg: err.message, data: [], stamp: new Date() });
-    }
-  
-    else if (!req.file) {
-      return res
-        .status(409)
-        .json({ msg: "File is required!", data: [], stamp: new Date() });
-    }else{
-      return res
-        .status(200)
-        .json({ msg: "archivo subido con exito!", data: [req.file], stamp: new Date() });
-    }
-
-    
-  });
 });
 
 personalRouter.post(
@@ -128,6 +28,14 @@ personalRouter.post(`${base}/add`, authMiddleware.verifyToken, (req, res, next) 
 
 personalRouter.post(`${base}/update/:id`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.updatePersonal(req, res, next);
+});
+
+personalRouter.post('/setsitrevista/:id', authMiddleware.verifyToken, (req, res, next) => {
+  personalController.setSituacionRevista(req, res, next)
+});
+
+personalRouter.get(`${base}/domicilio/:id`, authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getDomicilioByPersonalId(req, res, next);
 });
 
 personalRouter.get(`${base}/info/:id`, authMiddleware.verifyToken, (req, res, next) => {
@@ -170,6 +78,14 @@ personalRouter.get(
   authMiddleware.verifyToken,
   (req, res, next) => {
     personalController.getPersonalResponsables(req, res, next);
+  }
+);
+
+personalRouter.get(
+  `${base}/historial/sitrevista/:personalId`,
+  authMiddleware.verifyToken,
+  (req, res, next) => {
+    personalController.getHistoryPersonalSitRevista(req, res, next);
   }
 );
 

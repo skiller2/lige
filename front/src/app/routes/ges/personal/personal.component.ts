@@ -15,6 +15,8 @@ import { LicenciaHistorialDrawerComponent } from '../../../shared/licencia-histo
 import { PersonalObjetivoDrawerComponent } from '../../../shared/personal-objetivo-drawer/personal-objetivo-drawer.component'
 import { PersonalCustodiasDrawerComponent } from '../../../shared/personal-custodias-drawer/personal-custodias-drawer.component'
 import { PersonalDomicilioDrawerComponent } from '../../../shared/personal-domicilio-drawer/personal-domicilio-drawer.component'
+import { PersonalSituacionRevistaDrawerComponent } from '../../../shared/personal-situacionrevista-drawer/personal-situacionrevista-drawer.component'
+
 
 @Component({
     selector: 'app-personal',
@@ -25,6 +27,7 @@ import { PersonalDomicilioDrawerComponent } from '../../../shared/personal-domic
     imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule,
       PersonalSearchComponent, PersonalFormComponent, LicenciaHistorialDrawerComponent,
       PersonalObjetivoDrawerComponent, PersonalCustodiasDrawerComponent, PersonalDomicilioDrawerComponent,
+      PersonalSituacionRevistaDrawerComponent
     ],
     providers: [AngularUtilService, ExcelExportService],
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,6 +55,7 @@ export class PersonalComponent {
     visibleObjetivo = model<boolean>(false)
     visibleCustodias = model<boolean>(false)
     visibleDomicilio = model<boolean>(false)
+    visibleSitRevista = model<boolean>(false)
 
     // childLicHistDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('licHistDrawer')
     // childObjDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('objDrawer')
@@ -124,6 +128,10 @@ export class PersonalComponent {
 
   openDrawerforConsultDomicilio(): void{
     this.visibleDomicilio.set(true) 
+  }
+
+  openDrawerforConsultSitRevista(): void{
+    this.visibleSitRevista.set(true) 
   }
 
   onTabsetChange(_event: any) {

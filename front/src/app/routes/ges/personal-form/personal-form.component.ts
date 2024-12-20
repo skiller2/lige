@@ -10,19 +10,6 @@ import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 
-const tipoArchivo = [
-  {
-    label:'Foto',
-    value:7
-  },{
-    label:'docFrente',
-    value:12
-  },{
-    label:'docDorso',
-    value:13
-  }
-]
-
 @Component({
   selector: 'app-personal-form',
   templateUrl: './personal-form.component.html',
@@ -41,19 +28,20 @@ export class PersonalFormComponent {
   periodo= signal({anio:0, mes:0})
   enableSelectReset = signal<boolean>(true)
   personalId = input(0);
-  private notification = inject(NzNotificationService)
   urlUpload = '/api/personal/upload'
   uploading$ = new BehaviorSubject({loading:false,event:null});
   
   fb = inject(FormBuilder)
   objTelefono = {PersonalTelefonoId:0, LugarTelefonoId:0, TipoTelefonoId:0, CodigoPais:'', CodigoArea:'', TelefonoNro:''}
   objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', EstudioAno:null}
+  objEmail = {PersonalEmailId:0, Email:''}
   inputs = { 
     Nombre:'', Apellido:'', CUIT:null, NroLegajo:null, SucursalId:0, FechaIngreso:'',
     FechaNacimiento:'', Foto:[], NacionalidadId:0, docDorso:[], docFrente:[],
     Calle:'', Nro:'', Piso:'', Dpto:'', Esquina:'', EsquinaY:'', //Domicilio
     Bloque:'', Edificio:'', Cuerpo:'', CodigoPostal:'', PaisId:0, ProvinciaId:0, //Domicilio
     LocalidadId:0, BarrioId:0, PersonalDomicilioId:0,//Domicilio
+    PersonalEmailId:0, Email:'', //Email
     telefonos: this.fb.array([this.fb.group({...this.objTelefono})]),
     estudios: this.fb.array([this.fb.group({...this.objEstudio})]),
   }
@@ -165,7 +153,7 @@ export class PersonalFormComponent {
         this.estudios().push(this.fb.group({...this.objEstudio}))
 
     this.formPer.reset(values)
-    console.log(this.formPer.value);
+    // console.log(this.formPer.value);
     
     this.enableSelectReset.set(true)
   }
@@ -173,26 +161,12 @@ export class PersonalFormComponent {
   async save() {
     this.isLoading.set(true)
     const values:any = this.formPer.value
-    // console.log('files', files);
     console.log('values', values);
     try {
       if (this.personalId()) {
-        // let newFiles:any = await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))
-        // newFiles = newFiles.data
-        
-        // for (const key in newFiles) {
-        //   console.log(key,values[key], Number.isInteger(values[key]), Number(values[key]), values.hasOwnProperty(key));
-        //   this.formPer.get(key)?.setValue(Number(newFiles[key]))
-        //   let index:number = files.findIndex(obj =>{obj.control == key})
-        //   files[index].save = true
-        //   files[index].fieldname = newFiles[key]
-        //   console.log('EDITE');
-        //   console.log(files[index].save, files[index].fieldname);
-          
-        // }
-        
+        await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))
       }else{
-        // await firstValueFrom( this.apiService.addPersonal(values))
+        await firstValueFrom( this.apiService.addPersonal(values))
       }
       this.formPer.markAsUntouched()
       this.formPer.markAsPristine()

@@ -587,12 +587,26 @@ export class PersonalController extends BaseController {
     await queryRunner.query(`
       INSERT INTO PersonalCUITCUIL (
       PersonalId,
+      PersonalCUITCUILId,
       PersonalCUITCUILEs,
       PersonalCUITCUILCUIT,
       PersonalCUITCUILDesde
       )
+      VALUES (@0, @1, @2, @3, @4)`,
+      [ personaId, 1, 'T', CUIT, now]
+    )
+  }
+
+  async addPersonalEmail(queryRunner:any, personaId:any, email:string){
+    await queryRunner.query(`
+      INSERT INTO PersonalEmail (
+      PersonalId,
+      PersonalEmailId,
+      PersonalEmailEmail,
+      PersonalEmailInactivo
+      )
       VALUES (@0,@1,@2,@3)`,
-      [ personaId,'T', CUIT, now]
+      [ personaId, 1, email, 0]
     )
   }
 
@@ -603,7 +617,7 @@ export class PersonalController extends BaseController {
     const CUIT:number = req.body.CUIT
     const NroLegajo:number = req.body.NroLegajo
     const SucursalId:number = req.body.SucursalId
-    // const SolicitudIngreso = new Date()
+    const Email = req.body.Email
     let FechaIngreso:Date = new Date(req.body.FechaIngreso)
     let FechaNacimiento:Date = new Date(req.body.FechaNacimiento)
     const foto = req.body.Foto
@@ -652,7 +666,10 @@ export class PersonalController extends BaseController {
 
       await this.addPersonalCUITCUILQuery(queryRunner, PersonalId, CUIT, now)
 
-      await this.addPersonlaDomicilio(queryRunner, req.body, PersonalId)
+      await this.addPersonalDomicilio(queryRunner, req.body, PersonalId)
+
+      if (Email) await this.addPersonalEmail(queryRunner, PersonalId, Email)
+
       for (const obj of telefonos){
         if (obj.telefonoNum) {
           if (!obj.tipoTelefonoId) {
@@ -675,11 +692,11 @@ export class PersonalController extends BaseController {
       if (errors.length)
         throw new ClientException(errors.join(`\n`))
 
-      if (foto.length) await this.setFoto(queryRunner, PersonalId, foto[0])
+      if (foto && foto.length) await this.setFoto(queryRunner, PersonalId, foto[0])
       
-      if (docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente[0], 12)
+      if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente[0], 12)
       
-      if (docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso[0], 13)
+      if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso[0], 13)
       
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, 'Carga Exitosa');
@@ -710,7 +727,7 @@ export class PersonalController extends BaseController {
         personalId, lugarTelefonoId, tipoTelefonoId, codigoPais, codigoArea, telefonoNum
     ])
     await queryRunner.query(`
-      UPDATE Personal SET PersonalTelefonoUltNro = PersonalTelefonoUltNro + 1 WHERE PersonalId = @1
+      UPDATE Personal SET PersonalTelefonoUltNro = ISNULL(PersonalTelefonoUltNro, 0) + 1 WHERE PersonalId = @1
       `,[ personalId ])
   }
   
@@ -731,11 +748,11 @@ export class PersonalController extends BaseController {
         personalId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAnio
     ])
     await queryRunner.query(`
-      UPDATE Personal SET PersonalEstudioUltNro = PersonalEstudioUltNro + 1 WHERE PersonalId = @1
+      UPDATE Personal SET PersonalEstudioUltNro = ISNULL(PersonalEstudioUltNro, 0) + 1 WHERE PersonalId = @1
       `,[ personalId ])
   }
 
-  async addPersonlaDomicilio(queryRunner:any, domicilio:any, personalId:any){
+  async addPersonalDomicilio(queryRunner:any, domicilio:any, personalId:any){
     const calle = domicilio.Calle
     const numero = domicilio.Nro
     const piso = domicilio.Piso
@@ -753,6 +770,7 @@ export class PersonalController extends BaseController {
     await queryRunner.query(`
       INSERT INTO PersonalDomicilio (
       PersonalId,
+      PersonalDomicilioId,
       PersonalDomicilioDomCalle,
       PersonalDomicilioDomNro,
       PersonalDomicilioDomPiso,
@@ -769,8 +787,9 @@ export class PersonalController extends BaseController {
       PersonalDomicilioLocalidadId,
       PersonalDomicilioBarrioId
       )
-      VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15)`,[
+      VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16)`,[
         personalId,
+        1,
         calle,
         numero,
         piso,
@@ -788,7 +807,7 @@ export class PersonalController extends BaseController {
         barrioId,
     ])
     await queryRunner.query(`
-      UPDATE Personal SET PersonalDomicilioUltNro = PersonalDomicilioUltNro + 1 WHERE PersonalId = @1
+      UPDATE Personal SET PersonalDomicilioUltNro = ISNULL(PersonalDomicilioUltNro, 0) + 1 WHERE PersonalId = @0
       `,[ personalId ])
   }
 
@@ -962,7 +981,7 @@ export class PersonalController extends BaseController {
     domicilio = domicilio[0]
     
     let cambio:boolean = false
-    for (const data of domicilio) {
+    for (const data of domicilio || []) {
       if (infoDomicilio[data] != domicilio[data]) {
         cambio = true
         break
@@ -1080,6 +1099,26 @@ export class PersonalController extends BaseController {
         PersonalId, PersonalEstudioId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAno
     ])
   }
+
+  async updatePersonalEmail(queryRunner:any, personaId:any, infoEmail:any){
+    const PersonalEmailId = infoEmail.PersonalEmailId
+    const Email = infoEmail.Email
+    if (PersonalEmailId){
+      let PersonalEmailEmail = await queryRunner.query(`
+        SELEC PersonalEmailEmail
+        FROM PersonalEmail
+        WHERE PersonalId IN (@0) AND PersonalEmailId IN (@1)`,
+        [ personaId, PersonalEmailId]
+      )
+      PersonalEmailEmail = PersonalEmailEmail[0]
+      if (PersonalEmailEmail != Email) 
+        await queryRunner.query(`UPDATE PersonalEmail SET PersonalEmailEmail = @1 WHERE PersonalId IN (@0)`,
+          [ personaId, Email]
+        )
+    }else{
+      await this.addPersonalEmail(queryRunner, personaId, Email)
+    }
+  }
   
   async updatePersonal(req: any, res: Response, next: NextFunction){
     const queryRunner = dataSource.createQueryRunner();
@@ -1111,10 +1150,12 @@ export class PersonalController extends BaseController {
       
       await this.updatePersona(queryRunner, PersonalId, req.body)
       await this.updatePersonalDomicilio(queryRunner, PersonalId, req.body)
-      for (const telefono of telefonos) {
+      await this.updatePersonalEmail(queryRunner, PersonalId, req.body)
+
+      for (const telefono of telefonos || []) {
         if (telefono.TelefonoNro.length)  await this.updatePersonalTelefono(queryRunner, PersonalId, telefono)
       }
-      for (const estudio of estudios) {
+      for (const estudio of estudios || []) {
         if (estudio.EstudioTitulo.length)  await this.updatePersonalEstudio(queryRunner, PersonalId, estudio)
       }
       
@@ -1131,11 +1172,11 @@ export class PersonalController extends BaseController {
         )
       }
       let response:any = {}
-      if (Foto.length) await this.setFoto(queryRunner, PersonalId, Foto)
+      if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto)
       
-      if (docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente, 12)
+      if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente, 12)
       
-      if (docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso, 13)
+      if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso, 13)
       
 
       await queryRunner.commitTransaction()
@@ -1326,6 +1367,72 @@ export class PersonalController extends BaseController {
       this.jsonRes(domicilios, res);
     } catch (error) {
       return next(error)
+    }
+  }
+
+  async getHistoryPersonalSitRevista(req: any, res: Response, next: NextFunction) {
+    const personalId = Number(req.params.personalId);
+
+    try {
+      const listSitRevista = await dataSource.query(
+        `SELECT sitrev.PersonalSituacionRevistaId,
+        TRIM(sit.SituacionRevistaDescripcion) Descripcion, TRIM(sitrev.PersonalSituacionRevistaMotivo) Motivo,
+        sitrev.PersonalSituacionRevistaDesde Desde, sitrev.PersonalSituacionRevistaHasta Hasta
+        FROM PersonalSituacionRevista sitrev 
+        LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+        WHERE sitrev.PersonalId IN (@0)
+        ORDER BY sitrev.PersonalSituacionRevistaId DESC
+        `, [personalId])
+      
+      this.jsonRes(listSitRevista, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async setSituacionRevista(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    const personalId:number = Number(req.params.id);
+    const situacionId = req.body.SituacionId
+    const motivo = req.body.Motivo
+    let now:Date = new Date();
+    now.setHours(0, 0, 0, 0)
+    try {
+      await queryRunner.startTransaction()
+      let sitRevista = await queryRunner.query(
+        `SELECT MAX(sitrev.PersonalSituacionRevistaId) PersonalSituacionRevistaId
+        FROM PersonalSituacionRevista sitrev
+        WHERE sitrev.PersonalId IN (@0) AND PersonalSituacionRevistaHasta IS NULL
+        `, [personalId]
+      )
+      sitRevista = sitRevista[0].PersonalSituacionRevistaSituacionId
+
+      await queryRunner.query(`
+        UPDATE PersonalSituacionRevista SET
+        PersonalSituacionRevistaHasta = @2
+        WHERE PersonalId IN (@0) AND PersonalSituacionRevistaId = @1
+        `, [personalId, sitRevista, now]
+      )
+
+      await queryRunner.query(`
+        INSERT INTO PersonalSituacionRevista (
+        PersonalId,
+        PersonalSituacionRevistaId,
+        PersonalSituacionRevistaDesde,
+        PersonalSituacionRevistaMotivo,
+        PersonalSituacionRevistaSituacionId
+        )
+        VALUES(@0, @1, @2, @3, @4)
+        `, [personalId, ++sitRevista, now, motivo, situacionId]
+      )
+
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res, 'Carga Exitosa');
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 

@@ -69,7 +69,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsEstadoCust = this.searchService.getEstadoCustodia();
   $optionsEstadoPrest = this.searchService.getEstadoPrestamo();
   $optionsTipoPrest = this.searchService.getTipoPrestamo();
-  $optionsSitRevista = this.searchService.getSitRevista();
+  $optionsSitRevista = this.searchService.getSitRevistaOptions();
 
   $optionsSucursales = this.searchService.getSucursales();
   private _options: Options = {
