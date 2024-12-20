@@ -120,6 +120,7 @@ export class PreciosProductosController extends BaseController {
                 `SELECT 
                     ROW_NUMBER() OVER (ORDER BY prod.cod_producto) AS id,
                     prod.cod_producto AS codigo, 
+                     prod.cod_producto AS codigoOld,
                     prod.des_producto AS descripcion,
                     prod.nom_producto AS nombre,
                     prod.ind_activo AS activo,  
@@ -129,8 +130,8 @@ export class PreciosProductosController extends BaseController {
                     suc.SucursalId, 
                     suc.SucursalDescripcion
                 FROM lige.dbo.lpv_productos prod
-                INNER JOIN lige.dbo.lpv_tipo_producto tip ON prod.cod_tipo_producto = tip.cod_tipo_producto
-                INNER JOIN lige.dbo.lpv_precio_venta vent ON prod.cod_producto = vent.cod_producto
+                LEFT JOIN lige.dbo.lpv_tipo_producto tip ON prod.cod_tipo_producto = tip.cod_tipo_producto
+                LEFT JOIN lige.dbo.lpv_precio_venta vent ON prod.cod_producto = vent.cod_producto
                 LEFT JOIN Sucursal suc ON vent.SucursalId = suc.SucursalId  WHERE  ${filterSql} ${orderBy}`, [fechaActual])
 
             this.jsonRes(
@@ -158,14 +159,16 @@ export class PreciosProductosController extends BaseController {
         const params = req.body
 
         try {
-
+            console.log("params ", params)
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
             const codigoExist = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_productos WHERE cod_producto = @0`, [params.codigo])
 
-            if (codigoExist.length > 0) {
+            if ( codigoExist.length > 0 || (params.codigoOld && params.codigoOld !== "")) {
+                
                 console.log('El código existe - es update')
+                await this.validateForm(false, params)
 
               } else {
                 console.log('El código no existe - es nuevo')
@@ -178,6 +181,45 @@ export class PreciosProductosController extends BaseController {
             return next(error)
         }
 
+    }
+
+
+    async validateForm(isNew:boolean, params:any){
+
+        if(isNew){
+        // true es Nuevo
+
+        }else{
+            
+        // false es Edit
+        if (params.codigoOld && params.codigoOld !== "" && params.codigoOld !== params.codigo) 
+            throw new ClientException(`No puede modificar el codigo de un registro ya cargado`)
+            
+        }
+
+        if (params.nombre == null || params.nombre == "")
+            throw new ClientException(`Debe completar el nombre del producto`)
+
+        if (params.descripcionTipoProducto == null || params.descripcionTipoProducto == "")
+            throw new ClientException(`Debe completar el tipo de producto`)
+
+        if (params.descripcion == null || params.descripcion == "")
+            throw new ClientException(`Debe completar la descripcion del producto`)
+
+        if (params.importe == null || params.importe == "")
+            throw new ClientException(`Debe completar el Importe`)
+
+        if (params.activo == null)
+            throw new ClientException(`Debe seleccionar si el producto esta Activo`)
+
+        if (params.desde == null || params.desde == "")
+            throw new ClientException(`Debe seleccionar la fecha desde`)
+
+        if (params.SucursalDescripcion == null || params.SucursalDescripcion == "")
+            throw new ClientException(`Debe seleccionar la Sucursal`)
+
+
+        
     }
 
 

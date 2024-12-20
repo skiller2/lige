@@ -53,6 +53,7 @@ export class PreciosProductosComponent {
     filtros: [],
     sort: null,
   };
+  complexityLevelList = [true,false];
   angularGridEdit!: AngularGridInstance;
   gridObjEdit!: SlickGrid;
   gridOptionsEdit!: GridOption;
@@ -86,6 +87,13 @@ export class PreciosProductosComponent {
 
       },
       {
+        id: 'codigoOld', name: 'codigoOld', field: 'codigoOld',
+        excludeFromHeaderMenu: false,
+        type: FieldType.number,
+        width: 0, minWidth: 0, maxWidth: 0, cssClass: "reallyHidden", headerCssClass: "reallyHidden"
+
+      },
+      {
         id: 'codigo', name: 'Cod Prodcut', field: 'codigo',
         sortable: true,
         type: FieldType.string,
@@ -113,8 +121,9 @@ export class PreciosProductosComponent {
         id: 'descripcionTipoProducto', name: 'Tipo de Prod', field: 'descripcionTipoProducto',
         sortable: true,
         type: FieldType.string,
-        maxWidth: 250,
-        minWidth: 250,
+        cssClass: 'text-center',
+        maxWidth: 150,
+        minWidth: 150,
         formatter: Formatters['complexObject'],
         
         editor: {
@@ -156,27 +165,24 @@ export class PreciosProductosComponent {
       },
       {
         id: 'activo', name: 'Ind Activo Producto', field: 'activo',
-        sortable: true,
-        type: FieldType.float,
-        maxWidth: 200,
-        // groupTotalsFormatter: GroupTotalFormatters.sumTotals,
-        formatter: Formatters['multiple'],
-        params: {
-          formatters: [Formatters['currency']],
-          // groupFormatterPrefix: '<b>Total</b>: ' 
+        cssClass: 'text-center',
+        formatter: Formatters['checkmarkMaterial'],
+        exportWithFormatter: false,
+        filterable: true, sortable: true,
+        filter: {
+          collection: [{ value: '', label: '' }, { value: true, label: 'True' }, { value: false, label: 'False' }],
         },
-        cssClass: 'text-right',
-        editor: {
-          model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000,
-        }
+        editor: { model: Editors['checkbox'], massUpdate: true, },
+        // editor: { model: Editors.singleSelect, collection: [{ value: true, label: 'Yes' }, { value: false, label: 'No' }], },
       },
       {
         id: 'desde', name: 'Desde', field: 'desde',
         sortable: true,
         exportWithFormatter: true,
         type: FieldType.date,
-        maxWidth: 250,
-        minWidth: 250,
+        cssClass: 'text-center',
+        maxWidth: 150,
+        minWidth: 150,
         formatter: Formatters['complexObject'],
         editor: {
           model: Editors['date']
