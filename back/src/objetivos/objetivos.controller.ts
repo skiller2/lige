@@ -851,7 +851,7 @@ export class ObjetivosController extends BaseController {
 
                 }
 
-                await this.updateClienteElementoDependienteTable(queryRunner,ObjetivoId,Obj.ClienteId,Obj.Descripcion,Obj.SucursalId)  
+                await this.updateClienteElementoDependienteTable(queryRunner,Obj.ClienteId,Obj.ElementoDependienteId,Obj.Descripcion,Obj.SucursalId)  
     
     
             }else{
@@ -879,8 +879,10 @@ export class ObjetivosController extends BaseController {
                 ObjObjetivoNew.ClienteElementoDependienteId = ClienteElementoDependienteUltNro
                 ObjObjetivoNew.ClienteId = Obj.ClienteId
             }
-            
             await queryRunner.commitTransaction()
+
+throw new ClientException('debug')
+
             return this.jsonRes(ObjObjetivoNew, res, 'Modificación  Exitosa');
         }catch (error) {
             await this.rollbackTransaction(queryRunner)
