@@ -66,137 +66,79 @@ export class PreciosProductosComponent {
     this.listPrecios$.next('')
   }
 
-  columns$ = this.apiService.getCols('/api/precios-productos/cols')
+  // columns$ = this.apiService.getCols('/api/precios-productos/cols')
 
-  async ngOnInit(){
-
-    this.columnDefinitions = [
-      {
-        id: 'delete',
-        field: 'id',
-        excludeFromHeaderMenu: false,
-        formatter: Formatters['icon'],
-        params: { iconCssClass: 'fa fa-trash pointer' },
-        maxWidth: 30,
-      },
-      {
-        id: 'id', name: 'id', field: 'id',
-        excludeFromHeaderMenu: false,
-        type: FieldType.number,
-        width: 0, minWidth: 0, maxWidth: 0, cssClass: "reallyHidden", headerCssClass: "reallyHidden"
-
-      },
-      {
-        id: 'codigoOld', name: 'codigoOld', field: 'codigoOld',
-        excludeFromHeaderMenu: false,
-        type: FieldType.number,
-        width: 0, minWidth: 0, maxWidth: 0, cssClass: "reallyHidden", headerCssClass: "reallyHidden"
-
-      },
-      {
-        id: 'codigo', name: 'Cod Prodcut', field: 'codigo',
-        sortable: true,
-        type: FieldType.string,
-        maxWidth: 250,
-        minWidth: 250,
-        formatter: Formatters['complexObject'],
-        editor: {
+  columns$ = this.apiService.getCols('/api/precios-productos/cols').pipe(map((cols: Column<any>[]) => {
+    let mapped = cols.map((col: Column) => {
+      console.log(col)
+      if (col.id == 'Codigo') {
+        col.formatter =  Formatters['complexObject'],
+        col.cssClass =  'text-center',
+        col.editor =  {
           model: Editors['text']
-        },
-      },
-      {
-        id: 'nombre', name: 'Nombre de Prod', field: 'nombre',
-        sortable: true,
-        type: FieldType.string,
-        maxWidth: 150,
-        minWidth: 150,
-        formatter: Formatters['complexObject'],
-        editor: {
-          model: Editors['text']
-
-          // required: true
-        },
-      },
-      {
-        id: 'descripcionTipoProducto', name: 'Tipo de Prod', field: 'descripcionTipoProducto',
-        sortable: true,
-        type: FieldType.string,
-        cssClass: 'text-center',
-        maxWidth: 150,
-        minWidth: 150,
-        formatter: Formatters['complexObject'],
+        }
         
-        editor: {
+      }
+      if (col.id == 'nombre') {
+        col.formatter =  Formatters['complexObject'],
+        col.editor = {
+          model: Editors['text']
+        }
+        
+      }
+      if (col.id == 'TipoProductoDescripcion') {
+        col.formatter = Formatters['complexObject'],
+        
+        col.editor =  {
           model: CustomInputEditor,
           collection: [],
           params: {
             component: DescripcionProductoSearchComponent,
           },
+          alwaysSaveOnEnterKey: true,
           required: true
-        },
-      },
-      {
-        id: 'descripcion', name: 'Descrip de Prod', field: 'descripcion',
-        sortable: true,
-        type: FieldType.string,
-        maxWidth: 150,
-        minWidth: 150,
-        formatter: Formatters['complexObject'],
+        }
+      }
+      if (col.id == 'descripcion') {
+        col.formatter =  Formatters['complexObject'],
     
-        editor: {
+        col.editor = {
           model: Editors['text']
-        },
-      },
-      {
-        id: 'importe', name: 'Importe', field: 'importe',
-        sortable: true,
-        type: FieldType.float,
-        maxWidth: 200,
-        // groupTotalsFormatter: GroupTotalFormatters.sumTotals,
-        formatter: Formatters['multiple'],
-        params: {
+        }
+        
+      }
+      if (col.id == 'importe') {
+        col.formatter = Formatters['multiple'],
+        col.params = {
           formatters: [Formatters['currency']],
-          // groupFormatterPrefix: '<b>Total</b>: ' 
         },
-        cssClass: 'text-right',
-        editor: {
+        col.cssClass = 'text-right',
+        col.editor = {
           model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000,
         }
-      },
-      {
-        id: 'activo', name: 'Ind Activo Producto', field: 'activo',
-        cssClass: 'text-center',
-        formatter: Formatters['checkmarkMaterial'],
-        exportWithFormatter: false,
-        filterable: true, sortable: true,
-        filter: {
+        
+      }
+      if (col.id == 'activo') {
+        col.formatter = Formatters['checkmarkMaterial'],
+
+        col.filter = {
           collection: [{ value: '', label: '' }, { value: true, label: 'True' }, { value: false, label: 'False' }],
         },
-        editor: { model: Editors['checkbox'], massUpdate: true, },
-        // editor: { model: Editors.singleSelect, collection: [{ value: true, label: 'Yes' }, { value: false, label: 'No' }], },
-      },
-      {
-        id: 'desde', name: 'Desde', field: 'desde',
-        sortable: true,
-        exportWithFormatter: true,
-        type: FieldType.date,
-        cssClass: 'text-center',
-        maxWidth: 150,
-        minWidth: 150,
-        formatter: Formatters['complexObject'],
-        editor: {
-          model: Editors['date']
-        },
-      },
-      {
-        id: 'SucursalDescripcion', name: 'Sucursal', field: 'SucursalDescripcion',
-        sortable: true,
-        type: FieldType.string,
-        maxWidth: 250,
-        minWidth: 250,
-        formatter: Formatters['complexObject'],
+        col.editor = { model: Editors['checkbox'], massUpdate: true, }
         
-        editor: {
+      }
+      if (col.id == 'desde') {
+        col.cssClass = 'text-center',
+        col.formatter =  Formatters['complexObject'],
+        col.editor = {
+          model: Editors['date']
+        }
+        
+      }
+      if (col.id == 'SucursalDescripcion') {
+        col.formatter = Formatters['complexObject'],
+        
+        col.editor = {
           model: CustomInputEditor,
           collection: [],
           params: {
@@ -204,10 +146,15 @@ export class PreciosProductosComponent {
           },
           alwaysSaveOnEnterKey: true,
           required: true
-        },
-      },
+        }
+        
+      }
+      return col
+    });
+    return mapped
+  }));
 
-    ];
+  async ngOnInit(){
 
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
 

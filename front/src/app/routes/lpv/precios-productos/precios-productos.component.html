@@ -47,14 +47,8 @@
           <ng-template nz-tab *ngIf="(columns$|async) as columnas">
             <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters" />
     
-            <!-- <div class="gridListContainer container-fluid" >
-              <angular-slickgrid gridId="grid" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridOptions"
-                [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
-                (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
-              </angular-slickgrid>
-            </div> -->
             <div class="gridContainer2 container-fluid">
-              <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnDefinitions | colsFilter"
+              <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnas  | colsFilter"
               [gridOptions]="gridOptionsEdit" [dataset]="(gridData$ | async) || []"
               (onAngularGridCreated)="angularGridReadyEdit($event)"
               (onCellChange)="onCellChanged($event)">
@@ -63,18 +57,6 @@
             </div>
           </ng-template>
         </nz-tab>
-    
-        <!-- <nz-tab>
-          <a nz-tab-link routerLink="/lpv/precios_productos/detalle" >{{ 'app.detail' | i18n }} </a>
-           <app-clientes-form #clienteFormEdit [ClienteId]="editClienteId()" (onAddorUpdate)="handleAddOrUpdate()"></app-clientes-form> 
-        </nz-tab>
-
-        <nz-tab>
-            <a nz-tab-link routerLink="/lpv/precios_productos/detalle_prodcutos" >{{ 'app.productdetail' | i18n }} </a>
-             <app-clientes-form #clienteFormEdit [ClienteId]="editClienteId()" (onAddorUpdate)="handleAddOrUpdate()"></app-clientes-form> 
-          </nz-tab> -->
-  
-       
     
       </nz-tabset>
     </nz-card>

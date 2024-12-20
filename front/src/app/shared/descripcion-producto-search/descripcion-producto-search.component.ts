@@ -36,11 +36,11 @@ export class DescripcionProductoSearchComponent {
 
   onChange(item: any) {
     if(this.optionsArray.length > 0 ){
-      const selectedItem = this.optionsArray.find(option => option.cod_tipo_producto === item);
+      const selectedItem = this.optionsArray.find(option => option.TipoProductoId === item);
       this.eto?.focus()  //Al hacer click en el componente hace foco nuevamente
       const selopt: any = this.optionsArray
       this.selectedId = item
-      this.selectedItem = { id: item, fullName: selectedItem.des_tipo_producto }
+      this.selectedItem = { id: item, fullName: selectedItem.TipoProductoDescripcion }
     }
   }
 
@@ -57,6 +57,7 @@ export class DescripcionProductoSearchComponent {
   ngOnInit() {
 
     this.searchService.getDescripcionProducto().subscribe((data: any[]) => {
+      console.log("producto ", data)
       this.optionsArray = data;
     });
   }

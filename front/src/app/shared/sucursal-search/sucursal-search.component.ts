@@ -62,6 +62,7 @@ export class SucursalSearchComponent {
     //    this.eto.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
 
     this.searchService.getSucursales().subscribe((data: any[]) => {
+      console.log("sucursal ", data)
       this.optionsArray = data;
     });
   }

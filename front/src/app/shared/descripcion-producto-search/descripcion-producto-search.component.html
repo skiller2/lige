@@ -2,7 +2,8 @@
    (ngModelChange)="onChange($event)" nzAllowClear nzPlaceHolder="Descripción Porducto"
   nzShowSearch >
   <ng-container *ngFor="let option of optionsArray">
-    <nz-option [nzValue]="option.cod_tipo_producto"
-      [nzLabel]="option.des_tipo_producto" />
+
+    <nz-option [nzValue]="option.TipoProductoId"
+      [nzLabel]="option.TipoProductoDescripcion" />
   </ng-container>
 </nz-select> 
