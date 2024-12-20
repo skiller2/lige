@@ -851,7 +851,7 @@ export class ObjetivosController extends BaseController {
 
                 }
 
-                await this.updateClienteElementoDependienteTable(queryRunner,Obj.ClienteId,Obj.ElementoDependienteId,Obj.Descripcion,Obj.SucursalId)  
+                await this.updateClienteElementoDependienteTable(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.Descripcion,Obj.SucursalId)  
     
     
             }else{
