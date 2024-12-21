@@ -1,0 +1,8 @@
+<nz-drawer [nzClosable]="true" [nzVisible]="visibleHistorial()" [nzOffsetX]="0" [nzPlacement]="placement"
+  [nzWidth]="900" [nzTitle]="'Historial Producto: '  + editProductoId()" (nzOnClose)="visibleHistorial.set(false)">
+    <ng-container *nzDrawerContent >
+      @if (visibleHistorial()) {
+        <app-table-historial-producto [editProductoId]="editProductoId()"></app-table-historial-producto>
+      }
+    </ng-container>
+</nz-drawer>

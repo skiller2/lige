@@ -10,9 +10,12 @@
           <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
             <button nz-button nzType="default" (click)="addNewItem()" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
           </a>
-          <a  nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-            <button nz-button nzType="default"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
+          <a  nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}" >
+            <button nz-button nzType="default" [disabled]=" editProducto().length == 0" (click)="deleteItem()"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
           </a>
+          <button nz-button nzType="default" (click)="openDrawerforConsultHistory()" [disabled]=" editProducto().length == 0"
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}"><span nz-icon nzType="menu-unfold"
+            nzTheme="outline"></span></button>
         </nz-button-group>
   
       </div>
@@ -51,6 +54,7 @@
               <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnas  | colsFilter"
               [gridOptions]="gridOptionsEdit" [dataset]="(gridData$ | async) || []"
               (onAngularGridCreated)="angularGridReadyEdit($event)"
+              (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"
               (onCellChange)="onCellChanged($event)">
               <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
             </angular-slickgrid>
@@ -60,4 +64,5 @@
     
       </nz-tabset>
     </nz-card>
+    <app-producto-historial-drawer [(visibleHistorial)]="visibleHistorial" [editProductoId]="editProducto()"></app-producto-historial-drawer>
   

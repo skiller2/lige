@@ -964,6 +964,16 @@ export class ApiService {
 
   }
 
+
+  deleteProducto(vals: any) {
+    return this.http.delete<ResponseJSON<any>>(`/api/precios-productos`,  vals ).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+      catchError(() => of([])),
+
+    )
+
+  }
+
   deleteArchivosLicencias(deleteId: any) {
     const parameter = [deleteId]
     this.notification.success('Respuesta', `Inicio Borrado `);

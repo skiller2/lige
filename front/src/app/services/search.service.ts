@@ -663,6 +663,17 @@ export class SearchService {
       );
   }
 
+  getProductoById(codigoHistory: any): Observable<any> {
+    if (!codigoHistory) return of([]);    
+    return this.http.get<ResponseJSON<PersonaObj>>(`api/precios-productos/${codigoHistory}`).pipe(
+        map(res => res.data),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
   getObjetivoById(id: number): Observable<any> {
     if (!id) return of([]);    
     return this.http.get<ResponseJSON<PersonaObj>>(`api/objetivos/${id}`).pipe(

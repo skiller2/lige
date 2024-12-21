@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, OnChanges, SimpleChanges, input, ElementRef } from '@angular/core';
+//import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, OnChanges, SimpleChanges, input, ElementRef } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, SlickGrid, OnEventArgs } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
@@ -19,18 +19,23 @@ import { ClientesFormComponent } from "../../ges/clientes-form/clientes-form.com
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SucursalSearchComponent } from "../../../shared/sucursal-search/sucursal-search.component"
 import { DescripcionProductoSearchComponent } from "../../../shared/descripcion-producto-search/descripcion-producto-search.component"
+import { ProductoHistorialDrawerComponent } from '../../../shared//producto-historial-drawer/producto-historial-drawer.component'
+
+
+import { Component, SimpleChanges, ViewChild, computed, input, model, signal,inject } from '@angular/core';
+
+
 
 @Component({
   selector: 'app-precios-productos',
   standalone: true,
-  encapsulation: ViewEncapsulation.None,
   providers: [AngularUtilService],
   imports: [
     SHARED_IMPORTS, 
     CommonModule, 
     FiltroBuilderComponent,
     SucursalSearchComponent,
-    DescripcionProductoSearchComponent
+    DescripcionProductoSearchComponent,ProductoHistorialDrawerComponent
   ],
   templateUrl: './precios-productos.component.html',
   styleUrl: './precios-productos.component.less'
@@ -47,8 +52,9 @@ export class PreciosProductosComponent {
   private readonly messageSrv = inject(NzMessageService);
   columnDefinitions: Column[] = []
   itemAddActive = false
+  visibleHistorial = model<boolean>(false)
   listPrecios$ = new BehaviorSubject('')
-  editProducto = signal(0)
+  editProducto = signal<{ codigo: string }[]>([]);
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
@@ -70,7 +76,6 @@ export class PreciosProductosComponent {
 
   columns$ = this.apiService.getCols('/api/precios-productos/cols').pipe(map((cols: Column<any>[]) => {
     let mapped = cols.map((col: Column) => {
-      console.log(col)
       if (col.id == 'Codigo') {
         col.formatter =  Formatters['complexObject'],
         col.cssClass =  'text-center',
@@ -179,7 +184,7 @@ export class PreciosProductosComponent {
  
   }
 
-  addNewItem() {
+  async addNewItem() {
     if(!this.itemAddActive){
       const newItem1 = this.createNewItem(1);
       this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
@@ -188,6 +193,13 @@ export class PreciosProductosComponent {
       this.messageSrv.error('Termine la carga del registro activo, antes de iniciar otra');
     }
     
+  }
+
+
+  async deleteItem(){
+
+    await firstValueFrom(this.apiService.deleteProducto(this.editProducto()))
+
   }
 
   createNewItem(incrementIdByHowMany = 1) {
@@ -220,6 +232,11 @@ export class PreciosProductosComponent {
     this.angularGridEdit = angularGrid.detail
     this.gridObjEdit = angularGrid.detail.slickGrid;
 
+    this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGridEdit)
+      columnTotal('CantidadObjetivos', this.angularGridEdit)
+    })
+    
     setTimeout(() => {
       // if (this.gridDataInsert.length == 0)
       //   this.addNewItem("bottom")
@@ -229,6 +246,12 @@ export class PreciosProductosComponent {
     if (this.apiService.isMobile())
       this.angularGridEdit.gridService.hideColumnByIds([])
   
+  }
+
+  openDrawerforConsultHistory(): void{
+
+    this.visibleHistorial.set(true)
+        
   }
 
   gridData$ = this.listPrecios$.pipe(
@@ -245,21 +268,12 @@ export class PreciosProductosComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
-    if (row?.id)
-      this.editProducto.set(row.id)
+    if (row?.codigo){
+      this.editProducto.set([row.codigo])
+    }
+     
 
   }
-
-  // async angularGridReady(angularGrid: any) {
-  //   this.angularGridEdit = angularGrid.detail
-  //   this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
-  //        totalRecords(this.angularGridEdit)
-  //        columnTotal('cantidad', this.angularGridEdit)
-  //   })
-  //   if (this.apiService.isMobile())
-  //       this.angularGridEdit.gridService.hideColumnByIds([])
-  // }
-
 
   async onCellChanged(e: any) {
    
@@ -268,11 +282,7 @@ export class PreciosProductosComponent {
         )
       )
     )
-
-    
-
   }
-
 
 
   updateItemMetadata(previousItemMetadata: any) {
