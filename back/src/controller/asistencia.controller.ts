@@ -5,6 +5,20 @@ import { QueryRunner } from "typeorm";
 import { ObjetivoController } from "./objetivo.controller";
 import { filtrosToSql, orderToSQL } from "src/impuestos-afip/filtros-utils/filtros";
 import { CustodiaController } from "./custodia.controller";
+import CryptoJS from "crypto-js";
+
+interface DigestAuthOptions {
+  username: string;
+  password: string;
+  method: string;
+  uri: string;
+  realm: string;
+  nonce: string;
+  qop: string;
+  nc: number;
+  cnonce: string;
+}
+
 
 class ClientExceptionArt14 extends ClientException {
   constructor(metodo: string) {
@@ -2635,4 +2649,84 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     return this.jsonRes(formas, res);
   }
 
+
+
+
+
+
+
+
+
+  
+  
+  generateDigestAuthHeader(options: DigestAuthOptions): string {
+    const { username, password, method, uri, realm, nonce, qop, nc, cnonce } = options;
+  
+    // Hash functions
+    const ha1 = CryptoJS.MD5(`${username}:${realm}:${password}`).toString();
+    const ha2 = CryptoJS.MD5(`${method}:${uri}`).toString();
+    const response = CryptoJS.MD5(
+      `${ha1}:${nonce}:${nc.toString().padStart(8, "0")}:${cnonce}:${qop}:${ha2}`
+    ).toString();
+  
+    return `Digest username="${username}", realm="${realm}", nonce="${nonce}", uri="${uri}", qop=${qop}, nc=${nc.toString().padStart(8, "0")}, cnonce="${cnonce}", response="${response}"`;
+  }
+  
+  async getAccessControlAsistance() {
+    const url = process.env.CA_URL_GETASISTANCE
+    const username = process.env.CA_USERNAME
+    const password = process.env.CA_PASSWORD
+  
+    // Make an initial request to get the realm and nonce
+    const initialResponse = await fetch(url, {method: 'POST', body: JSON.stringify({ validateStatus: () => true }),})
+
+
+    const authHeader = initialResponse.headers["www-authenticate"];
+  
+    if (!authHeader) {
+      throw new Error("Digest authentication not supported on this endpoint.");
+    }
+  
+    // Parse authHeader to extract realm, nonce, and qop
+    const realmMatch = /realm="([^"]+)"/.exec(authHeader);
+    const nonceMatch = /nonce="([^"]+)"/.exec(authHeader);
+    const qopMatch = /qop="([^"]+)"/.exec(authHeader);
+  
+    if (!realmMatch || !nonceMatch || !qopMatch) {
+      throw new Error("Failed to parse authentication header.");
+    }
+  
+    const realm = realmMatch[1];
+    const nonce = nonceMatch[1];
+    const qop = qopMatch[1];
+  
+    // Generate client nonce
+    const cnonce = CryptoJS.lib.WordArray.random(16).toString();
+    const nc = 1;
+  
+    // Create the Digest auth header
+    const authOptions: DigestAuthOptions = {
+      username,
+      password,
+      method: "POST",
+      uri: new URL(url).pathname,
+      realm,
+      nonce,
+      qop,
+      nc,
+      cnonce,
+    };
+  
+    const digestAuthHeader = this.generateDigestAuthHeader(authOptions);
+  
+
+    const data = {x: 1920, y: 1080,};
+    const headers = {'Content-Type': 'application/json','Authorization': digestAuthHeader};
+    
+    const response = await fetch(url, {method: 'POST',headers: headers,body: JSON.stringify(data),})
+
+    console.log("Response status:", response.status);
+    console.log("Response data:", response.body);
+  }
+ 
 }
