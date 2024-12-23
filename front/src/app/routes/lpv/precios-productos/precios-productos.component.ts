@@ -9,7 +9,7 @@ import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detai
 import { ActivatedRoute, Router } from '@angular/router';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, debounceTime, firstValueFrom, map, of, switchMap, tap } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { DetallePersonaComponent } from '../../ges/detalle-persona/detalle-persona.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
@@ -277,11 +277,19 @@ export class PreciosProductosComponent {
 
   async onCellChanged(e: any) {
    
-    await firstValueFrom(this.apiService.onchangecellPrecioProducto(e.detail.args.item).pipe(
-      tap(res => this.formChange$.next('')
+      await firstValueFrom(
+        this.apiService.onchangecellPrecioProducto(e.detail.args.item).pipe(
+          tap(res => {
+            if (res != "") {
+              this.listPrecios$.next('');
+            }
+          }),
+          catchError(err => {
+            return of(null);
+          })
         )
       )
-    )
+
   }
 
 

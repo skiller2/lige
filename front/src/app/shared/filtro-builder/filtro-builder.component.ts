@@ -22,6 +22,7 @@ import { ClienteSearchComponent } from '../cliente-search/cliente-search.compone
 import { PersonalSearchComponent } from '../personal-search/personal-search.component';
 import { GrupoActividadSearchComponent } from '../grupo-actividad/grupo-actividad.component';
 import { RequirenteSearchComponent } from '../requirente-search/requirente-search.component';
+import { DescripcionProductoSearchComponent } from "../../shared/descripcion-producto-search/descripcion-producto-search.component"
 
 type listOptionsT = {
   filtros: any[],
@@ -42,7 +43,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   standalone: true,
   imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
     ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent,
-    RequirenteSearchComponent
+    RequirenteSearchComponent,DescripcionProductoSearchComponent
   ],
   templateUrl: './filtro-builder.component.html',
   styles: [],
@@ -70,6 +71,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsEstadoPrest = this.searchService.getEstadoPrestamo();
   $optionsTipoPrest = this.searchService.getTipoPrestamo();
   $optionsSitRevista = this.searchService.getSitRevistaOptions();
+  $optionsProducto =  this.searchService.getDescripcionProducto();
 
   $optionsSucursales = this.searchService.getSucursales();
   private _options: Options = {
@@ -313,6 +315,14 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     if (val) {
       this.selections.value = val.value;
       this.valueExtended = { fullName: val.label };
+    }
+  }
+
+  selectedValueProducto(val: any) {
+    console.log("val ", val)
+    if (val) {
+      this.selections.value = val.TipoProductoId;
+      this.valueExtended = { fullName: val.TipoProductoDescripcion };
     }
   }
 
