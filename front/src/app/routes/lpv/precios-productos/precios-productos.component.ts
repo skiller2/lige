@@ -22,8 +22,8 @@ import { DescripcionProductoSearchComponent } from "../../../shared/descripcion-
 import { ProductoHistorialDrawerComponent } from '../../../shared//producto-historial-drawer/producto-historial-drawer.component'
 
 
-import { Component, SimpleChanges, ViewChild, computed, input, model, signal,inject } from '@angular/core';
 
+import { Component, SimpleChanges, ViewChild, computed, input, model, signal,inject } from '@angular/core';
 
 
 @Component({
@@ -42,7 +42,8 @@ import { Component, SimpleChanges, ViewChild, computed, input, model, signal,inj
 })
 export class PreciosProductosComponent {
 
-  
+
+
   startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
 
   private apiService = inject(ApiService)
@@ -92,8 +93,7 @@ export class PreciosProductosComponent {
         
       }
       if (col.id == 'TipoProductoDescripcion') {
-        col.formatter = Formatters['complexObject'],
-        
+
         col.editor =  {
           model: CustomInputEditor,
           collection: [],
@@ -123,26 +123,35 @@ export class PreciosProductosComponent {
         }
         
       }
-      if (col.id == 'activo') {
-        col.formatter = Formatters['checkmarkMaterial'],
-
-        col.filter = {
-          collection: [{ value: '', label: '' }, { value: true, label: 'True' }, { value: false, label: 'False' }],
-        },
-        col.editor = { model: Editors['checkbox'], massUpdate: true, }
-        
-      }
       if (col.id == 'desde') {
+       
         col.cssClass = 'text-center',
         col.formatter =  Formatters['complexObject'],
+       // formatter: Formatters.dateIso,
+        
         col.editor = {
-          model: Editors['date']
+          model: Editors['date'],
         }
         
       }
+
+      if (col.id == 'hasta') {
+       
+        col.cssClass = 'text-center',
+      
+        col.formatter =  Formatters['complexObject'],
+       // formatter: Formatters.dateIso,
+        
+        col.editor = {
+          model: Editors['date'],
+         
+        }
+        
+        
+      }
+
       if (col.id == 'SucursalDescripcion') {
         col.formatter = Formatters['complexObject'],
-        
         col.editor = {
           model: CustomInputEditor,
           collection: [],
@@ -172,26 +181,23 @@ export class PreciosProductosComponent {
       editCommand.execute()
   
 
-      this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
+      //this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
 
       this.angularGridEdit.slickGrid.invalidate();
       this.angularGridEdit.slickGrid.render();
 
-
     }
-
-
  
   }
 
   async addNewItem() {
-    if(!this.itemAddActive){
+    // if(!this.itemAddActive){
       const newItem1 = this.createNewItem(1);
       this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
       this.itemAddActive = true
-    }else{
-      this.messageSrv.error('Termine la carga del registro activo, antes de iniciar otra');
-    }
+    // }else{
+    //   this.messageSrv.error('Termine la carga del registro activo, antes de iniciar otra');
+    // }
     
   }
 
@@ -234,7 +240,7 @@ export class PreciosProductosComponent {
 
     this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGridEdit)
-      columnTotal('CantidadObjetivos', this.angularGridEdit)
+      columnTotal('CantidadProductos', this.angularGridEdit)
     })
     
     setTimeout(() => {
@@ -269,7 +275,7 @@ export class PreciosProductosComponent {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
     if (row?.codigo){
-      this.editProducto.set([row.codigo])
+      this.editProducto.set([row.precioVentaId])
     }
      
 

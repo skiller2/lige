@@ -5,6 +5,7 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { QueryResult } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller"
 import { info } from "pdfjs-dist/types/src/shared/util";
+import moment from 'moment';
 
 
 
@@ -20,6 +21,16 @@ export class PreciosProductosController extends BaseController {
             sortable: false,
             hidden: true,
             searchHidden: true
+        },
+        {
+            name: "Sucursal",
+            type: "string",
+            id: "SucursalDescripcion",
+            field: "SucursalDescripcion",
+            fieldName: "suc.SucursalId",
+            searchComponent: "inpurForSucursalSearch",
+            sortable: true,
+            searchHidden: false
         },
         {
             id: "codigoOld",
@@ -54,7 +65,7 @@ export class PreciosProductosController extends BaseController {
             hidden: false,
         },
         {
-            name: "Producto",
+            name: "Tipo",
             type: "string",
             id: "TipoProductoDescripcion",
             field: "TipoProductoDescripcion",
@@ -93,16 +104,6 @@ export class PreciosProductosController extends BaseController {
             searchHidden: true
         },
         {
-            name: "Activo",
-            type: "number",
-            id: "activo",
-            field: "activo",
-            fieldName: "prod.ind_activo",
-            sortable: true,
-            hidden: false,
-            searchHidden: true
-        },
-        {
             name: "Desde",
             type: "date",
             id: "desde",
@@ -123,129 +124,16 @@ export class PreciosProductosController extends BaseController {
             sortable: true,
             hidden: false,
             searchHidden: false
-        },
-        {
-            name: "Sucursal",
-            type: "string",
-            id: "SucursalDescripcion",
-            field: "SucursalDescripcion",
-            fieldName: "suc.SucursalId",
-            searchComponent: "inpurForSucursalSearch",
-            sortable: true,
-            searchHidden: false
         }
     ];
 
-
-    listaColumnasHistory: any[] = [
-        {
-            id: "id",
-            name: "id",
-            field: "id",
-            fieldName: "cli.ClienteId",
-            type: "number",
-            sortable: false,
-            hidden: true,
-            searchHidden: true
-        },
-        {
-            id: "Codigo",
-            name: "codigo",
-            field: "codigo",
-            fieldName: " prod.cod_producto",
-            type: "number",
-            sortable: true,
-            searchHidden: false,
-            hidden: true,
-        },
-        {
-            name: "Nombre",
-            type: "string",
-            id: "nombre",
-            field: "nombre",
-            fieldName: "prod.nom_producto",
-            searchType: "string",
-            sortable: true,
-            searchHidden: false,
-            hidden: false,
-        },
-        {
-            name: "Prod",
-            type: "string",
-            id: "TipoProductoDescripcion",
-            field: "TipoProductoDescripcion",
-            fieldName: "tip.des_tipo_product",
-            searchType: "string",
-            searchHidden: true
-        },
-        {
-            name: "Activo",
-            type: "number",
-            id: "activo",
-            field: "activo",
-            fieldName: "prod.ind_activo",
-            sortable: true,
-            hidden: false,
-            searchHidden: false
-        },
-        {
-            name: "Descripcion",
-            type: "string",
-            id: "descripcion",
-            field: "descripcion",
-            fieldName: "prod.des_producto",
-            searchType: "string",
-            sortable: true,
-            searchHidden: false,
-            hidden: true,
-        },
-        {
-            name: "Importe",
-            type: "number",
-            id: "importe",
-            field: "importe",
-            fieldName: "vent.importe",
-            sortable: true,
-            hidden: false,
-            searchHidden: false
-        },
-        {
-            name: "importeOld",
-            type: "number",
-            id: "importeOld",
-            field: "importeOld",
-            fieldName: "vent.importe",
-            sortable: true,
-            hidden: true,
-            searchHidden: false
-        },
-        {
-            name: "Fecha Importe Desde",
-            type: "date",
-            id: "desde",
-            field: "desde",
-            fieldName: "inpurForFechaSearch",
-            sortable: true,
-            searchHidden: false,
-            hidden: true,
-        },
-        {
-            name: "Sucursal",
-            type: "string",
-            id: "SucursalDescripcion",
-            field: "SucursalDescripcion",
-            fieldName: "suc.SucursalDescripcion",
-            sortable: true,
-            searchHidden: true
-        }
-    ];
 
     async getGridCols(req, res) {
         this.jsonRes(this.listaColumnas, res);
     }
 
     async colsHistory(req, res) {
-        this.jsonRes(this.listaColumnasHistory, res);
+        this.jsonRes(this.listaColumnas, res);
     }
 
     async listCodigoHistory(codigoId: any, res: Response, next: NextFunction) {
@@ -262,7 +150,6 @@ export class PreciosProductosController extends BaseController {
                      prod.cod_producto AS codigoOld,
                     prod.des_producto AS descripcion,
                     prod.nom_producto AS nombre,
-                    prod.ind_activo AS activo,  
                     tip.cod_tipo_producto AS TipoProductoId,
                     tip.des_tipo_producto AS TipoProductoDescripcion,
                     vent.importe AS importeOld,
@@ -306,8 +193,7 @@ export class PreciosProductosController extends BaseController {
                     prod.cod_producto AS codigo, 
                      prod.cod_producto AS codigoOld,
                     prod.des_producto AS descripcion,
-                    prod.nom_producto AS nombre,
-                    prod.ind_activo AS activo,  
+                    prod.nom_producto AS nombre, 
                     tip.cod_tipo_producto AS TipoProductoId,
                     tip.des_tipo_producto AS TipoProductoDescripcion,
                     vent.importe AS importeOld,
@@ -360,9 +246,8 @@ export class PreciosProductosController extends BaseController {
             
             const codigoExist = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_productos WHERE cod_producto = @0`, [params.codigo])
 
-            let fechaDede = params.desde == undefined ? fechaActual : params.desde
-            let fechaHasta = params.hasta == undefined ? '9999-12-31' : params.hasta
-
+            let importeDesde = params.desde == undefined ? fechaActual : params.desde
+            let importeHasta = params.hasta == undefined ? '9999-31-12' : params.hasta
 
             if ( codigoExist.length > 0 || (params.codigoOld && params.codigoOld !== "")) {
                 
@@ -375,7 +260,7 @@ export class PreciosProductosController extends BaseController {
                     // el importe es diferente se agrega un registro
                     console.log("update -  agrego nuevo registro")
 
-                    await this.addRecord(queryRunner,params,fechaActual, usuario, ip, TipoProductoDescripcion,SucursalDescripcion,fechaHasta,fechaDede)
+                    await this.addRecord(queryRunner,params,fechaActual, usuario, ip, TipoProductoDescripcion,SucursalDescripcion,importeHasta,importeDesde)
 
                     await queryRunner.query( `UPDATE lige.dbo.lpv_precio_venta SET importe_hasta = @1 WHERE precio_venta_id = @0
                         `, [params.precioVentaId, fechaActual])
@@ -383,13 +268,13 @@ export class PreciosProductosController extends BaseController {
                 }else{
                     // se hace update
                     await queryRunner.query( `UPDATE lige.dbo.lpv_productos SET 
-                        nom_producto = @1, des_producto = @2, ind_activo = @3, aud_fecha_mod = @4, aud_ip_mod = @6,
-                        cod_tipo_producto = @7 WHERE cod_producto = @0
-                        `, [params.codigo, params.nombre,  params.descripcion,  params.activo, fechaActual, usuario, ip, TipoProductoDescripcion])
+                        nom_producto = @1, des_producto = @2, aud_fecha_mod = @3, aud_usuario_mod = @4, aud_ip_mod = @5,
+                        cod_tipo_producto = @6 WHERE cod_producto = @0
+                        `, [params.codigo, params.nombre,  params.descripcion, fechaActual, usuario, ip, TipoProductoDescripcion])
 
                     await queryRunner.query( `UPDATE lige.dbo.lpv_precio_venta SET 
                         aud_fecha_mod = @1, aud_usuario_mod = @2, aud_ip_mod = @3, sucursalId = @4, importe_desde = @5, importe_hasta = @6  WHERE precio_venta_id = @0
-                        `, [params.precioVentaId, fechaActual, usuario, ip, SucursalDescripcion, params.desde, fechaHasta])
+                        `, [params.precioVentaId, fechaActual, usuario, ip, SucursalDescripcion, importeDesde, importeHasta])
             
                 }
 
@@ -401,15 +286,18 @@ export class PreciosProductosController extends BaseController {
                 const TipoProductoDescripcion = await this.TipoProductoSearch(queryRunner,params.TipoProductoDescripcion)
                 const SucursalDescripcion = await this.SucursalDescripcionSearch(queryRunner,params.SucursalDescripcion)
 
-                const paramsActivo = params.activo == undefined ? false : params.activo 
 
                 await queryRunner.query( `INSERT INTO lige.dbo.lpv_productos 
-                    (cod_producto, nom_producto,des_producto,ind_activo,aud_fecha_ing, aud_usuario_ing,aud_ip_ing,
-                    aud_fecha_mod,aud_usuario_mod, aud_ip_mod,cod_tipo_producto )
-                    VALUES ( @0, @1, @2, @3, @4, @5, @3, @4, @5, @6, @7)
-                    `, [params.codigo, params.nombre,  params.descripcion,  paramsActivo, fechaActual, usuario, ip, TipoProductoDescripcion])
+                    (cod_producto, 
+                    nom_producto,
+                    des_producto,
+                    aud_fecha_ing, aud_usuario_ing,aud_ip_ing,
+                    aud_fecha_mod,aud_usuario_mod, aud_ip_mod,
+                    cod_tipo_producto )
+                    VALUES ( @0, @1, @2, @3, @4, @5, @3, @4, @5, @6)
+                    `, [params.codigo, params.nombre,  params.descripcion , fechaActual, usuario, ip, TipoProductoDescripcion])
 
-                await this.addRecord(queryRunner,params,fechaActual, usuario, ip, TipoProductoDescripcion,SucursalDescripcion,fechaHasta,fechaDede)
+                await this.addRecord(queryRunner,params,fechaActual, usuario, ip, TipoProductoDescripcion,SucursalDescripcion,importeHasta,importeDesde)
               
               message = "Carga de nuevo Registro exitoso"
             }
@@ -440,16 +328,16 @@ export class PreciosProductosController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
     
         try {
-           let cod_producto = req.query[0]
+           let cod_producto_venta = req.query[0]
 
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
-            // await queryRunner.query( `DELETE FROM lige.dbo.lpv_productos WHERE cod_producto = @0`, [params.codigo])
-            // await queryRunner.query( `DELETE FROM lige.dbo.lpv_precio_venta WHERE precio_venta_id = @1`, [params.precioVentaId])
+        
+            await queryRunner.query( `DELETE FROM lige.dbo.lpv_precio_venta WHERE precio_venta_id = @0`, [cod_producto_venta])
           
-
-            await queryRunner.commitTransaction();
+            await queryRunner.commitTransaction()
+            return this.jsonRes( "", res, "Borrado Exitoso")
         } catch (error) {
            await this.rollbackTransaction(queryRunner)
             return next(error)
@@ -503,9 +391,6 @@ export class PreciosProductosController extends BaseController {
 
         if (params.importe == null || params.importe == "")
             throw new ClientException(`Debe completar el Importe`)
-
-        // if (params.activo == null)
-        //     throw new ClientException(`Debe seleccionar si el producto esta Activo`)
 
         // if (params.desde == null || params.desde == "")
         //     throw new ClientException(`Debe seleccionar la fecha desde`)
