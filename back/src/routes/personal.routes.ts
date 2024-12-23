@@ -22,15 +22,15 @@ personalRouter.post(
   }
 );
 
-personalRouter.post(`${base}/add`, authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.post(`${base}/add`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   personalController.addPersonal(req, res, next);
 });
 
-personalRouter.post(`${base}/update/:id`, authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.post(`${base}/update/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   personalController.updatePersonal(req, res, next);
 });
 
-personalRouter.post('/setsitrevista/:id', authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.post('/setsitrevista/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   personalController.setSituacionRevista(req, res, next)
 });
 

@@ -101,48 +101,18 @@
     </nz-form-control>
   </nz-form-item>
 
-
   <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Entre</nz-form-label>
-    <nz-form-control [nzMd]="5">
-        <input nz-input placeholder="" formControlName="Esquina" type="text"/>
-    </nz-form-control>
-    <nz-form-control [nzMd]="1" style="text-align: center;">
-      y
-    </nz-form-control>
-    <nz-form-control [nzMd]="5">
-        <input nz-input placeholder="" formControlName="EsquinaY" type="text"/>
-    </nz-form-control>
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Cod.Postal</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="4">
-        <input nz-input placeholder="" formControlName="CodigoPostal" type="text"/>
-    </nz-form-control>
-  </nz-form-item>
-
-  <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Edificio</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <input nz-input placeholder="" formControlName="Edificio" type="text"/>
-    </nz-form-control>
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Departamento</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Departamento</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="5">
         <input nz-input placeholder="" formControlName="Dpto" type="text"/>
     </nz-form-control>
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="1">Piso</nz-form-label>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="2">Piso</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
         <input nz-input placeholder="" formControlName="Piso" type="text"/>
     </nz-form-control>
-  </nz-form-item>
-
-  <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Bloque</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6">
-        <input nz-input placeholder="" formControlName="Bloque" type="text"/>
-    </nz-form-control>
-    
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cuerpo</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6">
-        <input nz-input placeholder="" formControlName="Cuerpo" type="text"/>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Cod.Postal</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+        <input nz-input placeholder="" formControlName="CodigoPostal" type="text"/>
     </nz-form-control>
   </nz-form-item>
 
@@ -199,19 +169,9 @@
 
   <div formArrayName="telefonos">
     <nz-form-item class="marginElement" *ngFor="let control of telefonos().controls; let i = index" [formGroupName]="i">
-
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Lugar</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="2">
-        <nz-select formControlName="LugarTelefonoId" nzPlaceHolder="" nzAllowClear
-        [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
-          <ng-container *ngFor="let option of $optionsTelefonoLugar | async">
-            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          </ng-container>
-        </nz-select>
-      </nz-form-control>
         
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="1">Tipo</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="2">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">
         <nz-select formControlName="TipoTelefonoId" nzPlaceHolder="" nzAllowClear
         [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
           <ng-container *ngFor="let option of $optionsTelefonoTipo | async">
@@ -220,18 +180,8 @@
         </nz-select>
       </nz-form-control>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Cod.Pais</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="2">
-          <input nz-input placeholder="" formControlName="CodigoPais" type="text"/>
-      </nz-form-control>
-
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Cod.Area</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="2">
-          <input nz-input placeholder="" formControlName="CodigoArea" type="text"/>
-      </nz-form-control>
-
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="2">Numero Telefono</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16" [nzLg]="4">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Numero Telefono</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="controlTelefonoButton" nzSearch>
           <input nz-input placeholder="" formControlName="TelefonoNro" type="text"/>
         </nz-input-group>
@@ -253,49 +203,66 @@
   </div>
 
   <div formArrayName="estudios">
-    <nz-form-item class="marginElement" *ngFor="let control of estudios().controls; let i = index" [formGroupName]="i">
+    <div *ngFor="let control of estudios().controls; let i = index" [formGroupName]="i">
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="5">
+          <nz-select formControlName="TipoEstudioId" nzPlaceHolder="" nzAllowClear
+          [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
+            <ng-container *ngFor="let option of $optionsEstudioTipo | async">
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            </ng-container>
+          </nz-select>
+        </nz-form-control>
+        
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Estado</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="5">
+          <nz-select formControlName="EstadoEstudioId" nzPlaceHolder="" nzAllowClear
+          [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
+            <ng-container *ngFor="let option of $optionsEstudioEstado | async">
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            </ng-container>
+          </nz-select>
+        </nz-form-control>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="2">
-        <nz-select formControlName="TipoEstudioId" nzPlaceHolder="" nzAllowClear
-        [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
-          <ng-container *ngFor="let option of $optionsEstudioTipo | async">
-            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          </ng-container>
-        </nz-select>
-      </nz-form-control>
-      
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Estado</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="2">
-        <nz-select formControlName="EstadoEstudioId" nzPlaceHolder="" nzAllowClear
-        [nzDropdownMatchSelectWidth]="false" style="width: 100%" >
-          <ng-container *ngFor="let option of $optionsEstudioEstado | async">
-            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          </ng-container>
-        </nz-select>
-      </nz-form-control>
-
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Titulo</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="11" [nzLg]="5">
-        <input nz-input placeholder="" formControlName="EstudioTitulo" type="text"/>
-      </nz-form-control>
-
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="2">Año</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="3">
-        <nz-input-group style="width: 100%" [nzAddOnAfter]="controlEstudioButton" nzSearch>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Año</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">
           <input nz-input placeholder="" formControlName="EstudioAno" type="number"/>
-        </nz-input-group>
-        <ng-template #controlEstudioButton >
-          <button nz-button *ngIf="estudios().controls.length == i+1 && formPer.enabled" nzType="primary" class="add-button" (click)="addEstudio($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-            <span nz-icon nzType="plus"></span>
-          </button>
-          <button nz-button nzType="default" *ngIf="formPer.enabled" (click)="removeEstudio(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.borrar' | i18n }}">
-            <span nz-icon nzType="delete" nzTheme="outline" ></span>
-          </button>
-        </ng-template>
-      </nz-form-control>
+        </nz-form-control>
+      </nz-form-item>
 
-    </nz-form-item>
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Titulo</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="10" [nzLg]="8">
+          <nz-input-group style="width: 100%" [nzAddOnAfter]="controlEstudioButton" nzSearch>
+            <input nz-input placeholder="" formControlName="EstudioTitulo" type="text"/>
+          </nz-input-group>
+          <ng-template #controlEstudioButton >
+            <button nz-button *ngIf="estudios().controls.length == i+1 && formPer.enabled" nzType="primary" class="add-button" (click)="addEstudio($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+              <span nz-icon nzType="plus"></span>
+            </button>
+            <button nz-button nzType="default" *ngIf="formPer.enabled" (click)="removeEstudio(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.borrar' | i18n }}">
+              <span nz-icon nzType="delete" nzTheme="outline" ></span>
+            </button>
+          </ng-template>
+        </nz-form-control>
+
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="3">Doc</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
+            <app-file-upload formControlName="DocTitulo" [idForSearh]="this.personalId()" [textForSearch]="'CERESTPAG'+i"
+            [keyField]="'PersonalId'" [tableForSearch]="'DocumentoImagenEstudio'" [dataBaseForSearch]="'Produccion'"></app-file-upload>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="3">Doc</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
+            <app-file-upload formControlName="DocTitulo" [idForSearh]="this.personalId()" [textForSearch]="'CERESTPAG'+i"
+            [keyField]="'PersonalId'" [tableForSearch]="'DocumentoImagenEstudio'" [dataBaseForSearch]="'Produccion'"></app-file-upload>
+        </nz-form-control>
+      </nz-form-item> -->
+
+    </div>
   </div>
 
   <nz-form-item>

@@ -32,14 +32,14 @@ export class PersonalFormComponent {
   uploading$ = new BehaviorSubject({loading:false,event:null});
   
   fb = inject(FormBuilder)
-  objTelefono = {PersonalTelefonoId:0, LugarTelefonoId:0, TipoTelefonoId:0, CodigoPais:'', CodigoArea:'', TelefonoNro:''}
-  objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', EstudioAno:null}
+  objTelefono = {PersonalTelefonoId:0, TipoTelefonoId:0, TelefonoNro:''}
+  objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', EstudioAno:null, DocTitulo:[]}
   objEmail = {PersonalEmailId:0, Email:''}
   inputs = { 
     Nombre:'', Apellido:'', CUIT:null, NroLegajo:null, SucursalId:0, FechaIngreso:'',
     FechaNacimiento:'', Foto:[], NacionalidadId:0, docDorso:[], docFrente:[],
-    Calle:'', Nro:'', Piso:'', Dpto:'', Esquina:'', EsquinaY:'', //Domicilio
-    Bloque:'', Edificio:'', Cuerpo:'', CodigoPostal:'', PaisId:0, ProvinciaId:0, //Domicilio
+    Calle:'', Nro:'', Piso:'', Dpto:'', //Domicilio
+    CodigoPostal:'', PaisId:0, ProvinciaId:0, //Domicilio
     LocalidadId:0, BarrioId:0, PersonalDomicilioId:0,//Domicilio
     PersonalEmailId:0, Email:'', //Email
     telefonos: this.fb.array([this.fb.group({...this.objTelefono})]),
