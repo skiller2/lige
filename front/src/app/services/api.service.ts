@@ -1126,14 +1126,14 @@ export class ApiService {
   addPersonal(parameter: any){
     return this.http.post<ResponseJSON<any>>('/api/personal/add', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
-      catchError(() => of({}))
+//      catchError(() => of({}))
     );
   }
 
   updatePersonal(id:number, parameter: any){
     return this.http.post<ResponseJSON<any>>(`/api/personal/update/${id}`, parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
-      catchError(() => of({}))
+//      catchError(() => of({}))
     );
   }
 

@@ -898,17 +898,16 @@ export class PersonalController extends BaseController {
   }
 
   async updatePersona(queryRunner:any, PersonalId:number, infoPersonal:any ){
-    let personal = await queryRunner.query(`
+    let personalRes = await queryRunner.query(`
       SELECT PersonalNroLegajo NroLegajo, PersonalApellido Apellido, PersonalNombre Nombre,
       PersonalFechaIngreso FechaIngreso, PersonalFechaNacimiento FechaNacimiento,
       PersonalNacionalidadId NacionalidadId, PersonalSucursalIngresoSucursalId SucursalId
       FROM Personal
       WHERE PersonalId = @0
       `,[PersonalId])
-    personal = personal[0]
-
+    const personal = personalRes[0]
     let cambio:boolean = false
-    for (const data of personal) {
+    for (const data in personal) {
       if (infoPersonal[data] != personal[data]) {
         cambio = true
         break
@@ -943,7 +942,7 @@ export class PersonalController extends BaseController {
       PersonalNacionalidadId = @7,
       PersonalSucursalIngresoSucursalId = @8,
       PersonalSuActualSucursalPrincipalId = @8,
-      PersonalApellidoNombreDNILegajo = @9,
+      PersonalApellidoNombreDNILegajo = @9
       WHERE PersonalId = @0
       `,[PersonalId, NroLegajo, Apellido, Nombre, fullname, FechaIngreso, FechaNacimiento, NacionalidadId,
         SucursalId, ApellidoNombreDNILegajo
@@ -951,19 +950,17 @@ export class PersonalController extends BaseController {
   }
 
   private async updatePersonalDomicilio(queryRunner:any, PersonalId:number, infoDomicilio:any ){
-    let domicilio = await queryRunner.query(`
+    let domicilioRes = await queryRunner.query(`
       SELECT PersonalDomicilioDomCalle Calle, PersonalDomicilioDomNro Nro, PersonalDomicilioDomPiso Piso,
-      PersonalDomicilioDomDpto Dpto, PersonalDomicilioEntreEsquina Esquina, PersonalDomicilioEntreEsquinaY EsquinaY
-      PersonalDomicilioDomBloque Bloque, PersonalDomicilioDomEdificio Edificio, PersonalDomicilioDomCuerpo Cuerpo,
-      PersonalDomicilioCodigoPostal CodigoPostal, PersonalDomicilioPaisId PaisId, PersonalDomicilioProvinciaId ProvinciaId,
+      PersonalDomicilioDomDpto Dpto, PersonalDomicilioCodigoPostal CodigoPostal, PersonalDomicilioPaisId PaisId, PersonalDomicilioProvinciaId ProvinciaId,
       PersonalDomicilioLocalidadId LocalidadId, PersonalDomicilioBarrioId BarrioId
       FROM PersonalDomicilio
       WHERE PersonalId = @0 AND PersonalDomicilioId = @1
       `,[PersonalId, infoDomicilio.PersonalDomicilioId])
-    domicilio = domicilio[0]
+    const domicilio = domicilioRes[0]? domicilioRes[0]: {}
     
     let cambio:boolean = false
-    for (const data of domicilio || []) {
+    for (const data in domicilio) {
       if (infoDomicilio[data] != domicilio[data]) {
         cambio = true
         break
