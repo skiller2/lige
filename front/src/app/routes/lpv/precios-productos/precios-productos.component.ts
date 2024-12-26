@@ -69,24 +69,11 @@ export class PreciosProductosComponent {
     switchMap(async (cols) => {
       const tipoProducto = await firstValueFrom(this.searchService.getTipoProducto());
       const sucursales = await firstValueFrom(this.searchService.getSucursales());
-      
       return { cols, tipoProducto,sucursales }
     }),
     map((data ) => {
       let mapped = data.cols.map( (col: Column) => {
       switch (col.id) {
-        case 'Codigo':
-        case 'nombre':
-        case 'descripcion':
-          col.editor =  { model: Editors['text'] }
-          break
-        case 'importe':
-          col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
-          break
-        case 'desde':
-        case 'hasta':
-          col.editor = { model: Editors['date'] }
-          break
         case 'TipoProductoId':
           col.editor =  {
             model: CustomInputEditor,

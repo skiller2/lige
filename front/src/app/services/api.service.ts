@@ -6,7 +6,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { error } from 'pdf-lib';
 import { DownloadService } from './download.service';
 import { formatNumber } from '@angular/common';
-import { collectionFormatter, ExternalResource, FieldType, Formatters,Column } from '@slickgrid-universal/common';
+import { collectionFormatter, ExternalResource, FieldType, Formatters,Column, Editors } from '@slickgrid-universal/common';
 import { AngularUtilService, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { HttpContext } from '@angular/common/http';
@@ -316,6 +316,7 @@ export class ApiService {
     return this.http.get<any>(url).pipe(
       map((res: any) => {
         const mapped = res.data.map((col: Column) => {
+          col.editor =  { model: Editors['text'] }
 
           if(String(col.formatter)=='collectionFormatter')
             col.formatter = collectionFormatter
@@ -323,15 +324,19 @@ export class ApiService {
             if (String(col.formatter) == 'complexObject')
             col.formatter= Formatters['complexObject']
 
-          if (col.type == 'date')
-            col.formatter = Formatters['dateEuro'] 
-          else 
+          if (col.type == 'date') {
+            col.formatter = Formatters['dateEuro']
+            col.editor = { model: Editors['date'] }
+            col.cssClass = 'text-right'
+          } else 
 
           if (String(col.type) == 'currency' || String(col.type) == 'money') {
             col.formatter = Formatters['multiple']
             col.params = { formatters: [Formatters['currency']], thousandSeparator: '.', decimalSeparator: ',' }
             col.type = 'float'
             col.cssClass = 'text-right'
+            col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
+            
           } else
 
           if (String(col.type) == 'float' || String(col.type) == 'decimal') {

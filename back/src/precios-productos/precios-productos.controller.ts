@@ -1,11 +1,7 @@
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
-import { NextFunction, Request, Response } from "express";
-import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
-import { QueryResult } from "typeorm";
-import { FileUploadController } from "../controller/file-upload.controller"
-import { info } from "pdfjs-dist/types/src/shared/util";
-import moment from 'moment';
+import { NextFunction, Response } from "express";
+import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 
 
 
@@ -230,9 +226,6 @@ export class PreciosProductosController extends BaseController {
 
     
     async changecell(req: any, res: Response, next: NextFunction) {
-
-        //const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
-       // const orderBy = orderToSQL(req.body.options.sort)
        const usuario = res.locals.userName
        const ip = this.getRemoteAddress(req)
         const queryRunner = dataSource.createQueryRunner();
@@ -255,14 +248,12 @@ export class PreciosProductosController extends BaseController {
                 
                 console.log('El código existe - es update')
                 await this.validateForm(false, params)
-                const TipoProductoDescripcion = await this.TipoProductoSearch(queryRunner,params.TipoProductoDescripcion)
-                const SucursalDescripcion = await this.SucursalDescripcionSearch(queryRunner,params.SucursalDescripcion)
                
                 if(params.importeOld !== params.importe){
                     // el importe es diferente se agrega un registro
                     console.log("update -  agrego nuevo registro")
 
-                    await this.addRecord(queryRunner,params,fechaActual, usuario, ip, TipoProductoDescripcion,SucursalDescripcion,importeHasta,importeDesde)
+                    await this.addRecord(queryRunner,params,fechaActual, usuario, ip, params.SucursalId,importeHasta,importeDesde)
 
                     await queryRunner.query( `UPDATE lige.dbo.lpv_precio_venta SET importe_hasta = @1 WHERE precio_venta_id = @0
                         `, [params.precioVentaId, fechaActual])
@@ -272,11 +263,11 @@ export class PreciosProductosController extends BaseController {
                     await queryRunner.query( `UPDATE lige.dbo.lpv_productos SET 
                         nom_producto = @1, des_producto = @2, aud_fecha_mod = @3, aud_usuario_mod = @4, aud_ip_mod = @5,
                         cod_tipo_producto = @6 WHERE cod_producto = @0
-                        `, [params.codigo, params.nombre,  params.descripcion, fechaActual, usuario, ip, TipoProductoDescripcion])
+                        `, [params.codigo, params.nombre,  params.descripcion, fechaActual, usuario, ip, params.TipoProductoId])
 
                     await queryRunner.query( `UPDATE lige.dbo.lpv_precio_venta SET 
                         aud_fecha_mod = @1, aud_usuario_mod = @2, aud_ip_mod = @3, sucursalId = @4, importe_desde = @5, importe_hasta = @6  WHERE precio_venta_id = @0
-                        `, [params.precioVentaId, fechaActual, usuario, ip, SucursalDescripcion, importeDesde, importeHasta])
+                        `, [params.precioVentaId, fechaActual, usuario, ip, params.SucursalId, importeDesde, importeHasta])
             
                 }
 
@@ -285,10 +276,6 @@ export class PreciosProductosController extends BaseController {
               } else {
                 console.log('El código no existe - es nuevo')
                 await this.validateForm(false, params)
-                const TipoProductoDescripcion = await this.TipoProductoSearch(queryRunner,params.TipoProductoDescripcion)
-                const SucursalDescripcion = await this.SucursalDescripcionSearch(queryRunner,params.SucursalDescripcion)
-
-
                 await queryRunner.query( `INSERT INTO lige.dbo.lpv_productos 
                     (cod_producto, 
                     nom_producto,
@@ -297,9 +284,9 @@ export class PreciosProductosController extends BaseController {
                     aud_fecha_mod,aud_usuario_mod, aud_ip_mod,
                     cod_tipo_producto )
                     VALUES ( @0, @1, @2, @3, @4, @5, @3, @4, @5, @6)
-                    `, [params.codigo, params.nombre,  params.descripcion , fechaActual, usuario, ip, TipoProductoDescripcion])
+                    `, [params.codigo, params.nombre,  params.descripcion , fechaActual, usuario, ip, params.TipoProductoId])
 
-                await this.addRecord(queryRunner,params,fechaActual, usuario, ip, TipoProductoDescripcion,SucursalDescripcion,importeHasta,importeDesde)
+                await this.addRecord(queryRunner,params,fechaActual, usuario, ip, params.SucursalId,importeHasta,importeDesde)
               
               message = "Carga de nuevo Registro exitoso"
             }
@@ -314,15 +301,13 @@ export class PreciosProductosController extends BaseController {
     }
 
 
-    async addRecord(queryRunner:any,params:any,fechaActual:any, usuario:any, ip:any, TipoProductoDescripcion:any,SucursalDescripcion:any,fechaHasta:any,fechaDede:any){
-
-
+    async addRecord(queryRunner:any,params:any,fechaActual:any, usuario:any, ip:any, SucursalId:any,fechaHasta:any,fechaDede:any){
         await queryRunner.query( `INSERT INTO lige.dbo.lpv_precio_venta
             ( importe, importe_desde, importe_hasta,
              aud_fecha_ing, aud_usuario_ing, aud_ip_ing, aud_fecha_mod, aud_usuario_mod, aud_ip_mod, 
              cod_Producto, SucursalId)
             VALUES ( @0, @1, @2, @3, @4, @5, @3, @4, @5, @6, @7) 
-            `, [params.importe, fechaDede, fechaHasta, fechaActual, usuario, ip, params.codigo, SucursalDescripcion])
+            `, [params.importe, fechaDede, fechaHasta, fechaActual, usuario, ip, params.codigo, SucursalId])
     }
 
     async deleteProducto(req: any, res: Response, next: NextFunction){
@@ -346,29 +331,6 @@ export class PreciosProductosController extends BaseController {
         }
     }
 
-    async TipoProductoSearch(queryRunner:any,TipoProductoDescripcion:any){
-         let value
-         if (typeof TipoProductoDescripcion === 'object') {
-            value = TipoProductoDescripcion.id
-        }else {
-             let result = await queryRunner.query( `SELECT cod_tipo_producto FROM  lige.dbo.lpv_tipo_producto  WHERE des_tipo_producto = @0`, [TipoProductoDescripcion])
-             value = result[0].cod_tipo_producto 
-        }
-        return value
-    }
-
-    async SucursalDescripcionSearch(queryRunner:any,SucursalDescripcion:any){
-        let value
-        if (typeof SucursalDescripcion === 'object') {
-           value = SucursalDescripcion.id
-       }else {
-            let result = await queryRunner.query( `SELECT SucursalId FROM  sucursal  WHERE SucursalDescripcion = @0`, [SucursalDescripcion])
-            value = result[0].SucursalId 
-       }
-       return value
-   }
-
-
     async validateForm(isNew:boolean, params:any){
 
         if(isNew){
@@ -385,7 +347,7 @@ export class PreciosProductosController extends BaseController {
         if (params.nombre == null || params.nombre == "")
             throw new ClientException(`Debe completar el nombre del producto`)
 
-        if (params.TipoProductoDescripcion == null || params.TipoProductoDescripcion == "")
+        if (params.TipoProductoId == null || params.TipoProductoId == "")
             throw new ClientException(`Debe completar el tipo de producto`)
 
         if (params.descripcion == null || params.descripcion == "")
@@ -397,7 +359,7 @@ export class PreciosProductosController extends BaseController {
         // if (params.desde == null || params.desde == "")
         //     throw new ClientException(`Debe seleccionar la fecha desde`)
 
-        if (params.SucursalDescripcion == null || params.SucursalDescripcion == "")
+        if (params.SucursalId == null || params.SucursalId == "")
             throw new ClientException(`Debe seleccionar la Sucursal`)
 
 
