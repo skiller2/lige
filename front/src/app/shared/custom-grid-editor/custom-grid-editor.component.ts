@@ -47,7 +47,7 @@ export class CustomInputEditor implements Editor {
 
   /** Get the Collection */
   get collection(): any[] {
-    return this.columnDef?.editor!.collection ?? [];
+    return this.columnDef?.params?.collection ?? this.columnDef?.editor!.collection ?? [];
   }
 
   /** Get Column Definition object */

@@ -3,41 +3,36 @@ import { firstValueFrom, Subject } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
-import { ApiService } from 'src/app/services/api.service';
 import { Injector, inject } from '@angular/core';
 import { SearchService } from '../../services/search.service';
 
 @Component({
-  selector: 'app-descripcion-producto-search',
-  templateUrl: './descripcion-producto-search.component.html',
-  styleUrls: ['./descripcion-producto-search.component.less'],
+  selector: 'app-select-search',
+  templateUrl: './select-search.component.html',
+  styleUrls: ['./select-search.component.less'],
   standalone: true,
   imports: [
     ...SHARED_IMPORTS,
     CommonModule,
-    //    PersonalSearchComponent
+    //    SelectSearchComponent
   ],
 
 })
-export class DescripcionProductoSearchComponent {
-  @ViewChild("eto") eto!: NzSelectComponent
+export class SelectSearchComponent {
+  @ViewChild("sss") sss!: NzSelectComponent
 
   selectedId: any = ''; 
   selectedItem: any;
   collection?: any[]; 
   onItemChanged = new Subject<any>();    // object
-  valueExtended!: any;
-  optionsArray: any[] = [];
-  
+ 
   
   public element = inject(ElementRef);
-  public apiService = inject(ApiService);
-  private searchService = inject(SearchService)
 
   onChange(item: any) {
-    if(this.optionsArray.length > 0 ){
+    if(this.collection!.length > 0 ){
 //      const selectedItem = this.optionsArray.find(option => option.TipoProductoId === item);
-      this.eto?.focus()  //Al hacer click en el componente hace foco nuevamente
+      this.sss?.focus()  //Al hacer click en el componente hace foco nuevamente
       this.selectedId = item
       this.selectedItem = item
     }
@@ -55,18 +50,17 @@ export class DescripcionProductoSearchComponent {
   }
 
   async ngOnInit() {
-    this.optionsArray = await firstValueFrom(this.searchService.getTipoProducto())
   }
 
   ngOnDestroy() {
 
-    this.eto.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this));
+    this.sss.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this));
   }
 
   ngAfterViewInit() {
     setTimeout(() => {
-      this.eto.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-      this.eto.focus()  //Al hacer click en el componente hace foco
+      this.sss.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
+      this.sss.focus()  //Al hacer click en el componente hace foco
 
     }, 1);
   }

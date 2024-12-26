@@ -328,7 +328,7 @@ export class SearchService {
     );
   }
 
-  getDescripcionProducto(): Observable<any> {
+  getTipoProducto(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/descripcion-productos`).pipe(
       map(res => res.data),
       catchError((err, caught) => {

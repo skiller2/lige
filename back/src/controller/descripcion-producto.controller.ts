@@ -9,7 +9,7 @@ export class DescripcionProductoController extends BaseController {
   async getAllProductos(res: Response, req: Request, next:NextFunction) {
     try {
       const result = await dataSource.query(
-        'SELECT cod_tipo_producto as TipoProductoId ,des_tipo_producto as TipoProductoDescripcion FROM  lige.dbo.lpv_tipo_producto '
+        'SELECT cod_tipo_producto as TipoProductoId ,des_tipo_producto as TipoProductoDescripcion, cod_tipo_producto as value, des_tipo_producto as label  FROM  lige.dbo.lpv_tipo_producto '
       )
       this.jsonRes(result, res)
     }

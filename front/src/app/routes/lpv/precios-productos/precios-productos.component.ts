@@ -6,24 +6,14 @@ import { ApiService } from 'src/app/services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
 import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
-import { ActivatedRoute, Router } from '@angular/router';
-import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
-import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { BehaviorSubject, catchError, debounceTime, firstValueFrom, map, of, switchMap, tap } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
-import { DetallePersonaComponent } from '../../ges/detalle-persona/detalle-persona.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
-import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
-import { ClientesFormComponent } from "../../ges/clientes-form/clientes-form.component"
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { SucursalSearchComponent } from "../../../shared/sucursal-search/sucursal-search.component"
-import { DescripcionProductoSearchComponent } from "../../../shared/descripcion-producto-search/descripcion-producto-search.component"
+import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
 import { ProductoHistorialDrawerComponent } from '../../../shared//producto-historial-drawer/producto-historial-drawer.component'
-
-
-
-import { Component, SimpleChanges, ViewChild, computed, input, model, signal,inject } from '@angular/core';
+import { Component, model, signal,inject } from '@angular/core';
 
 
 @Component({
@@ -34,8 +24,7 @@ import { Component, SimpleChanges, ViewChild, computed, input, model, signal,inj
     SHARED_IMPORTS, 
     CommonModule, 
     FiltroBuilderComponent,
-    SucursalSearchComponent,
-    DescripcionProductoSearchComponent,ProductoHistorialDrawerComponent
+    ProductoHistorialDrawerComponent
   ],
   templateUrl: './precios-productos.component.html',
   styleUrl: './precios-productos.component.less'
@@ -65,6 +54,7 @@ export class PreciosProductosComponent {
   gridObjEdit!: SlickGrid;
   gridOptionsEdit!: GridOption;
 
+  tipoProducto = []
   detailViewRowCount = 1
   excelExportService = new ExcelExportService()
 
@@ -73,102 +63,68 @@ export class PreciosProductosComponent {
     this.listPrecios$.next('')
   }
 
-  // columns$ = this.apiService.getCols('/api/precios-productos/cols')
+  
 
-  columns$ = this.apiService.getCols('/api/precios-productos/cols').pipe(map((cols: Column<any>[]) => {
-    let mapped = cols.map((col: Column) => {
-      if (col.id == 'Codigo') {
-        col.formatter =  Formatters['complexObject'],
-        col.cssClass =  'text-center',
-        col.editor =  {
-          model: Editors['text']
-        }
-        
-      }
-      if (col.id == 'nombre') {
-        col.formatter =  Formatters['complexObject'],
-        col.editor = {
-          model: Editors['text']
-        }
-        
-      }
-      if (col.id == 'TipoProductoDescripcion') {
-
-        col.editor =  {
-          model: CustomInputEditor,
-          collection: [],
-          params: {
-            component: DescripcionProductoSearchComponent,
-          },
-          alwaysSaveOnEnterKey: true,
-          required: true
-        }
-      }
-      if (col.id == 'descripcion') {
-        col.formatter =  Formatters['complexObject'],
-    
-        col.editor = {
-          model: Editors['text']
-        }
-        
-      }
-      if (col.id == 'importe') {
-        col.formatter = Formatters['multiple'],
-        col.params = {
-          formatters: [Formatters['currency']],
-        },
-        col.cssClass = 'text-right',
-        col.editor = {
-          model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000,
-        }
-        
-      }
-      if (col.id == 'desde') {
-       
-        col.cssClass = 'text-center',
-        col.formatter =  Formatters['complexObject'],
-       // formatter: Formatters.dateIso,
-        
-        col.editor = {
-          model: Editors['date'],
-        }
-        
-      }
-
-      if (col.id == 'hasta') {
-       
-        col.cssClass = 'text-center',
+  columns$ = this.apiService.getCols('/api/precios-productos/cols').pipe(
+    switchMap(async (cols) => {
+      const tipoProducto = await firstValueFrom(this.searchService.getTipoProducto());
+      const sucursales = await firstValueFrom(this.searchService.getSucursales());
       
-        col.formatter =  Formatters['complexObject'],
-       // formatter: Formatters.dateIso,
-        
-        col.editor = {
-          model: Editors['date'],
-         
-        }
-        
-        
-      }
-
-      if (col.id == 'SucursalDescripcion') {
-        col.formatter = Formatters['complexObject'],
-        col.editor = {
-          model: CustomInputEditor,
-          collection: [],
-          params: {
-            component: SucursalSearchComponent,
-          },
-          alwaysSaveOnEnterKey: true,
-          required: true
-        }
-        
+      return { cols, tipoProducto,sucursales }
+    }),
+    map((data ) => {
+      let mapped = data.cols.map( (col: Column) => {
+      switch (col.id) {
+        case 'Codigo':
+        case 'nombre':
+        case 'descripcion':
+          col.editor =  { model: Editors['text'] }
+          break
+        case 'importe':
+          col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
+          break
+        case 'desde':
+        case 'hasta':
+          col.editor = { model: Editors['date'] }
+          break
+        case 'TipoProductoId':
+          col.editor =  {
+            model: CustomInputEditor,
+            params: {
+              component: SelectSearchComponent,
+            },
+            alwaysSaveOnEnterKey: true,
+            required: true
+          }
+          col.params = {
+            collection: data.tipoProducto,
+          }
+  
+          break
+        case 'SucursalId':
+          col.editor = {
+            model: CustomInputEditor,
+            collection: [],
+            params: {
+              component: SelectSearchComponent,
+            },
+            alwaysSaveOnEnterKey: true,
+            required: true
+          }
+          col.params = {
+            collection: data.sucursales,
+          }
+  
+          break;
+        default:
+          break;
       }
       return col
     });
     return mapped
   }));
 
-  async ngOnInit(){
+  async ngOnInit() {
 
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
 
@@ -187,7 +143,8 @@ export class PreciosProductosComponent {
       this.angularGridEdit.slickGrid.render();
 
     }
- 
+
+    
   }
 
   async addNewItem() {

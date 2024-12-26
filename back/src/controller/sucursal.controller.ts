@@ -9,7 +9,7 @@ export class SucursalController extends BaseController {
   async getAllSucursales(res: Response, req: Request, next:NextFunction) {
     try {
       const result = await dataSource.query(
-        'SELECT SucursalId, SucursalDescripcion FROM Sucursal '
+        'SELECT SucursalId, SucursalDescripcion, SucursalId as value, SucursalDescripcion as label FROM Sucursal '
       )
 
 
