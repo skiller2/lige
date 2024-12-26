@@ -1,19 +1,19 @@
 import { CommonModule } from '@angular/common';
 //import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, OnChanges, SimpleChanges, input, ElementRef } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, SlickGrid, OnEventArgs } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, SlickGrid, OnEventArgs, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { ApiService } from 'src/app/services/api.service';
+import { ApiService } from '../../../../app/services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
-import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detail-view.component';
-import { BehaviorSubject, catchError, debounceTime, firstValueFrom, map, of, switchMap, tap } from 'rxjs';
-import { SearchService } from 'src/app/services/search.service';
+import { RowDetailViewComponent } from '../../../../app/shared/row-detail-view/row-detail-view.component';
+import { BehaviorSubject, catchError, debounceTime, firstValueFrom, map, of, switchMap, tap, timer } from 'rxjs';
+import { SearchService } from '../../../../app/services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
 import { ProductoHistorialDrawerComponent } from '../../../shared//producto-historial-drawer/producto-historial-drawer.component'
-import { Component, model, signal,inject } from '@angular/core';
+import { Component, model, signal, inject } from '@angular/core';
 
 
 @Component({
@@ -21,8 +21,8 @@ import { Component, model, signal,inject } from '@angular/core';
   standalone: true,
   providers: [AngularUtilService],
   imports: [
-    SHARED_IMPORTS, 
-    CommonModule, 
+    SHARED_IMPORTS,
+    CommonModule,
     FiltroBuilderComponent,
     ProductoHistorialDrawerComponent
   ],
@@ -33,7 +33,7 @@ export class PreciosProductosComponent {
 
 
 
-  startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
+  startFilters: { field: string; condition: string; operator: string; value: string; forced: boolean }[] = []
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
@@ -49,7 +49,7 @@ export class PreciosProductosComponent {
     filtros: [],
     sort: null,
   };
-  complexityLevelList = [true,false];
+  complexityLevelList = [true, false];
   angularGridEdit!: AngularGridInstance;
   gridObjEdit!: SlickGrid;
   gridOptionsEdit!: GridOption;
@@ -57,59 +57,60 @@ export class PreciosProductosComponent {
   tipoProducto = []
   detailViewRowCount = 1
   excelExportService = new ExcelExportService()
+  rowLocked: boolean = false;
 
   listOptionsChange(options: any) {
     this.listOptions = options
     this.listPrecios$.next('')
   }
 
-  
+
 
   columns$ = this.apiService.getCols('/api/precios-productos/cols').pipe(
     switchMap(async (cols) => {
-      const tipoProducto = await firstValueFrom(this.searchService.getTipoProducto());
+      const tipoProducto = await firstValueFrom(this.searchService.getTipoProducto());  // [{value:'C',label:'Custodia'},{value:'V',label:'Vigilancia'}
       const sucursales = await firstValueFrom(this.searchService.getSucursales());
-      return { cols, tipoProducto,sucursales }
+      return { cols, tipoProducto, sucursales }
     }),
-    map((data ) => {
-      let mapped = data.cols.map( (col: Column) => {
-      switch (col.id) {
-        case 'TipoProductoId':
-          col.editor =  {
-            model: CustomInputEditor,
-            params: {
-              component: SelectSearchComponent,
-            },
-            alwaysSaveOnEnterKey: true,
-            required: true
-          }
-          col.params = {
-            collection: data.tipoProducto,
-          }
-  
-          break
-        case 'SucursalId':
-          col.editor = {
-            model: CustomInputEditor,
-            collection: [],
-            params: {
-              component: SelectSearchComponent,
-            },
-            alwaysSaveOnEnterKey: true,
-            required: true
-          }
-          col.params = {
-            collection: data.sucursales,
-          }
-  
-          break;
-        default:
-          break;
-      }
-      return col
-    });
-    return mapped
-  }));
+    map((data) => {
+      let mapped = data.cols.map((col: Column) => {
+        switch (col.id) {
+          case 'TipoProductoId':
+            col.editor = {
+              model: CustomInputEditor,
+              params: {
+                component: SelectSearchComponent,
+              },
+              alwaysSaveOnEnterKey: true,
+              required: true
+            }
+            col.params = {
+              collection: data.tipoProducto,
+            }
+
+            break
+          case 'SucursalId':
+            col.editor = {
+              model: CustomInputEditor,
+              collection: [],
+              params: {
+                component: SelectSearchComponent,
+              },
+              alwaysSaveOnEnterKey: true,
+              required: true
+            }
+            col.params = {
+              collection: data.sucursales,
+            }
+
+            break;
+          default:
+            break;
+        }
+        return col
+      });
+      return mapped
+    }));
 
   async ngOnInit() {
 
@@ -120,33 +121,79 @@ export class PreciosProductosComponent {
     this.gridOptionsEdit.createFooterRow = true
 
 
-    this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {
-      editCommand.execute()
-  
 
-      //this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
-
+    this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
+      //            let undoCommandArr:EditCommand[]=[]
+      this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
       this.angularGridEdit.slickGrid.invalidate();
-      this.angularGridEdit.slickGrid.render();
 
+      const emptyrows = this.angularGridEdit.dataView.getItems().filter(row => (!row.codigo))
+
+      if (emptyrows.length == 0) {
+        await this.addNewItem()
+      } else if (emptyrows.length > 1) {
+        this.angularGridEdit.gridService.deleteItemById(emptyrows[0].id)
+      }
+      //Intento grabar si tiene error hago undo
+
+      try {
+        //                undoCommandArr.push(editCommand)
+        if (column.type == FieldType.number || column.type == FieldType.float)
+          editCommand.serializedValue = Number(editCommand.serializedValue)
+
+        //                console.log('dif',JSON.stringify(editCommand.serializedValue), JSON.stringify(editCommand.prevSerializedValue))
+        if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
+        //                editCommand.serializedValue == editCommand.prevSerializedValue) return
+        editCommand.execute()
+        while (this.rowLocked) await firstValueFrom(timer(100));
+        row = this.angularGridEdit.dataView.getItemById(row.id)
+
+
+        if (!row.dbid)
+          this.rowLocked = true
+
+        const response = await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
+        this.listPrecios$.next('');
+        this.rowLocked = false
+      } catch (e: any) {
+        //Si codigoOld != '' volver a colocar el valor anterior, si codigoOld =='' marcar en rojo el registro 
+        console.log('error', e)
+
+        if (row.codigoOld) {
+          const item = this.angularGridEdit.dataView.getItemById(row.id)
+          if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
+            const fld = editCommand.editor.args.column.field
+            editCommand.undo();
+            item[fld] = editCommand.editor.args.item[fld]
+          }
+          this.angularGridEdit.gridService.updateItemById(row.id, item)
+        } else {
+          //marcar el row en rojo
+        }
+
+        //this.updateTotals(editCommand.editor.args.column.id, this.angularGridEdit)
+
+        this.rowLocked = false
+      }
     }
-
-    
   }
 
   async addNewItem() {
     // if(!this.itemAddActive){
-      const newItem1 = this.createNewItem(1);
-      this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
-      this.itemAddActive = true
+    const newItem1 = this.createNewItem(1);
+    this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
+    this.itemAddActive = true
     // }else{
     //   this.messageSrv.error('Termine la carga del registro activo, antes de iniciar otra');
     // }
-    
+
   }
 
 
-  async deleteItem(){
+
+
+
+  async deleteItem() {
 
     await firstValueFrom(this.apiService.deleteProducto(this.editProducto()))
 
@@ -186,7 +233,7 @@ export class PreciosProductosComponent {
       totalRecords(this.angularGridEdit)
       columnTotal('CantidadProductos', this.angularGridEdit)
     })
-    
+
     setTimeout(() => {
       // if (this.gridDataInsert.length == 0)
       //   this.addNewItem("bottom")
@@ -195,13 +242,13 @@ export class PreciosProductosComponent {
 
     if (this.apiService.isMobile())
       this.angularGridEdit.gridService.hideColumnByIds([])
-  
+
   }
 
-  openDrawerforConsultHistory(): void{
+  openDrawerforConsultHistory(): void {
 
     this.visibleHistorial.set(true)
-        
+
   }
 
   gridData$ = this.listPrecios$.pipe(
@@ -211,35 +258,37 @@ export class PreciosProductosComponent {
         .pipe(map(data => {
           return data.list
         })
-      )
+        )
     })
-  ) 
+  )
 
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
-    if (row?.codigo){
+    if (row?.codigo) {
       this.editProducto.set([row.precioVentaId])
     }
-     
+
 
   }
 
   async onCellChanged(e: any) {
-   
-      await firstValueFrom(
-        this.apiService.onchangecellPrecioProducto(e.detail.args.item).pipe(
-          tap(res => {
-            if (res != "") {
-              this.listPrecios$.next('');
-            }
-          }),
-          catchError(err => {
-            return of(null);
-          })
-        )
-      )
-
+    /*
+       await firstValueFrom(
+         this.apiService.onchangecellPrecioProducto(e.detail.args.item).pipe(
+           tap(res => {
+             if (res != "") {
+               this.listPrecios$.next('');
+             }
+           }),
+           catchError(err => {
+             //Si codigoOld != '' volver a colocar el valor anterior, si codigoOld =='' marcar en rojo el registro 
+             console.log('resultado',err)
+             return of(null);
+           })
+         )
+       )
+ */
   }
 
 

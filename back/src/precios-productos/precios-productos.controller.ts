@@ -12,7 +12,7 @@ export class PreciosProductosController extends BaseController {
             id: "id",
             name: "id",
             field: "id",
-            fieldName: "cli.ClienteId",
+            fieldName: "id",
             type: "number",
             sortable: false,
             hidden: true,
@@ -90,16 +90,6 @@ export class PreciosProductosController extends BaseController {
             sortable: false,
             hidden: false,
             searchHidden: false
-        },
-        {
-            name: "importeOld",
-            type: "currency",
-            id: "importeOld",
-            field: "importeOld",
-            fieldName: "vent.importe",
-            sortable: true,
-            hidden: true,
-            searchHidden: true
         },
         {
             name: "Desde",
@@ -187,24 +177,19 @@ export class PreciosProductosController extends BaseController {
 
             const precios = await queryRunner.query(
                 `SELECT 
-                    ROW_NUMBER() OVER (ORDER BY prod.cod_producto) AS id,
+                    CONCAT(prod.cod_producto,'-',vent.precio_venta_id) AS id,
                     prod.cod_producto AS codigo, 
                      prod.cod_producto AS codigoOld,
                     prod.des_producto AS descripcion,
                     prod.nom_producto AS nombre, 
-                    tip.cod_tipo_producto AS TipoProductoId,
-                    tip.des_tipo_producto AS TipoProductoDescripcion,
-                    vent.importe AS importeOld,
+                    prod.cod_tipo_producto AS TipoProductoId,
                     vent.importe AS importe,
                     vent.precio_venta_id as  precioVentaId,
                     FORMAT(vent.importe_desde, 'yyyy-MM-dd') AS desde,
                     FORMAT(vent.importe_hasta, 'yyyy-MM-dd') AS hasta,
-                    suc.SucursalId, 
-                    suc.SucursalDescripcion
+                    vent.SucursalId
                 FROM lige.dbo.lpv_productos prod
-                LEFT JOIN lige.dbo.lpv_tipo_producto tip ON prod.cod_tipo_producto = tip.cod_tipo_producto
                 LEFT JOIN lige.dbo.lpv_precio_venta vent ON prod.cod_producto = vent.cod_producto
-                LEFT JOIN Sucursal suc ON vent.SucursalId = suc.SucursalId 
                WHERE CAST(GETDATE() AS DATE) BETWEEN CAST(vent.importe_desde AS DATE) AND CAST(vent.importe_hasta AS DATE)
               AND ${filterSql} 
                 ${orderBy};`, [fechaActual])
@@ -239,17 +224,33 @@ export class PreciosProductosController extends BaseController {
             await queryRunner.startTransaction();
 
             
-            const codigoExist = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_productos WHERE cod_producto = @0`, [params.codigo])
-
+            const codigoExist = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_productos WHERE cod_producto = @0`, [params.codigoOld])
+            let dataResultado = {}
             let importeDesde = params.desde == undefined ? fechaActual : params.desde
             let importeHasta = params.hasta == undefined ? '9999-31-12' : params.hasta
 
-            if ( codigoExist.length > 0 || (params.codigoOld && params.codigoOld !== "")) {
-                
-                console.log('El código existe - es update')
+            if ( codigoExist.length > 0) { //Entro en update
+                //Validar si cambio el código
+                const importeOld = codigoExist[0].importe 
+
+                if (params.codigoOld != params.codigo) { 
+                    const checkNewCodigo = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_productos WHERE cod_producto = @0`, [params.codigo])
+                    if ( checkNewCodigo.length > 0) throw new ClientException('El nuevo código ingresado ya existe')
+                }
+
                 await this.validateForm(false, params, queryRunner)
-               
-                if(params.importeOld !== params.importe){
+ 
+                await queryRunner.query( `UPDATE lige.dbo.lpv_productos SET 
+                    nom_producto = @1, des_producto = @2, aud_fecha_mod = @3, aud_usuario_mod = @4, aud_ip_mod = @5,
+                    cod_tipo_producto = @6 WHERE cod_producto = @0
+                    `, [params.codigo, params.nombre,  params.descripcion, fechaActual, usuario, ip, params.TipoProductoId])
+
+                await queryRunner.query( `UPDATE lige.dbo.lpv_precio_venta SET 
+                    aud_fecha_mod = @1, aud_usuario_mod = @2, aud_ip_mod = @3, sucursalId = @4, importe_desde = @5, importe_hasta = @6  WHERE precio_venta_id = @0
+                    `, [params.precioVentaId, fechaActual, usuario, ip, params.SucursalId, importeDesde, importeHasta])
+                    
+                
+                if(importeOld !== params.importe){
                     // el importe es diferente se agrega un registro
                     console.log("update -  agrego nuevo registro")
 
@@ -257,23 +258,15 @@ export class PreciosProductosController extends BaseController {
 
                     await queryRunner.query( `UPDATE lige.dbo.lpv_precio_venta SET importe_hasta = @1 WHERE precio_venta_id = @0
                         `, [params.precioVentaId, fechaActual])
-
-                }else{
-                    // se hace update
-                    await queryRunner.query( `UPDATE lige.dbo.lpv_productos SET 
-                        nom_producto = @1, des_producto = @2, aud_fecha_mod = @3, aud_usuario_mod = @4, aud_ip_mod = @5,
-                        cod_tipo_producto = @6 WHERE cod_producto = @0
-                        `, [params.codigo, params.nombre,  params.descripcion, fechaActual, usuario, ip, params.TipoProductoId])
-
-                    await queryRunner.query( `UPDATE lige.dbo.lpv_precio_venta SET 
-                        aud_fecha_mod = @1, aud_usuario_mod = @2, aud_ip_mod = @3, sucursalId = @4, importe_desde = @5, importe_hasta = @6  WHERE precio_venta_id = @0
-                        `, [params.precioVentaId, fechaActual, usuario, ip, params.SucursalId, importeDesde, importeHasta])
-            
+                    
                 }
-
+                dataResultado = {action:'U'}
                 message = "Actualizacion exitosa"
               
-              } else {
+            } else {  //Es un nuevo registro
+                const checkNewCodigo = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_productos WHERE cod_producto = @0`, [params.codigo])
+                if ( checkNewCodigo.length > 0) throw new ClientException('El nuevo código ingresado ya existe')
+
                 console.log('El código no existe - es nuevo')
                 await this.validateForm(false, params, queryRunner)
                 await queryRunner.query( `INSERT INTO lige.dbo.lpv_productos 
@@ -287,12 +280,12 @@ export class PreciosProductosController extends BaseController {
                     `, [params.codigo, params.nombre,  params.descripcion , fechaActual, usuario, ip, params.TipoProductoId])
 
                 await this.addRecord(queryRunner,params,fechaActual, usuario, ip, params.SucursalId,importeHasta,importeDesde)
-              
+                dataResultado = {action:'I'}
               message = "Carga de nuevo Registro exitoso"
             }
 
             await queryRunner.commitTransaction()
-            return this.jsonRes( "", res, message)
+            return this.jsonRes( dataResultado, res, message)
         } catch (error) {
            await this.rollbackTransaction(queryRunner)
             return next(error)

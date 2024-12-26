@@ -778,8 +778,7 @@ export class ApiService {
 
   onchangecellPrecioProducto(params: any) {
     return this.http.post<ResponseJSON<any>>('/api/precios-productos/changecell', params).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-      catchError(() => of(''))
+      tap((res: ResponseJSON<any>) => this.response(res))
 
     )
 
