@@ -308,7 +308,7 @@ export class CargaAsistenciaComponent {
                     if (!row.dbid)
                         this.rowLocked = true
                 
-                    const response = await this.insertDB(row)
+                    const response:any = await this.insertDB(row)
                     if (response.deleteRowId)
                         this.angularGridEdit.gridService.deleteItemById(response.deleteRowId)
                     else if (response.categoria || response.forma || response.newRowId) {
@@ -711,7 +711,7 @@ export class CargaAsistenciaComponent {
             const anio = this.selectedPeriod.year
             const mes = this.selectedPeriod.month
 
-            const list = await firstValueFrom(this.searchService.getListaAsistenciaPersonalAsignadoAnterior(objetivoId, anio, mes))
+            const list:any = await firstValueFrom(this.searchService.getListaAsistenciaPersonalAsignadoAnterior(objetivoId, anio, mes))
             if (list.length) {
                 this.angularGridEdit.dataView.setItems(list)
                 this.gridDataInsert = this.angularGridEdit.dataView.getItems()
