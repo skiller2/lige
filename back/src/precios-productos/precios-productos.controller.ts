@@ -247,7 +247,7 @@ export class PreciosProductosController extends BaseController {
             if ( codigoExist.length > 0 || (params.codigoOld && params.codigoOld !== "")) {
                 
                 console.log('El código existe - es update')
-                await this.validateForm(false, params)
+                await this.validateForm(false, params, queryRunner)
                
                 if(params.importeOld !== params.importe){
                     // el importe es diferente se agrega un registro
@@ -275,7 +275,7 @@ export class PreciosProductosController extends BaseController {
               
               } else {
                 console.log('El código no existe - es nuevo')
-                await this.validateForm(false, params)
+                await this.validateForm(false, params, queryRunner)
                 await queryRunner.query( `INSERT INTO lige.dbo.lpv_productos 
                     (cod_producto, 
                     nom_producto,
@@ -331,7 +331,7 @@ export class PreciosProductosController extends BaseController {
         }
     }
 
-    async validateForm(isNew:boolean, params:any){
+    async validateForm(isNew:boolean, params:any, queryRunner:any){
 
         if(isNew){
         // true es Nuevo
@@ -343,6 +343,17 @@ export class PreciosProductosController extends BaseController {
             throw new ClientException(`No puede modificar el codigo de un registro ya cargado`)
             
         }
+
+        if (params.SucursalId == null || params.SucursalId == "")
+            throw new ClientException(`Debe seleccionar la Sucursal`)
+
+
+        let resultSucursalCodigo = await queryRunner.query( `SELECT * FROM lige.dbo.lpv_precio_venta WHERE cod_Producto = @0 AND SucursalId = @1`, [params.codigo,params.SucursalId])
+        
+        // Validar si hay registros
+            if (resultSucursalCodigo.length > 0) 
+                throw new ClientException(`El codigo ingresado ya existe en la sucursal seleccionada`)
+
 
         if (params.nombre == null || params.nombre == "")
             throw new ClientException(`Debe completar el nombre del producto`)
@@ -359,8 +370,7 @@ export class PreciosProductosController extends BaseController {
         // if (params.desde == null || params.desde == "")
         //     throw new ClientException(`Debe seleccionar la fecha desde`)
 
-        if (params.SucursalId == null || params.SucursalId == "")
-            throw new ClientException(`Debe seleccionar la Sucursal`)
+      
 
 
         
