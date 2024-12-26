@@ -189,9 +189,9 @@
   "app.icon.validar": "Validar Planilla",
   "app.icon.reload": "Recarga",
   "app.icon.objectives": "Objetivos",
-  "app.icon.custody": "Custodias",
+  "app.custody": "Custodias",
   "app.icon.home": "Domicilio",
-  "app.icon.state": "Situacion de Revista",
+  "app.state": "Situacion de Revista",
   "app.detail": "Detalle",
   "app.alta": "Alta",
   "app.icon.persona": "Persona",
@@ -200,6 +200,7 @@
   "app.productdetail":"Detalle Productos",
   "app.edit.client": "Editar Cliente ",
   "app.edit.objetivo":"Editar Objetivo ",
+  "app.responsable":"Responsable",
   "To install this WEB app on your device, tap the \"Menu\" button":"Para instalar esta aplicación web en su dispositivo, presione el botón \"Menu\"",
   "and then \"Add to home screen\" button":"y luego el botón \"Agregar a la pantalla de inicio\""
   

@@ -59,8 +59,8 @@ export class PersonalSituacionRevistaDrawerComponent {
                 data.map((obj:any) =>{
                     let inicio = new Date(obj.Desde)
                     let fin = obj.Hasta? new Date(obj.Hasta) : null
-                    obj.Desde = `${inicio.getDate()}/${inicio.getDate()+1}/${inicio.getFullYear()}`
-                    obj.Hasta = fin? `${fin.getDate()}/${fin.getDate()+1}/${fin.getFullYear()}` : fin
+                    obj.Desde = `${inicio.getDate()}/${inicio.getMonth()+1}/${inicio.getFullYear()}`
+                    obj.Hasta = fin? `${fin.getDate()}/${fin.getMonth()+1}/${fin.getFullYear()}` : fin
                 })
                 return data
             }))

@@ -1158,6 +1158,19 @@ export class ApiService {
     );
   }
 
+  getResponsablesListByPersonalId(personalId: number) {
+    if (!personalId) {
+      return of([]);
+    }
+    return this.http.get<ResponseJSON<any[]>>(`api/personal/responsableslist/${personalId}`).pipe(
+      map((res: any) => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

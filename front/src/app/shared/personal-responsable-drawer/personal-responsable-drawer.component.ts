@@ -9,50 +9,57 @@ import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
+import { FormBuilder, FormArray } from '@angular/forms';
 
 @Component({
-    selector: 'app-personal-custodias-drawer',
-    templateUrl: './personal-custodias-drawer.component.html',
-    styleUrl: './personal-custodias-drawer.component.less',
+    selector: 'app-personal-responsable-drawer',
+    templateUrl: './personal-responsable-drawer.component.html',
+    styleUrl: './personal-responsable-drawer.component.less',
     standalone: true,
     imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule],
     providers: [AngularUtilService],
 })
   
-export class PersonalCustodiasDrawerComponent {
+export class PersonalResponsableDrawerComponent {
     PersonalId = input(0)
     PersonalNombre = signal<string>("")
-    visibleCustodias = model<boolean>(false)
-    periodo = signal<Date>(new Date);
+    visibleResponsable = model<boolean>(false)
+    periodo = signal({ year: 0, month: 0 });
     placement: NzDrawerPlacement = 'left';
-    startFilters: { index: string; condition: string; operador: string; valor: string[]; closeable: boolean }[] = []
+    isLoading = signal(false);
 
     constructor(
         private searchService: SearchService,
-        // private apiService: ApiService,
-        // private router: Router,
-        // private route: ActivatedRoute,
-        // private settingService: SettingsService,
+        private apiService: ApiService,
+        private router: Router,
+        private route: ActivatedRoute,
+        private settingService: SettingsService,
     ) { }
     private destroy$ = new Subject();
 
     selectedPersonalIdChange$ = new BehaviorSubject('');
 
-    $listaCustodiaPer = this.selectedPersonalIdChange$.pipe(
+    fb = inject(FormBuilder)
+    formSitRevista = this.fb.group({
+        GrupoActividadId:0, Desde:null
+    })
+
+    $optionsResponsable = this.searchService.getGrupoActividadOptions();
+    $listaResponsablePer = this.selectedPersonalIdChange$.pipe(
         debounceTime(500),
         switchMap(() =>{
             setTimeout(async () => {
                 const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
                 this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
             }, 0);
-            this.startFilters = [{index:'ApellidoNombre', condition:'AND', operador:'=', valor: [`${this.PersonalId()}`] , closeable:true}]
-            return this.searchService.getListaPersonalCustodia({filtros: this.startFilters, sort:null} , new Date())
-            .pipe(map(data => {
+            return this.apiService.getResponsablesListByPersonalId(
+                Number(this.PersonalId())
+            ).pipe(map(data => {
                 data.map((obj:any) =>{
-                    let inicio = new Date(obj.fecha_inicio)
-                    let fin = obj.fecha_fin? new Date(obj.fecha_fin) : obj.fecha_fin
-                    obj.fecha_inicio = `${inicio.getDate()}/${inicio.getMonth()+1}/${inicio.getFullYear()}`
-                    obj.fecha_fin = fin? `${fin.getDate()}/${fin.getMonth()+1}/${fin.getFullYear()}` : fin
+                    let inicio = new Date(obj.Desde)
+                    let fin = obj.Hasta? new Date(obj.Hasta) : null
+                    obj.Desde = `${inicio.getDate()}/${inicio.getMonth()+1}/${inicio.getFullYear()}`
+                    obj.Hasta = fin? `${fin.getDate()}/${fin.getMonth()+1}/${fin.getFullYear()}` : ''
                 })
                 return data
             }))
@@ -61,12 +68,28 @@ export class PersonalCustodiasDrawerComponent {
 
     async ngOnInit(){
         const date:Date = new Date()
-        this.periodo.set(date)
+        this.periodo.set({ year: date.getFullYear(), month: date.getMonth()+1 })
         this.selectedPersonalIdChange$.next('');
     }
 
     ngOnDestroy(): void {
         this.destroy$.next('');
         this.destroy$.complete();
+    }
+
+    async save() {
+        this.isLoading.set(true)
+        let values = this.formSitRevista.value
+        console.log('values', values);
+        
+        try {
+            // await firstValueFrom(this.apiService.setSitRevista(this.PersonalId(), values))
+            this.selectedPersonalIdChange$.next('')
+            this.formSitRevista.markAsUntouched()
+            this.formSitRevista.markAsPristine()
+        } catch (e) {
+
+        }
+        this.isLoading.set(false)
     }
 }

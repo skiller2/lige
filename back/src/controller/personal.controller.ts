@@ -161,7 +161,7 @@ export class PersonalController extends BaseController {
       return next(error)
     }
   }
-
+  //ACA
   async getPersonalResponsables(req: any, res: Response, next: NextFunction) {
     const personalId = req.params.personalId;
     const anio = req.params.anio;
@@ -328,7 +328,6 @@ export class PersonalController extends BaseController {
 
   async downloadPersonaImagen(PersonalId: number, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    console.log('PATH_ARCHIVOS', process.env.PATH_ARCHIVOS);
     
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
     try {
@@ -631,7 +630,6 @@ export class PersonalController extends BaseController {
     now.setHours(0, 0, 0, 0)
     FechaIngreso.setHours(0, 0, 0, 0)
     FechaNacimiento.setHours(0, 0, 0, 0)
-    console.log('req.body', req.body);
     
     try {
       await queryRunner.startTransaction()
@@ -1232,7 +1230,6 @@ export class PersonalController extends BaseController {
 
       data.telefonos = telefonos
       data.estudios = estudios
-      console.log('DATA',data);
 
       this.jsonRes(data, res);
     } catch (error) {
@@ -1408,6 +1405,42 @@ export class PersonalController extends BaseController {
     } finally {
       await queryRunner.release()
     }
+  }
+
+  async getResponsablesListByPersonal(req: any, res: Response, next: NextFunction) {
+    const personalId = Number(req.params.personalId);
+    try {
+      const responsables = await dataSource.query(`
+        SELECT ga.GrupoActividadId, ga.GrupoActividadNumero Numero, ga.GrupoActividadDetalle Detalle,
+        gap.GrupoActividadPersonalDesde Desde, gap.GrupoActividadPersonalHasta Hasta,
+        CONCAT(TRIM(PersonalApellido),', ',TRIM(PersonalNombre)) Supervisor
+        FROM GrupoActividadPersonal gap
+        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
+        LEFT JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = ga.GrupoActividadId AND gaj.GrupoActividadJerarquicoComo = 'J' AND gaj.GrupoActividadJerarquicoHasta IS NULL
+        LEFT JOIN Personal per ON per.PersonalId = gaj.GrupoActividadJerarquicoPersonalId
+        WHERE gap.GrupoActividadPersonalPersonalId IN (@0)
+        ORDER BY gap.GrupoActividadPersonalDesde DESC
+      `, [personalId]
+      );
+      
+      this.jsonRes(responsables, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getGrupoActividad(req: any, res: Response, next: NextFunction){
+    try {
+      const options = await dataSource.query(`
+        SELECT ga.GrupoActividadId value, ga.GrupoActividadDetalle label
+        FROM GrupoActividad ga
+        WHERE ga.GrupoActividadInactivo != 1
+      `);
+
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    } 
   }
 
 }

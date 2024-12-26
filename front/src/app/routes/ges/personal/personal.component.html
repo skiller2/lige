@@ -24,13 +24,16 @@
         nz-tooltip nzTooltipTitle="{{ 'app.icon.objectives' | i18n }}"><span nz-icon nzType="menu-unfold"
         nzTheme="outline"></span></button>
       <button nz-button nzType="default" (click)="openDrawerforConsultCustodias()" [disabled]="personalId() == 0"
-        nz-tooltip nzTooltipTitle="{{ 'app.icon.custody' | i18n }}"><span nz-icon nzType="menu-unfold"
+        nz-tooltip nzTooltipTitle="{{ 'app.custody' | i18n }}"><span nz-icon nzType="menu-unfold"
         nzTheme="outline"></span></button>
         <button nz-button nzType="default" (click)="openDrawerforConsultDomicilio()" [disabled]="personalId() == 0"
         nz-tooltip nzTooltipTitle="{{ 'app.icon.home' | i18n }}"><span nz-icon nzType="menu-unfold"
         nzTheme="outline"></span></button>
         <button nz-button nzType="default" (click)="openDrawerforConsultSitRevista()" [disabled]="personalId() == 0"
-        nz-tooltip nzTooltipTitle="{{ 'app.icon.state' | i18n }}"><span nz-icon nzType="menu-unfold"
+        nz-tooltip nzTooltipTitle="{{ 'app.state' | i18n }}"><span nz-icon nzType="menu-unfold"
+        nzTheme="outline"></span></button>
+        <button nz-button nzType="default" (click)="openDrawerforConsultResponsable()" [disabled]="personalId() == 0"
+        nz-tooltip nzTooltipTitle="{{ 'app.responsable' | i18n }}"><span nz-icon nzType="menu-unfold"
         nzTheme="outline"></span></button>
      </nz-button-group>
   </div>
@@ -81,3 +84,5 @@
 [PersonalId]="personalId()"></app-personal-domicilio-drawer>
 <app-personal-situacionrevista-drawer #sitRevistaHistDrawer [(visibleSitRevista)]="visibleSitRevista"
 [PersonalId]="personalId()"></app-personal-situacionrevista-drawer>
+<app-personal-responsable-drawer #responDrawer [(visibleResponsable)]="visibleResponsable"
+[PersonalId]="personalId()"></app-personal-responsable-drawer>

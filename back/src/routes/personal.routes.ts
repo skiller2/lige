@@ -64,6 +64,14 @@ personalRouter.get(`${base}/banco/:id`, authMiddleware.verifyToken, (req, res, n
   personalController.getCuentasBancoPorPersona(req.params.id, res, next);
 });
 
+personalRouter.get(`${base}/responsableslist/:personalId`, authMiddleware.verifyToken, (req, res, next) => {
+    personalController.getResponsablesListByPersonal(req, res, next);
+});
+
+personalRouter.get(`${base}/grupoactividad/options`, authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getGrupoActividad(req, res, next);
+});
+
 personalRouter.get(`${base}/downloadImagen/:personalId`, (req, res,next) => {
   personalController.downloadPersonaImagen(
     Number(req.params.personalId),
