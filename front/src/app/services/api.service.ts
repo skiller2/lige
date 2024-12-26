@@ -769,17 +769,14 @@ export class ApiService {
   eliminaMovimientosBanco(banco_id: number) {
     const parameter = { banco_id }
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/elimina/banco', parameter).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-      catchError(() => of(''))
-
+      tap((res: ResponseJSON<any>) => this.response(res))
     )
 
   }
 
   onchangecellPrecioProducto(params: any) {
     return this.http.post<ResponseJSON<any>>('/api/precios-productos/changecell', params).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-      catchError(() => of(''))
+      tap((res: ResponseJSON<any>) => this.response(res))
 
     )
 
@@ -925,17 +922,14 @@ export class ApiService {
 
   setLicencia(vals: any) {
     return this.http.post<ResponseJSON<any>>(`/api/carga-licencia`, vals).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-      //catchError(() => of([])),
+      tap((res: ResponseJSON<any>) => this.response(res))
     )
 
   }
 
   deleteLicencia(vals: any) {
     return this.http.delete<ResponseJSON<any>>(`/api/carga-licencia`,  vals ).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-      catchError(() => of([])),
-
+      tap((res: ResponseJSON<any>) => this.response(res))
     )
 
   }
@@ -943,8 +937,6 @@ export class ApiService {
   deleteCliente(vals: any) {
     return this.http.delete<ResponseJSON<any>>(`/api/clientes`,  vals ).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
-      catchError(() => of([])),
-
     )
 
   }
@@ -952,8 +944,6 @@ export class ApiService {
   deleteAccess(PersonalId: any) {
     return this.http.delete<ResponseJSON<any>>(`/api/acceso-bot/${PersonalId}`).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
-      catchError(() => of([])),
-
     )
 
   }
@@ -963,8 +953,6 @@ export class ApiService {
   deleteObjetivos(vals: any) {
     return this.http.delete<ResponseJSON<any>>(`/api/objetivos`,  vals ).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
-      catchError(() => of([])),
-
     )
 
   }
@@ -973,8 +961,6 @@ export class ApiService {
   deleteProducto(vals: any) {
     return this.http.delete<ResponseJSON<any>>(`/api/precios-productos`,  vals ).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
-      catchError(() => of([])),
-
     )
 
   }
@@ -985,7 +971,6 @@ export class ApiService {
 
     return this.http.delete<ResponseJSON<any>>('/api/carga-licencia/deleteArchivo', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
-      catchError(() => of([])),
     )
 
   }
@@ -1119,22 +1104,19 @@ export class ApiService {
 
   deleteArchivoPersonal(personalId: any, tipo:number) {
     return this.http.delete<ResponseJSON<any>>('/api/personal/deleteArchivo', {personalId, tipo}).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-      catchError(() => of([])),
+      tap((res: ResponseJSON<any>) => this.response(res))
     )
   }
 
   addPersonal(parameter: any){
     return this.http.post<ResponseJSON<any>>('/api/personal/add', parameter).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-      catchError(() => of({}))
+      tap((res: ResponseJSON<any>) => this.response(res))
     );
   }
 
   updatePersonal(id:number, parameter: any){
     return this.http.post<ResponseJSON<any>>(`/api/personal/update/${id}`, parameter).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-      catchError(() => of({}))
+      tap((res: ResponseJSON<any>) => this.response(res))
     );
   }
 
@@ -1154,7 +1136,6 @@ export class ApiService {
   setSitRevista(PersonalId:number, values:any){
     return this.http.post<ResponseJSON<any>>(`/api/personal/setsitrevista/${PersonalId}`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
-      catchError(() => of({}))
     );
   }
 

@@ -881,7 +881,7 @@ export class ObjetivosController extends BaseController {
             }
             await queryRunner.commitTransaction()
 
-throw new ClientException('debug')
+//throw new ClientException('debug')
 
             return this.jsonRes(ObjObjetivoNew, res, 'Modificación  Exitosa');
         }catch (error) {

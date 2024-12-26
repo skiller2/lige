@@ -44,7 +44,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
 
   $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
-
+  tmpInputVal: any
   private _selectedId: string = ''
   _selected = ''
   extendedOption = { GrupoActividadId: 0, fullName: "" }
@@ -53,6 +53,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   private propagateChange: (_: any) => void = noop
 
   registerOnChange(fn: any) {
+
     this.propagateChange = fn
   }
 
@@ -61,9 +62,12 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   }
 
   onChange() {
+//    this.isc?.focus()
+
   }
 
   onRemove() {
+    //  console.log('onRemove')
   }
 
   registerOnTouched(fn: any) {
@@ -75,8 +79,8 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   }
 
   onKeydown(event: KeyboardEvent) {
-//    this._lastInputEvent = event;
-    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+
+    if ( event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
       event.stopImmediatePropagation()
     }
   }
@@ -85,8 +89,8 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
 
   ngAfterViewInit() {
     setTimeout(() => {
-      this.psc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-      this.psc.focus()
+      this.psc?.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
+      this.psc?.focus()  //Al hacer click en el componente hace foco
      
     }, 1);
   }
@@ -96,33 +100,37 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
     return this._selectedId
   }
 
+
   set selectedId(val: string) {
-    val = (val === null || val === undefined) ? '' : val
-    if (val !== this._selectedId) {
-      this._selectedId = val
-
-      if (!this._selectedId && this._selectedId !== null) {
-        this.valueExtendedEmitter.emit(null)
-        this.propagateChange(this._selectedId)
-        return
-      }
-
-      firstValueFrom(
-        
-        this.searchService
+      val = (val === null || val === undefined) ? '' : val
+      
+      if (val !== this._selectedId) {     
+        this._selectedId = val
+  
+        if (this._selectedId == '' || this._selectedId == '0') {
+          this.valueExtendedEmitter.emit({})
+          this._selected = ''
+          this.propagateChange(this._selectedId)
+          return
+        }
+  
+        firstValueFrom(
+          this.searchService
           .getGrupoActividad('GrupoActividadId', this._selectedId)
-          .pipe(tap(res => {
-             if (res[0]?.GrupoActividadId)
-              this.extendedOption = res[0]
-            this._selected = this._selectedId
-            this.valueExtendedEmitter.emit(this.extendedOption)
-            this.propagateChange(this._selectedId)
-          }))
-      )
+            .pipe(tap(res => {
+              this.extendedOption = { GrupoActividadId: res[0].GrupoActividadId, fullName: res[0].fullName }
+              this._selected = this._selectedId
+              this.valueExtendedEmitter.emit(this.extendedOption)
+              if (this.tmpInputVal != this._selected) {
+                this.propagateChange(this._selectedId)
+              }
+            }))
+        )
+      }
     }
-  }
 
   writeValue(value: any) {
+    this.tmpInputVal = value
     if (value !== this._selectedId) {
       this.selectedId = value
     }
@@ -144,17 +152,15 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
     this.selectedId = val
   }
 
-  search(value: string): void {
-    this.extendedOption = { GrupoActividadId: 0, fullName: "" }
-    this.$searchChange.next(value)
-  }
-
-  focus() { 
-
-  }
 
   setDisabledState(isDisabled: boolean): void {
     this.psc?.setDisabledState(isDisabled)
   } 
 
-}
+  search(value: string): void {
+    this.extendedOption = { GrupoActividadId: 0, fullName: '' }
+    this.$searchChange.next(value)
+  }
+
+
+}  

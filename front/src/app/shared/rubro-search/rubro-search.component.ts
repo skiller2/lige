@@ -98,36 +98,34 @@ export class RubroSearchComponent implements ControlValueAccessor {
     return this._selectedId
   }
 
+
   set selectedId(val: string) {
-
-    this.isc?.focus()
-    val = (val === null || val === undefined) ? '' : val
-
-    if (val !== this._selectedId) {
-      this._selectedId = val
-
-      if (this._selectedId == '' || this._selectedId == '0') {
-        this.valueExtendedEmitter.emit({})
-        this._selected = ''
-        this.propagateChange(this._selectedId)
-        return
-      }
-
-      firstValueFrom(
-        this.searchService
+      val = (val === null || val === undefined) ? '' : val
+      
+      if (val !== this._selectedId) {     
+        this._selectedId = val
+  
+        if (this._selectedId == '' || this._selectedId == '0') {
+          this.valueExtendedEmitter.emit({})
+          this._selected = ''
+          this.propagateChange(this._selectedId)
+          return
+        }
+  
+        firstValueFrom(
+          this.searchService
           .getRubroFromName('RubroClienteId', this._selectedId)
-          .pipe(tap(res => {
-            if (res[0]?.RubroClienteId)
-            this.extendedOption = res[0]
-            this._selected = this._selectedId
-            this.valueExtendedEmitter.emit(this.extendedOption)
-            if (this.tmpInputVal!=this._selectedId)
-              this.propagateChange(this._selectedId)
-          }))
-      )
-
+            .pipe(tap(res => {
+              this.extendedOption = { RubroClienteId: res[0].RubroClienteId, RubroClienteDescripcion: res[0].RubroClienteDescripcion }
+              this._selected = this._selectedId
+              this.valueExtendedEmitter.emit(this.extendedOption)
+              if (this.tmpInputVal != this._selected) {
+                this.propagateChange(this._selectedId)
+              }
+            }))
+        )
+      }
     }
-  }
 
   writeValue(value: any) {
     this.tmpInputVal = value
@@ -151,21 +149,17 @@ export class RubroSearchComponent implements ControlValueAccessor {
   modelChange(val: string) {
     this.selectedId = val
   }
-  
-  search(value: string): void {
-    this.extendedOption = { RubroClienteId: 0, RubroClienteDescripcion: '' }
-    this.$searchChange.next(value)
-  }
-
-  focus() { 
-    console.log('focus')
-
-  }
 
 
   setDisabledState(isDisabled: boolean): void {
     this.isc?.setDisabledState(isDisabled)
   } 
 
-}
+  search(value: string): void {
+    this.extendedOption = { RubroClienteId: 0, RubroClienteDescripcion: '' }
+    this.$searchChange.next(value)
+  }
 
+
+
+} 
