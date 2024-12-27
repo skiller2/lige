@@ -324,6 +324,12 @@ export class ApiService {
             if (String(col.formatter) == 'complexObject')
             col.formatter= Formatters['complexObject']
 
+          if (col.type == 'dateTime') {
+            col.formatter = Formatters['dateTimeShortEuro']
+            col.editor = { model: Editors['date'] }
+            col.cssClass = 'text-right'
+          } else 
+            
           if (col.type == 'date') {
             col.formatter = Formatters['dateEuro']
             col.editor = { model: Editors['date'] }

@@ -161,7 +161,7 @@ export class PersonalController extends BaseController {
       return next(error)
     }
   }
-  //ACA
+
   async getPersonalResponsables(req: any, res: Response, next: NextFunction) {
     const personalId = req.params.personalId;
     const anio = req.params.anio;
@@ -634,9 +634,9 @@ export class PersonalController extends BaseController {
     try {
       await queryRunner.startTransaction()
 
-      if (!Nombre || !Apellido || !CUIT || (NroLegajo == null) || !SucursalId || !NacionalidadId) {
-        throw new ClientException(`Los campos Nombre, Apellido, CUIT, NroLegajo, Nro de Asociado, Sucursal, NacionalidadId  No pueden estar vacios.`);
-      }
+      const valForm = this.valPersonalForm(req.body)
+      if (valForm instanceof ClientException)
+        throw valForm
 
       if (NroLegajo) {
         let validacionNroLegajo = await queryRunner.query(`
@@ -648,6 +648,7 @@ export class PersonalController extends BaseController {
           errors.push(`El NroLegajo esta en uso.`);
         }
       }
+
       let validacionCUIT = await queryRunner.query(`
         SELECT cuit.PersonalId
         FROM PersonalCUITCUIL cuit 
@@ -905,8 +906,8 @@ export class PersonalController extends BaseController {
       `,[PersonalId])
     const personal = personalRes[0]
     let cambio:boolean = false
-    for (const data in personal) {
-      if (infoPersonal[data] != personal[data]) {
+    for (const key in personal) {
+      if (infoPersonal[key] != personal[key]) {
         cambio = true
         break
       }
@@ -958,8 +959,8 @@ export class PersonalController extends BaseController {
     const domicilio = domicilioRes[0]? domicilioRes[0]: {}
     
     let cambio:boolean = false
-    for (const data in domicilio) {
-      if (infoDomicilio[data] != domicilio[data]) {
+    for (const key in domicilio) {
+      if (infoDomicilio[key] != domicilio[key]) {
         cambio = true
         break
       }
@@ -1006,19 +1007,19 @@ export class PersonalController extends BaseController {
 
   private async updatePersonalTelefono(queryRunner:any, PersonalId:number, infoTelefono:any ){
     const PersonalTelefonoId = infoTelefono.PersonalTelefonoId
-    let telefono = await queryRunner.query(`
-      SELECT LugarTelefonoId , TipoTelefonoId, PersonalTelefonoCodigoPais CodigoPais,
-      PersonalTelefonoCodigoArea CodigoArea, PersonalTelefonoNro TelefonoNro
+    let telefono:any = await queryRunner.query(`
+      SELECT TipoTelefonoId, PersonalTelefonoNro TelefonoNro
       FROM PersonalTelefono
       WHERE PersonalId IN (@0) AND PersonalTelefonoId IN (@1)
       `,[PersonalId, PersonalTelefonoId])
+      
     if (!telefono.length) 
       return await this.addPersonalTelefono(queryRunner, infoTelefono, PersonalId )
     telefono = telefono[0]
 
     let cambio:boolean = false
-    for (const data of telefono) {
-      if (infoTelefono[data] != telefono[data]) {
+    for (const key in telefono) {
+      if (infoTelefono[key] != telefono[key]) {
         cambio = true
         break
       }
@@ -1047,15 +1048,15 @@ export class PersonalController extends BaseController {
     let estudio = await queryRunner.query(`
       SELECT TipoEstudioId , EstadoEstudioId, PersonalEstudioTitulo EstudioTitulo, PersonalEstudioAno EstudioAno
       FROM PersonalEstudio
-      WHERE PersonalId IN (@0) AND PersonalTelefonoId IN (@1)
+      WHERE PersonalId IN (@0) AND PersonalEstudioId IN (@1)
       `,[PersonalId, PersonalEstudioId])
     if (!estudio.length) 
       return await this.addPersonalEstudio(queryRunner, infoEstudio, PersonalId )
     estudio = estudio[0]
 
     let cambio:boolean = false
-    for (const data of estudio) {
-      if (infoEstudio[data] != estudio[data]) {
+    for (const key in estudio) {
+      if (infoEstudio[key] != estudio[key]) {
         cambio = true
         break
       }
@@ -1071,7 +1072,7 @@ export class PersonalController extends BaseController {
       EstadoEstudioId = @3,
       PersonalEstudioTitulo = @4,
       PersonalEstudioAno = @5
-      WHERE PersonalId IN (@0) AND PersonalTelefonoId IN (@1)
+      WHERE PersonalId IN (@0) AND PersonalEstudioId IN (@1)
       `,[
         PersonalId, PersonalEstudioId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAno
     ])
@@ -1082,12 +1083,12 @@ export class PersonalController extends BaseController {
     const Email = infoEmail.Email
     if (PersonalEmailId){
       let PersonalEmailEmail = await queryRunner.query(`
-        SELEC PersonalEmailEmail
+        SELECT PersonalEmailEmail
         FROM PersonalEmail
         WHERE PersonalId IN (@0) AND PersonalEmailId IN (@1)`,
         [ personaId, PersonalEmailId]
       )
-      PersonalEmailEmail = PersonalEmailEmail[0]
+      PersonalEmailEmail = PersonalEmailEmail[0].PersonalEmailEmail
       if (PersonalEmailEmail != Email) 
         await queryRunner.query(`UPDATE PersonalEmail SET PersonalEmailEmail = @1 WHERE PersonalId IN (@0)`,
           [ personaId, Email]
@@ -1100,39 +1101,30 @@ export class PersonalController extends BaseController {
   async updatePersonal(req: any, res: Response, next: NextFunction){
     const queryRunner = dataSource.createQueryRunner();
     const PersonalId:number = Number(req.params.id)
-    let Nombre:string = req.body.Nombre
-    let Apellido:string = req.body.Apellido
     const CUIT:number = req.body.CUIT
-    const NroLegajo:number = req.body.NroLegajo
-    const SucursalId:number = req.body.SucursalId
-    let FechaIngreso:Date = req.body.FechaIngreso? new Date(req.body.FechaIngreso) : null
-    let FechaNacimiento:Date = req.body.FechaNacimiento? new Date(req.body.FechaNacimiento) : null
     const Foto = req.body.Foto
-    const NacionalidadId:number = req.body.NacionalidadId
     const docFrente = req.body.docFrente
     const docDorso = req.body.docDorso
-    const telefonos = req.body.telefonos
-    const estudios = req.body.estudios
+    const telefonos: any[] = req.body.telefonos
+    const estudios: any[] = req.body.estudios
     let now = new Date()
     now.setHours(0, 0, 0, 0)
-    if (FechaIngreso) FechaIngreso.setHours(0, 0, 0, 0)
-    if (FechaNacimiento) FechaNacimiento.setHours(0, 0, 0, 0)
     
     try {
       await queryRunner.startTransaction()
 
-      if (!Nombre || !Apellido || !CUIT || (NroLegajo == null) || !SucursalId || !NacionalidadId) {
-        throw new ClientException(`Los campos Nombre, Apellido, CUIT, NroLegajo, Nro de Asociado, Sucursal, NacionalidadId  No pueden estar vacios.`);
-      }
+      const valForm = this.valPersonalForm(req.body)
+      if (valForm instanceof ClientException)
+        throw valForm
       
       await this.updatePersona(queryRunner, PersonalId, req.body)
       await this.updatePersonalDomicilio(queryRunner, PersonalId, req.body)
       await this.updatePersonalEmail(queryRunner, PersonalId, req.body)
-
-      for (const telefono of telefonos || []) {
+      
+      for (const telefono of telefonos) {
         if (telefono.TelefonoNro.length)  await this.updatePersonalTelefono(queryRunner, PersonalId, telefono)
       }
-      for (const estudio of estudios || []) {
+      for (const estudio of estudios) {
         if (estudio.EstudioTitulo.length)  await this.updatePersonalEstudio(queryRunner, PersonalId, estudio)
       }
       
@@ -1148,16 +1140,14 @@ export class PersonalController extends BaseController {
           [ PersonalId, CUIT, now]
         )
       }
-      let response:any = {}
       if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto)
       
       if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente, 12)
       
       if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso, 13)
       
-
       await queryRunner.commitTransaction()
-      this.jsonRes(response, res, 'Carga Exitosa');
+      this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
       this.rollbackTransaction(queryRunner)
       return next(error)
@@ -1174,7 +1164,7 @@ export class PersonalController extends BaseController {
       TRIM(dom.PersonalDomicilioDomCalle) Calle, TRIM(dom.PersonalDomicilioDomNro) Nro, TRIM(dom.PersonalDomicilioDomPiso) Piso,
       TRIM(dom.PersonalDomicilioDomDpto) Dpto, TRIM(dom.PersonalDomicilioCodigoPostal) CodigoPostal, dom.PersonalDomicilioPaisId PaisId,
       dom.PersonalDomicilioProvinciaId ProvinciaId, dom.PersonalDomicilioLocalidadId LocalidadId, dom.PersonalDomicilioBarrioId BarrioId, dom.PersonalDomicilioId,
-      email.PersonalEmailEmail Email
+      email.PersonalEmailEmail Email, email.PersonalEmailId
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId
@@ -1362,7 +1352,9 @@ export class PersonalController extends BaseController {
     const motivo = req.body.Motivo
     let now:Date = new Date();
     now.setHours(0, 0, 0, 0)
-    let yesterday:Date = new Date(now.getDate() - 1)
+    let yesterday:Date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+    yesterday.setHours(0, 0, 0, 0)
+    
     try {
       await queryRunner.startTransaction()
       let sitRevista = await queryRunner.query(
@@ -1438,6 +1430,32 @@ export class PersonalController extends BaseController {
     } catch (error) {
       return next(error)
     } 
+  }
+
+  valPersonalForm(personalForm: any){
+    let errores: any[] = []
+    if (!personalForm.Nombre) {
+        errores.push(`El campo Nombre NO pueden estar vacio.`)
+    }
+    if (!personalForm.Apellido) {
+        errores.push(`El campo Apellido NO pueden estar vacio.`)
+    }
+    if (!Number.isInteger(personalForm.CUIT)) {
+        errores.push(`El campo CUIT NO pueden estar vacio.`)
+    }
+    if (personalForm.NroLegajo == null) {
+        errores.push(`El campo Nro de Asociado NO pueden estar vacio.`)
+    }
+    if (!personalForm.SucursalId) {
+        errores.push(`El campo Sucursal NO pueden estar vacio.`)
+    }
+    if (!personalForm.NacionalidadId) {
+        errores.push(`El campo Nacionalidad NO pueden estar vacio.`)
+    }
+
+    if (errores.length) {
+        return new ClientException(errores.join(`\n`))
+    }
   }
 
 }

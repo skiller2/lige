@@ -74,7 +74,7 @@ const columnsObjCustodia: any[] = [
     {
         id: 'fechaI', name: 'Fecha Inicio', field: 'fechaI',
         fieldName: "obj.fecha_inicio",
-        type: 'date',
+        type: 'dateTime',
         // maxWidth: 150,
         minWidth: 90,
         searchComponent: "inpurForFechaSearch",
@@ -99,6 +99,17 @@ const columnsObjCustodia: any[] = [
         // maxWidth: 180,
         minWidth: 140,
     },
+    {
+        id: 'fecha_fin', name: 'Fecha Fin', field: 'fechaF',
+        fieldName: "obj.fecha_fin",
+        type: 'dateTime',
+        searchComponent: "inpurForFechaSearch",
+        searchType: "date",
+        sortable: true,
+        searchHidden: false,
+//        hidden: true,
+        minWidth: 110,
+    },     
     {
         id: 'desc_facturacion', name: 'Desp/Oper/Ref', field: 'desc_facturacion',
         fieldName: "obj.desc_facturacion",

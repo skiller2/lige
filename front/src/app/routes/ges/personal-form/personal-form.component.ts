@@ -34,7 +34,7 @@ export class PersonalFormComponent {
   fb = inject(FormBuilder)
   objTelefono = {PersonalTelefonoId:0, TipoTelefonoId:0, TelefonoNro:''}
   objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', EstudioAno:null, DocTitulo:[]}
-  objEmail = {PersonalEmailId:0, Email:''}
+  // objEmail = {PersonalEmailId:0, Email:''}
   inputs = { 
     Nombre:'', Apellido:'', CUIT:null, NroLegajo:null, SucursalId:0, FechaIngreso:'',
     FechaNacimiento:'', Foto:[], NacionalidadId:0, docDorso:[], docFrente:[],
