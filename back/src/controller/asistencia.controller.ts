@@ -2557,10 +2557,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         }
       }
 
-
-
-      console.log('proceso getListaAsistenciaControAcceso', listadoProcessed)
-
       this.jsonRes(listadoProcessed, res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
