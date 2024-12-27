@@ -227,7 +227,8 @@ export class PreciosProductosController extends BaseController {
             const codigoExist = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_productos WHERE cod_producto = @0`, [params.codigoOld])
             let dataResultado = {}
             let importeDesde = params.desde == undefined ? fechaActual : params.desde
-            let importeHasta = params.hasta == undefined ? '9999-31-12' : params.hasta
+            let importeHasta = params.hasta === undefined ? new Date('9999-12-31') : new Date(params.hasta);
+
 
             if ( codigoExist.length > 0) { //Entro en update
                 //Validar si cambio el código
@@ -341,12 +342,16 @@ export class PreciosProductosController extends BaseController {
             throw new ClientException(`Debe seleccionar la Sucursal`)
 
 
-        let resultSucursalCodigo = await queryRunner.query( `SELECT * FROM lige.dbo.lpv_precio_venta WHERE cod_Producto = @0 AND SucursalId = @1`, [params.codigo,params.SucursalId])
-        
-        // Validar si hay registros
-            if (resultSucursalCodigo.length > 0) 
-                throw new ClientException(`El codigo ingresado ya existe en la sucursal seleccionada`)
+        if(params.codigo != params.codigoOld){
 
+            let resultSucursalCodigo = await queryRunner.query( `SELECT * FROM lige.dbo.lpv_precio_venta WHERE cod_Producto = @0 AND SucursalId = @1`, [params.codigo,params.SucursalId])
+        
+            // Validar si hay registros
+                if (resultSucursalCodigo.length > 0) 
+                    throw new ClientException(`El codigo ingresado ya existe en la sucursal seleccionada`)
+        }
+
+    
 
         if (params.nombre == null || params.nombre == "")
             throw new ClientException(`Debe completar el nombre del producto`)
