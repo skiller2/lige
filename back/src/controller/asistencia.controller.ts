@@ -6,6 +6,7 @@ import { ObjetivoController } from "./objetivo.controller";
 import { filtrosToSql, orderToSQL } from "src/impuestos-afip/filtros-utils/filtros";
 import { CustodiaController } from "./custodia.controller";
 import CryptoJS from "crypto-js";
+import { float } from "@zxing/library/esm/customTypings";
 
 interface DigestAuthOptions {
   username: string;
@@ -207,10 +208,10 @@ export class AsistenciaController extends BaseController {
       throw new ClientException(`No tiene contrato vigente para el período ${anio}/${mes}`)
 
     const checkrecibos = await queryRunner.query(
-      `SELECT per.ind_recibos_generados FROM lige.dbo.liqmaperiodo per WHERE per.anio=@1 AND per.mes=@2`, [,anio, mes]
+      `SELECT per.ind_recibos_generados FROM lige.dbo.liqmaperiodo per WHERE per.anio=@1 AND per.mes=@2`, [, anio, mes]
     );
 
-    if (checkrecibos[0]?.ind_recibos_generados ==1)
+    if (checkrecibos[0]?.ind_recibos_generados == 1)
       throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
 
     let ObjetivoAsistenciaAnoUltNro = cabecera[0].ObjetivoAsistenciaAnoId
@@ -338,11 +339,11 @@ export class AsistenciaController extends BaseController {
   }
 
 
-  static async getAsistenciaAdminArt42(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[],filterSql:any,PersonalLicenciaSePaga:boolean,ishistory:boolean) {
+  static async getAsistenciaAdminArt42(anio: number, mes: number, queryRunner: QueryRunner, personalId: number[], filterSql: any, PersonalLicenciaSePaga: boolean, ishistory: boolean) {
 
     const listPersonaId = (personalId.length == 0) ? '' : 'AND persona.PersonalId IN (' + personalId.join(',') + ')'
 
-  let selectquery = `SELECT ROW_NUMBER() OVER (ORDER BY suc.SucursalId) AS id,suc.SucursalId, suc.SucursalDescripcion, licimp.PersonalLicenciaAplicaPeriodoAplicaEl,
+    let selectquery = `SELECT ROW_NUMBER() OVER (ORDER BY suc.SucursalId) AS id,suc.SucursalId, suc.SucursalDescripcion, licimp.PersonalLicenciaAplicaPeriodoAplicaEl,
   @1 anio, @2 mes,
   persona.PersonalId,lic.PersonalLicenciaId, persona.PersonalApellido, persona.PersonalNombre, 
   CONCAT(persona.PersonalApellido, ' ', persona.PersonalNombre) AS NombreCompleto,
@@ -373,126 +374,126 @@ export class AsistenciaController extends BaseController {
     LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = licimp.PersonalLicenciaAplicaPeriodoSucursalId AND val.ValorLiquidacionTipoAsociadoId = lic.PersonalLicenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = lic.PersonalLicenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
     LEFT JOIN PersonalLicenciaDiagnosticoMedico med ON med.PersonalId=persona.PersonalId AND med.PersonalLicenciaId = lic.PersonalLicenciaId
     WHERE lic.PersonalLicenciaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) `
-    
-    if(!ishistory)
+
+    if (!ishistory)
       selectquery += `AND ISNULL(ISNULL(lic.PersonalLicenciaTermina,lic.PersonalLicenciaHasta),'9999-12-31') >= DATEFROMPARTS(@1,@2,1)`
 
-    selectquery += `${listPersonaId} ` 
-    
-    if(PersonalLicenciaSePaga)
-       selectquery += ` AND (lic.PersonalLicenciaSePaga = 'S' OR PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60 >0)`
+    selectquery += `${listPersonaId} `
 
-    if(filterSql && filterSql.length > 0)
+    if (PersonalLicenciaSePaga)
+      selectquery += ` AND (lic.PersonalLicenciaSePaga = 'S' OR PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,2)+ CAST(PARSENAME(licimp.PersonalLicenciaAplicaPeriodoHorasMensuales,1) AS FLOAT)/60 >0)`
+
+    if (filterSql && filterSql.length > 0)
       selectquery += ` AND ${filterSql}`
 
-    return await queryRunner.query(selectquery, [, anio, mes]) 
-/*
-    let asisadmin = await queryRunner.query(`
-    SELECT suc.SucursalId, suc.SucursalDescripcion, 
-    asisa.SucursalAsistenciaAnoAno, asism.SucursalAsistenciaAnoMesMes, 
-    asis.SucursalAsistenciaMesPersonalId, cuit.PersonalCUITCUILCUIT, persona.PersonalApellido, persona.PersonalNombre, 
-    persona.PersonalId,    
+    return await queryRunner.query(selectquery, [, anio, mes])
+    /*
+        let asisadmin = await queryRunner.query(`
+        SELECT suc.SucursalId, suc.SucursalDescripcion, 
+        asisa.SucursalAsistenciaAnoAno, asism.SucursalAsistenciaAnoMesMes, 
+        asis.SucursalAsistenciaMesPersonalId, cuit.PersonalCUITCUILCUIT, persona.PersonalApellido, persona.PersonalNombre, 
+        persona.PersonalId,    
+        
+        asis.SucursalAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras,
+        cat.CategoriaPersonalDescripcion,
+        
+        (
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias2Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias2Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias3Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias3Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias4Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias4Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias5Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias5Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias6Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias6Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias7Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias7Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias8Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias8Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias9Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias9Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias10Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias10Gral),2) AS INT),0)+
+        
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias11Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias11Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias12Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias12Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias13Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias13Gral),2) AS INT),0)+
+          ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias14Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias14Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias15Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias15Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias16Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias16Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias17Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias17Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias18Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias18Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias19Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias19Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias20Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias20Gral),2) AS INT),0)+
+        
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias21Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias21Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias22Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias22Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias23Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias23Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias24Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias24Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias25Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias25Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias26Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias26Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias27Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias27Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias28Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias28Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias29Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias29Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias30Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias30Gral),2) AS INT),0)+
+        
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0)
+        ) / 60 AS horas,
+        
+        val.ValorLiquidacionHoraNormal,
+        
+        (
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias2Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias2Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias3Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias3Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias4Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias4Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias5Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias5Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias6Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias6Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias7Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias7Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias8Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias8Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias9Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias9Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias10Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias10Gral),2) AS INT),0)+
+        
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias11Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias11Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias12Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias12Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias13Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias13Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias14Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias14Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias15Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias15Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias16Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias16Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias17Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias17Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias18Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias18Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias19Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias19Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias20Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias20Gral),2) AS INT),0)+
+        
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias21Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias21Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias22Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias22Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias23Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias23Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias24Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias24Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias25Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias25Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias26Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias26Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias27Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias27Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias28Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias28Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias29Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias29Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias30Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias30Gral),2) AS INT),0)+
+        ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0) 
+        )
+        / 60 * val.ValorLiquidacionHoraNormal AS total,
+        
+        asis.SucursalAsistenciaAnoMesPersonalDiasCualArt42,
+        
+        1
+        
+        
+        FROM SucursalAsistenciaAnoMesPersonalDias asis
+        JOIN SucursalAsistenciaAnoMes asism ON asism.SucursalAsistenciaAnoMesId = asis.SucursalAsistenciaAnoMesId AND asism.SucursalAsistenciaAnoId = asis.SucursalAsistenciaAnoId AND asism.SucursalId = asis.SucursalId
+        JOIN SucursalAsistenciaAno asisa ON asisa.SucursalAsistenciaAnoId = asism.SucursalAsistenciaAnoId AND asisa.SucursalId = asism.SucursalId
+        JOIN Sucursal suc ON suc.SucursalId = asisa.SucursalId
+        JOIN Personal persona ON persona.PersonalId = asis.SucursalAsistenciaMesPersonalId
+        
+        JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = persona.PersonalCUITCUILUltNro
+        
+        LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = asis.SucursalAsistenciaTipoAsociadoId AND cat.CategoriaPersonalId = asis.SucursalAsistenciaCategoriaPersonalId
+        
+        LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = asisa.SucursalId AND val.ValorLiquidacionTipoAsociadoId = asis.SucursalAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = asis.SucursalAsistenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= DATEFROMPARTS(asisa.SucursalAsistenciaAnoAno,asism.SucursalAsistenciaAnoMesMes,'28') AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(asisa.SucursalAsistenciaAnoAno,asism.SucursalAsistenciaAnoMesMes,'1')
+        
+        WHERE asisa.SucursalAsistenciaAnoAno = @1 AND asism.SucursalAsistenciaAnoMesMes = @2 ${listPersonaId} `, [, anio, mes])
     
-    asis.SucursalAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras,
-    cat.CategoriaPersonalDescripcion,
-    
-    (
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias2Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias2Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias3Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias3Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias4Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias4Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias5Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias5Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias6Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias6Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias7Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias7Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias8Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias8Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias9Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias9Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias10Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias10Gral),2) AS INT),0)+
-    
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias11Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias11Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias12Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias12Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias13Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias13Gral),2) AS INT),0)+
-      ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias14Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias14Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias15Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias15Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias16Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias16Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias17Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias17Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias18Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias18Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias19Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias19Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias20Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias20Gral),2) AS INT),0)+
-    
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias21Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias21Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias22Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias22Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias23Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias23Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias24Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias24Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias25Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias25Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias26Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias26Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias27Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias27Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias28Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias28Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias29Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias29Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias30Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias30Gral),2) AS INT),0)+
-    
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0)
-    ) / 60 AS horas,
-    
-    val.ValorLiquidacionHoraNormal,
-    
-    (
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias2Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias2Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias3Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias3Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias4Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias4Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias5Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias5Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias6Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias6Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias7Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias7Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias8Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias8Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias9Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias9Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias10Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias10Gral),2) AS INT),0)+
-    
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias11Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias11Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias12Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias12Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias13Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias13Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias14Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias14Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias15Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias15Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias16Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias16Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias17Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias17Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias18Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias18Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias19Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias19Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias20Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias20Gral),2) AS INT),0)+
-    
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias21Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias21Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias22Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias22Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias23Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias23Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias24Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias24Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias25Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias25Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias26Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias26Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias27Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias27Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias28Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias28Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias29Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias29Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias30Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias30Gral),2) AS INT),0)+
-    ISNULL(CAST(LEFT(asis.SucursalAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(asis.SucursalAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0) 
-    )
-    / 60 * val.ValorLiquidacionHoraNormal AS total,
-    
-    asis.SucursalAsistenciaAnoMesPersonalDiasCualArt42,
-    
-    1
-    
-    
-    FROM SucursalAsistenciaAnoMesPersonalDias asis
-    JOIN SucursalAsistenciaAnoMes asism ON asism.SucursalAsistenciaAnoMesId = asis.SucursalAsistenciaAnoMesId AND asism.SucursalAsistenciaAnoId = asis.SucursalAsistenciaAnoId AND asism.SucursalId = asis.SucursalId
-    JOIN SucursalAsistenciaAno asisa ON asisa.SucursalAsistenciaAnoId = asism.SucursalAsistenciaAnoId AND asisa.SucursalId = asism.SucursalId
-    JOIN Sucursal suc ON suc.SucursalId = asisa.SucursalId
-    JOIN Personal persona ON persona.PersonalId = asis.SucursalAsistenciaMesPersonalId
-    
-    JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = persona.PersonalCUITCUILUltNro
-    
-    LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = asis.SucursalAsistenciaTipoAsociadoId AND cat.CategoriaPersonalId = asis.SucursalAsistenciaCategoriaPersonalId
-    
-    LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionSucursalId = asisa.SucursalId AND val.ValorLiquidacionTipoAsociadoId = asis.SucursalAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = asis.SucursalAsistenciaCategoriaPersonalId AND val.ValorLiquidacionDesde <= DATEFROMPARTS(asisa.SucursalAsistenciaAnoAno,asism.SucursalAsistenciaAnoMesMes,'28') AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') >= DATEFROMPARTS(asisa.SucursalAsistenciaAnoAno,asism.SucursalAsistenciaAnoMesMes,'1')
-    
-    WHERE asisa.SucursalAsistenciaAnoAno = @1 AND asism.SucursalAsistenciaAnoMesMes = @2 ${listPersonaId} `, [, anio, mes])
-
-    return asisadmin
-    */
+        return asisadmin
+        */
   }
   async getCategoria(req: any, res: Response, next: NextFunction) {
     try {
@@ -1404,9 +1405,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         ORDER BY PersonaDes
          `, [personalId, anio, mes])
 
-      if (personal.length==0)
+      if (personal.length == 0)
         return this.jsonRes({ persxresp: [], total: 0 }, res);
-      
+
       for (let ds of personal)
         personalIdList.push(ds.PersonalId)
 
@@ -1415,14 +1416,14 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, personalIdList)
 
       const resAsisAdmArt42 = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, personalIdList, [], false, false)
-      
-      const resCustodias = await CustodiaController.listPersonalCustodiaQuery({filtros:[{index: "ApellidoNombre", valor: personalIdList, operador:"=", condition:"AND"}]}, queryRunner, anio, mes,0)
+
+      const resCustodias = await CustodiaController.listPersonalCustodiaQuery({ filtros: [{ index: "ApellidoNombre", valor: personalIdList, operador: "=", condition: "AND" }] }, queryRunner, anio, mes, 0)
 
       const resIngreExtra = await AsistenciaController.getIngresosExtra(anio, mes, queryRunner, personalIdList)
 
       for (const row of resAsisObjetiv) {
         const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
-        if (key>=0) {
+        if (key >= 0) {
           personal[key].ingresosG_importe += row.totalminutoscalcimporteconart14
           personal[key].ingresos_horas += row.totalhorascalc
           personal[key].retiroG_importe = personal[key].ingresosG_importe
@@ -1433,7 +1434,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
         if (key >= 0 && row.total > 0) {
           personal[key].ingresosG_importe += row.total
-          personal[key].ingresos_horas  += row.PersonalLicenciaAplicaPeriodoHorasMensuales
+          personal[key].ingresos_horas += row.PersonalLicenciaAplicaPeriodoHorasMensuales
           personal[key].retiroG_importe = personal[key].ingresosG_importe
         }
 
@@ -1450,7 +1451,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       for (const row of resIngreExtra) {
         const key = personal.findIndex(i => i.PersonalId == row.persona_id)
-        if (key>=0) {
+        if (key >= 0) {
 
           personal[key].ingresos_horas += 0
           if (row.tipocuenta_id == 'C') {
@@ -1465,7 +1466,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       for (const row of resDescuentos) {
         const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
-        if (key>=0) {
+        if (key >= 0) {
 
           if (row.tipocuenta_id == 'C') {
             personal[key].egresosC_importe += row.importe
@@ -1554,7 +1555,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de ingresos`)
 
-      const result = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [personalId],[],false,false)
+      const result = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [personalId], [], false, false)
 
       const total = result.map(row => row.total).reduce((prev, curr) => prev + curr, 0)
       const totalHoras = result.map(row => row.PersonalLicenciaAplicaPeriodoHorasMensuales).reduce((prev, curr) => prev + curr, 0)
@@ -1845,7 +1846,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de asistencia`)
 
-      const result = await CustodiaController.listPersonalCustodiaQuery({filtros:[{index: "ApellidoNombre", valor: [personalId], operador:"=", condition:"AND"}]}, queryRunner, anio, mes,0)
+      const result = await CustodiaController.listPersonalCustodiaQuery({ filtros: [{ index: "ApellidoNombre", valor: [personalId], operador: "=", condition: "AND" }] }, queryRunner, anio, mes, 0)
 
       const totalImporte = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
       const totalHoras = result.map(row => row.horas).reduce((prev, curr) => prev + curr, 0)
@@ -1941,7 +1942,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const totalHorasR = result.map(row => { return (row.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras == 'R') ? row.totalhorascalc : 0 }).reduce((prev, curr) => prev + curr, 0)
 
 
-      this.jsonRes({ asistencia: result, totalImporte, totalHoras, totalHorasN, totalHorasC,totalHorasR }, res);
+      this.jsonRes({ asistencia: result, totalImporte, totalHoras, totalHorasN, totalHorasC, totalHorasR }, res);
 
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
@@ -1976,14 +1977,14 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       descripcion: "Monto adicional por hora",
       etiqueta: "Imp. Adicional Hora",
     });
-    
+
     recordSet.push({
       id: "H",
       metodo: "H",
       descripcion: "Se suman a las cargadas",
       etiqueta: "Horas adicionales",
     });
-    
+
     return recordSet
   }
 
@@ -2456,7 +2457,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         id: hasta ? obj.id : index + 1,
         dbid: obj.dbid,
         apellidoNombre: {
-          id: obj.PersonalId,          
+          id: obj.PersonalId,
           fullName: obj.fullName
         },
         categoria: {
@@ -2526,6 +2527,41 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const listares = lista.map(r => { r.dbid = null; return r })
       //      await queryRunner.commitTransaction()
       this.jsonRes(listares, res);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async getListaAsistenciaControAcceso(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction()
+      const objetivoId = req.params.ObjetivoId;
+      const anio = req.params.anio;
+      const mes = req.params.mes;
+
+      const listado = await this.getAccessControlAsistance(anio, mes)
+      const listadoProcessed = []
+      for (const personal of listado) {
+        for (const day of personal.detailInfo) {
+          const dayNum = new Date(day.dateTime).getDate() + 1
+          if (day.timeList.length) {
+            const maxSegsMidnight = Math.max(...day.timeList)
+            const minSegsMidnight = Math.min(...day.timeList)
+            const difHours: float = (maxSegsMidnight - minSegsMidnight) / 60
+            listadoProcessed.push({ CUIT:personal.employeeNo, dayNum, difHours, minSegsMidnight:minSegsMidnight/60, maxSegsMidnight:maxSegsMidnight/60 })
+          }
+        }
+      }
+
+
+
+      console.log('proceso getListaAsistenciaControAcceso', listadoProcessed)
+
+      this.jsonRes(listadoProcessed, res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -2657,53 +2693,54 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
 
 
-  
-  
+
+
   generateDigestAuthHeader(options: DigestAuthOptions): string {
     const { username, password, method, uri, realm, nonce, qop, nc, cnonce } = options;
-  
+
     // Hash functions
     const ha1 = CryptoJS.MD5(`${username}:${realm}:${password}`).toString();
     const ha2 = CryptoJS.MD5(`${method}:${uri}`).toString();
     const response = CryptoJS.MD5(
       `${ha1}:${nonce}:${nc.toString().padStart(8, "0")}:${cnonce}:${qop}:${ha2}`
     ).toString();
-  
+
     return `Digest username="${username}", realm="${realm}", nonce="${nonce}", uri="${uri}", qop=${qop}, nc=${nc.toString().padStart(8, "0")}, cnonce="${cnonce}", response="${response}"`;
   }
-  
-  async getAccessControlAsistance() {
+
+  async getAccessControlAsistance(anio: number, mes: number) {
     const url = process.env.CA_URL_GETASISTANCE
     const username = process.env.CA_USERNAME
     const password = process.env.CA_PASSWORD
-  
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
     // Make an initial request to get the realm and nonce
-    const initialResponse = await fetch(url, {method: 'POST', body: JSON.stringify({ validateStatus: () => true }),})
 
+    const initialResponse = await fetch(url, { method: 'POST', body: JSON.stringify({ validateStatus: () => true }), })
 
-    const authHeader = initialResponse.headers["www-authenticate"];
-  
+    const authHeader = initialResponse.headers.get('www-authenticate')
+
     if (!authHeader) {
       throw new Error("Digest authentication not supported on this endpoint.");
     }
-  
+
     // Parse authHeader to extract realm, nonce, and qop
     const realmMatch = /realm="([^"]+)"/.exec(authHeader);
     const nonceMatch = /nonce="([^"]+)"/.exec(authHeader);
     const qopMatch = /qop="([^"]+)"/.exec(authHeader);
-  
+
     if (!realmMatch || !nonceMatch || !qopMatch) {
       throw new Error("Failed to parse authentication header.");
     }
-  
+
     const realm = realmMatch[1];
     const nonce = nonceMatch[1];
     const qop = qopMatch[1];
-  
+
     // Generate client nonce
     const cnonce = CryptoJS.lib.WordArray.random(16).toString();
     const nc = 1;
-  
+
     // Create the Digest auth header
     const authOptions: DigestAuthOptions = {
       username,
@@ -2716,17 +2753,37 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       nc,
       cnonce,
     };
-  
+
     const digestAuthHeader = this.generateDigestAuthHeader(authOptions);
+
+
+
+    const headers = { 'Content-Type': 'application/json', 'Authorization': digestAuthHeader };
+    let recordsArray = []
+    let searchResultPosition = 1
+    const data = {
+      "searchID": CryptoJS.lib.WordArray.random(16).toString(), //Es un valor aleatorio tipo string, generado para parametro de control
+      "searchResultPosition": searchResultPosition, //Parametro inicial de busqueda de la peticion
+      "maxResults": 10, //Cantidad de resultados que devuelve
+      "statisticalTime": "month",
+      "month": `${anio}-${mes}` // Año-mes del periodo de datos obtenidos
+    }      
   
+    do {
+      const response = await fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(data), })
+      if (response.status != 200)
+        throw new ClientException('Error obteniendo resultados del control de acceso', { status: response.status })
+      searchResultPosition += 10
+      data.searchResultPosition = searchResultPosition
 
-    const data = {x: 1920, y: 1080,};
-    const headers = {'Content-Type': 'application/json','Authorization': digestAuthHeader};
-    
-    const response = await fetch(url, {method: 'POST',headers: headers,body: JSON.stringify(data),})
+      const dataRes: any = await response.json()
+      recordsArray.push(...dataRes.matchResults)
 
-    console.log("Response status:", response.status);
-    console.log("Response data:", response.body);
+      if (dataRes.responseStatus != 'MORE')
+        break;
+    } while (true)
+
+    return recordsArray
   }
- 
+
 }

@@ -720,6 +720,22 @@ export class CargaAsistenciaComponent {
 
         }
     }
+    
+    async leerControlAcceso() {
+        if (this.selectedPeriod.month && this.selectedSucursalId) {
+            const objetivoId = this.selectedObjetivoId
+            const anio = this.selectedPeriod.year
+            const mes = this.selectedPeriod.month
+
+            const list:any = await firstValueFrom(this.searchService.getListaAsistenciaControAcceso(objetivoId, anio, mes))
+            if (list.length) {
+                this.angularGridEdit.dataView.setItems(list)
+                this.gridDataInsert = this.angularGridEdit.dataView.getItems()
+                this.addNewItem("bottom")
+            }
+
+        }
+    }
 
     async exportGrid() {
         this.groupByForma()

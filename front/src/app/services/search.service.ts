@@ -737,6 +737,17 @@ export class SearchService {
         catchError(() => of([]))
       );
   }
+  
+  getListaAsistenciaControAcceso(ObjetivoId: number, anio: number, mes: number) {
+    if (!ObjetivoId)
+      return of([])
+    return this.http
+      .get<ResponseJSON<any>>(`api/asistencia/listacontrolacceso/${anio}/${mes}/${ObjetivoId}`)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
 
   getTiposHora() {
     return this.http
