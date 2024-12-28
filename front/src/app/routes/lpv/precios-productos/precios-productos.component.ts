@@ -157,6 +157,7 @@ export class PreciosProductosComponent {
         this.rowLocked = false
       } catch (e: any) {
         //Si codigoOld != '' volver a colocar el valor anterior, si codigoOld =='' marcar en rojo el registro 
+        
         console.log('error', e)
 
         if (row.codigoOld) {
@@ -169,6 +170,9 @@ export class PreciosProductosComponent {
           this.angularGridEdit.gridService.updateItemById(row.id, item)
         } else {
           //marcar el row en rojo
+
+          this.angularGridEdit.slickGrid.setSelectedRows([]);
+          this.angularGridEdit.slickGrid.render();
         }
 
         //this.updateTotals(editCommand.editor.args.column.id, this.angularGridEdit)
@@ -294,7 +298,9 @@ export class PreciosProductosComponent {
 
   updateItemMetadata(previousItemMetadata: any) {
 
+
     return (rowNumber: number) => {
+      const newCssClass = 'element-add-no-complete';
       const item = this.angularGridEdit.dataView.getItem(rowNumber);
       let meta = {
         cssClasses: ''
@@ -302,20 +308,14 @@ export class PreciosProductosComponent {
       if (typeof previousItemMetadata === 'object') {
         meta = previousItemMetadata(rowNumber);
       }
-
-      if (meta && item && item.isfull) {
-        switch (item.isfull) {
-          case 2:
-            meta.cssClasses = 'element-add-no-complete';
-            break;
-          case 1:
-            meta.cssClasses = 'element-add-complete';
-            break;
-
-          default:
-            break;
-        }
+      
+      if (!item.codigoOld){
+        console.log("paso por aca 2")
+        meta.cssClasses =  'element-add-no-complete'
       }
+      else
+        meta.cssClasses = ''
+
       return meta;
     };
   }
