@@ -2535,6 +2535,13 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     }
   }
 
+  minsToHourMins(mins:number)
+  { 
+   const hours = Math.floor(mins / 60)  
+   const minutes = mins % 60
+   return hours + ":" + minutes         
+ }
+
   async getListaAsistenciaControAcceso(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
@@ -2549,10 +2556,17 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         for (const day of personal.detailInfo) {
           const dayNum = new Date(day.dateTime).getDate() + 1
           if (day.timeList.length) {
-            const maxSegsMidnight = Math.max(...day.timeList)
-            const minSegsMidnight = Math.min(...day.timeList)
-            const difHours: float = (maxSegsMidnight - minSegsMidnight) / 60
-            listadoProcessed.push({ CUIT:personal.employeeNo, dayNum, difHours, minSegsMidnight:minSegsMidnight/60, maxSegsMidnight:maxSegsMidnight/60 })
+            const maxMinsMidnight = Math.max(...day.timeList)
+            const minMinsMidnight = Math.min(...day.timeList)
+            const diffMins = maxMinsMidnight - minMinsMidnight
+            
+            
+            let diffHours: float = Math.floor(diffMins / 60)
+            if (diffMins % 60 >15 ) diffHours += 0.5 
+            if (diffMins % 60 >45 ) diffHours += 0.5 
+
+            if (diffHours>0)
+              listadoProcessed.push({ CUIT:personal.employeeNo, dayNum, diffHours,diffTime:this.minsToHourMins(diffMins), inTime:this.minsToHourMins(minMinsMidnight), outTime:this.minsToHourMins(maxMinsMidnight) })
           }
         }
       }
@@ -2735,7 +2749,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
     // Generate client nonce
     const cnonce = CryptoJS.lib.WordArray.random(16).toString();
-    const nc = 1;
+    const nc = 1000;
 
     // Create the Digest auth header
     const authOptions: DigestAuthOptions = {
@@ -2758,7 +2772,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     let recordsArray = []
     let searchResultPosition = 1
     const data = {
-      "searchID": CryptoJS.lib.WordArray.random(16).toString(), //Es un valor aleatorio tipo string, generado para parametro de control
+      "searchID": CryptoJS.lib.WordArray.random(16).toString(), //Es un valor aleatorio tipo string, generado para parametro de control fb967efe5ddb4c8abc4847ce2673b6e0
       "searchResultPosition": searchResultPosition, //Parametro inicial de busqueda de la peticion
       "maxResults": 10, //Cantidad de resultados que devuelve
       "statisticalTime": "month",
