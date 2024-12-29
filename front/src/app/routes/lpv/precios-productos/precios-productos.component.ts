@@ -270,7 +270,7 @@ export class PreciosProductosComponent {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
     if (row?.codigo) {
-      this.editProducto.set([row.precioVentaId])
+      this.editProducto.set([row.codigo])
     }
 
 
