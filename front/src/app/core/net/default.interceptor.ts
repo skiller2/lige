@@ -91,7 +91,6 @@ function handleDataError(injector: Injector, err: HttpErrorResponse, req: HttpRe
       
       let errortext = err.error?.msg ? err.error.msg : CODEMESSAGE[err.status] || err.statusText
 
-      console.log(errortext)
       if (Array.isArray(errortext)) {
         errortext = errortext.join('<br />')
       }
