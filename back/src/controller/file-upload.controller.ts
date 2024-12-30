@@ -29,9 +29,9 @@ export class FileUploadController extends BaseController {
                 doc.${tableSearch}Id AS id, 
                 CONCAT('./', TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableSearch}BlobNombreArchivo)) path, 
                 doc.${tableSearch}BlobNombreArchivo AS name
-            FROM ${tableSearch} doc
-            JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-            WHERE doc.${tableSearch}Id = @0`, [documentId])
+              FROM ${tableSearch} doc
+              JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+              WHERE doc.${tableSearch}Id = @0`, [documentId])
             break;
         case 'lige':
             document = await this.getFilesInfo(documentId);
@@ -86,8 +86,8 @@ export class FileUploadController extends BaseController {
       let ArchivosAnteriores = []
       switch (dataBase) {
         case 'Produccion':
-          ArchivosAnteriores = await queryRunner.query(
-            `SELECT 
+          ArchivosAnteriores = await queryRunner.query(`
+            SELECT 
                 doc.${tableSearch}Id AS id, 
                 CONCAT('./', TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableSearch}BlobNombreArchivo)) path, 
                 doc.${tableSearch}BlobNombreArchivo AS nombre  
@@ -102,8 +102,8 @@ export class FileUploadController extends BaseController {
           break;
 
         case 'lige':
-          ArchivosAnteriores = await queryRunner.query(
-            `SELECT 
+          ArchivosAnteriores = await queryRunner.query(`
+            SELECT 
                 doc.doc_id AS id, 
                 doc.path, 
                 doc.nombre_archivo AS nombre,  

@@ -982,7 +982,7 @@ export class CustodiaController extends BaseController {
                 errores.push(`Debe de haber por lo menos una persona por custodia.`)
             // console.log('errores.length', errores)
             if (errores.length)
-                throw new ClientException(errores.join(`\n`))
+                throw new ClientException(errores)
 
             objetivoCustodia.fecha_liquidacion = infoCustodia.fecha_liquidacion
             objetivoCustodia.id = custodiaId
@@ -1056,7 +1056,7 @@ export class CustodiaController extends BaseController {
         }
 
         if (errores.length) {
-            return new ClientException(errores.join(`\n`))
+            return new ClientException(errores)
         }
     }
 
@@ -1225,7 +1225,7 @@ export class CustodiaController extends BaseController {
             }
 
             if (errores.length) {
-                throw new ClientException(errores.join(`\n`))
+                throw new ClientException(errores)
             }
 
             await queryRunner.commitTransaction()

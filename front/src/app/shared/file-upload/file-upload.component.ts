@@ -62,6 +62,9 @@ export class FileUploadComponent implements ControlValueAccessor{
   $files = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
+      // console.log('input');
+      // console.log(this.keyField(), this.idForSearh(), this.textForSearch(), this.tableForSearch(), this.tableForSearch(), this.dataBaseForSearch());
+      
       if(this.idForSearh() > 0 && this.textForSearch() != "" && this.tableForSearch() != "" && this.dataBaseForSearch() != ""){
         this.files.set([])
         return this.apiService.getArchivosAnteriores(this.idForSearh(),this.textForSearch(),this.keyField(),this.tableForSearch(),this.dataBaseForSearch())
