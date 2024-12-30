@@ -332,8 +332,10 @@ export class CargaAsistenciaComponent {
                     this.angularGridEdit.gridService.updateItemById(row.id, item)
                 } else if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
                     const fld = editCommand.editor.args.column.field
-                    editCommand.undo();
-                    item[fld] = editCommand.editor.args.item[fld]
+                    if (!e.error.data.keepvalue || item[fld]!='') {
+                        editCommand.undo();
+                        item[fld] = editCommand.editor.args.item[fld]
+                    }
                 }
                 this.angularGridEdit.gridService.updateItemById(row.id, item)
 
