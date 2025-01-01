@@ -48,7 +48,7 @@
           <a nz-tab-link routerLink="/lpv/precios_productos/precios" >{{ 'app.precios' | i18n }}</a>
     
           <ng-template nz-tab *ngIf="(columns$|async) as columnas">
-            <shared-filtro-builder #sfb [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters" />
+            <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"  />
     
             <div class="gridContainer2 container-fluid">
               <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnas  | colsFilter"
@@ -61,6 +61,7 @@
             </div>
           </ng-template>
         </nz-tab>
+        
     
       </nz-tabset>
     </nz-card>

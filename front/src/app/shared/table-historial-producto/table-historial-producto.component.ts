@@ -121,10 +121,14 @@ export class TableHistorialProductoComponent {
 
   ngOnInit() {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer3', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
-    this.gridOptions.enableRowDetailView = this.apiService.isMobile()
+    this.gridOptions.enableRowDetailView = false
+    this.gridOptions.editable = false
+    this.gridOptions.autoEdit = true
+    this.gridOptions.enableAutoSizeColumns = true
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
     //this.editProductoId.set('')
+   
   }
 
   
@@ -145,8 +149,8 @@ export class TableHistorialProductoComponent {
 
   angularGridReady(angularGrid: any) {
 
-    this.angularGridEdit = angularGrid.detail
-    this.gridObj = angularGrid.detail.slickGrid;
+     this.angularGridEdit = angularGrid.detail
+    // this.gridObj = angularGrid.detail.slickGrid;
 
     this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGridEdit)
@@ -161,7 +165,7 @@ export class TableHistorialProductoComponent {
 
   exportGrid() {
     this.excelExportService.exportToExcel({
-      filename: 'lista-historial-licencia',
+      filename: 'lista-historial-producto',
       format: FileType.xlsx
     });
   }

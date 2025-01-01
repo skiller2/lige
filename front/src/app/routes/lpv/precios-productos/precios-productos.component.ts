@@ -8,7 +8,7 @@ import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-gri
 import { RowDetailViewComponent } from '../../../../app/shared/row-detail-view/row-detail-view.component';
 import { BehaviorSubject, catchError, debounceTime, firstValueFrom, map, of, switchMap, tap, timer } from 'rxjs';
 import { SearchService } from '../../../../app/services/search.service';
-import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
+import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
@@ -21,7 +21,7 @@ import { Component, model, signal, inject } from '@angular/core';
   standalone: true,
   providers: [AngularUtilService],
   imports: [
-    SHARED_IMPORTS,
+    ...SHARED_IMPORTS,
     CommonModule,
     FiltroBuilderComponent,
     ProductoHistorialDrawerComponent
@@ -32,9 +32,6 @@ import { Component, model, signal, inject } from '@angular/core';
 export class PreciosProductosComponent {
 
 
-
-  startFilters: { field: string; condition: string; operator: string; value: string; forced: boolean }[] = []
-
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   private angularUtilService = inject(AngularUtilService)
@@ -44,14 +41,18 @@ export class PreciosProductosComponent {
   itemAddActive = false
   visibleHistorial = model<boolean>(false)
   listPrecios$ = new BehaviorSubject('')
-  editProducto = signal<{ codigo: string }[]>([]);
+  editProducto = signal<{ codigo: string }[]>([])
+  precioVentaId = signal<{ codigo: string }[]>([])
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
   };
+  // startFilters: { index: string; condition: string; operador: string; valor: string[]}[]=[]
+  startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
+
   complexityLevelList = [true, false];
   angularGridEdit!: AngularGridInstance;
-  gridObjEdit!: SlickGrid;
+  // gridObjEdit!: SlickGrid;
   gridOptionsEdit!: GridOption;
 
   tipoProducto = []
@@ -120,7 +121,12 @@ export class PreciosProductosComponent {
     this.gridOptionsEdit.showFooterRow = true
     this.gridOptionsEdit.createFooterRow = true
 
+     let dateToday = new Date();
+     let formattedDate = `${dateToday.getDate().toString().padStart(2, '0')}/${(dateToday.getMonth() + 1).toString().padStart(2, '0')}/${dateToday.getFullYear()}`;
 
+    this.startFilters = [
+      {field:'desde', condition:'AND', operator:'<=', value: formattedDate, forced:false},
+      {field:'hasta', condition:'AND', operator:'>=', value: formattedDate, forced:false}]
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
       //            let undoCommandArr:EditCommand[]=[]
@@ -137,13 +143,12 @@ export class PreciosProductosComponent {
       //Intento grabar si tiene error hago undo
 
       try {
-        //                undoCommandArr.push(editCommand)
+
         if (column.type == FieldType.number || column.type == FieldType.float)
           editCommand.serializedValue = Number(editCommand.serializedValue)
 
-        //                console.log('dif',JSON.stringify(editCommand.serializedValue), JSON.stringify(editCommand.prevSerializedValue))
         if (JSON.stringify(editCommand.serializedValue) === JSON.stringify(editCommand.prevSerializedValue)) return
-        //                editCommand.serializedValue == editCommand.prevSerializedValue) return
+
         editCommand.execute()
         while (this.rowLocked) await firstValueFrom(timer(100));
         row = this.angularGridEdit.dataView.getItemById(row.id)
@@ -153,7 +158,7 @@ export class PreciosProductosComponent {
           this.rowLocked = true
 
         const response = await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
-        this.listPrecios$.next('');
+        this.listPrecios$.next('')
         this.rowLocked = false
       } catch (e: any) {
         //Si codigoOld != '' volver a colocar el valor anterior, si codigoOld =='' marcar en rojo el registro 
@@ -199,8 +204,8 @@ export class PreciosProductosComponent {
 
   async deleteItem() {
 
-    await firstValueFrom(this.apiService.deleteProducto(this.editProducto()))
-
+    await firstValueFrom(this.apiService.deleteProducto(this.precioVentaId()))
+    this.listPrecios$.next('')
   }
 
   createNewItem(incrementIdByHowMany = 1) {
@@ -231,23 +236,28 @@ export class PreciosProductosComponent {
   async angularGridReadyEdit(angularGrid: any) {
     //this.cleanerVariables();
     this.angularGridEdit = angularGrid.detail
-    this.gridObjEdit = angularGrid.detail.slickGrid;
+    //this.gridObjEdit = angularGrid.detail.slickGrid;
 
     this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGridEdit)
       columnTotal('CantidadProductos', this.angularGridEdit)
     })
 
-    setTimeout(() => {
-      // if (this.gridDataInsert.length == 0)
-      //   this.addNewItem("bottom")
-
-    }, 500);
-
     if (this.apiService.isMobile())
       this.angularGridEdit.gridService.hideColumnByIds([])
 
   }
+
+  // async angularGridReadyEdit(angularGrid: any) {
+  //   this.angularGridEdit = angularGrid.detail
+  //   this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
+  //     totalRecords(this.angularGridEdit)
+  //     columnTotal('CantidadProductos', this.angularGridEdit)
+  //   })
+
+  //   if (this.apiService.isMobile())
+  //       this.angularGridEdit.gridService.hideColumnByIds([])
+  // }
 
   openDrawerforConsultHistory(): void {
 
@@ -271,6 +281,7 @@ export class PreciosProductosComponent {
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
     if (row?.codigo) {
       this.editProducto.set([row.codigo])
+      this.precioVentaId.set([row.precioVentaId])
     }
 
 
@@ -310,7 +321,6 @@ export class PreciosProductosComponent {
       }
       
       if (!item.codigoOld){
-        console.log("paso por aca 2")
         meta.cssClasses =  'element-add-no-complete'
       }
       else

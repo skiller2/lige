@@ -1,7 +1,8 @@
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { NextFunction, Response } from "express";
-import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+import { Options } from "../schemas/filtro";
 
 
 
@@ -167,9 +168,10 @@ export class PreciosProductosController extends BaseController {
     }
 
     async listPrecios(req: any, res: Response, next: NextFunction) {
-
-        const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
-        const orderBy = orderToSQL(req.body.options.sort)
+ 
+        const options: Options = isOptions(req.body.options)? req.body.options : { filtros: [], sort: null };
+        const filterSql = filtrosToSql(options.filtros, this.listaColumnas);
+        const orderBy = orderToSQL(options.sort)
         const queryRunner = dataSource.createQueryRunner();
         const fechaActual = new Date()
 
@@ -190,9 +192,7 @@ export class PreciosProductosController extends BaseController {
                     vent.SucursalId
                 FROM lige.dbo.lpv_productos prod
                 LEFT JOIN lige.dbo.lpv_precio_venta vent ON prod.cod_producto = vent.cod_producto
-               WHERE CAST(GETDATE() AS DATE) BETWEEN CAST(vent.importe_desde AS DATE) AND CAST(vent.importe_hasta AS DATE)
-              AND ${filterSql} 
-                ${orderBy};`, [fechaActual])
+              AND ${filterSql} ;`, [fechaActual])
 
             this.jsonRes(
                 {
@@ -309,11 +309,11 @@ export class PreciosProductosController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
     
         try {
+
            let cod_producto_venta = req.query[0]
 
-            await queryRunner.connect();
-            await queryRunner.startTransaction();
-
+            await queryRunner.connect()
+            await queryRunner.startTransaction()
         
             await queryRunner.query( `DELETE FROM lige.dbo.lpv_precio_venta WHERE precio_venta_id = @0`, [cod_producto_venta])
           
