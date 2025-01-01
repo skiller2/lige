@@ -89,9 +89,12 @@ function handleDataError(injector: Injector, err: HttpErrorResponse, req: HttpRe
         
       
       
-      const errortext = err.error?.msg
-        ? err.error.msg
-        : CODEMESSAGE[err.status] || err.statusText;
+      let errortext = err.error?.msg ? err.error.msg : CODEMESSAGE[err.status] || err.statusText
+
+      if (Array.isArray(errortext)) {
+        errortext = errortext.join('<br />')
+      }
+
       injector.get(NzNotificationService).error(`Error`, errortext)
       break;
   }

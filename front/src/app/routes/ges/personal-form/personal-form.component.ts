@@ -44,6 +44,7 @@ export class PersonalFormComponent {
     PersonalEmailId:0, Email:'', //Email
     telefonos: this.fb.array([this.fb.group({...this.objTelefono})]),
     estudios: this.fb.array([this.fb.group({...this.objEstudio})]),
+    PersonalSituacionRevistaId:0, SituacionId:0, Motivo:'', //Situacion de Revista
   }
   
   formPer = this.fb.group({ ...this.inputs })
@@ -54,6 +55,7 @@ export class PersonalFormComponent {
   $optionsTelefonoTipo = this.searchService.getTipoTelefonoList();
   $optionsEstudioEstado = this.searchService.getEstadoEstudioList();
   $optionsEstudioTipo = this.searchService.getTipoEstudioList();
+  $optionsSitRevista = this.searchService.getSitRevistaOptions();
 
   foto():string {
     const value = this.formPer.get("Foto")?.value

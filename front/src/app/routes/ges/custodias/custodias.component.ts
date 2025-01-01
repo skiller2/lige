@@ -67,6 +67,9 @@ export class CustodiaComponent {
     // private settingService = inject(SettingsService)
     private injector = inject(Injector)
 
+    childAlta = viewChild.required<CustodiaFormComponent>('custodiaFormAlta')
+    childDeta = viewChild.required<CustodiaFormComponent>('custodiaFormDeta')
+
     columns$ = this.apiService.getCols('/api/custodia/cols')
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
 
@@ -266,4 +269,20 @@ export class CustodiaComponent {
     setVisible(value: boolean): void {
         this.visible.set(value)
     }
+
+    onTabsetChange(_event: any) {
+        console.log("_event.index ", _event.index)
+        switch (_event.index) {
+          case 1: //EDIT
+            this.childDeta().load()
+            break;
+          case 2: //ALTA
+            this.childAlta().reset()
+            break;
+            default:
+            break;
+        }
+    
+    }
+
 }

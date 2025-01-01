@@ -33,14 +33,13 @@ export class CustodiaFormComponent {
     costo = signal(0)
     facturacion = signal(0)
     diferencia = computed(() => {
-            if (this.costo()||this.facturacion())
-                return (this.facturacion() > 0) ? 100-this.costo() * 100 / this.facturacion() : 0
-            else
-                return 0
-        });    
-
-    anio = input(0)
-    mes = input(0)
+        if (this.costo()||this.facturacion())
+            return (this.facturacion() > 0) ? 100-this.costo() * 100 / this.facturacion() : 0
+        else
+            return 0
+    });
+    anio = signal(0)
+    mes = signal(0)
 
     optionsDescRequirente: Array<any> = []
 
@@ -70,52 +69,36 @@ export class CustodiaFormComponent {
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
     
     ngOnInit() {
-        effect(async () => {
-            // console.log(`The editCustodiaId is: ${this.custodiaId()}`);
-            if (this.custodiaId()) {
-                await this.load()
-            } else {
-                this.personal().clear()
-                this.vehiculos().clear()
-                this.personal().push(this.fb.group({...this.objPersonal}))
-                this.vehiculos().push(this.fb.group({...this.objVehiculo}))
-                this.formCus.reset({estado: 0})
-            }
-        }, { injector: this.injector });
-        
-        effect(async () => {
-            // console.log(this.edit());
-            if (this.edit()) {
-                this.formCus.enable()
-            }else{
-                this.formCus.disable()
-            }
-        }, { injector: this.injector });
+        let date = new Date()
+        this.anio.set(date.getFullYear())
+        this.mes.set(date.getMonth()+1)
     }
 
     async load() {
-        let infoCust= await firstValueFrom(this.searchService.getInfoObjCustodia(this.custodiaId()))
-        infoCust.fechaInicio = new Date(infoCust.fechaInicio)
-        if (infoCust.fechaFinal)
-            infoCust.fechaFinal = new Date(infoCust.fechaFinal)
-        this.personal().clear()
-        this.vehiculos().clear()
+        if (this.custodiaId()) {
+            let infoCust= await firstValueFrom(this.searchService.getInfoObjCustodia(this.custodiaId()))
+            infoCust.fechaInicio = new Date(infoCust.fechaInicio)
+            if (infoCust.fechaFinal)
+                infoCust.fechaFinal = new Date(infoCust.fechaFinal)
+            this.personal().clear()
+            this.vehiculos().clear()
 
-        infoCust.personal.forEach((obj:any) => {
-            this.personal().push(this.fb.group({...this.objPersonal}))
-        });
-        if (this.personal().length == 0)
-            this.personal().push(this.fb.group({...this.objPersonal}))
-        
-        infoCust.vehiculos.forEach((obj:any) => {
-            this.vehiculos().push(this.fb.group({...this.objVehiculo}))
-        });
-        if (this.vehiculos().length == 0)
-            this.vehiculos().push(this.fb.group({...this.objVehiculo}))
+            infoCust.personal.forEach((obj:any) => {
+                this.personal().push(this.fb.group({...this.objPersonal}))
+            });
+            if (this.personal().length == 0)
+                this.personal().push(this.fb.group({...this.objPersonal}))
+            
+            infoCust.vehiculos.forEach((obj:any) => {
+                this.vehiculos().push(this.fb.group({...this.objVehiculo}))
+            });
+            if (this.vehiculos().length == 0)
+                this.vehiculos().push(this.fb.group({...this.objVehiculo}))
 
-        this.formCus.reset(infoCust)
-        this.onChangeCosto()
-        this.onChangeImpo()
+            this.formCus.reset(infoCust)
+            this.onChangeCosto()
+            this.onChangeImpo()
+        }
         
         if (this.edit()) {
             this.formCus.enable()
@@ -124,6 +107,19 @@ export class CustodiaFormComponent {
         }
 
 
+    }
+    async reset(){
+        this.personal().clear()
+        this.vehiculos().clear()
+        this.personal().push(this.fb.group({...this.objPersonal}))
+        this.vehiculos().push(this.fb.group({...this.objVehiculo}))
+        this.formCus.reset({estado: 0})
+
+        if (this.edit()) {
+            this.formCus.enable()
+        }else{
+            this.formCus.disable()
+        }
     }
 
     onChangePeriodo(result: Date): void {
@@ -171,9 +167,9 @@ export class CustodiaFormComponent {
 
         try {
             if (this.custodiaId()) {
-                await firstValueFrom(this.apiService.updateObjCustodia({ ...form,anio:this.anio(),mes:this.mes() }, this.custodiaId()))
+                await firstValueFrom(this.apiService.updateObjCustodia({ ...form }, this.custodiaId()))
             } else {
-                const res = await firstValueFrom(this.apiService.addObjCustodia({ ...form,anio:this.anio(),mes:this.mes() }))
+                const res = await firstValueFrom(this.apiService.addObjCustodia({ ...form }))
                 if (res.data.custodiaId)
                     this.custodiaId.set(Number(res.data.custodiaId))
             }

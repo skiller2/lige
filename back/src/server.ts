@@ -64,7 +64,6 @@ const errorResponder = (
   }
 
   if (error instanceof ClientException) {
-    console.log('error.message',error)
     message = error.messageArr
     status = 409
     data = error.extended

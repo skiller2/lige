@@ -2295,7 +2295,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       GROUP BY objp.ObjetivoAsistenciaMesPersonalId
       `, [personalId, anio, mes, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, rowId]
     )
-
+    let keepvalue = false
     //Validación de horas dentro del perido de contrato
     let periodoContrato = await ObjetivoController.getObjetivoContratos(objetivoId, anio, mes, queryRunner)
 
@@ -2314,11 +2314,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         if (!horas) {
           valueColumnsDays = valueColumnsDays + `, NULL`
         } else {
-          const h = String(Math.trunc(horas))
-          const horafrac = horas - Math.trunc(horas)
-          const m = String(60 * horafrac)
-          valueColumnsDays = valueColumnsDays + `, '${h.padStart(2, '0')}.${m.padStart(2, '0')}'`
-          totalhs = totalhs + horas
 
           if (comparar && comparar.apellidoNombre.id == personalId && comparar.categoria.id == categoriaPersonalId && comparar.categoria.tipoId == tipoAsociadoId && item[key] == comparar[key]) {
             continue
@@ -2333,6 +2328,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           const licencia = licencias.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
           if (licencia && (formaLiquidacion != 'A')) {
             errores.push(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta2)}. dia:${numdia} horas:${horas}`)
+            keepvalue = true
           }
 
           if (formaLiquidacion == 'A' && !licencia) {
@@ -2367,15 +2363,24 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
             // throw new ClientException(`La cantidad de horas no puede superar las 24`)
             errores.push(`La cantidad de horas no puede superar las 24`)
           }
+          const horafrac = horas - Math.trunc(horas)
+
           if (horafrac != 0 && horafrac != 0.5) {
             // throw new ClientException(`La fracción de hora debe ser .5 únicamente, ej: 0.5; 8.5 `)
             errores.push(`La fracción de hora debe ser .5 únicamente, ej: 0.5; 8.5`)
           }
+
+          const h = String(Math.trunc(horas))
+
+          const m = String(60 * horafrac)
+          valueColumnsDays = valueColumnsDays + `, '${h.padStart(2, '0')}.${m.padStart(2, '0')}'`
+          totalhs = totalhs + horas
+
         }
       }
     }
     if (errores.length)
-      return new ClientException(errores.join(`\n`))
+      return new ClientException(errores,{keepvalue})
     return { columnsDays, columnsDay, valueColumnsDays, totalhs }
   }
 
