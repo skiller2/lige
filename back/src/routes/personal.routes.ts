@@ -34,11 +34,11 @@ personalRouter.post('/setsitrevista/:id', [authMiddleware.verifyToken, authMiddl
   personalController.setSituacionRevista(req, res, next)
 });
 
-personalRouter.get(`${base}/domicilio/:id`, authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.get(`${base}/domicilio/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   personalController.getDomicilioByPersonalId(req, res, next);
 });
 
-personalRouter.get(`${base}/info/:id`, authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.get(`${base}/info/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   personalController.getFormDataById(req, res, next);
 });
 
@@ -64,12 +64,24 @@ personalRouter.get(`${base}/banco/:id`, authMiddleware.verifyToken, (req, res, n
   personalController.getCuentasBancoPorPersona(req.params.id, res, next);
 });
 
-personalRouter.get(`${base}/responsableslist/:personalId`, authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.get(`${base}/responsableslist/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
     personalController.getResponsablesListByPersonal(req, res, next);
 });
 
 personalRouter.get(`${base}/grupoactividad/options`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getGrupoActividad(req, res, next);
+});
+
+personalRouter.get(`${base}/documentos/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+  personalController.getDocumentosByPersonalId(req, res, next);
+});
+
+personalRouter.get("/download/foto/:id?", authMiddleware.verifyToken,(req, res,next) => {
+  personalController.downloadPersonaFoto(req,  res, next );
+});
+
+personalRouter.get("/download/documento/:id?", authMiddleware.verifyToken,(req, res,next) => {
+  personalController.downloadPersonaDocumento(req, res, next );
 });
 
 personalRouter.get(`${base}/downloadImagen/:personalId`, (req, res,next) => {

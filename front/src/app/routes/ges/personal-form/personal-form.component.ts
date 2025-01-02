@@ -45,6 +45,7 @@ export class PersonalFormComponent {
     telefonos: this.fb.array([this.fb.group({...this.objTelefono})]),
     estudios: this.fb.array([this.fb.group({...this.objEstudio})]),
     PersonalSituacionRevistaId:0, SituacionId:0, Motivo:'', //Situacion de Revista
+    //Periodo: '', AFIP: [] //ImpuestoAFIP
   }
   
   formPer = this.fb.group({ ...this.inputs })

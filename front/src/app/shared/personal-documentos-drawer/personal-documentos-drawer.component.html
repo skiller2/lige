@@ -1,0 +1,23 @@
+<nz-drawer [nzClosable]="false" [nzVisible]="visibleDocumentos()" [nzPlacement]="placement" [nzWidth]="750"
+  [nzTitle]="'Documentos: '  + PersonalNombre()" (nzOnClose)="visibleDocumentos.set(false)">
+  <ng-container *nzDrawerContent>
+    <nz-form-control *ngIf="$listaDocumentosPer | async as listaDocumentosPer ">
+        <nz-table #asistPer [nzData]="listaDocumentosPer" nzSize="small" [nzPageSize]="100000000"
+          [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Documento</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let data of asistPer.data" class="">
+              <td>{{ data.Descripcion }}</td>
+              <td><a app-down-file httpUrl="{{data.url}}"><span nz-icon
+                nzType="download"></span>{{ data.NombreArchivo }}</a></td>
+            </tr>
+          </tbody>
+        </nz-table>
+    </nz-form-control>
+  </ng-container>
+</nz-drawer>
