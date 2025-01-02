@@ -1505,4 +1505,108 @@ export class PersonalController extends BaseController {
     }
   }
 
+  async getDocumentosByPersonalId(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    const personalId:number = Number(req.params.personalId);
+    const fechaActual = new Date();
+    try {
+      // await queryRunner.startTransaction()
+
+      const documentos = await queryRunner.query(`
+        SELECT foto.DocumentoImagenFotoId docId, foto.DocumentoImagenFotoBlobNombreArchivo NombreArchivo,
+        param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
+        CONCAT('/api/personal/download/foto/', foto.DocumentoImagenFotoId) url
+        FROM DocumentoImagenFoto foto
+        LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+        WHERE foto.PersonalId IN (@0)
+        UNION ALL
+        SELECT doc.DocumentoImagenDocumentoId docId, doc.DocumentoImagenDocumentoBlobNombreArchivo NombreArchivo,
+        param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
+        CONCAT('/api/personal/download/documento/', doc.DocumentoImagenDocumentoId) url
+        FROM DocumentoImagenDocumento doc
+        LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+        WHERE doc.PersonalId IN (@0)
+        UNION ALL
+        SELECT afip.DocumentoImagenImpuestoAFIPId docId, afip.DocumentoImagenImpuestoAFIPBlobNombreArchivo NombreArchivo,
+        param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
+        CONCAT('/api/impuestos_afip/downloadF184/', @0) url
+        FROM PersonalImpuestoAFIP mono
+        JOIN DocumentoImagenImpuestoAFIP afip ON afip.PersonalId = mono.PersonalId AND afip.DocumentoImagenImpuestoAFIPId = mono.PersonalImpuestoAFIPDocumentoF184Id
+        LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = afip.DocumentoImagenParametroId
+        WHERE mono.PersonalId IN (@0) AND mono.PersonalImpuestoAFIPDesde<=@1 AND ISNULL(mono.PersonalImpuestoAFIPHasta,'9999-12-31') >= @1
+        `, [personalId,fechaActual]
+      )
+      console.log('documentos',documentos);
+      
+      // await queryRunner.commitTransaction()
+      this.jsonRes(documentos, res);
+    } catch (error) {
+      // this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      // await queryRunner.release()
+    }
+  }
+
+  async downloadPersonaFoto(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const Id = Number(req.params.id)
+    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
+    try {
+      const ds = await queryRunner
+        .query(`
+          SELECT dir.DocumentoImagenParametroDirectorioPath, foto.DocumentoImagenFotoBlobNombreArchivo
+          FROM DocumentoImagenFoto foto
+          JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+          JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+          WHERE foto.DocumentoImagenFotoId IN (@0)
+          `, [Id]
+        )
+
+      if (ds.length == 0)
+        throw new ClientException(`El archivo no existe`);
+
+      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${ds[0].DocumentoImagenFotoBlobNombreArchivo}`;
+
+      if (!existsSync(downloadPath))
+        throw new ClientException(`El archivo Foto no existe`,{'path':downloadPath});
+
+      res.download(downloadPath, ds[0].DocumentoImagenFotoBlobNombreArchivo, (msg) => {});
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async downloadPersonaDocumento(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const Id = Number(req.params.id)
+    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
+    try {
+      const fechaActual = new Date();
+      const ds = await queryRunner
+        .query(`
+          SELECT dir.DocumentoImagenParametroDirectorioPath, doc.DocumentoImagenDocumentoBlobNombreArchivo
+          FROM DocumentoImagenDocumento doc
+          JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  doc.DocumentoImagenParametroId
+          JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+          WHERE doc.DocumentoImagenDocumentoId IN (@0)
+          `, [Id, fechaActual]
+        )
+
+      if (ds.length == 0)
+        throw new ClientException(`El archivo no existe`);
+
+      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${ds[0].DocumentoImagenDocumentoBlobNombreArchivo}`;
+
+      if (!existsSync(downloadPath))
+        throw new ClientException(`El archivo Documento no existe`,{'path':downloadPath});
+
+      res.download(downloadPath, ds[0].DocumentoImagenDocumentoBlobNombreArchivo, (msg) => {});
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
 }
