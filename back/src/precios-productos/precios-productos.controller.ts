@@ -226,8 +226,8 @@ export class PreciosProductosController extends BaseController {
             
             const codigoExist = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_productos WHERE cod_producto = @0`, [params.codigoOld])
             let dataResultado = {}
-            let importeDesde = params.desde == undefined ? fechaActual : params.desde
-            let importeHasta = params.hasta === undefined ? new Date('9999-12-31') : new Date(params.hasta);
+            let importeDesde = (!params.desde)  ? fechaActual : params.desde
+            let importeHasta = (!params.hasta)  ? new Date('9999-12-31') : new Date(params.hasta);
 
 
             if ( codigoExist.length > 0) { //Entro en update
@@ -296,12 +296,16 @@ export class PreciosProductosController extends BaseController {
 
 
     async addRecord(queryRunner:any,params:any,fechaActual:any, usuario:any, ip:any, SucursalId:any,fechaHasta:any,fechaDede:any){
+
+         let fechaHastaNew = new Date('9999-12-31')
+        let fechaDedeNew = new Date()
+
         await queryRunner.query( `INSERT INTO lige.dbo.lpv_precio_venta
             ( importe, importe_desde, importe_hasta,
              aud_fecha_ing, aud_usuario_ing, aud_ip_ing, aud_fecha_mod, aud_usuario_mod, aud_ip_mod, 
              cod_Producto, SucursalId)
             VALUES ( @0, @1, @2, @3, @4, @5, @3, @4, @5, @6, @7) 
-            `, [params.importe, fechaDede, fechaHasta, fechaActual, usuario, ip, params.codigo, SucursalId])
+             `, [params.importe, fechaDedeNew, fechaHastaNew, fechaActual, usuario, ip, params.codigo, SucursalId])
     }
 
     async deleteProducto(req: any, res: Response, next: NextFunction){
@@ -351,7 +355,6 @@ export class PreciosProductosController extends BaseController {
                     throw new ClientException(`El codigo ingresado ya existe en la sucursal seleccionada`)
         }
 
-    
 
         if (params.nombre == null || params.nombre == "")
             throw new ClientException(`Debe completar el nombre del producto`)
@@ -365,13 +368,21 @@ export class PreciosProductosController extends BaseController {
         if (params.importe == null || params.importe == "")
             throw new ClientException(`Debe completar el Importe`)
 
+        if (new Date(params.hasta) < new Date(params.desde))
+            throw new ClientException(`La fecha "hasta" no puede ser menor que la fecha "desde".`)
+
+
+        let result = await queryRunner.query( `SELECT TOP 1 importe_hasta FROM lige.dbo.lpv_precio_venta WHERE cod_producto = @0 ORDER BY importe_hasta DESC`, [params.codigo])
+        
+        if (result && result.length > 0) {
+
+            if(new Date(params.desde) < new Date(result[0].importe_hasta) )
+                throw new ClientException(`La fecha desde no puede ser menor a la fehca hasta de un registro ya creado`)
+
+            }
         // if (params.desde == null || params.desde == "")
         //     throw new ClientException(`Debe seleccionar la fecha desde`)
-
-      
-
-
-        
+  
     }
 
 
