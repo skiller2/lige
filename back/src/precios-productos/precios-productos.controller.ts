@@ -192,7 +192,7 @@ export class PreciosProductosController extends BaseController {
                     vent.SucursalId
                 FROM lige.dbo.lpv_productos prod
                 LEFT JOIN lige.dbo.lpv_precio_venta vent ON prod.cod_producto = vent.cod_producto
-              AND ${filterSql} ;`, [fechaActual])
+              WHERE ${filterSql} ;`, [fechaActual])
 
             this.jsonRes(
                 {
