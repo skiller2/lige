@@ -191,7 +191,7 @@ export class PreciosProductosController extends BaseController {
                     FORMAT(vent.importe_hasta, 'yyyy-MM-dd') AS hasta,
                     vent.SucursalId
                 FROM lige.dbo.lpv_productos prod
-                LEFT JOIN lige.dbo.lpv_precio_venta vent ON prod.cod_producto = vent.cod_producto
+                INNER JOIN lige.dbo.lpv_precio_venta vent ON prod.cod_producto = vent.cod_producto
               WHERE ${filterSql} ;`, [fechaActual])
 
             this.jsonRes(
@@ -265,8 +265,8 @@ export class PreciosProductosController extends BaseController {
                 message = "Actualizacion exitosa"
               
             } else {  //Es un nuevo registro
-                const checkNewCodigo = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_productos WHERE cod_producto = @0`, [params.codigo])
-                if ( checkNewCodigo.length > 0) throw new ClientException('El nuevo código ingresado ya existe')
+                // const checkNewCodigo = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_productos WHERE cod_producto = @0`, [params.codigo])
+                // if ( checkNewCodigo.length > 0) throw new ClientException('El nuevo código ingresado ya existe')
 
                 console.log('El código no existe - es nuevo')
                 await this.validateForm(false, params, queryRunner)
