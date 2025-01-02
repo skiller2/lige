@@ -45,7 +45,7 @@ export class PersonalSituacionRevistaDrawerComponent {
         SituacionId: 0, Motivo:''
     })
 
-    // $optionsSitRevista = this.searchService.getSitRevistaOptions();
+    $optionsSitRevista = this.searchService.getSitRevistaOptions();
     $listaSitRevistaPer = this.selectedPersonalIdChange$.pipe(
         debounceTime(500),
         switchMap(() =>{
@@ -76,18 +76,18 @@ export class PersonalSituacionRevistaDrawerComponent {
         this.destroy$.complete();
     }
 
-    // async save() {
-    //     this.isLoading.set(true)
-    //     let values = this.formSitRevista.value
-    //     try {
-    //         await firstValueFrom(this.apiService.setSitRevista(this.PersonalId(), values))
-    //         this.selectedPersonalIdChange$.next('')
-    //         this.formSitRevista.markAsUntouched()
-    //         this.formSitRevista.markAsPristine()
-    //     } catch (e) {
+    async save() {
+        this.isLoading.set(true)
+        let values = this.formSitRevista.value
+        try {
+            await firstValueFrom(this.apiService.setSitRevista(this.PersonalId(), values))
+            this.selectedPersonalIdChange$.next('')
+            this.formSitRevista.markAsUntouched()
+            this.formSitRevista.markAsPristine()
+        } catch (e) {
 
-    //     }
-    //     this.isLoading.set(false)
-    // }
+        }
+        this.isLoading.set(false)
+    }
 
 }

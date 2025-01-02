@@ -537,7 +537,7 @@ export class PersonalController extends BaseController {
     const fullname:string = Apellido + ', ' + Nombre
     const PersonalEstado = 'POSTULANTE'
     const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (${PersonalEstado} -CUIT ${CUIT} - Leg.:${NroLegajo})`
-    await queryRunner.query(`
+    let newId = await queryRunner.query(`
       INSERT INTO Personal (
       PersonalClasePersonal,
       PersonalNroLegajo,
@@ -557,7 +557,10 @@ export class PersonalController extends BaseController {
       PersonalApellidoNombreDNILegajo,
       PersonalCUITCUILUltNro
       )
-      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@7,@8,@9,@9,@10,@11,@12)`,[
+      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@7,@8,@9,@9,@10,@11,@12)
+      
+      SELECT MAX(PersonalId) id FROM Personal
+      `,[
         'A',
         NroLegajo,
         Apellido,
@@ -572,13 +575,8 @@ export class PersonalController extends BaseController {
         ApellidoNombreDNILegajo,
         1
     ])
-    let PersonalId = 1
-    const numerador = await queryRunner.query(`
-      SELECT per.PersonalId
-      FROM Personal per
-      WHERE per.PersonalNroLegajo = @0 AND per.PersonalApellido = @1 AND per.PersonalNombre = @2
-    `, [NroLegajo,Apellido,Nombre])
-    PersonalId = numerador[0].PersonalId
+    // console.log('newId:',newId);
+    let PersonalId = newId[0].id
     return PersonalId
   }
 
@@ -617,8 +615,8 @@ export class PersonalController extends BaseController {
     const NroLegajo:number = req.body.NroLegajo
     const SucursalId:number = req.body.SucursalId
     const Email = req.body.Email
-    let FechaIngreso:Date = new Date(req.body.FechaIngreso)
-    let FechaNacimiento:Date = new Date(req.body.FechaNacimiento)
+    let FechaIngreso:Date = req.body.FechaIngreso? new Date(req.body.FechaIngreso) : req.body.FechaIngreso
+    let FechaNacimiento:Date = req.body.FechaIngreso? new Date(req.body.FechaNacimiento) : req.body.FechaIngreso
     const foto = req.body.Foto
     const NacionalidadId:number = req.body.NacionalidadId
     const docFrente = req.body.docFrente
@@ -628,8 +626,8 @@ export class PersonalController extends BaseController {
     let errors:string[] = []
     let now = new Date()
     now.setHours(0, 0, 0, 0)
-    FechaIngreso.setHours(0, 0, 0, 0)
-    FechaNacimiento.setHours(0, 0, 0, 0)
+    FechaIngreso? FechaIngreso.setHours(0, 0, 0, 0) : FechaIngreso
+    FechaNacimiento? FechaNacimiento.setHours(0, 0, 0, 0) : FechaNacimiento
     
     try {
       await queryRunner.startTransaction()
@@ -1536,7 +1534,6 @@ export class PersonalController extends BaseController {
         WHERE mono.PersonalId IN (@0) AND mono.PersonalImpuestoAFIPDesde<=@1 AND ISNULL(mono.PersonalImpuestoAFIPHasta,'9999-12-31') >= @1
         `, [personalId,fechaActual]
       )
-      console.log('documentos',documentos);
       
       // await queryRunner.commitTransaction()
       this.jsonRes(documentos, res);
