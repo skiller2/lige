@@ -76,8 +76,8 @@ export class ApiService {
     );
   }
 
-  getArchivosAnteriores(id:number, TipoSearch:string,keyField:string ,TableSearch:string , DataBase:string) {
-    return this.http.get(`/api/file-upload/archivos_anteriores/${id}/${TipoSearch}/${keyField}/${TableSearch}/${DataBase}`).pipe(
+  getArchivosAnteriores(id:number, TipoSearch:string, keyField:string ,TableSearch:string) {
+    return this.http.get(`/api/file-upload/archivos_anteriores/${id}/${TipoSearch}/${keyField}/${TableSearch}`).pipe(
       map((res: any) => res.data.list),
       catchError((err, caught) => {
         console.log('Something went wrong!');

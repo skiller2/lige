@@ -79,7 +79,7 @@ FileUploadRouter.post("/downloadFile", [authMiddleware.verifyToken, authMiddlewa
   await fileUploadController.getByDownloadFile(req, res, next);
 });
 
-FileUploadRouter.get('/archivos_anteriores/:id/:TipoSearch/:keyField/:tableForSearch/:dataBaseForSearch', (req, res, next) => {
+FileUploadRouter.get('/archivos_anteriores/:id/:TipoSearch/:columnForSearch/:tableForSearch', (req, res, next) => {
   fileUploadController.getArchivosAnteriores(req, res, next)
 });
 

@@ -15,7 +15,7 @@
             <span nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(files.id,files.filename)" ></span>
           <a nz-icon nzType="download" nzHref="files.path" target="_blank" nzTheme="outline"
             class="download-color" app-down-file [httpMethod]="'POST'"
-            [httpBody]="{'documentId': files.id , 'tableForSearch':tableForSearch(), 'dataBaseForSearch':dataBaseForSearch()}" httpUrl="api/file-upload/downloadFile"></a>
+            [httpBody]="{'documentId': files.id , 'tableForSearch':tableForSearch()}" httpUrl="api/file-upload/downloadFile"></a>
           <span> {{files.nombre}} </span>
         </div>
       </ng-container> 
@@ -37,7 +37,7 @@
 
              <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
               class="download-color" app-down-file [httpMethod]="'POST'"
-              [httpBody]="{'documentId': 0, 'filename':filesAdd.filename, 'tableForSearch':tableForSearch(), 'dataBase':dataBaseForSearch()}" httpUrl="api/file-upload/downloadFile"></a>
+              [httpBody]="{'documentId': 0, 'filename':filesAdd.filename, 'tableForSearch':tableForSearch()}" httpUrl="api/file-upload/downloadFile"></a>
             <span> {{filesAdd.originalname}} </span>
           </div>
         </ng-container>

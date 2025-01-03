@@ -67,7 +67,7 @@
 
         <nz-form-control *ngIf="ngForm().enabled">
           <app-file-upload ngModel name="files" [idForSearh]="this.PersonalId()" [textForSearch]="'DOC'" [fileAccept]="'image/*'"
-          [keyField]="'persona_id'" [tableForSearch]="'docgeneral'" [dataBaseForSearch]="'lige'"></app-file-upload>
+          [columnForSearch]="'persona_id'" [tableForSearch]="'docgeneral'"></app-file-upload>
         </nz-form-control>
         
       
