@@ -209,7 +209,16 @@
           <ng-container *ngFor="let option of $optionsEstadoCust | async" >
             <nz-option [nzValue]="option.value" [nzLabel]="option.label" ></nz-option>
           </ng-container>
-        </nz-select> <p>A liquidar en {{mes()}}/{{ anio()}}</p>
+        </nz-select> 
+        @if (!formCus.value.fecha_liquidacion) { 
+          @if (mesLiquidacion() != mes() || anioLiquidacion() != anio()) {
+            <span nzStatus="error"><strong>Atención, a liquidar en {{mes()}}/{{ anio()}}</strong></span>
+          } @else {
+            <span>A liquidar en {{mes()}}/{{anio()}}</span>
+          }
+        } @else { 
+          <span> Periodo liquidación {{formCus.value.fecha_liquidacion|date:'MM/yyyy'}}</span> 
+        }
 
       </nz-form-control>
     @if (numFactura()){

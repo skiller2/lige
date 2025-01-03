@@ -38,6 +38,7 @@ export class CustodiaFormComponent {
         else
             return 0
     });
+
     anio = input(0)
     mes = input(0)
 
@@ -53,7 +54,7 @@ export class CustodiaFormComponent {
         personal: this.fb.array([this.fb.group({...this.objPersonal}),this.fb.group({...this.objPersonal})]),
         vehiculos: this.fb.array([this.fb.group({...this.objVehiculo})]),
         cantModulos: null, impoModulos: null, cantHorasExced: null, impoHorasExced: null, cantKmExced: null,
-        impoKmExced: null, impoPeaje: null, facturacion: 0, estado: 0, numFactura: 0, desc_facturacion: ''
+        impoKmExced: null, impoPeaje: null, facturacion: 0, estado: 0, numFactura: 0, desc_facturacion: '', fecha_liquidacion:''
     })
     personal():FormArray {
         return this.formCus.get("personal") as FormArray
@@ -65,6 +66,15 @@ export class CustodiaFormComponent {
         const value = this.formCus.get("estado")?.value
         return (value == 4)
     }
+
+    anioLiquidacion(): number {
+        return new Date(this.formCus.get("fechaFinal")?.value!).getFullYear()
+    }
+
+    mesLiquidacion(): number {
+        return new Date(this.formCus.get("fechaFinal")?.value!).getMonth() + 1
+    }
+
 
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
     
