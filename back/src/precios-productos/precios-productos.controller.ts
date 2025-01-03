@@ -224,7 +224,7 @@ export class PreciosProductosController extends BaseController {
             await queryRunner.startTransaction();
 
             
-            const codigoExist = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_productos WHERE cod_producto = @0`, [params.codigoOld])
+            const codigoExist = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_precio_venta WHERE cod_producto = @0`, [params.codigoOld])
             let dataResultado = {}
             let importeDesde = (!params.desde)  ? fechaActual : params.desde
             let importeHasta = (!params.hasta)  ? new Date('9999-12-31') : new Date(params.hasta);
@@ -239,7 +239,7 @@ export class PreciosProductosController extends BaseController {
                     if ( checkNewCodigo.length > 0) throw new ClientException('El nuevo código ingresado ya existe')
                 }
 
-                await this.validateForm(false, params, queryRunner)
+                await this.validateForm(false, params, queryRunner,importeOld)
  
                 await queryRunner.query( `UPDATE lige.dbo.lpv_productos SET 
                     nom_producto = @1, des_producto = @2, aud_fecha_mod = @3, aud_usuario_mod = @4, aud_ip_mod = @5,
@@ -272,7 +272,7 @@ export class PreciosProductosController extends BaseController {
                 // if ( checkNewCodigo.length > 0) throw new ClientException('El nuevo código ingresado ya existe')
 
                 console.log('El código no existe - es nuevo')
-                await this.validateForm(false, params, queryRunner)
+                await this.validateForm(false, params, queryRunner,null)
                 await queryRunner.query( `INSERT INTO lige.dbo.lpv_productos 
                     (cod_producto, 
                     nom_producto,
@@ -332,7 +332,7 @@ export class PreciosProductosController extends BaseController {
         }
     }
 
-    async validateForm(isNew:boolean, params:any, queryRunner:any){
+    async validateForm(isNew:boolean, params:any, queryRunner:any,importeOld:any){
 
         if(isNew){
         // true es Nuevo
@@ -374,20 +374,25 @@ export class PreciosProductosController extends BaseController {
         if (new Date(params.hasta) < new Date(params.desde))
             throw new ClientException(`La fecha "hasta" no puede ser menor que la fecha "desde".`)
 
+        console.log("importeOld ", importeOld)
+        console.log("params.importe ", params.importe)
 
-        let result = await queryRunner.query( `SELECT TOP 1 importe_hasta FROM lige.dbo.lpv_precio_venta WHERE cod_producto = @0 ORDER BY importe_hasta DESC`, [params.codigo])
-        
-        if (result && result.length > 0) {
+        if(importeOld == params.importe){
 
-            console.log("desde ", new Date(params.desde))
-            console.log("hasta ", new Date(result[0].importe_hasta))
+            let result = await queryRunner.query( `SELECT TOP 1 importe_hasta FROM lige.dbo.lpv_precio_venta WHERE cod_producto = @0 ORDER BY importe_hasta DESC`, [params.codigo])
+            
+            if (result && result.length > 0) {
 
-            const fechaEspecial = new Date('9999-12-31');
+                console.log("desde ", new Date(params.desde))
+                console.log("hasta ", new Date(result[0].importe_hasta))
 
-            if (new Date(result[0].importe_hasta).getTime() !== fechaEspecial.getTime())
-                if( new Date(params.desde) < new Date(result[0].importe_hasta))
-                    throw new ClientException(`La fecha "desde" no puede ser menor a la fecha "hasta" de un registro ya creado`);
+                const fechaEspecial = new Date('9999-12-31');
 
+                if (new Date(result[0].importe_hasta).getTime() !== fechaEspecial.getTime())
+                    if( new Date(params.desde) < new Date(result[0].importe_hasta))
+                        throw new ClientException(`La fecha "desde" no puede ser menor a la fecha "hasta" de un registro ya creado`);
+
+            }
         }    
         // if (params.desde == null || params.desde == "")
         //     throw new ClientException(`Debe seleccionar la fecha desde`)
