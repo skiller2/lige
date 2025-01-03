@@ -16,18 +16,20 @@ export class FileUploadController extends BaseController {
   async getByDownloadFile(req: any, res: Response, next: NextFunction) {
     const documentId = Number(req.body.documentId);
     const filename = String(req.body.filename);
-    const tableSearch = String(req.body.tableSearch);
-    const dataBase = String(req.body.dataBase);
+    const tableSearch = String(req.body.tableForSearch);
+    const dataBase = String(req.body.dataBaseForSearch);
     let finalurl = '', docname=''
     try {
       if (documentId != 0) {
+        const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
+
         let document
         switch (dataBase) {
           case 'Produccion':
             document = await dataSource.query(
               `SELECT 
                 doc.${tableSearch}Id AS id, 
-                CONCAT('./', TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableSearch}BlobNombreArchivo)) path, 
+                CONCAT(TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableSearch}BlobNombreArchivo)) path, 
                 doc.${tableSearch}BlobNombreArchivo AS name
               FROM ${tableSearch} doc
               JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
@@ -42,7 +44,7 @@ export class FileUploadController extends BaseController {
         }
         // console.log('document', document);
         
-        finalurl = `${document[0]["path"]}`
+        finalurl = `${pathArchivos}/${document[0]["path"]}`
         docname = document[0]["name"]
       } else if (filename) {
         finalurl = `${process.env.PATH_DOCUMENTS}/temp/${filename}`
@@ -75,8 +77,8 @@ export class FileUploadController extends BaseController {
     const id = req.params.id
     const TipoSearch = req.params.TipoSearch
     const keyField = req.params.keyField
-    const tableSearch = req.params.tableSearch
-    const dataBase = req.params.dataBase
+    const tableSearch = req.params.tableForSearch
+    const dataBase = req.params.dataBaseForSearch
     try {
       const queryRunner = dataSource.createQueryRunner();
       // let usuario = res.locals.userName

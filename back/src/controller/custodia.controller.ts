@@ -690,10 +690,15 @@ export class CustodiaController extends BaseController {
             const ip = this.getRemoteAddress(req)
             // const responsableId = 699
             const responsableId = res.locals.PersonalId
-            if (!responsableId)
+
+            const responsableQuery = await queryRunner.query(`
+                SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre FROM Personal per WHERE per.PersonalId = @0`,[responsableId])
+            
+            if (responsableQuery.length!=1)
                 throw new ClientException(`No se a encontrado al personal responsable.`)
 
 
+            const responsable = responsableQuery[0].ApellidoNombre
 
 
             const valCustodiaForm = this.valCustodiaForm(req.body, queryRunner)
@@ -785,7 +790,7 @@ export class CustodiaController extends BaseController {
                 throw new ClientException(errores.join(`\n`))
 
             await queryRunner.commitTransaction()
-            return this.jsonRes({ custodiaId: objetivoCustodiaId }, res, 'Carga Exitosa');
+            return this.jsonRes({ custodiaId: objetivoCustodiaId, responsable }, res, 'Carga Exitosa');
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)

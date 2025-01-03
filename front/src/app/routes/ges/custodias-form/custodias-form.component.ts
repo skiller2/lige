@@ -38,8 +38,8 @@ export class CustodiaFormComponent {
         else
             return 0
     });
-    anio = signal(0)
-    mes = signal(0)
+    anio = input(0)
+    mes = input(0)
 
     optionsDescRequirente: Array<any> = []
 
@@ -69,9 +69,6 @@ export class CustodiaFormComponent {
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
     
     ngOnInit() {
-        let date = new Date()
-        this.anio.set(date.getFullYear())
-        this.mes.set(date.getMonth()+1)
     }
 
     async load() {
@@ -167,12 +164,16 @@ export class CustodiaFormComponent {
 
         try {
             if (this.custodiaId()) {
-                await firstValueFrom(this.apiService.updateObjCustodia({ ...form }, this.custodiaId()))
+                await firstValueFrom(this.apiService.updateObjCustodia({ ...form,anio:this.anio(),mes:this.mes() }, this.custodiaId()))
             } else {
-                const res = await firstValueFrom(this.apiService.addObjCustodia({ ...form }))
-                if (res.data.custodiaId)
+                const res = await firstValueFrom(this.apiService.addObjCustodia({ ...form,anio:this.anio(),mes:this.mes() }))
+                if (res.data.custodiaId) {
                     this.custodiaId.set(Number(res.data.custodiaId))
+                    this.formCus.patchValue({ id: res.data.custodiaId, responsable:res.data.responsable })
+
+                }
             }
+
             this.formCus.markAsUntouched()
             this.formCus.markAsPristine()
         } catch (e) {

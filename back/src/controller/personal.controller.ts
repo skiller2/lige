@@ -628,6 +628,7 @@ export class PersonalController extends BaseController {
     now.setHours(0, 0, 0, 0)
     FechaIngreso? FechaIngreso.setHours(0, 0, 0, 0) : FechaIngreso
     FechaNacimiento? FechaNacimiento.setHours(0, 0, 0, 0) : FechaNacimiento
+    const sitRevista = {SituacionId:req.body.SituacionId, Motivo:req.body.Motivo, Desde:now}
     
     try {
       await queryRunner.startTransaction()
@@ -662,6 +663,9 @@ export class PersonalController extends BaseController {
       const PersonalId = await this.addPersonalQuery(
         queryRunner, NroLegajo, Apellido, Nombre, now, FechaIngreso, FechaNacimiento, NacionalidadId, SucursalId, CUIT
       )
+      if (Number.isNaN(PersonalId)) {
+        throw new ClientException('No se pudo generar un identificador.')
+      }
 
       await this.addPersonalCUITCUILQuery(queryRunner, PersonalId, CUIT, now)
 
@@ -669,24 +673,24 @@ export class PersonalController extends BaseController {
 
       if (Email) await this.addPersonalEmail(queryRunner, PersonalId, Email)
       
-      await this.setSituacionRevistaQuery(queryRunner, PersonalId, req.body)
+      await this.setSituacionRevistaQuery(queryRunner, PersonalId, sitRevista)
 
-      for (const obj of telefonos){
-        if (obj.TelefonoNum) {
-          if (!obj.TipoTelefonoId) {
+      for (const telefono of telefonos){
+        if (telefono.TelefonoNum) {
+          if (!telefono.TipoTelefonoId) {
             errors.push(`El campo Tipo de la seccion Telefono No pueden estar vacios.`)
             break
           }
-          await this.addPersonalTelefono(queryRunner, obj, PersonalId)
+          await this.addPersonalTelefono(queryRunner, telefono, PersonalId)
         }
       }
-      for (const obj of estudios){
-        if (obj.EstudioTitulo) {
-          if (!obj.TipoEstudioId || !obj.EstadoEstudioId) {
+      for (const estudio of estudios){
+        if (estudio.EstudioTitulo) {
+          if (!estudio.TipoEstudioId || !estudio.EstadoEstudioId) {
             errors.push(`Los campos Tipo y Estados de la seccion Estudios No pueden estar vacios.`)
             break
           }
-          await this.addPersonalEstudio(queryRunner, obj, PersonalId)
+          await this.addPersonalEstudio(queryRunner, estudio, PersonalId)
         }
       }
 
@@ -898,7 +902,7 @@ export class PersonalController extends BaseController {
 
   async updatePersona(queryRunner:any, PersonalId:number, infoPersonal:any ){
     let personalRes = await queryRunner.query(`
-      SELECT PersonalNroLegajo NroLegajo, PersonalApellido Apellido, PersonalNombre Nombre,
+      SELECT PersonalNroLegajo NroLegajo, TRIM(PersonalApellido) Apellido, TRIM(PersonalNombre) Nombre,
       PersonalFechaIngreso FechaIngreso, PersonalFechaNacimiento FechaNacimiento,
       PersonalNacionalidadId NacionalidadId, PersonalSucursalIngresoSucursalId SucursalId
       FROM Personal
@@ -950,8 +954,8 @@ export class PersonalController extends BaseController {
 
   private async updatePersonalDomicilio(queryRunner:any, PersonalId:number, infoDomicilio:any ){
     let domicilioRes = await queryRunner.query(`
-      SELECT PersonalDomicilioDomCalle Calle, PersonalDomicilioDomNro Nro, PersonalDomicilioDomPiso Piso,
-      PersonalDomicilioDomDpto Dpto, PersonalDomicilioCodigoPostal CodigoPostal, PersonalDomicilioPaisId PaisId, PersonalDomicilioProvinciaId ProvinciaId,
+      SELECT TRIM(PersonalDomicilioDomCalle) Calle, TRIM(PersonalDomicilioDomNro) Nro, TRIM(PersonalDomicilioDomPiso) Piso,
+      TRIM(PersonalDomicilioDomDpto) Dpto, TRIM(PersonalDomicilioCodigoPostal) CodigoPostal, PersonalDomicilioPaisId PaisId, PersonalDomicilioProvinciaId ProvinciaId,
       PersonalDomicilioLocalidadId LocalidadId, PersonalDomicilioBarrioId BarrioId
       FROM PersonalDomicilio
       WHERE PersonalId = @0 AND PersonalDomicilioId = @1
@@ -1015,16 +1019,7 @@ export class PersonalController extends BaseController {
       
     if (!telefono.length) 
       return await this.addPersonalTelefono(queryRunner, infoTelefono, PersonalId )
-    telefono = telefono[0]
 
-    let cambio:boolean = false
-    for (const key in telefono) {
-      if (infoTelefono[key] != telefono[key]) {
-        cambio = true
-        break
-      }
-    }
-    if(!cambio) return
     const lugarTelefonoId = infoTelefono.LugarTelefonoId
     const tipoTelefonoId = infoTelefono.TipoTelefonoId
     const codigoPais = infoTelefono.CodigoPais
@@ -1036,7 +1031,8 @@ export class PersonalController extends BaseController {
       TipoTelefonoId = @3,
       PersonalTelefonoCodigoPais = @4,
       PersonalTelefonoCodigoArea = @5,
-      PersonalTelefonoNro = @6
+      PersonalTelefonoNro = @6,
+      PersonalTelefonoInactivo = null
       WHERE PersonalId IN (@0) AND PersonalTelefonoId IN (@1)
       `,[
         PersonalId, PersonalTelefonoId, lugarTelefonoId, tipoTelefonoId, codigoPais, codigoArea, telefonoNum
@@ -1046,7 +1042,7 @@ export class PersonalController extends BaseController {
   private async updatePersonalEstudio(queryRunner:any, PersonalId:number, infoEstudio:any ){
     const PersonalEstudioId = infoEstudio.PersonalEstudioId
     let estudio = await queryRunner.query(`
-      SELECT TipoEstudioId , EstadoEstudioId, PersonalEstudioTitulo EstudioTitulo, PersonalEstudioAno EstudioAno
+      SELECT TipoEstudioId , EstadoEstudioId, TRIM(PersonalEstudioTitulo) EstudioTitulo, PersonalEstudioAno EstudioAno
       FROM PersonalEstudio
       WHERE PersonalId IN (@0) AND PersonalEstudioId IN (@1)
       `,[PersonalId, PersonalEstudioId])
@@ -1098,25 +1094,26 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async updatePersonalSitRevista(queryRunner:any, PersonalId:any, infoSitRevista:any){
-    const PersonalSituacionRevistaId = infoSitRevista.PersonalSituacionRevistaId
-    let situacionRevista = await queryRunner.query(`
-      SELECT PersonalSituacionRevistaSituacionId SituacionId, PersonalSituacionRevistaMotivo Motivo
-      FROM PersonalSituacionRevista
-      WHERE PersonalId IN (@0) AND PersonalSituacionRevistaId IN (@1)
-      `,[PersonalId, PersonalSituacionRevistaId])
+  // async updatePersonalSitRevista(queryRunner:any, PersonalId:any, infoSitRevista:any){
+  //   const PersonalSituacionRevistaId = infoSitRevista.PersonalSituacionRevistaId
+  //   let situacionRevista = await queryRunner.query(`
+  //     SELECT PersonalSituacionRevistaSituacionId SituacionId, PersonalSituacionRevistaMotivo Motivo,
+  //     PersonalSituacionRevistaDesde Desde
+  //     FROM PersonalSituacionRevista
+  //     WHERE PersonalId IN (@0) AND PersonalSituacionRevistaId IN (@1)
+  //     `,[PersonalId, PersonalSituacionRevistaId])
 
-    let cambio:boolean = false
-    for (const key in situacionRevista) {
-      if (infoSitRevista[key] != situacionRevista[key]) {
-        cambio = true
-        break
-      }
-    }
+  //   let cambio:boolean = false
+  //   for (const key in situacionRevista) {
+  //     if (infoSitRevista[key] != situacionRevista[key]) {
+  //       cambio = true
+  //       break
+  //     }
+  //   }
     
-    if(!cambio) return
-    await this.setSituacionRevistaQuery(queryRunner, PersonalId, infoSitRevista)
-  }
+  //   if(!cambio) return
+  //   await this.setSituacionRevistaQuery(queryRunner, PersonalId, infoSitRevista)
+  // }
   
   
   async updatePersonal(req: any, res: Response, next: NextFunction){
@@ -1141,13 +1138,17 @@ export class PersonalController extends BaseController {
       await this.updatePersona(queryRunner, PersonalId, req.body)
       await this.updatePersonalDomicilio(queryRunner, PersonalId, req.body)
       await this.updatePersonalEmail(queryRunner, PersonalId, req.body)
-      await this.updatePersonalSitRevista(queryRunner, PersonalId, req.body)
-      
+      // await this.updatePersonalSitRevista(queryRunner, PersonalId, req.body)
+
+      //Telefonos
+      await queryRunner.query(`UPDATE PersonalTelefono SET PersonalTelefonoInactivo = 1 WHERE PersonalId IN (@0)`, [PersonalId])
       for (const telefono of telefonos) {
-        if (telefono.TelefonoNro.length)  await this.updatePersonalTelefono(queryRunner, PersonalId, telefono)
+        if (telefono.TelefonoNro)  await this.updatePersonalTelefono(queryRunner, PersonalId, telefono)
       }
+      //Estudios
+      // await queryRunner.query(``)
       for (const estudio of estudios) {
-        if (estudio.EstudioTitulo.length)  await this.updatePersonalEstudio(queryRunner, PersonalId, estudio)
+        if (estudio.EstudioTitulo)  await this.updatePersonalEstudio(queryRunner, PersonalId, estudio)
       }
       
       let PersonalCUITCUIL = await queryRunner.query(`
@@ -1372,28 +1373,47 @@ export class PersonalController extends BaseController {
   async setSituacionRevistaQuery(queryRunner: any, personalId: number, situacion: any){
     const situacionId = situacion.SituacionId
     const motivo = situacion.Motivo
-    let now:Date = new Date();
-    now.setHours(0, 0, 0, 0)
-    let yesterday:Date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+    let desde = new Date(situacion.Desde)
+    desde.setHours(0, 0, 0, 0)
+    let yesterday:Date = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
 
-    let sitRevista = await queryRunner.query(
-      `SELECT ISNULL(MAX(sitrev.PersonalSituacionRevistaId), 0) PersonalSituacionRevistaId
+    let sitRevistaId = await queryRunner.query(`
+      SELECT ISNULL(MAX(sitrev.PersonalSituacionRevistaId), 0) PersonalSituacionRevistaId
       FROM PersonalSituacionRevista sitrev
       WHERE sitrev.PersonalId IN (@0) AND PersonalSituacionRevistaHasta IS NULL
       `, [personalId]
     )
-    sitRevista = sitRevista[0].PersonalSituacionRevistaId
+    sitRevistaId = sitRevistaId[0].PersonalSituacionRevistaId
 
-    if (sitRevista) {
+    if (sitRevistaId) {
+      let sitRevistaActual = await queryRunner.query(`
+        SELECT PersonalSituacionRevistaDesde, PersonalSituacionRevistaMotivo, PersonalSituacionRevistaSituacionId
+        FROM PersonalSituacionRevista
+        WHERE PersonalSituacionRevistaId = @0
+        `, [sitRevistaId]
+      )
+      sitRevistaActual = sitRevistaActual[0]
+      if (sitRevistaActual.desde == desde) {
+        await queryRunner.query(`
+          UPDATE PersonalSituacionRevista SET
+          PersonalSituacionRevistaDesde = @2,
+          PersonalSituacionRevistaMotivo = @3,
+          PersonalSituacionRevistaSituacionId = @4
+          WHERE PersonalId IN (@0) AND PersonalSituacionRevistaId IN (@1)
+          `, [personalId, sitRevistaId, desde, motivo, situacionId]
+        )
+        return
+      }
+
       await queryRunner.query(`
         UPDATE PersonalSituacionRevista SET
         PersonalSituacionRevistaHasta = @2
         WHERE PersonalId IN (@0) AND PersonalSituacionRevistaId = @1
-        `, [personalId, sitRevista, yesterday]
+        `, [personalId, sitRevistaId, situacionId]
       )
     }
-    sitRevista++
+    sitRevistaId++
     await queryRunner.query(`
       INSERT INTO PersonalSituacionRevista (
       PersonalId,
@@ -1403,14 +1423,14 @@ export class PersonalController extends BaseController {
       PersonalSituacionRevistaSituacionId
       )
       VALUES(@0, @1, @2, @3, @4)
-      `, [personalId, sitRevista, now, motivo, situacionId]
+      `, [personalId, sitRevistaId, desde, motivo, situacionId]
     )
 
     await queryRunner.query(`
       UPDATE Personal SET
       PersonalSituacionRevistaUltNro = @1
       WHERE PersonalId IN (@0)
-      `, [personalId, sitRevista]
+      `, [personalId, sitRevistaId]
     )
   }
 
