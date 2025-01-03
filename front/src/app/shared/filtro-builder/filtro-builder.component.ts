@@ -85,7 +85,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   isFiltroBuilder = false;
 
   selections = {
-    field: { searchComponent: '', name: '', type: '' },
+    field: { searchComponent: '', name: '', type: '', searchType:'' },
     condition: 'AND',
     operator: '',
     value: '',
@@ -107,7 +107,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   verifySelections(): boolean {
-    const type = (this.selections.field.type) ? this.selections.field.type : 'string'
+    const type = (this.selections.field.searchType)? this.selections.field.searchType : (this.selections.field.type) ? this.selections.field.type : 'string'
 
     this.selections.operator = (!this.selections.field.searchComponent) ? "=" : this.selections.operator
     let value = String(this.selections.value)
@@ -232,7 +232,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   resetSelections() {
     this.selections = {
-      field: { searchComponent: '', name: '', type: '' },
+      field: { searchComponent: '', name: '', type: '', searchType:'' },
       condition: 'AND',
       operator: '',
       value: '',

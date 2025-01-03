@@ -170,9 +170,13 @@ export class CustodiaFormComponent {
                 await firstValueFrom(this.apiService.updateObjCustodia({ ...form,anio:this.anio(),mes:this.mes() }, this.custodiaId()))
             } else {
                 const res = await firstValueFrom(this.apiService.addObjCustodia({ ...form,anio:this.anio(),mes:this.mes() }))
-                if (res.data.custodiaId)
+                if (res.data.custodiaId) {
                     this.custodiaId.set(Number(res.data.custodiaId))
+                    this.formCus.patchValue({ id: res.data.custodiaId, responsable:res.data.responsable })
+
+                }
             }
+
             this.formCus.markAsUntouched()
             this.formCus.markAsPristine()
         } catch (e) {
