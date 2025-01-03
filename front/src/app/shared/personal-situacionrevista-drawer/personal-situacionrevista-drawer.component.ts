@@ -42,7 +42,7 @@ export class PersonalSituacionRevistaDrawerComponent {
 
     fb = inject(FormBuilder)
     formSitRevista = this.fb.group({
-        SituacionId: 0, Motivo:''
+        SituacionId: 0, Motivo:'', Desde:'',
     })
 
     $optionsSitRevista = this.searchService.getSitRevistaOptions();

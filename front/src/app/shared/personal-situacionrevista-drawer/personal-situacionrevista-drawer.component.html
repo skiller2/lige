@@ -23,6 +23,13 @@
         </nz-form-control>
       </nz-form-item>
 
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Desde</nz-form-label>
+        <nz-form-control>
+          <nz-date-picker ngModel="date" formControlName="Desde"></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">
           <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formSitRevista.pristine">
