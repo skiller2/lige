@@ -222,12 +222,12 @@ export class PreciosProductosController extends BaseController {
             console.log("params ", params)
             await queryRunner.connect();
             await queryRunner.startTransaction();
-
+   
             
-            const codigoExist = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_precio_venta WHERE cod_producto = @0`, [params.codigoOld])
+            const codigoExist = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_precio_venta WHERE precio_venta_id = @0`, [params.precioVentaId])
             let dataResultado = {}
             let importeDesde = (!params.desde)  ? fechaActual : params.desde
-            let importeHasta = (!params.hasta)  ? new Date('9999-12-31') : new Date(params.hasta);
+            let importeHasta = (!params.hasta)  ? new Date('9999-12-31') : params.hasta;
 
 
             if ( codigoExist.length > 0) { //Entro en update
@@ -247,8 +247,8 @@ export class PreciosProductosController extends BaseController {
                     `, [params.codigo, params.nombre,  params.descripcion, fechaActual, usuario, ip, params.TipoProductoId])
 
                 await queryRunner.query( `UPDATE lige.dbo.lpv_precio_venta SET 
-                    aud_fecha_mod = @1, aud_usuario_mod = @2, aud_ip_mod = @3, sucursalId = @4, importe_desde = @5, importe_hasta = @6  WHERE precio_venta_id = @0
-                    `, [params.precioVentaId, fechaActual, usuario, ip, params.SucursalId, importeDesde, importeHasta])
+                   importe_desde = @1, importe_hasta = @2 , aud_fecha_mod = @3, aud_usuario_mod = @4, aud_ip_mod = @5, sucursalId = @6 WHERE precio_venta_id = @0
+                    `, [ params.precioVentaId,importeDesde, importeHasta, fechaActual, usuario, ip, params.SucursalId,])
                     
                 
                 if(importeOld !== params.importe){
@@ -374,17 +374,11 @@ export class PreciosProductosController extends BaseController {
         if (new Date(params.hasta) < new Date(params.desde))
             throw new ClientException(`La fecha "hasta" no puede ser menor que la fecha "desde".`)
 
-        console.log("importeOld ", importeOld)
-        console.log("params.importe ", params.importe)
-
         if(importeOld == params.importe){
 
             let result = await queryRunner.query( `SELECT TOP 1 importe_hasta FROM lige.dbo.lpv_precio_venta WHERE cod_producto = @0 ORDER BY importe_hasta DESC`, [params.codigo])
             
             if (result && result.length > 0) {
-
-                console.log("desde ", new Date(params.desde))
-                console.log("hasta ", new Date(result[0].importe_hasta))
 
                 const fechaEspecial = new Date('9999-12-31');
 
@@ -393,9 +387,7 @@ export class PreciosProductosController extends BaseController {
                         throw new ClientException(`La fecha "desde" no puede ser menor a la fecha "hasta" de un registro ya creado`);
 
             }
-        }    
-        // if (params.desde == null || params.desde == "")
-        //     throw new ClientException(`Debe seleccionar la fecha desde`)
+        } 
   
     }
 
