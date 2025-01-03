@@ -38,8 +38,8 @@ export class CustodiaFormComponent {
         else
             return 0
     });
-    anio = signal(0)
-    mes = signal(0)
+    anio = input(0)
+    mes = input(0)
 
     optionsDescRequirente: Array<any> = []
 
@@ -69,9 +69,6 @@ export class CustodiaFormComponent {
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
     
     ngOnInit() {
-        let date = new Date()
-        this.anio.set(date.getFullYear())
-        this.mes.set(date.getMonth()+1)
     }
 
     async load() {
