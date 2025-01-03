@@ -42,19 +42,15 @@ export class FileUploadComponent implements ControlValueAccessor {
   files = signal<any[]>([])
   private notification = inject(NzNotificationService)
   ArchivoIdForDelete = 0
-  keyField = input("")
   idForSearh = input(0)
   textForSearch = input("")
+  columnForSearch = input("")
   tableForSearch = input("")
-  dataBaseForSearch = input("")
   modalViewerVisiable = signal(false)
   blobUrl = ""
   Fullpath = signal("")
   FileName = signal("")
   fileAccept = input("")
-
-  // valueExtended = input()
-  // valueExtendedEmitter = output<[]>();
 
   formChange$ = new BehaviorSubject('');
 
@@ -63,11 +59,11 @@ export class FileUploadComponent implements ControlValueAccessor {
     debounceTime(500),
     switchMap(() => {
       // console.log('input');
-      // console.log(this.keyField(), this.idForSearh(), this.textForSearch(), this.tableForSearch(), this.tableForSearch(), this.dataBaseForSearch());
+      // console.log(this.columnForSearch(), this.idForSearh(), this.textForSearch(), this.tableForSearch(), this.tableForSearch(), this.dataBaseForSearch());
 
-      if (this.idForSearh() > 0 && this.textForSearch() != "" && this.tableForSearch() != "" && this.dataBaseForSearch() != "") {
+      if (this.idForSearh() > 0 && this.textForSearch() != "" && this.tableForSearch() != "" ) {
         this.files.set([])
-        return this.apiService.getArchivosAnteriores(this.idForSearh(), this.textForSearch(), this.keyField(), this.tableForSearch(), this.dataBaseForSearch())
+        return this.apiService.getArchivosAnteriores(this.idForSearh(), this.textForSearch(), this.columnForSearch(), this.tableForSearch())
       } else {
         return []
       }
@@ -93,7 +89,7 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   async LoadArchivoPreview(documentId: any, filename: any) {
     const res = await firstValueFrom(this.http.post('api/file-upload/downloadFile',
-      { 'documentId': documentId, filename: filename, tableForSearch: this.tableForSearch(), dataBaseForSearch: this.dataBaseForSearch() }, { responseType: 'blob' }
+      { 'documentId': documentId, filename: filename, tableForSearch: this.tableForSearch() }, { responseType: 'blob' }
     ))
     return res
   }

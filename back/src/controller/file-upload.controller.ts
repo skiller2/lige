@@ -16,26 +16,28 @@ export class FileUploadController extends BaseController {
   async getByDownloadFile(req: any, res: Response, next: NextFunction) {
     const documentId = Number(req.body.documentId);
     const filename = String(req.body.filename);
-    const tableSearch = String(req.body.tableForSearch);
-    const dataBase = String(req.body.dataBaseForSearch);
+    const tableForSearch = String(req.body.tableForSearch);
     let finalurl = '', docname=''
     try {
       if (documentId != 0) {
         const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
 
         let document
-        switch (dataBase) {
-          case 'Produccion':
+        switch (tableForSearch) {
+          case 'DocumentoImagenFoto':
+          case 'DocumentoImagenDocumento':
+          case 'DocumentoImagenEstudio':
+          case 'DocumentoImagenImpuestoAFIP':
             document = await dataSource.query(
               `SELECT 
-                doc.${tableSearch}Id AS id, 
-                CONCAT(TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableSearch}BlobNombreArchivo)) path, 
-                doc.${tableSearch}BlobNombreArchivo AS name
-              FROM ${tableSearch} doc
+                doc.${tableForSearch}Id AS id, 
+                CONCAT(TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableForSearch}BlobNombreArchivo)) path, 
+                doc.${tableForSearch}BlobNombreArchivo AS name
+              FROM ${tableForSearch} doc
               JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-              WHERE doc.${tableSearch}Id = @0`, [documentId])
+              WHERE doc.${tableForSearch}Id = @0`, [documentId])
             break;
-        case 'lige':
+        case 'docgeneral':
             document = await this.getFilesInfo(documentId);
             break;
         default:
@@ -76,9 +78,8 @@ export class FileUploadController extends BaseController {
   ) {
     const id = req.params.id
     const TipoSearch = req.params.TipoSearch
-    const keyField = req.params.keyField
+    const columnSearch = req.params.columnForSearch
     const tableSearch = req.params.tableForSearch
-    const dataBase = req.params.dataBaseForSearch
     try {
       const queryRunner = dataSource.createQueryRunner();
       // let usuario = res.locals.userName
@@ -86,8 +87,11 @@ export class FileUploadController extends BaseController {
       // let fechaActual = new Date()
 
       let ArchivosAnteriores = []
-      switch (dataBase) {
-        case 'Produccion':
+      switch (tableSearch) {
+        case 'DocumentoImagenFoto':
+        case 'DocumentoImagenDocumento':
+        case 'DocumentoImagenEstudio':
+        case 'DocumentoImagenImpuestoAFIP':
           ArchivosAnteriores = await queryRunner.query(`
             SELECT 
                 doc.${tableSearch}Id AS id, 
@@ -98,7 +102,7 @@ export class FileUploadController extends BaseController {
             JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             WHERE 
-                doc.${keyField} = @0 AND param.DocumentoImagenParametroDe = @1`,
+                doc.${columnSearch} = @0 AND param.DocumentoImagenParametroDe = @1`,
             [id, TipoSearch])
 
           break;
@@ -113,7 +117,7 @@ export class FileUploadController extends BaseController {
             FROM lige.dbo.docgeneral doc
             JOIN lige.dbo.doctipo tipo ON doc.doctipo_id = tipo.doctipo_id
             WHERE 
-                doc.${keyField} = @0 AND
+                doc.${columnSearch} = @0 AND
                 tipo.doctipo_id = @1 `,
             [id, TipoSearch])
           

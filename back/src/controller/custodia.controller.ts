@@ -231,7 +231,7 @@ const columnsObjCustodia: any[] = [
         type: "string",
         id: "ApellidoNombre",
         field: "ApellidoNombre",
-        fieldName: "regper.personal_id",
+        fieldName: "percus.personal_id",
         searchComponent: "inpurForPersonalSearch",
         searchType: "number",
         sortable: true,
@@ -513,7 +513,6 @@ export class CustodiaController extends BaseController {
     }
 
     async listObjetivoCustodiaByResponsableQuery(queryRunner: any, filterSql: any, orderBy: any, periodo: Date, responsableId?: number) {
-        console.log('periodo', periodo);
         let year = 0
         let month = 0
         let condition = ''
@@ -548,6 +547,7 @@ export class CustodiaController extends BaseController {
                 FROM lige.dbo.regpersonalcustodia regper
                 GROUP BY regper.objetivo_custodia_id
             ) regper ON regper.objetivo_custodia_id = obj.objetivo_custodia_id
+            LEFT JOIN  lige.dbo.regpersonalcustodia percus ON percus.objetivo_custodia_id = obj.objetivo_custodia_id
             WHERE (${condition})
             AND (${search}) AND (${filterSql}) 
             ${orderBy}`, [year, month])
@@ -842,6 +842,7 @@ export class CustodiaController extends BaseController {
                     diferencia: obj.diferencia
                 }
             })
+
             await queryRunner.commitTransaction()
             return this.jsonRes(list, res)
         } catch (error) {

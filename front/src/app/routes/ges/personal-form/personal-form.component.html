@@ -68,19 +68,19 @@
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="3">Foto</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
         <app-file-upload formControlName="Foto" [idForSearh]="this.personalId()" [textForSearch]="'FOTO'"
-        [keyField]="'PersonalId'" [tableForSearch]="'DocumentoImagenFoto'" [dataBaseForSearch]="'Produccion'"></app-file-upload>
+        [columnForSearch]="'PersonalId'" [tableForSearch]="'DocumentoImagenFoto'"></app-file-upload>
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">DNI - Frente</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
       <app-file-upload formControlName="docFrente" [idForSearh]="this.personalId()" [textForSearch]="'DOCUMENFREN'"
-        [keyField]="'PersonalId'" [tableForSearch]="'DocumentoImagenDocumento'" [dataBaseForSearch]="'Produccion'"></app-file-upload>
+        [columnForSearch]="'PersonalId'" [tableForSearch]="'DocumentoImagenDocumento'"></app-file-upload>
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">DNI - Dorso</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
         <app-file-upload formControlName="docDorso" [idForSearh]="this.personalId()" [textForSearch]="'DOCUMENDOR'"
-        [keyField]="'PersonalId'" [tableForSearch]="'DocumentoImagenDocumento'" [dataBaseForSearch]="'Produccion'"></app-file-upload>
+        [columnForSearch]="'PersonalId'" [tableForSearch]="'DocumentoImagenDocumento'"></app-file-upload>
     </nz-form-control>
   </nz-form-item>
 
@@ -251,7 +251,7 @@
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="3">Doc</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
             <app-file-upload formControlName="DocTitulo" [idForSearh]="this.personalId()" [textForSearch]="'CERESTPAG'+i"
-            [keyField]="'PersonalId'" [tableForSearch]="'DocumentoImagenEstudio'" [dataBaseForSearch]="'Produccion'"></app-file-upload>
+            [columnForSearch]="'PersonalId'" [tableForSearch]="'DocumentoImagenEstudio'"></app-file-upload>
         </nz-form-control>
       </nz-form-item>
 
@@ -266,7 +266,7 @@
     </div>
   </div>
 
-  <ng-container *ngIf="!personalId()">
+  <ng-container>
   <!-- <nz-divider nzText="Situacion de Revista" nzOrientation="left"></nz-divider> -->
   <div class="input-container1">
     <div class="input-label">Situacion de Revista</div>
@@ -276,7 +276,7 @@
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Situacion de Revista</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
       <nz-select formControlName="SituacionId" nzPlaceHolder="Situacion de Revista" nzAllowClear
-        [nzDropdownMatchSelectWidth]="false">
+        [nzDropdownMatchSelectWidth]="false" [nzDisabled]="personalId()? true : false">
         <ng-container *ngFor="let option of $optionsSitRevista | async">
           <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
         </ng-container>
@@ -284,8 +284,8 @@
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Motivo</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9">
-      <input nz-input placeholder="" formControlName="Motivo" type="text" />
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9" >
+      <input nz-input placeholder="" formControlName="Motivo" type="text" [readOnly]="personalId()? true : false"/>
     </nz-form-control>
   </nz-form-item>
 </ng-container>
@@ -302,7 +302,7 @@
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Formulario 184</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
       <app-file-upload formControlName="AFIP" [idForSearh]="this.personalId()" [textForSearch]="'F184'"
-      [keyField]="'PersonalId'" [tableForSearch]="'DocumentoImagenImpuestoAFIP'" [dataBaseForSearch]="'Produccion'"></app-file-upload>
+      [columnForSearch]="'PersonalId'" [tableForSearch]="'DocumentoImagenImpuestoAFIP'"></app-file-upload>
   </nz-form-control>
   </nz-form-item> -->
 
