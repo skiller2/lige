@@ -167,9 +167,9 @@ export class CustodiaFormComponent {
 
         try {
             if (this.custodiaId()) {
-                await firstValueFrom(this.apiService.updateObjCustodia({ ...form }, this.custodiaId()))
+                await firstValueFrom(this.apiService.updateObjCustodia({ ...form,anio:this.anio(),mes:this.mes() }, this.custodiaId()))
             } else {
-                const res = await firstValueFrom(this.apiService.addObjCustodia({ ...form }))
+                const res = await firstValueFrom(this.apiService.addObjCustodia({ ...form,anio:this.anio(),mes:this.mes() }))
                 if (res.data.custodiaId)
                     this.custodiaId.set(Number(res.data.custodiaId))
             }
