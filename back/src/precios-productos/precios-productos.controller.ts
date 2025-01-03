@@ -257,8 +257,11 @@ export class PreciosProductosController extends BaseController {
 
                     await this.addRecord(queryRunner,params,fechaActual, usuario, ip, params.SucursalId,importeHasta,importeDesde)
 
+                    let NewDate = fechaActual; 
+                    NewDate.setDate(NewDate.getDate() - 1)
+
                     await queryRunner.query( `UPDATE lige.dbo.lpv_precio_venta SET importe_hasta = @1 WHERE precio_venta_id = @0
-                        `, [params.precioVentaId, fechaActual])
+                        `, [params.precioVentaId, NewDate])
                     
                 }
                 dataResultado = {action:'U'}
@@ -376,10 +379,16 @@ export class PreciosProductosController extends BaseController {
         
         if (result && result.length > 0) {
 
-            if(new Date(params.desde) < new Date(result[0].importe_hasta) )
-                throw new ClientException(`La fecha desde no puede ser menor a la fehca hasta de un registro ya creado`)
+            console.log("desde ", new Date(params.desde))
+            console.log("hasta ", new Date(result[0].importe_hasta))
 
-            }
+            const fechaEspecial = new Date('9999-12-31');
+
+            if (new Date(result[0].importe_hasta).getTime() !== fechaEspecial.getTime())
+                if( new Date(params.desde) < new Date(result[0].importe_hasta))
+                    throw new ClientException(`La fecha "desde" no puede ser menor a la fecha "hasta" de un registro ya creado`);
+
+        }    
         // if (params.desde == null || params.desde == "")
         //     throw new ClientException(`Debe seleccionar la fecha desde`)
   
