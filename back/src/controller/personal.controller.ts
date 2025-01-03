@@ -735,7 +735,7 @@ export class PersonalController extends BaseController {
     const estadoEstudioId = estudio.EstadoEstudioId
     const estudioTitulo = estudio.EstudioTitulo
     const estudioAnio = estudio.EstudioAno
-    const docTitulo = estudio.DocTitulo
+    const docTitulo = estudio.DocTitulo[0]
     await queryRunner.query(`
       INSERT INTO PersonalEstudio (
       PersonalId,
@@ -749,7 +749,10 @@ export class PersonalController extends BaseController {
     ])
     await queryRunner.query(`
       UPDATE Personal SET PersonalEstudioUltNro = ISNULL(PersonalEstudioUltNro, 0) + 1 WHERE PersonalId = @1
-      `,[ personalId ])
+    `,[ personalId ])
+    if (docTitulo) {
+      await this.setImagenEstudio(queryRunner, personalId, docTitulo)
+    }
   }
 
   async addPersonalDomicilio(queryRunner:any, domicilio:any, personalId:any){
@@ -827,8 +830,13 @@ export class PersonalController extends BaseController {
   async setFoto(queryRunner:any, personalId:any, file:any) {
     const type = file.mimeType.split('/')[1]
     const fieldname = file.fieldname
-    let fotoId = await queryRunner.query(`SELECT DocumentoImagenFotoId fotoId FROM DocumentoImagenFoto WHERE PersonalId IN (@0)`,[personalId])
-    if (fotoId.length) {
+    let foto = await queryRunner.query(`
+      SELECT foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
+      JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+      JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+      FROM DocumentoImagenFoto foto WHERE foto.PersonalId IN (@0)
+    `,[personalId])
+    if (!foto.length) {
       await queryRunner.query(`
         INSERT INTO DocumentoImagenFoto (
         PersonalId,
@@ -839,13 +847,19 @@ export class PersonalController extends BaseController {
         VALUES(@0,@1,@2,@3)`,
         [personalId,type,7,1]
       )
-      fotoId = await queryRunner.query(`SELECT DocumentoImagenFotoId fotoId FROM DocumentoImagenFoto WHERE PersonalId IN (@0)`,[personalId])
+      foto = await queryRunner.query(`
+        SELECT foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
+        JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+        JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+        FROM DocumentoImagenFoto foto WHERE foto.PersonalId IN (@0)
+      `,[personalId])
     }
     
-    fotoId = fotoId[0].fotoId
+    const fotoId = foto[0].fotoId
+    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
     const newFieldname = `${personalId}-${fotoId}-FOTO`
-    const newFilePath = `${process.env.IMAGE_FOTO_PATH}/${newFieldname}.${type}`;
+    const newFilePath = `${pathArchivos}/${foto[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${newFieldname}.${type}`;
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`
       UPDATE DocumentoImagenFoto SET
@@ -864,8 +878,13 @@ export class PersonalController extends BaseController {
   async setDocumento(queryRunner:any, personalId:any, file:any, parametro:number){
     const type = file.mimeType.split('/')[1]
     const fieldname = file.fieldname
-    let docId = await queryRunner.query(`SELECT DocumentoImagenDocumentoId docId FROM DocumentoImagenDocumento WHERE PersonalId IN (@0)`,[personalId])
-    if (docId.length) {
+    let doc = await queryRunner.query(`
+      SELECT doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
+      JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  doc.DocumentoImagenParametroId
+      JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+      FROM DocumentoImagenDocumento doc WHERE doc.PersonalId IN (@0)
+    `,[personalId])
+    if (!doc.length) {
       await queryRunner.query(`
         INSERT INTO DocumentoImagenDocumento (
         PersonalId,
@@ -876,10 +895,16 @@ export class PersonalController extends BaseController {
         VALUES(@0,@1,@2,@3)`,
         [personalId, type, parametro, 1]
       )
-      docId = await queryRunner.query(`SELECT DocumentoImagenDocumentoId docId FROM DocumentoImagenDocumento WHERE PersonalId IN (@0)`,[personalId])
+      doc = await queryRunner.query(`
+        SELECT doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
+        JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+        JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+        FROM DocumentoImagenDocumento doc WHERE doc.PersonalId IN (@0)
+      `,[personalId])
     }
 
-    docId = docId[0].docId
+    const docId = doc[0].docId
+    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const dirFile: string  = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
     let newFieldname: string = `${personalId}-${docId}`
     if (parametro == 13) {
@@ -887,16 +912,63 @@ export class PersonalController extends BaseController {
     }else if(parametro == 12){
       newFieldname += `-DOCUMENFREN`
     }
-    const newFilePath: string  = `${process.env.IMAGE_DOCUMENTO_PATH}/${newFieldname}.${type}`;
+    const newFilePath: string  = `${pathArchivos}/${doc[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${newFieldname}.${type}`;
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`
       UPDATE DocumentoImagenDocumento SET
       DocumentoImagenDocumentoBlobNombreArchivo = @1,
       DocumentoImagenDocumentoBlobTipoArchivo = @2,
-        DocumentoImagenParametroId = @3,
-        DocumentoImagenParametroDirectorioId = @4
-      WHERE PersonalId = @0`,
-      [personalId, newFieldname, type, parametro, 1]
+      DocumentoImagenParametroId = @3,
+      DocumentoImagenParametroDirectorioId = @4
+      WHERE PersonalId = @0
+    `, [personalId, newFieldname, type, parametro, 1]
+    )
+  }
+
+  async setImagenEstudio(queryRunner:any, personalId:any, file:any) {
+    const type = file.mimeType.split('/')[1]
+    const fieldname = file.fieldname
+    let estudio = await queryRunner.query(`
+      SELECT est.DocumentoImagenEstudioId estudioId, dir.DocumentoImagenParametroDirectorioPath
+      JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = est.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  est.DocumentoImagenParametroId
+      JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = est.DocumentoImagenParametroId
+      FROM DocumentoImagenEstudio est WHERE est.PersonalId IN (@0)
+      `, [personalId])
+    if (!estudio.length) {
+      await queryRunner.query(`
+        INSERT INTO DocumentoImagenEstudio (
+        PersonalId,
+        DocumentoImagenEstudioBlobTipoArchivo,
+        DocumentoImagenParametroId,
+        DocumentoImagenParametroDirectorioId
+        )
+        VALUES(@0,@1,@2,@3)
+      `, [personalId,type,14,1])
+      estudio = await queryRunner.query(`
+        SELECT est.DocumentoImagenEstudioId estudioId, dir.DocumentoImagenParametroDirectorioPath
+        JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = est.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  est.DocumentoImagenParametroId
+        JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = est.DocumentoImagenParametroId
+        FROM DocumentoImagenEstudio est WHERE est.PersonalId IN (@0)
+      `,[personalId])
+    }
+    
+    const estudioId = estudio[0].estudioId
+    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
+    const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
+    const newFieldname = `${personalId}-${estudioId}-CERESTPAG1`
+    const newFilePath = `${pathArchivos}/${estudio[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${newFieldname}.${type}`;
+    this.moveFile(dirFile, newFilePath);
+    await queryRunner.query(`
+      UPDATE DocumentoImagenEstudio SET
+      DocumentoImagenEstudioBlobNombreArchivo = @1,
+      DocumentoImagenEstudioBlobTipoArchivo = @2,
+      DocumentoImagenParametroId = @3,
+      DocumentoImagenParametroDirectorioId = @4
+      WHERE PersonalId IN (@0)`,
+      [personalId, newFieldname, type, 14, 1]
+    )
+    await queryRunner.query(`UPDATE PersonalEstudio SET PersonalEstudioPagina1Id = @0 WHERE PersonalId IN (@1)`,
+      [estudioId, personalId]
     )
   }
 
@@ -1062,6 +1134,7 @@ export class PersonalController extends BaseController {
     const estadoEstudioId = estudio.EstadoEstudioId
     const estudioTitulo = estudio.EstudioTitulo
     const estudioAno = estudio.EstudioAno
+    const docTitulo = estudio.DocTitulo[0]
     await queryRunner.query(`
       UPDATE PersonalEstudio SET
       TipoEstudioId = @2,
@@ -1072,6 +1145,9 @@ export class PersonalController extends BaseController {
       `,[
         PersonalId, PersonalEstudioId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAno
     ])
+    if (docTitulo) {
+      await this.setImagenEstudio(queryRunner, PersonalId, docTitulo)
+    }
   }
 
   async updatePersonalEmail(queryRunner:any, personaId:any, infoEmail:any){
