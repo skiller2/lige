@@ -212,7 +212,7 @@
         </nz-select> 
         @if (!formCus.value.fecha_liquidacion) { 
           @if (mesLiquidacion() != mes() || anioLiquidacion() != anio()) {
-            <span nzStatus="error"><strong>Atención, a liquidar en {{mes()}}/{{ anio()}}</strong></span>
+            <span nz-typography nzType="warning"><strong>Atención, a liquidar en {{mes()}}/{{ anio()}}</strong></span>
           } @else {
             <span>A liquidar en {{mes()}}/{{anio()}}</span>
           }

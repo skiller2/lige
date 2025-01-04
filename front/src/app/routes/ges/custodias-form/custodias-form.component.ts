@@ -10,6 +10,7 @@ import { firstValueFrom } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
+import { NzTypographyModule } from 'ng-zorro-antd/typography';
 
 
 @Component({
@@ -18,7 +19,7 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
     styleUrls: ['./custodias-form.component.less'],
     standalone: true,
     encapsulation: ViewEncapsulation.None,
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, NzAutocompleteModule],
+    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, NzAutocompleteModule,NzTypographyModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
 
 })
