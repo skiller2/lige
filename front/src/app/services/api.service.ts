@@ -7,7 +7,7 @@ import { error } from 'pdf-lib';
 import { DownloadService } from './download.service';
 import { formatNumber } from '@angular/common';
 import { collectionFormatter, ExternalResource, FieldType, Formatters,Column, Editors } from '@slickgrid-universal/common';
-import { AngularUtilService, GridOption } from 'angular-slickgrid';
+import { AngularUtilService, Formatter, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { HttpContext } from '@angular/common/http';
 import { ALLOW_ANONYMOUS } from '@delon/auth';
@@ -312,6 +312,11 @@ export class ApiService {
     );
   }
 
+  customDateTimeFormatter: Formatter<any> = (_row: number, _cell: number, value: any) => {
+    //return new Date(value).toLocaleDateString()+' '+new Date(value).toLocaleTimeString();
+    return new Date(value).toLocaleString()
+  };
+
   getCols(url: string) {
     return this.http.get<any>(url).pipe(
       map((res: any) => {
@@ -325,9 +330,11 @@ export class ApiService {
             col.formatter= Formatters['complexObject']
 
           if (col.type == 'dateTime') {
-            col.formatter = Formatters['dateTimeShortEuro']
+            // col.formatter = Formatters['dateTimeShortEuro']
+            col.formatter = this.customDateTimeFormatter
             col.editor = { model: Editors['date'] }
             col.cssClass = 'text-right'
+            //col.params.parseDateAsUtc = true
           } else 
             
           if (col.type == 'date') {
