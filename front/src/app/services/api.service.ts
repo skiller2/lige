@@ -5,7 +5,7 @@ import { Observable, catchError, combineLatest, debounceTime, defer, filter, map
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { error } from 'pdf-lib';
 import { DownloadService } from './download.service';
-import { formatNumber } from '@angular/common';
+import { formatDate, formatNumber } from '@angular/common';
 import { collectionFormatter, ExternalResource, FieldType, Formatters,Column, Editors } from '@slickgrid-universal/common';
 import { AngularUtilService, Formatter, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -17,6 +17,8 @@ import { ALLOW_ANONYMOUS } from '@delon/auth';
   providedIn: 'root',
 })
 export class ApiService {
+  constructor(private http: _HttpClient, private injector: Injector, @Inject(LOCALE_ID) public locale: string) { }
+  
   processCBUFile(files: never[], fechaDesde: Date, banco_id: number): Observable<unknown> {
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/procesacbu', { files,fechaDesde,banco_id }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
@@ -126,8 +128,6 @@ export class ApiService {
   isMobile(): boolean {
     return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
   }
-
-  constructor(private http: _HttpClient, private injector: Injector, @Inject(LOCALE_ID) public locale: string) { }
 
   private get notification(): NzNotificationService {
     return this.injector.get(NzNotificationService);
@@ -313,8 +313,7 @@ export class ApiService {
   }
 
   customDateTimeFormatter: Formatter<any> = (_row: number, _cell: number, value: any) => {
-    //return new Date(value).toLocaleDateString()+' '+new Date(value).toLocaleTimeString();
-    return new Date(value).toLocaleString()
+    return formatDate(value, 'dd/MM/yyyy hh:mm', this.locale)
   };
 
   getCols(url: string) {
