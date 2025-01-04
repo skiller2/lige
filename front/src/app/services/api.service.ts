@@ -1,10 +1,8 @@
-import { Inject, Injectable, Injector, LOCALE_ID } from '@angular/core';
+import { inject, Injectable, Injector, LOCALE_ID } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
-import { DescuentoJSON, ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON';
-import { Observable, catchError, combineLatest, debounceTime, defer, filter, map, of, tap, throwError } from 'rxjs';
+import { ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON';
+import { Observable, catchError, defer, map, of, tap, throwError } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { error } from 'pdf-lib';
-import { DownloadService } from './download.service';
 import { formatDate, formatNumber } from '@angular/common';
 import { collectionFormatter, ExternalResource, FieldType, Formatters,Column, Editors } from '@slickgrid-universal/common';
 import { AngularUtilService, Formatter, GridOption } from 'angular-slickgrid';
@@ -17,7 +15,9 @@ import { ALLOW_ANONYMOUS } from '@delon/auth';
   providedIn: 'root',
 })
 export class ApiService {
-  constructor(private http: _HttpClient, private injector: Injector, @Inject(LOCALE_ID) public locale: string) { }
+  private http = inject(_HttpClient)
+  private injector = inject(Injector)
+  private locale = inject(LOCALE_ID)
   
   processCBUFile(files: never[], fechaDesde: Date, banco_id: number): Observable<unknown> {
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/procesacbu', { files,fechaDesde,banco_id }).pipe(
