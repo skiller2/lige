@@ -103,8 +103,10 @@ export class CustodiaFormComponent {
                 this.vehiculos().push(this.fb.group({...this.objVehiculo}))
 
             this.formCus.reset(infoCust)
-            this.onChangeCosto()
-            this.onChangeImpo()
+            setTimeout(() => {
+                this.onChangeCosto()
+                this.onChangeImpo()
+            }, 100)
         }
         
         if (this.edit()) {
@@ -193,24 +195,10 @@ export class CustodiaFormComponent {
     }
 
     onChangeImpo() {
-        const form = Object(this.formCus.value)
-        let facturacion: number = 0
-        for (const key in form) {
-            if (key.includes('impo') && form[key]) {
-                let auxKey = key.slice('impo'.length)
-                auxKey = 'cant' + auxKey
-                if (form[auxKey] !== undefined) {
-                    let cant = form[auxKey] ? form[auxKey] : 0
-                    let total = form[key] * cant
-                    if (total.toString().split('.')[1] && total.toString().split('.')[1].length > 2) {
-                        total = parseFloat((total).toFixed(2))
-                    }
-                    facturacion += total;
-                } else {
-                    facturacion += form[key];
-                }
-            }
-        }
+        const facturacion = parseFloat(( (this.formCus.value.cantModulos ?? 0) * (this.formCus.value.impoModulos ?? 0) +
+                            (this.formCus.value.cantHorasExced ?? 0) * (this.formCus.value.impoHorasExced ?? 0) +
+                            (this.formCus.value.cantKmExced ?? 0) * (this.formCus.value.impoKmExced ?? 0) +
+                            (this.formCus.value.impoPeaje ?? 0)).toFixed(2))
         this.formCus.controls['facturacion'].patchValue(facturacion)
         this.facturacion.set(facturacion)
     }

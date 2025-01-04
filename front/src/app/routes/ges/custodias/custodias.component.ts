@@ -50,6 +50,8 @@ export class CustodiaComponent {
     cantReg = signal(0)
     impTotal = signal(0)
     periodo = signal(new Date())
+    anio = computed(() => this.periodo()?.getFullYear())
+    mes = computed(() => this.periodo()?.getMonth()+1)
     selectedCli = signal<any[]>([])
     selectedCliInfo = signal<any[]>([])
     valueForm = signal<any[]>([])
