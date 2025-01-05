@@ -31,7 +31,7 @@ const columns: any[] = [
     type: "string",
     fieldName: "cuit.PersonalCUITCUILCUIT",
     sortable: true,
-    searchHidden: true,
+    searchHidden: false,
     hidden: false,
   },
   {
