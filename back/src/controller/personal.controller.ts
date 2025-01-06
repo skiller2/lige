@@ -1601,31 +1601,33 @@ export class PersonalController extends BaseController {
   }
 
   valPersonalForm(personalForm: any){
-    let errores: any[] = []
+    let campos_vacios: any[] = []
+
     if (!personalForm.Nombre) {
-        errores.push(`El campo Nombre NO pueden estar vacio.`)
+      campos_vacios.push(` Nombre`)
     }
     if (!personalForm.Apellido) {
-        errores.push(`El campo Apellido NO pueden estar vacio.`)
+      campos_vacios.push(` Apellido`)
     }
-    if (!Number.isInteger(personalForm.CUIT)) {
-        errores.push(`El campo CUIT NO pueden estar vacio.`)
+    if (!Number.isInteger(personalForm.CUIT)) { 
+      campos_vacios.push(` CUIT`)
     }
     if (!personalForm.SucursalId) {
-        errores.push(`El campo Sucursal NO pueden estar vacio.`)
+      campos_vacios.push(` Sucursal`)
     }
     if (!personalForm.NacionalidadId) {
-        errores.push(`El campo Nacionalidad NO pueden estar vacio.`)
+      campos_vacios.push(` Nacionalidad`)
     }
     if (!personalForm.Email) {
-      errores.push(`El campo Email NO pueden estar vacio.`)
+      campos_vacios.push(` Email`)
     }
     if (!personalForm.SituacionId) {
-      errores.push(`El campo Situacion de Revista NO pueden estar vacio.`)
+      campos_vacios.push(` Situacion de Revista`)
     }
 
-    if (errores.length) {
-        return new ClientException(errores)
+    if (campos_vacios.length) {
+      let msgError: any[] = ['Debe completar los siguientes campos:' + campos_vacios]
+      return new ClientException(msgError)
     }
   }
 
