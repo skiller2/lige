@@ -179,19 +179,26 @@ export class PreciosProductosController extends BaseController {
 
             const precios = await queryRunner.query(
                 `SELECT 
-                    CONCAT(prod.cod_producto,'-',vent.precio_venta_id) AS id,
+                    CONCAT(prod.cod_producto, '-', vent.precio_venta_id) AS id,
                     prod.cod_producto AS codigo, 
-                     prod.cod_producto AS codigoOld,
+                    prod.cod_producto AS codigoOld,
                     prod.des_producto AS descripcion,
                     prod.nom_producto AS nombre, 
                     prod.cod_tipo_producto AS TipoProductoId,
                     vent.importe AS importe,
-                    vent.precio_venta_id as  precioVentaId,
+                    vent.precio_venta_id AS precioVentaId,
                     FORMAT(vent.importe_desde, 'yyyy-MM-dd') AS desde,
-                    FORMAT(vent.importe_hasta, 'yyyy-MM-dd') AS hasta,
+                    FORMAT(
+                        CASE 
+                            WHEN CONVERT(DATE, vent.importe_hasta) IN ('9999-12-31', '9999-12-30') THEN NULL 
+                            ELSE vent.importe_hasta 
+                        END, 
+                        'yyyy-MM-dd'
+                    ) AS hasta,
                     vent.SucursalId
                 FROM lige.dbo.lpv_productos prod
-                INNER JOIN lige.dbo.lpv_precio_venta vent ON prod.cod_producto = vent.cod_producto
+                INNER JOIN lige.dbo.lpv_precio_venta vent 
+                    ON prod.cod_producto = vent.cod_producto
               WHERE ${filterSql} ;`, [fechaActual])
 
             this.jsonRes(
@@ -251,9 +258,10 @@ export class PreciosProductosController extends BaseController {
                     `, [ params.precioVentaId,importeDesde, importeHasta, fechaActual, usuario, ip, params.SucursalId,])
                     
                 
-                if(importeOld !== params.importe){
+                if(importeOld !== params.importe &&  new Date(params.desde) < new Date()){
                     // el importe es diferente se agrega un registro
                     console.log("update -  agrego nuevo registro")
+                    
 
                     await this.addRecord(queryRunner,params,fechaActual, usuario, ip, params.SucursalId,importeHasta,importeDesde)
 
@@ -263,6 +271,9 @@ export class PreciosProductosController extends BaseController {
                     await queryRunner.query( `UPDATE lige.dbo.lpv_precio_venta SET importe_hasta = @1 WHERE precio_venta_id = @0
                         `, [params.precioVentaId, NewDate])
                     
+                }else{
+                    await queryRunner.query( `UPDATE lige.dbo.lpv_precio_venta SET importe = @1 WHERE precio_venta_id = @0`,
+                         [ params.precioVentaId,params.importe]) 
                 }
                 dataResultado = {action:'U'}
                 message = "Actualizacion exitosa"
@@ -378,13 +389,13 @@ export class PreciosProductosController extends BaseController {
 
             let result = await queryRunner.query( `SELECT TOP 1 importe_hasta FROM lige.dbo.lpv_precio_venta WHERE cod_producto = @0 ORDER BY importe_hasta DESC`, [params.codigo])
             
-            if (result && result.length > 0) {
+            if (result && result.length > 1) {
 
                 const fechaEspecial = new Date('9999-12-31');
 
                 if (new Date(result[0].importe_hasta).getTime() !== fechaEspecial.getTime())
                     if( new Date(params.desde) < new Date(result[0].importe_hasta))
-                        throw new ClientException(`La fecha "desde" no puede ser menor a la fecha "hasta" de un registro ya creado`);
+                        throw new ClientException(`'No se podra modificar precios que no sean vigentes`);
 
             }
         } 
