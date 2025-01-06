@@ -2,7 +2,7 @@
 [nzTitle]="'Historial de Situacion de Revista: '  + PersonalNombre()" (nzOnClose)="visibleSitRevista.set(false)">
   <ng-container *nzDrawerContent>
 
-    <nz-card nzType="inner" nzTitle="Agregar Nueva Situacion de Revista">
+    <nz-card nzType="inner" nzTitle="Agregar Nueva Situacion de Revista" >
       <form [formGroup]="formSitRevista">
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Situacion de Revista</nz-form-label>
@@ -38,7 +38,7 @@
         </nz-form-control>
       </nz-form-item>
 
-      </form>
+    </form>
     </nz-card>
 
     <nz-form-control *ngIf="$listaSitRevistaPer | async as listaSitRevistaPer ">

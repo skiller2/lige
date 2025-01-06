@@ -115,7 +115,7 @@ const columns: any[] = [
   },
 ]
 
-const sitRevistaInvalida:any[] = [
+const sitRevistaInvalido:any[] = [
   {SituacionRevistaId:9, Descripcion: 'ART42'},
   {SituacionRevistaId:10, Descripcion: 'LICENCIA'},
   {SituacionRevistaId:16, Descripcion: 'LICENCIA CON RENUNCIA'},
@@ -1443,7 +1443,8 @@ export class PersonalController extends BaseController {
       const listSitRevista = await dataSource.query(
         `SELECT sitrev.PersonalSituacionRevistaId,
         TRIM(sit.SituacionRevistaDescripcion) Descripcion, TRIM(sitrev.PersonalSituacionRevistaMotivo) Motivo,
-        sitrev.PersonalSituacionRevistaDesde Desde, sitrev.PersonalSituacionRevistaHasta Hasta
+        sitrev.PersonalSituacionRevistaDesde Desde, sitrev.PersonalSituacionRevistaHasta Hasta,
+        PersonalSituacionRevistaSituacionId SituacionRevistaId
         FROM PersonalSituacionRevista sitrev 
         LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
         WHERE sitrev.PersonalId IN (@0)
@@ -1451,6 +1452,14 @@ export class PersonalController extends BaseController {
         `, [personalId])
       
       this.jsonRes(listSitRevista, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getSituacionRevistaInvalidos(req: any, res: Response, next: NextFunction) {
+    try {
+      this.jsonRes(sitRevistaInvalido, res);
     } catch (error) {
       return next(error)
     }
@@ -1464,7 +1473,7 @@ export class PersonalController extends BaseController {
     let yesterday:Date = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
 
-    let find:any = sitRevistaInvalida.find((obj:any) => {return situacionId == obj.SituacionRevistaId})
+    let find:any = sitRevistaInvalido.find((obj:any) => {return situacionId == obj.SituacionRevistaId})
     if (find) {
       return new ClientException(`La Situacion de Revista ${find.Descripcion} no se puede cargar desde éste formulario.`)
     }
