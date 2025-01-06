@@ -2554,9 +2554,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const objetivoId = req.params.ObjetivoId;
       const anio = req.params.anio;
       const mes = req.params.mes;
-
       const listado = await this.getAccessControlAsistance(anio, mes)
-      const listadoProcessed = []
+      const listadoProcessed = {}
       for (const personal of listado) {
         for (const day of personal.detailInfo) {
           const dayNum = new Date(day.dateTime).getDate() + 1
@@ -2570,11 +2569,23 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
             if (diffMins % 60 >15 ) diffHours += 0.5 
             if (diffMins % 60 >45 ) diffHours += 0.5 
 
-            if (diffHours>0)
-              listadoProcessed.push({ CUIT:personal.employeeNo, dayNum, diffHours,diffTime:this.minsToHourMins(diffMins), inTime:this.minsToHourMins(minMinsMidnight), outTime:this.minsToHourMins(maxMinsMidnight) })
+            if (diffHours > 0) {
+//              listadoProcessed.push({ CUIT: personal.employeeNo, dayNum, diffHours, diffTime: this.minsToHourMins(diffMins), inTime: this.minsToHourMins(minMinsMidnight), outTime: this.minsToHourMins(maxMinsMidnight) })
+              listadoProcessed[personal.employeeNo] = { ...listadoProcessed[personal.employeeNo], ['day'+dayNum]: this.minsToHourMins(diffMins) }
+             
+            }
           }
         }
       }
+
+      let personalCuits = await queryRunner.query(`SELECT DISTINCT cuit.PersonalId, cuit.PersonalCUITCUILCUIT FROM PersonalCUITCUIL cuit WHERE cuit.PersonalCUITCUILCUIT IN ('${Object.keys(listadoProcessed).join('\',\'')}')`)
+      if (personalCuits.length != Object.keys(listadoProcessed).length) {
+        const result = Object.keys(listadoProcessed).filter((cuit: any) => !personalCuits.some((p: any) => p.PersonalCUITCUILCUIT === cuit))
+        throw new ClientException(`No se encontraron los CUITs ${result.join(', ')}`)
+      }
+
+
+      
 
       this.jsonRes(listadoProcessed, res);
     } catch (error) {

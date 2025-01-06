@@ -92,7 +92,7 @@ const listaColumnas: any[] = [
         type: "string",
         id: "SucursalDescripcion",
         field: "SucursalDescripcion",
-        fieldName: "suc.SucursalDescripcion",
+        fieldName: "suc.SucursalId",
         searchComponent:"inpurForSucursalSearch",
         sortable: true,
         hidden: false,

@@ -26,7 +26,7 @@
     ],
     "paths": {
       "@shared": [
-        "src/app/shared/index"
+        "src/app/shared"
       ],
       "@core": [
         "src/app/core/index"
