@@ -15,7 +15,7 @@
       </li>
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'cust', 'detalle']" (click)="setEdit(false)">Detalle</a>
+        <a [routerLink]="['/', 'ges', 'cust', 'detalle']">Detalle</a>
       </li>
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
@@ -25,7 +25,7 @@
     
     <nz-button-group>
       <button nz-button nzType="default" [disabled]="editCustodiaId()? false : true"
-        [routerLink]="['/', 'ges', 'cust','detalle']" (click)="setEdit(true)"  nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit"
+        [routerLink]="['/', 'ges', 'cust','editar']" (click)="setEdit(true)"  nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit"
           nzTheme="outline"></span></button>
       <button nz-button nzType="default" (click)="setEdit(true); angularGrid.slickGrid.setSelectedRows([])"
         [routerLink]="['/', 'ges', 'cust','alta']" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
@@ -56,7 +56,7 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/cust/detalle">Detalle</a>
       <ng-template nz-tab>
-        <app-custodias-form #custodiaFormDeta [custodiaId]="editCustodiaId()" [edit]="edit() && estado()" [anio]="anio()" [mes]="mes()"></app-custodias-form>
+        <app-custodias-form #custodiaFormDetalle [custodiaId]="editCustodiaId()" [edit]="false" [anio]="anio()" [mes]="mes()"></app-custodias-form>
       </ng-template>
     </nz-tab>
 
@@ -64,6 +64,13 @@
       <a nz-tab-link routerLink="/ges/cust/alta">Alta</a>
       <ng-template nz-tab>
         <app-custodias-form #custodiaFormAlta [custodiaId]="editCustodiaId()" [edit]="true" [anio]="anio()" [mes]="mes()"></app-custodias-form>
+      </ng-template>
+    </nz-tab>
+
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/cust/editar">Editar</a>
+      <ng-template nz-tab>
+        <app-custodias-form #custodiaFormEditar [custodiaId]="editCustodiaId()" [edit]="edit() && estado()" [anio]="anio()" [mes]="mes()"></app-custodias-form>
       </ng-template>
     </nz-tab>
 

@@ -70,7 +70,8 @@ export class CustodiaComponent {
     private injector = inject(Injector)
 
     childAlta = viewChild.required<CustodiaFormComponent>('custodiaFormAlta')
-    childDeta = viewChild.required<CustodiaFormComponent>('custodiaFormDeta')
+    childDetalle = viewChild.required<CustodiaFormComponent>('custodiaFormDetalle')
+    childEditar = viewChild.required<CustodiaFormComponent>('custodiaFormEditar')
 
     columns$ = this.apiService.getCols('/api/custodia/cols')
     $optionsEstadoCust = this.searchService.getEstadoCustodia();
@@ -276,10 +277,13 @@ export class CustodiaComponent {
         console.log("_event.index ", _event.index)
         switch (_event.index) {
           case 1: //EDIT
-            this.childDeta().load()
+            this.childDetalle().load()
             break;
           case 2: //ALTA
             this.childAlta().reset()
+            break;
+          case 3: //Editar
+            this.childEditar().load()
             break;
             default:
             break;
