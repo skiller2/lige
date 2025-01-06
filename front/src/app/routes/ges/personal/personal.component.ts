@@ -88,7 +88,9 @@ export class PersonalComponent {
       // this.gridOptions.rowSelectionOptions = {
       //     selectActiveRow: true
       // }
-      this.startFilters = [{field:'SituacionRevistaId', condition:'AND', operator:'=', value:'2', forced:false}]
+      this.startFilters = [
+        {field:'SituacionRevistaId', condition:'AND', operator:'=', value:'2;10;11', forced:false},
+      ]
   }
 
   async angularGridReady(angularGrid: any) {

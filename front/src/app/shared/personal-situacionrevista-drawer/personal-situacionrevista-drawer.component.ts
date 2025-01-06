@@ -28,6 +28,7 @@ export class PersonalSituacionRevistaDrawerComponent {
     visibleSitRevista = model<boolean>(false)
     periodo = signal({ year: 0, month: 0 });
     placement: NzDrawerPlacement = 'left';
+    noOptions = signal<any[]>([])
 
     constructor(
         private searchService: SearchService,
@@ -56,6 +57,10 @@ export class PersonalSituacionRevistaDrawerComponent {
             return this.searchService.getHistoriaSituacionRevistaPersona(
                 Number(this.PersonalId())
             ).pipe(map(data => {
+                let find = this.noOptions().find((obj:any) => {return obj.SituacionRevistaId == data[0].SituacionRevistaId})
+                if (find){ this.formSitRevista.disable()}
+                else { this.formSitRevista.enable() }
+
                 data.map((obj:any) =>{
                     let inicio = new Date(obj.Desde)
                     let fin = obj.Hasta? new Date(obj.Hasta) : null
@@ -68,6 +73,8 @@ export class PersonalSituacionRevistaDrawerComponent {
     );
 
     async ngOnInit(){
+        const sitRevistaNoOptions = await firstValueFrom(this.searchService.getSitRevistaNoOptions())
+        this.noOptions.set(sitRevistaNoOptions)
         this.selectedPersonalIdChange$.next('');
     }
 

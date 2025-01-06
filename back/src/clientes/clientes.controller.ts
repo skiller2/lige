@@ -23,7 +23,7 @@ export class ClientesController extends BaseController {
         },
         {
             name: "CUIT",
-            type: "number",
+            type: "string",
             id: "ClienteFacturacionCUIT",
             field: "ClienteFacturacionCUIT",
             fieldName: "fac.ClienteFacturacionCUIT",
