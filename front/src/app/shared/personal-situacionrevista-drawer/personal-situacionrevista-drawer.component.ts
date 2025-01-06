@@ -28,13 +28,14 @@ export class PersonalSituacionRevistaDrawerComponent {
     visibleSitRevista = model<boolean>(false)
     periodo = signal({ year: 0, month: 0 });
     placement: NzDrawerPlacement = 'left';
+    noOptions = signal<any[]>([])
 
     constructor(
         private searchService: SearchService,
         private apiService: ApiService,
-        private router: Router,
-        private route: ActivatedRoute,
-        private settingService: SettingsService,
+        // private router: Router,
+        // private route: ActivatedRoute,
+        // private settingService: SettingsService,
     ) { }
     private destroy$ = new Subject();
 
@@ -42,7 +43,7 @@ export class PersonalSituacionRevistaDrawerComponent {
 
     fb = inject(FormBuilder)
     formSitRevista = this.fb.group({
-        SituacionId: 0, Motivo:'', Desde:'',
+        SituacionId: 0, Motivo:'', Desde:new Date()
     })
 
     $optionsSitRevista = this.searchService.getSitRevistaOptions();
@@ -56,6 +57,10 @@ export class PersonalSituacionRevistaDrawerComponent {
             return this.searchService.getHistoriaSituacionRevistaPersona(
                 Number(this.PersonalId())
             ).pipe(map(data => {
+                let find = this.noOptions().find((obj:any) => {return obj.SituacionRevistaId == data[0].SituacionRevistaId})
+                if (find){ this.formSitRevista.disable()}
+                else { this.formSitRevista.enable() }
+
                 data.map((obj:any) =>{
                     let inicio = new Date(obj.Desde)
                     let fin = obj.Hasta? new Date(obj.Hasta) : null
@@ -68,6 +73,8 @@ export class PersonalSituacionRevistaDrawerComponent {
     );
 
     async ngOnInit(){
+        const sitRevistaNoOptions = await firstValueFrom(this.searchService.getSitRevistaNoOptions())
+        this.noOptions.set(sitRevistaNoOptions)
         this.selectedPersonalIdChange$.next('');
     }
 

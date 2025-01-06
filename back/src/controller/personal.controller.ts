@@ -115,6 +115,15 @@ const columns: any[] = [
   },
 ]
 
+const sitRevistaInvalido:any[] = [
+  {SituacionRevistaId:9, Descripcion: 'ART42'},
+  {SituacionRevistaId:10, Descripcion: 'LICENCIA'},
+  {SituacionRevistaId:16, Descripcion: 'LICENCIA CON RENUNCIA'},
+  {SituacionRevistaId:18, Descripcion: 'LICENCIA POR ANTECEDENTES'},
+  {SituacionRevistaId:23, Descripcion: 'ART 42 - AP 5'},
+  {SituacionRevistaId:28, Descripcion: 'LICENCIA PARCIAL'},
+]
+
 export class PersonalController extends BaseController {
 
   async getPersonalMonotributo(req: any, res: Response, next: NextFunction) {
@@ -673,7 +682,8 @@ export class PersonalController extends BaseController {
 
       if (Email) await this.addPersonalEmail(queryRunner, PersonalId, Email)
       
-      await this.setSituacionRevistaQuery(queryRunner, PersonalId, sitRevista)
+      const sitRevist = await this.setSituacionRevistaQuery(queryRunner, PersonalId, sitRevista)
+      if (sitRevist instanceof ClientException) errors.push(`${sitRevist.messageArr}`)
 
       for (const telefono of telefonos){
         if (telefono.TelefonoNum) {
@@ -1433,7 +1443,8 @@ export class PersonalController extends BaseController {
       const listSitRevista = await dataSource.query(
         `SELECT sitrev.PersonalSituacionRevistaId,
         TRIM(sit.SituacionRevistaDescripcion) Descripcion, TRIM(sitrev.PersonalSituacionRevistaMotivo) Motivo,
-        sitrev.PersonalSituacionRevistaDesde Desde, sitrev.PersonalSituacionRevistaHasta Hasta
+        sitrev.PersonalSituacionRevistaDesde Desde, sitrev.PersonalSituacionRevistaHasta Hasta,
+        PersonalSituacionRevistaSituacionId SituacionRevistaId
         FROM PersonalSituacionRevista sitrev 
         LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
         WHERE sitrev.PersonalId IN (@0)
@@ -1446,31 +1457,42 @@ export class PersonalController extends BaseController {
     }
   }
 
+  async getSituacionRevistaInvalidos(req: any, res: Response, next: NextFunction) {
+    try {
+      this.jsonRes(sitRevistaInvalido, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
   async setSituacionRevistaQuery(queryRunner: any, personalId: number, situacion: any){
     const situacionId = situacion.SituacionId
     const motivo = situacion.Motivo
-    let desde = new Date(situacion.Desde)
+    let desde:Date = new Date(situacion.Desde)
     desde.setHours(0, 0, 0, 0)
     let yesterday:Date = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
 
-    let sitRevistaId = await queryRunner.query(`
-      SELECT ISNULL(MAX(sitrev.PersonalSituacionRevistaId), 0) PersonalSituacionRevistaId
+    let find:any = sitRevistaInvalido.find((obj:any) => {return situacionId == obj.SituacionRevistaId})
+    if (find) {
+      return new ClientException(`La Situacion de Revista ${find.Descripcion} no se puede cargar desde éste formulario.`)
+    }
+
+    let sitRevista = await queryRunner.query(`
+      SELECT PersonalSituacionRevistaId, PersonalSituacionRevistaDesde Desde, PersonalSituacionRevistaMotivo Motivo
       FROM PersonalSituacionRevista sitrev
       WHERE sitrev.PersonalId IN (@0) AND PersonalSituacionRevistaHasta IS NULL
       `, [personalId]
     )
-    sitRevistaId = sitRevistaId[0].PersonalSituacionRevistaId
+    let sitRevistaId = sitRevista[0].PersonalSituacionRevistaId? sitRevista[0].PersonalSituacionRevistaId : 0
 
     if (sitRevistaId) {
-      let sitRevistaActual = await queryRunner.query(`
-        SELECT PersonalSituacionRevistaDesde, PersonalSituacionRevistaMotivo, PersonalSituacionRevistaSituacionId
-        FROM PersonalSituacionRevista
-        WHERE PersonalSituacionRevistaId = @0
-        `, [sitRevistaId]
-      )
-      sitRevistaActual = sitRevistaActual[0]
-      if (sitRevistaActual.desde == desde) {
+      let sitRevistaActual = sitRevista[0]
+      const sitRevistaActualDesde:Date = new Date(sitRevistaActual.Desde)
+      if (sitRevistaActualDesde.getTime() > desde.getTime())
+        return new ClientException(`La fecha Desde tiene que ser mayor o igual que la fecha Desde de la ultima Situacion de Revista.`)
+
+      if (sitRevistaActualDesde.getTime() == desde.getTime()) {
         await queryRunner.query(`
           UPDATE PersonalSituacionRevista SET
           PersonalSituacionRevistaDesde = @2,
@@ -1486,7 +1508,7 @@ export class PersonalController extends BaseController {
         UPDATE PersonalSituacionRevista SET
         PersonalSituacionRevistaHasta = @2
         WHERE PersonalId IN (@0) AND PersonalSituacionRevistaId = @1
-        `, [personalId, sitRevistaId, situacionId]
+        `, [personalId, sitRevistaId, yesterday]
       )
     }
     sitRevistaId++
@@ -1514,15 +1536,23 @@ export class PersonalController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const personalId:number = Number(req.params.id);
     const situacionId = req.body.SituacionId
-    
+    const desde = req.body.Desde
+    let error:any = []
     try {
       await queryRunner.startTransaction()
 
       if (!situacionId) {
-        throw new ClientException(`Situacion de Revista invalido.`);
+        error.push(`La Situacion de Revista es invalido.`);
+      }
+      if (!desde) {
+        error.push(`EL campo Desde no puede estar vacio.`);
+      }
+      if (error.length) {
+        throw new ClientException(error);
       }
 
-      await this.setSituacionRevistaQuery(queryRunner, personalId, req.body)
+      const sitRevist = await this.setSituacionRevistaQuery(queryRunner, personalId, req.body)
+      if (sitRevist instanceof ClientException) throw sitRevist
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
