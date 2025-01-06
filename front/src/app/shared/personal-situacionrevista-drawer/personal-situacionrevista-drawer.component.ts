@@ -32,9 +32,9 @@ export class PersonalSituacionRevistaDrawerComponent {
     constructor(
         private searchService: SearchService,
         private apiService: ApiService,
-        private router: Router,
-        private route: ActivatedRoute,
-        private settingService: SettingsService,
+        // private router: Router,
+        // private route: ActivatedRoute,
+        // private settingService: SettingsService,
     ) { }
     private destroy$ = new Subject();
 
@@ -42,7 +42,7 @@ export class PersonalSituacionRevistaDrawerComponent {
 
     fb = inject(FormBuilder)
     formSitRevista = this.fb.group({
-        SituacionId: 0, Motivo:'', Desde:'',
+        SituacionId: 0, Motivo:'', Desde:new Date()
     })
 
     $optionsSitRevista = this.searchService.getSitRevistaOptions();
