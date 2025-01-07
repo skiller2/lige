@@ -678,7 +678,8 @@ export class PersonalController extends BaseController {
 
       await this.addPersonalCUITCUILQuery(queryRunner, PersonalId, CUIT, now)
 
-      await this.addPersonalDomicilio(queryRunner, req.body, PersonalId)
+      if(req.body.Calle || req.body.Nro || req.body.Piso || req.body.Dpto || req.body.CodigoPostal || req.body.PaisId)
+        await this.addPersonalDomicilio(queryRunner, req.body, PersonalId)
 
       if (Email) await this.addPersonalEmail(queryRunner, PersonalId, Email)
       
@@ -1472,6 +1473,7 @@ export class PersonalController extends BaseController {
     desde.setHours(0, 0, 0, 0)
     let yesterday:Date = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
+    let sitRevistaId = 0
 
     let find:any = sitRevistaInvalido.find((obj:any) => {return situacionId == obj.SituacionRevistaId})
     if (find) {
@@ -1484,7 +1486,7 @@ export class PersonalController extends BaseController {
       WHERE sitrev.PersonalId IN (@0) AND PersonalSituacionRevistaHasta IS NULL
       `, [personalId]
     )
-    let sitRevistaId = sitRevista[0].PersonalSituacionRevistaId? sitRevista[0].PersonalSituacionRevistaId : 0
+    if (sitRevista.length) sitRevistaId = sitRevista[0].PersonalSituacionRevistaId
 
     if (sitRevistaId) {
       let sitRevistaActual = sitRevista[0]
