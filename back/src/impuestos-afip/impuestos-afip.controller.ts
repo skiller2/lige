@@ -1196,4 +1196,35 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
     return newPdf.save();
   }
+
+  async downloadImpuestoAFIP(req:any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
+    const DocumentoImagenImpuestoAFIPId = req.params.id
+    try {
+      const ds = await queryRunner
+        .query(`
+          SELECT pdf.PersonalId, dir.DocumentoImagenParametroDirectorioPath, pdf.DocumentoImagenImpuestoAFIPBlobNombreArchivo,
+          par.DocumentoImagenParametroDe
+          FROM DocumentoImagenImpuestoAFIP pdf
+          JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = pdf.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  pdf.DocumentoImagenParametroId
+          JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = pdf.DocumentoImagenParametroId
+          WHERE pdf.DocumentoImagenImpuestoAFIPId IN (@0)`,
+          [DocumentoImagenImpuestoAFIPId]
+        )
+
+      if (ds.length == 0)
+        throw new ClientException(`Documento no existe para la persona`);
+
+      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo}`;
+
+      if (!existsSync(downloadPath))
+        throw new ClientException(`El archivo ${ds[0].DocumentoImagenParametroDe} no existe`,{'path':downloadPath});
+
+      res.download(downloadPath, ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo, (msg) => {});
+
+    } catch (error) {
+      return next(error)
+    }
+  }
 }

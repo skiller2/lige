@@ -80,12 +80,8 @@ personalRouter.get(`${base}/documentos/:personalId`, [authMiddleware.verifyToken
   personalController.getDocumentosByPersonalId(req, res, next);
 });
 
-personalRouter.get("/download/foto/:id?", authMiddleware.verifyToken,(req, res,next) => {
-  personalController.downloadPersonaFoto(req,  res, next );
-});
-
-personalRouter.get("/download/documento/:id?", authMiddleware.verifyToken,(req, res,next) => {
-  personalController.downloadPersonaDocumento(req, res, next );
+personalRouter.get("/download/:table/:id", authMiddleware.verifyToken,(req, res,next) => {
+  personalController.downloadPersonaDocumentoImagen(req,  res, next );
 });
 
 personalRouter.get(`${base}/downloadImagen/:personalId`, (req, res,next) => {

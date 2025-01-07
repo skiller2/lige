@@ -1636,33 +1636,88 @@ export class PersonalController extends BaseController {
   async getDocumentosByPersonalId(req: any, res: Response, next: NextFunction){
     const queryRunner = dataSource.createQueryRunner();
     const personalId:number = Number(req.params.personalId);
-    const fechaActual = new Date();
+    // const fechaActual = new Date();
     try {
       // await queryRunner.startTransaction()
 
       const documentos = await queryRunner.query(`
         SELECT foto.DocumentoImagenFotoId docId, foto.DocumentoImagenFotoBlobNombreArchivo NombreArchivo,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
-        CONCAT('/api/personal/download/foto/', foto.DocumentoImagenFotoId) url
+        CONCAT('/api/personal/download/Foto/', foto.DocumentoImagenFotoId) url
         FROM DocumentoImagenFoto foto
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
         WHERE foto.PersonalId IN (@0)
         UNION ALL
         SELECT doc.DocumentoImagenDocumentoId docId, doc.DocumentoImagenDocumentoBlobNombreArchivo NombreArchivo,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
-        CONCAT('/api/personal/download/documento/', doc.DocumentoImagenDocumentoId) url
+        CONCAT('/api/personal/download/Documento/', doc.DocumentoImagenDocumentoId) url
         FROM DocumentoImagenDocumento doc
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
         WHERE doc.PersonalId IN (@0)
         UNION ALL
+        SELECT CUIT.DocumentoImagenCUITCUILId docId, CUIT.DocumentoImagenCUITCUILBlobNombreArchivo NombreArchivo,
+        param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
+        CONCAT('/api/personal/download/CUITCUIL/', CUIT.DocumentoImagenCUITCUILId) url
+        FROM DocumentoImagenCUITCUIL CUIT
+        LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = CUIT.DocumentoImagenParametroId
+        WHERE CUIT.PersonalId IN (@0)
+        UNION ALL
         SELECT afip.DocumentoImagenImpuestoAFIPId docId, afip.DocumentoImagenImpuestoAFIPBlobNombreArchivo NombreArchivo,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
-        CONCAT('/api/impuestos_afip/downloadF184/', @0) url
-        FROM PersonalImpuestoAFIP mono
-        JOIN DocumentoImagenImpuestoAFIP afip ON afip.PersonalId = mono.PersonalId AND afip.DocumentoImagenImpuestoAFIPId = mono.PersonalImpuestoAFIPDocumentoF184Id
+        CONCAT('/api/impuestos_afip/documento/download/', afip.DocumentoImagenImpuestoAFIPId) url
+        FROM DocumentoImagenImpuestoAFIP afip
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = afip.DocumentoImagenParametroId
-        WHERE mono.PersonalId IN (@0) AND mono.PersonalImpuestoAFIPDesde<=@1 AND ISNULL(mono.PersonalImpuestoAFIPHasta,'9999-12-31') >= @1
-        `, [personalId,fechaActual]
+        WHERE afip.PersonalId IN (@0) 
+        UNION ALL
+        SELECT curso.DocumentoImagenCursoId docId, curso.DocumentoImagenCursoBlobNombreArchivo NombreArchivo,
+        param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
+        CONCAT('/api/personal/download/Curso/', curso.DocumentoImagenCursoId) url
+        FROM DocumentoImagenCurso curso
+        LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = curso.DocumentoImagenParametroId
+        WHERE curso.PersonalId IN (@0)
+        UNION ALL
+        SELECT habil.DocumentoImagenHabilitacionId docId, habil.DocumentoImagenHabilitacionBlobNombreArchivo NombreArchivo,
+        param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
+        CONCAT('/api/personal/download/Habilitacion/', habil.DocumentoImagenHabilitacionId) url
+        FROM DocumentoImagenHabilitacion habil
+        LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = habil.DocumentoImagenParametroId
+        WHERE habil.PersonalId IN (@0)
+        UNION ALL
+        SELECT psi.DocumentoImagenPsicofisicoId docId, psi.DocumentoImagenPsicofisicoBlobNombreArchivo NombreArchivo,
+        param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
+        CONCAT('/api/personal/download/Psicofisico/', psi.DocumentoImagenPsicofisicoId) url
+        FROM DocumentoImagenPsicofisico psi
+        LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = psi.DocumentoImagenParametroId
+        WHERE psi.PersonalId IN (@0)
+        UNION ALL
+        SELECT ren.DocumentoImagenRenarId docId, ren.DocumentoImagenRenarBlobNombreArchivo NombreArchivo,
+        param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
+        CONCAT('/api/personal/download/Renar/', ren.DocumentoImagenRenarId) url
+        FROM DocumentoImagenRenar ren
+        LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = ren.DocumentoImagenParametroId
+        WHERE ren.PersonalId IN (@0)
+        UNION ALL
+        SELECT rein.DocumentoImagenCertificadoReincidenciaId docId, rein.DocumentoImagenCertificadoReincidenciaBlobNombreArchivo NombreArchivo,
+        param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
+        CONCAT('/api/personal/download/CertificadoReincidencia/', rein.DocumentoImagenCertificadoReincidenciaId) url
+        FROM DocumentoImagenCertificadoReincidencia rein
+        LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = rein.DocumentoImagenParametroId
+        WHERE rein.PersonalId IN (@0)
+        UNION ALL
+        SELECT preo.DocumentoImagenPreocupacionalId docId, preo.DocumentoImagenPreocupacionalBlobNombreArchivo NombreArchivo,
+        param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
+        CONCAT('/api/personal/download/Preocupacional/', preo.DocumentoImagenPreocupacionalId) url
+        FROM DocumentoImagenPreocupacional preo
+        LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = preo.DocumentoImagenParametroId
+        WHERE preo.PersonalId IN (@0)
+        UNION ALL
+        SELECT gen.doc_id docId, gen.nombre_archivo NombreArchivo,
+        param.doctipo_id Parametro, param.detalle Descripcion,
+        CONCAT('/api/personal/download/docgeneral/', gen.doc_id) url
+        FROM lige.dbo.docgeneral gen
+        LEFT JOIN lige.dbo.doctipo param ON param.doctipo_id = gen.doctipo_id
+        WHERE gen.persona_id IN (@0)
+        `, [personalId]
       )
       
       // await queryRunner.commitTransaction()
@@ -1675,61 +1730,43 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async downloadPersonaFoto(req: any, res: Response, next: NextFunction) {
+  async downloadPersonaDocumentoImagen(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const Id = Number(req.params.id)
+    const id = Number(req.params.id)
+    const table = req.params.table
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
     try {
-      const ds = await queryRunner
-        .query(`
-          SELECT dir.DocumentoImagenParametroDirectorioPath, foto.DocumentoImagenFotoBlobNombreArchivo
-          FROM DocumentoImagenFoto foto
-          JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-          JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-          WHERE foto.DocumentoImagenFotoId IN (@0)
-          `, [Id]
+      let ds:any
+      if (table == 'docgeneral') {
+        ds = await queryRunner.query(`
+          SELECT gen.doc_id AS id, path, gen.nombre_archivo AS nombreArchivo,
+          param.doctipo_id parametro
+          FROM lige.dbo.docgeneral gen
+          JOIN lige.dbo.doctipo param ON param.doctipo_id = gen.doctipo_id
+          WHERE gen.doc_id = @0
+          `, [id]
         )
-
-      if (ds.length == 0)
-        throw new ClientException(`El archivo no existe`);
-
-      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${ds[0].DocumentoImagenFotoBlobNombreArchivo}`;
-
-      if (!existsSync(downloadPath))
-        throw new ClientException(`El archivo Foto no existe`,{'path':downloadPath});
-
-      res.download(downloadPath, ds[0].DocumentoImagenFotoBlobNombreArchivo, (msg) => {});
-
-    } catch (error) {
-      return next(error)
-    }
-  }
-
-  async downloadPersonaDocumento(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
-    const Id = Number(req.params.id)
-    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
-    try {
-      const fechaActual = new Date();
-      const ds = await queryRunner
-        .query(`
-          SELECT dir.DocumentoImagenParametroDirectorioPath, doc.DocumentoImagenDocumentoBlobNombreArchivo
-          FROM DocumentoImagenDocumento doc
+      }else{
+        ds = await queryRunner.query(`
+          SELECT dir.DocumentoImagenParametroDirectorioPath path, doc.DocumentoImagen${table}BlobNombreArchivo nombreArchivo,
+          param.DocumentoImagenParametroDe parametro
+          FROM DocumentoImagen${table} doc
           JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  doc.DocumentoImagenParametroId
           JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-          WHERE doc.DocumentoImagenDocumentoId IN (@0)
-          `, [Id, fechaActual]
+          WHERE doc.DocumentoImagen${table}Id IN (@0)
+          `, [id]
         )
+      }
 
       if (ds.length == 0)
         throw new ClientException(`El archivo no existe`);
 
-      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${ds[0].DocumentoImagenDocumentoBlobNombreArchivo}`;
+      const downloadPath = `${pathArchivos}/${ds[0].path.replaceAll('\\','/')}/${ds[0].nombreArchivo}`;
 
       if (!existsSync(downloadPath))
-        throw new ClientException(`El archivo Documento no existe`,{'path':downloadPath});
+        throw new ClientException(`El archivo ${ds[0].parametro} no se encuentra`,{'path':downloadPath});
 
-      res.download(downloadPath, ds[0].DocumentoImagenDocumentoBlobNombreArchivo, (msg) => {});
+      res.download(downloadPath, ds[0].nombreArchivo, (msg) => {});
 
     } catch (error) {
       return next(error)

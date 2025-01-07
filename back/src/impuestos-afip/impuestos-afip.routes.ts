@@ -141,6 +141,10 @@ impuestosAfipRouter.get("/downloadF184/:personalId?", authMiddleware.verifyToken
   );
 });
 
+impuestosAfipRouter.get("/documento/download/:id", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])],(req, res, next) => {
+  impuestosAfipController.downloadImpuestoAFIP(req, res, next);
+});
+
 impuestosAfipRouter.get(
   "/:anio/:mes/:personalIdRel?",
   authMiddleware.verifyToken,
