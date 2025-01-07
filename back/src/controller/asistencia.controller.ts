@@ -1356,7 +1356,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   }
 
   async getPersonalxResponsable(req: any, res: Response, next: NextFunction) {
-    //ACA
     try {
       const personalId = Number(req.body.PersonalId);
       const anio = Number(req.body.anio);
@@ -1992,6 +1991,70 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     this.jsonRes(AsistenciaController.getMetodologias(), res);
   }
 
+  async addOrUpdateAsistencia(queryRunner: QueryRunner, personalIdExiste: number, objetivoId: number, anioId: number, mesId: number, mes: number, personalId: number, tipoAsociadoId: number, categoriaPersonalId: number, formaLiquidacion: string, columnsDays: string, columnsDay: string, valueColumnsDays: string, totalhs: number) {
+    let newAsistenciaPersonalDiasId = 0
+
+    const num = Math.round(totalhs % 1 * 60)
+    let min = ''
+    if (num < 10)
+      min = '0' + num.toString()
+    else
+      min = num.toString()
+    const horas = Math.trunc(totalhs).toString()
+
+    if (!personalIdExiste) {
+      const objAsistenciaUltsNros = await queryRunner.query(`
+      SELECT ObjetivoAsistenciaAnoMesPersonalUltNro, ObjetivoAsistenciaAnoMesDiasPersonalUltNro, ObjetivoAsistenciaAnoMesPersonalDiasUltNro 
+      FROM ObjetivoAsistenciaAnoMes
+      WHERE ObjetivoAsistenciaAnoMesId = @2
+      AND ObjetivoAsistenciaAnoId = @1
+      AND ObjetivoId = @0`,
+        [objetivoId, anioId, mesId])
+      newAsistenciaPersonalDiasId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesPersonalDiasUltNro + 1
+      const newAsistenciaDiasPersonalId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesDiasPersonalUltNro + 1
+      const newAsistenciaPersonalAsignadoId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesPersonalUltNro + 1
+      await queryRunner.query(`
+      INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id)
+      VALUES (
+        ${newAsistenciaPersonalDiasId}, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, ${newAsistenciaPersonalDiasId})
+      DELETE FROM ObjetivoAsistenciaMesDiasPersonal WHERE ObjetivoAsistenciaMesDiasPersonalId=${newAsistenciaPersonalAsignadoId} AND ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
+      INSERT INTO ObjetivoAsistenciaMesDiasPersonal (ObjetivoAsistenciaMesDiasPersonalId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaMesDiasPersonalFormaLiquidacionHoras ${columnsDay}, ObjetivoAsistenciaAnoMesPersonalDiaTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSuId)
+      VALUES (
+        ${newAsistenciaDiasPersonalId}, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, ${newAsistenciaDiasPersonalId})
+      DELETE FROM ObjetivoAsistenciaAnoMesPersonalAsignado WHERE ObjetivoAsistenciaAnoMesPersonalAsignadoId=${newAsistenciaPersonalAsignadoId} AND ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
+      INSERT INTO ObjetivoAsistenciaAnoMesPersonalAsignado (ObjetivoAsistenciaAnoMesPersonalAsignadoId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras, ObjetivoAsistenciaAnoMesPersonalAsignadoIngresaPersonal)
+      VALUES (
+        ${newAsistenciaPersonalAsignadoId}, @2, @1, @0, @3, @4, @5, @6, 'P')`,
+        [objetivoId, anioId, mesId, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, `${horas}.${min}`]
+      )
+
+      await queryRunner.query(
+        `UPDATE ObjetivoAsistenciaAnoMes 
+      SET ObjetivoAsistenciaAnoMesPersonalDiasUltNro = @4, ObjetivoAsistenciaAnoMesPersonalUltNro = @5 , ObjetivoAsistenciaAnoMesDiasPersonalUltNro = @6
+      WHERE ObjetivoAsistenciaAnoMesId = @3 AND ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = @1 AND ObjetivoAsistenciaAnoMesMes = @2`,
+        [objetivoId, anioId, mes, mesId, newAsistenciaPersonalDiasId, newAsistenciaPersonalAsignadoId, newAsistenciaDiasPersonalId]
+      )
+    } else {
+
+      await this.deleteAsistencia(objetivoId, anioId, mesId, personalIdExiste, queryRunner)
+      await queryRunner.query(`
+      INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id)
+      VALUES (
+        @8, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8)
+      INSERT INTO ObjetivoAsistenciaMesDiasPersonal (ObjetivoAsistenciaMesDiasPersonalId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaMesDiasPersonalFormaLiquidacionHoras ${columnsDay}, ObjetivoAsistenciaAnoMesPersonalDiaTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSuId)
+      VALUES (
+        @8, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8)
+      INSERT INTO ObjetivoAsistenciaAnoMesPersonalAsignado (ObjetivoAsistenciaAnoMesPersonalAsignadoId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras, ObjetivoAsistenciaAnoMesPersonalAsignadoIngresaPersonal)
+      VALUES (
+        @8, @2, @1, @0, @3, @4, @5, @6, 'P')`,
+        [objetivoId, anioId, mesId, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, `${horas}.${min}`, personalIdExiste]
+      )
+    }
+    return newAsistenciaPersonalDiasId
+  }
+
+
+
   async addAsistencia(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
 
@@ -2070,7 +2133,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         return this.jsonRes({ deleteRowId: gridId }, res);
       }
 
-
+/*
       let num = Math.round(totalhs % 1 * 60)
       let min = ''
       if (num < 10)
@@ -2078,59 +2141,11 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       else
         min = num.toString()
       const horas = Math.trunc(totalhs).toString()
-      req.body.total = `${horas}.${min}`
-
+      //req.body.total = `${horas}.${min}`
+*/
       let result: any = {}
-
-      if (!personal) {
-        const objAsistenciaUltsNros = await queryRunner.query(`
-          SELECT ObjetivoAsistenciaAnoMesPersonalUltNro, ObjetivoAsistenciaAnoMesDiasPersonalUltNro, ObjetivoAsistenciaAnoMesPersonalDiasUltNro 
-          FROM ObjetivoAsistenciaAnoMes
-          WHERE ObjetivoAsistenciaAnoMesId = @2
-          AND ObjetivoAsistenciaAnoId = @1
-          AND ObjetivoId = @0`,
-          [objetivoId, anioId, mesId])
-        const newAsistenciaPersonalDiasId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesPersonalDiasUltNro + 1
-        const newAsistenciaDiasPersonalId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesDiasPersonalUltNro + 1
-        const newAsistenciaPersonalAsignadoId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesPersonalUltNro + 1
-        await queryRunner.query(`
-          INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id)
-          VALUES (
-            ${newAsistenciaPersonalDiasId}, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, ${newAsistenciaPersonalDiasId})
-          DELETE FROM ObjetivoAsistenciaMesDiasPersonal WHERE ObjetivoAsistenciaMesDiasPersonalId=${newAsistenciaPersonalAsignadoId} AND ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
-          INSERT INTO ObjetivoAsistenciaMesDiasPersonal (ObjetivoAsistenciaMesDiasPersonalId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaMesDiasPersonalFormaLiquidacionHoras ${columnsDay}, ObjetivoAsistenciaAnoMesPersonalDiaTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSuId)
-          VALUES (
-            ${newAsistenciaDiasPersonalId}, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, ${newAsistenciaDiasPersonalId})
-          DELETE FROM ObjetivoAsistenciaAnoMesPersonalAsignado WHERE ObjetivoAsistenciaAnoMesPersonalAsignadoId=${newAsistenciaPersonalAsignadoId} AND ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
-          INSERT INTO ObjetivoAsistenciaAnoMesPersonalAsignado (ObjetivoAsistenciaAnoMesPersonalAsignadoId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras, ObjetivoAsistenciaAnoMesPersonalAsignadoIngresaPersonal)
-          VALUES (
-            ${newAsistenciaPersonalAsignadoId}, @2, @1, @0, @3, @4, @5, @6, 'P')`,
-          [objetivoId, anioId, mesId, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, req.body.total]
-        )
-
-        await queryRunner.query(
-          `UPDATE ObjetivoAsistenciaAnoMes 
-          SET ObjetivoAsistenciaAnoMesPersonalDiasUltNro = @4, ObjetivoAsistenciaAnoMesPersonalUltNro = @5 , ObjetivoAsistenciaAnoMesDiasPersonalUltNro = @6
-          WHERE ObjetivoAsistenciaAnoMesId = @3 AND ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = @1 AND ObjetivoAsistenciaAnoMesMes = @2`,
-          [objetivoId, anioId, mes, mesId, newAsistenciaPersonalDiasId, newAsistenciaPersonalAsignadoId, newAsistenciaDiasPersonalId]
-        )
-        result.newRowId = newAsistenciaPersonalDiasId
-      } else {
-
-        await this.deleteAsistencia(objetivoId, anioId, mesId, personal.id, queryRunner)
-        await queryRunner.query(`
-          INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id)
-          VALUES (
-            @8, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8)
-          INSERT INTO ObjetivoAsistenciaMesDiasPersonal (ObjetivoAsistenciaMesDiasPersonalId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaMesDiasPersonalFormaLiquidacionHoras ${columnsDay}, ObjetivoAsistenciaAnoMesPersonalDiaTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSuId)
-          VALUES (
-            @8, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8)
-          INSERT INTO ObjetivoAsistenciaAnoMesPersonalAsignado (ObjetivoAsistenciaAnoMesPersonalAsignadoId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras, ObjetivoAsistenciaAnoMesPersonalAsignadoIngresaPersonal)
-          VALUES (
-            @8, @2, @1, @0, @3, @4, @5, @6, 'P')`,
-          [objetivoId, anioId, mesId, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, req.body.total, personal.id]
-        )
-      }
+      result.newRowId = this.addOrUpdateAsistencia(queryRunner, personal.id, objetivoId, anioId, mesId, mes, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, columnsDays, columnsDay, valueColumnsDays, totalhs)
+        
       if (valCategoriaPersonal instanceof ClientException && valCategoriaPersonal.extended.categoria)
         result.categoria = valCategoriaPersonal.extended.categoria
       if (valPersonalRegistrado instanceof ClientException && valPersonalRegistrado.extended.forma)
@@ -2572,10 +2587,65 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
             if (diffHours > 0) {
 //              listadoProcessed.push({ CUIT: personal.employeeNo, dayNum, diffHours, diffTime: this.minsToHourMins(diffMins), inTime: this.minsToHourMins(minMinsMidnight), outTime: this.minsToHourMins(maxMinsMidnight) })
               listadoProcessed[personal.employeeNo] = { ...listadoProcessed[personal.employeeNo], ['day'+dayNum]: this.minsToHourMins(diffMins) }
-             
             }
           }
         }
+      }
+
+      const valObjetivo = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
+      if (valObjetivo instanceof ClientException)
+        throw valObjetivo
+      const anioId = valObjetivo[0].ObjetivoAsistenciaAnoId
+      const mesId = valObjetivo[0].ObjetivoAsistenciaAnoMesId
+      const sucursalId = valObjetivo[0].SucursalId
+      const formaLiquidacion = 'N'
+
+
+
+      let dias = ''
+      for (let index = 1; index <= 31; index++)
+        dias = dias + `, TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias${index}Gral) day${index}`
+  
+      const asistencia = await queryRunner.query(`
+        SELECT objp.ObjetivoAsistenciaAnoMesPersonalDiasId id,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasId dbid,
+          objp.ObjetivoAsistenciaMesPersonalId PersonalId,
+          CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName,
+          cuit.PersonalCUITCUILCUIT,
+          objp.ObjetivoAsistenciaTipoAsociadoId TipoAsociadoId,
+          tipoas.TipoAsociadoDescripcion,
+          objp.ObjetivoAsistenciaCategoriaPersonalId CategoriaId,
+          catep.CategoriaPersonalDescripcion CategoriaDescripcion,
+          val.ValorLiquidacionHorasTrabajoHoraNormal,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras FormaLiquidacion
+          ${dias}
+  
+        FROM ObjetivoAsistenciaAnoMesPersonalDias objp
+          INNER JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
+          INNER JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
+          INNER JOIN TipoAsociado tipoas ON tipoas.TipoAsociadoId = objp.ObjetivoAsistenciaTipoAsociadoId
+          INNER JOIN CategoriaPersonal catep ON catep.TipoAsociadoId = objp.ObjetivoAsistenciaTipoAsociadoId AND catep.CategoriaPersonalId = objp.ObjetivoAsistenciaCategoriaPersonalId
+          INNER JOIN Personal per ON per.PersonalId = objp.ObjetivoAsistenciaMesPersonalId
+          INNER JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)  
+  
+          JOIN Objetivo obj ON obj.ObjetivoId = obja.ObjetivoId
+          JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+          LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+  
+          LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionTipoAsociadoId = objp.ObjetivoAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = objp.ObjetivoAsistenciaCategoriaPersonalId AND EOMONTH(DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes,1)) >= val.ValorLiquidacionDesde AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes,1) <= ISNULL(val.ValorLiquidacionHasta,'9999-12-31')   
+            AND val.ValorLiquidacionSucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
+        WHERE objp.ObjetivoId = @0 AND cuit.PersonalCUITCUILCUIT IN ('${Object.keys(listadoProcessed).join('\',\'')}') 
+        ORDER BY objp.ObjetivoAsistenciaAnoMesPersonalDiasId
+      `, [objetivoId, anio, mes])
+  
+
+
+      for (const [cuit, perAsistencia] of Object.entries(listadoProcessed)) {
+        const asistenciaRow =  asistencia.some((p: any) => p.PersonalCUITCUILCUIT === cuit)
+        console.log('asistenciaRow',asistenciaRow)
+        //ACA
+//        this.addOrUpdateAsistencia(queryRunner, 0, objetivoId, anioId, mesId, mes, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, columnsDays, columnsDay, valueColumnsDays,`${horas}.${min}`)
+
       }
 
       let personalCuits = await queryRunner.query(`SELECT DISTINCT cuit.PersonalId, cuit.PersonalCUITCUILCUIT FROM PersonalCUITCUIL cuit WHERE cuit.PersonalCUITCUILCUIT IN ('${Object.keys(listadoProcessed).join('\',\'')}')`)
@@ -2585,7 +2655,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       }
 
 
-      
+
 
       this.jsonRes(listadoProcessed, res);
     } catch (error) {

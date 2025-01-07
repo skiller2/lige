@@ -115,13 +115,13 @@ const columns: any[] = [
   },
 ]
 
-const sitRevistaInvalido:any[] = [
-  {SituacionRevistaId:9, Descripcion: 'ART42'},
-  {SituacionRevistaId:10, Descripcion: 'LICENCIA'},
-  {SituacionRevistaId:16, Descripcion: 'LICENCIA CON RENUNCIA'},
-  {SituacionRevistaId:18, Descripcion: 'LICENCIA POR ANTECEDENTES'},
-  {SituacionRevistaId:23, Descripcion: 'ART 42 - AP 5'},
-  {SituacionRevistaId:28, Descripcion: 'LICENCIA PARCIAL'},
+const sitRevistaInvalido: any[] = [
+  { SituacionRevistaId: 9, Descripcion: 'ART42' },
+  { SituacionRevistaId: 10, Descripcion: 'LICENCIA' },
+  { SituacionRevistaId: 16, Descripcion: 'LICENCIA CON RENUNCIA' },
+  { SituacionRevistaId: 18, Descripcion: 'LICENCIA POR ANTECEDENTES' },
+  { SituacionRevistaId: 23, Descripcion: 'ART 42 - AP 5' },
+  { SituacionRevistaId: 28, Descripcion: 'LICENCIA PARCIAL' },
 ]
 
 export class PersonalController extends BaseController {
@@ -250,11 +250,11 @@ export class PersonalController extends BaseController {
     //    const dia = fechaActual.getDate();
     const mes = fechaActual.getMonth() + 1; // Agrega 1 porque los meses se indexan desde 0 (0 = enero)
     const anio = fechaActual.getFullYear();
-    const mails = await dataSource.query('SELECT ema.PersonalEmailEmail, ema.PersonalId FROM PersonalEmail ema WHERE ema.PersonalEmailInactivo <> 1 AND ema.PersonalId=@0',[PersonalId])
+    const mails = await dataSource.query('SELECT ema.PersonalEmailEmail, ema.PersonalId FROM PersonalEmail ema WHERE ema.PersonalEmailInactivo <> 1 AND ema.PersonalId=@0', [PersonalId])
     const estudios = await dataSource.query(`SELECT TOP 1 tip.TipoEstudioId, tip.TipoEstudioDescripcion, est.PersonalEstudioTitulo FROM PersonalEstudio est 
       JOIN TipoEstudio tip ON tip.TipoEstudioId = est.TipoEstudioId
       WHERE est.PersonalId=@0 AND est.EstadoEstudioId = 2
-      ORDER BY tip.TipoEstudioId DESC `,[PersonalId])
+      ORDER BY tip.TipoEstudioId DESC `, [PersonalId])
     dataSource
       .query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
@@ -318,9 +318,9 @@ export class PersonalController extends BaseController {
             personaData.DocumentoImagenFotoBlobNombreArchivo
           )
           : "";
-//        personaData.image = "";
+        //        personaData.image = "";
         personaData.mails = mails;
-        personaData.estudios = (estudios[0])? `${estudios[0].TipoEstudioDescripcion.trim()} ${estudios[0].PersonalEstudioTitulo.trim()}`: 'Sin registro'
+        personaData.estudios = (estudios[0]) ? `${estudios[0].TipoEstudioDescripcion.trim()} ${estudios[0].PersonalEstudioTitulo.trim()}` : 'Sin registro'
         if (imageUrl != "") {
           const res = await fetch(imageUrl)
           const buffer = await res.arrayBuffer()
@@ -337,8 +337,8 @@ export class PersonalController extends BaseController {
 
   async downloadPersonaImagen(PersonalId: number, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    
-    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
+
+    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     try {
       const fechaActual = new Date();
       const ds = await queryRunner
@@ -356,12 +356,12 @@ export class PersonalController extends BaseController {
       if (ds.length == 0)
         throw new ClientException(`Documento no existe para la persona`);
 
-      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${ds[0].DocumentoImagenFotoBlobNombreArchivo}`;
+      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${ds[0].DocumentoImagenFotoBlobNombreArchivo}`;
 
       if (!existsSync(downloadPath))
-        throw new ClientException(`El archivo Imagen no existe`,{'path':downloadPath});
+        throw new ClientException(`El archivo Imagen no existe`, { 'path': downloadPath });
 
-      res.download(downloadPath, ds[0].DocumentoImagenFotoBlobNombreArchivo, (msg) => {});
+      res.download(downloadPath, ds[0].DocumentoImagenFotoBlobNombreArchivo, (msg) => { });
 
     } catch (error) {
       return next(error)
@@ -393,7 +393,7 @@ export class PersonalController extends BaseController {
         FROM PersonalBanco cue
         JOIN Banco ban ON ban.BancoId = cue.PersonalBancoBancoId
         WHERE cue.PersonalBancoDesde <= @1 AND ISNULL(cue.PersonalBancoHasta,'9999-12-31')>= @1 AND cue.PersonalId=@0`,
-        [PersonalId,stmactual]
+        [PersonalId, stmactual]
       )
 
       this.jsonRes(result, res);
@@ -466,9 +466,9 @@ export class PersonalController extends BaseController {
     return this.jsonRes(columns, res)
   }
 
-  async listPersonalQuery(queryRunner:any, filterSql:any, orderBy:any){
+  async listPersonalQuery(queryRunner: any, filterSql: any, orderBy: any) {
     const anio = new Date().getFullYear()
-    const mes = new Date().getMonth()+1
+    const mes = new Date().getMonth() + 1
     return await queryRunner.query(`
         SELECT DISTINCT per.PersonalId AS id, cuit.PersonalCUITCUILCUIT,
         CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
@@ -496,11 +496,11 @@ export class PersonalController extends BaseController {
     try {
       await queryRunner.startTransaction()
 
-      const options: Options = isOptions(req.body.options)? req.body.options : { filtros: [], sort: null };
+      const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
       const filterSql = filtrosToSql(options.filtros, columns);
       const orderBy = orderToSQL(options.sort)
 
-      const lista:any[] = await this.listPersonalQuery(queryRunner, filterSql, orderBy)
+      const lista: any[] = await this.listPersonalQuery(queryRunner, filterSql, orderBy)
 
       await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
@@ -512,13 +512,13 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async getSituacionRevistaQuery(queryRunner:any){
+  async getSituacionRevistaQuery(queryRunner: any) {
     return await queryRunner.query(`
         SELECT sit.SituacionRevistaId value, sit.SituacionRevistaDescripcion label
         FROM SituacionRevista sit`)
   }
 
-  async getSituacionRevista(req: any, res: Response, next: NextFunction){
+  async getSituacionRevista(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
       const options = await this.getSituacionRevistaQuery(queryRunner)
@@ -526,24 +526,24 @@ export class PersonalController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
-    } 
+    }
   }
 
   async addPersonalQuery(
-    queryRunner:any,
-    NroLegajo:number,
-    Apellido:string,
-    Nombre:string,
-    now:Date,
-    FechaIngreso:Date,
-    FechaNacimiento:Date,
-    NacionalidadId:number,
-    SucusalId:number,
-    CUIT:number
-  ){
+    queryRunner: any,
+    NroLegajo: number,
+    Apellido: string,
+    Nombre: string,
+    now: Date,
+    FechaIngreso: Date,
+    FechaNacimiento: Date,
+    NacionalidadId: number,
+    SucusalId: number,
+    CUIT: number
+  ) {
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
-    const fullname:string = Apellido + ', ' + Nombre
+    const fullname: string = Apellido + ', ' + Nombre
     const PersonalEstado = 'POSTULANTE'
     const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (${PersonalEstado} -CUIT ${CUIT} - Leg.:${NroLegajo})`
     let newId = await queryRunner.query(`
@@ -569,27 +569,27 @@ export class PersonalController extends BaseController {
       VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@7,@8,@9,@9,@10,@11,@12)
       
       SELECT MAX(PersonalId) id FROM Personal
-      `,[
-        'A',
-        NroLegajo,
-        Apellido,
-        Nombre,
-        fullname,
-        now,
-        FechaIngreso,
-        FechaNacimiento,
-        NacionalidadId,
-        SucusalId,
-        PersonalEstado,
-        ApellidoNombreDNILegajo,
-        1
+      `, [
+      'A',
+      NroLegajo,
+      Apellido,
+      Nombre,
+      fullname,
+      now,
+      FechaIngreso,
+      FechaNacimiento,
+      NacionalidadId,
+      SucusalId,
+      PersonalEstado,
+      ApellidoNombreDNILegajo,
+      1
     ])
     // console.log('newId:',newId);
     let PersonalId = newId[0].id
     return PersonalId
   }
 
-  async addPersonalCUITCUILQuery(queryRunner:any, personaId:any, CUIT:number, now:Date){
+  async addPersonalCUITCUILQuery(queryRunner: any, personaId: any, CUIT: number, now: Date) {
     await queryRunner.query(`
       INSERT INTO PersonalCUITCUIL (
       PersonalId,
@@ -599,11 +599,11 @@ export class PersonalController extends BaseController {
       PersonalCUITCUILDesde
       )
       VALUES (@0, @1, @2, @3, @4)`,
-      [ personaId, 1, 'T', CUIT, now]
+      [personaId, 1, 'T', CUIT, now]
     )
   }
 
-  async addPersonalEmail(queryRunner:any, personaId:any, email:string){
+  async addPersonalEmail(queryRunner: any, personaId: any, email: string) {
     await queryRunner.query(`
       INSERT INTO PersonalEmail (
       PersonalId,
@@ -612,33 +612,32 @@ export class PersonalController extends BaseController {
       PersonalEmailInactivo
       )
       VALUES (@0,@1,@2,@3)`,
-      [ personaId, 1, email, 0]
+      [personaId, 1, email, 0]
     )
   }
 
-  async addPersonal(req: any, res: Response, next: NextFunction){
+  async addPersonal(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    let Nombre:string = req.body.Nombre
-    let Apellido:string = req.body.Apellido
-    const CUIT:number = req.body.CUIT
-    const NroLegajo:number = req.body.NroLegajo
-    const SucursalId:number = req.body.SucursalId
+    let Nombre: string = req.body.Nombre
+    let Apellido: string = req.body.Apellido
+    const CUIT: number = req.body.CUIT
+    const NroLegajo: number = req.body.NroLegajo
+    const SucursalId: number = req.body.SucursalId
     const Email = req.body.Email
-    let FechaIngreso:Date = req.body.FechaIngreso? new Date(req.body.FechaIngreso) : req.body.FechaIngreso
-    let FechaNacimiento:Date = req.body.FechaIngreso? new Date(req.body.FechaNacimiento) : req.body.FechaIngreso
+    let FechaIngreso: Date = req.body.FechaIngreso ? new Date(req.body.FechaIngreso) : req.body.FechaIngreso
+    let FechaNacimiento: Date = req.body.FechaIngreso ? new Date(req.body.FechaNacimiento) : req.body.FechaIngreso
     const foto = req.body.Foto
-    const NacionalidadId:number = req.body.NacionalidadId
+    const NacionalidadId: number = req.body.NacionalidadId
     const docFrente = req.body.docFrente
     const docDorso = req.body.docDorso
     const telefonos = req.body.telefonos
     const estudios = req.body.estudios
-    let errors:string[] = []
+    let errors: string[] = []
     let now = new Date()
     now.setHours(0, 0, 0, 0)
-    FechaIngreso? FechaIngreso.setHours(0, 0, 0, 0) : FechaIngreso
-    FechaNacimiento? FechaNacimiento.setHours(0, 0, 0, 0) : FechaNacimiento
-    const sitRevista = {SituacionId:req.body.SituacionId, Motivo:req.body.Motivo, Desde:now}
-    
+    FechaIngreso ? FechaIngreso.setHours(0, 0, 0, 0) : FechaIngreso
+    FechaNacimiento ? FechaNacimiento.setHours(0, 0, 0, 0) : FechaNacimiento
+
     try {
       await queryRunner.startTransaction()
 
@@ -678,15 +677,13 @@ export class PersonalController extends BaseController {
 
       await this.addPersonalCUITCUILQuery(queryRunner, PersonalId, CUIT, now)
 
-      if(req.body.Calle || req.body.Nro || req.body.Piso || req.body.Dpto || req.body.CodigoPostal || req.body.PaisId)
+      if (req.body.Calle || req.body.Nro || req.body.Piso || req.body.Dpto || req.body.CodigoPostal || req.body.PaisId)
         await this.addPersonalDomicilio(queryRunner, req.body, PersonalId)
 
       if (Email) await this.addPersonalEmail(queryRunner, PersonalId, Email)
-      
-      const sitRevist = await this.setSituacionRevistaQuery(queryRunner, PersonalId, sitRevista)
-      if (sitRevist instanceof ClientException) errors.push(`${sitRevist.messageArr}`)
 
-      for (const telefono of telefonos){
+
+      for (const telefono of telefonos) {
         if (telefono.TelefonoNum) {
           if (!telefono.TipoTelefonoId) {
             errors.push(`El campo Tipo de la seccion Telefono No pueden estar vacios.`)
@@ -695,7 +692,7 @@ export class PersonalController extends BaseController {
           await this.addPersonalTelefono(queryRunner, telefono, PersonalId)
         }
       }
-      for (const estudio of estudios){
+      for (const estudio of estudios) {
         if (estudio.EstudioTitulo) {
           if (!estudio.TipoEstudioId || !estudio.EstadoEstudioId) {
             errors.push(`Los campos Tipo y Estados de la seccion Estudios No pueden estar vacios.`)
@@ -708,11 +705,15 @@ export class PersonalController extends BaseController {
       if (errors.length)
         throw new ClientException(errors)
 
+      await this.setSituacionRevistaQuery(queryRunner, PersonalId, req.body.SituacionId, now, req.body.Motivo)
+
       if (foto && foto.length) await this.setFoto(queryRunner, PersonalId, foto[0])
-      
+
       if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente[0], 12)
-      
+
       if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso[0], 13)
+
+    
       
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, 'Carga Exitosa');
@@ -724,7 +725,7 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async addPersonalTelefono(queryRunner:any, telefono:any, personalId:any){
+  async addPersonalTelefono(queryRunner: any, telefono: any, personalId: any) {
     const tipoTelefonoId = telefono.TipoTelefonoId
     const telefonoNum = telefono.TelefonoNro
     await queryRunner.query(`
@@ -733,15 +734,15 @@ export class PersonalController extends BaseController {
       TipoTelefonoId,
       PersonalTelefonoNro
       )
-      VALUES (@0,@1,@2)`,[
-        personalId, tipoTelefonoId, telefonoNum
+      VALUES (@0,@1,@2)`, [
+      personalId, tipoTelefonoId, telefonoNum
     ])
     await queryRunner.query(`
       UPDATE Personal SET PersonalTelefonoUltNro = ISNULL(PersonalTelefonoUltNro, 0) + 1 WHERE PersonalId = @1
-      `,[ personalId ])
+      `, [personalId])
   }
-  
-  async addPersonalEstudio(queryRunner:any, estudio:any, personalId:any){
+
+  async addPersonalEstudio(queryRunner: any, estudio: any, personalId: any) {
     const tipoEstudioId = estudio.TipoEstudioId
     const estadoEstudioId = estudio.EstadoEstudioId
     const estudioTitulo = estudio.EstudioTitulo
@@ -755,27 +756,27 @@ export class PersonalController extends BaseController {
       PersonalEstudioTitulo,
       PersonalEstudioAno,
       )
-      VALUES (@0,@1,@2,@3,@4)`,[
-        personalId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAnio
+      VALUES (@0,@1,@2,@3,@4)`, [
+      personalId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAnio
     ])
     await queryRunner.query(`
       UPDATE Personal SET PersonalEstudioUltNro = ISNULL(PersonalEstudioUltNro, 0) + 1 WHERE PersonalId = @1
-    `,[ personalId ])
+    `, [personalId])
     if (docTitulo) {
       await this.setImagenEstudio(queryRunner, personalId, docTitulo)
     }
   }
 
-  async addPersonalDomicilio(queryRunner:any, domicilio:any, personalId:any){
+  async addPersonalDomicilio(queryRunner: any, domicilio: any, personalId: any) {
     const calle = domicilio.Calle
     const numero = domicilio.Nro
     const piso = domicilio.Piso
     const departamento = domicilio.Dpto
     const codPostal = domicilio.CodigoPostal
-    const paisId = domicilio.PaisId? domicilio.PaisId : null
-    const provinciaId = domicilio.ProvinciaId? domicilio.ProvinciaId : null
-    const localidadId = domicilio.LocalidadId? domicilio.LocalidadId : null
-    const barrioId = domicilio.BarrioId? domicilio.BarrioId : null
+    const paisId = domicilio.PaisId ? domicilio.PaisId : null
+    const provinciaId = domicilio.ProvinciaId ? domicilio.ProvinciaId : null
+    const localidadId = domicilio.LocalidadId ? domicilio.LocalidadId : null
+    const barrioId = domicilio.BarrioId ? domicilio.BarrioId : null
     await queryRunner.query(`
       INSERT INTO PersonalDomicilio (
       PersonalId,
@@ -791,32 +792,32 @@ export class PersonalController extends BaseController {
       PersonalDomicilioLocalidadId,
       PersonalDomicilioBarrioId
       )
-      VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)`,[
-        personalId,
-        1,
-        calle,
-        numero,
-        piso,
-        departamento,
-        codPostal,
-        1,
-        paisId,
-        provinciaId,
-        localidadId,
-        barrioId,
+      VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)`, [
+      personalId,
+      1,
+      calle,
+      numero,
+      piso,
+      departamento,
+      codPostal,
+      1,
+      paisId,
+      provinciaId,
+      localidadId,
+      barrioId,
     ])
     await queryRunner.query(`
       UPDATE Personal SET PersonalDomicilioUltNro = ISNULL(PersonalDomicilioUltNro, 0) + 1 WHERE PersonalId = @0
-      `,[ personalId ])
+      `, [personalId])
   }
 
-  async getNacionalidadListQuery(queryRunner:any){
+  async getNacionalidadListQuery(queryRunner: any) {
     return await queryRunner.query(`
         SELECT nac.NacionalidadId value, TRIM(nac.NacionalidadDescripcion) label
         FROM Nacionalidad nac`)
   }
 
-  async getNacionalidadList(req: any, res: Response, next: NextFunction){
+  async getNacionalidadList(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
       const options = await this.getNacionalidadListQuery(queryRunner)
@@ -838,7 +839,7 @@ export class PersonalController extends BaseController {
 
   }
 
-  async setFoto(queryRunner:any, personalId:any, file:any) {
+  async setFoto(queryRunner: any, personalId: any, file: any) {
     const type = file.mimeType.split('/')[1]
     const fieldname = file.fieldname
     let foto = await queryRunner.query(`
@@ -846,7 +847,7 @@ export class PersonalController extends BaseController {
       JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
       JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
       FROM DocumentoImagenFoto foto WHERE foto.PersonalId IN (@0)
-    `,[personalId])
+    `, [personalId])
     if (!foto.length) {
       await queryRunner.query(`
         INSERT INTO DocumentoImagenFoto (
@@ -856,21 +857,21 @@ export class PersonalController extends BaseController {
         DocumentoImagenParametroDirectorioId
         )
         VALUES(@0,@1,@2,@3)`,
-        [personalId,type,7,1]
+        [personalId, type, 7, 1]
       )
       foto = await queryRunner.query(`
         SELECT foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
         JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
         JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
         FROM DocumentoImagenFoto foto WHERE foto.PersonalId IN (@0)
-      `,[personalId])
+      `, [personalId])
     }
-    
+
     const fotoId = foto[0].fotoId
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
     const newFieldname = `${personalId}-${fotoId}-FOTO`
-    const newFilePath = `${pathArchivos}/${foto[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${newFieldname}.${type}`;
+    const newFilePath = `${pathArchivos}/${foto[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}.${type}`;
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`
       UPDATE DocumentoImagenFoto SET
@@ -886,7 +887,7 @@ export class PersonalController extends BaseController {
     )
   }
 
-  async setDocumento(queryRunner:any, personalId:any, file:any, parametro:number){
+  async setDocumento(queryRunner: any, personalId: any, file: any, parametro: number) {
     const type = file.mimeType.split('/')[1]
     const fieldname = file.fieldname
     let doc = await queryRunner.query(`
@@ -894,7 +895,7 @@ export class PersonalController extends BaseController {
       JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  doc.DocumentoImagenParametroId
       JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
       FROM DocumentoImagenDocumento doc WHERE doc.PersonalId IN (@0)
-    `,[personalId])
+    `, [personalId])
     if (!doc.length) {
       await queryRunner.query(`
         INSERT INTO DocumentoImagenDocumento (
@@ -911,19 +912,19 @@ export class PersonalController extends BaseController {
         JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
         JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
         FROM DocumentoImagenDocumento doc WHERE doc.PersonalId IN (@0)
-      `,[personalId])
+      `, [personalId])
     }
 
     const docId = doc[0].docId
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
-    const dirFile: string  = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
+    const dirFile: string = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
     let newFieldname: string = `${personalId}-${docId}`
     if (parametro == 13) {
       newFieldname += `-DOCUMENDOR`
-    }else if(parametro == 12){
+    } else if (parametro == 12) {
       newFieldname += `-DOCUMENFREN`
     }
-    const newFilePath: string  = `${pathArchivos}/${doc[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${newFieldname}.${type}`;
+    const newFilePath: string = `${pathArchivos}/${doc[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}.${type}`;
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`
       UPDATE DocumentoImagenDocumento SET
@@ -936,7 +937,7 @@ export class PersonalController extends BaseController {
     )
   }
 
-  async setImagenEstudio(queryRunner:any, personalId:any, file:any) {
+  async setImagenEstudio(queryRunner: any, personalId: any, file: any) {
     const type = file.mimeType.split('/')[1]
     const fieldname = file.fieldname
     let estudio = await queryRunner.query(`
@@ -954,20 +955,20 @@ export class PersonalController extends BaseController {
         DocumentoImagenParametroDirectorioId
         )
         VALUES(@0,@1,@2,@3)
-      `, [personalId,type,14,1])
+      `, [personalId, type, 14, 1])
       estudio = await queryRunner.query(`
         SELECT est.DocumentoImagenEstudioId estudioId, dir.DocumentoImagenParametroDirectorioPath
         JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = est.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  est.DocumentoImagenParametroId
         JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = est.DocumentoImagenParametroId
         FROM DocumentoImagenEstudio est WHERE est.PersonalId IN (@0)
-      `,[personalId])
+      `, [personalId])
     }
-    
+
     const estudioId = estudio[0].estudioId
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
     const newFieldname = `${personalId}-${estudioId}-CERESTPAG1`
-    const newFilePath = `${pathArchivos}/${estudio[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\','/')}/${newFieldname}.${type}`;
+    const newFilePath = `${pathArchivos}/${estudio[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}.${type}`;
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`
       UPDATE DocumentoImagenEstudio SET
@@ -983,37 +984,37 @@ export class PersonalController extends BaseController {
     )
   }
 
-  async updatePersona(queryRunner:any, PersonalId:number, infoPersonal:any ){
+  async updatePersona(queryRunner: any, PersonalId: number, infoPersonal: any) {
     let personalRes = await queryRunner.query(`
       SELECT PersonalNroLegajo NroLegajo, TRIM(PersonalApellido) Apellido, TRIM(PersonalNombre) Nombre,
       PersonalFechaIngreso FechaIngreso, PersonalFechaNacimiento FechaNacimiento,
       PersonalNacionalidadId NacionalidadId, PersonalSucursalIngresoSucursalId SucursalId
       FROM Personal
       WHERE PersonalId = @0
-      `,[PersonalId])
+      `, [PersonalId])
     const personal = personalRes[0]
-    let cambio:boolean = false
+    let cambio: boolean = false
     for (const key in personal) {
       if (infoPersonal[key] != personal[key]) {
         cambio = true
         break
       }
     }
-    if(!cambio) return
+    if (!cambio) return
 
-    let Nombre:string = infoPersonal.Nombre
-    let Apellido:string = infoPersonal.Apellido
-    const NacionalidadId:number = infoPersonal.NacionalidadId
-    const NroLegajo:number = infoPersonal.NroLegajo
-    const SucursalId:number = infoPersonal.SucursalId
-    let FechaIngreso:Date = infoPersonal.FechaIngreso? new Date(infoPersonal.FechaIngreso) : null
-    let FechaNacimiento:Date = infoPersonal.FechaNacimiento? new Date(infoPersonal.FechaNacimiento) : null
-    const CUIT:number = infoPersonal.CUIT
+    let Nombre: string = infoPersonal.Nombre
+    let Apellido: string = infoPersonal.Apellido
+    const NacionalidadId: number = infoPersonal.NacionalidadId
+    const NroLegajo: number = infoPersonal.NroLegajo
+    const SucursalId: number = infoPersonal.SucursalId
+    let FechaIngreso: Date = infoPersonal.FechaIngreso ? new Date(infoPersonal.FechaIngreso) : null
+    let FechaNacimiento: Date = infoPersonal.FechaNacimiento ? new Date(infoPersonal.FechaNacimiento) : null
+    const CUIT: number = infoPersonal.CUIT
     FechaIngreso.setHours(0, 0, 0, 0)
     FechaNacimiento.setHours(0, 0, 0, 0)
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
-    const fullname:string = Apellido + ', ' + Nombre
+    const fullname: string = Apellido + ', ' + Nombre
     const PersonalEstado = 'POSTULANTE'
     const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (${PersonalEstado} -CUIT ${CUIT} - Leg.:${NroLegajo})`
     await queryRunner.query(`
@@ -1030,29 +1031,29 @@ export class PersonalController extends BaseController {
       PersonalSuActualSucursalPrincipalId = @8,
       PersonalApellidoNombreDNILegajo = @9
       WHERE PersonalId = @0
-      `,[PersonalId, NroLegajo, Apellido, Nombre, fullname, FechaIngreso, FechaNacimiento, NacionalidadId,
-        SucursalId, ApellidoNombreDNILegajo
-      ])
+      `, [PersonalId, NroLegajo, Apellido, Nombre, fullname, FechaIngreso, FechaNacimiento, NacionalidadId,
+      SucursalId, ApellidoNombreDNILegajo
+    ])
   }
 
-  private async updatePersonalDomicilio(queryRunner:any, PersonalId:number, infoDomicilio:any ){
+  private async updatePersonalDomicilio(queryRunner: any, PersonalId: number, infoDomicilio: any) {
     let domicilioRes = await queryRunner.query(`
       SELECT TRIM(PersonalDomicilioDomCalle) Calle, TRIM(PersonalDomicilioDomNro) Nro, TRIM(PersonalDomicilioDomPiso) Piso,
       TRIM(PersonalDomicilioDomDpto) Dpto, TRIM(PersonalDomicilioCodigoPostal) CodigoPostal, PersonalDomicilioPaisId PaisId, PersonalDomicilioProvinciaId ProvinciaId,
       PersonalDomicilioLocalidadId LocalidadId, PersonalDomicilioBarrioId BarrioId
       FROM PersonalDomicilio
       WHERE PersonalId = @0 AND PersonalDomicilioId = @1
-      `,[PersonalId, infoDomicilio.PersonalDomicilioId])
-    const domicilio = domicilioRes[0]? domicilioRes[0]: {}
-    
-    let cambio:boolean = false
+      `, [PersonalId, infoDomicilio.PersonalDomicilioId])
+    const domicilio = domicilioRes[0] ? domicilioRes[0] : {}
+
+    let cambio: boolean = false
     for (const key in domicilio) {
       if (infoDomicilio[key] != domicilio[key]) {
         cambio = true
         break
       }
     }
-    if(!cambio) return
+    if (!cambio) return
 
     const calle = infoDomicilio.Calle
     const numero = infoDomicilio.Nro
@@ -1085,23 +1086,23 @@ export class PersonalController extends BaseController {
       PersonalDomicilioLocalidadId = @13,
       PersonalDomicilioBarrioId = @14
       WHERE PersonalId IN (@0)
-      `,[
-        PersonalId, calle, numero, piso, departamento, esquina, esquinaY, bloque, edificio, cuerpo, codPostal,
-        paisId, provinciaId, localidadId, barrioId,
+      `, [
+      PersonalId, calle, numero, piso, departamento, esquina, esquinaY, bloque, edificio, cuerpo, codPostal,
+      paisId, provinciaId, localidadId, barrioId,
     ])
 
   }
 
-  private async updatePersonalTelefono(queryRunner:any, PersonalId:number, infoTelefono:any ){
+  private async updatePersonalTelefono(queryRunner: any, PersonalId: number, infoTelefono: any) {
     const PersonalTelefonoId = infoTelefono.PersonalTelefonoId
-    let telefono:any = await queryRunner.query(`
+    let telefono: any = await queryRunner.query(`
       SELECT TipoTelefonoId, PersonalTelefonoNro TelefonoNro
       FROM PersonalTelefono
       WHERE PersonalId IN (@0) AND PersonalTelefonoId IN (@1)
-      `,[PersonalId, PersonalTelefonoId])
-      
-    if (!telefono.length) 
-      return await this.addPersonalTelefono(queryRunner, infoTelefono, PersonalId )
+      `, [PersonalId, PersonalTelefonoId])
+
+    if (!telefono.length)
+      return await this.addPersonalTelefono(queryRunner, infoTelefono, PersonalId)
 
     const lugarTelefonoId = infoTelefono.LugarTelefonoId
     const tipoTelefonoId = infoTelefono.TipoTelefonoId
@@ -1117,30 +1118,30 @@ export class PersonalController extends BaseController {
       PersonalTelefonoNro = @6,
       PersonalTelefonoInactivo = null
       WHERE PersonalId IN (@0) AND PersonalTelefonoId IN (@1)
-      `,[
-        PersonalId, PersonalTelefonoId, lugarTelefonoId, tipoTelefonoId, codigoPais, codigoArea, telefonoNum
+      `, [
+      PersonalId, PersonalTelefonoId, lugarTelefonoId, tipoTelefonoId, codigoPais, codigoArea, telefonoNum
     ])
   }
 
-  private async updatePersonalEstudio(queryRunner:any, PersonalId:number, infoEstudio:any ){
+  private async updatePersonalEstudio(queryRunner: any, PersonalId: number, infoEstudio: any) {
     const PersonalEstudioId = infoEstudio.PersonalEstudioId
     let estudio = await queryRunner.query(`
       SELECT TipoEstudioId , EstadoEstudioId, TRIM(PersonalEstudioTitulo) EstudioTitulo, PersonalEstudioAno EstudioAno
       FROM PersonalEstudio
       WHERE PersonalId IN (@0) AND PersonalEstudioId IN (@1)
-      `,[PersonalId, PersonalEstudioId])
-    if (!estudio.length) 
-      return await this.addPersonalEstudio(queryRunner, infoEstudio, PersonalId )
+      `, [PersonalId, PersonalEstudioId])
+    if (!estudio.length)
+      return await this.addPersonalEstudio(queryRunner, infoEstudio, PersonalId)
     estudio = estudio[0]
 
-    let cambio:boolean = false
+    let cambio: boolean = false
     for (const key in estudio) {
       if (infoEstudio[key] != estudio[key]) {
         cambio = true
         break
       }
     }
-    if(!cambio) return
+    if (!cambio) return
     const tipoEstudioId = estudio.TipoEstudioId
     const estadoEstudioId = estudio.EstadoEstudioId
     const estudioTitulo = estudio.EstudioTitulo
@@ -1153,31 +1154,31 @@ export class PersonalController extends BaseController {
       PersonalEstudioTitulo = @4,
       PersonalEstudioAno = @5
       WHERE PersonalId IN (@0) AND PersonalEstudioId IN (@1)
-      `,[
-        PersonalId, PersonalEstudioId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAno
+      `, [
+      PersonalId, PersonalEstudioId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAno
     ])
     if (docTitulo) {
       await this.setImagenEstudio(queryRunner, PersonalId, docTitulo)
     }
   }
 
-  async updatePersonalEmail(queryRunner:any, personaId:any, infoEmail:any){
+  async updatePersonalEmail(queryRunner: any, personaId: any, infoEmail: any) {
     const PersonalEmailId = infoEmail.PersonalEmailId
     const Email = infoEmail.Email
-    if (PersonalEmailId){
+    if (PersonalEmailId) {
       let PersonalEmailEmail = await queryRunner.query(`
         SELECT PersonalEmailEmail
         FROM PersonalEmail
         WHERE PersonalId IN (@0) AND PersonalEmailId IN (@1)`,
-        [ personaId, PersonalEmailId]
+        [personaId, PersonalEmailId]
       )
       PersonalEmailEmail = PersonalEmailEmail[0].PersonalEmailEmail
-      if (PersonalEmailEmail != Email) 
+      if (PersonalEmailEmail != Email)
         await queryRunner.query(`UPDATE PersonalEmail SET PersonalEmailEmail = @1 WHERE PersonalId IN (@0)`,
-          [ personaId, Email]
+          [personaId, Email]
         )
-    }else{
-      if(Email) await this.addPersonalEmail(queryRunner, personaId, Email)
+    } else {
+      if (Email) await this.addPersonalEmail(queryRunner, personaId, Email)
     }
   }
 
@@ -1197,16 +1198,16 @@ export class PersonalController extends BaseController {
   //       break
   //     }
   //   }
-    
+
   //   if(!cambio) return
   //   await this.setSituacionRevistaQuery(queryRunner, PersonalId, infoSitRevista)
   // }
-  
-  
-  async updatePersonal(req: any, res: Response, next: NextFunction){
+
+
+  async updatePersonal(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const PersonalId:number = Number(req.params.id)
-    const CUIT:number = req.body.CUIT
+    const PersonalId: number = Number(req.params.id)
+    const CUIT: number = req.body.CUIT
     const Foto = req.body.Foto
     const docFrente = req.body.docFrente
     const docDorso = req.body.docDorso
@@ -1214,14 +1215,14 @@ export class PersonalController extends BaseController {
     const estudios: any[] = req.body.estudios
     let now = new Date()
     now.setHours(0, 0, 0, 0)
-    
+
     try {
       await queryRunner.startTransaction()
 
       const valForm = this.valPersonalForm(req.body)
       if (valForm instanceof ClientException)
         throw valForm
-      
+
       await this.updatePersona(queryRunner, PersonalId, req.body)
       await this.updatePersonalDomicilio(queryRunner, PersonalId, req.body)
       await this.updatePersonalEmail(queryRunner, PersonalId, req.body)
@@ -1230,14 +1231,14 @@ export class PersonalController extends BaseController {
       //Telefonos
       await queryRunner.query(`UPDATE PersonalTelefono SET PersonalTelefonoInactivo = 1 WHERE PersonalId IN (@0)`, [PersonalId])
       for (const telefono of telefonos) {
-        if (telefono.TelefonoNro)  await this.updatePersonalTelefono(queryRunner, PersonalId, telefono)
+        if (telefono.TelefonoNro) await this.updatePersonalTelefono(queryRunner, PersonalId, telefono)
       }
       //Estudios
       // await queryRunner.query(``)
       for (const estudio of estudios) {
-        if (estudio.EstudioTitulo)  await this.updatePersonalEstudio(queryRunner, PersonalId, estudio)
+        if (estudio.EstudioTitulo) await this.updatePersonalEstudio(queryRunner, PersonalId, estudio)
       }
-      
+
       let PersonalCUITCUIL = await queryRunner.query(`
         SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0`, [PersonalId]
       )
@@ -1247,15 +1248,15 @@ export class PersonalController extends BaseController {
           PersonalCUITCUILCUIT = @1,
           PersonalCUITCUILDesde = @2
           WHERE PersonalId = @0`,
-          [ PersonalId, CUIT, now]
+          [PersonalId, CUIT, now]
         )
       }
       if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto)
-      
+
       if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente, 12)
-      
+
       if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso, 13)
-      
+
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
@@ -1266,7 +1267,7 @@ export class PersonalController extends BaseController {
     }
   }
 
-  private async getFormPersonByIdQuery(queryRunner:any, personalId:any){
+  private async getFormPersonByIdQuery(queryRunner: any, personalId: any) {
     let data = await queryRunner.query(`
       SELECT per.PersonalId ,TRIM(per.PersonalNombre) Nombre, TRIM(per.PersonalApellido) Apellido, per.PersonalNroLegajo NroLegajo,
       cuit.PersonalCUITCUILCUIT CUIT , per.PersonalFechaIngreso FechaIngreso, per.PersonalFechaNacimiento FechaNacimiento,
@@ -1299,7 +1300,7 @@ export class PersonalController extends BaseController {
   //   )
   // }
 
-  private async getFormTelefonosByPersonalIdQuery(queryRunner:any, personalId:any){
+  private async getFormTelefonosByPersonalIdQuery(queryRunner: any, personalId: any) {
     return await queryRunner.query(`
         SELECT tel.PersonalTelefonoId, tel.TipoTelefonoId, TRIM(tel.PersonalTelefonoNro) TelefonoNro
         FROM PersonalTelefono tel
@@ -1308,7 +1309,7 @@ export class PersonalController extends BaseController {
     )
   }
 
-  private async getFormEstudiosByPersonalIdQuery(queryRunner:any, personalId:any){
+  private async getFormEstudiosByPersonalIdQuery(queryRunner: any, personalId: any) {
     return await queryRunner.query(`
         SELECT est.PersonalEstudioId, est.TipoEstudioId, est.EstadoEstudioId,
         TRIM(est.PersonalEstudioTitulo) EstudioTitulo, est.PersonalEstudioAno EstudioAno
@@ -1318,12 +1319,12 @@ export class PersonalController extends BaseController {
     )
   }
 
-  async getFormDataById(req: any, res: Response, next: NextFunction){
+  async getFormDataById(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner()
     const personalId = req.params.id
     try {
       let data = await this.getFormPersonByIdQuery(queryRunner, personalId)
-      
+
       const telefonos = await this.getFormTelefonosByPersonalIdQuery(queryRunner, personalId)
       const estudios = await this.getFormEstudiosByPersonalIdQuery(queryRunner, personalId)
 
@@ -1333,18 +1334,18 @@ export class PersonalController extends BaseController {
       this.jsonRes(data, res);
     } catch (error) {
       return next(error)
-    } 
+    }
   }
 
   async deleteArchivo(req: any, res: Response, next: NextFunction) {
     const personalId = req.body.id
     const tipo = req.body.tipo
-    let document:any
+    let document: any
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
-      
+
       switch (tipo) {
         case 7:
           document = await queryRunner.query(`
@@ -1362,11 +1363,11 @@ export class PersonalController extends BaseController {
             JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             WHERE doc.PersonalId = @0 AND doc.DocumentoImagenParametroId = @1
           `, [personalId, tipo]);
-      
+
         default:
           throw new ClientException(`No se encontro el tipo de Archivo.`);
       }
-      
+
       const url = `${process.env.LINCE_PATH}/${document[0]["path"]}`
 
       if (document.length > 0) {
@@ -1376,7 +1377,7 @@ export class PersonalController extends BaseController {
           await unlink(url);
         }
 
-        
+
 
         switch (tipo) {
           case 7:
@@ -1391,7 +1392,7 @@ export class PersonalController extends BaseController {
               DELETE FROM DocumentoImagenDocumento
               WHERE doc.PersonalId = @0 AND doc.DocumentoImagenParametroId = @1
             `, [personalId, tipo]);
-        
+
           default:
             throw new ClientException(`No se encontro el tipo de Archivo.`);
         }
@@ -1408,9 +1409,9 @@ export class PersonalController extends BaseController {
 
   }
 
-  async getDomicilioByPersonalId(req: any, res: Response, next: NextFunction){
+  async getDomicilioByPersonalId(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const PersonalId:number = Number(req.params.id)
+    const PersonalId: number = Number(req.params.id)
     try {
       let domicilios = await queryRunner.query(`
         SELECT dom.PersonalDomicilioId, dom.PersonalId , dom.PersonalDomicilioDomCalle Calle, dom.PersonalDomicilioDomNro Numero, dom.PersonalDomicilioDomPiso Piso,
@@ -1451,7 +1452,7 @@ export class PersonalController extends BaseController {
         WHERE sitrev.PersonalId IN (@0)
         ORDER BY sitrev.PersonalSituacionRevistaId DESC
         `, [personalId])
-      
+
       this.jsonRes(listSitRevista, res);
     } catch (error) {
       return next(error)
@@ -1466,95 +1467,78 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async setSituacionRevistaQuery(queryRunner: any, personalId: number, situacion: any){
-    const situacionId = situacion.SituacionId
-    const motivo = situacion.Motivo
-    let desde:Date = new Date(situacion.Desde)
+  async setSituacionRevistaQuery(queryRunner: any, personalId: number, SituacionRevistaId: number, desde: Date, motivo: string) {
     desde.setHours(0, 0, 0, 0)
-    let yesterday:Date = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate() - 1)
+    let yesterday: Date = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
-    let sitRevistaId = 0
 
-    let find:any = sitRevistaInvalido.find((obj:any) => {return situacionId == obj.SituacionRevistaId})
-    if (find) {
-      return new ClientException(`La Situacion de Revista ${find.Descripcion} no se puede cargar desde éste formulario.`)
-    }
-
+    if (sitRevistaInvalido.find((obj: any) => { return SituacionRevistaId == obj.SituacionRevistaId })) 
+      throw new ClientException(`La situación de revista seleccionada no se puede cargar desde esta pantalla.`)
+  
+    //Obtengo la última situación de revista
     let sitRevista = await queryRunner.query(`
-      SELECT PersonalSituacionRevistaId, PersonalSituacionRevistaDesde Desde, PersonalSituacionRevistaMotivo Motivo
+      SELECT TOP 1 sitrev.PersonalSituacionRevistaId, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaSituacionId,  ISNULL(sitrev.PersonalSituacionRevistaHasta, '9999-12-31') PersonalSituacionRevistaHasta
       FROM PersonalSituacionRevista sitrev
-      WHERE sitrev.PersonalId IN (@0) AND PersonalSituacionRevistaHasta IS NULL
+      WHERE sitrev.PersonalId = @0 
+      ORDER BY sitrev.PersonalSituacionRevistaDesde DESC, ISNULL(sitrev.PersonalSituacionRevistaHasta, '9999-12-31') DESC
       `, [personalId]
     )
-    if (sitRevista.length) sitRevistaId = sitRevista[0].PersonalSituacionRevistaId
 
-    if (sitRevistaId) {
-      let sitRevistaActual = sitRevista[0]
-      const sitRevistaActualDesde:Date = new Date(sitRevistaActual.Desde)
-      if (sitRevistaActualDesde.getTime() > desde.getTime())
-        return new ClientException(`La fecha Desde tiene que ser mayor o igual que la fecha Desde de la ultima Situacion de Revista.`)
+    if (sitRevista.length == 1 && sitRevista[0].PersonalSituacionRevistaDesde.getTime() > desde.getTime())
+      throw new ClientException(`La fecha desde de situación de revista no puede ser menor al ${sitRevista[0].PersonalSituacionRevistaDesde}`)
 
-      if (sitRevistaActualDesde.getTime() == desde.getTime()) {
-        await queryRunner.query(`
-          UPDATE PersonalSituacionRevista SET
-          PersonalSituacionRevistaDesde = @2,
-          PersonalSituacionRevistaMotivo = @3,
-          PersonalSituacionRevistaSituacionId = @4
-          WHERE PersonalId IN (@0) AND PersonalSituacionRevistaId IN (@1)
-          `, [personalId, sitRevistaId, desde, motivo, situacionId]
-        )
-        return
-      }
+    if (sitRevista[0].PersonalSituacionRevistaSituacionId == SituacionRevistaId)
+      throw new ClientException(`La situación de revista es igual a la existente`)
+   
+    if (sitRevista.length > 0 && sitRevistaInvalido.find((obj: any) => { return sitRevista[0].PersonalSituacionRevistaSituacionId == obj.SituacionRevistaId }))
+      throw new ClientException(`No se puede modificar la situación de revista desde esta pantalla`)
+
+    if (sitRevista.length>0 && sitRevista[0].PersonalSituacionRevistaDesde.getTime() == desde.getTime()) {
+      await queryRunner.query(`UPDATE PersonalSituacionRevista SET PersonalSituacionRevistaDesde = @2, PersonalSituacionRevistaMotivo = @3, PersonalSituacionRevistaSituacionId = @4
+        WHERE PersonalId = @0 AND PersonalSituacionRevistaId = @1
+        `, [personalId, sitRevista[0].PersonalSituacionRevistaId, desde, motivo, SituacionRevistaId]
+      )
+    } else {
+      //Crea una situación de revista nueva
+      await queryRunner.query(`
+        UPDATE PersonalSituacionRevista SET PersonalSituacionRevistaHasta = @2 WHERE PersonalId IN (@0) AND PersonalSituacionRevistaId = @1`,
+        [personalId, sitRevista[0].PersonalSituacionRevistaId, yesterday]
+      )
+
+      const PersonalSituacionRevistaUltNroQuery = await queryRunner.query(`SELECT PersonalSituacionRevistaUltNro FROM Personal WHERE PersonalId = @0`, [personalId])
+      const PersonalSituacionRevistaUltNro = PersonalSituacionRevistaUltNroQuery[0].PersonalSituacionRevistaUltNro + 1
 
       await queryRunner.query(`
-        UPDATE PersonalSituacionRevista SET
-        PersonalSituacionRevistaHasta = @2
-        WHERE PersonalId IN (@0) AND PersonalSituacionRevistaId = @1
-        `, [personalId, sitRevistaId, yesterday]
+        INSERT INTO PersonalSituacionRevista ( PersonalId, PersonalSituacionRevistaId, PersonalSituacionRevistaDesde, PersonalSituacionRevistaMotivo, PersonalSituacionRevistaSituacionId)
+          VALUES(@0, @1, @2, @3, @4)`,
+        [personalId, PersonalSituacionRevistaUltNro, desde, motivo, SituacionRevistaId]
       )
-    }
-    sitRevistaId++
-    await queryRunner.query(`
-      INSERT INTO PersonalSituacionRevista (
-      PersonalId,
-      PersonalSituacionRevistaId,
-      PersonalSituacionRevistaDesde,
-      PersonalSituacionRevistaMotivo,
-      PersonalSituacionRevistaSituacionId
-      )
-      VALUES(@0, @1, @2, @3, @4)
-      `, [personalId, sitRevistaId, desde, motivo, situacionId]
-    )
 
-    await queryRunner.query(`
-      UPDATE Personal SET
-      PersonalSituacionRevistaUltNro = @1
-      WHERE PersonalId IN (@0)
-      `, [personalId, sitRevistaId]
-    )
+      await queryRunner.query(`UPDATE Personal SET PersonalSituacionRevistaUltNro = @1 WHERE PersonalId IN (@0)`, [personalId, PersonalSituacionRevistaUltNro])
+    }
   }
 
-  async setSituacionRevista(req: any, res: Response, next: NextFunction){
+  async setSituacionRevista(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const personalId:number = Number(req.params.id);
-    const situacionId = req.body.SituacionId
+    const personalId: number = Number(req.params.id);
+    const SituacionRevistaId = req.body.SituacionId
     const desde = req.body.Desde
-    let error:any = []
+    const motivo = req.body.Motivo
+    let error: any = []
     try {
       await queryRunner.startTransaction()
 
-      if (!situacionId) {
-        error.push(`La Situacion de Revista es invalido.`);
+      if (!SituacionRevistaId) {
+        error.push(`Debe completar situación de revista.`);
       }
       if (!desde) {
-        error.push(`EL campo Desde no puede estar vacio.`);
+        error.push(`Debe completar fecha desde.`);
       }
       if (error.length) {
         throw new ClientException(error);
       }
 
-      const sitRevist = await this.setSituacionRevistaQuery(queryRunner, personalId, req.body)
-      if (sitRevist instanceof ClientException) throw sitRevist
+      await this.setSituacionRevistaQuery(queryRunner, personalId, SituacionRevistaId, new Date(desde), motivo)
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
@@ -1581,14 +1565,14 @@ export class PersonalController extends BaseController {
         ORDER BY gap.GrupoActividadPersonalDesde DESC
       `, [personalId]
       );
-      
+
       this.jsonRes(responsables, res);
     } catch (error) {
       return next(error)
     }
   }
 
-  async getGrupoActividad(req: any, res: Response, next: NextFunction){
+  async getGrupoActividad(req: any, res: Response, next: NextFunction) {
     try {
       const options = await dataSource.query(`
         SELECT ga.GrupoActividadId value, ga.GrupoActividadDetalle label
@@ -1599,10 +1583,10 @@ export class PersonalController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
-    } 
+    }
   }
 
-  valPersonalForm(personalForm: any){
+  valPersonalForm(personalForm: any) {
     let campos_vacios: any[] = []
 
     if (!personalForm.Nombre) {
@@ -1611,7 +1595,7 @@ export class PersonalController extends BaseController {
     if (!personalForm.Apellido) {
       campos_vacios.push(` Apellido`)
     }
-    if (!Number.isInteger(personalForm.CUIT)) { 
+    if (!Number.isInteger(personalForm.CUIT)) {
       campos_vacios.push(` CUIT`)
     }
     if (!personalForm.SucursalId) {
@@ -1633,9 +1617,9 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async getDocumentosByPersonalId(req: any, res: Response, next: NextFunction){
+  async getDocumentosByPersonalId(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
-    const personalId:number = Number(req.params.personalId);
+    const personalId: number = Number(req.params.personalId);
     // const fechaActual = new Date();
     try {
       // await queryRunner.startTransaction()
@@ -1719,7 +1703,7 @@ export class PersonalController extends BaseController {
         WHERE gen.persona_id IN (@0)
         `, [personalId]
       )
-      
+
       // await queryRunner.commitTransaction()
       this.jsonRes(documentos, res);
     } catch (error) {
@@ -1734,9 +1718,9 @@ export class PersonalController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const id = Number(req.params.id)
     const table = req.params.table
-    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
+    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     try {
-      let ds:any
+      let ds: any
       if (table == 'docgeneral') {
         ds = await queryRunner.query(`
           SELECT gen.doc_id AS id, path, gen.nombre_archivo AS nombreArchivo,
@@ -1746,7 +1730,7 @@ export class PersonalController extends BaseController {
           WHERE gen.doc_id = @0
           `, [id]
         )
-      }else{
+      } else {
         ds = await queryRunner.query(`
           SELECT dir.DocumentoImagenParametroDirectorioPath path, doc.DocumentoImagen${table}BlobNombreArchivo nombreArchivo,
           param.DocumentoImagenParametroDe parametro
@@ -1761,12 +1745,12 @@ export class PersonalController extends BaseController {
       if (ds.length == 0)
         throw new ClientException(`El archivo no existe`);
 
-      const downloadPath = `${pathArchivos}/${ds[0].path.replaceAll('\\','/')}/${ds[0].nombreArchivo}`;
+      const downloadPath = `${pathArchivos}/${ds[0].path.replaceAll('\\', '/')}/${ds[0].nombreArchivo}`;
 
       if (!existsSync(downloadPath))
-        throw new ClientException(`El archivo ${ds[0].parametro} no se encuentra`,{'path':downloadPath});
+        throw new ClientException(`El archivo ${ds[0].parametro} no se encuentra`, { 'path': downloadPath });
 
-      res.download(downloadPath, ds[0].nombreArchivo, (msg) => {});
+      res.download(downloadPath, ds[0].nombreArchivo, (msg) => { });
 
     } catch (error) {
       return next(error)
