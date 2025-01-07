@@ -109,7 +109,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   verifySelections(): boolean {
     const type = (this.selections.field.searchType)? this.selections.field.searchType : (this.selections.field.type) ? this.selections.field.type : 'string'
 
-//    this.selections.operator = (this.selections.field.searchComponent) ? "=" : this.selections.operator
+//    //this.selections.operator = (!this.selections.field.searchComponent) ? "=" : this.selections.operator
 
     let value = String(this.selections.value)
     if (value.startsWith('>=')) {

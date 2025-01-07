@@ -324,15 +324,18 @@ export class PreciosProductosController extends BaseController {
 
     async deleteProducto(req: any, res: Response, next: NextFunction){
 
-        const queryRunner = dataSource.createQueryRunner();
-    
+        let cod_producto_venta = req.query[0]
+
+        const queryRunner = dataSource.createQueryRunner()
+        await queryRunner.connect()
+        await queryRunner.startTransaction()
         try {
 
-           let cod_producto_venta = req.query[0]
+        let result = await queryRunner.query( `SELECT * FROM lige.dbo.lpv_precio_venta WHERE precio_venta_id = @0`, [cod_producto_venta])
 
-            await queryRunner.connect()
-            await queryRunner.startTransaction()
-        
+            if(result[0].importe_desde < new Date() && result[0].importe_hasta < new Date())
+             throw new ClientException(`No se puede borrar registros con fechas anteriores a hoy`)
+
             await queryRunner.query( `DELETE FROM lige.dbo.lpv_precio_venta WHERE precio_venta_id = @0`, [cod_producto_venta])
           
             await queryRunner.commitTransaction()
@@ -359,10 +362,9 @@ export class PreciosProductosController extends BaseController {
         if (params.SucursalId == null || params.SucursalId == "")
             throw new ClientException(`Debe seleccionar la Sucursal`)
 
-
+        let resultSucursalCodigo = await queryRunner.query( `SELECT * FROM lige.dbo.lpv_precio_venta WHERE cod_Producto = @0 AND SucursalId = @1`, [params.codigo,params.SucursalId])
+       
         if(params.codigo != params.codigoOld){
-
-            let resultSucursalCodigo = await queryRunner.query( `SELECT * FROM lige.dbo.lpv_precio_venta WHERE cod_Producto = @0 AND SucursalId = @1`, [params.codigo,params.SucursalId])
         
             // Validar si hay registros
                 if (resultSucursalCodigo.length > 0) 
@@ -385,6 +387,14 @@ export class PreciosProductosController extends BaseController {
         if (new Date(params.hasta) < new Date(params.desde))
             throw new ClientException(`La fecha "hasta" no puede ser menor que la fecha "desde".`)
 
+        if (new Date(params.hasta) < new Date())
+            throw new ClientException(`La fecha "hasta" no puede ser menor que hoy.`)
+
+        if (new Date(params.desde) < new Date())
+            throw new ClientException(`La fecha "desde" no puede ser menor que hoy.`)
+
+        await this.validarRangoFechas(params.desde, params.hasta, resultSucursalCodigo)
+
         if(importeOld == params.importe){
 
             let result = await queryRunner.query( `SELECT TOP 1 importe_hasta FROM lige.dbo.lpv_precio_venta WHERE cod_producto = @0 ORDER BY importe_hasta DESC`, [params.codigo])
@@ -401,6 +411,24 @@ export class PreciosProductosController extends BaseController {
         } 
   
     }
+
+
+    async validarRangoFechas(fechaDesde:any, fechaHasta:any, registros:any) {
+
+        for (const registro of registros) {
+          const desde = registro.importe_desde
+          const hasta = registro.importe_hasta
+      
+          // Validar si hay interseccion de rangos
+          if (
+            (fechaDesde >= desde && fechaDesde <= hasta) || 
+            (fechaHasta >= desde && fechaHasta <= hasta) || 
+            (fechaDesde <= desde && fechaHasta >= hasta)   
+          ) {
+            throw new ClientException(`Ya existe una fecha vigente para el rango de fechas`)
+          }
+        }
+      }
 
 
  
