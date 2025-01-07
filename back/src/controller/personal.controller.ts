@@ -1636,7 +1636,7 @@ export class PersonalController extends BaseController {
   async getDocumentosByPersonalId(req: any, res: Response, next: NextFunction){
     const queryRunner = dataSource.createQueryRunner();
     const personalId:number = Number(req.params.personalId);
-    const fechaActual = new Date();
+    // const fechaActual = new Date();
     try {
       // await queryRunner.startTransaction()
 
@@ -1710,7 +1710,14 @@ export class PersonalController extends BaseController {
         FROM DocumentoImagenPreocupacional preo
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = preo.DocumentoImagenParametroId
         WHERE preo.PersonalId IN (@0)
-        `, [personalId,fechaActual]
+        UNION ALL
+        SELECT gen.doc_id docId, gen.nombre_archivo NombreArchivo,
+        param.doctipo_id Parametro, param.detalle Descripcion,
+        CONCAT('/api/personal/download/docgeneral/', gen.doc_id) url
+        FROM lige.dbo.docgeneral gen
+        LEFT JOIN lige.dbo.doctipo param ON param.doctipo_id = gen.doctipo_id
+        WHERE gen.persona_id IN (@0)
+        `, [personalId]
       )
       
       // await queryRunner.commitTransaction()
@@ -1729,8 +1736,18 @@ export class PersonalController extends BaseController {
     const table = req.params.table
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
     try {
-      const ds = await queryRunner
-        .query(`
+      let ds:any
+      if (table == 'docgeneral') {
+        ds = await queryRunner.query(`
+          SELECT gen.doc_id AS id, path, gen.nombre_archivo AS nombreArchivo,
+          param.doctipo_id parametro
+          FROM lige.dbo.docgeneral gen
+          JOIN lige.dbo.doctipo param ON param.doctipo_id = gen.doctipo_id
+          WHERE gen.doc_id = @0
+          `, [id]
+        )
+      }else{
+        ds = await queryRunner.query(`
           SELECT dir.DocumentoImagenParametroDirectorioPath path, doc.DocumentoImagen${table}BlobNombreArchivo nombreArchivo,
           param.DocumentoImagenParametroDe parametro
           FROM DocumentoImagen${table} doc
@@ -1739,6 +1756,7 @@ export class PersonalController extends BaseController {
           WHERE doc.DocumentoImagen${table}Id IN (@0)
           `, [id]
         )
+      }
 
       if (ds.length == 0)
         throw new ClientException(`El archivo no existe`);
