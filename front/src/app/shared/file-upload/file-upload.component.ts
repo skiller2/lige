@@ -1,5 +1,5 @@
 import { Component, EventEmitter, forwardRef, inject, Input, input, model, output, Output, signal, SimpleChanges, ViewChild, viewChild } from '@angular/core';
-import { BehaviorSubject, debounceTime, firstValueFrom, noop, switchMap } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, noop, switchMap, map } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -51,6 +51,9 @@ export class FileUploadComponent implements ControlValueAccessor {
   Fullpath = signal("")
   FileName = signal("")
   fileAccept = input("")
+  cantFilesAnteriores = signal(0)
+  cantMaxFiles = input(10)
+  readonly = input<boolean>(false)
 
   formChange$ = new BehaviorSubject('');
 
@@ -58,12 +61,13 @@ export class FileUploadComponent implements ControlValueAccessor {
   $files = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
-      // console.log('input');
-      // console.log(this.columnForSearch(), this.idForSearh(), this.textForSearch(), this.tableForSearch(), this.tableForSearch(), this.dataBaseForSearch());
-
       if (this.idForSearh() > 0 && this.textForSearch() != "" && this.tableForSearch() != "" ) {
         this.files.set([])
-        return this.apiService.getArchivosAnteriores(this.idForSearh(), this.textForSearch(), this.columnForSearch(), this.tableForSearch())
+        return this.apiService.getArchivosAnteriores(this.idForSearh(), this.textForSearch(), this.columnForSearch(), this.tableForSearch()).pipe(
+          map((list: any) =>{
+            this.cantFilesAnteriores.set(list.length)
+            return list
+        }))
       } else {
         return []
       }
@@ -141,6 +145,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   async confirmDeleteArchivo(id: string, tipoDocumentDelete: boolean) {
+    if(this.readonly()) return
     try {
 
       this.ArchivoIdForDelete = parseInt(id);
@@ -154,6 +159,8 @@ export class FileUploadComponent implements ControlValueAccessor {
 
         await firstValueFrom(this.apiService.deleteArchivosLicencias(this.ArchivoIdForDelete))
         this.formChange$.next('');
+        let cant = this.cantFilesAnteriores()
+        this.cantFilesAnteriores.set(--cant)
       }
 
 
@@ -192,7 +199,11 @@ export class FileUploadComponent implements ControlValueAccessor {
     this.modalViewerVisiable.set(false)
   }
 
-
+  cantFiles():boolean {
+    if((this.files().length + this.cantFilesAnteriores()) < this.cantMaxFiles())
+      return true
+    return false
+  }
 
 }
 

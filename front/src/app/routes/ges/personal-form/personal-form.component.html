@@ -68,19 +68,19 @@
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="3">Foto</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
         <app-file-upload formControlName="Foto" [idForSearh]="this.personalId()" [textForSearch]="'FOTO'"
-        [columnForSearch]="'PersonalId'" [tableForSearch]="'DocumentoImagenFoto'"></app-file-upload>
+        [columnForSearch]="'PersonalId'" [tableForSearch]="'DocumentoImagenFoto'" [cantMaxFiles]="1" [readonly]="readonly()"></app-file-upload>
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">DNI - Frente</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
       <app-file-upload formControlName="docFrente" [idForSearh]="this.personalId()" [textForSearch]="'DOCUMENFREN'"
-        [columnForSearch]="'PersonalId'" [tableForSearch]="'DocumentoImagenDocumento'"></app-file-upload>
+        [columnForSearch]="'PersonalId'" [tableForSearch]="'DocumentoImagenDocumento'" [cantMaxFiles]="1" [readonly]="readonly()"></app-file-upload>
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">DNI - Dorso</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
         <app-file-upload formControlName="docDorso" [idForSearh]="this.personalId()" [textForSearch]="'DOCUMENDOR'"
-        [columnForSearch]="'PersonalId'" [tableForSearch]="'DocumentoImagenDocumento'"></app-file-upload>
+        [columnForSearch]="'PersonalId'" [tableForSearch]="'DocumentoImagenDocumento'" [cantMaxFiles]="1" [readonly]="readonly()"></app-file-upload>
     </nz-form-control>
   </nz-form-item>
 
@@ -251,7 +251,7 @@
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="3">Doc</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
             <app-file-upload formControlName="DocTitulo" [idForSearh]="this.personalId()" [textForSearch]="'CERESTPAG'+i"
-            [columnForSearch]="'PersonalId'" [tableForSearch]="'DocumentoImagenEstudio'"></app-file-upload>
+            [columnForSearch]="'PersonalId'" [tableForSearch]="'DocumentoImagenEstudio'" [cantMaxFiles]="1" [readonly]="readonly()"></app-file-upload>
         </nz-form-control>
       </nz-form-item>
 
