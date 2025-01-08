@@ -66,6 +66,7 @@ export class PersonalComponent {
     // childCustDrawer = viewChild.required<PersonalCustodiasDrawerComponent>('custDrawer')
     // childDomDrawer = viewChild.required<PersonalDomicilioDrawerComponent>('domDrawer')
     childPerFormDrawer = viewChild.required<PersonalFormComponent>('perForm')
+    childPerDetalleDrawer = viewChild.required<PersonalFormComponent>('perDetalle')
 
     columns$ = this.apiService.getCols('/api/personal/cols')
     gridData$ = this.listPersonal$.pipe(
@@ -150,12 +151,15 @@ export class PersonalComponent {
 
   onTabsetChange(_event: any) {
     switch (_event.index) {
+      case 3: //DETALLE
+        this.childPerDetalleDrawer().load()
+        break
       case 2: //EDIT
-      this.childPerFormDrawer().load()
+        this.childPerFormDrawer().load()
         break;
       case 1: 
         break;
-        default:
+      default:
         break;
     }
 

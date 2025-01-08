@@ -5,15 +5,15 @@
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'personal','listado']" (click)="getGridData()">Listado</a>
       </li>
-      <!-- <li nz-menu-item nzMatchRouter>
+      <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'personal','carga']">Carga</a>
-      </li> -->
+        <a [routerLink]="['/', 'ges', 'personal','detalle']">Detalle</a>
+      </li>
     </ul>
     <nz-button-group>
       <!-- btn  modify -->
       <button nz-button nzType="default" [disabled]="personalId()? false : true"
-        [routerLink]="['/', 'ges', 'personal','detalle']" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span
+        [routerLink]="['/', 'ges', 'personal','editar']" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span
           nz-icon nzType="edit" nzTheme="outline"></span></button>
       <!-- btn  add -->
       <button nz-button nzType="default" [routerLink]="['/', 'ges', 'personal','carga']" nz-tooltip
@@ -80,8 +80,12 @@
       <app-personal-form></app-personal-form>
     </nz-tab>
     <nz-tab>
-      <a nz-tab-link routerLink="/ges/personal/detalle">Detalle</a>
+      <a nz-tab-link routerLink="/ges/personal/editar">Editar</a>
       <app-personal-form #perForm [personalId]="personalId()"></app-personal-form>
+    </nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/personal/detalle">Detalle</a>
+      <app-personal-form #perDetalle [personalId]="personalId()"  [readonly]="true"></app-personal-form>
     </nz-tab>
   </nz-tabset>
 

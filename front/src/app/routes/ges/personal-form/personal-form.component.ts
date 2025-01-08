@@ -27,7 +27,8 @@ export class PersonalFormComponent {
   isLoading = signal(false);
   periodo= signal({anio:0, mes:0})
   enableSelectReset = signal<boolean>(true)
-  personalId = input(0);
+  personalId = input<number>(0);
+  readonly = input<boolean>(false);
   urlUpload = '/api/personal/upload'
   uploading$ = new BehaviorSubject({loading:false,event:null});
   
@@ -123,42 +124,40 @@ export class PersonalFormComponent {
   async ngOnInit(){
     let now : Date = new Date()
     this.periodo.set({anio: now.getFullYear(), mes: now.getMonth()+1})
-    // effect(async () => {
-    //   if (this.personalId()) {
-    //       await this.load()
-    //   } else {
-          
-    //   }
-    // }, { injector: this.injector });
   }
 
   async load() {
     this.enableSelectReset.set(false)
-    let infoPersonal = await firstValueFrom(this.searchService.getPersonalInfoById(this.personalId()))
-    let values:any = {...this.inputs}
-    
-    for (const key in values) {
-      values[key] = infoPersonal[key]
+    this.formPer.enable()
+    if (this.personalId()) {
+      let infoPersonal = await firstValueFrom(this.searchService.getPersonalInfoById(this.personalId()))
+      let values:any = {...this.inputs}
+      
+      for (const key in values) {
+        values[key] = infoPersonal[key]
+      }
+      this.telefonos().clear()
+      this.estudios().clear()
+
+      infoPersonal.telefonos.forEach((obj:any) => {
+          this.telefonos().push(this.fb.group({...this.objTelefono}))
+      });
+      if (this.telefonos().length == 0)
+          this.telefonos().push(this.fb.group({...this.objTelefono}))
+      
+      infoPersonal.estudios.forEach((obj:any) => {
+          this.estudios().push(this.fb.group({...this.objEstudio}))
+      });
+      if (this.estudios().length == 0)
+          this.estudios().push(this.fb.group({...this.objEstudio}))
+
+      this.formPer.reset(values)
+      // console.log(this.formPer.value);
     }
-    this.telefonos().clear()
-    this.estudios().clear()
-
-    infoPersonal.telefonos.forEach((obj:any) => {
-        this.telefonos().push(this.fb.group({...this.objTelefono}))
-    });
-    if (this.telefonos().length == 0)
-        this.telefonos().push(this.fb.group({...this.objTelefono}))
-    
-    infoPersonal.estudios.forEach((obj:any) => {
-        this.estudios().push(this.fb.group({...this.objEstudio}))
-    });
-    if (this.estudios().length == 0)
-        this.estudios().push(this.fb.group({...this.objEstudio}))
-
-    this.formPer.reset(values)
-    // console.log(this.formPer.value);
     
     this.enableSelectReset.set(true)
+    if (this.readonly())
+      this.formPer.disable()
   }
 
   async save() {
