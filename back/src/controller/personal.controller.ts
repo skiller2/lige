@@ -115,17 +115,9 @@ const columns: any[] = [
   },
 ]
 
-const sitRevistaInvalido: any[] = [
-  { SituacionRevistaId: 9, Descripcion: 'ART42' },
-  { SituacionRevistaId: 10, Descripcion: 'LICENCIA' },
-  { SituacionRevistaId: 16, Descripcion: 'LICENCIA CON RENUNCIA' },
-  { SituacionRevistaId: 18, Descripcion: 'LICENCIA POR ANTECEDENTES' },
-  { SituacionRevistaId: 23, Descripcion: 'ART 42 - AP 5' },
-  { SituacionRevistaId: 28, Descripcion: 'LICENCIA PARCIAL' },
-]
 
 export class PersonalController extends BaseController {
-
+  private listSitRev = process.env.SITREV_AUTOMATIC ? process.env.SITREV_AUTOMATIC : '9,10,16,18,23,28'
   async getPersonalMonotributo(req: any, res: Response, next: NextFunction) {
     const personalId = req.params.personalId;
     const anio = req.params.anio;
@@ -1461,7 +1453,8 @@ export class PersonalController extends BaseController {
 
   async getSituacionRevistaInvalidos(req: any, res: Response, next: NextFunction) {
     try {
-      this.jsonRes(sitRevistaInvalido, res);
+      const recordSet = this.listSitRev.split(',').map((item: string) => { return { SituacionRevistaId: item } })
+      this.jsonRes(recordSet, res);
     } catch (error) {
       return next(error)
     }
@@ -1472,7 +1465,8 @@ export class PersonalController extends BaseController {
     let yesterday: Date = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
 
-    if (sitRevistaInvalido.find((obj: any) => { return SituacionRevistaId == obj.SituacionRevistaId })) 
+
+    if (this.listSitRev.split(',').find((sit: any) =>  SituacionRevistaId == sit )) 
       throw new ClientException(`La situación de revista seleccionada no se puede cargar desde esta pantalla.`)
   
     //Obtengo la última situación de revista
@@ -1489,8 +1483,8 @@ export class PersonalController extends BaseController {
 
     if (sitRevista[0].PersonalSituacionRevistaSituacionId == SituacionRevistaId)
       throw new ClientException(`La situación de revista es igual a la existente`)
-   
-    if (sitRevista.length > 0 && sitRevistaInvalido.find((obj: any) => { return sitRevista[0].PersonalSituacionRevistaSituacionId == obj.SituacionRevistaId }))
+
+    if (sitRevista.length > 0 && this.listSitRev.split(',').find((sit: any) =>  sitRevista[0].PersonalSituacionRevistaSituacionId == sit ))
       throw new ClientException(`No se puede modificar la situación de revista desde esta pantalla`)
 
     if (sitRevista.length>0 && sitRevista[0].PersonalSituacionRevistaDesde.getTime() == desde.getTime()) {
