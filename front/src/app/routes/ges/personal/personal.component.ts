@@ -18,6 +18,7 @@ import { PersonalDomicilioDrawerComponent } from '../../../shared/personal-domic
 import { PersonalSituacionRevistaDrawerComponent } from '../../../shared/personal-situacionrevista-drawer/personal-situacionrevista-drawer.component'
 import { PersonalResponsableDrawerComponent } from '../../../shared/personal-responsable-drawer/personal-responsable-drawer.component'
 import { PersonalDocumentosDrawerComponent } from '../../../shared/personal-documentos-drawer/personal-documentos-drawer.component'
+import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
 import { NzIconModule } from 'ng-zorro-antd/icon';
 
 @Component({
@@ -29,7 +30,8 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
     imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, NzIconModule,
       PersonalSearchComponent, PersonalFormComponent, LicenciaHistorialDrawerComponent,
       PersonalObjetivoDrawerComponent, PersonalCustodiasDrawerComponent, PersonalDomicilioDrawerComponent,
-      PersonalSituacionRevistaDrawerComponent, PersonalResponsableDrawerComponent, PersonalDocumentosDrawerComponent
+      PersonalSituacionRevistaDrawerComponent, PersonalResponsableDrawerComponent, PersonalDocumentosDrawerComponent,
+      DetallePersonaComponent
     ],
     providers: [AngularUtilService, ExcelExportService],
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +55,8 @@ export class PersonalComponent {
     private apiService = inject(ApiService)
 
     personalId = signal(0)
+    anio = signal(0)
+    mes = signal(0)
     visibleHistorial = model<boolean>(false)
     visibleObjetivo = model<boolean>(false)
     visibleCustodias = model<boolean>(false)
@@ -60,6 +64,7 @@ export class PersonalComponent {
     visibleSitRevista = model<boolean>(false)
     visibleResponsable = model<boolean>(false)
     visibleDocumentos = model<boolean>(false)
+    visibleDetalle = model<boolean>(false)
 
     // childLicHistDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('licHistDrawer')
     // childObjDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('objDrawer')
@@ -78,6 +83,9 @@ export class PersonalComponent {
     )
 
     async ngOnInit(){
+      const date:Date = new Date()
+      this.anio.set(date.getFullYear())
+      this.mes.set(date.getMonth()+1)
       this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
       this.gridOptions.enableRowDetailView = false
       this.gridOptions.editable = false
@@ -149,6 +157,14 @@ export class PersonalComponent {
     this.visibleDocumentos.set(true) 
   }
 
+  openDrawerforConsultDetalle(): void{
+    this.visibleDetalle.set(true) 
+  }
+
+  closeDrawerforConsultDetalle(): void {
+    this.visibleDetalle.set( false)
+  }
+
   onTabsetChange(_event: any) {
     switch (_event.index) {
       case 3: //DETALLE
@@ -162,7 +178,6 @@ export class PersonalComponent {
       default:
         break;
     }
-
   }
 
 }

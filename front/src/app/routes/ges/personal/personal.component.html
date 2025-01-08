@@ -46,6 +46,10 @@
       <button nz-button nzType="default" (click)="openDrawerforConsultDocumentos()" [disabled]="personalId() == 0"
         nz-tooltip nzTooltipTitle="{{ 'app.documents' | i18n }}"><span nz-icon nzType="file"
           nzTheme="outline"></span></button>
+      <!-- btn  detalle -->
+      <button nz-button nzType="default" (click)="openDrawerforConsultDetalle()" [disabled]="personalId() == 0"
+      nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"><span nz-icon nzType="user"
+        nzTheme="outline"></span></button>
 
     </nz-button-group>
   </div>
@@ -104,3 +108,5 @@
   [PersonalId]="personalId()"></app-personal-responsable-drawer>
 <app-personal-documentos-drawer #responDrawer [(visibleDocumentos)]="visibleDocumentos"
   [PersonalId]="personalId()"></app-personal-documentos-drawer>
+<app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="personalId()"
+  [visible]="visibleDetalle()" (onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>
