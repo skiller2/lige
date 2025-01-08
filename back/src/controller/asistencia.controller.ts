@@ -2144,7 +2144,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       //req.body.total = `${horas}.${min}`
 */
       let result: any = {}
-      result.newRowId = this.addOrUpdateAsistencia(queryRunner, personal.id, objetivoId, anioId, mesId, mes, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, columnsDays, columnsDay, valueColumnsDays, totalhs)
+      result.newRowId = await this.addOrUpdateAsistencia(queryRunner, personal.id, objetivoId, anioId, mesId, mes, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, columnsDays, columnsDay, valueColumnsDays, totalhs)
         
       if (valCategoriaPersonal instanceof ClientException && valCategoriaPersonal.extended.categoria)
         result.categoria = valCategoriaPersonal.extended.categoria
