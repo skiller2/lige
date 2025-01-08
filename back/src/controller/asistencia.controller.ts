@@ -2010,7 +2010,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       AND ObjetivoAsistenciaAnoId = @1
       AND ObjetivoId = @0`,
         [objetivoId, anioId, mesId])
-      newAsistenciaPersonalDiasId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesPersonalDiasUltNro + 1
+      const newAsistenciaPersonalDiasId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesPersonalDiasUltNro + 1
       const newAsistenciaDiasPersonalId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesDiasPersonalUltNro + 1
       const newAsistenciaPersonalAsignadoId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesPersonalUltNro + 1
       await queryRunner.query(`
@@ -2133,19 +2133,19 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         return this.jsonRes({ deleteRowId: gridId }, res);
       }
 
-/*
-      let num = Math.round(totalhs % 1 * 60)
-      let min = ''
-      if (num < 10)
-        min = '0' + num.toString()
-      else
-        min = num.toString()
-      const horas = Math.trunc(totalhs).toString()
-      //req.body.total = `${horas}.${min}`
-*/
+      /*
+            let num = Math.round(totalhs % 1 * 60)
+            let min = ''
+            if (num < 10)
+              min = '0' + num.toString()
+            else
+              min = num.toString()
+            const horas = Math.trunc(totalhs).toString()
+            //req.body.total = `${horas}.${min}`
+      */
       let result: any = {}
       result.newRowId = await this.addOrUpdateAsistencia(queryRunner, personal.id, objetivoId, anioId, mesId, mes, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, columnsDays, columnsDay, valueColumnsDays, totalhs)
-        
+
       if (valCategoriaPersonal instanceof ClientException && valCategoriaPersonal.extended.categoria)
         result.categoria = valCategoriaPersonal.extended.categoria
       if (valPersonalRegistrado instanceof ClientException && valPersonalRegistrado.extended.forma)
@@ -2395,7 +2395,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       }
     }
     if (errores.length)
-      return new ClientException(errores,{keepvalue})
+      return new ClientException(errores, { keepvalue })
     return { columnsDays, columnsDay, valueColumnsDays, totalhs }
   }
 
@@ -2555,12 +2555,17 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     }
   }
 
-  minsToHourMins(mins:number)
-  { 
-   const hours = Math.floor(mins / 60)  
-   const minutes = mins % 60
-   return hours + ":" + minutes         
- }
+  minsToHourMins(mins: number) {
+    const hours = Math.floor(mins / 60)
+    const minutes = mins % 60
+    return String(hours).padStart(2, '0') + "." + String(minutes).padStart(2, '0')
+  }
+
+  hoursToHourMins(hoursin: number) {
+    const hours = Math.floor(hoursin)
+    const minutes = hoursin % 1 * 60
+    return String(hours).padStart(2, '0') + "." + String(minutes).padStart(2, '0')
+  }
 
   async getListaAsistenciaControAcceso(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
@@ -2578,37 +2583,40 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
             const maxMinsMidnight = Math.max(...day.timeList)
             const minMinsMidnight = Math.min(...day.timeList)
             const diffMins = maxMinsMidnight - minMinsMidnight
-            
-            
+
+
             let diffHours: float = Math.floor(diffMins / 60)
-            if (diffMins % 60 >15 ) diffHours += 0.5 
-            if (diffMins % 60 >45 ) diffHours += 0.5 
+            if (diffMins % 60 > 15) diffHours += 0.5
+            if (diffMins % 60 > 45) diffHours += 0.5
 
             if (diffHours > 0) {
-//              listadoProcessed.push({ CUIT: personal.employeeNo, dayNum, diffHours, diffTime: this.minsToHourMins(diffMins), inTime: this.minsToHourMins(minMinsMidnight), outTime: this.minsToHourMins(maxMinsMidnight) })
-              listadoProcessed[personal.employeeNo] = { ...listadoProcessed[personal.employeeNo], ['day'+dayNum]: this.minsToHourMins(diffMins) }
+              //              listadoProcessed.push({ CUIT: personal.employeeNo, dayNum, diffHours, diffTime: this.minsToHourMins(diffMins), inTime: this.minsToHourMins(minMinsMidnight), outTime: this.minsToHourMins(maxMinsMidnight) })
+              listadoProcessed[personal.employeeNo] = { ...listadoProcessed[personal.employeeNo], ['day' + dayNum + 'det']: this.minsToHourMins(diffMins), ['day' + dayNum]: this.hoursToHourMins(diffHours), ['day' + dayNum + 'hs']: diffHours }
             }
           }
         }
       }
-
-      const valObjetivo = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
-      if (valObjetivo instanceof ClientException)
-        throw valObjetivo
-      const anioId = valObjetivo[0].ObjetivoAsistenciaAnoId
-      const mesId = valObjetivo[0].ObjetivoAsistenciaAnoMesId
-      const sucursalId = valObjetivo[0].SucursalId
-      const formaLiquidacion = 'N'
-
+      /*
+            const valObjetivo = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
+            if (valObjetivo instanceof ClientException)
+              throw valObjetivo
+            const anioId = valObjetivo[0].ObjetivoAsistenciaAnoId
+            const mesId = valObjetivo[0].ObjetivoAsistenciaAnoMesId
+            const sucursalId = valObjetivo[0].SucursalId
+            const formaLiquidacion = 'N'
+      */
 
 
       let dias = ''
       for (let index = 1; index <= 31; index++)
         dias = dias + `, TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias${index}Gral) day${index}`
-  
+
       const asistencia = await queryRunner.query(`
-        SELECT objp.ObjetivoAsistenciaAnoMesPersonalDiasId id,
-          objp.ObjetivoAsistenciaAnoMesPersonalDiasId dbid,
+        SELECT 
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasId,
+          objp.ObjetivoAsistenciaAnoId,
+          objp.ObjetivoAsistenciaAnoMesId,
+          objp.ObjetivoId,
           objp.ObjetivoAsistenciaMesPersonalId PersonalId,
           CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName,
           cuit.PersonalCUITCUILCUIT,
@@ -2637,26 +2645,78 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         WHERE objp.ObjetivoId = @0 AND cuit.PersonalCUITCUILCUIT IN ('${Object.keys(listadoProcessed).join('\',\'')}') 
         ORDER BY objp.ObjetivoAsistenciaAnoMesPersonalDiasId
       `, [objetivoId, anio, mes])
-  
 
 
-      for (const [cuit, perAsistencia] of Object.entries(listadoProcessed)) {
-        const asistenciaRow =  asistencia.some((p: any) => p.PersonalCUITCUILCUIT === cuit)
-        console.log('asistenciaRow',asistenciaRow)
-        //ACA
-//        this.addOrUpdateAsistencia(queryRunner, 0, objetivoId, anioId, mesId, mes, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, columnsDays, columnsDay, valueColumnsDays,`${horas}.${min}`)
 
+      interface AsistenciaProcessed {
+        [key: string]: string;
       }
 
-      let personalCuits = await queryRunner.query(`SELECT DISTINCT cuit.PersonalId, cuit.PersonalCUITCUILCUIT FROM PersonalCUITCUIL cuit WHERE cuit.PersonalCUITCUILCUIT IN ('${Object.keys(listadoProcessed).join('\',\'')}')`)
-      if (personalCuits.length != Object.keys(listadoProcessed).length) {
-        const result = Object.keys(listadoProcessed).filter((cuit: any) => !personalCuits.some((p: any) => p.PersonalCUITCUILCUIT === cuit))
-        throw new ClientException(`No se encontraron los CUITs ${result.join(', ')}`)
+      const cabecera = await this.addAsistenciaPeriodo(anio, mes, objetivoId, queryRunner, {})
+      const ObjetivoAsistenciaAnoId = cabecera.ObjetivoAsistenciaAnoId
+      const ObjetivoAsistenciaAnoMesId = cabecera.ObjetivoAsistenciaAnoMesId
+
+      for (const [cuit, perAsistencia] of Object.entries(listadoProcessed) as [string, AsistenciaProcessed][]) {
+        console.log('perAsistencia', cuit, perAsistencia)
+
+        const asistenciaRow = asistencia.find((p: any) => p.PersonalCUITCUILCUIT == cuit)
+        console.log('asistenciaRow', asistenciaRow)
+
+        if (asistenciaRow) {
+          await queryRunner.query(`UPDATE ObjetivoAsistenciaAnoMesPersonalDias 
+            SET ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio1Gral = @4, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio2Gral = @5, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio3Gral = @6, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio4Gral = @7, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio5Gral = @8,
+            ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio6Gral =  @9, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio7Gral = @10, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio8Gral = @11, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio9Gral = @12, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio10Gral = @13,
+            ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio11Gral = @14, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio12Gral = @15, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio13Gral = @16, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio14Gral = @17, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio15Gral = @18,
+            ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio16Gral = @19, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio17Gral = @20, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio18Gral = @21, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio19Gral = @22, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio20Gral = @23,
+            ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio21Gral = @24, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio22Gral = @25, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio23Gral = @26, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio24Gral = @27, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio25Gral = @28,
+            ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio26Gral = @29, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio27Gral = @30, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio28Gral = @31, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio29Gral = @32, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio30Gral = @33,
+            ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio31Gral = @34
+            WHERE ObjetivoAsistenciaAnoMesPersonalDiasId = @0  AND ObjetivoAsistenciaAnoId = @1 AND ObjetivoAsistenciaAnoMesId = @2 AND ObjetivoId = @3`,
+            [asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasId, asistenciaRow.ObjetivoAsistenciaAnoId, asistenciaRow.ObjetivoAsistenciaAnoMesId, asistenciaRow.ObjetivoId,
+            perAsistencia.day1, perAsistencia.day2, perAsistencia.day3, perAsistencia.day4, perAsistencia.day5, perAsistencia.day6, perAsistencia.day7, perAsistencia.day8, perAsistencia.day9, perAsistencia.day10, perAsistencia.day11, perAsistencia.day12, perAsistencia.day13, perAsistencia.day14, perAsistencia.day15, perAsistencia.day16, perAsistencia.day17, perAsistencia.day18, perAsistencia.day19, perAsistencia.day20, perAsistencia.day21, perAsistencia.day22, perAsistencia.day23, perAsistencia.day24, perAsistencia.day25, perAsistencia.day26, perAsistencia.day27, perAsistencia.day28, perAsistencia.day29, perAsistencia.day30, perAsistencia.day31
+            ])
+
+          await queryRunner.query(`UPDATE ObjetivoAsistenciaMesDiasPersonal 
+            SET ObjetivoAsistenciaAnoMesPersonalConAsiBio1Gral = @4, ObjetivoAsistenciaAnoMesPersonalConAsiBio2Gral = @5, ObjetivoAsistenciaAnoMesPersonalConAsiBio3Gral = @6,   ObjetivoAsistenciaAnoMesPersonalConAsiBio4Gral = @7,   ObjetivoAsistenciaAnoMesPersonalConAsiBio5Gral = @8,
+            ObjetivoAsistenciaAnoMesPersonalConAsiBio6Gral =  @9,  ObjetivoAsistenciaAnoMesPersonalConAsiBio7Gral  = @10, ObjetivoAsistenciaAnoMesPersonalConAsiBio8Gral = @11,  ObjetivoAsistenciaAnoMesPersonalConAsiBio9Gral = @12,  ObjetivoAsistenciaAnoMesPersonalConAsiBio10Gral = @13,
+            ObjetivoAsistenciaAnoMesPersonalConAsiBio11Gral = @14, ObjetivoAsistenciaAnoMesPersonalConAsiBio12Gral = @15, ObjetivoAsistenciaAnoMesPersonalConAsiBio13Gral = @16, ObjetivoAsistenciaAnoMesPersonalConAsiBio14Gral = @17, ObjetivoAsistenciaAnoMesPersonalConAsiBio15Gral = @18,
+            ObjetivoAsistenciaAnoMesPersonalConAsiBio16Gral = @19, ObjetivoAsistenciaAnoMesPersonalConAsiBio17Gral = @20, ObjetivoAsistenciaAnoMesPersonalConAsiBio18Gral = @21, ObjetivoAsistenciaAnoMesPersonalConAsiBio19Gral = @22, ObjetivoAsistenciaAnoMesPersonalConAsiBio20Gral = @23,
+            ObjetivoAsistenciaAnoMesPersonalConAsiBio21Gral = @24, ObjetivoAsistenciaAnoMesPersonalConAsiBio22Gral = @25, ObjetivoAsistenciaAnoMesPersonalConAsiBio23Gral = @26, ObjetivoAsistenciaAnoMesPersonalConAsiBio24Gral = @27, ObjetivoAsistenciaAnoMesPersonalConAsiBio25Gral = @28,
+            ObjetivoAsistenciaAnoMesPersonalConAsiBio26Gral = @29, ObjetivoAsistenciaAnoMesPersonalConAsiBio27Gral = @30, ObjetivoAsistenciaAnoMesPersonalConAsiBio28Gral = @31, ObjetivoAsistenciaAnoMesPersonalConAsiBio29Gral = @32, ObjetivoAsistenciaAnoMesPersonalConAsiBio30Gral = @33,
+            ObjetivoAsistenciaAnoMesPersonalConAsiBio31Gral = @34
+            WHERE ObjetivoAsistenciaMesDiasPersonalId = @0  AND ObjetivoAsistenciaAnoId = @1 AND ObjetivoAsistenciaAnoMesId = @2 AND ObjetivoId = @3`,
+            [asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasId, asistenciaRow.ObjetivoAsistenciaAnoId, asistenciaRow.ObjetivoAsistenciaAnoMesId, asistenciaRow.ObjetivoId,
+            perAsistencia.day1, perAsistencia.day2, perAsistencia.day3, perAsistencia.day4, perAsistencia.day5, perAsistencia.day6, perAsistencia.day7, perAsistencia.day8, perAsistencia.day9, perAsistencia.day10, perAsistencia.day11, perAsistencia.day12, perAsistencia.day13, perAsistencia.day14, perAsistencia.day15, perAsistencia.day16, perAsistencia.day17, perAsistencia.day18, perAsistencia.day19, perAsistencia.day20, perAsistencia.day21, perAsistencia.day22, perAsistencia.day23, perAsistencia.day24, perAsistencia.day25, perAsistencia.day26, perAsistencia.day27, perAsistencia.day28, perAsistencia.day29, perAsistencia.day30, perAsistencia.day31
+            ])
+
+        } else {
+          const PersonalIdBus = await queryRunner.query(`
+            SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, cat.PersonalCategoriaTipoAsociadoId TipoAsociadoId, cat.PersonalCategoriaCategoriaPersonalId CategoriaPersonalId, 1      
+            FROM Personal per 
+            JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+				    JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = cuit.PersonalId AND cat.PersonalCategoriaTipoAsociadoId IN (1,3) AND cat.PersonalCategoriaDesde <= DATEFROMPARTS(@1,@2,1) AND DATEFROMPARTS(@1,@2,1) <= ISNULL(cat.PersonalCategoriaHasta,'9999-12-31')
+            WHERE cuit.PersonalCUITCUILCUIT = @0`, [cuit, anio, mes])
+
+          if (PersonalIdBus.length>0) {
+            const PersonalId = PersonalIdBus[0].PersonalId
+            const TipoAsociadoId = PersonalIdBus[0].TipoAsociadoId
+            const CategoriaPersonalId = PersonalIdBus[0].CategoriaPersonalId
+            let columnsDays = ''
+            let columnsDay = ''
+            let valueColumnsDays = ''
+            let totalhs = 0
+            for (let numdia=1; numdia <= 31;  numdia++) {
+              columnsDays += `, ObjetivoAsistenciaAnoMesPersonalDias${numdia}Gral, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio${numdia}Gral`
+              columnsDay += `, ObjetivoAsistenciaAnoMesPersonalDia${numdia}Gral, ObjetivoAsistenciaAnoMesPersonalConAsiBio${numdia}Gral`
+              valueColumnsDays += `, '${perAsistencia['day'+numdia]?perAsistencia['day'+numdia]:''}', '${perAsistencia['day'+numdia]?perAsistencia['day'+numdia]:''}'`
+              totalhs += (Number(perAsistencia['day'+numdia+'hs']))?Number(perAsistencia['day'+numdia+'hs']):0
+            }
+            await this.addOrUpdateAsistencia(queryRunner, 0, objetivoId, ObjetivoAsistenciaAnoId, ObjetivoAsistenciaAnoMesId, mes, PersonalId, TipoAsociadoId, CategoriaPersonalId, 'N', columnsDays, columnsDay, valueColumnsDays, totalhs)
+          }
+        }
       }
-
-
-
-
+//      throw new ClientException('Proceso finalizado')
+      await queryRunner.commitTransaction();
       this.jsonRes(listadoProcessed, res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
@@ -2863,8 +2923,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       "maxResults": 10, //Cantidad de resultados que devuelve
       "statisticalTime": "month",
       "month": `${anio}-${mes}` // Año-mes del periodo de datos obtenidos
-    }      
-  
+    }
+
     do {
       const response = await fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(data), })
       if (response.status != 200)
