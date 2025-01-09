@@ -2127,7 +2127,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         row['day' + daynum] =''
       }
 
-
+/*
       console.log('Val2', row.day2 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias2Gral, (row.day2 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias2Gral)?'distinto':'igual')
       console.log('Val3', row.day3 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias3Gral, (row.day3 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias3Gral)?'distinto':'igual')
       console.log('Val4', row.day4 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias4Gral, (row.day4 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias4Gral)?'distinto':'igual')
@@ -2136,7 +2136,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       console.log('Val7', row.day7 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias7Gral, (row.day7 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias7Gral)?'distinto':'igual')
       console.log('Val8', row.day8 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias8Gral, (row.day8 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias8Gral)?'distinto':'igual')
       console.log('Val9', row.day9 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias9Gral, (row.day9 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias9Gral)?'distinto':'igual')
-
+*/
       await queryRunner.query(`
       INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id,
       ObjetivoAsistenciaAnoMesPersonalDiasFormaDia1,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia2,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia3,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia4,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia5,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia6,
