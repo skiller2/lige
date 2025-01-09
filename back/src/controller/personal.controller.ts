@@ -387,7 +387,7 @@ export class PersonalController extends BaseController {
         WHERE cue.PersonalBancoDesde <= @1 AND ISNULL(cue.PersonalBancoHasta,'9999-12-31')>= @1 AND cue.PersonalId=@0`,
         [PersonalId, stmactual]
       )
-
+      result.map((cuenta:any) => { cuenta.PersonalBancoCBU = cuenta.PersonalBancoCBU.slice(0, -6)+'XXXXXX' }) 
       this.jsonRes(result, res);
     } catch (error) {
       return next(error)
