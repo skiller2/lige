@@ -20,7 +20,7 @@
                         nzPopconfirmTitle="Cargo vigiladores del mes anterior?" (nzOnConfirm)="autocomplete()"
                         *ngIf="gridDataInsert.length <= 1 && gridOptionsEdit.editable"><span nz-icon nzType="copy"
                             nzTheme="outline"></span>{{'app.btn.copi.previous.month' | i18n }}</button>
-                    <button nz-button nzType="default" nz-popconfirm
+                    <button nz-button nzType="default" nz-popconfirm [disabled]="controlAccesoDisabled()"
                     nzPopconfirmTitle="Leo registros desde el reloj de asistencia?" (nzOnConfirm)="leerControlAcceso()"
                     *ngIf="selectedObjetivoId == 1102 && gridOptionsEdit.editable"><span nz-icon nzType="copy"
                         nzTheme="outline"></span>{{'app.btn.control.acceso' | i18n }}</button>

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject } from '@angular/core';
+import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, signal } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -71,7 +71,7 @@ export class CargaAsistenciaComponent {
     ObjetivoIdUrl: any
     periodos: any
     contratos: any[] = []
-
+    controlAccesoDisabled = signal(false)
     visibleDrawer: boolean = false
     personalApellidoNombre: any;
     rowLocked: boolean = false;
@@ -728,9 +728,12 @@ export class CargaAsistenciaComponent {
             const objetivoId = this.selectedObjetivoId
             const anio = this.selectedPeriod.year
             const mes = this.selectedPeriod.month
-
-            const list: any = await firstValueFrom(this.searchService.getListaAsistenciaControAcceso(objetivoId, anio, mes))
-            
+            this.controlAccesoDisabled.set(true)
+            try {
+                const list: any = await firstValueFrom(this.searchService.getListaAsistenciaControAcceso(objetivoId, anio, mes))
+                await this.formChange('', Busqueda.Objetivo)
+            } catch (error) { }
+            this.controlAccesoDisabled.set(false)
 
         }
     }
