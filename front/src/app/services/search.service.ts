@@ -745,7 +745,7 @@ export class SearchService {
       .get<ResponseJSON<any>>(`api/asistencia/listacontrolacceso/${anio}/${mes}/${ObjetivoId}`)
       .pipe(
         map(res => res.data),
-        catchError(() => of([]))
+        //catchError(() => of([]))
       );
   }
 
