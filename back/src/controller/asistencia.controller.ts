@@ -906,7 +906,6 @@ export class AsistenciaController extends BaseController {
 
       this.jsonRes([], res);
     } catch (error) {
-      console.log('pase por aca', error);
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
@@ -1991,7 +1990,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     this.jsonRes(AsistenciaController.getMetodologias(), res);
   }
 
-  async addOrUpdateAsistencia(queryRunner: QueryRunner, personalIdExiste: number, objetivoId: number, anioId: number, mesId: number, mes: number, personalId: number, tipoAsociadoId: number, categoriaPersonalId: number, formaLiquidacion: string, columnsDays: string, columnsDay: string, valueColumnsDays: string, totalhs: number) {
+  async addOrUpdateAsistencia(queryRunner: QueryRunner, personalIdExiste: number, objetivoId: number, anioId: number, mesId: number, mes: number, personalId: number, tipoAsociadoId: number, categoriaPersonalId: number, formaLiquidacion: string, columnsDays: string, columnsDay: string, valueColumnsDays: string, totalhs: number, row: any) {
     let newAsistenciaPersonalDiasId = 0
 
     const num = Math.round(totalhs % 1 * 60)
@@ -2035,19 +2034,164 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         [objetivoId, anioId, mes, mesId, newAsistenciaPersonalDiasId, newAsistenciaPersonalAsignadoId, newAsistenciaDiasPersonalId]
       )
     } else {
+      const asistencia = await queryRunner.query(`
+        SELECT 
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasId,
+          objp.ObjetivoAsistenciaAnoId,
+          objp.ObjetivoAsistenciaAnoMesId,
+          objp.ObjetivoId,
+          objp.ObjetivoAsistenciaMesPersonalId,
+          objp.ObjetivoAsistenciaTipoAsociadoId,
+          objp.ObjetivoAsistenciaCategoriaPersonalId,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias1Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias1Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias2Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias2Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias3Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias3Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias4Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias4Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias5Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias5Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias6Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias6Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias7Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias7Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias8Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias8Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias9Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias9Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias10Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias10Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias11Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias11Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias12Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias12Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias13Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias13Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias14Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias14Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias15Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias15Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias16Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias16Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias17Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias17Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias18Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias18Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias19Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias19Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias20Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias20Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias21Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias21Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias22Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias22Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias23Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias23Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias24Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias24Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias25Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias25Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias26Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias26Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias27Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias27Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias28Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias28Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias29Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias29Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias30Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias30Gral,
+          TRIM(ISNULL(objp.ObjetivoAsistenciaAnoMesPersonalDias31Gral,'')) ObjetivoAsistenciaAnoMesPersonalDias31Gral,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia1,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia2,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia3,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia4,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia5,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia6,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia7,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia8,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia9,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia10,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia11,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia12,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia13,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia14,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia15,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia16,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia17,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia18,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia19,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia20,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia21,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia22,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia23,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia24,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia25,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia26,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia27,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia28,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia29,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia30,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia31,
+
+          1
+        FROM ObjetivoAsistenciaAnoMesPersonalDias objp
+        WHERE objp.ObjetivoAsistenciaAnoMesPersonalDiasId = @0 AND objp.ObjetivoAsistenciaAnoId=@1 AND objp.ObjetivoAsistenciaAnoMesId=@2 AND objp.ObjetivoId=@3  
+      `, [personalIdExiste, anioId, mesId, objetivoId])
+
 
       await this.deleteAsistencia(objetivoId, anioId, mesId, personalIdExiste, queryRunner)
+
+
+      for (let daynum = 1; daynum <= 31; daynum++) {
+        const horas = row['day' + daynum]
+        if (horas) {
+          const horafrac = horas - Math.trunc(horas)
+          const h = String(Math.trunc(horas))
+          const m = String(60 * horafrac)
+          row['day' + daynum] = `${h.padStart(2, '0')}.${m.padStart(2, '0')}`
+        } else
+        row['day' + daynum] =''
+      }
+
+
+      console.log('Val2', row.day2 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias2Gral, (row.day2 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias2Gral)?'distinto':'igual')
+      console.log('Val3', row.day3 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias3Gral, (row.day3 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias3Gral)?'distinto':'igual')
+      console.log('Val4', row.day4 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias4Gral, (row.day4 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias4Gral)?'distinto':'igual')
+      console.log('Val5', row.day5 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias5Gral, (row.day5 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias5Gral)?'distinto':'igual')
+      console.log('Val6', row.day6 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias6Gral, (row.day6 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias6Gral)?'distinto':'igual')
+      console.log('Val7', row.day7 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias7Gral, (row.day7 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias7Gral)?'distinto':'igual')
+      console.log('Val8', row.day8 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias8Gral, (row.day8 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias8Gral)?'distinto':'igual')
+      console.log('Val9', row.day9 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias9Gral, (row.day9 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias9Gral)?'distinto':'igual')
+
       await queryRunner.query(`
-      INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id)
+      INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id,
+      ObjetivoAsistenciaAnoMesPersonalDiasFormaDia1,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia2,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia3,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia4,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia5,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia6,
+      ObjetivoAsistenciaAnoMesPersonalDiasFormaDia7,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia8,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia9,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia10,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia11,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia12,
+      ObjetivoAsistenciaAnoMesPersonalDiasFormaDia13,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia14,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia15,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia16,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia17,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia18,
+      ObjetivoAsistenciaAnoMesPersonalDiasFormaDia19,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia20,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia21,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia22,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia23,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia24,
+      ObjetivoAsistenciaAnoMesPersonalDiasFormaDia25,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia26,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia27,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia28,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia29,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia30,
+      ObjetivoAsistenciaAnoMesPersonalDiasFormaDia31)
       VALUES (
-        @8, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8)
-      INSERT INTO ObjetivoAsistenciaMesDiasPersonal (ObjetivoAsistenciaMesDiasPersonalId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaMesDiasPersonalFormaLiquidacionHoras ${columnsDay}, ObjetivoAsistenciaAnoMesPersonalDiaTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSuId)
+        @8, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @22, @23, @24, @25, @26, @27, @28, @29, @30, @31, @32, @33, @34, @35, @36, @37, @38, @39 )
+      INSERT INTO ObjetivoAsistenciaMesDiasPersonal (ObjetivoAsistenciaMesDiasPersonalId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaMesDiasPersonalFormaLiquidacionHoras ${columnsDay}, ObjetivoAsistenciaAnoMesPersonalDiaTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSuId,
+            ObjetivoAsistenciaAnoMesPersonalFormaDia1,ObjetivoAsistenciaAnoMesPersonalFormaDia2,ObjetivoAsistenciaAnoMesPersonalFormaDia3,ObjetivoAsistenciaAnoMesPersonalFormaDia4,ObjetivoAsistenciaAnoMesPersonalFormaDia5,ObjetivoAsistenciaAnoMesPersonalFormaDia6,
+      ObjetivoAsistenciaAnoMesPersonalFormaDia7,ObjetivoAsistenciaAnoMesPersonalFormaDia8,ObjetivoAsistenciaAnoMesPersonalFormaDia9,ObjetivoAsistenciaAnoMesPersonalFormaDia10,ObjetivoAsistenciaAnoMesPersonalFormaDia11,ObjetivoAsistenciaAnoMesPersonalFormaDia12,
+      ObjetivoAsistenciaAnoMesPersonalFormaDia13,ObjetivoAsistenciaAnoMesPersonalFormaDia14,ObjetivoAsistenciaAnoMesPersonalFormaDia15,ObjetivoAsistenciaAnoMesPersonalFormaDia16,ObjetivoAsistenciaAnoMesPersonalFormaDia17,ObjetivoAsistenciaAnoMesPersonalFormaDia18,
+      ObjetivoAsistenciaAnoMesPersonalFormaDia19,ObjetivoAsistenciaAnoMesPersonalFormaDia20,ObjetivoAsistenciaAnoMesPersonalFormaDia21,ObjetivoAsistenciaAnoMesPersonalFormaDia22,ObjetivoAsistenciaAnoMesPersonalFormaDia23,ObjetivoAsistenciaAnoMesPersonalFormaDia24,
+      ObjetivoAsistenciaAnoMesPersonalFormaDia25,ObjetivoAsistenciaAnoMesPersonalFormaDia26,ObjetivoAsistenciaAnoMesPersonalFormaDia27,ObjetivoAsistenciaAnoMesPersonalFormaDia28,ObjetivoAsistenciaAnoMesPersonalFormaDia29,ObjetivoAsistenciaAnoMesPersonalFormaDia30,
+      ObjetivoAsistenciaAnoMesPersonalFormaDia31)
       VALUES (
-        @8, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8)
+        @8, @2, @1, @0, @3, @4, @5, @6${valueColumnsDays}, @7, @8,  @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @22, @23, @24, @25, @26, @27, @28, @29, @30, @31, @32, @33, @34, @35, @36, @37, @38, @39)
       INSERT INTO ObjetivoAsistenciaAnoMesPersonalAsignado (ObjetivoAsistenciaAnoMesPersonalAsignadoId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalAsignadoFormaLiquidacionHoras, ObjetivoAsistenciaAnoMesPersonalAsignadoIngresaPersonal)
       VALUES (
         @8, @2, @1, @0, @3, @4, @5, @6, 'P')`,
-        [objetivoId, anioId, mesId, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, `${horas}.${min}`, personalIdExiste]
+        [objetivoId, anioId, mesId, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, `${horas}.${min}`, personalIdExiste,
+          (row.day1 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias1Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia1,
+          (row.day2 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias2Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia2,
+          (row.day3 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias3Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia3,
+          (row.day4 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias4Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia4,
+          (row.day5 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias5Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia5,
+          (row.day6 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias6Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia6,
+          (row.day7 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias7Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia7,
+          (row.day8 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias8Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia8,
+          (row.day9 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias9Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia9,
+          (row.day10 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias10Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia10,
+          (row.day11 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias11Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia11,
+          (row.day12 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias12Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia12,
+          (row.day13 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias13Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia13,
+          (row.day14 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias14Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia14,
+          (row.day15 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias15Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia15,
+          (row.day16 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias16Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia16,
+          (row.day17 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias17Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia17,
+          (row.day18 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias18Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia18,
+          (row.day19 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias19Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia19,
+          (row.day20 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias20Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia20,
+          (row.day21 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias21Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia21,
+          (row.day22 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias22Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia22,
+          (row.day23 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias23Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia23,
+          (row.day24 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias24Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia24,
+          (row.day25 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias25Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia25,
+          (row.day26 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias26Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia26,
+          (row.day27 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias27Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia27,
+          (row.day28 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias28Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia28,
+          (row.day29 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias29Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia29,
+          (row.day30 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias30Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia30,
+          (row.day31 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias31Gral) ? 'MA' : asistencia[0].ObjetivoAsistenciaAnoMesPersonalDiasFormaDia31
+        ]
       )
     }
     return newAsistenciaPersonalDiasId
@@ -2144,7 +2288,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
             //req.body.total = `${horas}.${min}`
       */
       let result: any = {}
-      result.newRowId = await this.addOrUpdateAsistencia(queryRunner, personal.id, objetivoId, anioId, mesId, mes, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, columnsDays, columnsDay, valueColumnsDays, totalhs)
+      result.newRowId = await this.addOrUpdateAsistencia(queryRunner, personal.id, objetivoId, anioId, mesId, mes, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, columnsDays, columnsDay, valueColumnsDays, totalhs, req.body)
 
       if (valCategoriaPersonal instanceof ClientException && valCategoriaPersonal.extended.categoria)
         result.categoria = valCategoriaPersonal.extended.categoria
@@ -2625,9 +2769,71 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           objp.ObjetivoAsistenciaCategoriaPersonalId CategoriaId,
           catep.CategoriaPersonalDescripcion CategoriaDescripcion,
           val.ValorLiquidacionHorasTrabajoHoraNormal,
-          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras FormaLiquidacion
-          ${dias}
-  
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras FormaLiquidacion,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias1Gral) ObjetivoAsistenciaAnoMesPersonalDias1Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias2Gral) ObjetivoAsistenciaAnoMesPersonalDias2Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias3Gral) ObjetivoAsistenciaAnoMesPersonalDias3Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias4Gral) ObjetivoAsistenciaAnoMesPersonalDias4Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias5Gral) ObjetivoAsistenciaAnoMesPersonalDias5Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias6Gral) ObjetivoAsistenciaAnoMesPersonalDias6Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias7Gral) ObjetivoAsistenciaAnoMesPersonalDias7Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias8Gral) ObjetivoAsistenciaAnoMesPersonalDias8Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias9Gral) ObjetivoAsistenciaAnoMesPersonalDias9Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias10Gral) ObjetivoAsistenciaAnoMesPersonalDias10Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias11Gral) ObjetivoAsistenciaAnoMesPersonalDias11Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias12Gral) ObjetivoAsistenciaAnoMesPersonalDias12Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias13Gral) ObjetivoAsistenciaAnoMesPersonalDias13Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias14Gral) ObjetivoAsistenciaAnoMesPersonalDias14Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias15Gral) ObjetivoAsistenciaAnoMesPersonalDias15Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias16Gral) ObjetivoAsistenciaAnoMesPersonalDias16Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias17Gral) ObjetivoAsistenciaAnoMesPersonalDias17Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias18Gral) ObjetivoAsistenciaAnoMesPersonalDias18Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias19Gral) ObjetivoAsistenciaAnoMesPersonalDias19Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias20Gral) ObjetivoAsistenciaAnoMesPersonalDias20Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias21Gral) ObjetivoAsistenciaAnoMesPersonalDias21Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias22Gral) ObjetivoAsistenciaAnoMesPersonalDias22Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias23Gral) ObjetivoAsistenciaAnoMesPersonalDias23Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias24Gral) ObjetivoAsistenciaAnoMesPersonalDias24Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias25Gral) ObjetivoAsistenciaAnoMesPersonalDias25Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias26Gral) ObjetivoAsistenciaAnoMesPersonalDias26Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias27Gral) ObjetivoAsistenciaAnoMesPersonalDias27Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias28Gral) ObjetivoAsistenciaAnoMesPersonalDias28Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias29Gral) ObjetivoAsistenciaAnoMesPersonalDias29Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias30Gral) ObjetivoAsistenciaAnoMesPersonalDias30Gral,
+          TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias31Gral) ObjetivoAsistenciaAnoMesPersonalDias31Gral,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia1,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia2,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia3,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia4,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia5,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia6,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia7,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia8,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia9,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia10,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia11,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia12,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia13,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia14,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia15,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia16,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia17,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia18,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia19,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia20,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia21,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia22,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia23,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia24,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia25,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia26,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia27,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia28,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia29,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia30,
+          objp.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia31,
+
+          1
         FROM ObjetivoAsistenciaAnoMesPersonalDias objp
           INNER JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objp.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
           INNER JOIN ObjetivoAsistenciaAnoMes objm  ON objm.ObjetivoAsistenciaAnoMesId = objp.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objp.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objp.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
@@ -2670,10 +2876,52 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
             ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio16Gral = @19, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio17Gral = @20, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio18Gral = @21, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio19Gral = @22, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio20Gral = @23,
             ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio21Gral = @24, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio22Gral = @25, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio23Gral = @26, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio24Gral = @27, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio25Gral = @28,
             ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio26Gral = @29, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio27Gral = @30, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio28Gral = @31, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio29Gral = @32, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio30Gral = @33,
-            ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio31Gral = @34
+            ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio31Gral = @34,
+            ObjetivoAsistenciaAnoMesPersonalDias1Gral = @35, ObjetivoAsistenciaAnoMesPersonalDias2Gral = @36, ObjetivoAsistenciaAnoMesPersonalDias3Gral = @37, ObjetivoAsistenciaAnoMesPersonalDias4Gral = @38, ObjetivoAsistenciaAnoMesPersonalDias5Gral = @39,
+            ObjetivoAsistenciaAnoMesPersonalDias6Gral = @40, ObjetivoAsistenciaAnoMesPersonalDias7Gral = @41, ObjetivoAsistenciaAnoMesPersonalDias8Gral = @42, ObjetivoAsistenciaAnoMesPersonalDias9Gral = @43, ObjetivoAsistenciaAnoMesPersonalDias10Gral = @44,
+            ObjetivoAsistenciaAnoMesPersonalDias11Gral = @45, ObjetivoAsistenciaAnoMesPersonalDias12Gral = @46, ObjetivoAsistenciaAnoMesPersonalDias13Gral = @47, ObjetivoAsistenciaAnoMesPersonalDias14Gral = @48, ObjetivoAsistenciaAnoMesPersonalDias15Gral = @49,
+            ObjetivoAsistenciaAnoMesPersonalDias16Gral = @50, ObjetivoAsistenciaAnoMesPersonalDias17Gral = @51, ObjetivoAsistenciaAnoMesPersonalDias18Gral = @52, ObjetivoAsistenciaAnoMesPersonalDias19Gral = @53, ObjetivoAsistenciaAnoMesPersonalDias20Gral = @54,
+            ObjetivoAsistenciaAnoMesPersonalDias21Gral = @55, ObjetivoAsistenciaAnoMesPersonalDias22Gral = @56, ObjetivoAsistenciaAnoMesPersonalDias23Gral = @57, ObjetivoAsistenciaAnoMesPersonalDias24Gral = @58, ObjetivoAsistenciaAnoMesPersonalDias25Gral = @59,
+            ObjetivoAsistenciaAnoMesPersonalDias26Gral = @60, ObjetivoAsistenciaAnoMesPersonalDias27Gral = @61, ObjetivoAsistenciaAnoMesPersonalDias28Gral = @62, ObjetivoAsistenciaAnoMesPersonalDias29Gral = @63, ObjetivoAsistenciaAnoMesPersonalDias30Gral = @64, ObjetivoAsistenciaAnoMesPersonalDias31Gral = @65
             WHERE ObjetivoAsistenciaAnoMesPersonalDiasId = @0  AND ObjetivoAsistenciaAnoId = @1 AND ObjetivoAsistenciaAnoMesId = @2 AND ObjetivoId = @3`,
             [asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasId, asistenciaRow.ObjetivoAsistenciaAnoId, asistenciaRow.ObjetivoAsistenciaAnoMesId, asistenciaRow.ObjetivoId,
-            perAsistencia.day1, perAsistencia.day2, perAsistencia.day3, perAsistencia.day4, perAsistencia.day5, perAsistencia.day6, perAsistencia.day7, perAsistencia.day8, perAsistencia.day9, perAsistencia.day10, perAsistencia.day11, perAsistencia.day12, perAsistencia.day13, perAsistencia.day14, perAsistencia.day15, perAsistencia.day16, perAsistencia.day17, perAsistencia.day18, perAsistencia.day19, perAsistencia.day20, perAsistencia.day21, perAsistencia.day22, perAsistencia.day23, perAsistencia.day24, perAsistencia.day25, perAsistencia.day26, perAsistencia.day27, perAsistencia.day28, perAsistencia.day29, perAsistencia.day30, perAsistencia.day31
+            perAsistencia.day1, perAsistencia.day2, perAsistencia.day3, perAsistencia.day4, perAsistencia.day5,
+            perAsistencia.day6, perAsistencia.day7, perAsistencia.day8, perAsistencia.day9, perAsistencia.day10,
+            perAsistencia.day11, perAsistencia.day12, perAsistencia.day13, perAsistencia.day14, perAsistencia.day15,
+            perAsistencia.day16, perAsistencia.day17, perAsistencia.day18, perAsistencia.day19, perAsistencia.day20,
+            perAsistencia.day21, perAsistencia.day22, perAsistencia.day23, perAsistencia.day24, perAsistencia.day25,
+            perAsistencia.day26, perAsistencia.day27, perAsistencia.day28, perAsistencia.day29, perAsistencia.day30, perAsistencia.day31,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia1 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias1Gral : perAsistencia.day1,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia2 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias2Gral : perAsistencia.day2,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia3 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias3Gral : perAsistencia.day3,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia4 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias4Gral : perAsistencia.day4,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia5 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias5Gral : perAsistencia.day5,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia6 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias6Gral : perAsistencia.day6,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia7 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias7Gral : perAsistencia.day7,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia8 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias8Gral : perAsistencia.day8,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia9 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias9Gral : perAsistencia.day9,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia10 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias10Gral : perAsistencia.day10,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia11 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias11Gral : perAsistencia.day11,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia12 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias12Gral : perAsistencia.day12,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia13 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias13Gral : perAsistencia.day13,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia14 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias14Gral : perAsistencia.day14,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia15 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias15Gral : perAsistencia.day15,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia16 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias16Gral : perAsistencia.day16,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia17 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias17Gral : perAsistencia.day17,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia18 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias18Gral : perAsistencia.day18,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia19 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias19Gral : perAsistencia.day19,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia20 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias20Gral : perAsistencia.day20,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia21 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias21Gral : perAsistencia.day21,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia22 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias22Gral : perAsistencia.day22,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia23 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias23Gral : perAsistencia.day23,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia24 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias24Gral : perAsistencia.day24,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia25 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias25Gral : perAsistencia.day25,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia26 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias26Gral : perAsistencia.day26,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia27 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias27Gral : perAsistencia.day27,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia28 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias28Gral : perAsistencia.day28,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia29 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias29Gral : perAsistencia.day29,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia30 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias30Gral : perAsistencia.day30,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia31 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias31Gral : perAsistencia.day31
             ])
 
           await queryRunner.query(`UPDATE ObjetivoAsistenciaMesDiasPersonal 
@@ -2683,10 +2931,54 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
             ObjetivoAsistenciaAnoMesPersonalConAsiBio16Gral = @19, ObjetivoAsistenciaAnoMesPersonalConAsiBio17Gral = @20, ObjetivoAsistenciaAnoMesPersonalConAsiBio18Gral = @21, ObjetivoAsistenciaAnoMesPersonalConAsiBio19Gral = @22, ObjetivoAsistenciaAnoMesPersonalConAsiBio20Gral = @23,
             ObjetivoAsistenciaAnoMesPersonalConAsiBio21Gral = @24, ObjetivoAsistenciaAnoMesPersonalConAsiBio22Gral = @25, ObjetivoAsistenciaAnoMesPersonalConAsiBio23Gral = @26, ObjetivoAsistenciaAnoMesPersonalConAsiBio24Gral = @27, ObjetivoAsistenciaAnoMesPersonalConAsiBio25Gral = @28,
             ObjetivoAsistenciaAnoMesPersonalConAsiBio26Gral = @29, ObjetivoAsistenciaAnoMesPersonalConAsiBio27Gral = @30, ObjetivoAsistenciaAnoMesPersonalConAsiBio28Gral = @31, ObjetivoAsistenciaAnoMesPersonalConAsiBio29Gral = @32, ObjetivoAsistenciaAnoMesPersonalConAsiBio30Gral = @33,
-            ObjetivoAsistenciaAnoMesPersonalConAsiBio31Gral = @34
+            ObjetivoAsistenciaAnoMesPersonalConAsiBio31Gral = @34,
+            ObjetivoAsistenciaAnoMesPersonalDia1Gral = @35, ObjetivoAsistenciaAnoMesPersonalDia2Gral = @36, ObjetivoAsistenciaAnoMesPersonalDia3Gral = @37, ObjetivoAsistenciaAnoMesPersonalDia4Gral = @38, ObjetivoAsistenciaAnoMesPersonalDia5Gral = @39,
+            ObjetivoAsistenciaAnoMesPersonalDia6Gral = @40, ObjetivoAsistenciaAnoMesPersonalDia7Gral = @41, ObjetivoAsistenciaAnoMesPersonalDia8Gral = @42, ObjetivoAsistenciaAnoMesPersonalDia9Gral = @43, ObjetivoAsistenciaAnoMesPersonalDia10Gral = @44,
+            ObjetivoAsistenciaAnoMesPersonalDia11Gral = @45, ObjetivoAsistenciaAnoMesPersonalDia12Gral = @46, ObjetivoAsistenciaAnoMesPersonalDia13Gral = @47, ObjetivoAsistenciaAnoMesPersonalDia14Gral = @48, ObjetivoAsistenciaAnoMesPersonalDia15Gral = @49,
+            ObjetivoAsistenciaAnoMesPersonalDia16Gral = @50, ObjetivoAsistenciaAnoMesPersonalDia17Gral = @51, ObjetivoAsistenciaAnoMesPersonalDia18Gral = @52, ObjetivoAsistenciaAnoMesPersonalDia19Gral = @53, ObjetivoAsistenciaAnoMesPersonalDia20Gral = @54,
+            ObjetivoAsistenciaAnoMesPersonalDia21Gral = @55, ObjetivoAsistenciaAnoMesPersonalDia22Gral = @56, ObjetivoAsistenciaAnoMesPersonalDia23Gral = @57, ObjetivoAsistenciaAnoMesPersonalDia24Gral = @58, ObjetivoAsistenciaAnoMesPersonalDia25Gral = @59,
+            ObjetivoAsistenciaAnoMesPersonalDia26Gral = @60, ObjetivoAsistenciaAnoMesPersonalDia27Gral = @61, ObjetivoAsistenciaAnoMesPersonalDia28Gral = @62, ObjetivoAsistenciaAnoMesPersonalDia29Gral = @63, ObjetivoAsistenciaAnoMesPersonalDia30Gral = @64, ObjetivoAsistenciaAnoMesPersonalDia31Gral = @65
+
             WHERE ObjetivoAsistenciaMesDiasPersonalId = @0  AND ObjetivoAsistenciaAnoId = @1 AND ObjetivoAsistenciaAnoMesId = @2 AND ObjetivoId = @3`,
             [asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasId, asistenciaRow.ObjetivoAsistenciaAnoId, asistenciaRow.ObjetivoAsistenciaAnoMesId, asistenciaRow.ObjetivoId,
-            perAsistencia.day1, perAsistencia.day2, perAsistencia.day3, perAsistencia.day4, perAsistencia.day5, perAsistencia.day6, perAsistencia.day7, perAsistencia.day8, perAsistencia.day9, perAsistencia.day10, perAsistencia.day11, perAsistencia.day12, perAsistencia.day13, perAsistencia.day14, perAsistencia.day15, perAsistencia.day16, perAsistencia.day17, perAsistencia.day18, perAsistencia.day19, perAsistencia.day20, perAsistencia.day21, perAsistencia.day22, perAsistencia.day23, perAsistencia.day24, perAsistencia.day25, perAsistencia.day26, perAsistencia.day27, perAsistencia.day28, perAsistencia.day29, perAsistencia.day30, perAsistencia.day31
+            perAsistencia.day1, perAsistencia.day2, perAsistencia.day3, perAsistencia.day4, perAsistencia.day5,
+            perAsistencia.day6, perAsistencia.day7, perAsistencia.day8, perAsistencia.day9, perAsistencia.day10,
+            perAsistencia.day11, perAsistencia.day12, perAsistencia.day13, perAsistencia.day14, perAsistencia.day15,
+            perAsistencia.day16, perAsistencia.day17, perAsistencia.day18, perAsistencia.day19, perAsistencia.day20,
+            perAsistencia.day21, perAsistencia.day22, perAsistencia.day23, perAsistencia.day24, perAsistencia.day25,
+            perAsistencia.day26, perAsistencia.day27, perAsistencia.day28, perAsistencia.day29, perAsistencia.day30, perAsistencia.day31,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia1 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias1Gral : perAsistencia.day1,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia2 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias2Gral : perAsistencia.day2,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia3 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias3Gral : perAsistencia.day3,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia4 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias4Gral : perAsistencia.day4,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia5 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias5Gral : perAsistencia.day5,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia6 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias6Gral : perAsistencia.day6,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia7 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias7Gral : perAsistencia.day7,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia8 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias8Gral : perAsistencia.day8,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia9 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias9Gral : perAsistencia.day9,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia10 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias10Gral : perAsistencia.day10,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia11 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias11Gral : perAsistencia.day11,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia12 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias12Gral : perAsistencia.day12,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia13 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias13Gral : perAsistencia.day13,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia14 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias14Gral : perAsistencia.day14,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia15 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias15Gral : perAsistencia.day15,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia16 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias16Gral : perAsistencia.day16,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia17 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias17Gral : perAsistencia.day17,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia18 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias18Gral : perAsistencia.day18,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia19 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias19Gral : perAsistencia.day19,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia20 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias20Gral : perAsistencia.day20,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia21 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias21Gral : perAsistencia.day21,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia22 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias22Gral : perAsistencia.day22,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia23 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias23Gral : perAsistencia.day23,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia24 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias24Gral : perAsistencia.day24,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia25 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias25Gral : perAsistencia.day25,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia26 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias26Gral : perAsistencia.day26,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia27 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias27Gral : perAsistencia.day27,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia28 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias28Gral : perAsistencia.day28,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia29 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias29Gral : perAsistencia.day29,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia30 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias30Gral : perAsistencia.day30,
+            (asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDiasFormaDia31 == 'MA') ? asistenciaRow.ObjetivoAsistenciaAnoMesPersonalDias31Gral : perAsistencia.day31
+
             ])
 
         } else {
@@ -2697,7 +2989,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 				    JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = cuit.PersonalId AND cat.PersonalCategoriaTipoAsociadoId IN (1,3) AND cat.PersonalCategoriaDesde <= DATEFROMPARTS(@1,@2,1) AND DATEFROMPARTS(@1,@2,1) <= ISNULL(cat.PersonalCategoriaHasta,'9999-12-31')
             WHERE cuit.PersonalCUITCUILCUIT = @0`, [cuit, anio, mes])
 
-          if (PersonalIdBus.length>0) {
+          if (PersonalIdBus.length > 0) {
             const PersonalId = PersonalIdBus[0].PersonalId
             const TipoAsociadoId = PersonalIdBus[0].TipoAsociadoId
             const CategoriaPersonalId = PersonalIdBus[0].CategoriaPersonalId
@@ -2705,17 +2997,17 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
             let columnsDay = ''
             let valueColumnsDays = ''
             let totalhs = 0
-            for (let numdia=1; numdia <= 31;  numdia++) {
-              columnsDays += `, ObjetivoAsistenciaAnoMesPersonalDias${numdia}Gral, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio${numdia}Gral`
-              columnsDay += `, ObjetivoAsistenciaAnoMesPersonalDia${numdia}Gral, ObjetivoAsistenciaAnoMesPersonalConAsiBio${numdia}Gral`
-              valueColumnsDays += `, '${perAsistencia['day'+numdia]?perAsistencia['day'+numdia]:''}', '${perAsistencia['day'+numdia]?perAsistencia['day'+numdia]:''}'`
-              totalhs += (Number(perAsistencia['day'+numdia+'hs']))?Number(perAsistencia['day'+numdia+'hs']):0
+            for (let numdia = 1; numdia <= 31; numdia++) {
+              columnsDays += `, ObjetivoAsistenciaAnoMesPersonalDias${numdia}Gral, ObjetivoAsistenciaAnoMesPersonalDiasConAsiBio${numdia}Gral, ObjetivoAsistenciaAnoMesPersonalDiasFormaDia${numdia}`
+              columnsDay += `, ObjetivoAsistenciaAnoMesPersonalDia${numdia}Gral, ObjetivoAsistenciaAnoMesPersonalConAsiBio${numdia}Gral, ObjetivoAsistenciaAnoMesPersonalFormaDia${numdia}`
+              valueColumnsDays += `, '${perAsistencia['day' + numdia] ? perAsistencia['day' + numdia] : ''}', '${perAsistencia['day' + numdia] ? perAsistencia['day' + numdia] : ''}', '${perAsistencia['day' + numdia] ? 'AB' : ''}'`
+              totalhs += (Number(perAsistencia['day' + numdia + 'hs'])) ? Number(perAsistencia['day' + numdia + 'hs']) : 0
             }
-            await this.addOrUpdateAsistencia(queryRunner, 0, objetivoId, ObjetivoAsistenciaAnoId, ObjetivoAsistenciaAnoMesId, mes, PersonalId, TipoAsociadoId, CategoriaPersonalId, 'N', columnsDays, columnsDay, valueColumnsDays, totalhs)
+            await this.addOrUpdateAsistencia(queryRunner, 0, objetivoId, ObjetivoAsistenciaAnoId, ObjetivoAsistenciaAnoMesId, mes, PersonalId, TipoAsociadoId, CategoriaPersonalId, 'N', columnsDays, columnsDay, valueColumnsDays, totalhs, {})
           }
         }
       }
-//      throw new ClientException('Proceso finalizado')
+      //      throw new ClientException('Proceso finalizado')
       await queryRunner.commitTransaction();
       this.jsonRes(listadoProcessed, res);
     } catch (error) {
@@ -2917,6 +3209,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     const headers = { 'Content-Type': 'application/json', 'Authorization': digestAuthHeader };
     let recordsArray = []
     let searchResultPosition = 1
+    console.log('rand', CryptoJS.lib.WordArray.random(16).toString())
     const data = {
       "searchID": CryptoJS.lib.WordArray.random(16).toString(), //Es un valor aleatorio tipo string, generado para parametro de control fb967efe5ddb4c8abc4847ce2673b6e0
       "searchResultPosition": searchResultPosition, //Parametro inicial de busqueda de la peticion
@@ -2928,7 +3221,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     do {
       const response = await fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(data), })
       if (response.status != 200)
-        throw new ClientException('Error obteniendo resultados del control de acceso', { status: response.status })
+        throw new ClientException('Error obteniendo resultados del control de acceso', { status: response.status, response })
       searchResultPosition += 10
       data.searchResultPosition = searchResultPosition
 
