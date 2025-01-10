@@ -372,8 +372,7 @@ ${orderBy}`, [fechaActual])
             //throw new ClientException(`test`)
 
             //validaciones
-            await this.FormValidations(ObjCliente)
-
+            await this.FormValidations(ObjCliente,queryRunner)
             //validacion de barrio
             if(ObjCliente.DomicilioProvinciaId && ObjCliente.DomicilioLocalidadId && !ObjCliente.DomicilioBarrioId) {
            
@@ -615,8 +614,7 @@ ${orderBy}`, [fechaActual])
         let ObjClienteNew = { ClienteId: 0, infoDomicilio: {}, infoClienteContacto: {}, ClienteFacturacionId:0 }
         try {
             console.log("ObjCliente ", ObjCliente)
-            await this.FormValidations(ObjCliente)
-
+            await this.FormValidations(ObjCliente,queryRunner)
             await queryRunner.startTransaction()
 
             const usuario = res.locals.userName
@@ -799,12 +797,20 @@ ${orderBy}`, [fechaActual])
 
     }
 
-    async FormValidations(form: any) {
+    async FormValidations(form: any, queryRunner:any) {
 
 
         if (!form.ClienteFacturacionCUIT) {
             throw new ClientException(`Debe completar el campo CUIT.`)
         }
+
+          // VALIDACION CUIT EXISTE O NO
+        
+          let result = await queryRunner.query( `SELECT * FROM ClienteFacturacion WHERE ClienteFacturacionCUIT = @0 `, [form.ClienteFacturacionCUIT])
+            
+          if (result && result.length >= 1) {
+              throw new ClientException(`El CUIT ingresado ya existe`);
+          }
 
         if (!form.ClienteFechaAlta) {
             throw new ClientException(`Debe completar el campo Fecha Inicial.`)
@@ -877,6 +883,8 @@ ${orderBy}`, [fechaActual])
 
         }
 
+
+      
 
 
     }
