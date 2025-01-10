@@ -2009,7 +2009,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       AND ObjetivoAsistenciaAnoId = @1
       AND ObjetivoId = @0`,
         [objetivoId, anioId, mesId])
-      const newAsistenciaPersonalDiasId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesPersonalDiasUltNro + 1
+      newAsistenciaPersonalDiasId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesPersonalDiasUltNro + 1
       const newAsistenciaDiasPersonalId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesDiasPersonalUltNro + 1
       const newAsistenciaPersonalAsignadoId = objAsistenciaUltsNros[0].ObjetivoAsistenciaAnoMesPersonalUltNro + 1
       await queryRunner.query(`
@@ -2288,8 +2288,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
             //req.body.total = `${horas}.${min}`
       */
       let result: any = {}
-      result.newRowId = await this.addOrUpdateAsistencia(queryRunner, personal.id, objetivoId, anioId, mesId, mes, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, columnsDays, columnsDay, valueColumnsDays, totalhs, req.body)
-
+      result.newRowId = await this.addOrUpdateAsistencia(queryRunner, personal?.id, objetivoId, anioId, mesId, mes, personalId, tipoAsociadoId, categoriaPersonalId, formaLiquidacion, columnsDays, columnsDay, valueColumnsDays, totalhs, req.body)
       if (valCategoriaPersonal instanceof ClientException && valCategoriaPersonal.extended.categoria)
         result.categoria = valCategoriaPersonal.extended.categoria
       if (valPersonalRegistrado instanceof ClientException && valPersonalRegistrado.extended.forma)
@@ -2714,13 +2713,23 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   async getListaAsistenciaControAcceso(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
-      await queryRunner.startTransaction()
-      const objetivoId = req.params.ObjetivoId;
+      const objetivoId_ = req.params.ObjetivoId;
       const anio = req.params.anio;
       const mes = req.params.mes;
       const listado = await this.getAccessControlAsistance(anio, mes)
-      const listadoProcessed = {}
+      let ClienteId=0
+      let ClienteElementoDependienteId=0
+
+
+      let listadoProcessed = {}
       for (const personal of listado) {
+        const CUIT = personal.employeeNo
+        ClienteId=0
+        ClienteElementoDependienteId=0
+        let matches = /^(\d*)\/(\d*)/g.exec(personal.groupName)
+        if (matches)
+          [ ,ClienteId, ClienteElementoDependienteId ] = matches.map(m => parseInt(m) || 0)
+
         for (const day of personal.detailInfo) {
           const dayNum = new Date(day.dateTime).getDate() + 1
           if (day.timeList.length) {
@@ -2733,28 +2742,21 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
             if (diffMins % 60 > 15) diffHours += 0.5
             if (diffMins % 60 > 45) diffHours += 0.5
 
-            if (diffHours > 0) {
-              //              listadoProcessed.push({ CUIT: personal.employeeNo, dayNum, diffHours, diffTime: this.minsToHourMins(diffMins), inTime: this.minsToHourMins(minMinsMidnight), outTime: this.minsToHourMins(maxMinsMidnight) })
-              listadoProcessed[personal.employeeNo] = { ...listadoProcessed[personal.employeeNo], ['day' + dayNum + 'det']: this.minsToHourMins(diffMins), ['day' + dayNum]: this.hoursToHourMins(diffHours), ['day' + dayNum + 'hs']: diffHours }
-            }
+            if (diffHours > 0)
+              listadoProcessed[personal.employeeNo] = { ...listadoProcessed[personal.employeeNo],ClienteId, ClienteElementoDependienteId,Objetivo:personal.groupName, ['day' + dayNum + 'det']: this.minsToHourMins(diffMins), ['day' + dayNum]: this.hoursToHourMins(diffHours), ['day' + dayNum + 'hs']: diffHours }
           }
         }
       }
-      /*
-            const valObjetivo = await AsistenciaController.checkAsistenciaObjetivo(objetivoId, anio, mes, queryRunner)
-            if (valObjetivo instanceof ClientException)
-              throw valObjetivo
-            const anioId = valObjetivo[0].ObjetivoAsistenciaAnoId
-            const mesId = valObjetivo[0].ObjetivoAsistenciaAnoMesId
-            const sucursalId = valObjetivo[0].SucursalId
-            const formaLiquidacion = 'N'
-      */
 
+throw new ClientException('DEBUG')
+      await queryRunner.startTransaction()
 
-      let dias = ''
-      for (let index = 1; index <= 31; index++)
-        dias = dias + `, TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias${index}Gral) day${index}`
+        
+      const obj = query('SELECT obj.ObjetivoId FROM Objetivo WHERE obj.ClienteId=@0 AND obj.ClienteElementoDependienteId=@1', [ClienteId, ClienteElementoDependienteId], queryRunner)
+      const ObjetivoId = obj[0].ObjetivoId
+      const cabecera = await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, {})
 
+      
       const asistencia = await queryRunner.query(`
         SELECT 
           objp.ObjetivoAsistenciaAnoMesPersonalDiasId,
@@ -2848,9 +2850,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   
           LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionTipoAsociadoId = objp.ObjetivoAsistenciaTipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = objp.ObjetivoAsistenciaCategoriaPersonalId AND EOMONTH(DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes,1)) >= val.ValorLiquidacionDesde AND DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes,1) <= ISNULL(val.ValorLiquidacionHasta,'9999-12-31')   
             AND val.ValorLiquidacionSucursalId = ISNULL(ISNULL(clidep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
-        WHERE objp.ObjetivoId = @0 AND cuit.PersonalCUITCUILCUIT IN ('${Object.keys(listadoProcessed).join('\',\'')}') 
+        WHERE obj.ClienteId=@0 AND obj.ClienteElementoDependienteId=@1 AND cuit.PersonalCUITCUILCUIT IN ('${Object.keys(listadoProcessed).join('\',\'')}') 
         ORDER BY objp.ObjetivoAsistenciaAnoMesPersonalDiasId
-      `, [objetivoId, anio, mes])
+      `, [ClienteId, ClienteElementoDependienteId, anio, mes])
 
 
 
@@ -2858,7 +2860,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         [key: string]: string;
       }
 
-      const cabecera = await this.addAsistenciaPeriodo(anio, mes, objetivoId, queryRunner, {})
       const ObjetivoAsistenciaAnoId = cabecera.ObjetivoAsistenciaAnoId
       const ObjetivoAsistenciaAnoMesId = cabecera.ObjetivoAsistenciaAnoMesId
 
@@ -2866,7 +2867,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         console.log('perAsistencia', cuit, perAsistencia)
 
         const asistenciaRow = asistencia.find((p: any) => p.PersonalCUITCUILCUIT == cuit)
-        console.log('asistenciaRow', asistenciaRow)
+ 
+
+  
 
         if (asistenciaRow) {
           await queryRunner.query(`UPDATE ObjetivoAsistenciaAnoMesPersonalDias 
@@ -3003,7 +3006,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
               valueColumnsDays += `, '${perAsistencia['day' + numdia] ? perAsistencia['day' + numdia] : ''}', '${perAsistencia['day' + numdia] ? perAsistencia['day' + numdia] : ''}', '${perAsistencia['day' + numdia] ? 'AB' : ''}'`
               totalhs += (Number(perAsistencia['day' + numdia + 'hs'])) ? Number(perAsistencia['day' + numdia + 'hs']) : 0
             }
-            await this.addOrUpdateAsistencia(queryRunner, 0, objetivoId, ObjetivoAsistenciaAnoId, ObjetivoAsistenciaAnoMesId, mes, PersonalId, TipoAsociadoId, CategoriaPersonalId, 'N', columnsDays, columnsDay, valueColumnsDays, totalhs, {})
+            await this.addOrUpdateAsistencia(queryRunner, 0, ObjetivoId, ObjetivoAsistenciaAnoId, ObjetivoAsistenciaAnoMesId, mes, PersonalId, TipoAsociadoId, CategoriaPersonalId, 'N', columnsDays, columnsDay, valueColumnsDays, totalhs, {})
           }
         }
       }
@@ -3163,7 +3166,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
     // Make an initial request to get the realm and nonce
-
+    await fetch(url, { method: 'POST', body: JSON.stringify({ validateStatus: () => true }), })
     const initialResponse = await fetch(url, { method: 'POST', body: JSON.stringify({ validateStatus: () => true }), })
 
     const authHeader = initialResponse.headers.get('www-authenticate')
@@ -3187,7 +3190,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
     // Generate client nonce
     const cnonce = CryptoJS.lib.WordArray.random(16).toString();
-    const nc = 1000;
+    const nc = 2;
 
     // Create the Digest auth header
     const authOptions: DigestAuthOptions = {
@@ -3202,14 +3205,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       cnonce,
     };
 
-    const digestAuthHeader = this.generateDigestAuthHeader(authOptions);
 
-
-
-    const headers = { 'Content-Type': 'application/json', 'Authorization': digestAuthHeader };
     let recordsArray = []
     let searchResultPosition = 1
-    console.log('rand', CryptoJS.lib.WordArray.random(16).toString())
     const data = {
       "searchID": CryptoJS.lib.WordArray.random(16).toString(), //Es un valor aleatorio tipo string, generado para parametro de control fb967efe5ddb4c8abc4847ce2673b6e0
       "searchResultPosition": searchResultPosition, //Parametro inicial de busqueda de la peticion
@@ -3219,9 +3217,13 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     }
 
     do {
+      authOptions.cnonce = CryptoJS.lib.WordArray.random(16).toString();
+      const digestAuthHeader = this.generateDigestAuthHeader(authOptions);
+      const headers = { 'Content-Type': 'application/json', 'Authorization': digestAuthHeader };
+  
       const response = await fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(data), })
       if (response.status != 200)
-        throw new ClientException('Error obteniendo resultados del control de acceso', { status: response.status, response })
+        throw new ClientException('Error obteniendo resultados del control de acceso', { status: response.status, response, body:await response.text() })
       searchResultPosition += 10
       data.searchResultPosition = searchResultPosition
 
