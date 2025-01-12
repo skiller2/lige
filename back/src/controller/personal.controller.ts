@@ -1488,7 +1488,8 @@ export class PersonalController extends BaseController {
       throw new ClientException(`No se puede modificar la situación de revista desde esta pantalla`)
 
     if (sitRevista.length>0 && sitRevista[0].PersonalSituacionRevistaDesde.getTime() == desde.getTime()) {
-      await queryRunner.query(`UPDATE PersonalSituacionRevista SET PersonalSituacionRevistaDesde = @2, PersonalSituacionRevistaMotivo = @3, PersonalSituacionRevistaSituacionId = @4
+      await queryRunner.query(`UPDATE PersonalSituacionRevista SET PersonalSituacionRevistaDesde = @2, PersonalSituacionRevistaMotivo = @3, PersonalSituacionRevistaSituacionId = @4,
+        PersonalSituacionRevistaHasta = NULL, PersonalSituacionRevistaSituacionClasificacionId= NULL
         WHERE PersonalId = @0 AND PersonalSituacionRevistaId = @1
         `, [personalId, sitRevista[0].PersonalSituacionRevistaId, desde, motivo, SituacionRevistaId]
       )
