@@ -47,5 +47,18 @@ accesoBotRouter.get(`/downloadImagenDni/:path`, (req, res,next) => {
   );
 });
 
+accesoBotRouter.get("/validatecuit/:cuit", authMiddleware.verifyToken,  (req, res, next) => {
+  accesoBotController.validateCuit(req, res, next);
+});
+
+accesoBotRouter.get("/validaterecibo/:recibo", authMiddleware.verifyToken,  (req, res, next) => {
+  accesoBotController.validateRecibo(req, res, next);
+});
+
+accesoBotRouter.get("/validatecbu/:cbu/:cuit/:encTelNro", authMiddleware.verifyToken,  (req, res, next) => {
+  accesoBotController.validateCbu(req, res, next);
+});
+
+
 
 

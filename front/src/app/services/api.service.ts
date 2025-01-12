@@ -419,6 +419,36 @@ export class ApiService {
     );
   }
 
+  getValidateCuit(cuit: any) {
+    return this.http.get<ResponseJSON<any[]>>(`/api/acceso-bot/validatecuit/${cuit}`).pipe(
+      map((res: any) => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getValidateRecibo(recibo: any) {
+    return this.http.get<ResponseJSON<any[]>>(`/api/acceso-bot/validaterecibo/${recibo}`).pipe(
+      map((res: any) => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getValidateCBU(cbu: any, cuit:any, encTelNro:any) {
+    return this.http.get<ResponseJSON<any[]>>(`/api/acceso-bot/validatecbu/${cbu}/${cuit}/${encTelNro}`).pipe(
+      map((res: any) => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getIdentCode(identData: string, encTelNro: string): Observable<unknown> {
     return this.http.get<ResponseJSON<any>>(`mess/api/personal/ident`, { identData, encTelNro },{observe:'body', context: new HttpContext().set(ALLOW_ANONYMOUS, true)}).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),

@@ -6,11 +6,17 @@ import { ZXingScannerModule } from '@zxing/ngx-scanner';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { NzResultModule } from 'ng-zorro-antd/result';
+import { NzCollapseModule } from 'ng-zorro-antd/collapse';
+import { NgForm, FormArray, FormBuilder, ValueChangeEvent, FormGroup, FormControl } from '@angular/forms';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { ActivatedRoute } from '@angular/router';
+
+
 
 @Component({
   selector: 'app-ident',
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, ZXingScannerModule, NzResultModule],
+  imports: [...SHARED_IMPORTS, CommonModule, ZXingScannerModule, NzResultModule, NzCollapseModule],
   templateUrl: './ident.component.html',
   styleUrl: './ident.component.less'
 })
@@ -19,8 +25,10 @@ export class IdentComponent {
   codGenerado = model('')
   encTelNro = input('')
   videoConstraints = signal({ facingMode: 'back', with: 1080 })
-
+  collapseDisabled = signal(true)
+  codigo = signal(0)
   private apiService = inject(ApiService)
+  
   cams: any = []
   camdevice = signal(undefined)
   caminfo = signal({})
@@ -29,58 +37,215 @@ export class IdentComponent {
   scanComplete(e: any) {
     //    console.log('scanComplete',e)
   }
+  constructor(
+    private route: ActivatedRoute, 
+    private message: NzMessageService
+  ) {}
 
-  async scanSuccess(e: string) {
-    try {
-      this.scannerEnabled.set(false)
-      const res: any = await firstValueFrom(this.apiService.getIdentCode(e, this.encTelNro()));
-      this.codGenerado.set(String(res?.data?.codigo))
-    } catch (error) {
-      this.scannerEnabled.set(true)
+  fb = inject(FormBuilder)
+  formCli = this.fb.group({
+    id: 0,
+    cuit: "",
+    recibo:"",
+    cbu:""
+  })
+
+  panels = signal([
+    {
+      active: true,
+      id: 1,
+      name: 'Paso 1 - Validar CUIT',
+      disabled: false,
+      success: false
+    },
+    {
+      active: false,
+      id: 2,
+      name: 'Paso 2 - Términos y Servicios',
+      disabled: true,
+      success: false
+    },
+    {
+      active: false,
+      id: 3,
+      name: 'Paso 3 - Numero Ultimo Recibo',
+      disabled: true,
+      success : false
+    },
+    {
+      active: false,
+      id: 4,
+      name: 'Paso 4 - Últimos 6 dígitos del CBU',
+      disabled: true,
+      success : false
     }
+  ]);
+
+
+  async consultCuit() {
+
+    let cuit = this.formCli.value?.cuit
+    try {
+      let result = await firstValueFrom(this.apiService.getValidateCuit(cuit))
+      if (result) {
+        this.panels.update((currentPanels) =>
+          currentPanels.map((panel) => {
+            if (panel.id === 1) {
+              return { ...panel, active: false, disabled: true, success: true };
+            } else if (panel.id === 2) {
+              return { ...panel, active: true, disabled: false };
+            }
+            return panel
+          })
+        );
+      } else {
+        this.message.create("error", `El CUIT seleccionado no Existe `);
+      }
+    } catch (e) {
+
+    }
+
+
   }
+
+  async aceptTerminos() {
+
+    let cuit = this.formCli.value?.cuit
+    try {
+      let result = await firstValueFrom(this.apiService.getValidateCuit(cuit))
+      if (result) {
+        this.panels.update((currentPanels) =>
+          currentPanels.map((panel) => {
+            if (panel.id === 2) {
+              return { ...panel, active: false, disabled: true, success: true  };
+            } else if (panel.id === 3) {
+              return { ...panel, active: true, disabled: false };
+            }
+            return panel
+          })
+        );
+      } 
+    } catch (e) {
+
+    }
+
+  }
+
+  async consulrecibo() {
+
+    let recibo = this.formCli.value?.recibo
+    try {
+      let result = await firstValueFrom(this.apiService.getValidateRecibo(recibo))
+      if (result) {
+        this.panels.update((currentPanels) =>
+          currentPanels.map((panel) => {
+            if (panel.id === 3) {
+              return { ...panel, active: false, disabled: true,  success: true  };
+            } else if (panel.id === 4) {
+              return { ...panel, active: true, disabled: false };
+            }
+            return panel
+          })
+        );
+      } else {
+        this.message.create("error", `El Recibo seleccionado no Existe `);
+      }
+    } catch (e) {
+
+    }
+
+
+  }
+
+  async consulCBU() {
+
+    let cbu = this.formCli.value?.cbu
+    let cuit = this.formCli.value?.cuit
+
+    console.log("cbu ", cbu)
+    try {
+
+      let encTelNro = this.route.snapshot.paramMap.get('encTelNro')
+
+      console.log("el numero de la ruta es ", encTelNro)
+
+      let result = await firstValueFrom(this.apiService.getValidateCBU(cbu,cuit,encTelNro))
+      console.log("este es el resutl ", result)
+      if (result.length > 1) {
+      
+       this.codigo.set( result[1].codigo)
+
+      } else {
+        this.message.create("error", `El CBU seleccionado no Existe `);
+      }
+    } catch (e) {
+
+    }
+
+
+  }
+
+  async copyNumber() {
+    const number = this.codigo() 
+    navigator.clipboard.writeText(number.toString()) 
+      .then(() => {
+        const message = document.getElementById('message')
+        this.message.create("success", `¡Número copiado! `)
+      })
+      .catch(err => this.message.create("error", `El CBU seleccionado no Existe `));
+  }
+
 
   ngOnInit() {
+
     if (this.encTelNro()) {
       this.scannerEnabled.set(true)
-      //      this.cambioCam()
+
     }
 
-    //    this.codGenerado.set('312312312')
-    //    this.scannerEnabled.set(false)
   }
 
-  camerasFoundHandler(cameras: MediaDeviceInfo[]) {
-    this.cams = cameras
-    setTimeout(() => {
-      if (this.camdevice() == undefined) {
-        
-        for (const cam of this.cams) {
-          if (cam.label.match(/camera2 0.*back/)) {
-            console.log('seteo', cam.label)
-            this.camdevice.set(cam)
-            return
-          }
-        }
-        this.cambioCam()
-      } else {
-          const tmpcam = this.camdevice()
-        this.camdevice.set(undefined)
-        setTimeout(() => {
-          this.camdevice.set(tmpcam)
-        },100)
-        }
-    }, 1500)
+  // async scanSuccess(e: string) {
+  //   try {
+  //     this.scannerEnabled.set(false)
+  //     const res: any = await firstValueFrom(this.apiService.getIdentCode(e, this.encTelNro()));
+  //     this.codGenerado.set(String(res?.data?.codigo))
+  //   } catch (error) {
+  //     this.scannerEnabled.set(true)
+  //   }
+  // }
 
-  }
+  // camerasFoundHandler(cameras: MediaDeviceInfo[]) {
+  //   this.cams = cameras
+  //   setTimeout(() => {
+  //     if (this.camdevice() == undefined) {
 
-  cambioCam() {
-    this.curcam++
-    if (this.curcam >= this.cams.length)
-      this.curcam = 0
-    this.camdevice.set(this.cams[this.curcam])
-    console.log('cambio a ', this.cams[this.curcam])
-  }
+  //       for (const cam of this.cams) {
+  //         if (cam.label.match(/camera2 0.*back/)) {
+  //           console.log('seteo', cam.label)
+  //           this.camdevice.set(cam)
+  //           return
+  //         }
+  //       }
+  //       this.cambioCam()
+  //     } else {
+  //         const tmpcam = this.camdevice()
+  //       this.camdevice.set(undefined)
+  //       setTimeout(() => {
+  //         this.camdevice.set(tmpcam)
+  //       },100)
+  //       }
+  //   }, 1500)
+
+  // }
+
+  // cambioCam() {
+  //   this.curcam++
+  //   if (this.curcam >= this.cams.length)
+  //     this.curcam = 0
+  //   this.camdevice.set(this.cams[this.curcam])
+  //   console.log('cambio a ', this.cams[this.curcam])
+  // }
 
 
 }

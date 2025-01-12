@@ -1,14 +1,113 @@
+<br>
+<h1>{{ 'app.validacionIndentidadText' | i18n }}</h1>
+<form [formGroup]="formCli" *ngIf="codigo() == 0">
+  <nz-collapse nzAccordion  *ngIf="collapseDisabled()" >
+    @for (panel of panels(); track panel) {
+    <nz-collapse-panel [nzHeader]="panel.name" [nzActive]="panel.active" [nzDisabled]="panel.disabled"  [ngClass]="{ 'success-panel': panel.success }">
+
+      <br>
+      @if (panel.id == 1){
+
+      <nz-form-item style="justify-content: center;">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">CUIT</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+          <input nz-input placeholder="" formControlName="cuit" type="string" />
+        </nz-form-control>
+      </nz-form-item>
+      <br>
+      <nz-form-item style="justify-content: center;">
+
+        <button nzType="primary" nz-button (click)="consultCuit()" [disabled]="formCli.value.cuit == ''">
+          {{ 'app.consulta.cuit' | i18n }}
+        </button>
+
+      </nz-form-item>
+
+      }@else if(panel.id == 2){
+
+      <iframe src="../../../../assets/pdf/Lince-Chatbot.html" width="100%" height="600px" style="border: none;">
+      </iframe>
+
+
+      <nz-form-item style="justify-content: center;">
+        <p>Si no puedes visualizar los términos, puedes acceder <a href="../../../../assets/pdf/Lince-Chatbot.html"
+            target="_blank">aquí</a>.</p><br>
+      </nz-form-item>
+
+      <nz-form-item style="justify-content: center;">
+        <button nzType="primary" nz-button (click)="aceptTerminos()">
+          {{ 'app.terminosycondiciones' | i18n }}
+        </button>
+      </nz-form-item>
+
+      }
+      @if (panel.id == 3){
+
+      <nz-form-item style="justify-content: center;">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">Recibo</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+          <input nz-input placeholder="" formControlName="recibo" type="string" />
+        </nz-form-control>
+      </nz-form-item>
+      <br>
+      <nz-form-item style="justify-content: center;">
+
+        <button nzType="primary" nz-button (click)="consulrecibo()" [disabled]="formCli.value.recibo == ''">
+          {{ 'app.validar.recibo' | i18n }}
+        </button>
+
+      </nz-form-item>
+
+      }  @else if (panel.id == 4){
+
+        <nz-form-item style="justify-content: center;">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">CBU</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+            <input nz-input placeholder="" formControlName="cbu" type="string" />
+          </nz-form-control>
+        </nz-form-item>
+        <br>
+        <nz-form-item style="justify-content: center;">
+  
+          <button nzType="primary" nz-button (click)="consulCBU()" [disabled]="formCli.value.cbu == ''">
+            {{ 'app.validar.cbu' | i18n }}
+          </button>
+  
+        </nz-form-item>
+  
+        }
+    </nz-collapse-panel>
+    }
+  
+
+  </nz-collapse>
+
+
+
+</form>
+
+<div class="container" *ngIf="codigo() !== 0">
+  <div class="number" id="number">{{codigo()}}</div>
+  <button nzType="primary" nz-button (click)="copyNumber()">
+    {{ 'app.btn.copiar' | i18n }}
+  </button>
+</div>
+<!-- 
 <nz-card>
   @if (scannerEnabled()) {
 
-  <h1>Validación de DNI</h1>
   <nz-card style="text-align: center;">
     <p>Enfoque el código de barras del documento delante de la cámara</p>
     <p>Procure tener buena iluminación</p>
     <p>En caso de no poder lograr una imagen nítida pruebe cambiar a la cámara alternativa</p>
+
+
+
     <button nz-button nzType="primary" (click)="cambioCam()" style="width:80%;">Cámara Alternativa</button>
+    
+
   </nz-card>
-  <nz-card style="text-align: center;">
+<nz-card style="text-align: center;">
     <ng-container style="max-width: 800px;">
       <zxing-scanner [formats]="allowedBarCodeFormats" (scanComplete)="scanComplete($event)"
         (scanSuccess)="scanSuccess($event)" (camerasFound)="camerasFoundHandler($event)" [enable]="scannerEnabled()"
@@ -18,7 +117,7 @@
         [videoConstraints]="videoConstraints()"
         ></zxing-scanner>
     </ng-container>
-    <!-- <p>Cámara: {{camdevice()}}</p> -->
+
   </nz-card>
   } @else if (encTelNro()) {
   }
@@ -33,5 +132,6 @@
     </div>
   </nz-result>
 
-  }
-</nz-card>
+  } 
+
+</nz-card> -->

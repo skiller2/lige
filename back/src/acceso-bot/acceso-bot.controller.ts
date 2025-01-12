@@ -5,10 +5,10 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { QueryResult } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller"
 import { info } from "pdfjs-dist/types/src/shared/util";
-import {  existsSync} from "fs";
+import { existsSync } from "fs";
 import { QueryRunner } from "typeorm";
 import { fileURLToPath } from 'url';
-import { MultiFormatReader, BarcodeFormat, RGBLuminanceSource, BinaryBitmap, HybridBinarizer, NotFoundException, DecodeHintType, Binarizer,QRCodeReader } from '@zxing/library';
+import { MultiFormatReader, BarcodeFormat, RGBLuminanceSource, BinaryBitmap, HybridBinarizer, NotFoundException, DecodeHintType, Binarizer, QRCodeReader } from '@zxing/library';
 import path from "path";
 import qrCode from 'qrcode-reader';
 import fs from "fs";
@@ -194,12 +194,11 @@ export class AccesoBotController extends BaseController {
 
         try {
             let result
-
             let resultgetAccessQuery = await this.getAccessQuery(queryRunner, PersonalId)
 
             if (!resultgetAccessQuery || resultgetAccessQuery.length === 0) {
-               result = await this.getAccessDniQuery(queryRunner, PersonalId)
-               result[0].isNew = false
+                result = await this.getAccessDniQuery(queryRunner, PersonalId)
+                result[0].isNew = false
             } else {
                 result = resultgetAccessQuery
                 result[0].isNew = true
@@ -248,27 +247,27 @@ export class AccesoBotController extends BaseController {
                 files
 
             } = req.body
-            
+
             let numeroAleatorio
-            let newArray = {...req.body}
+            let newArray = { ...req.body }
 
             //throw new ClientException(`test.`)
 
             //validaciones
             await this.FormValidations(req.body)
-        
-            if(nuevoCodigo){
+
+            if (nuevoCodigo) {
                 numeroAleatorio = await this.generarNumeroAleatorio()
                 newArray.codigo = numeroAleatorio.toString()
             }
-           
-            await this.AccesoBotEditQuery(queryRunner,telefono,newArray.codigo,PersonalId,PersonalDocumentoNro,usuario,ip,fecha)
-            
-            if (files?.length > 0){
+
+            await this.AccesoBotEditQuery(queryRunner, telefono, newArray.codigo, PersonalId, PersonalDocumentoNro, usuario, ip, fecha)
+
+            if (files?.length > 0) {
 
                 //await this.QrValidate(files)
-                await this.DocumentoImagenDocumento(queryRunner,files,newArray.PersonalId)  
-               
+                await this.DocumentoImagenDocumento(queryRunner, files, newArray.PersonalId)
+
 
             }
 
@@ -295,15 +294,15 @@ export class AccesoBotController extends BaseController {
             //throw new ClientException(`test.`)
             await queryRunner.startTransaction()
 
-            let {files } = req.body
-            
+            let { files } = req.body
+
             let numeroAleatorio
-            let newArray = {...req.body}
+            let newArray = { ...req.body }
 
             //validaciones
             await this.FormValidations(req.body)
 
-            
+
             if (!req.body.nuevoCodigo) {
                 throw new ClientException(`Debe Marcar la opcion de generar un nuevo codigo.`)
             }
@@ -312,12 +311,12 @@ export class AccesoBotController extends BaseController {
             newArray.codigo = numeroAleatorio
 
             if (files?.length > 0)
-                await this.DocumentoImagenDocumento(queryRunner,files,newArray.PersonalId) 
+                await this.DocumentoImagenDocumento(queryRunner, files, newArray.PersonalId)
 
-            await this.AccesoBotNewQuery(queryRunner,newArray,usuario,ip,fecha)
+            await this.AccesoBotNewQuery(queryRunner, newArray.PersonalId, newArray.telefono, newArray.codigo, usuario, ip, fecha)
 
             await queryRunner.commitTransaction()
-            return this.jsonRes(newArray, res, 'Carga de registro Exitosa');
+            return this.jsonRes(newArray, res, 'Carga de registro Exitosa')
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
@@ -326,50 +325,141 @@ export class AccesoBotController extends BaseController {
         }
     }
 
-    async DocumentoImagenDocumento(queryRunner:any,files:any,PersonalId:any){
+    async validateCuit(req: any, res: Response, next: NextFunction) {
 
-       // 12 es frente
-       // 13 es dorso
-       
-       for (const file of files) {
+        const cuit = Number(req.params.cuit)
+        const queryRunner = dataSource.createQueryRunner();
 
-         try {
+        try {
 
-            const path = `${process.env.PATH_DOCUMENTS}/temp/${file.filename}`
-            let existfile = await fs.existsSync(path)
+            const result = await queryRunner.query(`SELECT * FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
+            let existCuit = result?.length >= 1 ? true : false
+            this.jsonRes(existCuit, res)
 
-            if (existfile) {
-                    // determinar cuando valida el dni q el archivo validado es el frente para su correspondiente guardado
-                let isFrente = file.esFrenteODorso === 12 ? file.esFrenteODorso : 13
+        } catch (error) {
+            return next(error)
+        }
+    }
 
-                //let exisfile
-                let typefile = file.originalname.split(".")[1]
+    async validateRecibo(req: any, res: Response, next: NextFunction) {
 
-                    
-                const DocumentoImagen = await queryRunner.query(`SELECT IDENT_CURRENT('DocumentoImagenDocumento')`)
-                let DocumentoImagenId = DocumentoImagen[0][''] + 1
+        const recibo = Number(req.params.recibo)
+        const queryRunner = dataSource.createQueryRunner();
 
-                let nameFile = isFrente === 12 ? `${PersonalId}-${DocumentoImagenId}-DOCUMENFREN.${typefile}` : `${PersonalId }-${DocumentoImagenId}-DOCUMENDOR.${typefile}`
+        try {
+            console.log("recibo ", recibo)
+
+            //const result = await queryRunner.query(`SELECT * FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
+            const result = null
+            let existRecibo = result?.length >= 1 ? true : false
+
+            console.log("existRecibo ", existRecibo)
+
+            this.jsonRes(true, res);
+            //this.jsonRes(existRecibo, res);
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    async validateCbu(req: any, res: Response, next: NextFunction) {
+
+        const cbu = Number(req.params.cbu)
+        const cuit = Number(req.params.cuit)
+        const numeroTelefono = Number(req.params.encTelNro) 
+
+        const usuario = res.locals.userName
+        const ip = this.getRemoteAddress(req)
+        const fecha = new Date()
+        fecha.setHours(0, 0, 0, 0)
+    
+        const queryRunner = dataSource.createQueryRunner();
+
+        try {
+            console.log("cbu ", cbu)
+            console.log("cuit ", cuit)
+            console.log("numeroTelefono ", numeroTelefono)
+
+            let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit]) 
+            const personalId = personaIdQuery[0].PersonalId
+
+            const result = await queryRunner.query(`SELECT TOP 1 cue.PersonalId, ban.BancoDescripcion, cue.PersonalBancoCBU, cue.PersonalBancoDesde, cue.PersonalBancoHasta FROM PersonalBanco cue JOIN Banco ban ON ban.BancoId = cue.PersonalBancoBancoId WHERE cue.PersonalId = @0 ORDER BY cue.PersonalBancoHasta DESC;`, [personalId])
+            let newarray = []
+            let existCbu = result?.length >= 1 ? true : false
+
+            if(existCbu && result[0].PersonalBancoCBU == cbu){
                 
+                let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit]) 
+                const personalId = personaIdQuery[0].PersonalId
+
+                let existreg = await queryRunner.query(`SELECT * FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0`, [personalId]) 
+
+                let  numeroAleatorio = await this.generarNumeroAleatorio()
+              
+                if (existreg.length > 0) {
+                    //update
+                    await this.AccesoBotEditQuery(queryRunner, numeroTelefono, numeroAleatorio.toString(), personalId, null, usuario, ip, fecha)
+                } else {
+                    //insert
+                    await this.AccesoBotNewQuery(queryRunner, personalId, numeroTelefono, numeroAleatorio, usuario, ip, fecha)
+                }
+                newarray.push({"existCbu": existCbu},{"codigo":numeroAleatorio})
+            }else{
+                newarray.push({"existCbu": existCbu})
+            }
+
+            this.jsonRes(newarray, res);
+            //this.jsonRes(existRecibo, res);
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    async DocumentoImagenDocumento(queryRunner: any, files: any, PersonalId: any) {
+
+        // 12 es frente
+        // 13 es dorso
+
+        for (const file of files) {
+
+            try {
+
+                const path = `${process.env.PATH_DOCUMENTS}/temp/${file.filename}`
+                let existfile = await fs.existsSync(path)
+
+                if (existfile) {
+                    // determinar cuando valida el dni q el archivo validado es el frente para su correspondiente guardado
+                    let isFrente = file.esFrenteODorso === 12 ? file.esFrenteODorso : 13
+
+                    //let exisfile
+                    let typefile = file.originalname.split(".")[1]
+
+
+                    const DocumentoImagen = await queryRunner.query(`SELECT IDENT_CURRENT('DocumentoImagenDocumento')`)
+                    let DocumentoImagenId = DocumentoImagen[0][''] + 1
+
+                    let nameFile = isFrente === 12 ? `${PersonalId}-${DocumentoImagenId}-DOCUMENFREN.${typefile}` : `${PersonalId}-${DocumentoImagenId}-DOCUMENDOR.${typefile}`
+
                     await queryRunner.query(`INSERT INTO DocumentoImagenDocumento (
                         PersonalId,
                         DocumentoImagenDocumentoBlobTipoArchivo,
                         DocumentoImagenDocumentoBlobNombreArchivo,
                         DocumentoImagenParametroId,
                         DocumentoImagenParametroDirectorioId ) 
-                    VALUES ( @0,@1,@2,@3,@4)`,[PersonalId,typefile,nameFile,isFrente,1])
+                    VALUES ( @0,@1,@2,@3,@4)`, [PersonalId, typefile, nameFile, isFrente, 1])
 
-                
-                await FileUploadController.moveFile(file.filename, `${process.env.PATH_DNI}/${nameFile}`, process.env.PATH_DNI);   
+
+                    await FileUploadController.moveFile(file.filename, `${process.env.PATH_DNI}/${nameFile}`, process.env.PATH_DNI);
+                }
+
+            } catch (error) {
             }
+        }
 
-         } catch (error) {
-         }
-      }
-      
     }
 
-    async AccesoBotNewQuery(queryRunner:any,newArray:any,usuario:any,ip:any,fecha:any) {
+
+    async AccesoBotNewQuery(queryRunner: any, PersonalId: any, telefono:any, codigo:any, usuario: any, ip: any, fecha: any) {
 
         await queryRunner.query(`INSERT INTO lige.dbo.regtelefonopersonal 
             (
@@ -384,16 +474,16 @@ export class AccesoBotController extends BaseController {
                 codigo,
                 des_doc_ident 
             ) 
-            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, [newArray.PersonalId,newArray.telefono,usuario,ip,fecha,usuario,ip,fecha,newArray.codigo,null])
+            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, [PersonalId, telefono, usuario, ip, fecha, usuario, ip, fecha, codigo, null])
 
 
     }
 
-    async AccesoBotEditQuery(queryRunner:any,telefono:any,codigo:any,PersonalId:any,PersonalDocumentoNro:any,usuario:any,ip:any,fecha:any) {
+    async AccesoBotEditQuery(queryRunner: any, telefono: any, codigo: any, PersonalId: any, PersonalDocumentoNro: any, usuario: any, ip: any, fecha: any) {
 
         await queryRunner.query(`UPDATE lige.dbo.regtelefonopersonal
             SET telefono=@0,codigo = @1, aud_usuario_mod = @3, aud_ip_mod = @4 ,aud_fecha_mod = @5
-            WHERE Personal_id = @2`, [telefono,codigo,PersonalId,usuario,ip,fecha])
+            WHERE Personal_id = @2`, [telefono, codigo, PersonalId, usuario, ip, fecha])
 
 
     }
@@ -483,18 +573,18 @@ export class AccesoBotController extends BaseController {
 
 
             const resBuffer = Buffer.from(fs.readFileSync(normalizedPath));
-            
+
             const hints = new Map();
             const formats = [BarcodeFormat.QR_CODE, BarcodeFormat.DATA_MATRIX/*, ...*/];
-            
+
             hints.set(DecodeHintType.POSSIBLE_FORMATS, formats);
-            
+
             const reader = new MultiFormatReader();
-            
+
             const luminanceSource = new RGBLuminanceSource(new Uint8ClampedArray(resBuffer.buffer), 400, 500);
             const binaryBitmap = new BinaryBitmap(new HybridBinarizer(luminanceSource));
-            
-            
+
+
             reader.decode(binaryBitmap, hints);
 
         }
@@ -503,19 +593,19 @@ export class AccesoBotController extends BaseController {
 
     }
 
-    async downloadImagenDNI(path: any,res: Response, next: NextFunction) {
+    async downloadImagenDNI(path: any, res: Response, next: NextFunction) {
 
-        const pathArchivos = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' 
+        const pathArchivos = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'
         try {
 
-          const downloadPath = `${pathArchivos}/temp/${path}`;
-          
-          if (existsSync(downloadPath))
-            res.download(downloadPath, path, (msg) => {});
-        
-    
+            const downloadPath = `${pathArchivos}/temp/${path}`;
+
+            if (existsSync(downloadPath))
+                res.download(downloadPath, path, (msg) => { });
+
+
         } catch (error) {
-          return next(error)
+            return next(error)
         }
     }
 
@@ -525,11 +615,11 @@ export class AccesoBotController extends BaseController {
         const DocumentoImagenParametroId = String(req.body.id);
 
         const queryRunner = dataSource.createQueryRunner();
-        const pathArchivos = (process.env.PATH_DNI) ? process.env.PATH_DNI : '.' 
+        const pathArchivos = (process.env.PATH_DNI) ? process.env.PATH_DNI : '.'
         try {
 
-          let ds = await queryRunner
-            .query(`SELECT DocumentoImagenDocumentoBlobNombreArchivo, DocumentoImagenParametroId
+            let ds = await queryRunner
+                .query(`SELECT DocumentoImagenDocumentoBlobNombreArchivo, DocumentoImagenParametroId
                 FROM DocumentoImagenDocumento
                 WHERE PersonalId = @0 
                 AND DocumentoImagenParametroId = @1
@@ -538,18 +628,18 @@ export class AccesoBotController extends BaseController {
                     FROM DocumentoImagenDocumento
                     WHERE PersonalId = @0 AND DocumentoImagenParametroId = @1
                 ); `,
-              [PersonalId,DocumentoImagenParametroId]
-            )
-    
-          const downloadPath = `${pathArchivos}/${ds[0]?.DocumentoImagenDocumentoBlobNombreArchivo}`
-          
-          if (existsSync(downloadPath))
-            res.download(downloadPath, ds[0].DocumentoImagenDocumentoBlobNombreArchivo)
-         else
-            res.status(204).send()
-          
+                    [PersonalId, DocumentoImagenParametroId]
+                )
+
+            const downloadPath = `${pathArchivos}/${ds[0]?.DocumentoImagenDocumentoBlobNombreArchivo}`
+
+            if (existsSync(downloadPath))
+                res.download(downloadPath, ds[0].DocumentoImagenDocumentoBlobNombreArchivo)
+            else
+                res.status(204).send()
+
         } catch (error) {
-          return next(error)
+            return next(error)
         }
     }
 
