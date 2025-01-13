@@ -1479,7 +1479,7 @@ export class PersonalController extends BaseController {
     )
 
     if (sitRevista.length == 1 && sitRevista[0].PersonalSituacionRevistaDesde.getTime() > desde.getTime())
-      throw new ClientException(`La fecha desde de situación de revista no puede ser menor al ${sitRevista[0].PersonalSituacionRevistaDesde}`)
+      throw new ClientException(`La fecha desde de situación de revista no puede ser menor al ${sitRevista[0].PersonalSituacionRevistaDesde.getDate()}/${sitRevista[0].PersonalSituacionRevistaDesde.getMonth()+1}/${sitRevista[0].PersonalSituacionRevistaDesde.getFullYear()}`)
 
     if (sitRevista[0].PersonalSituacionRevistaSituacionId == SituacionRevistaId)
       throw new ClientException(`La situación de revista es igual a la existente`)
@@ -1822,7 +1822,7 @@ export class PersonalController extends BaseController {
     )
 
     if (categoria.length == 1 && categoria[0].PersonalCategoriaDesde.getTime() > Desde.getTime())
-      throw new ClientException(`La fecha Desde de categoria no puede ser menor al ${categoria[0].PersonalSituacionRevistaDesde}`)
+      throw new ClientException(`La fecha Desde de categoria no puede ser menor al ${categoria[0].PersonalCategoriaDesde.getDate()}/${categoria[0].PersonalCategoriaDesde.getMonth()+1}/${categoria[0].PersonalCategoriaDesde.getFullYear()}`)
 
     if (categoria[0].PersonalCategoriaTipoAsociadoId == TipoAsociadoId && categoria[0].PersonalCategoriaCategoriaPersonalId == CategoriaId)
       throw new ClientException(`La categoria es igual a la existente`)
