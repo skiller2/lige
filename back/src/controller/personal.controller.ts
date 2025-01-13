@@ -1822,10 +1822,10 @@ export class PersonalController extends BaseController {
     )
 
     if (categoria.length == 1 && categoria[0].PersonalCategoriaDesde.getTime() > Desde.getTime())
-      throw new ClientException(`La fecha Desde de categoria no puede ser menor al ${categoria[0].PersonalCategoriaDesde.getDate()}/${categoria[0].PersonalCategoriaDesde.getMonth()+1}/${categoria[0].PersonalCategoriaDesde.getFullYear()}`)
+      throw new ClientException(`La fecha Desde no puede ser menor al ${categoria[0].PersonalCategoriaDesde.getDate()}/${categoria[0].PersonalCategoriaDesde.getMonth()+1}/${categoria[0].PersonalCategoriaDesde.getFullYear()}`)
 
     if (categoria[0].PersonalCategoriaTipoAsociadoId == TipoAsociadoId && categoria[0].PersonalCategoriaCategoriaPersonalId == CategoriaId)
-      throw new ClientException(`La categoria es igual a la existente`)
+      throw new ClientException(`Debe ingresar una categoria distinta a la que se encuentra activa.`)
 
     if (categoria.length>0 && categoria[0].PersonalCategoriaDesde.getTime() == Desde.getTime()) {
       await queryRunner.query(`
@@ -1861,22 +1861,25 @@ export class PersonalController extends BaseController {
     const TipoAsociadoId = req.body.TipoAsociadoId
     const Desde = req.body.Desde
     const CategoriaId = req.body.CategoriaId
-    let error: any = []
     try {
+      let campos_vacios: any[] = []
+
       await queryRunner.startTransaction()
 
       if (!TipoAsociadoId) {
-        error.push(`Debe completar Tipo de Asociado.`);
+        campos_vacios.push(` Tipo de Asociado`);
       }
       if (!CategoriaId) {
-        error.push(`Debe completar Categoria.`);
+        campos_vacios.push(` Categoría`);
       }
       if (!Desde) {
-        error.push(`Debe completar fecha Desde.`);
+        campos_vacios.push(` Fecha Desde`);
       }
-      if (error.length) {
-        throw new ClientException(error);
+      if (campos_vacios.length) {
+        let msgError: any[] = ['Debe completar los siguientes campos:' + campos_vacios + '.']
+        throw new ClientException(msgError);
       }
+
 
       await this.setCategoriaQuerys(queryRunner, PersonalId, TipoAsociadoId, CategoriaId, new Date(Desde))
       await queryRunner.commitTransaction()
