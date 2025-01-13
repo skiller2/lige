@@ -458,9 +458,9 @@ export class PersonalController extends BaseController {
     return this.jsonRes(columns, res)
   }
 
-  async listPersonalQuery(queryRunner: any, filterSql: any, orderBy: any) {
-    const anio = new Date().getFullYear()
-    const mes = new Date().getMonth() + 1
+  private async listPersonalQuery(queryRunner: any, filterSql: any, orderBy: any) {
+    // const anio = new Date().getFullYear()
+    // const mes = new Date().getMonth() + 1
     return await queryRunner.query(`
         SELECT DISTINCT per.PersonalId AS id, cuit.PersonalCUITCUILCUIT,
         CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
@@ -504,7 +504,7 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async getSituacionRevistaQuery(queryRunner: any) {
+  private async getSituacionRevistaQuery(queryRunner: any) {
     return await queryRunner.query(`
         SELECT sit.SituacionRevistaId value, sit.SituacionRevistaDescripcion label
         FROM SituacionRevista sit`)
@@ -521,7 +521,7 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async addPersonalQuery(
+  private async addPersonalQuery(
     queryRunner: any,
     NroLegajo: number,
     Apellido: string,
@@ -581,7 +581,7 @@ export class PersonalController extends BaseController {
     return PersonalId
   }
 
-  async addPersonalCUITCUILQuery(queryRunner: any, personaId: any, CUIT: number, now: Date) {
+  private async addPersonalCUITCUILQuery(queryRunner: any, personaId: any, CUIT: number, now: Date) {
     await queryRunner.query(`
       INSERT INTO PersonalCUITCUIL (
       PersonalId,
@@ -697,7 +697,7 @@ export class PersonalController extends BaseController {
       if (errors.length)
         throw new ClientException(errors)
 
-      await this.setSituacionRevistaQuery(queryRunner, PersonalId, req.body.SituacionId, now, req.body.Motivo)
+      await this.setSituacionRevistaQuerys(queryRunner, PersonalId, req.body.SituacionId, now, req.body.Motivo)
 
       if (foto && foto.length) await this.setFoto(queryRunner, PersonalId, foto[0])
 
@@ -803,7 +803,7 @@ export class PersonalController extends BaseController {
       `, [personalId])
   }
 
-  async getNacionalidadListQuery(queryRunner: any) {
+  private async getNacionalidadListQuery(queryRunner: any) {
     return await queryRunner.query(`
         SELECT nac.NacionalidadId value, TRIM(nac.NacionalidadDescripcion) label
         FROM Nacionalidad nac`)
@@ -1192,7 +1192,7 @@ export class PersonalController extends BaseController {
   //   }
 
   //   if(!cambio) return
-  //   await this.setSituacionRevistaQuery(queryRunner, PersonalId, infoSitRevista)
+  //   await this.setSituacionRevistaQuerys(queryRunner, PersonalId, infoSitRevista)
   // }
 
 
@@ -1460,7 +1460,7 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async setSituacionRevistaQuery(queryRunner: any, personalId: number, SituacionRevistaId: number, desde: Date, motivo: string) {
+  private async setSituacionRevistaQuerys(queryRunner: any, personalId: number, SituacionRevistaId: number, desde: Date, motivo: string) {
     desde.setHours(0, 0, 0, 0)
     let yesterday: Date = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
@@ -1532,7 +1532,7 @@ export class PersonalController extends BaseController {
         throw new ClientException(error);
       }
 
-      await this.setSituacionRevistaQuery(queryRunner, personalId, SituacionRevistaId, new Date(desde), motivo)
+      await this.setSituacionRevistaQuerys(queryRunner, personalId, SituacionRevistaId, new Date(desde), motivo)
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
@@ -1748,6 +1748,143 @@ export class PersonalController extends BaseController {
 
     } catch (error) {
       return next(error)
+    }
+  }
+
+  async getTipoAsociado(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT tipo.TipoAsociadoId value, TRIM(tipo.TipoAsociadoDescripcion) label
+        FROM TipoAsociado tipo
+      `)
+
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getCategoriasByTipoAsociado(req: any, res: Response, next: NextFunction){
+    const queryRunner = dataSource.createQueryRunner();
+    const tipoAsociado:number = req.body.tipoAsociadoId
+    try {
+      const options =await queryRunner.query(`
+        SELECT catper.CategoriaPersonalId value, TRIM(catper.CategoriaPersonalDescripcion) label
+        FROM CategoriaPersonal catper
+        WHERE catper.TipoAsociadoId IN (@0) AND catper.CategoriaPersonalInactivo IS NULL
+        `, [tipoAsociado]
+      )
+
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getHistoryPersonalCategoria(req: any, res: Response, next: NextFunction) {
+    const personalId = Number(req.params.personalId);
+
+    try {
+      const listSitRevista = await dataSource.query(`
+        SELECT percat.PersonalCategoriaId, percat.PersonalCategoriaTipoAsociadoId, TRIM(tipo.TipoAsociadoDescripcion) TipoAsociado,
+        percat.PersonalCategoriaCategoriaPersonalId, TRIM(catper.CategoriaPersonalDescripcion) Categoria,
+        percat.PersonalCategoriaDesde Desde, percat.PersonalCategoriaHasta Hasta
+        FROM PersonalCategoria percat 
+        LEFT JOIN TipoAsociado tipo ON tipo.TipoAsociadoId = percat.PersonalCategoriaTipoAsociadoId
+        LEFT JOIN CategoriaPersonal catper ON catper.CategoriaPersonalId = percat.PersonalCategoriaCategoriaPersonalId AND catper.TipoAsociadoId = percat.PersonalCategoriaTipoAsociadoId
+        WHERE percat.PersonalCategoriaPersonalId IN (@0)
+        ORDER BY percat.PersonalCategoriaId DESC
+        `, [personalId]
+      )
+
+      this.jsonRes(listSitRevista, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  private async setCategoriaQuerys(queryRunner:any, PersonalId:number, TipoAsociadoId:number, CategoriaId:number, Desde:Date){
+    Desde.setHours(0, 0, 0, 0)
+    let yesterday: Date = new Date(Desde.getFullYear(), Desde.getMonth(), Desde.getDate() - 1)
+    yesterday.setHours(0, 0, 0, 0)
+
+    //Obtengo la última categoria
+    let categoria = await queryRunner.query(`
+      SELECT TOP 1 perc.PersonalCategoriaId, perc.PersonalCategoriaPersonalId,
+      perc.PersonalCategoriaTipoAsociadoId, PersonalCategoriaCategoriaPersonalId,
+      perc.PersonalCategoriaDesde, ISNULL(perc.PersonalCategoriaHasta, '9999-12-31') PersonalCategoriaHasta
+      FROM PersonalCategoria perc
+      WHERE perc.PersonalCategoriaPersonalId IN (@0) 
+      ORDER BY perc.PersonalCategoriaDesde DESC, ISNULL(perc.PersonalCategoriaHasta, '9999-12-31') DESC
+      `, [PersonalId]
+    )
+
+    if (categoria.length == 1 && categoria[0].PersonalCategoriaDesde.getTime() > Desde.getTime())
+      throw new ClientException(`La fecha Desde de categoria no puede ser menor al ${categoria[0].PersonalSituacionRevistaDesde}`)
+
+    if (categoria[0].PersonalCategoriaTipoAsociadoId == TipoAsociadoId && categoria[0].PersonalCategoriaCategoriaPersonalId == CategoriaId)
+      throw new ClientException(`La categoria es igual a la existente`)
+
+    if (categoria.length>0 && categoria[0].PersonalCategoriaDesde.getTime() == Desde.getTime()) {
+      await queryRunner.query(`
+        UPDATE PersonalCategoria SET PersonalCategoriaDesde = @2, PersonalCategoriaTipoAsociadoId = @3, PersonalCategoriaCategoriaPersonalId = @4
+        WHERE PersonalCategoriaPersonalId IN (@0) AND PersonalCategoriaId IN (@1)
+        `, [PersonalId, categoria[0].PersonalCategoriaId, Desde, TipoAsociadoId, CategoriaId]
+      )
+    } else {
+      //Crea una categoria nueva
+      await queryRunner.query(`
+        UPDATE PersonalCategoria SET PersonalCategoriaHasta = @2
+        WHERE PersonalCategoriaPersonalId IN (@0) AND PersonalCategoriaId IN (@1)`,
+        [PersonalId, categoria[0].PersonalCategoriaId, yesterday]
+      )
+
+      const PersonalCategoriaUltNroQuery = await queryRunner.query(`SELECT PersonalCategoriaUltNro, PersonalSuActualSucursalPrincipalId FROM Personal WHERE PersonalId IN (@0)`, [PersonalId])
+      const PersonalCategoriaUltNro = PersonalCategoriaUltNroQuery[0].PersonalCategoriaUltNro + 1
+      const SucursalId = PersonalCategoriaUltNroQuery[0].PersonalSuActualSucursalPrincipalId
+
+      await queryRunner.query(`
+        INSERT INTO PersonalCategoria ( PersonalCategoriaId, PersonalCategoriaPersonalId, PersonalCategoriaTipoAsociadoId, PersonalCategoriaCategoriaPersonalId, PersonalCategoriaDesde, SucursalId, TipoJornadaId)
+          VALUES(@0, @1, @2, @3, @4, @5, @6)`,
+        [PersonalCategoriaUltNro, PersonalId, TipoAsociadoId, CategoriaId, Desde, SucursalId,1]
+      )
+
+      await queryRunner.query(`UPDATE Personal SET PersonalCategoriaUltNro = @1 WHERE PersonalId IN (@0)`, [PersonalId, PersonalCategoriaUltNro])
+    }
+  }
+
+  async setCategoria(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const PersonalId: number = Number(req.params.id);
+    const TipoAsociadoId = req.body.TipoAsociadoId
+    const Desde = req.body.Desde
+    const CategoriaId = req.body.CategoriaId
+    let error: any = []
+    try {
+      await queryRunner.startTransaction()
+
+      if (!TipoAsociadoId) {
+        error.push(`Debe completar Tipo de Asociado.`);
+      }
+      if (!CategoriaId) {
+        error.push(`Debe completar Categoria.`);
+      }
+      if (!Desde) {
+        error.push(`Debe completar fecha Desde.`);
+      }
+      if (error.length) {
+        throw new ClientException(error);
+      }
+
+      await this.setCategoriaQuerys(queryRunner, PersonalId, TipoAsociadoId, CategoriaId, new Date(Desde))
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res, 'Carga Exitosa');
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 

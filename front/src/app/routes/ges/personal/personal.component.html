@@ -50,6 +50,10 @@
       <button nz-button nzType="default" (click)="openDrawerforConsultSitRevista()" [disabled]="personalId() == 0"
         nz-tooltip nzTooltipTitle="{{ 'app.state' | i18n }}"><span nz-icon nzType="info-circle"
           nzTheme="outline"></span></button>
+      <!-- btn  categoria -->
+      <button nz-button nzType="default" (click)="openDrawerforConsultCategoria()" [disabled]="personalId() == 0"
+      nz-tooltip nzTooltipTitle="{{ 'app.category' | i18n }}"><span nz-icon nzType="menu-unfold"
+        nzTheme="outline"></span></button>
 
 
     </nz-button-group>
@@ -105,9 +109,11 @@
   [PersonalId]="personalId()"></app-personal-domicilio-drawer>
 <app-personal-situacionrevista-drawer #sitRevistaHistDrawer [(visibleSitRevista)]="visibleSitRevista"
   [PersonalId]="personalId()"></app-personal-situacionrevista-drawer>
-<app-personal-responsable-drawer #responDrawer [(visibleResponsable)]="visibleResponsable"
+<app-personal-responsable-drawer #respDrawer [(visibleResponsable)]="visibleResponsable"
   [PersonalId]="personalId()"></app-personal-responsable-drawer>
-<app-personal-documentos-drawer #responDrawer [(visibleDocumentos)]="visibleDocumentos"
+<app-personal-documentos-drawer #docDrawer [(visibleDocumentos)]="visibleDocumentos"
   [PersonalId]="personalId()"></app-personal-documentos-drawer>
+<app-personal-categoria-drawer #cateDrawer [(visibleCategoria)]="visibleCategoria"
+  [PersonalId]="personalId()"></app-personal-categoria-drawer>
 <app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="personalId()" [visible]="visibleDetalle()"
   (onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>

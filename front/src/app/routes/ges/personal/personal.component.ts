@@ -18,6 +18,7 @@ import { PersonalDomicilioDrawerComponent } from '../../../shared/personal-domic
 import { PersonalSituacionRevistaDrawerComponent } from '../../../shared/personal-situacionrevista-drawer/personal-situacionrevista-drawer.component'
 import { PersonalResponsableDrawerComponent } from '../../../shared/personal-responsable-drawer/personal-responsable-drawer.component'
 import { PersonalDocumentosDrawerComponent } from '../../../shared/personal-documentos-drawer/personal-documentos-drawer.component'
+import { PersonalCategoriaDrawerComponent } from '../../../shared/personal-categoria-drawer/personal-categoria-drawer.component'
 import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
 import { NzIconModule } from 'ng-zorro-antd/icon';
 
@@ -31,7 +32,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
       PersonalSearchComponent, PersonalFormComponent, LicenciaHistorialDrawerComponent,
       PersonalObjetivoDrawerComponent, PersonalCustodiasDrawerComponent, PersonalDomicilioDrawerComponent,
       PersonalSituacionRevistaDrawerComponent, PersonalResponsableDrawerComponent, PersonalDocumentosDrawerComponent,
-      DetallePersonaComponent
+      DetallePersonaComponent, PersonalCategoriaDrawerComponent
     ],
     providers: [AngularUtilService, ExcelExportService],
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -65,6 +66,7 @@ export class PersonalComponent {
     visibleResponsable = model<boolean>(false)
     visibleDocumentos = model<boolean>(false)
     visibleDetalle = model<boolean>(false)
+    visibleCategoria = model<boolean>(false)
 
     // childLicHistDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('licHistDrawer')
     // childObjDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('objDrawer')
@@ -155,6 +157,10 @@ export class PersonalComponent {
 
   openDrawerforConsultDocumentos(): void{
     this.visibleDocumentos.set(true) 
+  }
+
+  openDrawerforConsultCategoria(): void{
+    this.visibleCategoria.set(true) 
   }
 
   openDrawerforConsultDetalle(): void{
