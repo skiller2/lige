@@ -7,6 +7,7 @@ import { filtrosToSql, orderToSQL } from "src/impuestos-afip/filtros-utils/filtr
 import { CustodiaController } from "./custodia.controller";
 import CryptoJS from "crypto-js";
 import { float } from "@zxing/library/esm/customTypings";
+import * as fs from 'fs';
 
 interface DigestAuthOptions {
   username: string;
@@ -2719,7 +2720,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       let ClienteId = 0
       let ClienteElementoDependienteId = 0
 
-
+//      fs.writeFile('C:/temp/listado.json', JSON.stringify(listado, null, 2), (err) => { })
       let listadoProcessed = {}
       for (const personal of listado) {
         const CUIT = personal.employeeNo
@@ -2743,11 +2744,13 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
             if (diffHours > 0) {
               if (!listadoProcessed[personal.groupName]) listadoProcessed[personal.groupName] = { ClienteId, ClienteElementoDependienteId, personal: {} }
-              listadoProcessed[personal.groupName].personal[personal.employeeNo] = { ...listadoProcessed[personal.employeeNo], ['day' + dayNum + 'det']: this.minsToHourMins(diffMins), ['day' + dayNum]: this.hoursToHourMins(diffHours), ['day' + dayNum + 'hs']: diffHours }
+              listadoProcessed[personal.groupName].personal[personal.employeeNo] = { ...listadoProcessed[personal.groupName].personal[personal.employeeNo], ['day' + dayNum + 'det']: this.minsToHourMins(diffMins), ['day' + dayNum]: this.hoursToHourMins(diffHours), ['day' + dayNum + 'hs']: diffHours }
             }
           }
         }
       }
+//      fs.writeFile('C:/temp/listadoProcessed.json', JSON.stringify(listadoProcessed, null, 2), (err) => { })
+
 
       await queryRunner.startTransaction()
 
