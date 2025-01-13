@@ -48,7 +48,7 @@ const columns: any[] = [
   },
   {
     id: "PersonalNroLegajo",
-    name: " Num Legajo",
+    name: "Nro Asociado",
     field: "PersonalNroLegajo",
     type: "string",
     fieldName: "per.PersonalNroLegajo",
