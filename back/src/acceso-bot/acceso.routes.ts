@@ -51,7 +51,7 @@ accesoBotRouter.get("/validatecuit/:cuit", authMiddleware.verifyToken,  (req, re
   accesoBotController.validateCuit(req, res, next);
 });
 
-accesoBotRouter.get("/validaterecibo/:recibo", authMiddleware.verifyToken,  (req, res, next) => {
+accesoBotRouter.get("/validaterecibo/:recibo/:cuit", authMiddleware.verifyToken,  (req, res, next) => {
   accesoBotController.validateRecibo(req, res, next);
 });
 

@@ -429,8 +429,8 @@ export class ApiService {
     );
   }
 
-  getValidateRecibo(recibo: any) {
-    return this.http.get<ResponseJSON<any[]>>(`/api/acceso-bot/validaterecibo/${recibo}`).pipe(
+  getValidateRecibo(recibo: any, cuit:any) {
+    return this.http.get<ResponseJSON<any[]>>(`/api/acceso-bot/validaterecibo/${recibo}/${cuit}`).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');

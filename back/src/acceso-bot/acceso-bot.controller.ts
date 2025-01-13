@@ -8,6 +8,7 @@ import { info } from "pdfjs-dist/types/src/shared/util";
 import { existsSync } from "fs";
 import { QueryRunner } from "typeorm";
 import { fileURLToPath } from 'url';
+import { Utils } from "../liquidaciones/liquidaciones.utils";
 import { MultiFormatReader, BarcodeFormat, RGBLuminanceSource, BinaryBitmap, HybridBinarizer, NotFoundException, DecodeHintType, Binarizer, QRCodeReader } from '@zxing/library';
 import path from "path";
 import qrCode from 'qrcode-reader';
@@ -344,18 +345,20 @@ export class AccesoBotController extends BaseController {
     async validateRecibo(req: any, res: Response, next: NextFunction) {
 
         const recibo = Number(req.params.recibo)
+        const cuit = Number(req.params.cuit)
+        const usuario = res.locals.userName
+        const ip = this.getRemoteAddress(req)
+
         const queryRunner = dataSource.createQueryRunner();
 
         try {
-            console.log("recibo ", recibo)
 
-            //const result = await queryRunner.query(`SELECT * FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
-            const result = null
+            let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit]) 
+            const personalId = personaIdQuery[0].PersonalId
+            const result = await queryRunner.query(`  SELECT * FROM lige.dbo.docgeneral WHERE persona_id = @0 AND idrecibo = @1`, [personalId,recibo])
             let existRecibo = result?.length >= 1 ? true : false
+            this.jsonRes(existRecibo, res)
 
-            console.log("existRecibo ", existRecibo)
-
-            this.jsonRes(true, res);
             //this.jsonRes(existRecibo, res);
         } catch (error) {
             return next(error)
@@ -372,13 +375,17 @@ export class AccesoBotController extends BaseController {
         const ip = this.getRemoteAddress(req)
         const fecha = new Date()
         fecha.setHours(0, 0, 0, 0)
+
+        if (cbu.toString().length !== 6 ) {
+            throw new ClientException(`Ingrese solo los ultimos 6 digitos del CBU`)
+        }
     
         const queryRunner = dataSource.createQueryRunner();
 
         try {
-            console.log("cbu ", cbu)
-            console.log("cuit ", cuit)
-            console.log("numeroTelefono ", numeroTelefono)
+            // console.log("cbu ", cbu)
+            // console.log("cuit ", cuit)
+            // console.log("numeroTelefono ", numeroTelefono)
 
             let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit]) 
             const personalId = personaIdQuery[0].PersonalId
@@ -387,7 +394,7 @@ export class AccesoBotController extends BaseController {
             let newarray = []
             let existCbu = result?.length >= 1 ? true : false
 
-            if(existCbu && result[0].PersonalBancoCBU == cbu){
+            if( existCbu && result[0].PersonalBancoCBU.slice(-6) == cbu.toString()){
                 
                 let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit]) 
                 const personalId = personaIdQuery[0].PersonalId

@@ -28,6 +28,8 @@ export class IdentComponent {
   collapseDisabled = signal(true)
   codigo = signal(0)
   private apiService = inject(ApiService)
+  passwordVisible = false;
+  password?: string;
   
   cams: any = []
   camdevice = signal(undefined)
@@ -61,7 +63,7 @@ export class IdentComponent {
     {
       active: false,
       id: 2,
-      name: 'Paso 2 - Términos y Servicios',
+      name: 'Paso 2 - Términos y Condiciones',
       disabled: true,
       success: false
     },
@@ -99,13 +101,39 @@ export class IdentComponent {
           })
         );
       } else {
-        this.message.create("error", `El CUIT seleccionado no Existe `);
+        this.message.create("error", `El CUIT seleccionado no se encuentra registrado`);
       }
     } catch (e) {
 
     }
 
 
+  }
+
+  async newValidate(){
+
+    // window.location.reload(); 
+
+    this.panels.update((currentPanels) =>
+      currentPanels.map((panel) => {
+        if (panel.id === 1) {
+          return { ...panel, active: true, disabled: false, success: false  };
+        } 
+        if (panel.id === 2) {
+          return { ...panel, active: false, disabled: true, success: false  };
+        }
+        if (panel.id === 3) {
+          return { ...panel, active: false, disabled: true, success: false  };
+        }
+        if (panel.id === 4) {
+          return { ...panel, active: false, disabled: true, success: false  };
+        }
+        return panel
+      })
+    );
+
+    this.codigo.set(0)
+    this.formCli.patchValue({id: 0, cuit: "", recibo:"", cbu:"" });
   }
 
   async aceptTerminos() {
@@ -134,8 +162,10 @@ export class IdentComponent {
   async consulrecibo() {
 
     let recibo = this.formCli.value?.recibo
+    let cuit = this.formCli.value?.cuit
     try {
-      let result = await firstValueFrom(this.apiService.getValidateRecibo(recibo))
+      let result = await firstValueFrom(this.apiService.getValidateRecibo(recibo,cuit))
+      console.log("result recibo", result)
       if (result) {
         this.panels.update((currentPanels) =>
           currentPanels.map((panel) => {
@@ -162,15 +192,11 @@ export class IdentComponent {
     let cbu = this.formCli.value?.cbu
     let cuit = this.formCli.value?.cuit
 
-    console.log("cbu ", cbu)
+ 
     try {
 
       let encTelNro = this.route.snapshot.paramMap.get('encTelNro')
-
-      console.log("el numero de la ruta es ", encTelNro)
-
       let result = await firstValueFrom(this.apiService.getValidateCBU(cbu,cuit,encTelNro))
-      console.log("este es el resutl ", result)
       if (result.length > 1) {
       
        this.codigo.set( result[1].codigo)
