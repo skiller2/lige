@@ -204,6 +204,12 @@
   "app.edit.client": "Editar Cliente ",
   "app.edit.objetivo":"Editar Objetivo ",
   "app.responsable":"Responsable",
+  "app.consulta.cuit":"Consultar CUIT",
+  "app.validar.recibo":"Validar Recibo",
+  "app.validar.cbu":"Validar CBU",
+  "app.terminosycondiciones":"Aceptar Términos y Condiciones de Uso",
+  "app.validacionIndentidadText":"Validación de Identidad",
+  "app.btn.copiar":"Copiar",
   "To install this WEB app on your device, tap the \"Menu\" button":"Para instalar esta aplicación web en su dispositivo, presione el botón \"Menu\"",
   "and then \"Add to home screen\" button":"y luego el botón \"Agregar a la pantalla de inicio\""
   
