@@ -34,6 +34,14 @@ personalRouter.post('/setsitrevista/:id', [authMiddleware.verifyToken, authMiddl
   personalController.setSituacionRevista(req, res, next)
 });
 
+personalRouter.post('/categorias', authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getCategoriasByTipoAsociado(req, res, next)
+});
+
+personalRouter.post('/setcategoria/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+  personalController.setCategoria(req, res, next)
+});
+
 personalRouter.get(`${base}/domicilio/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   personalController.getDomicilioByPersonalId(req, res, next);
 });
@@ -48,6 +56,10 @@ personalRouter.get(`/nacionalidad/options`, authMiddleware.verifyToken, (req, re
 
 personalRouter.get('/sitrevista/options', authMiddleware.verifyToken, (req, res, next) => {
   personalController.getSituacionRevista(req, res, next)
+});
+
+personalRouter.get('/tipo-asociado/options', authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getTipoAsociado(req, res, next)
 });
 
 personalRouter.get('/sitrevista/no-options', authMiddleware.verifyToken, (req, res, next) => {
@@ -98,6 +110,14 @@ personalRouter.get(
   authMiddleware.verifyToken,
   (req, res, next) => {
     personalController.getPersonalResponsables(req, res, next);
+  }
+);
+
+personalRouter.get(
+  `${base}/historial/categoria/:personalId`,
+  authMiddleware.verifyToken,
+  (req, res, next) => {
+    personalController.getHistoryPersonalCategoria(req, res, next);
   }
 );
 

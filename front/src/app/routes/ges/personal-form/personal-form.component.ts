@@ -119,7 +119,7 @@ export class PersonalFormComponent {
     switchMap(() =>{
         return this.searchService.getBarriosByLocalidad(this.paisId(), this.provinciaId(), this.localidadId())
     })
-);
+  );
 
   async ngOnInit(){
     let now : Date = new Date()

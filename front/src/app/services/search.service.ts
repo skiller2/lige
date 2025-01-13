@@ -1174,4 +1174,38 @@ export class SearchService {
       );
   }
 
+  getHistoriaCategoriaPersona(id: number): Observable<any> {
+    if (!id) return of([]);
+    return this.http.get<ResponseJSON<any>>(`api/personal/historial/categoria/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getCategoriasByTipoAsociado(tipoAsociadoId:number): Observable<any> {
+    if (!tipoAsociadoId) {
+      return of([]);
+    }
+    return this.http.post<ResponseJSON<any>>(`api/personal/categorias`, {tipoAsociadoId}).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getTipoAsociadoOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/personal/tipo-asociado/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }

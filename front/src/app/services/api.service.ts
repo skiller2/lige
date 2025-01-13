@@ -1194,6 +1194,12 @@ export class ApiService {
     );
   }
 
+  setCategoria(personalId:number, values:any){
+    return this.http.post<ResponseJSON<any>>(`/api/personal/setcategoria/${personalId}`, values).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {
