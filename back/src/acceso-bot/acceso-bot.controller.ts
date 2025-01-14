@@ -401,8 +401,8 @@ export class AccesoBotController extends BaseController {
 
                 if (existCbu && result[0].PersonalBancoCBU.slice(-6) == cbu.toString()) {
 
-                    let directory = process.env.URL_MESS_API || "tmp";
-                    let url = `${directory}/api/personal/ident?cuit=${cuit}&encTelNro=${encTelNro}`;
+                    let base_url = process.env.URL_MESS_API || "http://localhost:3010"
+                    let url = `${base_url}/api/personal/ident?cuit=${cuit}&encTelNro=${encTelNro}`;
 
 
 
