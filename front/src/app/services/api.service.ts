@@ -1017,6 +1017,16 @@ export class ApiService {
 
   }
 
+  deleteArchivosImagen(deleteId: number, tableSearch:string) {
+    const parameter:any[] = [deleteId, tableSearch]
+    this.notification.success('Respuesta', `Inicio Borrado `);
+
+    return this.http.delete<ResponseJSON<any>>('/api/file-upload/deleteImage', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
+
   setPersonalAndGroupDelete(userId: any, ObjetivoId: any) {
     let parameter = { userId, ObjetivoId }
     return this.http.post<ResponseJSON<any>>('/api/personalobjetivo/setPersonalAndGroupDelete', parameter).pipe(

@@ -298,4 +298,78 @@ export class FileUploadController extends BaseController {
     }
   }
 
+  async deleteImage(req, res, next) {
+    const deleteId = Number(req.query[0])
+    const tableForSearch = req.query[1];
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+      const document = await queryRunner.query(`
+        SELECT doc.${tableForSearch}Id AS id, 
+        CONCAT(TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableForSearch}BlobNombreArchivo)) path, 
+        doc.${tableForSearch}BlobNombreArchivo AS name,
+        doc.PersonalId, doc.DocumentoImagenParametroId
+        FROM ${tableForSearch} doc
+        JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+        WHERE doc.${tableForSearch}Id = @0`, [deleteId])
+      const finalurl = `${document[0]["path"]}`
+      const PersonalId = document[0]["PersonalId"]
+      const DocumentoImagenParametroId = document[0]["DocumentoImagenParametroId"]
+
+      if (document.length > 0) {
+        if (!existsSync(finalurl)) {
+          console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
+        } else {
+          await unlink(finalurl);
+        }
+
+        await queryRunner.query(`
+          DELETE FROM ${tableForSearch}
+          WHERE ${tableForSearch}Id = @0 AND PersonalId = @1
+          `, [deleteId, PersonalId]
+        )
+
+        switch (tableForSearch) {
+          case 'DocumentoImagenFoto':
+            await queryRunner.query(`
+              UPDATE Personal SET
+              PersonalFotoId = NULL
+              WHERE PersonalId = @0`, [PersonalId])
+            break;
+          case 'DocumentoImagenDocumento':
+            if (DocumentoImagenParametroId == 12) {
+              await queryRunner.query(`
+                UPDATE PersonalDocumento SET
+                PersonalDocumentoFrenteId = NULL
+                WHERE PersonalId = @0`, [PersonalId])
+            }
+            if (DocumentoImagenParametroId == 13) {
+              await queryRunner.query(`
+                UPDATE PersonalDocumento SET
+                PersonalDocumentoDorsoId = NULL
+                WHERE PersonalId = @0`, [PersonalId])
+            }
+            break;
+          case 'DocumentoImagenEstudio':
+            await queryRunner.query(`
+              UPDATE PersonalEstudio SET
+              PersonalEstudioPagina1Id = NULL
+              WHERE PersonalId = @0 AND PersonalEstudioPagina1Id = @1`, [PersonalId, deleteId])
+            break;
+          default:
+            throw new ClientException(`Falla en busqueda de Archivo`)
+            break;
+        }
+        await queryRunner.commitTransaction();
+      }
+      
+      this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
+
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    }
+  }
+
 }

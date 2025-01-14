@@ -156,8 +156,11 @@ export class FileUploadComponent implements ControlValueAccessor {
         this.notification.success('Respuesta', `Archivo borrado con exito `)
 
       } else {
-
-        await firstValueFrom(this.apiService.deleteArchivosLicencias(this.ArchivoIdForDelete))
+        if (this.tableForSearch() == 'docgeneral') {
+          await firstValueFrom(this.apiService.deleteArchivosLicencias(this.ArchivoIdForDelete))
+        }else{
+          await firstValueFrom(this.apiService.deleteArchivosImagen(this.ArchivoIdForDelete, this.tableForSearch()))
+        }
         this.formChange$.next('');
         let cant = this.cantFilesAnteriores()
         this.cantFilesAnteriores.set(--cant)

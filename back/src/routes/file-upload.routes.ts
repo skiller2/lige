@@ -75,7 +75,7 @@ const storage = multer.diskStorage({
 
 export const FileUploadRouter = Router();
 
-FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], async (req, res, next) => {
+FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias','Administrativo'])], async (req, res, next) => {
   await fileUploadController.getByDownloadFile(req, res, next);
 });
 
@@ -117,6 +117,8 @@ FileUploadRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) =>
    });
 });
 
-
+FileUploadRouter.delete("/deleteImage", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], async (req, res, next) => {
+  await fileUploadController.deleteImage(req, res, next);
+});
 
 
