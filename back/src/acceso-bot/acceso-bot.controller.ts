@@ -237,7 +237,6 @@ export class AccesoBotController extends BaseController {
             const ip = this.getRemoteAddress(req)
 
             const fecha = new Date()
-            fecha.setHours(0, 0, 0, 0)
 
             let {
                 PersonalId,
@@ -291,7 +290,6 @@ export class AccesoBotController extends BaseController {
             const ip = this.getRemoteAddress(req)
 
             const fecha = new Date()
-            fecha.setHours(0, 0, 0, 0)
             //throw new ClientException(`test.`)
             await queryRunner.startTransaction()
 
@@ -378,13 +376,12 @@ export class AccesoBotController extends BaseController {
     async validateCbu(req: any, res: Response, next: NextFunction) {
 
         const cbu = req.params.cbu
-        const cuit = Number(req.params.cuit)
+        const cuit = req.params.cuit
         const encTelNro = req.params.encTelNro
 
         const usuario = res.locals.userName
         const ip = this.getRemoteAddress(req)
         const fecha = new Date()
-        fecha.setHours(0, 0, 0, 0)
         let newValue
         const queryRunner = dataSource.createQueryRunner()
 
@@ -419,7 +416,7 @@ export class AccesoBotController extends BaseController {
 
                     newValue = responseCodigo?.data.codigo
                 } else {
-                    throw new ClientException(`EL CBU ingresado no existe`);
+                    throw new ClientException(`Los números ingresados no son válidos`);
                 }
             } else {
                 throw new ClientException(`Debe ingresar 6 digitos finales del CBU`);
