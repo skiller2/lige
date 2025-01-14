@@ -353,9 +353,9 @@ export class AccesoBotController extends BaseController {
 
         try {
 
-            let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit]) 
+            let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
             const personalId = personaIdQuery[0].PersonalId
-            const result = await queryRunner.query(`  SELECT * FROM lige.dbo.docgeneral WHERE persona_id = @0 AND idrecibo = @1`, [personalId,recibo])
+            const result = await queryRunner.query(`  SELECT * FROM lige.dbo.docgeneral WHERE persona_id = @0 AND idrecibo = @1`, [personalId, recibo])
             let existRecibo = result?.length >= 1 ? true : false
             this.jsonRes(existRecibo, res)
 
@@ -369,55 +369,59 @@ export class AccesoBotController extends BaseController {
 
         const cbu = Number(req.params.cbu)
         const cuit = Number(req.params.cuit)
-        const numeroTelefono = Number(req.params.encTelNro) 
+        const numeroTelefono = Number(req.params.encTelNro)
 
         const usuario = res.locals.userName
         const ip = this.getRemoteAddress(req)
         const fecha = new Date()
         fecha.setHours(0, 0, 0, 0)
+        let newarray = []
+        const queryRunner = dataSource.createQueryRunner()
 
-        if (cbu.toString().length !== 6 ) {
-            throw new ClientException(`Ingrese solo los ultimos 6 digitos del CBU`)
-        }
-    
-        const queryRunner = dataSource.createQueryRunner();
 
         try {
-            // console.log("cbu ", cbu)
-            // console.log("cuit ", cuit)
-            // console.log("numeroTelefono ", numeroTelefono)
+            if (cbu.toString().length == 6) {
 
-            let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit]) 
-            const personalId = personaIdQuery[0].PersonalId
+                // console.log("cbu ", cbu)
+                // console.log("cuit ", cuit)
+                // console.log("numeroTelefono ", numeroTelefono)
 
-            const result = await queryRunner.query(`SELECT TOP 1 cue.PersonalId, ban.BancoDescripcion, cue.PersonalBancoCBU, cue.PersonalBancoDesde, cue.PersonalBancoHasta FROM PersonalBanco cue JOIN Banco ban ON ban.BancoId = cue.PersonalBancoBancoId WHERE cue.PersonalId = @0 ORDER BY cue.PersonalBancoHasta DESC;`, [personalId])
-            let newarray = []
-            let existCbu = result?.length >= 1 ? true : false
-
-            if( existCbu && result[0].PersonalBancoCBU.slice(-6) == cbu.toString()){
-                
-                let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit]) 
+                let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
                 const personalId = personaIdQuery[0].PersonalId
 
-                let existreg = await queryRunner.query(`SELECT * FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0`, [personalId]) 
+                const result = await queryRunner.query(`SELECT TOP 1 cue.PersonalId, ban.BancoDescripcion, cue.PersonalBancoCBU, cue.PersonalBancoDesde, cue.PersonalBancoHasta FROM PersonalBanco cue JOIN Banco ban ON ban.BancoId = cue.PersonalBancoBancoId WHERE cue.PersonalId = @0 ORDER BY cue.PersonalBancoHasta DESC;`, [personalId])
+                
+                let existCbu = result?.length >= 1 ? true : false
 
-                let  numeroAleatorio = await this.generarNumeroAleatorio()
-              
-                if (existreg.length > 0) {
-                    //update
-                    await this.AccesoBotEditQuery(queryRunner, numeroTelefono, numeroAleatorio.toString(), personalId, null, usuario, ip, fecha)
+                if (existCbu && result[0].PersonalBancoCBU.slice(-6) == cbu.toString()) {
+
+                    let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
+                    const personalId = personaIdQuery[0].PersonalId
+
+                    let existreg = await queryRunner.query(`SELECT * FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0`, [personalId])
+
+                    let numeroAleatorio = await this.generarNumeroAleatorio()
+
+                    if (existreg.length > 0) {
+                        //update
+                        await this.AccesoBotEditQuery(queryRunner, numeroTelefono, numeroAleatorio.toString(), personalId, null, usuario, ip, fecha)
+                    } else {
+                        //insert
+                        await this.AccesoBotNewQuery(queryRunner, personalId, numeroTelefono, numeroAleatorio, usuario, ip, fecha)
+                    }
+                    newarray.push({ "existCbu": existCbu }, { "codigo": numeroAleatorio })
                 } else {
-                    //insert
-                    await this.AccesoBotNewQuery(queryRunner, personalId, numeroTelefono, numeroAleatorio, usuario, ip, fecha)
+                    newarray.push({ "existCbu": existCbu })
                 }
-                newarray.push({"existCbu": existCbu},{"codigo":numeroAleatorio})
-            }else{
-                newarray.push({"existCbu": existCbu})
+            } else {
+                newarray.push({ "existCbu": false })
             }
+
 
             this.jsonRes(newarray, res);
             //this.jsonRes(existRecibo, res);
         } catch (error) {
+            await this.rollbackTransaction(queryRunner)
             return next(error)
         }
     }
@@ -466,7 +470,7 @@ export class AccesoBotController extends BaseController {
     }
 
 
-    async AccesoBotNewQuery(queryRunner: any, PersonalId: any, telefono:any, codigo:any, usuario: any, ip: any, fecha: any) {
+    async AccesoBotNewQuery(queryRunner: any, PersonalId: any, telefono: any, codigo: any, usuario: any, ip: any, fecha: any) {
 
         await queryRunner.query(`INSERT INTO lige.dbo.regtelefonopersonal 
             (

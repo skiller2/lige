@@ -100,9 +100,12 @@ export class IdentComponent {
             return panel
           })
         );
+     
       } else {
         this.message.create("error", `El CUIT seleccionado no se encuentra registrado`);
       }
+      this.formCli.markAsPristine()
+      this.formCli.markAsUntouched()
     } catch (e) {
 
     }
@@ -180,6 +183,8 @@ export class IdentComponent {
       } else {
         this.message.create("error", `El Recibo seleccionado no Existe `);
       }
+      this.formCli.markAsPristine()
+      this.formCli.markAsUntouched()
     } catch (e) {
 
     }
@@ -203,6 +208,8 @@ export class IdentComponent {
 
       } else {
         this.message.create("error", `El CBU seleccionado no Existe `);
+        this.formCli.markAsPristine()
+      this.formCli.markAsUntouched()
       }
     } catch (e) {
 
