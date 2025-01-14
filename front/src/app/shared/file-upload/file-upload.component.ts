@@ -92,8 +92,8 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   async LoadArchivoPreview(documentId: any, filename: any) {
-    const res = await firstValueFrom(this.http.post('api/file-upload/downloadFile',
-      { 'documentId': documentId, filename: filename, tableForSearch: this.tableForSearch() }, { responseType: 'blob' }
+    const res = await firstValueFrom(this.http.get(`api/file-upload/downloadFile/${documentId}/${this.tableForSearch()}/${filename}`,
+      { responseType: 'blob' }
     ))
     return res
   }
@@ -124,7 +124,7 @@ export class FileUploadComponent implements ControlValueAccessor {
         this.files.set([...this.files(), Response.data[0]])
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response)
-        console.log("files ", this.files())
+        // console.log("files ", this.files())
         // this.valueExtendedEmitter
         this.propagateChange(this.files())
 

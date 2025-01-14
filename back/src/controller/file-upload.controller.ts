@@ -14,9 +14,9 @@ const unlink = promisify(fs.unlink);
 export class FileUploadController extends BaseController {
 
   async getByDownloadFile(req: any, res: Response, next: NextFunction) {
-    const documentId = Number(req.body.documentId);
-    const filename = String(req.body.filename);
-    const tableForSearch = String(req.body.tableForSearch);
+    const documentId = Number(req.params.id);
+    const filename = req.params.filename;
+    const tableForSearch = req.params.tableForSearch;
     let finalurl = '', docname=''
     try {
       if (documentId != 0) {
@@ -56,7 +56,7 @@ export class FileUploadController extends BaseController {
       if (!existsSync(finalurl))
         throw new ClientException(`Archivo ${docname} no localizado`, { path: finalurl })
 
-      res.download(finalurl, docname)
+      res.download(finalurl, docname, (msg) => { })
 
     } catch (error) {
       return next(error)
@@ -96,7 +96,7 @@ export class FileUploadController extends BaseController {
             SELECT 
                 doc.${tableSearch}Id AS id, 
                 CONCAT('./', TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableSearch}BlobNombreArchivo)) path, 
-                doc.${tableSearch}BlobNombreArchivo AS nombre  
+                doc.${tableSearch}BlobNombreArchivo AS nombre , 'image' AS mimetype
                 -- doc.aud_fecha_ins AS fecha 
             FROM ${tableSearch} doc
             JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
@@ -107,13 +107,14 @@ export class FileUploadController extends BaseController {
 
           break;
 
-        case 'lige':
+        case 'docgeneral':
           ArchivosAnteriores = await queryRunner.query(`
             SELECT 
                 doc.doc_id AS id, 
                 doc.path, 
                 doc.nombre_archivo AS nombre,  
-                doc.aud_fecha_ins AS fecha 
+                doc.aud_fecha_ins AS fecha,
+                'pdf' AS mimetype
             FROM lige.dbo.docgeneral doc
             JOIN lige.dbo.doctipo tipo ON doc.doctipo_id = tipo.doctipo_id
             WHERE 

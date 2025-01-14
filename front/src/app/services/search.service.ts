@@ -377,7 +377,10 @@ export class SearchService {
       return new BehaviorSubject<PersonaObj>(dummy).asObservable();
     else
       return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/${id}`).pipe(
-        map(res => res.data),
+        map(res => {
+          console.log('res.data', res.data);
+          
+          return res.data}),
         catchError((err, caught) => {
           console.log('Something went wrong!');
           return of(dummy);
