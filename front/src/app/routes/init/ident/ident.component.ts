@@ -89,7 +89,7 @@ export class IdentComponent {
     let cuit = this.formCli.value?.cuit
     try {
       let result = await firstValueFrom(this.apiService.getValidateCuit(cuit))
-      if (result) {
+      
         this.panels.update((currentPanels) =>
           currentPanels.map((panel) => {
             if (panel.id === 1) {
@@ -101,13 +101,12 @@ export class IdentComponent {
           })
         );
      
-      } else {
-        this.message.create("error", `El CUIT seleccionado no se encuentra registrado`);
-      }
+      
       this.formCli.markAsPristine()
       this.formCli.markAsUntouched()
     } catch (e) {
-
+      this.formCli.markAsPristine()
+      this.formCli.markAsUntouched()
     }
 
 
@@ -141,10 +140,8 @@ export class IdentComponent {
 
   async aceptTerminos() {
 
-    let cuit = this.formCli.value?.cuit
     try {
-      let result = await firstValueFrom(this.apiService.getValidateCuit(cuit))
-      if (result) {
+    
         this.panels.update((currentPanels) =>
           currentPanels.map((panel) => {
             if (panel.id === 2) {
@@ -155,7 +152,7 @@ export class IdentComponent {
             return panel
           })
         );
-      } 
+      
     } catch (e) {
 
     }
@@ -169,7 +166,7 @@ export class IdentComponent {
     try {
       let result = await firstValueFrom(this.apiService.getValidateRecibo(recibo,cuit))
       console.log("result recibo", result)
-      if (result) {
+      
         this.panels.update((currentPanels) =>
           currentPanels.map((panel) => {
             if (panel.id === 3) {
@@ -180,13 +177,12 @@ export class IdentComponent {
             return panel
           })
         );
-      } else {
-        this.message.create("error", `El Recibo seleccionado no Existe `);
-      }
+      
       this.formCli.markAsPristine()
       this.formCli.markAsUntouched()
     } catch (e) {
-
+      this.formCli.markAsPristine()
+      this.formCli.markAsUntouched()
     }
 
 
@@ -202,17 +198,13 @@ export class IdentComponent {
 
       let encTelNro = this.route.snapshot.paramMap.get('encTelNro')
       let result = await firstValueFrom(this.apiService.getValidateCBU(cbu,cuit,encTelNro))
-      if (result.length > 1) {
+      console.log("result ", result)
+   
+      this.codigo.set( result)
       
-       this.codigo.set( result[1].codigo)
-
-      } else {
-        this.message.create("error", `El CBU seleccionado no Existe `);
-        this.formCli.markAsPristine()
-      this.formCli.markAsUntouched()
-      }
     } catch (e) {
-
+      this.formCli.markAsPristine()
+      this.formCli.markAsUntouched()
     }
 
 

@@ -329,12 +329,15 @@ export class AccesoBotController extends BaseController {
     async validateCuit(req: any, res: Response, next: NextFunction) {
 
         const cuit = Number(req.params.cuit)
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = dataSource.createQueryRunner()
+        let existCuit
 
         try {
 
             const result = await queryRunner.query(`SELECT * FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
-            let existCuit = result?.length >= 1 ? true : false
+            if(result?.length < 1)
+                throw new ClientException(`El CUIT seleccionado no se encuentra registrado`)
+
             this.jsonRes(existCuit, res)
 
         } catch (error) {
@@ -348,18 +351,25 @@ export class AccesoBotController extends BaseController {
         const cuit = Number(req.params.cuit)
         const usuario = res.locals.userName
         const ip = this.getRemoteAddress(req)
-
+        let existRecibo
         const queryRunner = dataSource.createQueryRunner();
 
         try {
 
             let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
             const personalId = personaIdQuery[0].PersonalId
-            const result = await queryRunner.query(`  SELECT * FROM lige.dbo.docgeneral WHERE persona_id = @0 AND idrecibo = @1`, [personalId, recibo])
-            let existRecibo = result?.length >= 1 ? true : false
-            this.jsonRes(existRecibo, res)
 
-            //this.jsonRes(existRecibo, res);
+            const validateExistRecibo =  await queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE persona_id = @0`, [personalId])
+
+            if(validateExistRecibo?.length >= 1 && recibo == 0){
+                throw new ClientException(`El codigo de recibo no existe`);
+            }else{
+                const result = await queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE persona_id = @0 AND idrecibo = @1`, [personalId, recibo])
+                if(result?.length < 1)
+                    throw new ClientException(`El Codigo seleccionado no se encuentra registradoo`)
+            }
+           
+            this.jsonRes(existRecibo, res)
         } catch (error) {
             return next(error)
         }
@@ -369,13 +379,13 @@ export class AccesoBotController extends BaseController {
 
         const cbu = Number(req.params.cbu)
         const cuit = Number(req.params.cuit)
-        const numeroTelefono = Number(req.params.encTelNro)
+        const encTelNro = req.params.encTelNro
 
         const usuario = res.locals.userName
         const ip = this.getRemoteAddress(req)
         const fecha = new Date()
         fecha.setHours(0, 0, 0, 0)
-        let newarray = []
+        let newValue
         const queryRunner = dataSource.createQueryRunner()
 
 
@@ -395,30 +405,29 @@ export class AccesoBotController extends BaseController {
 
                 if (existCbu && result[0].PersonalBancoCBU.slice(-6) == cbu.toString()) {
 
-                    let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
-                    const personalId = personaIdQuery[0].PersonalId
+                    let directory = process.env.URL_MESS_API || "tmp";
+                    let url = `${directory}/api/personal/ident?cuit=${cuit}&encTelNro=${encTelNro}`;
 
-                    let existreg = await queryRunner.query(`SELECT * FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0`, [personalId])
 
-                    let numeroAleatorio = await this.generarNumeroAleatorio()
 
-                    if (existreg.length > 0) {
-                        //update
-                        await this.AccesoBotEditQuery(queryRunner, numeroTelefono, numeroAleatorio.toString(), personalId, null, usuario, ip, fecha)
-                    } else {
-                        //insert
-                        await this.AccesoBotNewQuery(queryRunner, personalId, numeroTelefono, numeroAleatorio, usuario, ip, fecha)
-                    }
-                    newarray.push({ "existCbu": existCbu }, { "codigo": numeroAleatorio })
+                    const headers = {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json', 
+                      };
+
+                    const response = await fetch(url, { method: 'GET', headers: headers })
+                    const responseCodigo: any = await response.json()
+
+                    newValue = responseCodigo?.data.codigo
                 } else {
-                    newarray.push({ "existCbu": existCbu })
+                    throw new ClientException(`EL CBU ingresado no existe`);
                 }
             } else {
-                newarray.push({ "existCbu": false })
+                throw new ClientException(`Debe ingresar 6 digitos finales del CBU`);
             }
 
 
-            this.jsonRes(newarray, res);
+            this.jsonRes(newValue, res);
             //this.jsonRes(existRecibo, res);
         } catch (error) {
             await this.rollbackTransaction(queryRunner)

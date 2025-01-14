@@ -154,7 +154,7 @@ export class PersonalController extends BaseController {
 
   async getIdentCode(req: any, res: Response, next: NextFunction) {
     const CUIT = req.query.cuit
-    const des_doc_ident = req.query.identData
+    const des_doc_ident = req.query.identData || ""
     //    const des_doc_ident = '00417052787@OROFINO@ALFREDO GONZALO@M@7595775@A@24/05/1973@22/01/2016@239'
     const encTelNro = req.query.encTelNro
 
