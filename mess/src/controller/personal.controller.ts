@@ -153,6 +153,7 @@ export class PersonalController extends BaseController {
   }
 
   async getIdentCode(req: any, res: Response, next: NextFunction) {
+    const CUIT = req.query.cuit
     const des_doc_ident = req.query.identData
     //    const des_doc_ident = '00417052787@OROFINO@ALFREDO GONZALO@M@7595775@A@24/05/1973@22/01/2016@239'
     const encTelNro = req.query.encTelNro
@@ -173,7 +174,9 @@ export class PersonalController extends BaseController {
           dni = des_doc_ident_parts[1].trim()
         else
           dni = des_doc_ident_parts[4].trim()
-      } else
+      } else if (CUIT) {
+        
+       } else
         throw new ClientException('No se pudo obtener el número de dni', { des_doc_ident })
   
 
@@ -191,12 +194,17 @@ export class PersonalController extends BaseController {
 
       const telValid = /^\d+$/.test(telNro);
       const dniValid = /^\d+$/.test(dni);
-      if (!telValid || telNro.length < 8)
-        throw new ClientException('No se puede verificar el número de teléfono', { telNro })
+      let bus = ''
+      if (CUIT) { 
+        bus = CUIT 
+      } else {
+        if (!telValid || telNro.length < 8)
+          throw new ClientException('No se puede verificar el número de teléfono', { telNro })
 
-      if (!dniValid || dni.length < 6)
-        throw new ClientException('No se puede verificar el número de dni', { dni })
-
+        if (!dniValid || dni.length < 6)
+          throw new ClientException('No se puede verificar el número de dni', { dni })
+        bus = "%${dni}_" 
+      }
       await queryRunner.startTransaction()
 
       const result = await queryRunner.query(
@@ -206,7 +214,7 @@ export class PersonalController extends BaseController {
         FROM Personal per
         JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
         WHERE cuit2.PersonalCUITCUILCUIT LIKE @0`,
-        [`%${dni}_`]
+        [bus]
       )
       if (result.length == 0)
         throw new ClientException('No se pudo verificar el documento, contáctese con personal')
