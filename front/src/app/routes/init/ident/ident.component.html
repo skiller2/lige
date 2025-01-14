@@ -17,7 +17,7 @@
       <br>
       <nz-form-item style="justify-content: center;">
 
-        <button nzType="primary" nz-button (click)="consultCuit()" [disabled]="formCli.value.cuit == ''">
+        <button nzType="primary" nz-button (click)="consultCuit()" [disabled]="formCli.pristine">
           {{ 'app.validar.cuit' | i18n }}
         </button>
 
@@ -46,7 +46,7 @@
       <br>
       <nz-form-item style="justify-content: center;">
 
-        <button nzType="primary" nz-button (click)="consulrecibo()" [disabled]="formCli.value.recibo == ''">
+        <button nzType="primary" nz-button (click)="consulrecibo()" [disabled]="formCli.pristine">
           {{ 'app.validar.recibo' | i18n }}
         </button>
 
@@ -72,7 +72,7 @@
         <br>
         <nz-form-item style="justify-content: center;">
   
-          <button nzType="primary" nz-button (click)="consulCBU()" [disabled]="formCli.value.cbu == ''">
+          <button nzType="primary" nz-button (click)="consulCBU()" [disabled]="formCli.pristine">
             {{ 'app.validar.cbu' | i18n }}
           </button>
 
