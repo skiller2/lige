@@ -3172,7 +3172,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       `${ha1}:${nonce}:${nc.toString().padStart(8, "0")}:${cnonce}:${qop}:${ha2}`
     ).toString();
 
-    return `Digest username="${username}", realm="${realm}", nonce="${nonce}", uri="${uri}", qop=${qop}, nc=${nc.toString().padStart(8, "0")}, cnonce="${cnonce}", response="${response}"`;
+    return `Digest username="${username}", realm="${realm}", nonce="${nonce}", uri="${uri}", qop=${qop}, nc=${nc.toString(16).padStart(8, "0")}, cnonce="${cnonce}", response="${response}"`;
   }
 
   async getAccessControlAsistance(anio: number, mes: number) {
@@ -3182,7 +3182,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
     // Make an initial request to get the realm and nonce
-    await fetch(url, { method: 'POST', body: JSON.stringify({ validateStatus: () => true }), })
     const initialResponse = await fetch(url, { method: 'POST', body: JSON.stringify({ validateStatus: () => true }), })
 
     const authHeader = initialResponse.headers.get('www-authenticate')
@@ -3206,7 +3205,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
     // Generate client nonce
     const cnonce = CryptoJS.lib.WordArray.random(16).toString();
-    const nc = 2;
+    const nc = 1;
 
     // Create the Digest auth header
     const authOptions: DigestAuthOptions = {
@@ -3231,9 +3230,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       "statisticalTime": "month",
       "month": `${anio}-${mes}` // Año-mes del periodo de datos obtenidos
     }
+    authOptions.cnonce = CryptoJS.lib.WordArray.random(16).toString();
 
     do {
-      authOptions.cnonce = CryptoJS.lib.WordArray.random(16).toString();
+      authOptions.nc++
       const digestAuthHeader = this.generateDigestAuthHeader(authOptions);
       const headers = { 'Content-Type': 'application/json', 'Authorization': digestAuthHeader };
 
