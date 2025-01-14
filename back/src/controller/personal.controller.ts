@@ -581,7 +581,14 @@ export class PersonalController extends BaseController {
     return PersonalId
   }
 
-  private async addPersonalCUITCUILQuery(queryRunner: any, personaId: any, CUIT: number, now: Date) {
+  private async addPersonalCUITQuery(queryRunner: any, personaId: any, CUIT: number, now: Date) {
+    const PersonalCUITCUIL = await queryRunner.query(`
+      SELECT PersonalCUITCUILUltNro
+      FROM Personal
+      WHERE PersonalId IN (@0)`,
+      [personaId]
+    )
+    const PersonalCUITCUILId = PersonalCUITCUIL[0].PersonalCUITCUILUltNro + 1
     await queryRunner.query(`
       INSERT INTO PersonalCUITCUIL (
       PersonalId,
@@ -590,8 +597,12 @@ export class PersonalController extends BaseController {
       PersonalCUITCUILCUIT,
       PersonalCUITCUILDesde
       )
-      VALUES (@0, @1, @2, @3, @4)`,
-      [personaId, 1, 'T', CUIT, now]
+      VALUES (@0, @1, @2, @3, @4)
+
+      UPDATE Personal SET 
+      PersonalCUITCUILUltNro = @1
+      WHERE PersonalId IN (@0)`,
+      [personaId, PersonalCUITCUILId, 'T', CUIT, now]
     )
   }
 
@@ -605,6 +616,26 @@ export class PersonalController extends BaseController {
       )
       VALUES (@0,@1,@2,@3)`,
       [personaId, 1, email, 0]
+    )
+  }
+
+  private async addPersonalDocumentoQuery(queryRunner: any, personaId: any, DNI: number) {
+    const PersonalDocumento = await queryRunner.query(`
+      SELECT PersonalDocumentoUltNro
+      FROM Personal
+      WHERE PersonalId IN (@0)`,
+      [personaId]
+    )
+    const PersonalDocumentoId = PersonalDocumento[0].PersonalDocumentoUltNro + 1
+    await queryRunner.query(`
+      INSERT INTO PersonalCUITCUIL (
+      PersonalDocumentoId,
+      PersonalId,
+      TipoDocumentoId,
+      PersonalDocumentoNro
+      )
+      VALUES (@0, @1, @2, @3, @4)`,
+      [PersonalDocumentoId, personaId, 1, DNI]
     )
   }
 
@@ -667,7 +698,9 @@ export class PersonalController extends BaseController {
         throw new ClientException('No se pudo generar un identificador.')
       }
 
-      await this.addPersonalCUITCUILQuery(queryRunner, PersonalId, CUIT, now)
+      await this.addPersonalCUITQuery(queryRunner, PersonalId, CUIT, now)
+      const DNI = parseInt(CUIT.toString().slice(2, -1))
+      await this.addPersonalDocumentoQuery(queryRunner, PersonalId, DNI)
 
       if (req.body.Calle || req.body.Nro || req.body.Piso || req.body.Dpto || req.body.CodigoPostal || req.body.PaisId)
         await this.addPersonalDomicilio(queryRunner, req.body, PersonalId)
@@ -976,7 +1009,7 @@ export class PersonalController extends BaseController {
     )
   }
 
-  async updatePersona(queryRunner: any, PersonalId: number, infoPersonal: any) {
+  private async updatePersonalQuerys(queryRunner: any, PersonalId: number, infoPersonal: any) {
     let personalRes = await queryRunner.query(`
       SELECT PersonalNroLegajo NroLegajo, TRIM(PersonalApellido) Apellido, TRIM(PersonalNombre) Nombre,
       PersonalFechaIngreso FechaIngreso, PersonalFechaNacimiento FechaNacimiento,
@@ -1195,6 +1228,52 @@ export class PersonalController extends BaseController {
   //   await this.setSituacionRevistaQuerys(queryRunner, PersonalId, infoSitRevista)
   // }
 
+  async updatePersonalCUITQuery(queryRunner: any, personaId: any, CUIT: number, now:Date) {
+    const PersonalCUITCUIL = await queryRunner.query(`
+      SELECT per.PersonalCUITCUILUltNro, cuit.PersonalCUITCUILDesde
+      FROM Personal per
+      LEFT JOIN PersonalCUITCUIL cuit ON PersonalCUITCUILId = per.PersonalCUITCUILUltNro
+      WHERE per.PersonalId IN (@0)`,
+      [personaId]
+    )
+    const PersonalCUITCUILUltNro = PersonalCUITCUIL[0].PersonalCUITCUILUltNro
+    const PersonalCUITCUILDesde = new Date(PersonalCUITCUIL[0].PersonalCUITCUILDesde)
+    if (PersonalCUITCUILDesde.getTime() < now.getTime()) {
+      const yesterday: Date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+      yesterday.setHours(0, 0, 0, 0)
+      await queryRunner.query(`
+        UPDATE PersonalCUITCUIL SET
+        PersonalCUITCUILHasta = @2
+        WHERE PersonalId = @0 AND PersonalCUITCUILId = @1`,
+        [personaId, PersonalCUITCUILUltNro, yesterday]
+      )
+      await this.addPersonalCUITQuery(queryRunner, personaId, CUIT, now)
+    }else if (PersonalCUITCUILDesde.getTime() == now.getTime()) {
+      await queryRunner.query(`
+        UPDATE PersonalCUITCUIL SET
+        PersonalCUITCUILCUIT = @2
+        WHERE PersonalId = @0 AND PersonalCUITCUILId = @1`,
+        [personaId, PersonalCUITCUILUltNro, CUIT]
+      )
+    }
+    
+  }
+
+  private async updatePersonalDocumentoQuery(queryRunner: any, personaId: any, DNI: number) {
+    const PersonalDocumento = await queryRunner.query(`
+      SELECT PersonalDocumentoUltNro
+      FROM Personal
+      WHERE PersonalId IN (@0)`,
+      [personaId]
+    )
+    const PersonalDocumentoId = PersonalDocumento[0].PersonalDocumentoUltNro
+    await queryRunner.query(`
+      UPDATE PersonalDocumento SET
+      PersonalDocumentoNro = @2
+      WHERE PersonalDocumentoId IN (@0) AND PersonalId IN (@1)
+      `, [PersonalDocumentoId, personaId, DNI]
+    )
+  }
 
   async updatePersonal(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
@@ -1215,7 +1294,16 @@ export class PersonalController extends BaseController {
       if (valForm instanceof ClientException)
         throw valForm
 
-      await this.updatePersona(queryRunner, PersonalId, req.body)
+      await this.updatePersonalQuerys(queryRunner, PersonalId, req.body)
+
+      const PersonalCUITCUIL = await queryRunner.query(`
+        SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`, [PersonalId]
+      )
+      if (PersonalCUITCUIL[0].cuit != CUIT) {
+        await this.updatePersonalCUITQuery(queryRunner, PersonalId, CUIT, now)
+        const DNI = parseInt(CUIT.toString().slice(2, -1))
+        await this.updatePersonalDocumentoQuery(queryRunner, PersonalId, DNI)
+      }
       await this.updatePersonalDomicilio(queryRunner, PersonalId, req.body)
       await this.updatePersonalEmail(queryRunner, PersonalId, req.body)
       // await this.updatePersonalSitRevista(queryRunner, PersonalId, req.body)
@@ -1231,18 +1319,6 @@ export class PersonalController extends BaseController {
         if (estudio.EstudioTitulo) await this.updatePersonalEstudio(queryRunner, PersonalId, estudio)
       }
 
-      let PersonalCUITCUIL = await queryRunner.query(`
-        SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0`, [PersonalId]
-      )
-      if (PersonalCUITCUIL[0].cuit != CUIT) {
-        await queryRunner.query(`
-          UPDATE PersonalCUITCUIL SET
-          PersonalCUITCUILCUIT = @1,
-          PersonalCUITCUILDesde = @2
-          WHERE PersonalId = @0`,
-          [PersonalId, CUIT, now]
-        )
-      }
       if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto)
 
       if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente, 12)
