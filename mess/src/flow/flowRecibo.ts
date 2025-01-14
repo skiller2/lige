@@ -17,10 +17,9 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
         let resPeriodos = ''
         if (periodosArray.length) {
             periodosArray.forEach((obj: any, index: number) => {
-                if (obj.mes < 10)
-                    resPeriodos += `${index + 1}- *${obj.mes}/${obj.anio}*\n`
-                else
-                    resPeriodos += `${index + 1}- *${obj.mes}/${obj.anio}*\n`
+                const today = new Date(obj.anio,obj.mes-1,1);
+                const month = today.toLocaleString('default', { month: 'short' });
+                resPeriodos += `${index + 1}- *${month}/${obj.anio}*\n`
             })
         } else {
             await flowDynamic([{ body: `No hay comprobantes`, delay }])

@@ -1,9 +1,8 @@
 import { impuestosAfipController } from "../controller/controller.module";
 import { EVENTS, addKeyword } from "@builderbot/bot";
 import flowMenu from './flowMenu'
-import { ClientException } from "src/controller/base.controller";
 import { chatBotController } from "../controller/controller.module";
-import { botServer } from "src";
+import { botServer } from "../index";
 import { reset } from "./flowIdle";
 
 const delay = chatBotController.getDelay()
@@ -29,11 +28,10 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         // console.log('periodos', periodosArray);
         let resPeriodos = ''
         if (periodosArray.length) {
-            periodosArray.forEach((obj : any, index: number) => {
-                if (obj.mes < 10) 
-                    resPeriodos += `${index+1}- *0${obj.mes}/${obj.anio}*\n`
-                else
-                    resPeriodos += `${index+1}- *${obj.mes}/${obj.anio}*\n`
+            periodosArray.forEach((obj: any, index: number) => {
+                const today = new Date(obj.anio,obj.mes-1,1);
+                const month = today.toLocaleString('default', { month: 'short' });
+                resPeriodos += `${index+1}- *${month}/${obj.anio}*\n`
             })
         } else {
             await flowDynamic([{ body:`No hay comprobantes`, delay }])
