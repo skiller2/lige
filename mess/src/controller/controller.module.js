@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.chatBotController = exports.impuestosAfipController = exports.recibosController = exports.personalController = void 0;
+var personal_controller_1 = require("./personal.controller");
+var recibos_controller_1 = require("./recibos.controller");
+var impuestos_afip_controller_1 = require("./impuestos-afip.controller");
+var chatbot_controller_1 = require("./chatbot.controller");
+exports.personalController = new personal_controller_1.PersonalController();
+exports.recibosController = new recibos_controller_1.RecibosController();
+exports.impuestosAfipController = new impuestos_afip_controller_1.ImpuestosAfipController();
+exports.chatBotController = new chatbot_controller_1.ChatBotController();

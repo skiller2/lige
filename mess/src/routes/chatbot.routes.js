@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.chatBotRouter = void 0;
+var express_1 = require("express");
+var controller_module_1 = require("../controller/controller.module");
+exports.chatBotRouter = (0, express_1.Router)();
+exports.chatBotRouter.get("/qr/:imgcount?", function (req, res, next) { controller_module_1.chatBotController.getChatBotQR(req, res, next); });
+exports.chatBotRouter.get("/status", function (req, res, next) { controller_module_1.chatBotController.getChatBotStatus(req, res, next); });
+exports.chatBotRouter.get("/delay", function (req, res, next) { controller_module_1.chatBotController.getChatBotDelay(req, res, next); });
+exports.chatBotRouter.post("/delay", function (req, res, next) { controller_module_1.chatBotController.setChatBotDelay(req, res, next); });

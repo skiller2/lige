@@ -9,8 +9,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "node ./scripts/build.mjs",
+    "prod": "node ./dist/index.js",
     "start": "npm run dev",
-    "dev": "esbuild-dev --watch src/index.ts",
+    "dev": "tsc --watch src/index.ts",
     "devold": "tsx watch --trace-warnings --tsconfig ./tsconfig.json ./src/index.ts"
   },
   "keywords": [],
