@@ -367,17 +367,15 @@ export class AccesoBotController extends BaseController {
 
     async validateCbu(req: any, res: Response, next: NextFunction) {
 
-        const cbu = Number(req.params.cbu)
+        const cbu = req.params.cbu
         const cuit = Number(req.params.cuit)
-        const numeroTelefono = Number(req.params.encTelNro)
+        const numeroTelefono = req.params.encTelNro
 
         const usuario = res.locals.userName
         const ip = this.getRemoteAddress(req)
         const fecha = new Date()
-        fecha.setHours(0, 0, 0, 0)
         let newarray = []
         const queryRunner = dataSource.createQueryRunner()
-
 
         try {
             if (cbu.toString().length == 6) {
