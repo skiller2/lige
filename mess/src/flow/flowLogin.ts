@@ -24,7 +24,7 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
             const data = state.getMyState()
 
             if (data?.codigo == ctx.body) {
-                await flowDynamic(`identidad verificada`, { delay: delay })
+                await flowDynamic(`identidad validada`, { delay: delay })
                 personalController.removeCode(telefono)
                 return gotoFlow(flowMenu)
             } else {
