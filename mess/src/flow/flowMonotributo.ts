@@ -31,7 +31,7 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
             periodosArray.forEach((obj: any, index: number) => {
                 const today = new Date(obj.anio,obj.mes-1,1);
                 const month = today.toLocaleString('default', { month: 'short' });
-                resPeriodos += `${index+1}- *${month}/${obj.anio}*\n`
+                resPeriodos += `${index+1}- *${month.toUpperCase()}/${obj.anio}*\n`
             })
         } else {
             await flowDynamic([{ body:`No hay comprobantes`, delay }])
