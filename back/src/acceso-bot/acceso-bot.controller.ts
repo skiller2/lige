@@ -403,9 +403,7 @@ AND cue.PersonalBancoDesde <= @1 AND  @1 <= ISNUlL(cue.PersonalBancoHasta,'9999-
 ORDER BY cue.PersonalBancoHasta DESC;
 `, [personalId,fecha])
                 
-                let existCbu = result?.length >= 1 ? true : false
-
-                if (existCbu && result[0].PersonalBancoCBU.slice(-6) == cbu.toString()) {
+                if (result?.length && result[0].PersonalBancoCBU.slice(-6) == cbu.toString()) {
 
                     let base_url = process.env.URL_MESS_API || "http://localhost:3010"
                     let url = `${base_url}/api/personal/ident?cuit=${cuit}&encTelNro=${encTelNro}`;
@@ -422,7 +420,7 @@ ORDER BY cue.PersonalBancoHasta DESC;
 
                     newValue = responseCodigo?.data.codigo
                 } else {
-                    throw new ClientException(`Los números ingresados no son válidos`);
+                    throw new ClientException(`No se pudo verificar con los números proporcionados`);
                 }
             } else {
                 throw new ClientException(`Debe ingresar 6 digitos finales del CBU`);
