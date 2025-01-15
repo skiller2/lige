@@ -3,7 +3,7 @@
 <form [formGroup]="formCli" *ngIf="codigo() == 0" >
   <nz-collapse nzAccordion  *ngIf="collapseDisabled()" >
     @for (panel of panels(); track panel) {
-    <nz-collapse-panel [nzHeader]="panel.name" [nzActive]="panel.active" [nzDisabled]="panel.disabled"  [ngClass]="{ 'success-panel': panel.success }">
+    <nz-collapse-panel [nzHeader]="panel.name" [nzActive]="panel.active" [nzDisabled]="true"  [ngClass]="{ 'success-panel': panel.success }">
 
       <br>
       @if (panel.id == 1){
@@ -25,7 +25,7 @@
 
       }@else if(panel.id == 2){
 
-      <iframe src="./assets/pdf/Lince-Chatbot.html" width="100%" height="600px" style="border: none;">
+      <iframe src="./assets/pdf/Lince-Chatbot.html" width="100%" height="400px" style="border: none;">
       </iframe>
 
       <nz-form-item style="justify-content: center;">
@@ -62,7 +62,7 @@
               type="string" 
               nz-input  
               nzSize="large"
-              placeholder="Ingrese Últimos 6 dígitos de CBU"
+              placeholder="Últimos 6 dígitos de CBU"
               formControlName="cbu"
               maxlength="6" />
             </nz-input-group>
@@ -95,7 +95,7 @@
 
 <br>
 <nz-form-item style="justify-content: center;">
-  <button nzType="primary" nz-button (click)="newValidate()" [disabled]="formCli.pristine" >
+  <button nzType="default" nz-button (click)="newValidate()"  >
     {{ 'app.btn.new.validate' | i18n }}
   </button>
 </nz-form-item>
