@@ -395,7 +395,13 @@ export class AccesoBotController extends BaseController {
                 let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
                 const personalId = personaIdQuery[0].PersonalId
 
-                const result = await queryRunner.query(`SELECT TOP 1 cue.PersonalId, ban.BancoDescripcion, cue.PersonalBancoCBU, cue.PersonalBancoDesde, cue.PersonalBancoHasta FROM PersonalBanco cue JOIN Banco ban ON ban.BancoId = cue.PersonalBancoBancoId WHERE cue.PersonalId = @0 ORDER BY cue.PersonalBancoHasta DESC;`, [personalId])
+                const result = await queryRunner.query(`SELECT cue.PersonalId, ban.BancoDescripcion, cue.PersonalBancoCBU, cue.PersonalBancoDesde, cue.PersonalBancoHasta 
+FROM PersonalBanco cue 
+JOIN Banco ban ON ban.BancoId = cue.PersonalBancoBancoId 
+WHERE cue.PersonalId = @0 
+AND cue.PersonalBancoDesde <= @1 AND  @1 <= ISNUlL(cue.PersonalBancoHasta,'9999-12-31' )
+ORDER BY cue.PersonalBancoHasta DESC;
+`, [personalId,fecha])
                 
                 let existCbu = result?.length >= 1 ? true : false
 
