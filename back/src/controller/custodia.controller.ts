@@ -766,6 +766,10 @@ export class CustodiaController extends BaseController {
             let errorCantVehiculo: boolean = true
             for (const obj of objetivoCustodia.vehiculos) {
                 if (obj.patente) {
+                    if (obj.patente.length < 6) {
+                        errores.push(`La patente no puede tener menos de 6 caracteres.`)
+                        continue
+                    }
                     errorCantVehiculo = false
                     if (fecha_liquidacion && (!obj.importe || !obj.duenoId)) {
                         errores.push(`Los campos relacionados al vehículo ${obj.patente} NO pueden estar vacíos.`)
@@ -962,6 +966,10 @@ export class CustodiaController extends BaseController {
             for (const obj of objetivoCustodia.vehiculos) {
                 if (obj.patente) {
                     errorCantVehiculo = false
+                    if (obj.patente.length < 6) {
+                        errores.push(`La patente no puede tener menos de 6 caracteres.`)
+                        continue
+                    }
                     //Validaciones para fecha_liquidacion
                     if (((this.valByEstado(objetivoCustodia.estado) && !infoCustodia.fecha_liquidacion)) && (!obj.importe || !obj.duenoId)) {
                         errores.push(`Los campos relacionados a la Patente ${obj.patente} NO pueden estar vacio.`)
