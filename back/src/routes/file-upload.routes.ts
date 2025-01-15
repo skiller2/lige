@@ -75,7 +75,7 @@ const storage = multer.diskStorage({
 
 export const FileUploadRouter = Router();
 
-FileUploadRouter.get("/downloadFile/:id/:tableForSearch/:filename", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias','Administrativo'])], async (req, res, next) => {
+FileUploadRouter.post("/downloadFile/:id/:tableForSearch/:filename", async (req, res, next) => {
   await fileUploadController.getByDownloadFile(req, res, next);
 });
 
