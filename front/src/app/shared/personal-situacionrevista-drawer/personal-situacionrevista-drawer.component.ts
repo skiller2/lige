@@ -26,7 +26,7 @@ export class PersonalSituacionRevistaDrawerComponent {
     PersonalNombre = signal<string>("")
     isLoading = signal(false);
     visibleSitRevista = model<boolean>(false)
-    periodo = signal({ year: 0, month: 0 });
+    periodo = signal(new Date())
     placement: NzDrawerPlacement = 'left';
     noOptions = signal<any[]>([])
 

@@ -26,7 +26,7 @@ export class PersonalCategoriaDrawerComponent {
     PersonalNombre = signal<string>("")
     isLoading = signal(false);
     visibleCategoria = model<boolean>(false)
-    periodo = signal({ year: 0, month: 0 });
+    periodo = signal(new Date())
     placement: NzDrawerPlacement = 'left';
 
     constructor(
@@ -81,6 +81,8 @@ export class PersonalCategoriaDrawerComponent {
     );
 
     async ngOnInit(){
+        // const date:Date = new Date()
+        // this.formCategoria.controls.Desde.setValue(date)
         this.selectedPersonalIdChange$.next('');
     }
 
@@ -92,15 +94,16 @@ export class PersonalCategoriaDrawerComponent {
     async save() {
         this.isLoading.set(true)
         let values = this.formCategoria.value
+        console.log('values',values);
         
-        try {
-            await firstValueFrom(this.apiService.setCategoria(this.PersonalId(), values))
-            this.selectedPersonalIdChange$.next('')
-            this.formCategoria.markAsUntouched()
-            this.formCategoria.markAsPristine()
-        } catch (e) {
+        // try {
+        //     await firstValueFrom(this.apiService.setCategoria(this.PersonalId(), values))
+        //     this.selectedPersonalIdChange$.next('')
+        //     this.formCategoria.markAsUntouched()
+        //     this.formCategoria.markAsPristine()
+        // } catch (e) {
 
-        }
+        // }
         this.isLoading.set(false)
     }
 
