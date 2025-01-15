@@ -420,21 +420,22 @@ export class ApiService {
   }
 
   getValidateCuit(cuit: any) {
-    return this.http.get<ResponseJSON<any[]>>(`/api/acceso-bot/validatecuit/${cuit}`).pipe(
-      map((res: any) => res.data)
-    );
+    return this.http.get(`/api/acceso-bot/validatecuit/${cuit}`,
+      {},{context: new HttpContext().set(ALLOW_ANONYMOUS, true)}).pipe(
+        map((res: any) => res.data)
+      )
   }
 
   getValidateRecibo(recibo: any, cuit:any) {
-    return this.http.get<ResponseJSON<any[]>>(`/api/acceso-bot/validaterecibo/${recibo}/${cuit}`).pipe(
+    return this.http.get(`/api/acceso-bot/validaterecibo/${recibo}/${cuit}`, {}, {context: new HttpContext().set(ALLOW_ANONYMOUS, true)}).pipe(
       map((res: any) => res.data)
     );
   }
 
-  getValidateCBU(cbu: any, cuit:any, encTelNro:any) {
-    return this.http.get<ResponseJSON<any[]>>(`/api/acceso-bot/validatecbu/${cbu}/${cuit}/${encTelNro}`).pipe(
+  getValidateCBU(cbu: any, cuit: any, encTelNro: any) {
+    return this.http.get(`/api/acceso-bot/validatecbu/${cbu}/${cuit}/${encTelNro}`,{}, {context: new HttpContext().set(ALLOW_ANONYMOUS, true)}).pipe(
       map((res: any) => res.data)
-    );
+    )
   }
 
   getIdentCode(identData: string, encTelNro: string): Observable<unknown> {
@@ -873,7 +874,7 @@ export class ApiService {
   response(res: ResponseJSON<any>) {
     let tiempoConsido = ''
     if (res.ms)
-      tiempoConsido = `<BR> Tiempo consumidio ${formatNumber(Number(res.ms) / 1000, this.locale, '1.2-2')} segundos`
+      tiempoConsido = `<BR> Tiempo consumido ${formatNumber(Number(res.ms) / 1000, this.locale, '1.2-2')} segundos`
     this.notification.success('Respuesta', `${res.msg} ${tiempoConsido}`);
   }
 
