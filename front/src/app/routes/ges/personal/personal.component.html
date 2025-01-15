@@ -46,14 +46,15 @@
       <button nz-button nzType="default" (click)="openDrawerforConsultDocumentos()" [disabled]="personalId() == 0"
         nz-tooltip nzTooltipTitle="{{ 'app.documents' | i18n }}"><span nz-icon nzType="file"
           nzTheme="outline"></span></button>
+      <!-- btn  categoria -->
+      <button nz-button nzType="default" (click)="openDrawerforConsultCategoria()" [disabled]="personalId() == 0"
+        nz-tooltip nzTooltipTitle="{{ 'app.category' | i18n }}"><span nz-icon nzType="menu-unfold"
+          nzTheme="outline"></span></button>
       <!-- btn  situacion revista -->
       <button nz-button nzType="default" (click)="openDrawerforConsultSitRevista()" [disabled]="personalId() == 0"
         nz-tooltip nzTooltipTitle="{{ 'app.state' | i18n }}"><span nz-icon nzType="info-circle"
           nzTheme="outline"></span></button>
-      <!-- btn  categoria -->
-      <button nz-button nzType="default" (click)="openDrawerforConsultCategoria()" [disabled]="personalId() == 0"
-      nz-tooltip nzTooltipTitle="{{ 'app.category' | i18n }}"><span nz-icon nzType="menu-unfold"
-        nzTheme="outline"></span></button>
+
 
 
     </nz-button-group>
