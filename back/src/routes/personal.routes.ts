@@ -6,7 +6,7 @@ import multer, { FileFilterCallback } from "multer";
 export const personalRouter = Router();
 const base = "";
 
-personalRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+personalRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
   personalController.getGridList(req, res, next)
 });
 
@@ -22,15 +22,15 @@ personalRouter.post(
   }
 );
 
-personalRouter.post(`${base}/add`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+personalRouter.post(`${base}/add`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal'])], (req, res, next) => {
   personalController.addPersonal(req, res, next);
 });
 
-personalRouter.post(`${base}/update/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+personalRouter.post(`${base}/update/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal'])], (req, res, next) => {
   personalController.updatePersonal(req, res, next);
 });
 
-personalRouter.post('/setsitrevista/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+personalRouter.post('/setsitrevista/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal'])], (req, res, next) => {
   personalController.setSituacionRevista(req, res, next)
 });
 
@@ -38,15 +38,15 @@ personalRouter.post('/categorias', authMiddleware.verifyToken, (req, res, next) 
   personalController.getCategoriasByTipoAsociado(req, res, next)
 });
 
-personalRouter.post('/setcategoria/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+personalRouter.post('/setcategoria/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal'])], (req, res, next) => {
   personalController.setCategoria(req, res, next)
 });
 
-personalRouter.get(`${base}/domicilio/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+personalRouter.get(`${base}/domicilio/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo','gPersonal'])], (req, res, next) => {
   personalController.getDomicilioByPersonalId(req, res, next);
 });
 
-personalRouter.get(`${base}/info/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+personalRouter.get(`${base}/info/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo','gPersonal'])], (req, res, next) => {
   personalController.getFormDataById(req, res, next);
 });
 
@@ -80,7 +80,7 @@ personalRouter.get(`${base}/banco/:id`, authMiddleware.verifyToken, (req, res, n
   personalController.getCuentasBancoPorPersona(req.params.id, res, next);
 });
 
-personalRouter.get(`${base}/responsableslist/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+personalRouter.get(`${base}/responsableslist/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
     personalController.getResponsablesListByPersonal(req, res, next);
 });
 
@@ -88,7 +88,7 @@ personalRouter.get(`${base}/grupoactividad/options`, authMiddleware.verifyToken,
   personalController.getGrupoActividad(req, res, next);
 });
 
-personalRouter.get(`${base}/documentos/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+personalRouter.get(`${base}/documentos/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal'])], (req, res, next) => {
   personalController.getDocumentosByPersonalId(req, res, next);
 });
 
