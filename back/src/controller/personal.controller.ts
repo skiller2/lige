@@ -1600,12 +1600,13 @@ export class PersonalController extends BaseController {
       await queryRunner.startTransaction()
 
       if (!SituacionRevistaId) {
-        error.push(`Debe completar situación de revista.`);
+        error.push(`- Situación de Revista.`);
       }
       if (!desde) {
-        error.push(`Debe completar fecha desde.`);
+        error.push(`- Fecha Desde.`);
       }
       if (error.length) {
+        error.unshift('Debe completar:');
         throw new ClientException(error);
       }
 
