@@ -1,0 +1,76 @@
+<nz-card class="small-margin">
+
+    <!-- 
+    <div nz-row>
+        <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse;">
+         /////////////////////////////
+        </div>
+    </div> 
+    -->
+
+    <div nz-row class="contentStyle">
+        <div nz-col nzSpan="13" class="listStyle">
+            <ul nz-menu nzMode="horizontal" style="display: flex;">
+                <li nz-menu-item nzMatchRouter>
+                    <span nz-icon nzType=""></span>
+                    <a [routerLink]="['/', 'ges', 'grupo-actividad', 'grupos']">{{ 'app.grupos' | i18n }} </a>
+                </li>
+                <li nz-menu-item nzMatchRouter>
+                    <span nz-icon nzType=""></span>
+                    <a [routerLink]="['/', 'ges', 'grupo-actividad', 'jerarquicos']">{{ 'app.jerarquicos' | i18n }} </a>
+                </li>
+
+                <li nz-menu-item nzMatchRouter>
+                    <span nz-icon nzType=""></span>
+                    <a [routerLink]="['/', 'ges', 'grupo-actividad', 'supervisores']">{{ 'app.supervisores' | i18n }}</a>
+                </li>
+                <li nz-menu-item nzMatchRouter>
+                    <span nz-icon nzType=""></span>
+                    <a [routerLink]="['/', 'ges', 'grupo-actividad', 'objetivos']">{{ 'app.objetivos' | i18n }}</a>
+                </li>
+                <li nz-menu-item nzMatchRouter>
+                    <span nz-icon nzType=""></span>
+                    <a [routerLink]="['/', 'ges', 'grupo-actividad', 'personal']">{{ 'app.personal' | i18n }}</a>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+
+
+    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+
+        <nz-tab>
+            <a nz-tab-link routerLink="/ges/grupo-actividad/grupos">{{ 'app.grupos' | i18n }} </a>
+            <ng-template nz-tab>
+                <span>grupos</span>
+            </ng-template>
+        </nz-tab>
+
+        <nz-tab>
+            <a nz-tab-link routerLink="/ges/grupo-actividad/jerarquicos">{{ 'app.jerarquicos' | i18n }}</a>
+            <span>jerarquicos</span>
+
+        </nz-tab>
+
+        <nz-tab>
+            <a nz-tab-link routerLink="/ges/grupo-actividad/supervisores">{{ 'app.supervisores' | i18n }}</a>
+            <span>supervisores</span>
+        </nz-tab>
+
+        <nz-tab>
+            <a nz-tab-link routerLink="/ges/grupo-actividad/objetivos">{{ 'app.objetivos' | i18n }}</a>
+            <span>objetivos</span>
+        </nz-tab>
+        <nz-tab>
+            <a nz-tab-link routerLink="/ges/grupo-actividad/personal">{{ 'app.personal' | i18n }}</a>
+            <span>personal</span>
+        </nz-tab>
+
+    </nz-tabset>
+
+
+
+
+</nz-card>

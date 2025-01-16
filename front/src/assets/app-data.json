@@ -62,6 +62,12 @@
             "icon": "anticon-profile",
             "link": "/ges/acceso-bot"
           }
+          ,
+          {
+            "text": "Grupo actividad",
+            "icon": "anticon-profile",
+            "link": "/ges/grupo-actividad"
+          }
         ]},        
         {
           "text": "Asistencia",
