@@ -97,16 +97,15 @@ export class PersonalCategoriaDrawerComponent {
     async save() {
         this.isLoading.set(true)
         let values = this.formCategoria.value
-        console.log('values',values);
         
-        // try {
-        //     await firstValueFrom(this.apiService.setCategoria(this.PersonalId(), values))
-        //     this.selectedPersonalIdChange$.next('')
-        //     this.formCategoria.markAsUntouched()
-        //     this.formCategoria.markAsPristine()
-        // } catch (e) {
+        try {
+            await firstValueFrom(this.apiService.setCategoria(this.PersonalId(), values))
+            this.selectedPersonalIdChange$.next('')
+            this.formCategoria.markAsUntouched()
+            this.formCategoria.markAsPristine()
+        } catch (e) {
 
-        // }
+        }
         this.isLoading.set(false)
     }
 
