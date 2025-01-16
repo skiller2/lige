@@ -30,7 +30,7 @@ export class IdentComponent {
   private apiService = inject(ApiService)
   passwordVisible = false;
   password?: string;
-  
+  retries = signal(0)
   cams: any = []
   camdevice = signal(undefined)
   caminfo = signal({})
@@ -101,15 +101,20 @@ export class IdentComponent {
           })
         );
      
-      
+      this.retries.set(0)
       this.formCli.markAsPristine()
       this.formCli.markAsUntouched()
     } catch (e) {
+      this.validateRetries()
       this.formCli.markAsPristine()
       this.formCli.markAsUntouched()
     }
 
 
+  }
+
+  async validateRetries(){
+    this.retries.set(this.retries() + 1)
   }
 
   async newValidate(){
@@ -135,6 +140,7 @@ export class IdentComponent {
     );
 
     this.codigo.set(0)
+    this.retries.set(0)
     this.formCli.patchValue({id: 0, cuit: "", recibo:"", cbu:"" });
   }
 
@@ -177,10 +183,11 @@ export class IdentComponent {
             return panel
           })
         );
-      
+      this.retries.set(0)
       this.formCli.markAsPristine()
       this.formCli.markAsUntouched()
     } catch (e) {
+      this.validateRetries()
       this.formCli.markAsPristine()
       this.formCli.markAsUntouched()
     }
@@ -201,8 +208,9 @@ export class IdentComponent {
       console.log("result ", result)
    
       this.codigo.set( result)
-      
+      this.retries.set(0)
     } catch (e) {
+      this.validateRetries()
       this.formCli.markAsPristine()
       this.formCli.markAsUntouched()
     }

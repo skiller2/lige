@@ -210,7 +210,14 @@
   "app.terminosycondiciones":"Aceptar Términos y Condiciones de Uso",
   "app.validacionIndentidadText":"Validación de Identidad",
   "app.btn.copiar":"Copiar",
+  "app.comuniquese.rrhh":"En el caso de no poder obtener el Código comuníquese con el sector de Recursos Humanos",
   "app.btn.new.validate":"Iniciar Nueva Validación",
+  "app.validate.attempt":"Supero los intentos de validación",
+  "app.grupos":"Grupos",
+  "app.jerarquicos":"Jerárquicos",
+  "app.supervisores":"Supervisores",
+  "app.objetivos":"Objetivos",
+  "app.personal":"Personal",
   "To install this WEB app on your device, tap the \"Menu\" button":"Para instalar esta aplicación web en su dispositivo, presione el botón \"Menu\"",
   "and then \"Add to home screen\" button":"y luego el botón \"Agregar a la pantalla de inicio\""
   
