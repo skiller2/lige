@@ -68,11 +68,10 @@ export class TestComponent {
     console.log('onModelChangeObjetivo', evt, this.valueExtendedObjetivo)
   }
 
-
+locale = new Intl.Locale('default')
 
   ngOnInit(): void {
-
-
+    console.log('Intl.Locale', new Intl.Locale('default'))
     const autocomplete = new GeocoderAutocomplete(
       this.el.nativeElement ,
       'f5cdd3892a38432fbcd0edc786268446',
