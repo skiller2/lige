@@ -1943,17 +1943,17 @@ export class PersonalController extends BaseController {
       await queryRunner.startTransaction()
 
       if (!TipoAsociadoId) {
-        campos_vacios.push(` Tipo de Asociado`);
+        campos_vacios.push(`- Tipo de Asociado`);
       }
       if (!CategoriaId) {
-        campos_vacios.push(` Categoría`);
+        campos_vacios.push(`- Categoría`);
       }
       if (!Desde) {
-        campos_vacios.push(` Fecha Desde`);
+        campos_vacios.push(`- Fecha Desde`);
       }
       if (campos_vacios.length) {
-        let msgError: any[] = ['Debe completar los siguientes campos:' + campos_vacios + '.']
-        throw new ClientException(msgError);
+        campos_vacios.unshift('Debe completar los siguientes campos:')
+        throw new ClientException(campos_vacios);
       }
 
 

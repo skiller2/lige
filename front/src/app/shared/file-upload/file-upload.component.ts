@@ -92,8 +92,8 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   async LoadArchivoPreview(documentId: any, filename: any) {
-    const res = await firstValueFrom(this.http.get(`api/file-upload/downloadFile/${documentId}/${this.tableForSearch()}/${filename}`,
-      { responseType: 'blob' }
+    const res = await firstValueFrom(this.http.post(`api/file-upload/downloadFile/${documentId}/${this.tableForSearch()}/${filename}`,
+      {}, { responseType: 'blob' }
     ))
     return res
   }

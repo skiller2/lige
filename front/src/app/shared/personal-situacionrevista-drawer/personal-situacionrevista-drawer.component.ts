@@ -26,7 +26,7 @@ export class PersonalSituacionRevistaDrawerComponent {
     PersonalNombre = signal<string>("")
     isLoading = signal(false);
     visibleSitRevista = model<boolean>(false)
-    periodo = signal({ year: 0, month: 0 });
+    periodo = signal(new Date())
     placement: NzDrawerPlacement = 'left';
     noOptions = signal<any[]>([])
 
@@ -73,6 +73,12 @@ export class PersonalSituacionRevistaDrawerComponent {
     );
 
     async ngOnInit(){
+        const formatter = new Intl.DateTimeFormat('es-ES', {year: 'numeric', month: '2-digit', day: '2-digit'});
+        const date:Date = new Date()
+        const formattedDate = formatter.format(date);
+        const [day, month, year] = formattedDate.split('/').map(Number)
+        this.periodo.set(new Date(year, month - 1, day))
+        
         const sitRevistaNoOptions = await firstValueFrom(this.searchService.getSitRevistaNoOptions())
         this.noOptions.set(sitRevistaNoOptions)
         this.selectedPersonalIdChange$.next('');

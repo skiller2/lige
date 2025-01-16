@@ -93,17 +93,30 @@ export class FileUploadController extends BaseController {
         case 'DocumentoImagenEstudio':
         case 'DocumentoImagenImpuestoAFIP':
           ArchivosAnteriores = await queryRunner.query(`
-            SELECT 
-                doc.${tableSearch}Id AS id, 
-                CONCAT('./', TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableSearch}BlobNombreArchivo)) path, 
-                doc.${tableSearch}BlobNombreArchivo AS nombre , 'image' AS mimetype
-                -- doc.aud_fecha_ins AS fecha 
+            SELECT  doc.${tableSearch}Id AS id, 
+            CONCAT('./', TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableSearch}BlobNombreArchivo)) path, 
+            doc.${tableSearch}BlobNombreArchivo AS nombre , 'image' AS mimetype
             FROM ${tableSearch} doc
             JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             WHERE 
                 doc.${columnSearch} = @0 AND param.DocumentoImagenParametroDe = @1`,
             [id, TipoSearch])
+            // let imagePath = ""
+            // if (tableSearch == 'DocumentoImagenFoto') 
+            //   imagePath = process.env.IMAGE_FOTO_PATH ? process.env.IMAGE_FOTO_PATH : "";
+            // else if(tableSearch == 'DocumentoImagenDocumento')
+            //   imagePath = process.env.IMAGE_DOCUMENTO_PATH ? process.env.IMAGE_DOCUMENTO_PATH : "";
+            
+            // const imageUrl = imagePath != ""? ((ArchivosAnteriores.length && ArchivosAnteriores[0].nombre) ? imagePath.concat(ArchivosAnteriores[0].nombre): "") : ""
+            const path = (ArchivosAnteriores.length && ArchivosAnteriores[0].path)? ArchivosAnteriores[0].path :null
+            const response = path? await this.isAccessibleUrl(path) : false
+            if (response) {
+              const res = await fetch(path)
+              const buffer = await res.arrayBuffer()
+              const bufferStr = Buffer.from(buffer).toString('base64')
+              ArchivosAnteriores[0].image = "data:image/jpeg;base64, " + bufferStr;
+            }
 
           break;
 
@@ -369,6 +382,15 @@ export class FileUploadController extends BaseController {
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    }
+  }
+
+  private async isAccessibleUrl(url: string){
+    try {
+      const response = await fetch(url, { method: 'HEAD' }); // Solo verifica si existe.
+      return response.ok; // Retorna true si el estado es 200-299.
+    } catch {
+      return false; // Error de conexión o dominio inaccesible.
     }
   }
 
