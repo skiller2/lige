@@ -1,6 +1,6 @@
 <br>
 <h1>{{ 'app.validacionIndentidadText' | i18n }}</h1>
-<form [formGroup]="formCli" *ngIf="codigo() == 0" >
+<form [formGroup]="formCli" *ngIf="codigo() == 0 && retries() < 4" >
   <nz-collapse nzAccordion  *ngIf="collapseDisabled()" >
     @for (panel of panels(); track panel) {
     <nz-collapse-panel [nzHeader]="panel.name" [nzActive]="panel.active" [nzDisabled]="true"  [ngClass]="{ 'success-panel': panel.success }">
@@ -92,12 +92,18 @@
     {{ 'app.btn.copiar' | i18n }}
   </button>
 </div>
+<div class="container" *ngIf="retries() >= 4">
+  <div>{{ 'app.validate.attempt' | i18n }}</div>
+</div>
 
 <br>
 <nz-form-item style="justify-content: center;">
   <button nzType="default" nz-button (click)="newValidate()"  >
     {{ 'app.btn.new.validate' | i18n }}
   </button>
+</nz-form-item>
+<nz-form-item style="justify-content: center;">
+  <h5 style="text-align: center; margin-top: 15px;"> {{ 'app.comuniquese.rrhh' | i18n }}</h5>
 </nz-form-item>
 <!-- 
 <nz-card>
