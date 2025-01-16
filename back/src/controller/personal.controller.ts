@@ -1968,4 +1968,113 @@ export class PersonalController extends BaseController {
     }
   }
 
+  private async setGrupoActividadPersonalQuerys(
+    queryRunner:any, PersonalId:number, GrupoActividadId:number, Desde:Date,
+    usuarioId:number, ip:string
+  ){
+    Desde.setHours(0, 0, 0, 0)
+    let yesterday: Date = new Date(Desde.getFullYear(), Desde.getMonth(), Desde.getDate() - 1)
+    yesterday.setHours(0, 0, 0, 0)
+    let now:Date = new Date()
+    let time:string = now.getHours()+':'+now.getMinutes()+':'+now.getSeconds()
+    now.setHours(0, 0, 0, 0)
+    const UsuarioId = usuarioId? usuarioId : null
+    let GrupoActividadPersonalReasignado = 0
+    
+    //Obtengo el ultimo Grupo Actividad Personal
+    let ultGrupoActividadPersonal = await queryRunner.query(`
+      SELECT TOP 1 grup.GrupoActividadPersonalId, grup.GrupoActividadId, grup.GrupoActividadPersonalPersonalId,
+      grup.GrupoActividadPersonalDesde, ISNULL(grup.GrupoActividadPersonalHasta, '9999-12-31') GrupoActividadPersonalHasta
+      FROM GrupoActividadPersonal grup
+      WHERE grup.GrupoActividadPersonalPersonalId IN (@0) 
+      ORDER BY grup.GrupoActividadPersonalDesde DESC, ISNULL(grup.GrupoActividadPersonalHasta, '9999-12-31') DESC
+      `, [PersonalId]
+    )
+
+
+    if (ultGrupoActividadPersonal.length == 1 && ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getTime() > Desde.getTime())
+      throw new ClientException(`La fecha Desde no puede ser menor al ${ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getDate()}/${ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getMonth()+1}/${ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getFullYear()}`)
+
+    if (ultGrupoActividadPersonal[0].GrupoActividadId == GrupoActividadId)
+      throw new ClientException(`Debe ingresar una Grupo Actividad distinta a la que se encuentra activa.`)
+
+    if (ultGrupoActividadPersonal.length > 0 && ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getTime() == Desde.getTime()) {
+      await queryRunner.query(`
+        UPDATE GrupoActividadPersonal SET GrupoActividadPersonalDesde = @2, GrupoActividadId = @3
+        WHERE GrupoActividadPersonalPersonalId IN (@0) AND GrupoActividadPersonalId IN (@1)
+        `, [PersonalId, ultGrupoActividadPersonal[0].GrupoActividadPersonalId, Desde, GrupoActividadId]
+      )
+    } else {
+      if (ultGrupoActividadPersonal.length) {
+        await queryRunner.query(`
+          UPDATE GrupoActividadPersonal SET GrupoActividadPersonalHasta = @2
+          WHERE GrupoActividadPersonalPersonalId IN (@0) AND GrupoActividadPersonalId IN (@1)`,
+          [PersonalId, ultGrupoActividadPersonal[0].GrupoActividadPersonalId, yesterday]
+        )
+        GrupoActividadPersonalReasignado++
+      }
+
+      //Obtengo y actualizo el ultimo GrupoActividadPersonalId
+      const GrupoActividad = await queryRunner.query(`
+        SELECT GrupoActividadId, GrupoActividadPersonalUltNro
+        FROM GrupoActividad
+        WHERE GrupoActividadId IN (@0)
+        `, [GrupoActividadId]
+      )
+      const GrupoActividadPersonalId = GrupoActividad[0].GrupoActividadPersonalUltNro + 1
+      await queryRunner.query(`
+        UPDATE GrupoActividad SET GrupoActividadPersonalUltNro = @1
+        WHERE GrupoActividadId IN (@0)`, [GrupoActividadId, GrupoActividadPersonalId]
+      )
+
+      //Crea un Grupo Actividad Personal nuevo
+      await queryRunner.query(`
+        INSERT INTO GrupoActividadPersonal ( 
+        GrupoActividadPersonalId, GrupoActividadId, GrupoActividadPersonalPersonalId, GrupoActividadPersonalDesde, GrupoActividadPersonalReasignado,
+        GrupoActividadPersonalPuesto, GrupoActividadPersonalUsuarioId, GrupoActividadPersonalDia, GrupoActividadPersonalTiempo
+        ) VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8)
+        `, [GrupoActividadPersonalId, GrupoActividadId, PersonalId, Desde, GrupoActividadPersonalReasignado, ip, UsuarioId, now, time]
+      )
+      
+    }
+  }
+
+  async setGrupoActividadPersonal(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const PersonaId = res.locals.PersonalId
+    const ip = this.getRemoteAddress(req)
+    const PersonalId: number = Number(req.params.id);
+    const GrupoActividadId = req.body.GrupoActividadId
+    const Desde = req.body.Desde
+    try {
+      let campos_vacios: any[] = []
+      await queryRunner.startTransaction()
+
+      if (!GrupoActividadId) {
+        campos_vacios.push(`- Grupo Actividad`);
+      }
+      if (!Desde) {
+        campos_vacios.push(`- Fecha Desde`);
+      }
+      if (campos_vacios.length) {
+        campos_vacios.unshift('Debe completar los siguientes campos:')
+        throw new ClientException(campos_vacios);
+      }
+      const Usuario = await queryRunner.query(`
+        SELECT UsuarioId FROM Usuario WHERE UsuarioPersonalId IN (@0)`, [PersonaId]
+      )
+      const UsuarioId = (Usuario.length && Usuario[0].UsuarioId)? Usuario[0].UsuarioId : 0
+
+      await this.setGrupoActividadPersonalQuerys(queryRunner, PersonalId, GrupoActividadId, new Date(Desde), UsuarioId, ip)
+
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res, 'Carga Exitosa');
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
 }

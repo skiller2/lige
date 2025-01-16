@@ -1,8 +1,8 @@
 <nz-drawer [nzClosable]="false" [nzVisible]="visibleResponsable()" [nzPlacement]="placement" [nzWidth]="640"
   [nzTitle]="'Historial de Responsables de: '  + PersonalNombre()" (nzOnClose)="visibleResponsable.set(false)">
   <ng-container *nzDrawerContent>
-    <!-- <nz-card nzType="inner" nzTitle="Reasignar a nuevo Grupo Actividad">
-        <form [formGroup]="formSitRevista">
+    <nz-card nzType="inner" nzTitle="Reasignar a nuevo Grupo Actividad">
+        <form [formGroup]="formResponsable">
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Grupo Actividad</nz-form-label>
           <nz-form-control>
@@ -18,20 +18,20 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Desde</nz-form-label>
           <nz-form-control>
-            <nz-date-picker formControlName="Desde"></nz-date-picker>
+            <nz-date-picker ngModel="date" [(ngModel)]="periodo" formControlName="Desde"></nz-date-picker>
           </nz-form-control>
         </nz-form-item>
   
         <nz-form-item>
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-            <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formSitRevista.pristine">
+            <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formResponsable.pristine">
               {{ 'app.btn.save' | i18n }}
             </button>
           </nz-form-control>
         </nz-form-item>
   
         </form>
-    </nz-card> -->
+    </nz-card>
 
     <nz-form-control *ngIf="$listaResponsablePer | async as listaResponsablePer ">
         <nz-table #responPer [nzData]="listaResponsablePer" nzSize="small" [nzPageSize]="100000000"

@@ -24,7 +24,7 @@ export class PersonalResponsableDrawerComponent {
     PersonalId = input(0)
     PersonalNombre = signal<string>("")
     visibleResponsable = model<boolean>(false)
-    periodo = signal({ year: 0, month: 0 });
+    periodo = signal(new Date());
     placement: NzDrawerPlacement = 'left';
     isLoading = signal(false);
 
@@ -40,7 +40,7 @@ export class PersonalResponsableDrawerComponent {
     selectedPersonalIdChange$ = new BehaviorSubject('');
 
     fb = inject(FormBuilder)
-    formSitRevista = this.fb.group({
+    formResponsable = this.fb.group({
         GrupoActividadId:0, Desde:null
     })
 
@@ -67,8 +67,12 @@ export class PersonalResponsableDrawerComponent {
     );
 
     async ngOnInit(){
+        const formatter = new Intl.DateTimeFormat('es-ES', {year: 'numeric', month: '2-digit', day: '2-digit'});
         const date:Date = new Date()
-        this.periodo.set({ year: date.getFullYear(), month: date.getMonth()+1 })
+        const formattedDate = formatter.format(date);
+        const [day, month, year] = formattedDate.split('/').map(Number)
+        this.periodo.set(new Date(year, month - 1, day))
+
         this.selectedPersonalIdChange$.next('');
     }
 
@@ -79,14 +83,12 @@ export class PersonalResponsableDrawerComponent {
 
     async save() {
         this.isLoading.set(true)
-        let values = this.formSitRevista.value
-        console.log('values', values);
-        
+        let values = this.formResponsable.value
         try {
-            // await firstValueFrom(this.apiService.setSitRevista(this.PersonalId(), values))
+            await firstValueFrom(this.apiService.setGrupoActividadPersonal(this.PersonalId(), values))
             this.selectedPersonalIdChange$.next('')
-            this.formSitRevista.markAsUntouched()
-            this.formSitRevista.markAsPristine()
+            this.formResponsable.markAsUntouched()
+            this.formResponsable.markAsPristine()
         } catch (e) {
 
         }

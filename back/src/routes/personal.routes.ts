@@ -42,6 +42,10 @@ personalRouter.post('/setcategoria/:id', [authMiddleware.verifyToken, authMiddle
   personalController.setCategoria(req, res, next)
 });
 
+personalRouter.post('/setgrupactividad/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo','gPersonal'])], (req, res, next) => {
+  personalController.setGrupoActividadPersonal(req, res, next)
+});
+
 personalRouter.get(`${base}/domicilio/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo','gPersonal'])], (req, res, next) => {
   personalController.getDomicilioByPersonalId(req, res, next);
 });
