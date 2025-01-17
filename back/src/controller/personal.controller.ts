@@ -1650,6 +1650,7 @@ export class PersonalController extends BaseController {
         SELECT ga.GrupoActividadId value, ga.GrupoActividadDetalle label
         FROM GrupoActividad ga
         WHERE ga.GrupoActividadInactivo != 1
+        ORDER BY "GrupoActividadDetalle" ASC
       `);
 
       this.jsonRes(options, res);
