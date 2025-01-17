@@ -1649,8 +1649,8 @@ export class PersonalController extends BaseController {
       const options = await dataSource.query(`
         SELECT ga.GrupoActividadId value, ga.GrupoActividadDetalle label
         FROM GrupoActividad ga
-        WHERE ga.GrupoActividadInactivo != 1
-        ORDER BY "GrupoActividadDetalle" ASC
+        WHERE ga.GrupoActividadInactivo != 1 OR ga.GrupoActividadInactivo IS NULL
+        ORDER BY ga.GrupoActividadDetalle ASC
       `);
 
       this.jsonRes(options, res);
