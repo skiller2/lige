@@ -1998,7 +1998,7 @@ export class PersonalController extends BaseController {
       throw new ClientException(`La fecha Desde no puede ser menor al ${ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getDate()}/${ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getMonth()+1}/${ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getFullYear()}`)
 
     if (ultGrupoActividadPersonal[0].GrupoActividadId == GrupoActividadId)
-      throw new ClientException(`Debe ingresar una Grupo Actividad distinta a la que se encuentra activa.`)
+      throw new ClientException(`Debe ingresar un Grupo Actividad distinto al que se encuentra activo.`)
 
     if (ultGrupoActividadPersonal.length > 0 && ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getTime() == Desde.getTime()) {
       await queryRunner.query(`
