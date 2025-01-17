@@ -1663,30 +1663,30 @@ export class PersonalController extends BaseController {
     let campos_vacios: any[] = []
 
     if (!personalForm.Nombre) {
-      campos_vacios.push(` Nombre`)
+      campos_vacios.push(`- Nombre`)
     }
     if (!personalForm.Apellido) {
-      campos_vacios.push(` Apellido`)
+      campos_vacios.push(`- Apellido`)
     }
     if (!Number.isInteger(personalForm.CUIT)) {
-      campos_vacios.push(` CUIT`)
+      campos_vacios.push(`- CUIT`)
     }
     if (!personalForm.SucursalId) {
-      campos_vacios.push(` Sucursal`)
+      campos_vacios.push(`- Sucursal`)
     }
     if (!personalForm.NacionalidadId) {
-      campos_vacios.push(` Nacionalidad`)
+      campos_vacios.push(`- Nacionalidad`)
     }
     if (!personalForm.Email) {
-      campos_vacios.push(` Email`)
+      campos_vacios.push(`- Email`)
     }
     if (!personalForm.SituacionId) {
-      campos_vacios.push(` Situacion de Revista`)
+      campos_vacios.push(`- Situacion de Revista`)
     }
 
     if (campos_vacios.length) {
-      let msgError: any[] = ['Debe completar los siguientes campos:' + campos_vacios]
-      return new ClientException(msgError)
+      campos_vacios.unshift('Debe completar los siguientes campos: ')
+      return new ClientException(campos_vacios)
     }
   }
 
