@@ -893,7 +893,6 @@ export class CargaLicenciaController extends BaseController {
             PersonalSituacionRevistaMotivo,
             PersonalSituacionRevistaAnula,
             PersonalSituacionRevistaSituacionId,
---            PersonalSituacionRevistaSituacionClasificacionId,
             PersonalSituacionRevistaRetenerLiquidacion) 
             VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8)`,
       [PersonalId,

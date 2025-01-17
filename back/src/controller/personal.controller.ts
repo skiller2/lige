@@ -1565,7 +1565,7 @@ export class PersonalController extends BaseController {
 
     if (sitRevista.length>0 && sitRevista[0].PersonalSituacionRevistaDesde.getTime() == desde.getTime()) {
       await queryRunner.query(`UPDATE PersonalSituacionRevista SET PersonalSituacionRevistaDesde = @2, PersonalSituacionRevistaMotivo = @3, PersonalSituacionRevistaSituacionId = @4,
-        PersonalSituacionRevistaHasta = NULL, PersonalSituacionRevistaSituacionClasificacionId= NULL
+        PersonalSituacionRevistaHasta = NULL
         WHERE PersonalId = @0 AND PersonalSituacionRevistaId = @1
         `, [personalId, sitRevista[0].PersonalSituacionRevistaId, desde, motivo, SituacionRevistaId]
       )
