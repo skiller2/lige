@@ -35,6 +35,7 @@ import { residenciaRouter } from "../routes/residencia.routes";
 import { estudioRouter } from "../routes/estudio.routes";
 import { preciosProductosRouter } from "../precios-productos/precios-productos.routes";
 import { descripcionProductoControllerRouter } from "./descripcion-producto.routes";
+import { grupoActividadRouter } from "../grupo-actividad/grupo-actividad.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -73,5 +74,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/estudio",estudioRouter)
   server.setRoute("/api/precios-productos",preciosProductosRouter)
   server.setRoute("/api/descripcion-productos",descripcionProductoControllerRouter)
-  
+  server.setRoute("/api/grupo-actividad",grupoActividadRouter)
 }

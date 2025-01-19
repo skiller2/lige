@@ -7,6 +7,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';
 import { SettingsService } from '@delon/theme';
+import { TableGrupoActividadGruposComponent } from '../../../shared/table-grupo-actividad-grupos/table-grupo-actividad-grupos.component'
 
 
 @Component({
@@ -14,7 +15,7 @@ import { SettingsService } from '@delon/theme';
   standalone: true,
   imports: [
     SHARED_IMPORTS, 
-    CommonModule, 
+    CommonModule, TableGrupoActividadGruposComponent
   ],
   encapsulation: ViewEncapsulation.None,
   providers: [AngularUtilService],

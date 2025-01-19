@@ -1,12 +1,5 @@
 <nz-card class="small-margin">
 
-    <!-- 
-    <div nz-row>
-        <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse;">
-         /////////////////////////////
-        </div>
-    </div> 
-    -->
 
     <div nz-row class="contentStyle">
         <div nz-col nzSpan="13" class="listStyle">
@@ -44,7 +37,7 @@
         <nz-tab>
             <a nz-tab-link routerLink="/ges/grupo-actividad/grupos">{{ 'app.grupos' | i18n }} </a>
             <ng-template nz-tab>
-                <span>grupos</span>
+                <app-table-grupo-actividad-grupos></app-table-grupo-actividad-grupos>
             </ng-template>
         </nz-tab>
 
