@@ -345,9 +345,17 @@ export class TelefoniaController extends BaseController {
       if (dataset.length > 0)
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo`, { list: dataset })
 
-      const anioDS = await queryRunner.query('SELECT anio.ConsumoTelefoniaAnoId, anio.ConsumoTelefoniaAnoAno, anio.ConsumoTelefoniaAnoMesUltNro FROM ConsumoTelefoniaAno anio WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest])
-      if (!anioDS[0].ConsumoTelefoniaAnoId)
-        throw new ClientException(`No existe el año ${anioRequest} `)
+      let anioDS = await queryRunner.query('SELECT anio.ConsumoTelefoniaAnoId, anio.ConsumoTelefoniaAnoAno, anio.ConsumoTelefoniaAnoMesUltNro FROM ConsumoTelefoniaAno anio WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest])
+      if (!anioDS[0]?.ConsumoTelefoniaAnoId) {
+        await queryRunner.query(
+          `INSERT INTO ConsumoTelefoniaAnoMes (ConsumoTelefoniaAnoId, ConsumoTelefoniaAnoAno, ConsumoTelefoniaAnoMesUltNro)
+          VALUES (@1, @2)`,
+          [
+            , anioRequest,0
+          ])
+          anioDS = await queryRunner.query('SELECT anio.ConsumoTelefoniaAnoId, anio.ConsumoTelefoniaAnoAno, anio.ConsumoTelefoniaAnoMesUltNro FROM ConsumoTelefoniaAno anio WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest])
+//        throw new ClientException(`No existe el año ${anioRequest} `)
+      }
       const ConsumoTelefoniaAnoId = anioDS[0].ConsumoTelefoniaAnoId
 
       const mesDS = await queryRunner.query('SELECT mes.ConsumoTelefoniaAnoMesId, mes.ConsumoTelefoniaAnoMesTelefonoUltNro FROM ConsumoTelefoniaAnoMes mes WHERE ConsumoTelefoniaAnoMesMes = @0 AND ConsumoTelefoniaAnoId = @1', [mesRequest, ConsumoTelefoniaAnoId])

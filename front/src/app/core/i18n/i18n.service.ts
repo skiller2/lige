@@ -69,11 +69,15 @@ const LANGS: { [key: string]: LangConfigData } = {
 
 @Injectable({ providedIn: 'root' })
 export class I18NService extends AlainI18nBaseService {
+  static getDateFormat() {
+    throw new Error('Method not implemented.');
+  }
   private readonly http = inject(_HttpClient);
   private readonly settings = inject(SettingsService);
   private readonly nzI18nService = inject(NzI18nService);
   private readonly delonLocaleService = inject(DelonLocaleService);
   private readonly platform = inject(Platform);
+  private _dateFormat = ""
 
   protected override _defaultLang = DEFAULT;
   private _langs = Object.keys(LANGS).map(code => {
@@ -83,6 +87,7 @@ export class I18NService extends AlainI18nBaseService {
 
   constructor(cogSrv: AlainConfigService) {
     super(cogSrv);
+    this._dateFormat = this.getBrowserLocaleDateFormat() 
 
     const defaultLang = this.getDefaultLang();
     this._defaultLang = this._langs.findIndex(w => w.code === defaultLang) === -1 ? DEFAULT : defaultLang;
@@ -115,11 +120,36 @@ export class I18NService extends AlainI18nBaseService {
     this.nzI18nService.setDateLocale(item.date);
     this.delonLocaleService.setLocale(item.delon);
     this._currentLang = lang;
-
+    this._dateFormat = this.getBrowserLocaleDateFormat() 
     this._change$.next(lang);
   }
 
   getLangs(): Array<{ code: string; text: string; abbr: string }> {
     return this._langs;
   }
+
+  getDateFormat(): string { return this._dateFormat }
+
+  private getBrowserLocaleDateFormat(): string {
+    const locale = navigator.language; // Get the browser's locale
+    const formatter = new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  
+    // Format a test date to determine the locale-specific order
+    const parts = formatter.formatToParts(new Date(2025, 0, 1)); // Example date: Jan 1, 2025
+  
+    // Construct the format based on the parts
+    return parts
+      .map(part => {
+        if (part.type === 'year') return 'yyyy';
+        if (part.type === 'month') return 'MM';
+        if (part.type === 'day') return 'dd';
+        return part.value; // Preserve separators like "-" or "/"
+      })
+      .join('');
+  }
+  
 }

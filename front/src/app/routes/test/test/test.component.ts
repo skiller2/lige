@@ -13,6 +13,7 @@ import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal
 import { Directionality } from '@angular/cdk/bidi';
 import { DescuentosComponent } from '../../ges/descuentos/descuentos.component';
 import { BarcodeFormat } from '@zxing/library';
+import { I18NService } from '@core';
 
 /** config ng-zorro-antd i18n **/
 
@@ -42,6 +43,8 @@ export class TestComponent {
   nacimiento: Date = new Date('1973-05-24')
   allowedBarCodeFormats = [BarcodeFormat.PDF_417, BarcodeFormat.QR_CODE]
 
+  i18NService = inject(I18NService)
+
    periodo1 = { year: 2024, month: 3 }
   onChange(evt: any) {
     console.log('onChange', evt)
@@ -68,10 +71,11 @@ export class TestComponent {
     console.log('onModelChangeObjetivo', evt, this.valueExtendedObjetivo)
   }
 
-locale = new Intl.Locale('default')
 
   ngOnInit(): void {
-    console.log('Intl.Locale', new Intl.Locale('default'))
+
+    console.log('I18NService.getDateFormat()',this.i18NService.getDateFormat())
+
     const autocomplete = new GeocoderAutocomplete(
       this.el.nativeElement ,
       'f5cdd3892a38432fbcd0edc786268446',

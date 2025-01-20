@@ -13,7 +13,7 @@ import { AlainConfig } from '@delon/util/config';
 import { environment } from '@env/environment';
 import { CELL_WIDGETS, SF_WIDGETS, ST_WIDGETS } from '@shared';
 import { zhCN as dateLang } from 'date-fns/locale';
-import { NzConfig, provideNzConfig } from 'ng-zorro-antd/core/config';
+import { NZ_CONFIG, NzConfig, provideNzConfig } from 'ng-zorro-antd/core/config';
 import { zh_CN as zorroLang } from 'ng-zorro-antd/i18n';
 
 import { routes } from './routes/routes';
@@ -41,7 +41,10 @@ const alainConfig: AlainConfig = {
   auth: { login_url: '/passport/login' }
 };
 
-const ngZorroConfig: NzConfig = {};
+
+const ngZorroConfig: NzConfig = {
+};
+
 
 const routerFeatures: RouterFeatures[] = [withComponentInputBinding(), withInMemoryScrolling({ scrollPositionRestoration: 'top' })];
 if (environment.useHash) routerFeatures.push(withHashLocation());
@@ -69,8 +72,16 @@ const providers: Array<Provider | EnvironmentProviders> = [
   ),
 
   { provide: DEFAULT_CURRENCY_CODE, useValue: '$' },
-  { provide: DATE_PIPE_DEFAULT_OPTIONS, useValue: { dateFormat: 'dd/MM/yyyy' } },
-
+  { provide: DATE_PIPE_DEFAULT_OPTIONS, useValue: { dateFormat: 'dd/MM/yyyy' },},
+  {
+    provide: NZ_CONFIG, useValue: {
+      
+      datePicker: {
+        nzFormat: 'dd-yyyy-MM', // Set the global default format here
+      },
+    },
+  },
+ 
   ...(environment.providers || [])
 ];
 

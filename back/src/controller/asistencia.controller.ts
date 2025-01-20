@@ -3143,7 +3143,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     return [
       { TipoHoraId: 'N', Descripcion: 'Normal' },
       { TipoHoraId: 'C', Descripcion: 'Capacitacion' },
-      { TipoHoraId: 'R', Descripcion: 'Retén' },
+      { TipoHoraId: 'R', Descripcion: 'No Facturable' },
     ]
   }
 
