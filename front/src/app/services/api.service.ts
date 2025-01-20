@@ -583,6 +583,16 @@ export class ApiService {
     
   }
 
+  getListGrupoActividadGrupos(filters: any) {
+    const parameter =  filters 
+    return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/listGrupos', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+    
+  }
+
   getListCargaContratoHistory(filters: any, anio: any, mes: any, ObjetivoId:any, ClienteElementoDependienteId:any, ClienteId:any) {
 
     const parameter = { filters, anio, mes, ObjetivoId, ClienteElementoDependienteId,ClienteId}
@@ -807,6 +817,14 @@ export class ApiService {
 
   onchangecellPrecioProducto(params: any) {
     return this.http.post<ResponseJSON<any>>('/api/precios-productos/changecell', params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+
+    )
+
+  }
+
+  onchangecellGrupoActividadGrupo(params: any) {
+    return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/changecellgrupo', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
 
     )

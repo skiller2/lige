@@ -80,7 +80,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   };
 
   $optionsSepaga = this.searchService.getSePaga();
-
+  $optionsInactivo = this.searchService.getInactivo();
 
   isFiltroBuilder = false;
 
@@ -310,6 +310,12 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       this.selections.value = val
     }
   }
+  selectedValueInactivo(val: any) {
+    if (val) {
+      this.selections.value = val
+      //this.valueExtended = { fullName: val.label }
+    }
+  }
 
   selectedValueEstado(val: any) {
     if (val) {
@@ -319,7 +325,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   selectedValueProducto(val: any) {
-    console.log("val ", val)
+  
     if (val) {
       this.selections.value = val.TipoProductoId;
       this.valueExtended = { fullName: val.TipoProductoDescripcion };

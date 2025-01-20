@@ -67,7 +67,9 @@ export class ObjetivosFormComponent {
   objActividad = {
     GrupoActividadObjetivoId:0,
     GrupoActividadId:0,
-    GrupoActividadOriginal:0
+    GrupoActividadOriginal:0,
+    GrupoActividadObjetivoDesde:new Date(),
+    GrupoActividadObjetivoDesdeOriginal: ''
   }
   ObjetivoId = model(0)
   ClienteId = model(0)
