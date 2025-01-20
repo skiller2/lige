@@ -348,10 +348,10 @@ export class TelefoniaController extends BaseController {
       let anioDS = await queryRunner.query('SELECT anio.ConsumoTelefoniaAnoId, anio.ConsumoTelefoniaAnoAno, anio.ConsumoTelefoniaAnoMesUltNro FROM ConsumoTelefoniaAno anio WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest])
       if (!anioDS[0]?.ConsumoTelefoniaAnoId) {
         await queryRunner.query(
-          `INSERT INTO ConsumoTelefoniaAnoMes (ConsumoTelefoniaAnoId, ConsumoTelefoniaAnoAno, ConsumoTelefoniaAnoMesUltNro)
-          VALUES (@1, @2)`,
+          `INSERT INTO ConsumoTelefoniaAno (ConsumoTelefoniaAnoAno, ConsumoTelefoniaAnoMesUltNro)
+          VALUES (@0, @1)`,
           [
-            , anioRequest,0
+            anioRequest,0
           ])
           anioDS = await queryRunner.query('SELECT anio.ConsumoTelefoniaAnoId, anio.ConsumoTelefoniaAnoAno, anio.ConsumoTelefoniaAnoMesUltNro FROM ConsumoTelefoniaAno anio WHERE ConsumoTelefoniaAnoAno = @0', [anioRequest])
 //        throw new ClientException(`No existe el año ${anioRequest} `)
