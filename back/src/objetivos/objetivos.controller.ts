@@ -454,7 +454,10 @@ export class ObjetivosController extends BaseController {
     }
     async getGrupoActividad(queryRunner: any, ObjetivoId: any,ClienteId:any,ClienteElementoDependienteId:any){
 
-     return await queryRunner.query(`SELECT GrupoActividadObjetivoId, GrupoActividadId, GrupoActividadId as GrupoActividadOriginal FROM GrupoActividadObjetivo 
+     return await queryRunner.query(`
+        SELECT GrupoActividadObjetivoId, GrupoActividadId, GrupoActividadId AS GrupoActividadOriginal,
+        GrupoActividadObjetivoDesde, GrupoActividadObjetivoDesde AS GrupoActividadObjetivoDesdeOriginal
+        FROM GrupoActividadObjetivo 
         WHERE GrupoActividadObjetivoObjetivoId = @0 ORDER BY ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') DESC, GrupoActividadObjetivodesde DESC, GrupoActividadObjetivoTiempo DESC;`
                 ,[ObjetivoId])
           
@@ -746,19 +749,36 @@ export class ObjetivosController extends BaseController {
         // Obtener la hora, minutos y segundos
         const GrupoActividadObjetivoTiempo = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
 
-        let GrupoActividadObjetivoDesde = now
+        let GrupoActividadObjetivoDesde = infoActividad[0].GrupoActividadObjetivoDesde
         GrupoActividadObjetivoDesde.setHours(0, 0, 0, 0);
 
+        const Objetivo = await queryRunner.query(`
+            SELECT obj.GrupoActividadObjetivoId, obj.GrupoActividadObjetivoObjetivoId, obj.GrupoActividadObjetivoDesde
+            FROM GrupoActividad grup
+            LEFT JOIN GrupoActividadObjetivo obj ON obj.GrupoActividadObjetivoId = grup.GrupoActividadObjetivoUltNro
+            WHERE  GrupoActividadId IN (@0)`,
+            [infoActividad[0].GrupoActividadId]
+        )
+        const ValidatePeriodoAndDay = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
+        const FechaCierre = new Date(ValidatePeriodoAndDay[0].FechaCierre);
+        const fechaFormateada = `${FechaCierre.getFullYear()}-${(FechaCierre.getMonth() + 1).toString().padStart(2, '0')}-${FechaCierre.getDate().toString().padStart(2, '0')}`
+
+        if (Objetivo.length && infoActividad[0].GrupoActividadId != infoActividad[0].GrupoActividadOriginal && Objetivo[0].GrupoActividadObjetivoDesde.getTime() > GrupoActividadObjetivoDesde.getTime()) {
+            throw new ClientException(`La fecha Desde no puede ser menor a ${GrupoActividadObjetivoDesde.getDate()}/${GrupoActividadObjetivoDesde.getMonth()+1}/${GrupoActividadObjetivoDesde.getFullYear()}`)
+        }
+        if (GrupoActividadObjetivoDesde != infoActividad[0].GrupoActividadObjetivoDesdeOriginal && GrupoActividadObjetivoDesde < FechaCierre) {
+            throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
+        }
         // Restar un día a la fecha
         let GrupoActividadObjetivoHasta = GrupoActividadObjetivoDesde; 
         GrupoActividadObjetivoHasta.setDate(GrupoActividadObjetivoHasta.getDate() - 1);
 
         console.log("GrupoActividadObjetivoHasta ", GrupoActividadObjetivoHasta)
-           if(infoActividad[0].GrupoActividadObjetivoId){
+        if(infoActividad[0].GrupoActividadId != infoActividad[0].GrupoActividadOriginal && infoActividad[0].GrupoActividadObjetivoId){
             await queryRunner.query(`UPDATE GrupoActividadObjetivo SET GrupoActividadObjetivoHasta = @3
                 WHERE  GrupoActividadObjetivoId = @0 AND GrupoActividadObjetivoObjetivoId = @1 AND GrupoActividadId = @2 AND ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') > @3`,
                 [infoActividad[0].GrupoActividadObjetivoId,GrupoActividadObjetivoObjetivoId,infoActividad[0].GrupoActividadOriginal,GrupoActividadObjetivoHasta])
-           }
+        }
 
           
            const GrupoActividadObjetivoUltNro = await queryRunner.query(`SELECT GrupoActividadObjetivoUltNro FROM GrupoActividad WHERE GrupoActividadId = @0`,[infoActividad[0].GrupoActividadId])
@@ -768,8 +788,8 @@ export class ObjetivosController extends BaseController {
            const UsuarioId = GrupoActividadObjetivoUltNro[0].UsuarioId;
 
            
-
-           // validar GrupoActividadObjetivoId
+        if (infoActividad[0].GrupoActividadId != infoActividad[0].GrupoActividadOriginal) {
+            // validar GrupoActividadObjetivoId
             await queryRunner.query(`INSERT INTO GrupoActividadObjetivo (
             GrupoActividadObjetivoId,
             GrupoActividadId,
@@ -778,7 +798,7 @@ export class ObjetivosController extends BaseController {
             GrupoActividadObjetivoPuesto,
             GrupoActividadObjetivoUsuarioId,
             GrupoActividadObjetivoDia,
-	        GrupoActividadObjetivoTiempo) VALUES (@0,@1,@2,@3,@4,@5,@6,@7)`,
+            GrupoActividadObjetivoTiempo) VALUES (@0,@1,@2,@3,@4,@5,@6,@7)`,
             [ GrupoActividadObjetivoIdNew,
                 infoActividad[0].GrupoActividadId,
                 GrupoActividadObjetivoObjetivoId,
@@ -787,8 +807,20 @@ export class ObjetivosController extends BaseController {
                 UsuarioId,
                 GrupoActividadObjetivoDesde,
                 GrupoActividadObjetivoTiempo ])
-
+    
             await queryRunner.query(`UPDATE GrupoActividad SET GrupoActividadObjetivoUltNro =@0 WHERE GrupoActividadId = @1`,[GrupoActividadObjetivoIdNew,infoActividad[0].GrupoActividadId])
+        } else if (GrupoActividadObjetivoDesde != infoActividad[0].GrupoActividadObjetivoDesdeOriginal) {
+            await queryRunner.query(`
+            UPDATE GrupoActividadObjetivo SET
+            GrupoActividadObjetivoDesde = @3
+            WHERE  GrupoActividadObjetivoId = @0 AND GrupoActividadObjetivoObjetivoId = @1 AND GrupoActividadId = @2 AND ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') > @3
+            `, [
+                infoActividad[0].GrupoActividadObjetivoId, GrupoActividadObjetivoObjetivoId,
+                infoActividad[0].GrupoActividadOriginal, GrupoActividadObjetivoHasta
+            ])
+        
+        }
+           
     }
 
     
@@ -861,7 +893,7 @@ export class ObjetivosController extends BaseController {
                     
             }
 
-            if(infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId)
+            if(infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId || infoActividad[0].GrupoActividadObjetivoDesdeOriginal != infoActividad[0].GrupoActividadObjetivoDesde)
                 await this.grupoActividad (queryRunner,Obj.infoActividad,ObjetivoId,ip, usuario)
             
             ObjObjetivoNew.infoCoordinadorCuenta= await this.ObjetivoCoordinador(queryRunner,Obj.infoCoordinadorCuenta,ObjetivoId)
@@ -1176,8 +1208,10 @@ export class ObjetivosController extends BaseController {
          for(const obj of form.infoActividad){
             if(!obj.GrupoActividadId) {
                 throw new ClientException(`Debe completar el campo Actividad.`)
-             }
-
+            }
+            if (!obj.GrupoActividadObjetivoDesde) {
+                throw new ClientException(`Debe completar el campo Fecha Desde de Grupo Actividad.`)
+            }
          }
         
 
@@ -1323,7 +1357,7 @@ export class ObjetivosController extends BaseController {
  
             //await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,MaxObjetivoPersonalJerarquicoId, maxRubro)
 
-            if(infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId)
+            if(infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId || infoActividad[0].GrupoActividadObjetivoDesdeOriginal != infoActividad[0].GrupoActividadObjetivoDesde)
                 await this.grupoActividad (queryRunner,Obj.infoActividad,ObjetivoID,ip, usuario)
 
             if(Obj.files?.length > 0){
