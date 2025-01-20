@@ -5,8 +5,8 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 
 
 const getOptions: any[] = [
-    { label: 'Si', value: 'true'},
-    { label: 'No', value: 'false ' }
+    { label: 'No', value: '0' },
+    { label: 'Si', value: '1' },
   ]
 
 export class GrupoActividadController extends BaseController {
@@ -56,7 +56,7 @@ export class GrupoActividadController extends BaseController {
             name: "Sucursal",
             type: "string",
             id: "SucursalId",
-            field: "SucursalId",
+            field: "GrupoActividadSucursalId",
             fieldName: "grup.GrupoActividadSucursalId",
             formatter: 'collectionFormatter',
             searchComponent: "inpurForSucursalSearch",
@@ -90,11 +90,9 @@ export class GrupoActividadController extends BaseController {
                     grup.GrupoActividadId,
                     grup.GrupoActividadNumero,
                     grup.GrupoActividadDetalle,
-                    grup.GrupoActividadInactivo,
-                    grup.GrupoActividadSucursalId,
-                    suc.SucursalDescripcion
+                    IIF(grup.GrupoActividadInactivo=1, '1', '0') as GrupoActividadInactivo,
+                    grup.GrupoActividadSucursalId
                     FROM GrupoActividad grup
-                    JOIN Sucursal suc ON suc.SucursalId = grup.GrupoActividadSucursalId
                     WHERE ${filterSql} ${orderBy}`)
 
             this.jsonRes(
