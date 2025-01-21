@@ -64,7 +64,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
 
         }
     })
-    .addAnswer('El teléfono ingresado no lo pude localizar.  Desea registrarlo?', { delay: delay, capture: true },
+    .addAnswer('El teléfono ingresado no lo pude localizar.  Desea registrarlo (Si/No)?', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
             reset(ctx,gotoFlow,botServer.globalTimeOutMs)
             const telefono = ctx.from
