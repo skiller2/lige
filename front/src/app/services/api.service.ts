@@ -1014,6 +1014,14 @@ export class ApiService {
 
   }
 
+  deleteGrupoActividadGrupo(vals: any) {
+    return this.http.delete<ResponseJSON<any>>(`/api/grupo-actividad/grupo`,  vals ).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
+
+
   deleteArchivosLicencias(deleteId: any) {
     const parameter = [deleteId]
     this.notification.success('Respuesta', `Inicio Borrado `);

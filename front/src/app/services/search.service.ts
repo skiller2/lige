@@ -328,6 +328,16 @@ export class SearchService {
     );
   }
 
+  getPersonas(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/sucursales`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getTipoProducto(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/descripcion-productos`).pipe(
       map(res => res.data),
@@ -1017,6 +1027,16 @@ export class SearchService {
         catchError(() => of([]))
       );
   }
+
+  getPersonal(){
+    return this.http
+      .post<ResponseJSON<any>>(`api/personal/listfull`)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
 
   getSitRevistaOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/personal/sitrevista/options`).pipe(

@@ -10,6 +10,11 @@ personalRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGrou
   personalController.getGridList(req, res, next)
 });
 
+personalRouter.post('/listfull', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
+  personalController.getListFull(req, res, next)
+});
+
+
 personalRouter.post('/deleteArchivo', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
   personalController.deleteArchivo(req, res, next)
 });

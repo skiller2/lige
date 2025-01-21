@@ -3,17 +3,14 @@
   <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse; margin-bottom: 10px;">
     <nz-button-group style="text-align: right;">
 
-      <!-- <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-          <button nz-button nzType="default" (click)="addNewItem()" ><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-        </a> -->
       <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-        <button nz-button nzType="default"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+        <button nz-button nzType="default" (click)="addNewItem()"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
       </a>
       <!-- <a  nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}" >
             <button nz-button nzType="default" [disabled]=" editProducto().length == 0" (click)="deleteItem()"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
           </a> -->
       <a nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-        <button nz-button nzType="default"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
+        <button nz-button nzType="default" [disabled]=" editGrupo().length == 0" (click)="deleteItem()"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
       </a>
 
     </nz-button-group>

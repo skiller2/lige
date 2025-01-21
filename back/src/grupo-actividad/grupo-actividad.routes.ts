@@ -21,6 +21,10 @@ grupoActividadRouter.get('/inactivo_getOptions', [authMiddleware.verifyToken, au
     grupoActividadController.getOptions(req, res)
 });
 
+grupoActividadRouter.delete('/grupo', authMiddleware.verifyToken,  (req, res, next) => {
+    grupoActividadController.deleteGrupo(req, res, next)
+})
+
 //JERARQUICOS
 //SUPERVISORES
 //OBJETIVOS

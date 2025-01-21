@@ -14,6 +14,7 @@ import { columnTotal, totalRecords } from "../../shared/custom-search/custom-sea
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../shared/select-search/select-search.component"
 import { Component, model, signal, inject } from '@angular/core';
+import { EditorPersonaComponent } from '../../shared/editor-persona/editor-persona.component';
 
 
 @Component({
@@ -23,7 +24,7 @@ import { Component, model, signal, inject } from '@angular/core';
   imports: [
     ...SHARED_IMPORTS,
     CommonModule,
-    FiltroBuilderComponent,
+    FiltroBuilderComponent
     
   ],
   templateUrl: './table-grupo-actividad-grupos.component.html',
@@ -40,7 +41,7 @@ export class TableGrupoActividadGruposComponent {
   columnDefinitions: Column[] = []
   itemAddActive = false
   listGrupoActividad$ = new BehaviorSubject('')
-  GrupoActividadId = signal<{ codigo: string }[]>([])
+  editGrupo = signal<{ GrupoActividadId: string }[]>([])
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
@@ -63,15 +64,31 @@ export class TableGrupoActividadGruposComponent {
     switchMap(async (cols) => {
       const sucursales = await firstValueFrom(this.searchService.getSucursales());
       const inactivo = await firstValueFrom(this.searchService.getInactivo());
-      console.log("sucursales ", sucursales)
-      console.log("inactivo ", inactivo)
-      return { cols, sucursales, inactivo }
+      const persona = await firstValueFrom(this.searchService.getPersonal());
+
+      return { cols, sucursales, inactivo,persona }
     }),
     map((data) => {
       let mapped = data.cols.map((col: Column) => {
-        console.log("col.id ", col.id)
+
         switch (col.id) {
           
+          case 'PersonalId':
+            col.editor = {
+              model: CustomInputEditor,
+              collection: [],
+              params: {
+                component: SelectSearchComponent,
+              },
+              alwaysSaveOnEnterKey: true,
+              required: true
+            }
+            col.params = {
+              collection: data.persona,
+            }
+            col.cssClass = "text-center";
+
+            break;
           case 'GrupoActividadInactivo':
             col.editor = {
               model: CustomInputEditor,
@@ -85,7 +102,7 @@ export class TableGrupoActividadGruposComponent {
             col.params = {
               collection: data.inactivo,
             }
-
+            
             break;
           case 'SucursalId':
             col.editor = {
@@ -132,12 +149,13 @@ export class TableGrupoActividadGruposComponent {
       this.angularGridEdit.slickGrid.invalidate();
 
       const emptyrows = this.angularGridEdit.dataView.getItems().filter(row => (!row.id))
-
-      if (emptyrows.length == 0) {
-        await this.addNewItem()
-      } else if (emptyrows.length > 1) {
-        this.angularGridEdit.gridService.deleteItemById(emptyrows[0].id)
-      }
+      console.log("row ", row)
+      console.log("emptyrows ", emptyrows)
+      // if (emptyrows.length == 0) {
+      //   await this.addNewItem()
+      // } else if (emptyrows.length > 1) {
+       //this.angularGridEdit.gridService.deleteItemById(emptyrows[0].id)
+      // }
       //Intento grabar si tiene error hago undo
 
       try {
@@ -163,20 +181,11 @@ export class TableGrupoActividadGruposComponent {
         
         console.log('error', e)
 
-        if (row.codigoOld) {
-          const item = this.angularGridEdit.dataView.getItemById(row.id)
-          if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
-            const fld = editCommand.editor.args.column.field
-            editCommand.undo()
-            item[fld] = editCommand.editor.args.item[fld]
-          }
-          this.angularGridEdit.gridService.updateItemById(row.id, item)
-        } else {
-          //marcar el row en rojo
+        //marcar el row en rojo
 
-          this.angularGridEdit.slickGrid.setSelectedRows([]);
-          this.angularGridEdit.slickGrid.render();
-        }
+        this.angularGridEdit.slickGrid.setSelectedRows([]);
+        this.angularGridEdit.slickGrid.render();
+
         this.rowLocked = false
       }
     }
@@ -192,7 +201,7 @@ export class TableGrupoActividadGruposComponent {
 
   async deleteItem() {
 
-    //await firstValueFrom(this.apiService.deleteProducto(this.precioVentaId()))
+    await firstValueFrom(this.apiService.deleteGrupoActividadGrupo(this.editGrupo()))
     this.listGrupoActividad$.next('')
   }
 
@@ -212,7 +221,7 @@ export class TableGrupoActividadGruposComponent {
       GrupoActividadNumero: 0,
       GrupoActividadDetalle:"",
       GrupoActividadInactivo:"",
-      SucursalId: ""
+      GrupoActividadSucursalId: ""
 
     };
   }
@@ -255,9 +264,9 @@ export class TableGrupoActividadGruposComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
-    if (row?.codigo) {
-      //this.editGrupoActividad.set([row.codigo])
-      this.GrupoActividadId.set([row.id])
+
+    if (row?.GrupoActividadId) {
+      this.editGrupo.set([row.GrupoActividadId])
     }
 
 
@@ -276,9 +285,15 @@ export class TableGrupoActividadGruposComponent {
       if (typeof previousItemMetadata === 'object') {
         meta = previousItemMetadata(rowNumber);
       }
-   
-      if (!item.id){
-        meta.cssClasses =  'element-add-no-complete'
+    
+      if (
+        item.GrupoActividadNumero == 0 || 
+        item.GrupoActividadDetalle === "" || 
+        item.GrupoActividadInactivo === "" || 
+        item.SucursalId === "" || 
+        item.PersonalId === ""
+      ) {
+        meta.cssClasses = 'element-add-no-complete';
       }
       else
         meta.cssClasses = ''

@@ -504,6 +504,23 @@ export class PersonalController extends BaseController {
     }
   }
 
+  async getListFull(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction()
+
+      const lista: any[] = await queryRunner.query(`SELECT PersonalId, personalApellidoNombre, personalApellidoNombre as label, PersonalId as value FROM personal`)
+
+      await queryRunner.commitTransaction()
+      this.jsonRes(lista, res);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
   private async getSituacionRevistaQuery(queryRunner: any) {
     return await queryRunner.query(`
         SELECT sit.SituacionRevistaId value, sit.SituacionRevistaDescripcion label
