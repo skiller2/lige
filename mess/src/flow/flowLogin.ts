@@ -8,14 +8,21 @@ const delay = chatBotController.getDelay()
 
 
 export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
-    .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => { 
+    .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
     })
-    .addAnswer([`Ingrese el código proporcionado durante la verificación de DNI`], { capture: true,delay: delay },
+    .addAnswer([`Ingrese el código proporcionado durante la verificación de DNI`], { capture: true, delay: delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const telefono = ctx.from
             const res = await personalController.getPersonalfromTelefonoQuery(telefono)
+
             if (res.length) {
+                if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
+                    await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio`, { delay: delay })
+                    stop(ctx, gotoFlow, state)
+                    return
+                }
+    
                 await state.update({ personalId: res[0].personalId })
                 await state.update({ cuit: res[0].cuit })
                 await state.update({ codigo: res[0].codigo })
@@ -50,6 +57,13 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
         await flowDynamic(`Bienvenido al área de consultas de la Cooperativa Lince Seguridad`, { delay: delay })
         const res = await personalController.getPersonalfromTelefonoQuery(telefono)
         if (res.length) {
+            if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
+                await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio`, { delay: delay })
+                stop(ctx, gotoFlow, state)
+                return
+            }
+
+
             await state.update({ personalId: res[0].personalId })
             await state.update({ cuit: res[0].cuit })
             await state.update({ codigo: res[0].codigo })
