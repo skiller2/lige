@@ -51,10 +51,12 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
 
             if (urlDocRecibo instanceof Error)
                 await flowDynamic([{ body: `Error, no se encontró el documento`, delay }])
-            else
-                await flowDynamic([{ body: `Recibo`, media: urlDocRecibo, delay }])
-            //TODO Escribir en la base la descarga del recibo
-            //            await flowDynamic([ { body:`Rec`, media:"https://i.imgur.com/0HpzsEm.png" } ]) 
+            else {
+                await chatBotController.addToDocLog(urlDocRecibo.doc_id, ctx.from)
+                await flowDynamic([{ body: `Recibo`, media: urlDocRecibo.URL, delay }])
+                //TODO Escribir en la base la descarga del recibo
+            }
+            
         })
     .addAnswer([
         '¿Desea consulta algo mas?',

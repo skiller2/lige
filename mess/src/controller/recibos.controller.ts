@@ -72,7 +72,7 @@ export class RecibosController extends BaseController {
       } else {
         throw new ClientException(`Recibo no generado`)
       }
-      return tmpURL
+      return { URL:tmpURL, doc_id: gettmpfilename[0].doc_id }
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return error

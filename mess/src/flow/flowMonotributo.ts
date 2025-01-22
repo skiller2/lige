@@ -63,12 +63,14 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         // await flowDynamic([{ body:`⏱️ Dame un momento`, delay: delay }])
         const urlDoc = await impuestosAfipController.getURLDocComprobante(personalId, anio, mes)
 
-        if (urlDoc instanceof Error)
-            await flowDynamic([{ body:`Error, no se encontró el documento`, delay }])
-        else
-                await flowDynamic([{ body: `Recibo`, media: urlDoc, delay }])
+            if (urlDoc instanceof Error)
+                await flowDynamic([{ body: `Error, no se encontró el documento`, delay }])
+            else {
+                await chatBotController.addToDocLog(urlDoc.doc_id,ctx.from)
+                await flowDynamic([{ body: `Recibo`, media: urlDoc.URL, delay }])
+            }
         //TODO Escribir en la base la descarga del archivo
-        //    
+    
     })
     .addAnswer([
         '¿Desea consulta algo mas?', 
