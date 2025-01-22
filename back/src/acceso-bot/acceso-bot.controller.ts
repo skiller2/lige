@@ -364,7 +364,7 @@ export class AccesoBotController extends BaseController {
             }else{
                 const result = await queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE persona_id = @0 AND idrecibo = @1`, [personalId, recibo])
                 if(result?.length < 1)
-                    throw new ClientException(`El Codigo seleccionado no se encuentra registradoo`)
+                    throw new ClientException(`En número de recibo es incorrecto para el CUIT ${cuit} `)
             }
            
             this.jsonRes(existRecibo, res)
@@ -386,46 +386,40 @@ export class AccesoBotController extends BaseController {
         const queryRunner = dataSource.createQueryRunner()
 
         try {
-            if (cbu.toString().length == 6) {
+            if (cbu.toString().length != 6)
+                throw new ClientException(`Debe ingresar los últimos 6 digitos CBU para el CUIT ${cuit}`);
 
-                // console.log("cbu ", cbu)
-                // console.log("cuit ", cuit)
-                // console.log("numeroTelefono ", numeroTelefono)
+            let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
+            const personalId = personaIdQuery[0].PersonalId
 
-                let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
-                const personalId = personaIdQuery[0].PersonalId
-
-                const result = await queryRunner.query(`SELECT cue.PersonalId, ban.BancoDescripcion, cue.PersonalBancoCBU, cue.PersonalBancoDesde, cue.PersonalBancoHasta 
-FROM PersonalBanco cue 
-JOIN Banco ban ON ban.BancoId = cue.PersonalBancoBancoId 
-WHERE cue.PersonalId = @0 
-AND cue.PersonalBancoDesde <= @1 AND  @1 <= ISNUlL(cue.PersonalBancoHasta,'9999-12-31' )
-ORDER BY cue.PersonalBancoHasta DESC;
-`, [personalId,fecha])
+            const result = await queryRunner.query(`SELECT cue.PersonalId, ban.BancoDescripcion, cue.PersonalBancoCBU, cue.PersonalBancoDesde, cue.PersonalBancoHasta 
+                FROM PersonalBanco cue 
+                JOIN Banco ban ON ban.BancoId = cue.PersonalBancoBancoId 
+                WHERE cue.PersonalId = @0 
+                AND cue.PersonalBancoDesde <= @1 AND  @1 <= ISNUlL(cue.PersonalBancoHasta,'9999-12-31' )
+                ORDER BY cue.PersonalBancoHasta DESC;
+            `, [personalId,fecha])
                 
-                if (result?.length && result[0].PersonalBancoCBU.slice(-6) == cbu.toString()) {
+                   
+                
+            if (result.length == 0 || result[0].PersonalBancoCBU.slice(-6) != cbu.toString())
+                throw new ClientException(`El número proporcionado es incorrecto para el CUIT ${cuit}`);
 
-                    let base_url = process.env.URL_MESS_API || "http://localhost:3010"
-                    let url = `${base_url}/api/personal/ident?cuit=${cuit}&encTelNro=${encTelNro}`;
+
+            let base_url = process.env.URL_MESS_API || "http://localhost:3010"
+            let url = `${base_url}/api/personal/ident?cuit=${cuit}&encTelNro=${encTelNro}`;
 
 
 
-                    const headers = {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json', 
-                      };
+            const headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json', 
+                };
 
-                    const response = await fetch(url, { method: 'GET', headers: headers })
-                    const responseCodigo: any = await response.json()
+            const response = await fetch(url, { method: 'GET', headers: headers })
+            const responseCodigo: any = await response.json()
 
-                    newValue = responseCodigo?.data.codigo
-                } else {
-                    throw new ClientException(`No se pudo verificar con los números proporcionados`);
-                }
-            } else {
-                throw new ClientException(`Debe ingresar 6 digitos finales del CBU`);
-            }
-
+            newValue = responseCodigo?.data.codigo
 
             this.jsonRes(newValue, res);
             //this.jsonRes(existRecibo, res);
