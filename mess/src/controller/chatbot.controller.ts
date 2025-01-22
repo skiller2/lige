@@ -2,6 +2,7 @@ import { BaseController, ClientException } from "./base.controller";
 import { NextFunction, Request, Response } from "express";
 import { existsSync, readFileSync } from "fs";
 import { botServer } from "../";
+import { dataSource } from "../data-source";
 
 export class ChatBotController extends BaseController {
   getChatBotStatus(req: Request, res: Response, next: NextFunction) {
@@ -42,6 +43,14 @@ export class ChatBotController extends BaseController {
     } catch (error) {
       return next(error)
     }
+  }
+
+  async addToDocLog(doc_id:number,telefono:string) {
+    const queryRunner = dataSource.createQueryRunner();
+    const fechaActual = new Date()
+    await queryRunner.query(`INSERT INTO lige.dbo.doc_descaga_log (doc_id, fecha_descarga, telefono, aud_usuario_ins, aud_ip_ins, aud_fecha_ins)
+      VALUES (@0,@1,@2,@3,@4,@5)`, 
+      [doc_id, fechaActual, telefono, 'bot', '127.0.0.1', fechaActual])
   }
 
 }
