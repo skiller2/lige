@@ -31,6 +31,16 @@ export class GrupoActividadController extends BaseController {
             sortable: true,
         },
         {
+            name: "NumeroOld",
+            type: "number",
+            id: "GrupoActividadNumeroOld",
+            field: "GrupoActividadNumeroOld",
+            fieldName: "grup.GrupoActividadNumero,",
+            sortable: false,
+            hidden: true,
+            searchHidden: true
+        },
+        {
             name: "Detalle",
             type: "string",
             id: "PersonalId",
@@ -78,7 +88,6 @@ export class GrupoActividadController extends BaseController {
 
     async listGrupoActividadGrupos(req: any, res: Response, next: NextFunction) {
 
-        console.log("paso por aca ", req.body.options)
         const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaGrupos);
         const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = dataSource.createQueryRunner();
@@ -88,9 +97,10 @@ export class GrupoActividadController extends BaseController {
 
             const GrupoActividad = await queryRunner.query(
                 `SELECT 
-                    CONCAT(grup.GrupoActividadId, '-', suc.PersonalId) AS id,
-                    grup.GrupoActividadId,
+                     ROW_NUMBER() OVER (ORDER BY grup.GrupoActividadId) AS id,
+                     grup.GrupoActividadId,
                     grup.GrupoActividadNumero,
+                    grup.GrupoActividadNumero AS GrupoActividadNumeroOld ,
                     grup.GrupoActividadDetalle,
                     IIF(grup.GrupoActividadInactivo=1, '1', '0') as GrupoActividadInactivo,
                     grup.GrupoActividadSucursalId,
@@ -117,10 +127,13 @@ export class GrupoActividadController extends BaseController {
 
       
     async changecellgrupo(req: any, res: Response, next: NextFunction) {
-        const usuarioId = res.locals.PersonalId == 0 ? null : res.locals.PersonalId
-        //const usuarioId = 119
+
         const ip = this.getRemoteAddress(req)
          const queryRunner = dataSource.createQueryRunner();
+
+         const usuarioIdquery = await queryRunner.query( `SELECT * FROM Usuario WHERE UsuarioId = @0`, [res.locals.PersonalId])
+         const usuarioId = usuarioIdquery > 0 ? usuarioIdquery : null
+
          const fechaActual = new Date()
          let message = ""
          const params = req.body
@@ -139,7 +152,17 @@ export class GrupoActividadController extends BaseController {
                  //Validar si cambio el código
                  console.log(" voy a hacer update")
  
-                 await this.validateFormGrupo(params)
+                 await this.validateFormGrupo(params,queryRunner)
+
+                if(params.GrupoActividadNumero !== params.GrupoActividadNumeroOld){
+
+                    let validateGrupoActividadNumero = await queryRunner.query( `SELECT * FROM GrupoActividad WHERE GrupoActividadNumero = @0`, [params.GrupoActividadNumero])
+
+                 if (validateGrupoActividadNumero.length > 0) {
+                    throw new ClientException(`El Numero ingresado ya existe`)
+                  }
+                }
+
                  let personalidquery = await queryRunner.query( `SELECT *  FROM Personal WHERE PersonalId = @0`, [params.PersonalId])
                  let GrupoActividadDetalle  = `${personalidquery[0].PersonalApellido.trim()} ${personalidquery[0].PersonalNombre.trim()}`
 
@@ -153,7 +176,13 @@ export class GrupoActividadController extends BaseController {
               
  
                  console.log('El código no existe - es nuevo')
-                 await this.validateFormGrupo(params)
+                 await this.validateFormGrupo(params,queryRunner)
+
+                 let validateGrupoActividadNumero = await queryRunner.query( `SELECT * FROM GrupoActividad WHERE GrupoActividadNumero = @0`, [params.GrupoActividadNumero])
+
+                 if (validateGrupoActividadNumero.length > 0) {
+                    throw new ClientException(`El Numero ingresado ya existe`)
+                  }
 
                  let personalidquery = await queryRunner.query( `SELECT *  FROM Personal WHERE PersonalId = @0`, [params.PersonalId])
                 
@@ -231,7 +260,12 @@ export class GrupoActividadController extends BaseController {
         }
     }
 
-     async validateFormGrupo(params:any){
+     async validateFormGrupo(params:any, queryRunner:any){
+
+        if(!params.GrupoActividadNumero) {
+            throw new ClientException(`Debe completar el campo Numero.`)
+        }
+
         if(!params.GrupoActividadDetalle && !params.PersonalId) {
             throw new ClientException(`Debe completar el campo Detalle.`)
         }

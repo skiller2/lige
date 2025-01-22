@@ -149,8 +149,6 @@ export class TableGrupoActividadGruposComponent {
       this.angularGridEdit.slickGrid.invalidate();
 
       const emptyrows = this.angularGridEdit.dataView.getItems().filter(row => (!row.id))
-      console.log("row ", row)
-      console.log("emptyrows ", emptyrows)
       // if (emptyrows.length == 0) {
       //   await this.addNewItem()
       // } else if (emptyrows.length > 1) {
@@ -177,15 +175,23 @@ export class TableGrupoActividadGruposComponent {
         this.listGrupoActividad$.next('')
         this.rowLocked = false
       } catch (e: any) {
-      
-        
-        console.log('error', e)
+
 
         //marcar el row en rojo
+        if (row.GrupoActividadNumeroOld) {
+          const item = this.angularGridEdit.dataView.getItemById(row.id)
+          if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
+            const fld = editCommand.editor.args.column.field
+            editCommand.undo();
+            item[fld] = editCommand.editor.args.item[fld]
+          }
+          this.angularGridEdit.gridService.updateItemById(row.id, item)
+        } else {
+          //marcar el row en rojo
 
-        this.angularGridEdit.slickGrid.setSelectedRows([]);
-        this.angularGridEdit.slickGrid.render();
-
+          this.angularGridEdit.slickGrid.setSelectedRows([]);
+          this.angularGridEdit.slickGrid.render();
+        }
         this.rowLocked = false
       }
     }
@@ -218,7 +224,8 @@ export class TableGrupoActividadGruposComponent {
 
     return {
       id: newId,
-      GrupoActividadNumero: 0,
+      GrupoActividadNumero: "",
+      GrupoActividadNumeroOld:"",
       GrupoActividadDetalle:"",
       GrupoActividadInactivo:"",
       GrupoActividadSucursalId: ""
