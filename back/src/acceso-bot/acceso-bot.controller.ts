@@ -349,7 +349,6 @@ export class AccesoBotController extends BaseController {
         const cuit = Number(req.params.cuit)
         const usuario = res.locals.userName
         const ip = this.getRemoteAddress(req)
-        let existRecibo
         const queryRunner = dataSource.createQueryRunner();
 
         try {
@@ -357,17 +356,18 @@ export class AccesoBotController extends BaseController {
             let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
             const personalId = personaIdQuery[0].PersonalId
 
-            const validateExistRecibo =  await queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE persona_id = @0`, [personalId])
 
-            if(validateExistRecibo?.length >= 1 && recibo == 0){
-                throw new ClientException(`El codigo de recibo no existe`);
-            }else{
-                const result = await queryRunner.query(`SELECT * FROM lige.dbo.docgeneral WHERE persona_id = @0 AND idrecibo = @1`, [personalId, recibo])
-                if(result?.length < 1)
-                    throw new ClientException(`En número de recibo es incorrecto para el CUIT ${cuit} `)
-            }
-           
-            this.jsonRes(existRecibo, res)
+            const result = await queryRunner.query(`SELECT TOP 1 rec.idrecibo FROM lige.dbo.docgeneral rec
+                WHERE rec.persona_id = @0 AND rec.doctipo_id='REC'
+                ORDER BY rec.fecha DESC
+            `, [personalId])
+            if(result.length < 1)
+                throw new ClientException(`El número de recibo es incorrecto para el CUIT ${cuit} `)
+
+            if(result[0].idrecibo != recibo)
+                throw new ClientException(`El número de recibo es incorrecto para el CUIT ${cuit} `)
+
+            this.jsonRes("OK", res)
         } catch (error) {
             return next(error)
         }
@@ -375,8 +375,8 @@ export class AccesoBotController extends BaseController {
 
     async validateCbu(req: any, res: Response, next: NextFunction) {
 
-        const cbu = req.params.cbu
-        const cuit = req.params.cuit
+        const cbu = String(req.params.cbu).trim()
+        const cuit = String(req.params.cuit).trim()
         const encTelNro = req.params.encTelNro
 
         const usuario = res.locals.userName
@@ -386,7 +386,7 @@ export class AccesoBotController extends BaseController {
         const queryRunner = dataSource.createQueryRunner()
 
         try {
-            if (cbu.toString().length != 6)
+            if (cbu.length != 6)
                 throw new ClientException(`Debe ingresar los últimos 6 digitos CBU para el CUIT ${cuit}`);
 
             let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
@@ -402,7 +402,7 @@ export class AccesoBotController extends BaseController {
                 
                    
                 
-            if (result.length == 0 || result[0].PersonalBancoCBU.slice(-6) != cbu.toString())
+            if (result.length == 0 || result[0].PersonalBancoCBU.slice(-6) != cbu)
                 throw new ClientException(`El número proporcionado es incorrecto para el CUIT ${cuit}`);
 
 
@@ -422,7 +422,6 @@ export class AccesoBotController extends BaseController {
             newValue = responseCodigo?.data.codigo
 
             this.jsonRes(newValue, res);
-            //this.jsonRes(existRecibo, res);
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
