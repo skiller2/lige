@@ -66,7 +66,9 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         if (urlDoc instanceof Error)
             await flowDynamic([{ body:`Error, no se encontró el documento`, delay }])
         else
-            await flowDynamic([ { body:`Recibo`, media:urlDoc, delay } ]) 
+                await flowDynamic([{ body: `Recibo`, media: urlDoc, delay }])
+        //TODO Escribir en la base la descarga del archivo
+        //    
     })
     .addAnswer([
         '¿Desea consulta algo mas?', 

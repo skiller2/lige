@@ -53,6 +53,7 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
                 await flowDynamic([{ body: `Error, no se encontró el documento`, delay }])
             else
                 await flowDynamic([{ body: `Recibo`, media: urlDocRecibo, delay }])
+            //TODO Escribir en la base la descarga del recibo
             //            await flowDynamic([ { body:`Rec`, media:"https://i.imgur.com/0HpzsEm.png" } ]) 
         })
     .addAnswer([
