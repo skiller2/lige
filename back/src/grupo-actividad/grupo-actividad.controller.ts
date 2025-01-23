@@ -5,8 +5,8 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 
 
 const getOptions: any[] = [
-    { label: 'No', value: '0' },
-    { label: 'Si', value: '1' },
+    { label: 'No', value: '1' },
+    { label: 'Si', value: '0' },
   ]
 
 export class GrupoActividadController extends BaseController {
@@ -52,7 +52,7 @@ export class GrupoActividadController extends BaseController {
             searchHidden: false
         },
         {
-            name: "Inactivo",
+            name: "Activo",
             id: "GrupoActividadInactivo",
             field: "GrupoActividadInactivo",
             fieldName: "grup.GrupoActividadInactivo",
