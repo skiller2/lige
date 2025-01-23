@@ -152,7 +152,9 @@ export class PreciosProductosComponent {
         editCommand.execute()
         while (this.rowLocked) await firstValueFrom(timer(100));
         row = this.angularGridEdit.dataView.getItemById(row.id)
-
+        const producto = row
+        console.log('producto',producto);
+        
 
         if (!row.dbid)
           this.rowLocked = true
@@ -270,6 +272,8 @@ export class PreciosProductosComponent {
     switchMap(() => {
       return this.searchService.getListaPrecioProductos({ options: this.listOptions })
         .pipe(map(data => {
+          console.log('data.list', data.list);
+          
           return data.list
         })
         )
@@ -288,22 +292,20 @@ export class PreciosProductosComponent {
   }
 
   async onCellChanged(e: any) {
-    /*
-       await firstValueFrom(
-         this.apiService.onchangecellPrecioProducto(e.detail.args.item).pipe(
-           tap(res => {
-             if (res != "") {
-               this.listPrecios$.next('');
-             }
-           }),
-           catchError(err => {
-             //Si codigoOld != '' volver a colocar el valor anterior, si codigoOld =='' marcar en rojo el registro 
-             console.log('resultado',err)
-             return of(null);
-           })
-         )
-       )
- */
+    // await firstValueFrom(
+    //   this.apiService.onchangecellPrecioProducto(e.detail.args.item).pipe(
+    //     tap(res => {
+    //       if (res != "") {
+    //         this.listPrecios$.next('');
+    //       }
+    //     }),
+    //     catchError(err => {
+    //       //Si codigoOld != '' volver a colocar el valor anterior, si codigoOld =='' marcar en rojo el registro 
+    //       console.log('resultado',err)
+    //       return of(null);
+    //     })
+    //   )
+    // )
   }
 
 
