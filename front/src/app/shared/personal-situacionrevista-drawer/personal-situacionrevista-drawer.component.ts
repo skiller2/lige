@@ -57,7 +57,7 @@ export class PersonalSituacionRevistaDrawerComponent {
             return this.searchService.getHistoriaSituacionRevistaPersona(
                 Number(this.PersonalId())
             ).pipe(map(data => {
-                let find = this.noOptions().find((obj:any) => {return obj.SituacionRevistaId == data[0].SituacionRevistaId})
+                let find = this.noOptions().find((obj:any) => {return obj.SituacionRevistaId == data[0]?.SituacionRevistaId})
                 if (find){ this.formSitRevista.disable()}
                 else { this.formSitRevista.enable() }
 
