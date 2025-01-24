@@ -2,7 +2,7 @@
 
 
     <div nz-row class="contentStyle">
-        <div nz-col nzSpan="13" class="listStyle">
+        <div nz-col nzSpan="13" class="listStyletex">
             <ul nz-menu nzMode="horizontal" style="display: flex;">
                 <li nz-menu-item nzMatchRouter>
                     <span nz-icon nzType=""></span>
@@ -10,12 +10,7 @@
                 </li>
                 <li nz-menu-item nzMatchRouter>
                     <span nz-icon nzType=""></span>
-                    <a [routerLink]="['/', 'ges', 'grupo-actividad', 'jerarquicos']">{{ 'app.jerarquicos' | i18n }} </a>
-                </li>
-
-                <li nz-menu-item nzMatchRouter>
-                    <span nz-icon nzType=""></span>
-                    <a [routerLink]="['/', 'ges', 'grupo-actividad', 'supervisores']">{{ 'app.supervisores' | i18n }}</a>
+                    <a [routerLink]="['/', 'ges', 'grupo-actividad', 'responsables']">{{ 'app.responsables' | i18n }} </a>
                 </li>
                 <li nz-menu-item nzMatchRouter>
                     <span nz-icon nzType=""></span>
@@ -42,14 +37,9 @@
         </nz-tab>
 
         <nz-tab>
-            <a nz-tab-link routerLink="/ges/grupo-actividad/jerarquicos">{{ 'app.jerarquicos' | i18n }}</a>
-            <span>jerarquicos</span>
+            <a nz-tab-link routerLink="/ges/grupo-actividad/jerarquicos">{{ 'app.responsables' | i18n }}</a>
+            <span>Responsables</span>
 
-        </nz-tab>
-
-        <nz-tab>
-            <a nz-tab-link routerLink="/ges/grupo-actividad/supervisores">{{ 'app.supervisores' | i18n }}</a>
-            <span>supervisores</span>
         </nz-tab>
 
         <nz-tab>

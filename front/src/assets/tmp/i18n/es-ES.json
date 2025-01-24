@@ -204,6 +204,7 @@
   "app.edit.client": "Editar Cliente ",
   "app.edit.objetivo":"Editar Objetivo ",
   "app.responsable":"Responsable",
+  "app.responsables":"Responsables",
   "app.validar.cuit":"Validar CUIT",
   "app.validar.recibo":"Validar Recibo",
   "app.validar.cbu":"Validar CBU",

@@ -43,11 +43,9 @@ export class GrupoActividadController extends BaseController {
         {
             name: "Detalle",
             type: "string",
-            id: "PersonalId",
-            field: "PersonalId",
-            fieldName: "suc.PersonalId",
-            formatter: 'collectionFormatter',
-            searchComponent: "inpurForPersonalSearch",
+            id: "GrupoActividadDetalle",
+            field: "GrupoActividadDetalle",
+            fieldName: "grup.GrupoActividadDetalle",
             sortable: true,
             searchHidden: false
         },
@@ -88,7 +86,9 @@ export class GrupoActividadController extends BaseController {
 
     async listGrupoActividadGrupos(req: any, res: Response, next: NextFunction) {
 
+        console.log("req.body.options.filtros ", req.body.options.filtros)
         const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaGrupos);
+        
         const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = dataSource.createQueryRunner();
         const fechaActual = new Date()
@@ -103,11 +103,8 @@ export class GrupoActividadController extends BaseController {
                     grup.GrupoActividadNumero AS GrupoActividadNumeroOld ,
                     grup.GrupoActividadDetalle,
                     IIF(grup.GrupoActividadInactivo=1, '1', '0') as GrupoActividadInactivo,
-                    grup.GrupoActividadSucursalId,
-                    suc.PersonalId
+                    grup.GrupoActividadSucursalId
                     FROM GrupoActividad grup
-                   LEFT JOIN Personal suc 
-                    ON CONCAT(TRIM(suc.PersonalApellido), ' ', TRIM(suc.PersonalNombre)) = TRIM(grup.GrupoActividadDetalle)
                     
                     WHERE ${filterSql} ORDER BY   grup.GrupoActividadId ASC	`)
 
@@ -163,11 +160,8 @@ export class GrupoActividadController extends BaseController {
                   }
                 }
 
-                 let personalidquery = await queryRunner.query( `SELECT *  FROM Personal WHERE PersonalId = @0`, [params.PersonalId])
-                 let GrupoActividadDetalle  = `${personalidquery[0].PersonalApellido.trim()} ${personalidquery[0].PersonalNombre.trim()}`
-
                  await queryRunner.query( `UPDATE GrupoActividad SET GrupoActividadNumero = @1,GrupoActividadDetalle = @2,GrupoActividadInactivo=@3,GrupoActividadSucursalId=@4
-                    WHERE GrupoActividadId = @0`, [params.GrupoActividadId,params.GrupoActividadNumero,GrupoActividadDetalle,params.GrupoActividadInactivo,params.GrupoActividadSucursalId]) 
+                    WHERE GrupoActividadId = @0`, [params.GrupoActividadId,params.GrupoActividadNumero,params.GrupoActividadDetalle,params.GrupoActividadInactivo,params.GrupoActividadSucursalId]) 
               
                 dataResultado = {action:'U'}
                 message = "Actualizacion exitosa"
@@ -183,10 +177,6 @@ export class GrupoActividadController extends BaseController {
                  if (validateGrupoActividadNumero.length > 0) {
                     throw new ClientException(`El Numero ingresado ya existe`)
                   }
-
-                 let personalidquery = await queryRunner.query( `SELECT *  FROM Personal WHERE PersonalId = @0`, [params.PersonalId])
-                
-                 let GrupoActividadDetalle  = `${personalidquery[0].PersonalApellido.trim()} ${personalidquery[0].PersonalNombre.trim()}`
 
                  let GrupoActividadPersonalUltNro = 0
                  let GrupoActividadJerarquicoUltNro = 0
@@ -214,7 +204,7 @@ export class GrupoActividadController extends BaseController {
                     ) 
                     VALUES ( @0,@1,@2, @3, @4, @5,@6, @7,@8, @9,@10 )`, 
                     [params.GrupoActividadNumero,
-                     GrupoActividadDetalle,
+                     params.GrupoActividadDetalle,
                      GrupoActividadPersonalUltNro,
                      GrupoActividadJerarquicoUltNro,
                      params.GrupoActividadInactivo,

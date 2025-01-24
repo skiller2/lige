@@ -64,30 +64,19 @@ export class TableGrupoActividadGruposComponent {
     switchMap(async (cols) => {
       const sucursales = await firstValueFrom(this.searchService.getSucursales());
       const inactivo = await firstValueFrom(this.searchService.getInactivo());
-      const persona = await firstValueFrom(this.searchService.getPersonal());
 
-      return { cols, sucursales, inactivo,persona }
+      return { cols, sucursales, inactivo }
     }),
     map((data) => {
       let mapped = data.cols.map((col: Column) => {
 
         switch (col.id) {
           
-          case 'PersonalId':
-            col.editor = {
-              model: CustomInputEditor,
-              collection: [],
-              params: {
-                component: SelectSearchComponent,
-              },
-              alwaysSaveOnEnterKey: true,
-              required: true
-            }
-            col.params = {
-              collection: data.persona,
-            }
-            col.cssClass = "text-center";
-
+          case 'GrupoActividadDetalle':
+            col.cssClass = "text-row-aling";
+            break;
+          case 'GrupoActividadNumero':
+            col.cssClass = "text-row-aling";
             break;
           case 'GrupoActividadInactivo':
             col.editor = {
@@ -139,9 +128,7 @@ export class TableGrupoActividadGruposComponent {
      let dateToday = new Date();
      let formattedDate = `${dateToday.getDate().toString().padStart(2, '0')}/${(dateToday.getMonth() + 1).toString().padStart(2, '0')}/${dateToday.getFullYear()}`;
 
-    // this.startFilters = [
-    //   {field:'desde', condition:'AND', operator:'<=', value: formattedDate, forced:false},
-    //   {field:'hasta', condition:'AND', operator:'>=', value: formattedDate, forced:false}]
+      this.startFilters = [{field:'GrupoActividadInactivo', condition:'AND', operator:'=', value: '0', forced:false}]
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 
@@ -227,7 +214,7 @@ export class TableGrupoActividadGruposComponent {
       GrupoActividadNumero: "",
       GrupoActividadNumeroOld:"",
       GrupoActividadDetalle:"",
-      GrupoActividadInactivo:"",
+      GrupoActividadInactivo: '0',
       GrupoActividadSucursalId: ""
 
     };
