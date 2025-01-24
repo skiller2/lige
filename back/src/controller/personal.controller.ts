@@ -25,6 +25,16 @@ const columns: any[] = [
     hidden: true,
   },
   {
+    id: "PersonalId",
+    name: "PersonalId",
+    field: "PersonalId",
+    type: "number",
+    fieldName: "per.PersonalId",
+    sortable: true,
+    searchHidden: true,
+    hidden: true,
+  },
+  {
     id: "PersonalCUITCUILCUIT",
     name: "CUIT",
     field: "PersonalCUITCUILCUIT",
