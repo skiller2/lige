@@ -92,14 +92,25 @@ const columns: any[] = [
     hidden: true,
   },
   {
-    id: "SituacionRevista",
-    name: "Situacion Revista",
-    field: "SituacionRevista",
+    id: "SituacionRevistaDescripcion",
+    name: "Situación Revista",
+    field: "SituacionRevistaDescripcion",
     type: "string",
-    fieldName: "suc.SucursalDescripcion",
+    fieldName: "sitrev.SituacionRevistaDescripcion",
     searchType: "string",
     sortable: true,
     searchHidden: true,
+    hidden: false,
+  },
+  {
+    id: "sitrev.PersonalSituacionRevistaDesde",
+    name: "Fecha desde Situación",
+    field: "PersonalSituacionRevistaDesde",
+    type: "date",
+    fieldName: "sitrev.PersonalSituacionRevistaDesde",
+    searchType: "date",
+    sortable: true,
+    searchHidden: false,
     hidden: false,
   },
   {
@@ -461,12 +472,15 @@ export class PersonalController extends BaseController {
   private async listPersonalQuery(queryRunner: any, filterSql: any, orderBy: any) {
     return await queryRunner.query(`
 SELECT 
-ROW_NUMBER() OVER(ORDER BY per.PersonalId) AS id,
+--ROW_NUMBER() OVER(ORDER BY per.PersonalId) AS id,
+per.PersonalId id,
 per.PersonalId,
 cuit.PersonalCUITCUILCUIT,
         CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
         per.PersonalNroLegajo, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
-        CONCAT(TRIM(sitrev.SituacionRevistaDescripcion), ' ', FORMAT(sitrev.PersonalSituacionRevistaDesde, 'dd/MM/yyyy')) AS SituacionRevista,
+        sitrev.SituacionRevistaDescripcion,
+        sitrev.PersonalSituacionRevistaDesde,
+--        CONCAT(TRIM(sitrev.SituacionRevistaDescripcion), ' ', FORMAT(sitrev.PersonalSituacionRevistaDesde, 'dd/MM/yyyy')) AS SituacionRevista,
         per.PersonalFechaIngreso
 
         FROM Personal per
