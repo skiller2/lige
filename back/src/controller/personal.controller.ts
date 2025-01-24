@@ -461,7 +461,7 @@ export class PersonalController extends BaseController {
   private async listPersonalQuery(queryRunner: any, filterSql: any, orderBy: any) {
     return await queryRunner.query(`
 SELECT 
-per.PersonalId id,
+ROW_NUMBER() OVER(ORDER BY per.PersonalId) AS id,
 per.PersonalId,
 cuit.PersonalCUITCUILCUIT,
         CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
