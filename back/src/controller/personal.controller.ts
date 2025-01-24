@@ -459,8 +459,6 @@ export class PersonalController extends BaseController {
   }
 
   private async listPersonalQuery(queryRunner: any, filterSql: any, orderBy: any) {
-    // const anio = new Date().getFullYear()
-    // const mes = new Date().getMonth() + 1
     return await queryRunner.query(`
 SELECT 
 per.PersonalId id,
