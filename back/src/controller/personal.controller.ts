@@ -463,6 +463,7 @@ export class PersonalController extends BaseController {
     // const mes = new Date().getMonth() + 1
     return await queryRunner.query(`
 SELECT 
+per.PersonalId id,
 per.PersonalId,
 cuit.PersonalCUITCUILCUIT,
         CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
