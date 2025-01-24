@@ -1574,10 +1574,10 @@ export class PersonalController extends BaseController {
     if (sitRevista.length == 1 && sitRevista[0].PersonalSituacionRevistaDesde.getTime() > desde.getTime())
       throw new ClientException(`La fecha desde de situación de revista no puede ser menor al ${sitRevista[0].PersonalSituacionRevistaDesde.getDate()}/${sitRevista[0].PersonalSituacionRevistaDesde.getMonth()+1}/${sitRevista[0].PersonalSituacionRevistaDesde.getFullYear()}`)
 
-    if (sitRevista[0].PersonalSituacionRevistaSituacionId == SituacionRevistaId)
+    if (sitRevista[0]?.PersonalSituacionRevistaSituacionId == SituacionRevistaId)
       throw new ClientException(`La situación de revista es igual a la existente`)
 
-    if (sitRevista.length > 0 && this.listSitRev.split(',').find((sit: any) =>  sitRevista[0].PersonalSituacionRevistaSituacionId == sit ))
+    if (sitRevista.length > 0 && this.listSitRev.split(',').find((sit: any) =>  sitRevista[0]?.PersonalSituacionRevistaSituacionId == sit ))
       throw new ClientException(`No se puede modificar la situación de revista desde esta pantalla`)
 
     if (sitRevista.length>0 && sitRevista[0].PersonalSituacionRevistaDesde.getTime() == desde.getTime()) {
@@ -1590,7 +1590,7 @@ export class PersonalController extends BaseController {
       //Crea una situación de revista nueva
       await queryRunner.query(`
         UPDATE PersonalSituacionRevista SET PersonalSituacionRevistaHasta = @2 WHERE PersonalId IN (@0) AND PersonalSituacionRevistaId = @1`,
-        [personalId, sitRevista[0].PersonalSituacionRevistaId, yesterday]
+        [personalId, sitRevista[0]?.PersonalSituacionRevistaId, yesterday]
       )
 
       const PersonalSituacionRevistaUltNroQuery = await queryRunner.query(`SELECT PersonalSituacionRevistaUltNro FROM Personal WHERE PersonalId = @0`, [personalId])
@@ -1919,21 +1919,21 @@ export class PersonalController extends BaseController {
     if (categoria.length == 1 && categoria[0].PersonalCategoriaDesde.getTime() > Desde.getTime())
       throw new ClientException(`La fecha Desde no puede ser menor al ${categoria[0].PersonalCategoriaDesde.getDate()}/${categoria[0].PersonalCategoriaDesde.getMonth()+1}/${categoria[0].PersonalCategoriaDesde.getFullYear()}`)
 
-    if (categoria[0].PersonalCategoriaTipoAsociadoId == TipoAsociadoId && categoria[0].PersonalCategoriaCategoriaPersonalId == CategoriaId)
+    if (categoria[0]?.PersonalCategoriaTipoAsociadoId == TipoAsociadoId && categoria[0]?.PersonalCategoriaCategoriaPersonalId == CategoriaId)
       throw new ClientException(`Debe ingresar una categoria distinta a la que se encuentra activa.`)
 
     if (categoria.length>0 && categoria[0].PersonalCategoriaDesde.getTime() == Desde.getTime()) {
       await queryRunner.query(`
         UPDATE PersonalCategoria SET PersonalCategoriaDesde = @2, PersonalCategoriaTipoAsociadoId = @3, PersonalCategoriaCategoriaPersonalId = @4
         WHERE PersonalCategoriaPersonalId IN (@0) AND PersonalCategoriaId IN (@1)
-        `, [PersonalId, categoria[0].PersonalCategoriaId, Desde, TipoAsociadoId, CategoriaId]
+        `, [PersonalId, categoria[0]?.PersonalCategoriaId, Desde, TipoAsociadoId, CategoriaId]
       )
     } else {
       //Crea una categoria nueva
       await queryRunner.query(`
         UPDATE PersonalCategoria SET PersonalCategoriaHasta = @2
         WHERE PersonalCategoriaPersonalId IN (@0) AND PersonalCategoriaId IN (@1)`,
-        [PersonalId, categoria[0].PersonalCategoriaId, yesterday]
+        [PersonalId, categoria[0]?.PersonalCategoriaId, yesterday]
       )
 
       const PersonalCategoriaUltNroQuery = await queryRunner.query(`SELECT PersonalCategoriaUltNro, PersonalSuActualSucursalPrincipalId FROM Personal WHERE PersonalId IN (@0)`, [PersonalId])
