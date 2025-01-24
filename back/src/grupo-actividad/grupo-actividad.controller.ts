@@ -151,7 +151,7 @@ export class GrupoActividadController extends BaseController {
  
                  await this.validateFormGrupo(params,queryRunner)
 
-                if(params.GrupoActividadNumero !== params.GrupoActividadNumeroOld){
+                if(params.GrupoActividadNumero != params.GrupoActividadNumeroOld){
 
                     let validateGrupoActividadNumero = await queryRunner.query( `SELECT * FROM GrupoActividad WHERE GrupoActividadNumero = @0`, [params.GrupoActividadNumero])
 
