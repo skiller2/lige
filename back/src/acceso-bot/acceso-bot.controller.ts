@@ -350,7 +350,7 @@ export class AccesoBotController extends BaseController {
         const usuario = res.locals.userName
         const ip = this.getRemoteAddress(req)
         const queryRunner = dataSource.createQueryRunner();
-
+console.log('validateRecibo', cuit, recibo)
         try {
 
             let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
@@ -386,6 +386,8 @@ export class AccesoBotController extends BaseController {
         const queryRunner = dataSource.createQueryRunner()
 
         try {
+            console.log('validateCbu', cuit, cbu)
+
             if (cbu.length != 6)
                 throw new ClientException(`Debe ingresar los últimos 6 digitos CBU para el CUIT ${cuit}`);
 
@@ -417,9 +419,13 @@ export class AccesoBotController extends BaseController {
                 };
 
             const response = await fetch(url, { method: 'GET', headers: headers })
-            const responseCodigo: any = await response.json()
 
-            newValue = responseCodigo?.data.codigo
+            const responsejson: any = await response.json()
+            if (response.status == 200) {
+                newValue = responsejson?.data.codigo
+            } else {
+                throw new ClientException(responsejson?.msg)
+            }
 
             this.jsonRes(newValue, res);
         } catch (error) {

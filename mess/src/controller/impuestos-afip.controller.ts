@@ -43,6 +43,7 @@ export class ImpuestosAfipController extends BaseController {
   async getRutaFile(queryRunner: QueryRunner, personalIdRel: number, year: number, month: number) {
     return queryRunner.query(`
      SELECT DISTINCT
+        com.PersonalComprobantePagoAFIPId, com.PersonalId,
         com.PersonalComprobantePagoAFIPAno,com.PersonalComprobantePagoAFIPMes,com.PersonalComprobantePagoAFIPImporte,
 
         1

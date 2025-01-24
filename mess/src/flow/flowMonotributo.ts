@@ -66,6 +66,7 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
             if (urlDoc instanceof Error)
                 await flowDynamic([{ body: `Error, no se encontró el documento`, delay }])
             else {
+                //TODO:  Ver tema nueva tabla PersonalComprobantePagoAFIPId, com.PersonalId,
                 await chatBotController.addToDocLog(urlDoc.doc_id,ctx.from)
                 await flowDynamic([{ body: `Recibo`, media: urlDoc.URL, delay }])
             }

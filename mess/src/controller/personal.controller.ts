@@ -135,23 +135,24 @@ export class PersonalController extends BaseController {
     }
   */
 
-  async genTelCode(telNro: string) {
-    //const stmactual = new Date();
+  async genTelCode(data: string) {
+    const stmgen = new Date();
     //const usuario = 'anon'
     //const ip = 'localhost'
     //const queryRunner = dataSource.createQueryRunner();
+    const dataStr =JSON.stringify({stmgen,data});
 
     try {
       const _key = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
       const _iv = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
       const encrypted = CryptoJS.default.AES.encrypt(
-        telNro, _key, {
+        dataStr, _key, {
         keySize: 16,
         iv: _iv,
         mode: CryptoJS.default.mode.ECB,
         padding: CryptoJS.default.pad.Pkcs7
       });
-      return { encTelNro: encrypted.toString() }
+      return { encTelNro: encrypted.toString(CryptoJS.format.Hex) }
     } catch (error) {
       console.log('encoding', error)
       throw error
@@ -162,7 +163,7 @@ export class PersonalController extends BaseController {
     const CUIT = req.query.cuit
     const des_doc_ident = req.query.identData || ""
     //    const des_doc_ident = '00417052787@OROFINO@ALFREDO GONZALO@M@7595775@A@24/05/1973@22/01/2016@239'
-    const encTelNro = req.query.encTelNro
+    const encryptedData = req.query.encTelNro
 
     const stmactual = new Date();
     const usuario = 'anon'
@@ -184,19 +185,24 @@ export class PersonalController extends BaseController {
         
        } else
         throw new ClientException('No se pudo obtener el número de dni', { des_doc_ident })
-  
-
+ 
       const _key = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
       const _iv = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
       const decrypted = CryptoJS.default.AES.decrypt(
-        encTelNro, _key, {
+        encryptedData, _key, {
         keySize: 16,
         iv: _iv,
         mode: CryptoJS.default.mode.ECB,
-        padding: CryptoJS.default.pad.Pkcs7
+        padding: CryptoJS.default.pad.Pkcs7,
+        format: CryptoJS.format.Hex
       });
 
-      const telNro = decrypted.toString(CryptoJS.default.enc.Utf8).replace(/\"/g, '')
+      const dataObj = JSON.parse(decrypted.toString(CryptoJS.default.enc.Utf8))
+      if (!dataObj.stmgen || (new Date().getTime() - Date.parse(dataObj?.stmgen)) / 1000 / 60 / 60 > 3) {
+        throw new ClientException('La url proporcionada expiró. Ingrese el código 0 y vuelva a comenzar el procedimiento')
+      }
+
+      const telNro = String(dataObj?.data)
 
       const telValid = /^\d+$/.test(telNro);
       const dniValid = /^\d+$/.test(dni);

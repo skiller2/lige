@@ -3,6 +3,7 @@ import flowMenu from './flowMenu'
 import { chatBotController, personalController } from "../controller/controller.module";
 import { reset, start, stop } from './flowIdle';
 import { botServer } from 'src';
+import flowRemoveTel from './flowRemoveTel';
 
 const delay = chatBotController.getDelay()
 
@@ -10,7 +11,7 @@ const delay = chatBotController.getDelay()
 export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
     })
-    .addAnswer([`Ingrese el código proporcionado durante la verificación de DNI`], { capture: true, delay: delay },
+    .addAnswer([`Ingrese el código proporcionado en la página web 'Validación de Identidad', en caso de desconocerlo ingrese 0 para ir al inicio`], { capture: true, delay: delay },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack }) => {
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
             const telefono = ctx.from
@@ -30,8 +31,12 @@ export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
             }    
             const data = state.getMyState()
 
+            if (ctx.body == '0') {
+                return gotoFlow(flowRemoveTel)
+            }
+
             if (data?.codigo == ctx.body) {
-                await flowDynamic(`identidad validada`, { delay: delay })
+                await flowDynamic(`Identidad verificada existosamente`, { delay: delay })
                 personalController.removeCode(telefono)
                 return gotoFlow(flowMenu)
             } else {
