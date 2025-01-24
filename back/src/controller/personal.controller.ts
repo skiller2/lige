@@ -25,6 +25,16 @@ const columns: any[] = [
     hidden: true,
   },
   {
+    id: "PersonalId",
+    name: "PersonalId",
+    field: "PersonalId",
+    type: "number",
+    fieldName: "per.PersonalId",
+    sortable: true,
+    searchHidden: true,
+    hidden: true,
+  },
+  {
     id: "PersonalCUITCUILCUIT",
     name: "CUIT",
     field: "PersonalCUITCUILCUIT",
@@ -92,14 +102,25 @@ const columns: any[] = [
     hidden: true,
   },
   {
-    id: "SituacionRevista",
-    name: "Situacion Revista",
-    field: "SituacionRevista",
+    id: "SituacionRevistaDescripcion",
+    name: "Situación Revista",
+    field: "SituacionRevistaDescripcion",
     type: "string",
-    fieldName: "suc.SucursalDescripcion",
+    fieldName: "sitrev.SituacionRevistaDescripcion",
     searchType: "string",
     sortable: true,
     searchHidden: true,
+    hidden: false,
+  },
+  {
+    id: "sitrev.PersonalSituacionRevistaDesde",
+    name: "Fecha desde Situación",
+    field: "PersonalSituacionRevistaDesde",
+    type: "date",
+    fieldName: "sitrev.PersonalSituacionRevistaDesde",
+    searchType: "date",
+    sortable: true,
+    searchHidden: false,
     hidden: false,
   },
   {
@@ -459,26 +480,31 @@ export class PersonalController extends BaseController {
   }
 
   private async listPersonalQuery(queryRunner: any, filterSql: any, orderBy: any) {
-    // const anio = new Date().getFullYear()
-    // const mes = new Date().getMonth() + 1
     return await queryRunner.query(`
-        SELECT DISTINCT per.PersonalId AS id, cuit.PersonalCUITCUILCUIT,
+SELECT 
+--ROW_NUMBER() OVER(ORDER BY per.PersonalId) AS id,
+per.PersonalId id,
+per.PersonalId,
+cuit.PersonalCUITCUILCUIT,
         CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
         per.PersonalNroLegajo, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
-        CONCAT(TRIM(sitrev.SituacionRevistaDescripcion), ' ', FORMAT(sitrev.PersonalSituacionRevistaDesde, 'dd/MM/yyyy')) AS SituacionRevista,
+        sitrev.SituacionRevistaDescripcion,
+        sitrev.PersonalSituacionRevistaDesde,
+--        CONCAT(TRIM(sitrev.SituacionRevistaDescripcion), ' ', FORMAT(sitrev.PersonalSituacionRevistaDesde, 'dd/MM/yyyy')) AS SituacionRevista,
         per.PersonalFechaIngreso
+
         FROM Personal per
         LEFT JOIN (
-          SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion, MAX(p.PersonalSituacionRevistaDesde) PersonalSituacionRevistaDesde
+          SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde
           FROM PersonalSituacionRevista p
           JOIN SituacionRevista s
-          ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaHasta IS NULL
-          GROUP BY s.SituacionRevistaDescripcion, p.PersonalId, p.PersonalSituacionRevistaSituacionId
-        ) sitrev ON sitrev.PersonalId = per.PersonalId
-        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId
+          ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= GETDATE() AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= GETDATE()
+			 ) sitrev ON sitrev.PersonalId = per.PersonalId
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+
         LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
-        WHERE cuit.PersonalCUITCUILHasta IS NULL
+        WHERE (1=1)
         AND (${filterSql})
         ${orderBy}`)
   }
