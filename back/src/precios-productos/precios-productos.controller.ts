@@ -470,7 +470,7 @@ export class PreciosProductosController extends BaseController {
             }
         }
 
-        await this.validarRangoFechas(params.desde, params.hasta, params.precioVentaId)
+        await this.validarRangoFechas(params.desde, params.hasta, resultSucursalCodigo)
 
         if(importeOld == params.importe){
 
