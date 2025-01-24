@@ -43,7 +43,7 @@ export class PreciosProductosController extends BaseController {
         },
         {
             id: "Codigo",
-            name: "codigo",
+            name: "Codigo",
             field: "codigo",
             fieldName: "prod.cod_producto",
             type: "string",
@@ -224,6 +224,7 @@ export class PreciosProductosController extends BaseController {
         const fechaActual = new Date()
         let message = ""
         const params = req.body
+        fechaActual.setHours(0,0,0,0)
 
         try {
             console.log("params ", params)
@@ -236,16 +237,17 @@ export class PreciosProductosController extends BaseController {
             let importeDesde = (!params.desde)  ? fechaActual : params.desde
             let importeHasta = (!params.hasta)  ? new Date('9999-12-31') : params.hasta;
 
-
             if ( codigoExist.length > 0) { //Entro en update
                 //Validar si cambio el código
-                const importeOld = codigoExist[0].importe 
+                const importe_hasta = new Date(codigoExist[0].importe_hasta)
+                if (importe_hasta <= fechaActual) throw new ClientException('No se puede modificar registros anteriores a la fecha de hoy.')
 
                 if (params.codigoOld != params.codigo) { 
                     const checkNewCodigo = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_productos WHERE cod_producto = @0`, [params.codigo])
                     if ( checkNewCodigo.length > 0) throw new ClientException('El nuevo código ingresado ya existe')
                 }
-
+            
+                const importeOld = codigoExist[0].importe 
                 await this.validateForm(false, params, queryRunner,importeOld)
  
                 await queryRunner.query( `UPDATE lige.dbo.lpv_productos SET 
@@ -256,23 +258,15 @@ export class PreciosProductosController extends BaseController {
                 await queryRunner.query( `UPDATE lige.dbo.lpv_precio_venta SET 
                    importe_desde = @1, importe_hasta = @2 , aud_fecha_mod = @3, aud_usuario_mod = @4, aud_ip_mod = @5, sucursalId = @6 WHERE precio_venta_id = @0
                     `, [ params.precioVentaId,importeDesde, importeHasta, fechaActual, usuario, ip, params.SucursalId,])
-                    
                 
-                if(importeOld !== params.importe &&  new Date(params.desde) < fechaActual){
+                const desde = new Date (params.desde)
+                desde.setHours(0,0,0,0)
+                desde.setDate(desde.getDate()+1)
+                if(importeOld != params.importe && desde < fechaActual){
                     // el importe es diferente se agrega un registro
                     console.log("update -  agrego nuevo registro")
 
                     await this.addRecord(queryRunner,params,fechaActual, usuario, ip, params.SucursalId,importeHasta,importeDesde)
-                    
-                    let NewDate = fechaActual; 
-                    NewDate.setDate(NewDate.getDate() - 1)
-                    NewDate.setHours(0, 0, 0, 0)
-
-                    await queryRunner.query( `
-                        UPDATE lige.dbo.lpv_precio_venta SET importe_hasta = @1 WHERE precio_venta_id = @0
-                        `, [params.precioVentaId, NewDate]
-                    )
-                    
                     
                 }else{
                     await queryRunner.query( `UPDATE lige.dbo.lpv_precio_venta SET importe = @1 WHERE precio_venta_id = @0`,
@@ -287,7 +281,7 @@ export class PreciosProductosController extends BaseController {
                 await this.validateForm(false, params, queryRunner,null)
                 if (!checkNewCodigo.length){ //Es un nuevo registro de lpv_productos
                     console.log('El código no existe - es nuevo')
-                    await queryRunner.query( `INSERT INTO lige.dbo.lpv_productos 
+                    await queryRunner.query(`INSERT INTO lige.dbo.lpv_productos 
                         (cod_producto, 
                         nom_producto,
                         des_producto,
@@ -313,16 +307,21 @@ export class PreciosProductosController extends BaseController {
     }
 
 
-    async addRecord(queryRunner:any,params:any,fechaActual:any, usuario:any, ip:any, SucursalId:any,fechaHasta:any,fechaDede:any){
-        let fechaHastaNew = new Date('9999-12-31')
-        let fechaDesdeNew:Date = new Date(fechaActual)
+    async addRecord(queryRunner:any,params:any,fechaActual:any, usuario:any, ip:any, SucursalId:any,fechaHasta:any,fechaDesde:any){
+        let fechaDesdeNew:Date = new Date(fechaDesde)
+        let fechaHastaNew:Date = new Date(fechaHasta)
+        const now:Date = new Date()
+        now.setHours(0, 0, 0, 0)
         fechaDesdeNew.setHours(0, 0, 0, 0)
+        fechaHastaNew.setHours(0, 0, 0, 0)
+        fechaDesdeNew.setDate(fechaDesdeNew.getDate()+1)
+        fechaHastaNew.setDate(fechaHastaNew.getDate()+1)
         const anio = fechaDesdeNew.getFullYear()
         const mes = fechaDesdeNew.getMonth()+1
         const dia = fechaDesdeNew.getDate()
 
         const codigoExist = await queryRunner.query( `
-            SELECT importe_desde, importe_hasta
+            SELECT importe_desde, importe_hasta, precio_venta_id
             FROM lige.dbo.lpv_precio_venta
             WHERE cod_Producto = @0 AND (DATEFROMPARTS(@1, @2, @3) <= importe_desde OR (DATEFROMPARTS(@1, @2, @3) <= importe_hasta AND DATEFROMPARTS(@1, @2, @3) >= importe_desde))
             ORDER BY importe_desde
@@ -337,8 +336,10 @@ export class PreciosProductosController extends BaseController {
                 const hasta = new Date(codigoExist[i+1].importe_desde);
                 desde.setDate(desde.getDate() + 1)
                 hasta.setDate(hasta.getDate() - 1)
-                
-                if (desde.getTime() < hasta.getTime()) {
+                const precioVentaId = codigoExist[i+1].precio_venta_id
+                if (params.precio_venta_id == precioVentaId) {
+                    index = i
+                }else if (desde.getTime() < hasta.getTime()) {
                     find = true
                     fechaDesdeNew = desde
                     fechaHastaNew = hasta
@@ -346,18 +347,18 @@ export class PreciosProductosController extends BaseController {
                 }
             }
             if (!find) {
-                const hasta = new Date(codigoExist[index].importe_hasta);
-                const desde = new Date(codigoExist[index].importe_desde);
+                const hasta = new Date(codigoExist[index].importe_hasta)
+                const desde = new Date(codigoExist[index].importe_desde)
                 desde.setDate(desde.getDate() - 1);
-                if(hasta.getTime() == fechaHastaNew.getTime()){
-                    let NewDate = fechaDesdeNew; 
+                if(hasta.getTime() == fechaHastaNew.getTime() || (desde < now && now < hasta)){
+                    let NewDate = ((hasta.getTime() == fechaHastaNew.getTime()) && (hasta.toISOString().startsWith('9999-12-31')))? new Date(fechaDesdeNew) : new Date(now); 
                     NewDate.setDate(NewDate.getDate() - 1)
-                    NewDate.setHours(0, 0, 0, 0)
 
                     await queryRunner.query( `
                         UPDATE lige.dbo.lpv_precio_venta SET importe_hasta = @1 WHERE precio_venta_id = @0
                         `, [params.precioVentaId, NewDate]
                     )
+                    fechaDesdeNew = ((hasta.getTime() == fechaHastaNew.getTime()) && (hasta.toISOString().startsWith('9999-12-31')))? fechaDesdeNew : now;
                 }else if (fechaDesdeNew < desde) {
                     fechaHastaNew = desde
                 }else {
@@ -373,7 +374,7 @@ export class PreciosProductosController extends BaseController {
              aud_fecha_ing, aud_usuario_ing, aud_ip_ing, aud_fecha_mod, aud_usuario_mod, aud_ip_mod, 
              cod_Producto, SucursalId)
             VALUES ( @0, @1, @2, @3, @4, @5, @3, @4, @5, @6, @7) 
-             `, [params.importe, fechaDesdeNew, fechaHastaNew, fechaActual, usuario, ip, params.codigo, SucursalId])
+             `, [params.importe, fechaDesdeNew, fechaHastaNew, fechaActual, usuario, ip, params.codigo, params.SucursalId])
     }
 
     async deleteProducto(req: any, res: Response, next: NextFunction){
@@ -404,12 +405,15 @@ export class PreciosProductosController extends BaseController {
         const now = new Date()
         const desde = new Date(params.desde)
         const hasta = new Date(params.hasta)
-        now.setUTCHours(0, 0, 0, 0)
+        now.setHours(0, 0, 0, 0)
+        desde.setHours(0, 0, 0, 0)
+        hasta.setHours(0, 0, 0, 0)
+        desde.setDate(desde.getDate()+1)
+        hasta.setDate(hasta.getDate()+1)
         if(isNew){
         // true es Nuevo
 
         }else{
-            
         // false es Edit
         if (params.codigoOld && params.codigoOld !== "" && params.codigoOld !== params.codigo) 
             throw new ClientException(`No puede modificar el codigo de un registro ya cargado`)
@@ -419,8 +423,9 @@ export class PreciosProductosController extends BaseController {
         if (params.SucursalId == null || params.SucursalId == "")
             throw new ClientException(`Debe seleccionar la Sucursal`)
 
-        let resultSucursalCodigo = await queryRunner.query( `SELECT * FROM lige.dbo.lpv_precio_venta WHERE cod_Producto = @0 AND SucursalId = @1`, [params.codigo,params.SucursalId])
-       
+        let resultSucursalCodigo = await queryRunner.query( `SELECT * FROM lige.dbo.lpv_precio_venta WHERE cod_Producto = @0 AND SucursalId = @1 AND precio_venta_id != @2`, [params.codigo, params.SucursalId, params.precioVentaId])
+        const codigoExist = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_precio_venta WHERE precio_venta_id = @0`, [params.precioVentaId])
+
         if(params.codigoOld && params.codigo != params.codigoOld){
         
             // Validar si hay registros
@@ -441,13 +446,13 @@ export class PreciosProductosController extends BaseController {
         if (params.importe == null || params.importe == "")
             throw new ClientException(`Debe completar el Importe`)
 
-        if (hasta < desde)
+        if (params.hasta && hasta < desde)
             throw new ClientException(`La fecha "hasta" no puede ser menor que la fecha "desde".`)
 
-        if (hasta < now)
+        if (params.hasta && hasta < now)
             throw new ClientException(`La fecha "hasta" no puede ser menor que hoy.`)
 
-        if (desde < now)
+        if (desde < now && !(codigoExist.length && codigoExist[0].importe_desde < now && now < codigoExist[0].importe_hasta))
             throw new ClientException(`La fecha "desde" no puede ser menor que hoy.`)
 
         if (params.precioVentaId && params.codigo && params.hasta) {
@@ -465,7 +470,7 @@ export class PreciosProductosController extends BaseController {
             }
         }
 
-        await this.validarRangoFechas(params.desde, params.hasta, resultSucursalCodigo)
+        await this.validarRangoFechas(params.desde, params.hasta, params.precioVentaId)
 
         if(importeOld == params.importe){
 
@@ -495,8 +500,9 @@ export class PreciosProductosController extends BaseController {
         fechaH.setHours(0,0,0,0)
         now.setHours(0,0,0,0)
         for (const registro of registros) {
-          const desde = registro.importe_desde
-          const hasta = registro.importe_hasta
+            const desde = registro.importe_desde
+            const hasta = registro.importe_hasta
+            const precio_venta_id = registro.precio_venta_id
           // Validar si hay interseccion de rangos
         //   if (
         //     (fechaD >= desde && fechaD <= hasta) || 
@@ -505,13 +511,13 @@ export class PreciosProductosController extends BaseController {
         //   ) {
         //     throw new ClientException(`Ya existe una fecha vigente para el rango de fechas`)
         //   }
-          if (
-            ((fechaD >= desde && fechaD <= hasta) || 
-            (fechaH >= desde && fechaH <= hasta)) &&
-            now >= fechaD
-          ) {
-            throw new ClientException(`Ya existe una fecha vigente para el rango de fechas`)
-          }
+            if (
+                ((fechaD >= desde && fechaD <= hasta) || 
+                (fechaH >= desde && fechaH <= hasta))
+                // && (now >= fechaD)
+            ) {
+                throw new ClientException(`Ya existe una fecha vigente para el rango de fechas`)
+            }
         }
       }
 
