@@ -207,9 +207,11 @@ export class SearchService {
   }
 
   getRubroSearch(fieldName: string, values: string): Observable<SearchRubro[]> {
+/*
     if (!values || values == '') {
       return of([]);
     }
+*/
     return this.http
       .post<ResponseJSON<ResponseBySearchRubro>>('api/rubro/search', {
         fieldName: fieldName,
