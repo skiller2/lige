@@ -115,11 +115,10 @@ export class PersonalComponent {
   }
 
   handleSelectedRowsChanged(e: any): void {
-    if(e.detail.args.changedSelectedRows.length == 1){
-        this.personalId.set(this.angularGrid.dataView.getItemByIdx(e.detail.args.changedSelectedRows[0]).id)
-    }else
+    this.personalId.set(this.angularGrid.dataView.getItemByIdx(e.detail.args.changedSelectedRows[0]).PersonalId)
+
+    if(e.detail.args.changedSelectedRows.length > 1)
         this.personalId.set(0)
-    // console.log('this.personalId', this.personalId());
   }
 
   listOptionsChange(options: any) {
