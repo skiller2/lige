@@ -842,9 +842,8 @@ export class ObjetivosController extends BaseController {
             const ObjetivoId = Number(req.params.id)
             const Obj = { ...req.body }
             const infoActividad = { ...Obj.infoActividad }
-            let ObjObjetivoNew = { infoRubro: {}, infoCoordinadorCuenta: {}, ClienteElementoDependienteId: 0, ClienteId: 0 }
+            let ObjObjetivoNew = { infoRubro: {}, infoCoordinadorCuenta: {}, ClienteElementoDependienteId: 0, ClienteId: 0,DomicilioId:0 }
             let newObj = []
-
             //throw new ClientException(`test.`)
             //validaciones
             await queryRunner.startTransaction()
@@ -876,6 +875,7 @@ export class ObjetivosController extends BaseController {
                 if (Obj.DireccionModificada) {
 
                      ClienteElementoDependienteDomicilioUltNro = Obj.DomicilioId + 1
+                     ObjObjetivoNew.DomicilioId = ClienteElementoDependienteDomicilioUltNro
 
                     await this.inserClienteElementoDependienteDomicilio(
                         queryRunner

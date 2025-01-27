@@ -265,7 +265,8 @@ export class ObjetivosFormComponent {
             infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
             infoRubro: result.data.infoRubro,
             codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
-            clienteOld: result.data.ClienteId
+            clienteOld: result.data.ClienteId,
+            DomicilioId: result.data.DomicilioId
           });
         
           //this.edit.set(false)
