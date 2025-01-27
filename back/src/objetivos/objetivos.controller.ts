@@ -854,7 +854,6 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.ClienteElementoDependienteId = Obj.ClienteElementoDependienteId
             ObjObjetivoNew.ClienteId = Obj.ClienteId
 
-console.log("Obj ", Obj)
             //validacion de barrio
             if (Obj.DomicilioProvinciaId && Obj.DomicilioLocalidadId && !Obj.DomicilioBarrioId) {
 
