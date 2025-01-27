@@ -91,20 +91,26 @@
   <button nzType="primary" nz-button (click)="copyNumber()" >
     {{ 'app.btn.copiar' | i18n }}
   </button>
+
+  <br>
+
+  <h2 style="text-align: center; margin-top: 15px;">Aguarde a ser contactado por el BOT para continuar con la validación. Envíe el mensaje con el código cuando se lo soliciten</h2>
 </div>
 <div class="container" *ngIf="retries() >= 4">
-  <div>{{ 'app.validate.attempt' | i18n }}</div>
+  <h2>{{ 'app.validate.attempt' | i18n }}</h2>
+  <br>
+  <nz-form-item style="justify-content: center;">
+    <button nzType="default" nz-button (click)="newValidate()"  >
+      {{ 'app.btn.new.validate' | i18n }}
+    </button>
+  </nz-form-item>
+  <nz-form-item style="justify-content: center;">
+    <h2 style="text-align: center; margin-top: 15px;"> {{ 'app.comuniquese.rrhh' | i18n }}</h2>
+  </nz-form-item>
+  
 </div>
 
 <br>
-<nz-form-item style="justify-content: center;">
-  <button nzType="default" nz-button (click)="newValidate()"  >
-    {{ 'app.btn.new.validate' | i18n }}
-  </button>
-</nz-form-item>
-<nz-form-item style="justify-content: center;">
-  <h5 style="text-align: center; margin-top: 15px;"> {{ 'app.comuniquese.rrhh' | i18n }}</h5>
-</nz-form-item>
 <!-- 
 <nz-card>
   @if (scannerEnabled()) {
