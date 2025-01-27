@@ -749,14 +749,19 @@ export class ObjetivosController extends BaseController {
         // Obtener la hora, minutos y segundos
         const GrupoActividadObjetivoTiempo = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
 
-        let GrupoActividadObjetivoDesde = infoActividad[0].GrupoActividadObjetivoDesde
+        let GrupoActividadObjetivoDesde = new Date(infoActividad[0].GrupoActividadObjetivoDesde)
+        console.log("GrupoActividadObjetivoDesde ", GrupoActividadObjetivoDesde)
         GrupoActividadObjetivoDesde.setHours(0, 0, 0, 0);
 
         const Objetivo = await queryRunner.query(`
-            SELECT obj.GrupoActividadObjetivoId, obj.GrupoActividadObjetivoObjetivoId, obj.GrupoActividadObjetivoDesde
+            SELECT 
+                obj.GrupoActividadObjetivoId, 
+                obj.GrupoActividadObjetivoObjetivoId, 
+                obj.GrupoActividadObjetivoDesde
             FROM GrupoActividad grup
-            LEFT JOIN GrupoActividadObjetivo obj ON obj.GrupoActividadObjetivoId = grup.GrupoActividadObjetivoUltNro
-            WHERE  GrupoActividadId IN (@0)`,
+            LEFT JOIN GrupoActividadObjetivo obj 
+                ON obj.GrupoActividadObjetivoId = grup.GrupoActividadObjetivoUltNro
+            WHERE grup.GrupoActividadId IN  (@0)`,
             [infoActividad[0].GrupoActividadId]
         )
         const ValidatePeriodoAndDay = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
@@ -1198,8 +1203,8 @@ export class ObjetivosController extends BaseController {
 
          // Coordinador de cuenta
 
-         for (const obj of form.infoRubro.filter(rubro => rubro.RubroId !== null && rubro.RubroId !== '')) {
-            if(obj.ClienteElementoDependienteRubroId && !obj.RubroId) {
+         for (const obj of form.infoRubro) {
+            if(!obj.ClienteElementoDependienteRubroId && !obj.RubroId) {
                 throw new ClientException(`Debe completar el campo Rubro.`)
              }
 
