@@ -854,7 +854,7 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.ClienteElementoDependienteId = Obj.ClienteElementoDependienteId
             ObjObjetivoNew.ClienteId = Obj.ClienteId
 
-
+console.log("Obj ", Obj)
             //validacion de barrio
             if (Obj.DomicilioProvinciaId && Obj.DomicilioLocalidadId && !Obj.DomicilioBarrioId) {
 
@@ -872,10 +872,11 @@ export class ObjetivosController extends BaseController {
 
             if (Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
 
+                let ClienteElementoDependienteDomicilioUltNro 
                 //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
                 if (Obj.DireccionModificada) {
 
-                    let ClienteElementoDependienteDomicilioUltNro = Obj.ClienteElementoDependienteDomicilioUltNro + 1
+                     ClienteElementoDependienteDomicilioUltNro = Obj.DomicilioId + 1
 
                     await this.inserClienteElementoDependienteDomicilio(
                         queryRunner
@@ -893,7 +894,7 @@ export class ObjetivosController extends BaseController {
 
                 }
 
-                await this.updateClienteElementoDependienteTable(queryRunner, Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.Descripcion, Obj.SucursalId)
+                await this.updateClienteElementoDependienteTable(queryRunner, Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.Descripcion, Obj.SucursalId, ClienteElementoDependienteDomicilioUltNro)
 
 
             } else {
@@ -1039,13 +1040,14 @@ export class ObjetivosController extends BaseController {
         ClienteElementoDependienteId: any,
         SucursalDescripcion: any,
         SucursalId: any,
+        ClienteElementoDependienteDomicilioUltNro: any
     ) {
 
         return await queryRunner.query(`
             UPDATE ClienteElementoDependiente
-            SET ClienteElementoDependienteSucursalId = @2, ClienteElementoDependienteDescripcion = @3
+            SET ClienteElementoDependienteSucursalId = @2, ClienteElementoDependienteDescripcion = @3,ClienteElementoDependienteDomicilioUltNro=@4
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
-            [ClienteId, ClienteElementoDependienteId, SucursalId, SucursalDescripcion])
+            [ClienteId, ClienteElementoDependienteId, SucursalId, SucursalDescripcion,ClienteElementoDependienteDomicilioUltNro])
     }
 
     async updateClienteTable(
