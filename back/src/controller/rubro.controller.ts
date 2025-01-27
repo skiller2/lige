@@ -31,10 +31,12 @@ export class RubroController extends BaseController {
         break;
     }
 
+    /*
     if (buscar == false) {
       this.jsonRes({ recordsArray: [] }, res);
       return;
     }
+    */
 
     dataSource
       .query((query += " 1=1"))

@@ -11,7 +11,7 @@ const getOptions: any[] = [
     { label: 'Si', value: 'True' },
     { label: 'No', value: 'False' },
     { label: 'Indeterminado', value: null }
-  ]
+]
 
 const listaColumnas: any[] = [
     {
@@ -22,7 +22,7 @@ const listaColumnas: any[] = [
         type: "number",
         sortable: false,
         hidden: true,
-        searchHidden: true            
+        searchHidden: true
     },
     {
         name: "Codigo",
@@ -56,7 +56,7 @@ const listaColumnas: any[] = [
         hidden: true,
         searchHidden: false
     },
-    
+
     {
         name: "Razón Social",
         type: "string",
@@ -93,7 +93,7 @@ const listaColumnas: any[] = [
         id: "SucursalDescripcion",
         field: "SucursalDescripcion",
         fieldName: "suc.SucursalId",
-        searchComponent:"inpurForSucursalSearch",
+        searchComponent: "inpurForSucursalSearch",
         sortable: true,
         hidden: false,
         searchHidden: false
@@ -103,7 +103,7 @@ const listaColumnas: any[] = [
         type: "date",
         id: "ContratoFechaDesde",
         field: "ContratoFechaDesde",
-        fieldName: "ContratoFechaDesde",
+        fieldName: "eledepcon.ClienteElementoDependienteContratoFechaDesde",
         searchComponent: "inpurForFechaSearch",
         sortable: true,
         hidden: false,
@@ -114,7 +114,7 @@ const listaColumnas: any[] = [
         type: "date",
         id: "ContratoFechaHasta",
         field: "ContratoFechaHasta",
-        fieldName: "ContratoFechaHasta",
+        fieldName: "ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')",
         searchComponent: "inpurForFechaSearch",
         sortable: true,
         hidden: false,
@@ -126,68 +126,68 @@ const listaColumnas: any[] = [
 const columnasGrillaHistoryContrato: any[] = [
 
     {
-      name: "id",
-      type: "number",
-      id: "id",
-      field: "id",
-      fieldName: "id",
-      hidden: true,
-      searchHidden: true,
-      sortable: true
+        name: "id",
+        type: "number",
+        id: "id",
+        field: "id",
+        fieldName: "id",
+        hidden: true,
+        searchHidden: true,
+        sortable: true
     },
     {
-      name: "Desde",
-      type: "date",
-      id: "desde",
-      field: "desde",
-      fieldName: "clie.ClienteElementoDependienteContratoFechaDesde",
-      hidden: false,
-      searchHidden: false,
-      sortable: false
+        name: "Desde",
+        type: "date",
+        id: "desde",
+        field: "desde",
+        fieldName: "clie.ClienteElementoDependienteContratoFechaDesde",
+        hidden: false,
+        searchHidden: false,
+        sortable: false
     },
     {
-      name: "Hasta",
-      type: "date",
-      id: "hasta",
-      field: "hasta",
-      fieldName: "clie.ClienteElementoDependienteContratoFechaHasta",
-      hidden: false,
-      searchHidden: false,
-      sortable: false
+        name: "Hasta",
+        type: "date",
+        id: "hasta",
+        field: "hasta",
+        fieldName: "clie.ClienteElementoDependienteContratoFechaHasta",
+        hidden: false,
+        searchHidden: false,
+        sortable: false
     }
-  ];
+];
 
 const columnasGrillaHistoryDomicilio: any[] = [
 
     {
-      name: "id",
-      type: "number",
-      id: "id",
-      field: "id",
-      fieldName: "id",
-      hidden: true,
-      searchHidden: true,
-      sortable: true
+        name: "id",
+        type: "number",
+        id: "id",
+        field: "id",
+        fieldName: "id",
+        hidden: true,
+        searchHidden: true,
+        sortable: true
     },
     {
-      name: "Calle",
-      type: "string",
-      id: "calle",
-      field: "calle",
-      fieldName: "dom.ClienteElementoDependienteDomicilioDomCalle",
-      hidden: false,
-      searchHidden: false,
-      sortable: false
+        name: "Calle",
+        type: "string",
+        id: "calle",
+        field: "calle",
+        fieldName: "dom.ClienteElementoDependienteDomicilioDomCalle",
+        hidden: false,
+        searchHidden: false,
+        sortable: false
     },
     {
-      name: "Codigo Postal",
-      type: "string",
-      id: "postal",
-      field: "postal",
-      fieldName: "dom.ClienteElementoDependienteDomicilioCodigoPostal",
-      hidden: false,
-      searchHidden: false,
-      sortable: false
+        name: "Codigo Postal",
+        type: "string",
+        id: "postal",
+        field: "postal",
+        fieldName: "dom.ClienteElementoDependienteDomicilioCodigoPostal",
+        hidden: false,
+        searchHidden: false,
+        sortable: false
     },
     {
         name: "Complemento",
@@ -198,7 +198,7 @@ const columnasGrillaHistoryDomicilio: any[] = [
         hidden: false,
         searchHidden: false,
         sortable: false
-      },
+    },
     {
         name: "Provincia",
         type: "string",
@@ -208,8 +208,8 @@ const columnasGrillaHistoryDomicilio: any[] = [
         hidden: false,
         searchHidden: false,
         sortable: false
-      },
-      {
+    },
+    {
         name: "Localidad",
         type: "string",
         id: "localidad",
@@ -218,8 +218,8 @@ const columnasGrillaHistoryDomicilio: any[] = [
         hidden: false,
         searchHidden: false,
         sortable: false
-      },
-      {
+    },
+    {
         name: "Barrio",
         type: "string",
         id: "barrio",
@@ -228,30 +228,30 @@ const columnasGrillaHistoryDomicilio: any[] = [
         hidden: false,
         searchHidden: false,
         sortable: false
-      },
-  ];
+    },
+];
 
-  const columnasGrillaHistoryGrupoActividad: any[] = [
+const columnasGrillaHistoryGrupoActividad: any[] = [
 
     {
-      name: "id",
-      type: "number",
-      id: "id",
-      field: "id",
-      fieldName: "id",
-      hidden: true,
-      searchHidden: true,
-      sortable: true
+        name: "id",
+        type: "number",
+        id: "id",
+        field: "id",
+        fieldName: "id",
+        hidden: true,
+        searchHidden: true,
+        sortable: true
     },
     {
-      name: "Grupo Actividad",
-      type: "string",
-      id: "detalle",
-      field: "detalle",
-      fieldName: "acti.grupoactividadDetalle",
-      hidden: false,
-      searchHidden: false,
-      sortable: false
+        name: "Grupo Actividad",
+        type: "string",
+        id: "detalle",
+        field: "detalle",
+        fieldName: "acti.grupoactividadDetalle",
+        hidden: false,
+        searchHidden: false,
+        sortable: false
     },
     {
         name: "Desde",
@@ -262,8 +262,8 @@ const columnasGrillaHistoryDomicilio: any[] = [
         hidden: false,
         searchHidden: false,
         sortable: false
-      },
-      {
+    },
+    {
         name: "Hasta",
         type: "date",
         id: "hasta",
@@ -272,16 +272,16 @@ const columnasGrillaHistoryDomicilio: any[] = [
         hidden: false,
         searchHidden: false,
         sortable: false
-      },
-     
+    },
 
-  ];
-  
+
+];
+
 
 
 export class ObjetivosController extends BaseController {
 
-    
+
     async getGridCols(req, res) {
         this.jsonRes(listaColumnas, res);
     }
@@ -293,7 +293,7 @@ export class ObjetivosController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         const fechaActual = new Date()
         const anio = fechaActual.getFullYear()
-        const mes = fechaActual.getMonth()+1
+        const mes = fechaActual.getMonth() + 1
 
         try {
             const objetivos = await queryRunner.query(
@@ -375,7 +375,7 @@ export class ObjetivosController extends BaseController {
                 LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
                 
 
-                WHERE ${filterSql} ${orderBy}`, [anio,mes])
+                WHERE ${filterSql} ${orderBy}`, [anio, mes])
 
             this.jsonRes(
                 {
@@ -393,7 +393,7 @@ export class ObjetivosController extends BaseController {
 
     async getDescuento(req, res) {
         this.jsonRes(getOptions, res);
-      }
+    }
 
     async infObjetivo(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
@@ -402,19 +402,19 @@ export class ObjetivosController extends BaseController {
             const ObjetivoId = req.params.ObjetivoId
             const ClienteId = req.params.ClienteId
             const ClienteElementoDependienteId = req.params.ClienteElementoDependienteId === "null" ? null : req.params.ClienteElementoDependienteId
-            let infObjetivo = await this.getObjetivoQuery(queryRunner, ObjetivoId,ClienteId,ClienteElementoDependienteId)  
+            let infObjetivo = await this.getObjetivoQuery(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
             const infoCoordinadorCuenta = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
-            const infoRubro = await this.getRubroQuery(queryRunner, ObjetivoId,ClienteId,ClienteElementoDependienteId)
-            const domiclio = await this.getDomicilio(queryRunner, ObjetivoId,ClienteId,ClienteElementoDependienteId)
-            const facturacion = await this.getFacturacion(queryRunner,ClienteId,ClienteElementoDependienteId)
-            const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId,ClienteId,ClienteElementoDependienteId)
+            const infoRubro = await this.getRubroQuery(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
+            const domiclio = await this.getDomicilio(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
+            const facturacion = await this.getFacturacion(queryRunner, ClienteId, ClienteElementoDependienteId)
+            const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
 
-            if(!facturacion ){
-                infObjetivo = {...infObjetivo[0],...domiclio[0]};
-            }else{
-                infObjetivo = {...infObjetivo[0],...domiclio[0],...facturacion[0]};
+            if (!facturacion) {
+                infObjetivo = { ...infObjetivo[0], ...domiclio[0] };
+            } else {
+                infObjetivo = { ...infObjetivo[0], ...domiclio[0], ...facturacion[0] };
             }
-            
+
             infObjetivo.infoCoordinadorCuenta = infoCoordinadorCuenta
             infObjetivo.infoRubro = infoRubro
             infObjetivo.infoActividad = [grupoactividad[0]]
@@ -428,14 +428,14 @@ export class ObjetivosController extends BaseController {
         }
     }
 
-    async getFacturacion(queryRunner,ClienteId,ClienteElementoDependienteId){
+    async getFacturacion(queryRunner, ClienteId, ClienteElementoDependienteId) {
 
 
-        if(!ClienteElementoDependienteId){
+        if (!ClienteElementoDependienteId) {
 
             const fechaActual = new Date()
             const anio = fechaActual.getFullYear()
-            const mes = fechaActual.getMonth()+1
+            const mes = fechaActual.getMonth() + 1
 
             return await queryRunner.query(`
                 SELECT 
@@ -447,26 +447,26 @@ export class ObjetivosController extends BaseController {
                 LEFT JOIN CondicionAnteIVA con ON con.CondicionAnteIVAId = fac.CondicionAnteIVAId
                 WHERE fac.ClienteId = @2
                 AND fac.ClienteFacturacionDesde <= DATEFROMPARTS(@0, @1, 1)
-                AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= DATEFROMPARTS(@0, @1, 1)`,[anio,mes,ClienteId])
-          
+                AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= DATEFROMPARTS(@0, @1, 1)`, [anio, mes, ClienteId])
+
         }
 
     }
-    async getGrupoActividad(queryRunner: any, ObjetivoId: any,ClienteId:any,ClienteElementoDependienteId:any){
+    async getGrupoActividad(queryRunner: any, ObjetivoId: any, ClienteId: any, ClienteElementoDependienteId: any) {
 
-     return await queryRunner.query(`
+        return await queryRunner.query(`
         SELECT GrupoActividadObjetivoId, GrupoActividadId, GrupoActividadId AS GrupoActividadOriginal,
         GrupoActividadObjetivoDesde, GrupoActividadObjetivoDesde AS GrupoActividadObjetivoDesdeOriginal
         FROM GrupoActividadObjetivo 
         WHERE GrupoActividadObjetivoObjetivoId = @0 ORDER BY ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') DESC, GrupoActividadObjetivodesde DESC, GrupoActividadObjetivoTiempo DESC;`
-                ,[ObjetivoId])
-          
-   
-    }
-    
-    async getDomicilio(queryRunner: any, ObjetivoId: any,ClienteId:any,ClienteElementoDependienteId:any){
+            , [ObjetivoId])
 
-        if(ClienteElementoDependienteId){
+
+    }
+
+    async getDomicilio(queryRunner: any, ObjetivoId: any, ClienteId: any, ClienteElementoDependienteId: any) {
+
+        if (ClienteElementoDependienteId) {
 
             return await queryRunner.query(`SELECT TOP 1 
                  domcli.ClienteElementoDependienteDomicilioId AS DomicilioId
@@ -484,10 +484,10 @@ export class ObjetivosController extends BaseController {
                 AND domcli.ClienteElementoDependienteId = @1
                 AND domcli.ClienteElementoDependienteDomicilioDomicilioActual = 1
             ORDER BY domcli.ClienteElementoDependienteDomicilioId DESC`,
-        [ClienteId,ClienteElementoDependienteId])
-          
-        }else{
-            
+                [ClienteId, ClienteElementoDependienteId])
+
+        } else {
+
             return await queryRunner.query(`SELECT TOP 1 
                  domcli.ClienteDomicilioId AS DomicilioId
                 ,TRIM(domcli.ClienteDomicilioDomCalle) AS DomicilioDomCalle
@@ -502,12 +502,12 @@ export class ObjetivosController extends BaseController {
             WHERE domcli.ClienteId = @0
                 AND domcli.ClienteDomicilioActual = 1
             ORDER BY domcli.ClienteDomicilioId DESC`,
-        [ObjetivoId])
+                [ObjetivoId])
         }
 
     }
 
-    
+
 
     async getCoordinadorCuentaQuery(queryRunner: any, ObjetivoId: any) {
         return await queryRunner.query(`SELECT
@@ -523,19 +523,19 @@ export class ObjetivosController extends BaseController {
             [ObjetivoId])
     }
 
-    async getRubroQuery(queryRunner: any, ObjetivoId: any,ClienteId:any,ClienteElementoDependienteId) {
+    async getRubroQuery(queryRunner: any, ObjetivoId: any, ClienteId: any, ClienteElementoDependienteId) {
         return await queryRunner.query(`SELECT
              ClienteElementoDependienteRubroId,ClienteElementoDependienteRubroClienteId AS RubroId FROM ClienteEleDepRubro 
              WHERE clienteId = @1 AND ClienteElementoDependienteId = @2`,
-            [ObjetivoId,ClienteId,ClienteElementoDependienteId])
+            [ObjetivoId, ClienteId, ClienteElementoDependienteId])
     }
 
 
-    async getObjetivoQuery(queryRunner: any, ObjetivoId: any, ClienteId:any,ClienteElementoDependienteId: any) {
+    async getObjetivoQuery(queryRunner: any, ObjetivoId: any, ClienteId: any, ClienteElementoDependienteId: any) {
         const fechaActual = new Date()
         const anio = fechaActual.getFullYear()
-        const mes = fechaActual.getMonth()+1
-        if(ClienteElementoDependienteId){
+        const mes = fechaActual.getMonth() + 1
+        if (ClienteElementoDependienteId) {
             return await queryRunner.query(`SELECT obj.ObjetivoId
                 ,obj.ObjetivoId AS id
                 ,obj.ClienteId
@@ -583,9 +583,9 @@ export class ObjetivosController extends BaseController {
             LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId, cli.ClienteSucursalId)
            
             WHERE obj.ObjetivoId = @0;`,
-                [ObjetivoId,ClienteId,ClienteElementoDependienteId,anio,mes])
+                [ObjetivoId, ClienteId, ClienteElementoDependienteId, anio, mes])
 
-        }else{
+        } else {
             return await queryRunner.query(`
                 SELECT cli.ClienteId AS id
                 ,cli.ClienteId
@@ -628,121 +628,121 @@ export class ObjetivosController extends BaseController {
 
 
             WHERE cli.ClienteId = @0;`,
-                [ClienteId,anio,mes])
+                [ClienteId, anio, mes])
         }
-       
+
     }
 
-    async validateDateAndCreateContrato(queryRunner:any,Obj:any){
+    async validateDateAndCreateContrato(queryRunner: any, Obj: any) {
 
         let createNewContrato = false
-        let ContratoFechaDesde =  Obj.ContratoFechaDesde ? new Date(Obj.ContratoFechaDesde) : null
-        let ContratoFechaDesdeOLD =  Obj.ContratoFechaDesdeOLD ? new Date(Obj.ContratoFechaDesdeOLD) : null
+        let ContratoFechaDesde = Obj.ContratoFechaDesde ? new Date(Obj.ContratoFechaDesde) : null
+        let ContratoFechaDesdeOLD = Obj.ContratoFechaDesdeOLD ? new Date(Obj.ContratoFechaDesdeOLD) : null
         const ContratoFechaHastaOLD = Obj.ContratoFechaHastaOLD ? new Date(Obj.ContratoFechaHastaOLD) : null
         const ContratoFechaHasta = Obj.ContratoFechaHasta ? new Date(Obj.ContratoFechaHasta) : null
 
-        if(ContratoFechaDesde)
+        if (ContratoFechaDesde)
             ContratoFechaDesde.setHours(0, 0, 0, 0)
 
-        if(ContratoFechaHasta)
+        if (ContratoFechaHasta)
             ContratoFechaHasta.setHours(0, 0, 0, 0)
 
-        if(ContratoFechaDesdeOLD){
+        if (ContratoFechaDesdeOLD) {
             ContratoFechaDesdeOLD.setHours(0, 0, 0, 0)
         }
-           
-        if(ContratoFechaHastaOLD)
+
+        if (ContratoFechaHastaOLD)
             ContratoFechaHastaOLD.setHours(0, 0, 0, 0)
 
-        if(!Obj.FechaModificada && !ContratoFechaDesdeOLD && !ContratoFechaHastaOLD)
+        if (!Obj.FechaModificada && !ContratoFechaDesdeOLD && !ContratoFechaHastaOLD)
             throw new ClientException(`Debe completar el campo Contrato Desde.`)
 
-        if(Obj.FechaModificada)
-            createNewContrato = await this.FormValidationsDate(queryRunner,ContratoFechaDesde,ContratoFechaHasta,ContratoFechaDesdeOLD,ContratoFechaHastaOLD,Obj.FechaModificada)
+        if (Obj.FechaModificada)
+            createNewContrato = await this.FormValidationsDate(queryRunner, ContratoFechaDesde, ContratoFechaHasta, ContratoFechaDesdeOLD, ContratoFechaHastaOLD, Obj.FechaModificada)
 
         //console.log("createNewContrato",createNewContrato)
         //throw new ClientException(`ESTOY TESTEANDO`)
 
-        if(Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
+        if (Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
 
             //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
 
-            if(Obj.ContratoId && !createNewContrato){                
+            if (Obj.ContratoId && !createNewContrato) {
                 await queryRunner.query(`UPDATE ClienteElementoDependienteContrato SET ClienteElementoDependienteContratoFechaDesde = @3, ClienteElementoDependienteContratoFechaHasta = @4
                     WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND ClienteElementoDependienteContratoId = @2`,
-                    [Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.ContratoId,ContratoFechaDesde, ContratoFechaHasta])
-            }else{
-           
-                let ClienteElementoDependienteContratoId = Obj.ContratoId ? Obj.ContratoId + 1 : 1
-    
+                    [Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.ContratoId, ContratoFechaDesde, ContratoFechaHasta])
+            } else {
 
-                 await queryRunner.query(`INSERT INTO ClienteElementoDependienteContrato (ClienteElementoDependienteContratoId,
+                let ClienteElementoDependienteContratoId = Obj.ContratoId ? Obj.ContratoId + 1 : 1
+
+
+                await queryRunner.query(`INSERT INTO ClienteElementoDependienteContrato (ClienteElementoDependienteContratoId,
                     ClienteId,ClienteElementoDependienteId, ClienteElementoDependienteContratoFechaDesde,ClienteElementoDependienteContratoFechaHasta) VALUES(@0,@1,@2,@3,@4)`,
-                    [ClienteElementoDependienteContratoId++,Obj.ClienteId,Obj.ClienteElementoDependienteId,ContratoFechaDesde, ContratoFechaHasta])
-            
-            }    
-        }else{
-      
-            if(Obj.ContratoId && !createNewContrato){
+                    [ClienteElementoDependienteContratoId++, Obj.ClienteId, Obj.ClienteElementoDependienteId, ContratoFechaDesde, ContratoFechaHasta])
+
+            }
+        } else {
+
+            if (Obj.ContratoId && !createNewContrato) {
 
                 await queryRunner.query(`UPDATE ClienteContrato SET ClienteContratoFechaDesde = @2, ClienteContratoFechaHasta @3 WHERE ClienteId = @0 AND ClienteContratoId = @1`,
-                    [Obj.ClienteId,Obj.ContratoId,ContratoFechaDesde, ContratoFechaHasta])
-            }else{
+                    [Obj.ClienteId, Obj.ContratoId, ContratoFechaDesde, ContratoFechaHasta])
+            } else {
 
                 let ClienteContratoId = Obj.ClienteContratoUltNro == null ? 1 : Obj.ClienteContratoUltNro + 1
-        
-                 await queryRunner.query(`INSERT INTO ClienteContrato (ClienteContratoId,ClienteId, ClienteContratoFechaDesde, ClienteContratoFechaHasta ) VALUES (@0,@1,@2,@3)`,
-                    [ClienteContratoId,Obj.ClienteId,ContratoFechaDesde,ContratoFechaHasta])
-            } 
-                
+
+                await queryRunner.query(`INSERT INTO ClienteContrato (ClienteContratoId,ClienteId, ClienteContratoFechaDesde, ClienteContratoFechaHasta ) VALUES (@0,@1,@2,@3)`,
+                    [ClienteContratoId, Obj.ClienteId, ContratoFechaDesde, ContratoFechaHasta])
+            }
+
         }
 
     }
 
-    async validateCliente(queryRunner:any,Obj:any,ClienteElementoDependienteUltNro:any){
+    async validateCliente(queryRunner: any, Obj: any, ClienteElementoDependienteUltNro: any) {
 
         //oobjetivo
         //ElementoDependiente
         // donse se guarda el archivo archivo
-        
+
         //Cliente Elemento Dependiente 
-           
+
         let ClienteElementoDependienteDomicilioId = 1
-        await this.insertClienteElementoDependienteSql(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.Descripcion,Obj.SucursalId,ClienteElementoDependienteDomicilioId)
-    
+        await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, ClienteElementoDependienteDomicilioId)
+
 
         //ClienteElementoDependienteDomicilio
         await queryRunner.query(`UPDATE ClienteElementoDependienteDomicilio SET ClienteId = @2, ClienteElementoDependienteId = @3  WHERE  ClienteId = @0 AND ClienteElementoDependienteId = @1`,
-            [Obj.clienteOld,Obj.ClienteElementoDependienteId,Obj.ClienteId, ClienteElementoDependienteUltNro])
-            
+            [Obj.clienteOld, Obj.ClienteElementoDependienteId, Obj.ClienteId, ClienteElementoDependienteUltNro])
+
         //ClienteElementoDependienteContrato
         await queryRunner.query(`UPDATE ClienteElementoDependienteContrato SET ClienteId = @2, ClienteElementoDependienteId = @3  WHERE  ClienteId = @0 AND ClienteElementoDependienteId = @1`,
-            [Obj.clienteOld,Obj.ClienteElementoDependienteId,Obj.ClienteId, ClienteElementoDependienteUltNro])
+            [Obj.clienteOld, Obj.ClienteElementoDependienteId, Obj.ClienteId, ClienteElementoDependienteUltNro])
 
         //ClienteEleDepRubro
-        
-        await queryRunner.query(`UPDATE ClienteEleDepRubro SET ClienteId = @2, ClienteElementoDependienteId = @3  WHERE  ClienteId = @0 AND ClienteElementoDependienteId = @1`,
-            [Obj.clienteOld,Obj.ClienteElementoDependienteId,Obj.ClienteId, ClienteElementoDependienteUltNro])
 
-           
+        await queryRunner.query(`UPDATE ClienteEleDepRubro SET ClienteId = @2, ClienteElementoDependienteId = @3  WHERE  ClienteId = @0 AND ClienteElementoDependienteId = @1`,
+            [Obj.clienteOld, Obj.ClienteElementoDependienteId, Obj.ClienteId, ClienteElementoDependienteUltNro])
+
+
         //objetivo 
         // await this.deleteObjetivoQuery(queryRunner,Number(Obj.ObjetivoId),Number(Obj.ClienteId))
         // await this.insertObjetivoSql(queryRunner,Number(Obj.ClienteId),Obj.Descripcion,ClienteElementoDependienteUltNro,Obj.SucursalId)
 
         await queryRunner.query(`UPDATE Objetivo SET ClienteId = @0, ObjetivoDescripcion = @1, ClienteElementoDependienteId = @2 WHERE ObjetivoId = @3`,
-                [Obj.ClienteId, Obj.Descripcion, ClienteElementoDependienteUltNro, Obj.ObjetivoId])
+            [Obj.ClienteId, Obj.Descripcion, ClienteElementoDependienteUltNro, Obj.ObjetivoId])
 
         //objetivopersonal jerarquico
         //se modifico objetivo no es necesario modificar el personal jerarquico
-        
+
         // cliente
-        await this.updateCliente(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro)
-        await this.deleteClienteElementoDependienteQuery(queryRunner,Number(Obj.clienteOld),Number(Obj.ClienteElementoDependienteId))
-         
+        await this.updateCliente(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro)
+        await this.deleteClienteElementoDependienteQuery(queryRunner, Number(Obj.clienteOld), Number(Obj.ClienteElementoDependienteId))
+
 
     }
 
-    async grupoActividad (queryRunner:any,infoActividad:any,GrupoActividadObjetivoObjetivoId:any,GrupoActividadObjetivoPuesto:any, GrupoActividadObjetivoUsuarioId:any){
+    async grupoActividad(queryRunner: any, infoActividad: any, GrupoActividadObjetivoObjetivoId: any, GrupoActividadObjetivoPuesto: any, GrupoActividadObjetivoUsuarioId: any) {
 
         const now = new Date();
 
@@ -751,7 +751,9 @@ export class ObjetivosController extends BaseController {
 
         let GrupoActividadObjetivoDesde = new Date(infoActividad[0].GrupoActividadObjetivoDesde)
         console.log("GrupoActividadObjetivoDesde ", GrupoActividadObjetivoDesde)
-        GrupoActividadObjetivoDesde.setHours(0, 0, 0, 0);
+        GrupoActividadObjetivoDesde.setHours(0, 0, 0, 0)
+
+        //        throw new ClientException('Fecha GrupoActividadObjetivoDesde',GrupoActividadObjetivoDesde)
 
         const Objetivo = await queryRunner.query(`
             SELECT 
@@ -769,30 +771,32 @@ export class ObjetivosController extends BaseController {
         const fechaFormateada = `${FechaCierre.getFullYear()}-${(FechaCierre.getMonth() + 1).toString().padStart(2, '0')}-${FechaCierre.getDate().toString().padStart(2, '0')}`
 
         if (Objetivo.length && infoActividad[0].GrupoActividadId != infoActividad[0].GrupoActividadOriginal && Objetivo[0].GrupoActividadObjetivoDesde.getTime() > GrupoActividadObjetivoDesde.getTime()) {
-            throw new ClientException(`La fecha Desde no puede ser menor a ${GrupoActividadObjetivoDesde.getDate()}/${GrupoActividadObjetivoDesde.getMonth()+1}/${GrupoActividadObjetivoDesde.getFullYear()}`)
+            throw new ClientException(`La fecha Desde no puede ser menor a ${GrupoActividadObjetivoDesde.getDate()}/${GrupoActividadObjetivoDesde.getMonth() + 1}/${GrupoActividadObjetivoDesde.getFullYear()}`)
         }
-        if (GrupoActividadObjetivoDesde != infoActividad[0].GrupoActividadObjetivoDesdeOriginal && GrupoActividadObjetivoDesde < FechaCierre) {
+        if (GrupoActividadObjetivoDesde != infoActividad[0].GrupoActividadObjetivoDesdeOriginal && GrupoActividadObjetivoDesde <= FechaCierre) {
             throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
         }
         // Restar un día a la fecha
-        let GrupoActividadObjetivoHasta = GrupoActividadObjetivoDesde; 
+
+
+        let GrupoActividadObjetivoHasta = new Date(GrupoActividadObjetivoDesde);
         GrupoActividadObjetivoHasta.setDate(GrupoActividadObjetivoHasta.getDate() - 1);
 
-        console.log("GrupoActividadObjetivoHasta ", GrupoActividadObjetivoHasta)
-        if(infoActividad[0].GrupoActividadId != infoActividad[0].GrupoActividadOriginal && infoActividad[0].GrupoActividadObjetivoId){
+
+        if (infoActividad[0].GrupoActividadId != infoActividad[0].GrupoActividadOriginal && infoActividad[0].GrupoActividadObjetivoId) {
             await queryRunner.query(`UPDATE GrupoActividadObjetivo SET GrupoActividadObjetivoHasta = @3
                 WHERE  GrupoActividadObjetivoId = @0 AND GrupoActividadObjetivoObjetivoId = @1 AND GrupoActividadId = @2 AND ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') > @3`,
-                [infoActividad[0].GrupoActividadObjetivoId,GrupoActividadObjetivoObjetivoId,infoActividad[0].GrupoActividadOriginal,GrupoActividadObjetivoHasta])
+                [infoActividad[0].GrupoActividadObjetivoId, GrupoActividadObjetivoObjetivoId, infoActividad[0].GrupoActividadOriginal, GrupoActividadObjetivoHasta])
         }
 
-          
-           const GrupoActividadObjetivoUltNro = await queryRunner.query(`SELECT GrupoActividadObjetivoUltNro FROM GrupoActividad WHERE GrupoActividadId = @0`,[infoActividad[0].GrupoActividadId])
-           let GrupoActividadObjetivoIdNew = GrupoActividadObjetivoUltNro[0].GrupoActividadObjetivoUltNro + 1;
 
-           const Usuario = await queryRunner.query(`SELECT UsuarioId FROM Usuario WHERE UsuarioNombre = @0`,[GrupoActividadObjetivoUsuarioId])
-           const UsuarioId = GrupoActividadObjetivoUltNro[0].UsuarioId;
+        const GrupoActividadObjetivoUltNro = await queryRunner.query(`SELECT GrupoActividadObjetivoUltNro FROM GrupoActividad WHERE GrupoActividadId = @0`, [infoActividad[0].GrupoActividadId])
+        let GrupoActividadObjetivoIdNew = GrupoActividadObjetivoUltNro[0].GrupoActividadObjetivoUltNro + 1;
 
-           
+        const Usuario = await queryRunner.query(`SELECT UsuarioId FROM Usuario WHERE UsuarioNombre = @0`, [GrupoActividadObjetivoUsuarioId])
+        const UsuarioId = GrupoActividadObjetivoUltNro[0].UsuarioId;
+
+
         if (infoActividad[0].GrupoActividadId != infoActividad[0].GrupoActividadOriginal) {
             // validar GrupoActividadObjetivoId
             await queryRunner.query(`INSERT INTO GrupoActividadObjetivo (
@@ -804,16 +808,16 @@ export class ObjetivosController extends BaseController {
             GrupoActividadObjetivoUsuarioId,
             GrupoActividadObjetivoDia,
             GrupoActividadObjetivoTiempo) VALUES (@0,@1,@2,@3,@4,@5,@6,@7)`,
-            [ GrupoActividadObjetivoIdNew,
-                infoActividad[0].GrupoActividadId,
-                GrupoActividadObjetivoObjetivoId,
-                GrupoActividadObjetivoDesde,
-                GrupoActividadObjetivoPuesto, 
-                UsuarioId,
-                GrupoActividadObjetivoDesde,
-                GrupoActividadObjetivoTiempo ])
-    
-            await queryRunner.query(`UPDATE GrupoActividad SET GrupoActividadObjetivoUltNro =@0 WHERE GrupoActividadId = @1`,[GrupoActividadObjetivoIdNew,infoActividad[0].GrupoActividadId])
+                [GrupoActividadObjetivoIdNew,
+                    infoActividad[0].GrupoActividadId,
+                    GrupoActividadObjetivoObjetivoId,
+                    GrupoActividadObjetivoDesde,
+                    GrupoActividadObjetivoPuesto,
+                    UsuarioId,
+                    GrupoActividadObjetivoDesde,
+                    GrupoActividadObjetivoTiempo])
+
+            await queryRunner.query(`UPDATE GrupoActividad SET GrupoActividadObjetivoUltNro =@0 WHERE GrupoActividadId = @1`, [GrupoActividadObjetivoIdNew, infoActividad[0].GrupoActividadId])
         } else if (GrupoActividadObjetivoDesde != infoActividad[0].GrupoActividadObjetivoDesdeOriginal) {
             await queryRunner.query(`
             UPDATE GrupoActividadObjetivo SET
@@ -821,28 +825,25 @@ export class ObjetivosController extends BaseController {
             WHERE  GrupoActividadObjetivoId = @0 AND GrupoActividadObjetivoObjetivoId = @1 AND GrupoActividadId = @2 AND ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') > @3
             `, [
                 infoActividad[0].GrupoActividadObjetivoId, GrupoActividadObjetivoObjetivoId,
-                infoActividad[0].GrupoActividadOriginal, GrupoActividadObjetivoHasta
+                infoActividad[0].GrupoActividadOriginal, GrupoActividadObjetivoDesde
             ])
-        
+
         }
-           
     }
 
-    
+
     async updateObjetivo(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
-    
+
         try {
-         
+
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
             const ObjetivoId = Number(req.params.id)
-            const Obj =  {...req.body}
-            const infoActividad  =  {...Obj.infoActividad}
-            let ObjObjetivoNew = { infoRubro: {}, infoCoordinadorCuenta: {}, ClienteElementoDependienteId:0,ClienteId:0 }
+            const Obj = { ...req.body }
+            const infoActividad = { ...Obj.infoActividad }
+            let ObjObjetivoNew = { infoRubro: {}, infoCoordinadorCuenta: {}, ClienteElementoDependienteId: 0, ClienteId: 0 }
             let newObj = []
-
-            console.log("voy a hacer update ", Obj)
 
             //throw new ClientException(`test.`)
             //validaciones
@@ -850,78 +851,82 @@ export class ObjetivosController extends BaseController {
 
             await this.FormValidations(Obj)
 
-            //validacion de barrio
-            if(Obj.DomicilioProvinciaId && Obj.DomicilioLocalidadId && !Obj.DomicilioBarrioId) {
-           
-                let queryBarrio =  await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
-                  [Obj.DomicilioProvinciaId,Obj.DomicilioLocalidadId])
+            ObjObjetivoNew.ClienteElementoDependienteId = Obj.ClienteElementoDependienteId
+            ObjObjetivoNew.ClienteId = Obj.ClienteId
 
-                  if (queryBarrio && queryBarrio.length > 0) 
-                      throw new ClientException(`Debe completar el campo barrio.`)
-                  
+
+            //validacion de barrio
+            if (Obj.DomicilioProvinciaId && Obj.DomicilioLocalidadId && !Obj.DomicilioBarrioId) {
+
+                let queryBarrio = await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
+                    [Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId])
+
+                if (queryBarrio && queryBarrio.length > 0)
+                    throw new ClientException(`Debe completar el campo barrio.`)
+
             }
-            
-            await this.validateDateAndCreateContrato(queryRunner,Obj)
+
+            await this.validateDateAndCreateContrato(queryRunner, Obj)
 
             //update
 
-            if(Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
+            if (Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
 
                 //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
-                if(Obj.DireccionModificada){
+                if (Obj.DireccionModificada) {
 
-                    let ClienteElementoDependienteDomicilioUltNro  = Obj.ClienteElementoDependienteDomicilioUltNro + 1
+                    let ClienteElementoDependienteDomicilioUltNro = Obj.ClienteElementoDependienteDomicilioUltNro + 1
 
                     await this.inserClienteElementoDependienteDomicilio(
                         queryRunner
-                       ,Obj.ClienteId
-                       ,Obj.ClienteElementoDependienteId
-                       ,ClienteElementoDependienteDomicilioUltNro
-                       ,Obj.DomicilioDomLugar
-                       ,Obj.DomicilioDomCalle
-                       ,Obj.DomicilioDomNro
-                       ,Obj.DomicilioCodigoPostal
-                       ,Obj.DomicilioProvinciaId 
-                       ,Obj.DomicilioLocalidadId 
-                       ,Obj.DomicilioBarrioId
-                       )
+                        , Obj.ClienteId
+                        , Obj.ClienteElementoDependienteId
+                        , ClienteElementoDependienteDomicilioUltNro
+                        , Obj.DomicilioDomLugar
+                        , Obj.DomicilioDomCalle
+                        , Obj.DomicilioDomNro
+                        , Obj.DomicilioCodigoPostal
+                        , Obj.DomicilioProvinciaId
+                        , Obj.DomicilioLocalidadId
+                        , Obj.DomicilioBarrioId
+                    )
 
                 }
 
-                await this.updateClienteElementoDependienteTable(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,Obj.Descripcion,Obj.SucursalId)  
-    
-    
-            }else{
+                await this.updateClienteElementoDependienteTable(queryRunner, Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.Descripcion, Obj.SucursalId)
+
+
+            } else {
                 //SI EL ELEMENTO DEPENDIENTE ES NULL SOLO ACTUALIZA TABLAS DE CLIENTE
-                await  ClientesController.updateClienteDomicilioTable( queryRunner,Obj.ClienteId,Obj)       
-                await this.updateClienteTable(queryRunner,Obj.ClienteId,Obj.SucursalId,Obj.Descripcion) 
-                    
+                await ClientesController.updateClienteDomicilioTable(queryRunner, Obj.ClienteId, Obj)
+                await this.updateClienteTable(queryRunner, Obj.ClienteId, Obj.SucursalId, Obj.Descripcion)
+
             }
 
-            if(infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId || infoActividad[0].GrupoActividadObjetivoDesdeOriginal != infoActividad[0].GrupoActividadObjetivoDesde)
-                await this.grupoActividad (queryRunner,Obj.infoActividad,ObjetivoId,ip, usuario)
-            
-            ObjObjetivoNew.infoCoordinadorCuenta= await this.ObjetivoCoordinador(queryRunner,Obj.infoCoordinadorCuenta,ObjetivoId)
-            ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner,Obj.infoRubro,ObjetivoId,Obj.ClienteId,Obj.ClienteElementoDependienteId)
+            if (infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId || infoActividad[0].GrupoActividadObjetivoDesdeOriginal != infoActividad[0].GrupoActividadObjetivoDesde)
+                await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoId, ip, usuario)
 
-            if(Obj.files?.length > 0){
-             await FileUploadController.handlePDFUpload(ObjetivoId,'Objetivo','OBJ','objetivo_id', Obj.files,usuario,ip ) 
+            ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoId)
+            ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner, Obj.infoRubro, ObjetivoId, Obj.ClienteId, Obj.ClienteElementoDependienteId)
+
+            if (Obj.files?.length > 0) {
+                await FileUploadController.handlePDFUpload(ObjetivoId, 'Objetivo', 'OBJ', 'objetivo_id', Obj.files, usuario, ip)
             }
 
-            if(Obj.ClienteId !== Obj.clienteOld){
-                let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT ClienteElementoDependienteUltNro AS ClienteElementoDependienteUltNro FROM Cliente WHERE ClienteId = @0`,[Number(Obj.ClienteId)])
+            if (Obj.ClienteId !== Obj.clienteOld) {
+                let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT ClienteElementoDependienteUltNro AS ClienteElementoDependienteUltNro FROM Cliente WHERE ClienteId = @0`, [Number(Obj.ClienteId)])
                 let { ClienteElementoDependienteUltNro } = infoMaxClienteElementoDependiente[0]
                 ClienteElementoDependienteUltNro = ClienteElementoDependienteUltNro == null ? 1 : ClienteElementoDependienteUltNro + 1
-                await this.validateCliente(queryRunner,Obj,ClienteElementoDependienteUltNro)
+                await this.validateCliente(queryRunner, Obj, ClienteElementoDependienteUltNro)
                 ObjObjetivoNew.ClienteElementoDependienteId = ClienteElementoDependienteUltNro
                 ObjObjetivoNew.ClienteId = Obj.ClienteId
             }
             await queryRunner.commitTransaction()
 
-//throw new ClientException('debug')
+            //throw new ClientException('debug')
 
             return this.jsonRes(ObjObjetivoNew, res, 'Modificación  Exitosa');
-        }catch (error) {
+        } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
@@ -929,7 +934,7 @@ export class ObjetivosController extends BaseController {
         }
     }
 
-    async ObjetivoCoordinador(queryRunner,objetivos,Objetivo){
+    async ObjetivoCoordinador(queryRunner, objetivos, Objetivo) {
         const Fecha = new Date()
         Fecha.setHours(0, 0, 0, 0)
         const ObjetivosIds = objetivos.map((row: { ObjetivoPersonalJerarquicoId: any; }) => row.ObjetivoPersonalJerarquicoId).filter((id) => id !== null && id !== undefined);
@@ -938,90 +943,90 @@ export class ObjetivosController extends BaseController {
             await queryRunner.query(`DELETE FROM ObjetivoPersonalJerarquico WHERE ObjetivoId = @0 AND ObjetivoPersonalJerarquicoId NOT IN (${ObjetivosIds.join(',')})`, [Objetivo])
 
         const ContactoId = await queryRunner.query(`SELECT IDENT_CURRENT('ObjetivoPersonalJerarquico')`)
-        let maxObjetivoPersonalJerarquico = ContactoId[0]['']; 
+        let maxObjetivoPersonalJerarquico = ContactoId[0][''];
 
         for (const [idx, objetivo] of objetivos.entries()) {
 
-            if(Objetivo && objetivo.PersonaId){
-  
-                if (objetivo.ObjetivoId){
+            if (Objetivo && objetivo.PersonaId) {
+
+                if (objetivo.ObjetivoId) {
 
                     await queryRunner.query(`UPDATE ObjetivoPersonalJerarquico SET ObjetivoPersonalJerarquicoComision = @2, ObjetivoPersonalJerarquicoDescuentos = @3
                         WHERE  ObjetivoPersonalJerarquicoComo = 'C' AND ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1 `,
-                        [objetivo.PersonaId,Objetivo,objetivo.ObjetivoPersonalJerarquicoComision,objetivo.ObjetivoPersonalJerarquicoDescuentos])
+                        [objetivo.PersonaId, Objetivo, objetivo.ObjetivoPersonalJerarquicoComision, objetivo.ObjetivoPersonalJerarquicoDescuentos])
                 } else {
                     maxObjetivoPersonalJerarquico++
 
                     await queryRunner.query(` INSERT INTO ObjetivoPersonalJerarquico (ObjetivoId,ObjetivoPersonalJerarquicoPersonalId,
                         ObjetivoPersonalJerarquicoDesde,ObjetivoPersonalJerarquicoHasta,ObjetivoPersonalJerarquicoComo,ObjetivoPersonalJerarquicoComision,
                         ObjetivoPersonalJerarquicoDescuentos) VALUES (@0, @1,@2,@3,@4,@5,@6); `,
-                        [ Objetivo,objetivo.PersonaId,Fecha, null,'C',objetivo.ObjetivoPersonalJerarquicoComision,objetivo.ObjetivoPersonalJerarquicoDescuentos])
+                        [Objetivo, objetivo.PersonaId, Fecha, null, 'C', objetivo.ObjetivoPersonalJerarquicoComision, objetivo.ObjetivoPersonalJerarquicoDescuentos])
 
 
-                    if(objetivo.ClienteElementoDependienteId != null && objetivo.ClienteElementoDependienteId != "null") {
+                    if (objetivo.ClienteElementoDependienteId != null && objetivo.ClienteElementoDependienteId != "null") {
 
                         await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteContactoUltNro = @2
-                            WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `, [objetivo.ClienteId,objetivo.ClienteElementoDependienteId,maxObjetivoPersonalJerarquico])
-                    }else{
+                            WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `, [objetivo.ClienteId, objetivo.ClienteElementoDependienteId, maxObjetivoPersonalJerarquico])
+                    } else {
 
-                            return await queryRunner.query(`UPDATE Cliente SET ClienteContactoUltNro = @1 WHERE ClienteId = @0`,[objetivo.ClienteId,maxObjetivoPersonalJerarquico])
+                        return await queryRunner.query(`UPDATE Cliente SET ClienteContactoUltNro = @1 WHERE ClienteId = @0`, [objetivo.ClienteId, maxObjetivoPersonalJerarquico])
                     }
                     objetivos[idx].ObjetivoId = maxObjetivoPersonalJerarquico
-                }  
-            }       
-          
+                }
+            }
+
         }
 
         return objetivos
-    
-        
+
+
     }
 
-    async ObjetivoRubro(queryRunner:any,rubros:any,Objetivo:any,ClienteId:any,ClienteElementoDependienteId:any){
+    async ObjetivoRubro(queryRunner: any, rubros: any, Objetivo: any, ClienteId: any, ClienteElementoDependienteId: any) {
 
         let res
         const RubroIds = rubros.map((row: { ClienteElementoDependienteRubroId: any; }) => row.ClienteElementoDependienteRubroId).filter((id) => id !== null && id !== undefined);
         if (RubroIds.length > 0)
-            await queryRunner.query(`DELETE FROM ClienteEleDepRubro WHERE ClienteId = @0 AND ClienteElementoDependienteId =@1 AND ClienteElementoDependienteRubroId NOT IN (${RubroIds.join(',')})`, [ClienteId,ClienteElementoDependienteId])
+            await queryRunner.query(`DELETE FROM ClienteEleDepRubro WHERE ClienteId = @0 AND ClienteElementoDependienteId =@1 AND ClienteElementoDependienteRubroId NOT IN (${RubroIds.join(',')})`, [ClienteId, ClienteElementoDependienteId])
 
 
-        if(ClienteElementoDependienteId)
-            res = await queryRunner.query(`SELECT ClienteElementoDependienteRubroUltNro as RubroUltNro FROM ClienteElementoDependiente WHERE ClienteId=@0 AND ClienteElementoDependienteId=@1 `,[ClienteId,ClienteElementoDependienteId])  
+        if (ClienteElementoDependienteId)
+            res = await queryRunner.query(`SELECT ClienteElementoDependienteRubroUltNro as RubroUltNro FROM ClienteElementoDependiente WHERE ClienteId=@0 AND ClienteElementoDependienteId=@1 `, [ClienteId, ClienteElementoDependienteId])
         else
-            res = await queryRunner.query(`SELECT ClienteRubroUltNro as RubroUltNro FROM Cliente WHERE ClienteId=@0`,[ClienteId])
-            
+            res = await queryRunner.query(`SELECT ClienteRubroUltNro as RubroUltNro FROM Cliente WHERE ClienteId=@0`, [ClienteId])
+
         let RubroUltNro = (res[0]?.RubroUltNro) ? res[0]?.RubroUltNro : 0
 
 
         for (const [idx, rubro] of rubros.filter(rubro => rubro.RubroId !== null && rubro.RubroId !== '' && rubro.RubroId !== 0).entries()) {
-        //for (const [idx, rubro] of rubros.entries()) {
+            //for (const [idx, rubro] of rubros.entries()) {
             //if(rubro.ClienteElementoDependienteRubroId && rubro.RubroId){
-            
-                if (rubro.ClienteElementoDependienteRubroId) {
 
-                    await queryRunner.query(` UPDATE ClienteEleDepRubro SET ClienteElementoDependienteRubroClienteId = @1 WHERE ClienteId = @0 AND  ClienteElementoDependienteRubroId = @2`,
-                        [ClienteId,ClienteElementoDependienteId,rubro.RubroId])
+            if (rubro.ClienteElementoDependienteRubroId) {
 
+                await queryRunner.query(` UPDATE ClienteEleDepRubro SET ClienteElementoDependienteRubroClienteId = @1 WHERE ClienteId = @0 AND  ClienteElementoDependienteRubroId = @2`,
+                    [ClienteId, ClienteElementoDependienteId, rubro.RubroId])
+
+            } else {
+
+                RubroUltNro++
+
+                await queryRunner.query(`INSERT INTO ClienteEleDepRubro (ClienteElementoDependienteRubroId,ClienteId,ClienteElementoDependienteId, ClienteElementoDependienteRubroClienteId )
+                        VALUES (@0, @1,@2,@3); `, [RubroUltNro, ClienteId, ClienteElementoDependienteId, rubro.RubroId])
+
+                if (ClienteElementoDependienteId != null && ClienteElementoDependienteId != "null") {
+                    await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteRubroUltNro = @2
+                                WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
+                        [ClienteId, ClienteElementoDependienteId, RubroUltNro])
                 } else {
 
-                    RubroUltNro++
+                    await queryRunner.query(`UPDATE Cliente SET  ClienteRubroUltNro = @1 WHERE ClienteId = @0`, [ClienteId, RubroUltNro])
 
-                    await queryRunner.query(`INSERT INTO ClienteEleDepRubro (ClienteElementoDependienteRubroId,ClienteId,ClienteElementoDependienteId, ClienteElementoDependienteRubroClienteId )
-                        VALUES (@0, @1,@2,@3); `,[RubroUltNro,ClienteId,ClienteElementoDependienteId,rubro.RubroId])
-
-                    if(ClienteElementoDependienteId != null && ClienteElementoDependienteId != "null") {
-                        await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteRubroUltNro = @2
-                                WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
-                                [ClienteId,ClienteElementoDependienteId,RubroUltNro])
-                    }else{
-
-                        await queryRunner.query(`UPDATE Cliente SET  ClienteRubroUltNro = @1 WHERE ClienteId = @0`,[ClienteId,RubroUltNro])
-            
-                    }  
-                
-                    rubros[idx].ClienteDomicilioId = RubroUltNro
                 }
-           // }
+
+                rubros[idx].ClienteDomicilioId = RubroUltNro
+            }
+            // }
         }
 
         return rubros
@@ -1031,47 +1036,47 @@ export class ObjetivosController extends BaseController {
     async updateClienteElementoDependienteTable(
         queryRunner: any,
         ClienteId: number,
-        ClienteElementoDependienteId:any,
-        SucursalDescripcion:any, 
-        SucursalId:any, 
+        ClienteElementoDependienteId: any,
+        SucursalDescripcion: any,
+        SucursalId: any,
     ) {
 
         return await queryRunner.query(`
             UPDATE ClienteElementoDependiente
             SET ClienteElementoDependienteSucursalId = @2, ClienteElementoDependienteDescripcion = @3
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
-            [ClienteId,ClienteElementoDependienteId,SucursalId,SucursalDescripcion])
+            [ClienteId, ClienteElementoDependienteId, SucursalId, SucursalDescripcion])
     }
 
     async updateClienteTable(
         queryRunner: any,
         ClienteId: number,
-        SucursalId:any, 
-        SucursalDescripcion:any
+        SucursalId: any,
+        SucursalDescripcion: any
     ) {
 
         return await queryRunner.query(`
             UPDATE Cliente
             SET ClienteSucursalId = @1, ClienteNombreFantasia = @2
             WHERE ClienteId = @0 `,
-            [ClienteId,SucursalId,SucursalDescripcion])
+            [ClienteId, SucursalId, SucursalDescripcion])
     }
 
-    async FormValidationsDate(queryRunner: any,ContratoFechaDesde:any,ContratoFechaHasta:any,ContratoFechaDesdeOLD:any,ContratoFechaHastaOLD:any,FechaModificada:any){
+    async FormValidationsDate(queryRunner: any, ContratoFechaDesde: any, ContratoFechaHasta: any, ContratoFechaDesdeOLD: any, ContratoFechaHastaOLD: any, FechaModificada: any) {
 
-        if(!ContratoFechaDesde) {
+        if (!ContratoFechaDesde) {
             throw new ClientException(`Debe completar el campo Contrato Desde.`)
         }
 
-        if(ContratoFechaHasta && ContratoFechaDesde > ContratoFechaHasta  ) {
+        if (ContratoFechaHasta && ContratoFechaDesde > ContratoFechaHasta) {
             throw new ClientException(`La fecha desde no puede ser mayor a la fecha hasta`)
         }
-      
+
         const ValidatePeriodoAndDay = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
         const FechaCierre = new Date(ValidatePeriodoAndDay[0].FechaCierre);
         const fechaFormateada = `${FechaCierre.getFullYear()}-${(FechaCierre.getMonth() + 1).toString().padStart(2, '0')}-${FechaCierre.getDate().toString().padStart(2, '0')}`;
 
-        if(!FechaModificada)
+        if (!FechaModificada)
             return false
 
         // Fechas desde y hasta < Fecha del último periodo cerrado no se modifican.
@@ -1081,27 +1086,27 @@ export class ObjetivosController extends BaseController {
             }
             if (!ContratoFechaDesde) {
                 throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${fechaFormateada}`)
-            } 
-            if ( ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
+            }
+            if (ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
                 throw new ClientException(`La fecha Hasta debe ser mayor  a la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
             }
 
-            return true  
+            return true
         }
 
         // validacion para cuando es un nuevo registro
-        if(!ContratoFechaDesdeOLD && !ContratoFechaHastaOLD){
+        if (!ContratoFechaDesdeOLD && !ContratoFechaHastaOLD) {
 
             if (ContratoFechaDesde.getTime() <= FechaCierre.getTime()) {
                 throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
             }
             if (!ContratoFechaDesde) {
                 throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${fechaFormateada}`)
-            } 
-            if ( ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
+            }
+            if (ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
                 throw new ClientException(`La fecha de cierre debe ser igual o mayor a la fecha limit. ${fechaFormateada}`)
             }
-            return true  
+            return true
         }
 
         // validacion para no ingresar fecha desde en un periodo ya cerrado
@@ -1111,15 +1116,15 @@ export class ObjetivosController extends BaseController {
                 throw new ClientException(`No se puede modificar la fecha desde ya que pertenece a un periodo ya cerrado`);
             }
         }
-        
-    
+
+
         // Desde < FecUltPer y Hasta > UltPer, se puede modificar el hasta, pero el nuevo hasta >= UltPer
         if (ContratoFechaDesdeOLD < FechaCierre && (!ContratoFechaHastaOLD || ContratoFechaHastaOLD > FechaCierre)) {
-   
+
             if (ContratoFechaHasta && ContratoFechaHasta.getTime() < FechaCierre.getTime()) {
                 throw new ClientException(`La fecha de cierre debe ser igual o mayor a la fecha limite. ${fechaFormateada}`)
             }
-            
+
         }
 
         // Desde > FecUltPer, se puede modificar si el nuevo Desde > FecUltPer y no puede quedar vacío
@@ -1130,27 +1135,27 @@ export class ObjetivosController extends BaseController {
             if (!ContratoFechaDesde) {
                 throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${fechaFormateada}`)
             }
-        } 
+        }
 
         return false
 
-    } 
+    }
 
 
-    async FormValidations(form:any){
-    
-    
-        if(!form.ClienteId) {
-           throw new ClientException(`Debe completar el campo Cliente.`)
+    async FormValidations(form: any) {
+
+
+        if (!form.ClienteId) {
+            throw new ClientException(`Debe completar el campo Cliente.`)
         }
 
-        if(!form.Descripcion) {
-           throw new ClientException(`Debe completar el campo  Descripcion.`)
+        if (!form.Descripcion) {
+            throw new ClientException(`Debe completar el campo  Descripcion.`)
         }
 
-        if(!form.SucursalId) {
+        if (!form.SucursalId) {
             throw new ClientException(`Debe completar el campo Sucursal.`)
-        } 
+        }
 
 
 
@@ -1160,137 +1165,137 @@ export class ObjetivosController extends BaseController {
 
         //Domicilio
 
-        if(!form.DomicilioDomCalle) {
+        if (!form.DomicilioDomCalle) {
             throw new ClientException(`Debe completar el campo Dirección Calle.`)
-         }
- 
-         if(!form.DomicilioDomNro) {
+        }
+
+        if (!form.DomicilioDomNro) {
             throw new ClientException(`Debe completar el campo Nro.`)
-         }
- 
-         if(form.DomicilioDomNro.length > 5) {
+        }
+
+        if (form.DomicilioDomNro.length > 5) {
             throw new ClientException(`El campo Domicilio Nro NO puede ser mayor a 5 digitos.`)
-         }
- 
-         if(!form.DomicilioCodigoPostal) {
-             throw new ClientException(`Debe completar el campo Cod Postal.`)
-         }
+        }
 
-         if(form.DomicilioCodigoPostal.length > 8) {
+        if (!form.DomicilioCodigoPostal) {
+            throw new ClientException(`Debe completar el campo Cod Postal.`)
+        }
+
+        if (form.DomicilioCodigoPostal.length > 8) {
             throw new ClientException(`El campo Cod Postal NO puede ser mayor a 8 digitos.`)
-         }
- 
-         if(!form.DomicilioProvinciaId) {
+        }
+
+        if (!form.DomicilioProvinciaId) {
             throw new ClientException(`Debe completar el campo Provincia.`)
-         }
+        }
 
-         if(!form.DomicilioLocalidadId) {
+        if (!form.DomicilioLocalidadId) {
             throw new ClientException(`Debe completar el campo Localidad.`)
-         }
+        }
 
-        
 
-         
+
+
 
         // Coordinador de cuenta
 
-         for(const obj of form.infoCoordinadorCuenta){
-            if(!obj.PersonaId &&  obj.ObjetivoPersonalJerarquicoComision && obj.ObjetivoPersonalJerarquicoDescuentos) {
+        for (const obj of form.infoCoordinadorCuenta) {
+            if (!obj.PersonaId && obj.ObjetivoPersonalJerarquicoComision && obj.ObjetivoPersonalJerarquicoDescuentos) {
                 throw new ClientException(`Debe completar el campo Nombre en cliente contacto.`)
-             }
+            }
 
-         }
+        }
 
-         // Coordinador de cuenta
+        // Coordinador de cuenta
 
          for (const obj of form.infoRubro) {
             if(!obj.ClienteElementoDependienteRubroId && !obj.RubroId) {
                 throw new ClientException(`Debe completar el campo Rubro.`)
-             }
+            }
 
-         }
+        }
 
-         for(const obj of form.infoActividad){
-            if(!obj.GrupoActividadId) {
+        for (const obj of form.infoActividad) {
+            if (!obj.GrupoActividadId) {
                 throw new ClientException(`Debe completar el campo Actividad.`)
             }
             if (!obj.GrupoActividadObjetivoDesde) {
                 throw new ClientException(`Debe completar el campo Fecha Desde de Grupo Actividad.`)
             }
-         }
-        
+        }
 
-    } 
+
+    }
 
     async deleteObjetivo(req: Request, res: Response, next: NextFunction) {
 
-        let { ClienteId,ObjetivoId,ClienteElementoDependienteId,DomicilioId,ContratoId} = req.query
+        let { ClienteId, ObjetivoId, ClienteElementoDependienteId, DomicilioId, ContratoId } = req.query
         //console.log("req.query ", req.query)
         const queryRunner = dataSource.createQueryRunner();
 
         try {
-          await queryRunner.connect();
-          await queryRunner.startTransaction();
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
 
-          await this.deleteObjetivoQuery(queryRunner,Number(ObjetivoId),Number(ClienteId))
-          await this.deletePersonalJerarquicoQuery(queryRunner,Number(ObjetivoId))
+            await this.deleteObjetivoQuery(queryRunner, Number(ObjetivoId), Number(ClienteId))
+            await this.deletePersonalJerarquicoQuery(queryRunner, Number(ObjetivoId))
 
-          if(ClienteElementoDependienteId != 'null'){
+            if (ClienteElementoDependienteId != 'null') {
 
-            await this.deleteObjetivoQuery(queryRunner,Number(ObjetivoId),Number(ClienteId))
-            await this.deleteClienteElementoDependienteQuery(queryRunner,Number(ClienteId),Number(ClienteElementoDependienteId))
-            await this.deleteClienteElementoDependienteDomicilioQuery(queryRunner,Number(ClienteId),Number(ClienteElementoDependienteId),Number(DomicilioId))
-            await this.deleteClienteElementoDependienteContratoQuery(queryRunner,Number(ClienteId),Number(ClienteElementoDependienteId),Number(ContratoId))
-            await this.deleteClienteEleDepRubroQuery(queryRunner,Number(ClienteId),Number(ClienteElementoDependienteId))
-          }
-    
-          await queryRunner.commitTransaction();
-    
+                await this.deleteObjetivoQuery(queryRunner, Number(ObjetivoId), Number(ClienteId))
+                await this.deleteClienteElementoDependienteQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
+                await this.deleteClienteElementoDependienteDomicilioQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId), Number(DomicilioId))
+                await this.deleteClienteElementoDependienteContratoQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId), Number(ContratoId))
+                await this.deleteClienteEleDepRubroQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
+            }
+
+            await queryRunner.commitTransaction();
+
         } catch (error) {
-          await this.rollbackTransaction(queryRunner)
-          return next(error)
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
         }
-    
+
     }
 
-    async deleteObjetivoQuery(queryRunner: any, ObjetivoId: number, ClienteId:number ) {
+    async deleteObjetivoQuery(queryRunner: any, ObjetivoId: number, ClienteId: number) {
 
         return await queryRunner.query(`DELETE FROM objetivo WHERE ObjetivoId = @0 AND ClienteId = @1;`,
-            [ObjetivoId,ClienteId])
+            [ObjetivoId, ClienteId])
     }
 
-    async deleteClienteElementoDependienteQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId:number ) {
+    async deleteClienteElementoDependienteQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
 
         return await queryRunner.query(`DELETE FROM ClienteElementoDependiente WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1;`,
-            [ClienteId,ClienteElementoDependienteId])
+            [ClienteId, ClienteElementoDependienteId])
     }
 
-    async deleteClienteElementoDependienteDomicilioQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId:number,DomicilioId:number ) {
+    async deleteClienteElementoDependienteDomicilioQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number, DomicilioId: number) {
 
         return await queryRunner.query(`DELETE FROM ClienteElementoDependienteDomicilio  WHERE 
              ClienteId = @0
              AND ClienteElementoDependienteId = @1 
              AND ClienteElementoDependienteDomicilioDomicilioId=@2;`,
-            [ClienteId,ClienteElementoDependienteId,DomicilioId])
+            [ClienteId, ClienteElementoDependienteId, DomicilioId])
     }
-    async deleteClienteElementoDependienteContratoQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId:number,ContratoId:number ) {
+    async deleteClienteElementoDependienteContratoQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number, ContratoId: number) {
 
         return await queryRunner.query(`DELETE FROM ClienteElementoDependienteContrato  WHERE 
              ClienteId = @0
              AND ClienteElementoDependienteId = @1 
              AND ClienteElementoDependienteContratoId=@2;`,
-            [ClienteId,ClienteElementoDependienteId,ContratoId])
+            [ClienteId, ClienteElementoDependienteId, ContratoId])
     }
 
-    async deleteClienteEleDepRubroQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId:number ) {
+    async deleteClienteEleDepRubroQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
 
         return await queryRunner.query(`DELETE FROM ClienteEleDepRubro  WHERE 
              ClienteId = @0
              AND ClienteElementoDependienteId = @1`,
-            [ClienteId,ClienteElementoDependienteId])
+            [ClienteId, ClienteElementoDependienteId])
     }
 
-    async deletePersonalJerarquicoQuery(queryRunner: any, ObjetivoId: number ) {
+    async deletePersonalJerarquicoQuery(queryRunner: any, ObjetivoId: number) {
 
         return await queryRunner.query(`DELETE FROM ObjetivoPersonalJerarquico WHERE 
              ObjetivoId = @0
@@ -1300,10 +1305,10 @@ export class ObjetivosController extends BaseController {
 
     async addObjetivo(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
-        const Obj = {...req.body};
-        const infoActividad  =  {...Obj.infoActividad}
-        let ObjObjetivoNew = { ClienteId:0,ObjetivoNewId:0,NewClienteElementoDependienteId:0,infoRubro: {}, infoCoordinadorCuenta: {} }
-        console.log("Insert ",Obj)
+        const Obj = { ...req.body };
+        const infoActividad = { ...Obj.infoActividad }
+        let ObjObjetivoNew = { ClienteId: 0, ObjetivoNewId: 0, NewClienteElementoDependienteId: 0, infoRubro: {}, infoCoordinadorCuenta: {} }
+        console.log("Insert ", Obj)
         //throw new ClientException(`test`)
         let newObj = []
         try {
@@ -1316,62 +1321,62 @@ export class ObjetivosController extends BaseController {
 
             await this.FormValidations(Obj)
 
-             //validacion de barrio
-            if(Obj.DomicilioProvinciaId && Obj.DomicilioLocalidadId && !Obj.DomicilioBarrioId) {
-           
-                let queryBarrio =  await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
-                  [Obj.DomicilioProvinciaId,Obj.DomicilioLocalidadId])
+            //validacion de barrio
+            if (Obj.DomicilioProvinciaId && Obj.DomicilioLocalidadId && !Obj.DomicilioBarrioId) {
 
-                  if (queryBarrio && queryBarrio.length > 0) 
-                      throw new ClientException(`Debe completar el campo barrio.`)
-                  
+                let queryBarrio = await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
+                    [Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId])
+
+                if (queryBarrio && queryBarrio.length > 0)
+                    throw new ClientException(`Debe completar el campo barrio.`)
+
             }
 
             //throw new ClientException(`test`)
-        
-            
-            let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT ClienteElementoDependienteUltNro AS ClienteElementoDependienteUltNro FROM Cliente WHERE ClienteId = @0`,[Number(Obj.ClienteId)])
+
+
+            let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT ClienteElementoDependienteUltNro AS ClienteElementoDependienteUltNro FROM Cliente WHERE ClienteId = @0`, [Number(Obj.ClienteId)])
             console.log("infoMaxClienteElementoDependiente ", infoMaxClienteElementoDependiente)
             let { ClienteElementoDependienteUltNro } = infoMaxClienteElementoDependiente[0]
-            ClienteElementoDependienteUltNro = ClienteElementoDependienteUltNro == null ? 1 :ClienteElementoDependienteUltNro + 1
+            ClienteElementoDependienteUltNro = ClienteElementoDependienteUltNro == null ? 1 : ClienteElementoDependienteUltNro + 1
             console.log("ClienteElementoDependienteUltNro ", ClienteElementoDependienteUltNro)
-           
+
             //Agrego los valores al objeto original para retornar
             ObjObjetivoNew.NewClienteElementoDependienteId = ClienteElementoDependienteUltNro
             Obj.ClienteElementoDependienteId = ClienteElementoDependienteUltNro
             let ClienteElementoDependienteDomicilioId = 1
-          
-            
-            await this.insertClienteElementoDependienteSql(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.Descripcion,Obj.SucursalId,ClienteElementoDependienteDomicilioId)
-            await this.updateCliente(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro)
-            await this.inserClienteElementoDependienteDomicilio(queryRunner,Obj.ClienteId,ClienteElementoDependienteUltNro,ClienteElementoDependienteDomicilioId,Obj.DomicilioDomLugar,Obj.DomicilioDomCalle,Obj.DomicilioDomNro,
-                Obj.DomicilioCodigoPostal,Obj.DomicilioProvinciaId,Obj.DomicilioLocalidadId,Obj.DomicilioBarrioId )
+
+
+            await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, ClienteElementoDependienteDomicilioId)
+            await this.updateCliente(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro)
+            await this.inserClienteElementoDependienteDomicilio(queryRunner, Obj.ClienteId, ClienteElementoDependienteUltNro, ClienteElementoDependienteDomicilioId, Obj.DomicilioDomLugar, Obj.DomicilioDomCalle, Obj.DomicilioDomNro,
+                Obj.DomicilioCodigoPostal, Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId, Obj.DomicilioBarrioId)
 
             //await this.ClienteElementoDependienteContrato(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
-            await this.validateDateAndCreateContrato(queryRunner,Obj)
-            await this.insertObjetivoSql(queryRunner,Number(Obj.ClienteId),Obj.Descripcion,ClienteElementoDependienteUltNro,Obj.SucursalId)
+            await this.validateDateAndCreateContrato(queryRunner, Obj)
+            await this.insertObjetivoSql(queryRunner, Number(Obj.ClienteId), Obj.Descripcion, ClienteElementoDependienteUltNro, Obj.SucursalId)
 
             let infoMaxObjetivo = await queryRunner.query(`SELECT IDENT_CURRENT('Objetivo')`)
-            const  ObjetivoID = infoMaxObjetivo[0][''] 
+            const ObjetivoID = infoMaxObjetivo[0]['']
 
             ObjObjetivoNew.ObjetivoNewId = ObjetivoID
 
 
-            ObjObjetivoNew.infoCoordinadorCuenta= await this.ObjetivoCoordinador(queryRunner,Obj.infoCoordinadorCuenta,ObjetivoID)
-            ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner,Obj.infoRubro,ObjetivoID,Obj.ClienteId,ClienteElementoDependienteUltNro)
- 
+            ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoID)
+            ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner, Obj.infoRubro, ObjetivoID, Obj.ClienteId, ClienteElementoDependienteUltNro)
+
             //await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,MaxObjetivoPersonalJerarquicoId, maxRubro)
 
-            if(infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId || infoActividad[0].GrupoActividadObjetivoDesdeOriginal != infoActividad[0].GrupoActividadObjetivoDesde)
-                await this.grupoActividad (queryRunner,Obj.infoActividad,ObjetivoID,ip, usuario)
+            if (infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId || infoActividad[0].GrupoActividadObjetivoDesdeOriginal != infoActividad[0].GrupoActividadObjetivoDesde)
+                await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoID, ip, usuario)
 
-            if(Obj.files?.length > 0){
-                await FileUploadController.handlePDFUpload(ObjetivoID,'Objetivo','OBJ','objetivo_id',Obj.files,usuario,ip ) 
+            if (Obj.files?.length > 0) {
+                await FileUploadController.handlePDFUpload(ObjetivoID, 'Objetivo', 'OBJ', 'objetivo_id', Obj.files, usuario, ip)
             }
 
             await queryRunner.commitTransaction()
             return this.jsonRes(ObjObjetivoNew, res, 'Carga  de nuevo registro exitoso');
-        }catch (error) {
+        } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
@@ -1379,13 +1384,13 @@ export class ObjetivosController extends BaseController {
         }
     }
 
-    async updateCliente(queryRunner: any,ClienteId:number,ClienteElementoDependienteUltNro:any){
+    async updateCliente(queryRunner: any, ClienteId: number, ClienteElementoDependienteUltNro: any) {
         return await queryRunner.query(`UPDATE Cliente SET ClienteElementoDependienteUltNro = @1 WHERE ClienteId = @0`,
-            [ClienteId,ClienteElementoDependienteUltNro])
+            [ClienteId, ClienteElementoDependienteUltNro])
     }
 
-    async insertObjetivoPersonalJerarquico(queryRunner: any,ObjetivoId:any,ObjetivoPersonalJerarquicoPersonalId:any,
-        ObjetivoPersonalJerarquicoDesde:any,ObjetivoPersonalJerarquicoComision:any,ObjetivoPersonalJerarquicoDescuentos:any
+    async insertObjetivoPersonalJerarquico(queryRunner: any, ObjetivoId: any, ObjetivoPersonalJerarquicoPersonalId: any,
+        ObjetivoPersonalJerarquicoDesde: any, ObjetivoPersonalJerarquicoComision: any, ObjetivoPersonalJerarquicoDescuentos: any
     ) {
 
         return await queryRunner.query(`INSERT INTO ObjetivoPersonalJerarquico (
@@ -1397,21 +1402,21 @@ export class ObjetivosController extends BaseController {
             ObjetivoPersonalJerarquicoDescuentos
             ) VALUES (@0,@1,@2,@3,@4,@5)`,
             [
-             ObjetivoId,
-             ObjetivoPersonalJerarquicoPersonalId,
-             ObjetivoPersonalJerarquicoDesde,
-             'C',
-             ObjetivoPersonalJerarquicoComision,
-             ObjetivoPersonalJerarquicoDescuentos
+                ObjetivoId,
+                ObjetivoPersonalJerarquicoPersonalId,
+                ObjetivoPersonalJerarquicoDesde,
+                'C',
+                ObjetivoPersonalJerarquicoComision,
+                ObjetivoPersonalJerarquicoDescuentos
             ])
     }
 
-    async ClienteElementoDependienteContrato(queryRunner: any,ClienteId:any,ClienteElementoDependienteId:any,ClienteElementoDependienteContratoFechaDesde:any,
-        ClienteElementoDependienteContratoFechaHasta:any ) {
+    async ClienteElementoDependienteContrato(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, ClienteElementoDependienteContratoFechaDesde: any,
+        ClienteElementoDependienteContratoFechaHasta: any) {
 
-        
+
         let ClienteElementoDependienteContratoUltNro = 1
-        
+
         return await queryRunner.query(`INSERT INTO ClienteElementoDependienteContrato (
             ClienteElementoDependienteContratoId,
             ClienteId,
@@ -1420,15 +1425,15 @@ export class ObjetivosController extends BaseController {
             ClienteElementoDependienteContratoFechaHasta
             ) VALUES (@0,@1,@2,@3,@4)`,
             [ClienteElementoDependienteContratoUltNro,
-             ClienteId,
-             ClienteElementoDependienteId,
-             ClienteElementoDependienteContratoFechaDesde,
-             ClienteElementoDependienteContratoFechaHasta,
+                ClienteId,
+                ClienteElementoDependienteId,
+                ClienteElementoDependienteContratoFechaDesde,
+                ClienteElementoDependienteContratoFechaHasta,
             ])
     }
 
-    async inserClienteElementoDependienteDomicilio(queryRunner:any,ClienteId:any,ClienteElementoDependienteId:any,DomicilioId:any,DomicilioDomLugar:any,DomicilioDomCalle:any,
-        DomicilioDomNro:any,DomicilioCodigoPostal:any,DomicilioProvinciaId:any,DomicilioLocalidadId:any,DomicilioBarrioId:any){
+    async inserClienteElementoDependienteDomicilio(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, DomicilioId: any, DomicilioDomLugar: any, DomicilioDomCalle: any,
+        DomicilioDomNro: any, DomicilioCodigoPostal: any, DomicilioProvinciaId: any, DomicilioLocalidadId: any, DomicilioBarrioId: any) {
 
         await queryRunner.query(`INSERT INTO ClienteElementoDependienteDomicilio (
             ClienteId,
@@ -1444,7 +1449,7 @@ export class ObjetivosController extends BaseController {
             ClienteElementoDependienteDomicilioBarrioId,
             ClienteElementoDependienteDomicilioDomicilioActual) 
             VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)`,
-               [ClienteId,
+            [ClienteId,
                 ClienteElementoDependienteId,
                 DomicilioId,
                 DomicilioDomLugar,
@@ -1457,24 +1462,24 @@ export class ObjetivosController extends BaseController {
                 DomicilioBarrioId,
                 1
             ])
-          }
+    }
 
-    async insertObjetivoSql(queryRunner: any,ClienteId: number, ObjetivoDescripcion:any, ClienteElementoDependienteId:any, ObjetivoSucursalUltNro:any,) {
+    async insertObjetivoSql(queryRunner: any, ClienteId: number, ObjetivoDescripcion: any, ClienteElementoDependienteId: any, ObjetivoSucursalUltNro: any,) {
 
         return await queryRunner.query(`INSERT INTO Objetivo (
             ClienteId,
             ObjetivoDescripcion,
             ClienteElementoDependienteId,
             ObjetivoSucursalUltNro) VALUES (@0,@1,@2,@3)`,
-            [ClienteId,ObjetivoDescripcion,ClienteElementoDependienteId,ObjetivoSucursalUltNro])
+            [ClienteId, ObjetivoDescripcion, ClienteElementoDependienteId, ObjetivoSucursalUltNro])
     }
 
-    async insertClienteElementoDependienteSql(queryRunner: any,ClienteId:any,ClienteElementoDependienteId:any,ClienteElementoDependienteDescripcion,ClienteElementoDependienteSucursalId:any,ClienteElementoDependienteDomicilioUltNro:any) {
+    async insertClienteElementoDependienteSql(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, ClienteElementoDependienteDescripcion, ClienteElementoDependienteSucursalId: any, ClienteElementoDependienteDomicilioUltNro: any) {
 
         //este codigo arma el ClienteElementoDependienteArmado
         let ElementoDependienteId = 1
-        let infoElementoDependiente = await queryRunner.query(`SELECT ElementoDependienteDescripcion FROM ElementoDependiente WHERE ElementoDependienteId = @0`,[ElementoDependienteId])
-        let ClienteElementoDependienteArmado =  `${infoElementoDependiente[0].ElementoDependienteDescripcion} - ${ClienteElementoDependienteDescripcion}`
+        let infoElementoDependiente = await queryRunner.query(`SELECT ElementoDependienteDescripcion FROM ElementoDependiente WHERE ElementoDependienteId = @0`, [ElementoDependienteId])
+        let ClienteElementoDependienteArmado = `${infoElementoDependiente[0].ElementoDependienteDescripcion} - ${ClienteElementoDependienteDescripcion}`
 
         return await queryRunner.query(`INSERT INTO ClienteElementoDependiente (
             ClienteId,
@@ -1485,12 +1490,12 @@ export class ObjetivosController extends BaseController {
             ClienteElementoDependienteDomicilioUltNro,
             ClienteElementoDependienteSucursalId) VALUES (@0,@1,@2,@3,@4,@5,@6 )`,
             [ClienteId,
-             ClienteElementoDependienteId,
-             ElementoDependienteId,
-             ClienteElementoDependienteDescripcion,
-             ClienteElementoDependienteArmado,
-             ClienteElementoDependienteDomicilioUltNro,
-             ClienteElementoDependienteSucursalId])
+                ClienteElementoDependienteId,
+                ElementoDependienteId,
+                ClienteElementoDependienteDescripcion,
+                ClienteElementoDependienteArmado,
+                ClienteElementoDependienteDomicilioUltNro,
+                ClienteElementoDependienteSucursalId])
     }
 
 
@@ -1511,7 +1516,7 @@ export class ObjetivosController extends BaseController {
         req: any,
         res: Response,
         next: NextFunction
-      ) {
+    ) {
 
         let fechaActual = new Date()
         const anio = Number(fechaActual.getFullYear())
@@ -1525,7 +1530,7 @@ export class ObjetivosController extends BaseController {
 
             let listCargaContratoHistory
 
-            if(ClienteElementoDependienteId && ClienteElementoDependienteId > 0)
+            if (ClienteElementoDependienteId && ClienteElementoDependienteId > 0)
                 //ClienteElementoDependienteContrato 
                 listCargaContratoHistory = await queryRunner.query(`SELECT 
                        ROW_NUMBER() OVER (ORDER BY clie.ClienteElementoDependienteContratoFechaDesde, 
@@ -1534,7 +1539,7 @@ export class ObjetivosController extends BaseController {
                 clie.ClienteElementoDependienteContratoFechaDesde as desde ,
                 clie.ClienteElementoDependienteContratoFechaHasta as hasta
                 FROM  ClienteElementoDependienteContrato as clie
-                WHERE ClienteElementoDependienteId = @1 AND ClienteId = @0`,[ClienteId,ClienteElementoDependienteId])
+                WHERE ClienteElementoDependienteId = @1 AND ClienteId = @0`, [ClienteId, ClienteElementoDependienteId])
 
             // else
             //     //ClienteContrato
@@ -1545,25 +1550,25 @@ export class ObjetivosController extends BaseController {
             //         FROM  ClienteContrato
             //         WHERE  ClienteId = @0`,[ClienteId])
 
-          this.jsonRes(
-            {
-              total: listCargaContratoHistory.length,
-              list: listCargaContratoHistory,
-            },
-            res
-          );
-    
+            this.jsonRes(
+                {
+                    total: listCargaContratoHistory.length,
+                    list: listCargaContratoHistory,
+                },
+                res
+            );
+
         } catch (error) {
-          return next(error)
+            return next(error)
         }
-      }
+    }
 
 
     async listHistoryDomicilio(
         req: any,
         res: Response,
         next: NextFunction
-      ) {
+    ) {
 
         let fechaActual = new Date()
         const anio = Number(fechaActual.getFullYear())
@@ -1577,7 +1582,7 @@ export class ObjetivosController extends BaseController {
 
             let listCargaContratoHistory
 
-            if(ClienteElementoDependienteId && ClienteElementoDependienteId > 0) 
+            if (ClienteElementoDependienteId && ClienteElementoDependienteId > 0)
                 listCargaContratoHistory = await queryRunner.query(`  
                 SELECT ROW_NUMBER() OVER (ORDER BY dom.ClienteElementoDependienteDomicilioId) AS id,  
                     CONCAT(dom.ClienteElementoDependienteDomicilioDomCalle, ' ', ISNULL(dom.ClienteElementoDependienteDomicilioDomNro, 0)) AS calle,
@@ -1595,28 +1600,28 @@ export class ObjetivosController extends BaseController {
                     AND bar.localidadid = dom.ClienteElementoDependienteDomicilioLocalidadid 
                     AND bar.BarrioId = dom.ClienteElementoDependienteDomicilioBarrioId
                     AND bar.PaisId = 1
-                WHERE  ClienteElementoDependienteId = @1 AND ClienteId = @0;`,[ClienteId,ClienteElementoDependienteId])
+                WHERE  ClienteElementoDependienteId = @1 AND ClienteId = @0;`, [ClienteId, ClienteElementoDependienteId])
 
             console.log("domicilio....")
 
-          this.jsonRes(
-            {
-              total: listCargaContratoHistory.length,
-              list: listCargaContratoHistory,
-            },
-            res
-          );
-    
+            this.jsonRes(
+                {
+                    total: listCargaContratoHistory.length,
+                    list: listCargaContratoHistory,
+                },
+                res
+            );
+
         } catch (error) {
-          return next(error)
+            return next(error)
         }
-      }
+    }
 
     async listHistoryGrupoActividad(
         req: any,
         res: Response,
         next: NextFunction
-      ) {
+    ) {
 
         let fechaActual = new Date()
         const anio = Number(fechaActual.getFullYear())
@@ -1630,7 +1635,7 @@ export class ObjetivosController extends BaseController {
 
             let listCargaContratoHistory
 
-            if(ClienteElementoDependienteId && ClienteElementoDependienteId > 0) 
+            if (ClienteElementoDependienteId && ClienteElementoDependienteId > 0)
                 listCargaContratoHistory = await queryRunner.query(`  
                 SELECT 
                     ROW_NUMBER() OVER (ORDER BY grup.GrupoActividadObjetivoId) AS id,  
@@ -1640,21 +1645,21 @@ export class ObjetivosController extends BaseController {
                 FROM GrupoActividadObjetivo grup
                 LEFT JOIN grupoactividad acti 
                     ON acti.GrupoActividadId = grup.GrupoActividadId
-                WHERE GrupoActividadObjetivoObjetivoId = @0;`,[ObjetivoId])
+                WHERE GrupoActividadObjetivoObjetivoId = @0;`, [ObjetivoId])
 
-          this.jsonRes(
-            {
-              total: listCargaContratoHistory.length,
-              list: listCargaContratoHistory,
-            },
-            res
-          );
-    
+            this.jsonRes(
+                {
+                    total: listCargaContratoHistory.length,
+                    list: listCargaContratoHistory,
+                },
+                res
+            );
+
         } catch (error) {
-          return next(error)
+            return next(error)
         }
-      }
-          
-    
+    }
+
+
 
 }
