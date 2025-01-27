@@ -105,8 +105,8 @@ export class FileUploadController extends BaseController {
             
             let imageUrl = ""
             if (ArchivosAnteriores.length && ArchivosAnteriores[0].path && (tableSearch == 'DocumentoImagenFoto' || tableSearch == 'DocumentoImagenDocumento')){
-              const imagePath = process.env.LINCE_PATH ? process.env.LINCE_PATH : "";
-              imageUrl = imagePath + ArchivosAnteriores[0].path.slice(2)
+              const imagePath = process.env.PATH_ARCHIVOS ? process.env.PATH_ARCHIVOS : "";
+              imageUrl = imagePath + ArchivosAnteriores[0].path.slice(11)
             }
             // const path = (ArchivosAnteriores.length && ArchivosAnteriores[0].path)? ArchivosAnteriores[0].path :null
             // const response = path? await this.isAccessibleUrl(path) : false
