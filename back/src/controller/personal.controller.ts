@@ -709,7 +709,7 @@ cuit.PersonalCUITCUILCUIT,
     try {
       await queryRunner.startTransaction()
 
-      const valForm = this.valPersonalForm(req.body)
+      const valForm = this.valPersonalForm(req.body,'I')
       if (valForm instanceof ClientException)
         throw valForm
 
@@ -1335,7 +1335,7 @@ cuit.PersonalCUITCUILCUIT,
     try {
       await queryRunner.startTransaction()
 
-      const valForm = this.valPersonalForm(req.body)
+      const valForm = this.valPersonalForm(req.body,'U')
       if (valForm instanceof ClientException)
         throw valForm
 
@@ -1704,7 +1704,7 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
-  valPersonalForm(personalForm: any) {
+  valPersonalForm(personalForm: any, action:string) {
     let campos_vacios: any[] = []
 
     if (!personalForm.Nombre) {
@@ -1725,7 +1725,7 @@ cuit.PersonalCUITCUILCUIT,
     if (!personalForm.Email) {
       campos_vacios.push(`- Email`)
     }
-    if (!personalForm.SituacionId) {
+    if (action=='I' && !personalForm.SituacionId) {
       campos_vacios.push(`- Situacion de Revista`)
     }
 
