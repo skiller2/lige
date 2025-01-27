@@ -1,7 +1,7 @@
 import { addKeyword, utils, EVENTS } from '@builderbot/bot'
 import flowMenu from './flowMenu'
 import { chatBotController, personalController } from "../controller/controller.module";
-import { reset, start, stop } from './flowIdle';
+import { reset, start, stop, stopSilence } from './flowIdle';
 import { botServer } from 'src';
 import flowRemoveTel from './flowRemoveTel';
 
@@ -92,6 +92,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
                 const ret = await personalController.genTelCode(telefono)
                 await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, { delay: delay })
                 await state.update({ encTelNro: ret.encTelNro })
+                stopSilence(ctx,gotoFlow, state)
                 return endFlow()
             } else {
                 stop(ctx,gotoFlow, state)

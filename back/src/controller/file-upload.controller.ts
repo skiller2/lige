@@ -102,17 +102,16 @@ export class FileUploadController extends BaseController {
             WHERE 
                 doc.${columnSearch} = @0 AND param.DocumentoImagenParametroDe = @1`,
             [id, TipoSearch])
-            // let imagePath = ""
-            // if (tableSearch == 'DocumentoImagenFoto') 
-            //   imagePath = process.env.IMAGE_FOTO_PATH ? process.env.IMAGE_FOTO_PATH : "";
-            // else if(tableSearch == 'DocumentoImagenDocumento')
-            //   imagePath = process.env.IMAGE_DOCUMENTO_PATH ? process.env.IMAGE_DOCUMENTO_PATH : "";
             
-            // const imageUrl = imagePath != ""? ((ArchivosAnteriores.length && ArchivosAnteriores[0].nombre) ? imagePath.concat(ArchivosAnteriores[0].nombre): "") : ""
-            const path = (ArchivosAnteriores.length && ArchivosAnteriores[0].path)? ArchivosAnteriores[0].path :null
-            const response = path? await this.isAccessibleUrl(path) : false
-            if (response) {
-              const res = await fetch(path)
+            let imageUrl = ""
+            if (ArchivosAnteriores.length && ArchivosAnteriores[0].path && (tableSearch == 'DocumentoImagenFoto' || tableSearch == 'DocumentoImagenDocumento')){
+              const imagePath = process.env.LINCE_PATH ? process.env.LINCE_PATH : "";
+              imageUrl = imagePath + ArchivosAnteriores[0].path.slice(2)
+            }
+            // const path = (ArchivosAnteriores.length && ArchivosAnteriores[0].path)? ArchivosAnteriores[0].path :null
+            // const response = path? await this.isAccessibleUrl(path) : false
+            if (imageUrl != "") {
+              const res = await fetch(imageUrl)
               const buffer = await res.arrayBuffer()
               const bufferStr = Buffer.from(buffer).toString('base64')
               ArchivosAnteriores[0].image = "data:image/jpeg;base64, " + bufferStr;
