@@ -753,13 +753,13 @@ cuit.PersonalCUITCUILCUIT,
 
       if (Email) await this.addPersonalEmail(queryRunner, PersonalId, Email)
 
-
       for (const telefono of telefonos) {
-        if (telefono.TelefonoNum) {
+        if (telefono.TelefonoNro) {
           if (!telefono.TipoTelefonoId) {
             errors.push(`El campo Tipo de la seccion Telefono No pueden estar vacios.`)
             break
           }
+
           await this.addPersonalTelefono(queryRunner, telefono, PersonalId)
         }
       }
@@ -774,11 +774,14 @@ cuit.PersonalCUITCUILCUIT,
       }
 
       for (const familiar of familiares) {
-        if (!familiar.Nombre || !familiar.Apellido || !familiar.TipoTelefonoId) {
+        if (!familiar.Nombre && !familiar.Apellido && !familiar.TipoParentescoId)
+          continue
+
+        if (!familiar.Nombre || !familiar.Apellido || !familiar.TipoParentescoId) {
           errors.push(`Los campos Nombre, Apellido y Parentesco de la seccion Familiar No pueden estar vacios.`)
           break
         }
-        await this.addPersonalFamilia(queryRunner, familiar, PersonalId)
+        await this.addPersonalFamilia(queryRunner, PersonalId, familiar )
       }
 
       if (errors.length)
@@ -792,7 +795,7 @@ cuit.PersonalCUITCUILCUIT,
 
       if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso[0], 13)
 
-  
+  throw new ClientException('Add Persona')
       await queryRunner.commitTransaction()
       return this.jsonRes({PersonalId}, res, 'Carga Exitosa');
     } catch (error) {
@@ -807,18 +810,23 @@ cuit.PersonalCUITCUILCUIT,
   async addPersonalTelefono(queryRunner: any, telefono: any, personalId: any) {
     const tipoTelefonoId = telefono.TipoTelefonoId
     const telefonoNum = telefono.TelefonoNro
+console.log('add telefono',telefonoNum)
+    const ultnro = await queryRunner.query(`SELECT PersonalTelefonoUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
+    const PersonalTelefonoId = (ultnro[0]?.PersonalTelefonoUltNro)?ultnro[0]?.PersonalTelefonoUltNro+1:1
+
     await queryRunner.query(`
       INSERT INTO PersonalTelefono (
       PersonalId,
+      PersonalTelefonoId,
       TipoTelefonoId,
       PersonalTelefonoNro
       )
-      VALUES (@0,@1,@2)`, [
-      personalId, tipoTelefonoId, telefonoNum
+      VALUES (@0,@1,@2,@3)`, [
+      personalId, PersonalTelefonoId, tipoTelefonoId, telefonoNum
     ])
     await queryRunner.query(`
-      UPDATE Personal SET PersonalTelefonoUltNro = ISNULL(PersonalTelefonoUltNro, 0) + 1 WHERE PersonalId = @1
-      `, [personalId])
+      UPDATE Personal SET PersonalTelefonoUltNro = @0 WHERE PersonalId = @1
+      `, [PersonalTelefonoId,personalId])
   }
 
   async addPersonalEstudio(queryRunner: any, estudio: any, personalId: any) {
@@ -1302,6 +1310,7 @@ cuit.PersonalCUITCUILCUIT,
   async updatePersonalFamilia(queryRunner: any, PersonalId: any, familia: any[]) {
     await queryRunner.query(`DELETE FROM PersonalFamilia WHERE PersonalId IN (@0)`, [PersonalId])
     for (const familiar of familia) {
+      console.log('familiar',familiar)
       if (!familiar.Nombre || !familiar.Apellido || !familiar.TipoParentescoId) {
         return new ClientException(`Los campos Nombre, Apellido y Parentesco de la seccion Familiar No pueden estar vacios.`)
       }
