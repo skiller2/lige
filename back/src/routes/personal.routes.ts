@@ -75,6 +75,10 @@ personalRouter.get('/sitrevista/no-options', authMiddleware.verifyToken, (req, r
   personalController.getSituacionRevistaInvalidos(req, res, next)
 });
 
+personalRouter.get('/tipo-parentesco/options', authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getTipoParentesco(req, res, next)
+});
+
 personalRouter.get('/cols', authMiddleware.verifyToken, (req, res, next) => {
   personalController.getGridColumns(req, res, next)
 });

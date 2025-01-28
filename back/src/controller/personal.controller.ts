@@ -673,13 +673,13 @@ cuit.PersonalCUITCUILCUIT,
     )
     const PersonalDocumentoId = PersonalDocumento[0].PersonalDocumentoUltNro + 1
     await queryRunner.query(`
-      INSERT INTO PersonalCUITCUIL (
+      INSERT INTO PersonalDocumento (
       PersonalDocumentoId,
       PersonalId,
       TipoDocumentoId,
       PersonalDocumentoNro
       )
-      VALUES (@0, @1, @2, @3, @4)`,
+      VALUES (@0, @1, @2, @3)`,
       [PersonalDocumentoId, personaId, 1, DNI]
     )
   }
@@ -700,6 +700,7 @@ cuit.PersonalCUITCUILCUIT,
     const docDorso = req.body.docDorso
     const telefonos = req.body.telefonos
     const estudios = req.body.estudios
+    const familiares = req.body.familiares
     let errors: string[] = []
     let now = new Date()
     now.setHours(0, 0, 0, 0)
@@ -709,7 +710,7 @@ cuit.PersonalCUITCUILCUIT,
     try {
       await queryRunner.startTransaction()
 
-      const valForm = this.valPersonalForm(req.body)
+      const valForm = this.valPersonalForm(req.body,'I')
       if (valForm instanceof ClientException)
         throw valForm
 
@@ -752,13 +753,13 @@ cuit.PersonalCUITCUILCUIT,
 
       if (Email) await this.addPersonalEmail(queryRunner, PersonalId, Email)
 
-
       for (const telefono of telefonos) {
-        if (telefono.TelefonoNum) {
+        if (telefono.TelefonoNro) {
           if (!telefono.TipoTelefonoId) {
             errors.push(`El campo Tipo de la seccion Telefono No pueden estar vacios.`)
             break
           }
+
           await this.addPersonalTelefono(queryRunner, telefono, PersonalId)
         }
       }
@@ -772,6 +773,17 @@ cuit.PersonalCUITCUILCUIT,
         }
       }
 
+      for (const familiar of familiares) {
+        if (!familiar.Nombre && !familiar.Apellido && !familiar.TipoParentescoId)
+          continue
+
+        if (!familiar.Nombre || !familiar.Apellido || !familiar.TipoParentescoId) {
+          errors.push(`Los campos Nombre, Apellido y Parentesco de la seccion Familiar No pueden estar vacios.`)
+          break
+        }
+        await this.addPersonalFamilia(queryRunner, PersonalId, familiar )
+      }
+
       if (errors.length)
         throw new ClientException(errors)
 
@@ -783,33 +795,37 @@ cuit.PersonalCUITCUILCUIT,
 
       if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso[0], 13)
 
-    
-      
       await queryRunner.commitTransaction()
-      return this.jsonRes({}, res, 'Carga Exitosa');
+      return this.jsonRes({PersonalId}, res, 'Carga Exitosa');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
     }
+
   }
 
   async addPersonalTelefono(queryRunner: any, telefono: any, personalId: any) {
     const tipoTelefonoId = telefono.TipoTelefonoId
     const telefonoNum = telefono.TelefonoNro
+console.log('add telefono',telefonoNum)
+    const ultnro = await queryRunner.query(`SELECT PersonalTelefonoUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
+    const PersonalTelefonoId = (ultnro[0]?.PersonalTelefonoUltNro)?ultnro[0]?.PersonalTelefonoUltNro+1:1
+
     await queryRunner.query(`
       INSERT INTO PersonalTelefono (
       PersonalId,
+      PersonalTelefonoId,
       TipoTelefonoId,
       PersonalTelefonoNro
       )
-      VALUES (@0,@1,@2)`, [
-      personalId, tipoTelefonoId, telefonoNum
+      VALUES (@0,@1,@2,@3)`, [
+      personalId, PersonalTelefonoId, tipoTelefonoId, telefonoNum
     ])
     await queryRunner.query(`
-      UPDATE Personal SET PersonalTelefonoUltNro = ISNULL(PersonalTelefonoUltNro, 0) + 1 WHERE PersonalId = @1
-      `, [personalId])
+      UPDATE Personal SET PersonalTelefonoUltNro = @0 WHERE PersonalId = @1
+      `, [PersonalTelefonoId,personalId])
   }
 
   async addPersonalEstudio(queryRunner: any, estudio: any, personalId: any) {
@@ -817,21 +833,25 @@ cuit.PersonalCUITCUILCUIT,
     const estadoEstudioId = estudio.EstadoEstudioId
     const estudioTitulo = estudio.EstudioTitulo
     const estudioAnio = estudio.EstudioAno
-    const docTitulo = estudio.DocTitulo[0]
+    const docTitulo = (estudio.DocTitulo)?estudio.DocTitulo[0]:null
+    const ultnro = await queryRunner.query(`SELECT PersonalEstudioUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
+    const PersonalEstudioId = (ultnro[0]?.PersonalEstudioUltNro)?ultnro[0]?.PersonalEstudioUltNro+1:1
     await queryRunner.query(`
       INSERT INTO PersonalEstudio (
       PersonalId,
+      PersonalEstudioId,
       TipoEstudioId,
       EstadoEstudioId,
       PersonalEstudioTitulo,
-      PersonalEstudioAno,
+      PersonalEstudioAno
       )
-      VALUES (@0,@1,@2,@3,@4)`, [
-      personalId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAnio
+      VALUES (@0,@1,@2,@3,@4,@5)`, [
+      personalId, PersonalEstudioId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAnio
     ])
+
     await queryRunner.query(`
-      UPDATE Personal SET PersonalEstudioUltNro = ISNULL(PersonalEstudioUltNro, 0) + 1 WHERE PersonalId = @1
-    `, [personalId])
+      UPDATE Personal SET PersonalEstudioUltNro = @1 WHERE PersonalId = @0`, [personalId, PersonalEstudioId])
+
     if (docTitulo) {
       await this.setImagenEstudio(queryRunner, personalId, docTitulo)
     }
@@ -879,6 +899,40 @@ cuit.PersonalCUITCUILCUIT,
     await queryRunner.query(`
       UPDATE Personal SET PersonalDomicilioUltNro = ISNULL(PersonalDomicilioUltNro, 0) + 1 WHERE PersonalId = @0
       `, [personalId])
+  }
+
+  async addPersonalFamilia(queryRunner: any, PersonalId: any, familiar: any) {
+    const Nombre = familiar.Nombre
+    const Apellido = familiar.Apellido
+    const TipoParentescoId = familiar.TipoParentescoId
+    let PersonalFamiliaId = familiar.PersonalFamiliaId
+    if (!PersonalFamiliaId) {
+      const Personal = await queryRunner.query(`
+        SELECT ISNULL(PersonalFamiliaUltNro, 0)+1 AS UltNro
+        FROM Personal
+        WHERE PersonalId IN (@0)
+        `, [PersonalId])
+        PersonalFamiliaId = Personal[0].UltNro
+    }
+    
+    await queryRunner.query(`
+      INSERT INTO PersonalFamilia (
+      PersonalId,
+      PersonalFamiliaId,
+      PersonalFamiliaApellido,
+      PersonalFamiliaNombre,
+      PersonalFamiliaSexo,
+      TipoParentescoId,
+      PersonalFamiliaVive
+      )
+      VALUES (@0, @1, @2, @3, @4, @5, 6)`, [
+        PersonalId, PersonalFamiliaId, Apellido, Nombre, 'N', TipoParentescoId, 1
+    ])
+    await queryRunner.query(`
+      UPDATE Personal SET
+      PersonalFamiliaUltNro = @1
+      WHERE PersonalId IN (@0)
+      `, [PersonalId, PersonalFamiliaId])
   }
 
   private async getNacionalidadListQuery(queryRunner: any) {
@@ -1080,8 +1134,8 @@ cuit.PersonalCUITCUILCUIT,
     let FechaIngreso: Date = infoPersonal.FechaIngreso ? new Date(infoPersonal.FechaIngreso) : null
     let FechaNacimiento: Date = infoPersonal.FechaNacimiento ? new Date(infoPersonal.FechaNacimiento) : null
     const CUIT: number = infoPersonal.CUIT
-    FechaIngreso.setHours(0, 0, 0, 0)
-    FechaNacimiento.setHours(0, 0, 0, 0)
+    FechaIngreso?.setHours(0, 0, 0, 0)
+    FechaNacimiento?.setHours(0, 0, 0, 0)
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
     const fullname: string = Apellido + ', ' + Nombre
@@ -1252,6 +1306,17 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
+  async updatePersonalFamilia(queryRunner: any, PersonalId: any, familia: any[]) {
+    await queryRunner.query(`DELETE FROM PersonalFamilia WHERE PersonalId IN (@0)`, [PersonalId])
+    for (const familiar of familia) {
+      console.log('familiar',familiar)
+      if (!familiar.Nombre || !familiar.Apellido || !familiar.TipoParentescoId) {
+        return new ClientException(`Los campos Nombre, Apellido y Parentesco de la seccion Familiar No pueden estar vacios.`)
+      }
+      await this.addPersonalFamilia(queryRunner, PersonalId, familiar)
+    }
+  }
+
   // async updatePersonalSitRevista(queryRunner:any, PersonalId:any, infoSitRevista:any){
   //   const PersonalSituacionRevistaId = infoSitRevista.PersonalSituacionRevistaId
   //   let situacionRevista = await queryRunner.query(`
@@ -1329,13 +1394,14 @@ cuit.PersonalCUITCUILCUIT,
     const docDorso = req.body.docDorso
     const telefonos: any[] = req.body.telefonos
     const estudios: any[] = req.body.estudios
+    const familiares: any[] = req.body.familiares
     let now = new Date()
     now.setHours(0, 0, 0, 0)
 
     try {
       await queryRunner.startTransaction()
 
-      const valForm = this.valPersonalForm(req.body)
+      const valForm = this.valPersonalForm(req.body,'U')
       if (valForm instanceof ClientException)
         throw valForm
 
@@ -1359,10 +1425,13 @@ cuit.PersonalCUITCUILCUIT,
         if (telefono.TelefonoNro) await this.updatePersonalTelefono(queryRunner, PersonalId, telefono)
       }
       //Estudios
-      // await queryRunner.query(``)
       for (const estudio of estudios) {
         if (estudio.EstudioTitulo) await this.updatePersonalEstudio(queryRunner, PersonalId, estudio)
       }
+      //Familiares
+      const updatePersonalFamilia = await this.updatePersonalFamilia(queryRunner, PersonalId, familiares)
+      if (updatePersonalFamilia instanceof ClientException)
+        throw updatePersonalFamilia
 
       if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto)
 
@@ -1432,6 +1501,16 @@ cuit.PersonalCUITCUILCUIT,
     )
   }
 
+  private async getFormFamiliaresByPersonalIdQuery(queryRunner: any, personalId: any) {
+    return await queryRunner.query(`
+        SELECT PersonalFamiliaId, TRIM(PersonalFamiliaNombre) AS Nombre,
+        TRIM(PersonalFamiliaApellido) Apellido, TipoParentescoId
+        FROM PersonalFamilia
+        WHERE PersonalId IN (@0)
+      `, [personalId]
+    )
+  }
+
   async getFormDataById(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner()
     const personalId = req.params.id
@@ -1440,9 +1519,11 @@ cuit.PersonalCUITCUILCUIT,
 
       const telefonos = await this.getFormTelefonosByPersonalIdQuery(queryRunner, personalId)
       const estudios = await this.getFormEstudiosByPersonalIdQuery(queryRunner, personalId)
+      const familiares = await this.getFormFamiliaresByPersonalIdQuery(queryRunner, personalId)
 
       data.telefonos = telefonos
       data.estudios = estudios
+      data.familiares = familiares
 
       this.jsonRes(data, res);
     } catch (error) {
@@ -1704,7 +1785,7 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
-  valPersonalForm(personalForm: any) {
+  valPersonalForm(personalForm: any, action:string) {
     let campos_vacios: any[] = []
 
     if (!personalForm.Nombre) {
@@ -1725,7 +1806,7 @@ cuit.PersonalCUITCUILCUIT,
     if (!personalForm.Email) {
       campos_vacios.push(`- Email`)
     }
-    if (!personalForm.SituacionId) {
+    if (action=='I' && !personalForm.SituacionId) {
       campos_vacios.push(`- Situacion de Revista`)
     }
 
@@ -2121,6 +2202,20 @@ cuit.PersonalCUITCUILCUIT,
       return next(error)
     } finally {
       await queryRunner.release()
+    }
+  }
+
+  async getTipoParentesco(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT TipoParentescoId value, TipoParentescoDescripcion label
+        FROM TipoParentesco
+      `)
+
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
     }
   }
 

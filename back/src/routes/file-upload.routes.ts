@@ -79,6 +79,11 @@ FileUploadRouter.post("/downloadFile/:id/:tableForSearch/:filename", async (req,
   await fileUploadController.getByDownloadFile(req, res, next);
 });
 
+//-----------Prueba-------------
+FileUploadRouter.get("/preview/:id/:tableForSearch/:filename", async (req, res, next) => {
+  await fileUploadController.getPreview(req, res, next);
+});
+//------------------------------
 FileUploadRouter.get('/archivos_anteriores/:id/:TipoSearch/:columnForSearch/:tableForSearch', (req, res, next) => {
   fileUploadController.getArchivosAnteriores(req, res, next)
 });
