@@ -832,6 +832,15 @@ export class ApiService {
   }
 
 
+  onchangecellGrupoActividadResponsables(params: any) {
+    return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/changecellresponsable', params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+
+    )
+
+  }
+
+
   getDescuentoByPeriodo(year: number, month: number, personaIdRel: number): Observable<ResponseDescuentos> {
     const emptyResponse: ResponseDescuentos = { RegistrosConComprobantes: 0, RegistrosSinComprobantes: 0, Registros: [] };
     if (!month || !year) {

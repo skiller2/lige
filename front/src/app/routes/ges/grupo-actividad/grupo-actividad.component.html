@@ -37,8 +37,10 @@
         </nz-tab>
 
         <nz-tab>
-            <a nz-tab-link routerLink="/ges/grupo-actividad/jerarquicos">{{ 'app.responsables' | i18n }}</a>
-            <span>Responsables</span>
+            <a nz-tab-link routerLink="/ges/grupo-actividad/responsables">{{ 'app.responsables' | i18n }}</a>
+            <ng-template nz-tab>
+                <app-table-grupo-actividad-responsables></app-table-grupo-actividad-responsables>
+            </ng-template>
 
         </nz-tab>
 

@@ -8,6 +8,8 @@ import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } fr
 import { SearchService } from 'src/app/services/search.service';
 import { SettingsService } from '@delon/theme';
 import { TableGrupoActividadGruposComponent } from '../../../shared/table-grupo-actividad-grupos/table-grupo-actividad-grupos.component'
+import { TableGrupoActividadResponsablesComponent } from '../../../shared/table-grupo-actividad-responsables/table-grupo-actividad-responsables.component'
+
 
 
 @Component({
@@ -15,7 +17,7 @@ import { TableGrupoActividadGruposComponent } from '../../../shared/table-grupo-
   standalone: true,
   imports: [
     SHARED_IMPORTS, 
-    CommonModule, TableGrupoActividadGruposComponent
+    CommonModule, TableGrupoActividadGruposComponent, TableGrupoActividadResponsablesComponent
   ],
   encapsulation: ViewEncapsulation.None,
   providers: [AngularUtilService],

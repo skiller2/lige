@@ -370,6 +370,16 @@ export class SearchService {
     );
   }
 
+  getTipo(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`/api/grupo-actividad/tipo_getOptions`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getCategorias(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/asistencia/categorias`).pipe(
       map(res => res.data),
@@ -817,6 +827,16 @@ export class SearchService {
   getListGrupoActividadGrupos(filters: any) {
     const parameter =  filters 
     return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/listGrupos', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+    
+  }
+
+  getListGrupoActividadResponsables(filters: any) {
+    const parameter =  filters 
+    return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/listResponsables', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
