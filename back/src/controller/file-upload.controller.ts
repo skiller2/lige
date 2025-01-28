@@ -77,8 +77,8 @@ export class FileUploadController extends BaseController {
     next: NextFunction
   ) {
     const id = req.params.id
-    const TipoSearch = req.params.TipoSearch
     const columnSearch = req.params.columnForSearch
+    const TipoSearch = req.params.TipoSearch
     const tableSearch = req.params.tableForSearch
     try {
       const queryRunner = dataSource.createQueryRunner();
@@ -100,23 +100,25 @@ export class FileUploadController extends BaseController {
             JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             WHERE 
-                doc.${columnSearch} = @0 AND param.DocumentoImagenParametroDe = @1`,
-            [id, TipoSearch])
-            
+                doc.${columnSearch} = @0`,
+            [id])
+          
+          /*  
             let imageUrl = ""
             if (ArchivosAnteriores.length && ArchivosAnteriores[0].path && (tableSearch == 'DocumentoImagenFoto' || tableSearch == 'DocumentoImagenDocumento')){
               const imagePath = process.env.PATH_ARCHIVOS ? process.env.PATH_ARCHIVOS : "";
               imageUrl = imagePath + ArchivosAnteriores[0].path.slice(11)
             }
             // const path = (ArchivosAnteriores.length && ArchivosAnteriores[0].path)? ArchivosAnteriores[0].path :null
-            // const response = path? await this.isAccessibleUrl(path) : false
+          // const response = path? await this.isAccessibleUrl(path) : false
+          
             if (imageUrl != "") {
               const res = await fetch(imageUrl)
               const buffer = await res.arrayBuffer()
               const bufferStr = Buffer.from(buffer).toString('base64')
               ArchivosAnteriores[0].image = "data:image/jpeg;base64, " + bufferStr;
             }
-
+*/
           break;
 
         case 'docgeneral':
@@ -132,7 +134,7 @@ export class FileUploadController extends BaseController {
             WHERE 
                 doc.${columnSearch} = @0 AND
                 tipo.doctipo_id = @1 `,
-            [id, TipoSearch])
+            [id,TipoSearch])
           
           break;
       
