@@ -27,7 +27,7 @@ export class PersonalFormComponent {
   isLoading = signal(false);
   periodo= signal({anio:0, mes:0})
   enableSelectReset = signal<boolean>(true)
-  personalId = input<number>(0);
+  personalId = model<number>(0);
   readonly = input<boolean>(false);
   urlUpload = '/api/personal/upload'
   uploading$ = new BehaviorSubject({loading:false,event:null});
@@ -172,7 +172,8 @@ export class PersonalFormComponent {
       if (this.personalId()) {
         await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))
       }else{
-        await firstValueFrom( this.apiService.addPersonal(values))
+        const res = await firstValueFrom(this.apiService.addPersonal(values))
+        this.personalId.set(res.data.PersonalId)
       }
       this.formPer.markAsUntouched()
       this.formPer.markAsPristine()

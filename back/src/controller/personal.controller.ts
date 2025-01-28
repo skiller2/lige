@@ -783,16 +783,16 @@ cuit.PersonalCUITCUILCUIT,
 
       if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso[0], 13)
 
-    
-      
+  
       await queryRunner.commitTransaction()
-      return this.jsonRes({}, res, 'Carga Exitosa');
+      return this.jsonRes({PersonalId}, res, 'Carga Exitosa');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
     }
+
   }
 
   async addPersonalTelefono(queryRunner: any, telefono: any, personalId: any) {
@@ -817,21 +817,25 @@ cuit.PersonalCUITCUILCUIT,
     const estadoEstudioId = estudio.EstadoEstudioId
     const estudioTitulo = estudio.EstudioTitulo
     const estudioAnio = estudio.EstudioAno
-    const docTitulo = estudio.DocTitulo[0]
+    const docTitulo = (estudio.DocTitulo)?estudio.DocTitulo[0]:null
+    const ultnro = await queryRunner.query(`SELECT PersonalEstudioUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
+    const PersonalEstudioId = (ultnro[0]?.PersonalEstudioUltNro)?ultnro[0]?.PersonalEstudioUltNro+1:1
     await queryRunner.query(`
       INSERT INTO PersonalEstudio (
       PersonalId,
+      PersonalEstudioId,
       TipoEstudioId,
       EstadoEstudioId,
       PersonalEstudioTitulo,
-      PersonalEstudioAno,
+      PersonalEstudioAno
       )
-      VALUES (@0,@1,@2,@3,@4)`, [
-      personalId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAnio
+      VALUES (@0,@1,@2,@3,@4,@5)`, [
+      personalId, PersonalEstudioId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAnio
     ])
+
     await queryRunner.query(`
-      UPDATE Personal SET PersonalEstudioUltNro = ISNULL(PersonalEstudioUltNro, 0) + 1 WHERE PersonalId = @1
-    `, [personalId])
+      UPDATE Personal SET PersonalEstudioUltNro = @1 WHERE PersonalId = @0`, [personalId, PersonalEstudioId])
+
     if (docTitulo) {
       await this.setImagenEstudio(queryRunner, personalId, docTitulo)
     }
