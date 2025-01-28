@@ -673,13 +673,13 @@ cuit.PersonalCUITCUILCUIT,
     )
     const PersonalDocumentoId = PersonalDocumento[0].PersonalDocumentoUltNro + 1
     await queryRunner.query(`
-      INSERT INTO PersonalCUITCUIL (
+      INSERT INTO PersonalDocumento (
       PersonalDocumentoId,
       PersonalId,
       TipoDocumentoId,
       PersonalDocumentoNro
       )
-      VALUES (@0, @1, @2, @3, @4)`,
+      VALUES (@0, @1, @2, @3)`,
       [PersonalDocumentoId, personaId, 1, DNI]
     )
   }
