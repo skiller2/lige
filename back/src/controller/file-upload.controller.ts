@@ -106,8 +106,9 @@ export class FileUploadController extends BaseController {
           /*  
             let imageUrl = ""
             if (ArchivosAnteriores.length && ArchivosAnteriores[0].path && (tableSearch == 'DocumentoImagenFoto' || tableSearch == 'DocumentoImagenDocumento')){
-              const imagePath = process.env.PATH_ARCHIVOS ? process.env.PATH_ARCHIVOS : "";
-              imageUrl = imagePath + ArchivosAnteriores[0].path.slice(11)
+              const imagePath = process.env.PATH_ARCHIVOS ? process.env.PATH_ARCHIVOS : '.';
+              imageUrl = `${imagePath}/${ArchivosAnteriores[0].path.slice(2)}`
+              
             }
             // const path = (ArchivosAnteriores.length && ArchivosAnteriores[0].path)? ArchivosAnteriores[0].path :null
           // const response = path? await this.isAccessibleUrl(path) : false
@@ -386,12 +387,58 @@ export class FileUploadController extends BaseController {
     }
   }
 
-  private async isAccessibleUrl(url: string){
+  async getPreview(req: any, res: Response, next: NextFunction) {
+    const documentId = Number(req.params.id);
+    const filename = req.params.filename;
+    const tableForSearch = req.params.tableForSearch;
+    let finalurl = '', docname=''
     try {
-      const response = await fetch(url, { method: 'HEAD' }); // Solo verifica si existe.
-      return response.ok; // Retorna true si el estado es 200-299.
-    } catch {
-      return false; // Error de conexión o dominio inaccesible.
+      if (documentId != 0) {
+        const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
+
+        let document
+        switch (tableForSearch) {
+          case 'DocumentoImagenFoto':
+          case 'DocumentoImagenDocumento':
+          case 'DocumentoImagenEstudio':
+          case 'DocumentoImagenImpuestoAFIP':
+            document = await dataSource.query(
+              `SELECT 
+                doc.${tableForSearch}Id AS id, 
+                CONCAT(TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableForSearch}BlobNombreArchivo)) path, 
+                doc.${tableForSearch}BlobNombreArchivo AS name
+              FROM ${tableForSearch} doc
+              JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+              WHERE doc.${tableForSearch}Id = @0`, [documentId])
+            break;
+        case 'docgeneral':
+            document = await this.getFilesInfo(documentId);
+            break;
+        default:
+            throw new ClientException(`Falla en busqueda de Archivo`)
+            break;
+        }
+        // console.log('document', document);
+        
+        finalurl = `${pathArchivos}/${document[0]["path"]}`
+        docname = document[0]["name"]
+      } else if (filename) {
+        finalurl = `${process.env.PATH_DOCUMENTS}/temp/${filename}`
+        docname = filename
+      }
+
+      if (!existsSync(finalurl))
+        throw new ClientException(`Archivo ${docname} no localizado`, { path: finalurl })
+
+      const resp = await fetch(finalurl)
+      const buffer = await resp.arrayBuffer()
+      const bufferStr = Buffer.from(buffer).toString('base64')
+      const image = "data:image/jpeg;base64, " +bufferStr
+
+      this.jsonRes(image, res);
+
+    } catch (error) {
+      return next(error)
     }
   }
 

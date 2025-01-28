@@ -1057,7 +1057,7 @@ export class SearchService {
     );
   }
 
-  getNacionalidadList(): Observable<any> {
+  getNacionalidadOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/personal/nacionalidad/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -1137,7 +1137,7 @@ export class SearchService {
       );
   }
 
-  getLugarTelefonoList(): Observable<any> {
+  getLugarTelefonoOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/telefonia/lugar/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -1147,7 +1147,7 @@ export class SearchService {
     );
   }
 
-  getTipoTelefonoList(): Observable<any> {
+  getTipoTelefonoOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/telefonia/tipo/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -1157,7 +1157,7 @@ export class SearchService {
     );
   }
 
-  getEstadoEstudioList(): Observable<any> {
+  getEstadoEstudioOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/estudio/estado/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -1167,7 +1167,7 @@ export class SearchService {
     );
   }
 
-  getTipoEstudioList(): Observable<any> {
+  getTipoEstudioOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/estudio/tipo/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -1245,6 +1245,16 @@ export class SearchService {
 
   getTipoAsociadoOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/personal/tipo-asociado/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getTipoParentescoOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/personal/tipo-parentesco/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
