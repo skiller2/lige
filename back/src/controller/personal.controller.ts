@@ -1134,8 +1134,8 @@ console.log('add telefono',telefonoNum)
     let FechaIngreso: Date = infoPersonal.FechaIngreso ? new Date(infoPersonal.FechaIngreso) : null
     let FechaNacimiento: Date = infoPersonal.FechaNacimiento ? new Date(infoPersonal.FechaNacimiento) : null
     const CUIT: number = infoPersonal.CUIT
-    FechaIngreso.setHours(0, 0, 0, 0)
-    FechaNacimiento.setHours(0, 0, 0, 0)
+    FechaIngreso?.setHours(0, 0, 0, 0)
+    FechaNacimiento?.setHours(0, 0, 0, 0)
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
     const fullname: string = Apellido + ', ' + Nombre
