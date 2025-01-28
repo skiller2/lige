@@ -795,7 +795,6 @@ cuit.PersonalCUITCUILCUIT,
 
       if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso[0], 13)
 
-  throw new ClientException('Add Persona')
       await queryRunner.commitTransaction()
       return this.jsonRes({PersonalId}, res, 'Carga Exitosa');
     } catch (error) {
