@@ -209,4 +209,3 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
 }
-

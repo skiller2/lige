@@ -967,13 +967,15 @@ cuit.PersonalCUITCUILCUIT,
   }
 
   async setFoto(queryRunner: any, personalId: any, file: any) {
-    const type = file.mimeType.split('/')[1]
+    const type = file.mimetype.split('/')[1]
+    
     const fieldname = file.fieldname
     let foto = await queryRunner.query(`
       SELECT foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
+      FROM DocumentoImagenFoto foto 
       JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
       JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-      FROM DocumentoImagenFoto foto WHERE foto.PersonalId IN (@0)
+      WHERE foto.PersonalId =@0
     `, [personalId])
     if (!foto.length) {
       await queryRunner.query(`
@@ -988,16 +990,17 @@ cuit.PersonalCUITCUILCUIT,
       )
       foto = await queryRunner.query(`
         SELECT foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
+        FROM DocumentoImagenFoto foto
         JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
         JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-        FROM DocumentoImagenFoto foto WHERE foto.PersonalId IN (@0)
+        WHERE foto.PersonalId IN (@0)
       `, [personalId])
     }
 
     const fotoId = foto[0].fotoId
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
-    const newFieldname = `${personalId}-${fotoId}-FOTO`
+    const newFieldname = `${personalId}-${fotoId}-FOTO.${type}`
     const newFilePath = `${pathArchivos}/${foto[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}.${type}`;
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`
@@ -1414,7 +1417,7 @@ cuit.PersonalCUITCUILCUIT,
       if (updatePersonalFamilia instanceof ClientException)
         throw updatePersonalFamilia
 
-      if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto)
+      if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto[0])
 
       if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente, 12)
 
