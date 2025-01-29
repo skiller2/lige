@@ -47,8 +47,12 @@ personalRouter.post('/setcategoria/:id', [authMiddleware.verifyToken, authMiddle
   personalController.setCategoria(req, res, next)
 });
 
-personalRouter.post('/setgrupactividad/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo','gPersonal'])], (req, res, next) => {
+personalRouter.post('/setgrupactividad/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
   personalController.setGrupoActividadPersonal(req, res, next)
+});
+
+personalRouter.post('/setbanco/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'Liquidaciones'])], (req, res, next) => {
+  personalController.setPersonalBanco(req, res, next)
 });
 
 personalRouter.get(`${base}/domicilio/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo','gPersonal'])], (req, res, next) => {
@@ -77,6 +81,10 @@ personalRouter.get('/sitrevista/no-options', authMiddleware.verifyToken, (req, r
 
 personalRouter.get('/tipo-parentesco/options', authMiddleware.verifyToken, (req, res, next) => {
   personalController.getTipoParentesco(req, res, next)
+});
+
+personalRouter.get('/bancos/options', authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getBancos(req, res, next)
 });
 
 personalRouter.get('/cols', authMiddleware.verifyToken, (req, res, next) => {
@@ -139,6 +147,14 @@ personalRouter.get(
   authMiddleware.verifyToken,
   (req, res, next) => {
     personalController.getHistoryPersonalSitRevista(req, res, next);
+  }
+);
+
+personalRouter.get(
+  `${base}/historial/banco/:personalId`,
+  authMiddleware.verifyToken,
+  (req, res, next) => {
+    personalController.getHistoryPersonalBanco(req, res, next);
   }
 );
 

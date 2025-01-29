@@ -184,53 +184,6 @@ export class ObjetivoController extends BaseController {
       });
   }
 
-  async objetivosGrupos(req: any, res: Response, next: NextFunction) {
-
-    const queryRunner = dataSource.createQueryRunner();
-    let fechaActual = new Date()
-
-    try {
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
-
-      const catactual = await queryRunner.query(
-        `UPDATE gru
-          SET 		  gru.GrupoActividadObjetivoHasta=ISNULL(clicon.ClienteContratoFechaHasta,eledepcon.ClienteElementoDependienteContratoFechaHasta)
-                      
-                             
-                      
-                  FROM GrupoActividadObjetivo gru
-          
-                JOIN Objetivo obj  ON gru.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
-          
-                  LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
-                  LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledepcon.ClienteElementoDependienteContratoId = eledep.ClienteElementoDependienteContratoUltNro
-                  
-                  LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
-                  LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = obj.ClienteId AND clicon.ClienteContratoId = cli.ClienteContratoUltNro AND obj.ClienteElementoDependienteId IS NULL 
-          
-                      
-                      
-                  WHERE ISNULL(ISNULL(clicon.ClienteContratoFechaHasta,eledepcon.ClienteElementoDependienteContratoFechaHasta),'9999-12-31') < ISNULL(gru.GrupoActividadObjetivoHasta,'9999-12-31') AND 
-                  ISNULL(ISNULL(clicon.ClienteContratoFechaHasta,eledepcon.ClienteElementoDependienteContratoFechaHasta),'9999-12-31') < @0`,
-        [fechaActual]
-      )
-
-
-      await queryRunner.commitTransaction();
-      if (res)
-        this.jsonRes({ list: [] }, res, `Se actualizaron los grupos `);
-    } catch (error) {
-      await this.rollbackTransaction(queryRunner)
-      return next(error)
-    } finally {
-      await queryRunner.release();
-    }
-  }
-
-
-
-
 
   async search(req: any, res: Response, next: NextFunction) {
     try {

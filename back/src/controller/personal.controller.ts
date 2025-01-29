@@ -504,7 +504,7 @@ cuit.PersonalCUITCUILCUIT,
 			 ) sitrev ON sitrev.PersonalId = per.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
 
-        LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId
+        LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
         WHERE (1=1)
         AND (${filterSql})
@@ -651,18 +651,6 @@ cuit.PersonalCUITCUILCUIT,
     )
   }
 
-  async addPersonalEmail(queryRunner: any, personaId: any, email: string) {
-    await queryRunner.query(`
-      INSERT INTO PersonalEmail (
-      PersonalId,
-      PersonalEmailId,
-      PersonalEmailEmail,
-      PersonalEmailInactivo
-      )
-      VALUES (@0,@1,@2,@3)`,
-      [personaId, 1, email, 0]
-    )
-  }
 
   private async addPersonalDocumentoQuery(queryRunner: any, personaId: any, DNI: number) {
     const PersonalDocumento = await queryRunner.query(`
@@ -683,6 +671,24 @@ cuit.PersonalCUITCUILCUIT,
       [PersonalDocumentoId, personaId, 1, DNI]
     )
   }
+  private async updateSucursalPrincipal(queryRunner: any, personaId: any, PersonalSucursalPrincipalSucursalId: number) {
+    const actual = new Date()
+    actual.setHours(0,0,0,0)
+    const res = await queryRunner.query(`
+      SELECT TOP 1 PersonalSucursalPrincipalSucursalId
+      FROM PersonalSucursalPrincipal
+      WHERE PersonalId =@0 ORDER BY PersonalSucursalPrincipalUltimaActualizacion DESC `,
+      [personaId]
+    )
+
+    if (res[0]?.PersonalSucursalPrincipalSucursalId != PersonalSucursalPrincipalSucursalId) {
+      await queryRunner.query(`
+      INSERT INTO PersonalSucursalPrincipal (PersonalId, PersonalSucursalPrincipalUltimaActualizacion, PersonalSucursalPrincipalSucursalId)
+      VALUES (@0, @1, @2)`,
+        [personaId, actual, PersonalSucursalPrincipalSucursalId]
+      )
+    }
+  }
 
   async addPersonal(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
@@ -692,8 +698,8 @@ cuit.PersonalCUITCUILCUIT,
     const NroLegajo: number = req.body.NroLegajo
     const SucursalId: number = req.body.SucursalId
     const Email = req.body.Email
-    let FechaIngreso: Date = req.body.FechaIngreso ? new Date(req.body.FechaIngreso) : req.body.FechaIngreso
-    let FechaNacimiento: Date = req.body.FechaIngreso ? new Date(req.body.FechaNacimiento) : req.body.FechaIngreso
+    let FechaIngreso: Date = req.body.FechaIngreso ? new Date(req.body.FechaIngreso) : null
+    let FechaNacimiento: Date = req.body.FechaIngreso ? new Date(req.body.FechaNacimiento) : null
     const foto = req.body.Foto
     const NacionalidadId: number = req.body.NacionalidadId
     const docFrente = req.body.docFrente
@@ -751,7 +757,7 @@ cuit.PersonalCUITCUILCUIT,
       if (req.body.Calle || req.body.Nro || req.body.Piso || req.body.Dpto || req.body.CodigoPostal || req.body.PaisId)
         await this.addPersonalDomicilio(queryRunner, req.body, PersonalId)
 
-      if (Email) await this.addPersonalEmail(queryRunner, PersonalId, Email)
+      await this.updatePersonalEmail(queryRunner, PersonalId, Email)
 
       for (const telefono of telefonos) {
         if (telefono.TelefonoNro) {
@@ -773,16 +779,9 @@ cuit.PersonalCUITCUILCUIT,
         }
       }
 
-      for (const familiar of familiares) {
-        if (!familiar.Nombre && !familiar.Apellido && !familiar.TipoParentescoId)
-          continue
-
-        if (!familiar.Nombre || !familiar.Apellido || !familiar.TipoParentescoId) {
-          errors.push(`Los campos Nombre, Apellido y Parentesco de la seccion Familiar No pueden estar vacios.`)
-          break
-        }
-        await this.addPersonalFamilia(queryRunner, PersonalId, familiar )
-      }
+      const updatePersonalFamilia = await this.updatePersonalFamilia(queryRunner, PersonalId, familiares)
+      if (updatePersonalFamilia instanceof ClientException)
+        throw updatePersonalFamilia
 
       if (errors.length)
         throw new ClientException(errors)
@@ -809,7 +808,6 @@ cuit.PersonalCUITCUILCUIT,
   async addPersonalTelefono(queryRunner: any, telefono: any, personalId: any) {
     const tipoTelefonoId = telefono.TipoTelefonoId
     const telefonoNum = telefono.TelefonoNro
-console.log('add telefono',telefonoNum)
     const ultnro = await queryRunner.query(`SELECT PersonalTelefonoUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
     const PersonalTelefonoId = (ultnro[0]?.PersonalTelefonoUltNro)?ultnro[0]?.PersonalTelefonoUltNro+1:1
 
@@ -867,6 +865,11 @@ console.log('add telefono',telefonoNum)
     const provinciaId = domicilio.ProvinciaId ? domicilio.ProvinciaId : null
     const localidadId = domicilio.LocalidadId ? domicilio.LocalidadId : null
     const barrioId = domicilio.BarrioId ? domicilio.BarrioId : null
+
+    const ultnro = await queryRunner.query(`SELECT PersonalDomicilioUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
+    const PersonalDomicilioId = (ultnro[0]?.PersonalDomicilioUltNro)?ultnro[0]?.PersonalDomicilioUltNro+1:1
+
+
     await queryRunner.query(`
       INSERT INTO PersonalDomicilio (
       PersonalId,
@@ -884,7 +887,7 @@ console.log('add telefono',telefonoNum)
       )
       VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)`, [
       personalId,
-      1,
+      PersonalDomicilioId,
       calle,
       numero,
       piso,
@@ -897,8 +900,8 @@ console.log('add telefono',telefonoNum)
       barrioId,
     ])
     await queryRunner.query(`
-      UPDATE Personal SET PersonalDomicilioUltNro = ISNULL(PersonalDomicilioUltNro, 0) + 1 WHERE PersonalId = @0
-      `, [personalId])
+      UPDATE Personal SET PersonalDomicilioUltNro = @1 WHERE PersonalId = @0
+      `, [personalId,PersonalDomicilioId])
   }
 
   async addPersonalFamilia(queryRunner: any, PersonalId: any, familiar: any) {
@@ -964,15 +967,17 @@ console.log('add telefono',telefonoNum)
   }
 
   async setFoto(queryRunner: any, personalId: any, file: any) {
-    const type = file.mimeType.split('/')[1]
+    const type = file.mimetype.split('/')[1]
+    
     const fieldname = file.fieldname
-    let foto = await queryRunner.query(`
-      SELECT foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
-      JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-      JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-      FROM DocumentoImagenFoto foto WHERE foto.PersonalId IN (@0)
-    `, [personalId])
-    if (!foto.length) {
+    // let foto = await queryRunner.query(`
+    //   SELECT foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
+    //   FROM DocumentoImagenFoto foto 
+    //   JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+    //   JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+    //   WHERE foto.PersonalId =@0
+    // `, [personalId])
+    // if (!foto.length) {
       await queryRunner.query(`
         INSERT INTO DocumentoImagenFoto (
         PersonalId,
@@ -983,28 +988,27 @@ console.log('add telefono',telefonoNum)
         VALUES(@0,@1,@2,@3)`,
         [personalId, type, 7, 1]
       )
-      foto = await queryRunner.query(`
-        SELECT foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
+      let foto = await queryRunner.query(`
+        SELECT TOP 1 foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
+        FROM DocumentoImagenFoto foto
         JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
         JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-        FROM DocumentoImagenFoto foto WHERE foto.PersonalId IN (@0)
+        WHERE foto.PersonalId IN (@0)
+        ORDER BY foto.DocumentoImagenFotoId DESC
       `, [personalId])
-    }
+    // }
 
     const fotoId = foto[0].fotoId
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
-    const newFieldname = `${personalId}-${fotoId}-FOTO`
-    const newFilePath = `${pathArchivos}/${foto[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}.${type}`;
+    const newFieldname = `${personalId}-${fotoId}-FOTO.${type}`
+    const newFilePath = `${pathArchivos}/${foto[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}`;
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`
       UPDATE DocumentoImagenFoto SET
-      DocumentoImagenFotoBlobNombreArchivo = @1,
-      DocumentoImagenFotoBlobTipoArchivo = @2,
-      DocumentoImagenParametroId = @3,
-      DocumentoImagenParametroDirectorioId = @4
-      WHERE PersonalId = @0`,
-      [personalId, newFieldname, type, 7, 1]
+      DocumentoImagenFotoBlobNombreArchivo = @2
+      WHERE PersonalId = @0 AND DocumentoImagenFotoId = @1`,
+      [personalId, fotoId, newFieldname]
     )
     await queryRunner.query(`UPDATE Personal SET PersonalFotoId = @0 WHERE PersonalId = @1`,
       [fotoId, personalId]
@@ -1012,15 +1016,16 @@ console.log('add telefono',telefonoNum)
   }
 
   async setDocumento(queryRunner: any, personalId: any, file: any, parametro: number) {
-    const type = file.mimeType.split('/')[1]
+    const type = file.mimetype.split('/')[1]
     const fieldname = file.fieldname
-    let doc = await queryRunner.query(`
-      SELECT doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
-      JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  doc.DocumentoImagenParametroId
-      JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-      FROM DocumentoImagenDocumento doc WHERE doc.PersonalId IN (@0)
-    `, [personalId])
-    if (!doc.length) {
+    // let doc = await queryRunner.query(`
+    //   SELECT doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
+    //   FROM DocumentoImagenDocumento doc 
+    //   JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  doc.DocumentoImagenParametroId
+    //   JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+    //   WHERE doc.PersonalId IN (@0)
+    // `, [personalId])
+    // if (!doc.length) {
       await queryRunner.query(`
         INSERT INTO DocumentoImagenDocumento (
         PersonalId,
@@ -1031,13 +1036,15 @@ console.log('add telefono',telefonoNum)
         VALUES(@0,@1,@2,@3)`,
         [personalId, type, parametro, 1]
       )
-      doc = await queryRunner.query(`
-        SELECT doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
+      let doc = await queryRunner.query(`
+        SELECT TOP 1 doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
+        FROM DocumentoImagenDocumento doc 
         JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
         JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-        FROM DocumentoImagenDocumento doc WHERE doc.PersonalId IN (@0)
+        WHERE doc.PersonalId IN (@0)
+        ORDER BY doc.DocumentoImagenDocumentoId DESC
       `, [personalId])
-    }
+    // }
 
     const docId = doc[0].docId
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
@@ -1048,27 +1055,52 @@ console.log('add telefono',telefonoNum)
     } else if (parametro == 12) {
       newFieldname += `-DOCUMENFREN`
     }
-    const newFilePath: string = `${pathArchivos}/${doc[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}.${type}`;
+    newFieldname += `.${type}`
+    const newFilePath: string = `${pathArchivos}/${doc[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}`;
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`
       UPDATE DocumentoImagenDocumento SET
-      DocumentoImagenDocumentoBlobNombreArchivo = @1,
-      DocumentoImagenDocumentoBlobTipoArchivo = @2,
-      DocumentoImagenParametroId = @3,
-      DocumentoImagenParametroDirectorioId = @4
-      WHERE PersonalId = @0
-    `, [personalId, newFieldname, type, parametro, 1]
+      DocumentoImagenDocumentoBlobNombreArchivo = @2
+      WHERE PersonalId = @0 AND DocumentoImagenDocumentoId = @1
+    `, [personalId, docId, newFieldname]
     )
+
+    const PersonalDocumento = await queryRunner.query(`
+      SELECT PersonalDocumentoUltNro
+      FROM Personal
+      WHERE PersonalId IN (@0)`,
+      [personalId]
+    )
+    if (PersonalDocumento.length && PersonalDocumento[0].PersonalDocumentoUltNro) {
+      const PersonalDocumentoUltNro = PersonalDocumento[0].PersonalDocumentoUltNro
+      if (parametro == 13) {
+        await queryRunner.query(`
+          UPDATE PersonalDocumento SET
+          PersonalDocumentoDorsoId = @2
+          WHERE PersonalId = @0 AND PersonalDocumentoId = @1
+        `, [personalId, PersonalDocumentoUltNro, docId]
+        )
+      }else if (parametro == 12){
+        await queryRunner.query(`
+          UPDATE PersonalDocumento SET
+          PersonalDocumentoFrenteId = @2
+          WHERE PersonalId = @0 AND PersonalDocumentoId = @1
+        `, [personalId, PersonalDocumentoUltNro, docId]
+        )
+      }
+    }
+    
   }
 
   async setImagenEstudio(queryRunner: any, personalId: any, file: any) {
-    const type = file.mimeType.split('/')[1]
+    const type = file.mimetype.split('/')[1]
     const fieldname = file.fieldname
     let estudio = await queryRunner.query(`
       SELECT est.DocumentoImagenEstudioId estudioId, dir.DocumentoImagenParametroDirectorioPath
+      FROM DocumentoImagenEstudio est 
       JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = est.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  est.DocumentoImagenParametroId
       JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = est.DocumentoImagenParametroId
-      FROM DocumentoImagenEstudio est WHERE est.PersonalId IN (@0)
+      WHERE est.PersonalId IN (@0)
       `, [personalId])
     if (!estudio.length) {
       await queryRunner.query(`
@@ -1082,17 +1114,18 @@ console.log('add telefono',telefonoNum)
       `, [personalId, type, 14, 1])
       estudio = await queryRunner.query(`
         SELECT est.DocumentoImagenEstudioId estudioId, dir.DocumentoImagenParametroDirectorioPath
+        FROM DocumentoImagenEstudio est 
         JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = est.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  est.DocumentoImagenParametroId
         JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = est.DocumentoImagenParametroId
-        FROM DocumentoImagenEstudio est WHERE est.PersonalId IN (@0)
+        WHERE est.PersonalId IN (@0)
       `, [personalId])
     }
 
     const estudioId = estudio[0].estudioId
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
-    const newFieldname = `${personalId}-${estudioId}-CERESTPAG1`
-    const newFilePath = `${pathArchivos}/${estudio[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}.${type}`;
+    const newFieldname = `${personalId}-${estudioId}-CERESTPAG1.${type}`
+    const newFilePath = `${pathArchivos}/${estudio[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}`;
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`
       UPDATE DocumentoImagenEstudio SET
@@ -1161,7 +1194,8 @@ console.log('add telefono',telefonoNum)
   }
 
   private async updatePersonalDomicilio(queryRunner: any, PersonalId: number, infoDomicilio: any) {
-    let domicilioRes = await queryRunner.query(`
+    let cambio: boolean = false
+    const domicilioRes = await queryRunner.query(`
       SELECT TRIM(PersonalDomicilioDomCalle) Calle, TRIM(PersonalDomicilioDomNro) Nro, TRIM(PersonalDomicilioDomPiso) Piso,
       TRIM(PersonalDomicilioDomDpto) Dpto, TRIM(PersonalDomicilioCodigoPostal) CodigoPostal, PersonalDomicilioPaisId PaisId, PersonalDomicilioProvinciaId ProvinciaId,
       PersonalDomicilioLocalidadId LocalidadId, PersonalDomicilioBarrioId BarrioId
@@ -1170,51 +1204,17 @@ console.log('add telefono',telefonoNum)
       `, [PersonalId, infoDomicilio.PersonalDomicilioId])
     const domicilio = domicilioRes[0] ? domicilioRes[0] : {}
 
-    let cambio: boolean = false
     for (const key in domicilio) {
       if (infoDomicilio[key] != domicilio[key]) {
         cambio = true
         break
       }
     }
-    if (!cambio) return
-
-    const calle = infoDomicilio.Calle
-    const numero = infoDomicilio.Nro
-    const piso = infoDomicilio.Piso
-    const departamento = infoDomicilio.Dpto
-    const esquina = infoDomicilio.Esquina
-    const esquinaY = infoDomicilio.EsquinaY
-    const bloque = infoDomicilio.Bloque
-    const edificio = infoDomicilio.Edificio
-    const cuerpo = infoDomicilio.Cuerpo
-    const codPostal = infoDomicilio.CodigoPostal
-    const paisId = infoDomicilio.PaisId
-    const provinciaId = infoDomicilio.ProvinciaId
-    const localidadId = infoDomicilio.LocalidadId
-    const barrioId = infoDomicilio.BarrioId
-    await queryRunner.query(`
-      UPDATE PersonalDomicilio SET
-      PersonalDomicilioDomCalle = @1,
-      PersonalDomicilioDomNro = @2,
-      PersonalDomicilioDomPiso = @3,
-      PersonalDomicilioDomDpto = @4,
-      PersonalDomicilioEntreEsquina = @5,
-      PersonalDomicilioEntreEsquinaY = @6,
-      PersonalDomicilioDomBloque = @7,
-      PersonalDomicilioDomEdificio = @8,
-      PersonalDomicilioDomCuerpo = @9,
-      PersonalDomicilioCodigoPostal = @10,
-      PersonalDomicilioPaisId = @11,
-      PersonalDomicilioProvinciaId = @12,
-      PersonalDomicilioLocalidadId = @13,
-      PersonalDomicilioBarrioId = @14
-      WHERE PersonalId IN (@0)
-      `, [
-      PersonalId, calle, numero, piso, departamento, esquina, esquinaY, bloque, edificio, cuerpo, codPostal,
-      paisId, provinciaId, localidadId, barrioId,
-    ])
-
+    if (cambio) {
+      await queryRunner.query(`
+      UPDATE PersonalDomicilio SET PersonalDomicilioActual=0 WHERE PersonalId =@0`, [PersonalId])
+      await this.addPersonalDomicilio(queryRunner, infoDomicilio, PersonalId)
+    }
   }
 
   private async updatePersonalTelefono(queryRunner: any, PersonalId: number, infoTelefono: any) {
@@ -1286,33 +1286,41 @@ console.log('add telefono',telefonoNum)
     }
   }
 
-  async updatePersonalEmail(queryRunner: any, personaId: any, infoEmail: any) {
-    const PersonalEmailId = infoEmail.PersonalEmailId
-    const Email = infoEmail.Email
-    if (PersonalEmailId) {
-      let PersonalEmailEmail = await queryRunner.query(`
-        SELECT PersonalEmailEmail
-        FROM PersonalEmail
-        WHERE PersonalId IN (@0) AND PersonalEmailId IN (@1)`,
-        [personaId, PersonalEmailId]
-      )
-      PersonalEmailEmail = PersonalEmailEmail[0].PersonalEmailEmail
-      if (PersonalEmailEmail != Email)
-        await queryRunner.query(`UPDATE PersonalEmail SET PersonalEmailEmail = @1 WHERE PersonalId IN (@0)`,
-          [personaId, Email]
+  async updatePersonalEmail(queryRunner: any, personalId: number, email: string) {
+    email = email.toLowerCase()
+    const emailRec = await queryRunner.query(`SELECT PersonalEmailEmail FROM PersonalEmail WHERE PersonalId =@0 AND PersonalEmailInactivo =0`,[personalId])
+
+    if (emailRec[0]?.PersonalEmailEmail != email) {
+      await queryRunner.query(`UPDATE PersonalEmail SET PersonalEmailInactivo = 1 WHERE PersonalId =@0`, [personalId])
+      if (email) {
+        const ultnro = await queryRunner.query(`SELECT PersonalEmailUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
+        const PersonalEmailId = (ultnro[0]?.PersonalEmailUltNro)?ultnro[0]?.PersonalEmailUltNro+1:1
+    
+        await queryRunner.query(`
+          INSERT INTO PersonalEmail (
+          PersonalId,
+          PersonalEmailId,
+          PersonalEmailEmail,
+          PersonalEmailInactivo
+          )
+          VALUES (@0,@1,@2,@3)`,
+          [personalId, PersonalEmailId, email, 0]
         )
-    } else {
-      if (Email) await this.addPersonalEmail(queryRunner, personaId, Email)
+    
+        await queryRunner.query(`UPDATE Personal SET PersonalEmailUltNro = @0 WHERE PersonalId = @1`, [PersonalEmailId,personalId])
+      }
     }
   }
 
   async updatePersonalFamilia(queryRunner: any, PersonalId: any, familia: any[]) {
     await queryRunner.query(`DELETE FROM PersonalFamilia WHERE PersonalId IN (@0)`, [PersonalId])
     for (const familiar of familia) {
-      console.log('familiar',familiar)
-      if (!familiar.Nombre || !familiar.Apellido || !familiar.TipoParentescoId) {
+      if (!familiar.Nombre && !familiar.Apellido && !familiar.TipoParentescoId)
+        continue
+
+      if (!familiar.Nombre || !familiar.Apellido || !familiar.TipoParentescoId) 
         return new ClientException(`Los campos Nombre, Apellido y Parentesco de la seccion Familiar No pueden estar vacios.`)
-      }
+      
       await this.addPersonalFamilia(queryRunner, PersonalId, familiar)
     }
   }
@@ -1395,6 +1403,7 @@ console.log('add telefono',telefonoNum)
     const telefonos: any[] = req.body.telefonos
     const estudios: any[] = req.body.estudios
     const familiares: any[] = req.body.familiares
+    const SucursalId = req.body.SucursalId
     let now = new Date()
     now.setHours(0, 0, 0, 0)
 
@@ -1407,6 +1416,8 @@ console.log('add telefono',telefonoNum)
 
       await this.updatePersonalQuerys(queryRunner, PersonalId, req.body)
 
+      await this.updateSucursalPrincipal(queryRunner,PersonalId,SucursalId)
+
       const PersonalCUITCUIL = await queryRunner.query(`
         SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`, [PersonalId]
       )
@@ -1416,7 +1427,7 @@ console.log('add telefono',telefonoNum)
         await this.updatePersonalDocumentoQuery(queryRunner, PersonalId, DNI)
       }
       await this.updatePersonalDomicilio(queryRunner, PersonalId, req.body)
-      await this.updatePersonalEmail(queryRunner, PersonalId, req.body)
+      await this.updatePersonalEmail(queryRunner, PersonalId, req.body.Email)
       // await this.updatePersonalSitRevista(queryRunner, PersonalId, req.body)
 
       //Telefonos
@@ -1433,11 +1444,11 @@ console.log('add telefono',telefonoNum)
       if (updatePersonalFamilia instanceof ClientException)
         throw updatePersonalFamilia
 
-      if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto)
+      if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto[0])
 
-      if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente, 12)
+      if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente[0], 12)
 
-      if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso, 13)
+      if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso[0], 13)
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
@@ -2216,6 +2227,104 @@ console.log('add telefono',telefonoNum)
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    }
+  }
+
+  async getBancos(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT BancoId value, BancoDescripcion label
+        FROM Banco
+        WHERE BancoInactivo IS NULL
+      `)
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getHistoryPersonalBanco(req: any, res: Response, next: NextFunction) {
+    const personalId = Number(req.params.personalId);
+
+    try {
+      const listSitRevista = await dataSource.query(`
+        SELECT perb.PersonalBancoId,
+        TRIM(ban.BancoDescripcion) Descripcion, TRIM(perb.PersonalBancoCBU) CBU,
+        perb.PersonalBancoDesde Desde, perb.PersonalBancoHasta Hasta
+        FROM PersonalBanco perb
+        LEFT JOIN Banco ban ON ban.BancoId = perb.PersonalBancoBancoId
+        WHERE perb.PersonalId IN (@0)
+        ORDER BY perb.PersonalBancoId DESC
+        `, [personalId])
+
+      this.jsonRes(listSitRevista, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async setPersonalBanco(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const PersonalId: number = Number(req.params.id);
+    const BancoId = req.body.BancoId
+    const CBU = req.body.CBU
+    let Desde = req.body.Desde
+    try {
+      let campos_vacios: any[] = []
+      await queryRunner.startTransaction()
+
+      if (!BancoId) campos_vacios.push(`- Banco`);
+      if (!CBU) campos_vacios.push(`- CBU`);
+      if (!Desde) campos_vacios.push(`- Fecha Desde`);
+      if (campos_vacios.length) {
+        campos_vacios.unshift('Debe completar los siguientes campos:')
+        throw new ClientException(campos_vacios);
+      }
+
+      if (CBU.length != 22) {
+        throw new ClientException('El CBU debe de estar compuesto por 22 digitos.');
+      }
+      Desde = new Date(Desde)
+      Desde.setHours(0,0,0,0)
+
+      const PersonalBanco = await queryRunner.query(`
+        SELECT *
+        FROM PersonalBanco 
+        WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoHasta IS NULL
+      `, [PersonalId, BancoId])
+      if (PersonalBanco.length) {
+        const PersonalBancoId = PersonalBanco[0].PersonalBancoId
+        const Hasta = new Date(Desde)
+        Hasta.setDate(Hasta.getDate()-1)
+        await queryRunner.query(`
+          UPDATE PersonalBanco SET
+          PersonalBancoHasta = @3
+          WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2)
+        `, [PersonalId, BancoId, PersonalBancoId, Hasta])
+      }
+
+      const Personal = await queryRunner.query(`
+        SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
+        FROM Personal 
+        WHERE PersonalId IN (@0)
+      `, [PersonalId])
+      const newPersonalBancoId = Personal[0].UltNro
+
+      await queryRunner.query(`
+        INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde)
+        VALUES (@0, @1, @2, @3, @4)
+
+        UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
+      `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde])
+
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res, 'Carga Exitosa');
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 

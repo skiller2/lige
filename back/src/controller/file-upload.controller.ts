@@ -100,8 +100,8 @@ export class FileUploadController extends BaseController {
             JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             WHERE 
-                doc.${columnSearch} = @0`,
-            [id])
+                doc.${columnSearch} = @0 AND param.DocumentoImagenParametroDe = @1`,
+            [id,TipoSearch])
           
           /*  
             let imageUrl = ""
@@ -387,59 +387,5 @@ export class FileUploadController extends BaseController {
     }
   }
 
-  async getPreview(req: any, res: Response, next: NextFunction) {
-    const documentId = Number(req.params.id);
-    const filename = req.params.filename;
-    const tableForSearch = req.params.tableForSearch;
-    let finalurl = '', docname=''
-    try {
-      if (documentId != 0) {
-        const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
-
-        let document
-        switch (tableForSearch) {
-          case 'DocumentoImagenFoto':
-          case 'DocumentoImagenDocumento':
-          case 'DocumentoImagenEstudio':
-          case 'DocumentoImagenImpuestoAFIP':
-            document = await dataSource.query(
-              `SELECT 
-                doc.${tableForSearch}Id AS id, 
-                CONCAT(TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableForSearch}BlobNombreArchivo)) path, 
-                doc.${tableForSearch}BlobNombreArchivo AS name
-              FROM ${tableForSearch} doc
-              JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-              WHERE doc.${tableForSearch}Id = @0`, [documentId])
-            break;
-        case 'docgeneral':
-            document = await this.getFilesInfo(documentId);
-            break;
-        default:
-            throw new ClientException(`Falla en busqueda de Archivo`)
-            break;
-        }
-        // console.log('document', document);
-        
-        finalurl = `${pathArchivos}/${document[0]["path"]}`
-        docname = document[0]["name"]
-      } else if (filename) {
-        finalurl = `${process.env.PATH_DOCUMENTS}/temp/${filename}`
-        docname = filename
-      }
-
-      if (!existsSync(finalurl))
-        throw new ClientException(`Archivo ${docname} no localizado`, { path: finalurl })
-
-      const resp = await fetch(finalurl)
-      const buffer = await resp.arrayBuffer()
-      const bufferStr = Buffer.from(buffer).toString('base64')
-      const image = "data:image/jpeg;base64, " +bufferStr
-
-      this.jsonRes(image, res);
-
-    } catch (error) {
-      return next(error)
-    }
-  }
 
 }

@@ -87,9 +87,15 @@ $slick-icon-width:                                          18px !default;
   }
   
 }
+/*
+.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector,
+.ant-picker.ant-picker-disabled,
+.ant-input[disabled] {
+  background-color: var(--alain-default-content-bg, #f5f7fa);
 
 
-
+}
+  */
 //  .detail-view-toggle {
 //    display: none !important;
 //  }

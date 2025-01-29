@@ -1305,4 +1305,25 @@ export class SearchService {
     );
   }
 
+  getBancosOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/personal/bancos/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getHistorialPersonalBanco(id: number): Observable<any> {
+    if (!id) return of([]);
+    return this.http.get<ResponseJSON<any>>(`api/personal/historial/banco/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }

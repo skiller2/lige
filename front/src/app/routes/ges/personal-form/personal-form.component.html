@@ -189,11 +189,10 @@
           <button nz-button *ngIf="telefonos().controls.length == i+1 && formPer.enabled" nzType="primary" class="add-button" (click)="addTelefono($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
             <span nz-icon nzType="plus"></span>
           </button>
-          <ng-container *ngIf="i != 0" >
-            <button nz-button nzType="default" *ngIf="formPer.enabled" (click)="removeTelefono(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+
+            <button nz-button nzType="default" *ngIf="telefonos().controls.length>1 && formPer.enabled" (click)="removeTelefono(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
               <span nz-icon nzType="delete" nzTheme="outline" ></span>
             </button>
-          </ng-container>
         </ng-template>
       </nz-form-control>
 
@@ -244,7 +243,7 @@
             <button nz-button *ngIf="estudios().controls.length == i+1 && formPer.enabled" nzType="primary" class="add-button" (click)="addEstudio($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
               <span nz-icon nzType="plus"></span>
             </button>
-            <button nz-button nzType="default" *ngIf="formPer.enabled" (click)="removeEstudio(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.borrar' | i18n }}">
+            <button nz-button nzType="default" *ngIf="estudios().controls.length > 1 && formPer.enabled" (click)="removeEstudio(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.borrar' | i18n }}">
               <span nz-icon nzType="delete" nzTheme="outline" ></span>
             </button>
           </ng-template>
@@ -298,11 +297,9 @@
           <button nz-button *ngIf="familiares().controls.length == i+1 && formPer.enabled" nzType="primary" class="add-button" (click)="addFamiliar($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
             <span nz-icon nzType="plus"></span>
           </button>
-          <ng-container *ngIf="i != 0" >
-            <button nz-button nzType="default" *ngIf="formPer.enabled" (click)="removeFamiliar(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+            <button nz-button nzType="default" *ngIf="familiares().controls.length > 1 && formPer.enabled" (click)="removeFamiliar(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
               <span nz-icon nzType="delete" nzTheme="outline" ></span>
             </button>
-          </ng-container>
         </ng-template>
       </nz-form-control>
 
