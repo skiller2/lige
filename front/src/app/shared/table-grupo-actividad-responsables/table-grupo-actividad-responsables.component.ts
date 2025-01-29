@@ -15,6 +15,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../shared/select-search/select-search.component"
 import { Component, model, signal, inject } from '@angular/core';
 import { EditorPersonaComponent } from '../../shared/editor-persona/editor-persona.component';
+import { GrupoActividadSearchComponent } from '../../shared/grupo-actividad/grupo-actividad.component';
 
 
 @Component({
@@ -25,7 +26,7 @@ import { EditorPersonaComponent } from '../../shared/editor-persona/editor-perso
     ...SHARED_IMPORTS,
     CommonModule,
     FiltroBuilderComponent
-    
+
   ],
   templateUrl: './table-grupo-actividad-responsables.component.html',
   styleUrl: './table-grupo-actividad-responsables.component.less'
@@ -41,12 +42,13 @@ export class TableGrupoActividadResponsablesComponent {
   columnDefinitions: Column[] = []
   itemAddActive = false
   listGrupoActividadResponsables$ = new BehaviorSubject('')
-  editGrupo = signal<{ GrupoActividadId: string }[]>([])
+  editResponsable = signal("")
+  editFechaHasta = signal("")
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
   };
-  startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
+  startFilters: { field: string; condition: string; operator: string; value: string; forced: boolean }[] = []
 
   complexityLevelList = [true, false];
   angularGridEdit!: AngularGridInstance;
@@ -59,19 +61,48 @@ export class TableGrupoActividadResponsablesComponent {
     this.listOptions = options
     this.listGrupoActividadResponsables$.next('')
   }
-  
+
   columnsResponsable$ = this.apiService.getCols('/api/grupo-actividad/colsresponsables').pipe(
     switchMap(async (cols) => {
-      const sucursales = await firstValueFrom(this.searchService.getSucursales());
       const tipo = await firstValueFrom(this.searchService.getTipo());
 
-      return { cols, sucursales,tipo }
+      return { cols, tipo }
     }),
     map((data) => {
       let mapped = data.cols.map((col: Column) => {
-      console.log("col.id " , col.id)
         switch (col.id) {
-          
+          case 'ApellidoNombrePersona':
+            col.formatter = Formatters['complexObject'],
+              col.exportWithFormatter = true,
+              col.editor = {
+                model: CustomInputEditor,
+                collection: [],
+                params: {
+                  component: EditorPersonaComponent,
+                },
+                alwaysSaveOnEnterKey: true,
+              },
+              col.params = {
+                complexFieldLabel: 'ApellidoNombrePersona.fullName',
+              }
+            break
+
+          case 'GrupoActividadDetalle':
+            col.formatter = Formatters['complexObject'],
+              col.exportWithFormatter = true,
+              col.editor = {
+                model: CustomInputEditor,
+                collection: [],
+                params: {
+                  component: GrupoActividadSearchComponent,
+                },
+                alwaysSaveOnEnterKey: true,
+              },
+              col.params = {
+                complexFieldLabel: 'GrupoActividadDetalle.fullName',
+              }
+            break
+
           case 'GrupoActividadJerarquicoComo':
             col.editor = {
               model: CustomInputEditor,
@@ -85,27 +116,13 @@ export class TableGrupoActividadResponsablesComponent {
             col.params = {
               collection: data.tipo,
             }
-            
-            break;
-          case 'SucursalId':
-            col.editor = {
-              model: CustomInputEditor,
-              collection: [],
-              params: {
-                component: SelectSearchComponent,
-              },
-              alwaysSaveOnEnterKey: true,
-              required: true
-            }
-            col.params = {
-              collection: data.sucursales,
-            }
 
             break;
+
           default:
             break;
         }
-        
+
         return col
       });
       return mapped
@@ -119,12 +136,13 @@ export class TableGrupoActividadResponsablesComponent {
     this.gridOptionsEdit.showFooterRow = true
     this.gridOptionsEdit.createFooterRow = true
 
-     let dateToday = new Date();
-     let formattedDate = `${dateToday.getDate().toString().padStart(2, '0')}/${(dateToday.getMonth() + 1).toString().padStart(2, '0')}/${dateToday.getFullYear()}`;
+    let dateToday = new Date();
+    let formattedDate = `${dateToday.getDate().toString().padStart(2, '0')}/${(dateToday.getMonth() + 1).toString().padStart(2, '0')}/${dateToday.getFullYear()}`;
 
-      // this.startFilters = [{field:'GrupoActividadInactivo', condition:'AND', operator:'=', value: '0', forced:false}]
+    // this.startFilters = [{field:'GrupoActividadInactivo', condition:'AND', operator:'=', value: '0', forced:false}]
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
+
 
       this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
       this.angularGridEdit.slickGrid.invalidate();
@@ -133,7 +151,7 @@ export class TableGrupoActividadResponsablesComponent {
       // if (emptyrows.length == 0) {
       //   await this.addNewItem()
       // } else if (emptyrows.length > 1) {
-       //this.angularGridEdit.gridService.deleteItemById(emptyrows[0].id)
+      //this.angularGridEdit.gridService.deleteItemById(emptyrows[0].id)
       // }
       //Intento grabar si tiene error hago undo
 
@@ -186,9 +204,9 @@ export class TableGrupoActividadResponsablesComponent {
 
   }
 
-  async deleteItem() {
+  async deleteItemResponsable() {
 
-    await firstValueFrom(this.apiService.deleteGrupoActividadGrupo(this.editGrupo()))
+    await firstValueFrom(this.apiService.deleteGrupoActividadResponsables(this.editResponsable(), this.editFechaHasta()))
     this.listGrupoActividadResponsables$.next('')
   }
 
@@ -206,11 +224,11 @@ export class TableGrupoActividadResponsablesComponent {
     return {
       id: newId,
       GrupoActividadDetalle: "",
-      GrupoActividadJerarquicoComo:"",
+      GrupoActividadJerarquicoComo: "",
       ApellidoNombrePersona: "",
       GrupoActividadSucursalId: "",
-      GrupoActividadJerarquicoDesde : new Date(),
-      GrupoActividadJerarquicoHasta : null
+      GrupoActividadJerarquicoDesde: new Date(),
+      GrupoActividadJerarquicoHasta: null
 
     };
   }
@@ -219,6 +237,11 @@ export class TableGrupoActividadResponsablesComponent {
 
     this.angularGridEdit = angularGrid.detail
 
+
+if (this.angularGridEdit.slickGrid.getEditorLock().isActive()) {
+
+  this.angularGridEdit.slickGrid.getEditorLock().commitCurrentEdit();
+}
     this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGridEdit)
       columnTotal('CantidadGrupoActividadResponsables', this.angularGridEdit)
@@ -251,13 +274,14 @@ export class TableGrupoActividadResponsablesComponent {
   )
 
   handleSelectedRowsChanged(e: any): void {
+
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
 
-    if (row?.GrupoActividadId) {
-      this.editGrupo.set([row.GrupoActividadId])
+    if (row?.GrupoActividadJerarquicoId) {
+      this.editResponsable.set(row.GrupoActividadJerarquicoId)
+      this.editFechaHasta.set(row.GrupoActividadJerarquicoHasta)
     }
-
 
   }
 
@@ -274,12 +298,12 @@ export class TableGrupoActividadResponsablesComponent {
       if (typeof previousItemMetadata === 'object') {
         meta = previousItemMetadata(rowNumber);
       }
-    
+
       if (
-        item.GrupoActividadNumero == 0 || 
-        item.GrupoActividadDetalle === "" || 
-        item.GrupoActividadInactivo === "" || 
-        item.SucursalId === "" || 
+        item.GrupoActividadNumero == 0 ||
+        item.GrupoActividadDetalle === "" ||
+        item.GrupoActividadInactivo === "" ||
+        item.SucursalId === "" ||
         item.PersonalId === ""
       ) {
         meta.cssClasses = 'element-add-no-complete';
@@ -292,4 +316,3 @@ export class TableGrupoActividadResponsablesComponent {
   }
 }
 
-       

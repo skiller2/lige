@@ -42,6 +42,10 @@ grupoActividadRouter.get('/tipo_getOptions', [authMiddleware.verifyToken, authMi
 grupoActividadRouter.post('/changecellresponsable', authMiddleware.verifyToken, (req, res, next) => {
     grupoActividadController.changecellResponsable(req, res, next)
 })
+
+grupoActividadRouter.delete('/responsables', authMiddleware.verifyToken,  (req, res, next) => {
+    grupoActividadController.deleteResponsables(req, res, next)
+})
 //SUPERVISORES
 //OBJETIVOS
 //PERSONAL
