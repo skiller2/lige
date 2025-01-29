@@ -379,6 +379,22 @@ export class GrupoActividadController extends BaseController {
         let message = ""
         const params = req.body
 
+        try {
+            console.log("params ", params)
+            //throw new ClientException(`test`)
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
+
+            const codigoExist = await queryRunner.query(`SELECT * FROM GrupoActividadJerarquico WHERE GrupoActividadJerarquicoId = @0`, [params.GrupoActividadJerarquicoId])
+            let dataResultado = {}
+
+            if (codigoExist.length > 0) { //Entro en update
+                //Validar si cambio el código
+                console.log(" voy a hacer update")
+
+                await this.validateFormResponsables(params, queryRunner)
+
 
                 //   await queryRunner.query( `UPDATE GrupoActividadJerarquico
                 //     SET GrupoActividadJerarquicoComo = @0, GrupoActividadJerarquicoDesde = @1, GrupoActividadJerarquicoHasta = @2
@@ -387,7 +403,6 @@ export class GrupoActividadController extends BaseController {
                 // [params.GrupoActividadJerarquicoComo,params.GrupoActividadJerarquicoDesde,params.GrupoActividadJerarquicoHasta,params.GrupoActividadJerarquicoId,
                 //     params.GrupoActividadId
                 // ]) 
-
 
 
                 dataResultado = {action:'U'}
@@ -501,7 +516,8 @@ export class GrupoActividadController extends BaseController {
         }
     }
 
-     async validateFormGrupo(params:any, queryRunner:any){
+    async validateFormGrupo(params: any, queryRunner: any) {
+
 
         if (!params.GrupoActividadNumero) {
             throw new ClientException(`Debe completar el campo Numero.`)
@@ -535,7 +551,7 @@ export class GrupoActividadController extends BaseController {
             throw new ClientException(`Debe completar el campo Apellido Nombre.`)
         }
 
-        if(!params. GrupoActividadJerarquicoDesde) {
+        if (!params.GrupoActividadJerarquicoDesde) {
             throw new ClientException(`Debe completar el campo Desde.`)
         }
 
