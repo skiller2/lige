@@ -820,7 +820,6 @@ cuit.PersonalCUITCUILCUIT,
   async addPersonalTelefono(queryRunner: any, telefono: any, personalId: any) {
     const tipoTelefonoId = telefono.TipoTelefonoId
     const telefonoNum = telefono.TelefonoNro
-console.log('add telefono',telefonoNum)
     const ultnro = await queryRunner.query(`SELECT PersonalTelefonoUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
     const PersonalTelefonoId = (ultnro[0]?.PersonalTelefonoUltNro)?ultnro[0]?.PersonalTelefonoUltNro+1:1
 
@@ -878,6 +877,11 @@ console.log('add telefono',telefonoNum)
     const provinciaId = domicilio.ProvinciaId ? domicilio.ProvinciaId : null
     const localidadId = domicilio.LocalidadId ? domicilio.LocalidadId : null
     const barrioId = domicilio.BarrioId ? domicilio.BarrioId : null
+
+    const ultnro = await queryRunner.query(`SELECT PersonalDomicilioUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
+    const PersonalDomicilioId = (ultnro[0]?.PersonalDomicilioUltNro)?ultnro[0]?.PersonalDomicilioUltNro+1:1
+
+
     await queryRunner.query(`
       INSERT INTO PersonalDomicilio (
       PersonalId,
@@ -895,7 +899,7 @@ console.log('add telefono',telefonoNum)
       )
       VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)`, [
       personalId,
-      1,
+      PersonalDomicilioId,
       calle,
       numero,
       piso,
@@ -908,8 +912,8 @@ console.log('add telefono',telefonoNum)
       barrioId,
     ])
     await queryRunner.query(`
-      UPDATE Personal SET PersonalDomicilioUltNro = ISNULL(PersonalDomicilioUltNro, 0) + 1 WHERE PersonalId = @0
-      `, [personalId])
+      UPDATE Personal SET PersonalDomicilioUltNro = @1 WHERE PersonalId = @0
+      `, [personalId,PersonalDomicilioId])
   }
 
   async addPersonalFamilia(queryRunner: any, PersonalId: any, familiar: any) {
@@ -1172,7 +1176,8 @@ console.log('add telefono',telefonoNum)
   }
 
   private async updatePersonalDomicilio(queryRunner: any, PersonalId: number, infoDomicilio: any) {
-    let domicilioRes = await queryRunner.query(`
+    let cambio: boolean = false
+    const domicilioRes = await queryRunner.query(`
       SELECT TRIM(PersonalDomicilioDomCalle) Calle, TRIM(PersonalDomicilioDomNro) Nro, TRIM(PersonalDomicilioDomPiso) Piso,
       TRIM(PersonalDomicilioDomDpto) Dpto, TRIM(PersonalDomicilioCodigoPostal) CodigoPostal, PersonalDomicilioPaisId PaisId, PersonalDomicilioProvinciaId ProvinciaId,
       PersonalDomicilioLocalidadId LocalidadId, PersonalDomicilioBarrioId BarrioId
@@ -1181,51 +1186,17 @@ console.log('add telefono',telefonoNum)
       `, [PersonalId, infoDomicilio.PersonalDomicilioId])
     const domicilio = domicilioRes[0] ? domicilioRes[0] : {}
 
-    let cambio: boolean = false
     for (const key in domicilio) {
       if (infoDomicilio[key] != domicilio[key]) {
         cambio = true
         break
       }
     }
-    if (!cambio) return
-
-    const calle = infoDomicilio.Calle
-    const numero = infoDomicilio.Nro
-    const piso = infoDomicilio.Piso
-    const departamento = infoDomicilio.Dpto
-    const esquina = infoDomicilio.Esquina
-    const esquinaY = infoDomicilio.EsquinaY
-    const bloque = infoDomicilio.Bloque
-    const edificio = infoDomicilio.Edificio
-    const cuerpo = infoDomicilio.Cuerpo
-    const codPostal = infoDomicilio.CodigoPostal
-    const paisId = infoDomicilio.PaisId
-    const provinciaId = infoDomicilio.ProvinciaId
-    const localidadId = infoDomicilio.LocalidadId
-    const barrioId = infoDomicilio.BarrioId
-    await queryRunner.query(`
-      UPDATE PersonalDomicilio SET
-      PersonalDomicilioDomCalle = @1,
-      PersonalDomicilioDomNro = @2,
-      PersonalDomicilioDomPiso = @3,
-      PersonalDomicilioDomDpto = @4,
-      PersonalDomicilioEntreEsquina = @5,
-      PersonalDomicilioEntreEsquinaY = @6,
-      PersonalDomicilioDomBloque = @7,
-      PersonalDomicilioDomEdificio = @8,
-      PersonalDomicilioDomCuerpo = @9,
-      PersonalDomicilioCodigoPostal = @10,
-      PersonalDomicilioPaisId = @11,
-      PersonalDomicilioProvinciaId = @12,
-      PersonalDomicilioLocalidadId = @13,
-      PersonalDomicilioBarrioId = @14
-      WHERE PersonalId IN (@0)
-      `, [
-      PersonalId, calle, numero, piso, departamento, esquina, esquinaY, bloque, edificio, cuerpo, codPostal,
-      paisId, provinciaId, localidadId, barrioId,
-    ])
-
+    if (cambio) {
+      await queryRunner.query(`
+      UPDATE PersonalDomicilio SET PersonalDomicilioActual=0 WHERE PersonalId =@0`, [PersonalId])
+      await this.addPersonalDomicilio(queryRunner, infoDomicilio, PersonalId)
+    }
   }
 
   private async updatePersonalTelefono(queryRunner: any, PersonalId: number, infoTelefono: any) {
