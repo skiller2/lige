@@ -17,7 +17,7 @@ grupoActividadRouter.post('/changecellgrupo', authMiddleware.verifyToken, (req, 
     grupoActividadController.changecellgrupo(req, res, next)
 })
 
-grupoActividadRouter.get('/inactivo_getOptions', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias'])], (req, res, next) => {
+grupoActividadRouter.get('/inactivo_getOptions', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
     grupoActividadController.getOptions(req, res)
 });
 
@@ -25,7 +25,23 @@ grupoActividadRouter.delete('/grupo', authMiddleware.verifyToken,  (req, res, ne
     grupoActividadController.deleteGrupo(req, res, next)
 })
 
-//JERARQUICOS
+//RESPONSABLES
+
+grupoActividadRouter.get("/colsresponsables", authMiddleware.verifyToken, (req, res) => {
+    grupoActividadController.getGridColsResponsables(req, res)
+})
+
+grupoActividadRouter.post('/listResponsables', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])],  (req, res, next) => {
+    grupoActividadController.listGrupoActividadResponsables(req, res, next)
+})
+
+grupoActividadRouter.get('/tipo_getOptions', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+    grupoActividadController.getTipos(req, res)
+})
+
+grupoActividadRouter.post('/changecellresponsable', authMiddleware.verifyToken, (req, res, next) => {
+    grupoActividadController.changecellResponsable(req, res, next)
+})
 //SUPERVISORES
 //OBJETIVOS
 //PERSONAL
