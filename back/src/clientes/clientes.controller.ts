@@ -810,11 +810,10 @@ ${orderBy}`, [fechaActual])
         // VALIDACION CUIT EXISTE O NO
 
 
-        let valCuit = await queryRunner.query(`SELECT * FROM ClienteFacturacion WHERE ClienteFacturacionCUIT = @0`, [CUIT])
+        let valCuit = await queryRunner.query(`SELECT * FROM ClienteFacturacion WHERE ClienteFacturacionCUIT = @0 AND ClienteId != @1`, [CUIT,idCliente])
 
 
-
-        if (valCuit.length >= 1 && valCuit[0].ClienteId !== idCliente) {
+        if (valCuit.length >= 1) {
             // No estoy sobre el mismo registro
             throw new ClientException(`El CUIT ingresado ya existe`);
         }
