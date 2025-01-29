@@ -1056,7 +1056,8 @@ cuit.PersonalCUITCUILCUIT,
     } else if (parametro == 12) {
       newFieldname += `-DOCUMENFREN`
     }
-    const newFilePath: string = `${pathArchivos}/${doc[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}.${type}`;
+    newFieldname += `.${type}`
+    const newFilePath: string = `${pathArchivos}/${doc[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}`;
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`
       UPDATE DocumentoImagenDocumento SET
@@ -1101,8 +1102,8 @@ cuit.PersonalCUITCUILCUIT,
     const estudioId = estudio[0].estudioId
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
-    const newFieldname = `${personalId}-${estudioId}-CERESTPAG1`
-    const newFilePath = `${pathArchivos}/${estudio[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}.${type}`;
+    const newFieldname = `${personalId}-${estudioId}-CERESTPAG1.${type}`
+    const newFilePath = `${pathArchivos}/${estudio[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}`;
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`
       UPDATE DocumentoImagenEstudio SET
