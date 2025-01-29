@@ -1424,9 +1424,9 @@ cuit.PersonalCUITCUILCUIT,
 
       if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto[0])
 
-      if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente, 12)
+      if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente[0], 12)
 
-      if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso, 13)
+      if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso[0], 13)
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
