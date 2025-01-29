@@ -2208,4 +2208,102 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
+  async getBancos(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT BancoId value, BancoDescripcion label
+        FROM Banco
+        WHERE BancoInactivo IS NULL
+      `)
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getHistoryPersonalBanco(req: any, res: Response, next: NextFunction) {
+    const personalId = Number(req.params.personalId);
+
+    try {
+      const listSitRevista = await dataSource.query(`
+        SELECT perb.PersonalBancoId,
+        TRIM(ban.BancoDescripcion) Descripcion, TRIM(perb.PersonalBancoCBU) CBU,
+        perb.PersonalBancoDesde Desde, perb.PersonalBancoHasta Hasta
+        FROM PersonalBanco perb
+        LEFT JOIN Banco ban ON ban.BancoId = perb.PersonalBancoBancoId
+        WHERE perb.PersonalId IN (@0)
+        ORDER BY perb.PersonalBancoId DESC
+        `, [personalId])
+
+      this.jsonRes(listSitRevista, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async setPersonalBanco(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const PersonalId: number = Number(req.params.id);
+    const BancoId = req.body.BancoId
+    const CBU = req.body.CBU
+    let Desde = req.body.Desde
+    try {
+      let campos_vacios: any[] = []
+      await queryRunner.startTransaction()
+
+      if (!BancoId) campos_vacios.push(`- Banco`);
+      if (!CBU) campos_vacios.push(`- CBU`);
+      if (!Desde) campos_vacios.push(`- Fecha Desde`);
+      if (campos_vacios.length) {
+        campos_vacios.unshift('Debe completar los siguientes campos:')
+        throw new ClientException(campos_vacios);
+      }
+
+      if (CBU.length != 22) {
+        throw new ClientException('El CBU debe de estar compuesto por 22 digitos.');
+      }
+      Desde = new Date(Desde)
+      Desde.setHours(0,0,0,0)
+
+      const PersonalBanco = await queryRunner.query(`
+        SELECT *
+        FROM PersonalBanco 
+        WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoHasta IS NULL
+      `, [PersonalId, BancoId])
+      if (PersonalBanco.length) {
+        const PersonalBancoId = PersonalBanco[0].PersonalBancoId
+        const Hasta = new Date(Desde)
+        Hasta.setDate(Hasta.getDate()-1)
+        await queryRunner.query(`
+          UPDATE PersonalBanco SET
+          PersonalBancoHasta = @3
+          WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2)
+        `, [PersonalId, BancoId, PersonalBancoId, Hasta])
+      }
+
+      const Personal = await queryRunner.query(`
+        SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
+        FROM Personal 
+        WHERE PersonalId IN (@0)
+      `, [PersonalId])
+      const newPersonalBancoId = Personal[0].UltNro
+
+      await queryRunner.query(`
+        INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde)
+        VALUES (@0, @1, @2, @3, @4)
+
+        UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
+      `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde])
+
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res, 'Carga Exitosa');
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
 }
