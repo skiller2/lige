@@ -793,7 +793,7 @@ cuit.PersonalCUITCUILCUIT,
       if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente[0], 12)
 
       if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso[0], 13)
-//throw new ClientException('LLegue')
+
       await queryRunner.commitTransaction()
       return this.jsonRes({PersonalId}, res, 'Carga Exitosa');
     } catch (error) {
@@ -1001,7 +1001,7 @@ cuit.PersonalCUITCUILCUIT,
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
     const newFieldname = `${personalId}-${fotoId}-FOTO.${type}`
-    const newFilePath = `${pathArchivos}/${foto[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}.${type}`;
+    const newFilePath = `${pathArchivos}/${foto[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}`;
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`
       UPDATE DocumentoImagenFoto SET
@@ -1018,13 +1018,14 @@ cuit.PersonalCUITCUILCUIT,
   }
 
   async setDocumento(queryRunner: any, personalId: any, file: any, parametro: number) {
-    const type = file.mimeType.split('/')[1]
+    const type = file.mimetype.split('/')[1]
     const fieldname = file.fieldname
     let doc = await queryRunner.query(`
       SELECT doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
+      FROM DocumentoImagenDocumento doc 
       JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  doc.DocumentoImagenParametroId
       JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-      FROM DocumentoImagenDocumento doc WHERE doc.PersonalId IN (@0)
+      WHERE doc.PersonalId IN (@0)
     `, [personalId])
     if (!doc.length) {
       await queryRunner.query(`
@@ -1039,9 +1040,10 @@ cuit.PersonalCUITCUILCUIT,
       )
       doc = await queryRunner.query(`
         SELECT doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
+        FROM DocumentoImagenDocumento doc 
         JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
         JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-        FROM DocumentoImagenDocumento doc WHERE doc.PersonalId IN (@0)
+        WHERE doc.PersonalId IN (@0)
       `, [personalId])
     }
 
@@ -1068,13 +1070,14 @@ cuit.PersonalCUITCUILCUIT,
   }
 
   async setImagenEstudio(queryRunner: any, personalId: any, file: any) {
-    const type = file.mimeType.split('/')[1]
+    const type = file.mimetype.split('/')[1]
     const fieldname = file.fieldname
     let estudio = await queryRunner.query(`
       SELECT est.DocumentoImagenEstudioId estudioId, dir.DocumentoImagenParametroDirectorioPath
+      FROM DocumentoImagenEstudio est 
       JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = est.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  est.DocumentoImagenParametroId
       JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = est.DocumentoImagenParametroId
-      FROM DocumentoImagenEstudio est WHERE est.PersonalId IN (@0)
+      WHERE est.PersonalId IN (@0)
       `, [personalId])
     if (!estudio.length) {
       await queryRunner.query(`
@@ -1088,9 +1091,10 @@ cuit.PersonalCUITCUILCUIT,
       `, [personalId, type, 14, 1])
       estudio = await queryRunner.query(`
         SELECT est.DocumentoImagenEstudioId estudioId, dir.DocumentoImagenParametroDirectorioPath
+        FROM DocumentoImagenEstudio est 
         JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = est.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  est.DocumentoImagenParametroId
         JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = est.DocumentoImagenParametroId
-        FROM DocumentoImagenEstudio est WHERE est.PersonalId IN (@0)
+        WHERE est.PersonalId IN (@0)
       `, [personalId])
     }
 
