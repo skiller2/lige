@@ -7,16 +7,16 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 const getOptions: any[] = [
     { label: 'No', value: '1' },
     { label: 'Si', value: '0' },
-  ]
+]
 
 const getTipos: any[] = [
     { label: 'Jerarquico', value: 'J' },
     { label: 'Administrativo', value: 'A' },
-  ]  
+]
 
 export class GrupoActividadController extends BaseController {
 
-     columnasGrillaGrupos: any[] = [
+    columnasGrillaGrupos: any[] = [
         {
             id: "id",
             name: "id",
@@ -64,9 +64,9 @@ export class GrupoActividadController extends BaseController {
             params: { collection: getOptions, },
             type: 'string',
             searchComponent: "inpurForInactivo",
-  
+
             sortable: true
-          },
+        },
         {
             name: "Sucursal",
             type: "string",
@@ -78,7 +78,7 @@ export class GrupoActividadController extends BaseController {
             sortable: true,
             searchHidden: false
         }
-    
+
     ]
 
     columnasGrillaResponsables: any[] = [
@@ -110,7 +110,7 @@ export class GrupoActividadController extends BaseController {
             params: { collection: getTipos, },
             type: 'string',
             searchComponent: "inpurForGrupoActividad",
-  
+
             sortable: true
         },
         {
@@ -148,8 +148,8 @@ export class GrupoActividadController extends BaseController {
             fieldName: "jer.GrupoActividadJerarquicoHasta,",
             sortable: true,
         }
-    
-    
+
+
     ]
 
     async getGridColsGrupos(req, res) {
@@ -173,7 +173,7 @@ export class GrupoActividadController extends BaseController {
 
         console.log("req.body.options.filtros ", req.body.options.filtros)
         const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaGrupos);
-        
+
         const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = dataSource.createQueryRunner();
         const fechaActual = new Date()
@@ -212,7 +212,7 @@ export class GrupoActividadController extends BaseController {
 
         console.log("req.body.options.filtros ", req.body.options.filtros)
         const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaGrupos);
-        
+
         const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = dataSource.createQueryRunner();
         const fechaActual = new Date()
@@ -255,73 +255,73 @@ export class GrupoActividadController extends BaseController {
     }
 
 
-      
+
     async changecellgrupo(req: any, res: Response, next: NextFunction) {
 
         const ip = this.getRemoteAddress(req)
-         const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = dataSource.createQueryRunner();
 
-         const usuarioIdquery = await queryRunner.query( `SELECT * FROM Usuario WHERE UsuarioId = @0`, [res.locals.PersonalId])
-         const usuarioId = usuarioIdquery > 0 ? usuarioIdquery : null
+        const usuarioIdquery = await queryRunner.query(`SELECT * FROM Usuario WHERE UsuarioId = @0`, [res.locals.PersonalId])
+        const usuarioId = usuarioIdquery > 0 ? usuarioIdquery : null
 
-         const fechaActual = new Date()
-         let message = ""
-         const params = req.body
- 
-         try {
-             console.log("params ", params)
-             //throw new ClientException(`test`)
-             await queryRunner.connect();
-             await queryRunner.startTransaction();
-    
-             
-             const codigoExist = await queryRunner.query( `SELECT *  FROM GrupoActividad WHERE GrupoActividadId = @0`, [params.GrupoActividadId])
-             let dataResultado = {}
- 
-             if ( codigoExist.length > 0) { //Entro en update
-                 //Validar si cambio el código
-                 console.log(" voy a hacer update")
- 
-                 await this.validateFormGrupo(params,queryRunner)
+        const fechaActual = new Date()
+        let message = ""
+        const params = req.body
 
-                if(params.GrupoActividadNumero != params.GrupoActividadNumeroOld){
+        try {
+            console.log("params ", params)
+            //throw new ClientException(`test`)
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
 
-                    let validateGrupoActividadNumero = await queryRunner.query( `SELECT * FROM GrupoActividad WHERE GrupoActividadNumero = @0`, [params.GrupoActividadNumero])
 
-                 if (validateGrupoActividadNumero.length > 0) {
-                    throw new ClientException(`El Numero ingresado ya existe`)
-                  }
+            const codigoExist = await queryRunner.query(`SELECT *  FROM GrupoActividad WHERE GrupoActividadId = @0`, [params.GrupoActividadId])
+            let dataResultado = {}
+
+            if (codigoExist.length > 0) { //Entro en update
+                //Validar si cambio el código
+                console.log(" voy a hacer update")
+
+                await this.validateFormGrupo(params, queryRunner)
+
+                if (params.GrupoActividadNumero != params.GrupoActividadNumeroOld) {
+
+                    let validateGrupoActividadNumero = await queryRunner.query(`SELECT * FROM GrupoActividad WHERE GrupoActividadNumero = @0`, [params.GrupoActividadNumero])
+
+                    if (validateGrupoActividadNumero.length > 0) {
+                        throw new ClientException(`El Numero ingresado ya existe`)
+                    }
                 }
 
-                 await queryRunner.query( `UPDATE GrupoActividad SET GrupoActividadNumero = @1,GrupoActividadDetalle = @2,GrupoActividadInactivo=@3,GrupoActividadSucursalId=@4
-                    WHERE GrupoActividadId = @0`, [params.GrupoActividadId,params.GrupoActividadNumero,params.GrupoActividadDetalle,params.GrupoActividadInactivo,params.GrupoActividadSucursalId]) 
-              
-                dataResultado = {action:'U'}
+                await queryRunner.query(`UPDATE GrupoActividad SET GrupoActividadNumero = @1,GrupoActividadDetalle = @2,GrupoActividadInactivo=@3,GrupoActividadSucursalId=@4
+                    WHERE GrupoActividadId = @0`, [params.GrupoActividadId, params.GrupoActividadNumero, params.GrupoActividadDetalle, params.GrupoActividadInactivo, params.GrupoActividadSucursalId])
+
+                dataResultado = { action: 'U' }
                 message = "Actualizacion exitosa"
-               
-             } else {  //Es un nuevo registro
-              
- 
-                 console.log('El código no existe - es nuevo')
-                 await this.validateFormGrupo(params,queryRunner)
 
-                 let validateGrupoActividadNumero = await queryRunner.query( `SELECT * FROM GrupoActividad WHERE GrupoActividadNumero = @0`, [params.GrupoActividadNumero])
+            } else {  //Es un nuevo registro
 
-                 if (validateGrupoActividadNumero.length > 0) {
+
+                console.log('El código no existe - es nuevo')
+                await this.validateFormGrupo(params, queryRunner)
+
+                let validateGrupoActividadNumero = await queryRunner.query(`SELECT * FROM GrupoActividad WHERE GrupoActividadNumero = @0`, [params.GrupoActividadNumero])
+
+                if (validateGrupoActividadNumero.length > 0) {
                     throw new ClientException(`El Numero ingresado ya existe`)
-                  }
+                }
 
-                 let GrupoActividadPersonalUltNro = 0
-                 let GrupoActividadJerarquicoUltNro = 0
-                 let GrupoActividadUsuarioId = usuarioId
-                 let GrupoActividadObjetivoUltNro = 0
+                let GrupoActividadPersonalUltNro = 0
+                let GrupoActividadJerarquicoUltNro = 0
+                let GrupoActividadUsuarioId = usuarioId
+                let GrupoActividadObjetivoUltNro = 0
 
-                 let day = new Date()
-                 day.setHours(0, 0, 0, 0)
-                 let time = day.toTimeString().split(' ')[0]
+                let day = new Date()
+                day.setHours(0, 0, 0, 0)
+                let time = day.toTimeString().split(' ')[0]
 
 
-                 await queryRunner.query(`
+                await queryRunner.query(`
                     INSERT INTO "GrupoActividad" (
                         "GrupoActividadNumero", 
                         "GrupoActividadDetalle", 
@@ -335,61 +335,61 @@ export class GrupoActividadController extends BaseController {
                         "GrupoActividadSucursalId", 
                         "GrupoActividadObjetivoUltNro"
                     ) 
-                    VALUES ( @0,@1,@2, @3, @4, @5,@6, @7,@8, @9,@10 )`, 
+                    VALUES ( @0,@1,@2, @3, @4, @5,@6, @7,@8, @9,@10 )`,
                     [params.GrupoActividadNumero,
-                     params.GrupoActividadDetalle,
-                     GrupoActividadPersonalUltNro,
-                     GrupoActividadJerarquicoUltNro,
-                     params.GrupoActividadInactivo,
-                     ip,
-                     day,
-                     time,
-                     GrupoActividadUsuarioId,
-                     params.GrupoActividadSucursalId,
-                     GrupoActividadObjetivoUltNro
+                    params.GrupoActividadDetalle,
+                        GrupoActividadPersonalUltNro,
+                        GrupoActividadJerarquicoUltNro,
+                    params.GrupoActividadInactivo,
+                        ip,
+                        day,
+                        time,
+                        GrupoActividadUsuarioId,
+                    params.GrupoActividadSucursalId,
+                        GrupoActividadObjetivoUltNro
                     ]
-                  );
-               
-                dataResultado = {action:'I'}
-                message = "Carga de nuevo Registro exitoso"
-             }
- 
-             await queryRunner.commitTransaction()
-             return this.jsonRes( dataResultado, res, message)
-         } catch (error) {
-            await this.rollbackTransaction(queryRunner)
-             return next(error)
-         }
-       
-     }
+                );
 
-     async changecellResponsable(req: any, res: Response, next: NextFunction) {
+                dataResultado = { action: 'I' }
+                message = "Carga de nuevo Registro exitoso"
+            }
+
+            await queryRunner.commitTransaction()
+            return this.jsonRes(dataResultado, res, message)
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        }
+
+    }
+
+    async changecellResponsable(req: any, res: Response, next: NextFunction) {
 
         const ip = this.getRemoteAddress(req)
-         const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = dataSource.createQueryRunner();
 
-         const usuarioIdquery = await queryRunner.query( `SELECT * FROM Usuario WHERE UsuarioId = @0`, [res.locals.PersonalId])
-         const usuarioId = usuarioIdquery > 0 ? usuarioIdquery : null
+        const usuarioIdquery = await queryRunner.query(`SELECT * FROM Usuario WHERE UsuarioId = @0`, [res.locals.PersonalId])
+        const usuarioId = usuarioIdquery > 0 ? usuarioIdquery : null
 
-         const fechaActual = new Date()
-         let message = ""
-         const params = req.body
- 
-         try {
-             console.log("params ", params)
-             //throw new ClientException(`test`)
-             await queryRunner.connect();
-             await queryRunner.startTransaction();
-    
-             
-             const codigoExist = await queryRunner.query( `SELECT * FROM GrupoActividadJerarquico WHERE GrupoActividadJerarquicoId = @0`, [params.GrupoActividadJerarquicoId])
-             let dataResultado = {}
- 
-             if ( codigoExist.length > 0) { //Entro en update
-                 //Validar si cambio el código
-                 console.log(" voy a hacer update")
- 
-                 await this.validateFormResponsables(params,queryRunner)
+        const fechaActual = new Date()
+        let message = ""
+        const params = req.body
+
+        try {
+            console.log("params ", params)
+            //throw new ClientException(`test`)
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
+
+            const codigoExist = await queryRunner.query(`SELECT * FROM GrupoActividadJerarquico WHERE GrupoActividadJerarquicoId = @0`, [params.GrupoActividadJerarquicoId])
+            let dataResultado = {}
+
+            if (codigoExist.length > 0) { //Entro en update
+                //Validar si cambio el código
+                console.log(" voy a hacer update")
+
+                await this.validateFormResponsables(params, queryRunner)
 
                 // if(params.GrupoActividadNumero != params.GrupoActividadNumeroOld){
 
@@ -402,15 +402,15 @@ export class GrupoActividadController extends BaseController {
 
                 //  await queryRunner.query( `UPDATE GrupoActividad SET GrupoActividadNumero = @1,GrupoActividadDetalle = @2,GrupoActividadInactivo=@3,GrupoActividadSucursalId=@4
                 //     WHERE GrupoActividadId = @0`, [params.GrupoActividadId,params.GrupoActividadNumero,params.GrupoActividadDetalle,params.GrupoActividadInactivo,params.GrupoActividadSucursalId]) 
-              
-                dataResultado = {action:'U'}
+
+                dataResultado = { action: 'U' }
                 message = "Actualizacion exitosa"
-               
-             } else {  //Es un nuevo registro
-              
- 
-                 console.log('El código no existe - es nuevo')
-                 await this.validateFormResponsables(params,queryRunner)
+
+            } else {  //Es un nuevo registro
+
+
+                console.log('El código no existe - es nuevo')
+                await this.validateFormResponsables(params, queryRunner)
 
                 //  let validateGrupoActividadNumero = await queryRunner.query( `SELECT * FROM GrupoActividad WHERE GrupoActividadNumero = @0`, [params.GrupoActividadNumero])
 
@@ -456,21 +456,21 @@ export class GrupoActividadController extends BaseController {
                 //      GrupoActividadObjetivoUltNro
                 //     ]
                 //   );
-               
-                dataResultado = {action:'I'}
-                message = "Carga de nuevo Registro exitoso"
-             }
- 
-             await queryRunner.commitTransaction()
-             return this.jsonRes( dataResultado, res, message)
-         } catch (error) {
-            await this.rollbackTransaction(queryRunner)
-             return next(error)
-         }
-       
-     }
 
-     async deleteGrupo(req: any, res: Response, next: NextFunction){
+                dataResultado = { action: 'I' }
+                message = "Carga de nuevo Registro exitoso"
+            }
+
+            await queryRunner.commitTransaction()
+            return this.jsonRes(dataResultado, res, message)
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        }
+
+    }
+
+    async deleteGrupo(req: any, res: Response, next: NextFunction) {
 
         let cod_grupo_actividad = req.query[0]
         console.log("cod_grupo_actividad ", cod_grupo_actividad)
@@ -480,41 +480,41 @@ export class GrupoActividadController extends BaseController {
         await queryRunner.startTransaction()
         try {
 
-            await queryRunner.query( `DELETE FROM GrupoActividad WHERE GrupoActividadId = @0`, [cod_grupo_actividad])
-          
+            await queryRunner.query(`DELETE FROM GrupoActividad WHERE GrupoActividadId = @0`, [cod_grupo_actividad])
+
             await queryRunner.commitTransaction()
-            return this.jsonRes( "", res, "Borrado Exitoso")
+            return this.jsonRes("", res, "Borrado Exitoso")
         } catch (error) {
-           await this.rollbackTransaction(queryRunner)
+            await this.rollbackTransaction(queryRunner)
             return next(error)
         }
     }
 
-     async validateFormGrupo(params:any, queryRunner:any){
+    async validateFormGrupo(params: any, queryRunner: any) {
 
-        if(!params.GrupoActividadNumero) {
+        if (!params.GrupoActividadNumero) {
             throw new ClientException(`Debe completar el campo Numero.`)
         }
 
-        if(!params.GrupoActividadDetalle && !params.PersonalId) {
+        if (!params.GrupoActividadDetalle && !params.PersonalId) {
             throw new ClientException(`Debe completar el campo Detalle.`)
         }
-        if(!params.GrupoActividadInactivo) {
+        if (!params.GrupoActividadInactivo) {
             throw new ClientException(`Debe completar el campo Inactivo.`)
         }
-        if(!params.GrupoActividadSucursalId) {
+        if (!params.GrupoActividadSucursalId) {
             throw new ClientException(`Debe completar el campo Sucursal.`)
         }
-     }
+    }
 
 
-     async validateFormResponsables(params:any, queryRunner:any){
+    async validateFormResponsables(params: any, queryRunner: any) {
 
         // - Fecha hasta no puede ser menor a la fecha desde. 
         // - restricciones: por grupo de actividad debe haber un solo J y los A que quieras
         // - eliminación de un a sea que se coloque una fecha hasta, no se elimina
 
-        if(!params. GrupoActividadJerarquicoDesde) {
+        if (!params.GrupoActividadJerarquicoDesde) {
             throw new ClientException(`Debe completar el campo Desde.`)
         }
 
@@ -522,8 +522,73 @@ export class GrupoActividadController extends BaseController {
             throw new ClientException("La fecha Hasta no puede ser menor que la fecha Desde.");
         }
 
-     }
+    }
+
+
+    async gruposPersonas(req: any, res: Response, next: NextFunction) {
+
+        const queryRunner = dataSource.createQueryRunner();
+        let fechaActual = new Date()
+
+        try {
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
 
 
 
+            await queryRunner.commitTransaction();
+            if (res)
+                this.jsonRes({ list: [] }, res, `Se actualizaron los grupos `);
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
+
+    async objetivosGrupos(req: any, res: Response, next: NextFunction) {
+
+        const queryRunner = dataSource.createQueryRunner();
+        let fechaActual = new Date()
+
+        try {
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
+            const catactual = await queryRunner.query(
+                `UPDATE gru
+               SET 		  gru.GrupoActividadObjetivoHasta=ISNULL(clicon.ClienteContratoFechaHasta,eledepcon.ClienteElementoDependienteContratoFechaHasta)
+                           
+                                  
+                           
+                       FROM GrupoActividadObjetivo gru
+               
+                     JOIN Objetivo obj  ON gru.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
+               
+                       LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+                       LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledepcon.ClienteElementoDependienteContratoId = eledep.ClienteElementoDependienteContratoUltNro
+                       
+                       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
+                       LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = obj.ClienteId AND clicon.ClienteContratoId = cli.ClienteContratoUltNro AND obj.ClienteElementoDependienteId IS NULL 
+               
+                           
+                           
+                       WHERE ISNULL(ISNULL(clicon.ClienteContratoFechaHasta,eledepcon.ClienteElementoDependienteContratoFechaHasta),'9999-12-31') < ISNULL(gru.GrupoActividadObjetivoHasta,'9999-12-31') AND 
+                       ISNULL(ISNULL(clicon.ClienteContratoFechaHasta,eledepcon.ClienteElementoDependienteContratoFechaHasta),'9999-12-31') < @0`,
+                [fechaActual]
+            )
+
+
+            await queryRunner.commitTransaction();
+            if (res)
+                this.jsonRes({ list: [] }, res, `Se actualizaron los grupos `);
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        } finally {
+            await queryRunner.release();
+        }
+    }
 }

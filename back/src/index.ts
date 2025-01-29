@@ -9,6 +9,7 @@ import { CargaLicenciaController } from "./carga-licencia/carga-licencia.control
 import { FileUploadController } from "./controller/file-upload.controller"
 //import packageConfig from "./../package.json" with { type: 'json' }; 
 import dotenv from "dotenv"
+import { GrupoActividadController } from "./grupo-actividad/grupo-actividad.controller";
 
 
 
@@ -18,7 +19,7 @@ dotenv.config()
 const dbServer = new DBServer(5, 2000, dataSource)
 const webServer = new WebServer(Number(process.env.SERVER_API_PORT))
 const categoriasController = new CategoriasController()
-const objetivoController = new ObjetivoController()
+const grupoActividadController = new GrupoActividadController()
 const cargaLicenciaController = new CargaLicenciaController()
 const fileUploadController = new FileUploadController()
 
@@ -41,7 +42,7 @@ scheduleJob('1 0 * * *', async function (fireDate) {
 scheduleJob('1 0 * * *', async function (fireDate) {
   //TODO Se debería instanciar Response correctamente
 
-  const ret = await objetivoController.objetivosGrupos(null, null, (ret: any) => ret)
+  const ret = await grupoActividadController.objetivosGrupos(null, null, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
@@ -50,8 +51,10 @@ scheduleJob('1 0 * * *', async function (fireDate) {
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
-scheduleJob('1 0 * * *', async function (fireDate) {
-  const ret = await fileUploadController.deleleTemporalFiles(null, null, (ret: any) => ret)
+scheduleJob('0 0 1 * *', async function (fireDate) {
+  //TODO Se debería instanciar Response correctamente
+
+  const ret = await grupoActividadController.gruposPersonas(null, null, (ret: any) => ret)
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
