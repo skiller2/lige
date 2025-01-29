@@ -1,13 +1,11 @@
-import { Component, Injector, viewChild, inject, signal, model, computed, ChangeDetectionStrategy, effect, input } from '@angular/core';
-import { BehaviorSubject, debounceTime, map, switchMap, tap, noop, firstValueFrom } from 'rxjs';
-import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
+import { Component, Injector, inject, signal, model, ChangeDetectionStrategy, input } from '@angular/core';
+import { BehaviorSubject, debounceTime, switchMap, firstValueFrom } from 'rxjs';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { CommonModule } from '@angular/common';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
+import { ApiService } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
-import { NgForm, FormArray, FormBuilder } from '@angular/forms';
-import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
-import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { FormArray, FormBuilder } from '@angular/forms';
+import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 
 @Component({
@@ -146,7 +144,6 @@ export class PersonalFormComponent {
     if (this.personalId()) {
       let infoPersonal = await firstValueFrom(this.searchService.getPersonalInfoById(this.personalId()))
       let values:any = {...this.inputs}
-      // console.log('infoPersonal: ', infoPersonal);
       
       for (const key in values) {
         values[key] = infoPersonal[key]
@@ -175,7 +172,6 @@ export class PersonalFormComponent {
           this.familiares().push(this.fb.group({...this.objFamiliar}))
 
       this.formPer.reset(values)
-      // console.log(this.formPer.value);
 
       this.formPer.controls.PersonalSituacionRevistaId.disable()
       this.formPer.controls.SituacionId.disable()
@@ -190,7 +186,6 @@ export class PersonalFormComponent {
   async save() {
     this.isLoading.set(true)
     const values:any = this.formPer.value
-    // console.log('values', values);
     try {
       if (this.personalId()) {
         await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))
@@ -271,6 +266,25 @@ export class PersonalFormComponent {
     if (this.familiares().controls.length > 1 ) {
       this.familiares().removeAt(index)
       this.formPer.markAsDirty()
+    }
+  }
+
+  async newRecord() {
+    if (this.formPer.pristine) {
+      this.formPer.enable()
+      this.formPer.reset()
+      this.telefonos().clear()
+      this.estudios().clear()
+      this.familiares().clear()
+
+      if (this.telefonos().length == 0)
+        this.telefonos().push(this.fb.group({...this.objTelefono}))
+      if (this.estudios().length == 0)
+        this.estudios().push(this.fb.group({...this.objEstudio}))
+      if (this.familiares().length == 0)
+        this.familiares().push(this.fb.group({...this.objFamiliar}))
+
+      this.formPer.markAsPristine()
     }
   }
 

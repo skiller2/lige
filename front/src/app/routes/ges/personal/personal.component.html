@@ -12,7 +12,7 @@
     </ul>
     <nz-button-group>
       <!-- btn  add -->
-      <button nz-button nzType="default" [routerLink]="['/', 'ges', 'personal','carga']" nz-tooltip
+      <button nz-button nzType="default" [routerLink]="['/', 'ges', 'personal','carga']" (click)="perAlta.newRecord()" nz-tooltip
         nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
       <!-- btn  modify -->
       <button nz-button nzType="default" [disabled]="personalId()? false : true"
@@ -87,7 +87,7 @@
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/personal/carga">Carga</a>
-      <app-personal-form></app-personal-form>
+      <app-personal-form #perAlta></app-personal-form>
     </nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/personal/editar">Editar</a>
