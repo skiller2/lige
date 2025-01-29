@@ -651,18 +651,6 @@ cuit.PersonalCUITCUILCUIT,
     )
   }
 
-  async addPersonalEmail(queryRunner: any, personaId: any, email: string) {
-    await queryRunner.query(`
-      INSERT INTO PersonalEmail (
-      PersonalId,
-      PersonalEmailId,
-      PersonalEmailEmail,
-      PersonalEmailInactivo
-      )
-      VALUES (@0,@1,@2,@3)`,
-      [personaId, 1, email, 0]
-    )
-  }
 
   private async addPersonalDocumentoQuery(queryRunner: any, personaId: any, DNI: number) {
     const PersonalDocumento = await queryRunner.query(`
@@ -769,7 +757,7 @@ cuit.PersonalCUITCUILCUIT,
       if (req.body.Calle || req.body.Nro || req.body.Piso || req.body.Dpto || req.body.CodigoPostal || req.body.PaisId)
         await this.addPersonalDomicilio(queryRunner, req.body, PersonalId)
 
-      if (Email) await this.addPersonalEmail(queryRunner, PersonalId, Email)
+      await this.updatePersonalEmail(queryRunner, PersonalId, Email)
 
       for (const telefono of telefonos) {
         if (telefono.TelefonoNro) {
@@ -1268,23 +1256,29 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
-  async updatePersonalEmail(queryRunner: any, personaId: any, infoEmail: any) {
-    const PersonalEmailId = infoEmail.PersonalEmailId
-    const Email = infoEmail.Email
-    if (PersonalEmailId) {
-      let PersonalEmailEmail = await queryRunner.query(`
-        SELECT PersonalEmailEmail
-        FROM PersonalEmail
-        WHERE PersonalId IN (@0) AND PersonalEmailId IN (@1)`,
-        [personaId, PersonalEmailId]
-      )
+  async updatePersonalEmail(queryRunner: any, personalId: number, email: string) {
+    email = email.toLowerCase()
+    const emailRec = await queryRunner.query(`SELECT PersonalEmailEmail FROM PersonalEmail WHERE PersonalId =@0 AND PersonalEmailInactivo =0`,[personalId])
 
-      if (PersonalEmailEmail[0]?.PersonalEmailEmail != Email)
-        await queryRunner.query(`UPDATE PersonalEmail SET PersonalEmailEmail = @1 WHERE PersonalId IN (@0)`,
-          [personaId, Email]
+    if (emailRec[0]?.PersonalEmailEmail != email) {
+      await queryRunner.query(`UPDATE PersonalEmail SET PersonalEmailInactivo = 1 WHERE PersonalId =@0`, [personalId])
+      if (email) {
+        const ultnro = await queryRunner.query(`SELECT PersonalEmailUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
+        const PersonalEmailId = (ultnro[0]?.PersonalEmailUltNro)?ultnro[0]?.PersonalEmailUltNro+1:1
+    
+        await queryRunner.query(`
+          INSERT INTO PersonalEmail (
+          PersonalId,
+          PersonalEmailId,
+          PersonalEmailEmail,
+          PersonalEmailInactivo
+          )
+          VALUES (@0,@1,@2,@3)`,
+          [personalId, PersonalEmailId, email, 0]
         )
-    } else {
-      if (Email) await this.addPersonalEmail(queryRunner, personaId, Email)
+    
+        await queryRunner.query(`UPDATE Personal SET PersonalEmailUltNro = @0 WHERE PersonalId = @1`, [PersonalEmailId,personalId])
+      }
     }
   }
 
@@ -1403,7 +1397,7 @@ cuit.PersonalCUITCUILCUIT,
         await this.updatePersonalDocumentoQuery(queryRunner, PersonalId, DNI)
       }
       await this.updatePersonalDomicilio(queryRunner, PersonalId, req.body)
-      await this.updatePersonalEmail(queryRunner, PersonalId, req.body)
+      await this.updatePersonalEmail(queryRunner, PersonalId, req.body.Email)
       // await this.updatePersonalSitRevista(queryRunner, PersonalId, req.body)
 
       //Telefonos
