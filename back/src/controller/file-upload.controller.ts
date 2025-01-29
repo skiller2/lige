@@ -100,8 +100,8 @@ export class FileUploadController extends BaseController {
             JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             WHERE 
-                doc.${columnSearch} = @0`,
-            [id])
+                doc.${columnSearch} = @0 AND param.DocumentoImagenParametroDe = @1`,
+            [id,TipoSearch])
           
           /*  
             let imageUrl = ""
