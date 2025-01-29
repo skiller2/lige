@@ -196,7 +196,10 @@ export class PersonalFormComponent {
       }else{
         const res = await firstValueFrom(this.apiService.addPersonal(values))
         this.personalId.set(res.data.PersonalId)
+
       }
+
+      this.load()      
       this.formPer.markAsUntouched()
       this.formPer.markAsPristine()
     } catch (e) {

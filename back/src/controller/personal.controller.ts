@@ -683,6 +683,24 @@ cuit.PersonalCUITCUILCUIT,
       [PersonalDocumentoId, personaId, 1, DNI]
     )
   }
+  private async updateSucursalPrincipal(queryRunner: any, personaId: any, PersonalSucursalPrincipalSucursalId: number) {
+    const actual = new Date()
+    actual.setHours(0,0,0,0)
+    const res = await queryRunner.query(`
+      SELECT TOP 1 PersonalSucursalPrincipalSucursalId
+      FROM PersonalSucursalPrincipal
+      WHERE PersonalId =@0 ORDER BY PersonalSucursalPrincipalUltimaActualizacion DESC `,
+      [personaId]
+    )
+
+    if (res[0]?.PersonalSucursalPrincipalSucursalId != PersonalSucursalPrincipalSucursalId) {
+      await queryRunner.query(`
+      INSERT INTO PersonalSucursalPrincipal (PersonalId, PersonalSucursalPrincipalUltimaActualizacion, PersonalSucursalPrincipalSucursalId)
+      VALUES (@0, @1, @2)`,
+        [personaId, actual, PersonalSucursalPrincipalSucursalId]
+      )
+    }
+  }
 
   async addPersonal(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
@@ -773,16 +791,9 @@ cuit.PersonalCUITCUILCUIT,
         }
       }
 
-      for (const familiar of familiares) {
-        if (!familiar.Nombre && !familiar.Apellido && !familiar.TipoParentescoId)
-          continue
-
-        if (!familiar.Nombre || !familiar.Apellido || !familiar.TipoParentescoId) {
-          errors.push(`Los campos Nombre, Apellido y Parentesco de la seccion Familiar No pueden estar vacios.`)
-          break
-        }
-        await this.addPersonalFamilia(queryRunner, PersonalId, familiar )
-      }
+      const updatePersonalFamilia = await this.updatePersonalFamilia(queryRunner, PersonalId, familiares)
+      if (updatePersonalFamilia instanceof ClientException)
+        throw updatePersonalFamilia
 
       if (errors.length)
         throw new ClientException(errors)
@@ -794,7 +805,7 @@ cuit.PersonalCUITCUILCUIT,
       if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente[0], 12)
 
       if (docDorso && docDorso.length) await this.setDocumento(queryRunner, PersonalId, docDorso[0], 13)
-
+//throw new ClientException('LLegue')
       await queryRunner.commitTransaction()
       return this.jsonRes({PersonalId}, res, 'Carga Exitosa');
     } catch (error) {
@@ -1296,8 +1307,8 @@ console.log('add telefono',telefonoNum)
         WHERE PersonalId IN (@0) AND PersonalEmailId IN (@1)`,
         [personaId, PersonalEmailId]
       )
-      PersonalEmailEmail = PersonalEmailEmail[0].PersonalEmailEmail
-      if (PersonalEmailEmail != Email)
+
+      if (PersonalEmailEmail[0]?.PersonalEmailEmail != Email)
         await queryRunner.query(`UPDATE PersonalEmail SET PersonalEmailEmail = @1 WHERE PersonalId IN (@0)`,
           [personaId, Email]
         )
@@ -1309,10 +1320,12 @@ console.log('add telefono',telefonoNum)
   async updatePersonalFamilia(queryRunner: any, PersonalId: any, familia: any[]) {
     await queryRunner.query(`DELETE FROM PersonalFamilia WHERE PersonalId IN (@0)`, [PersonalId])
     for (const familiar of familia) {
-      console.log('familiar',familiar)
-      if (!familiar.Nombre || !familiar.Apellido || !familiar.TipoParentescoId) {
+      if (!familiar.Nombre && !familiar.Apellido && !familiar.TipoParentescoId)
+        continue
+
+      if (!familiar.Nombre || !familiar.Apellido || !familiar.TipoParentescoId) 
         return new ClientException(`Los campos Nombre, Apellido y Parentesco de la seccion Familiar No pueden estar vacios.`)
-      }
+      
       await this.addPersonalFamilia(queryRunner, PersonalId, familiar)
     }
   }
@@ -1395,6 +1408,7 @@ console.log('add telefono',telefonoNum)
     const telefonos: any[] = req.body.telefonos
     const estudios: any[] = req.body.estudios
     const familiares: any[] = req.body.familiares
+    const SucursalId = req.body.SucursalId
     let now = new Date()
     now.setHours(0, 0, 0, 0)
 
@@ -1406,6 +1420,8 @@ console.log('add telefono',telefonoNum)
         throw valForm
 
       await this.updatePersonalQuerys(queryRunner, PersonalId, req.body)
+
+      await this.updateSucursalPrincipal(queryRunner,PersonalId,SucursalId)
 
       const PersonalCUITCUIL = await queryRunner.query(`
         SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`, [PersonalId]
