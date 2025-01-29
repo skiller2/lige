@@ -19,6 +19,7 @@ import { PersonalSituacionRevistaDrawerComponent } from '../../../shared/persona
 import { PersonalResponsableDrawerComponent } from '../../../shared/personal-responsable-drawer/personal-responsable-drawer.component'
 import { PersonalDocumentosDrawerComponent } from '../../../shared/personal-documentos-drawer/personal-documentos-drawer.component'
 import { PersonalCategoriaDrawerComponent } from '../../../shared/personal-categoria-drawer/personal-categoria-drawer.component'
+import { PersonalBancoDrawerComponent } from '../../../shared/personal-banco-drawer/personal-banco-drawer.component'
 import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
 import { NzIconModule } from 'ng-zorro-antd/icon';
 
@@ -32,7 +33,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
       PersonalSearchComponent, PersonalFormComponent, LicenciaHistorialDrawerComponent,
       PersonalObjetivoDrawerComponent, PersonalCustodiasDrawerComponent, PersonalDomicilioDrawerComponent,
       PersonalSituacionRevistaDrawerComponent, PersonalResponsableDrawerComponent, PersonalDocumentosDrawerComponent,
-      DetallePersonaComponent, PersonalCategoriaDrawerComponent
+      DetallePersonaComponent, PersonalCategoriaDrawerComponent, PersonalBancoDrawerComponent
     ],
     providers: [AngularUtilService, ExcelExportService],
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -67,6 +68,7 @@ export class PersonalComponent {
     visibleDocumentos = model<boolean>(false)
     visibleDetalle = model<boolean>(false)
     visibleCategoria = model<boolean>(false)
+    visibleBanco = model<boolean>(false)
 
     // childLicHistDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('licHistDrawer')
     // childObjDrawer = viewChild.required<PersonalObjetivoDrawerComponent>('objDrawer')
@@ -168,6 +170,10 @@ export class PersonalComponent {
 
   openDrawerforConsultDetalle(): void{
     this.visibleDetalle.set(true) 
+  }
+
+  openDrawerforConsultBanco(): void{
+    this.visibleBanco.set(true) 
   }
 
   closeDrawerforConsultDetalle(): void {
