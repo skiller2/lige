@@ -710,8 +710,8 @@ cuit.PersonalCUITCUILCUIT,
     const NroLegajo: number = req.body.NroLegajo
     const SucursalId: number = req.body.SucursalId
     const Email = req.body.Email
-    let FechaIngreso: Date = req.body.FechaIngreso ? new Date(req.body.FechaIngreso) : req.body.FechaIngreso
-    let FechaNacimiento: Date = req.body.FechaIngreso ? new Date(req.body.FechaNacimiento) : req.body.FechaIngreso
+    let FechaIngreso: Date = req.body.FechaIngreso ? new Date(req.body.FechaIngreso) : null
+    let FechaNacimiento: Date = req.body.FechaIngreso ? new Date(req.body.FechaNacimiento) : null
     const foto = req.body.Foto
     const NacionalidadId: number = req.body.NacionalidadId
     const docFrente = req.body.docFrente

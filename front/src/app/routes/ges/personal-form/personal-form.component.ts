@@ -49,9 +49,9 @@ export class PersonalFormComponent {
     CodigoPostal:'', PaisId:0, ProvinciaId:0, //Domicilio
     LocalidadId:0, BarrioId:0, PersonalDomicilioId:0,//Domicilio
     PersonalEmailId:0, Email:'', //Email
-    telefonos: this.fb.array([this.fb.group({...this.objTelefono})]),
-    estudios: this.fb.array([this.fb.group({...this.objEstudio})]),
-    familiares : this.fb.array([this.fb.group({...this.objFamiliar})]),
+    telefonos:   this.fb.array([this.fb.group({...this.objTelefono})]),
+    estudios:    this.fb.array([this.fb.group({...this.objEstudio})]),
+    familiares:  this.fb.array([this.fb.group({...this.objFamiliar})]),
     PersonalSituacionRevistaId:0, SituacionId:0, Motivo:'', //Situacion de Revista
   }
   
@@ -170,6 +170,7 @@ export class PersonalFormComponent {
       infoPersonal.familiares.forEach((obj:any) => {
         this.familiares().push(this.fb.group({...this.objFamiliar}))
       });
+
       if (this.familiares().length == 0)
           this.familiares().push(this.fb.group({...this.objFamiliar}))
 
@@ -246,27 +247,30 @@ export class PersonalFormComponent {
 
   addFamiliar(e?: MouseEvent): void {
     e?.preventDefault();
-    this.familiares().push(this.fb.group({...this.objEstudio}))
+    this.familiares().push(this.fb.group({...this.objFamiliar}))
   }
 
   removeTelefono(index: number, e: MouseEvent): void {
     e.preventDefault();
     if (this.telefonos().controls.length > 1 ) {
-        this.telefonos().removeAt(index)
+      this.telefonos().removeAt(index)
+      this.formPer.markAsDirty()
     }
   }
 
   removeEstudio(index: number, e: MouseEvent): void {
     e.preventDefault();
     if (this.estudios().controls.length > 1 ) {
-        this.estudios().removeAt(index)
+      this.estudios().removeAt(index)
+      this.formPer.markAsDirty()
     }
   }
 
   removeFamiliar(index: number, e: MouseEvent): void {
     e.preventDefault();
     if (this.familiares().controls.length > 1 ) {
-        this.familiares().removeAt(index)
+      this.familiares().removeAt(index)
+      this.formPer.markAsDirty()
     }
   }
 
