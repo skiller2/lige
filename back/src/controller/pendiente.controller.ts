@@ -28,7 +28,7 @@ export class PendienteController extends BaseController {
         });
         break;
       case "GrupoActividadId":
-          query += ` GrupoActividadId LIKE '%${String(value).trim()}%' AND `;
+          query += ` GrupoActividadId = '${String(value).trim()}' AND `;
           buscar = true;
         break;
       

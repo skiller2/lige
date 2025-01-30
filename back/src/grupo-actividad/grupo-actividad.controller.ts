@@ -97,18 +97,27 @@ export class GrupoActividadController extends BaseController {
             type: "string",
             id: "GrupoActividadDetalle",
             field: "GrupoActividadDetalle",
-            fieldName: "ga.GrupoActividadDetalle,",
-            searchComponent : 'inpurForGrupoPersonaSearch',
+            fieldName: "ga.GrupoActividadDetalle",
             sortable: true,
+            searchHidden: true
+        },
+        {
+            name: "Grupo Actividad",
+            type: "string",
+            id: "GrupoActividadId",
+            field: "GrupoActividadId",
+            fieldName: "ga.GrupoActividadId",
+            searchComponent : 'inpurForGrupoPersonaSearch',
+            sortable: false,
+            hidden: true,
+            searchHidden: false
         },
         {
             name: "TIPO",
             id: "GrupoActividadJerarquicoComo",
             field: "GrupoActividadJerarquicoComo",
             fieldName: "jer.GrupoActividadJerarquicoComo",
-            formatter: 'collectionFormatter',
             exportWithFormatter: true,
-            params: { collection: getTipos, },
             type: 'string',
             searchComponent: "inpurForGrupoActividad",
 
@@ -121,6 +130,18 @@ export class GrupoActividadController extends BaseController {
             field: "ApellidoNombrePersona",
             fieldName: "ApellidoNombrePersona",
             sortable: true,
+            searchHidden: true
+        },
+        {
+            name: "Nombre",
+            type: "string",
+            id: "PersonalId",
+            field: "PersonalId",
+            fieldName: "per.PersonalId",
+            searchComponent: "inpurForPersonalSearch",
+            sortable: false,
+            hidden: true,
+            searchHidden: false
         },
         {
             name: "Desde",
@@ -128,6 +149,7 @@ export class GrupoActividadController extends BaseController {
             id: "GrupoActividadJerarquicoDesde",
             field: "GrupoActividadJerarquicoDesde",
             fieldName: "jer.GrupoActividadJerarquicoDesde",
+            searchComponent: "inpurForFechaSearch",
             sortable: true,
         },
         {
@@ -136,6 +158,7 @@ export class GrupoActividadController extends BaseController {
             id: "GrupoActividadJerarquicoHasta",
             field: "GrupoActividadJerarquicoHasta",
             fieldName: "jer.GrupoActividadJerarquicoHasta",
+            searchComponent: "inpurForFechaSearch",
             sortable: true,
         }
 
@@ -201,8 +224,8 @@ export class GrupoActividadController extends BaseController {
     async listGrupoActividadResponsables(req: any, res: Response, next: NextFunction) {
 
         console.log("req.body.options.filtros ", req.body.options.filtros)
-        const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaGrupos);
-
+        const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaResponsables);
+        console.log("filterSql ", filterSql)
         const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = dataSource.createQueryRunner();
         const fechaActual = new Date()
@@ -238,6 +261,10 @@ export class GrupoActividadController extends BaseController {
                     fullName: item.fullName 
                 },
                 GrupoActividadDetalle : {
+                    id: item.GrupoActividadId,
+                    fullName: item.detalle 
+                },
+                GrupoActividadDetalleOld : {
                     id: item.GrupoActividadId,
                     fullName: item.detalle 
                 }
@@ -392,17 +419,24 @@ export class GrupoActividadController extends BaseController {
             if (codigoExist.length > 0) { //Entro en update
                 //Validar si cambio el código
                 console.log(" voy a hacer update")
-
                 await this.validateFormResponsables(params, queryRunner)
-
-
-                //   await queryRunner.query( `UPDATE GrupoActividadJerarquico
-                //     SET GrupoActividadJerarquicoComo = @0, GrupoActividadJerarquicoDesde = @1, GrupoActividadJerarquicoHasta = @2
-                //     WHERE GrupoActividadJerarquicoId = @3
-                //     AND GrupoActividadId = @4`, 
-                // [params.GrupoActividadJerarquicoComo,params.GrupoActividadJerarquicoDesde,params.GrupoActividadJerarquicoHasta,params.GrupoActividadJerarquicoId,
-                //     params.GrupoActividadId
-                // ]) 
+                
+                if(params.GrupoActividadJerarquicoComo == 'J' && params.GrupoActividadDetalle.id != params.GrupoActividadDetalleOld.id){
+                    
+                    const result = await queryRunner.query(` SELECT * FROM GrupoActividadJerarquico  
+                        WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1`,[params.GrupoActividadDetalle.id,params.GrupoActividadJerarquicoComo]);
+                    
+                    if (result.length === 0) {
+                        throw new ClientException(`EL grupo actividad ya posee un jerarquico`)
+                    }
+                }
+                await queryRunner.query( `UPDATE GrupoActividadJerarquico
+                    SET GrupoActividadJerarquicoComo = @0, GrupoActividadJerarquicoDesde = @1, GrupoActividadJerarquicoHasta = @2
+                    WHERE GrupoActividadJerarquicoId = @3,GrupoActividadId = @5
+                    AND GrupoActividadId = @4`, 
+                [params.GrupoActividadJerarquicoComo,params.GrupoActividadJerarquicoDesde,params.GrupoActividadJerarquicoHasta,params.GrupoActividadJerarquicoId,
+                    params.GrupoActividadId,params.GrupoActividadDetalle.id
+                ]) 
 
 
                 dataResultado = {action:'U'}
@@ -414,50 +448,39 @@ export class GrupoActividadController extends BaseController {
                 console.log('El código no existe - es nuevo')
                 await this.validateFormResponsables(params, queryRunner)
 
-                //  let validateGrupoActividadNumero = await queryRunner.query( `SELECT * FROM GrupoActividad WHERE GrupoActividadNumero = @0`, [params.GrupoActividadNumero])
+                if(params.GrupoActividadJerarquicoComo == 'J'){
+                    
+                    const result = await queryRunner.query(` SELECT * FROM GrupoActividadJerarquico  
+                        WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1`,[params.GrupoActividadDetalle.id,params.GrupoActividadJerarquicoComo]);
+                    
+                    if (result.length === 0) {
+                        throw new ClientException(`EL grupo actividad ya posee un jerarquico`)
+                    }
+                }
 
-                //  if (validateGrupoActividadNumero.length > 0) {
-                //     throw new ClientException(`El Numero ingresado ya existe`)
-                //   }
-
-                //  let GrupoActividadPersonalUltNro = 0
-                //  let GrupoActividadJerarquicoUltNro = 0
-                //  let GrupoActividadUsuarioId = usuarioId
-                //  let GrupoActividadObjetivoUltNro = 0
-
-                //  let day = new Date()
-                //  day.setHours(0, 0, 0, 0)
-                //  let time = day.toTimeString().split(' ')[0]
+                let day = new Date()
+                day.setHours(0, 0, 0, 0)
+                let time = day.toTimeString().split(' ')[0]
 
 
                 //  await queryRunner.query(`
-                //     INSERT INTO "GrupoActividad" (
-                //         "GrupoActividadNumero", 
-                //         "GrupoActividadDetalle", 
-                //         "GrupoActividadPersonalUltNro", 
-                //         "GrupoActividadJerarquicoUltNro", 
-                //         "GrupoActividadInactivo", 
-                //         "GrupoActividadPuesto", 
-                //         "GrupoActividadDia", 
-                //         "GrupoActividadTiempo", 
-                //         "GrupoActividadUsuarioId", 
-                //         "GrupoActividadSucursalId", 
-                //         "GrupoActividadObjetivoUltNro"
+                //     INSERT INTO "GrupoActividadJerarquico" (
+                //         GrupoActividadJerarquicoId,
+                //         GrupoActividadId,
+                //         GrupoActividadJerarquicoComo,
+                //         GrupoActividadJerarquicoPersonalId,
+                //         GrupoActividadJerarquicoDesde,
+                //         GrupoActividadJerarquicoHasta,
+                //         GrupoActividadJerarquicoPuesto,
+                //         GrupoActividadJerarquicoUsuarioId,
+                //         GrupoActividadJerarquicoDia,
+                //         GrupoActividadJerarquicoTiempo 
+                      
                 //     ) 
-                //     VALUES ( @0,@1,@2, @3, @4, @5,@6, @7,@8, @9,@10 )`, 
-                //     [params.GrupoActividadNumero,
-                //      params.GrupoActividadDetalle,
-                //      GrupoActividadPersonalUltNro,
-                //      GrupoActividadJerarquicoUltNro,
-                //      params.GrupoActividadInactivo,
-                //      ip,
-                //      day,
-                //      time,
-                //      GrupoActividadUsuarioId,
-                //      params.GrupoActividadSucursalId,
-                //      GrupoActividadObjetivoUltNro
-                //     ]
-                //   );
+                //     VALUES ( @0,@1,@2, @3, @4, @5,@6, @7,@8, @9 )`, 
+                //     [0,params.GrupoActividadDetalle.id,params.GrupoActividadJerarquicoComo,params.ApellidoNombrePersona.id,
+                //         params.GrupoActividadJerarquicoDesde,params.GrupoActividadJerarquicoHasta,ip,usuarioId,day,time
+                //     ]);
 
                 dataResultado = { action: 'I' }
                 message = "Carga de nuevo Registro exitoso"
@@ -506,7 +529,7 @@ export class GrupoActividadController extends BaseController {
                 throw new ClientException(`No se puede borrar un registro que tenga fecha Hasta.`)
             }
 
-            // await queryRunner.query( `DELETE FROM GrupoActividadJerarquico WHERE GrupoActividadJerarquicoId = @0 AND GrupoActividadId = @1`, [cod_grupo_jerarquico_id,cod_grupo_actividad])
+             await queryRunner.query( `DELETE FROM GrupoActividadJerarquico WHERE GrupoActividadJerarquicoId = @0 AND GrupoActividadId = @1`, [cod_grupo_jerarquico_id,cod_grupo_actividad])
           
             await queryRunner.commitTransaction()
             return this.jsonRes( "", res, "Borrado Exitoso")
@@ -538,14 +561,11 @@ export class GrupoActividadController extends BaseController {
     async validateFormResponsables(params: any, queryRunner: any) {
 
 
-        if(!params. GrupoActividadDetalle) {
+        if(!params.GrupoActividadDetalle?.id) {
             throw new ClientException(`Debe completar el campo Grupo Actividad.`)
         }
         if(!params. GrupoActividadJerarquicoComo) {
             throw new ClientException(`Debe completar el campo Tipo.`)
-        }
-        if(!params. GrupoActividadSucursalId) {
-            throw new ClientException(`Debe completar el campo Sucursal.`)
         }
         if(!params. ApellidoNombrePersona) {
             throw new ClientException(`Debe completar el campo Apellido Nombre.`)

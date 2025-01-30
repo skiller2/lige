@@ -20,7 +20,7 @@ import { TipoMovimientoSearchComponent } from '../tipo-movimiento-search/tipo-mo
 import { ObjetivoSearchComponent } from '../objetivo-search/objetivo-search.component';
 import { ClienteSearchComponent } from '../cliente-search/cliente-search.component';
 import { PersonalSearchComponent } from '../personal-search/personal-search.component';
-import { GrupoActividadSearchComponent } from '../grupo-actividad/grupo-actividad.component';
+import { GrupoActividadSearchComponent } from '../grupo-actividad-search/grupo-actividad-search.component';
 import { RequirenteSearchComponent } from '../requirente-search/requirente-search.component';
 import { DescripcionProductoSearchComponent } from "../../shared/descripcion-producto-search/descripcion-producto-search.component"
 

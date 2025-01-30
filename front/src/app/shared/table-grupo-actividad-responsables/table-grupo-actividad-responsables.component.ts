@@ -15,7 +15,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../shared/select-search/select-search.component"
 import { Component, model, signal, inject } from '@angular/core';
 import { EditorPersonaComponent } from '../../shared/editor-persona/editor-persona.component';
-import { GrupoActividadSearchComponent } from '../../shared/grupo-actividad/grupo-actividad.component';
+import { GrupoActividadSearchComponent } from '../grupo-actividad-search/grupo-actividad-search.component';
 
 
 @Component({
