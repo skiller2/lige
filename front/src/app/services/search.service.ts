@@ -251,6 +251,28 @@ export class SearchService {
       );
   }
 
+
+  getGrupoActividadFromName(fieldName: string, values: string): Observable<Search[]> {
+    if (!values || values == '') {
+      return of([]);
+    }
+    return this.http
+      .post<ResponseJSON<ResponseBySearch>>('api/personal/search', {
+        fieldName: fieldName,
+        value: values,
+      })
+      .pipe(
+        map(res => {
+          if (res.data.recordsArray) return res.data.recordsArray;
+          else return [];
+        }),
+        catchError((err, caught) => {
+          console.log('Something went wrong!');
+          return of([]);
+        })
+      );
+  }
+
   
   getGrupoActividad(fieldName: string, values: string): Observable<SearchGrup[]> {
 

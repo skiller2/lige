@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild, forwardRef } from '@angular/core'
+import { Component, EventEmitter, Input, Output, ViewChild, forwardRef, input, model, signal } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
@@ -29,28 +29,30 @@ import { Injector, inject } from '@angular/core';
     },
   ],
   standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule],
+  imports: [...SHARED_IMPORTS, CommonModule],
 
 })
 
 export class GrupoActividadSearchComponent implements ControlValueAccessor {
 
-  private searchService = inject(SearchService);
+
+  tmpInputVal: any
+  constructor(private searchService: SearchService) { }
 
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("psc") psc!: NzSelectComponent
-
-
+  private isDisabled = false
   $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
-  tmpInputVal: any
+
   private _selectedId: string = ''
-  _selected = ''
+  _selected = signal('')
   extendedOption = { GrupoActividadId: 0, fullName: "" }
-  
+
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
+
 
   registerOnChange(fn: any) {
 
@@ -62,7 +64,8 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   }
 
   onChange() {
-//    this.isc?.focus()
+    console.log('onChange', this.psc)
+    //    this.psc?.focus()
 
   }
 
@@ -74,13 +77,14 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
     this.propagateTouched = fn
   }
 
-  ngOnDestroy() { 
+  ngOnDestroy() {
     this.psc?.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
   }
 
   onKeydown(event: KeyboardEvent) {
-
-    if ( event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+    //    this._lastInputEvent = event;
+    //    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
       event.stopImmediatePropagation()
     }
   }
@@ -89,9 +93,10 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
 
   ngAfterViewInit() {
     setTimeout(() => {
-      this.psc?.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-      this.psc?.focus()  //Al hacer click en el componente hace foco
-     
+      this.psc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
+      this.psc.focus()  //Al hacer click en el componente hace foco
+      this.psc.setDisabledState(this.isDisabled)
+
     }, 1);
   }
 
@@ -100,34 +105,40 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
     return this._selectedId
   }
 
+  get selectedIdNum(): number {
+    return parseInt(this._selectedId)
+  }
 
   set selectedId(val: string) {
-      val = (val === null || val === undefined) ? '' : val
-      
-      if (val !== this._selectedId) {     
-        this._selectedId = val
-  
-        if (this._selectedId == '' || this._selectedId == '0') {
-          this.valueExtendedEmitter.emit({})
-          this._selected = ''
-          this.propagateChange(this._selectedId)
-          return
-        }
-  
-        firstValueFrom(
-          this.searchService
-          .getGrupoActividad('GrupoActividadId', this._selectedId)
-            .pipe(tap(res => {
-              this.extendedOption = { GrupoActividadId: res[0].GrupoActividadId, fullName: res[0].fullName }
-              this._selected = this._selectedId
-              this.valueExtendedEmitter.emit(this.extendedOption)
-              if (this.tmpInputVal != this._selected) {
-                this.propagateChange(this._selectedId)
-              }
-            }))
-        )
+    this.psc?.focus()
+    val = (val === null || val === undefined) ? '' : val
+
+    if (val !== this._selectedId) {
+      this._selectedId = val
+
+      if (this._selectedId == '' || this._selectedId == '0') {
+        this.valueExtendedEmitter.emit({})
+        if (this._selected() != '')
+          this._selected.set('')
+        this.propagateChange(this._selectedId)
+        return
       }
+
+      firstValueFrom(
+        this.searchService
+          .getGrupoActividad('GrupoActividadId', this._selectedId)
+          .pipe(tap(res => {
+            this.extendedOption = { GrupoActividadId: res[0].GrupoActividadId, fullName: res[0].fullName }
+            this._selected.set(this._selectedId)
+            this.valueExtendedEmitter.emit(this.extendedOption)
+            if (this.tmpInputVal != this._selected) {
+              this.propagateChange(this._selectedId)
+            }
+          }))
+      )
+
     }
+  }
 
   writeValue(value: any) {
     this.tmpInputVal = value
@@ -136,31 +147,44 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
     }
   }
 
-  $optionsArray: Observable<SearchGrup[]> = this.$searchChange.pipe(
-    debounceTime(500),
-    switchMap(value =>
-      this.searchService
-        .getGrupoActividad(Number(value) ? 'GrupoActividadId' : 'Detalle', value)
-        .pipe(
-          doOnSubscribe(() => this.$isOptionsLoading.next(true)),
-          tap({ complete: () => this.$isOptionsLoading.next(false) })
-        )
+    $optionsArray: Observable<SearchGrup[]> = this.$searchChange.pipe(
+      debounceTime(500),
+      switchMap(value =>
+        this.searchService
+          .getGrupoActividad(Number(value) ? 'GrupoActividadId' : 'Detalle', value)
+          .pipe(
+            doOnSubscribe(() => this.$isOptionsLoading.next(true)),
+            tap({ complete: () => this.$isOptionsLoading.next(false) })
+          )
+      )
     )
-  )
 
   modelChange(val: string) {
     this.selectedId = val
   }
 
-
-  setDisabledState(isDisabled: boolean): void {
-    this.psc?.setDisabledState(isDisabled)
-  } 
-
   search(value: string): void {
-    this.extendedOption = { GrupoActividadId: 0, fullName: '' }
+    this.extendedOption = { GrupoActividadId: 0, fullName: "" }
     this.$searchChange.next(value)
   }
 
+  focus() {
+    console.log('focus')
+
+  }
+
+  visibleDrawer = signal(false)
+  setDisabledState(isDisabled: boolean): void {
+    this.isDisabled = isDisabled
+    this.psc?.setDisabledState(isDisabled)
+  }
+
+  openDrawer(): void {
+    this.visibleDrawer.set(true)
+  }
+
+  closeDrawer(): void {
+    this.visibleDrawer.set(false)
+  }
 
 }  

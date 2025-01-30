@@ -372,16 +372,16 @@ ${orderBy}`, [fechaActual])
             //throw new ClientException(`test`)
 
             //validaciones
-            await this.FormValidations(ObjCliente,queryRunner)
+            await this.FormValidations(ObjCliente, queryRunner)
             //validacion de barrio
-            if(ObjCliente.DomicilioProvinciaId && ObjCliente.DomicilioLocalidadId && !ObjCliente.DomicilioBarrioId) {
-           
-                let queryBarrio =  await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
-                  [ObjCliente.DomicilioProvinciaId,ObjCliente.DomicilioLocalidadId])
+            if (ObjCliente.DomicilioProvinciaId && ObjCliente.DomicilioLocalidadId && !ObjCliente.DomicilioBarrioId) {
 
-                  if (queryBarrio && queryBarrio.length > 0) 
-                      throw new ClientException(`Debe completar el campo barrio.`)
-                  
+                let queryBarrio = await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
+                    [ObjCliente.DomicilioProvinciaId, ObjCliente.DomicilioLocalidadId])
+
+                if (queryBarrio && queryBarrio.length > 0)
+                    throw new ClientException(`Debe completar el campo barrio.`)
+
             }
 
             const ClienteFechaAlta = new Date(ObjCliente.ClienteFechaAlta)
@@ -411,7 +411,7 @@ ${orderBy}`, [fechaActual])
 
             if (ObjCliente.files?.length > 0) {
 
-                await FileUploadController.handlePDFUpload(ClienteId, 'Cliente', 'CLI','cliente_id', ObjCliente.files, usuario, ip)
+                await FileUploadController.handlePDFUpload(ClienteId, 'Cliente', 'CLI', 'cliente_id', ObjCliente.files, usuario, ip)
             }
             await queryRunner.commitTransaction()
             return this.jsonRes(ObjClienteNew, res, 'Modificación  Exitosa');
@@ -471,8 +471,8 @@ ${orderBy}`, [fechaActual])
             const ContactoApellidoNombre = (contacto.ContactoApellido ? contacto.ContactoApellido : '') + (contacto.ContactoApellido && contacto.nombre ? ',' : '') + (contacto.nombre ? contacto.nombre : '') || null;
             let ContactoTelefonoUltNro = 0
             let ContactoEmailUltNro = 0
-            let ContactoId = contacto.ContactoId 
-            
+            let ContactoId = contacto.ContactoId
+
             if (contacto.ContactoId) {  //Actualizo contacto
                 await queryRunner.query(`DELETE FROM ContactoEmail WHERE ContactoId = @0`, [contacto.ContactoId]);
                 await queryRunner.query(`DELETE FROM ContactoTelefono WHERE ContactoId = @0`, [contacto.ContactoId]);
@@ -611,10 +611,10 @@ ${orderBy}`, [fechaActual])
     async addCliente(req: any, res: Response, next: NextFunction) {
         const queryRunner = dataSource.createQueryRunner();
         const ObjCliente = { ...req.body };
-        let ObjClienteNew = { ClienteId: 0, infoDomicilio: {}, infoClienteContacto: {}, ClienteFacturacionId:0 }
+        let ObjClienteNew = { ClienteId: 0, infoDomicilio: {}, infoClienteContacto: {}, ClienteFacturacionId: 0 }
         try {
             console.log("ObjCliente ", ObjCliente)
-            await this.FormValidations(ObjCliente,queryRunner)
+            await this.FormValidations(ObjCliente, queryRunner)
             await queryRunner.startTransaction()
 
             const usuario = res.locals.userName
@@ -624,14 +624,14 @@ ${orderBy}`, [fechaActual])
 
 
             //validacion de barrio
-            if(ObjCliente.DomicilioProvinciaId && ObjCliente.DomicilioLocalidadId && !ObjCliente.DomicilioBarrioId) {
-           
-                let queryBarrio =  await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
-                  [ObjCliente.DomicilioProvinciaId,ObjCliente.DomicilioLocalidadId])
+            if (ObjCliente.DomicilioProvinciaId && ObjCliente.DomicilioLocalidadId && !ObjCliente.DomicilioBarrioId) {
 
-                  if (queryBarrio && queryBarrio.length > 0) 
-                      throw new ClientException(`Debe completar el campo barrio.`)
-                  
+                let queryBarrio = await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
+                    [ObjCliente.DomicilioProvinciaId, ObjCliente.DomicilioLocalidadId])
+
+                if (queryBarrio && queryBarrio.length > 0)
+                    throw new ClientException(`Debe completar el campo barrio.`)
+
             }
 
             let ClienteDomicilioUltNro = 1
@@ -660,7 +660,7 @@ ${orderBy}`, [fechaActual])
 
             if (ObjCliente.files?.length > 0) {
 
-                await FileUploadController.handlePDFUpload(ClienteId, 'Cliente', 'CLI','cliente_id', ObjCliente.files, usuario, ip)
+                await FileUploadController.handlePDFUpload(ClienteId, 'Cliente', 'CLI', 'cliente_id', ObjCliente.files, usuario, ip)
             }
 
             await queryRunner.commitTransaction()
@@ -797,20 +797,27 @@ ${orderBy}`, [fechaActual])
 
     }
 
-    async FormValidations(form: any, queryRunner:any) {
+    async FormValidations(form: any, queryRunner: any) {
+        const CUIT: number = form.ClienteFacturacionCUIT
+        const idCliente: number = form.id
+
 
 
         if (!form.ClienteFacturacionCUIT) {
             throw new ClientException(`Debe completar el campo CUIT.`)
         }
 
-          // VALIDACION CUIT EXISTE O NO
-        
-          let result = await queryRunner.query( `SELECT * FROM ClienteFacturacion WHERE ClienteFacturacionCUIT = @0 `, [form.ClienteFacturacionCUIT])
-            
-          if (result && result.length >= 1) {
-              throw new ClientException(`El CUIT ingresado ya existe`);
-          }
+        // VALIDACION CUIT EXISTE O NO
+
+
+        let valCuit = await queryRunner.query(`SELECT * FROM ClienteFacturacion WHERE ClienteFacturacionCUIT = @0 AND ClienteId != @1`, [CUIT,idCliente])
+
+
+        if (valCuit.length >= 1) {
+            // No estoy sobre el mismo registro
+            throw new ClientException(`El CUIT ingresado ya existe`);
+        }
+
 
         if (!form.ClienteFechaAlta) {
             throw new ClientException(`Debe completar el campo Fecha Inicial.`)
@@ -877,16 +884,17 @@ ${orderBy}`, [fechaActual])
                 throw new ClientException(`Debe completar el campo Apellido en cliente contacto`)
             }
 
-            if (obj.telefono &&  !obj.TipoTelefonoId) {
+            if (obj.telefono && !obj.TipoTelefonoId) {
                 throw new ClientException(`Debe completar el campo Tipo Telefono`)
             }
 
         }
 
 
-      
+
 
 
     }
+
 
 }

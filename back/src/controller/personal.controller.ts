@@ -970,14 +970,14 @@ cuit.PersonalCUITCUILCUIT,
     const type = file.mimetype.split('/')[1]
     
     const fieldname = file.fieldname
-    let foto = await queryRunner.query(`
-      SELECT foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
-      FROM DocumentoImagenFoto foto 
-      JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-      JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-      WHERE foto.PersonalId =@0
-    `, [personalId])
-    if (!foto.length) {
+    // let foto = await queryRunner.query(`
+    //   SELECT foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
+    //   FROM DocumentoImagenFoto foto 
+    //   JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+    //   JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+    //   WHERE foto.PersonalId =@0
+    // `, [personalId])
+    // if (!foto.length) {
       await queryRunner.query(`
         INSERT INTO DocumentoImagenFoto (
         PersonalId,
@@ -988,14 +988,15 @@ cuit.PersonalCUITCUILCUIT,
         VALUES(@0,@1,@2,@3)`,
         [personalId, type, 7, 1]
       )
-      foto = await queryRunner.query(`
-        SELECT foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
+      let foto = await queryRunner.query(`
+        SELECT TOP 1 foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
         FROM DocumentoImagenFoto foto
         JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
         JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
         WHERE foto.PersonalId IN (@0)
+        ORDER BY foto.DocumentoImagenFotoId DESC
       `, [personalId])
-    }
+    // }
 
     const fotoId = foto[0].fotoId
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
@@ -1005,12 +1006,9 @@ cuit.PersonalCUITCUILCUIT,
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`
       UPDATE DocumentoImagenFoto SET
-      DocumentoImagenFotoBlobNombreArchivo = @1,
-      DocumentoImagenFotoBlobTipoArchivo = @2,
-      DocumentoImagenParametroId = @3,
-      DocumentoImagenParametroDirectorioId = @4
-      WHERE PersonalId = @0`,
-      [personalId, newFieldname, type, 7, 1]
+      DocumentoImagenFotoBlobNombreArchivo = @2
+      WHERE PersonalId = @0 AND DocumentoImagenFotoId = @1`,
+      [personalId, fotoId, newFieldname]
     )
     await queryRunner.query(`UPDATE Personal SET PersonalFotoId = @0 WHERE PersonalId = @1`,
       [fotoId, personalId]
@@ -1020,14 +1018,14 @@ cuit.PersonalCUITCUILCUIT,
   async setDocumento(queryRunner: any, personalId: any, file: any, parametro: number) {
     const type = file.mimetype.split('/')[1]
     const fieldname = file.fieldname
-    let doc = await queryRunner.query(`
-      SELECT doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
-      FROM DocumentoImagenDocumento doc 
-      JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  doc.DocumentoImagenParametroId
-      JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-      WHERE doc.PersonalId IN (@0)
-    `, [personalId])
-    if (!doc.length) {
+    // let doc = await queryRunner.query(`
+    //   SELECT doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
+    //   FROM DocumentoImagenDocumento doc 
+    //   JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  doc.DocumentoImagenParametroId
+    //   JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+    //   WHERE doc.PersonalId IN (@0)
+    // `, [personalId])
+    // if (!doc.length) {
       await queryRunner.query(`
         INSERT INTO DocumentoImagenDocumento (
         PersonalId,
@@ -1038,14 +1036,15 @@ cuit.PersonalCUITCUILCUIT,
         VALUES(@0,@1,@2,@3)`,
         [personalId, type, parametro, 1]
       )
-      doc = await queryRunner.query(`
-        SELECT doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
+      let doc = await queryRunner.query(`
+        SELECT TOP 1 doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
         FROM DocumentoImagenDocumento doc 
         JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
         JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
         WHERE doc.PersonalId IN (@0)
+        ORDER BY doc.DocumentoImagenDocumentoId DESC
       `, [personalId])
-    }
+    // }
 
     const docId = doc[0].docId
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
@@ -1061,13 +1060,36 @@ cuit.PersonalCUITCUILCUIT,
     this.moveFile(dirFile, newFilePath);
     await queryRunner.query(`
       UPDATE DocumentoImagenDocumento SET
-      DocumentoImagenDocumentoBlobNombreArchivo = @1,
-      DocumentoImagenDocumentoBlobTipoArchivo = @2,
-      DocumentoImagenParametroId = @3,
-      DocumentoImagenParametroDirectorioId = @4
-      WHERE PersonalId = @0
-    `, [personalId, newFieldname, type, parametro, 1]
+      DocumentoImagenDocumentoBlobNombreArchivo = @2
+      WHERE PersonalId = @0 AND DocumentoImagenDocumentoId = @1
+    `, [personalId, docId, newFieldname]
     )
+
+    const PersonalDocumento = await queryRunner.query(`
+      SELECT PersonalDocumentoUltNro
+      FROM Personal
+      WHERE PersonalId IN (@0)`,
+      [personalId]
+    )
+    if (PersonalDocumento.length && PersonalDocumento[0].PersonalDocumentoUltNro) {
+      const PersonalDocumentoUltNro = PersonalDocumento[0].PersonalDocumentoUltNro
+      if (parametro == 13) {
+        await queryRunner.query(`
+          UPDATE PersonalDocumento SET
+          PersonalDocumentoDorsoId = @2
+          WHERE PersonalId = @0 AND PersonalDocumentoId = @1
+        `, [personalId, PersonalDocumentoUltNro, docId]
+        )
+      }else if (parametro == 12){
+        await queryRunner.query(`
+          UPDATE PersonalDocumento SET
+          PersonalDocumentoFrenteId = @2
+          WHERE PersonalId = @0 AND PersonalDocumentoId = @1
+        `, [personalId, PersonalDocumentoUltNro, docId]
+        )
+      }
+    }
+    
   }
 
   async setImagenEstudio(queryRunner: any, personalId: any, file: any) {
