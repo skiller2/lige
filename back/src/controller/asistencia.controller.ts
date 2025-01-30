@@ -842,6 +842,24 @@ export class AsistenciaController extends BaseController {
         }
       }
 
+      const resPersona = await queryRunner.query(`SELECT DISTINCT 
+        obj.ObjetivoId,
+        persona.PersonalId, 
+        persona.PersonalApellido, persona.PersonalNombre, 
+        1 AS colend
+
+        FROM ObjetivoAsistenciaAnoMesPersonalDias objd
+        JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoMesId = objd.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objd.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objd.ObjetivoId
+        JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objm.ObjetivoId
+        JOIN Objetivo obj ON obj.ObjetivoId = obja.ObjetivoId
+        JOIN Personal persona ON persona.PersonalId = objd.ObjetivoAsistenciaMesPersonalId
+
+
+        WHERE obja.ObjetivoAsistenciaAnoAno = @0 AND objm.ObjetivoAsistenciaAnoMesMes = @1  AND objd.ObjetivoAsistenciaMesPersonalId = @2 AND obja.ObjetivoId = @3`,[anio,mes,PersonalId,ObjetivoId])
+      if (resPersona.length==0)
+        throw new ClientException('Antes de cargar la Excepción, debe cargarle al menos una hora en el objetivo a la persona')
+
+
       result = await queryRunner.query(
         `SELECT MAX(art14.PersonalArt14Id) PersonalArt14UltNro, art14.PersonalId 
         FROM PersonalArt14 art14 

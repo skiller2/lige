@@ -592,7 +592,7 @@ export class GrupoActividadController extends BaseController {
             
             if (personal.length > 0) {
                 const personalIds = personal.map(p => p.PersonalId).join(',');
-                await queryRunner.query(`UPDATE GrupoActividadPersonal SET  GrupoActividadPersonalHasta = @0 WHERE GrupoActividadPersonalPersonalId IN (${personalIds})`,[fechaMonth])
+                await queryRunner.query(`UPDATE GrupoActividadPersonal SET  GrupoActividadPersonalHasta = @0 WHERE GrupoActividadPersonalPersonalId IN (${personalIds}) AND GrupoActividadPersonalDesde <= @0`,[fechaMonth])
             }
 
             await queryRunner.commitTransaction();
