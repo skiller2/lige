@@ -105,7 +105,7 @@ export class GrupoActividadController extends BaseController {
             name: "TIPO",
             id: "GrupoActividadJerarquicoComo",
             field: "GrupoActividadJerarquicoComo",
-            fieldName: "jer.GrupoActividadJerarquicoComo,",
+            fieldName: "jer.GrupoActividadJerarquicoComo",
             formatter: 'collectionFormatter',
             exportWithFormatter: true,
             params: { collection: getTipos, },
@@ -119,7 +119,7 @@ export class GrupoActividadController extends BaseController {
             type: "string",
             id: "ApellidoNombrePersona",
             field: "ApellidoNombrePersona",
-            fieldName: "ApellidoNombrePersona,",
+            fieldName: "ApellidoNombrePersona",
             sortable: true,
         },
         {
@@ -127,7 +127,7 @@ export class GrupoActividadController extends BaseController {
             type: "date",
             id: "GrupoActividadJerarquicoDesde",
             field: "GrupoActividadJerarquicoDesde",
-            fieldName: "jer.GrupoActividadJerarquicoDesde,",
+            fieldName: "jer.GrupoActividadJerarquicoDesde",
             sortable: true,
         },
         {
@@ -135,7 +135,7 @@ export class GrupoActividadController extends BaseController {
             type: "date",
             id: "GrupoActividadJerarquicoHasta",
             field: "GrupoActividadJerarquicoHasta",
-            fieldName: "jer.GrupoActividadJerarquicoHasta,",
+            fieldName: "jer.GrupoActividadJerarquicoHasta",
             sortable: true,
         }
 
