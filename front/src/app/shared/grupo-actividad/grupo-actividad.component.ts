@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output, ViewChild, forwardRef, input, m
 import {
   BehaviorSubject,
   Observable,
+  Subject,
   debounceTime,
   firstValueFrom,
   noop,
@@ -45,10 +46,12 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   private isDisabled = false
   $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
+  onItemChanged = new Subject<any>();    // object
 
   private _selectedId: string = ''
   _selected = signal('')
   extendedOption = { GrupoActividadId: 0, fullName: "" }
+  selectedItem: any;
 
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
@@ -61,12 +64,6 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
 
   onBlur() {
     this.propagateTouched()
-  }
-
-  onChange() {
-    console.log('onChange', this.psc)
-    //    this.psc?.focus()
-
   }
 
   onRemove() {
@@ -160,7 +157,9 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
     )
 
   modelChange(val: string) {
+    if (val=='') val='0'
     this.selectedId = val
+    this.selectedItem = { id: val, fullName: this.valueExtended?.fullName }    
   }
 
   search(value: string): void {
