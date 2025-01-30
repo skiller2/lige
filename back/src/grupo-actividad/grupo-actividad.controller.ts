@@ -534,7 +534,7 @@ export class GrupoActividadController extends BaseController {
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
-
+            const personal = await queryRunner.query(`SELECT 1`,[])
 
             await queryRunner.commitTransaction();
             if (res)
