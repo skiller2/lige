@@ -51,15 +51,15 @@ personalRouter.post('/setgrupactividad/:id', [authMiddleware.verifyToken, authMi
   personalController.setGrupoActividadPersonal(req, res, next)
 });
 
-personalRouter.post('/setbanco/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'Liquidaciones'])], (req, res, next) => {
+personalRouter.post('/setbanco/:id', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
   personalController.setPersonalBanco(req, res, next)
 });
 
-personalRouter.get(`${base}/domicilio/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo','gPersonal'])], (req, res, next) => {
+personalRouter.get(`${base}/domicilio/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
   personalController.getDomicilioByPersonalId(req, res, next);
 });
 
-personalRouter.get(`${base}/info/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo','gPersonal'])], (req, res, next) => {
+personalRouter.get(`${base}/info/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
   personalController.getFormDataById(req, res, next);
 });
 
@@ -96,13 +96,13 @@ personalRouter.get(`${base}/telefonos/:id`, authMiddleware.verifyToken, (req, re
   personalController.getTelefonosPorPersona(req.params.id, res, next);
 });
 
-personalRouter.get(`${base}/banco/:id`, authMiddleware.verifyToken, (req, res, next) => {
+personalRouter.get(`${base}/banco/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
   //personalRouter.get(`${base}/:id`,  (req, res) => {
   personalController.getCuentasBancoPorPersona(req.params.id, res, next);
 });
 
 personalRouter.get(`${base}/responsableslist/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
-    personalController.getResponsablesListByPersonal(req, res, next);
+  personalController.getResponsablesListByPersonal(req, res, next);
 });
 
 personalRouter.get(`${base}/grupoactividad/options`, authMiddleware.verifyToken, (req, res, next) => {
@@ -113,11 +113,11 @@ personalRouter.get(`${base}/documentos/:personalId`, [authMiddleware.verifyToken
   personalController.getDocumentosByPersonalId(req, res, next);
 });
 
-personalRouter.get("/download/:table/:id", authMiddleware.verifyToken,(req, res,next) => {
-  personalController.downloadPersonaDocumentoImagen(req,  res, next );
+personalRouter.get("/download/:table/:id", authMiddleware.verifyToken, (req, res, next) => {
+  personalController.downloadPersonaDocumentoImagen(req, res, next);
 });
 
-personalRouter.get(`${base}/downloadImagen/:personalId`, (req, res,next) => {
+personalRouter.get(`${base}/downloadImagen/:personalId`, (req, res, next) => {
   personalController.downloadPersonaImagen(
     Number(req.params.personalId),
     res,
@@ -152,7 +152,7 @@ personalRouter.get(
 
 personalRouter.get(
   `${base}/historial/banco/:personalId`,
-  authMiddleware.verifyToken,
+  [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])],
   (req, res, next) => {
     personalController.getHistoryPersonalBanco(req, res, next);
   }
