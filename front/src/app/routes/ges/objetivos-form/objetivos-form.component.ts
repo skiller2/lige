@@ -149,11 +149,14 @@ export class ObjetivosFormComponent {
   }
 
   async newRecord() {
-   
-    this.formCli.get('codigo')?.disable()
-   
-     if( !this.ObjetivoId() && this.ObjetivoId() > 0){
+    if (this.formCli.pristine) {
+      this.formCli.enable()
+      this.formCli.get('codigo')?.disable()
       this.formCli.reset()
+      this.infoCoordinadorCuenta().clear()
+      this.infoRubro().clear()
+      this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
+      this.infoRubro().push(this.fb.group({ ...this.objRubro }))
       this.formCli.markAsPristine()
     }
   }

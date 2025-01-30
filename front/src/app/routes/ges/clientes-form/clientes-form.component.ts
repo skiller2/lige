@@ -13,7 +13,7 @@ import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.comp
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
+import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -60,7 +60,7 @@ interface Barrio {
 
 export class ClientesFormComponent {
   public router = inject(Router);
-  isLoadSelect= signal(false)
+  isLoadSelect = signal(false)
   periodo = signal({ year: 0, month: 0 })
   ClienteId = model(0)
   isLoading = signal(false)
@@ -73,32 +73,32 @@ export class ClientesFormComponent {
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   private injector = inject(Injector)
-//  visibleDrawer: boolean = false
+  //  visibleDrawer: boolean = false
 
-  objClienteContacto = { 
-    ContactoId:0,
-    nombre: "", 
-    ContactoApellido:"",
-    area: "", 
-    TipoTelefonoId:null,
-    ContactoTelefonoCodigoArea:"",
-    telefono: "", 
+  objClienteContacto = {
+    ContactoId: 0,
+    nombre: "",
+    ContactoApellido: "",
+    area: "",
+    TipoTelefonoId: null,
+    ContactoTelefonoCodigoArea: "",
+    telefono: "",
     correo: "",
-    ContactoEmailId:0,
-    ContactoTelefonoId:0,
-   
+    ContactoEmailId: 0,
+    ContactoTelefonoId: 0,
+
   }
 
-  objDomiclio = { 
-    ClienteDomicilioId:0,
-    ClienteDomicilioDomCalle:"",
-    ClienteDomicilioDomNro:"",
-    referencia: "", 
+  objDomiclio = {
+    ClienteDomicilioId: 0,
+    ClienteDomicilioDomCalle: "",
+    ClienteDomicilioDomNro: "",
+    referencia: "",
     ClienteDomicilioCodigoPostal: "",
-    ClienteDomicilioDomLugar:null,
-    domiciliopais: "", 
-    ClienteDomicilioProvinciaId: null, 
-    ClienteDomicilioLocalidadId: null, 
+    ClienteDomicilioDomLugar: null,
+    domiciliopais: "",
+    ClienteDomicilioProvinciaId: null,
+    ClienteDomicilioLocalidadId: null,
     ClienteDomicilioBarrioId: null
   }
 
@@ -106,23 +106,23 @@ export class ClientesFormComponent {
   formCli = this.fb.group({
     id: 0,
     ClienteFacturacionCUIT: 0,
-    ClienteFacturacionId:0,
-    CondicionAnteIVAId:0,
+    ClienteFacturacionId: 0,
+    CondicionAnteIVAId: 0,
     CondicionAnteIVADescripcion: "",
     ClienteApellidoNombre: "",
     ClienteNombreFantasia: "",
     ClienteFechaAlta: "",
-    ContactoTelefonoUltNro:0,
-    ContactoEmailUltNro:0,
-    MaxContactoId:0,
-    AdministradorId:0,ClienteAdministradorUltNro:0,ClienteDomicilioUltNro:0,
-    infoClienteContacto: this.fb.array([this.fb.group({ ...this.objClienteContacto })]), 
-    infoClienteContactoOriginal : this.fb.array([this.fb.group({ ...this.objClienteContacto })]),
-    infoDomicilio :  this.fb.array([this.fb.group({ ...this.objDomiclio })]),
+    ContactoTelefonoUltNro: 0,
+    ContactoEmailUltNro: 0,
+    MaxContactoId: 0,
+    AdministradorId: 0, ClienteAdministradorUltNro: 0, ClienteDomicilioUltNro: 0,
+    infoClienteContacto: this.fb.array([this.fb.group({ ...this.objClienteContacto })]),
+    infoClienteContactoOriginal: this.fb.array([this.fb.group({ ...this.objClienteContacto })]),
+    infoDomicilio: this.fb.array([this.fb.group({ ...this.objDomiclio })]),
     //infoDomicilioOriginal :  this.fb.array([this.fb.group({ ...this.objDomiclio })]),
     estado: 0,
-    files:[],
-    codigo:""
+    files: [],
+    codigo: ""
   })
   tipoTelefono: any;
   optionsProvincia: any;
@@ -151,40 +151,43 @@ export class ClientesFormComponent {
     this.optionsCondicionAnteIva = await firstValueFrom(this.searchService.getOptionsCondicionAnteIva())
 
     this.formCli.statusChanges.subscribe(() => {
-       this.checkPristine();
+      this.checkPristine();
     });
   }
 
-   checkPristine() {
+  checkPristine() {
     this.pristineChange.emit(this.formCli.pristine);
   }
 
 
   async newRecord() {
-    this.formCli.enable()
-    this.formCli.get('codigo')?.disable()
-    console.log("this.ClienteId() ", this.ClienteId())
-    if( !this.ClienteId() && this.ClienteId() > 0){
+    if (this.formCli.pristine) {
+      this.formCli.enable()
+      this.formCli.get('codigo')?.disable()
       this.formCli.reset()
+      this.infoClienteContacto().clear()
+      this.infoDomicilio().clear()
+      this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
+      this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
       this.formCli.markAsPristine()
     }
   }
 
-  async viewRecord(readonly:boolean) {
-      if (this.ClienteId()) 
-        await this.load()
-      if (readonly)
-        this.formCli.disable()
-      else
-        this.formCli.enable()
-      this.formCli.get('codigo')?.disable()
-      this.formCli.markAsPristine()        
+  async viewRecord(readonly: boolean) {
+    if (this.ClienteId())
+      await this.load()
+    if (readonly)
+      this.formCli.disable()
+    else
+      this.formCli.enable()
+    this.formCli.get('codigo')?.disable()
+    this.formCli.markAsPristine()
 
-   }
+  }
 
   async load() {
-   // this.files = []
-   
+    // this.files = []
+
     let infoCliente = await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
 
     this.infoClienteContacto().clear()
@@ -201,20 +204,20 @@ export class ClientesFormComponent {
     if (this.ClienteId()) {
       this.infoClienteContacto().enable()
       this.infoDomicilio().enable()
-      if(infoCliente.infoClienteContacto.length == 0)
+      if (infoCliente.infoClienteContacto.length == 0)
         this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
 
-      if(infoCliente.infoDomicilio.length == 0)
+      if (infoCliente.infoDomicilio.length == 0)
         this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
 
     } else {
       this.infoDomicilio().disable()
       this.infoClienteContacto().disable()
     }
-    
+
     this.formCli.reset(infoCliente)
     this.formCli.patchValue({
-        codigo: infoCliente.id,
+      codigo: infoCliente.id,
     });
     this.formCli.get('codigo')?.disable()
     //this.cdr.detectChanges(); // Asegúrate de que la vista se actualice.
@@ -225,39 +228,39 @@ export class ClientesFormComponent {
     this.isLoading.set(true)
     let form = this.formCli.value
     try {
-        if (this.ClienteId()) {
-          let result = await firstValueFrom(this.apiService.updateCliente(form, this.ClienteId()))
+      if (this.ClienteId()) {
+        let result = await firstValueFrom(this.apiService.updateCliente(form, this.ClienteId()))
 
-          this.formCli.patchValue({
-            infoClienteContacto: result.data.infoClienteContacto,
-            infoDomicilio:result.data.infoDomicilio,
-          });
+        this.formCli.patchValue({
+          infoClienteContacto: result.data.infoClienteContacto,
+          infoDomicilio: result.data.infoDomicilio,
+        });
 
-        } else {
-          //este es para cuando es un nuevo registro
-          let result =  await firstValueFrom(this.apiService.addCliente(form))
-          this.formCli.patchValue({
-            id:result.data.ClienteId,
-            infoClienteContacto: result.data.infoClienteContacto,
-            infoDomicilio:result.data.infoDomicilio,
-            codigo: result.data.ClienteId,
-            ClienteFacturacionId:result.data.ClienteFacturacionId
-          });
+      } else {
+        //este es para cuando es un nuevo registro
+        let result = await firstValueFrom(this.apiService.addCliente(form))
+        this.formCli.patchValue({
+          id: result.data.ClienteId,
+          infoClienteContacto: result.data.infoClienteContacto,
+          infoDomicilio: result.data.infoDomicilio,
+          codigo: result.data.ClienteId,
+          ClienteFacturacionId: result.data.ClienteFacturacionId
+        });
 
-          this.ClienteId.set(result.data.ClienteNewId)
+        this.ClienteId.set(result.data.ClienteNewId)
 
-         
-        }
-        
-        this.formCli.markAsUntouched()
-        this.formCli.markAsPristine()
-        this.onAddorUpdate.emit()
+
+      }
+
+      this.formCli.markAsUntouched()
+      this.formCli.markAsPristine()
+      this.onAddorUpdate.emit()
     } catch (e) {
-        
+
     }
     this.isLoading.set(false)
 
-}
+  }
 
   infoDomicilio(): FormArray {
     return this.formCli.get("infoDomicilio") as FormArray
@@ -266,15 +269,15 @@ export class ClientesFormComponent {
   addDomicilio(e?: MouseEvent): void {
     e?.preventDefault();
     this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
-    
+
   }
 
   removeDomicilio(index: number, e: MouseEvent): void {
 
     e.preventDefault();
-    if (this.infoDomicilio().length > 1 ) {
+    if (this.infoDomicilio().length > 1) {
       this.infoDomicilio().removeAt(index)
-    }else{
+    } else {
       this.infoDomicilio().clear()
       this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
     }
@@ -291,15 +294,15 @@ export class ClientesFormComponent {
 
     e?.preventDefault();
     this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
-    
+
   }
 
   removeClienteContacto(index: number, e: MouseEvent): void {
 
     e.preventDefault();
-    if (this.infoClienteContacto().length > 1 ) {
+    if (this.infoClienteContacto().length > 1) {
       this.infoClienteContacto().removeAt(index)
-    }else{
+    } else {
       this.infoClienteContacto().clear()
       this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
     }
