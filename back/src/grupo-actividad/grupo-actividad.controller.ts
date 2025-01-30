@@ -565,13 +565,35 @@ export class GrupoActividadController extends BaseController {
     async gruposPersonas(req: any, res: Response, next: NextFunction) {
 
         const queryRunner = dataSource.createQueryRunner();
-        let fechaActual = new Date()
+        const fechaCorte = new Date()
+        fechaCorte.setDate(1)
+
+        const fechaMonth = new Date()
+        fechaMonth.setDate(fechaCorte.getDate() - 1);
+        const anio = fechaMonth.getFullYear()
+        const mes = fechaMonth.getMonth()+1
 
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
-            const personal = await queryRunner.query(`SELECT 1`,[])
+            const personal = await queryRunner.query(`SELECT DISTINCT sit.PersonalId,sit.PersonalSituacionRevistaSituacionId, sit.PersonalSituacionRevistaDesde, sit.PersonalSituacionRevistaHasta, sitdes.SituacionRevistaDescripcion
+                FROM PersonalSitu   acionRevista sit 
+                JOIN 
+                (SELECT sitj.PersonalId, MAX(sitj.PersonalSituacionRevistaDesde) PersonalSituacionRevistaDesde FROM PersonalSituacionRevista sitj 
+                WhERE sitj.PersonalSituacionRevistaDesde < EOMONTH(DATEFROMPARTS(@1,@2,1))
+                GROUP BY sitj.PersonalId
+                    ) sitlast ON sitlast.PersonalId=sit.PersonalId AND sitlast.PersonalSituacionRevistaDesde = sit.PersonalSituacionRevistaDesde
+
+                JOIN GrupoActividadPersonal gru ON gru.GrupoActividadPersonalPersonalId = sit.PersonalId AND gru.GrupoActividadPersonalDesde<= @0  AND ISNULL(gru.GrupoActividadPersonalHasta,'9999-12-31')>=@0
+                JOIN SituacionRevista sitdes ON sitdes.SituacionRevistaId = sit.PersonalSituacionRevistaSituacionId
+                WHERE sit.PersonalSituacionRevistaSituacionId NOT IN (2,10,11,14,21,12,26,20)
+                `, [fechaCorte, anio, mes])
+            
+            if (personal.length > 0) {
+                const personalIds = personal.map(p => p.PersonalId).join(',');
+                await queryRunner.query(`UPDATE GrupoActividadPersonal SET  GrupoActividadPersonalHasta = @0 WHERE GrupoActividadPersonalPersonalId IN (${personalIds})`,[fechaMonth])
+            }
 
             await queryRunner.commitTransaction();
             if (res)
