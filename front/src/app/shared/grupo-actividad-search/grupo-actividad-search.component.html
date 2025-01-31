@@ -4,7 +4,7 @@
   <ng-container *ngFor="let option of $optionsArray | async">
     <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.GrupoActividadId"  [nzLabel]="option.fullName +' '+option.GrupoActividadId" />
   </ng-container>
-  <nz-option *ngIf="extendedOption.GrupoActividadId >0 " [nzValue]="extendedOption.GrupoActividadId"
+  <nz-option *ngIf="extendedOption.id >0 " [nzValue]="extendedOption.id"
     [nzLabel]="extendedOption.fullName" />
 
   <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>

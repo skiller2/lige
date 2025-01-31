@@ -50,7 +50,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
 
   private _selectedId: string = ''
   _selected = signal('')
-  extendedOption = { GrupoActividadId: 0, fullName: "" }
+  extendedOption = { id: 0, fullName: "" }
   selectedItem: any;
 
   private propagateTouched: () => void = noop
@@ -114,18 +114,21 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
       this._selectedId = val
 
       if (this._selectedId == '' || this._selectedId == '0') {
-        this.valueExtendedEmitter.emit({})
+        this.extendedOption = { id: 0, fullName: "" }
+        this.selectedItem = this.extendedOption
+
+        this.valueExtendedEmitter.emit(this.extendedOption)
         if (this._selected() != '')
           this._selected.set('')
         this.propagateChange(this._selectedId)
         return
       }
-
       firstValueFrom(
         this.searchService
           .getGrupoActividad('GrupoActividadId', this._selectedId)
           .pipe(tap(res => {
-            this.extendedOption = { GrupoActividadId: res[0].GrupoActividadId, fullName: res[0].fullName }
+            this.extendedOption = { id: res[0].GrupoActividadId, fullName: res[0].fullName }
+            this.selectedItem = this.extendedOption
             this._selected.set(this._selectedId)
             this.valueExtendedEmitter.emit(this.extendedOption)
             if (this.tmpInputVal != this._selected) {
@@ -157,13 +160,12 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
     )
 
   modelChange(val: string) {
-    if (val=='') val='0'
+    if (val == '') val = '0'
     this.selectedId = val
-    this.selectedItem = { id: val, fullName: this.valueExtended?.fullName }    
-  }
+}
 
   search(value: string): void {
-    this.extendedOption = { GrupoActividadId: 0, fullName: "" }
+    this.extendedOption = { id: 0, fullName: "" }
     this.$searchChange.next(value)
   }
 
