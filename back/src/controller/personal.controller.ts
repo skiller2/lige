@@ -2311,6 +2311,9 @@ cuit.PersonalCUITCUILCUIT,
         `, [PersonalId, BancoId, PersonalBancoId, CBU])
       }else{
         if (PersonalBanco.length){
+          if (PersonalBanco[0].PersonalBancoDesde.getTime() > Desde.getTime())
+            throw new ClientException(`La fecha Desde no puede ser menor a la fecha ${PersonalBanco[0].PersonalBancoDesde.getDate()}/${PersonalBanco[0].PersonalBancoDesde.getMonth()+1}/${PersonalBanco[0].PersonalBancoDesde.getFullYear()}`)
+          
           const PersonalBancoId = PersonalBanco[0].PersonalBancoId
           const Hasta = new Date(Desde)
           Hasta.setDate(Hasta.getDate()-1)
