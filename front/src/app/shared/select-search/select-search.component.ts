@@ -34,10 +34,6 @@ export class SelectSearchComponent {
   public element = inject(ElementRef);
 
   onChange(item: any) {
-    console.log('onChange this.selectedId',this.selectedId)
-    console.log('onChange this.selectedItem',this.selectedItem)
-    console.log('onChange',item)
-
     if(this.collection!.length > 0 ){
 //      const selectedItem = this.optionsArray.find(option => option.TipoProductoId === item);
       this.sss?.focus()  //Al hacer click en el componente hace foco nuevamente
@@ -66,11 +62,6 @@ export class SelectSearchComponent {
   }
 
   ngAfterViewInit() {
-
-    console.log('this.selectedId',this.selectedId)
-    console.log('this.selectedItem',this.selectedItem)
-
-
     this.selKey.set(this.selectedItem)
     setTimeout(() => {
       this.sss.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
