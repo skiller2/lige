@@ -869,19 +869,13 @@ export class ObjetivosController extends BaseController {
             //update
 
             if (Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
-
-                let ClienteElementoDependienteDomicilioUltNro 
                 //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
                 if (Obj.DireccionModificada) {
-
-                     ClienteElementoDependienteDomicilioUltNro = Obj.DomicilioId + 1
-                     ObjObjetivoNew.DomicilioId = ClienteElementoDependienteDomicilioUltNro
 
                     await this.inserClienteElementoDependienteDomicilio(
                         queryRunner
                         , Obj.ClienteId
                         , Obj.ClienteElementoDependienteId
-                        , ClienteElementoDependienteDomicilioUltNro
                         , Obj.DomicilioDomLugar
                         , Obj.DomicilioDomCalle
                         , Obj.DomicilioDomNro
@@ -893,14 +887,14 @@ export class ObjetivosController extends BaseController {
 
                 }
 
-                await this.updateClienteElementoDependienteTable(queryRunner, Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.Descripcion, Obj.SucursalId, ClienteElementoDependienteDomicilioUltNro)
+                await this.updateClienteElementoDependienteTable(queryRunner, Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.Descripcion, Obj.SucursalId)
 
 
             } else {
+                throw new ClientException('El objetivo no puede ser un cliente')
                 //SI EL ELEMENTO DEPENDIENTE ES NULL SOLO ACTUALIZA TABLAS DE CLIENTE
-                await ClientesController.updateClienteDomicilioTable(queryRunner, Obj.ClienteId, Obj)
-                await this.updateClienteTable(queryRunner, Obj.ClienteId, Obj.SucursalId, Obj.Descripcion)
-
+                //await ClientesController.updateClienteDomicilioTable(queryRunner, Obj.ClienteId, Obj)
+                //await this.updateClienteTable(queryRunner, Obj.ClienteId, Obj.SucursalId, Obj.Descripcion)
             }
 
             if (infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId || infoActividad[0].GrupoActividadObjetivoDesdeOriginal != infoActividad[0].GrupoActividadObjetivoDesde)
@@ -1039,14 +1033,13 @@ export class ObjetivosController extends BaseController {
         ClienteElementoDependienteId: any,
         SucursalDescripcion: any,
         SucursalId: any,
-        ClienteElementoDependienteDomicilioUltNro: any
     ) {
 
         return await queryRunner.query(`
             UPDATE ClienteElementoDependiente
-            SET ClienteElementoDependienteSucursalId = @2, ClienteElementoDependienteDescripcion = @3,ClienteElementoDependienteDomicilioUltNro=@4
+            SET ClienteElementoDependienteSucursalId = @2, ClienteElementoDependienteDescripcion = @3
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
-            [ClienteId, ClienteElementoDependienteId, SucursalId, SucursalDescripcion,ClienteElementoDependienteDomicilioUltNro])
+            [ClienteId, ClienteElementoDependienteId, SucursalId, SucursalDescripcion])
     }
 
     async updateClienteTable(
@@ -1350,7 +1343,7 @@ export class ObjetivosController extends BaseController {
 
             await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, ClienteElementoDependienteDomicilioId)
             await this.updateCliente(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro)
-            await this.inserClienteElementoDependienteDomicilio(queryRunner, Obj.ClienteId, ClienteElementoDependienteUltNro, ClienteElementoDependienteDomicilioId, Obj.DomicilioDomLugar, Obj.DomicilioDomCalle, Obj.DomicilioDomNro,
+            await this.inserClienteElementoDependienteDomicilio(queryRunner, Obj.ClienteId, ClienteElementoDependienteUltNro, Obj.DomicilioDomLugar, Obj.DomicilioDomCalle, Obj.DomicilioDomNro,
                 Obj.DomicilioCodigoPostal, Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId, Obj.DomicilioBarrioId)
 
             //await this.ClienteElementoDependienteContrato(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
@@ -1433,8 +1426,13 @@ export class ObjetivosController extends BaseController {
             ])
     }
 
-    async inserClienteElementoDependienteDomicilio(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, DomicilioId: any, DomicilioDomLugar: any, DomicilioDomCalle: any,
+    async inserClienteElementoDependienteDomicilio(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, DomicilioDomLugar: any, DomicilioDomCalle: any,
         DomicilioDomNro: any, DomicilioCodigoPostal: any, DomicilioProvinciaId: any, DomicilioLocalidadId: any, DomicilioBarrioId: any) {
+
+        const ultnro = await queryRunner.query(`SELECT ClienteElementoDependienteDomicilioUltNro FROM ClienteElementoDependiente WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId,ClienteId])
+        const ClienteElementoDependienteDomicilioId = (ultnro[0]?.ClienteElementoDependienteDomicilioUltNro)?ultnro[0]?.ClienteElementoDependienteDomicilioUltNro+1:1
+
+        await queryRunner.query(`UPDATE ClienteElementoDependienteDomicilio SET ClienteElementoDependienteDomicilioDomicilioActual=0  WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId,ClienteId])
 
         await queryRunner.query(`INSERT INTO ClienteElementoDependienteDomicilio (
             ClienteId,
@@ -1452,7 +1450,7 @@ export class ObjetivosController extends BaseController {
             VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)`,
             [ClienteId,
                 ClienteElementoDependienteId,
-                DomicilioId,
+                ClienteElementoDependienteDomicilioId,
                 DomicilioDomLugar,
                 DomicilioDomCalle,
                 DomicilioDomNro,
@@ -1463,6 +1461,7 @@ export class ObjetivosController extends BaseController {
                 DomicilioBarrioId,
                 1
             ])
+        await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteDomicilioUltNro=@2  WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId,ClienteId,ClienteElementoDependienteDomicilioId])
     }
 
     async insertObjetivoSql(queryRunner: any, ClienteId: number, ObjetivoDescripcion: any, ClienteElementoDependienteId: any, ObjetivoSucursalUltNro: any,) {
