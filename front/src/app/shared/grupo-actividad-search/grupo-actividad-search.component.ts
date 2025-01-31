@@ -19,9 +19,9 @@ import { CommonModule } from '@angular/common'
 import { Injector, inject } from '@angular/core';
 
 @Component({
-  selector: 'app-grupo-actividad',
-  templateUrl: './grupo-actividad.component.html',
-  styleUrls: ['./grupo-actividad.component.less'],
+  selector: 'app-grupo-actividad-search',
+  templateUrl: './grupo-actividad-search.component.html',
+  styleUrls: ['./grupo-actividad-search.component.less'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

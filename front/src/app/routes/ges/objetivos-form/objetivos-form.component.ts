@@ -6,7 +6,7 @@ import { ApiService } from 'src/app/services/api.service';
 import { NgForm, FormArray, FormBuilder, ValueChangeEvent } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { RubroSearchComponent } from '../../../shared/rubro-search/rubro-search.component';
-import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad/grupo-actividad.component';
+import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, startWith, Observable, of, filter, merge } from 'rxjs';
 import { SearchService } from 'src/app/services/search.service';

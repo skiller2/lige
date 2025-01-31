@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { GrupoActividadSearchComponent } from './grupo-actividad.component';
+import { GrupoActividadSearchComponent } from './grupo-actividad-search.component';
 
 describe('GrupoActividadSearchComponent', () => {
   let component: GrupoActividadSearchComponent;

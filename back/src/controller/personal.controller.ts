@@ -2282,41 +2282,59 @@ cuit.PersonalCUITCUILCUIT,
         throw new ClientException(campos_vacios);
       }
 
-      if (CBU.length != 22) {
-        throw new ClientException('El CBU debe de estar compuesto por 22 digitos.');
-      }
+      if (CBU.length != 22) 
+        throw new ClientException('El CBU debe de estar compuesto por 22 digitos.')
+
+      let PersonalBanco = await queryRunner.query(`
+        SELECT *
+        FROM PersonalBanco 
+        WHERE PersonalBancoCBU = @0
+      `, [CBU])
+      if (PersonalBanco.length) 
+        throw new ClientException('No puedes ingresar un CBU ya registrado.');
+      
       Desde = new Date(Desde)
       Desde.setHours(0,0,0,0)
 
-      const PersonalBanco = await queryRunner.query(`
+      PersonalBanco = await queryRunner.query(`
         SELECT *
         FROM PersonalBanco 
         WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoHasta IS NULL
       `, [PersonalId, BancoId])
-      if (PersonalBanco.length) {
+      
+      if (PersonalBanco.length && new Date(PersonalBanco[0].PersonalBancoDesde).getTime() == Desde.getTime()) {
         const PersonalBancoId = PersonalBanco[0].PersonalBancoId
-        const Hasta = new Date(Desde)
-        Hasta.setDate(Hasta.getDate()-1)
         await queryRunner.query(`
           UPDATE PersonalBanco SET
-          PersonalBancoHasta = @3
-          WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2)
-        `, [PersonalId, BancoId, PersonalBancoId, Hasta])
+          PersonalBancoCBU = @3
+          WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2) AND PersonalBancoHasta IS NULL
+        `, [PersonalId, BancoId, PersonalBancoId, CBU])
+      }else{
+        if (PersonalBanco.length){
+          const PersonalBancoId = PersonalBanco[0].PersonalBancoId
+          const Hasta = new Date(Desde)
+          Hasta.setDate(Hasta.getDate()-1)
+          await queryRunner.query(`
+            UPDATE PersonalBanco SET
+            PersonalBancoHasta = @3
+            WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2)
+          `, [PersonalId, BancoId, PersonalBancoId, Hasta])
+          
+        }
+        const Personal = await queryRunner.query(`
+          SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
+          FROM Personal 
+          WHERE PersonalId IN (@0)
+        `, [PersonalId])
+        const newPersonalBancoId = Personal[0].UltNro
+
+        await queryRunner.query(`
+          INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde)
+          VALUES (@0, @1, @2, @3, @4)
+
+          UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
+        `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde])
       }
-
-      const Personal = await queryRunner.query(`
-        SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
-        FROM Personal 
-        WHERE PersonalId IN (@0)
-      `, [PersonalId])
-      const newPersonalBancoId = Personal[0].UltNro
-
-      await queryRunner.query(`
-        INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde)
-        VALUES (@0, @1, @2, @3, @4)
-
-        UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
-      `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde])
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
