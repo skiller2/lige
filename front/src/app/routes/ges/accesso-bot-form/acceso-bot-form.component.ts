@@ -56,8 +56,9 @@ export class AccesoBotFormComponent {
   }
 
   async newRecord() {
-    
-    if( !this.PersonalId() && this.PersonalId() > 0){
+    if (this.ngForm().pristine) {
+      this.PersonalId.set(0)
+      this.codigo.set(0)
       this.ngForm().form.reset()
     }
   }
