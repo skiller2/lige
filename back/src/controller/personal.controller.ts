@@ -1469,15 +1469,16 @@ cuit.PersonalCUITCUILCUIT,
       TRIM(dom.PersonalDomicilioDomDpto) Dpto, TRIM(dom.PersonalDomicilioCodigoPostal) CodigoPostal, dom.PersonalDomicilioPaisId PaisId,
       dom.PersonalDomicilioProvinciaId ProvinciaId, dom.PersonalDomicilioLocalidadId LocalidadId, dom.PersonalDomicilioBarrioId BarrioId, dom.PersonalDomicilioId,
       email.PersonalEmailEmail Email, email.PersonalEmailId,
-      sit.PersonalSituacionRevistaId, TRIM(sit.PersonalSituacionRevistaMotivo) Motivo, sit.PersonalSituacionRevistaSituacionId SituacionId
+      sit.PersonalSituacionRevistaId, TRIM(sit.PersonalSituacionRevistaMotivo) Motivo, sit.PersonalSituacionRevistaSituacionId SituacionId,
+      per.PersonalFotoId FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId
       LEFT JOIN Sucursal suc ON suc.SucursalId = per.PersonalSuActualSucursalPrincipalId
       LEFT JOIN Nacionalidad nac ON nac.NacionalidadId = per.PersonalNacionalidadId
       LEFT JOIN PersonalDomicilio dom ON dom.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual IN (1)
       LEFT JOIN PersonalEmail email ON email.PersonalId = per.PersonalId AND email.PersonalEmailInactivo IN (0)
       LEFT JOIN PersonalSituacionRevista sit ON sit.PersonalId = per.PersonalId AND sit.PersonalSituacionRevistaId = per.PersonalSituacionRevistaUltNro
+      LEFT JOIN PersonalDocumento doc ON doc.PersonalDocumentoId = per.PersonalDocumentoUltNro AND doc.PersonalId = per.PersonalId
       WHERE per.PersonalId = @0
       `, [personalId]
     )
@@ -1505,7 +1506,8 @@ cuit.PersonalCUITCUILCUIT,
   private async getFormEstudiosByPersonalIdQuery(queryRunner: any, personalId: any) {
     return await queryRunner.query(`
         SELECT est.PersonalEstudioId, est.TipoEstudioId, est.EstadoEstudioId,
-        TRIM(est.PersonalEstudioTitulo) EstudioTitulo, est.PersonalEstudioAno EstudioAno
+        TRIM(est.PersonalEstudioTitulo) EstudioTitulo, est.PersonalEstudioAno EstudioAno,
+        est.PersonalEstudioPagina1Id AS docId
         FROM PersonalEstudio est
         WHERE est.PersonalId IN (@0)
       `, [personalId]

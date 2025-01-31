@@ -37,12 +37,13 @@ export class PersonalFormComponent {
   
   fb = inject(FormBuilder)
   objTelefono = {PersonalTelefonoId:0, TipoTelefonoId:0, TelefonoNro:''}
-  objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', EstudioAno:null, DocTitulo:[]}
+  objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', EstudioAno:null, DocTitulo:[], docId:0}
   objFamiliar = {PersonalFamiliaId:0, Apellido:'', Nombre:'', TipoParentescoId:0}
 
   inputs = { 
-    Nombre:'', Apellido:'', CUIT:null, NroLegajo:null, SucursalId:0, FechaIngreso:'',
-    FechaNacimiento:'', Foto:[], NacionalidadId:0, docDorso:[], docFrente:[],
+    Nombre:'', Apellido:'', CUIT:null, NroLegajo:null, SucursalId:0,
+    FechaIngreso:'', FechaNacimiento:'', NacionalidadId:0,
+    FotoId:0, Foto:[], docDorsoId:0, docDorso:[], docFrenteId: 0, docFrente:[],
     Calle:'', Nro:'', Piso:'', Dpto:'', //Domicilio
     CodigoPostal:'', PaisId:0, ProvinciaId:0, //Domicilio
     LocalidadId:0, BarrioId:0, PersonalDomicilioId:0,//Domicilio
@@ -59,20 +60,22 @@ export class PersonalFormComponent {
   $optionsNacionalidad = this.searchService.getNacionalidadOptions();
   $optionsSitRevista = this.searchService.getSitRevistaOptions();
 
-  foto():string {
-    const value = this.formPer.get("Foto")?.value
-    if(value) return value
-    else return ''
+  fotoId():number {
+    const value = this.formPer.value.FotoId
+    if (value) {
+      return value
+    }
+    return 0
   }
-  docDorso():string {
-    const value = this.formPer.get("docDorso")?.value
+  docDorsoId():number {
+    const value = this.formPer.get("docDorsoId")?.value
     if(value) return value
-    else return ''
+    return 0
   }
-  docFrente():string {
-    const value = this.formPer.get("docFrente")?.value
+  docFrenteId():number {
+    const value = this.formPer.get("docFrenteId")?.value
     if(value) return value
-    else return ''
+    return 0
   }
   paisId():number {
     const value = this.formPer.get("PaisId")?.value
@@ -144,6 +147,7 @@ export class PersonalFormComponent {
     if (this.personalId()) {
       let infoPersonal = await firstValueFrom(this.searchService.getPersonalInfoById(this.personalId()))
       let values:any = {...this.inputs}
+      console.log('infoPersonal: ', infoPersonal);
       
       for (const key in values) {
         values[key] = infoPersonal[key]
@@ -172,6 +176,9 @@ export class PersonalFormComponent {
           this.familiares().push(this.fb.group({...this.objFamiliar}))
 
       this.formPer.reset(values)
+
+      console.log('estudios: ', this.estudios());
+      
 
       this.formPer.controls.PersonalSituacionRevistaId.disable()
       this.formPer.controls.SituacionId.disable()
@@ -286,6 +293,12 @@ export class PersonalFormComponent {
 
       this.formPer.markAsPristine()
     }
+  }
+
+  getDocEstudioId(index:number):number{
+    if(this.estudios().value[index].docId == 0)
+      return 0
+    return this.estudios().value[index].docId
   }
 
 }
