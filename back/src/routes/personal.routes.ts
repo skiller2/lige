@@ -15,7 +15,7 @@ personalRouter.post('/listfull', [authMiddleware.verifyToken, authMiddleware.has
 });
 
 
-personalRouter.post('/deleteArchivo', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], (req, res, next) => {
+personalRouter.post('/deleteArchivo', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal'])], (req, res, next) => {
   personalController.deleteArchivo(req, res, next)
 });
 
