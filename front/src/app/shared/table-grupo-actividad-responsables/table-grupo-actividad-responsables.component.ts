@@ -65,7 +65,6 @@ export class TableGrupoActividadResponsablesComponent {
   columnsResponsable$ = this.apiService.getCols('/api/grupo-actividad/colsresponsables').pipe(
     switchMap(async (cols) => {
       const tipo = await firstValueFrom(this.searchService.getTipo());
-
       return { cols, tipo }
     }),
     map((data) => {
@@ -116,7 +115,6 @@ export class TableGrupoActividadResponsablesComponent {
             col.params = {
               collection: data.tipo,
             }
-
             break;
 
           default:

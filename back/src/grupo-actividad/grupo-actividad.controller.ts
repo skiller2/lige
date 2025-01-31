@@ -117,10 +117,10 @@ export class GrupoActividadController extends BaseController {
             id: "GrupoActividadJerarquicoComo",
             field: "GrupoActividadJerarquicoComo",
             fieldName: "jer.GrupoActividadJerarquicoComo",
+            formatter: 'collectionFormatter',
             exportWithFormatter: true,
             type: 'string',
             searchComponent: "inpurForGrupoActividad",
-
             sortable: true
         },
         {
