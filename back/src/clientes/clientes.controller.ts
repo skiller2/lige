@@ -536,20 +536,6 @@ ${orderBy}`, [fechaActual])
         return ClienteFacturacionId
     }
 
-    static async updateClienteDomicilioTable(queryRunner: any, ClienteId: number, ObjCliente: any) {
-
-        await queryRunner.query(`UPDATE ClienteDomicilio
-        SET ClienteDomicilioDomCalle = @2,ClienteDomicilioDomNro = @3, ClienteDomicilioCodigoPostal = @4, 
-        ClienteDomicilioProvinciaId = @5,ClienteDomicilioLocalidadId = @6,ClienteDomicilioBarrioId = @7,ClienteDomicilioDomLugar=@8
-        WHERE ClienteId = @0 AND ClienteDomicilioId = @1`, [
-            ClienteId,
-            ObjCliente.ClienteDomicilioId,
-            ObjCliente.ClienteDomicilioDomCalle,
-            ObjCliente.ClienteDomicilioDomNro,
-            ObjCliente.ClienteDomicilioCodigoPostal,
-            ObjCliente.ClienteDomicilioProvinciaId, ObjCliente.ClienteDomicilioLocalidadId, ObjCliente.ClienteDomicilioBarrioId, ObjCliente.ClienteDomicilioDomLugar])
-    }
-
     async updateFacturaTable(queryRunner: any, ClienteId: number, ClienteFacturacionId: string, ClienteFacturacionCUIT: string, CondicionAnteIVAId: number) {
 
 

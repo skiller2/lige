@@ -891,10 +891,10 @@ export class ObjetivosController extends BaseController {
 
 
             } else {
+                throw new ClientException('El objetivo no puede ser un cliente')
                 //SI EL ELEMENTO DEPENDIENTE ES NULL SOLO ACTUALIZA TABLAS DE CLIENTE
-                await ClientesController.updateClienteDomicilioTable(queryRunner, Obj.ClienteId, Obj)
-                await this.updateClienteTable(queryRunner, Obj.ClienteId, Obj.SucursalId, Obj.Descripcion)
-
+                //await ClientesController.updateClienteDomicilioTable(queryRunner, Obj.ClienteId, Obj)
+                //await this.updateClienteTable(queryRunner, Obj.ClienteId, Obj.SucursalId, Obj.Descripcion)
             }
 
             if (infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId || infoActividad[0].GrupoActividadObjetivoDesdeOriginal != infoActividad[0].GrupoActividadObjetivoDesde)
