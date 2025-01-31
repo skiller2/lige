@@ -162,6 +162,7 @@ export class ClientesFormComponent {
 
   async newRecord() {
     if (this.formCli.pristine) {
+      this.ClienteId.set(0)
       this.formCli.enable()
       this.formCli.get('codigo')?.disable()
       this.formCli.reset()

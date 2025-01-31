@@ -271,6 +271,7 @@ export class PersonalFormComponent {
 
   async newRecord() {
     if (this.formPer.pristine) {
+      this.personalId.set(0)
       this.formPer.enable()
       this.formPer.reset()
       this.telefonos().clear()

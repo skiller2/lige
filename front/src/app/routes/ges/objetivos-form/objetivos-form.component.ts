@@ -150,6 +150,11 @@ export class ObjetivosFormComponent {
 
   async newRecord() {
     if (this.formCli.pristine) {
+
+      this.ObjetivoId.set(0)
+      this.ClienteId.set(0)
+      this.ClienteElementoDependienteId.set(0)
+    
       this.formCli.enable()
       this.formCli.get('codigo')?.disable()
       this.formCli.reset()
