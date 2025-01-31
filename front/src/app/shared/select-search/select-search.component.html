@@ -1,4 +1,4 @@
-<nz-select #sss [(ngModel)]="selectedId" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
+<nz-select #sss [(ngModel)]="selKey" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
    (ngModelChange)="onChange($event)" nzAllowClear nzPlaceHolder="Seleccione Opción"
   nzShowSearch >
   <ng-container *ngFor="let option of collection">

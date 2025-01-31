@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, input, model, signal, ViewChild } from '@angular/core';
 import { firstValueFrom, Subject } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
@@ -21,15 +21,23 @@ import { SearchService } from '../../services/search.service';
 export class SelectSearchComponent {
   @ViewChild("sss") sss!: NzSelectComponent
 
-  selectedId: any = ''; 
-  selectedItem: any;
-  collection?: any[]; 
+  selectedId: any = ''  //Se usa externamente
+  selectedItem: any = ''
+  collection?: any[];
+  //collection = input<any[]>([]) // this will be filled by the collection of your column definition
+  
+  selKey = signal('') 
+
   onItemChanged = new Subject<any>();    // object
  
   
   public element = inject(ElementRef);
 
   onChange(item: any) {
+    console.log('onChange this.selectedId',this.selectedId)
+    console.log('onChange this.selectedItem',this.selectedItem)
+    console.log('onChange',item)
+
     if(this.collection!.length > 0 ){
 //      const selectedItem = this.optionsArray.find(option => option.TipoProductoId === item);
       this.sss?.focus()  //Al hacer click en el componente hace foco nuevamente
@@ -58,6 +66,12 @@ export class SelectSearchComponent {
   }
 
   ngAfterViewInit() {
+
+    console.log('this.selectedId',this.selectedId)
+    console.log('this.selectedItem',this.selectedItem)
+
+
+    this.selKey.set(this.selectedItem)
     setTimeout(() => {
       this.sss.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
       this.sss.focus()  //Al hacer click en el componente hace foco
