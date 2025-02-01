@@ -165,6 +165,15 @@
       <g2-pie height="275" [data]="custodiasPendientes.data.custodiasPendientes"  [hasLegend]="true" [total]="custodiasPendientes.data.custodiasPendientesTotal"></g2-pie>
     </nz-card>
   </div>
+  <div *ngIf="objetivosSinAsistencia$ | async as objetivosSinAsistencia" nz-col nzXs="24" nzMd="24">
+    <nz-card *ngIf="objetivosSinAsistencia.data.objetivosSinAsistenciaTotal > 0" [nzBordered]="false" [nzTitle]="objsinAsis">
+      <ng-template #objsinAsis>
+        Objetivos sin asistencia {{ objetivosSinAsistencia.data.mes }}/{{ objetivosSinAsistencia.data.anio }}
+        <small class="text-sm font-weight-normal">Objetivos pendientes de carga por grupo</small>
+      </ng-template>
+      <g2-pie height="275" [data]="objetivosSinAsistencia.data.objetivosSinAsistencia"  [hasLegend]="true" [total]="objetivosSinAsistencia.data.objetivosSinAsistenciaTotal"></g2-pie>
+    </nz-card>
+  </div>
 
   <div *ngIf="custodiasPendientesCur$ | async as custodiasPendientes" nz-col nzXs="24" nzMd="24">
     <nz-card *ngIf="custodiasPendientes.data.custodiasPendientesTotal > 0" [nzBordered]="false" [nzTitle]="objsinAsis">
@@ -173,17 +182,6 @@
         <small class="text-sm font-weight-normal">Custodias pendientes</small>
       </ng-template>
       <g2-pie height="275" [data]="custodiasPendientes.data.custodiasPendientes"  [hasLegend]="true" [total]="custodiasPendientes.data.custodiasPendientesTotal"></g2-pie>
-    </nz-card>
-  </div>
-
-
-  <div *ngIf="objetivosSinAsistencia$ | async as objetivosSinAsistencia" nz-col nzXs="24" nzMd="24">
-    <nz-card *ngIf="objetivosSinAsistencia.data.objetivosSinAsistenciaTotal > 0" [nzBordered]="false" [nzTitle]="objsinAsis">
-      <ng-template #objsinAsis>
-        Objetivos sin asistencia {{ objetivosSinAsistencia.data.mes }}/{{ objetivosSinAsistencia.data.anio }}
-        <small class="text-sm font-weight-normal">Objetivos pendientes de carga por grupo</small>
-      </ng-template>
-      <g2-pie height="275" [data]="objetivosSinAsistencia.data.objetivosSinAsistencia"  [hasLegend]="true" [total]="objetivosSinAsistencia.data.objetivosSinAsistenciaTotal"></g2-pie>
     </nz-card>
   </div>
 
