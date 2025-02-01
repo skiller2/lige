@@ -42,6 +42,13 @@ export class IngresoPorCustodiaController extends BaseController {
         throw new ClientException(`Mes ${mes} no válido `)
 
 
+
+      const resPendLiq = await CustodiaController.listCustodiasPendientesLiqui(anio,mes,3)
+      if (resPendLiq.length > 0) {
+        const fecha_limite = resPendLiq[0].fecha_limite
+       throw new ClientException(`Existen ${resPendLiq.length} custodias pendientes con fecha de inicio anterior o igual al ${this.dateFormatter.format(fecha_limite)}`)
+      }
+
       await queryRunner.connect();
       await queryRunner.startTransaction();
 

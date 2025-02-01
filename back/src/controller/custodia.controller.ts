@@ -416,7 +416,7 @@ const estados: any[] = [
 ]// value = tipo , label = descripcion
 
 export class CustodiaController extends BaseController {
-
+/*
     static async listCustodiasPendientes(anio: number, mes: number) {
         const queryRunner = dataSource.createQueryRunner();
         return queryRunner.query(`SELECT c.fecha_inicio, c.responsable_id, p.PersonalId, CONCAT (TRIM(p.PersonalApellido),', ',TRIM(p.PersonalNombre)) ResponsableDetalle
@@ -424,6 +424,22 @@ export class CustodiaController extends BaseController {
             JOIN Personal p ON p.PersonalId = c.responsable_id 
             WHERE c.fecha_liquidacion IS NULL AND c.estado = 0
         `, [anio, mes])
+    }
+*/
+    static async listCustodiasPendientesLiqui(anio: number, mes: number, diascorrimiento: number = 3) {
+        diascorrimiento = diascorrimiento * -1
+        const queryRunner = dataSource.createQueryRunner();
+        return queryRunner.query(`SELECT obj.objetivo_custodia_id, obj.responsable_id, obj.cliente_id, obj.fecha_inicio,
+            obj.origen, obj.fecha_fin, obj.destino, obj.estado, TRIM(cli.ClienteApellidoNombre) ClienteApellidoNombre,
+            CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) ResponsableDetalle, obj.impo_facturar,
+            obj.fecha_liquidacion,1, DATEADD(DAY,@0,EOMONTH(DATEFROMPARTS(@1,@2,1))) fecha_limite
+            FROM lige.dbo.objetivocustodia obj
+            JOIN Personal per ON per.PersonalId = obj.responsable_id
+            JOIN Cliente cli ON cli.ClienteId = obj.cliente_id
+            
+            WHERE obj.fecha_liquidacion IS NULL AND obj.estado <>2 
+            AND obj.fecha_inicio <= DATEADD(DAY,@0,EOMONTH(DATEFROMPARTS(@1,@2,1))) AND obj.fecha_inicio >= DATEADD(DAY,@0,DATEFROMPARTS(@1,@2,1))
+        `, [diascorrimiento,anio, mes])
     }
 
     async addObjetivoCustodiaQuery(queryRunner: any, objetivoCustodia: any, usuario: any, ip: any) {

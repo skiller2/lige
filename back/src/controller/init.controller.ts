@@ -78,7 +78,7 @@ export class InitController extends BaseController {
     const mes = Number(req.params.mes)
 
     try {
-      const result = await CustodiaController.listCustodiasPendientes(anio,mes)
+      const result = await CustodiaController.listCustodiasPendientesLiqui(anio,mes,3)
 
       let porGrupo: { ResponsableDetalle: string; CantidadCustodias: number; }[] = []
       let data: { x: string; y: any; }[] = []
