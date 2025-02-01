@@ -16,6 +16,8 @@ import {
 //import moment from 'moment';
 import { QueryRunner } from "typeorm";
 import { Readable } from "typeorm/platform/PlatformTools.js";
+import { CustodiaController } from "src/controller/custodia.controller";
+import { AsistenciaController } from "src/controller/asistencia.controller";
 
 const PathReciboTemplate = {
   header: ((process.env.PATH_RECIBO) ? process.env.PATH_RECIBO : './recibo') + '/config/recibo-header.html',
@@ -115,6 +117,19 @@ export class RecibosController extends BaseController {
     try {
       const periodo = getPeriodoFromRequest(req);
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
+
+      const resPendLiq = await CustodiaController.listCustodiasPendientesLiqui(periodo.year,periodo.month,3)
+      if (resPendLiq.length > 0) {
+        const fecha_limite = resPendLiq[0].fecha_limite
+       throw new ClientException(`Existen ${resPendLiq.length} custodias pendientes con fecha de inicio anterior o igual al ${this.dateFormatter.format(fecha_limite)}`)
+      }
+
+      const resPendAsisCierre = await AsistenciaController.objetivosPendAsis(periodo.year,periodo.month)
+      if (resPendAsisCierre.length > 0)
+        throw new ClientException(`Existen ${resPendAsisCierre.length} objetivos pendientes de cierre o sin asistencia para el período ${periodo.month}/${periodo.year}`)
+
+
+
 
       if (!isUnique) {
         // codigo para cuenado es recibo general

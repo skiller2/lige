@@ -8,6 +8,7 @@ import { CustodiaController } from "./custodia.controller";
 import CryptoJS from "crypto-js";
 import { float } from "@zxing/library/esm/customTypings";
 import * as fs from 'fs';
+import { ObjetivosPendasisController } from "src/objetivos-pendasis/objetivos-pendasis.controller";
 
 interface DigestAuthOptions {
   username: string;
@@ -197,7 +198,34 @@ export class AsistenciaController extends BaseController {
 
   }
 
+  static async objetivosPendAsis(anio:number,mes:number){
+      return await ObjetivosPendasisController.listObjetivosAsis({
+        filtros: [
+          { index: 'anio', operador: '=', condition: 'AND', valor: anio },
+          { index: 'mes', operador: '=', condition: 'AND', valor: mes }
+        ],
+        sort: null,
+        extra: null
+      })
 
+
+      /*
+      let porGrupo: { GrupoActividadDetalle: string; CantidadObjetivos: number; }[] = []
+      let data: { x: string; y: any; }[] = []
+      let total = 0
+
+
+      result.forEach(rec => {
+        const cant: number = (Number(porGrupo[rec.GrupoActividadId]?.CantidadObjetivos) > 0) ? porGrupo[rec.GrupoActividadId].CantidadObjetivos : 0
+        const GrupoActividadId = (rec.GrupoActividadId) ? rec.GrupoActividadId : 0
+        const GrupoActividadDetalle = (rec.GrupoActividadDetalle) ? rec.GrupoActividadDetalle : 'Sin Grupo'
+        porGrupo[GrupoActividadId] = { GrupoActividadDetalle, CantidadObjetivos: cant + 1 }
+        total++
+      })
+
+*/
+
+  }
 
   async addAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number, queryRunner: QueryRunner, req: any) {
     const cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
