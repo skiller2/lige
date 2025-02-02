@@ -77,6 +77,12 @@ const errorResponder = (
       message = ['Tamaño del dato muy largo']
       status = 409
     }
+
+    if (error2.number ==547 ||  error.message.indexOf('REFERENCE constraint') > 0) {
+      message = ['No se puede eliminar el registro, tiene registros relacionados']
+      status = 409
+    }
+
   }
 
   res.status(status).json({ msg: message, data: data, stamp: new Date(), ms: res.locals.stopTime - res.locals.startTime });
