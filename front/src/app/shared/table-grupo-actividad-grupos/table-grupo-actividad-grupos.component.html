@@ -28,7 +28,7 @@
     <div class="gridContainer2 container-fluid">
       <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptionsEdit"
         [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReadyEdit($event)"
-        (onSelectedRowsChanged)="handleSelectedRowsChanged($event)" (onCellChange)="onCellChanged($event)">
+        (onSelectedRowsChanged)="handleSelectedRowsChanged($event)" (onCellChange)="onCellChanged($event)" (onBeforeEditCell)="handleOnBeforeEditCell($event)">
         <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
       </angular-slickgrid>
     </div>

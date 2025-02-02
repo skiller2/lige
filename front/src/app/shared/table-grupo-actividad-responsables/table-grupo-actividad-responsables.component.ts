@@ -314,5 +314,16 @@ if (this.angularGridEdit.slickGrid.getEditorLock().isActive()) {
       return meta;
     };
   }
+
+  handleOnBeforeEditCell(e: Event) {
+    const { column, item, grid } = (<CustomEvent>e).detail.args;
+    if (column.id != 'GrupoActividadJerarquicoDesde' && column.id != 'GrupoActividadJerarquicoHasta') {
+      e.stopImmediatePropagation();
+      return false
+    }
+
+    return true;
+  }
+  
 }
 

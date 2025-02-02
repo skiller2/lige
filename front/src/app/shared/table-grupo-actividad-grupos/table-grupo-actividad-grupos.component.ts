@@ -298,6 +298,19 @@ export class TableGrupoActividadGruposComponent {
       return meta;
     };
   }
+
+  handleOnBeforeEditCell(e: Event) {
+    const { column, item, grid } = (<CustomEvent>e).detail.args;
+    /*
+    if (column.id != 'columnaoka') {
+      e.stopImmediatePropagation();
+      return false
+    }
+*/
+    return true;
+  }
+
+
 }
 
        

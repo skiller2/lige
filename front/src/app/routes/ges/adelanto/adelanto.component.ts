@@ -119,6 +119,7 @@ export class AdelantoComponent {
     this.gridOptions.editable = true
     this.gridOptions.autoEdit = false
 
+    
 
     this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
       if (column.id != 'PersonalPrestamoMonto') return
@@ -278,6 +279,11 @@ export class AdelantoComponent {
 
   handleOnBeforeEditCell(e: Event) {
     const { column, item, grid } = (<CustomEvent>e).detail.args;
+    if (column.id != 'PersonalPrestamoMonto') {
+      e.stopImmediatePropagation();
+      return false
+    }
+
     if (item.PersonalPrestamoFechaAprobacion != null) {
       e.stopImmediatePropagation();
       return false

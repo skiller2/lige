@@ -173,6 +173,11 @@ export class AyudaAsistencialComponent {
 
     handleOnBeforeEditCell(e: Event) {
         const { column, item, grid } = (<CustomEvent>e).detail.args;
+        if (column.id != 'PersonalPrestamoAplicaEl' && column.id != 'PersonalPrestamoCantidadCuotas' && column.id != 'PersonalPrestamoMonto') {
+            e.stopImmediatePropagation();
+            return false
+        }
+
         if (item.PersonalPrestamoAprobado === 'S') {
             e.stopImmediatePropagation();
             return false

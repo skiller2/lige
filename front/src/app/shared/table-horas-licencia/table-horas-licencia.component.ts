@@ -43,7 +43,7 @@ interface PersonalLicenciaHoras {
   PersonalNombre: string;
   PersonalLicenciaDesde: Date;
   PersonalLicenciaHasta: Date;
-  TipoInasistenciaDescripcion: string; 
+  TipoInasistenciaDescripcion: string;
   CategoriaPersonalDescripcion: string;
   PersonalLicenciaHorasMensuales: string;
   PersonalLicenciaObservacion: string;
@@ -113,7 +113,7 @@ export class TableHorasLicenciaComponent {
           maxValue: 10000000,
           alwaysSaveOnEnterKey: true,
           required: true
-          
+
         }
         //col.onCellChange= this.onHoursChange.bind(this)
       }
@@ -164,7 +164,7 @@ export class TableHorasLicenciaComponent {
     this.gridOptionsEdit.showFooterRow = true
     this.gridOptionsEdit.createFooterRow = true
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
-      if (column.id != 'PersonalLicenciaAplicaPeriodoHorasMensuales') 
+      if (column.id != 'PersonalLicenciaAplicaPeriodoHorasMensuales')
         return
       try {
         editCommand.execute()
@@ -199,7 +199,7 @@ export class TableHorasLicenciaComponent {
     this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGridEdit)
       columnTotal('total', this.angularGridEdit)
-    })   
+    })
 
   }
 
@@ -213,6 +213,18 @@ export class TableHorasLicenciaComponent {
       format: FileType.xlsx
     });
   }
+
+
+  handleOnBeforeEditCell(e: Event) {
+    const { column, item, grid } = (<CustomEvent>e).detail.args;
+    if (column.id != 'PersonalLicenciaAplicaPeriodoHorasMensuales') {
+      e.stopImmediatePropagation();
+      return false
+    }
+
+    return true;
+  }
+
 
 
 }
