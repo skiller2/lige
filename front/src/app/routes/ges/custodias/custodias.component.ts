@@ -110,8 +110,6 @@ export class CustodiaComponent {
 
         this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptions.enableRowDetailView = false
-        this.gridOptions.editable = false
-        this.gridOptions.autoEdit = true
         this.gridOptions.enableAutoSizeColumns = true
         // this.gridOptions.fullWidthRows = true
         this.gridOptions.showFooterRow = true

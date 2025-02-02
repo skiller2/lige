@@ -109,17 +109,19 @@ export class AdelantoComponent {
         Number(localStorage.getItem('mes')) > 0
           ? Number(localStorage.getItem('mes'))
           : now.getMonth() + 1;
-      console.log('periodo', anio, mes)
       this.periodo.set(new Date(anio, mes - 1, 1))
       this.selectedPeriod = { year: anio, month: mes }
 
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
-    this.gridOptions.autoEdit = true
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
+    this.gridOptions.editable = true
+    this.gridOptions.autoEdit = false
+
 
     this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
+      if (column.id != 'PersonalPrestamoMonto') return
       editCommand.execute();
       try {
         if (item.PersonalPrestamoMonto == 0) {

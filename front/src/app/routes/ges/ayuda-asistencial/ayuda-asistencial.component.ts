@@ -1,6 +1,6 @@
 import { Component, Injector, viewChild, inject, signal, model, computed } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { SHARED_IMPORTS,listOptionsT } from '@shared';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { AngularGridInstance, AngularUtilService, Column, Editors, FileType, GridOption, OnEventArgs, SlickGrid } from 'angular-slickgrid';
 import { BehaviorSubject, Observable, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
@@ -29,21 +29,21 @@ import { AyudaAsistencialDrawerComponent } from "../../../shared/ayuda-asistenci
 export class AyudaAsistencialComponent {
     formAsist = viewChild.required(NgForm)
     rows: number[] = []
-    registerId : string = ''
-    tituloDrawer : string = ""
+    registerId: string = ''
+    tituloDrawer: string = ""
     loadingRec = signal(false)
     loadingApr = signal(false)
     loadingCuo = signal(false)
     refresh = signal(0)
     rowsError = signal<number[]>([])
-    visibleDrawer : boolean = false
+    visibleDrawer: boolean = false
     selectedPeriod = { year: 0, month: 0 };
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
     gridObj!: SlickGrid;
     excelExportService = new ExcelExportService()
     detailViewRowCount = 1
-    startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
+    startFilters: { field: string; condition: string; operator: string; value: string; forced: boolean }[] = []
     listOptions: listOptionsT = { filtros: [], sort: null, };
 
     formChange$ = new BehaviorSubject('');
@@ -62,35 +62,35 @@ export class AyudaAsistencialComponent {
 
     columns$ = this.apiService.getCols('/api/ayuda-asistencial/cols').pipe(map((cols: Column<any>[]) => {
         let mapped = cols.map((col: Column) => {
-          if (col.id == 'PersonalPrestamoMonto') {
-            col.editor = {
-              model: Editors['float'],
-              decimal: 2,
-              valueStep: 1,
-              minValue: 0,
-              maxValue: 10000000,
-              alwaysSaveOnEnterKey: true,
-              required: true
+            if (col.id == 'PersonalPrestamoMonto') {
+                col.editor = {
+                    model: Editors['float'],
+                    decimal: 2,
+                    valueStep: 1,
+                    minValue: 0,
+                    maxValue: 10000000,
+                    alwaysSaveOnEnterKey: true,
+                    required: true
+                }
             }
-          }
-          if (col.id == 'PersonalPrestamoCantidadCuotas') {
-            col.editor = {
-              model: Editors['integer'],
-              valueStep: 1,
-              minValue: 1,
-              maxValue: 100,
-              alwaysSaveOnEnterKey: true,
-              required: true
+            if (col.id == 'PersonalPrestamoCantidadCuotas') {
+                col.editor = {
+                    model: Editors['integer'],
+                    valueStep: 1,
+                    minValue: 1,
+                    maxValue: 100,
+                    alwaysSaveOnEnterKey: true,
+                    required: true
+                }
             }
-          }
-          if (col.id == 'PersonalPrestamoAplicaEl') {
-            col.editor = {
-              model: Editors['text'],
-              alwaysSaveOnEnterKey: true,
-              required: true
+            if (col.id == 'PersonalPrestamoAplicaEl') {
+                col.editor = {
+                    model: Editors['text'],
+                    alwaysSaveOnEnterKey: true,
+                    required: true
+                }
             }
-          }
-          return col
+            return col
         });
         return mapped
     }));
@@ -101,11 +101,11 @@ export class AyudaAsistencialComponent {
             return this.searchService.getPersonasAyudaAsistencial(
                 { anio: this.selectedPeriod.year, mes: this.selectedPeriod.month, options: this.listOptions }
             )
-            .pipe(
-                map((data:any) => { return data }),
-                doOnSubscribe(() => this.tableLoading$.next(true)),
-                tap({ complete: () => this.tableLoading$.next(false) })
-            )
+                .pipe(
+                    map((data: any) => { return data }),
+                    doOnSubscribe(() => this.tableLoading$.next(true)),
+                    tap({ complete: () => this.tableLoading$.next(false) })
+                )
         })
     )
 
@@ -113,6 +113,7 @@ export class AyudaAsistencialComponent {
         this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptions.enableRowDetailView = false
         this.gridOptions.autoEdit = true
+        this.gridOptions.editable = true
         this.gridOptions.showFooterRow = true
         this.gridOptions.createFooterRow = true
         this.gridOptions.enableCheckboxSelector = true
@@ -123,23 +124,28 @@ export class AyudaAsistencialComponent {
         this.gridOptions.enableCellNavigation = true
 
         this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
+            if (column.id != 'PersonalPrestamoAplicaEl' && column.id != 'PersonalPrestamoCantidadCuotas' && column.id != 'PersonalPrestamoMonto')
+                return
+
             editCommand.execute();
             //Verifico que los campos
             if (!item.PersonalPrestamoAplicaEl || !item.PersonalPrestamoCantidadCuotas || !item.PersonalPrestamoMonto) {
-               return 
+                return
             }
 
             try {
                 const res = await firstValueFrom(this.apiService.updateRowAyudaAsistencial(item))
-                this.angularGrid.dataView.updateItem(item.id,{ ...item, ...res.data } );
+                this.angularGrid.dataView.updateItem(item.id, { ...item, ...res.data });
                 this.angularGrid.slickGrid.updateRow(editCommand.row)
             } catch (err) {
-              editCommand.undo()
+                editCommand.undo()
             }
+
+
         }
 
-        this.startFilters = [{field:'PersonalPrestamoAprobado', condition:'AND', operator:'=', value:'S', forced:false}]
-        
+        this.startFilters = [{ field: 'PersonalPrestamoAprobado', condition: 'AND', operator: '=', value: 'S', forced: false }]
+
     }
 
     ngAfterViewInit(): void {
@@ -156,29 +162,29 @@ export class AyudaAsistencialComponent {
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
         this.gridObj = angularGrid.detail.slickGrid;
-        
+
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
             totalRecords(this.angularGrid)
             columnTotal('PersonalPrestamoMonto', this.angularGrid)
 
         })
-        
+
     }
 
     handleOnBeforeEditCell(e: Event) {
         const { column, item, grid } = (<CustomEvent>e).detail.args;
-        if ( item.PersonalPrestamoAprobado === 'S' ) {
-          e.stopImmediatePropagation();
-          return false
+        if (item.PersonalPrestamoAprobado === 'S') {
+            e.stopImmediatePropagation();
+            return false
         }
         return true;
     }
 
     handleSelectedRowsChanged(e: any): void {
         this.rows = e.detail.args.rows
-        if(e.detail.args.changedSelectedRows.length == 1){
+        if (e.detail.args.changedSelectedRows.length == 1) {
             this.registerId = this.angularGrid.dataView.getItemByIdx(e.detail.args.changedSelectedRows[0]).id
-        }else
+        } else
             this.registerId = ''
     }
 
@@ -199,16 +205,16 @@ export class AyudaAsistencialComponent {
         this.formChange$.next(event);
     }
 
-    async rechazarReg(){
+    async rechazarReg() {
         this.loadingRec.set(true)
         this.rowsError.set([])
         const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
         // console.log(ids,this.rows);
         try {
-            await firstValueFrom(this.apiService.ayudaAsistencialRechazar({ids:ids, rows:this.rows}))
+            await firstValueFrom(this.apiService.ayudaAsistencialRechazar({ ids: ids, rows: this.rows }))
             this.formChange('')
-        } catch (error:any) {
-            let rows : any[] = error.error.data
+        } catch (error: any) {
+            let rows: any[] = error.error.data
             // console.log('ERROR:',rows)
             this.rowsError.set(rows)
         }
@@ -216,16 +222,16 @@ export class AyudaAsistencialComponent {
         this.loadingRec.set(false)
     }
 
-    async aprobarReg(){
+    async aprobarReg() {
         this.loadingApr.set(true)
         this.rowsError.set([])
         const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
         // console.log(ids,this.rows);
         try {
-            const res :any = await firstValueFrom(this.apiService.ayudaAsistencialAprobar({ids:ids, rows:this.rows}))
+            const res: any = await firstValueFrom(this.apiService.ayudaAsistencialAprobar({ ids: ids, rows: this.rows }))
             this.formChange('')
-        } catch (error:any) {
-            let rows : any[] = error.error.data
+        } catch (error: any) {
+            let rows: any[] = error.error.data
             // console.log('ERROR:',rows)
             this.rowsError.set(rows)
         }
@@ -233,12 +239,12 @@ export class AyudaAsistencialComponent {
         this.loadingApr.set(false)
     }
 
-    async addCuotaReg(){
+    async addCuotaReg() {
         this.loadingCuo.set(true)
         const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
         // console.log(ids,this.rows);
         try {
-            const res :any = await firstValueFrom(this.apiService.ayudaAsistencialAddCuota({year:this.selectedPeriod.year, month:this.selectedPeriod.month}))
+            const res: any = await firstValueFrom(this.apiService.ayudaAsistencialAddCuota({ year: this.selectedPeriod.year, month: this.selectedPeriod.month }))
             this.formChange('')
         } catch (error) {
             console.log(error);
@@ -253,7 +259,7 @@ export class AyudaAsistencialComponent {
 
     changeBackgroundColor() {
         this.angularGrid.dataView.getItemMetadata = this.updateItemMetadata(this.angularGrid.dataView.getItemMetadata);
-        
+
         const selectedRows = this.angularGrid.slickGrid.getSelectedRows();
         const rowsError = this.rowsError()
         const newSelectedRows = selectedRows.filter(num => !rowsError.includes(num))
@@ -262,30 +268,30 @@ export class AyudaAsistencialComponent {
         this.gridObj.invalidate();
         this.gridObj.render();
     }
-    
+
     updateItemMetadata(previousItemMetadata: any) {
         const newCssClass = 'element-add-no-complete';
-    
+
         return (rowNumber: number) => {
-          const item = this.angularGrid.dataView.getItem(rowNumber);
-          
-          let meta = {
-            cssClasses: ''
-          };
-          if (typeof previousItemMetadata === 'object') {
-            meta = previousItemMetadata(rowNumber);
-          }
-    
-          if (meta && item) {
-            const row = this.rowsError();
-            if (row.find((num) => num == rowNumber)) {
-              meta.cssClasses = (meta.cssClasses || '') + ' ' + newCssClass;
-            }else{
-                meta.cssClasses = ''
+            const item = this.angularGrid.dataView.getItem(rowNumber);
+
+            let meta = {
+                cssClasses: ''
+            };
+            if (typeof previousItemMetadata === 'object') {
+                meta = previousItemMetadata(rowNumber);
             }
-          }
-    
-          return meta;
+
+            if (meta && item) {
+                const row = this.rowsError();
+                if (row.find((num) => num == rowNumber)) {
+                    meta.cssClasses = (meta.cssClasses || '') + ' ' + newCssClass;
+                } else {
+                    meta.cssClasses = ''
+                }
+            }
+
+            return meta;
         };
     }
 

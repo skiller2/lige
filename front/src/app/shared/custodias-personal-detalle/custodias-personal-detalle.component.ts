@@ -72,8 +72,6 @@ export class CustodiasPersonalDetalleComponent {
     async ngOnInit() {
         this.gridDetalleOptions = this.apiService.getDefaultGridOptions('.gridDetalleContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilServicePersonal, this, RowDetailViewComponent)
         this.gridDetalleOptions.enableRowDetailView = false
-        this.gridDetalleOptions.editable = false
-        this.gridDetalleOptions.autoEdit = true
         this.gridDetalleOptions.enableAutoSizeColumns = true
         this.gridDetalleOptions.showFooterRow = true
         this.gridDetalleOptions.createFooterRow = true

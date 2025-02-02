@@ -572,6 +572,7 @@ export class LiquidacionesComponent {
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsEdit.enableRowDetailView = false
     this.gridOptionsEdit.autoEdit = true
+    this.gridOptionsEdit.editable = true
 
 
     this.gridOptionsEdit.editCommandHandler = async (row, column, editCommand) => {

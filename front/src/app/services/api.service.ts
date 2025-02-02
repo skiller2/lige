@@ -208,7 +208,7 @@ export class ApiService {
       //    headerRowHeight: 45,
       //    rowHeight: 45, // increase row height so that the ng-select fits in the cell
       //    autoHeight: true,    
-      editable: true,
+      editable: false,
       enableCellMenu: true,
       enableCellNavigation: true,
       //    enableAutoResize: true,

@@ -801,7 +801,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
         );
 
       }
-      throw new ClientException(`todo bien.`)
+//      throw new ClientException(`todo bien.`)
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {

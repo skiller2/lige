@@ -113,8 +113,9 @@ export class TableHorasLicenciaComponent {
           maxValue: 10000000,
           alwaysSaveOnEnterKey: true,
           required: true
+          
         }
-        col.onCellChange= this.onHoursChange.bind(this)
+        //col.onCellChange= this.onHoursChange.bind(this)
       }
       return col
     });
@@ -158,21 +159,23 @@ export class TableHorasLicenciaComponent {
 
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsEdit.enableRowDetailView = this.apiService.isMobile()
+    this.gridOptionsEdit.editable = true
+    this.gridOptionsEdit.autoEdit = true
     this.gridOptionsEdit.showFooterRow = true
     this.gridOptionsEdit.createFooterRow = true
-
-  }
-
-  onCellChanged(e: any) {
-  }
-
-  async onHoursChange(e: Event, args: any) {
-    const item = args.dataContext
-    const res = await firstValueFrom(this.apiService.setchangehours(item))
-    item.total = res.data?.total
-    item.PersonalLicenciaAplicaPeriodoHorasMensuales = res.data?.PersonalLicenciaAplicaPeriodoHorasMensuales
-
-    this.angularGridEdit.gridService.updateItemById(item.id, item)
+    this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
+      if (column.id != 'PersonalLicenciaAplicaPeriodoHorasMensuales') 
+        return
+      try {
+        editCommand.execute()
+        const res = await firstValueFrom(this.apiService.setchangehours(row))
+        row.total = res.data?.total
+        row.PersonalLicenciaAplicaPeriodoHorasMensuales = res.data?.PersonalLicenciaAplicaPeriodoHorasMensuales
+        this.angularGridEdit.gridService.updateItemById(row.id, row)
+      } catch (error) {
+        editCommand.undo();
+      }
+    }
   }
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {

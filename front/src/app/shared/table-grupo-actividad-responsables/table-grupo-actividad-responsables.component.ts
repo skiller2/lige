@@ -131,6 +131,8 @@ export class TableGrupoActividadResponsablesComponent {
     this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer3', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
 
     this.gridOptionsEdit.enableRowDetailView = this.apiService.isMobile()
+    this.gridOptionsEdit.editable = true
+    this.gridOptionsEdit.autoEdit = true    
     this.gridOptionsEdit.showFooterRow = true
     this.gridOptionsEdit.createFooterRow = true
 
@@ -140,7 +142,7 @@ export class TableGrupoActividadResponsablesComponent {
     // this.startFilters = [{field:'GrupoActividadInactivo', condition:'AND', operator:'=', value: '0', forced:false}]
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
-
+//      if column.id 
 
       this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
       this.angularGridEdit.slickGrid.invalidate();

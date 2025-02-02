@@ -124,6 +124,9 @@ export class TableGrupoActividadGruposComponent {
     this.gridOptionsEdit.enableRowDetailView = this.apiService.isMobile()
     this.gridOptionsEdit.showFooterRow = true
     this.gridOptionsEdit.createFooterRow = true
+    this.gridOptionsEdit.editable = true
+    this.gridOptionsEdit.autoEdit = true
+
 
      let dateToday = new Date();
      let formattedDate = `${dateToday.getDate().toString().padStart(2, '0')}/${(dateToday.getMonth() + 1).toString().padStart(2, '0')}/${dateToday.getFullYear()}`;

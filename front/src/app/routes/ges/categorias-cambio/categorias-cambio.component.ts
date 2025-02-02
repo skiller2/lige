@@ -112,8 +112,6 @@ export class CategoriasCambioComponent {
   gridObj!: SlickGrid;
   gridOptions:GridOption = {
     asyncEditorLoading: false,
-    autoEdit: false,
-    autoCommitEdit: false,
     //    presets: { columns: [{ columnId: '', width: 0 }]},
     autoResize: {
       container: '.gridContainer',

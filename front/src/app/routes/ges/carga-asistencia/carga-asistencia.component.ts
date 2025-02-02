@@ -266,7 +266,6 @@ export class CargaAsistenciaComponent {
         this.gridOptionsEdit.enableRowDetailView = false
         this.gridOptionsEdit.autoEdit = true
 
-        this.gridOptionsEdit.editable = false
         this.gridOptionsEdit.enableAutoSizeColumns = true
         this.gridOptionsEdit.fullWidthRows = true
 

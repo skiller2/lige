@@ -122,8 +122,7 @@ export class TableHistorialProductoComponent {
   ngOnInit() {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer3', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = false
-    this.gridOptions.editable = false
-    this.gridOptions.autoEdit = true
+
     this.gridOptions.enableAutoSizeColumns = true
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
