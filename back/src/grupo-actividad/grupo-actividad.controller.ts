@@ -431,7 +431,7 @@ export class GrupoActividadController extends BaseController {
                     const result = await queryRunner.query(` SELECT * FROM GrupoActividadJerarquico  
                         WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1`,[params.GrupoActividadDetalle.id,params.GrupoActividadJerarquicoComo]);
                     
-                    if (result.length === 0) {
+                    if (result.length > 0) {
                         throw new ClientException(`EL grupo actividad ya posee un jerarquico`)
                     }
                 }
@@ -457,8 +457,8 @@ export class GrupoActividadController extends BaseController {
                     
                     const result = await queryRunner.query(` SELECT * FROM GrupoActividadJerarquico  
                         WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1`,[params.GrupoActividadDetalle.id,params.GrupoActividadJerarquicoComo]);
-                    
-                    if (result.length === 0) {
+
+                    if (result.length > 0) {
                         throw new ClientException(`EL grupo actividad ya posee un jerarquico`)
                     }
                 }
