@@ -685,7 +685,7 @@ export class TelefoniaController extends BaseController {
         doc.doc_id AS id, doc.path, 
         doc.nombre_archivo AS nombre, 
         doc.path, 
-        FORMAT(doc.aud_fecha_ins, 'yyyy-MM-dd') AS fecha,
+        doc.aud_fecha_ins AS fecha,
         per.periodo_id,per.anio,per.mes
         FROM lige.dbo.docgeneral doc
         JOIN lige.dbo.liqmaperiodo per ON doc.periodo = per.periodo_id

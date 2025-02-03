@@ -677,7 +677,7 @@ export class LiquidacionesBancoController extends BaseController {
 
       const nro_envio = await this.getProxNumero(queryRunner, `banco_${BancoId}`, usuario, ip)
 
-      const FechaEnvio = (fechaActual.toISOString().split('T')[0]).replaceAll('-', '')  //YYYYMMDD
+      const FechaEnvio = (fechaActual.toISOString().split('T')[0]).replaceAll('-', '') 
 
 
       for (const row of banco) {

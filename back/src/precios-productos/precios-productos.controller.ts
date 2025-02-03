@@ -144,8 +144,8 @@ export class PreciosProductosController extends BaseController {
                     vent.importe AS importeOld,
                     vent.importe AS importe,
                     vent.precio_venta_id as  precioVentaId,
-                    FORMAT(vent.importe_desde, 'yyyy-MM-dd') AS desde,
-                    FORMAT(vent.importe_hasta, 'yyyy-MM-dd') AS hasta,
+                    vent.importe_desde AS desde,
+                    vent.importe_hasta AS hasta,
                     suc.SucursalId, 
                     suc.SucursalDescripcion
                 FROM lige.dbo.lpv_productos prod
@@ -187,14 +187,8 @@ export class PreciosProductosController extends BaseController {
                     prod.cod_tipo_producto AS TipoProductoId,
                     vent.importe AS importe,
                     vent.precio_venta_id AS precioVentaId,
-                    FORMAT(vent.importe_desde, 'yyyy-MM-dd') AS desde,
-                    FORMAT(
-                        CASE 
-                            WHEN CONVERT(DATE, vent.importe_hasta) IN ('9999-12-31', '9999-12-30') THEN NULL 
-                            ELSE vent.importe_hasta 
-                        END, 
-                        'yyyy-MM-dd'
-                    ) AS hasta,
+                    vent.importe_desde AS desde,
+                    IIF(vent.importe_hasta >= '9999-1-1', NULL, vent.importe_hasta) AS hasta,
                     vent.SucursalId
                 FROM lige.dbo.lpv_productos prod
                 INNER JOIN lige.dbo.lpv_precio_venta vent 
