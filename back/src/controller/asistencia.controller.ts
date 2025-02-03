@@ -2451,9 +2451,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
   }
 
   async valsDiasMes(item: any, queryRunner: QueryRunner, comparar: any = null) {
-
-    const dateFormatter = new Intl.DateTimeFormat('es-AR', { year: 'numeric', month: 'numeric', day: 'numeric' });
-
     const anio: number = item.year
     const mes: number = item.month
     const objetivoId: number = item.objetivoId
@@ -2532,7 +2529,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
           const licencia = licencias.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
           if (licencia && (formaLiquidacion != 'A')) {
-            errores.push(`La persona se encuentra de licencia desde ${dateFormatter.format(licencia.desde)} hasta ${dateFormatter.format(licencia.hasta2)}. dia:${numdia} horas:${horas}`)
+            errores.push(`La persona se encuentra de licencia desde ${this.dateFormatter.format(licencia.desde)} hasta ${this.dateFormatter.format(licencia.hasta2)}. dia:${numdia} horas:${horas}`)
             keepvalue = true
           }
 
@@ -2542,14 +2539,14 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           //Validación Situación de Revista
           const situacion = situacionesRevista.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
           if (situacion && (formaLiquidacion != 'A')) {
-            errores.push(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
+            errores.push(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${this.dateFormatter.format(situacion.desde)} hasta ${this.dateFormatter.format(situacion.hasta)}. dia:${numdia}`)
           }
 
           if (formaLiquidacion == 'A') {
             if (!situacion)
               errores.push(`La persona no se encuentra en una situación de revista para la forma seleccionada.  dia:${numdia}`)
             else if (situacion.PersonalSituacionRevistaSituacionId != 9)
-              errores.push(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${dateFormatter.format(situacion.desde)} hasta ${dateFormatter.format(situacion.hasta)} no habilitada para carga de horas. dia:${numdia}`)
+              errores.push(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${this.dateFormatter.format(situacion.desde)} hasta ${this.dateFormatter.format(situacion.hasta)} no habilitada para carga de horas. dia:${numdia}`)
           }
 
           //Validación de Personal total de horas por dia
