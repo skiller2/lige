@@ -177,9 +177,6 @@ export class PersonalFormComponent {
 
       this.formPer.reset(values)
 
-      console.log('estudios: ', this.estudios());
-      
-
       this.formPer.controls.PersonalSituacionRevistaId.disable()
       this.formPer.controls.SituacionId.disable()
       this.formPer.controls.Motivo.disable()
