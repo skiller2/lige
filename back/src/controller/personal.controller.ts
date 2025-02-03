@@ -492,7 +492,6 @@ cuit.PersonalCUITCUILCUIT,
         per.PersonalNroLegajo, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
         sitrev.SituacionRevistaDescripcion,
         sitrev.PersonalSituacionRevistaDesde,
---        CONCAT(TRIM(sitrev.SituacionRevistaDescripcion), ' ', FORMAT(sitrev.PersonalSituacionRevistaDesde, 'dd/MM/yyyy')) AS SituacionRevista,
         per.PersonalFechaIngreso
 
         FROM Personal per

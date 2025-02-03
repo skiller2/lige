@@ -174,10 +174,9 @@ export class TableGrupoActividadResponsablesComponent {
 //        this.listGrupoActividadResponsables$.next('')
         this.rowLocked = false
       } catch (e: any) {
-        console.log('tuve error')
 
         //marcar el row en rojo
-        //if (row.GrupoActividadNumeroOld) {
+        if (row.GrupoActividadId) {
           const item = this.angularGridEdit.dataView.getItemById(row.id)
           if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
             const fld = editCommand.editor.args.column.field
@@ -185,12 +184,12 @@ export class TableGrupoActividadResponsablesComponent {
             item[fld] = editCommand.editor.args.item[fld]
           }
           this.angularGridEdit.gridService.updateItemById(row.id, item)
-        //} else {
-          //marcar el row en rojo
+        } else {
+         // marcar el row en rojo
 
-        //  this.angularGridEdit.slickGrid.setSelectedRows([]);
-        //  this.angularGridEdit.slickGrid.render();
-        //}
+         this.angularGridEdit.slickGrid.setSelectedRows([]);
+         this.angularGridEdit.slickGrid.render();
+        }
         this.rowLocked = false
       }
     }
@@ -223,6 +222,7 @@ export class TableGrupoActividadResponsablesComponent {
 
     return {
       id: newId,
+      GrupoActividadId: 0,
       GrupoActividadDetalle: "",
       GrupoActividadJerarquicoComo: "",
       ApellidoNombrePersona: "",
@@ -317,12 +317,15 @@ if (this.angularGridEdit.slickGrid.getEditorLock().isActive()) {
 
   handleOnBeforeEditCell(e: Event) {
     const { column, item, grid } = (<CustomEvent>e).detail.args;
-    if (column.id != 'GrupoActividadJerarquicoDesde' && column.id != 'GrupoActividadJerarquicoHasta') {
-      e.stopImmediatePropagation();
-      return false
-    }
+    if (item.GrupoActividadId == 0)
+      return true
 
-    return true;
+    if (column.id == 'GrupoActividadJerarquicoDesde' || column.id == 'GrupoActividadJerarquicoHasta')
+      return true
+  
+
+    e.stopImmediatePropagation();
+    return false;
   }
   
 }

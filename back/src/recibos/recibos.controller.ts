@@ -93,7 +93,7 @@ export class RecibosController extends BaseController {
 
       header = header.replace(/\${anio}/g, anio.toString());
       header = header.replace(/\${mes}/g, mes.toString());
-      header = header.replace(/\${fechaFormateada}/g, this.dateFormatter.format(fechaRecibo));
+      header = header.replace(/\${fechaFormateada}/g, this.dateOutputFormat(fechaRecibo));
     }
     return { header, body, footer }
   }
@@ -121,7 +121,7 @@ export class RecibosController extends BaseController {
       const resPendLiq = await CustodiaController.listCustodiasPendientesLiqui(periodo.year,periodo.month,3)
       if (resPendLiq.length > 0) {
         const fecha_limite = resPendLiq[0].fecha_limite
-       throw new ClientException(`Existen ${resPendLiq.length} custodias pendientes con fecha de inicio anterior o igual al ${this.dateFormatter.format(fecha_limite)}`)
+       throw new ClientException(`Existen ${resPendLiq.length} custodias pendientes con fecha de inicio anterior o igual al ${this.dateOutputFormat(fecha_limite)}`)
       }
 
       const resPendAsisCierre = await AsistenciaController.objetivosPendAsis(periodo.year,periodo.month)
