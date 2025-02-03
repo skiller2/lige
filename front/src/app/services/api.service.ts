@@ -313,6 +313,7 @@ export class ApiService {
   }
 
   customDateTimeFormatter: Formatter<any> = (_row: number, _cell: number, value: any) => {
+    //TODO: Debe tomar el dato desde el navegador.
     return formatDate(value, 'dd/MM/yyyy hh:mm', this.locale)
   };
 
