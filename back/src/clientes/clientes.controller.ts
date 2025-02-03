@@ -787,23 +787,18 @@ ${orderBy}`, [fechaActual])
         const CUIT: number = form.ClienteFacturacionCUIT
         const idCliente: number = form.id
 
+     
+        let valCuit = await queryRunner.query(`SELECT * FROM ClienteFacturacion WHERE ClienteFacturacionCUIT = @0 AND ClienteId = @1`, [CUIT,idCliente])
+        console.log('valCuit',valCuit);
 
-
-        if (!form.ClienteFacturacionCUIT) {
-            throw new ClientException(`Debe completar el campo CUIT.`)
-        }
-
-        // VALIDACION CUIT EXISTE O NO
-
-
-        let valCuit = await queryRunner.query(`SELECT * FROM ClienteFacturacion WHERE ClienteFacturacionCUIT = @0 AND ClienteId != @1`, [CUIT,idCliente])
-
-
-        if (valCuit.length >= 1) {
+        if (valCuit.length < 1) {
             // No estoy sobre el mismo registro
             throw new ClientException(`El CUIT ingresado ya existe`);
         }
 
+        if (!form.ClienteFacturacionCUIT) {
+            throw new ClientException(`Debe completar el campo CUIT.`)
+        }
 
         if (!form.ClienteFechaAlta) {
             throw new ClientException(`Debe completar el campo Fecha Inicial.`)
@@ -875,9 +870,6 @@ ${orderBy}`, [fechaActual])
             }
 
         }
-
-
-
 
 
     }
