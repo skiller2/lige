@@ -171,7 +171,15 @@ export class TableGrupoActividadResponsablesComponent {
           this.rowLocked = true
 
         const response = await firstValueFrom(this.apiService.onchangecellGrupoActividadResponsables(row))
-//        this.listGrupoActividadResponsables$.next('')
+
+        row.GrupoActividadId = response.data.GrupoActividadId
+        row.GrupoActividadJerarquicoId = response.data.GrupoActividadJerarquicoId
+        row.GrupoActividadDetalleOld = row.GrupoActividadDetalle
+        row.ApellidoNombrePersonaOld = row.ApellidoNombrePersona
+        row.GrupoActividadJerarquicoComoOld = row.GrupoActividadJerarquicoComo
+        this.angularGridEdit.gridService.updateItemById(row.id, row)
+
+
         this.rowLocked = false
       } catch (e: any) {
 
@@ -224,8 +232,11 @@ export class TableGrupoActividadResponsablesComponent {
       id: newId,
       GrupoActividadId: 0,
       GrupoActividadDetalle: "",
+      GrupoActividadDetalleOld :"",
       GrupoActividadJerarquicoComo: "",
+      GrupoActividadJerarquicoComoOld: "",
       ApellidoNombrePersona: "",
+      ApellidoNombrePersonaOld:"",
       GrupoActividadSucursalId: "",
       GrupoActividadJerarquicoDesde: new Date(),
       GrupoActividadJerarquicoHasta: null
