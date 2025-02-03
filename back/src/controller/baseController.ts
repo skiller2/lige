@@ -47,6 +47,11 @@ export class BaseController {
 
   dateFormatter = new Intl.DateTimeFormat('es-AR', { year: 'numeric', month: 'numeric', day: 'numeric' });
 
+  dateOutputFormat(date: Date, defaultText = 'sin fecha') {
+    if (!date || date.getFullYear()==9999) return defaultText
+    return this.dateFormatter.format(date)
+  }
+
 
 
   async hasGroup(req: any, group: string) {
