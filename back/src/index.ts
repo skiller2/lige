@@ -10,6 +10,7 @@ import { FileUploadController } from "./controller/file-upload.controller"
 //import packageConfig from "./../package.json" with { type: 'json' }; 
 import dotenv from "dotenv"
 import { GrupoActividadController } from "./grupo-actividad/grupo-actividad.controller";
+import { AsistenciaController } from "./controller/asistencia.controller";
 
 
 
@@ -21,8 +22,7 @@ const webServer = new WebServer(Number(process.env.SERVER_API_PORT))
 const categoriasController = new CategoriasController()
 const grupoActividadController = new GrupoActividadController()
 const cargaLicenciaController = new CargaLicenciaController()
-const fileUploadController = new FileUploadController()
-
+const asistenciaController = new AsistenciaController()
 
 scheduleJob('*/1 * * * *', async function (fireDate) {
 //  const ret = await categoriasController.procesaCambios(null, res, (ret: any) => ret)
@@ -58,6 +58,14 @@ scheduleJob('0 0 1 * *', async function (fireDate) {
   console.log(`job run at ${fireDate}, response: ${ret}`);
 });
 
+scheduleJob('1 0 * * *', async function (fireDate) {
+  //TODO Se debería instanciar Response correctamente
+  const actual = new Date()
+  const anio = actual.getFullYear()
+  const mes = actual.getMonth() + 1
+  const ret = await asistenciaController.getAccessControlAsistance(anio,mes)
+  console.log(`job run at ${fireDate}, response: ${ret}`);
+});
 
 
 let fechaActual = new Date()
