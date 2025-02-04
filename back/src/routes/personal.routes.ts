@@ -31,7 +31,7 @@ personalRouter.post(`${base}/add`, [authMiddleware.verifyToken, authMiddleware.h
   personalController.addPersonal(req, res, next);
 });
 
-personalRouter.post(`${base}/update/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal'])], (req, res, next) => {
+personalRouter.post(`${base}/update/:id`, [authMiddleware.verifyToken], (req, res, next) => {
   personalController.updatePersonal(req, res, next);
 });
 

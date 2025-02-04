@@ -12,9 +12,10 @@
             nzType="primary"
             nzDanger
             nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
-          <span *ngIf="files.mimetype == 'pdf'" nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(files.id,files.filename)" ></span>
+          <span *ngIf="files.TipoArchivo == 'pdf'" nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(files.id,files.filename)" ></span>
 
-          <img nz-image *ngIf="files.mimetype == 'image'" nzSrc="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/0"  alt="" style="max-width:120px; max-height:90px;"/>
+          <img nz-image *ngIf="files.TipoArchivo == 'jpeg' || files.TipoArchivo == 'jpg' || files.TipoArchivo == 'png'"
+            nzSrc="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/0"  alt="" style="max-width:120px; max-height:90px;"/>
           <a nz-icon nzType="download" nzHref="files.path" target="_blank" nzTheme="outline"
             class="download-color" app-down-file [httpMethod]="'POST'"
             httpUrl="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/0"></a>
