@@ -669,6 +669,12 @@ cuit.PersonalCUITCUILCUIT,
       VALUES (@0, @1, @2, @3)`,
       [PersonalDocumentoId, personaId, 1, DNI]
     )
+    await queryRunner.query(`
+      UPDATE Personal SET
+      PersonalDocumentoUltNro = @1
+      WHERE PersonalId IN (@0)`,
+      [personaId, PersonalDocumentoId]
+    )
   }
   private async updateSucursalPrincipal(queryRunner: any, personaId: any, PersonalSucursalPrincipalSucursalId: number) {
     const actual = new Date()
@@ -1025,24 +1031,24 @@ cuit.PersonalCUITCUILCUIT,
     //   WHERE doc.PersonalId IN (@0)
     // `, [personalId])
     // if (!doc.length) {
-      await queryRunner.query(`
-        INSERT INTO DocumentoImagenDocumento (
-        PersonalId,
-        DocumentoImagenDocumentoBlobTipoArchivo,
-        DocumentoImagenParametroId,
-        DocumentoImagenParametroDirectorioId
-        )
-        VALUES(@0,@1,@2,@3)`,
-        [personalId, type, parametro, 1]
+    await queryRunner.query(`
+      INSERT INTO DocumentoImagenDocumento (
+      PersonalId,
+      DocumentoImagenDocumentoBlobTipoArchivo,
+      DocumentoImagenParametroId,
+      DocumentoImagenParametroDirectorioId
       )
-      let doc = await queryRunner.query(`
-        SELECT TOP 1 doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
-        FROM DocumentoImagenDocumento doc 
-        JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-        JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-        WHERE doc.PersonalId IN (@0)
-        ORDER BY doc.DocumentoImagenDocumentoId DESC
-      `, [personalId])
+      VALUES(@0,@1,@2,@3)`,
+      [personalId, type, parametro, 1]
+    )
+    let doc = await queryRunner.query(`
+      SELECT TOP 1 doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
+      FROM DocumentoImagenDocumento doc 
+      JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+      JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+      WHERE doc.PersonalId IN (@0)
+      ORDER BY doc.DocumentoImagenDocumentoId DESC
+    `, [personalId])
     // }
 
     const docId = doc[0].docId
@@ -1065,28 +1071,26 @@ cuit.PersonalCUITCUILCUIT,
     )
 
     const PersonalDocumento = await queryRunner.query(`
-      SELECT PersonalDocumentoUltNro
+      SELECT ISNULL(PersonalDocumentoUltNro, 0) PersonalDocumentoUltNro
       FROM Personal
       WHERE PersonalId IN (@0)`,
       [personalId]
     )
-    if (PersonalDocumento.length && PersonalDocumento[0].PersonalDocumentoUltNro) {
-      const PersonalDocumentoUltNro = PersonalDocumento[0].PersonalDocumentoUltNro
-      if (parametro == 13) {
-        await queryRunner.query(`
-          UPDATE PersonalDocumento SET
-          PersonalDocumentoDorsoId = @2
-          WHERE PersonalId = @0 AND PersonalDocumentoId = @1
-        `, [personalId, PersonalDocumentoUltNro, docId]
-        )
-      }else if (parametro == 12){
-        await queryRunner.query(`
-          UPDATE PersonalDocumento SET
-          PersonalDocumentoFrenteId = @2
-          WHERE PersonalId = @0 AND PersonalDocumentoId = @1
-        `, [personalId, PersonalDocumentoUltNro, docId]
-        )
-      }
+    const PersonalDocumentoUltNro = PersonalDocumento[0].PersonalDocumentoUltNro
+    if (parametro == 13) {
+      await queryRunner.query(`
+        UPDATE PersonalDocumento SET
+        PersonalDocumentoDorsoId = @2
+        WHERE PersonalId = @0 AND PersonalDocumentoId = @1
+      `, [personalId, PersonalDocumentoUltNro, docId]
+      )
+    }else if (parametro == 12){
+      await queryRunner.query(`
+        UPDATE PersonalDocumento SET
+        PersonalDocumentoFrenteId = @2
+        WHERE PersonalId = @0 AND PersonalDocumentoId = @1
+      `, [personalId, PersonalDocumentoUltNro, docId]
+      )
     }
     
   }
