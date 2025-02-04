@@ -1257,54 +1257,37 @@ cuit.PersonalCUITCUILCUIT,
       DELETE FROM PersonalEstudio WHERE PersonalId IN (@0)
       `, [PersonalId])
     for (const infoEstudio of estudios) {
-      //Validacion Estudio
-      let campos_vacios: any[] = []
-      if (!Number.isInteger(infoEstudio.TipoEstudioId)) {
-        campos_vacios.push(`- Tipo`)
-      }
-      if (!Number.isInteger(infoEstudio.EstadoEstudioId)) {
-        campos_vacios.push(`- Estado`)
-      }
-      if (!infoEstudio.EstudioTitulo) {
-        campos_vacios.push(`- Titulo`)
-      }
-      if (!Number.isInteger(infoEstudio.EstudioAno)) {
-        campos_vacios.push(`- Año`)
-      }
-      if (campos_vacios.length) {
-        campos_vacios.unshift('Debe completar los siguientes campos de la sección de Estudios: ')
-        return new ClientException(campos_vacios)
-      }
+      if (infoEstudio.EstudioTitulo) {
+        if (infoEstudio.PersonalEstudioId) {
+          let find = oldStudies.find((study:any) => {return (study.PersonalEstudioId == infoEstudio.PersonalEstudioId)})
+          const Pagina1Id = find.PersonalEstudioPagina1Id
+          const Pagina2Id = find.PersonalEstudioPagina2Id
+          const Pagina3Id = find.PersonalEstudioPagina3Id
+          const Pagina4Id = find.PersonalEstudioPagina4Id
+          await queryRunner.query(`
+            INSERT INTO PersonalEstudio (
+            PersonalId,
+            PersonalEstudioId,
+            TipoEstudioId,
+            EstadoEstudioId,
+            PersonalEstudioTitulo,
+            PersonalEstudioAno,
+            PersonalEstudioPagina1Id, PersonalEstudioPagina2Id, PersonalEstudioPagina3Id, PersonalEstudioPagina4Id
+            )
+            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, [
+            PersonalId, infoEstudio.PersonalEstudioId, infoEstudio.TipoEstudioId,
+            infoEstudio.EstadoEstudioId, infoEstudio.EstudioTitulo, infoEstudio.EstudioAno,
+            Pagina1Id, Pagina2Id, Pagina3Id, Pagina4Id
+          ])
 
-      if (infoEstudio.PersonalEstudioId) {
-        let find = oldStudies.find((study:any) => {return (study.PersonalEstudioId == infoEstudio.PersonalEstudioId)})
-        const Pagina1Id = find.PersonalEstudioPagina1Id
-        const Pagina2Id = find.PersonalEstudioPagina2Id
-        const Pagina3Id = find.PersonalEstudioPagina3Id
-        const Pagina4Id = find.PersonalEstudioPagina4Id
-        await queryRunner.query(`
-          INSERT INTO PersonalEstudio (
-          PersonalId,
-          PersonalEstudioId,
-          TipoEstudioId,
-          EstadoEstudioId,
-          PersonalEstudioTitulo,
-          PersonalEstudioAno,
-          PersonalEstudioPagina1Id, PersonalEstudioPagina2Id, PersonalEstudioPagina3Id, PersonalEstudioPagina4Id
-          )
-          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, [
-          PersonalId, infoEstudio.PersonalEstudioId, infoEstudio.TipoEstudioId,
-          infoEstudio.EstadoEstudioId, infoEstudio.EstudioTitulo, infoEstudio.EstudioAno,
-          Pagina1Id, Pagina2Id, Pagina3Id, Pagina4Id
-        ])
+          if (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
+            const docTitulo = infoEstudio.DocTitulo[0]
+            await this.setImagenEstudio(queryRunner, PersonalId, docTitulo)
+          }
 
-        if (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
-          const docTitulo = infoEstudio.DocTitulo[0]
-          await this.setImagenEstudio(queryRunner, PersonalId, docTitulo)
+        }else{
+          return await this.addPersonalEstudio(queryRunner, infoEstudio, PersonalId)
         }
-
-      }else{
-        return await this.addPersonalEstudio(queryRunner, infoEstudio, PersonalId)
       }
 
     }
@@ -1457,24 +1440,11 @@ cuit.PersonalCUITCUILCUIT,
       //Telefonos
       await queryRunner.query(`UPDATE PersonalTelefono SET PersonalTelefonoInactivo = 1 WHERE PersonalId IN (@0)`, [PersonalId])
       for (const telefono of telefonos) {
-        //Validacion Telefono
-        let campos_vacios: any[] = []
-        if (!Number.isInteger(telefono.TipoTelefonoId)) {
-          campos_vacios.push(`- Tipo`)
-        }
-        if (!telefono.TelefonoNro) {
-          campos_vacios.push(`- Numero Telefono`)
-        }
-        if (campos_vacios.length) {
-          campos_vacios.unshift('Debe completar los siguientes campos de la sección Telefonos: ')
-          throw new ClientException(campos_vacios)
-        }
         if (telefono.TelefonoNro) await this.updatePersonalTelefono(queryRunner, PersonalId, telefono)
       }
       //Estudios
-      const updatePersonalEstudio = await this.updatePersonalEstudio(queryRunner, PersonalId, estudios)
-      if (updatePersonalEstudio instanceof ClientException)
-        throw updatePersonalEstudio
+      await this.updatePersonalEstudio(queryRunner, PersonalId, estudios)
+      
       //Familiares
       const updatePersonalFamilia = await this.updatePersonalFamilia(queryRunner, PersonalId, familiares)
       if (updatePersonalFamilia instanceof ClientException)
