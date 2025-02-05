@@ -627,12 +627,12 @@ cuit.PersonalCUITCUILCUIT,
 
   private async addPersonalCUITQuery(queryRunner: any, personaId: any, CUIT: number, now: Date) {
     const PersonalCUITCUIL = await queryRunner.query(`
-      SELECT PersonalCUITCUILUltNro
+      SELECT ISNULL(PersonalCUITCUILUltNro, 0) PersonalCUITCUILUltNro
       FROM Personal
       WHERE PersonalId IN (@0)`,
       [personaId]
     )
-    const PersonalCUITCUILId = PersonalCUITCUIL[0].PersonalCUITCUILUltNro + 1
+    const newPersonalCUITCUILId = PersonalCUITCUIL[0].PersonalCUITCUILUltNro + 1
     await queryRunner.query(`
       INSERT INTO PersonalCUITCUIL (
       PersonalId,
@@ -646,19 +646,19 @@ cuit.PersonalCUITCUILCUIT,
       UPDATE Personal SET 
       PersonalCUITCUILUltNro = @1
       WHERE PersonalId IN (@0)`,
-      [personaId, PersonalCUITCUILId, 'T', CUIT, now]
+      [personaId, newPersonalCUITCUILId, 'T', CUIT, now]
     )
   }
 
 
   private async addPersonalDocumentoQuery(queryRunner: any, personaId: any, DNI: number) {
     const PersonalDocumento = await queryRunner.query(`
-      SELECT PersonalDocumentoUltNro
+      SELECT ISNULL(PersonalDocumentoUltNro, 0) PersonalDocumentoUltNro
       FROM Personal
       WHERE PersonalId IN (@0)`,
       [personaId]
     )
-    const PersonalDocumentoId = PersonalDocumento[0].PersonalDocumentoUltNro + 1
+    const newPersonalDocumentoId = PersonalDocumento[0].PersonalDocumentoUltNro + 1
     await queryRunner.query(`
       INSERT INTO PersonalDocumento (
       PersonalDocumentoId,
@@ -666,14 +666,12 @@ cuit.PersonalCUITCUILCUIT,
       TipoDocumentoId,
       PersonalDocumentoNro
       )
-      VALUES (@0, @1, @2, @3)`,
-      [PersonalDocumentoId, personaId, 1, DNI]
-    )
-    await queryRunner.query(`
+      VALUES (@0, @1, @2, @3)
+      
       UPDATE Personal SET
-      PersonalDocumentoUltNro = @1
-      WHERE PersonalId IN (@0)`,
-      [personaId, PersonalDocumentoId]
+      PersonalDocumentoUltNro = @0
+      WHERE PersonalId IN (@1)`,
+      [newPersonalDocumentoId, personaId, 1, DNI]
     )
   }
   private async updateSucursalPrincipal(queryRunner: any, personaId: any, PersonalSucursalPrincipalSucursalId: number) {
