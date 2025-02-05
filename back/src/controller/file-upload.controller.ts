@@ -95,7 +95,7 @@ export class FileUploadController extends BaseController {
           ArchivosAnteriores = await queryRunner.query(`
             SELECT  doc.${tableSearch}Id AS id, 
             CONCAT('./', TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableSearch}BlobNombreArchivo)) path, 
-            doc.${tableSearch}BlobNombreArchivo AS nombre , DocumentoImagenFotoBlobTipoArchivo AS TipoArchivo
+            doc.${tableSearch}BlobNombreArchivo AS nombre , ${tableSearch}BlobTipoArchivo AS TipoArchivo
             FROM ${tableSearch} doc
             JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
