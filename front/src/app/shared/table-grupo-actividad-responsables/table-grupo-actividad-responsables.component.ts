@@ -139,9 +139,9 @@ export class TableGrupoActividadResponsablesComponent {
     let dateToday = new Date();
     let formattedDate = `${dateToday.getDate().toString().padStart(2, '0')}/${(dateToday.getMonth() + 1).toString().padStart(2, '0')}/${dateToday.getFullYear()}`;
 
-   this.startFilters = [
-     {field:'GrupoActividadJerarquicoDesde', condition:'AND', operator:'<=', value: formattedDate, forced:false},
-     {field:'GrupoActividadJerarquicoHasta', condition:'AND', operator:'>=', value: formattedDate, forced:false}]
+  //  this.startFilters = [
+  //    {field:'GrupoActividadJerarquicoDesde', condition:'AND', operator:'<=', value: formattedDate, forced:false},
+  //    {field:'GrupoActividadJerarquicoHasta', condition:'AND', operator:'>=', value: formattedDate, forced:false}]
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 //      if column.id 
