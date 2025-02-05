@@ -19,8 +19,7 @@
 <nz-card class="small-margin">
 
   <div nz-tab *ngIf="(columnsResponsable$|async) as columnas">
-    <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters"
-      (optionsChange)="listOptionsChange($event)" />
+    <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"  />
 
     <div class="gridContainer3 container-fluid">
       <angular-slickgrid gridId="gridEdit1" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptionsEdit"

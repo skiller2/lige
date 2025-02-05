@@ -450,7 +450,7 @@ export class GrupoActividadController extends BaseController {
 
 
                 console.log('El código no existe - es nuevo')
-                //await this.validateFormResponsables(params, queryRunner)
+                await this.validateFormResponsables(params, queryRunner)
 
                 if (params.GrupoActividadJerarquicoComo == 'J') {
                     // - si jerarquico tiene hasta el ultimo registro se puede agregar uno nuevo siempre y cuando la fecha desde es posterior a la fehca del ultiumo jerarquico pendiente
