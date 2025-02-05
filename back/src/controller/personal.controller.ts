@@ -113,7 +113,7 @@ const columns: any[] = [
     hidden: false,
   },
   {
-    id: "sitrev.PersonalSituacionRevistaDesde",
+    id: "PersonalSituacionRevistaDesde",
     name: "Fecha desde Situación",
     field: "PersonalSituacionRevistaDesde",
     type: "date",
