@@ -95,7 +95,7 @@ export class FileUploadController extends BaseController {
           ArchivosAnteriores = await queryRunner.query(`
             SELECT  doc.${tableSearch}Id AS id, 
             CONCAT('./', TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableSearch}BlobNombreArchivo)) path, 
-            doc.${tableSearch}BlobNombreArchivo AS nombre , 'image' AS mimetype
+            doc.${tableSearch}BlobNombreArchivo AS nombre , ${tableSearch}BlobTipoArchivo AS TipoArchivo
             FROM ${tableSearch} doc
             JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
@@ -129,7 +129,7 @@ export class FileUploadController extends BaseController {
                 doc.path, 
                 doc.nombre_archivo AS nombre,  
                 doc.aud_fecha_ins AS fecha,
-                'pdf' AS mimetype
+                'pdf' AS TipoArchivo
             FROM lige.dbo.docgeneral doc
             JOIN lige.dbo.doctipo tipo ON doc.doctipo_id = tipo.doctipo_id
             WHERE 
@@ -144,7 +144,7 @@ export class FileUploadController extends BaseController {
           break;
       }
       // console.log('ArchivosAnteriores', ArchivosAnteriores);
-      
+      ArchivosAnteriores.map((archivo) => {return archivo.TipoArchivo = archivo.TipoArchivo.toUpperCase().trim()})
 
       this.jsonRes(
         {

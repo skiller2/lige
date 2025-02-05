@@ -113,7 +113,7 @@ const columns: any[] = [
     hidden: false,
   },
   {
-    id: "sitrev.PersonalSituacionRevistaDesde",
+    id: "PersonalSituacionRevistaDesde",
     name: "Fecha desde Situación",
     field: "PersonalSituacionRevistaDesde",
     type: "date",
@@ -627,12 +627,12 @@ cuit.PersonalCUITCUILCUIT,
 
   private async addPersonalCUITQuery(queryRunner: any, personaId: any, CUIT: number, now: Date) {
     const PersonalCUITCUIL = await queryRunner.query(`
-      SELECT PersonalCUITCUILUltNro
+      SELECT ISNULL(PersonalCUITCUILUltNro, 0) PersonalCUITCUILUltNro
       FROM Personal
       WHERE PersonalId IN (@0)`,
       [personaId]
     )
-    const PersonalCUITCUILId = PersonalCUITCUIL[0].PersonalCUITCUILUltNro + 1
+    const newPersonalCUITCUILId = PersonalCUITCUIL[0].PersonalCUITCUILUltNro + 1
     await queryRunner.query(`
       INSERT INTO PersonalCUITCUIL (
       PersonalId,
@@ -646,19 +646,19 @@ cuit.PersonalCUITCUILCUIT,
       UPDATE Personal SET 
       PersonalCUITCUILUltNro = @1
       WHERE PersonalId IN (@0)`,
-      [personaId, PersonalCUITCUILId, 'T', CUIT, now]
+      [personaId, newPersonalCUITCUILId, 'T', CUIT, now]
     )
   }
 
 
   private async addPersonalDocumentoQuery(queryRunner: any, personaId: any, DNI: number) {
     const PersonalDocumento = await queryRunner.query(`
-      SELECT PersonalDocumentoUltNro
+      SELECT ISNULL(PersonalDocumentoUltNro, 0) PersonalDocumentoUltNro
       FROM Personal
       WHERE PersonalId IN (@0)`,
       [personaId]
     )
-    const PersonalDocumentoId = PersonalDocumento[0].PersonalDocumentoUltNro + 1
+    const newPersonalDocumentoId = PersonalDocumento[0].PersonalDocumentoUltNro + 1
     await queryRunner.query(`
       INSERT INTO PersonalDocumento (
       PersonalDocumentoId,
@@ -666,8 +666,12 @@ cuit.PersonalCUITCUILCUIT,
       TipoDocumentoId,
       PersonalDocumentoNro
       )
-      VALUES (@0, @1, @2, @3)`,
-      [PersonalDocumentoId, personaId, 1, DNI]
+      VALUES (@0, @1, @2, @3)
+      
+      UPDATE Personal SET
+      PersonalDocumentoUltNro = @0
+      WHERE PersonalId IN (@1)`,
+      [newPersonalDocumentoId, personaId, 1, DNI]
     )
   }
   private async updateSucursalPrincipal(queryRunner: any, personaId: any, PersonalSucursalPrincipalSucursalId: number) {
@@ -1025,24 +1029,24 @@ cuit.PersonalCUITCUILCUIT,
     //   WHERE doc.PersonalId IN (@0)
     // `, [personalId])
     // if (!doc.length) {
-      await queryRunner.query(`
-        INSERT INTO DocumentoImagenDocumento (
-        PersonalId,
-        DocumentoImagenDocumentoBlobTipoArchivo,
-        DocumentoImagenParametroId,
-        DocumentoImagenParametroDirectorioId
-        )
-        VALUES(@0,@1,@2,@3)`,
-        [personalId, type, parametro, 1]
+    await queryRunner.query(`
+      INSERT INTO DocumentoImagenDocumento (
+      PersonalId,
+      DocumentoImagenDocumentoBlobTipoArchivo,
+      DocumentoImagenParametroId,
+      DocumentoImagenParametroDirectorioId
       )
-      let doc = await queryRunner.query(`
-        SELECT TOP 1 doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
-        FROM DocumentoImagenDocumento doc 
-        JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-        JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-        WHERE doc.PersonalId IN (@0)
-        ORDER BY doc.DocumentoImagenDocumentoId DESC
-      `, [personalId])
+      VALUES(@0,@1,@2,@3)`,
+      [personalId, type, parametro, 1]
+    )
+    let doc = await queryRunner.query(`
+      SELECT TOP 1 doc.DocumentoImagenDocumentoId docId, dir.DocumentoImagenParametroDirectorioPath
+      FROM DocumentoImagenDocumento doc 
+      JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = doc.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+      JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
+      WHERE doc.PersonalId IN (@0)
+      ORDER BY doc.DocumentoImagenDocumentoId DESC
+    `, [personalId])
     // }
 
     const docId = doc[0].docId
@@ -1065,28 +1069,26 @@ cuit.PersonalCUITCUILCUIT,
     )
 
     const PersonalDocumento = await queryRunner.query(`
-      SELECT PersonalDocumentoUltNro
+      SELECT ISNULL(PersonalDocumentoUltNro, 0) PersonalDocumentoUltNro
       FROM Personal
       WHERE PersonalId IN (@0)`,
       [personalId]
     )
-    if (PersonalDocumento.length && PersonalDocumento[0].PersonalDocumentoUltNro) {
-      const PersonalDocumentoUltNro = PersonalDocumento[0].PersonalDocumentoUltNro
-      if (parametro == 13) {
-        await queryRunner.query(`
-          UPDATE PersonalDocumento SET
-          PersonalDocumentoDorsoId = @2
-          WHERE PersonalId = @0 AND PersonalDocumentoId = @1
-        `, [personalId, PersonalDocumentoUltNro, docId]
-        )
-      }else if (parametro == 12){
-        await queryRunner.query(`
-          UPDATE PersonalDocumento SET
-          PersonalDocumentoFrenteId = @2
-          WHERE PersonalId = @0 AND PersonalDocumentoId = @1
-        `, [personalId, PersonalDocumentoUltNro, docId]
-        )
-      }
+    const PersonalDocumentoUltNro = PersonalDocumento[0].PersonalDocumentoUltNro
+    if (parametro == 13) {
+      await queryRunner.query(`
+        UPDATE PersonalDocumento SET
+        PersonalDocumentoDorsoId = @2
+        WHERE PersonalId = @0 AND PersonalDocumentoId = @1
+      `, [personalId, PersonalDocumentoUltNro, docId]
+      )
+    }else if (parametro == 12){
+      await queryRunner.query(`
+        UPDATE PersonalDocumento SET
+        PersonalDocumentoFrenteId = @2
+        WHERE PersonalId = @0 AND PersonalDocumentoId = @1
+      `, [personalId, PersonalDocumentoUltNro, docId]
+      )
     }
     
   }
@@ -1246,42 +1248,50 @@ cuit.PersonalCUITCUILCUIT,
     ])
   }
 
-  private async updatePersonalEstudio(queryRunner: any, PersonalId: number, infoEstudio: any) {
-    const PersonalEstudioId = infoEstudio.PersonalEstudioId
-    let estudio = await queryRunner.query(`
-      SELECT TipoEstudioId , EstadoEstudioId, TRIM(PersonalEstudioTitulo) EstudioTitulo, PersonalEstudioAno EstudioAno
+  private async updatePersonalEstudio(queryRunner: any, PersonalId: number, estudios: any[]) {
+    let oldStudies = await queryRunner.query(`
+      SELECT PersonalEstudioId, PersonalEstudioPagina1Id, PersonalEstudioPagina2Id,
+      PersonalEstudioPagina3Id, PersonalEstudioPagina4Id
       FROM PersonalEstudio
-      WHERE PersonalId IN (@0) AND PersonalEstudioId IN (@1)
-      `, [PersonalId, PersonalEstudioId])
-    if (!estudio.length)
-      return await this.addPersonalEstudio(queryRunner, infoEstudio, PersonalId)
-    estudio = estudio[0]
-
-    let cambio: boolean = false
-    for (const key in estudio) {
-      if (infoEstudio[key] != estudio[key]) {
-        cambio = true
-        break
-      }
-    }
-    if (!cambio) return
-    const tipoEstudioId = estudio.TipoEstudioId
-    const estadoEstudioId = estudio.EstadoEstudioId
-    const estudioTitulo = estudio.EstudioTitulo
-    const estudioAno = estudio.EstudioAno
-    const docTitulo = estudio.DocTitulo[0]
+      WHERE PersonalId IN (@0)
+      `, [PersonalId])
     await queryRunner.query(`
-      UPDATE PersonalEstudio SET
-      TipoEstudioId = @2,
-      EstadoEstudioId = @3,
-      PersonalEstudioTitulo = @4,
-      PersonalEstudioAno = @5
-      WHERE PersonalId IN (@0) AND PersonalEstudioId IN (@1)
-      `, [
-      PersonalId, PersonalEstudioId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAno
-    ])
-    if (docTitulo) {
-      await this.setImagenEstudio(queryRunner, PersonalId, docTitulo)
+      DELETE FROM PersonalEstudio WHERE PersonalId IN (@0)
+      `, [PersonalId])
+    for (const infoEstudio of estudios) {
+      if (infoEstudio.EstudioTitulo) {
+        if (infoEstudio.PersonalEstudioId) {
+          let find = oldStudies.find((study:any) => {return (study.PersonalEstudioId == infoEstudio.PersonalEstudioId)})
+          const Pagina1Id = find.PersonalEstudioPagina1Id
+          const Pagina2Id = find.PersonalEstudioPagina2Id
+          const Pagina3Id = find.PersonalEstudioPagina3Id
+          const Pagina4Id = find.PersonalEstudioPagina4Id
+          await queryRunner.query(`
+            INSERT INTO PersonalEstudio (
+            PersonalId,
+            PersonalEstudioId,
+            TipoEstudioId,
+            EstadoEstudioId,
+            PersonalEstudioTitulo,
+            PersonalEstudioAno,
+            PersonalEstudioPagina1Id, PersonalEstudioPagina2Id, PersonalEstudioPagina3Id, PersonalEstudioPagina4Id
+            )
+            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, [
+            PersonalId, infoEstudio.PersonalEstudioId, infoEstudio.TipoEstudioId,
+            infoEstudio.EstadoEstudioId, infoEstudio.EstudioTitulo, infoEstudio.EstudioAno,
+            Pagina1Id, Pagina2Id, Pagina3Id, Pagina4Id
+          ])
+
+          if (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
+            const docTitulo = infoEstudio.DocTitulo[0]
+            await this.setImagenEstudio(queryRunner, PersonalId, docTitulo)
+          }
+
+        }else{
+          return await this.addPersonalEstudio(queryRunner, infoEstudio, PersonalId)
+        }
+      }
+
     }
   }
 
@@ -1435,9 +1445,8 @@ cuit.PersonalCUITCUILCUIT,
         if (telefono.TelefonoNro) await this.updatePersonalTelefono(queryRunner, PersonalId, telefono)
       }
       //Estudios
-      for (const estudio of estudios) {
-        if (estudio.EstudioTitulo) await this.updatePersonalEstudio(queryRunner, PersonalId, estudio)
-      }
+      await this.updatePersonalEstudio(queryRunner, PersonalId, estudios)
+      
       //Familiares
       const updatePersonalFamilia = await this.updatePersonalFamilia(queryRunner, PersonalId, familiares)
       if (updatePersonalFamilia instanceof ClientException)

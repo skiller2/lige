@@ -228,7 +228,7 @@ export class AsistenciaController extends BaseController {
   }
 
   async addAsistenciaPeriodo(anio: number, mes: number, ObjetivoId: number, queryRunner: QueryRunner, req: any) {
-    const cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
+    let cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
     if (cabecera.length == 0)
       throw new ClientException('Objetivo no localizado')
 
@@ -276,17 +276,20 @@ export class AsistenciaController extends BaseController {
         ` UPDATE ObjetivoAsistenciaAno SET ObjetivoAsistenciaAnoMesUltNro=@2 WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId = @1
         `, [ObjetivoId, ObjetivoAsistenciaAnoUltNro, ObjetivoAsistenciaAnoMesUltNro]
       );
+
     }
 
     if (cabecera[0].ObjetivoAsistenciaAnoMesHasta != null) {
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
+      if (req && !await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
         throw new ClientException(`No tiene permisos para habilitar carga`)
       const result = await queryRunner.query(
         `UPDATE ObjetivoAsistenciaAnoMes SET ObjetivoAsistenciaAnoMesHasta = NULL WHERE ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
           `, [cabecera[0].ObjetivoId, cabecera[0].ObjetivoAsistenciaAnoId, cabecera[0].ObjetivoAsistenciaAnoMesId]
       );
     }
+    cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner) 
     return cabecera[0]
+
   }
 
   async getAsistenciaPeriodo(req: any, res: Response, next: NextFunction) {
@@ -2174,16 +2177,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           row['day' + daynum] = ''
       }
 
-      /*
-            console.log('Val2', row.day2 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias2Gral, (row.day2 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias2Gral)?'distinto':'igual')
-            console.log('Val3', row.day3 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias3Gral, (row.day3 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias3Gral)?'distinto':'igual')
-            console.log('Val4', row.day4 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias4Gral, (row.day4 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias4Gral)?'distinto':'igual')
-            console.log('Val5', row.day5 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias5Gral, (row.day5 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias5Gral)?'distinto':'igual')
-            console.log('Val6', row.day6 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias6Gral, (row.day6 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias6Gral)?'distinto':'igual')
-            console.log('Val7', row.day7 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias7Gral, (row.day7 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias7Gral)?'distinto':'igual')
-            console.log('Val8', row.day8 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias8Gral, (row.day8 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias8Gral)?'distinto':'igual')
-            console.log('Val9', row.day9 , asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias9Gral, (row.day9 != asistencia[0].ObjetivoAsistenciaAnoMesPersonalDias9Gral)?'distinto':'igual')
-      */
       await queryRunner.query(`
       INSERT INTO ObjetivoAsistenciaAnoMesPersonalDias (ObjetivoAsistenciaAnoMesPersonalDiasId, ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaMesPersonalId, ObjetivoAsistenciaTipoAsociadoId, ObjetivoAsistenciaCategoriaPersonalId, ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras ${columnsDays}, ObjetivoAsistenciaAnoMesPersonalDiasTotalGral, ObjetivoAsistenciaAnoMesPersonalAsignadoSu2Id,
       ObjetivoAsistenciaAnoMesPersonalDiasFormaDia1,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia2,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia3,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia4,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia5,ObjetivoAsistenciaAnoMesPersonalDiasFormaDia6,
@@ -2759,7 +2752,10 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
     try {
       const anio = req.params.anio
       const mes = req.params.mes
-      const listado = await this.getAccessControlAsistance(anio, mes)
+      let listado = [];
+
+      listado = await this.getAccessControlAsistance(anio, mes);
+
       let ClienteId = 0
       let ClienteElementoDependienteId = 0
 
@@ -2804,7 +2800,6 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       }
 
       for (const [key, detalle] of Object.entries(listadoProcessed) as [string, ObjetivoDetalle][]) {
-        console.log('objetivo', key, detalle.personal)
         const Clienteid = Number(detalle.ClienteId)
         const ClienteElementoDependienteId = Number(detalle.ClienteElementoDependienteId)
 
@@ -2813,7 +2808,11 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           const ObjetivoId = objetivo[0]?.ObjetivoId
           if (!ObjetivoId)
             throw new ClientException(`Objetivo no localizado ${ClienteId}/${ClienteElementoDependienteId}`,)
-          const cabecera = await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, {})
+          const cabecera = await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, null)
+
+          if (!cabecera.ObjetivoAsistenciaAnoMesId || !cabecera.ObjetivoAsistenciaAnoId)
+            throw new ClientException(`Error habilitando período ${mes}/${anio} para la carga del objetivo ${ObjetivoId}`,cabecera)
+
           const asistencia = await queryRunner.query(`
             SELECT 
               objp.ObjetivoAsistenciaAnoMesPersonalDiasId,
@@ -2914,9 +2913,9 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           interface AsistenciaProcessed {
             [key: string]: string;
           }
-//throw new ClientException('DEBUG')
           const ObjetivoAsistenciaAnoId = cabecera.ObjetivoAsistenciaAnoId
           const ObjetivoAsistenciaAnoMesId = cabecera.ObjetivoAsistenciaAnoMesId
+
 
           for (const [cuit, perAsistencia] of Object.entries(detalle.personal) as [string, AsistenciaProcessed][]) {
             const asistenciaRow = asistencia.find((p: any) => p.PersonalCUITCUILCUIT == cuit)
@@ -3217,18 +3216,8 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
     return `Digest username="${username}", realm="${realm}", nonce="${nonce}", uri="${uri}", qop=${qop}, nc=${nc.toString(16).padStart(8, "0")}, cnonce="${cnonce}", response="${response}"`;
   }
-
-  async getAccessControlAsistance(anio: number, mes: number) {
-    const url = process.env.CA_URL_GETASISTANCE
-    const username = process.env.CA_USERNAME
-    const password = process.env.CA_PASSWORD
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
-    // Make an initial request to get the realm and nonce
-    const initialResponse = await fetch(url, { method: 'POST', body: JSON.stringify({ validateStatus: () => true }), })
-
-    const authHeader = initialResponse.headers.get('www-authenticate')
-
+  
+  static createDigestAuthOptions(authHeader:string,username:string,password:string,url:string) {
     if (!authHeader) {
       throw new Error("Digest authentication not supported on this endpoint.");
     }
@@ -3262,10 +3251,21 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       nc,
       cnonce,
     };
+    return authOptions
+  }
 
+  async getAccessControlAsistance(anio: number, mes: number) {
+    const url = process.env.CA_URL_GETASISTANCE
+    const username = process.env.CA_USERNAME
+    const password = process.env.CA_PASSWORD
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
+    const initialResponse = await fetch(url, { method: 'POST', body: JSON.stringify({ validateStatus: () => true }), })
+    const authHeader = initialResponse.headers.get('www-authenticate')
+    let authOptions = AsistenciaController.createDigestAuthOptions(authHeader,username,password,url)
     let recordsArray = []
     let searchResultPosition = 1
+    let retryfetch = 1
     const data = {
       "searchID": CryptoJS.lib.WordArray.random(16).toString(), //Es un valor aleatorio tipo string, generado para parametro de control fb967efe5ddb4c8abc4847ce2673b6e0
       "searchResultPosition": searchResultPosition, //Parametro inicial de busqueda de la peticion
@@ -3273,16 +3273,21 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       "statisticalTime": "month",
       "month": `${anio}-${mes}` // Año-mes del periodo de datos obtenidos
     }
-    authOptions.cnonce = CryptoJS.lib.WordArray.random(16).toString();
-
     do {
-      authOptions.nc++
-      const digestAuthHeader = this.generateDigestAuthHeader(authOptions);
-      const headers = { 'Content-Type': 'application/json', 'Authorization': digestAuthHeader };
+      const digestAuthHeader = this.generateDigestAuthHeader(authOptions)
+      const headers = { 'Content-Type': 'application/json', 'Authorization': digestAuthHeader }
 
       const response = await fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(data), })
+      if (response.status == 401 && retryfetch < 5) {
+        retryfetch++
+        authOptions = AsistenciaController.createDigestAuthOptions(response.headers.get('www-authenticate'), username, password, url)
+        continue
+      }
+
       if (response.status != 200)
         throw new ClientException('Error obteniendo resultados del control de acceso', { status: response.status, response, body: await response.text() })
+
+      authOptions.nc++
       searchResultPosition += 10
       data.searchResultPosition = searchResultPosition
 

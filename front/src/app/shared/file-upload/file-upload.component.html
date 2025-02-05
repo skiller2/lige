@@ -1,86 +1,73 @@
 <nz-form-item>
-    <nz-form-control>
-      <ng-container *ngFor="let files of $files | async" >
-        <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{files.nombre}}>
-          
-          <span 
-            nz-popconfirm
-            nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
-            (nzOnConfirm)="confirmDeleteArchivo(files.id,false)"
-            nzPopconfirmPlacement="top"
-            nz-button 
-            nzType="primary"
-            nzDanger
-            nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
-          <span *ngIf="files.mimetype == 'pdf'" nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(files.id,files.filename)" ></span>
+  <nz-form-control>
+    <ng-container *ngFor="let files of $files | async">
+      <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{files.nombre}}>
+        @if(isDisabled()==false){
+          <a nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
+            (nzOnConfirm)="confirmDeleteArchivo(files.id,false)" nzPopconfirmPlacement="top"  
+            nzDanger nz-icon nzType="delete" nzTheme="outline" class="trash-color"></a>
+        }
+        @if (files.TipoArchivo == 'JPEG' || files.TipoArchivo == 'JPG' || files.TipoArchivo == 'PNG') {
+        <img nz-image alt="" nzSrc="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/0"
+         style="max-width:120px; max-height:90px;" />
+        }
+        @if (files.TipoArchivo == 'PDF') {
+        <a nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(files.id,files.filename)"></a>
+        }
 
-          <img nz-image *ngIf="files.mimetype == 'image'" nzSrc="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/0"  alt="" style="max-width:120px; max-height:90px;"/>
-          <a nz-icon nzType="download" nzHref="files.path" target="_blank" nzTheme="outline"
-            class="download-color" app-down-file [httpMethod]="'POST'"
-            httpUrl="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/0"></a>
-          <span> {{files.nombre}} </span>
-        </div>
-      </ng-container> 
-      @if(files().length > 0){
-        <ng-container  class="" *ngFor="let filesAdd of files() ">
-          <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{filesAdd.fieldname}}>
-            <img nz-image width="120px" height="90px" [nzSrc]="filesAdd.fileUrl"  alt="" *ngIf="!filesAdd.mimetype.includes('pdf')" />
-            <span 
-                nz-popconfirm 
-                nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
-                (nzOnConfirm)="confirmDeleteArchivo(filesAdd.fieldname,true)"
-                nzPopconfirmPlacement="top"
-                nz-button 
-                nzType="primary"
-                nzDanger
-                nz-icon nzType="delete" nzTheme="outline" class="trash-color cursor-pointer"></span>
+        <a nz-icon nzType="download" nzHref="files.path" target="_blank" nzTheme="outline" class="download-color"
+          app-down-file [httpMethod]="'POST'"
+          httpUrl="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/0"> {{files.nombre}} </a>
+        
+      </div>
+    </ng-container>
+    @if(files().length > 0){
+    <ng-container class="" *ngFor="let filesAdd of files() ">
+      <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{filesAdd.fieldname}}>
+        <img nz-image width="120px" height="90px" [nzSrc]="filesAdd.fileUrl" alt=""
+          *ngIf="!filesAdd.mimetype.includes('pdf')" />
+        <span nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
+          (nzOnConfirm)="confirmDeleteArchivo(filesAdd.fieldname,true)" nzPopconfirmPlacement="top" nz-button
+          nzType="primary" nzDanger nz-icon nzType="delete" nzTheme="outline" class="trash-color cursor-pointer"></span>
 
-            <span *ngIf="!filesAdd.mimetype.includes('image')"  nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(0,filesAdd.filename)" ></span>
+        <span *ngIf="!filesAdd.mimetype.includes('image')" nz-icon nzType="search" nzTheme="outline"
+          (click)="LoadArchivo(0,filesAdd.filename)"></span>
 
-            <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline"
-              class="download-color" app-down-file [httpMethod]="'POST'" httpUrl="api/file-upload/downloadFile/0/{{tableForSearch()}}/{{filesAdd.filename}}"></a>
-            <span> {{filesAdd.originalname}} </span>
-          </div>
-        </ng-container>
-   }
-    </nz-form-control>
+        <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline" class="download-color"
+          app-down-file [httpMethod]="'POST'"
+          httpUrl="api/file-upload/downloadFile/0/{{tableForSearch()}}/{{filesAdd.filename}}"></a>
+        <span> {{filesAdd.originalname}} </span>
+      </div>
+    </ng-container>
+    }
+  </nz-form-control>
 
-   
-  </nz-form-item>
 
-  <nz-form-item *ngIf="cantFiles()">
-    <nz-form-control class="BtnUploadFile">
-      <ng-container>
-   <!-- image/*
+</nz-form-item>
+
+<nz-form-item *ngIf="cantFiles()">
+  <nz-form-control class="BtnUploadFile">
+    <ng-container>
+      <!-- image/*
         .pdf
         .pdf,image/* -->
-        <nz-upload [nzAccept]="fileAccept()" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)" >
-          <button  nz-button  >
-            <span nz-icon nzType="upload"></span>
-           {{ 'app.btn.file' | i18n }}
-          </button>
-        </nz-upload>
-      </ng-container>
-    </nz-form-control>
-  </nz-form-item>
-
-  <nz-modal [(nzVisible)]="modalViewerVisiable" nzTitle="" nzWidth="700" nzOkDisabled="true" (nzOnCancel)="handleCancel()" >
-    <ng-container *nzModalContent>
-      <ngx-extended-pdf-viewer
-          [src]="src()"
-          [height]="'auto'" 
-          [textLayer]="true" 
-          [showHandToolButton]="false" 
-          [filenameForDownload]="FileName()"> 
-      </ngx-extended-pdf-viewer>
-
-
-     <!-- //este es para testear> -->
-<!--
-      <ngx-extended-pdf-viewer [src]="'/assets/pdfs/Bootstrap-vs-Material-Design-vs-Prime-vs-Tailwind.pdf'">
-      </ngx-extended-pdf-viewer>
--->     
+      <nz-upload [nzAccept]="fileAccept()" nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
+        [nzShowUploadList]="false" (nzChange)="uploadChange($event)">
+        <button nz-button>
+          <span nz-icon nzType="upload"></span>
+          {{ 'app.btn.file' | i18n }}
+        </button>
+      </nz-upload>
     </ng-container>
-  </nz-modal>
+  </nz-form-control>
+</nz-form-item>
 
+<nz-modal [(nzVisible)]="modalViewerVisiable" nzTitle="" nzWidth="700" nzOkDisabled="true"
+  (nzOnCancel)="handleCancel()">
+  <ng-container *nzModalContent>
+    <ngx-extended-pdf-viewer [src]="src()" [height]="'auto'" [textLayer]="true" [showHandToolButton]="false"
+      [filenameForDownload]="FileName()">
+    </ngx-extended-pdf-viewer>
 
+  </ng-container>
+</nz-modal>
