@@ -2,7 +2,7 @@ import { Component, EventEmitter, forwardRef, inject, Input, input, model, outpu
 import { BehaviorSubject, debounceTime, firstValueFrom, noop, switchMap, map } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
-import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
+import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { CommonModule } from '@angular/common';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
@@ -54,7 +54,8 @@ export class FileUploadComponent implements ControlValueAccessor {
   cantFilesAnteriores = signal(0)
   cantMaxFiles = input(10)
   readonly = input<boolean>(false)
-
+  isDisabled = signal(false)
+  
   formChange$ = new BehaviorSubject('');
 
   $formChange = new BehaviorSubject('');
@@ -207,5 +208,10 @@ export class FileUploadComponent implements ControlValueAccessor {
       return true
     return false
   }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.isDisabled.set(isDisabled)
+  }
+
 
 }

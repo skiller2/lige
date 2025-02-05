@@ -144,7 +144,7 @@ export class FileUploadController extends BaseController {
           break;
       }
       // console.log('ArchivosAnteriores', ArchivosAnteriores);
-      
+      ArchivosAnteriores.map((archivo) => {return archivo.TipoArchivo = archivo.TipoArchivo.toUpperCase().trim()})
 
       this.jsonRes(
         {
