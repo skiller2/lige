@@ -86,8 +86,8 @@ export class InitController extends BaseController {
 
 
       result.forEach(rec => {
-        const cant: number = (Number(porGrupo[rec.PersonalId]?.CantidadCustodias) > 0) ? porGrupo[rec.PersonalId].CantidadCustodias : 0
-        const PersonalId = (rec.PersonalId) ? rec.PersonalId : 0
+        const PersonalId = (rec.responsable_id) ? rec.responsable_id : 0
+        const cant: number = (Number(porGrupo[PersonalId]?.CantidadCustodias) > 0) ? porGrupo[PersonalId].CantidadCustodias : 0
         const ResponsableDetalle = (rec.ResponsableDetalle) ? rec.ResponsableDetalle : 'Sin Grupo'
         porGrupo[PersonalId] = { ResponsableDetalle, CantidadCustodias: cant + 1 }
         total++
