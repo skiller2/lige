@@ -450,16 +450,17 @@ export class GrupoActividadController extends BaseController {
 
 
                 console.log('El código no existe - es nuevo')
-                await this.validateFormResponsables(params, queryRunner)
+                //await this.validateFormResponsables(params, queryRunner)
 
                 if (params.GrupoActividadJerarquicoComo == 'J') {
-
+                    // - si jerarquico tiene hasta el ultimo registro se puede agregar uno nuevo siempre y cuando la fecha desde es posterior a la fehca del ultiumo jerarquico pendiente
                     const result = await queryRunner.query(` SELECT * FROM GrupoActividadJerarquico  
                         WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1`,[params.GrupoActividadDetalle.id,params.GrupoActividadJerarquicoComo]);
 
-                    if (result.length > 0) {
-                        throw new ClientException(`EL grupo actividad ya posee un jerarquico`)
-                    }
+        
+                    if ( result.length > 0 && result[0].GrupoActividadJerarquicoHasta && new Date(result[0].GrupoActividadJerarquicoHasta) < new Date()) {
+                            throw new ClientException(`EL grupo actividad ya posee un jerárquico`);
+                        }
                 }
 
                 let day = new Date()

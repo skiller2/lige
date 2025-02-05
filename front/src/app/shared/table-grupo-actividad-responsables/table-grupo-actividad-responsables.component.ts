@@ -327,13 +327,16 @@ if (this.angularGridEdit.slickGrid.getEditorLock().isActive()) {
   }
 
   handleOnBeforeEditCell(e: Event) {
-    const { column, item, grid } = (<CustomEvent>e).detail.args;
+    const { column, item, grid } = (<CustomEvent>e).detail.args
+
     if (item.GrupoActividadId == 0)
       return true
 
+    if (item.GrupoActividadJerarquicoHasta && new Date(item.GrupoActividadJerarquicoHasta) < new Date()) 
+      return false
+
     if (column.id == 'GrupoActividadJerarquicoDesde' || column.id == 'GrupoActividadJerarquicoHasta')
       return true
-  
 
     e.stopImmediatePropagation();
     return false;
