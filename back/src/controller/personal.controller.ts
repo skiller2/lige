@@ -325,24 +325,9 @@ export class PersonalController extends BaseController {
             : "";
         personaData.FechaDesde = new Date();
         personaData.FechaHasta = FechaHasta;
-        const imageFotoPath = process.env.IMAGE_FOTO_PATH
-          ? process.env.IMAGE_FOTO_PATH
-          : "";
-        const imageUrl = personaData.DocumentoImagenFotoBlobNombreArchivo
-          ? imageFotoPath.concat(
-            personaData.DocumentoImagenFotoBlobNombreArchivo
-          )
-          : "";
-        //        personaData.image = "";
+
         personaData.mails = mails;
         personaData.estudios = (estudios[0]) ? `${estudios[0].TipoEstudioDescripcion.trim()} ${estudios[0].PersonalEstudioTitulo.trim()}` : 'Sin registro'
-        if (imageUrl != "") {
-          const res = await fetch(imageUrl)
-          const buffer = await res.arrayBuffer()
-          const bufferStr = Buffer.from(buffer).toString('base64')
-          personaData.image = "data:image/jpeg;base64, " + bufferStr;
-        }
-
         this.jsonRes(personaData, res);
       })
       .catch((error) => {
