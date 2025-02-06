@@ -115,7 +115,7 @@
 
       <nz-select ngModel nzAllowClear style="width:100%"
         *ngIf="selections.field.searchComponent=='inpurForEstadoCustSearch'" nzPlaceHolder="Estado" nzShowSearch
-        (ngModelChange)="selectedValueEstado($event)" [nzDropdownMatchSelectWidth]="false"
+        (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
         (keydown.enter)="handleInputConfirm()">
         <ng-container *ngFor="let option of $optionsEstadoCust | async">
           <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
@@ -124,7 +124,7 @@
 
       <nz-select ngModel nzAllowClear style="width:100%"
         *ngIf="selections.field.searchComponent=='inpurForPrestamoAprobadoSearch'" nzPlaceHolder="Estado" nzShowSearch
-        (ngModelChange)="selectedValueEstado($event)" [nzDropdownMatchSelectWidth]="false"
+        (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
         (keydown.enter)="handleInputConfirm()">
         <ng-container *ngFor="let option of $optionsEstadoPrest | async">
           <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
@@ -132,17 +132,17 @@
       </nz-select>
 
       <nz-select ngModel nzAllowClear style="width:100%"
-        *ngIf="selections.field.searchComponent=='inpurForTipoPrestamoSearch'" nzPlaceHolder="Estado" nzShowSearch
-        (ngModelChange)="selectedValueEstado($event)" [nzDropdownMatchSelectWidth]="false"
+        *ngIf="selections.field.searchComponent=='inpurForTipoPrestamoSearch'" nzPlaceHolder="" nzShowSearch
+        (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
         (keydown.enter)="handleInputConfirm()">
         <ng-container *ngFor="let option of $optionsTipoPrest | async">
           <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
         </ng-container>
       </nz-select>
 
-      <nz-select ngModel nzAllowClear style="width:100%"
-        *ngIf="selections.field.searchComponent=='inpurForSituacionRevistaSearch'" nzPlaceHolder="Estado" nzShowSearch
-        (ngModelChange)="selectedValueEstado($event)" [nzDropdownMatchSelectWidth]="false"
+      <nz-select [(ngModel)]="listOfSelectedValue" nzMode="multiple" nzAllowClear style="width:100%"
+        *ngIf="selections.field.searchComponent=='inpurForSituacionRevistaSearch'" nzPlaceHolder="" nzShowSearch
+        (ngModelChange)="multipleSelectedValue($event)" [nzDropdownMatchSelectWidth]="false"
         (keydown.enter)="handleInputConfirm()">
         <ng-container *ngFor="let option of $optionsSitRevista | async">
           <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>

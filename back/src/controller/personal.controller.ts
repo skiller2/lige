@@ -516,6 +516,8 @@ cuit.PersonalCUITCUILCUIT,
       await queryRunner.startTransaction()
 
       const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
+      console.log('-------------------------------------------');
+      console.log('options: ', options);
       const filterSql = filtrosToSql(options.filtros, columns);
       const orderBy = orderToSQL(options.sort)
 
@@ -550,7 +552,7 @@ cuit.PersonalCUITCUILCUIT,
 
   private async getSituacionRevistaQuery(queryRunner: any) {
     return await queryRunner.query(`
-        SELECT sit.SituacionRevistaId value, sit.SituacionRevistaDescripcion label
+        SELECT sit.SituacionRevistaId value, TRIM(sit.SituacionRevistaDescripcion) label
         FROM SituacionRevista sit`)
   }
 
@@ -1069,7 +1071,7 @@ cuit.PersonalCUITCUILCUIT,
     )
 
     const PersonalDocumento = await queryRunner.query(`
-      SELECT ISNULL(PersonalDocumentoUltNro, 0) PersonalDocumentoUltNro
+      SELECT PersonalDocumentoUltNro
       FROM Personal
       WHERE PersonalId IN (@0)`,
       [personalId]
