@@ -85,6 +85,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   isFiltroBuilder = false;
 
+  listOfSelectedValue = [];
   selections = {
     field: { searchComponent: '', name: '', type: '', searchType:'' },
     condition: 'AND',
@@ -325,10 +326,19 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
   }
 
-  selectedValueEstado(val: any) {
+  selectedValue(val: any) {
     if (val) {
       this.selections.value = val.value;
       this.valueExtended = { fullName: val.label };
+    }
+  }
+
+  multipleSelectedValue(values: any) {
+    if (values.length) {
+      let val = values.map((obj:any) => obj.value).join(";");
+      let label = values.map((obj:any) => obj.label).join(";");
+      this.selections.value = val;
+      this.valueExtended = { fullName: label };
     }
   }
 
