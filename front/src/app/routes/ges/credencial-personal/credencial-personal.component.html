@@ -49,7 +49,7 @@
       <nz-form-label [nzSpan]="5">Foto</nz-form-label>
       <nz-form-control nzHasFeedback [nzSpan]="12">
         <app-image-content
-          [personalImage]="data.image"
+          personalImageUrl="api/file-upload/downloadFile/{{data.PersonalFotoId}}/DocumentoImagenFoto/0"
           nombreDescarga="{{ data.NRO_EMPRESA }}-{{ data.DNI }}"
           [imageCroppedDpi]="72"
           [imageCroppedX]="91"

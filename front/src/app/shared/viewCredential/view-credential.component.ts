@@ -27,6 +27,7 @@ export class ViewCredentialComponent implements ControlValueAccessor {
         PersonalNombre: '',
         PersonalCUITCUILCUIT: '',
         DocumentoImagenFotoBlobNombreArchivo: '',
+        PersonalFotoId: 0,
         image: '',
         NRO_EMPRESA: '',
         DNI: '',
@@ -48,7 +49,7 @@ export class ViewCredentialComponent implements ControlValueAccessor {
         if (value) {
             this.personal = value;
             for (const val of value)
-                val.Faltantes = (val.PersonalCUITCUILCUIT || val.image)?false:true 
+                val.Faltantes = (val.PersonalCUITCUILCUIT || val.PersonalFotoId)?false:true 
         }
     }
 

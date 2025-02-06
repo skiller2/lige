@@ -272,8 +272,8 @@ export class PersonalController extends BaseController {
       ORDER BY tip.TipoEstudioId DESC `, [PersonalId])
     dataSource
       .query(
-        `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
-        per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, per.PersonalFechaIngreso, per.PersonalNroLegajo,
+        `SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
+        per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, per.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId,
         TRIM(CONCAT(
           TRIM(dom.PersonalDomicilioDomCalle), ' ',
           TRIM(dom.PersonalDomicilioDomNro), ' ',
@@ -288,7 +288,7 @@ export class PersonalController extends BaseController {
        suc.SucursalDescripcion
         FROM Personal per
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-        LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId
+        LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND  foto.DocumentoImagenFotoId = per.PersonalFotoId
         LEFT JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = per.PersonalId AND cat.PersonalCategoriaId = per.PersonalCategoriaUltNro
         LEFT JOIN CategoriaPersonal categ ON categ.TipoAsociadoId = cat.PersonalCategoriaTipoAsociadoId AND categ.CategoriaPersonalId = cat.PersonalCategoriaCategoriaPersonalId
         LEFT JOIN PersonalDomicilio AS dom ON dom.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1 AND dom.PersonalDomicilioId = ( SELECT MAX(dommax.PersonalDomicilioId) FROM PersonalDomicilio dommax WHERE dommax.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual = 1)
@@ -305,7 +305,7 @@ export class PersonalController extends BaseController {
         [PersonalId, anio, mes]
       )
       .then(async (records: Array<PersonaObj>) => {
-        if (records.length != 1) throw new ClientException("Person not found");
+        if (records.length ==0) throw new ClientException("No se localizó la persona");
 
         let FechaHasta = new Date();
         FechaHasta.setFullYear(FechaHasta.getFullYear() + 1);
@@ -325,64 +325,15 @@ export class PersonalController extends BaseController {
             : "";
         personaData.FechaDesde = new Date();
         personaData.FechaHasta = FechaHasta;
-        const imageFotoPath = process.env.IMAGE_FOTO_PATH
-          ? process.env.IMAGE_FOTO_PATH
-          : "";
-        const imageUrl = personaData.DocumentoImagenFotoBlobNombreArchivo
-          ? imageFotoPath.concat(
-            personaData.DocumentoImagenFotoBlobNombreArchivo
-          )
-          : "";
-        //        personaData.image = "";
+
         personaData.mails = mails;
         personaData.estudios = (estudios[0]) ? `${estudios[0].TipoEstudioDescripcion.trim()} ${estudios[0].PersonalEstudioTitulo.trim()}` : 'Sin registro'
-        if (imageUrl != "") {
-          const res = await fetch(imageUrl)
-          const buffer = await res.arrayBuffer()
-          const bufferStr = Buffer.from(buffer).toString('base64')
-          personaData.image = "data:image/jpeg;base64, " + bufferStr;
-        }
-
         this.jsonRes(personaData, res);
       })
       .catch((error) => {
         return next(error)
       });
   }
-
-  async downloadPersonaImagen(PersonalId: number, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
-
-    const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
-    try {
-      const fechaActual = new Date();
-      const ds = await queryRunner
-        .query(
-          `SELECT per.PersonalId, foto.DocumentoImagenFotoBlobNombreArchivo, dir.DocumentoImagenParametroDirectorioPath
-          FROM Personal per
-                  JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId 
-                  JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  foto.DocumentoImagenParametroId
-                  JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-                  
-                  WHERE per.PersonalId = @0`,
-          [PersonalId, fechaActual]
-        )
-
-      if (ds.length == 0)
-        throw new ClientException(`Documento no existe para la persona`);
-
-      const downloadPath = `${pathArchivos}/${ds[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${ds[0].DocumentoImagenFotoBlobNombreArchivo}`;
-
-      if (!existsSync(downloadPath))
-        throw new ClientException(`El archivo Imagen no existe`, { 'path': downloadPath });
-
-      res.download(downloadPath, ds[0].DocumentoImagenFotoBlobNombreArchivo, (msg) => { });
-
-    } catch (error) {
-      return next(error)
-    }
-  }
-
 
   async getTelefonosPorPersona(PersonalId: string, res: Response, next: NextFunction) {
     try {

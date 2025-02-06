@@ -139,7 +139,9 @@ export class TableGrupoActividadResponsablesComponent {
     let dateToday = new Date();
     let formattedDate = `${dateToday.getDate().toString().padStart(2, '0')}/${(dateToday.getMonth() + 1).toString().padStart(2, '0')}/${dateToday.getFullYear()}`;
 
-    // this.startFilters = [{field:'GrupoActividadInactivo', condition:'AND', operator:'=', value: '0', forced:false}]
+  //  this.startFilters = [
+  //    {field:'GrupoActividadJerarquicoDesde', condition:'AND', operator:'<=', value: formattedDate, forced:false},
+  //    {field:'GrupoActividadJerarquicoHasta', condition:'AND', operator:'>=', value: formattedDate, forced:false}]
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 //      if column.id 
@@ -327,13 +329,16 @@ if (this.angularGridEdit.slickGrid.getEditorLock().isActive()) {
   }
 
   handleOnBeforeEditCell(e: Event) {
-    const { column, item, grid } = (<CustomEvent>e).detail.args;
+    const { column, item, grid } = (<CustomEvent>e).detail.args
+
     if (item.GrupoActividadId == 0)
       return true
 
+    if (item.GrupoActividadJerarquicoHasta && new Date(item.GrupoActividadJerarquicoHasta) < new Date()) 
+      return false
+
     if (column.id == 'GrupoActividadJerarquicoDesde' || column.id == 'GrupoActividadJerarquicoHasta')
       return true
-  
 
     e.stopImmediatePropagation();
     return false;

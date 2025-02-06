@@ -1,9 +1,9 @@
-<app-form (eventEmitter)="fileChangeEvent($event)" *ngIf="!personalImage"></app-form>
+<app-form (eventEmitter)="fileChangeEvent($event)" *ngIf="!showCropper"></app-form>
 
 <div>
     <image-cropper
         [imageChangedEvent]="imageChangedEvent"
-        [imageBase64]="personalImage"
+        [imageURL]="personalImageUrl()"
         [aspectRatio]="1"
         [resizeToWidth]="imageCroppedX"
         [resizeToHeight]="imageCroppedY"
@@ -16,7 +16,7 @@
         (cropperReady)="cropperReady($event)"
         (loadImageFailed)="loadImageFailed()"
     ></image-cropper>
-    <ng-container *ngIf="personalImage">
+    <ng-container *ngIf="showCropper">
         <img nz-image  [nzSrc]="croppedImage" [style.border]="croppedImage ? '1px solid black' : 'none'" />
         <span *ngIf="$croppedImageFileSize | async as size">{{size | nzBytes}}, {{ imageCroppedX }}x{{imageCroppedY}}px &#64; {{imageCroppedDpi}}dpi </span>
         <button nz-button nzType="primary" [nzSize]="'large'" (click)="saveImage()">

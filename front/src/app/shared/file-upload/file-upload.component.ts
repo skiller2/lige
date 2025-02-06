@@ -55,15 +55,15 @@ export class FileUploadComponent implements ControlValueAccessor {
   cantMaxFiles = input(10)
   readonly = input<boolean>(false)
   isDisabled = signal(false)
-  
+
   formChange$ = new BehaviorSubject('');
 
   $formChange = new BehaviorSubject('');
   $files = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
+      this.files.set([])
       if (this.idForSearh() > 0 && this.textForSearch() != "" && this.tableForSearch() != "" ) {
-        this.files.set([])
         return this.apiService.getArchivosAnteriores(this.idForSearh(), this.textForSearch(), this.columnForSearch(), this.tableForSearch()).pipe(
           map((list: any) =>{
             this.cantFilesAnteriores.set(list.length)

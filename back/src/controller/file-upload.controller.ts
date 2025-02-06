@@ -38,7 +38,8 @@ export class FileUploadController extends BaseController {
               WHERE doc.${tableForSearch}Id = @0`, [documentId])
             break;
         case 'docgeneral':
-            document = await this.getFilesInfo(documentId);
+            document = await dataSource.query(`SELECT doc_id AS id, path, nombre_archivo AS name FROM lige.dbo.docgeneral WHERE doc_id = @0`, [documentId])
+
             break;
         default:
             throw new ClientException(`Falla en busqueda de Archivo`)
@@ -61,14 +62,6 @@ export class FileUploadController extends BaseController {
     } catch (error) {
       return next(error)
     }
-  }
-
-  async getFilesInfo(documentId: Number) {
-
-
-    return dataSource.query(
-      `SELECT doc_id AS id, path, nombre_archivo AS name FROM lige.dbo.docgeneral WHERE doc_id = @0`, [documentId])
-
   }
 
   async getArchivosAnteriores(
@@ -103,7 +96,7 @@ export class FileUploadController extends BaseController {
                 doc.${columnSearch} = @0 AND param.DocumentoImagenParametroDe = @1`,
             [id,TipoSearch])
           
-          /*  
+          /*
             let imageUrl = ""
             if (ArchivosAnteriores.length && ArchivosAnteriores[0].path && (tableSearch == 'DocumentoImagenFoto' || tableSearch == 'DocumentoImagenDocumento')){
               const imagePath = process.env.PATH_ARCHIVOS ? process.env.PATH_ARCHIVOS : '.';
