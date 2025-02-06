@@ -419,6 +419,7 @@ export class SearchService {
       PersonalNombre: '',
       PersonalCUITCUILCUIT: '',
       DocumentoImagenFotoBlobNombreArchivo: '',
+      PersonalFotoId:0,
       image: '',
       NRO_EMPRESA: '',
       DNI: '',

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input, Input } from '@angular/core';
 import { base64ToFile, Dimensions, ImageCroppedEvent, ImageCropperModule, ImageTransform, LoadedImage } from 'ngx-image-cropper';
 import { BehaviorSubject, map } from 'rxjs';
 import { changeDpiDataUrl } from '../../utils/changeDpi.js'
@@ -14,12 +14,12 @@ import { FormComponent } from '../form/form.component';
     standalone:true,    
 })
 export class ImageContentComponent {
-    @Input() personalImage = ''
+//    @Input() personalImage = ''
     @Input() imageCroppedDpi:number = 72
     @Input() imageCroppedX:number = 91
     @Input() imageCroppedY:number = 91
     @Input() nombreDescarga: string = ''
-
+    personalImageUrl = input('')
     constructor() {
 
     }

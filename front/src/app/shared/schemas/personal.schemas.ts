@@ -5,6 +5,7 @@ export interface PersonaObj {
     PersonalNombre:string,
     PersonalCUITCUILCUIT: string,
     DocumentoImagenFotoBlobNombreArchivo: string,
+    PersonalFotoId: number,
     image: string,
     NRO_EMPRESA: string,
     DNI: string,
