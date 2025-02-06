@@ -103,7 +103,7 @@ export class FileUploadController extends BaseController {
                 doc.${columnSearch} = @0 AND param.DocumentoImagenParametroDe = @1`,
             [id,TipoSearch])
           
-          /*  
+          /*
             let imageUrl = ""
             if (ArchivosAnteriores.length && ArchivosAnteriores[0].path && (tableSearch == 'DocumentoImagenFoto' || tableSearch == 'DocumentoImagenDocumento')){
               const imagePath = process.env.PATH_ARCHIVOS ? process.env.PATH_ARCHIVOS : '.';
