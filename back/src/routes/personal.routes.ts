@@ -117,15 +117,6 @@ personalRouter.get("/download/:table/:id", authMiddleware.verifyToken, (req, res
   personalController.downloadPersonaDocumentoImagen(req, res, next);
 });
 
-personalRouter.get(`${base}/downloadImagen/:personalId`, (req, res, next) => {
-  personalController.downloadPersonaImagen(
-    Number(req.params.personalId),
-    res,
-    next
-  );
-});
-
-
 personalRouter.get(
   `${base}/responsables/:personalId/:anio/:mes`,
   authMiddleware.verifyToken,
