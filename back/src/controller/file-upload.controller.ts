@@ -6,6 +6,7 @@ import { Utils } from "../liquidaciones/liquidaciones.utils";
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
+import { OPS, getDocument,DOMSVGFactory } from "pdfjs-dist";
 
 const stat = promisify(fs.stat);
 const unlink = promisify(fs.unlink);
@@ -56,6 +57,12 @@ export class FileUploadController extends BaseController {
 
       if (!existsSync(finalurl))
         throw new ClientException(`Archivo ${docname} no localizado`, { path: finalurl })
+
+      if (tableForSearch == 'DocumentoImagenFoto' && finalurl.toLocaleLowerCase().endsWith('.pdf')) { 
+        console.log('lo convierto');	
+        const response = await this.pdf2img(finalurl)
+         
+      }
 
       res.download(finalurl, docname, (msg) => { })
 
@@ -380,5 +387,55 @@ export class FileUploadController extends BaseController {
     }
   }
 
+  addAlphaChannelToUnit8ClampedArray(unit8Array, imageWidth, imageHeight) {
+    const newImageData = new Uint8ClampedArray(imageWidth * imageHeight * 4);
+    
+    for (let j = 0, k = 0, jj = imageWidth * imageHeight * 4; j < jj; ) { 
+     newImageData[j++] = unit8Array[k++];
+     newImageData[j++] = unit8Array[k++];
+     newImageData[j++] = unit8Array[k++];
+     newImageData[j++] = 255;
+   }
+  
+    return newImageData;
+  }
+  
+
+  async pdf2img(finalurl: string) {
+    const loadingTask = getDocument(finalurl); 
+    
+    const pdfDoc = await loadingTask.promise; 
+    const pdfPage = await pdfDoc.getPage(1); 
+    const operatorList = await pdfPage.getOperatorList(); 
+    console.log('operatorList',operatorList)
+    const imgIndex = operatorList.fnArray.indexOf(OPS.paintImageXObject); 
+    const imgArgs = operatorList.argsArray[imgIndex]; 
+    const  image  = pdfPage.objs.get(imgArgs[0]);
+    //const imgData = new Uint8Array(data);
+
+console.log('image',image.width,image.height)
+    const imageUnit8Array = image.data;
+    const imageWidth = image.width;
+    const imageHeight = image.height;
+    const imageUint8ArrayWithAlphaChanel = this.addAlphaChannelToUnit8ClampedArray(imageUnit8Array, imageWidth, imageHeight);
+
+/*
+    fs.writeFileSync('c:/temp/image.png', Buffer.from(imageUint8ArrayWithAlphaChanel));
+
+
+    
+    DOMSVGFactory.createSVG = function (data, viewport, image) { }
+    var svgGfx = new SVGGraphics(page.commonObjs, page.objs);
+    svgGfx.embedFonts = true;
+    return svgGfx.getSVG(opList, viewport).then(function (svg) {
+      var svgDump = svg.toString();
+      writeToFile(svgDump, pageNum);
+    });
+*/
+
+    return ''
+  }
+  
+  
 
 }
