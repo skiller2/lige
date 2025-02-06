@@ -109,7 +109,7 @@ personalRouter.get(`${base}/grupoactividad/options`, authMiddleware.verifyToken,
   personalController.getGrupoActividad(req, res, next);
 });
 
-personalRouter.get(`${base}/documentos/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal'])], (req, res, next) => {
+personalRouter.get(`${base}/documentos/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
   personalController.getDocumentosByPersonalId(req, res, next);
 });
 
