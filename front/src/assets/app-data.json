@@ -13,7 +13,7 @@
       "text": "Principal",
       "i18n": "menu.main",
       "group": true,
-      "hideInBreadcrumb": true, 
+      "hideInBreadcrumb": true,
       "children": [
         {
           "text": "Escritorio",
@@ -24,51 +24,56 @@
           "text": "Utilidades",
           "icon": "anticon-profile",
           "children": [
-          {
-            "text": "Convertir PDF Retiros",
-            "link": "/ges/pdf_retiro",
-            "icon": "anticon-profile"
-          }
-        ]},
+            {
+              "text": "Convertir PDF Retiros",
+              "link": "/ges/pdf_retiro",
+              "icon": "anticon-profile"
+            }
+          ]
+        },
+        {
+          "text": "Documentos",
+          "link": "/ges/tipo_documento",
+          "icon": "anticon-profile"
+        },
         {
           "text": "Personal",
           "icon": "anticon-profile",
           "children": [
-          {
-            "text": "Cambio Categoría",
-            "link": "/ges/cambio_categoria",
-            "icon": "anticon-profile"
-          },  
-          {
-            "text": "Credencial Personal",
-            "i18n": "ges.imgpers",
-            "icon": "anticon-profile",
-            "link": "/ges/credencial_personal"
-          },
-          {
-            "text": "Lista de Credenciales",
-            "i18n": "ges.credpers",
-            "icon": "anticon-profile",
-            "link": "/ges/credencial_lista"
-          },
-          {
-            "text": "Listado",
-            "icon": "anticon-profile",
-            "link": "/ges/personal"
-          }
-          ,
-          {
-            "text": "Acceso BOT",
-            "icon": "anticon-profile",
-            "link": "/ges/acceso-bot"
-          }
-          ,
-          {
-            "text": "Grupo actividad",
-            "icon": "anticon-profile",
-            "link": "/ges/grupo-actividad"
-          }
-        ]},        
+            {
+              "text": "Listado",
+              "icon": "anticon-profile",
+              "link": "/ges/personal"
+            },
+            {
+              "text": "Licencias",
+              "link": "/ges/carga_licencias",
+              "icon": "anticon-profile"
+            },
+            {
+              "text": "Cambio Categoría",
+              "link": "/ges/cambio_categoria",
+              "icon": "anticon-profile"
+            },
+            {
+              "text": "Credencial Personal",
+              "i18n": "ges.imgpers",
+              "icon": "anticon-profile",
+              "link": "/ges/credencial_personal"
+            },
+            {
+              "text": "Lista de Credenciales",
+              "i18n": "ges.credpers",
+              "icon": "anticon-profile",
+              "link": "/ges/credencial_lista"
+            },
+            {
+              "text": "Acceso BOT",
+              "icon": "anticon-profile",
+              "link": "/ges/acceso-bot"
+            }
+          ]
+        },
         {
           "text": "Asistencia",
           "icon": "anticon-profile",
@@ -114,6 +119,11 @@
               "text": "Ayuda Asistencial",
               "link": "/ges/ayuda_asistencial",
               "icon": "anticon-profile"
+            },
+            {
+              "text": "Adelanto",
+              "link": "/ges/adelanto",
+              "icon": "anticon-profile"
             }
           ]
         },
@@ -129,29 +139,13 @@
           ]
         },
         {
-          "text": "Tipo Documento",
-          "link": "/ges/tipo_documento",
-          "icon": "anticon-profile"
-        },
-        {
-          "text": "Adelanto",
-          "link": "/ges/adelanto",
-          "icon": "anticon-profile"
-        },
-        {
           "text": "Impuesto Afip",
           "link": "/ges/impuesto_afip",
           "icon": "anticon-profile"
         },
-        
         {
           "text": "Telefonia",
           "link": "/ges/telefonia",
-          "icon": "anticon-profile"
-        },
-        {
-          "text": "Carga de Licencias",
-          "link": "/ges/carga_licencias",
           "icon": "anticon-profile"
         },
         {
@@ -164,6 +158,27 @@
               "icon": "anticon-profile"
             }
           ]
+        },
+        
+        {
+          "text": "Custodias",
+          "link": "/ges/cust",
+          "icon": "anticon-profile"
+        },
+        {
+          "text": "Clientes",
+          "link": "/ges/clientes",
+          "icon": "anticon-profile"
+        },
+        {
+          "text": "Objetivos",
+          "link": "/ges/objetivos",
+          "icon": "anticon-profile"
+        },
+        {
+          "text": "Grupo actividad",
+          "icon": "anticon-profile",
+          "link": "/ges/grupo-actividad"
         },
         {
           "text": "Configuración",
@@ -180,28 +195,11 @@
               "icon": "anticon-profile"
             }
           ]
-        },
-        {
-          "text": "Custodias",
-          "link": "/ges/cust",
-          "icon": "anticon-profile"
-        }
-        ,
-        {
-          "text": "Clientes",
-          "link": "/ges/clientes",
-          "icon": "anticon-profile"
-        },
-        {
-          "text": "Objetivos",
-          "link": "/ges/objetivos",
-          "icon": "anticon-profile"
         }
         
       ]
     }
   ],
-
   "menu2": [
     {
       "text": "主导航",
