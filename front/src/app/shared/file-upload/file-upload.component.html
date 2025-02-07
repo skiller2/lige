@@ -7,11 +7,11 @@
             (nzOnConfirm)="confirmDeleteArchivo(files.id,false)" nzPopconfirmPlacement="top"  
             nzDanger nz-icon nzType="delete" nzTheme="outline" class="trash-color"></a>
         }
-        @if (files.TipoArchivo == 'JPEG' || files.TipoArchivo == 'JPG' || files.TipoArchivo == 'PNG') {
-        <img nz-image alt="" nzSrc="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/original"
+        @if (files.TipoArchivo == 'JPEG' || files.TipoArchivo == 'JPG' || files.TipoArchivo == 'PNG' || forceImg()) {
+        <img nz-image alt="" nzSrc="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/{{forceImg()?'image':'original'}}"
         class="image-content" />
         }
-        @if (files.TipoArchivo == 'PDF') {
+        @if (files.TipoArchivo == 'PDF' && !forceImg()) {
         <a nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(files.id,tableForSearch(),files.filename)"></a>
         }
 
@@ -33,16 +33,15 @@
 
 
         @if (filesAdd.mimetype.includes('image')) {
-        <img nz-image class="image-content" nzSrc="api/file-upload/downloadFile/{{filesAdd.filename}}/temp/original" alt=""/>
+          <img nz-image class="image-content" nzSrc="api/file-upload/downloadFile/{{filesAdd.filename}}/temp/original" alt=""/>
         } 
         @if (filesAdd.mimetype.includes('pdf')) {
-          <span nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(filesAdd.filename,'temp','original')"></span>
+          <a nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(filesAdd.filename,'temp',filesAdd.originalname)"></a>
         }
 
         <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline" class="download-color"
           app-down-file [httpMethod]="'POST'"
-          httpUrl="api/file-upload/downloadFile/{{filesAdd.filename}}/temp/original"></a>
-        <span> {{filesAdd.originalname}} </span>
+          httpUrl="api/file-upload/downloadFile/{{filesAdd.filename}}/temp/original">{{filesAdd.originalname}}</a>
       </div>
     </ng-container>
     }

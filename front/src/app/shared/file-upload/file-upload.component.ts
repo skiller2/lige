@@ -53,7 +53,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   fileAccept = input("")
   cantFilesAnteriores = signal(0)
   cantMaxFiles = input(10)
-  readonly = input<boolean>(false)
+  forceImg = input<boolean>(false)
   isDisabled = signal(false)
 
   formChange$ = new BehaviorSubject('');
@@ -138,7 +138,6 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   async confirmDeleteArchivo(id: string, tipoDocumentDelete: boolean) {
-    if(this.readonly()) return
     try {
 
       this.ArchivoIdForDelete = parseInt(id);
