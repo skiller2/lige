@@ -8,34 +8,40 @@
             nzDanger nz-icon nzType="delete" nzTheme="outline" class="trash-color"></a>
         }
         @if (files.TipoArchivo == 'JPEG' || files.TipoArchivo == 'JPG' || files.TipoArchivo == 'PNG') {
-        <img nz-image alt="" nzSrc="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/0"
-         style="max-width:120px; max-height:90px;" />
+        <img nz-image alt="" nzSrc="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/original"
+        class="image-content" />
         }
         @if (files.TipoArchivo == 'PDF') {
-        <a nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(files.id,files.filename)"></a>
+        <a nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(files.id,tableForSearch(),files.filename)"></a>
         }
 
         <a nz-icon nzType="download" nzHref="files.path" target="_blank" nzTheme="outline" class="download-color"
           app-down-file [httpMethod]="'POST'"
-          httpUrl="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/0"> {{files.nombre}} </a>
+          httpUrl="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/original"> {{files.nombre}} </a>
         
       </div>
     </ng-container>
     @if(files().length > 0){
     <ng-container class="" *ngFor="let filesAdd of files() ">
       <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{filesAdd.fieldname}}>
-        <img nz-image width="120px" height="90px" [nzSrc]="filesAdd.fileUrl" alt=""
-          *ngIf="!filesAdd.mimetype.includes('pdf')" />
+        @if(isDisabled()==false){
         <span nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
           (nzOnConfirm)="confirmDeleteArchivo(filesAdd.fieldname,true)" nzPopconfirmPlacement="top" nz-button
           nzType="primary" nzDanger nz-icon nzType="delete" nzTheme="outline" class="trash-color cursor-pointer"></span>
+        }
 
-        <span *ngIf="!filesAdd.mimetype.includes('image')" nz-icon nzType="search" nzTheme="outline"
-          (click)="LoadArchivo(0,filesAdd.filename)"></span>
+
+
+        @if (filesAdd.mimetype.includes('image')) {
+        <img nz-image class="image-content" nzSrc="api/file-upload/downloadFile/{{filesAdd.filename}}/temp/original" alt=""/>
+        } 
+        @if (filesAdd.mimetype.includes('pdf')) {
+          <span nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(filesAdd.filename,'temp','original')"></span>
+        }
 
         <a nz-icon nzType="download" nzHref="licencia.path" target="_blank" nzTheme="outline" class="download-color"
           app-down-file [httpMethod]="'POST'"
-          httpUrl="api/file-upload/downloadFile/0/{{tableForSearch()}}/{{filesAdd.filename}}"></a>
+          httpUrl="api/file-upload/downloadFile/{{filesAdd.filename}}/temp/original"></a>
         <span> {{filesAdd.originalname}} </span>
       </div>
     </ng-container>
@@ -44,8 +50,8 @@
 
 
 </nz-form-item>
-
-<nz-form-item *ngIf="cantFiles()">
+@if(isDisabled()==false && cantFiles()){
+<nz-form-item>
   <nz-form-control class="BtnUploadFile">
     <ng-container>
       <!-- image/*
@@ -61,7 +67,7 @@
     </ng-container>
   </nz-form-control>
 </nz-form-item>
-
+}
 <nz-modal [(nzVisible)]="modalViewerVisiable" nzTitle="" nzWidth="700" nzOkDisabled="true"
   (nzOnCancel)="handleCancel()">
   <ng-container *nzModalContent>
