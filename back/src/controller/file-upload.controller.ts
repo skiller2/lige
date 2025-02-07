@@ -29,6 +29,13 @@ export class FileUploadController extends BaseController {
           case 'DocumentoImagenDocumento':
           case 'DocumentoImagenEstudio':
           case 'DocumentoImagenImpuestoAFIP':
+          case 'DocumentoImagenCUITCUIL':
+          case 'DocumentoImagenCurso':
+          case 'DocumentoImagenHabilitacion':
+          case 'DocumentoImagenPsicofisico':
+          case 'DocumentoImagenRenar':
+          case 'DocumentoImagenCertificadoReincidencia':
+          case 'DocumentoImagenPreocupacional':
             document = await dataSource.query(
               `SELECT 
                 doc.${tableForSearch}Id AS id, 
