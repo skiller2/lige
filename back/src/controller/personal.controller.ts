@@ -1383,7 +1383,7 @@ cuit.PersonalCUITCUILCUIT,
       const PersonalCUITCUIL = await queryRunner.query(`
         SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`, [PersonalId]
       )
-      if (PersonalCUITCUIL[0].cuit != CUIT) {
+      if (PersonalCUITCUIL[0]?.cuit != CUIT) {
         await this.updatePersonalCUITQuery(queryRunner, PersonalId, CUIT, now)
         const DNI = parseInt(CUIT.toString().slice(2, -1))
         await this.updatePersonalDocumentoQuery(queryRunner, PersonalId, DNI)
@@ -1768,7 +1768,7 @@ cuit.PersonalCUITCUILCUIT,
     if (!personalForm.Apellido) {
       campos_vacios.push(`- Apellido`)
     }
-    if (!Number.isInteger(personalForm.CUIT)) {
+    if (!Number.isInteger(personalForm.CUIT) || personalForm.CUIT.toString().length != 11) {
       campos_vacios.push(`- CUIT`)
     }
     if (!personalForm.SucursalId) {

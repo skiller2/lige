@@ -53,7 +53,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   fileAccept = input("")
   cantFilesAnteriores = signal(0)
   cantMaxFiles = input(10)
-  readonly = input<boolean>(false)
+  forceImg = input<boolean>(false)
   isDisabled = signal(false)
 
   formChange$ = new BehaviorSubject('');
@@ -82,20 +82,18 @@ export class FileUploadComponent implements ControlValueAccessor {
     }
   }
 
-  async LoadArchivo(documentId: any, filename: any) {
+  async LoadArchivo(documentId: any, tableForSearch:string, filename:string) {
 
     this.modalViewerVisiable.set(false)
 
-    const res = await this.LoadArchivoPreview(documentId, filename)
+    const res = await this.LoadArchivoPreview(documentId, tableForSearch)
     this.src.set(res)
     this.FileName.set(filename)
     this.modalViewerVisiable.set(true)
   }
 
-  async LoadArchivoPreview(documentId: any, filename: any) {
-    const res = await firstValueFrom(this.http.post(`api/file-upload/downloadFile/${documentId}/${this.tableForSearch()}/${filename}`,
-      {}, { responseType: 'blob' }
-    ))
+  async LoadArchivoPreview(documentId: string, tableForSearch: string) {
+    const res = await firstValueFrom(this.http.post(`api/file-upload/downloadFile/${documentId}/${tableForSearch}/original`, {}, { responseType: 'blob' } ))
     return res
   }
 
@@ -120,8 +118,11 @@ export class FileUploadComponent implements ControlValueAccessor {
       case 'success':
 
         const Response = event.file.response
-        var url = await this.triggerFunction(Response.data[0].fieldname, Response.data[0].mimetype)
-        Response.data[0].fileUrl = url
+
+        let src = await this.LoadArchivoPreview(`${Response.data[0].fieldname}.${Response.data[0].mimetype.split("/")[1]}`, 'temp')
+        this.blobUrl = URL.createObjectURL(src)
+
+        Response.data[0].fileUrl = this.blobUrl
         this.files.set([...this.files(), Response.data[0]])
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response)
@@ -136,17 +137,7 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   }
 
-
-  async triggerFunction(fieldname: any, mimetype: any) {
-
-    let src = await this.LoadArchivoPreview(0, `${fieldname}.${mimetype.split("/")[1]}`)
-    this.blobUrl = await URL.createObjectURL(src)
-    return this.blobUrl
-
-  }
-
   async confirmDeleteArchivo(id: string, tipoDocumentDelete: boolean) {
-    if(this.readonly()) return
     try {
 
       this.ArchivoIdForDelete = parseInt(id);

@@ -12,6 +12,10 @@ import dotenv from "dotenv"
 import { GrupoActividadController } from "./grupo-actividad/grupo-actividad.controller";
 import { AsistenciaController } from "./controller/asistencia.controller";
 
+//import * as pdfWorker from "pdfjs-dist/build/pdf.worker.mjs";
+//import { GlobalWorkerOptions } from "pdfjs-dist";
+
+//GlobalWorkerOptions.workerSrc = pdfWorker
 
 
 dotenv.config()

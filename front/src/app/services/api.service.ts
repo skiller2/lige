@@ -88,12 +88,6 @@ export class ApiService {
     );
   }
 
-  getfiles(documentId:any, filename:any ) {
-    return this.http.post('api/file-upload/downloadFile',
-      { 'documentId': documentId, filename: filename }, { responseType: 'blob' }
-    )
-  }
-
   getOptionsForLicenciaDrawer() {
     return this.http.get(`/api/carga-licencia/sepaga_getOptions`).pipe(
       map((res: any) => res.data),

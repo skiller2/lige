@@ -6,73 +6,86 @@ import { Utils } from "../liquidaciones/liquidaciones.utils";
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
-import { OPS, getDocument,DOMSVGFactory } from "pdfjs-dist";
+import { OPS, getDocument } from "pdfjs-dist";
+import { PNG } from 'pngjs';
+import * as os from 'os';
+import { deflate } from "zlib";
+import { randomBytes } from "crypto";
 
 const stat = promisify(fs.stat);
 const unlink = promisify(fs.unlink);
 
 
 export class FileUploadController extends BaseController {
+  tempFolderPath = path.join(process.env.PATH_DOCUMENTS, 'temp');
+  pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
 
   async getByDownloadFile(req: any, res: Response, next: NextFunction) {
-    const documentId = Number(req.params.id);
+    const documentId = req.params.id;
     const filename = req.params.filename;
     const tableForSearch = req.params.tableForSearch;
-    let finalurl = '', docname=''
+    let finalurl = '', docname = ''
+    let document = ''
+    let deleteFile = false
+ 
     try {
-      if (documentId != 0) {
-        const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.' 
-
-        let document
-        switch (tableForSearch) {
-          case 'DocumentoImagenFoto':
-          case 'DocumentoImagenDocumento':
-          case 'DocumentoImagenEstudio':
-          case 'DocumentoImagenImpuestoAFIP':
-          case 'DocumentoImagenCUITCUIL':
-          case 'DocumentoImagenCurso':
-          case 'DocumentoImagenHabilitacion':
-          case 'DocumentoImagenPsicofisico':
-          case 'DocumentoImagenRenar':
-          case 'DocumentoImagenCertificadoReincidencia':
-          case 'DocumentoImagenPreocupacional':
-            document = await dataSource.query(
-              `SELECT 
+      if (documentId == '0')
+        throw new ClientException(`Archivo no localizado`)
+      switch (tableForSearch) {
+        case 'DocumentoImagenFoto':
+        case 'DocumentoImagenDocumento':
+        case 'DocumentoImagenEstudio':
+        case 'DocumentoImagenImpuestoAFIP':
+        case 'DocumentoImagenCUITCUIL':
+        case 'DocumentoImagenCurso':
+        case 'DocumentoImagenHabilitacion':
+        case 'DocumentoImagenPsicofisico':
+        case 'DocumentoImagenRenar':
+        case 'DocumentoImagenCertificadoReincidencia':
+        case 'DocumentoImagenPreocupacional':
+          document = await dataSource.query(
+            `SELECT 
                 doc.${tableForSearch}Id AS id, 
                 CONCAT(TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableForSearch}BlobNombreArchivo)) path, 
                 doc.${tableForSearch}BlobNombreArchivo AS name
               FROM ${tableForSearch} doc
               JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
               WHERE doc.${tableForSearch}Id = @0`, [documentId])
-            break;
-        case 'docgeneral':
-            document = await dataSource.query(`SELECT doc_id AS id, path, nombre_archivo AS name FROM lige.dbo.docgeneral WHERE doc_id = @0`, [documentId])
+          finalurl = `${this.pathArchivos}/${document[0]["path"]}`
+          docname = document[0]["name"]
 
-            break;
+          break;
+        case 'docgeneral':
+          document = await dataSource.query(`SELECT doc_id AS id, path, nombre_archivo AS name FROM lige.dbo.docgeneral WHERE doc_id = @0`, [documentId])
+          finalurl = `${this.pathArchivos}/${document[0]["path"]}`
+          docname = document[0]["name"]
+          break;
+        case 'temp':
+          finalurl = `${process.env.PATH_DOCUMENTS}/temp/${documentId}`
+          docname = documentId
+          break;
         default:
-            throw new ClientException(`Falla en busqueda de Archivo`)
-            break;
-        }
-        // console.log('document', document);
-        
-        finalurl = `${pathArchivos}/${document[0]["path"]}`
-        docname = document[0]["name"]
-      } else if (filename) {
-        finalurl = `${process.env.PATH_DOCUMENTS}/temp/${filename}`
-        docname = filename
+          throw new ClientException(`Falla en busqueda de Archivo`)
+          break;
       }
 
       if (!existsSync(finalurl))
         throw new ClientException(`Archivo ${docname} no localizado`, { path: finalurl })
-
-      if (tableForSearch == 'DocumentoImagenFoto' && finalurl.toLocaleLowerCase().endsWith('.pdf')) { 
-        console.log('lo convierto');	
-        const response = await this.pdf2img(finalurl)
-         
+      if (tableForSearch == 'DocumentoImagenFoto' && finalurl.toLocaleLowerCase().endsWith('.pdf') && filename == 'image') {
+        console.log('lo convierto');
+        finalurl = await this.pdf2img(finalurl)
+        deleteFile = true
+        docname = docname.replace('.pdf', '.png')
       }
-
-      res.download(finalurl, docname, (msg) => { })
-
+      res.download(finalurl, docname, async (error) => {
+        if (error) {
+          console.error('Error al descargar el archivo:', error);
+          return next(error)
+        }
+        if (deleteFile) {
+          await unlink(finalurl);
+        }
+      });
     } catch (error) {
       return next(error)
     }
@@ -99,6 +112,13 @@ export class FileUploadController extends BaseController {
         case 'DocumentoImagenDocumento':
         case 'DocumentoImagenEstudio':
         case 'DocumentoImagenImpuestoAFIP':
+        case 'DocumentoImagenCUITCUIL':
+        case 'DocumentoImagenCurso':
+        case 'DocumentoImagenHabilitacion':
+        case 'DocumentoImagenPsicofisico':
+        case 'DocumentoImagenRenar':
+        case 'DocumentoImagenCertificadoReincidencia':
+        case 'DocumentoImagenPreocupacional':
           ArchivosAnteriores = await queryRunner.query(`
             SELECT  doc.${tableSearch}Id AS id, 
             CONCAT('./', TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableSearch}BlobNombreArchivo)) path, 
@@ -108,8 +128,8 @@ export class FileUploadController extends BaseController {
             JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
             WHERE 
                 doc.${columnSearch} = @0 AND param.DocumentoImagenParametroDe = @1`,
-            [id,TipoSearch])
-          
+            [id, TipoSearch])
+
           /*
             let imageUrl = ""
             if (ArchivosAnteriores.length && ArchivosAnteriores[0].path && (tableSearch == 'DocumentoImagenFoto' || tableSearch == 'DocumentoImagenDocumento')){
@@ -142,16 +162,16 @@ export class FileUploadController extends BaseController {
             WHERE 
                 doc.${columnSearch} = @0 AND
                 tipo.doctipo_id = @1 `,
-            [id,TipoSearch])
-          
+            [id, TipoSearch])
+
           break;
-      
+
         default:
           throw new ClientException(`Falla en busqueda de Archivo`)
           break;
       }
       // console.log('ArchivosAnteriores', ArchivosAnteriores);
-      ArchivosAnteriores.map((archivo) => {return archivo.TipoArchivo = archivo.TipoArchivo.toUpperCase().trim()})
+      ArchivosAnteriores.map((archivo) => { return archivo.TipoArchivo = archivo.TipoArchivo.toUpperCase().trim() })
 
       this.jsonRes(
         {
@@ -234,7 +254,7 @@ export class FileUploadController extends BaseController {
     periodo: number,
     fecha: Date,
     keyfield: string,
-    keyid:number,
+    keyid: number,
     nombre_archivo: string,
     path: string,
     usuario: string,
@@ -255,13 +275,13 @@ export class FileUploadController extends BaseController {
       case "cliente_id":
         cliente_id = keyid
         break;
-  
+
       default:
         break;
     }
-    
-    
-    
+
+
+
     return queryRunner.query(`INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "persona_id", "objetivo_id", "path", "nombre_archivo", "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod", "doctipo_id", "den_documento","cliente_id")
         VALUES
         (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14,@15);`,
@@ -299,11 +319,10 @@ export class FileUploadController extends BaseController {
   async deleleTemporalFiles(req, res, next) {
     try {
 
-      const tempFolderPath = path.join(process.env.PATH_DOCUMENTS, 'temp');
-      const files = await fs.promises.readdir(tempFolderPath);
+      const files = await fs.promises.readdir(this.tempFolderPath);
       const limiteFecha = Date.now() - (24 * 60 * 60 * 1000);
       const deletePromises = files.map(async (file) => {
-        const filePath = path.join(tempFolderPath, file);
+        const filePath = path.join(this.tempFolderPath, file);
         const stats = await stat(filePath);
         const fechaCreacion = stats.birthtime.getTime();
 
@@ -385,7 +404,7 @@ export class FileUploadController extends BaseController {
         }
         await queryRunner.commitTransaction();
       }
-      
+
       this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
 
     } catch (error) {
@@ -396,53 +415,65 @@ export class FileUploadController extends BaseController {
 
   addAlphaChannelToUnit8ClampedArray(unit8Array, imageWidth, imageHeight) {
     const newImageData = new Uint8ClampedArray(imageWidth * imageHeight * 4);
-    
-    for (let j = 0, k = 0, jj = imageWidth * imageHeight * 4; j < jj; ) { 
-     newImageData[j++] = unit8Array[k++];
-     newImageData[j++] = unit8Array[k++];
-     newImageData[j++] = unit8Array[k++];
-     newImageData[j++] = 255;
-   }
-  
+
+    for (let j = 0, k = 0, jj = imageWidth * imageHeight * 4; j < jj;) {
+      newImageData[j++] = unit8Array[k++];
+      newImageData[j++] = unit8Array[k++];
+      newImageData[j++] = unit8Array[k++];
+      newImageData[j++] = 255;
+    }
+
     return newImageData;
   }
-  
-
-  async pdf2img(finalurl: string) {
-    const loadingTask = getDocument(finalurl); 
-    
-    const pdfDoc = await loadingTask.promise; 
-    const pdfPage = await pdfDoc.getPage(1); 
-    const operatorList = await pdfPage.getOperatorList(); 
-    console.log('operatorList',operatorList)
-    const imgIndex = operatorList.fnArray.indexOf(OPS.paintImageXObject); 
-    const imgArgs = operatorList.argsArray[imgIndex]; 
-    const  image  = pdfPage.objs.get(imgArgs[0]);
-    //const imgData = new Uint8Array(data);
-
-console.log('image',image.width,image.height)
-    const imageUnit8Array = image.data;
-    const imageWidth = image.width;
-    const imageHeight = image.height;
-    const imageUint8ArrayWithAlphaChanel = this.addAlphaChannelToUnit8ClampedArray(imageUnit8Array, imageWidth, imageHeight);
-
-/*
-    fs.writeFileSync('c:/temp/image.png', Buffer.from(imageUint8ArrayWithAlphaChanel));
 
 
-    
-    DOMSVGFactory.createSVG = function (data, viewport, image) { }
-    var svgGfx = new SVGGraphics(page.commonObjs, page.objs);
-    svgGfx.embedFonts = true;
-    return svgGfx.getSVG(opList, viewport).then(function (svg) {
-      var svgDump = svg.toString();
-      writeToFile(svgDump, pageNum);
-    });
-*/
-
-    return ''
+  saveRawImageAsPng(data: Uint8ClampedArray, width: number, height: number, outputPath: string) {
   }
-  
-  
+
+
+  getRandomTempFileName(extension: string = ''): string {
+    //    const tempDir = os.tmpdir();
+    const uniqueID = randomBytes(16).toString("hex")
+    const fileName = `tempfile_${uniqueID}${extension}`;
+    return path.join(this.tempFolderPath, fileName);
+  }
+
+  async pdf2img(finalurl: string): Promise<string> {
+    const loadingTask = getDocument(finalurl);
+
+    const pdfDoc = await loadingTask.promise;
+    const pdfPage = await pdfDoc.getPage(1);
+    const operatorList = await pdfPage.getOperatorList();
+    const imgIndex = operatorList.fnArray.indexOf(OPS.paintImageXObject);
+    const imgArgs = operatorList.argsArray[imgIndex];
+
+
+    const imgData: any = await new Promise((resolve, reject) => {
+      if (imgArgs[0].startsWith("g_"))
+        pdfPage.commonObjs.get(imgArgs[0], (imgData: any) => { resolve(imgData) })
+      else
+        pdfPage.objs.get(imgArgs[0], (imgData: any) => { resolve(imgData) })
+    })
+
+
+    const png = new PNG({ width: imgData.width, height: imgData.height })
+    for (let j = 0, k = 0, jj = imgData.width * imgData.height * 4; j < jj;) {
+      png.data[j++] = imgData.data[k++];
+      png.data[j++] = imgData.data[k++];
+      png.data[j++] = imgData.data[k++];
+      png.data[j++] = 255;
+    }
+
+    const outputFileName = this.getRandomTempFileName('.png');
+
+    return new Promise((resolve, reject) => {
+      png.on('end', () => { resolve(outputFileName) })
+      png.on('error', (error) => { reject(error); })
+      png.pack().pipe(fs.createWriteStream(outputFileName))
+    })
+
+  }
+
+
 
 }
