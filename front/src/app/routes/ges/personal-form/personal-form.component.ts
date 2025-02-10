@@ -23,12 +23,13 @@ export class PersonalFormComponent {
   private searchService = inject(SearchService)
   private injector = inject(Injector)
   isLoading = signal(false);
+  panelAbiertos = signal<boolean[]>([false, false, false])
   periodo= signal({anio:0, mes:0})
   enableSelectReset = signal<boolean>(true)
   personalId = model<number>(0);
   readonly = input<boolean>(false);
   urlUpload = '/api/personal/upload'
-  uploading$ = new BehaviorSubject({loading:false,event:null});
+  uploading$ = new BehaviorSubject({loading:false,event:null})
 
   optionsParentesco = signal<any[]>([])
   optionsTelefonoTipo = signal<any[]>([])
@@ -39,6 +40,7 @@ export class PersonalFormComponent {
   objTelefono = {PersonalTelefonoId:0, TipoTelefonoId:0, TelefonoNro:''}
   objEstudio = {PersonalEstudioId:0, TipoEstudioId:0, EstadoEstudioId:0, EstudioTitulo:'', EstudioAno:null, DocTitulo:[], docId:0}
   objFamiliar = {PersonalFamiliaId:0, Apellido:'', Nombre:'', TipoParentescoId:0}
+  objActa = { fecha: '', numero:null }
 
   inputs = { 
     Nombre:'', Apellido:'', CUIT:null, NroLegajo:null, SucursalId:0,
@@ -52,6 +54,11 @@ export class PersonalFormComponent {
     estudios:    this.fb.array([this.fb.group({...this.objEstudio})]),
     familiares:  this.fb.array([this.fb.group({...this.objFamiliar})]),
     PersonalSituacionRevistaId:0, SituacionId:0, Motivo:'', //Situacion de Revista
+    actas:       this.fb.group({
+      alta: this.fb.group({...this.objActa}),
+      baja: this.fb.group({...this.objActa}),
+      destruccion: this.fb.group({...this.objActa})
+    }),
   }
   
   formPer = this.fb.group({ ...this.inputs })
@@ -190,6 +197,7 @@ export class PersonalFormComponent {
   async save() {
     this.isLoading.set(true)
     const values:any = this.formPer.value
+    console.log('values: ', values)
     try {
       if (this.personalId()) {
         await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))

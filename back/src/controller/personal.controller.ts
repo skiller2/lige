@@ -467,8 +467,6 @@ cuit.PersonalCUITCUILCUIT,
       await queryRunner.startTransaction()
 
       const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
-      console.log('-------------------------------------------');
-      console.log('options: ', options);
       const filterSql = filtrosToSql(options.filtros, columns);
       const orderBy = orderToSQL(options.sort)
 
@@ -663,6 +661,7 @@ cuit.PersonalCUITCUILCUIT,
     const telefonos = req.body.telefonos
     const estudios = req.body.estudios
     const familiares = req.body.familiares
+    const actas = req.body.actas
     let errors: string[] = []
     let now = new Date()
     now.setHours(0, 0, 0, 0)
@@ -715,6 +714,7 @@ cuit.PersonalCUITCUILCUIT,
 
       await this.updatePersonalEmail(queryRunner, PersonalId, Email)
 
+      //Telefonos
       for (const telefono of telefonos) {
         if (telefono.TelefonoNro) {
           if (!telefono.TipoTelefonoId) {
@@ -725,6 +725,8 @@ cuit.PersonalCUITCUILCUIT,
           await this.addPersonalTelefono(queryRunner, telefono, PersonalId)
         }
       }
+
+      //Estudios
       for (const estudio of estudios) {
         if (estudio.EstudioTitulo) {
           if (!estudio.TipoEstudioId || !estudio.EstadoEstudioId) {
@@ -743,6 +745,11 @@ cuit.PersonalCUITCUILCUIT,
         throw new ClientException(errors)
 
       await this.setSituacionRevistaQuerys(queryRunner, PersonalId, req.body.SituacionId, now, req.body.Motivo)
+      
+      //Actas
+      const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
+      if (valActas instanceof ClientException)
+        throw valActas
 
       if (foto && foto.length) await this.setFoto(queryRunner, PersonalId, foto[0])
 
@@ -1366,6 +1373,7 @@ cuit.PersonalCUITCUILCUIT,
     const estudios: any[] = req.body.estudios
     const familiares: any[] = req.body.familiares
     const SucursalId = req.body.SucursalId
+    const actas = req.body.actas
     let now = new Date()
     now.setHours(0, 0, 0, 0)
 
@@ -1399,6 +1407,13 @@ cuit.PersonalCUITCUILCUIT,
       }
       //Estudios
       await this.updatePersonalEstudio(queryRunner, PersonalId, estudios)
+
+      //Actas
+      const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
+      if (valActas instanceof ClientException)
+        throw valActas
+
+      throw new ClientException(`DEBUG`)
       
       //Familiares
       const updatePersonalFamilia = await this.updatePersonalFamilia(queryRunner, PersonalId, familiares)
@@ -1431,7 +1446,8 @@ cuit.PersonalCUITCUILCUIT,
       dom.PersonalDomicilioProvinciaId ProvinciaId, dom.PersonalDomicilioLocalidadId LocalidadId, dom.PersonalDomicilioBarrioId BarrioId, dom.PersonalDomicilioId,
       email.PersonalEmailEmail Email, email.PersonalEmailId,
       sit.PersonalSituacionRevistaId, TRIM(sit.PersonalSituacionRevistaMotivo) Motivo, sit.PersonalSituacionRevistaSituacionId SituacionId,
-      per.PersonalFotoId FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId
+      per.PersonalFotoId FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
+      per.PersonalNroActa, per.PersonalFechaActa, per.PersonalBajaNroActa, per.PersonalBajaFechaActa, per.PersonalFechaDestruccion, per.PersonalDestruccionNroActa
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN Sucursal suc ON suc.SucursalId = per.PersonalSuActualSucursalPrincipalId
@@ -1443,7 +1459,19 @@ cuit.PersonalCUITCUILCUIT,
       WHERE per.PersonalId = @0
       `, [personalId]
     )
-    return data[0]
+    let persona: any = data[0]
+    persona.actas = {
+      alta:{ fecha:data[0].PersonalFechaActa , numero:data[0].PersonalNroActa },
+      baja:{ fecha:data[0].PersonalBajaFechaActa , numero:data[0].PersonalBajaNroActa },
+      destruccion:{ fecha:data[0].PersonalFechaDestruccion , numero:data[0].PersonalDestruccionNroActa }
+    }
+    delete persona.PersonalNroActa
+    delete persona.PersonalFechaActa
+    delete persona.PersonalBajaNroActa
+    delete persona.PersonalBajaFechaActa
+    delete persona.PersonalFechaDestruccion
+    delete persona.PersonalDestruccionNroActa
+    return persona
   }
 
   // private async getFormDocumnetosByPersonalIdQuery(queryRunner:any, personalId:any){
@@ -2310,6 +2338,26 @@ cuit.PersonalCUITCUILCUIT,
     } finally {
       await queryRunner.release()
     }
+  }
+
+  private async setActasQuerys(queryRunner: any, personalId: number, actas:any) {
+    const PersonalNroActa = actas.alta.numero
+    const PersonalFechaActa = actas.alta.fecha
+    const PersonalBajaNroActa = actas.baja.numero
+    const PersonalBajaFechaActa = actas.baja.fecha
+    const PersonalDestruccionNroActa = actas.destruccion.numero
+    const PersonalFechaDestruccion = actas.destruccion.fecha
+    if (((!PersonalNroActa && PersonalFechaActa) || (PersonalNroActa && !PersonalFechaActa)) || 
+    ((!PersonalBajaNroActa && PersonalBajaFechaActa) || (PersonalBajaNroActa && !PersonalBajaFechaActa)) || 
+    ((!PersonalDestruccionNroActa && PersonalFechaDestruccion) || (PersonalDestruccionNroActa && !PersonalFechaDestruccion))) {
+      return new ClientException(`Los campos Fecha y Numero de la seccion Actas deben de completarse a la par.`)
+    }
+    await queryRunner.query(`
+      UPDATE Personal SET
+      PersonalNroActa = @1, PersonalFechaActa = @2, PersonalBajaNroActa = @3,
+      PersonalBajaFechaActa = @4, PersonalDestruccionNroActa = @5, PersonalFechaDestruccion = @6
+      WHERE PersonalId IN (@0)
+      `, [personalId, PersonalNroActa, PersonalFechaActa, PersonalBajaNroActa, PersonalBajaFechaActa, PersonalDestruccionNroActa, PersonalFechaDestruccion])
   }
 
 }
