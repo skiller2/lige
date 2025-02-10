@@ -106,6 +106,7 @@ export class PersonalCategoriaDrawerComponent {
     }
 
     selectedTipoAsociadoChange(event: any):void{
+        this.formCategoria.get('CategoriaId')?.setValue(0)
         this.$selectedTipoAsociadoIdChange.next('')
     }
 

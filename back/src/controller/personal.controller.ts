@@ -2020,32 +2020,34 @@ cuit.PersonalCUITCUILCUIT,
       perc.PersonalCategoriaTipoAsociadoId, PersonalCategoriaCategoriaPersonalId,
       perc.PersonalCategoriaDesde, ISNULL(perc.PersonalCategoriaHasta, '9999-12-31') PersonalCategoriaHasta
       FROM PersonalCategoria perc
-      WHERE perc.PersonalCategoriaPersonalId IN (@0) 
+      WHERE perc.PersonalCategoriaPersonalId IN (@0) AND perc.PersonalCategoriaTipoAsociadoId IN(@1)  AND perc.PersonalCategoriaHasta IS NULL
       ORDER BY perc.PersonalCategoriaDesde DESC, ISNULL(perc.PersonalCategoriaHasta, '9999-12-31') DESC
-      `, [PersonalId]
+      `, [PersonalId, TipoAsociadoId]
     )
-
-    if (categoria.length == 1 && categoria[0].PersonalCategoriaDesde.getTime() > Desde.getTime())
-      throw new ClientException(`La fecha Desde no puede ser menor al ${categoria[0].PersonalCategoriaDesde.getDate()}/${categoria[0].PersonalCategoriaDesde.getMonth()+1}/${categoria[0].PersonalCategoriaDesde.getFullYear()}`)
-
-    if (categoria[0]?.PersonalCategoriaTipoAsociadoId == TipoAsociadoId && categoria[0]?.PersonalCategoriaCategoriaPersonalId == CategoriaId)
+    //Validaciones
+    if (categoria.length && categoria[0].PersonalCategoriaTipoAsociadoId == TipoAsociadoId && categoria[0].PersonalCategoriaCategoriaPersonalId == CategoriaId)
       throw new ClientException(`Debe ingresar una categoria distinta a la que se encuentra activa.`)
-
-    if (categoria.length>0 && categoria[0].PersonalCategoriaDesde.getTime() == Desde.getTime()) {
+    
+    if (categoria.length && categoria[0].PersonalCategoriaDesde.getTime() > Desde.getTime()) 
+      throw new ClientException(`La fecha Desde no puede ser menor al ${categoria[0].PersonalCategoriaDesde.getDate()}/${categoria[0].PersonalCategoriaDesde.getMonth()+1}/${categoria[0].PersonalCategoriaDesde.getFullYear()}`)
+    
+    //Actuliza o Cierra la ultima categorización
+    if (categoria.length && categoria[0].PersonalCategoriaDesde.getTime() == Desde.getTime()) {
       await queryRunner.query(`
         UPDATE PersonalCategoria SET PersonalCategoriaDesde = @2, PersonalCategoriaTipoAsociadoId = @3, PersonalCategoriaCategoriaPersonalId = @4
         WHERE PersonalCategoriaPersonalId IN (@0) AND PersonalCategoriaId IN (@1)
         `, [PersonalId, categoria[0]?.PersonalCategoriaId, Desde, TipoAsociadoId, CategoriaId]
       )
-    } else {
-      //Crea una categoria nueva
-      await queryRunner.query(`
-        UPDATE PersonalCategoria SET PersonalCategoriaHasta = @2
-        WHERE PersonalCategoriaPersonalId IN (@0) AND PersonalCategoriaId IN (@1)`,
-        [PersonalId, categoria[0]?.PersonalCategoriaId, yesterday]
-      )
-
-      const PersonalCategoriaUltNroQuery = await queryRunner.query(`SELECT PersonalCategoriaUltNro, PersonalSuActualSucursalPrincipalId FROM Personal WHERE PersonalId IN (@0)`, [PersonalId])
+    }else{
+      if (categoria.length) {
+        await queryRunner.query(`
+          UPDATE PersonalCategoria SET PersonalCategoriaHasta = @2
+          WHERE PersonalCategoriaPersonalId IN (@0) AND PersonalCategoriaId IN (@1)`,
+          [PersonalId, categoria[0].PersonalCategoriaId, yesterday]
+        )
+      }
+      //Crea una nueva categoria
+      const PersonalCategoriaUltNroQuery = await queryRunner.query(`SELECT ISNULL(PersonalCategoriaUltNro, 0) PersonalCategoriaUltNro, PersonalSuActualSucursalPrincipalId FROM Personal WHERE PersonalId IN (@0)`, [PersonalId])
       const PersonalCategoriaUltNro = PersonalCategoriaUltNroQuery[0].PersonalCategoriaUltNro + 1
       const SucursalId = PersonalCategoriaUltNroQuery[0].PersonalSuActualSucursalPrincipalId
 
@@ -2277,7 +2279,7 @@ cuit.PersonalCUITCUILCUIT,
       let PersonalBanco = await queryRunner.query(`
         SELECT *
         FROM PersonalBanco 
-        WHERE PersonalBancoCBU = @0
+        WHERE PersonalBancoCBU = @0 AND PersonalBancoHasta IS NULL
       `, [CBU])
       if (PersonalBanco.length) 
         throw new ClientException('No puedes ingresar un CBU ya registrado.');
