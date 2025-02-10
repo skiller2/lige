@@ -1025,10 +1025,9 @@ export class ApiService {
 
   }
 
-  deleteGrupoActividadResponsables(id: any, hasta:any) {
-    console.log("id ", id)
-    console.log("hasta ", hasta)
-    let vals = [id,hasta]
+  deleteGrupoActividadResponsables(GrupoActividadJerarquicoId: any, GrupoActividadId:any) {
+
+    let vals = [GrupoActividadJerarquicoId,GrupoActividadId]
     return this.http.delete<ResponseJSON<any>>(`/api/grupo-actividad/responsables`,  vals ).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )

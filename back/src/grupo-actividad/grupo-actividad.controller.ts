@@ -419,6 +419,7 @@ export class GrupoActividadController extends BaseController {
 
             const codigoExist = await queryRunner.query(`SELECT * FROM GrupoActividadJerarquico WHERE GrupoActividadJerarquicoId = @0`, [params.GrupoActividadJerarquicoId])
             let dataResultado = {}
+            let GrupoActividadJerarquicoHasta
 
             if (codigoExist.length > 0) { //Entro en update
                 //Validar si cambio el código
@@ -460,28 +461,29 @@ export class GrupoActividadController extends BaseController {
                         WHERE GrupoActividadId = @0 
                         AND GrupoActividadJerarquicoComo = @1
                         ORDER BY GrupoActividadJerarquicoDesde DESC, GrupoActividadJerarquicoHasta DESC;
-                        `,[params.GrupoActividadDetalle.id,params.GrupoActividadJerarquicoComo]);
-
-                        console.log("result ", result)
-                        console.log("result ", result[0].GrupoActividadJerarquicoDesde)
-                        
-                     
-
+                        `,[params.GrupoActividadDetalle.id,params.GrupoActividadJerarquicoComo])
+                    
+                    console.log("result ", result)
                     if ( result.length > 0 ) {
-                     
+
                         if(!result[0].GrupoActividadJerarquicoHasta){
-                           
-                            if (params.GrupoActividadJerarquicoDesde <= result[0].GrupoActividadJerarquicoDesde) 
+
+                            const fechaParam = new Date(params.GrupoActividadJerarquicoDesde).toISOString().split('T')[0]
+                            const fechaResult = new Date(result[0].GrupoActividadJerarquicoDesde).toISOString().split('T')[0]
+
+                            // Validar si la fecha del parámetro es menor o igual a la del resultado
+                            if (fechaParam <= fechaResult) 
                                 throw new ClientException(`La fecha desde debe ser mayor a ${this.dateFormatter.format(result[0].GrupoActividadJerarquicoDesde)}`)
-                            
-                            let GrupoActividadJerarquicoHasta = new Date(params.GrupoActividadJerarquicoDesde)
+
+                            GrupoActividadJerarquicoHasta = new Date(params.GrupoActividadJerarquicoDesde)
                             GrupoActividadJerarquicoHasta.setDate(GrupoActividadJerarquicoHasta.getDate() - 1)
-                            console.log("GrupoActividadJerarquicoHasta " , GrupoActividadJerarquicoHasta)
+                            const formattedDate = GrupoActividadJerarquicoHasta.toISOString().split('T')[0] + "T00:00:00.000Z";
+
 
                             await queryRunner.query(`UPDATE GrupoActividadJerarquico
                                 SET GrupoActividadJerarquicoHasta = @2
-                               WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1`,
-                                [params.GrupoActividadDetalle.id,params.GrupoActividadJerarquicoComo,GrupoActividadJerarquicoHasta])
+                               WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1 AND GrupoActividadJerarquicoid = @3`,
+                                [result[0].GrupoActividadId,params.GrupoActividadJerarquicoComo,formattedDate,result[0].GrupoActividadJerarquicoId])
                         }else{
 
                             if (params.GrupoActividadJerarquicoDesde <= result[0].GrupoActividadJerarquicoHasta) 
@@ -524,7 +526,7 @@ export class GrupoActividadController extends BaseController {
                 WHERE GrupoActividadId =  @1`, [GrupoActividadJerarquicoUltNro, params.GrupoActividadDetalle.id])
 
 
-                dataResultado = { action: 'I', GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadJerarquicoId: GrupoActividadJerarquicoUltNro }
+                dataResultado = { action: 'I', GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadJerarquicoId: GrupoActividadJerarquicoUltNro, PreviousDate: GrupoActividadJerarquicoHasta }
                 message = "Carga de nuevo Registro exitoso"
             }
 

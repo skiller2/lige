@@ -42,8 +42,8 @@ export class TableGrupoActividadResponsablesComponent {
   columnDefinitions: Column[] = []
   itemAddActive = false
   listGrupoActividadResponsables$ = new BehaviorSubject('')
-  editResponsable = signal("")
-  editFechaHasta = signal("")
+  GrupoActividadJerarquicoId = signal("")
+  GrupoActividadId = signal("")
   listOptions: listOptionsT = {
     filtros: [],
     sort: null,
@@ -167,13 +167,15 @@ export class TableGrupoActividadResponsablesComponent {
         editCommand.execute()
         while (this.rowLocked) await firstValueFrom(timer(100));
         row = this.angularGridEdit.dataView.getItemById(row.id)
+      
+
+
 
 
         if (!row.dbid)
           this.rowLocked = true
 
         const response = await firstValueFrom(this.apiService.onchangecellGrupoActividadResponsables(row))
-
         row.GrupoActividadId = response.data.GrupoActividadId
         row.GrupoActividadJerarquicoId = response.data.GrupoActividadJerarquicoId
         row.GrupoActividadDetalleOld = row.GrupoActividadDetalle
@@ -181,6 +183,9 @@ export class TableGrupoActividadResponsablesComponent {
         row.GrupoActividadJerarquicoComoOld = row.GrupoActividadJerarquicoComo
         this.angularGridEdit.gridService.updateItemById(row.id, row)
 
+        if(response.data.PreviousDate){
+          this.listGrupoActividadResponsables$.next('')
+        }
 
         this.rowLocked = false
       } catch (e: any) {
@@ -215,7 +220,7 @@ export class TableGrupoActividadResponsablesComponent {
 
   async deleteItemResponsable() {
 
-    await firstValueFrom(this.apiService.deleteGrupoActividadResponsables(this.editResponsable(), this.editFechaHasta()))
+    await firstValueFrom(this.apiService.deleteGrupoActividadResponsables(this.GrupoActividadJerarquicoId(), this.GrupoActividadId()))
     this.listGrupoActividadResponsables$.next('')
   }
 
@@ -292,8 +297,10 @@ if (this.angularGridEdit.slickGrid.getEditorLock().isActive()) {
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
 
     if (row?.GrupoActividadJerarquicoId) {
-      this.editResponsable.set(row.GrupoActividadJerarquicoId)
-      this.editFechaHasta.set(row.GrupoActividadJerarquicoHasta)
+
+      this.GrupoActividadJerarquicoId.set(row.GrupoActividadJerarquicoId)
+      this.GrupoActividadId.set(row.GrupoActividadId)
+
     }
 
   }
