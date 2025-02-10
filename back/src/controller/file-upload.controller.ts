@@ -37,6 +37,13 @@ export class FileUploadController extends BaseController {
         case 'DocumentoImagenDocumento':
         case 'DocumentoImagenEstudio':
         case 'DocumentoImagenImpuestoAFIP':
+        case 'DocumentoImagenCUITCUIL':
+        case 'DocumentoImagenCurso':
+        case 'DocumentoImagenHabilitacion':
+        case 'DocumentoImagenPsicofisico':
+        case 'DocumentoImagenRenar':
+        case 'DocumentoImagenCertificadoReincidencia':
+        case 'DocumentoImagenPreocupacional':
           document = await dataSource.query(
             `SELECT 
                 doc.${tableForSearch}Id AS id, 
@@ -113,6 +120,13 @@ export class FileUploadController extends BaseController {
         case 'DocumentoImagenDocumento':
         case 'DocumentoImagenEstudio':
         case 'DocumentoImagenImpuestoAFIP':
+        case 'DocumentoImagenCUITCUIL':
+        case 'DocumentoImagenCurso':
+        case 'DocumentoImagenHabilitacion':
+        case 'DocumentoImagenPsicofisico':
+        case 'DocumentoImagenRenar':
+        case 'DocumentoImagenCertificadoReincidencia':
+        case 'DocumentoImagenPreocupacional':
           ArchivosAnteriores = await queryRunner.query(`
             SELECT  doc.${tableSearch}Id AS id, 
             CONCAT('./', TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableSearch}BlobNombreArchivo)) path, 
