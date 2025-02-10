@@ -1412,8 +1412,6 @@ cuit.PersonalCUITCUILCUIT,
       const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
       if (valActas instanceof ClientException)
         throw valActas
-
-      throw new ClientException(`DEBUG`)
       
       //Familiares
       const updatePersonalFamilia = await this.updatePersonalFamilia(queryRunner, PersonalId, familiares)
