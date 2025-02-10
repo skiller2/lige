@@ -1164,6 +1164,9 @@ cuit.PersonalCUITCUILCUIT,
       WHERE PersonalId = @0 AND PersonalDomicilioId = @1
       `, [PersonalId, infoDomicilio.PersonalDomicilioId])
     const domicilio = domicilioRes[0] ? domicilioRes[0] : {}
+        
+    if (domicilioRes.length == 0)
+      cambio=true
 
     for (const key in domicilio) {
       if (infoDomicilio[key] != domicilio[key]) {
@@ -1171,6 +1174,7 @@ cuit.PersonalCUITCUILCUIT,
         break
       }
     }
+
     if (cambio) {
       await queryRunner.query(`
       UPDATE PersonalDomicilio SET PersonalDomicilioActual=0 WHERE PersonalId =@0`, [PersonalId])
@@ -1397,9 +1401,14 @@ cuit.PersonalCUITCUILCUIT,
         await this.updatePersonalDocumentoQuery(queryRunner, PersonalId, DNI)
       }
       await this.updatePersonalDomicilio(queryRunner, PersonalId, req.body)
+
+
+//      throw new ClientException('LLEGO')
+
+
+
       await this.updatePersonalEmail(queryRunner, PersonalId, req.body.Email)
       // await this.updatePersonalSitRevista(queryRunner, PersonalId, req.body)
-
       //Telefonos
       await queryRunner.query(`UPDATE PersonalTelefono SET PersonalTelefonoInactivo = 1 WHERE PersonalId IN (@0)`, [PersonalId])
       for (const telefono of telefonos) {
