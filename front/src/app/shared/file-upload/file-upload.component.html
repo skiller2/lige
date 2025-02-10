@@ -12,6 +12,7 @@
         class="image-content" />
         }
         @if (files.TipoArchivo == 'PDF' && !forceImg()) {
+        <img nz-image alt="" nzSrc="api/file-upload/downloadFile/{{files.id}}/{{tableForSearch()}}/thumb" class="image-content" />
         <a nz-icon nzType="search" nzTheme="outline" (click)="LoadArchivo(files.id,tableForSearch(),files.filename)"></a>
         }
 

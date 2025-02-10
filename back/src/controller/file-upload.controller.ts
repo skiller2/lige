@@ -1,16 +1,17 @@
 import { BaseController, ClientException } from "./baseController";
 import { dataSource } from "../data-source";
 import { NextFunction, Request, Response, query } from "express";
-import { mkdirSync, renameSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
+import { mkdirSync, renameSync, existsSync} from "fs";
 import { Utils } from "../liquidaciones/liquidaciones.utils";
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
-import { OPS, getDocument } from "pdfjs-dist";
+//import { OPS, getDocument } from "pdfjs-dist";
 import { PNG } from 'pngjs';
-import * as os from 'os';
-import { deflate } from "zlib";
 import { randomBytes } from "crypto";
+import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
+
+
 
 const stat = promisify(fs.stat);
 const unlink = promisify(fs.unlink);
@@ -70,6 +71,13 @@ export class FileUploadController extends BaseController {
         deleteFile = true
         docname = docname.replace('.pdf', '.png')
       }
+
+      if (finalurl.toLocaleLowerCase().endsWith('.pdf') && filename == 'thumb') { 
+        finalurl = await this.pdfThumb(finalurl)
+        deleteFile = true
+        docname = docname.replace('.pdf', '.png')
+      }
+
       res.download(finalurl, docname, async (error) => {
         if (error) {
           console.error('Error al descargar el archivo:', error);
@@ -460,6 +468,82 @@ export class FileUploadController extends BaseController {
 
   }
 
+  async pdfThumb(finalurl: string): Promise<string> {
+    const loadingTask = getDocument(finalurl);
+
+    const pdfDoc = await loadingTask.promise;
+    const pdfPage = await pdfDoc.getPage(1);
+    const viewport = pdfPage.getViewport({ scale: 0.5 });
+    const canvasFactory: any = pdfDoc.canvasFactory;
+
+//    viewport.width=viewport.width*2,
+//    viewport.height=viewport.height*2
+
+
+//console.log('viewport',viewport)
+
+    const canvasAndContext = canvasFactory.create(
+      viewport.width,
+      viewport.height
+    );
+
+    const renderContext = {
+      canvasContext: canvasAndContext.context,
+      viewport,
+    };
+
+
+    const renderTask = pdfPage.render(renderContext);
+
+    await renderTask.promise;
+
+  //  console.log('canvasAndContext',canvasAndContext)
+    let imageBuffer = await canvasAndContext.canvas.encode("png");
+
+
+
+
+    const image = canvasAndContext.canvas.toBuffer("image/png");
+    fs.writeFileSync('C:/temp/test1.png', imageBuffer);
+    fs.writeFileSync('C:/temp/test.png', imageBuffer);
+
+    console.log('grabe')
+
+
+
+
+/*
+    const operatorList = await pdfPage.getOperatorList();
+    const imgIndex = operatorList.fnArray.indexOf(OPS.paintImageXObject);
+    const imgArgs = operatorList.argsArray[imgIndex];
+
+
+    const imgData: any = await new Promise((resolve, reject) => {
+      if (imgArgs[0].startsWith("g_"))
+        pdfPage.commonObjs.get(imgArgs[0], (imgData: any) => { resolve(imgData) })
+      else
+        pdfPage.objs.get(imgArgs[0], (imgData: any) => { resolve(imgData) })
+    })
+
+
+    const png = new PNG({ width: imgData.width, height: imgData.height })
+    for (let j = 0, k = 0, jj = imgData.width * imgData.height * 4; j < jj;) {
+      png.data[j++] = imgData.data[k++];
+      png.data[j++] = imgData.data[k++];
+      png.data[j++] = imgData.data[k++];
+      png.data[j++] = 255;
+    }
+
+    const outputFileName = this.getRandomTempFileName('.png');
+
+    return new Promise((resolve, reject) => {
+      png.on('end', () => { resolve(outputFileName) })
+      png.on('error', (error) => { reject(error); })
+      png.pack().pipe(fs.createWriteStream(outputFileName))
+    })
+*/
+    return 'C:/temp/test.png'
+  }
 
 
 }
