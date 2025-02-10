@@ -58,7 +58,7 @@
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Nacionalidad</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="7">
       <nz-select formControlName="NacionalidadId" nzPlaceHolder="" nzAllowClear [nzDropdownMatchSelectWidth]="false"
-        style="width: 100%">
+        style="width: 100%" nzShowSearch>
         <ng-container *ngFor="let option of $optionsNacionalidad | async">
           <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
         </ng-container>
@@ -124,7 +124,7 @@
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Pais</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6">
       <nz-select formControlName="PaisId" nzPlaceHolder="" nzAllowClear [nzDropdownMatchSelectWidth]="false"
-        style="width: 100%" (ngModelChange)="selectedPaisChange($event)">
+        style="width: 100%" (ngModelChange)="selectedPaisChange($event)" nzShowSearch>
         <ng-container *ngFor="let option of $optionsPais | async">
           <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
         </ng-container>
@@ -134,7 +134,7 @@
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Provincia</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6">
       <nz-select formControlName="ProvinciaId" nzPlaceHolder="" nzAllowClear [nzDropdownMatchSelectWidth]="false"
-        style="width: 100%" (ngModelChange)="selectedProvinciaChange($event)">
+        style="width: 100%" (ngModelChange)="selectedProvinciaChange($event)" nzShowSearch>
         <ng-container *ngFor="let option of $optionsProvincia | async">
           <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
         </ng-container>
@@ -146,7 +146,7 @@
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Localidad</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6">
       <nz-select formControlName="LocalidadId" nzPlaceHolder="" nzAllowClear [nzDropdownMatchSelectWidth]="false"
-        style="width: 100%" (ngModelChange)="selectedLocalidadChange($event)">
+        style="width: 100%" (ngModelChange)="selectedLocalidadChange($event)" nzShowSearch>
         <ng-container *ngFor="let option of $optionsLocalidad | async">
           <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
         </ng-container>
@@ -156,7 +156,7 @@
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Barrio</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6">
       <nz-select formControlName="BarrioId" nzPlaceHolder="" nzAllowClear [nzDropdownMatchSelectWidth]="false"
-        style="width: 100%">
+        style="width: 100%" nzShowSearch>
         <ng-container *ngFor="let option of $optionsBarrio | async">
           <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
         </ng-container>
@@ -296,7 +296,7 @@
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="controlParentescoButton" nzSearch>
           <nz-select formControlName="TipoParentescoId" nzPlaceHolder="" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
             <ng-container *ngFor="let option of optionsParentesco()">
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             </ng-container>
@@ -327,7 +327,7 @@
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Situacion de Revista</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
         <nz-select formControlName="SituacionId" nzPlaceHolder="Situacion de Revista" nzAllowClear
-          [nzDropdownMatchSelectWidth]="false">
+          [nzDropdownMatchSelectWidth]="false" nzShowSearch>
           <ng-container *ngFor="let option of $optionsSitRevista | async">
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
           </ng-container>
@@ -355,6 +355,63 @@
       [columnForSearch]="'PersonalId'" [tableForSearch]="'DocumentoImagenImpuestoAFIP'"></app-file-upload>
   </nz-form-control>
   </nz-form-item> -->
+
+  <div class="input-container2">
+    <div class="input-label">Actas</div>
+  </div>
+
+  <div formGroupName="actas">
+    <nz-collapse nzGhost>
+      <nz-collapse-panel nzHeader="Alta" nzActive="false">
+        <div formGroupName="alta">
+          <nz-form-item class="marginElement">
+            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha</nz-form-label>
+            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
+              <nz-date-picker formControlName="fecha"></nz-date-picker>
+            </nz-form-control>
+      
+            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Numero</nz-form-label>
+            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+              <input nz-input placeholder="" formControlName="numero" type="number" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </nz-collapse-panel>
+
+      <nz-collapse-panel nzHeader="Baja" nzActive="false">
+        <div formGroupName="baja">
+          <nz-form-item class="marginElement">
+            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha</nz-form-label>
+            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
+              <nz-date-picker formControlName="fecha"></nz-date-picker>
+            </nz-form-control>
+      
+            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Numero</nz-form-label>
+            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+              <input nz-input placeholder="" formControlName="numero" type="number" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </nz-collapse-panel>
+
+      <nz-collapse-panel nzHeader="Destrucción" nzActive="false"
+      >
+        <div formGroupName="destruccion">
+          <nz-form-item class="marginElement">
+            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha</nz-form-label>
+            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
+              <nz-date-picker formControlName="fecha"></nz-date-picker>
+            </nz-form-control>
+      
+            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Numero</nz-form-label>
+            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+              <input nz-input placeholder="" formControlName="numero" type="number" />
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </nz-collapse-panel>
+    </nz-collapse>
+  </div>
 
   <nz-form-item>
     <nz-form-control style="display: flex; justify-content: center; align-items: center;">
