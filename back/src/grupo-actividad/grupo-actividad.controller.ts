@@ -454,13 +454,41 @@ export class GrupoActividadController extends BaseController {
 
                 if (params.GrupoActividadJerarquicoComo == 'J') {
                     // - si jerarquico tiene hasta el ultimo registro se puede agregar uno nuevo siempre y cuando la fecha desde es posterior a la fehca del ultiumo jerarquico pendiente
-                    const result = await queryRunner.query(` SELECT * FROM GrupoActividadJerarquico  
-                        WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1`,[params.GrupoActividadDetalle.id,params.GrupoActividadJerarquicoComo]);
+                    const result = await queryRunner.query(
+                        `SELECT TOP 1 * 
+                        FROM GrupoActividadJerarquico  
+                        WHERE GrupoActividadId = @0 
+                        AND GrupoActividadJerarquicoComo = @1
+                        ORDER BY GrupoActividadJerarquicoDesde DESC, GrupoActividadJerarquicoHasta DESC;
+                        `,[params.GrupoActividadDetalle.id,params.GrupoActividadJerarquicoComo]);
 
-        
-                    if ( result.length > 0 && result[0].GrupoActividadJerarquicoHasta && new Date(result[0].GrupoActividadJerarquicoHasta) < new Date()) {
-                            throw new ClientException(`EL grupo actividad ya posee un jerárquico`);
+                        console.log("result ", result)
+                        console.log("result ", result[0].GrupoActividadJerarquicoDesde)
+                        
+                     
+
+                    if ( result.length > 0 ) {
+                     
+                        if(!result[0].GrupoActividadJerarquicoHasta){
+                           
+                            if (params.GrupoActividadJerarquicoDesde <= result[0].GrupoActividadJerarquicoDesde) 
+                                throw new ClientException(`La fecha desde debe ser mayor a ${this.dateFormatter.format(result[0].GrupoActividadJerarquicoDesde)}`)
+                            
+                            let GrupoActividadJerarquicoHasta = new Date(params.GrupoActividadJerarquicoDesde)
+                            GrupoActividadJerarquicoHasta.setDate(GrupoActividadJerarquicoHasta.getDate() - 1)
+                            console.log("GrupoActividadJerarquicoHasta " , GrupoActividadJerarquicoHasta)
+
+                            await queryRunner.query(`UPDATE GrupoActividadJerarquico
+                                SET GrupoActividadJerarquicoHasta = @2
+                               WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1`,
+                                [params.GrupoActividadDetalle.id,params.GrupoActividadJerarquicoComo,GrupoActividadJerarquicoHasta])
+                        }else{
+
+                            if (params.GrupoActividadJerarquicoDesde <= result[0].GrupoActividadJerarquicoHasta) 
+                                throw new ClientException(`La fecha desde debe ser mayor a ${this.dateFormatter.format(result[0].GrupoActividadJerarquicoHasta)}`)
+
                         }
+                    }
                 }
 
                 let day = new Date()
