@@ -1,10 +1,9 @@
 import { BaseController, ClientException } from "./baseController";
 import { PersonaObj } from "../schemas/personal.schemas";
-import fetch, { Request } from "node-fetch";
 import { dataSource } from "../data-source";
 import { Response } from "express-serve-static-core";
-import { NextFunction, query } from "express";
-import { mkdirSync, renameSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
+import { NextFunction } from "express";
+import { mkdirSync, renameSync, existsSync } from "fs";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
 import { promisify } from 'util';
@@ -531,8 +530,8 @@ cuit.PersonalCUITCUILCUIT,
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
     const fullname: string = Apellido + ', ' + Nombre
-    const PersonalEstado = 'POSTULANTE'
-    const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (${PersonalEstado} -CUIT ${CUIT} - Leg.:${NroLegajo})`
+    const PersonalEstado = 'ASOCIADO'
+    const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (CUIT ${CUIT} - Leg.:${NroLegajo})`
     let newId = await queryRunner.query(`
       INSERT INTO Personal (
       PersonalClasePersonal,
@@ -635,7 +634,7 @@ cuit.PersonalCUITCUILCUIT,
       [personaId]
     )
 
-    if (res[0]?.PersonalSucursalPrincipalSucursalId != PersonalSucursalPrincipalSucursalId) {
+    if (res[0].length==0 || res[0]?.PersonalSucursalPrincipalSucursalId != PersonalSucursalPrincipalSucursalId) {
       await queryRunner.query(`
       INSERT INTO PersonalSucursalPrincipal (PersonalId, PersonalSucursalPrincipalUltimaActualizacion, PersonalSucursalPrincipalSucursalId)
       VALUES (@0, @1, @2)`,
@@ -713,6 +712,8 @@ cuit.PersonalCUITCUILCUIT,
         await this.addPersonalDomicilio(queryRunner, req.body, PersonalId)
 
       await this.updatePersonalEmail(queryRunner, PersonalId, Email)
+
+      await this.updateSucursalPrincipal(queryRunner, PersonalId, SucursalId)
 
       //Telefonos
       for (const telefono of telefonos) {
@@ -1133,8 +1134,7 @@ cuit.PersonalCUITCUILCUIT,
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
     const fullname: string = Apellido + ', ' + Nombre
-    const PersonalEstado = 'POSTULANTE'
-    const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (${PersonalEstado} -CUIT ${CUIT} - Leg.:${NroLegajo})`
+    const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (CUIT ${CUIT} - Leg.:${NroLegajo})`
     await queryRunner.query(`
       UPDATE Personal SET
       PersonalNroLegajo = @1,
