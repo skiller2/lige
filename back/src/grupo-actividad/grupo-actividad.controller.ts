@@ -165,12 +165,77 @@ export class GrupoActividadController extends BaseController {
 
     ]
 
+    columnasGrillaObjetivos: any[] = [
+        {
+            id: "id",
+            name: "id",
+            field: "id",
+            fieldName: "id",
+            type: "number",
+            sortable: false,
+            hidden: true,
+            searchHidden: true
+        },
+        {
+            name: "Grupo Actividad",
+            type: "string",
+            id: "GrupoActividadDetalle",
+            field: "GrupoActividadDetalle",
+            fieldName: "ga.GrupoActividadDetalle",
+            sortable: true,
+            searchHidden: true
+        },
+        {
+            name: "Objetivo id",
+            type: "string",
+            id: "ObjetivoId",
+            field: "ObjetivoId",
+            fieldName: "obj.ObjetivoId",
+            sortable: true,
+            searchHidden: true
+        },
+        {
+            name: "Objetivo",
+            type: "string",
+            id: "ObjetivoDescripcion",
+            field: "ObjetivoDescripcion",
+            fieldName: "obj.ObjetivoDescripcion,",
+            sortable: true,
+            searchHidden: true
+        },
+        {
+            name: "Desde",
+            type: "date",
+            id: "GrupoActividadObjetivoDesde",
+            field: "GrupoActividadObjetivoDesde",
+            fieldName: "gaobj.GrupoActividadObjetivoDesde",
+            searchComponent: "inpurForFechaSearch",
+            sortable: true,
+        },
+        {
+            name: "Hasta",
+            type: "date",
+            id: "GrupoActividadObjetivoHasta",
+            field: "GrupoActividadObjetivoHasta",
+            fieldName: "gaobj.GrupoActividadObjetivoHasta",
+            searchComponent: "inpurForFechaSearch",
+            sortable: true,
+        }
+
+
+    ]
+
     async getGridColsGrupos(req, res) {
         this.jsonRes(this.columnasGrillaGrupos, res);
     }
 
     async getGridColsResponsables(req, res) {
         this.jsonRes(this.columnasGrillaResponsables, res);
+    }
+
+    async getGridColsObjetivos(req, res) {
+        this.jsonRes(this.columnasGrillaObjetivos
+            , res);
     }
 
 
@@ -290,6 +355,66 @@ export class GrupoActividadController extends BaseController {
 
     }
 
+
+    async listGrupoActividadObjetivos(req: any, res: Response, next: NextFunction) {
+
+        console.log("req.body.options.filtros ", req.body.options.filtros)
+        const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaResponsables);
+        console.log("filterSql ", filterSql)
+        const orderBy = orderToSQL(req.body.options.sort)
+        const queryRunner = dataSource.createQueryRunner();
+        const fechaActual = new Date()
+
+        try {
+
+            const GrupoActividadObjetivos = await queryRunner.query(
+                `SELECT 
+                    ROW_NUMBER() OVER (ORDER BY ga.GrupoActividadId) AS id,
+                    ga.GrupoActividadId,
+                    ga.GrupoActividadNumero,
+                     ga.GrupoActividadDetalle as detalle, 
+                    ga.GrupoActividadInactivo,
+                    ga.GrupoActividadSucursalId,
+
+                    obj.ObjetivoId,
+                    obj.ObjetivoDescripcion,
+
+                    gaobj.GrupoActividadObjetivoId,
+                    gaobj.GrupoActividadObjetivoDesde,
+                    gaobj.GrupoActividadObjetivoHasta
+
+                    FROM GrupoActividadObjetivo gaobj
+                    INNER JOIN GrupoActividad ga ON gaobj.GrupoActividadId = ga.GrupoActividadId
+                    INNER JOIN Objetivo obj ON obj.ObjetivoId = gaobj.GrupoActividadObjetivoId
+                WHERE ${filterSql}`
+            );
+
+            const formattedData = GrupoActividadObjetivos.map((item: any) => ({
+                ...item,
+                GrupoActividadDetalle: {
+                    id: item.GrupoActividadId,
+                    fullName: item.detalle
+                },
+                GrupoActividadDetalleOld: {
+                    id: item.GrupoActividadId,
+                    fullName: item.detalle
+                }
+            }));
+
+            this.jsonRes(
+                {
+                    total: formattedData.length,
+                    list: formattedData,
+                },
+                res
+            );
+
+
+        } catch (error) {
+            return next(error)
+        }
+
+    }
 
     async changecellgrupo(req: any, res: Response, next: NextFunction) {
 
@@ -429,12 +554,13 @@ export class GrupoActividadController extends BaseController {
                 if (params.GrupoActividadJerarquicoComo == 'J' && params.GrupoActividadDetalle.id != params.GrupoActividadDetalleOld.id) {
 
                     const result = await queryRunner.query(` SELECT * FROM GrupoActividadJerarquico  
-                        WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1`,[params.GrupoActividadDetalle.id,params.GrupoActividadJerarquicoComo]);
-                    
+                        WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1`, [params.GrupoActividadDetalle.id, params.GrupoActividadJerarquicoComo]);
+
                     if (result.length > 0) {
                         throw new ClientException(`EL grupo actividad ya posee un jerarquico`)
                     }
                 }
+
                 await queryRunner.query(`UPDATE GrupoActividadJerarquico
                     SET GrupoActividadJerarquicoComo = @0, GrupoActividadJerarquicoDesde = @1, GrupoActividadJerarquicoHasta = @2
                     WHERE GrupoActividadJerarquicoId = @3 AND GrupoActividadId = @5
@@ -453,45 +579,57 @@ export class GrupoActividadController extends BaseController {
                 console.log('El código no existe - es nuevo')
                 await this.validateFormResponsables(params, queryRunner)
 
-                if (params.GrupoActividadJerarquicoComo == 'J') {
-                    // - si jerarquico tiene hasta el ultimo registro se puede agregar uno nuevo siempre y cuando la fecha desde es posterior a la fehca del ultiumo jerarquico pendiente
-                    const result = await queryRunner.query(
-                        `SELECT TOP 1 * 
-                        FROM GrupoActividadJerarquico  
-                        WHERE GrupoActividadId = @0 
-                        AND GrupoActividadJerarquicoComo = @1
-                        ORDER BY GrupoActividadJerarquicoDesde DESC, GrupoActividadJerarquicoHasta DESC;
-                        `,[params.GrupoActividadDetalle.id,params.GrupoActividadJerarquicoComo])
-                    
-                    console.log("result ", result)
-                    if ( result.length > 0 ) {
+                const { GrupoActividadJerarquicoComo, GrupoActividadJerarquicoDesde, GrupoActividadDetalle, ApellidoNombrePersona } = params
 
-                        if(!result[0].GrupoActividadJerarquicoHasta){
-          
-                            const fechaParam = new Date(params.GrupoActividadJerarquicoDesde).toISOString().split('T')[0]
-                            const fechaResult = new Date(result[0].GrupoActividadJerarquicoDesde).toISOString().split('T')[0]
-
-                            // Validar si la fecha del parámetro es menor o igual a la del resultado
-                            if (fechaParam <= fechaResult) 
-                                throw new ClientException(`La fecha desde debe ser mayor a ${this.dateFormatter.format(result[0].GrupoActividadJerarquicoDesde)}`)
-
-                            GrupoActividadJerarquicoHasta = new Date(params.GrupoActividadJerarquicoDesde)
-                            GrupoActividadJerarquicoHasta.setDate(GrupoActividadJerarquicoHasta.getDate() - 1)
-                            const formattedDate = GrupoActividadJerarquicoHasta.toISOString().split('T')[0] + "T00:00:00.000Z";
+                const isJerarquico = GrupoActividadJerarquicoComo === 'J'
+                const isAsignado = GrupoActividadJerarquicoComo === 'A'
 
 
-                            await queryRunner.query(`UPDATE GrupoActividadJerarquico
+                let query = `
+                        SELECT TOP 1 * FROM GrupoActividadJerarquico  
+                        WHERE GrupoActividadId = @0  
+                        AND GrupoActividadJerarquicoComo = @1 
+                        ${isAsignado ? 'AND GrupoActividadJerarquicoPersonalId = @2' : ''}
+                        ORDER BY GrupoActividadJerarquicoDesde DESC, GrupoActividadJerarquicoHasta DESC;`
+
+
+                const queryParams = isJerarquico
+                    ? [GrupoActividadDetalle.id, GrupoActividadJerarquicoComo]
+                    : [GrupoActividadDetalle.id, GrupoActividadJerarquicoComo, ApellidoNombrePersona.id]
+
+                const result = await queryRunner.query(query, queryParams)
+
+                if (result.length > 0) {
+                    const ultimoRegistro = result[0];
+
+                    const fechaParam = new Date(GrupoActividadJerarquicoDesde).toISOString().split('T')[0];
+                    const fechaResult = new Date(ultimoRegistro.GrupoActividadJerarquicoDesde).toISOString().split('T')[0]
+
+
+                    if (fechaParam <= fechaResult) {
+                        throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(ultimoRegistro.GrupoActividadJerarquicoDesde)}`)
+                    }
+
+                    if (!ultimoRegistro.GrupoActividadJerarquicoHasta) {
+
+                        GrupoActividadJerarquicoHasta = new Date(GrupoActividadJerarquicoDesde);
+                        GrupoActividadJerarquicoHasta.setDate(GrupoActividadJerarquicoHasta.getDate() - 1);
+                        const formattedDate = GrupoActividadJerarquicoHasta.toISOString().split('T')[0] + "T00:00:00.000Z";
+
+
+                        await queryRunner.query(
+                            `UPDATE GrupoActividadJerarquico
                                 SET GrupoActividadJerarquicoHasta = @2
-                               WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1 AND GrupoActividadJerarquicoid = @3`,
-                                [result[0].GrupoActividadId,params.GrupoActividadJerarquicoComo,formattedDate,result[0].GrupoActividadJerarquicoId])
-                        }else{
-                           
-                            if (new Date(params.GrupoActividadJerarquicoDesde) <= result[0].GrupoActividadJerarquicoHasta) 
-                                throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(result[0].GrupoActividadJerarquicoHasta)}`)
+                                WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1 AND GrupoActividadJerarquicoid = @3`,
+                            [ultimoRegistro.GrupoActividadId, GrupoActividadJerarquicoComo, formattedDate, ultimoRegistro.GrupoActividadJerarquicoId]
+                        );
+                    }
 
-                        }
+                    if (new Date(GrupoActividadJerarquicoDesde) <= ultimoRegistro.GrupoActividadJerarquicoHasta) {
+                        throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(ultimoRegistro.GrupoActividadJerarquicoHasta)}`);
                     }
                 }
+
 
                 let day = new Date()
                 day.setHours(0, 0, 0, 0)

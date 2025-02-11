@@ -46,6 +46,15 @@ grupoActividadRouter.post('/changecellresponsable', [authMiddleware.verifyToken,
 grupoActividadRouter.delete('/responsables', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])],  (req, res, next) => {
     grupoActividadController.deleteResponsables(req, res, next)
 })
-//SUPERVISORES
+
 //OBJETIVOS
+
+grupoActividadRouter.get("/colsobjetivos", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],(req, res) => {
+    grupoActividadController.getGridColsObjetivos(req, res)
+})
+
+grupoActividadRouter.post('/listObjetivos', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],  (req, res, next) => {
+    grupoActividadController.listGrupoActividadObjetivos(req, res, next)
+})
+
 //PERSONAL
