@@ -634,7 +634,7 @@ cuit.PersonalCUITCUILCUIT,
       [personaId]
     )
 
-    if (res[0].length==0 || res[0]?.PersonalSucursalPrincipalSucursalId != PersonalSucursalPrincipalSucursalId) {
+    if (res.length==0 || res[0]?.PersonalSucursalPrincipalSucursalId != PersonalSucursalPrincipalSucursalId) {
       await queryRunner.query(`
       INSERT INTO PersonalSucursalPrincipal (PersonalId, PersonalSucursalPrincipalUltimaActualizacion, PersonalSucursalPrincipalSucursalId)
       VALUES (@0, @1, @2)`,
@@ -1107,7 +1107,7 @@ cuit.PersonalCUITCUILCUIT,
     let personalRes = await queryRunner.query(`
       SELECT PersonalNroLegajo NroLegajo, TRIM(PersonalApellido) Apellido, TRIM(PersonalNombre) Nombre,
       PersonalFechaIngreso FechaIngreso, PersonalFechaNacimiento FechaNacimiento,
-      PersonalNacionalidadId NacionalidadId, PersonalSucursalIngresoSucursalId SucursalId
+      PersonalNacionalidadId NacionalidadId, PersonalSuActualSucursalPrincipalId SucursalId
       FROM Personal
       WHERE PersonalId = @0
       `, [PersonalId])
@@ -1145,7 +1145,6 @@ cuit.PersonalCUITCUILCUIT,
       PersonalFechaIngreso = @5,
       PersonalFechaNacimiento = @6,
       PersonalNacionalidadId = @7,
-      PersonalSucursalIngresoSucursalId = @8,
       PersonalSuActualSucursalPrincipalId = @8,
       PersonalApellidoNombreDNILegajo = @9
       WHERE PersonalId = @0
@@ -1461,10 +1460,10 @@ cuit.PersonalCUITCUILCUIT,
       LEFT JOIN Nacionalidad nac ON nac.NacionalidadId = per.PersonalNacionalidadId
       LEFT JOIN PersonalDomicilio dom ON dom.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual IN (1)
       LEFT JOIN PersonalEmail email ON email.PersonalId = per.PersonalId AND email.PersonalEmailInactivo IN (0)
-      LEFT JOIN PersonalSituacionRevista sit ON sit.PersonalId = per.PersonalId AND sit.PersonalSituacionRevistaId = per.PersonalSituacionRevistaUltNro
-      LEFT JOIN PersonalDocumento doc ON doc.PersonalDocumentoId = per.PersonalDocumentoUltNro AND doc.PersonalId = per.PersonalId
+      LEFT JOIN PersonalSituacionRevista sit ON sit.PersonalId = per.PersonalId AND sit.PersonalSituacionRevistaId = (SELECT MAX (sitmax.PersonalSituacionRevistaId) FROM PersonalSituacionRevista sitmax WHERE sitmax.PersonalId = per.PersonalId AND sitmax.PersonalSituacionRevistaDesde <= @1 AND ISNULL(sitmax.PersonalSituacionRevistaHasta,'9999-12-31') >= @1)
+      LEFT JOIN PersonalDocumento doc ON doc.PersonalId = per.PersonalId AND doc.PersonalDocumentoId = (SELECT MAX (docmax.PersonalDocumentoId) FROM PersonalDocumento docmax WHERE docmax.PersonalId = per.PersonalId) 
       WHERE per.PersonalId = @0
-      `, [personalId]
+      `, [personalId, new Date()]
     )
     let persona: any = data[0]
     persona.actas = {
