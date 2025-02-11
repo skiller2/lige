@@ -678,8 +678,8 @@ cuit.PersonalCUITCUILCUIT,
     let errors: string[] = []
     let now = new Date()
     now.setHours(0, 0, 0, 0)
-    FechaIngreso ? FechaIngreso.setHours(0, 0, 0, 0) : FechaIngreso
-    FechaNacimiento ? FechaNacimiento.setHours(0, 0, 0, 0) : FechaNacimiento
+    FechaIngreso?.setHours(0, 0, 0, 0)
+    FechaNacimiento?.setHours(0, 0, 0, 0)
 
     try {
       await queryRunner.startTransaction()
@@ -719,6 +719,7 @@ cuit.PersonalCUITCUILCUIT,
       }
 
       await this.addPersonalCUITQuery(queryRunner, PersonalId, CUIT, now)
+
       const DNI = parseInt(CUIT.toString().slice(2, -1))
       await this.addPersonalDocumentoQuery(queryRunner, PersonalId, DNI)
 
@@ -1085,7 +1086,7 @@ cuit.PersonalCUITCUILCUIT,
         DocumentoImagenEstudioBlobTipoArchivo,
         DocumentoImagenParametroId,
         DocumentoImagenParametroDirectorioId
-        )
+        )a
         VALUES(@0,@1,@2,@3)
       `, [personalId, type, 14, 1])
       estudio = await queryRunner.query(`
