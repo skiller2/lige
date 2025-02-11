@@ -155,7 +155,6 @@ export class PersonalFormComponent {
     if (this.personalId()) {
       let infoPersonal = await firstValueFrom(this.searchService.getPersonalInfoById(this.personalId()))
       let values:any = {...this.inputs}
-      console.log('infoPersonal: ', infoPersonal);
       
       for (const key in values) {
         values[key] = infoPersonal[key]
@@ -198,7 +197,6 @@ export class PersonalFormComponent {
   async save() {
     this.isLoading.set(true)
     const values:any = this.formPer.value
-    // console.log('values: ', values)
     try {
       if (this.personalId()) {
         await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))

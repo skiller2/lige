@@ -1,5 +1,5 @@
 import { Component, EventEmitter, forwardRef, inject, Input, input, model, output, Output, signal, SimpleChanges, ViewChild, viewChild } from '@angular/core';
-import { BehaviorSubject, debounceTime, firstValueFrom, noop, switchMap, map } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, noop, switchMap, map, of } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { ApiService } from 'src/app/services/api.service';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
@@ -46,6 +46,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   textForSearch = input("")
   columnForSearch = input("")
   tableForSearch = input("")
+
   modalViewerVisiable = signal(false)
   blobUrl = ""
   Fullpath = signal("")
@@ -58,26 +59,26 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   formChange$ = new BehaviorSubject('');
 
-  $formChange = new BehaviorSubject('');
   $files = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
       this.files.set([])
-      if (this.idForSearh() > 0 && this.textForSearch() != "" && this.tableForSearch() != "" ) {
+      if (this.idForSearh() > 0 && this.textForSearch() != "" && this.tableForSearch() != "") {
         return this.apiService.getArchivosAnteriores(this.idForSearh(), this.textForSearch(), this.columnForSearch(), this.tableForSearch()).pipe(
-          map((list: any) =>{
+          map((list: any) => {
             this.cantFilesAnteriores.set(list.length)
             return list
-        }))
+          }))
       } else {
-        return []
+        this.cantFilesAnteriores.set(0)
+        return of([])
       }
 
     })
   )
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['idForSearh']) {
+    if (changes['idForSearh']|| changes['textForSearch'] || changes['columnForSearch'] || changes['tableForSearch']) {
       this.formChange$.next('');
     }
   }
@@ -126,7 +127,6 @@ export class FileUploadComponent implements ControlValueAccessor {
         this.files.set([...this.files(), Response.data[0]])
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response)
-        // console.log("files ", this.files())
         // this.valueExtendedEmitter
         this.propagateChange(this.files())
 
@@ -184,6 +184,8 @@ export class FileUploadComponent implements ControlValueAccessor {
   }
 
   writeValue(value: any) {
+    this.formChange$.next('');
+
   }
 
   ///

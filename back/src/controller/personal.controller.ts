@@ -1,10 +1,9 @@
 import { BaseController, ClientException } from "./baseController";
 import { PersonaObj } from "../schemas/personal.schemas";
-import fetch, { Request } from "node-fetch";
 import { dataSource } from "../data-source";
 import { Response } from "express-serve-static-core";
-import { NextFunction, query } from "express";
-import { mkdirSync, renameSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
+import { NextFunction } from "express";
+import { mkdirSync, renameSync, existsSync } from "fs";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
 import { promisify } from 'util';
@@ -532,8 +531,8 @@ cuit.PersonalCUITCUILCUIT,
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
     const fullname: string = Apellido + ', ' + Nombre
-    const PersonalEstado = 'POSTULANTE'
-    const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (${PersonalEstado} -CUIT ${CUIT} - Leg.:${NroLegajo})`
+    const PersonalEstado = 'ASOCIADO'
+    const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (CUIT ${CUIT} - Leg.:${NroLegajo})`
     let newId = await queryRunner.query(`
       INSERT INTO Personal (
       PersonalClasePersonal,
@@ -638,7 +637,7 @@ cuit.PersonalCUITCUILCUIT,
       [personaId]
     )
 
-    if (res[0]?.PersonalSucursalPrincipalSucursalId != PersonalSucursalPrincipalSucursalId) {
+    if (res.length==0 || res[0]?.PersonalSucursalPrincipalSucursalId != PersonalSucursalPrincipalSucursalId) {
       await queryRunner.query(`
       INSERT INTO PersonalSucursalPrincipal (PersonalId, PersonalSucursalPrincipalUltimaActualizacion, PersonalSucursalPrincipalSucursalId)
       VALUES (@0, @1, @2)`,
@@ -717,6 +716,8 @@ cuit.PersonalCUITCUILCUIT,
         await this.addPersonalDomicilio(queryRunner, req.body, PersonalId)
 
       await this.updatePersonalEmail(queryRunner, PersonalId, Email)
+
+      await this.updateSucursalPrincipal(queryRunner, PersonalId, SucursalId)
 
       //Telefonos
       for (const telefono of telefonos) {
@@ -1110,7 +1111,7 @@ cuit.PersonalCUITCUILCUIT,
     let personalRes = await queryRunner.query(`
       SELECT PersonalNroLegajo NroLegajo, TRIM(PersonalApellido) Apellido, TRIM(PersonalNombre) Nombre,
       PersonalFechaIngreso FechaIngreso, PersonalFechaNacimiento FechaNacimiento,
-      PersonalNacionalidadId NacionalidadId, PersonalSucursalIngresoSucursalId SucursalId
+      PersonalNacionalidadId NacionalidadId, PersonalSuActualSucursalPrincipalId SucursalId
       FROM Personal
       WHERE PersonalId = @0
       `, [PersonalId])
@@ -1138,8 +1139,7 @@ cuit.PersonalCUITCUILCUIT,
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
     const fullname: string = Apellido + ', ' + Nombre
-    const PersonalEstado = 'POSTULANTE'
-    const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (${PersonalEstado} -CUIT ${CUIT} - Leg.:${NroLegajo})`
+    const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (CUIT ${CUIT} - Leg.:${NroLegajo})`
     await queryRunner.query(`
       UPDATE Personal SET
       PersonalNroLegajo = @1,
@@ -1150,7 +1150,6 @@ cuit.PersonalCUITCUILCUIT,
       PersonalFechaIngreso = @5,
       PersonalFechaNacimiento = @6,
       PersonalNacionalidadId = @7,
-      PersonalSucursalIngresoSucursalId = @8,
       PersonalSuActualSucursalPrincipalId = @8,
       PersonalApellidoNombreDNILegajo = @9,
       PersonalLeyNro = @10
@@ -1170,6 +1169,9 @@ cuit.PersonalCUITCUILCUIT,
       WHERE PersonalId = @0 AND PersonalDomicilioId = @1
       `, [PersonalId, infoDomicilio.PersonalDomicilioId])
     const domicilio = domicilioRes[0] ? domicilioRes[0] : {}
+        
+    if (domicilioRes.length == 0)
+      cambio=true
 
     for (const key in domicilio) {
       if (infoDomicilio[key] != domicilio[key]) {
@@ -1177,6 +1179,7 @@ cuit.PersonalCUITCUILCUIT,
         break
       }
     }
+
     if (cambio) {
       await queryRunner.query(`
       UPDATE PersonalDomicilio SET PersonalDomicilioActual=0 WHERE PersonalId =@0`, [PersonalId])
@@ -1403,9 +1406,14 @@ cuit.PersonalCUITCUILCUIT,
         await this.updatePersonalDocumentoQuery(queryRunner, PersonalId, DNI)
       }
       await this.updatePersonalDomicilio(queryRunner, PersonalId, req.body)
+
+
+//      throw new ClientException('LLEGO')
+
+
+
       await this.updatePersonalEmail(queryRunner, PersonalId, req.body.Email)
       // await this.updatePersonalSitRevista(queryRunner, PersonalId, req.body)
-
       //Telefonos
       await queryRunner.query(`UPDATE PersonalTelefono SET PersonalTelefonoInactivo = 1 WHERE PersonalId IN (@0)`, [PersonalId])
       for (const telefono of telefonos) {
@@ -1459,10 +1467,10 @@ cuit.PersonalCUITCUILCUIT,
       LEFT JOIN Nacionalidad nac ON nac.NacionalidadId = per.PersonalNacionalidadId
       LEFT JOIN PersonalDomicilio dom ON dom.PersonalId = per.PersonalId AND dom.PersonalDomicilioActual IN (1)
       LEFT JOIN PersonalEmail email ON email.PersonalId = per.PersonalId AND email.PersonalEmailInactivo IN (0)
-      LEFT JOIN PersonalSituacionRevista sit ON sit.PersonalId = per.PersonalId AND sit.PersonalSituacionRevistaId = per.PersonalSituacionRevistaUltNro
-      LEFT JOIN PersonalDocumento doc ON doc.PersonalDocumentoId = per.PersonalDocumentoUltNro AND doc.PersonalId = per.PersonalId
+      LEFT JOIN PersonalSituacionRevista sit ON sit.PersonalId = per.PersonalId AND sit.PersonalSituacionRevistaId = (SELECT MAX (sitmax.PersonalSituacionRevistaId) FROM PersonalSituacionRevista sitmax WHERE sitmax.PersonalId = per.PersonalId AND sitmax.PersonalSituacionRevistaDesde <= @1 AND ISNULL(sitmax.PersonalSituacionRevistaHasta,'9999-12-31') >= @1)
+      LEFT JOIN PersonalDocumento doc ON doc.PersonalId = per.PersonalId AND doc.PersonalDocumentoId = (SELECT MAX (docmax.PersonalDocumentoId) FROM PersonalDocumento docmax WHERE docmax.PersonalId = per.PersonalId) 
       WHERE per.PersonalId = @0
-      `, [personalId]
+      `, [personalId, new Date()]
     )
     let persona: any = data[0]
     persona.actas = {
@@ -2132,7 +2140,7 @@ cuit.PersonalCUITCUILCUIT,
     if (ultGrupoActividadPersonal.length == 1 && ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getTime() > Desde.getTime())
       throw new ClientException(`La fecha Desde no puede ser menor al ${ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getDate()}/${ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getMonth()+1}/${ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getFullYear()}`)
 
-    if (ultGrupoActividadPersonal[0].GrupoActividadId == GrupoActividadId)
+    if (ultGrupoActividadPersonal[0]?.GrupoActividadId == GrupoActividadId)
       throw new ClientException(`Debe ingresar un Grupo Actividad distinto al que se encuentra activo.`)
 
     if (ultGrupoActividadPersonal.length > 0 && ultGrupoActividadPersonal[0].GrupoActividadPersonalDesde.getTime() == Desde.getTime()) {
