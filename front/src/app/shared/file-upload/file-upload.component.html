@@ -1,6 +1,10 @@
 <nz-form-item>
   <nz-form-control>
-    <ng-container *ngFor="let files of $files | async">
+    @if($files | async; as filesinDB;){
+      @if (filesinDB.length==0){
+        <div class="">Sin archivo adjunto</div>
+        }
+    <ng-container *ngFor="let files of filesinDB">
       <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{files.nombre}}>
         @if(isDisabled()==false){
           <a nz-popconfirm nzPopconfirmTitle="Seguro que desea eliminar dicho archivo?"
@@ -22,6 +26,7 @@
         
       </div>
     </ng-container>
+    } 
     @if(files().length > 0){
     <ng-container class="" *ngFor="let filesAdd of files() ">
       <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{filesAdd.fieldname}}>
