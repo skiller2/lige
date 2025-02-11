@@ -1460,7 +1460,7 @@ cuit.PersonalCUITCUILCUIT,
       sit.PersonalSituacionRevistaId, TRIM(sit.PersonalSituacionRevistaMotivo) Motivo, sit.PersonalSituacionRevistaSituacionId SituacionId,
       per.PersonalFotoId FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
       per.PersonalNroActa, per.PersonalFechaActa, per.PersonalBajaNroActa, per.PersonalBajaFechaActa, per.PersonalFechaDestruccion, per.PersonalDestruccionNroActa,
-      per.PersonalLeyNro
+      per.PersonalLeyNro LeyNro
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN Sucursal suc ON suc.SucursalId = per.PersonalSuActualSucursalPrincipalId
