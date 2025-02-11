@@ -282,9 +282,19 @@ export class PersonalController extends BaseController {
           TRIM(loc.LocalidadDescripcion), ' ',
           IIF((loc.LocalidadDescripcion!=pro.ProvinciaDescripcion),TRIM(pro.ProvinciaDescripcion),''), ' '
         )) AS DomicilioCompleto,
-       act.GrupoActividadNumero,
-       act.GrupoActividadDetalle,
-       suc.SucursalDescripcion
+        act.GrupoActividadNumero,
+        act.GrupoActividadDetalle,
+        suc.SucursalDescripcion,
+        ISNULL(
+          DATEDIFF(YEAR, per.PersonalFechaIngreso, GETDATE()) 
+          - CASE 
+              WHEN (MONTH(per.PersonalFechaIngreso) > MONTH(GETDATE())) 
+                OR (MONTH(per.PersonalFechaIngreso) = MONTH(GETDATE()) AND DAY(per.PersonalFechaIngreso) > DAY(GETDATE())) 
+              THEN 1 
+              ELSE 0 
+            END,
+          0 
+        ) AS antiguedad
         FROM Personal per
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND  foto.DocumentoImagenFotoId = per.PersonalFotoId
@@ -304,7 +314,7 @@ export class PersonalController extends BaseController {
         [PersonalId, anio, mes]
       )
       .then(async (records: Array<PersonaObj>) => {
-        if (records.length ==0) throw new ClientException("No se localizó la persona");
+        if (records.length == 0) throw new ClientException("No se localizó la persona");
 
         let FechaHasta = new Date();
         FechaHasta.setFullYear(FechaHasta.getFullYear() + 1);
