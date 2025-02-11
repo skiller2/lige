@@ -7,7 +7,7 @@
           <nz-form-label [nzXs]="5">Grupo Actividad</nz-form-label>
           <nz-form-control>
             <nz-select formControlName="GrupoActividadId" nzPlaceHolder="Grupo Actividad" nzAllowClear
-              [nzDropdownMatchSelectWidth]="false">
+              [nzDropdownMatchSelectWidth]="false" nzShowSearch>
               <ng-container *ngFor="let option of $optionsResponsable | async">
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
               </ng-container>

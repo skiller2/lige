@@ -8,7 +8,7 @@
         <nz-form-label [nzXs]="5">Banco</nz-form-label>
         <nz-form-control>
           <nz-select formControlName="BancoId" nzPlaceHolder="Banco" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false">
+            [nzDropdownMatchSelectWidth]="false" nzShowSearch>
             <ng-container *ngFor="let option of $optionsBanco | async">
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             </ng-container>

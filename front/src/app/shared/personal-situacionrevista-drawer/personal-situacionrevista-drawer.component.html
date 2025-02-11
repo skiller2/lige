@@ -8,7 +8,7 @@
         <nz-form-label [nzXs]="5">Situacion de Revista</nz-form-label>
         <nz-form-control>
           <nz-select formControlName="SituacionId" nzPlaceHolder="Situacion de Revista" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false">
+            [nzDropdownMatchSelectWidth]="false" nzShowSearch>
             <ng-container *ngFor="let option of $optionsSitRevista | async">
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             </ng-container>

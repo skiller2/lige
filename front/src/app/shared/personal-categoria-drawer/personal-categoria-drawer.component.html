@@ -10,7 +10,7 @@
         <nz-form-label [nzXs]="5">Tipo de Asociado</nz-form-label>
         <nz-form-control>
           <nz-select formControlName="TipoAsociadoId" nzPlaceHolder="Tipo Asociado" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" (ngModelChange)="selectedTipoAsociadoChange($event)">
+            [nzDropdownMatchSelectWidth]="false" (ngModelChange)="selectedTipoAsociadoChange($event)" nzShowSearch>
             <ng-container *ngFor="let option of $optionsTipoAsociado | async">
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             </ng-container>
@@ -22,7 +22,7 @@
         <nz-form-label [nzXs]="5">Categoria</nz-form-label>
         <nz-form-control>
           <nz-select formControlName="CategoriaId" nzPlaceHolder="Categoria" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false">
+            [nzDropdownMatchSelectWidth]="false" nzShowSearch>
             <ng-container *ngFor="let option of $optionsCategoria | async">
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             </ng-container>
