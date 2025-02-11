@@ -467,7 +467,7 @@ export class GrupoActividadController extends BaseController {
                     if ( result.length > 0 ) {
 
                         if(!result[0].GrupoActividadJerarquicoHasta){
-
+          
                             const fechaParam = new Date(params.GrupoActividadJerarquicoDesde).toISOString().split('T')[0]
                             const fechaResult = new Date(result[0].GrupoActividadJerarquicoDesde).toISOString().split('T')[0]
 
@@ -485,9 +485,9 @@ export class GrupoActividadController extends BaseController {
                                WHERE GrupoActividadId = @0 AND GrupoActividadJerarquicoComo = @1 AND GrupoActividadJerarquicoid = @3`,
                                 [result[0].GrupoActividadId,params.GrupoActividadJerarquicoComo,formattedDate,result[0].GrupoActividadJerarquicoId])
                         }else{
-
-                            if (params.GrupoActividadJerarquicoDesde <= result[0].GrupoActividadJerarquicoHasta) 
-                                throw new ClientException(`La fecha desde debe ser mayor a ${this.dateFormatter.format(result[0].GrupoActividadJerarquicoHasta)}`)
+                           
+                            if (new Date(params.GrupoActividadJerarquicoDesde) <= result[0].GrupoActividadJerarquicoHasta) 
+                                throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(result[0].GrupoActividadJerarquicoHasta)}`)
 
                         }
                     }
@@ -642,7 +642,8 @@ export class GrupoActividadController extends BaseController {
         }
 
         if (params.GrupoActividadJerarquicoHasta && params.GrupoActividadJerarquicoDesde > params.GrupoActividadJerarquicoHasta) {
-            throw new ClientException(`La fecha Hasta ${this.dateFormatter.format(params.GrupoActividadJerarquicoHasta)} no puede ser menor que la fecha ${this.dateFormatter.format(params.GrupoActividadJerarquicoDesde)}.`);
+
+            throw new ClientException(`La fecha Hasta ${this.dateOutputFormat(new Date(params.GrupoActividadJerarquicoHasta))} tiene que ser mayor a ${this.dateOutputFormat(new Date(params.GrupoActividadJerarquicoDesde))}.`);
         }
 
     }
