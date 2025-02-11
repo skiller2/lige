@@ -526,7 +526,8 @@ cuit.PersonalCUITCUILCUIT,
     FechaNacimiento: Date,
     NacionalidadId: number,
     SucusalId: number,
-    CUIT: number
+    CUIT: number,
+    LeyNro: number
   ) {
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
@@ -551,9 +552,10 @@ cuit.PersonalCUITCUILCUIT,
       PersonalSuActualSucursalPrincipalId,
       PersonalEstado,
       PersonalApellidoNombreDNILegajo,
-      PersonalCUITCUILUltNro
+      PersonalCUITCUILUltNro,
+      PersonalLeyNro
       )
-      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@7,@8,@9,@9,@10,@11,@12)
+      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@7,@8,@9,@9,@10,@11,@12,@13)
       
       SELECT MAX(PersonalId) id FROM Personal
       `, [
@@ -569,7 +571,8 @@ cuit.PersonalCUITCUILCUIT,
       SucusalId,
       PersonalEstado,
       ApellidoNombreDNILegajo,
-      1
+      1,
+      LeyNro
     ])
     // console.log('newId:',newId);
     let PersonalId = newId[0].id
@@ -656,6 +659,7 @@ cuit.PersonalCUITCUILCUIT,
     let FechaNacimiento: Date = req.body.FechaIngreso ? new Date(req.body.FechaNacimiento) : null
     const foto = req.body.Foto
     const NacionalidadId: number = req.body.NacionalidadId
+    const LeyNro: number = req.body.LeyNro
     const docFrente = req.body.docFrente
     const docDorso = req.body.docDorso
     const telefonos = req.body.telefonos
@@ -699,7 +703,7 @@ cuit.PersonalCUITCUILCUIT,
         throw new ClientException(errors)
 
       const PersonalId = await this.addPersonalQuery(
-        queryRunner, NroLegajo, Apellido, Nombre, now, FechaIngreso, FechaNacimiento, NacionalidadId, SucursalId, CUIT
+        queryRunner, NroLegajo, Apellido, Nombre, now, FechaIngreso, FechaNacimiento, NacionalidadId, SucursalId, CUIT, LeyNro
       )
       if (Number.isNaN(PersonalId)) {
         throw new ClientException('No se pudo generar un identificador.')
@@ -1128,6 +1132,7 @@ cuit.PersonalCUITCUILCUIT,
     let FechaIngreso: Date = infoPersonal.FechaIngreso ? new Date(infoPersonal.FechaIngreso) : null
     let FechaNacimiento: Date = infoPersonal.FechaNacimiento ? new Date(infoPersonal.FechaNacimiento) : null
     const CUIT: number = infoPersonal.CUIT
+    const LeyNro: number = infoPersonal.LeyNro
     FechaIngreso?.setHours(0, 0, 0, 0)
     FechaNacimiento?.setHours(0, 0, 0, 0)
     Nombre = Nombre.toUpperCase()
@@ -1147,10 +1152,11 @@ cuit.PersonalCUITCUILCUIT,
       PersonalNacionalidadId = @7,
       PersonalSucursalIngresoSucursalId = @8,
       PersonalSuActualSucursalPrincipalId = @8,
-      PersonalApellidoNombreDNILegajo = @9
+      PersonalApellidoNombreDNILegajo = @9,
+      PersonalLeyNro = @10
       WHERE PersonalId = @0
       `, [PersonalId, NroLegajo, Apellido, Nombre, fullname, FechaIngreso, FechaNacimiento, NacionalidadId,
-      SucursalId, ApellidoNombreDNILegajo
+      SucursalId, ApellidoNombreDNILegajo, LeyNro
     ])
   }
 
@@ -1445,7 +1451,8 @@ cuit.PersonalCUITCUILCUIT,
       email.PersonalEmailEmail Email, email.PersonalEmailId,
       sit.PersonalSituacionRevistaId, TRIM(sit.PersonalSituacionRevistaMotivo) Motivo, sit.PersonalSituacionRevistaSituacionId SituacionId,
       per.PersonalFotoId FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
-      per.PersonalNroActa, per.PersonalFechaActa, per.PersonalBajaNroActa, per.PersonalBajaFechaActa, per.PersonalFechaDestruccion, per.PersonalDestruccionNroActa
+      per.PersonalNroActa, per.PersonalFechaActa, per.PersonalBajaNroActa, per.PersonalBajaFechaActa, per.PersonalFechaDestruccion, per.PersonalDestruccionNroActa,
+      per.PersonalLeyNro
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN Sucursal suc ON suc.SucursalId = per.PersonalSuActualSucursalPrincipalId

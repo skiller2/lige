@@ -59,6 +59,7 @@ export class PersonalFormComponent {
       baja: this.fb.group({...this.objActa}),
       destruccion: this.fb.group({...this.objActa})
     }),
+    LeyNro:null,
   }
   
   formPer = this.fb.group({ ...this.inputs })
