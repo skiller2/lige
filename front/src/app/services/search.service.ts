@@ -867,6 +867,16 @@ export class SearchService {
     
   }
 
+  getListGrupoActividadObjetivos(filters: any) {
+    const parameter =  filters 
+    return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/listObjetivos', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+    
+  }
+
   getListAccessBot(filters: any){
     return this.http
       .post<ResponseJSON<any>>(`api/acceso-bot/list`, filters)
