@@ -303,17 +303,13 @@ export class PersonalController extends BaseController {
                       END) % 12,
                     ' meses, ',
                     DATEDIFF(DAY, 
-                        DATEADD(MONTH, 
-                            DATEDIFF(MONTH, per.PersonalFechaIngreso, GETDATE()), 
-                            per.PersonalFechaIngreso
-                        ), 
+                        CASE 
+                            WHEN DATEADD(MONTH, DATEDIFF(MONTH, per.PersonalFechaIngreso, GETDATE()), per.PersonalFechaIngreso) > GETDATE()
+                            THEN DATEADD(MONTH, DATEDIFF(MONTH, per.PersonalFechaIngreso, GETDATE()) - 1, per.PersonalFechaIngreso)
+                            ELSE DATEADD(MONTH, DATEDIFF(MONTH, per.PersonalFechaIngreso, GETDATE()), per.PersonalFechaIngreso)
+                        END,
                         GETDATE()
-                    ) 
-                    + CASE 
-                        WHEN DAY(per.PersonalFechaIngreso) > DAY(GETDATE()) 
-                        THEN DAY(EOMONTH(DATEADD(MONTH, -1, GETDATE()))) 
-                        ELSE 0 
-                      END,
+                    ),
                     ' días'
                 ),
                 '0 años, 0 meses, 0 días'
