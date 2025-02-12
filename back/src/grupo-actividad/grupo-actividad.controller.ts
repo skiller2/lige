@@ -934,7 +934,7 @@ export class GrupoActividadController extends BaseController {
             await queryRunner.startTransaction();
 
             const personal = await queryRunner.query(`SELECT DISTINCT sit.PersonalId,sit.PersonalSituacionRevistaSituacionId, sit.PersonalSituacionRevistaDesde, sit.PersonalSituacionRevistaHasta, sitdes.SituacionRevistaDescripcion
-                FROM PersonalSitu   acionRevista sit 
+                FROM PersonalSituacionRevista sit 
                 JOIN 
                 (SELECT sitj.PersonalId, MAX(sitj.PersonalSituacionRevistaDesde) PersonalSituacionRevistaDesde FROM PersonalSituacionRevista sitj 
                 WhERE sitj.PersonalSituacionRevistaDesde < EOMONTH(DATEFROMPARTS(@1,@2,1))
