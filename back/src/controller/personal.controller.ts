@@ -286,15 +286,39 @@ export class PersonalController extends BaseController {
         act.GrupoActividadDetalle,
         suc.SucursalDescripcion,
         ISNULL(
-          DATEDIFF(YEAR, per.PersonalFechaIngreso, GETDATE()) 
-          - CASE 
-              WHEN (MONTH(per.PersonalFechaIngreso) > MONTH(GETDATE())) 
-                OR (MONTH(per.PersonalFechaIngreso) = MONTH(GETDATE()) AND DAY(per.PersonalFechaIngreso) > DAY(GETDATE())) 
-              THEN 1 
-              ELSE 0 
-            END,
-          0 
-        ) AS antiguedad
+                CONCAT(
+                    DATEDIFF(YEAR, per.PersonalFechaIngreso, GETDATE()) 
+                    - CASE 
+                        WHEN (MONTH(per.PersonalFechaIngreso) > MONTH(GETDATE())) 
+                          OR (MONTH(per.PersonalFechaIngreso) = MONTH(GETDATE()) AND DAY(per.PersonalFechaIngreso) > DAY(GETDATE())) 
+                        THEN 1 
+                        ELSE 0 
+                      END,
+                    ' años, ',
+                    (DATEDIFF(MONTH, per.PersonalFechaIngreso, GETDATE()) 
+                    - CASE 
+                        WHEN DAY(per.PersonalFechaIngreso) > DAY(GETDATE()) 
+                        THEN 1 
+                        ELSE 0 
+                      END) % 12,
+                    ' meses, ',
+                    DATEDIFF(DAY, 
+                        DATEADD(MONTH, 
+                            DATEDIFF(MONTH, per.PersonalFechaIngreso, GETDATE()), 
+                            per.PersonalFechaIngreso
+                        ), 
+                        GETDATE()
+                    ) 
+                    + CASE 
+                        WHEN DAY(per.PersonalFechaIngreso) > DAY(GETDATE()) 
+                        THEN DAY(EOMONTH(DATEADD(MONTH, -1, GETDATE()))) 
+                        ELSE 0 
+                      END,
+                    ' días'
+                ),
+                '0 años, 0 meses, 0 días'
+              ) AS antiguedad
+
         FROM Personal per
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND  foto.DocumentoImagenFotoId = per.PersonalFotoId
