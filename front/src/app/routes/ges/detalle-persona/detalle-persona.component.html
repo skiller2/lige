@@ -10,18 +10,18 @@
       <div nz-col nzFlex="240px" class="app-info-pers">
         <li><span class="app-bold-text">{{personalDetalle.PersonalApellido}}, {{personalDetalle.PersonalNombre}}</span>
         </li>
-        <li><span class="app-bold-text">CUIT:</span> {{personalDetalle.PersonalCUITCUILCUIT}}</li>
-        <li><span class="app-bold-text">Domicilio:</span> {{personalDetalle.DomicilioCompleto}}</li>
-        <li><span class="app-bold-text">Ingresó:</span> {{personalDetalle.PersonalFechaIngreso|date}}</li>
-        <li><span class="app-bold-text">Antigüedad:</span> {{personalDetalle.antiguedad}}</li>
+        <li><span class="app-bold-text">CUIT:</span> {{personalDetalle.PersonalCUITCUILCUIT}}.</li>
+        <li><span class="app-bold-text">Domicilio:</span> {{personalDetalle.DomicilioCompleto}}.</li>
+        <li><span class="app-bold-text">Ingresó:</span> {{personalDetalle.PersonalFechaIngreso|date}}.</li>
+        <li><span class="app-bold-text">Antigüedad:</span> {{personalDetalle.antiguedad}}.</li>
         <li><span class="app-bold-text">Edad:</span> {{personalDetalle.PersonalFechaNacimiento|AGE}},
-          {{personalDetalle.PersonalFechaNacimiento|date}}</li>
-        <li><span class="app-bold-text">Socio:</span> {{personalDetalle.PersonalNroLegajo }}</li>
+          {{personalDetalle.PersonalFechaNacimiento|date}}.</li>
+        <li><span class="app-bold-text">Asociado:</span> {{personalDetalle.PersonalNroLegajo }}.</li>
         @for (mail of personalDetalle.mails; track mail.PersonalEmailEmail) {
-          <li><span class="app-bold-text">Mail:</span> {{mail.PersonalEmailEmail}}</li> 
+          <li><span class="app-bold-text">Mail:</span> {{mail.PersonalEmailEmail}}.</li> 
         }
-        <li><span class="app-bold-text">Sucursal:</span> {{personalDetalle.SucursalDescripcion }}</li>
-        <li><span class="app-bold-text">Estudios:</span> {{personalDetalle.estudios }}</li>
+        <li><span class="app-bold-text">Sucursal:</span> {{personalDetalle.SucursalDescripcion }}.</li>
+        <li><span class="app-bold-text">Estudios:</span> {{personalDetalle.estudios }}.</li>
         
         <!-- <li><span class="ant-divider-horizontal.ant-divider-with-text">DNI</span> {{personalDetalle.DomicilioCompleto}}</li> -->
       </div>
