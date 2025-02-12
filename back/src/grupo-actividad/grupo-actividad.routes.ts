@@ -57,4 +57,8 @@ grupoActividadRouter.post('/listObjetivos', [authMiddleware.verifyToken, authMid
     grupoActividadController.listGrupoActividadObjetivos(req, res, next)
 })
 
+grupoActividadRouter.post('/changecellObjetivos', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],(req, res, next) => {
+    grupoActividadController.changecellObjetivos(req, res, next)
+})
+
 //PERSONAL

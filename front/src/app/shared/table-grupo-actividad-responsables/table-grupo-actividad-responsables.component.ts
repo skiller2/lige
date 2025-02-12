@@ -70,6 +70,12 @@ export class TableGrupoActividadResponsablesComponent {
     map((data) => {
       let mapped = data.cols.map((col: Column) => {
         switch (col.id) {
+          case 'GrupoActividadJerarquicoDesde':
+            col.cssClass = "text-row-aling";
+            break;
+          case 'GrupoActividadJerarquicoHasta':
+            col.cssClass = "text-row-aling";
+            break;
           case 'ApellidoNombrePersona':
             col.formatter = Formatters['complexObject'],
               col.exportWithFormatter = true,
