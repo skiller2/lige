@@ -357,14 +357,14 @@ console.log('validateRecibo', cuit, recibo)
             const personalId = personaIdQuery[0].PersonalId
 
 
-            const result = await queryRunner.query(`SELECT TOP 1 rec.idrecibo FROM lige.dbo.docgeneral rec
+            const result = await queryRunner.query(`SELECT TOP 2 rec.idrecibo FROM lige.dbo.docgeneral rec
                 WHERE rec.persona_id = @0 AND rec.doctipo_id='REC'
                 ORDER BY rec.fecha DESC
             `, [personalId])
             if(result.length < 1)
                 throw new ClientException(`El número de recibo es incorrecto para el CUIT ${cuit} `)
 
-            if(result[0].idrecibo != recibo)
+            if(result[0].idrecibo != recibo && result[1].idrecibo != recibo)
                 throw new ClientException(`El número de recibo es incorrecto para el CUIT ${cuit} `)
 
             this.jsonRes("OK", res)

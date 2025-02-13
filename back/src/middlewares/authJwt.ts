@@ -1,4 +1,6 @@
 import jwt from "jsonwebtoken";
+import { BaseController } from "src/controller/baseController";
+import { dataSource } from "src/data-source";
 //import { TokenExpiredError } from "jsonwebtoken";
 export class AuthMiddleware {
   catchError = (err: any, res: any) => {
@@ -36,6 +38,8 @@ export class AuthMiddleware {
 
   hasGroup = (group: string[]) => {
     return (req, res, next) => {
+      if (res.locals?.skipMiddleware) return next()
+
       let inGroup = false
       if (req?.groups) {
         for (const rowgroup of req?.groups) {
@@ -50,5 +54,49 @@ export class AuthMiddleware {
 
     }
   }
+
+  hasAuthResp = (skipNextonPass: boolean) => {
+    return async (req, res, next) => {
+      const stmActual = new Date();
+      const PersonalId = res.locals.PersonalId
+      const PersonalId_auth = req.params.personalIdRel
+
+      const anio = stmActual.getFullYear()
+      const mes = stmActual.getMonth() + 1
+      if (PersonalId == PersonalId_auth) {
+        res.locals.skipMiddleware = skipNextonPass
+        return next()
+      }
+      if (PersonalId < 1) {
+        return next()
+      }
+      const queryRunner = dataSource.createQueryRunner()
+
+      const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
+      let listGrupos = []
+      for (const row of grupos)
+        listGrupos.push(row.GrupoActividadId)
+      if (listGrupos.length > 0) {
+        let resPers = await queryRunner.query(`
+        SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
+        WHERE gap.GrupoActividadPersonalPersonalId = @0  AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
+        ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${listGrupos.join(',')})
+        UNION
+        SELECT gap.GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico gap 
+        WHERE gap.GrupoActividadJerarquicoPersonalId = @0  AND gap.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
+        ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${listGrupos.join(',')})
+        AND gap.GrupoActividadJerarquicoComo = 'J'
+        `,
+          [PersonalId_auth, anio, mes])
+        if (resPers.length > 0) {
+          res.locals.skipMiddleware = skipNextonPass
+          return next()
+        }
+      }
+      return next()
+
+    }
+  }
+
 
 }
