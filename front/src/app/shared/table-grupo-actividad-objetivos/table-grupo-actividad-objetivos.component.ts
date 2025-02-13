@@ -15,6 +15,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../select-search/select-search.component"
 import { Component, model, signal, inject } from '@angular/core';
 import { GrupoActividadSearchComponent } from '../grupo-actividad-search/grupo-actividad-search.component';
+import { ObjetivoSearchComponent } from '../objetivo-search/objetivo-search.component'
 
 
 
@@ -69,7 +70,14 @@ export class TableGrupoActividadObjetivosComponent {
     }),
     map((data) => {
       let mapped = data.cols.map((col: Column) => {
+        console.log("col.id ", col.id)
         switch (col.id) {
+          case 'GrupoActividadObjetivoDesde':
+            col.cssClass = "text-row-aling";
+            break;
+          case 'GrupoActividadObjetivoHasta':
+            col.cssClass = "text-row-aling";
+            break;
           case 'GrupoActividadDetalle':
             col.formatter = Formatters['complexObject'],
               col.exportWithFormatter = true,
@@ -85,6 +93,22 @@ export class TableGrupoActividadObjetivosComponent {
                 complexFieldLabel: 'GrupoActividadDetalle.fullName',
               }
             break
+
+          case 'ObjetivoDescripcion':
+              col.formatter = Formatters['complexObject'],
+                col.exportWithFormatter = true,
+                col.editor = {
+                  model: CustomInputEditor,
+                  collection: [],
+                  params: {
+                    component: ObjetivoSearchComponent,
+                  },
+                  alwaysSaveOnEnterKey: true,
+                },
+                col.params = {
+                  complexFieldLabel: 'GrupoObjetivoDetalle.fullName',
+                }
+              break
 
             col.editor = {
               model: CustomInputEditor,
@@ -150,7 +174,7 @@ export class TableGrupoActividadObjetivosComponent {
         if (!row.dbid)
           this.rowLocked = true
 
-        const response = await firstValueFrom(this.apiService.onchangecellGrupoActividadResponsables(row))
+        const response = await firstValueFrom(this.apiService.onchangecellGrupoActividadObjetivos(row))
         // row.GrupoActividadId = response.data.GrupoActividadId
         // row.GrupoActividadJerarquicoId = response.data.GrupoActividadJerarquicoId
         // row.GrupoActividadDetalleOld = row.GrupoActividadDetalle
@@ -188,7 +212,7 @@ export class TableGrupoActividadObjetivosComponent {
   async addNewItem() {
 
     const newItem1 = this.createNewItem(1);
-    this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
+    this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: true, triggerEvent: false })
     this.itemAddActive = true
 
   }
@@ -210,13 +234,10 @@ export class TableGrupoActividadObjetivosComponent {
       GrupoActividadId: 0,
       GrupoActividadDetalle: "",
       GrupoActividadDetalleOld: "",
-      GrupoActividadJerarquicoComo: "",
-      GrupoActividadJerarquicoComoOld: "",
-      ApellidoNombrePersona: "",
-      ApellidoNombrePersonaOld: "",
-      GrupoActividadSucursalId: "",
-      GrupoActividadJerarquicoDesde: new Date(),
-      GrupoActividadJerarquicoHasta: null
+      ObjetivoDescripcion: "",
+      ObjetivoDescripcionOld: "",
+      GrupoActividadObjetivoDesde: new Date(),
+      GrupoActividadObjetivoHasta: null
 
     };
   }

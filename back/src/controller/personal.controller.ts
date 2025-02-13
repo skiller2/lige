@@ -284,37 +284,7 @@ export class PersonalController extends BaseController {
         )) AS DomicilioCompleto,
         act.GrupoActividadNumero,
         act.GrupoActividadDetalle,
-        suc.SucursalDescripcion,
-        ISNULL(
-                CONCAT(
-                    DATEDIFF(YEAR, per.PersonalFechaIngreso, GETDATE()) 
-                    - CASE 
-                        WHEN (MONTH(per.PersonalFechaIngreso) > MONTH(GETDATE())) 
-                          OR (MONTH(per.PersonalFechaIngreso) = MONTH(GETDATE()) AND DAY(per.PersonalFechaIngreso) > DAY(GETDATE())) 
-                        THEN 1 
-                        ELSE 0 
-                      END,
-                    ' años, ',
-                    (DATEDIFF(MONTH, per.PersonalFechaIngreso, GETDATE()) 
-                    - CASE 
-                        WHEN DAY(per.PersonalFechaIngreso) > DAY(GETDATE()) 
-                        THEN 1 
-                        ELSE 0 
-                      END) % 12,
-                    ' meses, ',
-                    DATEDIFF(DAY, 
-                        CASE 
-                            WHEN DATEADD(MONTH, DATEDIFF(MONTH, per.PersonalFechaIngreso, GETDATE()), per.PersonalFechaIngreso) > GETDATE()
-                            THEN DATEADD(MONTH, DATEDIFF(MONTH, per.PersonalFechaIngreso, GETDATE()) - 1, per.PersonalFechaIngreso)
-                            ELSE DATEADD(MONTH, DATEDIFF(MONTH, per.PersonalFechaIngreso, GETDATE()), per.PersonalFechaIngreso)
-                        END,
-                        GETDATE()
-                    ),
-                    ' días'
-                ),
-                '0 años, 0 meses, 0 días'
-              ) AS antiguedad
-
+        suc.SucursalDescripcion
         FROM Personal per
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND  foto.DocumentoImagenFotoId = per.PersonalFotoId
@@ -2404,6 +2374,20 @@ cuit.PersonalCUITCUILCUIT,
       PersonalBajaFechaActa = @4, PersonalDestruccionNroActa = @5, PersonalFechaDestruccion = @6
       WHERE PersonalId IN (@0)
       `, [personalId, PersonalNroActa, PersonalFechaActa, PersonalBajaNroActa, PersonalBajaFechaActa, PersonalDestruccionNroActa, PersonalFechaDestruccion])
+  }
+
+  async getLugarHabilitacion(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT LugarHabilitacionId value, TRIM(LugarHabilitacionDescripcion) label
+        FROM LugarHabilitacion
+        WHERE LugarHabilitacionInactivo IS NULL
+      `)
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
   }
 
 }
