@@ -4,7 +4,9 @@
 			"path": "."
 		}
 	],
-	"settings": {},
+	"settings": {
+		"postman.settings.dotenv-detection-notification-visibility": false
+	},
 	"tasks": {
 		"version": "2.0.0",
 		"tasks": [
