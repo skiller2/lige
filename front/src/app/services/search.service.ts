@@ -1337,4 +1337,14 @@ export class SearchService {
     );
   }
 
+  getLugarHabilitacionOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/personal/lugarhabilitacion/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
 }

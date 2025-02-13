@@ -6,14 +6,15 @@ import { ApiService } from 'src/app/services/api.service';
 import { SearchService } from 'src/app/services/search.service';
 import { FormArray, FormBuilder } from '@angular/forms';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
-import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
+import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component";
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 
 @Component({
   selector: 'app-personal-form',
   templateUrl: './personal-form.component.html',
   styleUrl: './personal-form.component.less',
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, NzUploadModule, FileUploadComponent],
+  imports: [...SHARED_IMPORTS, CommonModule, NzUploadModule, FileUploadComponent, NzCheckboxModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
   
@@ -35,6 +36,7 @@ export class PersonalFormComponent {
   optionsTelefonoTipo = signal<any[]>([])
   optionsEstudioEstado = signal<any[]>([])
   optionsEstudioTipo = signal<any[]>([])
+  optionsLugarHabilitacion = signal<any[]>([])
   
   fb = inject(FormBuilder)
   objTelefono = {PersonalTelefonoId:0, TipoTelefonoId:0, TelefonoNro:''}
@@ -60,6 +62,7 @@ export class PersonalFormComponent {
       destruccion: this.fb.group({...this.objActa})
     }),
     LeyNro:null,
+    habilitacion: this.optionsLugarHabilitacion(),
   }
   
   formPer = this.fb.group({ ...this.inputs })
@@ -67,6 +70,7 @@ export class PersonalFormComponent {
   $optionsSucursal = this.searchService.getSucursales();
   $optionsNacionalidad = this.searchService.getNacionalidadOptions();
   $optionsSitRevista = this.searchService.getSitRevistaOptions();
+  // $optionsLugarHabilitacion = this.searchService.getTipoParentescoOptions();
 
   fotoId():number {
     const value = this.formPer.value.FotoId
@@ -142,11 +146,13 @@ export class PersonalFormComponent {
     let optionsEstudioEstado = await firstValueFrom(this.searchService.getEstadoEstudioOptions())
     let optionsEstudioTipo = await firstValueFrom(this.searchService.getTipoEstudioOptions())
     let optionsParentesco = await firstValueFrom(this.searchService.getTipoParentescoOptions())
+    let optionsLugarHabilitacion = await firstValueFrom(this.searchService.getLugarHabilitacionOptions())
     
     this.optionsTelefonoTipo.set(optionsTelefonoTipo)
     this.optionsEstudioEstado.set(optionsEstudioEstado)
     this.optionsEstudioTipo.set(optionsEstudioTipo)
     this.optionsParentesco.set(optionsParentesco)
+    this.optionsLugarHabilitacion.set(optionsLugarHabilitacion)
   }
 
   async load() {
@@ -197,6 +203,7 @@ export class PersonalFormComponent {
   async save() {
     this.isLoading.set(true)
     const values:any = this.formPer.value
+    // console.log('values',values);
     try {
       if (this.personalId()) {
         await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))
@@ -288,6 +295,7 @@ export class PersonalFormComponent {
       this.telefonos().clear()
       this.estudios().clear()
       this.familiares().clear()
+      this.formPer.get("habilitacion")?.setValue(this.optionsLugarHabilitacion())
 
       if (this.telefonos().length == 0)
         this.telefonos().push(this.fb.group({...this.objTelefono}))

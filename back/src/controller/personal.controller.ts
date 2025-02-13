@@ -665,6 +665,7 @@ cuit.PersonalCUITCUILCUIT,
     const estudios = req.body.estudios
     const familiares = req.body.familiares
     const actas = req.body.actas
+    const habilitacion = req.body.habilitacion
     let errors: string[] = []
     let now = new Date()
     now.setHours(0, 0, 0, 0)
@@ -751,7 +752,14 @@ cuit.PersonalCUITCUILCUIT,
         throw new ClientException(errors)
 
       await this.setSituacionRevistaQuerys(queryRunner, PersonalId, req.body.SituacionId, now, req.body.Motivo)
-      
+      //Habilitacion necesaria
+      const Usuario = await queryRunner.query(`
+        SELECT UsuarioId FROM Usuario WHERE UsuarioPersonalId IN (@0)`, [res.locals.PersonalId]
+      )
+      const UsuarioId = (Usuario.length && Usuario[0].UsuarioId)? Usuario[0].UsuarioId : null
+      const ip = this.getRemoteAddress(req)
+      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, UsuarioId, ip)
+
       //Actas
       const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
       if (valActas instanceof ClientException)
@@ -1384,6 +1392,7 @@ cuit.PersonalCUITCUILCUIT,
     const familiares: any[] = req.body.familiares
     const SucursalId = req.body.SucursalId
     const actas = req.body.actas
+    const habilitacion = req.body.habilitacion
     let now = new Date()
     now.setHours(0, 0, 0, 0)
 
@@ -1422,16 +1431,24 @@ cuit.PersonalCUITCUILCUIT,
       }
       //Estudios
       await this.updatePersonalEstudio(queryRunner, PersonalId, estudios)
-
-      //Actas
-      const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
-      if (valActas instanceof ClientException)
-        throw valActas
       
       //Familiares
       const updatePersonalFamilia = await this.updatePersonalFamilia(queryRunner, PersonalId, familiares)
       if (updatePersonalFamilia instanceof ClientException)
         throw updatePersonalFamilia
+
+      //Habilitacion Necesaria
+      const Usuario = await queryRunner.query(`
+        SELECT UsuarioId FROM Usuario WHERE UsuarioPersonalId IN (@0)`, [res.locals.PersonalId]
+      )
+      const UsuarioId = (Usuario.length && Usuario[0].UsuarioId)? Usuario[0].UsuarioId : null
+      const ip = this.getRemoteAddress(req)
+      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, UsuarioId, ip)
+
+      //Actas
+      const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
+      if (valActas instanceof ClientException)
+        throw valActas
 
       if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto[0])
 
@@ -1527,6 +1544,22 @@ cuit.PersonalCUITCUILCUIT,
     )
   }
 
+  private async getFormHabilitacionByPersonalIdQuery(queryRunner: any, personalId: any) {
+    const lugaresPersona = await queryRunner.query(`
+        SELECT PersonalHabilitacionNecesariaLugarHabilitacionId LugarHabilitacionId
+        FROM PersonalHabilitacionNecesaria
+        WHERE PersonalId IN (@0)
+      `, [personalId]
+    )
+    const lugares = await this.getLugarHabilitacionQuery(queryRunner)
+    for (const lugar of lugares) {
+      const find = lugaresPersona.find((obj:any)=> {return obj.LugarHabilitacionId == lugar.value})
+      if (find) lugar.checked = true
+      else lugar.checked = false
+    }
+    return lugares
+  }
+
   async getFormDataById(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner()
     const personalId = req.params.id
@@ -1536,10 +1569,12 @@ cuit.PersonalCUITCUILCUIT,
       const telefonos = await this.getFormTelefonosByPersonalIdQuery(queryRunner, personalId)
       const estudios = await this.getFormEstudiosByPersonalIdQuery(queryRunner, personalId)
       const familiares = await this.getFormFamiliaresByPersonalIdQuery(queryRunner, personalId)
+      const habilitacion = await this.getFormHabilitacionByPersonalIdQuery(queryRunner, personalId)
 
       data.telefonos = telefonos
       data.estudios = estudios
       data.familiares = familiares
+      data.habilitacion = habilitacion
 
       this.jsonRes(data, res);
     } catch (error) {
@@ -2376,18 +2411,67 @@ cuit.PersonalCUITCUILCUIT,
       `, [personalId, PersonalNroActa, PersonalFechaActa, PersonalBajaNroActa, PersonalBajaFechaActa, PersonalDestruccionNroActa, PersonalFechaDestruccion])
   }
 
+  private async getLugarHabilitacionQuery(queryRunner:any) {
+    return await queryRunner.query(`
+      SELECT LugarHabilitacionId value, TRIM(LugarHabilitacionDescripcion) label
+      FROM LugarHabilitacion
+      WHERE LugarHabilitacionInactivo IS NULL
+    `)
+  }
+
   async getLugarHabilitacion(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
-      const options = await queryRunner.query(`
-        SELECT LugarHabilitacionId value, TRIM(LugarHabilitacionDescripcion) label
-        FROM LugarHabilitacion
-        WHERE LugarHabilitacionInactivo IS NULL
-      `)
+      const options = await this.getLugarHabilitacionQuery(queryRunner)
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
     }
+  }
+
+  private async setPersonalHabilitacionNecesaria(queryRunner: any, personalId: number, habilitaciones:any[], usuarioId:any, ip:string) {
+    //Compruebo si hubo cambios
+    let cambios:boolean = false
+    const lugaresOld = await this.getFormHabilitacionByPersonalIdQuery(queryRunner, personalId)
+    lugaresOld.forEach((lugar:any, index:number) => {
+      if (lugar.checked != habilitaciones[index].checked) {
+        cambios = true
+      }
+    });
+    if (lugaresOld.length && !cambios) return
+    console.log('----------------------------------------');
+    console.log('Hubo cambios de HabilitacionNecesaria.');
+    console.log('----------------------------------------');
+    //Actualizo
+    const now = new Date()
+    const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
+    console.log('time', time);
+    
+    let PersonalHabilitacionNecesariaId:number = 0
+    now.setHours(0,0,0,0)
+    await queryRunner.query(`
+      DELETE FROM PersonalHabilitacionNecesaria
+      WHERE PersonalId IN (@0)
+      `, [personalId])
+    for (const habilitacion of habilitaciones) {
+      if (habilitacion.checked) {
+        const habilitacionId = habilitacion.value
+        PersonalHabilitacionNecesariaId++
+        await queryRunner.query(`
+          INSERT INTO PersonalHabilitacionNecesaria (
+          PersonalId, PersonalHabilitacionNecesariaId, PersonalHabilitacionNecesariaLugarHabilitacionId,
+          PersonalHabilitacionNecesariaDesde, PersonalHabilitacionNecesariaPuesto, PersonalHabilitacionNecesariaUsuarioId,
+          PersonalHabilitacionNecesariaDia, PersonalHabilitacionNecesariaTiempo)
+          VALUES(@0,@1,@2,@3,@4,@5,@3,@6)
+          `, [personalId, PersonalHabilitacionNecesariaId, habilitacionId, now, ip, usuarioId, time])
+      }
+      
+    }
+    await queryRunner.query(`
+      UPDATE Personal SET
+      PersonalHabilitacionNecesariaUltNro = @1
+      WHERE PersonalId IN (@0)
+      `, [personalId, PersonalHabilitacionNecesariaId])
   }
 
 }

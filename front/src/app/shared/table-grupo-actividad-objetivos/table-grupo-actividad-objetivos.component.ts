@@ -182,9 +182,9 @@ export class TableGrupoActividadObjetivosComponent {
         // row.GrupoActividadJerarquicoComoOld = row.GrupoActividadJerarquicoComo
         this.angularGridEdit.gridService.updateItemById(row.id, row)
 
-        // if(response.data.PreviousDate){
-        //   this.listGrupoActividadObjetivos$.next('')
-        // }
+        if(response.data.PreviousDate){
+          this.listGrupoActividadObjetivos$.next('')
+        }
 
         this.rowLocked = false
       } catch (e: any) {
@@ -258,13 +258,6 @@ export class TableGrupoActividadObjetivosComponent {
 
     if (this.apiService.isMobile())
       this.angularGridEdit.gridService.hideColumnByIds([])
-
-  }
-
-
-  openDrawerforConsultHistory(): void {
-
-    //this.visibleHistorial.set(true)
 
   }
 
