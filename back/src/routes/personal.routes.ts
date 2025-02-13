@@ -96,8 +96,8 @@ personalRouter.get(`${base}/telefonos/:id`, authMiddleware.verifyToken, (req, re
   personalController.getTelefonosPorPersona(req.params.id, res, next);
 });
 
-personalRouter.get(`${base}/banco/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
-  //personalRouter.get(`${base}/:id`,  (req, res) => {
+personalRouter.get(`${base}/banco/:id`, [authMiddleware.verifyToken], (req, res, next) => {
+  //TODO: Revisar porque lleva permiso de authMiddleware.hasGroup(['Liquidaciones'])
   personalController.getCuentasBancoPorPersona(req.params.id, res, next);
 });
 
