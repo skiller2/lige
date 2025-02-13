@@ -62,7 +62,7 @@ export class PersonalFormComponent {
       destruccion: this.fb.group({...this.objActa})
     }),
     LeyNro:null,
-    habilitacion:[],
+    habilitacion: this.optionsLugarHabilitacion(),
   }
   
   formPer = this.fb.group({ ...this.inputs })
@@ -295,6 +295,7 @@ export class PersonalFormComponent {
       this.telefonos().clear()
       this.estudios().clear()
       this.familiares().clear()
+      this.formPer.get("habilitacion")?.setValue(this.optionsLugarHabilitacion())
 
       if (this.telefonos().length == 0)
         this.telefonos().push(this.fb.group({...this.objTelefono}))
