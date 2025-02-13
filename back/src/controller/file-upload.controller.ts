@@ -19,6 +19,7 @@ const unlink = promisify(fs.unlink);
 
 export class FileUploadController extends BaseController {
   tempFolderPath = path.join(process.env.PATH_DOCUMENTS, 'temp');
+  pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' 
   pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
 
   async getByDownloadFile(req: any, res: Response, next: NextFunction) {
@@ -58,7 +59,7 @@ export class FileUploadController extends BaseController {
           break;
         case 'docgeneral':
           document = await dataSource.query(`SELECT doc_id AS id, path, nombre_archivo AS name FROM lige.dbo.docgeneral WHERE doc_id = @0`, [documentId])
-          finalurl = `${this.pathArchivos}/${document[0]["path"]}`
+          finalurl = `${this.pathDocuments}/${document[0]["path"]}`
           docname = document[0]["name"]
           break;
         case 'temp':

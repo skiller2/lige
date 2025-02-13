@@ -76,7 +76,7 @@ export class BaseController {
       return false
     }
 
-    const grupos = await this.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
+    const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
     let listGrupos = []
     for (const row of grupos)
       listGrupos.push(row.GrupoActividadId)
@@ -176,7 +176,7 @@ export class BaseController {
 
     if (PersonalId == "") return false
 
-    const grupos = await this.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
+    const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
     let listGrupos = []
     for (const row of grupos)
       listGrupos.push(row.GrupoActividadId)
@@ -280,7 +280,7 @@ export class BaseController {
     return den_numero
   }
 
-  async getGruposActividad(queryRunner: any, PersonalId: number, anio: number, mes: number) {
+  static async getGruposActividad(queryRunner: any, PersonalId: number, anio: number, mes: number) {
     return await queryRunner.query(
       `SELECT DISTINCT gaj.GrupoActividadId, gaj.GrupoActividadJerarquicoComo, 1
       FroM GrupoActividadJerarquico gaj 

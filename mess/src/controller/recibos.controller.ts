@@ -18,7 +18,7 @@ export class RecibosController extends BaseController {
   //   const result = `http://localhost:3010/api/recibos/download/${year}/${month}/${personalId}`
   //   return result
   // }
-  directoryRecibo = process.env.PATH_RECIBO || "tmp";
+  directoryRecibo  = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' + '/recibo'
   apiPath = process.env.URL_API || "http://localhost:4200/mess/api";
 
 

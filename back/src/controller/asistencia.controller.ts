@@ -9,6 +9,7 @@ import CryptoJS from "crypto-js";
 import { float } from "@zxing/library/esm/customTypings";
 import * as fs from 'fs';
 import { ObjetivosPendasisController } from "src/objetivos-pendasis/objetivos-pendasis.controller";
+import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
 
 interface DigestAuthOptions {
   username: string;
@@ -94,6 +95,15 @@ const columnasPersonalxResponsable: any[] = [
     sortable: true,
     hidden: false
   },
+  {
+    name: "BOT Lince",
+    type: "string",
+    id: "det_status_bot",
+    field: "det_status_bot",
+    fieldName: "det_status_bot",
+    sortable: true,
+  },
+
 ];
 
 const columnasPersonalxResponsableDesc: any[] = [
@@ -166,6 +176,7 @@ const columnasPersonalxResponsableDesc: any[] = [
     sortable: false,
     hidden: false
   },
+
 ];
 
 
@@ -1409,6 +1420,16 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const personalId = Number(req.body.PersonalId);
       const anio = Number(req.body.anio);
       const mes = Number(req.body.mes);
+
+      let prevAnio = anio;
+      let prevMes = mes - 1;
+    
+      if (prevMes === 0) {
+        prevMes = 12;
+        prevAnio -= 1;
+      }      
+
+
       const options = req.body.options;
 
       if (!anio || !mes)
@@ -1468,6 +1489,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       const resCustodias = await CustodiaController.listPersonalCustodiaQuery({ filtros: [{ index: "ApellidoNombre", valor: personalIdList, operador: "=", condition: "AND" }] }, queryRunner, anio, mes, 0)
 
       const resIngreExtra = await AsistenciaController.getIngresosExtra(anio, mes, queryRunner, personalIdList)
+      const resBot = await AccesoBotController.getBotStatus(prevAnio, prevMes, queryRunner, personalIdList)
 
       for (const row of resAsisObjetiv) {
         const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
@@ -1525,6 +1547,14 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
           }
         }
       }
+
+      for (const row of resBot) {
+        const key = personal.findIndex(i => i.PersonalId == row.PersonalId)
+        if (key >= 0) {
+          personal[key].det_status_bot= (row.registro=='OK') ? row.descarga :row.registro
+        }
+      }
+
 
       //      const total = result.map(row => row.importe).reduce((prev, curr) => prev + curr, 0)
 
