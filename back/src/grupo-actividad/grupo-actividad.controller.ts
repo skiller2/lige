@@ -32,7 +32,7 @@ export class GrupoActividadController extends BaseController {
             type: "number",
             id: "GrupoActividadNumero",
             field: "GrupoActividadNumero",
-            fieldName: "grup.GrupoActividadNumero,",
+            fieldName: "grup.GrupoActividadNumero",
             sortable: true,
         },
         {
@@ -40,7 +40,7 @@ export class GrupoActividadController extends BaseController {
             type: "number",
             id: "GrupoActividadNumeroOld",
             field: "GrupoActividadNumeroOld",
-            fieldName: "grup.GrupoActividadNumero,",
+            fieldName: "grup.GrupoActividadNumero",
             sortable: false,
             hidden: true,
             searchHidden: true
@@ -695,6 +695,8 @@ export class GrupoActividadController extends BaseController {
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
+            fechaActual.setHours(0, 0, 0, 0)
+            let time = fechaActual.toTimeString().split(' ')[0]
 
             const codigoExist = await queryRunner.query(`SELECT * FROM GrupoActividadJerarquico WHERE GrupoActividadJerarquicoId = @0`, [params.GrupoActividadJerarquicoId])
             let dataResultado = {}
@@ -705,8 +707,22 @@ export class GrupoActividadController extends BaseController {
 
                 await this.validateFormObjetivos(params, queryRunner)
 
-
-
+                await queryRunner.query(`
+                    UPDATE GrupoActividadObjetivo
+                    SET GrupoActividadObjetivoDesde = @2,GrupoActividadObjetivoHasta = @3,
+                        GrupoActividadObjetivoPuesto = @4,GrupoActividadObjetivoUsuarioId = @5,
+                        GrupoActividadObjetivoDia = @6,GrupoActividadObjetivoTiempo = @7
+                    WHERE GrupoActividadObjetivoId = @0 AND GrupoActividadId = @1,
+                `, [
+                    params.GrupoActividadObjetivoId, 
+                    params.GrupoActividadDetalle.id, 
+                    params.GrupoActividadObjetivoDesde, 
+                    params.GrupoActividadObjetivoHasta, 
+                    ip, 
+                    usuarioId, 
+                    fechaActual, 
+                    time
+                ])
 
 
                 dataResultado = { action: 'U', GrupoActividadId: params.GrupoActividadId }
@@ -737,9 +753,9 @@ export class GrupoActividadController extends BaseController {
 
                     if (!ultimoRegistro.GrupoActividadObjetivoHasta) {
 
-                        GrupoActividadObjetivoHasta = new Date(params.GrupoActividadObjetivoDesde);
-                        GrupoActividadObjetivoHasta.setDate(GrupoActividadObjetivoHasta.getDate() - 1);
-                        const formattedDate = GrupoActividadObjetivoHasta.toISOString().split('T')[0] + "T00:00:00.000Z";
+                        GrupoActividadObjetivoHasta = new Date(params.GrupoActividadObjetivoDesde)
+                        GrupoActividadObjetivoHasta.setDate(GrupoActividadObjetivoHasta.getDate() - 1)
+                        const formattedDate = GrupoActividadObjetivoHasta.toISOString().split('T')[0] + "T00:00:00.000Z"
 
 
                         await queryRunner.query(
@@ -749,12 +765,10 @@ export class GrupoActividadController extends BaseController {
                     }
 
                     if (new Date(params.GrupoActividadObjetivoDesde) <= ultimoRegistro.GrupoActividadObjetivoHasta) {
-                        throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(ultimoRegistro.GrupoActividadObjetivoHasta)}`);
+                        throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(ultimoRegistro.GrupoActividadObjetivoHasta)}`)
                     }
                 }
 
-                fechaActual.setHours(0, 0, 0, 0)
-                let time = fechaActual.toTimeString().split(' ')[0]
 
                 let GrupoActividadObjetivoId = await queryRunner.query(` SELECT GrupoActividadObjetivoUltNro FROM GrupoActividad WHERE GrupoActividadId =  @0`, [params.GrupoActividadDetalle.id])
                 GrupoActividadObjetivoId = GrupoActividadObjetivoId[0].GrupoActividadObjetivoUltNro + 1

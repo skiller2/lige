@@ -190,7 +190,7 @@ export class TableGrupoActividadGruposComponent {
   async addNewItem() {
 
     const newItem1 = this.createNewItem(1);
-    this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
+    this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: true, triggerEvent: false })
     this.itemAddActive = true
 
   }
