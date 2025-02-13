@@ -13,23 +13,27 @@ import { NumeroALetras, setSingular, setPlural, setCentsPlural, setCentsSingular
 import {
   getPeriodoFromRequest,
 } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.utils";
-//import moment from 'moment';
+
 import { QueryRunner } from "typeorm";
 import { Readable } from "typeorm/platform/PlatformTools.js";
 import { CustodiaController } from "src/controller/custodia.controller";
 import { AsistenciaController } from "src/controller/asistencia.controller";
+import { FileUploadController } from "src/controller/file-upload.controller";
 
-const PathReciboTemplate = {
-  header: ((process.env.PATH_RECIBO) ? process.env.PATH_RECIBO : './recibo') + '/config/recibo-header.html',
-  body: ((process.env.PATH_RECIBO) ? process.env.PATH_RECIBO : './recibo') + '/config/recibo-body.html',
-  footer: ((process.env.PATH_RECIBO) ? process.env.PATH_RECIBO : './recibo') + '/config/recibo-footer.html',
-  headerDef: './assets/recibo/recibo-header.def.html',
-  bodyDef: './assets/recibo/recibo-body.def.html',
-  footerDef: './assets/recibo/recibo-footer.def.html'
-}
+
 
 export class RecibosController extends BaseController {
-  directoryRecibo = process.env.PATH_RECIBO || "tmp";
+  directoryRecibo  = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' + '/recibo'
+  PathReciboTemplate = {
+    header: `${this.directoryRecibo}/config/recibo-header.html`,
+    body: `${this.directoryRecibo}/config/recibo-body.html`,
+    footer: `${this.directoryRecibo}/config/recibo-footer.html`,
+    headerDef: './assets/recibo/recibo-header.def.html',
+    bodyDef: './assets/recibo/recibo-body.def.html',
+    footerDef: './assets/recibo/recibo-footer.def.html'
+  }
+  
+
   constructor() {
     super();
     if (!existsSync(this.directoryRecibo)) {
@@ -82,9 +86,9 @@ export class RecibosController extends BaseController {
     const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
     const imgBase64inaes = imgBufferinaes.toString('base64');
 
-    header = (header) ? header : (fs.existsSync(PathReciboTemplate.header) ? fs.readFileSync(PathReciboTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(PathReciboTemplate.headerDef, 'utf-8'))
-    body = (body) ? body : (fs.existsSync(PathReciboTemplate.body) ? fs.readFileSync(PathReciboTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(PathReciboTemplate.bodyDef, 'utf-8'))
-    footer = (footer) ? footer : (fs.existsSync(PathReciboTemplate.footer) ? fs.readFileSync(PathReciboTemplate.footer + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(PathReciboTemplate.footerDef, 'utf-8'))
+    header = (header) ? header : (fs.existsSync(this.PathReciboTemplate.header) ? fs.readFileSync(this.PathReciboTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathReciboTemplate.headerDef, 'utf-8'))
+    body = (body) ? body : (fs.existsSync(this.PathReciboTemplate.body) ? fs.readFileSync(this.PathReciboTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathReciboTemplate.bodyDef, 'utf-8'))
+    footer = (footer) ? footer : (fs.existsSync(this.PathReciboTemplate.footer) ? fs.readFileSync(this.PathReciboTemplate.footer + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathReciboTemplate.footerDef, 'utf-8'))
 
     if (!raw) {
       header = header.replace(/\${imgBase64}/g, imgBase64);
@@ -500,9 +504,10 @@ export class RecibosController extends BaseController {
 
     try {
       await queryRunner.connect();
-      const data = await queryRunner.query(`SELECT doc.path, doc.nombre_archivo from lige.dbo.docgeneral doc
-      JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
-      WHERE per.anio =@0 AND per.mes=@1 AND doc.persona_id = @2 AND doctipo_id = 'REC'`,
+      const data = await queryRunner.query(`SELECT doc.doc_id, doc.path, doc.nombre_archivo 
+        from lige.dbo.docgeneral doc
+        JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = doc.periodo
+          WHERE per.anio =@0 AND per.mes=@1 AND doc.persona_id = @2 AND doctipo_id = 'REC'`,
         [year, month, PersonalId]
       )
 
@@ -510,12 +515,24 @@ export class RecibosController extends BaseController {
       if (!data[0])
         throw new ClientException(`Recibo no generado`)
 
+      req.params.id =data[0].doc_id 
+      req.params.filename = 'original'
+      req.params.tableForSearch = 'docgeneral'
+  
+      const fileUploadController = new FileUploadController();
+      await fileUploadController.getByDownloadFile(req, res, next);
+ 
+
+
+
+/*
       res.download(this.directoryRecibo + '/' + data[0].path, data[0].nombre_archivo, async (error) => {
         if (error) {
           console.error('Error al descargar el archivo:', error);
           return next(error)
         }
       });
+*/
     } catch (error) {
       return next(error)
     }
@@ -703,15 +720,15 @@ export class RecibosController extends BaseController {
         throw new ClientException(`La cabecera no puede estar vacia`)
 
       try {
-        fs.renameSync(PathReciboTemplate.header, PathReciboTemplate.header + '.old')
-        fs.renameSync(PathReciboTemplate.body, PathReciboTemplate.body + '.old')
-        fs.renameSync(PathReciboTemplate.footer, PathReciboTemplate.footer + '.old')
+        fs.renameSync(this.PathReciboTemplate.header, this.PathReciboTemplate.header + '.old')
+        fs.renameSync(this.PathReciboTemplate.body, this.PathReciboTemplate.body + '.old')
+        fs.renameSync(this.PathReciboTemplate.footer, this.PathReciboTemplate.footer + '.old')
       } catch (_e) { }
 
-      fs.mkdirSync(path.dirname(PathReciboTemplate.header), { recursive: true })
-      fs.writeFileSync(PathReciboTemplate.header, header)
-      fs.writeFileSync(PathReciboTemplate.body, body)
-      fs.writeFileSync(PathReciboTemplate.footer, footer)
+      fs.mkdirSync(path.dirname(this.PathReciboTemplate.header), { recursive: true })
+      fs.writeFileSync(this.PathReciboTemplate.header, header)
+      fs.writeFileSync(this.PathReciboTemplate.body, body)
+      fs.writeFileSync(this.PathReciboTemplate.footer, footer)
 
       this.jsonRes([], res, `Se guardo el nuevo formato de recibo`);
 

@@ -662,4 +662,18 @@ console.log('validateRecibo', cuit, recibo)
         }
     }
 
+    static getBotStatus(anio: number, mes: number, queryRunner: QueryRunner, personalIdList: number[]) {
+        return queryRunner
+        .query(`SELECT per.PersonalId, tel.personal_id, tel.codigo, IIF(tel.personal_id IS NOT NULL AND tel.codigo IS NuLL,'OK','Registro pendiente') AS registro, 
+            dl.fecha_descarga, doc.doc_id, pr.anio, pr.mes, IIF(doc.doc_id IS NOT NULL,CONCAT('Recibo visto ',pr.mes,'/',pr.anio),CONCAT('Recibo ',pr.mes,'/',pr.anio,' pendiente')) AS descarga
+            FROM lige.dbo.Personal per 
+            LEFT JOIN lige.dbo.regtelefonopersonal tel ON tel.personal_id = per.PersonalId
+            LEFT JOIN lige.dbo.liqmaperiodo pr ON pr.anio = @1 AND pr.mes = @2
+            LEFT JOIN lige.dbo.doc_descaga_log dl ON dl.telefono = tel.telefono
+            LEFT JOIN lige.dbo.docgeneral doc ON doc.doc_id= dl.doc_id AND doc.persona_id = per.PersonalId AND doc.doctipo_id = 'REC' AND doc.periodo = pr.periodo_id
+            WHERE 
+            per.PersonalId IN (${personalIdList.join(',')})`, [,anio, mes]) 
+        
+}
+  
 }
