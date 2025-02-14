@@ -11,8 +11,7 @@ import { dataSource } from "../data-source";
 import { tmpName } from "../server";
 import { QueryRunner } from "typeorm";
 
-export class ImpuestosAfipController extends BaseController {
-
+export class ImpuestosAfipController extends BaseController { 
   directory = process.env.PATH_MONOTRIBUTO || "tmp";
   apiPath = process.env.URL_API || "http://localhost:4200/mess/api";
 
@@ -27,7 +26,16 @@ export class ImpuestosAfipController extends BaseController {
     try {
       const gettmpfilename = await this.getRutaFile(queryRunner, PersonalId, anio, mes)
       let tmpURL = ''
-      if (gettmpfilename[0] ) {
+      if (gettmpfilename[0] && existsSync(this.directory + '/' + gettmpfilename[0].path)) {
+
+        const filename = `${anio}-${mes.toString().padStart(2, '0')}-${gettmpfilename[0].CUIT}-${gettmpfilename[0].PersonalId}.pdf`
+        const downloadPath = `${this.directory}/${anio}/${filename}`;
+  
+        if (!existsSync(downloadPath))
+          throw new ClientException(`El documento no se encuentra disponible.`);
+  
+
+
         tmpURL = `${this.apiPath}/impuestos_afip/download/${PersonalId}/${anio}/${mes}`;
       } else {
         throw new ClientException(`Recibo no generado`)

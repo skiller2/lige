@@ -50,7 +50,7 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
             const urlDocRecibo = await recibosController.getURLDocRecibo(personalId, anio, mes)
 
             if (urlDocRecibo instanceof Error)
-                await flowDynamic([{ body: `Error, no se encontró el documento`, delay }])
+                await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
             else {
                 await chatBotController.addToDocLog(urlDocRecibo.doc_id, ctx.from)
                 await flowDynamic([{ body: `Recibo`, media: urlDocRecibo.URL, delay }])
