@@ -64,7 +64,7 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         const urlDoc = await impuestosAfipController.getURLDocComprobante(personalId, anio, mes)
 
             if (urlDoc instanceof Error)
-                await flowDynamic([{ body: `Error, no se encontró el documento`, delay }])
+                await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
             else {
                 //TODO:  Ver tema nueva tabla PersonalComprobantePagoAFIPId, com.PersonalId,
                 await chatBotController.addToDocLog(urlDoc.doc_id,ctx.from)

@@ -69,10 +69,10 @@ export class RecibosController extends BaseController {
       
       const gettmpfilename = await this.getRutaFile(queryRunner, personalId, year, month)
       let tmpURL = ''
-      if (gettmpfilename[0] && gettmpfilename[0].doc_id ) {
+      if (gettmpfilename[0] && gettmpfilename[0].doc_id && fs.existsSync(this.directoryRecibo + '/' + gettmpfilename[0].path)) {
         tmpURL = `${this.apiPath}/recibos/download/${gettmpfilename[0].doc_id}`;
       } else {
-        throw new ClientException(`Recibo no generado`)
+        throw new ClientException(`Recibo no localizado`)
       }
       return { URL:tmpURL, doc_id: gettmpfilename[0].doc_id }
     } catch (error) {
