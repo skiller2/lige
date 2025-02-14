@@ -62,7 +62,11 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
 
     let filterString: String[]=[]
 
-    for (const valorBusqueda of filtro.valor) {
+    for (let valorBusqueda of filtro.valor) {
+
+      if(type == 'date')
+        valorBusqueda = valorBusqueda.split('/').reverse().join('/');
+
       switch (filtro.operador) {
         case "LIKE":
           if (fieldName === "ApellidoNombre")
@@ -94,8 +98,7 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
                 filterString.push(`${fieldName} IN (${String(valorBusqueda).replaceAll(',','.').replaceAll(';',',')})`)
             }
           }else if(type == 'date'){
-                const valor = valorBusqueda.split('/').reverse().join('/');
-                filterString.push(`${fieldName} >= '${valor} 00:00:00' AND ${fieldName} <= '${valor} 23:59:59'`)
+                filterString.push(`((${fieldName} >= '${valorBusqueda} 00:00:00' AND ${fieldName} <= '${valorBusqueda} 23:59:59') OR ${fieldName} IS NULL)`)
           } else if (type == 'string' && (valorBusqueda === 'null' || valorBusqueda == null))
             filterString.push(`${fieldName} IS NULL`)
           else
@@ -104,26 +107,22 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
           break;
         case ">":
           if(type == 'date'){
-            const valor = valorBusqueda.split('/').reverse().join('/');
-            filterString.push(`${fieldName} ${filtro.operador} '${valor} 23:59:59'`)
+            filterString.push(`(${fieldName} ${filtro.operador} '${valorBusqueda} 23:59:59' OR ${fieldName} IS NULL)`)
             break;
           }
         case "<":
           if(type == 'date'){
-            const valor = valorBusqueda.split('/').reverse().join('/');
-            filterString.push(`${fieldName} ${filtro.operador} '${valor} 00:00:00'`)
+            filterString.push(`(${fieldName} ${filtro.operador} '${valorBusqueda} 00:00:00' OR ${fieldName} IS NULL)`)
             break;
           }
         case ">=":
           if(type == 'date'){
-            const valor = valorBusqueda.split('/').reverse().join('/');
-            filterString.push(`${fieldName} ${filtro.operador} '${valor} 00:00:00'`)
+            filterString.push(`(${fieldName} ${filtro.operador} '${valorBusqueda} 00:00:00' OR ${fieldName} IS NULL)`)
             break;
           }
         case "<=":
           if(type == 'date'){
-            const valor = valorBusqueda.split('/').reverse().join('/');
-            filterString.push(`${fieldName} ${filtro.operador} '${valor} 23:59:59'`)
+            filterString.push(`(${fieldName} ${filtro.operador} '${valorBusqueda} 23:59:59' OR ${fieldName} IS NULL)`)
             break;
           }
         case "<>":
@@ -131,8 +130,7 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
             const valor = (!isNaN(parseFloat(valorBusqueda))) ? parseFloat(valorBusqueda) : '0';
             filterString.push(`${fieldName} ${filtro.operador} ${valor}`)
           }else if(type == 'date'){
-            const valor = valorBusqueda.split('/').reverse().join('/');
-            filterString.push(`${fieldName} < '${valor} 00:00:00' AND ${fieldName} > '${valor} 23:59:59`)
+            filterString.push(`${fieldName} < '${valorBusqueda} 00:00:00' AND ${fieldName} > '${valorBusqueda} 23:59:59`)
           }else {
             filterString.push(`${fieldName} ${filtro.operador} '${valorBusqueda}'`)
           }
