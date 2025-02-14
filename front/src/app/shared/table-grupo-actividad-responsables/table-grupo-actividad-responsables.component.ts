@@ -51,7 +51,7 @@ export class TableGrupoActividadResponsablesComponent {
   startFilters: { field: string; condition: string; operator: string; value: string; forced: boolean }[] = []
 
   complexityLevelList = [true, false];
-  angularGridEdit!: AngularGridInstance;
+  angularGridEditActividad!: AngularGridInstance;
   gridOptionsEdit!: GridOption;
   detailViewRowCount = 1
   excelExportService = new ExcelExportService()
@@ -152,10 +152,10 @@ export class TableGrupoActividadResponsablesComponent {
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 //      if column.id 
 
-      this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
-      this.angularGridEdit.slickGrid.invalidate();
+      this.angularGridEditActividad.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEditActividad.dataView.getItemMetadata)
+      this.angularGridEditActividad.slickGrid.invalidate();
 
-      const emptyrows = this.angularGridEdit.dataView.getItems().filter(row => (!row.id))
+      const emptyrows = this.angularGridEditActividad.dataView.getItems().filter(row => (!row.id))
       // if (emptyrows.length == 0) {
       //   await this.addNewItem()
       // } else if (emptyrows.length > 1) {
@@ -172,7 +172,7 @@ export class TableGrupoActividadResponsablesComponent {
 
         editCommand.execute()
         while (this.rowLocked) await firstValueFrom(timer(100));
-        row = this.angularGridEdit.dataView.getItemById(row.id)
+        row = this.angularGridEditActividad.dataView.getItemById(row.id)
       
 
 
@@ -187,7 +187,7 @@ export class TableGrupoActividadResponsablesComponent {
         row.GrupoActividadDetalleOld = row.GrupoActividadDetalle
         row.ApellidoNombrePersonaOld = row.ApellidoNombrePersona
         row.GrupoActividadJerarquicoComoOld = row.GrupoActividadJerarquicoComo
-        this.angularGridEdit.gridService.updateItemById(row.id, row)
+        this.angularGridEditActividad.gridService.updateItemById(row.id, row)
 
         if(response.data.PreviousDate){
           this.listGrupoActividadResponsables$.next('')
@@ -198,18 +198,18 @@ export class TableGrupoActividadResponsablesComponent {
 
         //marcar el row en rojo
         if (row.GrupoActividadId) {
-          const item = this.angularGridEdit.dataView.getItemById(row.id)
+          const item = this.angularGridEditActividad.dataView.getItemById(row.id)
           if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
             const fld = editCommand.editor.args.column.field
             editCommand.undo();
             item[fld] = editCommand.editor.args.item[fld]
           }
-          this.angularGridEdit.gridService.updateItemById(row.id, item)
+          this.angularGridEditActividad.gridService.updateItemById(row.id, item)
         } else {
          // marcar el row en rojo
 
-         this.angularGridEdit.slickGrid.setSelectedRows([]);
-         this.angularGridEdit.slickGrid.render();
+         this.angularGridEditActividad.slickGrid.setSelectedRows([]);
+         this.angularGridEditActividad.slickGrid.render();
         }
         this.rowLocked = false
       }
@@ -219,7 +219,7 @@ export class TableGrupoActividadResponsablesComponent {
   async addNewItem() {
 
     const newItem1 = this.createNewItem(1);
-    this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: true, triggerEvent: false })
+    this.angularGridEditActividad.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: true, triggerEvent: false })
     this.itemAddActive = true
 
   }
@@ -231,7 +231,7 @@ export class TableGrupoActividadResponsablesComponent {
   }
 
   createNewItem(incrementIdByHowMany = 1) {
-    const dataset = this.angularGridEdit.dataView.getItems();
+    const dataset = this.angularGridEditActividad.dataView.getItems();
     let highestId = 0;
     dataset.forEach((item: any) => {
       if (item.id > highestId) {
@@ -259,20 +259,20 @@ export class TableGrupoActividadResponsablesComponent {
 
   async angularGridReadyEdit(angularGrid: any) {
 
-    this.angularGridEdit = angularGrid.detail
+    this.angularGridEditActividad = angularGrid.detail
 
 
-if (this.angularGridEdit.slickGrid.getEditorLock().isActive()) {
+if (this.angularGridEditActividad.slickGrid.getEditorLock().isActive()) {
 
-  this.angularGridEdit.slickGrid.getEditorLock().commitCurrentEdit();
+  this.angularGridEditActividad.slickGrid.getEditorLock().commitCurrentEdit();
 }
-    this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
-      totalRecords(this.angularGridEdit)
-      columnTotal('CantidadGrupoActividadResponsables', this.angularGridEdit)
+    this.angularGridEditActividad.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGridEditActividad)
+      columnTotal('CantidadGrupoActividadResponsables', this.angularGridEditActividad)
     })
 
     if (this.apiService.isMobile())
-      this.angularGridEdit.gridService.hideColumnByIds([])
+      this.angularGridEditActividad.gridService.hideColumnByIds([])
 
   }
 
@@ -300,7 +300,7 @@ if (this.angularGridEdit.slickGrid.getEditorLock().isActive()) {
   handleSelectedRowsChanged(e: any): void {
 
     const selrow = e.detail.args.rows[0]
-    const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
+    const row = this.angularGridEditActividad.slickGrid.getDataItem(selrow)
 
     if (row?.GrupoActividadJerarquicoId) {
 
@@ -317,7 +317,7 @@ if (this.angularGridEdit.slickGrid.getEditorLock().isActive()) {
 
     return (rowNumber: number) => {
       const newCssClass = 'element-add-no-complete';
-      const item = this.angularGridEdit.dataView.getItem(rowNumber);
+      const item = this.angularGridEditActividad.dataView.getItem(rowNumber);
       let meta = {
         cssClasses: ''
       };

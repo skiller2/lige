@@ -16,6 +16,7 @@ import { SelectSearchComponent } from "../select-search/select-search.component"
 import { Component, model, signal, inject } from '@angular/core';
 import { GrupoActividadSearchComponent } from '../grupo-actividad-search/grupo-actividad-search.component';
 import { ObjetivoSearchComponent } from '../objetivo-search/objetivo-search.component'
+import { EditorObjetivoComponent } from '../../shared/editor-objetivo/editor-objetivo.component';
 
 
 
@@ -52,7 +53,7 @@ export class TableGrupoActividadObjetivosComponent {
   startFilters: { field: string; condition: string; operator: string; value: string; forced: boolean }[] = []
 
   complexityLevelList = [true, false];
-  angularGridEdit!: AngularGridInstance;
+  angularGridEditObjetivos!: AngularGridInstance;
   gridOptionsEdit!: GridOption;
   detailViewRowCount = 1
   excelExportService = new ExcelExportService()
@@ -64,14 +65,11 @@ export class TableGrupoActividadObjetivosComponent {
   }
 
   columnsObjetivos$ = this.apiService.getCols('/api/grupo-actividad/colsobjetivos').pipe(
-    switchMap(async (cols) => {
-      const tipo = await firstValueFrom(this.searchService.getTipo());
-      return { cols, tipo }
-    }),
+    switchMap(async (cols) => {return { cols }}),
     map((data) => {
       let mapped = data.cols.map((col: Column) => {
-        console.log("col.id ", col.id)
         switch (col.id) {
+          
           case 'GrupoActividadObjetivoDesde':
             col.cssClass = "text-row-aling";
             break;
@@ -94,14 +92,14 @@ export class TableGrupoActividadObjetivosComponent {
               }
             break
 
-          case 'ObjetivoDescripcion':
+          case 'GrupoObjetivoDetalle':
               col.formatter = Formatters['complexObject'],
                 col.exportWithFormatter = true,
                 col.editor = {
                   model: CustomInputEditor,
                   collection: [],
                   params: {
-                    component: ObjetivoSearchComponent,
+                    component: EditorObjetivoComponent,
                   },
                   alwaysSaveOnEnterKey: true,
                 },
@@ -109,20 +107,6 @@ export class TableGrupoActividadObjetivosComponent {
                   complexFieldLabel: 'GrupoObjetivoDetalle.fullName',
                 }
               break
-
-            col.editor = {
-              model: CustomInputEditor,
-              collection: [],
-              params: {
-                component: SelectSearchComponent,
-              },
-              alwaysSaveOnEnterKey: true,
-              required: true
-            }
-            col.params = {
-              collection: data.tipo,
-            }
-            break;
 
           default:
             break;
@@ -144,16 +128,20 @@ export class TableGrupoActividadObjetivosComponent {
     this.gridOptionsEdit.createFooterRow = true
 
     let dateToday = new Date();
-    let formattedDate = `${dateToday.getDate().toString().padStart(2, '0')}/${(dateToday.getMonth() + 1).toString().padStart(2, '0')}/${dateToday.getFullYear()}`;
+    let formattedDate =  dateToday.toLocaleDateString('es-ES');
 
+
+    this.startFilters = [
+     {field:'GrupoActividadObjetivoDesde', condition:'AND', operator:'<=', value: formattedDate, forced:false},
+     {field:'GrupoActividadObjetivoHasta', condition:'AND', operator:'>=', value: formattedDate, forced:false}]
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 
 
-      this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
-      this.angularGridEdit.slickGrid.invalidate();
+      this.angularGridEditObjetivos.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEditObjetivos.dataView.getItemMetadata)
+      this.angularGridEditObjetivos.slickGrid.invalidate();
 
-      const emptyrows = this.angularGridEdit.dataView.getItems().filter(row => (!row.id))
+      const emptyrows = this.angularGridEditObjetivos.dataView.getItems().filter(row => (!row.id))
 
 
       try {
@@ -165,22 +153,15 @@ export class TableGrupoActividadObjetivosComponent {
 
         editCommand.execute()
         while (this.rowLocked) await firstValueFrom(timer(100));
-        row = this.angularGridEdit.dataView.getItemById(row.id)
-
-
-
-
+        row = this.angularGridEditObjetivos.dataView.getItemById(row.id)
 
         if (!row.dbid)
           this.rowLocked = true
 
         const response = await firstValueFrom(this.apiService.onchangecellGrupoActividadObjetivos(row))
-        // row.GrupoActividadId = response.data.GrupoActividadId
-        // row.GrupoActividadJerarquicoId = response.data.GrupoActividadJerarquicoId
-        // row.GrupoActividadDetalleOld = row.GrupoActividadDetalle
-        // row.ApellidoNombrePersonaOld = row.ApellidoNombrePersona
-        // row.GrupoActividadJerarquicoComoOld = row.GrupoActividadJerarquicoComo
-        this.angularGridEdit.gridService.updateItemById(row.id, row)
+        row.GrupoActividadId = response.data.GrupoActividadId
+        this.angularGridEditObjetivos.gridService.updateItemById(row.id, row)
+
 
         if(response.data.PreviousDate){
           this.listGrupoActividadObjetivos$.next('')
@@ -188,21 +169,20 @@ export class TableGrupoActividadObjetivosComponent {
 
         this.rowLocked = false
       } catch (e: any) {
-
         //marcar el row en rojo
         if (row.GrupoActividadId) {
-          const item = this.angularGridEdit.dataView.getItemById(row.id)
+          const item = this.angularGridEditObjetivos.dataView.getItemById(row.id)
           if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit()) {
             const fld = editCommand.editor.args.column.field
             editCommand.undo();
             item[fld] = editCommand.editor.args.item[fld]
           }
-          this.angularGridEdit.gridService.updateItemById(row.id, item)
+          this.angularGridEditObjetivos.gridService.updateItemById(row.id, item)
         } else {
           // marcar el row en rojo
-
-          this.angularGridEdit.slickGrid.setSelectedRows([]);
-          this.angularGridEdit.slickGrid.render();
+ 
+          this.angularGridEditObjetivos.slickGrid.setSelectedRows([]);
+          this.angularGridEditObjetivos.slickGrid.render();
         }
         this.rowLocked = false
       }
@@ -212,14 +192,14 @@ export class TableGrupoActividadObjetivosComponent {
   async addNewItem() {
 
     const newItem1 = this.createNewItem(1);
-    this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: true, triggerEvent: false })
+    this.angularGridEditObjetivos.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: true, triggerEvent: false })
     this.itemAddActive = true
 
   }
 
 
   createNewItem(incrementIdByHowMany = 1) {
-    const dataset = this.angularGridEdit.dataView.getItems();
+    const dataset = this.angularGridEditObjetivos.dataView.getItems();
     let highestId = 0;
     dataset.forEach((item: any) => {
       if (item.id > highestId) {
@@ -234,8 +214,8 @@ export class TableGrupoActividadObjetivosComponent {
       GrupoActividadId: 0,
       GrupoActividadDetalle: "",
       GrupoActividadDetalleOld: "",
-      ObjetivoDescripcion: "",
-      ObjetivoDescripcionOld: "",
+      GrupoObjetivoDetalle: "",
+      GrupoObjetivoDetalleOld: "",
       GrupoActividadObjetivoDesde: new Date(),
       GrupoActividadObjetivoHasta: null
 
@@ -244,26 +224,24 @@ export class TableGrupoActividadObjetivosComponent {
 
   async angularGridReadyEdit(angularGrid: any) {
 
-    this.angularGridEdit = angularGrid.detail
+    this.angularGridEditObjetivos = angularGrid.detail
 
 
-    if (this.angularGridEdit.slickGrid.getEditorLock().isActive()) {
+    if (this.angularGridEditObjetivos.slickGrid.getEditorLock().isActive()) {
 
-      this.angularGridEdit.slickGrid.getEditorLock().commitCurrentEdit();
+      this.angularGridEditObjetivos.slickGrid.getEditorLock().commitCurrentEdit();
     }
-    this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
-      totalRecords(this.angularGridEdit)
-      columnTotal('CantidadGrupoActividadObjetivos', this.angularGridEdit)
+    this.angularGridEditObjetivos.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGridEditObjetivos)
+      columnTotal('CantidadGrupoActividadObjetivos', this.angularGridEditObjetivos)
     })
 
     if (this.apiService.isMobile())
-      this.angularGridEdit.gridService.hideColumnByIds([])
+      this.angularGridEditObjetivos.gridService.hideColumnByIds([])
 
   }
 
-  async onCellChanged(e: any) {
-  }
-
+  
   gridDataObjetivos$ = this.listGrupoActividadObjetivos$.pipe(
     debounceTime(500),
     switchMap(() => {
@@ -278,7 +256,7 @@ export class TableGrupoActividadObjetivosComponent {
   handleSelectedRowsChanged(e: any): void {
 
     const selrow = e.detail.args.rows[0]
-    const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
+    const row = this.angularGridEditObjetivos.slickGrid.getDataItem(selrow)
 
     if (row?.GrupoActividadId) {
 
@@ -294,7 +272,7 @@ export class TableGrupoActividadObjetivosComponent {
 
     return (rowNumber: number) => {
       const newCssClass = 'element-add-no-complete';
-      const item = this.angularGridEdit.dataView.getItem(rowNumber);
+      const item = this.angularGridEditObjetivos.dataView.getItem(rowNumber);
       let meta = {
         cssClasses: ''
       };
@@ -303,11 +281,11 @@ export class TableGrupoActividadObjetivosComponent {
       }
 
       if (
-        item.GrupoActividadNumero == 0 ||
+        item.GrupoActividadId == 0 ||
         item.GrupoActividadDetalle === "" ||
-        item.GrupoActividadInactivo === "" ||
-        item.SucursalId === "" ||
-        item.PersonalId === ""
+        item.GrupoObjetivoDetalle === "" ||
+        item.GrupoActividadObjetivoDesde === "" ||
+        item.GrupoActividadObjetivoHasta === ""
       ) {
         meta.cssClasses = 'element-add-no-complete';
       }
