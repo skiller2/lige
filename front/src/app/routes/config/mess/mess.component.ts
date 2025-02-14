@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, inject, input, model, signal } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzModalModule } from 'ng-zorro-antd/modal';
@@ -30,6 +30,11 @@ export class MessComponent {
   ultimoDeposito = signal({'msg':'descansando'})
   imagenUrl = signal('')
   ms = signal(0)
+  mensaje = model('')
+  destino = model('')
+
+
+
   private apiService = inject(ApiService)
   async getMessInfo() {
     try {
@@ -52,6 +57,12 @@ export class MessComponent {
       this.ultimoDeposito.set({'msg':'error'})
     }
   }
+
+  async enviaMensaje() {
+    await firstValueFrom(this.apiService.sendMessage(this.destino(),this.mensaje()))
+    
+  }
+
 
   async ngOnInit() {
     try {

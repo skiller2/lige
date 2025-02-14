@@ -433,6 +433,15 @@ export class ApiService {
     )
   }
 
+  sendMessage(dst: string, msg: string) {
+    console.log('envio',dst,msg)
+    return this.http.post<ResponseJSON<any>>(`mess/api/personal/sendmsg`, { dst, msg }).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+
+
   getIdentCode(identData: string, encTelNro: string): Observable<unknown> {
     return this.http.get<ResponseJSON<any>>(`mess/api/personal/ident`, { identData, encTelNro },{observe:'body', context: new HttpContext().set(ALLOW_ANONYMOUS, true)}).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),

@@ -18,7 +18,7 @@ export class RecibosController extends BaseController {
   //   const result = `http://localhost:3010/api/recibos/download/${year}/${month}/${personalId}`
   //   return result
   // }
-  directoryRecibo  = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' + '/recibo'
+  directoryRecibo  = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'
   apiPath = process.env.URL_API || "http://localhost:4200/mess/api";
 
 
@@ -42,10 +42,12 @@ export class RecibosController extends BaseController {
       if (!data[0])
         throw new ClientException(`Recibo no generado`)
 
+
+
       res.download(this.directoryRecibo + '/' + data[0].path, data[0].nombre_archivo, async (error) => {
         if (error) {
           console.error('Error al descargar el archivo:', error);
-          return next(error)
+          throw new ClientException(`Error al descargar el archivo`, error)
         }
       });
     } catch (error) {

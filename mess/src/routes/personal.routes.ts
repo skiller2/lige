@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { personalController } from "../controller/controller.module";
+import { botServer } from "src";
 // import { authMiddleware } from "../middlewares/middleware.module";
 
 export const personalRouter = Router();
@@ -15,3 +16,12 @@ personalRouter.get(`${base}/ident`, [], (req, res, next) => {
   personalController.getIdentCode(req, res, next);
 
 });
+
+personalRouter.post(`${base}/sendmsg`, [], (req, res, next) => {
+  const dst = req.body.dst;
+  const msg = req.body.msg;
+  botServer.sendMsg(dst, msg);
+  res.status(200).json({ msg: '', data: 'ok', stamp: new Date(), ms: res.locals.stopTime - res.locals.startTime })
+})
+
+
