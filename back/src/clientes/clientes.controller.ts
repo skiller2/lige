@@ -462,8 +462,12 @@ ${orderBy}`, [fechaActual])
     async ClienteContactoUpdate(queryRunner: any, contactos: any, ClienteId: number) {
         const ContactoIds = contactos.map((row: { ContactoId: any; }) => row.ContactoId).filter((id) => id !== null && id !== undefined);
         if (ContactoIds.length > 0) {
-            await queryRunner.query(`DELETE FROM ContactoEmail WHERE ContactoId NOT IN (${ContactoIds.join(',')}) `);
-            await queryRunner.query(`DELETE FROM ContactoTelefono WHERE ContactoId NOT IN (${ContactoIds.join(',')}) `);
+            await queryRunner.query(`DELETE e FROM ContactoEmail e
+                JOIN Contacto c ON c.ContactoId = e.ContactoId
+                WHERE c.ClienteId = @0 AND e.ContactoId NOT IN (${ContactoIds.join(',')}) `,[ClienteId])
+            await queryRunner.query(`DELETE t FROM ContactoTelefono t 
+                JOIN Contacto c ON c.ContactoId = t.ContactoId
+                WHERE c.ClienteId = @0 AND t.ContactoId NOT IN (${ContactoIds.join(',')}) `,[ClienteId])
             await queryRunner.query(`DELETE FROM Contacto WHERE ClienteId = @0  AND ContactoId NOT IN (${ContactoIds.join(',')})`, [ClienteId]);
         }
 
