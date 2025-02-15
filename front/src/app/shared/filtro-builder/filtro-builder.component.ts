@@ -186,17 +186,21 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       else 
         value = [this.selections.value]
 
+      console.log('label0', this.selections.label)
+
       if (this.selections.label == "" && this.valueExtended?.fullName)
         this.selections.label = this.valueExtended.fullName
 //      if (this.selections.label == "")
 //        this.selections.label = this.selections.value == "" ? "Vacio" : String(this.selections.value)
+
+      console.log('label1',this.selections.label)
       if (this.selections.label == "") {
-        if (this.selections.value == "")
+        if (this.selections.value == "" || ((this.selections.value instanceof Date) && isNaN(this.selections.value.getTime())))
           this.selections.label = "Vacio"
         else
           this.selections.label = (this.selections.value instanceof Date)? String(this.datePipe.transform(this.selections.value)) :String(this.selections.value)
       }
-
+      console.log('label2',this.selections.label)
 
 
       this.appendFiltro(

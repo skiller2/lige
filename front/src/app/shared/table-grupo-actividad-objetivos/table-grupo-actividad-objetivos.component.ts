@@ -50,7 +50,8 @@ export class TableGrupoActividadObjetivosComponent {
     filtros: [],
     sort: null,
   };
-  startFilters: { field: string; condition: string; operator: string; value: string; forced: boolean }[] = []
+  startFilters: any[] = []
+
 
   complexityLevelList = [true, false];
   angularGridEditObjetivos!: AngularGridInstance;
@@ -69,13 +70,6 @@ export class TableGrupoActividadObjetivosComponent {
     map((data) => {
       let mapped = data.cols.map((col: Column) => {
         switch (col.id) {
-          
-          case 'GrupoActividadObjetivoDesde':
-            col.cssClass = "text-row-aling";
-            break;
-          case 'GrupoActividadObjetivoHasta':
-            col.cssClass = "text-row-aling";
-            break;
           case 'GrupoActividadDetalle':
             col.formatter = Formatters['complexObject'],
               col.exportWithFormatter = true,
@@ -127,13 +121,11 @@ export class TableGrupoActividadObjetivosComponent {
     this.gridOptionsEdit.showFooterRow = true
     this.gridOptionsEdit.createFooterRow = true
 
-    let dateToday = new Date();
-    let formattedDate =  dateToday.toLocaleDateString('es-ES');
-
-
+    const dateToday = new Date();
+    
     this.startFilters = [
-     {field:'GrupoActividadObjetivoDesde', condition:'AND', operator:'<=', value: formattedDate, forced:false},
-     {field:'GrupoActividadObjetivoHasta', condition:'AND', operator:'>=', value: formattedDate, forced:false}]
+     {field:'GrupoActividadObjetivoDesde', condition:'AND', operator:'<=', value: dateToday, forced:false},
+     {field:'GrupoActividadObjetivoHasta', condition:'AND', operator:'>=', value: dateToday, forced:false}]
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 

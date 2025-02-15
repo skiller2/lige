@@ -48,7 +48,6 @@ export class PreciosProductosComponent {
     sort: null,
   };
   startFilters: any[] = []
-  //startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
 
   complexityLevelList = [true, false];
   angularGridEdit!: AngularGridInstance;
