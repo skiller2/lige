@@ -64,8 +64,12 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
 
     for (let valorBusqueda of filtro.valor) {
 
-      if(type == 'date')
-        valorBusqueda = valorBusqueda.split('/').reverse().join('/');
+      if (type == 'date') {
+        const valtmp = new Date(valorBusqueda)
+        valtmp.setHours(0, 0, 0, 0)
+        valorBusqueda = valtmp.toISOString().split('T')[0]
+      }
+//        valorBusqueda = valorBusqueda.split('/').reverse().join('/');
 
       switch (filtro.operador) {
         case "LIKE":
@@ -97,8 +101,8 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
               else 
                 filterString.push(`${fieldName} IN (${String(valorBusqueda).replaceAll(',','.').replaceAll(';',',')})`)
             }
-          }else if(type == 'date'){
-                filterString.push(`((${fieldName} >= '${valorBusqueda} 00:00:00' AND ${fieldName} <= '${valorBusqueda} 23:59:59') OR ${fieldName} IS NULL)`)
+          } else if (type == 'date') {
+                filterString.push(`(${fieldName} >= '${valorBusqueda} 00:00:00' AND ${fieldName} <= '${valorBusqueda} 23:59:59') `)
           } else if (type == 'string' && (valorBusqueda === 'null' || valorBusqueda == null))
             filterString.push(`${fieldName} IS NULL`)
           else

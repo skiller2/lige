@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, forwardRef } from '@angular/core'
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, forwardRef, inject } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
@@ -15,7 +15,7 @@ import { ApiService, doOnSubscribe } from 'src/app/services/api.service'
 import { NzSelectComponent } from 'ng-zorro-antd/select'
 import { log } from '@delon/util'
 import { SHARED_IMPORTS } from '@shared'
-import { CommonModule } from '@angular/common'
+import { CommonModule, DatePipe } from '@angular/common'
 
 @Component({
   selector: 'app-fecha-search',
@@ -27,6 +27,7 @@ import { CommonModule } from '@angular/common'
       useExisting: forwardRef(() => FechaSearchComponent),
       multi: true,
     },
+    DatePipe
   ],
   standalone: true,
   imports: [ ...SHARED_IMPORTS,CommonModule],
@@ -39,6 +40,7 @@ export class FechaSearchComponent implements ControlValueAccessor {
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("fsc") fsc!: NzSelectComponent
+  private datePipe = inject(DatePipe)
 
 
   // $searchChange = new BehaviorSubject('');
@@ -98,19 +100,23 @@ export class FechaSearchComponent implements ControlValueAccessor {
     let val = (value === null || value === undefined) ? '' : value
     if (val !== this._selectedId) {
       this._selectedId = val
+      /*
       if(value){
         const dia = value.getDate().toString().padStart(2, '0');
         const mes = (value.getMonth() + 1).toString().padStart(2, '0');
         const año = value.getFullYear().toString();
         this._selectedId = `${dia}/${mes}/${año}`
       }
+      */
     if (!this._selectedId && this._selectedId !== null) {
       this.valueExtendedEmitter.emit(null)
-      this.propagateChange('')
+      this.propagateChange({})
       return
-    }
-    this.valueExtendedEmitter.emit({fullName: this._selectedId })
-    this.propagateChange(this._operador + this._selectedId)
+      }
+    const fullName=this.datePipe.transform(this._selectedId)
+    this.valueExtendedEmitter.emit({fullName })
+//    this.propagateChange(this._operador +' '+ this._selectedId)
+      this.propagateChange({ operator: this._operador, value: this._selectedId })
     }
   }
 
@@ -119,11 +125,6 @@ export class FechaSearchComponent implements ControlValueAccessor {
       this.selectedId = value
     }
   }
-
-  modelChange(value: Date) {
-    this.selectedId = value;
-  }
-
 
   modelChangeOp(value: any) {
     if (value !== this._operador) 

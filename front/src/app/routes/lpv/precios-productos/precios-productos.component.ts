@@ -47,8 +47,8 @@ export class PreciosProductosComponent {
     filtros: [],
     sort: null,
   };
-  // startFilters: { index: string; condition: string; operador: string; valor: string[]}[]=[]
-  startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
+  startFilters: any[] = []
+  //startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
 
   complexityLevelList = [true, false];
   angularGridEdit!: AngularGridInstance;
@@ -123,12 +123,11 @@ export class PreciosProductosComponent {
     this.gridOptionsEdit.editable = true
     this.gridOptionsEdit.autoEdit = true
 
-     let dateToday = new Date();
-     let formattedDate = `${dateToday.getDate().toString().padStart(2, '0')}/${(dateToday.getMonth() + 1).toString().padStart(2, '0')}/${dateToday.getFullYear()}`;
+    const dateToday = new Date();
 
     this.startFilters = [
-      {field:'desde', condition:'AND', operator:'<=', value: formattedDate, forced:false},
-      {field:'hasta', condition:'AND', operator:'>=', value: formattedDate, forced:false}]
+      { field: 'desde', condition: 'AND', operator: '<=', value: dateToday, forced: false },
+      { field: 'hasta', condition: 'AND', operator: '>=', value: dateToday, forced: false }]
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
       //            let undoCommandArr:EditCommand[]=[]
@@ -155,8 +154,8 @@ export class PreciosProductosComponent {
         while (this.rowLocked) await firstValueFrom(timer(100));
         row = this.angularGridEdit.dataView.getItemById(row.id)
         const producto = row
-        console.log('producto',producto);
-        
+        console.log('producto', producto);
+
 
         if (!row.dbid)
           this.rowLocked = true
@@ -166,7 +165,7 @@ export class PreciosProductosComponent {
         this.rowLocked = false
       } catch (e: any) {
         //Si codigoOld != '' volver a colocar el valor anterior, si codigoOld =='' marcar en rojo el registro 
-        
+
         console.log('error', e)
 
         if (row.codigoOld) {
@@ -274,8 +273,6 @@ export class PreciosProductosComponent {
     switchMap(() => {
       return this.searchService.getListaPrecioProductos({ options: this.listOptions })
         .pipe(map(data => {
-          console.log('data.list', data.list);
-          
           return data.list
         })
         )
@@ -323,9 +320,9 @@ export class PreciosProductosComponent {
       if (typeof previousItemMetadata === 'object') {
         meta = previousItemMetadata(rowNumber);
       }
-      
-      if (!item.codigoOld){
-        meta.cssClasses =  'element-add-no-complete'
+
+      if (!item.codigoOld) {
+        meta.cssClasses = 'element-add-no-complete'
       }
       else
         meta.cssClasses = ''

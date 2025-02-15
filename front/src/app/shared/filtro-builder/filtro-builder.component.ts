@@ -9,8 +9,8 @@ import {
   input,
   model,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Filtro, Options } from '../schemas/filtro';
+import { CommonModule, DatePipe } from '@angular/common';
+import { Filtro, Options,Selections } from '../schemas/filtro';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { SearchService } from '../../services/search.service';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
@@ -47,7 +47,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   ],
   templateUrl: './filtro-builder.component.html',
   styles: [],
-  providers: [CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR],
+  providers: [CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR,DatePipe],
 })
 export class FiltroBuilderComponent implements ControlValueAccessor {
   readonly startFilters = input<any[]>([])
@@ -55,6 +55,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   private searchService = inject(SearchService)
   private elRef = inject(ElementRef)
+  private datePipe = inject(DatePipe)
 
 
   //conditionsToSelect = ['AND', 'OR'];
@@ -86,11 +87,11 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   isFiltroBuilder = false;
 
   listOfSelectedValue = [];
-  selections = {
+  selections:Selections = {
     field: { searchComponent: '', name: '', type: '', searchType:'' },
     condition: 'AND',
     operator: '',
-    value: '',
+    value: null,
     label: '',
     forced: false
   };
@@ -113,7 +114,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     if (this.selections.field.searchComponent && this.selections.operator == "")
       this.selections.operator="="
-    
     let value = String(this.selections.value)
     if (value.startsWith('>=')) {
       this.selections.value = value.substring(2)
@@ -154,6 +154,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     if (this.selections.operator == '') {
       switch (type) {
         case 'date':
+          
+          break;
         case 'number':
         case 'float':
         case 'boolean':
@@ -170,13 +172,33 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   handleInputConfirm() {
     if (this.verifySelections()) {
-      let value
-      Array.isArray(this.selections.value) ? value = this.selections.value : value = String(this.selections.value).trim().split(/\s+/)
+      let value:any
+
+      if ((this.selections.field.type == 'date' || this.selections.field.type == 'dateTime') && this.selections.value instanceof Date != true) {
+        const value = new Date(this.selections.value.value)
+        const operator = this.selections.value.operator
+        this.selections.value = value
+        this.selections.operator = operator
+      }
+
+      if (this.selections.value instanceof String || this.selections.value instanceof Array)
+        Array.isArray(this.selections.value) ? value = this.selections.value : value = String(this.selections.value).trim().split(/\s+/)
+      else 
+        value = [this.selections.value]
 
       if (this.selections.label == "" && this.valueExtended?.fullName)
         this.selections.label = this.valueExtended.fullName
-      if (this.selections.label == "")
-        this.selections.label = this.selections.value == "" ? "Vacio" : this.selections.value
+//      if (this.selections.label == "")
+//        this.selections.label = this.selections.value == "" ? "Vacio" : String(this.selections.value)
+      if (this.selections.label == "") {
+        if (this.selections.value == "")
+          this.selections.label = "Vacio"
+        else
+          this.selections.label = (this.selections.value instanceof Date)? String(this.datePipe.transform(this.selections.value)) :String(this.selections.value)
+      }
+
+
+
       this.appendFiltro(
         this.selections as any,
         value,
@@ -217,12 +239,10 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       closeable
   
     };
+
     this.localoptions.filtros.push(filtro);
 
-
-
     this.optionsChange.emit(this.localoptions);
-    //    this.options.set(this.localoptions);
     return filtro;
   }
 
@@ -350,7 +370,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
   }
 
-  async addFilter(field: string, condition: string, operator: string, value: string, forced: boolean) {
+  async addFilter(field: string, condition: string, operator: string, value: any, forced: boolean) {
     const fieldObj: any = this.fieldsToSelect().filter(x => x.field === field)[0]
     if (!fieldObj)
       return
@@ -360,6 +380,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       const person = await firstValueFrom(this.searchService.getPersonFromName('PersonalId', value))
       label = person[0].fullName
     }
+
+
 
     this.selections = { field: fieldObj, condition, operator, value, label, forced }
     this.handleInputConfirm()
