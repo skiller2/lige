@@ -182,17 +182,39 @@ export class GrupoActividadController extends BaseController {
             id: "GrupoActividadDetalle",
             field: "GrupoActividadDetalle",
             fieldName: "ga.GrupoActividadDetalle",
+           
             sortable: true,
             searchHidden: true
         },
         {
+            name: "Grupo Actividad ",
+            type: "string",
+            id: "GrupoActividadId",
+            field: "GrupoActividadId",
+            fieldName: "ga.GrupoActividadId",
+            searchComponent: "inpurForGrupoPersonaSearch",
+            sortable: false,
+            hidden: true,
+        },
+        {
             name: "Objetivo",
             type: "string",
-            id: "ObjetivoDescripcion",
-            field: "ObjetivoDescripcion",
-            fieldName: "obj.ObjetivoDescripcion,",
+            id: "GrupoObjetivoDetalle",
+            field: "GrupoObjetivoDetalle",
+            fieldName: "obj.ObjetivoDescripcion",
+           
             sortable: true,
             searchHidden: true
+        },
+        {
+            name: "Objetivo ",
+            type: "string",
+            id: "ObjetivoId",
+            field: "ObjetivoId",
+            fieldName: "obj.ObjetivoId",
+            searchComponent: "inpurForObjetivoSearch",
+            sortable: false,
+            hidden: true,
         },
         {
             name: "Desde",
@@ -279,9 +301,7 @@ export class GrupoActividadController extends BaseController {
 
     async listGrupoActividadResponsables(req: any, res: Response, next: NextFunction) {
 
-        console.log("req.body.options.filtros ", req.body.options.filtros)
         const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaResponsables);
-        console.log("filterSql ", filterSql)
         const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = dataSource.createQueryRunner();
         const fechaActual = new Date()
@@ -349,9 +369,7 @@ export class GrupoActividadController extends BaseController {
 
     async listGrupoActividadObjetivos(req: any, res: Response, next: NextFunction) {
 
-        console.log("req.body.options.filtros ", req.body.options.filtros)
-        const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaResponsables);
-        console.log("filterSql ", filterSql)
+        const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaObjetivos);
         const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = dataSource.createQueryRunner();
         const fechaActual = new Date()
@@ -370,13 +388,13 @@ export class GrupoActividadController extends BaseController {
                     obj.ObjetivoId,
                     obj.ObjetivoDescripcion,
 
-                    gaobj.GrupoActividadObjetivoId,
+                    gaobj.GrupoActividadObjetivoObjetivoId,
                     gaobj.GrupoActividadObjetivoDesde,
                     gaobj.GrupoActividadObjetivoHasta
 
                     FROM GrupoActividadObjetivo gaobj
                     INNER JOIN GrupoActividad ga ON gaobj.GrupoActividadId = ga.GrupoActividadId
-                    INNER JOIN Objetivo obj ON obj.ObjetivoId = gaobj.GrupoActividadObjetivoId
+                    INNER JOIN Objetivo obj ON obj.ObjetivoId = gaobj.GrupoActividadObjetivoObjetivoId
                 WHERE ${filterSql}`
             );
 
@@ -698,11 +716,10 @@ export class GrupoActividadController extends BaseController {
             fechaActual.setHours(0, 0, 0, 0)
             let time = fechaActual.toTimeString().split(' ')[0]
 
-            const codigoExist = await queryRunner.query(`SELECT * FROM GrupoActividadJerarquico WHERE GrupoActividadJerarquicoId = @0`, [params.GrupoActividadJerarquicoId])
             let dataResultado = {}
             let GrupoActividadObjetivoHasta
 
-            if (codigoExist.length > 0) { //Entro en update
+            if (params.GrupoActividadId > 0) { //Entro en update
                 //Validar si cambio el código
 
                 await this.validateFormObjetivos(params, queryRunner)
@@ -712,9 +729,9 @@ export class GrupoActividadController extends BaseController {
                     SET GrupoActividadObjetivoDesde = @2,GrupoActividadObjetivoHasta = @3,
                         GrupoActividadObjetivoPuesto = @4,GrupoActividadObjetivoUsuarioId = @5,
                         GrupoActividadObjetivoDia = @6,GrupoActividadObjetivoTiempo = @7
-                    WHERE GrupoActividadObjetivoId = @0 AND GrupoActividadId = @1,
+                    WHERE GrupoActividadObjetivoObjetivoId = @0 AND GrupoActividadId = @1
                 `, [
-                    params.GrupoActividadObjetivoId, 
+                    params.GrupoActividadObjetivoObjetivoId, 
                     params.GrupoActividadDetalle.id, 
                     params.GrupoActividadObjetivoDesde, 
                     params.GrupoActividadObjetivoHasta, 
@@ -730,7 +747,7 @@ export class GrupoActividadController extends BaseController {
 
             } else {  //Es un nuevo registro
 
-
+                
                 console.log('El código no existe - es nuevo')
                 await this.validateFormObjetivos(params, queryRunner)
 
@@ -741,14 +758,12 @@ export class GrupoActividadController extends BaseController {
 
 
                 if (result.length > 0) {
-                    const ultimoRegistro = result[0];
-
+                    const ultimoRegistro = result[0]
                     const fechaParam = new Date(params.GrupoActividadObjetivoDesde).toISOString().split('T')[0];
-                    const fechaResult = new Date(ultimoRegistro.GrupoActividadJerarquicoDesde).toISOString().split('T')[0]
-
+                    const fechaResult = new Date(ultimoRegistro.GrupoActividadObjetivoDesde).toISOString().split('T')[0]
 
                     if (fechaParam <= fechaResult) {
-                        throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(ultimoRegistro.GrupoActividadJerarquicoDesde)}`)
+                        throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(ultimoRegistro.GrupoActividadObjetivoDesde)}`)
                     }
 
                     if (!ultimoRegistro.GrupoActividadObjetivoHasta) {
@@ -784,7 +799,7 @@ export class GrupoActividadController extends BaseController {
                     "GrupoActividadObjetivoDia",
                     "GrupoActividadObjetivoTiempo"
                 ) VALUES ( @0,@1,@2, @3,@4, @5,@6, @7,@8 );
-                `, [GrupoActividadObjetivoId,params.GrupoActividadDetalle.id,params.ObjetivoDescripcion.id,
+                `, [GrupoActividadObjetivoId,params.GrupoActividadDetalle.id,params.GrupoObjetivoDetalle.id,
                    params.GrupoActividadObjetivoDesde,params.GrupoActividadObjetivoHasta,ip,usuarioId, fechaActual,time])
 
                 
@@ -792,7 +807,7 @@ export class GrupoActividadController extends BaseController {
                     SET GrupoActividadObjetivoUltNro = @0
                     WHERE GrupoActividadId =  @1`, [GrupoActividadObjetivoId, params.GrupoActividadDetalle.id])
 
-                dataResultado = { action: 'I', GrupoActividadId: params.GrupoActividadDetalle.id,  GrupoActividadObjetivoObjetivoId: params.ObjetivoDescripcion.id,PreviousDate: GrupoActividadObjetivoHasta }
+                dataResultado = { action: 'I', GrupoActividadId: params.GrupoActividadDetalle.id,  GrupoActividadObjetivoObjetivoId: params.GrupoObjetivoDetalle.id,PreviousDate: GrupoActividadObjetivoHasta }
                 message = "Carga de nuevo Registro exitoso"
             }
 
@@ -809,7 +824,6 @@ export class GrupoActividadController extends BaseController {
     async deleteGrupo(req: any, res: Response, next: NextFunction) {
 
         let cod_grupo_actividad = req.query[0]
-        console.log("cod_grupo_actividad ", cod_grupo_actividad)
         //throw new ClientException(`test`)
         const queryRunner = dataSource.createQueryRunner()
         await queryRunner.connect()
@@ -920,7 +934,7 @@ export class GrupoActividadController extends BaseController {
         if (!params.GrupoActividadDetalle?.id) {
             throw new ClientException(`Debe completar el campo Grupo Actividad.`)
         }
-        if (!params.ObjetivoDescripcion?.id) {
+        if (!params.GrupoObjetivoDetalle?.id) {
             throw new ClientException(`Debe completar el campo Objetivo.`)
         }
 
