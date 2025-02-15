@@ -129,7 +129,6 @@ export class TableGrupoActividadGruposComponent {
 
 
      let dateToday = new Date();
-     let formattedDate = `${dateToday.getDate().toString().padStart(2, '0')}/${(dateToday.getMonth() + 1).toString().padStart(2, '0')}/${dateToday.getFullYear()}`;
 
       this.startFilters = [{field:'GrupoActividadInactivo', condition:'AND', operator:'=', value: '0', forced:false}]
 
