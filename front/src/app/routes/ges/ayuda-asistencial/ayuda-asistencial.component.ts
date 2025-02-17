@@ -43,7 +43,7 @@ export class AyudaAsistencialComponent {
     gridObj!: SlickGrid;
     excelExportService = new ExcelExportService()
     detailViewRowCount = 1
-    startFilters: { field: string; condition: string; operator: string; value: string; forced: boolean }[] = []
+    startFilters: any[] = []
     listOptions: listOptionsT = { filtros: [], sort: null, };
 
     formChange$ = new BehaviorSubject('');

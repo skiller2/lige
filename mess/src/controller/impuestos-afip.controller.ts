@@ -26,13 +26,13 @@ export class ImpuestosAfipController extends BaseController {
     try {
       const gettmpfilename = await this.getRutaFile(queryRunner, PersonalId, anio, mes)
       let tmpURL = ''
-      if (gettmpfilename[0] && existsSync(this.directory + '/' + gettmpfilename[0].path)) {
+      if (gettmpfilename[0]) {
 
         const filename = `${anio}-${mes.toString().padStart(2, '0')}-${gettmpfilename[0].CUIT}-${gettmpfilename[0].PersonalId}.pdf`
         const downloadPath = `${this.directory}/${anio}/${filename}`;
-  
+        console.log('Descarga monotributo downloadPath',downloadPath)
         if (!existsSync(downloadPath))
-          throw new ClientException(`El documento no se encuentra disponible.`);
+          throw new ClientException(`El documento no se encuentra disponible.`,downloadPath);
   
 
 
@@ -43,6 +43,8 @@ export class ImpuestosAfipController extends BaseController {
       return { URL:tmpURL, doc_id: gettmpfilename[0].doc_id }
 
     } catch (error) {
+      console.log('Error descargando monotributo',error)
+
       await this.rollbackTransaction(queryRunner)
       return error
     }
@@ -53,9 +55,12 @@ export class ImpuestosAfipController extends BaseController {
      SELECT DISTINCT
         com.PersonalComprobantePagoAFIPId, com.PersonalId,
         com.PersonalComprobantePagoAFIPAno,com.PersonalComprobantePagoAFIPMes,com.PersonalComprobantePagoAFIPImporte,
+        cuit.PersonalCUITCUILCUIT AS CUIT,
 
         1
-        FROM PersonalComprobantePagoAFIP com WHERE com.PersonalId=@0 AND com.PersonalComprobantePagoAFIPAno = @1 AND com.PersonalComprobantePagoAFIPMes = @2
+        FROM PersonalComprobantePagoAFIP com 
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = com.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = com.PersonalId)
+        WHERE com.PersonalId=@0 AND com.PersonalComprobantePagoAFIPAno = @1 AND com.PersonalComprobantePagoAFIPMes = @2
 `,
       [personalIdRel, year, month]
     )

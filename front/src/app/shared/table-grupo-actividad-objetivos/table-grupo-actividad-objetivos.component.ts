@@ -122,7 +122,6 @@ export class TableGrupoActividadObjetivosComponent {
     this.gridOptionsEdit.createFooterRow = true
 
     const dateToday = new Date();
-    
     this.startFilters = [
      {field:'GrupoActividadObjetivoDesde', condition:'AND', operator:'<=', value: dateToday, forced:false},
      {field:'GrupoActividadObjetivoHasta', condition:'AND', operator:'>=', value: dateToday, forced:false}]
