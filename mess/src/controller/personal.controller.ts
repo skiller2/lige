@@ -200,7 +200,7 @@ export class PersonalController extends BaseController {
 
       const dataObj = JSON.parse(decrypted.toString(CryptoJS.default.enc.Utf8))
       if (!dataObj.stmgen || (new Date().getTime() - Date.parse(dataObj?.stmgen)) / 1000 / 60 / 60 > this.linkVigenciaHs) {
-        throw new ClientException('El enlace proporcionado expiró, vuelve a saludar al BOT para que te entregue uno nuevo')
+        throw new ClientException('El enlace proporcionado expiró, vuelve a saludar al BOT para recibir uno nuevo')
       }
 
       const telNro = String(dataObj?.data)
@@ -279,7 +279,7 @@ export class PersonalController extends BaseController {
 
       const dataObj = JSON.parse(decrypted.toString(CryptoJS.default.enc.Utf8))
       if (!dataObj.stmgen || (new Date().getTime() - Date.parse(dataObj?.stmgen)) / 1000 / 60 / 60 > this.linkVigenciaHs) {
-        throw new ClientException('El enlace proporcionado expiró, vuelve a saludar al BOT para que te entregue uno nuevo')
+        throw new ClientException('El enlace proporcionado expiró, vuelve a saludar al BOT para recibir uno nuevo')
       }
       const telNro = String(dataObj?.data)
       this.jsonRes({ telNro }, res);
