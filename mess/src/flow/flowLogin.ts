@@ -6,7 +6,7 @@ import { botServer } from 'src';
 import flowRemoveTel from './flowRemoveTel';
 
 const delay = chatBotController.getDelay()
-
+const linkVigenciaHs = (process.env.LINK_VIGENCIA)? Number(process.env.LINK_VIGENCIA):3
 
 export const flowValidateCode = addKeyword(utils.setEvent("REGISTRO_FINAL"))
     .addAction(async (ctx, { state, gotoFlow, flowDynamic }) => {
@@ -91,6 +91,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
             if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
                 const ret = await personalController.genTelCode(telefono)
                 await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, { delay: delay })
+                await flowDynamic(`Recuerda la el link tiene una vigencia de ${linkVigenciaHs} horas`, { delay: delay })
                 await state.update({ encTelNro: ret.encTelNro })
                 stopSilence(ctx,gotoFlow, state)
                 return endFlow()

@@ -37,7 +37,6 @@ export class IdentComponent {
   curcam = 0
   scannerEnabled = model(false)
   scanComplete(e: any) {
-    //    console.log('scanComplete',e)
   }
   constructor(
     private route: ActivatedRoute, 
@@ -171,8 +170,7 @@ export class IdentComponent {
     let cuit = this.formCli.value?.cuit
     try {
       let result = await firstValueFrom(this.apiService.getValidateRecibo(recibo,cuit))
-      console.log("result recibo", result)
-      
+     
         this.panels.update((currentPanels) =>
           currentPanels.map((panel) => {
             if (panel.id === 3) {
@@ -205,7 +203,6 @@ export class IdentComponent {
 
       let encTelNro = this.route.snapshot.paramMap.get('encTelNro')
       let result = await firstValueFrom(this.apiService.getValidateCBU(cbu,cuit,encTelNro))
-      console.log("result ", result)
    
       this.codigo.set( result)
       this.retries.set(0)
@@ -229,10 +226,15 @@ export class IdentComponent {
   }
 
 
-  ngOnInit() {
+  async ngOnInit() {
 
     if (this.encTelNro()) {
-      this.scannerEnabled.set(true)
+      //      this.scannerEnabled.set(true)
+      try {
+        const res = await firstValueFrom(this.apiService.getValidateEncoded(this.encTelNro()))
+      } catch (error) {
+        
+      }
 
     }
 

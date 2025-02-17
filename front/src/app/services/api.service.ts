@@ -433,6 +433,12 @@ export class ApiService {
     )
   }
 
+  getValidateEncoded(encTelNro: any) {
+    return this.http.get(`/api/acceso-bot/validateencoded/${encTelNro}`,{}, {context: new HttpContext().set(ALLOW_ANONYMOUS, true)}).pipe(
+      map((res: any) => res.data)
+    )
+  }
+
   sendMessage(dst: string, msg: string) {
     console.log('envio',dst,msg)
     return this.http.post<ResponseJSON<any>>(`mess/api/personal/sendmsg`, { dst, msg }).pipe(

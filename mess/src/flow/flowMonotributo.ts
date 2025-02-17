@@ -70,7 +70,6 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
                 await chatBotController.addToDocLog(urlDoc.doc_id,ctx.from)
                 await flowDynamic([{ body: `Recibo`, media: urlDoc.URL, delay }])
             }
-        //TODO Escribir en la base la descarga del archivo
     
     })
     .addAnswer([

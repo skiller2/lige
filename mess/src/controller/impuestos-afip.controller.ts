@@ -97,7 +97,8 @@ export class ImpuestosAfipController extends BaseController {
       if (!existsSync(downloadPath))
         throw new ClientException(`El archivo no existe (${downloadPath}).`);
 
-//      const uint8Array = readFileSync(downloadPath);
+      //Realizar la conversion al PDF modificado.
+      
 
       res.download(downloadPath, filename,async (error) => {
         if (error) {

@@ -17,6 +17,12 @@ personalRouter.get(`${base}/ident`, [], (req, res, next) => {
 
 });
 
+
+personalRouter.get(`${base}/decode`, [], (req, res, next) => {
+  personalController.getIdentDecode(req, res, next);
+});
+
+
 personalRouter.post(`${base}/sendmsg`, [], (req, res, next) => {
   const dst = req.body.dst;
   const msg = req.body.msg;

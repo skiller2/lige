@@ -17,6 +17,7 @@ export class PersonalController extends BaseController {
     );
   }
 
+  linkVigenciaHs:number = (process.env.LINK_VIGENCIA)? Number(process.env.LINK_VIGENCIA):3
 
   async delTelefonoPersona(telefono: string) {
 
@@ -198,7 +199,7 @@ export class PersonalController extends BaseController {
       });
 
       const dataObj = JSON.parse(decrypted.toString(CryptoJS.default.enc.Utf8))
-      if (!dataObj.stmgen || (new Date().getTime() - Date.parse(dataObj?.stmgen)) / 1000 / 60 / 60 > 3) {
+      if (!dataObj.stmgen || (new Date().getTime() - Date.parse(dataObj?.stmgen)) / 1000 / 60 / 60 > this.linkVigenciaHs) {
         throw new ClientException('La url proporcionada expiró. Ingrese el código 0 y vuelva a comenzar el procedimiento')
       }
 
@@ -252,4 +253,39 @@ export class PersonalController extends BaseController {
     }
   }
 
+  async getIdentDecode(req: any, res: Response, next: NextFunction) {
+    const encryptedData = req.query.encTelNro
+
+    const stmactual = new Date();
+    const usuario = 'anon'
+    const ip = this.getRemoteAddress(req)
+
+
+
+    const queryRunner = dataSource.createQueryRunner();
+
+    try {
+ 
+      const _key = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
+      const _iv = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
+      const decrypted = CryptoJS.default.AES.decrypt(
+        encryptedData, _key, {
+        keySize: 16,
+        iv: _iv,
+        mode: CryptoJS.default.mode.ECB,
+        padding: CryptoJS.default.pad.Pkcs7,
+        format: CryptoJS.format.Hex
+      });
+
+      const dataObj = JSON.parse(decrypted.toString(CryptoJS.default.enc.Utf8))
+      if (!dataObj.stmgen || (new Date().getTime() - Date.parse(dataObj?.stmgen)) / 1000 / 60 / 60 > this.linkVigenciaHs) {
+        throw new ClientException('La url proporcionada expiró')
+      }
+      const telNro = String(dataObj?.data)
+      this.jsonRes({ telNro }, res);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    }
+  }  
 }

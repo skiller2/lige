@@ -61,6 +61,10 @@ accesoBotRouter.get("/validatecbu/:cbu/:cuit/:encTelNro", (req, res, next) => {
   accesoBotController.validateCbu(req, res, next);
 });
 
+accesoBotRouter.get("/validateencoded/:encTelNro", (req, res, next) => {
+  accesoBotController.validateEncoded(req, res, next);
+});
+
 
 
 

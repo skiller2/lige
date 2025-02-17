@@ -433,6 +433,38 @@ console.log('validateRecibo', cuit, recibo)
             return next(error)
         }
     }
+    async validateEncoded(req: any, res: Response, next: NextFunction) {
+        const encTelNro = req.params.encTelNro
+
+        const usuario = res.locals.userName
+        const ip = this.getRemoteAddress(req)
+        const fecha = new Date()
+        let newValue
+        const queryRunner = dataSource.createQueryRunner()
+
+        try {
+            let base_url = process.env.URL_MESS_API || "http://localhost:3010"
+            let url = `${base_url}/api/personal/decode?encTelNro=${encTelNro}`;
+            const headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json', 
+                };
+
+            const response = await fetch(url, { method: 'GET', headers: headers })
+
+            const responsejson: any = await response.json()
+            if (response.status == 200) {
+                newValue = responsejson?.data.codigo
+            } else {
+                throw new ClientException(responsejson?.msg)
+            }
+
+            this.jsonRes(newValue, res);
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        }
+    }
 
     async DocumentoImagenDocumento(queryRunner: any, files: any, PersonalId: any) {
 
