@@ -49,7 +49,6 @@ export class TableGrupoActividadResponsablesComponent {
     sort: null,
   };
   startFilters: any[] = []
-
   complexityLevelList = [true, false];
   angularGridEditActividad!: AngularGridInstance;
   gridOptionsEdit!: GridOption;
@@ -70,12 +69,6 @@ export class TableGrupoActividadResponsablesComponent {
     map((data) => {
       let mapped = data.cols.map((col: Column) => {
         switch (col.id) {
-          case 'GrupoActividadJerarquicoDesde':
-            col.cssClass = "text-row-aling";
-            break;
-          case 'GrupoActividadJerarquicoHasta':
-            col.cssClass = "text-row-aling";
-            break;
           case 'ApellidoNombrePersona':
             col.formatter = Formatters['complexObject'],
               col.exportWithFormatter = true,
@@ -143,10 +136,10 @@ export class TableGrupoActividadResponsablesComponent {
     this.gridOptionsEdit.createFooterRow = true
 
     let dateToday = new Date();
-
-  //  this.startFilters = [
-  //    {field:'GrupoActividadJerarquicoDesde', condition:'AND', operator:'<=', value: formattedDate, forced:false},
-  //    {field:'GrupoActividadJerarquicoHasta', condition:'AND', operator:'>=', value: formattedDate, forced:false}]
+    
+    this.startFilters = [
+     {field:'GrupoActividadJerarquicoDesde', condition:'AND', operator:'<=', value: dateToday, forced:false},
+     {field:'GrupoActividadJerarquicoHasta', condition:'AND', operator:'>=', value: dateToday, forced:false}]
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 //      if column.id 

@@ -182,7 +182,7 @@ export class GrupoActividadController extends BaseController {
             id: "GrupoActividadDetalle",
             field: "GrupoActividadDetalle",
             fieldName: "ga.GrupoActividadDetalle",
-           
+
             sortable: true,
             searchHidden: true
         },
@@ -202,7 +202,7 @@ export class GrupoActividadController extends BaseController {
             id: "GrupoObjetivoDetalle",
             field: "GrupoObjetivoDetalle",
             fieldName: "obj.ObjetivoDescripcion",
-           
+
             sortable: true,
             searchHidden: true
         },
@@ -731,13 +731,13 @@ export class GrupoActividadController extends BaseController {
                         GrupoActividadObjetivoDia = @6,GrupoActividadObjetivoTiempo = @7
                     WHERE GrupoActividadObjetivoObjetivoId = @0 AND GrupoActividadId = @1
                 `, [
-                    params.GrupoActividadObjetivoObjetivoId, 
-                    params.GrupoActividadDetalle.id, 
-                    params.GrupoActividadObjetivoDesde, 
-                    params.GrupoActividadObjetivoHasta, 
-                    ip, 
-                    usuarioId, 
-                    fechaActual, 
+                    params.GrupoActividadObjetivoObjetivoId,
+                    params.GrupoActividadDetalle.id,
+                    params.GrupoActividadObjetivoDesde,
+                    params.GrupoActividadObjetivoHasta,
+                    ip,
+                    usuarioId,
+                    fechaActual,
                     time
                 ])
 
@@ -747,14 +747,14 @@ export class GrupoActividadController extends BaseController {
 
             } else {  //Es un nuevo registro
 
-                
+
                 console.log('El código no existe - es nuevo')
                 await this.validateFormObjetivos(params, queryRunner)
 
                 let result = await queryRunner.query(`SELECT TOP 1 * FROM GrupoActividadObjetivo 
                 WHERE GrupoActividadId = @0 
                 AND GrupoActividadObjetivoObjetivoId = @1
-                ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC`,[params.GrupoActividadDetalle.id,params.GrupoObjetivoDetalle.id])
+                ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC`, [params.GrupoActividadDetalle.id, params.GrupoObjetivoDetalle.id])
 
 
                 if (result.length > 0) {
@@ -766,22 +766,25 @@ export class GrupoActividadController extends BaseController {
                         throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(ultimoRegistro.GrupoActividadObjetivoDesde)}`)
                     }
 
-                    if (!ultimoRegistro.GrupoActividadObjetivoHasta) {
+                    if (!ultimoRegistro.GrupoActividadObjetivoHasta || new Date(ultimoRegistro.GrupoActividadObjetivoHasta) >= fechaActual) {
 
-                        GrupoActividadObjetivoHasta = new Date(params.GrupoActividadObjetivoDesde)
-                        GrupoActividadObjetivoHasta.setDate(GrupoActividadObjetivoHasta.getDate() - 1)
-                        const formattedDate = GrupoActividadObjetivoHasta.toISOString().split('T')[0] + "T00:00:00.000Z"
+                        throw new ClientException(`Ya se encuentra vigente el grupo actividad con el objetivo`)
 
-
-                        await queryRunner.query(
-                            `UPDATE GrupoActividadObjetivo SET GrupoActividadObjetivoHasta = @2 WHERE GrupoActividadId = @0 AND GrupoActividadObjetivoObjetivoId = @1`,
-                            [ultimoRegistro.GrupoActividadId, ultimoRegistro.GrupoActividadObjetivoObjetivoId, formattedDate]
-                        );
                     }
 
                     if (new Date(params.GrupoActividadObjetivoDesde) <= ultimoRegistro.GrupoActividadObjetivoHasta) {
                         throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(ultimoRegistro.GrupoActividadObjetivoHasta)}`)
                     }
+
+                    GrupoActividadObjetivoHasta = new Date(params.GrupoActividadObjetivoDesde)
+                    GrupoActividadObjetivoHasta.setDate(GrupoActividadObjetivoHasta.getDate() - 1)
+                    const formattedDate = GrupoActividadObjetivoHasta.toISOString().split('T')[0] + "T00:00:00.000Z"
+
+
+                    await queryRunner.query(
+                        `UPDATE GrupoActividadObjetivo SET GrupoActividadObjetivoHasta = @2 WHERE GrupoActividadId = @0 AND GrupoActividadObjetivoObjetivoId = @1`,
+                        [ultimoRegistro.GrupoActividadId, ultimoRegistro.GrupoActividadObjetivoObjetivoId, formattedDate]
+                    );
                 }
 
 
@@ -799,15 +802,15 @@ export class GrupoActividadController extends BaseController {
                     "GrupoActividadObjetivoDia",
                     "GrupoActividadObjetivoTiempo"
                 ) VALUES ( @0,@1,@2, @3,@4, @5,@6, @7,@8 );
-                `, [GrupoActividadObjetivoId,params.GrupoActividadDetalle.id,params.GrupoObjetivoDetalle.id,
-                   params.GrupoActividadObjetivoDesde,params.GrupoActividadObjetivoHasta,ip,usuarioId, fechaActual,time])
+                `, [GrupoActividadObjetivoId, params.GrupoActividadDetalle.id, params.GrupoObjetivoDetalle.id,
+                    params.GrupoActividadObjetivoDesde, params.GrupoActividadObjetivoHasta, ip, usuarioId, fechaActual, time])
 
-                
-                   await queryRunner.query(`UPDATE GrupoActividad
+
+                await queryRunner.query(`UPDATE GrupoActividad
                     SET GrupoActividadObjetivoUltNro = @0
                     WHERE GrupoActividadId =  @1`, [GrupoActividadObjetivoId, params.GrupoActividadDetalle.id])
 
-                dataResultado = { action: 'I', GrupoActividadId: params.GrupoActividadDetalle.id,  GrupoActividadObjetivoObjetivoId: params.GrupoObjetivoDetalle.id,PreviousDate: GrupoActividadObjetivoHasta }
+                dataResultado = { action: 'I', GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadObjetivoObjetivoId: params.GrupoObjetivoDetalle.id, PreviousDate: GrupoActividadObjetivoHasta }
                 message = "Carga de nuevo Registro exitoso"
             }
 
