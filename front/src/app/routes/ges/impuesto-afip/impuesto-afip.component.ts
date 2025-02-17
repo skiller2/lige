@@ -120,7 +120,7 @@ export class ImpuestoAfipComponent {
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   gridObj!: SlickGrid;
-  startFilters: { field: string; condition: string; operator: string; value: string; }[]=[]
+  startFilters: any[]=[]
 
   listOptions: listOptionsT = {
     filtros: [],

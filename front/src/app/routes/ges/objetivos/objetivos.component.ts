@@ -62,7 +62,7 @@ export class ObjetivosComponent {
   };
   
   formChange$ = new BehaviorSubject('');
-  startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
+  startFilters: any[]=[]
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)

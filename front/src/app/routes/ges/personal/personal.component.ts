@@ -50,7 +50,7 @@ export class PersonalComponent {
         filtros: [],
         sort: null,
     };
-    startFilters: { field: string; condition: string; operator: string; value: string; forced:boolean}[]=[]
+    startFilters: any[]=[]
 
     private angularUtilService = inject(AngularUtilService)
     private searchService = inject(SearchService)

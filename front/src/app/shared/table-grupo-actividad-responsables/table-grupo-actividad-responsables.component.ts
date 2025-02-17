@@ -48,7 +48,7 @@ export class TableGrupoActividadResponsablesComponent {
     filtros: [],
     sort: null,
   };
-  startFilters: { field: string; condition: string; operator: string; value: string; forced: boolean }[] = []
+  startFilters: any[] = []
 
   complexityLevelList = [true, false];
   angularGridEditActividad!: AngularGridInstance;
