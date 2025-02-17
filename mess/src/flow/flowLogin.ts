@@ -91,7 +91,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
             if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
                 const ret = await personalController.genTelCode(telefono)
                 await flowDynamic(`Para continuar ingrese a https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, { delay: delay })
-                await flowDynamic(`Recuerda la el link tiene una vigencia de ${linkVigenciaHs} horas`, { delay: delay })
+                await flowDynamic(`Recuerda la el link tiene una vigencia de ${linkVigenciaHs} horas, pasado este tiempo vuelve a salidarme para que te entrege un nuevo link de validación`, { delay: delay })
                 await state.update({ encTelNro: ret.encTelNro })
                 stopSilence(ctx,gotoFlow, state)
                 return endFlow()
