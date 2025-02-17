@@ -59,7 +59,7 @@ export class ImpuestosAfipController extends BaseController {
 
         1
         FROM PersonalComprobantePagoAFIP com 
-        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = com.PersonalId
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = com.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = com.PersonalId)
         WHERE com.PersonalId=@0 AND com.PersonalComprobantePagoAFIPAno = @1 AND com.PersonalComprobantePagoAFIPMes = @2
 `,
       [personalIdRel, year, month]
