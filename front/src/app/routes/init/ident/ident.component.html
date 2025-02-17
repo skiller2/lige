@@ -1,5 +1,11 @@
 <br>
 <h1>{{ 'app.validacionIndentidadText' | i18n }}</h1>
+
+@if (error()){
+  <nz-alert nzType="error" nzShowIcon [nzMessage]="error()"></nz-alert>  
+
+} @else {
+
 <form [formGroup]="formCli" *ngIf="codigo() == 0 && retries() < 4" >
   <nz-collapse nzAccordion  *ngIf="collapseDisabled()" >
     @for (panel of panels(); track panel) {
@@ -154,3 +160,4 @@
   } 
 
 </nz-card> -->
+}

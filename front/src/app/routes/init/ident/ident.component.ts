@@ -10,13 +10,14 @@ import { NzCollapseModule } from 'ng-zorro-antd/collapse';
 import { NgForm, FormArray, FormBuilder, ValueChangeEvent, FormGroup, FormControl } from '@angular/forms';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { ActivatedRoute } from '@angular/router';
+import { NzAlertModule } from 'ng-zorro-antd/alert';
 
 
 
 @Component({
   selector: 'app-ident',
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, ZXingScannerModule, NzResultModule, NzCollapseModule],
+  imports: [...SHARED_IMPORTS, CommonModule, ZXingScannerModule, NzResultModule, NzCollapseModule,NzAlertModule],
   templateUrl: './ident.component.html',
   styleUrl: './ident.component.less'
 })
@@ -27,6 +28,7 @@ export class IdentComponent {
   videoConstraints = signal({ facingMode: 'back', with: 1080 })
   collapseDisabled = signal(true)
   codigo = signal(0)
+  error = signal('')
   private apiService = inject(ApiService)
   passwordVisible = false;
   password?: string;
@@ -232,10 +234,10 @@ export class IdentComponent {
       //      this.scannerEnabled.set(true)
       try {
         const res = await firstValueFrom(this.apiService.getValidateEncoded(this.encTelNro()))
-      } catch (error) {
-        
+      } catch (error: any) {
+        console.log('error',error)
+        this.error.set(error.error.msg)
       }
-
     }
 
   }

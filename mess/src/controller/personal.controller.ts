@@ -277,7 +277,11 @@ export class PersonalController extends BaseController {
         format: CryptoJS.format.Hex
       });
 
-      const dataObj = JSON.parse(decrypted.toString(CryptoJS.default.enc.Utf8))
+      const clearTextStr=decrypted.toString(CryptoJS.default.enc.Utf8)
+      if (clearTextStr=='')
+        throw new ClientException('El enlace proporcionado no es válido, vuelve a saludar al BOT para recibir uno nuevo')
+      
+      const dataObj = JSON.parse(clearTextStr)
       if (!dataObj.stmgen || (new Date().getTime() - Date.parse(dataObj?.stmgen)) / 1000 / 60 / 60 > this.linkVigenciaHs) {
         throw new ClientException('El enlace proporcionado expiró, vuelve a saludar al BOT para recibir uno nuevo')
       }
