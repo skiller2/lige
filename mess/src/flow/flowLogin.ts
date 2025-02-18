@@ -62,7 +62,6 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
         await flowDynamic(`Bienvenido al área de consultas de la Cooperativa Lince Seguridad`, { delay: delay })
         const res = await personalController.getPersonalfromTelefonoQuery(telefono)
         if (res.length) {
-            console.log('resultado',res)
             if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
                 await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${res[0].PersonalSituacionRevistaSituacionId}`, { delay: delay })
                 stop(ctx, gotoFlow, state)
