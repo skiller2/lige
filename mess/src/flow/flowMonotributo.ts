@@ -44,7 +44,7 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         const myState = state.getMyState()
         const resPeriodos = myState.recibo.periodosString
         await flowDynamic([{ body: resPeriodos }])
-        await flowDynamic([{ body: 'Ingrese el número correspondiente a una fecha de la lista 📝'}])
+        await flowDynamic([{ body: 'Ingrese el número correspondiente al período listado 📝'}])
 
     })
     .addAction({ capture: true, delay },
