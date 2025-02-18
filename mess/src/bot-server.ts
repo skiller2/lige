@@ -6,7 +6,7 @@ import { ClientException } from "./controller/base.controller";
 
 import dotenv from "dotenv"
 import { createBot, createProvider, createFlow, addKeyword, utils } from '@builderbot/bot'
-import { JsonFileDB as Database } from '@builderbot/database-json'
+import { SqlServerAdapter as Database } from './sqlserver-database/sqlserver-database'
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
 import { flowLogin, flowValidateCode } from "./flow/flowLogin";
 import flowRecibo from "./flow/flowRecibo";
@@ -51,7 +51,7 @@ export class BotServer {
 
     const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo, flowRemoveTel,idleFlow])
     this.adapterProvider = createProvider(Provider)
-    const adapterDB = new Database({ filename: 'db.json' })
+    const adapterDB = new Database()
     this.globalTimeOutMs = 60000 * 5
     this.botHandle = await createBot({
       flow: adapterFlow,
@@ -67,17 +67,17 @@ export class BotServer {
 
     this.adapterProvider.on('require_action', (e) => {
       this.statusMsg = 1
-      console.log('event', e)
+      console.log('event require_action', e)
     })
 
     this.adapterProvider.on('auth_failure', () => {
       this.statusMsg = 2
-      console.log('event')
+      console.log('event auth_failure')
     })
 
 
     this.botHandle.httpServer(3008)
-    console.log('botHandle', this.botHandle)
-    console.log('adapterProvider', this.adapterProvider)
+//    console.log('botHandle', this.botHandle)
+//    console.log('adapterProvider', this.adapterProvider)
   }
 }

@@ -98,7 +98,7 @@ export class PersonalController extends BaseController {
       FROM lige.dbo.regtelefonopersonal reg
       LEFT JOIN Personal per ON per.PersonalId = reg.personal_id
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = reg.personal_id
-      LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@1 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')>=@1 
+      LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@1 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31')>=CAST(@1 AS DATE) 
       LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
 
 

@@ -16,25 +16,21 @@
   },
   "keywords": [],
   "dependencies": {
-    "@builderbot/bot": "^1.1.7",
-    "@builderbot/database-json": "^1.1.7",
-    "@builderbot/provider-baileys": "^1.1.7",
-    "cache-manager": "5.2.4",
+    "@builderbot/bot": "^1.2.5",
+    "@builderbot/provider-baileys": "^1.2.5",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.4.1",
     "express": "^4.19.2",
+    "jimp": "^1.6.0",
+    "link-preview-js": "^3.0.14",
     "mime-types": "2.1.35",
-    "mssql": "^10.0.2",
+    "mssql": "^10.0.1",
     "node-schedule": "^2.1.1",
-    "parcel": "^2.12.0",
-    "sharp": "^0.33.4",
+    "qrcode-terminal": "^0.12.0",
     "typeorm": "^0.3.20",
-    "wa-sticker-formatter": "^1.6.0"
+    "wa-sticker-formatter": "^4.4.4"
   },
   "devDependencies": {
-    "@types/node": "^20.11.16",
-    "esbuild": "0.21.4",
-    "eslint": "^8.52.0",
-    "eslint-plugin-bot-whatsapp": "^0.1.38"
+    "esbuild": "^0.25.0"
   }
 }
