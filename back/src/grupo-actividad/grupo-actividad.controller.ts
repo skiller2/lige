@@ -751,43 +751,58 @@ export class GrupoActividadController extends BaseController {
                 console.log('El código no existe - es nuevo')
                 await this.validateFormObjetivos(params, queryRunner)
 
+                //query para validarlo contra el mismo
                 let result = await queryRunner.query(`SELECT TOP 1 * FROM GrupoActividadObjetivo 
-                WHERE GrupoActividadObjetivoObjetivoId = @0 
+                WHERE GrupoActividadObjetivoObjetivoId = @0
+                AND GrupoActividadId = @1
+                ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC`, [params.GrupoObjetivoDetalle.id, params.GrupoActividadDetalle.id])
+
+                //query para validarlo contra grupo actividad y objetivo
+
+                let resultQuery = await queryRunner.query(`SELECT TOP 1 * FROM GrupoActividadObjetivo 
+                WHERE GrupoActividadObjetivoObjetivoId = @0
                 ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC`, [params.GrupoObjetivoDetalle.id])
 
+                // console.log("result ", result)
+                // console.log("resultQuery ", resultQuery)
+                const ultimoRegistroQuery = resultQuery[0]
 
+                GrupoActividadObjetivoHasta = new Date(params.GrupoActividadObjetivoDesde)
+                GrupoActividadObjetivoHasta.setDate(GrupoActividadObjetivoHasta.getDate() - 1)
+                const formattedDate = GrupoActividadObjetivoHasta.toISOString().split('T')[0] + "T00:00:00.000Z"
+
+                //throw new ClientException(`test`)
+                const validarGrupoActividadVigente = (registro) => {
+                    if (!registro?.GrupoActividadObjetivoHasta || new Date(registro.GrupoActividadObjetivoHasta) >= fechaActual) {
+                        throw new ClientException(`Ya se encuentra vigente el grupo actividad con el objetivo`)
+                    }
+                };
+                
+                const actualizarGrupoActividadHasta = async (registro) => {
+     
+                    if (registro && (!registro.GrupoActividadObjetivoHasta || registro.GrupoActividadObjetivoHasta < GrupoActividadObjetivoHasta)) {
+                        await queryRunner.query(
+                            `UPDATE GrupoActividadObjetivo 
+                             SET GrupoActividadObjetivoHasta = @2 
+                             WHERE GrupoActividadId = @0 
+                             AND GrupoActividadObjetivoObjetivoId = @1`,
+                            [registro.GrupoActividadId, registro.GrupoActividadObjetivoObjetivoId, formattedDate]
+                        )
+                    }
+                }
+                
                 if (result.length > 0) {
                     const ultimoRegistro = result[0]
-                    const fechaParam = new Date(params.GrupoActividadObjetivoDesde).toISOString().split('T')[0];
-                    const fechaResult = new Date(ultimoRegistro.GrupoActividadObjetivoDesde).toISOString().split('T')[0]
-
-                    // if (fechaParam <= fechaResult) {
-                    //     throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(ultimoRegistro.GrupoActividadObjetivoDesde)}`)
-                    // }
-
-
-                    if( ultimoRegistro.GrupoActividadId == params.GrupoActividadDetalle.id)  {
-                      
-                        if(!ultimoRegistro.GrupoActividadObjetivoHasta || new Date(ultimoRegistro.GrupoActividadObjetivoHasta) >= fechaActual)
-                        throw new ClientException(`Ya se encuentra vigente el grupo actividad con el objetivo`)
-
-                    }
-
-                    if (new Date(params.GrupoActividadObjetivoDesde) <= ultimoRegistro.GrupoActividadObjetivoHasta) {
-                        throw new ClientException(`La fecha desde debe ser mayor a 1${this.dateOutputFormat(ultimoRegistro.GrupoActividadObjetivoHasta)}`)
-                    }
-
-                    GrupoActividadObjetivoHasta = new Date(params.GrupoActividadObjetivoDesde)
-                    GrupoActividadObjetivoHasta.setDate(GrupoActividadObjetivoHasta.getDate() - 1)
-                    const formattedDate = GrupoActividadObjetivoHasta.toISOString().split('T')[0] + "T00:00:00.000Z"
-
-
-                    await queryRunner.query(
-                        `UPDATE GrupoActividadObjetivo SET GrupoActividadObjetivoHasta = @2 WHERE GrupoActividadId = @0 AND GrupoActividadObjetivoObjetivoId = @1`,
-                        [ultimoRegistro.GrupoActividadId, ultimoRegistro.GrupoActividadObjetivoObjetivoId, formattedDate]
-                    );
+                    validarGrupoActividadVigente(ultimoRegistro)
+                    actualizarGrupoActividadHasta(ultimoRegistro)
+                } else if (
+                    resultQuery.length > 0 || 
+                    (ultimoRegistroQuery?.GrupoActividadId !== params.GrupoActividadDetalle.id && 
+                     params.GrupoObjetivoDetalle.id === ultimoRegistroQuery?.ObjetivoId)
+                ) {
+                    //validarGrupoActividadVigente(ultimoRegistroQuery)
+                    actualizarGrupoActividadHasta(ultimoRegistroQuery)
                 }
-
 
                 let GrupoActividadObjetivoId = await queryRunner.query(` SELECT GrupoActividadObjetivoUltNro FROM GrupoActividad WHERE GrupoActividadId =  @0`, [params.GrupoActividadDetalle.id])
                 GrupoActividadObjetivoId = GrupoActividadObjetivoId[0].GrupoActividadObjetivoUltNro + 1
