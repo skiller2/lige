@@ -5,10 +5,25 @@ import { tipoDocumentoController } from "../controller/controller.module";
 export const tipoDocumentoRouter = Router();
 
 tipoDocumentoRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
-    
-    tipoDocumentoController.getGridCols(req, res);
-  });
+  tipoDocumentoController.getGridCols(req, res);
+});
 
-  tipoDocumentoRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
-    tipoDocumentoController.getdocgenralList(req, res, next)
+tipoDocumentoRouter.get("/cols-download", authMiddleware.verifyToken, (req, res) => {
+  tipoDocumentoController.getGridDownloadCols(req, res);
+});
+
+tipoDocumentoRouter.get("/tipos", authMiddleware.verifyToken, (req, res, next) => {
+  tipoDocumentoController.getTipos(req, res, next);
+});
+
+tipoDocumentoRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+  tipoDocumentoController.getdocgenralList(req, res, next)
+})
+
+tipoDocumentoRouter.post('/list-download', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+  tipoDocumentoController.getPersonalDescarga(req, res, next)
+})
+
+tipoDocumentoRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+  tipoDocumentoController.addTipoDocumento(req, res, next)
 })
