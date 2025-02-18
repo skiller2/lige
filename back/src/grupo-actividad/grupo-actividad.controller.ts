@@ -752,9 +752,8 @@ export class GrupoActividadController extends BaseController {
                 await this.validateFormObjetivos(params, queryRunner)
 
                 let result = await queryRunner.query(`SELECT TOP 1 * FROM GrupoActividadObjetivo 
-                WHERE GrupoActividadId = @0 
-                AND GrupoActividadObjetivoObjetivoId = @1
-                ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC`, [params.GrupoActividadDetalle.id, params.GrupoObjetivoDetalle.id])
+                WHERE GrupoActividadObjetivoObjetivoId = @0 
+                ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC`, [params.GrupoObjetivoDetalle.id])
 
 
                 if (result.length > 0) {
@@ -762,18 +761,20 @@ export class GrupoActividadController extends BaseController {
                     const fechaParam = new Date(params.GrupoActividadObjetivoDesde).toISOString().split('T')[0];
                     const fechaResult = new Date(ultimoRegistro.GrupoActividadObjetivoDesde).toISOString().split('T')[0]
 
-                    if (fechaParam <= fechaResult) {
-                        throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(ultimoRegistro.GrupoActividadObjetivoDesde)}`)
-                    }
+                    // if (fechaParam <= fechaResult) {
+                    //     throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(ultimoRegistro.GrupoActividadObjetivoDesde)}`)
+                    // }
 
-                    if (!ultimoRegistro.GrupoActividadObjetivoHasta || new Date(ultimoRegistro.GrupoActividadObjetivoHasta) >= fechaActual) {
 
+                    if( ultimoRegistro.GrupoActividadId == params.GrupoActividadDetalle.id)  {
+                      
+                        if(!ultimoRegistro.GrupoActividadObjetivoHasta || new Date(ultimoRegistro.GrupoActividadObjetivoHasta) >= fechaActual)
                         throw new ClientException(`Ya se encuentra vigente el grupo actividad con el objetivo`)
 
                     }
 
                     if (new Date(params.GrupoActividadObjetivoDesde) <= ultimoRegistro.GrupoActividadObjetivoHasta) {
-                        throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(ultimoRegistro.GrupoActividadObjetivoHasta)}`)
+                        throw new ClientException(`La fecha desde debe ser mayor a 1${this.dateOutputFormat(ultimoRegistro.GrupoActividadObjetivoHasta)}`)
                     }
 
                     GrupoActividadObjetivoHasta = new Date(params.GrupoActividadObjetivoDesde)
