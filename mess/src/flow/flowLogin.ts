@@ -68,11 +68,26 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
                 return
             }
 
-
             await state.update({ personalId: res[0].personalId })
             await state.update({ cuit: res[0].cuit })
             await state.update({ codigo: res[0].codigo })
             await state.update({ name: res[0].name.trim() })
+
+            const ahora = new Date();
+            const horas = ahora.getHours();
+            let mensaje = "";
+            console.log('horas',horas)
+        
+            if (horas >= 5 && horas < 12) {
+                mensaje = "Buen día";
+            } else if (horas >= 12 && horas < 20) {
+                mensaje = "Buenas tardes";
+            } else {
+                mensaje = "Buenas noches";
+            }
+
+            await flowDynamic(`${mensaje} ${res[0].name.trim()}`, { delay: delay })
+
 
             if (res[0].codigo) {
                 //Código pendiente de ingreso
@@ -85,9 +100,7 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
     })
     .addAnswer('El teléfono ingresado no lo pude localizar.  Desea registrarlo (Si/No)?', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
-            console.log('ingreso')
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-            console.log('paso')
             const telefono = ctx.from
             const respSINO = ctx.body
             if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {
