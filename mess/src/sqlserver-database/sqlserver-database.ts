@@ -1,8 +1,9 @@
 import { MemoryDB } from '@builderbot/bot'
 import { dataSource } from "../data-source";
-import { rejects } from 'node:assert';
+import { rejects, throws } from 'node:assert';
 
 class SqlServerAdapter extends MemoryDB {
+  public listHistory: any[] = []
 
 
   /**
@@ -18,14 +19,15 @@ class SqlServerAdapter extends MemoryDB {
    * @param {any} from - The key to start the search from.
    * @returns {Promise<any>} - A Promise that resolves with the previous entry.
    */
-  getPrevByNumber = (from: any) => {
-    return new Promise<any>(async (resolve, reject) => {
-      const res = await dataSource.query(`SELECT TOP 1 l.* FROM lige.dbo.bot_log l WHERE l.from_msg =  @0 ORDER BY stm DESC`, [from])
-      if (res.length == 0)
-        resolve({})
-      else
-        resolve({ stm: res[0].stm, ref: res[0].ref, keyword: res[0].keyword, answer: res[0].answer, refSerialize: res[0].refSerialize, from: res[0].from_msg, options: JSON.parse(res[0].options) })
-    })
+  async getPrevByNumber(from: string): Promise<any> {
+    const lastRow = this.listHistory[from] 
+    if (lastRow)
+      return lastRow
+    else {
+      const res = await dataSource.query(`SELECT TOP 1 l.* FROM lige.dbo.bot_log l WHERE l.from_msg = @0 AND l.keyword IS NOT NULL ORDER BY stm DESC`, [from])
+      const row = res[0] ? { stm: res[0].stm, ref: res[0].ref, keyword: res[0].keyword, answer: res[0].answer, refSerialize: res[0].refSerialize, from: res[0].from_msg, options: JSON.parse(res[0].options) } : {}
+      return row
+    }
   }
 
   /**
@@ -33,21 +35,13 @@ class SqlServerAdapter extends MemoryDB {
    * @param {Object} ctx - The data to be saved.
    * @returns {Promise<void>} - A Promise that resolves when the data is successfully saved.
    */
-  save = async (ctx: {
-    ref: string
-    keyword: string
-    answer: any
-    refSerialize: string
-    from: string
-    options: any
-  }) => {
-    return new Promise<any>(async (resolve, reject) => {
-
-      const options_json = JSON.stringify(ctx.options)
+  async save(ctx: any): Promise<void> {
+    if (ctx.keyword)
+      this.listHistory[ctx.from] = ctx
+    
+      const options_json = ctx.options ? JSON.stringify(ctx.options):null
       await dataSource.query(`INSERT INTO lige.dbo.bot_log (stm, ref, keyword, answer, refSerialize, from_msg, options)
         VALUES (@0,@1,@2,@3,@4,@5,@6)`, [new Date(), ctx.ref, ctx.keyword, ctx.answer, ctx.refSerialize, ctx.from, options_json])
-      resolve(true)
-    })
   }
 
 }
