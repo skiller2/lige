@@ -85,7 +85,9 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
     })
     .addAnswer('El teléfono ingresado no lo pude localizar.  Desea registrarlo (Si/No)?', { delay: delay, capture: true },
         async (ctx, { flowDynamic, state, gotoFlow, fallBack, endFlow }) => {
-            reset(ctx,gotoFlow,botServer.globalTimeOutMs)
+            console.log('ingreso')
+            reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+            console.log('paso')
             const telefono = ctx.from
             const respSINO = ctx.body
             if (respSINO.charAt(0).toUpperCase() == 'S' || respSINO.charAt(0).toUpperCase() == 'Y') {

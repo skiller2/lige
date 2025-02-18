@@ -6,6 +6,7 @@ import { ClientException } from "./controller/base.controller";
 
 import dotenv from "dotenv"
 import { createBot, createProvider, createFlow, addKeyword, utils } from '@builderbot/bot'
+//import {MemoryDB as Database } from '@builderbot/bot'
 import { SqlServerAdapter as Database } from './sqlserver-database/sqlserver-database'
 import { BaileysProvider as Provider } from '@builderbot/provider-baileys'
 import { flowLogin, flowValidateCode } from "./flow/flowLogin";
