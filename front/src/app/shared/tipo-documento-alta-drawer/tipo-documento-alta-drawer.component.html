@@ -1,0 +1,70 @@
+<nz-drawer [nzClosable]="false" [nzVisible]="visible()" [nzPlacement]="placement" [nzWidth]="640"
+  [nzTitle]="tituloDrawer() " (nzOnClose)="visible.set(false)">
+  <ng-container *nzDrawerContent>
+    <form [formGroup]="formTipoDocumento">
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Tipo de documento</nz-form-label>
+        <nz-form-control [nzSpan]="15">
+          <nz-select formControlName="tipoDocumentoId" nzPlaceHolder="Tipo" nzAllowClear
+          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
+            <ng-container *ngFor="let option of $optionsTipos | async" >
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label" ></nz-option>
+            </ng-container>
+          </nz-select> 
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item >
+        <nz-form-label [nzSpan]="8">Denominación de documento</nz-form-label>
+        <nz-form-control [nzSpan]="13">
+          <input nz-input formControlName="denominacion"/>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Persona</nz-form-label>
+        <nz-form-control [nzSpan]="16">
+          <app-personal-search formControlName="PersonalId" [anio]="periodo().anio" [mes]="periodo().mes"></app-personal-search>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Cliente</nz-form-label>
+        <nz-form-control [nzXs]="16">
+          <app-cliente-search formControlName="ClienteId" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
+        <nz-form-control [nzXs]="16">
+          <app-objetivo-search formControlName="ObjetivoId"></app-objetivo-search>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
+        <nz-form-control>
+          <nz-date-picker nzMode="month" nzFormat="MM/yyyy" formControlName="periodo"></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Archivo</nz-form-label>
+        <nz-form-control>
+          <app-file-upload formControlName="archivo" [cantMaxFiles]="1"></app-file-upload>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formTipoDocumento.pristine">
+            {{ 'app.btn.save' | i18n }}
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+
+    </form>
+  </ng-container>
+</nz-drawer>

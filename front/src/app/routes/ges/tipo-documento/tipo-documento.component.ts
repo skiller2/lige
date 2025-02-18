@@ -1,11 +1,4 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  Inject,
-  LOCALE_ID,
-  ViewChild,
-} from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Inject, LOCALE_ID, model, signal, ViewChild, viewChild, } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import {
@@ -26,6 +19,8 @@ import { SearchService } from '../../../services/search.service';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
+import { TipoDocumentoAltaDrawerComponent } from '../../../shared/tipo-documento-alta-drawer/tipo-documento-alta-drawer.component'
+import { TipoDocumentoDescargasComponent } from '../../../shared/tipo-documento-descargas/tipo-documento-descargas.component'
 
 type listOptionsT = {
   filtros: any[],
@@ -48,7 +43,7 @@ export class CustomDescargaComprobanteComponent {
     SHARED_IMPORTS,
     CommonModule,
     NzAffixModule,
-    FiltroBuilderComponent,
+    FiltroBuilderComponent, TipoDocumentoAltaDrawerComponent, TipoDocumentoDescargasComponent
   ],
   styleUrls: ['./tipo-documento.component.less'],
   providers: [AngularUtilService]
@@ -76,6 +71,8 @@ export class TipoDocumentoComponent {
   detailViewRowCount = 9
   gridOptions!: GridOption
   gridDataLen = 0
+  docId = signal<number>(0)
+  visibleAlta = model<boolean>(false)
   
   listOptions: listOptionsT = {
     filtros: [],
@@ -83,7 +80,7 @@ export class TipoDocumentoComponent {
     extra: null
   }
 
-  
+  childTDDescargas = viewChild.required<TipoDocumentoDescargasComponent>('listDescargas')
 
   listOptionsChange(options: any) {
     this.listOptions = options;
@@ -97,8 +94,6 @@ export class TipoDocumentoComponent {
 
     this.formChange$.next('')
   }
-
-
 
   gridData$ = this.formChange$.pipe(
     debounceTime(500),
@@ -205,6 +200,37 @@ export class TipoDocumentoComponent {
       filename: 'tipo-documento',
       format: FileType.xlsx
     });
+  }
+
+  handleSelectedRowsChanged(e: any): void {
+    if (e.detail.args.changedSelectedRows.length ==1) {
+      const rowNum = e.detail.args.changedSelectedRows[0]
+      const docId = this.angularGrid.dataView.getItemByIdx(rowNum)?.id
+      this.docId.set(docId)
+      console.log('docId: ', this.docId());
+      
+    } else {
+      this.docId.set(0)      
+    }
+  }
+
+  openDrawerforAlta(): void{
+    this.visibleAlta.set(true) 
+  }
+
+  onTabsetChange(_event: any) {
+    console.log('_event.index', _event.index);
+    
+    switch (_event.index) {
+    //   case 2: //NO HISTORIAL DESCARGAS
+    //     this.childPerFormDrawer().load()
+    //     break;
+      case 1: //HISTORIAL DESCARGAS
+        this.childTDDescargas().listDescargas('')
+        break;
+      default:
+        break;
+    }
   }
 
 }

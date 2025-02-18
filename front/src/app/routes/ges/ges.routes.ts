@@ -75,8 +75,9 @@ export const GesRoutes: Routes = [
     path: 'telefonia/:tab',
     loadComponent: () => import('./telefonia/telefonia.component').then(c => c.TelefoniaComponent),
   },
+  { path: 'tipo_documento', redirectTo: 'tipo_documento/list' },
   {
-    path: 'tipo_documento',
+    path: 'tipo_documento/:tab',
     loadComponent: () => import('./tipo-documento/tipo-documento.component').then(c => c.TipoDocumentoComponent),
   },
   { path: 'personal_objetivo', redirectTo: 'personal_objetivo/persona' },
