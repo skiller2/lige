@@ -18,9 +18,9 @@ const unlink = promisify(fs.unlink);
 
 
 export class FileUploadController extends BaseController {
-  tempFolderPath = path.join(process.env.PATH_DOCUMENTS, 'temp');
-  pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' 
-  pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
+  pathDocuments  = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' 
+  pathArchivos   = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
+  tempFolderPath = path.join(this.pathDocuments, 'temp');
 
   async getByDownloadFile(req: any, res: Response, next: NextFunction) {
     const documentId = req.params.id;
@@ -453,7 +453,12 @@ export class FileUploadController extends BaseController {
     const pdfDoc = await loadingTask.promise;
     const pdfPage = await pdfDoc.getPage(1);
     const operatorList = await pdfPage.getOperatorList();
+
+    console.log('operatorList',operatorList)
+
     const imgIndex = operatorList.fnArray.indexOf(OPS.paintImageXObject);
+
+    console.log('imgIndex',imgIndex)
     const imgArgs = operatorList.argsArray[imgIndex];
 
 

@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { QueryResult } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller"
-import { info } from "pdfjs-dist/types/src/shared/util";
+//import { info } from "pdfjs-dist/types/src/shared/util";
 
 
 

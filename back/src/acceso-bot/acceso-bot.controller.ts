@@ -2,13 +2,9 @@ import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
-import { QueryResult } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller"
-import { info } from "pdfjs-dist/types/src/shared/util";
 import { existsSync } from "fs";
 import { QueryRunner } from "typeorm";
-import { fileURLToPath } from 'url';
-import { Utils } from "../liquidaciones/liquidaciones.utils";
 import { MultiFormatReader, BarcodeFormat, RGBLuminanceSource, BinaryBitmap, HybridBinarizer, NotFoundException, DecodeHintType, Binarizer, QRCodeReader } from '@zxing/library';
 import path from "path";
 import qrCode from 'qrcode-reader';
