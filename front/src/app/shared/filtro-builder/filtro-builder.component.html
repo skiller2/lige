@@ -47,7 +47,10 @@
       <app-personal-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
         [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForPersonalSearch'"
         (keydown.enter)="handleInputConfirm()" />
-
+      
+      <app-administrador-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+        [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForAdministradorSearch'"
+        (keydown.enter)="handleInputConfirm()" />
 
       <app-grupo-actividad-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
         [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForGrupoPersonaSearch'"
