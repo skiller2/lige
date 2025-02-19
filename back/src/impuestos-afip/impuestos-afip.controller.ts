@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/baseController";
 
-import { getDocument } from "pdfjs-dist";
+import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
+//import { getDocument } from "pdfjs-dist";
 import { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
 //import * as pdfWorker from "pdfjs-dist/build/pdf.worker.mjs";
 

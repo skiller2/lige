@@ -137,6 +137,7 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       const personalSitRev = await this.getPersonalBySitRev(queryRunner, anio, mes)
       const personalEnSeguroCoto = await this.getPersonalEnSeguro(queryRunner, 'APC', anio, mes)
       const personalEnSeguroEdesur = await this.getPersonalEnSeguro(queryRunner, 'APE', anio, mes)
+      const personalEnSeguroVidCol = await this.getPersonalEnSeguro(queryRunner, 'VC', anio, mes)
       const fec_desde = new Date(anio, mes - 1, 1)
       const fec_hasta = new Date(anio, mes - 1, 0)
 
@@ -201,6 +202,26 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
         }
       }
 
+      for (const row of personalSitRev) {
+        if ([7,8,29,36,30,31].includes(row.SituacionRevistaId) && row.month_diff > 3) 
+          continue
+        const rowEnSeguro = personalEnSeguroVidCol.find(r => r.PersonalId == row.PersonalId)
+        if (rowEnSeguro) {
+          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.fec_desde, 'VC', row.detalle)
+        } else {
+          await this.queryAddSeguros(queryRunner, row.PersonalId, fec_desde, 'VC', row.detalle)
+        }
+      }
+
+      for (const row of personalEnSeguroVidCol) {
+        const rowEnSitRev = personalSitRev.find(r => r.PersonalId == row.PersonalId) 
+        if (!personalSitRev.find(r => r.PersonalId == row.PersonalId)) {
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'VC', 'No tiene situación revista (2,10,11,20,12,8,29,36,30,31,7)')
+        } else {
+          if ([7,8,29,36,30,31].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'VC', rowEnSitRev.detalle + ' mayor a 3 meses')
+        }
+      }
 
       await queryRunner.commitTransaction()
     } catch (error) {
