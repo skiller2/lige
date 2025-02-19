@@ -166,18 +166,6 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
 
       const personalEnSeguroGeneral = await this.getPersonalEnSeguro(queryRunner, 'APG', anio, mes)
 
-      for (const row of personalSitRev) {
-        if (personalEdesur.find(r => r.PersonalId == row.PersonalId) || personalCoto.find(r => r.PersonalId == row.PersonalId))
-          continue
-        const rowEnSeguro = personalEnSeguroGeneral.find(r => r.PersonalId == row.PersonalId)
-        if (rowEnSeguro) {
-          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.fec_desde, 'APG', row.detalle)
-        } else {
-          if ([7,8,29,36,30,31].includes(row.SituacionRevistaId) && row.month_diff > 3) 
-            continue
-          await this.queryAddSeguros(queryRunner, row.PersonalId, fec_desde, 'APG', row.detalle)
-        }
-      }
 
       for (const row of personalEnSeguroCoto) {
         if (!personalCoto.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId!=10) {
@@ -191,7 +179,35 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
         }
       }
 
+      const personalEnSeguroCoto2 = await this.getPersonalEnSeguro(queryRunner, 'APC', anio, mes)
+      const personalEnSeguroEdesur2 = await this.getPersonalEnSeguro(queryRunner, 'APE', anio, mes)
+
+
+      for (const row of personalSitRev) {
+        if (personalEnSeguroCoto2.find(r => r.PersonalId == row.PersonalId) || personalEnSeguroEdesur2.find(r => r.PersonalId == row.PersonalId)) { 
+          continue
+        }
+        const rowEnSeguro = personalEnSeguroGeneral.find(r => r.PersonalId == row.PersonalId)
+        if (rowEnSeguro) {
+          await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.fec_desde, 'APG', row.detalle)
+        } else {
+          if ([7,8,29,36,30,31].includes(row.SituacionRevistaId) && row.month_diff > 3) 
+            continue
+          await this.queryAddSeguros(queryRunner, row.PersonalId, fec_desde, 'APG', row.detalle)
+        }
+      }
+
+
+
+
+
       for (const row of personalEnSeguroGeneral) {
+        if (personalEnSeguroCoto2.find(r => r.PersonalId == row.PersonalId))
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'Paso a Coto')
+        
+        if (personalEnSeguroEdesur2.find(r => r.PersonalId == row.PersonalId))
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'Paso a Edesur')
+
         const rowEnSitRev = personalSitRev.find(r => r.PersonalId == row.PersonalId) 
 
         if (!personalSitRev.find(r => r.PersonalId == row.PersonalId)) {
@@ -202,6 +218,7 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
         }
       }
 
+//Vida Colectivo
       for (const row of personalSitRev) {
         if ([7,8,29,36,30,31].includes(row.SituacionRevistaId) && row.month_diff > 3) 
           continue
