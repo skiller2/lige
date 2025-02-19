@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { BehaviorSubject, debounceTime, finalize, Observable, switchMap, tap } from 'rxjs';
 import { Search } from 'src/app/shared/schemas/personal.schemas';
@@ -12,19 +12,18 @@ import { ViewCredentialComponent } from 'src/app/shared/viewCredential/view-cred
 @Component({
   selector: 'app-credencial-personal',
   standalone: true,
-  imports: [...SHARED_IMPORTS,CommonModule,ImageContentComponent,ViewCredentialComponent],
+  imports: [...SHARED_IMPORTS, CommonModule, ImageContentComponent, ViewCredentialComponent],
   templateUrl: './credencial-personal.component.html',
   styleUrls: ['./credencial-personal.component.less'],
 })
 export class CredencialPersonalComponent {
-  constructor(private searchService: SearchService) {}
-  ngOnInit(): void {}
+  constructor(private searchService: SearchService) { }
+  ngOnInit(): void { }
   selectedPersonalId: string = '';
   blobDummy: Blob = new Blob();
 
   $isOptionsLoading = new BehaviorSubject<boolean>(false);
-  $iPersonalDataLoading = new BehaviorSubject<boolean>(false);
-
+  isPersonalDataLoading = signal(false)
   $searchChange = new BehaviorSubject('');
   $selectedValueChange = new BehaviorSubject('');
   $optionsArray: Observable<Search[]> = this.$searchChange
@@ -39,14 +38,13 @@ export class CredencialPersonalComponent {
     .pipe(tap(() => this.$isOptionsLoading.next(false)));
 
   $personalData = this.$selectedValueChange.pipe(
-    switchMap(value => this.searchService.getInfoFromPersonalId(value).pipe(finalize(() => this.$iPersonalDataLoading.next(false))))
+    tap(() => this.isPersonalDataLoading.set(true)),
+    switchMap(value => this.searchService.getInfoFromPersonalId(value)),
+    tap(() => this.isPersonalDataLoading.set(false)),
   );
 
   selectedValueChange(event: string): void {
-    if (event) {
-      this.$selectedValueChange.next(event);
-      this.$iPersonalDataLoading.next(true);
-    }
+    this.$selectedValueChange.next(event);
   }
 
   search(value: string): void {

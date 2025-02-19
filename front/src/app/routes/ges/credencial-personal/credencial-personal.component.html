@@ -28,13 +28,12 @@
     </nz-form-item>
 
     <nz-form-item>
-      <ng-container *ngIf="$iPersonalDataLoading | async">
-        <nz-spin nzSimple [nzSize]="'large'"></nz-spin>
-      </ng-container>
 
       <nz-form-label [nzSpan]="5">Credencial</nz-form-label>
       <nz-form-control nzHasFeedback [nzSpan]="12">
-        <app-view-credential [ngModel]="[data]" name="Personal"></app-view-credential>
+        
+          <app-view-credential [ngModel]="[data]" name="Personal"></app-view-credential>
+          <nz-spin nzSimple [nzSize]="'large'" [nzSpinning]="isPersonalDataLoading()"></nz-spin>
       </nz-form-control>
     </nz-form-item>
 

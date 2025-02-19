@@ -1,5 +1,5 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { Component, ElementRef, forwardRef, Inject, Input, Renderer2, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { Component, ElementRef, forwardRef, Inject, Input, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { PersonaObj } from '../schemas/personal.schemas';
 import { SHARED_IMPORTS } from '@shared';
@@ -42,15 +42,17 @@ export class ViewCredentialComponent implements ControlValueAccessor {
 
     @Input('showPrintBtn') showPrintBtn: boolean = true;
 
-
+    imageIsLoading = signal(false)
     constructor(@Inject(DOCUMENT) private document: any,private renderer: Renderer2, private viewContainerRef:ViewContainerRef) { }
 
     writeValue(value: PersonaObj[]) {
         if (value) {
+            this.imageIsLoading.set(true)
             this.personal = value;
+
             for (const val of value)
                 val.Faltantes = (val.PersonalCUITCUILCUIT || val.PersonalFotoId)?false:true 
-        }
+        } else { this.personal = [] }
     }
 
     registerOnChange(fn: (_: any) => void) { }
