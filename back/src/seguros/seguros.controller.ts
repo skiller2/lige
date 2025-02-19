@@ -5,22 +5,27 @@ import { QueryRunner } from "typeorm";
 
 export class SegurosController extends BaseController {
   private async getPersonalBySitRev(queryRunner: any, anio: number, mes: number) {
-    return queryRunner.query(`SELECT persr.PersonalId, STRING_AGG(TRIM(sitrev.SituacionRevistaDescripcion),', ') detalle,
+    return queryRunner.query(`SELECT psr.*, persr.PersonalSituacionRevistaDesde, persr.PersonalSituacionRevistaSituacionId SituacionRevistaId, DATEDIFF(month,persr.PersonalSituacionRevistaDesde,EOMONTH(DATEFROMPARTS(@1,@2,1))) month_diff FROM (
+
+
+SELECT persr.PersonalId, STRING_AGG(CONCAT(TRIM(sitrev.SituacionRevistaDescripcion),' ',FORMAT(persr.PersonalSituacionRevistaDesde,'dd-MM-yyyy')),', ') detalle,
 --persr.PersonalSituacionRevistaId, 
 --						persr.PersonalSituacionRevistaDesde,
 	--					persr.PersonalSituacionRevistaHasta,
 		--				sitrev.SituacionRevistaDescripcion,
 		DATEADD(MONTH,-1,DATEFROMPARTS(@1,@2,1)) desde,
-		EOMONTH(DATEFROMPARTS(@1,@2,1)) hasta,
-						1
+		EOMONTH(DATEFROMPARTS(@1,@2,1)) hasta
 	FROM PersonalSituacionRevista persr
 	LEFT JOIN SituacionRevista sitrev  ON sitrev.SituacionRevistaId = persr.PersonalSituacionRevistaSituacionId 
-	 WHERE  persr.PersonalSituacionRevistaDesde <= DATEADD(MONTH,-1,DATEFROMPARTS(@1,@2,1)) AND
-			ISNULL(persr.PersonalSituacionRevistaHasta, '9999-12-31') >= EOMONTH(DATEFROMPARTS(@1,@2,1))
+	 WHERE  persr.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
+			ISNULL(persr.PersonalSituacionRevistaHasta, '9999-12-31') >= DATEADD(MONTH,-1,DATEFROMPARTS(@1,@2,1))
 							
-						AND sitrev.SituacionRevistaId IN (2, 10, 11)
+						AND sitrev.SituacionRevistaId IN (2,10,11,20,12,8,29,36,30,31,7)
 	-- 1=1					
-GROUP BY persr.PersonalId
+GROUP BY persr.PersonalId ) AS psr
+LEFT JOIN PersonalSituacionRevista persr ON persr.PersonalId = psr.PersonalId
+WHERE  persr.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
+			ISNULL(persr.PersonalSituacionRevistaHasta, '9999-12-31') >= EOMONTH(DATEFROMPARTS(@1,@2,1))
 `, [, anio, mes])
 
   }
@@ -36,7 +41,7 @@ GROUP BY persr.PersonalId
           ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= EOMONTH(DATEFROMPARTS(@1,@2,1))
 			 ) sitrev ON sitrev.PersonalId = seg.PersonalId
 
-      WHERE seg.cod_tip_seguro = @0 AND seg.fec_desde <= DATEFROMPARTS(@1,@2,1) AND ISNULL(seg.fec_hasta,'9999-12-31') >= EOMONTH(DATEFROMPARTS(@1,@2,1))
+      WHERE seg.cod_tip_seguro = @0 AND seg.fec_desde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(seg.fec_hasta,'9999-12-31') >= EOMONTH(DATEFROMPARTS(@1,@2,1))
     `, [cod_tip_seguro, anio, mes])
   }
 
@@ -133,8 +138,8 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       const personalEnSeguroCoto = await this.getPersonalEnSeguro(queryRunner, 'APC', anio, mes)
       const personalEnSeguroEdesur = await this.getPersonalEnSeguro(queryRunner, 'APE', anio, mes)
       const fec_desde = new Date(anio, mes - 1, 1)
-      const fec_hasta = new Date(anio, mes, 0)
-      console.log('loop coto', personalCoto)
+      const fec_hasta = new Date(anio, mes - 1, 0)
+
       for (const row of personalCoto) {
         const rowEnSeguro = personalEnSeguroCoto.find(r => r.PersonalId == row.PersonalId)
         if (rowEnSeguro) {
@@ -167,6 +172,8 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
         if (rowEnSeguro) {
           await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.fec_desde, 'APG', row.detalle)
         } else {
+          if ([7,8,29,36,30,31].includes(row.SituacionRevistaId) && row.month_diff > 3) 
+            continue
           await this.queryAddSeguros(queryRunner, row.PersonalId, fec_desde, 'APG', row.detalle)
         }
       }
@@ -184,10 +191,15 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       }
 
       for (const row of personalEnSeguroGeneral) {
+        const rowEnSitRev = personalSitRev.find(r => r.PersonalId == row.PersonalId) 
+
         if (!personalSitRev.find(r => r.PersonalId == row.PersonalId)) {
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'No tiene situación revista (2,10,11)')
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'No tiene situación revista (2,10,11,20,12,8,29,36,30,31,7)')
+        } else {
+          if ([7,8,29,36,30,31].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3)
+          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', rowEnSitRev.detalle + ' mayor a 3 meses')
         }
-      }      
+      }
 
 
       await queryRunner.commitTransaction()

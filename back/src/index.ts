@@ -90,8 +90,8 @@ dbServer.init()
   .then((res) => {
     console.info(`${res.res}`)
 
-    //const segurosController = new SegurosController()
-    //segurosController.updateSeguros(2025,2)
+//    const segurosController = new SegurosController()
+//    segurosController.updateSeguros(2025,1)
 
 
   })
@@ -99,6 +99,7 @@ dbServer.init()
     console.error(error)
     //    process.exit()
   })
+
 
 
 webServer.init()
