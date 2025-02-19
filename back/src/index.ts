@@ -11,6 +11,7 @@ import { FileUploadController } from "./controller/file-upload.controller"
 import dotenv from "dotenv"
 import { GrupoActividadController } from "./grupo-actividad/grupo-actividad.controller";
 import { AsistenciaController } from "./controller/asistencia.controller";
+import { SegurosController } from "./seguros/seguros.controller";
 
 //import * as pdfWorker from "pdfjs-dist/build/pdf.worker.mjs";
 //import { GlobalWorkerOptions } from "pdfjs-dist";
@@ -28,9 +29,13 @@ const grupoActividadController = new GrupoActividadController()
 const cargaLicenciaController = new CargaLicenciaController()
 const asistenciaController = new AsistenciaController()
 
-scheduleJob('*/1 * * * *', async function (fireDate) {
-//  const ret = await categoriasController.procesaCambios(null, res, (ret: any) => ret)
-//  console.log(`job run at ${fireDate}, response: ${ret}`, ret);
+scheduleJob('1 0 * * *', async function (fireDate) {
+  const actual = new Date()
+  const anio = actual.getFullYear()
+  const mes = actual.getMonth() + 1
+
+  const segurosController = new SegurosController()
+  segurosController.updateSeguros(anio,mes)
 });
 
 
@@ -84,6 +89,11 @@ console.log('actual', fechaActual, 'ayer', fechaAyer)
 dbServer.init()
   .then((res) => {
     console.info(`${res.res}`)
+
+    //const segurosController = new SegurosController()
+    //segurosController.updateSeguros(2025,2)
+
+
   })
   .catch((error) => {
     console.error(error)
