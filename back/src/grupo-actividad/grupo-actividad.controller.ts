@@ -176,26 +176,7 @@ export class GrupoActividadController extends BaseController {
             hidden: true,
             searchHidden: true
         },
-        {
-            name: "Grupo Actividad",
-            type: "string",
-            id: "GrupoActividadDetalle",
-            field: "GrupoActividadDetalle",
-            fieldName: "ga.GrupoActividadDetalle",
-
-            sortable: true,
-            searchHidden: true
-        },
-        {
-            name: "Grupo Actividad ",
-            type: "string",
-            id: "GrupoActividadId",
-            field: "GrupoActividadId",
-            fieldName: "ga.GrupoActividadId",
-            searchComponent: "inpurForGrupoPersonaSearch",
-            sortable: false,
-            hidden: true,
-        },
+        
         {
             name: "Objetivo",
             type: "string",
@@ -213,6 +194,26 @@ export class GrupoActividadController extends BaseController {
             field: "ObjetivoId",
             fieldName: "obj.ObjetivoId",
             searchComponent: "inpurForObjetivoSearch",
+            sortable: false,
+            hidden: true,
+        },
+        {
+            name: "Grupo Actividad",
+            type: "string",
+            id: "GrupoActividadDetalle",
+            field: "GrupoActividadDetalle",
+            fieldName: "ga.GrupoActividadDetalle",
+
+            sortable: true,
+            searchHidden: true
+        },
+        {
+            name: "Grupo Actividad ",
+            type: "string",
+            id: "GrupoActividadId",
+            field: "GrupoActividadId",
+            fieldName: "ga.GrupoActividadId",
+            searchComponent: "inpurForGrupoPersonaSearch",
             sortable: false,
             hidden: true,
         },
@@ -751,21 +752,30 @@ export class GrupoActividadController extends BaseController {
                 console.log('El código no existe - es nuevo')
                 await this.validateFormObjetivos(params, queryRunner)
 
-                //query para validarlo contra el mismo
-                let result = await queryRunner.query(`SELECT TOP 1 * FROM GrupoActividadObjetivo 
-                WHERE GrupoActividadObjetivoObjetivoId = @0
-                AND GrupoActividadId = @1
-                ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC`, [params.GrupoObjetivoDetalle.id, params.GrupoActividadDetalle.id])
+        //    // Query para validarlo contra el mismo GrupoActividad
+        //     let result = await queryRunner.query(`
+        //         SELECT TOP 1 * FROM GrupoActividadObjetivo 
+        //         WHERE GrupoActividadObjetivoObjetivoId = @0
+        //         AND GrupoActividadId = @1
+        //         AND GrupoActividadObjetivoDesde <= GETDATE()
+        //         AND (GrupoActividadObjetivoHasta IS NULL OR GrupoActividadObjetivoHasta >= GETDATE())
+        //         ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC
+        //     `, [params.GrupoObjetivoDetalle.id, params.GrupoActividadDetalle.id])
 
-                //query para validarlo contra grupo actividad y objetivo
-
-                let resultQuery = await queryRunner.query(`SELECT TOP 1 * FROM GrupoActividadObjetivo 
+            // Query para validarlo contra cualquier GrupoActividad con el mismo objetivo
+            let resultQuery = await queryRunner.query(`
+                SELECT TOP 1 * FROM GrupoActividadObjetivo 
                 WHERE GrupoActividadObjetivoObjetivoId = @0
-                ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC`, [params.GrupoObjetivoDetalle.id])
+                  AND GrupoActividadObjetivoDesde >= @1
+                 AND (GrupoActividadObjetivoHasta  <= @1 OR GrupoActividadObjetivoHasta IS NULL)
+                ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC
+            `, [params.GrupoObjetivoDetalle.id,fechaActual])
 
                 // console.log("result ", result)
-                // console.log("resultQuery ", resultQuery)
+              
                 const ultimoRegistroQuery = resultQuery[0]
+
+                console.log("ultimoRegistroQuery ", ultimoRegistroQuery)
 
                 GrupoActividadObjetivoHasta = new Date(params.GrupoActividadObjetivoDesde)
                 GrupoActividadObjetivoHasta.setDate(GrupoActividadObjetivoHasta.getDate() - 1)
@@ -773,7 +783,10 @@ export class GrupoActividadController extends BaseController {
 
                 //throw new ClientException(`test`)
                 const validarGrupoActividadVigente = (registro) => {
-                    if (!registro?.GrupoActividadObjetivoHasta || new Date(registro.GrupoActividadObjetivoHasta) >= fechaActual) {
+
+                    if (registro?.GrupoActividadId == params.GrupoActividadDetalle.id && 
+                        (!registro?.GrupoActividadObjetivoHasta || new Date(registro.GrupoActividadObjetivoHasta) >= fechaActual)
+                    ) {
                         throw new ClientException(`Ya se encuentra vigente el grupo actividad con el objetivo`)
                     }
                 };
@@ -785,24 +798,34 @@ export class GrupoActividadController extends BaseController {
                             `UPDATE GrupoActividadObjetivo 
                              SET GrupoActividadObjetivoHasta = @2 
                              WHERE GrupoActividadId = @0 
-                             AND GrupoActividadObjetivoObjetivoId = @1`,
-                            [registro.GrupoActividadId, registro.GrupoActividadObjetivoObjetivoId, formattedDate]
+                             AND GrupoActividadObjetivoObjetivoId = @1
+                             AND GrupoActividadObjetivoId = @3`,
+                             
+                            [registro.GrupoActividadId, registro.GrupoActividadObjetivoObjetivoId, formattedDate,registro.GrupoActividadObjetivoId]
                         )
                     }
                 }
-                
-                if (result.length > 0) {
-                    const ultimoRegistro = result[0]
-                    validarGrupoActividadVigente(ultimoRegistro)
-                    actualizarGrupoActividadHasta(ultimoRegistro)
-                } else if (
-                    resultQuery.length > 0 || 
-                    (ultimoRegistroQuery?.GrupoActividadId !== params.GrupoActividadDetalle.id && 
-                     params.GrupoObjetivoDetalle.id === ultimoRegistroQuery?.ObjetivoId)
-                ) {
-                    //validarGrupoActividadVigente(ultimoRegistroQuery)
+
+                if(resultQuery.length > 0 ){
+                    validarGrupoActividadVigente(ultimoRegistroQuery)
                     actualizarGrupoActividadHasta(ultimoRegistroQuery)
                 }
+                
+                // if (result.length > 0) {
+                //     const ultimoRegistro = result[0]
+                //     validarGrupoActividadVigente(ultimoRegistro)
+                //     actualizarGrupoActividadHasta(ultimoRegistro)
+                // } else if (
+                //     resultQuery.length > 0 
+                // ) {
+
+                //     // || 
+                //     // (ultimoRegistroQuery?.GrupoActividadId !== params.GrupoActividadDetalle.id && 
+                //     //  params.GrupoObjetivoDetalle.id === ultimoRegistroQuery?.ObjetivoId)
+
+                //     //validarGrupoActividadVigente(ultimoRegistroQuery)
+                //     actualizarGrupoActividadHasta(ultimoRegistroQuery)
+                // }
 
                 let GrupoActividadObjetivoId = await queryRunner.query(` SELECT GrupoActividadObjetivoUltNro FROM GrupoActividad WHERE GrupoActividadId =  @0`, [params.GrupoActividadDetalle.id])
                 GrupoActividadObjetivoId = GrupoActividadObjetivoId[0].GrupoActividadObjetivoUltNro + 1
