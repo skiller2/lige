@@ -454,19 +454,37 @@ export class FileUploadController extends BaseController {
     const pdfPage = await pdfDoc.getPage(1);
     const operatorList = await pdfPage.getOperatorList();
 
-    console.log('operatorList',operatorList)
+//    console.log('operatorList',operatorList)
 
-    const imgIndex = operatorList.fnArray.indexOf(OPS.paintImageXObject);
+//    operatorList.fnArray.
 
-    console.log('imgIndex',imgIndex)
-    const imgArgs = operatorList.argsArray[imgIndex];
 
+    const imgIndexArr = operatorList.fnArray.reduce((acc: number[], curr: any, index: number) => {
+      if (curr === OPS.paintImageXObject) {
+        acc.push(index);
+      }
+      return acc;
+    }, [])
+
+    //const imgIndex = operatorList.fnArray.indexOf(OPS.paintImageXObject);
+
+    let maxresol = 0
+    let imgArgsFoto = []
+    for (const imgIndex of imgIndexArr) {
+      const imgArgs = operatorList.argsArray[imgIndex];
+      
+      const resol = Number(imgArgs[1]) * Number(imgArgs[2])
+      if (resol > maxresol) {
+        maxresol = resol
+        imgArgsFoto = imgArgs 
+      }
+    }
 
     const imgData: any = await new Promise((resolve, reject) => {
-      if (imgArgs[0].startsWith("g_"))
-        pdfPage.commonObjs.get(imgArgs[0], (imgData: any) => { resolve(imgData) })
+      if (imgArgsFoto[0].startsWith("g_"))
+        pdfPage.commonObjs.get(imgArgsFoto[0], (imgData: any) => { resolve(imgData) })
       else
-        pdfPage.objs.get(imgArgs[0], (imgData: any) => { resolve(imgData) })
+        pdfPage.objs.get(imgArgsFoto[0], (imgData: any) => { resolve(imgData) })
     })
 
 
