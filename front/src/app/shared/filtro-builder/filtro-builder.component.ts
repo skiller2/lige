@@ -23,6 +23,8 @@ import { PersonalSearchComponent } from '../personal-search/personal-search.comp
 import { GrupoActividadSearchComponent } from '../grupo-actividad-search/grupo-actividad-search.component';
 import { RequirenteSearchComponent } from '../requirente-search/requirente-search.component';
 import { DescripcionProductoSearchComponent } from "../../shared/descripcion-producto-search/descripcion-producto-search.component"
+import { AdministradorSearchComponent } from "../../shared/administrador-search/administrador-search.component"
+
 
 type listOptionsT = {
   filtros: any[],
@@ -43,7 +45,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   standalone: true,
   imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
     ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent,
-    RequirenteSearchComponent,DescripcionProductoSearchComponent
+    RequirenteSearchComponent,DescripcionProductoSearchComponent,AdministradorSearchComponent
   ],
   templateUrl: './filtro-builder.component.html',
   styles: [],

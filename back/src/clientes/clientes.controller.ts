@@ -22,6 +22,17 @@ export class ClientesController extends BaseController {
             searchHidden: true
         },
         {
+            name: "Cliente",
+            type: "string",
+            id: "ClienteId",
+            field: "ClienteId",
+            fieldName: "cli.ClienteId",
+            searchComponent: "inpurForClientSearch",
+            sortable: true,
+            hidden: true,
+            searchHidden: false
+        },
+        {
             name: "CUIT",
             type: "string",
             id: "ClienteFacturacionCUIT",

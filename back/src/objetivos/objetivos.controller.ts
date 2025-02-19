@@ -99,6 +99,17 @@ const listaColumnas: any[] = [
         searchHidden: false
     },
     {
+        name: "Administrador",
+        type: "string",
+        id: "AdministradorId",
+        field: "AdministradorId",
+        fieldName: "adm.AdministradorId",
+        searchComponent: "inpurForAdministradorSearch",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
         name: "Contrato Desde",
         type: "date",
         id: "ContratoFechaDesde",
@@ -119,7 +130,7 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: false
-    },
+    }
 ];
 
 
@@ -309,7 +320,10 @@ export class ObjetivosController extends BaseController {
 --                obj.ObjetivoDescripcion AS Descripcion2, --Basura
                 gap.GrupoActividadId,
                 ga.GrupoActividadDetalle,
+                 adm.AdministradorApellidoNombre,
+                adm.AdministradorId,
                 suc.SucursalDescripcion,
+               
                 ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde, clicon.ClienteContratoFechaDesde) AS ContratoFechaDesde,
                 ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta, clicon.ClienteContratoFechaHasta) AS ContratoFechaHasta,
  1
@@ -374,6 +388,10 @@ export class ObjetivosController extends BaseController {
 		                    
                 LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
                 
+                LEFT JOIN ( SELECT   ca.ClienteId,ca.ClienteAdministradorAdministradorId AS AdministradorId,adm.AdministradorApellidoNombre,
+                ROW_NUMBER() OVER (PARTITION BY ca.ClienteId ORDER BY ca.ClienteAdministradorAdministradorId DESC) AS RowNum
+                FROM ClienteAdministrador ca JOIN Administrador adm ON adm.AdministradorId = ca.ClienteAdministradorAdministradorId) 
+                adm ON adm.ClienteId = cli.ClienteId  AND adm.RowNum = 1
 
                 WHERE ${filterSql} ${orderBy}`, [anio, mes])
 
