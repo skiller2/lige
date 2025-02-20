@@ -268,10 +268,12 @@ export class TipoDocumentoController extends BaseController {
       let campos_vacios: any[] = []
 
       if (!tipoDocumentoId) campos_vacios.push(`- Tipo de documento`)
-      if (!denominacion) campos_vacios.push(`- Denominación de documento`)
+      if (!tipoDocumentoId) campos_vacios.push(`- Denominación de documento`)
       if ((tipoDocumentoId == 'LIC' || tipoDocumentoId == 'REC' ) && !Number.isInteger(PersonalId)) campos_vacios.push(`- Persona`)
       if (tipoDocumentoId == 'CLI' && !Number.isInteger(ClienteId)) campos_vacios.push(`- Cliente`)
       if (tipoDocumentoId == 'OBJ' && !Number.isInteger(ObjetivoId)) campos_vacios.push(`- Objetivo`)
+      // if (tipoDocumentoId == 'ACT' && ) campos_vacios.push(``)
+      //if (tipoDocumentoId == 'OBJ' && ) campos_vacios.push(``)
       if (!periodo) campos_vacios.push(`- Periodo`)
 
       if (campos_vacios.length) {
@@ -290,7 +292,7 @@ export class TipoDocumentoController extends BaseController {
       if (!liqmaperiodo.length) {
         throw new ClientException(`Periodo Invalido.`)
       }
-      const periodo_id = liqmaperiodo[0].periodo_id
+      // const periodo_id = liqmaperiodo[0].periodo_id
       let now = new Date()
       let path = ''
       let newFieldname = ''
@@ -303,30 +305,16 @@ export class TipoDocumentoController extends BaseController {
         
         const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
         const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
-        path = doctipo[0].path_origen
-        switch (tipoDocumentoId) {
-          case 'CLI':
-            newFieldname = `${doc_id}-${ClienteId}.${type}`
-            path += `${ClienteId}`
-            break;
-          case 'LIC':
-            newFieldname = `${doc_id}-${PersonalId}.${type}`
-            path += `${PersonalId}/${newFieldname}`
-            break;
-          case 'OBJ':
-            newFieldname = `${doc_id}-${ObjetivoId}.${type}`
-            path += `${ObjetivoId}/${newFieldname}`
-            break;
-          case 'REC':
-            newFieldname = `${PersonalId}-${mes}-${anio}.${type}`
-            path += (String(anio) + String(mes).padStart(2, '0') + '/' + periodo_id)
-            break;
-          default:
-            throw new ClientException('Tipo de documento desconocido.')
-            break;
-        }
-        path += `/${newFieldname}`
+        path = `${anio}/${doctipo[0].path_origen}`
+        newFieldname = `${tipoDocumentoId}-${doc_id}-${denominacion}.${type}`
+        
         let newFilePath = `${pathArchivos}/${path}`
+        
+        if (!existsSync(newFilePath)) {
+          mkdirSync(newFilePath, { recursive: true })
+        }
+        newFilePath += `/${newFieldname}`
+        
         renameSync(dirFile, newFilePath);
       }
 
@@ -337,7 +325,7 @@ export class TipoDocumentoController extends BaseController {
         VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)
       `, [ doc_id, liqmaperiodo[0].periodo_id, now, PersonalId, ObjetivoId, path, newFieldname,
       usuario, ip, now, usuario, ip, now, tipoDocumentoId, denominacion, ClienteId])
-      throw new ClientException('DEBUG')
+      // throw new ClientException('DEBUG')
       await queryRunner.commitTransaction()
       this.jsonRes({}, res);
     } catch (error) {
@@ -390,11 +378,11 @@ export class TipoDocumentoController extends BaseController {
 
   private async getPersonalNoDescargaQuery(filterSql: any, orderBy: any, doc_id:number) {
     return dataSource.query(`
-      SELECT DISTINCT per.PersonalId AS id, des.doc_id, tel.telefono,
+      SELECT DISTINCT per.PersonalId AS id, tel.telefono,
       per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
       cuit.PersonalCUITCUILCUIT
-      FROM lige.dbo.doc_descaga_log AS des 
-      LEFT JOIN lige.dbo.regtelefonopersonal tel ON des.telefono NOT IN (tel.telefono)
+      FROM lige.dbo.regtelefonopersonal tel
+      LEFT JOIN lige.dbo.doc_descaga_log des ON des.telefono != tel.telefono AND des.doc_id NOT IN (@0)
       LEFT JOIN Personal per ON tel.personal_id = per.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId
       LEFT JOIN (
@@ -403,7 +391,7 @@ export class TipoDocumentoController extends BaseController {
           JOIN SituacionRevista s
           ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= GETDATE() AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= GETDATE()
 			) sitrev ON sitrev.PersonalId = per.PersonalId
-      WHERE des.doc_id IN (@0) AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10,11)
+      WHERE sitrev.PersonalSituacionRevistaSituacionId IN (2,10,11)
       AND ${filterSql}
       ${orderBy}
     `, [doc_id])
