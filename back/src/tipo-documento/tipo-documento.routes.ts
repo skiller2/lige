@@ -12,6 +12,10 @@ tipoDocumentoRouter.get("/cols-download", authMiddleware.verifyToken, (req, res)
   tipoDocumentoController.getGridDownloadCols(req, res);
 });
 
+tipoDocumentoRouter.get("/cols-no-download", authMiddleware.verifyToken, (req, res) => {
+  tipoDocumentoController.getGridNoDownloadCols(req, res);
+});
+
 tipoDocumentoRouter.get("/tipos", authMiddleware.verifyToken, (req, res, next) => {
   tipoDocumentoController.getTipos(req, res, next);
 });
@@ -22,6 +26,10 @@ tipoDocumentoRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.ha
 
 tipoDocumentoRouter.post('/list-download', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
   tipoDocumentoController.getPersonalDescarga(req, res, next)
+})
+
+tipoDocumentoRouter.post('/list-no-download', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+  tipoDocumentoController.getPersonalNoDescarga(req, res, next)
 })
 
 tipoDocumentoRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {

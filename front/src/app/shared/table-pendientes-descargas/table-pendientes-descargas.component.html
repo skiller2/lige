@@ -1,0 +1,10 @@
+<nz-card class="small-margin">
+    <ng-container>
+      <shared-filtro-builder #tdd [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)"/>
+      <div class="gridNoDescargas container-fluid" *ngIf="(columns$|async) as columnas">
+        <angular-slickgrid gridId="gridNoDescargas" [columnDefinitions]="columnas | colsFilter" [gridOptions]="gridDetalleOptions"
+          [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)">
+        </angular-slickgrid>
+      </div>
+    </ng-container>
+  </nz-card>

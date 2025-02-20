@@ -39,6 +39,7 @@
     <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="selectedTabIndex" (nzSelectChange)="onTabsetChange($event)">
       <nz-tab [nzForceRender]="false">
         <a nz-tab-link routerLink="/ges/tipo_documento/list">Documentos</a>
+        @if (conditional()|async) {}
         <ng-template nz-tab>
           <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
 
@@ -54,18 +55,18 @@
       <nz-tab>
         <a nz-tab-link routerLink="/ges/tipo_documento/descargas">Historial Descargas</a>
         <ng-template nz-tab>
-          <app-tipo-documento-descargas #listDescargas [docId]=docId() ></app-tipo-documento-descargas>
+          <app-table-historial-descargas #historialDescargas [docId]=docId()></app-table-historial-descargas>
         </ng-template>
       </nz-tab>
 
       <nz-tab>
         <a nz-tab-link routerLink="/ges/tipo_documento/pendientes">Pendientes</a>
         <ng-template nz-tab>
-
+          <app-table-pendientes-descargas #listPendientes [docId]=docId()></app-table-pendientes-descargas>
         </ng-template>
       </nz-tab>
 
     </nz-tabset>
   </form>
 </nz-card>
-<app-tipo-documento-alta-drawer [(visible)]="visibleAlta"></app-tipo-documento-alta-drawer>
+<app-tipo-documento-alta-drawer [(visible)]="visibleAlta" [(refresh)]="refresh"></app-tipo-documento-alta-drawer>

@@ -26,11 +26,15 @@ import { ObjetivoSearchComponent } from "../objetivo-search/objetivo-search.comp
 export class TipoDocumentoAltaDrawerComponent {
   tituloDrawer = signal<string>('Carga de Documento')
   visible = model<boolean>(false)
+  refresh = model<number>(0)
   isLoading = signal(false);
   periodo = signal<any>({anio:0, mes:0})
   placement: NzDrawerPlacement = 'left';
 
-  private searchService = inject(SearchService)
+  constructor(
+    private searchService: SearchService,
+    private apiService: ApiService,
+  ) { }
 
   fb = inject(FormBuilder)
   formTipoDocumento = this.fb.group({
@@ -47,13 +51,15 @@ export class TipoDocumentoAltaDrawerComponent {
 
   async save() {
     this.isLoading.set(true)
-    const form = this.formTipoDocumento.value
-    console.log(form);
+    const values = this.formTipoDocumento.value
+    console.log(values);
     
     try {
-
-        this.formTipoDocumento.markAsUntouched()
-        this.formTipoDocumento.markAsPristine()
+      await firstValueFrom(this.apiService.addTipoDocumento(values))
+      let ref = this.refresh()
+      this.refresh.set(++ref)
+      this.formTipoDocumento.markAsUntouched()
+      this.formTipoDocumento.markAsPristine()
     } catch (e) {
         
     }

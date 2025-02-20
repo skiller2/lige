@@ -1367,4 +1367,14 @@ export class SearchService {
       );
   }
 
+  getTipoDocumentoNoDownloadList(doc_id:number, options: any){
+    if (!doc_id) return of([]);
+    return this.http
+      .post<ResponseJSON<any>>(`api/tipo-documento/list-no-download`, {doc_id, options})
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
 }

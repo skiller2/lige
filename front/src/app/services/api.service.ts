@@ -1272,6 +1272,12 @@ export class ApiService {
     );
   }
 
+  addTipoDocumento( values:any){
+    return this.http.post<ResponseJSON<any>>(`/api/tipo-documento/add`, values).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

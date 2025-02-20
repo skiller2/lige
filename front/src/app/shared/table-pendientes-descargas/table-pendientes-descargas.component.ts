@@ -16,21 +16,21 @@ import { CustomLinkComponent } from 'src/app/shared/custom-link/custom-link.comp
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 
 @Component({
-    selector: 'app-tipo-documento-descargas',
-    templateUrl: './tipo-documento-descargas.component.html',
-    styleUrl: './tipo-documento-descargas.component.less',
+    selector: 'app-table-pendientes-descargas',
+    templateUrl: './table-pendientes-descargas.component.html',
+    styleUrl: './table-pendientes-descargas.component.less',
     standalone: true,
     imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule,
         PersonalSearchComponent, CommonModule, FiltroBuilderComponent, NzAffixModule],
 })
 
-export class TipoDocumentoDescargasComponent {
+export class TablePendientesDescargasComponent {
     @ViewChild('tdd', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
 
     angularGrid!: AngularGridInstance;
     gridDetalleOptions!: GridOption;
     excelExportService = new ExcelExportService();
-    listDescargas$ = new BehaviorSubject('');
+    list$ = new BehaviorSubject('');
     docId = input(0)
     listOptions: listOptionsT = {
         filtros: [],
@@ -43,18 +43,18 @@ export class TipoDocumentoDescargasComponent {
     private apiService = inject(ApiService)
     private injector = inject(Injector)
 
-    columns$ = this.apiService.getCols('/api/tipo-documento/cols-download')
+    columns$ = this.apiService.getCols(`/api/tipo-documento/cols-no-download`)
 
-    gridDescargasData$ = this.listDescargas$.pipe(
+    gridData$ = this.list$.pipe(
         debounceTime(500),
         switchMap(() => {
-            return this.searchService.getTipoDocumentoDownloadList(this.docId(), this.listOptions)
-                .pipe(map(data => { return data.list }))
+            return this.searchService.getTipoDocumentoNoDownloadList(this.docId(), this.listOptions)
+            .pipe(map(data => { return data.list }))
         })
     )
 
     async ngOnInit() {
-        this.gridDetalleOptions = this.apiService.getDefaultGridOptions('.gridDescargasContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilServicePersonal, this, RowDetailViewComponent)
+        this.gridDetalleOptions = this.apiService.getDefaultGridOptions('.gridNoDescargas', this.detailViewRowCount, this.excelExportService, this.angularUtilServicePersonal, this, RowDetailViewComponent)
         this.gridDetalleOptions.enableRowDetailView = false
         this.gridDetalleOptions.enableAutoSizeColumns = true
         this.gridDetalleOptions.showFooterRow = true
@@ -64,8 +64,8 @@ export class TipoDocumentoDescargasComponent {
     ngOnDestroy() {
     }
 
-    listDescargas(event: any) {
-        this.listDescargas$.next(event);
+    list(event: any) {
+        this.list$.next(event);
     }
 
     async angularGridReady(angularGrid: any) {
@@ -77,14 +77,7 @@ export class TipoDocumentoDescargasComponent {
 
     listOptionsChange(options: any) {
         this.listOptions = options;
-        this.listDescargas('')
-    }
-
-    exportGrid() {
-        this.excelExportService.exportToExcel({
-          filename: 'tipo-documento-descargas',
-          format: FileType.xlsx
-        });
+        this.list('')
     }
 
     renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {

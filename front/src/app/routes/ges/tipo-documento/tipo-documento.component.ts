@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, ElementRef, Inject, LOCALE_ID, model, signal, ViewChild, viewChild, } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Inject, LOCALE_ID, model, signal, ViewChild, viewChild, computed } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import {
@@ -20,7 +20,8 @@ import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-deta
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { TipoDocumentoAltaDrawerComponent } from '../../../shared/tipo-documento-alta-drawer/tipo-documento-alta-drawer.component'
-import { TipoDocumentoDescargasComponent } from '../../../shared/tipo-documento-descargas/tipo-documento-descargas.component'
+import { TablePendientesDescargasComponent } from '../../../shared/table-pendientes-descargas/table-pendientes-descargas.component'
+import { TableHistorialDescargasComponent } from '../../../shared/table-historial-descargas/table-historial-descargas.component'
 
 type listOptionsT = {
   filtros: any[],
@@ -40,10 +41,9 @@ export class CustomDescargaComprobanteComponent {
   templateUrl: './tipo-documento.component.html',
   standalone: true,
   imports: [
-    SHARED_IMPORTS,
-    CommonModule,
-    NzAffixModule,
-    FiltroBuilderComponent, TipoDocumentoAltaDrawerComponent, TipoDocumentoDescargasComponent
+    SHARED_IMPORTS, CommonModule, NzAffixModule,
+    FiltroBuilderComponent, TipoDocumentoAltaDrawerComponent,
+    TablePendientesDescargasComponent, TableHistorialDescargasComponent
   ],
   styleUrls: ['./tipo-documento.component.less'],
   providers: [AngularUtilService]
@@ -73,6 +73,7 @@ export class TipoDocumentoComponent {
   gridDataLen = 0
   docId = signal<number>(0)
   visibleAlta = model<boolean>(false)
+  refresh = signal(0)
   
   listOptions: listOptionsT = {
     filtros: [],
@@ -80,7 +81,14 @@ export class TipoDocumentoComponent {
     extra: null
   }
 
-  childTDDescargas = viewChild.required<TipoDocumentoDescargasComponent>('listDescargas')
+  childHistorialDescargas = viewChild.required<TableHistorialDescargasComponent>('historialDescargas')
+  childListaPendientes = viewChild.required<TablePendientesDescargasComponent>('listPendientes')
+
+  conditional = computed(async () => {
+    if (this.refresh()) {
+      this.formChanged('')
+    }
+  });
 
   listOptionsChange(options: any) {
     this.listOptions = options;
@@ -207,8 +215,6 @@ export class TipoDocumentoComponent {
       const rowNum = e.detail.args.changedSelectedRows[0]
       const docId = this.angularGrid.dataView.getItemByIdx(rowNum)?.id
       this.docId.set(docId)
-      console.log('docId: ', this.docId());
-      
     } else {
       this.docId.set(0)      
     }
@@ -219,14 +225,12 @@ export class TipoDocumentoComponent {
   }
 
   onTabsetChange(_event: any) {
-    console.log('_event.index', _event.index);
-    
     switch (_event.index) {
-    //   case 2: //NO HISTORIAL DESCARGAS
-    //     this.childPerFormDrawer().load()
-    //     break;
       case 1: //HISTORIAL DESCARGAS
-        this.childTDDescargas().listDescargas('')
+        this.childHistorialDescargas().list('')
+        break;
+      case 2: //LISTA DE PENDIENTES
+        this.childListaPendientes().list('')
         break;
       default:
         break;
