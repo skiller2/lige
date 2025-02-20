@@ -4,7 +4,7 @@ import { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { ClientesController } from "../clientes/clientes.controller"
 import { FileUploadController } from "../controller/file-upload.controller"
-import { QueryResult } from "typeorm";
+import { QueryResult, QueryRunner } from "typeorm";
 import { AnyError } from "typeorm/browser";
 
 const getOptions: any[] = [
@@ -533,12 +533,14 @@ export class ObjetivosController extends BaseController {
                 ObjetivoPersonalJerarquicoId,
                 ObjetivoPersonalJerarquicoPersonalId as PersonaId,
                 ObjetivoPersonalJerarquicoComision,
+                ObjetivoPersonalJerarquicoDesde,
+                ObjetivoPersonalJerarquicoHasta,
                 ObjetivoPersonalJerarquicoDescuentos FROM ObjetivoPersonalJerarquico
 
-                WHERE 
-                ObjetivoPersonalJerarquicoComo = 'C' 
-                AND ObjetivoId = @0`,
-            [ObjetivoId])
+                WHERE
+                ObjetivoPersonalJerarquicoComo = 'C'
+                AND ObjetivoId = @0 AND ObjetivoPersonalJerarquicoDesde <= @1 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @1`,
+            [ObjetivoId, new Date()])
     }
 
     async getRubroQuery(queryRunner: any, ObjetivoId: any, ClienteId: any, ClienteElementoDependienteId) {
@@ -860,7 +862,7 @@ export class ObjetivosController extends BaseController {
             const ObjetivoId = Number(req.params.id)
             const Obj = { ...req.body }
             const infoActividad = { ...Obj.infoActividad }
-            let ObjObjetivoNew = { infoRubro: {}, infoCoordinadorCuenta: {}, ClienteElementoDependienteId: 0, ClienteId: 0,DomicilioId:0 }
+            let ObjObjetivoNew = { infoRubro: {}, infoCoordinadorCuenta: {}, ClienteElementoDependienteId: 0, ClienteId: 0, DomicilioId: 0 }
             let newObj = []
             //throw new ClientException(`test.`)
             //validaciones
@@ -946,52 +948,41 @@ export class ObjetivosController extends BaseController {
         }
     }
 
-    async ObjetivoCoordinador(queryRunner, objetivos, Objetivo) {
+    async ObjetivoCoordinador(queryRunner: QueryRunner, Coordinadores: any[], ObjetivoId: number) {
         const Fecha = new Date()
+        const fechaAyer = new Date()
         Fecha.setHours(0, 0, 0, 0)
-        const ObjetivosIds = objetivos.map((row: { ObjetivoPersonalJerarquicoId: any; }) => row.ObjetivoPersonalJerarquicoId).filter((id) => id !== null && id !== undefined);
-        //console.log("ObjetivosIds ", ObjetivosIds)
-        if (ObjetivosIds.length > 0)
-            await queryRunner.query(`DELETE FROM ObjetivoPersonalJerarquico WHERE ObjetivoId = @0 AND ObjetivoPersonalJerarquicoId NOT IN (${ObjetivosIds.join(',')})`, [Objetivo])
+        fechaAyer.setDate(fechaAyer.getDate() - 1);
+        fechaAyer.setHours(0, 0, 0, 0)
+        const coordinadoresActuales = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
+        for (const old of coordinadoresActuales) {
+            const nuevo = Coordinadores.find((r: any) => (r.PersonaId == old.PersonaId))
+            if (nuevo?.ObjetivoPersonalJerarquicoComision != old.ObjetivoPersonalJerarquicoComision || nuevo?.ObjetivoPersonalJerarquicoDescuentos != old.ObjetivoPersonalJerarquicoDescuentos) {
+                await queryRunner.query(`UPDATE ObjetivoPersonalJerarquico SET ObjetivoPersonalJerarquicoHasta = @2
+                WHERE  ObjetivoPersonalJerarquicoComo = 'C' AND ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @3`,
+                    [old.PersonaId, ObjetivoId, fechaAyer, Fecha])
+                await queryRunner.query(`DELETE ObjetivoPersonalJerarquico WHERE  ObjetivoPersonalJerarquicoComo = 'C' AND ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1  AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') < ObjetivoPersonalJerarquicoDesde`,
+                    [old.PersonaId, ObjetivoId])
 
-        const ContactoId = await queryRunner.query(`SELECT IDENT_CURRENT('ObjetivoPersonalJerarquico')`)
-        let maxObjetivoPersonalJerarquico = ContactoId[0][''];
-
-        for (const [idx, objetivo] of objetivos.entries()) {
-
-            if (Objetivo && objetivo.PersonaId) {
-
-                if (objetivo.ObjetivoId) {
-
-                    await queryRunner.query(`UPDATE ObjetivoPersonalJerarquico SET ObjetivoPersonalJerarquicoComision = @2, ObjetivoPersonalJerarquicoDescuentos = @3
-                        WHERE  ObjetivoPersonalJerarquicoComo = 'C' AND ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1 `,
-                        [objetivo.PersonaId, Objetivo, objetivo.ObjetivoPersonalJerarquicoComision, objetivo.ObjetivoPersonalJerarquicoDescuentos])
-                } else {
-                    maxObjetivoPersonalJerarquico++
-
-                    await queryRunner.query(` INSERT INTO ObjetivoPersonalJerarquico (ObjetivoId,ObjetivoPersonalJerarquicoPersonalId,
+                if (nuevo?.PersonaId) {
+                    await queryRunner.query(`INSERT INTO ObjetivoPersonalJerarquico (ObjetivoId,ObjetivoPersonalJerarquicoPersonalId,
                         ObjetivoPersonalJerarquicoDesde,ObjetivoPersonalJerarquicoHasta,ObjetivoPersonalJerarquicoComo,ObjetivoPersonalJerarquicoComision,
                         ObjetivoPersonalJerarquicoDescuentos) VALUES (@0, @1,@2,@3,@4,@5,@6); `,
-                        [Objetivo, objetivo.PersonaId, Fecha, null, 'C', objetivo.ObjetivoPersonalJerarquicoComision, objetivo.ObjetivoPersonalJerarquicoDescuentos])
-
-
-                    if (objetivo.ClienteElementoDependienteId != null && objetivo.ClienteElementoDependienteId != "null") {
-
-                        await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteContactoUltNro = @2
-                            WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `, [objetivo.ClienteId, objetivo.ClienteElementoDependienteId, maxObjetivoPersonalJerarquico])
-                    } else {
-
-                        return await queryRunner.query(`UPDATE Cliente SET ClienteContactoUltNro = @1 WHERE ClienteId = @0`, [objetivo.ClienteId, maxObjetivoPersonalJerarquico])
-                    }
-                    objetivos[idx].ObjetivoId = maxObjetivoPersonalJerarquico
+                        [ObjetivoId, nuevo.PersonaId, Fecha, null, 'C', nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos])
                 }
             }
-
         }
 
-        return objetivos
-
-
+        const newPesonalIds = coordinadoresActuales.map(item => item.PersonaId);
+        const nuevos = Coordinadores.filter(item => !newPesonalIds.includes(item.PersonaId));
+        for (const nuevo of nuevos) {
+            if (!nuevo.PersonaId) continue
+            await queryRunner.query(` INSERT INTO ObjetivoPersonalJerarquico (ObjetivoId,ObjetivoPersonalJerarquicoPersonalId,
+                ObjetivoPersonalJerarquicoDesde,ObjetivoPersonalJerarquicoHasta,ObjetivoPersonalJerarquicoComo,ObjetivoPersonalJerarquicoComision,
+                ObjetivoPersonalJerarquicoDescuentos) VALUES (@0, @1,@2,@3,@4,@5,@6); `,
+                [ObjetivoId, nuevo.PersonaId, Fecha, null, 'C', nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos])
+        }
+        return await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
     }
 
     async ObjetivoRubro(queryRunner: any, rubros: any, Objetivo: any, ClienteId: any, ClienteElementoDependienteId: any) {
@@ -1213,15 +1204,15 @@ export class ObjetivosController extends BaseController {
 
         for (const obj of form.infoCoordinadorCuenta) {
             if (!obj.PersonaId && obj.ObjetivoPersonalJerarquicoComision && obj.ObjetivoPersonalJerarquicoDescuentos) {
-                throw new ClientException(`Debe completar el campo Nombre en cliente contacto.`)
+                throw new ClientException(`Debe completar el campo Persona en Coordinador de cuenta.`)
             }
 
         }
 
         // Coordinador de cuenta
 
-         for (const obj of form.infoRubro) {
-            if(!obj.ClienteElementoDependienteRubroId && !obj.RubroId) {
+        for (const obj of form.infoRubro) {
+            if (!obj.ClienteElementoDependienteRubroId && !obj.RubroId) {
                 throw new ClientException(`Debe completar el campo Rubro.`)
             }
 
@@ -1401,28 +1392,6 @@ export class ObjetivosController extends BaseController {
             [ClienteId, ClienteElementoDependienteUltNro])
     }
 
-    async insertObjetivoPersonalJerarquico(queryRunner: any, ObjetivoId: any, ObjetivoPersonalJerarquicoPersonalId: any,
-        ObjetivoPersonalJerarquicoDesde: any, ObjetivoPersonalJerarquicoComision: any, ObjetivoPersonalJerarquicoDescuentos: any
-    ) {
-
-        return await queryRunner.query(`INSERT INTO ObjetivoPersonalJerarquico (
-            ObjetivoId,
-            ObjetivoPersonalJerarquicoPersonalId,
-            ObjetivoPersonalJerarquicoDesde,
-            ObjetivoPersonalJerarquicoComo,
-            ObjetivoPersonalJerarquicoComision,
-            ObjetivoPersonalJerarquicoDescuentos
-            ) VALUES (@0,@1,@2,@3,@4,@5)`,
-            [
-                ObjetivoId,
-                ObjetivoPersonalJerarquicoPersonalId,
-                ObjetivoPersonalJerarquicoDesde,
-                'C',
-                ObjetivoPersonalJerarquicoComision,
-                ObjetivoPersonalJerarquicoDescuentos
-            ])
-    }
-
     async ClienteElementoDependienteContrato(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, ClienteElementoDependienteContratoFechaDesde: any,
         ClienteElementoDependienteContratoFechaHasta: any) {
 
@@ -1447,10 +1416,10 @@ export class ObjetivosController extends BaseController {
     async inserClienteElementoDependienteDomicilio(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, DomicilioDomLugar: any, DomicilioDomCalle: any,
         DomicilioDomNro: any, DomicilioCodigoPostal: any, DomicilioProvinciaId: any, DomicilioLocalidadId: any, DomicilioBarrioId: any) {
 
-        const ultnro = await queryRunner.query(`SELECT ClienteElementoDependienteDomicilioUltNro FROM ClienteElementoDependiente WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId,ClienteId])
-        const ClienteElementoDependienteDomicilioId = (ultnro[0]?.ClienteElementoDependienteDomicilioUltNro)?ultnro[0]?.ClienteElementoDependienteDomicilioUltNro+1:1
+        const ultnro = await queryRunner.query(`SELECT ClienteElementoDependienteDomicilioUltNro FROM ClienteElementoDependiente WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId, ClienteId])
+        const ClienteElementoDependienteDomicilioId = (ultnro[0]?.ClienteElementoDependienteDomicilioUltNro) ? ultnro[0]?.ClienteElementoDependienteDomicilioUltNro + 1 : 1
 
-        await queryRunner.query(`UPDATE ClienteElementoDependienteDomicilio SET ClienteElementoDependienteDomicilioDomicilioActual=0  WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId,ClienteId])
+        await queryRunner.query(`UPDATE ClienteElementoDependienteDomicilio SET ClienteElementoDependienteDomicilioDomicilioActual=0  WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId, ClienteId])
 
         await queryRunner.query(`INSERT INTO ClienteElementoDependienteDomicilio (
             ClienteId,
@@ -1479,7 +1448,7 @@ export class ObjetivosController extends BaseController {
                 DomicilioBarrioId,
                 1
             ])
-        await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteDomicilioUltNro=@2  WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId,ClienteId,ClienteElementoDependienteDomicilioId])
+        await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteDomicilioUltNro=@2  WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId, ClienteId, ClienteElementoDependienteDomicilioId])
     }
 
     async insertObjetivoSql(queryRunner: any, ClienteId: number, ObjetivoDescripcion: any, ClienteElementoDependienteId: any, ObjetivoSucursalUltNro: any,) {
