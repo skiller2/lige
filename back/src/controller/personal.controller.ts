@@ -932,14 +932,14 @@ cuit.PersonalCUITCUILCUIT,
     }
   }
 
-  moveFile(dirFile: any, newFilePath: any) {
+  moveFile(dirFile: any, newFilePath: any, newFileName: any) {
     // console.log("dirFile ", dirFile)
     // console.log("newFilePath ", newFilePath)
-    if (!existsSync(dirFile)) {
-      mkdirSync(dirFile, { recursive: true })
+    if (!existsSync(newFilePath)) {
+      mkdirSync(newFilePath, { recursive: true })
     }
 
-    renameSync(dirFile, newFilePath)
+    renameSync(dirFile, `${newFilePath}/${newFileName}`)
 
   }
 
@@ -979,8 +979,8 @@ cuit.PersonalCUITCUILCUIT,
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
     const newFieldname = `${personalId}-${fotoId}-FOTO.${type}`
-    const newFilePath = `${pathArchivos}/${foto[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}`;
-    this.moveFile(dirFile, newFilePath);
+    const newFilePath = `${pathArchivos}/${foto[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}`;
+    this.moveFile(dirFile, newFilePath, newFieldname);
     await queryRunner.query(`
       UPDATE DocumentoImagenFoto SET
       DocumentoImagenFotoBlobNombreArchivo = @2
@@ -1033,8 +1033,8 @@ cuit.PersonalCUITCUILCUIT,
       newFieldname += `-DOCUMENFREN`
     }
     newFieldname += `.${type}`
-    const newFilePath: string = `${pathArchivos}/${doc[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}`;
-    this.moveFile(dirFile, newFilePath);
+    const newFilePath: string = `${pathArchivos}/${doc[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}`;
+    this.moveFile(dirFile, newFilePath, newFieldname);
     await queryRunner.query(`
       UPDATE DocumentoImagenDocumento SET
       DocumentoImagenDocumentoBlobNombreArchivo = @2
@@ -1100,8 +1100,8 @@ cuit.PersonalCUITCUILCUIT,
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
     const newFieldname = `${personalId}-${estudioId}-CERESTPAG1.${type}`
-    const newFilePath = `${pathArchivos}/${estudio[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}/${newFieldname}`;
-    this.moveFile(dirFile, newFilePath);
+    const newFilePath = `${pathArchivos}/${estudio[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}`;
+    this.moveFile(dirFile, newFilePath, newFieldname);
     await queryRunner.query(`
       UPDATE DocumentoImagenEstudio SET
       DocumentoImagenEstudioBlobNombreArchivo = @1,
@@ -1898,7 +1898,7 @@ cuit.PersonalCUITCUILCUIT,
         UNION ALL
         SELECT afip.DocumentoImagenImpuestoAFIPId docId, afip.DocumentoImagenImpuestoAFIPBlobNombreArchivo NombreArchivo,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
-        CONCAT('/api/impuestos_afip/documento/download/', afip.DocumentoImagenImpuestoAFIPId) url
+        CONCAT('/api/file-upload/downloadFile/', afip.DocumentoImagenImpuestoAFIPId,'/DocumentoImagenImpuestoAFIP/0') url
         FROM DocumentoImagenImpuestoAFIP afip
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = afip.DocumentoImagenParametroId
         WHERE afip.PersonalId IN (@0) 
@@ -1947,7 +1947,7 @@ cuit.PersonalCUITCUILCUIT,
         UNION ALL
         SELECT gen.doc_id docId, gen.nombre_archivo NombreArchivo,
         param.doctipo_id Parametro, param.detalle Descripcion,
-        CONCAT('/api/file-upload/downloadFile/', gen.doc_id, '/docgeneral') url
+        CONCAT('/api/file-upload/downloadFile/', gen.doc_id, '/docgeneral/0') url
         FROM lige.dbo.docgeneral gen
         LEFT JOIN lige.dbo.doctipo param ON param.doctipo_id = gen.doctipo_id
         WHERE gen.persona_id IN (@0)
