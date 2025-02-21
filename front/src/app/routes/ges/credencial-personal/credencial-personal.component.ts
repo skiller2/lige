@@ -18,7 +18,9 @@ import { ViewCredentialComponent } from 'src/app/shared/viewCredential/view-cred
 })
 export class CredencialPersonalComponent {
   constructor(private searchService: SearchService) { }
-  ngOnInit(): void { }
+  ngOnInit(): void { 
+    
+  }
   selectedPersonalId: string = '';
   blobDummy: Blob = new Blob();
 

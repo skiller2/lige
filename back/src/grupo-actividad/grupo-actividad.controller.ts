@@ -752,22 +752,12 @@ export class GrupoActividadController extends BaseController {
                 console.log('El código no existe - es nuevo')
                 await this.validateFormObjetivos(params, queryRunner)
 
-        //    // Query para validarlo contra el mismo GrupoActividad
-        //     let result = await queryRunner.query(`
-        //         SELECT TOP 1 * FROM GrupoActividadObjetivo 
-        //         WHERE GrupoActividadObjetivoObjetivoId = @0
-        //         AND GrupoActividadId = @1
-        //         AND GrupoActividadObjetivoDesde <= GETDATE()
-        //         AND (GrupoActividadObjetivoHasta IS NULL OR GrupoActividadObjetivoHasta >= GETDATE())
-        //         ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC
-        //     `, [params.GrupoObjetivoDetalle.id, params.GrupoActividadDetalle.id])
 
-            // Query para validarlo contra cualquier GrupoActividad con el mismo objetivo
             let resultQuery = await queryRunner.query(`
                 SELECT TOP 1 * FROM GrupoActividadObjetivo 
                 WHERE GrupoActividadObjetivoObjetivoId = @0
-                  AND GrupoActividadObjetivoDesde >= @1
-                 AND (GrupoActividadObjetivoHasta  <= @1 OR GrupoActividadObjetivoHasta IS NULL)
+                --  AND GrupoActividadObjetivoDesde >= @1
+                -- AND (GrupoActividadObjetivoHasta  <= @1 OR GrupoActividadObjetivoHasta IS NULL)
                 ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC
             `, [params.GrupoObjetivoDetalle.id,fechaActual])
 
@@ -789,9 +779,19 @@ export class GrupoActividadController extends BaseController {
                     ) {
                         throw new ClientException(`Ya se encuentra vigente el grupo actividad con el objetivo`)
                     }
+
+                    if (
+                        registro?.GrupoActividadObjetivoHasta 
+                            ? new Date(params?.GrupoActividadObjetivoDesde) <= new Date(registro?.GrupoActividadObjetivoHasta)
+                            : new Date(params?.GrupoActividadObjetivoDesde) <= new Date(registro?.GrupoActividadObjetivoDesde)
+                    ) {
+                        const fecha = registro.GrupoActividadObjetivoHasta ? registro.GrupoActividadObjetivoHasta : registro.GrupoActividadObjetivoDesde
+                        throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(fecha)} `)
+                    }
                 };
                 
                 const actualizarGrupoActividadHasta = async (registro) => {
+
      
                     if (registro && (!registro.GrupoActividadObjetivoHasta || registro.GrupoActividadObjetivoHasta < GrupoActividadObjetivoHasta)) {
                         await queryRunner.query(

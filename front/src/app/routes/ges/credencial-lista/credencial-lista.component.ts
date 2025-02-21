@@ -1,6 +1,6 @@
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { Component, ElementRef, Inject, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { Component, ElementRef, Inject, OnInit, Renderer2, signal, ViewChild } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { BehaviorSubject, debounceTime, finalize, map, Observable, switchMap, tap } from 'rxjs';
 import { PersonaObj, Search } from 'src/app/shared/schemas/personal.schemas';
@@ -23,27 +23,13 @@ export class CredencialListaComponent {
     private loadingSrv: LoadingService
   ) {}
   ngOnInit(): void {
-    /*
-        for (let index = 0; index < 10; index++) {
-    
-          this.credentials.push({
-            PersonalId: 0,
-            PersonalApellido: '',
-            PersonalNombre: '',
-            PersonalCUITCUILCUIT: '',
-            DocumentoImagenFotoBlobNombreArchivo: '',
-            image: '',
-            NRO_EMPRESA: '',
-            DNI: '',
-            CategoriaPersonalDescripcion: '',
-            FechaDesde: new Date(),
-            FechaHasta: new Date()
-          });
-        }
-    */
+    const credList = JSON.parse(String(localStorage.getItem('credList')))
+    console.log('credList',credList)
+    if (credList)
+      this.credentials.set(credList)
   }
   selectedPersonalId: string = '';
-  credentials: PersonaObj[] = [];
+  credentials = signal<PersonaObj[]>([]);
   isOptionsLoading: boolean = false;
 
   $searchChange = new BehaviorSubject('');
@@ -66,7 +52,8 @@ export class CredencialListaComponent {
         .pipe(
           tap((persona: PersonaObj) => {
             if (persona != null && persona.PersonalId > 0) {
-              if (this.credentials.findIndex(obj => obj.PersonalId === persona.PersonalId) == -1) this.credentials.unshift(persona);
+              if (this.credentials().findIndex(obj => obj.PersonalId === persona.PersonalId) == -1) this.credentials.update(v => { return [persona, ...v] })
+              localStorage.setItem('credList',JSON.stringify(this.credentials()))
               this.selectedPersonalId = '';
             }
           })
@@ -91,5 +78,9 @@ export class CredencialListaComponent {
   search(value: string): void {
     this.isOptionsLoading = true;
     this.$searchChange.next(value);
+  }
+  emptyList() {
+    this.credentials.set([])
+    localStorage.setItem('credList',JSON.stringify(this.credentials()))
   }
 }
