@@ -49,7 +49,6 @@ export class ViewCredentialComponent implements ControlValueAccessor {
     writeValue(value: PersonaObj[]) {
         
         if (value) {
-            console.log('value.length',value.length)
             this.imageIsLoading.set(value.length)
             this.personal.set(value);
 
@@ -72,7 +71,6 @@ export class ViewCredentialComponent implements ControlValueAccessor {
     }
     
     onAllImagesLoaded() {
-        console.log('All images have finished loading');
         // Add additional logic here to handle the event
         setTimeout(() => {
             this.iframe.focus();
