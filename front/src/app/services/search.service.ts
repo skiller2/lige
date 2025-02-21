@@ -433,7 +433,6 @@ export class SearchService {
     else
       return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/${id}`).pipe(
         map(res => {
-          console.log('res.data', res.data);
           
           return res.data}),
         catchError((err, caught) => {

@@ -35,7 +35,7 @@ accesoBotRouter.post('/', [authMiddleware.verifyToken, authMiddleware.hasGroup([
   accesoBotController.updateAcess(req, res, next)
 })
 
-accesoBotRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal', 'gConsejo'])], (req, res, next) => {
+accesoBotRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   accesoBotController.addAccess(req, res, next)
 })
 

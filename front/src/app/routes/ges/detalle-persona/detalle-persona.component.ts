@@ -71,6 +71,9 @@ export class DetallePersonaComponent {
   }
 
   calculateDateDifference(date: Date): string {
+    if (!date) {
+      return '0'
+    }
     const endDate = new Date()
     const startDate = new Date(date)
     let years = endDate.getFullYear() - startDate.getFullYear();

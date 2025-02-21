@@ -105,6 +105,17 @@
     display: none;
 }
 
+.is-image-loading {
+    position: absolute;
+    z-index: 500;
+    top: 26px;
+    left: 17px;
+    width: 100px;
+    height: 73px;
+    text-align: center;
+    font-size: 21px;
+}
+
 @media print {
     /* invert the display (show/hide) properties of the main */
     /* aplication component and the printing component       */
@@ -117,6 +128,10 @@
 
     body {
         margin: 0;
+    }
+
+    .is-image-loading {
+        display:none
     }
   }
 
