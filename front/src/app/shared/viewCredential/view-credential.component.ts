@@ -1,5 +1,5 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { Component, ElementRef, forwardRef, Inject, Input, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { Component, ElementRef, forwardRef, inject, Inject, Input, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { PersonaObj } from '../schemas/personal.schemas';
 import { SHARED_IMPORTS } from '@shared';
@@ -43,7 +43,11 @@ export class ViewCredentialComponent implements ControlValueAccessor {
     @Input('showPrintBtn') showPrintBtn: boolean = true;
 
     imageIsLoading = signal(false)
-    constructor(@Inject(DOCUMENT) private document: any,private renderer: Renderer2, private viewContainerRef:ViewContainerRef) { }
+    renderer = inject(Renderer2)
+    viewContainerRef = inject(ViewContainerRef)
+    loadedImagesCount = 0
+    iframe: any;
+    images: any;
 
     writeValue(value: PersonaObj[]) {
         if (value) {
@@ -59,19 +63,41 @@ export class ViewCredentialComponent implements ControlValueAccessor {
 
     registerOnTouched() { }
 
+
+    onImageLoad() {
+        console.log('onImageLoad',this.loadedImagesCount)
+        this.loadedImagesCount++;
+        if (this.loadedImagesCount === this.images.length) {
+          this.onAllImagesLoaded();
+        }
+    }
+    
+    onAllImagesLoaded() {
+        console.log('All images have finished loading');
+        // Add additional logic here to handle the event
+        setTimeout(() => {
+            this.iframe.focus();
+            this.iframe.contentWindow.print();
+            this.renderer.removeChild(document.body, this.iframe)
+        }, 500);
+
+    }
+    
+    
+
     printCards(lista: any) {
-        const iframe = this.renderer.createElement('iframe')
+        this.iframe = this.renderer.createElement('iframe')
         const link = this.renderer.createElement('link')
         const div = this.renderer.createElement('div')
         this.renderer.setProperty(link, 'rel', 'stylesheet')
         this.renderer.setProperty(link, 'href', './assets/credencial.css')
 
-        this.renderer.setStyle(iframe,'display','none')
+        this.renderer.setStyle(this.iframe,'display','none')
         this.renderer.addClass(div,"card-container")
         this.renderer.addClass(div,"limit-card-columns")
 
-        this.renderer.appendChild(document.body, iframe)
-        this.renderer.appendChild(iframe.contentWindow.document.head, link)
+        this.renderer.appendChild(document.body, this.iframe)
+        this.renderer.appendChild(this.iframe.contentWindow.document.head, link)
         
         for (const personal of lista) {
             const credencialview = this.viewContainerRef.createEmbeddedView(this.cardtmpl, { ctx: personal }).rootNodes[0]
@@ -79,11 +105,22 @@ export class ViewCredentialComponent implements ControlValueAccessor {
             this.renderer.appendChild(div, credencialview)
         }
 
-        this.renderer.appendChild(iframe.contentWindow.document.body, div)
+        this.images = div.querySelectorAll('img')
+        this.loadedImagesCount =0
+        this.images.forEach((img: any) => {
+            this.renderer.listen(img, 'load', () => this.onImageLoad());
+        });
+        
+
+
+
+        this.renderer.appendChild(this.iframe.contentWindow.document.body, div)
+        /*
         setTimeout(() => {
-            iframe.focus();
-            iframe.contentWindow.print();
-            this.renderer.removeChild(document.body, iframe)
+            this.iframe.focus();
+            this.iframe.contentWindow.print();
+            this.renderer.removeChild(document.body, this.iframe)
         }, 500);
+        */
     }
 }
