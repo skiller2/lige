@@ -1,5 +1,5 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { Component, ElementRef, forwardRef, inject, Inject, Input, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { Component, computed, effect, ElementRef, forwardRef, inject, Inject, Injector, Input, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { PersonaObj } from '../schemas/personal.schemas';
 import { SHARED_IMPORTS } from '@shared';
@@ -21,21 +21,8 @@ import { NzQRCodeModule } from 'ng-zorro-antd/qr-code';
 
 })
 export class ViewCredentialComponent implements ControlValueAccessor {
-    personal: PersonaObj[] = [{
-        PersonalId: 0,
-        PersonalApellido: '',
-        PersonalNombre: '',
-        PersonalCUITCUILCUIT: '',
-        DocumentoImagenFotoBlobNombreArchivo: '',
-        PersonalFotoId: 0,
-        image: '',
-        NRO_EMPRESA: '',
-        DNI: '',
-        CategoriaPersonalDescripcion: '',
-        FechaDesde: new Date(),
-        FechaHasta: new Date(),
-        Faltantes: true
-    }]
+    personal = signal<PersonaObj[]>([]);
+
 
     @ViewChild('cardtmpl', { static: false,read:TemplateRef }) cardtmpl!: TemplateRef<any>
 
@@ -43,29 +30,40 @@ export class ViewCredentialComponent implements ControlValueAccessor {
     @Input('showPrintBtn') showPrintBtn: boolean = true;
 
     imageIsLoading = signal(false)
+    printDisabled = signal(false)
     renderer = inject(Renderer2)
     viewContainerRef = inject(ViewContainerRef)
     loadedImagesCount = 0
     iframe: any;
     images: any;
+    injector = inject(Injector)
+
+    ngOnInit() {
+        /*
+        effect(async () => {
+            console.log('personal',this.personal())
+        }, { injector: this.injector });
+        */
+    }
 
     writeValue(value: PersonaObj[]) {
+        
         if (value) {
             this.imageIsLoading.set(true)
-            this.personal = value;
+            this.personal.set(value);
 
             for (const val of value)
                 val.Faltantes = (val.PersonalCUITCUILCUIT || val.PersonalFotoId)?false:true 
-        } else { this.personal = [] }
+        } else { this.personal.set([]) }
+        
     }
 
-    registerOnChange(fn: (_: any) => void) { }
+    registerOnChange(fn: (x: any) => void) { }
 
     registerOnTouched() { }
 
 
     onImageLoad() {
-        console.log('onImageLoad',this.loadedImagesCount)
         this.loadedImagesCount++;
         if (this.loadedImagesCount === this.images.length) {
           this.onAllImagesLoaded();
@@ -79,6 +77,7 @@ export class ViewCredentialComponent implements ControlValueAccessor {
             this.iframe.focus();
             this.iframe.contentWindow.print();
             this.renderer.removeChild(document.body, this.iframe)
+            this.printDisabled.set(false)
         }, 500);
 
     }
@@ -86,6 +85,8 @@ export class ViewCredentialComponent implements ControlValueAccessor {
     
 
     printCards(lista: any) {
+        this.printDisabled.set(true)
+
         this.iframe = this.renderer.createElement('iframe')
         const link = this.renderer.createElement('link')
         const div = this.renderer.createElement('div')
