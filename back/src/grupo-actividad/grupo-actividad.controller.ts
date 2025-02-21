@@ -789,10 +789,21 @@ export class GrupoActividadController extends BaseController {
                     ) {
                         throw new ClientException(`Ya se encuentra vigente el grupo actividad con el objetivo`)
                     }
+
+                    if (
+                        registro?.GrupoActividadObjetivoHasta 
+                            ? new Date(params?.GrupoActividadObjetivoDesde) <= new Date(registro?.GrupoActividadObjetivoHasta)
+                            : new Date(params?.GrupoActividadObjetivoDesde) <= new Date(registro?.GrupoActividadObjetivoDesde)
+                    ) {
+                        const fecha = registro.GrupoActividadObjetivoHasta ? registro.GrupoActividadObjetivoHasta : registro.GrupoActividadObjetivoDesde
+                        console.log("fecha ", fecha)
+                        throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(fecha)} `);
+                    }
                 };
                 
                 const actualizarGrupoActividadHasta = async (registro) => {
-     
+
+
                     if (registro && (!registro.GrupoActividadObjetivoHasta || registro.GrupoActividadObjetivoHasta < GrupoActividadObjetivoHasta)) {
                         await queryRunner.query(
                             `UPDATE GrupoActividadObjetivo 
