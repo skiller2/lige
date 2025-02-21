@@ -71,6 +71,7 @@ export class TipoDocumentoComponent {
   detailViewRowCount = 9
   gridOptions!: GridOption
   gridDataLen = 0
+  periodo = signal({anio:0, mes:0})
   docId = signal<number>(0)
   visibleAlta = model<boolean>(false)
   refresh = signal(0)
@@ -108,7 +109,7 @@ export class TipoDocumentoComponent {
     switchMap(() => {
       return this.apiService
         .getTipoDocumentos(
-          { options: this.listOptions }
+          this.periodo().anio, this.periodo().mes, this.listOptions
         )
         .pipe(
           map(data => {
@@ -168,6 +169,7 @@ export class TipoDocumentoComponent {
     if (result) {
       this.anio = result.getFullYear();
       this.mes = result.getMonth() + 1;
+      this.periodo.set({anio: result.getFullYear(), mes:result.getMonth() + 1})
 
       localStorage.setItem('mes', String(this.mes));
       localStorage.setItem('anio', String(this.anio));
