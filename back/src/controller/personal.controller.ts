@@ -124,6 +124,17 @@ const columns: any[] = [
     hidden: false,
   },
   {
+    id: "Telefonos",
+    name: "Teléfonos",
+    field: "Telefonos",
+    type: "string",
+    fieldName: "tels.Telefonos",
+    searchType: "string",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },  
+  {
     id: "PersonalFechaIngreso",
     name: "Fecha Ingreso",
     field: "PersonalFechaIngreso",
@@ -442,7 +453,8 @@ cuit.PersonalCUITCUILCUIT,
         per.PersonalNroLegajo, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
         sitrev.SituacionRevistaDescripcion,
         sitrev.PersonalSituacionRevistaDesde,
-        per.PersonalFechaIngreso
+        per.PersonalFechaIngreso,
+        tels.Telefonos
 
         FROM Personal per
         LEFT JOIN (
@@ -455,6 +467,10 @@ cuit.PersonalCUITCUILCUIT,
 
         LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
         LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
+
+        LEFT JOIN ( SELECT t.PersonalId, STRING_AGG(TRIM(t.PersonalTelefonoNro),', ') Telefonos FROM PersonalTelefono t WHERE t.PersonalTelefonoInactivo =0 OR t.PersonalTelefonoInactivo IS null GROUP BY t.PersonalId
+            ) tels ON tels.PersonalId= per.PersonalId
+
         WHERE (1=1)
         AND (${filterSql})
         ${orderBy}`)
