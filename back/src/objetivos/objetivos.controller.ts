@@ -677,11 +677,74 @@ export class ObjetivosController extends BaseController {
         if (!Obj.FechaModificada && !ContratoFechaDesdeOLD && !ContratoFechaHastaOLD)
             throw new ClientException(`Debe completar el campo Contrato Desde.`)
 
-        if (Obj.FechaModificada)
-            createNewContrato = await this.FormValidationsDate(queryRunner, ContratoFechaDesde, ContratoFechaHasta, ContratoFechaDesdeOLD, ContratoFechaHastaOLD, Obj.FechaModificada)
-
-        //console.log("createNewContrato",createNewContrato)
-        //throw new ClientException(`ESTOY TESTEANDO`)
+        if (Obj.FechaModificada) {
+            if (!ContratoFechaDesde) {
+                throw new ClientException(`Debe completar el campo Contrato Desde.`)
+            }
+    
+            if (ContratoFechaHasta && ContratoFechaDesde > ContratoFechaHasta) {
+                throw new ClientException(`La fecha desde no puede ser mayor a la fecha hasta`)
+            }
+            const ValidatePeriodoAndDay = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
+            const FechaCierre = new Date(ValidatePeriodoAndDay[0].FechaCierre);
+    
+            // Fechas desde y hasta < Fecha del último periodo cerrado no se modifican.
+            if (ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre && ContratoFechaHastaOLD && ContratoFechaHastaOLD < FechaCierre) {
+    
+                if (ContratoFechaDesde < FechaCierre) {
+                    throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                }
+                if (!ContratoFechaDesde) {
+                    throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                }
+                if (ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
+                    throw new ClientException(`La fecha Hasta debe ser mayor  a la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                }
+                createNewContrato=true
+            }
+    
+            // validacion para cuando es un nuevo registro
+            if (!ContratoFechaDesdeOLD && !ContratoFechaHastaOLD) {
+    
+                if (ContratoFechaDesde.getTime() <= FechaCierre.getTime()) {
+                    throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                }
+                if (!ContratoFechaDesde) {
+                    throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                }
+                if (ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
+                    throw new ClientException(`La fecha de cierre debe ser igual o mayor a la fecha limit. ${this.dateOutputFormat(FechaCierre)}`)
+                }
+                createNewContrato=true
+            }
+    
+            // validacion para no ingresar fecha desde en un periodo ya cerrado
+            if (ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre) {
+                if (ContratoFechaDesdeOLD.getTime() !== ContratoFechaDesde.getTime()) {
+                    throw new ClientException(`No se puede modificar la fecha desde ya que pertenece a un periodo ya cerrado`);
+                }
+            }
+    
+    
+            // Desde < FecUltPer y Hasta > UltPer, se puede modificar el hasta, pero el nuevo hasta >= UltPer
+            if (ContratoFechaDesdeOLD < FechaCierre && (!ContratoFechaHastaOLD || ContratoFechaHastaOLD > FechaCierre)) {
+    
+                if (ContratoFechaHasta && ContratoFechaHasta.getTime() < FechaCierre.getTime()) {
+                    throw new ClientException(`La fecha de cierre debe ser igual o mayor a la fecha limite. ${this.dateOutputFormat(FechaCierre)}`)
+                }
+    
+            }
+    
+            // Desde > FecUltPer, se puede modificar si el nuevo Desde > FecUltPer y no puede quedar vacío
+            if (ContratoFechaDesdeOLD > FechaCierre) {
+                if (ContratoFechaDesde < FechaCierre) {
+                    throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                }
+                if (!ContratoFechaDesde) {
+                    throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                }
+            }
+        }
 
         if (Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
 
@@ -702,7 +765,6 @@ export class ObjetivosController extends BaseController {
 
             }
         } else {
-
             if (Obj.ContratoId && !createNewContrato) {
 
                 await queryRunner.query(`UPDATE ClienteContrato SET ClienteContratoFechaDesde = @2, ClienteContratoFechaHasta @3 WHERE ClienteId = @0 AND ClienteContratoId = @1`,
@@ -714,9 +776,7 @@ export class ObjetivosController extends BaseController {
                 await queryRunner.query(`INSERT INTO ClienteContrato (ClienteContratoId,ClienteId, ClienteContratoFechaDesde, ClienteContratoFechaHasta ) VALUES (@0,@1,@2,@3)`,
                     [ClienteContratoId, Obj.ClienteId, ContratoFechaDesde, ContratoFechaHasta])
             }
-
         }
-
     }
 
     async validateCliente(queryRunner: any, Obj: any, ClienteElementoDependienteUltNro: any) {
@@ -788,13 +848,12 @@ export class ObjetivosController extends BaseController {
         )
         const ValidatePeriodoAndDay = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
         const FechaCierre = new Date(ValidatePeriodoAndDay[0].FechaCierre);
-        const fechaFormateada = `${FechaCierre.getFullYear()}-${(FechaCierre.getMonth() + 1).toString().padStart(2, '0')}-${FechaCierre.getDate().toString().padStart(2, '0')}`
 
         if (Objetivo.length && infoActividad[0].GrupoActividadId != infoActividad[0].GrupoActividadOriginal && Objetivo[0].GrupoActividadObjetivoDesde.getTime() > GrupoActividadObjetivoDesde.getTime()) {
             throw new ClientException(`La fecha Desde no puede ser menor a ${GrupoActividadObjetivoDesde.getDate()}/${GrupoActividadObjetivoDesde.getMonth() + 1}/${GrupoActividadObjetivoDesde.getFullYear()}`)
         }
         if (GrupoActividadObjetivoDesde != infoActividad[0].GrupoActividadObjetivoDesdeOriginal && GrupoActividadObjetivoDesde <= FechaCierre) {
-            throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
+            throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
         }
         // Restar un día a la fecha
 
@@ -885,7 +944,7 @@ export class ObjetivosController extends BaseController {
             }
 
             await this.validateDateAndCreateContrato(queryRunner, Obj)
-
+throw new ClientException('debug')
             //update
 
             if (Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
@@ -1064,86 +1123,6 @@ export class ObjetivosController extends BaseController {
             WHERE ClienteId = @0 `,
             [ClienteId, SucursalId, SucursalDescripcion])
     }
-
-    async FormValidationsDate(queryRunner: any, ContratoFechaDesde: any, ContratoFechaHasta: any, ContratoFechaDesdeOLD: any, ContratoFechaHastaOLD: any, FechaModificada: any) {
-
-        if (!ContratoFechaDesde) {
-            throw new ClientException(`Debe completar el campo Contrato Desde.`)
-        }
-
-        if (ContratoFechaHasta && ContratoFechaDesde > ContratoFechaHasta) {
-            throw new ClientException(`La fecha desde no puede ser mayor a la fecha hasta`)
-        }
-
-        const ValidatePeriodoAndDay = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
-        const FechaCierre = new Date(ValidatePeriodoAndDay[0].FechaCierre);
-        const fechaFormateada = `${FechaCierre.getFullYear()}-${(FechaCierre.getMonth() + 1).toString().padStart(2, '0')}-${FechaCierre.getDate().toString().padStart(2, '0')}`;
-
-        if (!FechaModificada)
-            return false
-
-        // Fechas desde y hasta < Fecha del último periodo cerrado no se modifican.
-        if (ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre && ContratoFechaHastaOLD && ContratoFechaHastaOLD < FechaCierre) {
-            if (ContratoFechaDesde < FechaCierre) {
-                throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
-            }
-            if (!ContratoFechaDesde) {
-                throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${fechaFormateada}`)
-            }
-            if (ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
-                throw new ClientException(`La fecha Hasta debe ser mayor  a la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
-            }
-
-            return true
-        }
-
-        // validacion para cuando es un nuevo registro
-        if (!ContratoFechaDesdeOLD && !ContratoFechaHastaOLD) {
-
-            if (ContratoFechaDesde.getTime() <= FechaCierre.getTime()) {
-                throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
-            }
-            if (!ContratoFechaDesde) {
-                throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${fechaFormateada}`)
-            }
-            if (ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
-                throw new ClientException(`La fecha de cierre debe ser igual o mayor a la fecha limit. ${fechaFormateada}`)
-            }
-            return true
-        }
-
-        // validacion para no ingresar fecha desde en un periodo ya cerrado
-        if (ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre) {
-
-            if (ContratoFechaDesdeOLD.getTime() !== ContratoFechaDesde.getTime()) {
-                throw new ClientException(`No se puede modificar la fecha desde ya que pertenece a un periodo ya cerrado`);
-            }
-        }
-
-
-        // Desde < FecUltPer y Hasta > UltPer, se puede modificar el hasta, pero el nuevo hasta >= UltPer
-        if (ContratoFechaDesdeOLD < FechaCierre && (!ContratoFechaHastaOLD || ContratoFechaHastaOLD > FechaCierre)) {
-
-            if (ContratoFechaHasta && ContratoFechaHasta.getTime() < FechaCierre.getTime()) {
-                throw new ClientException(`La fecha de cierre debe ser igual o mayor a la fecha limite. ${fechaFormateada}`)
-            }
-
-        }
-
-        // Desde > FecUltPer, se puede modificar si el nuevo Desde > FecUltPer y no puede quedar vacío
-        if (ContratoFechaDesdeOLD > FechaCierre) {
-            if (ContratoFechaDesde < FechaCierre) {
-                throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
-            }
-            if (!ContratoFechaDesde) {
-                throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${fechaFormateada}`)
-            }
-        }
-
-        return false
-
-    }
-
 
     async FormValidations(form: any) {
 
