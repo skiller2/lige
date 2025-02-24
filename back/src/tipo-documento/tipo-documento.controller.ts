@@ -24,12 +24,11 @@ export class TipoDocumentoController extends BaseController {
       maxWidth: 100,
     },
     {
-      name: "Personal",
+      id: "ApellidoNombre", name: "Personal", field: "ApellidoNombre",
       type: "string",
-      id: "PersonalApellidoNombre",
-      field: "PersonalApellidoNombre",
-      fieldName: "pers.PersonalApellidoNombre",
-      searchType: "string",
+      fieldName: "pers.PersonalId",
+      searchComponent: "inpurForPersonalSearch",
+      searchType: "number",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -45,23 +44,31 @@ export class TipoDocumentoController extends BaseController {
       maxWidth: 250,
     },
     {
-      name: "Objetivo",
+      id: "objetivo", name: "Objetivo", field: "objetivo.fullname",
+      fieldName: "obj.objetivo_id",
       type: "string",
-      id: "ObjetivoDescripcion",
-      field: "ObjetivoDescripcion",
-      fieldName: "obj.ObjetivoDescripcion",
-      searchType: "string",
+      formatter: 'complexObject',
+      params: {
+        complexFieldLabel: 'objetivo.fullname',
+      },
+      searchComponent: "inpurForObjetivoSearch",
+      searchType: "number",
       sortable: true,
+      hidden: false,
       searchHidden: false
     },
     {
-      name: "Cliente",
-      type: "string",
-      id: "ClienteDenominacion",
-      field: "ClienteDenominacion",
-      fieldName: "cli.ClienteDenominacion",
-      searchType: "string",
+      id: 'cliente', name: 'Cliente', field: 'cliente.fullname',
+      fieldName: "cli.ClienteId",
+      type: 'string',
+      formatter: 'complexObject',
+      params: {
+          complexFieldLabel: 'cliente.fullname',
+      },
+      searchComponent: "inpurForClientSearch",
+      searchType: "number",
       sortable: true,
+      hidden: false,
       searchHidden: false
     },
     {
@@ -187,28 +194,37 @@ export class TipoDocumentoController extends BaseController {
   }
 
 
-  async getdocgenralListlist(filtros: any, sort: any) {
-    const filterSql = filtrosToSql(filtros, this.listaTipoDocumento);
-    const orderBy = orderToSQL(sort)
-    const stmactual = new Date()
+  async getdocgenralListlist(filterSql: any, orderBy: any, anio:number, mes:number) {
 
-    return dataSource.query(`
+    const result = await dataSource.query(`
       SELECT doc_id AS id, 
       tipo.detalle AS tipo, 
       fecha, 
-      pers.PersonalApellidoNombre,
-      obj.ObjetivoDescripcion,  
+      CONCAT(TRIM(pers.PersonalApellido), ', ', TRIM(pers.PersonalNombre)) ApellidoNombre,
+      obj.ObjetivoId, TRIM(obj.ObjetivoDescripcion) ObjetivoDescripcion,  
       CONCAT(RTRIM(per.mes), '-', RTRIM(per.anio)) AS periodo,
-      cli.ClienteDenominacion
+      cli.ClienteId, cli.ClienteDenominacion
       FROM lige.dbo.docgeneral AS docgeneral 
       LEFT JOIN lige.dbo.doctipo AS tipo ON docgeneral.doctipo_id = tipo.doctipo_id
       LEFT JOIN Personal AS pers ON docgeneral.persona_id = pers.PersonalId 
       LEFT JOIN Objetivo AS obj ON docgeneral.objetivo_id = obj.ObjetivoId 
       LEFT JOIN lige.dbo.liqmaperiodo AS per ON docgeneral.periodo = per.periodo_id
       LEFT JOIN lige.dbo.Cliente AS cli ON docgeneral.cliente_id = cli.ClienteId
-      WHERE ${filterSql}
+      WHERE per.anio = @0 AND per.mes = @1
+      AND ${filterSql}
       ${orderBy}
-    `)
+    `, [anio, mes])
+
+    let list = result.map((obj: any) => {
+      obj.cliente = { id: obj.ClienteId, fullname: obj.ClienteDenominacion }
+      obj.objetivo = { id: obj.ObjetivoId, fullname: obj.ObjetivoDescripcion }
+      delete obj.cliente_id
+      delete obj.ClienteDenominacion
+      delete obj.ObjetivoId
+      delete obj.ObjetivoDescripcion
+      return obj
+  })
+    return list
   }
 
   async getdocgenralList(
@@ -217,10 +233,10 @@ export class TipoDocumentoController extends BaseController {
   ) {
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaTipoDocumento);
     const orderBy = orderToSQL(req.body.options.sort)
-
-
+    const anio:number = req.body.anio
+    const mes:number = req.body.mes
     try {
-      const TipoDocumentos = await this.getdocgenralListlist(req.body.options.filtros, req.body.options.sort)
+      const TipoDocumentos = await this.getdocgenralListlist(filterSql, orderBy, anio, mes)
       // console.log("movimientosPendientes " +  TipoDocumentos.length)
       this.jsonRes(
         {

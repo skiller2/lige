@@ -29,7 +29,7 @@ export class ViewCredentialComponent implements ControlValueAccessor {
 
     @Input('showPrintBtn') showPrintBtn: boolean = true;
 
-    imageIsLoading = signal(false)
+    imageIsLoading = signal(0)
     printDisabled = signal(false)
     renderer = inject(Renderer2)
     viewContainerRef = inject(ViewContainerRef)
@@ -49,7 +49,7 @@ export class ViewCredentialComponent implements ControlValueAccessor {
     writeValue(value: PersonaObj[]) {
         
         if (value) {
-            this.imageIsLoading.set(true)
+            this.imageIsLoading.set(value.length)
             this.personal.set(value);
 
             for (const val of value)
@@ -71,7 +71,6 @@ export class ViewCredentialComponent implements ControlValueAccessor {
     }
     
     onAllImagesLoaded() {
-        console.log('All images have finished loading');
         // Add additional logic here to handle the event
         setTimeout(() => {
             this.iframe.focus();
@@ -123,5 +122,9 @@ export class ViewCredentialComponent implements ControlValueAccessor {
             this.renderer.removeChild(document.body, this.iframe)
         }, 500);
         */
+    }
+
+    decImageLoading() {
+        this.imageIsLoading.update(v=>v-1)
     }
 }
