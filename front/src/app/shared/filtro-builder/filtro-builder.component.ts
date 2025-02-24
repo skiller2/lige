@@ -75,6 +75,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsTipoPrest = this.searchService.getTipoPrestamo();
   $optionsSitRevista = this.searchService.getSitRevistaOptions();
   $optionsProducto =  this.searchService.getTipoProducto();
+  $optionsTipoDocumento = this.searchService.getTiposDocumentoOptions();
 
   $optionsSucursales = this.searchService.getSucursales();
   private _options: Options = {
@@ -188,21 +189,18 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       else 
         value = [this.selections.value]
 
-      console.log('label0', this.selections.label)
 
       if (this.selections.label == "" && this.valueExtended?.fullName)
         this.selections.label = this.valueExtended.fullName
 //      if (this.selections.label == "")
 //        this.selections.label = this.selections.value == "" ? "Vacio" : String(this.selections.value)
 
-      console.log('label1',this.selections.label)
       if (this.selections.label == "") {
         if (this.selections.value == "" || ((this.selections.value instanceof Date) && isNaN(this.selections.value.getTime())))
           this.selections.label = "Vacio"
         else
           this.selections.label = (this.selections.value instanceof Date)? String(this.datePipe.transform(this.selections.value)) :String(this.selections.value)
       }
-      console.log('label2',this.selections.label)
 
 
       this.appendFiltro(
@@ -365,6 +363,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       let label = values.map((obj:any) => obj.label).join(";");
       this.selections.value = val;
       this.valueExtended = { fullName: label };
+      if (typeof values[0].value == 'string') {
+        this.selections.operator = 'LIKE'
+      }
     }
   }
 
