@@ -531,7 +531,7 @@ cuit.PersonalCUITCUILCUIT,
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
     const fullname: string = Apellido + ', ' + Nombre
-    const PersonalEstado = 'ASOCIADO'
+
     const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (CUIT ${CUIT} - Leg.:${NroLegajo})`
     let newId = await queryRunner.query(`
       INSERT INTO Personal (
@@ -549,12 +549,11 @@ cuit.PersonalCUITCUILCUIT,
       -- PersonalFotoId,
       PersonalSucursalIngresoSucursalId,
       PersonalSuActualSucursalPrincipalId,
-      PersonalEstado,
       PersonalApellidoNombreDNILegajo,
       PersonalCUITCUILUltNro,
       PersonalLeyNro
       )
-      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@7,@8,@9,@9,@10,@11,@12,@13)
+      VALUES (@0,@1,@2,@3,@4,@5,@5,@6,@6,@7,@8,@9,@9,@10,@11,@12)
       
       SELECT MAX(PersonalId) id FROM Personal
       `, [
@@ -568,7 +567,6 @@ cuit.PersonalCUITCUILCUIT,
       FechaNacimiento,
       NacionalidadId,
       SucusalId,
-      PersonalEstado,
       ApellidoNombreDNILegajo,
       1,
       LeyNro
