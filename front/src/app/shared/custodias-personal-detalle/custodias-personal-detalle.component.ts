@@ -21,7 +21,7 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
     selector: 'app-custodias-personal-detalle',
     standalone: true,
     imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule,
-        PersonalSearchComponent, CommonModule, FiltroBuilderComponent, NzAffixModule],
+        CommonModule, FiltroBuilderComponent, NzAffixModule],
     templateUrl: './custodias-personal-detalle.component.html',
     styleUrl: './custodias-personal-detalle.component.less',
 })

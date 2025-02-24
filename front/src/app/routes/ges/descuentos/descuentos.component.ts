@@ -16,7 +16,7 @@ import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal
 @Component({
   selector: 'app-descuentos',
   standalone: true,
-  imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent],
+  imports: [...SHARED_IMPORTS, CommonModule, PersonalSearchComponent],
   templateUrl: './descuentos.component.html',
   providers: [AngularUtilService, ExcelExportService],
   styleUrl: './descuentos.component.less',

@@ -35,8 +35,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     PersonalSearchComponent,
     RubroSearchComponent,
     ClienteSearchComponent,
-    DetallePersonaComponent,
-    FiltroBuilderComponent,
     NzAutocompleteModule,
     NzSelectModule,
     FileUploadComponent,

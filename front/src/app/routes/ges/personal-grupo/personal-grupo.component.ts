@@ -16,7 +16,7 @@ import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal
 @Component({
   selector: 'app-personal-grupo',
   standalone: true,
-  imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent],
+  imports: [...SHARED_IMPORTS, CommonModule, PersonalSearchComponent],
   templateUrl: './personal-grupo.component.html',
   providers: [AngularUtilService, ExcelExportService],
   styleUrl: './personal-grupo.component.less',
