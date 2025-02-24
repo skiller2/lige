@@ -176,7 +176,7 @@ export class GrupoActividadController extends BaseController {
             hidden: true,
             searchHidden: true
         },
-        
+
         {
             name: "Objetivo",
             type: "string",
@@ -239,6 +239,80 @@ export class GrupoActividadController extends BaseController {
 
     ]
 
+    columnasGrillaPersonal: any[] = [
+        {
+            id: "id",
+            name: "id",
+            field: "id",
+            fieldName: "id",
+            type: "number",
+            sortable: false,
+            hidden: true,
+            searchHidden: true
+        },
+        {
+            name: "Apellido Nombre",
+            type: "string",
+            id: "ApellidoNombrePersona",
+            field: "ApellidoNombrePersona",
+            fieldName: "ApellidoNombrePersona",
+            sortable: true,
+            searchHidden: true
+        },
+        {
+            name: "Nombre",
+            type: "string",
+            id: "PersonalId",
+            field: "PersonalId",
+            fieldName: "per.PersonalId",
+            searchComponent: "inpurForPersonalSearch",
+            sortable: false,
+            hidden: true,
+            searchHidden: false
+        },
+        {
+            name: "Grupo Actividad",
+            type: "string",
+            id: "GrupoActividadDetalle",
+            field: "GrupoActividadDetalle",
+            fieldName: "ga.GrupoActividadDetalle",
+
+            sortable: true,
+            searchHidden: true
+        },
+        {
+            name: "Grupo Actividad ",
+            type: "string",
+            id: "GrupoActividadId",
+            field: "GrupoActividadId",
+            fieldName: "ga.GrupoActividadId",
+            searchComponent: "inpurForGrupoPersonaSearch",
+            sortable: false,
+            hidden: true,
+        },
+        {
+            name: "Desde",
+            type: "date",
+            id: "GrupoActividadPersonalDesde",
+            field: "GrupoActividadPersonalDesde",
+            fieldName: "gaper.GrupoActividadPersonalDesde",
+            searchComponent: "inpurForFechaSearch",
+            sortable: true,
+        },
+        {
+            name: "Hasta",
+            type: "date",
+            id: "GrupoActividadPersonalHasta",
+            field: "GrupoActividadPersonalHasta",
+            fieldName: "gaper.GrupoActividadPersonalHasta",
+            searchComponent: "inpurForFechaSearch",
+            sortable: true,
+        }
+
+
+    ]
+
+
     async getGridColsGrupos(req, res) {
         this.jsonRes(this.columnasGrillaGrupos, res);
     }
@@ -249,6 +323,11 @@ export class GrupoActividadController extends BaseController {
 
     async getGridColsObjetivos(req, res) {
         this.jsonRes(this.columnasGrillaObjetivos
+            , res);
+    }
+
+    async getGridColsPersonal(req, res) {
+        this.jsonRes(this.columnasGrillaPersonal
             , res);
     }
 
@@ -417,6 +496,71 @@ export class GrupoActividadController extends BaseController {
                     id: item.ObjetivoId,
                     fullName: item.ObjetivoDescripcion
                 }
+            }));
+
+            this.jsonRes(
+                {
+                    total: formattedData.length,
+                    list: formattedData,
+                },
+                res
+            );
+
+
+        } catch (error) {
+            return next(error)
+        }
+
+    }
+
+    async listGrupoActividadPersonal(req: any, res: Response, next: NextFunction) {
+
+        const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaPersonal);
+        const orderBy = orderToSQL(req.body.options.sort)
+        const queryRunner = dataSource.createQueryRunner();
+        const fechaActual = new Date()
+
+        try {
+
+            const GrupoActividadPersonal = await queryRunner.query(
+                `SELECT 
+                    ROW_NUMBER() OVER (ORDER BY ga.GrupoActividadId) AS id,
+                    ga.GrupoActividadId,
+                    ga.GrupoActividadDetalle as detalle, 
+                    ga.GrupoActividadNumero,
+                    ga.GrupoActividadDetalle, 
+
+                    gaper.GrupoActividadPersonalId,
+                    per.PersonalId,
+                    CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) ApellidoNombrePersona,
+
+                    gaper.GrupoActividadPersonalDesde,
+                    gaper.GrupoActividadPersonalHasta
+
+                FROM GrupoActividadPersonal gaper
+                LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gaper.GrupoActividadId
+                LEFT JOIN Personal per ON per.PersonalId = gaper.GrupoActividadPersonalPersonalId
+                WHERE ${filterSql}`
+            );
+
+            const formattedData = GrupoActividadPersonal.map((item: any) => ({
+                ...item,
+                GrupoActividadDetalle: {
+                    id: item.GrupoActividadId,
+                    fullName: item.detalle
+                },
+                GrupoActividadDetalleOld: {
+                    id: item.GrupoActividadId,
+                    fullName: item.detalle
+                },
+                ApellidoNombrePersonaOld: {
+                    id: item.PersonalId,
+                    fullName: item.ApellidoNombrePersona
+                },
+                ApellidoNombrePersona: {
+                    id: item.PersonalId,
+                    fullName: item.ApellidoNombrePersona
+                },
             }));
 
             this.jsonRes(
@@ -753,16 +897,16 @@ export class GrupoActividadController extends BaseController {
                 await this.validateFormObjetivos(params, queryRunner)
 
 
-            let resultQuery = await queryRunner.query(`
+                let resultQuery = await queryRunner.query(`
                 SELECT TOP 1 * FROM GrupoActividadObjetivo 
                 WHERE GrupoActividadObjetivoObjetivoId = @0
                 --  AND GrupoActividadObjetivoDesde >= @1
                 -- AND (GrupoActividadObjetivoHasta  <= @1 OR GrupoActividadObjetivoHasta IS NULL)
                 ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC
-            `, [params.GrupoObjetivoDetalle.id,fechaActual])
+            `, [params.GrupoObjetivoDetalle.id, fechaActual])
 
                 // console.log("result ", result)
-              
+
                 const ultimoRegistroQuery = resultQuery[0]
 
                 console.log("ultimoRegistroQuery ", ultimoRegistroQuery)
@@ -774,14 +918,14 @@ export class GrupoActividadController extends BaseController {
                 //throw new ClientException(`test`)
                 const validarGrupoActividadVigente = (registro) => {
 
-                    if (registro?.GrupoActividadId == params.GrupoActividadDetalle.id && 
+                    if (registro?.GrupoActividadId == params.GrupoActividadDetalle.id &&
                         (!registro?.GrupoActividadObjetivoHasta || new Date(registro.GrupoActividadObjetivoHasta) >= fechaActual)
                     ) {
                         throw new ClientException(`Ya se encuentra vigente el grupo actividad con el objetivo`)
                     }
 
                     if (
-                        registro?.GrupoActividadObjetivoHasta 
+                        registro?.GrupoActividadObjetivoHasta
                             ? new Date(params?.GrupoActividadObjetivoDesde) <= new Date(registro?.GrupoActividadObjetivoHasta)
                             : new Date(params?.GrupoActividadObjetivoDesde) <= new Date(registro?.GrupoActividadObjetivoDesde)
                     ) {
@@ -789,10 +933,10 @@ export class GrupoActividadController extends BaseController {
                         throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(fecha)} `)
                     }
                 };
-                
+
                 const actualizarGrupoActividadHasta = async (registro) => {
 
-     
+
                     if (registro && (!registro.GrupoActividadObjetivoHasta || registro.GrupoActividadObjetivoHasta < GrupoActividadObjetivoHasta)) {
                         await queryRunner.query(
                             `UPDATE GrupoActividadObjetivo 
@@ -800,32 +944,16 @@ export class GrupoActividadController extends BaseController {
                              WHERE GrupoActividadId = @0 
                              AND GrupoActividadObjetivoObjetivoId = @1
                              AND GrupoActividadObjetivoId = @3`,
-                             
-                            [registro.GrupoActividadId, registro.GrupoActividadObjetivoObjetivoId, formattedDate,registro.GrupoActividadObjetivoId]
+
+                            [registro.GrupoActividadId, registro.GrupoActividadObjetivoObjetivoId, formattedDate, registro.GrupoActividadObjetivoId]
                         )
                     }
                 }
 
-                if(resultQuery.length > 0 ){
+                if (resultQuery.length > 0) {
                     validarGrupoActividadVigente(ultimoRegistroQuery)
                     actualizarGrupoActividadHasta(ultimoRegistroQuery)
                 }
-                
-                // if (result.length > 0) {
-                //     const ultimoRegistro = result[0]
-                //     validarGrupoActividadVigente(ultimoRegistro)
-                //     actualizarGrupoActividadHasta(ultimoRegistro)
-                // } else if (
-                //     resultQuery.length > 0 
-                // ) {
-
-                //     // || 
-                //     // (ultimoRegistroQuery?.GrupoActividadId !== params.GrupoActividadDetalle.id && 
-                //     //  params.GrupoObjetivoDetalle.id === ultimoRegistroQuery?.ObjetivoId)
-
-                //     //validarGrupoActividadVigente(ultimoRegistroQuery)
-                //     actualizarGrupoActividadHasta(ultimoRegistroQuery)
-                // }
 
                 let GrupoActividadObjetivoId = await queryRunner.query(` SELECT GrupoActividadObjetivoUltNro FROM GrupoActividad WHERE GrupoActividadId =  @0`, [params.GrupoActividadDetalle.id])
                 GrupoActividadObjetivoId = GrupoActividadObjetivoId[0].GrupoActividadObjetivoUltNro + 1
@@ -862,6 +990,160 @@ export class GrupoActividadController extends BaseController {
         }
 
     }
+
+
+    async changecellPersonal(req: any, res: Response, next: NextFunction) {
+
+        const ip = this.getRemoteAddress(req)
+        const queryRunner = dataSource.createQueryRunner();
+
+        const usuarioIdquery = await queryRunner.query(`SELECT * FROM Usuario WHERE UsuarioId = @0`, [res.locals.PersonalId])
+        const usuarioId = usuarioIdquery > 0 ? usuarioIdquery : null
+
+        const fechaActual = new Date()
+        let message = ""
+        const params = req.body
+
+        try {
+            console.log("params objetivos ", params)
+            //throw new ClientException(`test`)
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
+            fechaActual.setHours(0, 0, 0, 0)
+            let time = fechaActual.toTimeString().split(' ')[0]
+
+            let dataResultado = {}
+            let GrupoActividadObjetivoHasta
+
+            if (params.GrupoActividadId > 0) { //Entro en update
+                //Validar si cambio el código
+                console.log('El código no existe - es update personal')
+
+                await this.validateFormPersonal(params, queryRunner)
+
+                await queryRunner.query(`
+                    UPDATE GrupoActividadPersonal
+                    SET GrupoActividadPersonalDesde = @2,GrupoActividadPersonalHasta = @3,
+                        GrupoActividadPersonalPuesto = @4,GrupoActividadPersonalUsuarioId = @5,
+                        GrupoActividadPersonalDia = @6,GrupoActividadPersonalTiempo = @7
+                    WHERE GrupoActividadId = @0 AND GrupoActividadPersonalPersonalId = @1
+                `, [
+                    params.GrupoActividadId,
+                    params.ApellidoNombrePersona.id,
+                    params.GrupoActividadPersonalDesde,
+                    params.GrupoActividadPersonalHasta,
+                    ip,
+                    usuarioId,
+                    fechaActual,
+                    time
+                ])
+
+
+                dataResultado = { action: 'U', GrupoActividadId: params.GrupoActividadId }
+                message = "Actualizacion exitosa"
+
+            } else {  //Es un nuevo registro
+
+                console.log('El código no existe - es nuevo personal')
+
+                await this.validateFormPersonal(params, queryRunner)
+
+            //     let resultQuery = await queryRunner.query(`
+            //     SELECT TOP 1 * FROM GrupoActividadObjetivo 
+            //     WHERE GrupoActividadObjetivoObjetivoId = @0
+            //     --  AND GrupoActividadObjetivoDesde >= @1
+            //     -- AND (GrupoActividadObjetivoHasta  <= @1 OR GrupoActividadObjetivoHasta IS NULL)
+            //     ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC
+            // `, [params.GrupoObjetivoDetalle.id, fechaActual])
+
+            //     // console.log("result ", result)
+
+            //     const ultimoRegistroQuery = resultQuery[0]
+
+            //     console.log("ultimoRegistroQuery ", ultimoRegistroQuery)
+
+            //     GrupoActividadObjetivoHasta = new Date(params.GrupoActividadObjetivoDesde)
+            //     GrupoActividadObjetivoHasta.setDate(GrupoActividadObjetivoHasta.getDate() - 1)
+            //     const formattedDate = GrupoActividadObjetivoHasta.toISOString().split('T')[0] + "T00:00:00.000Z"
+
+            //     //throw new ClientException(`test`)
+            //     const validarGrupoActividadVigente = (registro) => {
+
+            //         if (registro?.GrupoActividadId == params.GrupoActividadDetalle.id &&
+            //             (!registro?.GrupoActividadObjetivoHasta || new Date(registro.GrupoActividadObjetivoHasta) >= fechaActual)
+            //         ) {
+            //             throw new ClientException(`Ya se encuentra vigente el grupo actividad con el objetivo`)
+            //         }
+
+            //         if (
+            //             registro?.GrupoActividadObjetivoHasta
+            //                 ? new Date(params?.GrupoActividadObjetivoDesde) <= new Date(registro?.GrupoActividadObjetivoHasta)
+            //                 : new Date(params?.GrupoActividadObjetivoDesde) <= new Date(registro?.GrupoActividadObjetivoDesde)
+            //         ) {
+            //             const fecha = registro.GrupoActividadObjetivoHasta ? registro.GrupoActividadObjetivoHasta : registro.GrupoActividadObjetivoDesde
+            //             throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(fecha)} `)
+            //         }
+            //     };
+
+            //     const actualizarGrupoActividadHasta = async (registro) => {
+
+
+            //         if (registro && (!registro.GrupoActividadObjetivoHasta || registro.GrupoActividadObjetivoHasta < GrupoActividadObjetivoHasta)) {
+            //             await queryRunner.query(
+            //                 `UPDATE GrupoActividadObjetivo 
+            //                  SET GrupoActividadObjetivoHasta = @2 
+            //                  WHERE GrupoActividadId = @0 
+            //                  AND GrupoActividadObjetivoObjetivoId = @1
+            //                  AND GrupoActividadObjetivoId = @3`,
+
+            //                 [registro.GrupoActividadId, registro.GrupoActividadObjetivoObjetivoId, formattedDate, registro.GrupoActividadObjetivoId]
+            //             )
+            //         }
+            //     }
+
+            //     if (resultQuery.length > 0) {
+            //         validarGrupoActividadVigente(ultimoRegistroQuery)
+            //         actualizarGrupoActividadHasta(ultimoRegistroQuery)
+            //     }
+
+            //     let GrupoActividadObjetivoId = await queryRunner.query(` SELECT GrupoActividadObjetivoUltNro FROM GrupoActividad WHERE GrupoActividadId =  @0`, [params.GrupoActividadDetalle.id])
+            //     GrupoActividadObjetivoId = GrupoActividadObjetivoId[0].GrupoActividadObjetivoUltNro + 1
+
+            //     await queryRunner.query(`INSERT INTO "GrupoActividadObjetivo" (
+            //         "GrupoActividadObjetivoId",
+            //         "GrupoActividadId",
+            //         "GrupoActividadObjetivoObjetivoId",
+            //         "GrupoActividadObjetivoDesde",
+            //         "GrupoActividadObjetivoHasta",
+            //         "GrupoActividadObjetivoPuesto",
+            //         "GrupoActividadObjetivoUsuarioId",
+            //         "GrupoActividadObjetivoDia",
+            //         "GrupoActividadObjetivoTiempo"
+            //     ) VALUES ( @0,@1,@2, @3,@4, @5,@6, @7,@8 );
+            //     `, [GrupoActividadObjetivoId, params.GrupoActividadDetalle.id, params.GrupoObjetivoDetalle.id,
+            //         params.GrupoActividadObjetivoDesde, params.GrupoActividadObjetivoHasta, ip, usuarioId, fechaActual, time])
+
+
+            //     await queryRunner.query(`UPDATE GrupoActividad
+            //         SET GrupoActividadObjetivoUltNro = @0
+            //         WHERE GrupoActividadId =  @1`, [GrupoActividadObjetivoId, params.GrupoActividadDetalle.id])
+
+                dataResultado = { action: 'I', GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadObjetivoObjetivoId: params.GrupoObjetivoDetalle.id, PreviousDate: GrupoActividadObjetivoHasta }
+                message = "Carga de nuevo Registro exitoso"
+            }
+
+
+            await queryRunner.commitTransaction()
+            return this.jsonRes(dataResultado, res, message)
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            return next(error)
+        }
+
+    }
+
+
 
     async deleteGrupo(req: any, res: Response, next: NextFunction) {
 
@@ -983,6 +1265,25 @@ export class GrupoActividadController extends BaseController {
         if (params.GrupoActividadJerarquicoHasta && params.GrupoActividadJerarquicoDesde > params.GrupoActividadJerarquicoHasta) {
 
             throw new ClientException(`La fecha Hasta ${this.dateOutputFormat(new Date(params.GrupoActividadJerarquicoHasta))} tiene que ser mayor a ${this.dateOutputFormat(new Date(params.GrupoActividadJerarquicoDesde))}.`);
+        }
+
+        
+    }
+
+
+    async validateFormPersonal(params: any, queryRunner: any) {
+
+
+        if (!params.GrupoActividadDetalle?.id) {
+            throw new ClientException(`Debe completar el campo Grupo Actividad.`)
+        }
+        if (!params.ApellidoNombrePersona?.id) {
+            throw new ClientException(`Debe completar el campo Apellido Nombre.`)
+        }
+
+        if (params.GrupoActividadPersonalHasta && params.GrupoActividadPersonalDesde > params.GrupoActividadPersonalHasta) {
+
+            throw new ClientException(`La fecha Hasta ${this.dateOutputFormat(new Date(params.GrupoActividadPersonalHasta))} tiene que ser mayor a ${this.dateOutputFormat(new Date(params.GrupoActividadJerarquicoDesde))}.`);
         }
 
     }

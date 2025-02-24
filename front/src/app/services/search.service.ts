@@ -876,6 +876,16 @@ export class SearchService {
     
   }
 
+  getListGrupoActividadPersonal (filters: any) {
+    const parameter =  filters 
+    return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/listPersonal', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+    
+  }
+
   getListAccessBot(filters: any){
     return this.http
       .post<ResponseJSON<any>>(`api/acceso-bot/list`, filters)

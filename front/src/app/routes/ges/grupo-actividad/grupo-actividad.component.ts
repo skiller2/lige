@@ -10,6 +10,7 @@ import { SettingsService } from '@delon/theme';
 import { TableGrupoActividadGruposComponent } from '../../../shared/table-grupo-actividad-grupos/table-grupo-actividad-grupos.component'
 import { TableGrupoActividadResponsablesComponent } from '../../../shared/table-grupo-actividad-responsables/table-grupo-actividad-responsables.component'
 import { TableGrupoActividadObjetivosComponent } from '../../../shared/table-grupo-actividad-objetivos/table-grupo-actividad-objetivos.component'
+import { TableGrupoActividadPersonalComponent } from '../../../shared/table-grupo-actividad-personal/table-grupo-actividad-personal.component'
 
 
 @Component({
@@ -17,7 +18,11 @@ import { TableGrupoActividadObjetivosComponent } from '../../../shared/table-gru
   standalone: true,
   imports: [
     SHARED_IMPORTS, 
-    CommonModule, TableGrupoActividadGruposComponent, TableGrupoActividadResponsablesComponent,TableGrupoActividadObjetivosComponent
+    CommonModule, 
+    TableGrupoActividadGruposComponent, 
+    TableGrupoActividadResponsablesComponent,
+    TableGrupoActividadObjetivosComponent,
+    TableGrupoActividadPersonalComponent
   ],
   encapsulation: ViewEncapsulation.None,
   providers: [AngularUtilService],

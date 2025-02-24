@@ -62,3 +62,15 @@ grupoActividadRouter.post('/changecellObjetivos', [authMiddleware.verifyToken, a
 })
 
 //PERSONAL
+
+grupoActividadRouter.get("/colspersonal", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],(req, res) => {
+    grupoActividadController.getGridColsPersonal(req, res)
+})
+
+grupoActividadRouter.post('/listPersonal', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],  (req, res, next) => {
+    grupoActividadController.listGrupoActividadPersonal(req, res, next)
+})
+
+grupoActividadRouter.post('/changecellPersonal', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],(req, res, next) => {
+    grupoActividadController.changecellPersonal(req, res, next)
+})
