@@ -41,11 +41,11 @@ export class AyudaAsistencialDrawerComponent {
     constructor(private searchService: SearchService) { }
 
     fb = inject(FormBuilder)
-    formAyudaAsi = this.fb.group({ personalId: 0, formaId: null, aplicaEl:'', cantCuotas:0, importe:0 })
+    formAyudaAsi = this.fb.group({ personalId: 0, formaId: null, aplicaEl:'', cantCuotas:0, importe:0, motivo:'' })
 
     conditional = computed(async () => {
         if (!this.visible()) {
-            this.formAyudaAsi.patchValue({ personalId: 0, formaId: null, aplicaEl:'', cantCuotas:0, importe:0 })
+            this.formAyudaAsi.patchValue({ personalId: 0, formaId: null, aplicaEl:'', cantCuotas:0, importe:0, motivo:'' })
         }
     });
 

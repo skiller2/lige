@@ -41,6 +41,13 @@
         </nz-form-control>
       </nz-form-item>
 
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Motivo</nz-form-label>
+          <nz-form-control [nzSpan]="17">
+            <textarea rows="2" nz-input formControlName="motivo"></textarea>
+        </nz-form-control>
+      </nz-form-item>
+
       <nz-form-item class="btnCenter">
         <button nz-button nzType="primary" [disabled]="!formAyudaAsi.dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
       </nz-form-item>

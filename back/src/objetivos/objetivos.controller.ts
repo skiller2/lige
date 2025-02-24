@@ -1,11 +1,9 @@
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
-import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
-import { ClientesController } from "../clientes/clientes.controller"
+import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { FileUploadController } from "../controller/file-upload.controller"
-import { QueryResult, QueryRunner } from "typeorm";
-import { AnyError } from "typeorm/browser";
+import { QueryRunner } from "typeorm";
 
 const getOptions: any[] = [
     { label: 'Si', value: 'True' },
@@ -653,13 +651,13 @@ export class ObjetivosController extends BaseController {
 
     }
 
-    async validateDateAndCreateContrato(queryRunner: any, Obj: any) {
+    async validateDateAndCreateContrato(queryRunner: any, ContratoFechaDesde:Date, ContratoFechaDesdeOLD:Date, ContratoFechaHasta:Date, ContratoFechaHastaOLD:Date, FechaModificada:boolean, ClienteId:number, ClienteElementoDependienteId:number, ObjetivoId:number, ContratoId:number, ip: string, usuario:string) {
 
         let createNewContrato = false
-        let ContratoFechaDesde = Obj.ContratoFechaDesde ? new Date(Obj.ContratoFechaDesde) : null
-        let ContratoFechaDesdeOLD = Obj.ContratoFechaDesdeOLD ? new Date(Obj.ContratoFechaDesdeOLD) : null
-        const ContratoFechaHastaOLD = Obj.ContratoFechaHastaOLD ? new Date(Obj.ContratoFechaHastaOLD) : null
-        const ContratoFechaHasta = Obj.ContratoFechaHasta ? new Date(Obj.ContratoFechaHasta) : null
+        ContratoFechaDesde = ContratoFechaDesde ? new Date(ContratoFechaDesde) : null
+        ContratoFechaDesdeOLD = ContratoFechaDesdeOLD ? new Date(ContratoFechaDesdeOLD) : null
+        ContratoFechaHastaOLD = ContratoFechaHastaOLD ? new Date(ContratoFechaHastaOLD) : null
+        ContratoFechaHasta = ContratoFechaHasta ? new Date(ContratoFechaHasta) : null
 
         if (ContratoFechaDesde)
             ContratoFechaDesde.setHours(0, 0, 0, 0)
@@ -674,49 +672,121 @@ export class ObjetivosController extends BaseController {
         if (ContratoFechaHastaOLD)
             ContratoFechaHastaOLD.setHours(0, 0, 0, 0)
 
-        if (!Obj.FechaModificada && !ContratoFechaDesdeOLD && !ContratoFechaHastaOLD)
+        if (!FechaModificada && !ContratoFechaDesdeOLD && !ContratoFechaHastaOLD)
             throw new ClientException(`Debe completar el campo Contrato Desde.`)
 
-        if (Obj.FechaModificada)
-            createNewContrato = await this.FormValidationsDate(queryRunner, ContratoFechaDesde, ContratoFechaHasta, ContratoFechaDesdeOLD, ContratoFechaHastaOLD, Obj.FechaModificada)
+        if (FechaModificada) {
+            if (!ContratoFechaDesde) {
+                throw new ClientException(`Debe completar el campo Contrato Desde.`)
+            }
+    
+            if (ContratoFechaHasta && ContratoFechaDesde > ContratoFechaHasta) {
+                throw new ClientException(`La fecha desde no puede ser mayor a la fecha hasta`)
+            }
+            const ValidatePeriodoAndDay = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
+            const FechaCierre = new Date(ValidatePeriodoAndDay[0].FechaCierre);
+    
+            // Fechas desde y hasta < Fecha del último periodo cerrado no se modifican.
+            if (ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre && ContratoFechaHastaOLD && ContratoFechaHastaOLD < FechaCierre) {
+    
+                if (ContratoFechaDesde < FechaCierre) {
+                    throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                }
+                if (!ContratoFechaDesde) {
+                    throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                }
+                if (ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
+                    throw new ClientException(`La fecha Hasta debe ser mayor  a la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                }
+                createNewContrato=true
+            }
+    
+            // validacion para cuando es un nuevo registro
+            if (!ContratoFechaDesdeOLD && !ContratoFechaHastaOLD) {
+    
+                if (ContratoFechaDesde.getTime() <= FechaCierre.getTime()) {
+                    throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                }
+                if (!ContratoFechaDesde) {
+                    throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                }
+                if (ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
+                    throw new ClientException(`La fecha de cierre debe ser igual o mayor a la fecha limit. ${this.dateOutputFormat(FechaCierre)}`)
+                }
+                createNewContrato=true
+            }
+    
+            // validacion para no ingresar fecha desde en un periodo ya cerrado
+            if (!createNewContrato && ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre) {
+                if (ContratoFechaDesdeOLD.getTime() !== ContratoFechaDesde.getTime()) {
+                    throw new ClientException(`No se puede modificar la fecha desde ya que pertenece a un periodo ya cerrado`);
+                }
+            }
+    
+    
+            // Desde < FecUltPer y Hasta > UltPer, se puede modificar el hasta, pero el nuevo hasta >= UltPer
+            if (ContratoFechaDesdeOLD < FechaCierre && (!ContratoFechaHastaOLD || ContratoFechaHastaOLD > FechaCierre)) {
+    
+                if (ContratoFechaHasta && ContratoFechaHasta.getTime() < FechaCierre.getTime()) {
+                    throw new ClientException(`La fecha de cierre debe ser igual o mayor a la fecha limite. ${this.dateOutputFormat(FechaCierre)}`)
+                }
+    
+            }
+    
+            // Desde > FecUltPer, se puede modificar si el nuevo Desde > FecUltPer y no puede quedar vacío
+            if (ContratoFechaDesdeOLD > FechaCierre) {
+                if (ContratoFechaDesde < FechaCierre) {
+                    throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                }
+                if (!ContratoFechaDesde) {
+                    throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                }
+            }
+        }
 
-        //console.log("createNewContrato",createNewContrato)
-        //throw new ClientException(`ESTOY TESTEANDO`)
-
-        if (Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
+        if (ClienteElementoDependienteId != null) {
 
             //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
 
-            if (Obj.ContratoId && !createNewContrato) {
+            if (ContratoId && !createNewContrato) {
                 await queryRunner.query(`UPDATE ClienteElementoDependienteContrato SET ClienteElementoDependienteContratoFechaDesde = @3, ClienteElementoDependienteContratoFechaHasta = @4
                     WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND ClienteElementoDependienteContratoId = @2`,
-                    [Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.ContratoId, ContratoFechaDesde, ContratoFechaHasta])
+                    [ClienteId, ClienteElementoDependienteId, ContratoId, ContratoFechaDesde, ContratoFechaHasta])
             } else {
-
-                let ClienteElementoDependienteContratoId = Obj.ContratoId ? Obj.ContratoId + 1 : 1
-
-
+                const resUltNro = await queryRunner.query(`SELECT ClienteElementoDependienteContratoUltNro FROM ClienteElementoDependiente WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `, [ClienteId, ClienteElementoDependienteId])
+                const ClienteElementoDependienteContratoId = (resUltNro[0]?.ClienteElementoDependienteContratoUltNro)?resUltNro[0].ClienteElementoDependienteContratoUltNro+1:1
                 await queryRunner.query(`INSERT INTO ClienteElementoDependienteContrato (ClienteElementoDependienteContratoId,
                     ClienteId,ClienteElementoDependienteId, ClienteElementoDependienteContratoFechaDesde,ClienteElementoDependienteContratoFechaHasta) VALUES(@0,@1,@2,@3,@4)`,
-                    [ClienteElementoDependienteContratoId++, Obj.ClienteId, Obj.ClienteElementoDependienteId, ContratoFechaDesde, ContratoFechaHasta])
-
+                    [ClienteElementoDependienteContratoId, ClienteId, ClienteElementoDependienteId, ContratoFechaDesde, ContratoFechaHasta])
+                await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteContratoUltNro = @2 WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`,
+                        [ClienteId, ClienteElementoDependienteId, ClienteElementoDependienteContratoId])                
             }
-        } else {
 
-            if (Obj.ContratoId && !createNewContrato) {
+        } else {
+            if (ContratoId && !createNewContrato) {
 
                 await queryRunner.query(`UPDATE ClienteContrato SET ClienteContratoFechaDesde = @2, ClienteContratoFechaHasta @3 WHERE ClienteId = @0 AND ClienteContratoId = @1`,
-                    [Obj.ClienteId, Obj.ContratoId, ContratoFechaDesde, ContratoFechaHasta])
+                    [ClienteId, ContratoId, ContratoFechaDesde, ContratoFechaHasta])
             } else {
-
-                let ClienteContratoId = Obj.ClienteContratoUltNro == null ? 1 : Obj.ClienteContratoUltNro + 1
-
+                const resUltNro = await queryRunner.query(`SELECT ClienteContratoUltNro FROM Cliente WHERE ClienteId = @0 `, [ClienteId])
+                const ClienteContratoId = (resUltNro[0]?.ClienteContratoUltNro)?resUltNro[0].ClienteContratoUltNro+1:1
                 await queryRunner.query(`INSERT INTO ClienteContrato (ClienteContratoId,ClienteId, ClienteContratoFechaDesde, ClienteContratoFechaHasta ) VALUES (@0,@1,@2,@3)`,
-                    [ClienteContratoId, Obj.ClienteId, ContratoFechaDesde, ContratoFechaHasta])
+                    [ClienteContratoId, ClienteId, ContratoFechaDesde, ContratoFechaHasta])
+                await queryRunner.query(`UPDATE Cliente SET ClienteContratoUltNro = @1 WHERE ClienteId = @0`,
+                    [ClienteId, ClienteContratoId])                
+                
             }
-
         }
 
+        const responsable = await queryRunner.query(`SELECT TOP 1 GrupoActividadObjetivoId, GrupoActividadId, GrupoActividadObjetivoDesde, GrupoActividadObjetivoHasta FROM GrupoActividadObjetivo WHERE GrupoActividadObjetivoObjetivoId = @0 ORDER BY GrupoActividadObjetivoDesde DESC`,
+            [ObjetivoId, ContratoFechaDesde, ContratoFechaHasta])
+        if (responsable[0]) {
+            responsable[0].GrupoActividadObjetivoDesde = ContratoFechaDesde
+            responsable[0].GrupoActividadObjetivoHasta = ContratoFechaHasta
+            await this.grupoActividad(queryRunner, responsable, ObjetivoId, ip, usuario)
+        }
+
+        return true
     }
 
     async validateCliente(queryRunner: any, Obj: any, ClienteElementoDependienteUltNro: any) {
@@ -788,13 +858,12 @@ export class ObjetivosController extends BaseController {
         )
         const ValidatePeriodoAndDay = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
         const FechaCierre = new Date(ValidatePeriodoAndDay[0].FechaCierre);
-        const fechaFormateada = `${FechaCierre.getFullYear()}-${(FechaCierre.getMonth() + 1).toString().padStart(2, '0')}-${FechaCierre.getDate().toString().padStart(2, '0')}`
 
         if (Objetivo.length && infoActividad[0].GrupoActividadId != infoActividad[0].GrupoActividadOriginal && Objetivo[0].GrupoActividadObjetivoDesde.getTime() > GrupoActividadObjetivoDesde.getTime()) {
             throw new ClientException(`La fecha Desde no puede ser menor a ${GrupoActividadObjetivoDesde.getDate()}/${GrupoActividadObjetivoDesde.getMonth() + 1}/${GrupoActividadObjetivoDesde.getFullYear()}`)
         }
         if (GrupoActividadObjetivoDesde != infoActividad[0].GrupoActividadObjetivoDesdeOriginal && GrupoActividadObjetivoDesde <= FechaCierre) {
-            throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
+            throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
         }
         // Restar un día a la fecha
 
@@ -884,8 +953,11 @@ export class ObjetivosController extends BaseController {
 
             }
 
-            await this.validateDateAndCreateContrato(queryRunner, Obj)
+            if (infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId || infoActividad[0].GrupoActividadObjetivoDesdeOriginal != infoActividad[0].GrupoActividadObjetivoDesde)
+                await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoId, ip, usuario)
 
+
+            await this.validateDateAndCreateContrato(queryRunner, Obj.ContratoFechaDesde, Obj.ContratoFechaDesdeOLD, Obj.ContratoFechaHasta, Obj.ContratoFechaHastaOLD, Obj.FechaModificada, Obj.ClienteId, Obj.ClienteElementoDependienteId, ObjetivoId, Obj.ContratoId, ip, usuario)
             //update
 
             if (Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
@@ -917,8 +989,6 @@ export class ObjetivosController extends BaseController {
                 //await this.updateClienteTable(queryRunner, Obj.ClienteId, Obj.SucursalId, Obj.Descripcion)
             }
 
-            if (infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId || infoActividad[0].GrupoActividadObjetivoDesdeOriginal != infoActividad[0].GrupoActividadObjetivoDesde)
-                await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoId, ip, usuario)
 
             ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoId)
             ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner, Obj.infoRubro, ObjetivoId, Obj.ClienteId, Obj.ClienteElementoDependienteId)
@@ -1064,86 +1134,6 @@ export class ObjetivosController extends BaseController {
             WHERE ClienteId = @0 `,
             [ClienteId, SucursalId, SucursalDescripcion])
     }
-
-    async FormValidationsDate(queryRunner: any, ContratoFechaDesde: any, ContratoFechaHasta: any, ContratoFechaDesdeOLD: any, ContratoFechaHastaOLD: any, FechaModificada: any) {
-
-        if (!ContratoFechaDesde) {
-            throw new ClientException(`Debe completar el campo Contrato Desde.`)
-        }
-
-        if (ContratoFechaHasta && ContratoFechaDesde > ContratoFechaHasta) {
-            throw new ClientException(`La fecha desde no puede ser mayor a la fecha hasta`)
-        }
-
-        const ValidatePeriodoAndDay = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
-        const FechaCierre = new Date(ValidatePeriodoAndDay[0].FechaCierre);
-        const fechaFormateada = `${FechaCierre.getFullYear()}-${(FechaCierre.getMonth() + 1).toString().padStart(2, '0')}-${FechaCierre.getDate().toString().padStart(2, '0')}`;
-
-        if (!FechaModificada)
-            return false
-
-        // Fechas desde y hasta < Fecha del último periodo cerrado no se modifican.
-        if (ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre && ContratoFechaHastaOLD && ContratoFechaHastaOLD < FechaCierre) {
-            if (ContratoFechaDesde < FechaCierre) {
-                throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
-            }
-            if (!ContratoFechaDesde) {
-                throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${fechaFormateada}`)
-            }
-            if (ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
-                throw new ClientException(`La fecha Hasta debe ser mayor  a la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
-            }
-
-            return true
-        }
-
-        // validacion para cuando es un nuevo registro
-        if (!ContratoFechaDesdeOLD && !ContratoFechaHastaOLD) {
-
-            if (ContratoFechaDesde.getTime() <= FechaCierre.getTime()) {
-                throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
-            }
-            if (!ContratoFechaDesde) {
-                throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${fechaFormateada}`)
-            }
-            if (ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
-                throw new ClientException(`La fecha de cierre debe ser igual o mayor a la fecha limit. ${fechaFormateada}`)
-            }
-            return true
-        }
-
-        // validacion para no ingresar fecha desde en un periodo ya cerrado
-        if (ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre) {
-
-            if (ContratoFechaDesdeOLD.getTime() !== ContratoFechaDesde.getTime()) {
-                throw new ClientException(`No se puede modificar la fecha desde ya que pertenece a un periodo ya cerrado`);
-            }
-        }
-
-
-        // Desde < FecUltPer y Hasta > UltPer, se puede modificar el hasta, pero el nuevo hasta >= UltPer
-        if (ContratoFechaDesdeOLD < FechaCierre && (!ContratoFechaHastaOLD || ContratoFechaHastaOLD > FechaCierre)) {
-
-            if (ContratoFechaHasta && ContratoFechaHasta.getTime() < FechaCierre.getTime()) {
-                throw new ClientException(`La fecha de cierre debe ser igual o mayor a la fecha limite. ${fechaFormateada}`)
-            }
-
-        }
-
-        // Desde > FecUltPer, se puede modificar si el nuevo Desde > FecUltPer y no puede quedar vacío
-        if (ContratoFechaDesdeOLD > FechaCierre) {
-            if (ContratoFechaDesde < FechaCierre) {
-                throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${fechaFormateada}`)
-            }
-            if (!ContratoFechaDesde) {
-                throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${fechaFormateada}`)
-            }
-        }
-
-        return false
-
-    }
-
 
     async FormValidations(form: any) {
 
@@ -1356,25 +1346,26 @@ export class ObjetivosController extends BaseController {
                 Obj.DomicilioCodigoPostal, Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId, Obj.DomicilioBarrioId)
 
             //await this.ClienteElementoDependienteContrato(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
-            await this.validateDateAndCreateContrato(queryRunner, Obj)
             await this.insertObjetivoSql(queryRunner, Number(Obj.ClienteId), Obj.Descripcion, ClienteElementoDependienteUltNro, Obj.SucursalId)
 
             let infoMaxObjetivo = await queryRunner.query(`SELECT IDENT_CURRENT('Objetivo')`)
-            const ObjetivoID = infoMaxObjetivo[0]['']
+            const ObjetivoId = infoMaxObjetivo[0]['']
+            
+            await this.validateDateAndCreateContrato(queryRunner, Obj.ContratoFechaDesde, Obj.ContratoFechaDesdeOLD, Obj.ContratoFechaHasta, Obj.ContratoFechaHastaOLD, Obj.FechaModificada, Obj.ClienteId, Obj.ClienteElementoDependienteId, ObjetivoId, Obj.ContratoId, ip, usuario)
 
-            ObjObjetivoNew.ObjetivoNewId = ObjetivoID
+            ObjObjetivoNew.ObjetivoNewId = ObjetivoId
 
 
-            ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoID)
-            ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner, Obj.infoRubro, ObjetivoID, Obj.ClienteId, ClienteElementoDependienteUltNro)
+            ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoId)
+            ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner, Obj.infoRubro, ObjetivoId, Obj.ClienteId, ClienteElementoDependienteUltNro)
 
             //await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,MaxObjetivoPersonalJerarquicoId, maxRubro)
 
             if (infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId || infoActividad[0].GrupoActividadObjetivoDesdeOriginal != infoActividad[0].GrupoActividadObjetivoDesde)
-                await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoID, ip, usuario)
+                await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoId, ip, usuario)
 
             if (Obj.files?.length > 0) {
-                await FileUploadController.handlePDFUpload(ObjetivoID, 'Objetivo', 'OBJ', 'objetivo_id', Obj.files, usuario, ip)
+                await FileUploadController.handlePDFUpload(ObjetivoId, 'Objetivo', 'OBJ', 'objetivo_id', Obj.files, usuario, ip)
             }
 
             await queryRunner.commitTransaction()

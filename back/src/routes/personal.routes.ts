@@ -6,7 +6,7 @@ import multer, { FileFilterCallback } from "multer";
 export const personalRouter = Router();
 const base = "";
 
-personalRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal'])], (req, res, next) => {
+personalRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo', 'gPersonal', 'gComercial'])], (req, res, next) => {
   personalController.getGridList(req, res, next)
 });
 
