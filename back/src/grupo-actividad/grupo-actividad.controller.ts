@@ -1014,7 +1014,7 @@ export class GrupoActividadController extends BaseController {
             let time = fechaActual.toTimeString().split(' ')[0]
 
             let dataResultado = {}
-            let GrupoActividadObjetivoHasta
+            let GrupoActividadPersonalHasta
 
             if (params.GrupoActividadId > 0) { //Entro en update
                 //Validar si cambio el código
@@ -1049,87 +1049,97 @@ export class GrupoActividadController extends BaseController {
 
                 await this.validateFormPersonal(params, queryRunner)
 
-            //     let resultQuery = await queryRunner.query(`
-            //     SELECT TOP 1 * FROM GrupoActividadObjetivo 
-            //     WHERE GrupoActividadObjetivoObjetivoId = @0
-            //     --  AND GrupoActividadObjetivoDesde >= @1
-            //     -- AND (GrupoActividadObjetivoHasta  <= @1 OR GrupoActividadObjetivoHasta IS NULL)
-            //     ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC
-            // `, [params.GrupoObjetivoDetalle.id, fechaActual])
+                let resultQuery = await queryRunner.query(`
+                SELECT TOP 1 * FROM GrupoActividadPersonal 
+                WHERE GrupoActividadId = @0
+                ORDER BY GrupoActividadPersonalDesde DESC, GrupoActividadPersonalHasta DESC`, [params.GrupoActividadDetalle.id])
 
-            //     // console.log("result ", result)
+                
+                 const ultimoRegistroQuery = resultQuery[0]
+                 console.log("ultimoRegistroQuery ", ultimoRegistroQuery)
 
-            //     const ultimoRegistroQuery = resultQuery[0]
-
-            //     console.log("ultimoRegistroQuery ", ultimoRegistroQuery)
-
-            //     GrupoActividadObjetivoHasta = new Date(params.GrupoActividadObjetivoDesde)
-            //     GrupoActividadObjetivoHasta.setDate(GrupoActividadObjetivoHasta.getDate() - 1)
-            //     const formattedDate = GrupoActividadObjetivoHasta.toISOString().split('T')[0] + "T00:00:00.000Z"
+                 GrupoActividadPersonalHasta = new Date(params.GrupoActividadPersonalDesde)
+                 GrupoActividadPersonalHasta.setDate(GrupoActividadPersonalHasta.getDate() - 1)
+                const formattedDate = GrupoActividadPersonalHasta.toISOString().split('T')[0] + "T00:00:00.000Z"
 
             //     //throw new ClientException(`test`)
-            //     const validarGrupoActividadVigente = (registro) => {
+                const validarGrupoActividadVigente = (registro) => {
 
-            //         if (registro?.GrupoActividadId == params.GrupoActividadDetalle.id &&
-            //             (!registro?.GrupoActividadObjetivoHasta || new Date(registro.GrupoActividadObjetivoHasta) >= fechaActual)
-            //         ) {
-            //             throw new ClientException(`Ya se encuentra vigente el grupo actividad con el objetivo`)
-            //         }
+                    if (registro?.GrupoActividadId == params.GrupoActividadDetalle.id &&
+                        (!registro?.GrupoActividadPersonalHasta || new Date(registro.GrupoActividadPersonalHasta) >= fechaActual)
+                    ) {
+                        throw new ClientException(`Ya se encuentra vigente el grupo actividad con el personal`)
+                    }
 
-            //         if (
-            //             registro?.GrupoActividadObjetivoHasta
-            //                 ? new Date(params?.GrupoActividadObjetivoDesde) <= new Date(registro?.GrupoActividadObjetivoHasta)
-            //                 : new Date(params?.GrupoActividadObjetivoDesde) <= new Date(registro?.GrupoActividadObjetivoDesde)
-            //         ) {
-            //             const fecha = registro.GrupoActividadObjetivoHasta ? registro.GrupoActividadObjetivoHasta : registro.GrupoActividadObjetivoDesde
-            //             throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(fecha)} `)
-            //         }
-            //     };
+                    if (
+                        registro?.GrupoActividadPersonalHasta
+                            ? new Date(params?.GrupoActividadPersonalDesde) <= new Date(registro?.GrupoActividadPersonalHasta)
+                            : new Date(params?.GrupoActividadPersonalDesde) <= new Date(registro?.GrupoActividadPersonalDesde)
+                    ) {
+                        const fecha = registro.GrupoActividadPersonalHasta ? registro.GrupoActividadPersonalHasta : registro.GrupoActividadPersonalDesde
+                        throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(fecha)} `)
+                    }
+                };
 
-            //     const actualizarGrupoActividadHasta = async (registro) => {
-
-
-            //         if (registro && (!registro.GrupoActividadObjetivoHasta || registro.GrupoActividadObjetivoHasta < GrupoActividadObjetivoHasta)) {
-            //             await queryRunner.query(
-            //                 `UPDATE GrupoActividadObjetivo 
-            //                  SET GrupoActividadObjetivoHasta = @2 
-            //                  WHERE GrupoActividadId = @0 
-            //                  AND GrupoActividadObjetivoObjetivoId = @1
-            //                  AND GrupoActividadObjetivoId = @3`,
-
-            //                 [registro.GrupoActividadId, registro.GrupoActividadObjetivoObjetivoId, formattedDate, registro.GrupoActividadObjetivoId]
-            //             )
-            //         }
-            //     }
-
-            //     if (resultQuery.length > 0) {
-            //         validarGrupoActividadVigente(ultimoRegistroQuery)
-            //         actualizarGrupoActividadHasta(ultimoRegistroQuery)
-            //     }
-
-            //     let GrupoActividadObjetivoId = await queryRunner.query(` SELECT GrupoActividadObjetivoUltNro FROM GrupoActividad WHERE GrupoActividadId =  @0`, [params.GrupoActividadDetalle.id])
-            //     GrupoActividadObjetivoId = GrupoActividadObjetivoId[0].GrupoActividadObjetivoUltNro + 1
-
-            //     await queryRunner.query(`INSERT INTO "GrupoActividadObjetivo" (
-            //         "GrupoActividadObjetivoId",
-            //         "GrupoActividadId",
-            //         "GrupoActividadObjetivoObjetivoId",
-            //         "GrupoActividadObjetivoDesde",
-            //         "GrupoActividadObjetivoHasta",
-            //         "GrupoActividadObjetivoPuesto",
-            //         "GrupoActividadObjetivoUsuarioId",
-            //         "GrupoActividadObjetivoDia",
-            //         "GrupoActividadObjetivoTiempo"
-            //     ) VALUES ( @0,@1,@2, @3,@4, @5,@6, @7,@8 );
-            //     `, [GrupoActividadObjetivoId, params.GrupoActividadDetalle.id, params.GrupoObjetivoDetalle.id,
-            //         params.GrupoActividadObjetivoDesde, params.GrupoActividadObjetivoHasta, ip, usuarioId, fechaActual, time])
+                const ActualizarGrupoActividadPersonalHasta = async (registro) => {
 
 
-            //     await queryRunner.query(`UPDATE GrupoActividad
-            //         SET GrupoActividadObjetivoUltNro = @0
-            //         WHERE GrupoActividadId =  @1`, [GrupoActividadObjetivoId, params.GrupoActividadDetalle.id])
+                    if (registro && (!registro.GrupoActividadPersonalHasta || registro.GrupoActividadPersonalHasta < GrupoActividadPersonalHasta)) {
+                        await queryRunner.query(
+                            `UPDATE GrupoActividadPersonal 
+                             SET GrupoActividadPersonalHasta = @2 
+                             WHERE GrupoActividadId = @0 
+                             AND GrupoActividadPersonalId = @1
+                             AND GrupoActividadPersonalPersonaId = @3`,
 
-                dataResultado = { action: 'I', GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadObjetivoObjetivoId: params.GrupoObjetivoDetalle.id, PreviousDate: GrupoActividadObjetivoHasta }
+                            [registro.GrupoActividadId, registro.GrupoActividadPersonalId, formattedDate, registro.GrupoActividadPersonalPersonaId]
+                        )
+                    }
+                }
+
+                if (resultQuery.length > 0) {
+                    validarGrupoActividadVigente(ultimoRegistroQuery)
+                    ActualizarGrupoActividadPersonalHasta(ultimoRegistroQuery)
+                }
+
+                let GrupoActividadPersonalId = await queryRunner.query(` SELECT GrupoActividadPersonaloUltNro FROM GrupoActividad WHERE GrupoActividadId =  @0`, [params.GrupoActividadDetalle.id])
+                GrupoActividadPersonalId = GrupoActividadPersonalId[0].GrupoActividadPersonaloUltNro + 1
+
+                await queryRunner.query(`INSERT INTO "GrupoActividadPersonal" (
+                   		GrupoActividadPersonalId,
+                        GrupoActividadId,
+                        GrupoActividadPersonalPersonalId,
+                        GrupoActividadPersonalDesde,
+                        GrupoActividadPersonalHasta,
+
+                        GrupoActividadPersonalReasignado,
+                        GrupoActividadPersonalEsReten,
+                        GrupoActividadPersonalHorarioUltNro,
+
+                        GrupoActividadPersonalPuesto,
+                        GrupoActividadPersonalUsuarioId,
+                        GrupoActividadPersonalDia,
+                        GrupoActividadPersonalTiempo,
+                ) VALUES ( @0,@1,@2, @3,@4, @5,@6, @7,@8,@9,@10,@11 );
+                `, [GrupoActividadPersonalId, 
+                    params.GrupoActividadDetalle.id,
+                     params.ApellidoNombrePersona.id,
+                    params.GrupoActividadPersonalDesde, 
+                    params.GrupoActividadPersonalHasta, 
+                    false,
+                    null,
+                    null,
+                    ip, 
+                    usuarioId, 
+                    fechaActual, 
+                    time])
+
+
+                await queryRunner.query(`UPDATE GrupoActividad
+                    SET GrupoActividadPersonaloUltNro = @0
+                    WHERE GrupoActividadId =  @1`, [GrupoActividadPersonalId, params.GrupoActividadDetalle.id])
+
+                dataResultado = { action: 'I', GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadPersonalPersonalId: params.ApellidoNombrePersona.id, PreviousDate: GrupoActividadPersonalHasta }
                 message = "Carga de nuevo Registro exitoso"
             }
 
