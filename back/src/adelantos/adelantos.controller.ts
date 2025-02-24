@@ -80,6 +80,16 @@ export class AdelantosController extends BaseController {
       hidden: false,
     },
     {
+      name: "Forma",
+      type: "string",
+      id: "FormaPrestamoDescripcion",
+      field: "FormaPrestamoDescripcion",
+      fieldName: "fp.FormaPrestamoDescripcion",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
       name: "Grupo Número",
       type: "number",
       id: "GrupoActividadNumero",
@@ -134,7 +144,7 @@ export class AdelantosController extends BaseController {
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         LEFT JOIN GrupoActividadPersonal perrel ON perrel.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > perrel.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(perrel.GrupoActividadPersonalHasta, '9999-12-31')
            WHERE ((pre.PersonalPrestamoAprobado IN (NULL) OR pre.PersonalPrestamoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1)) OR pre.PersonalPrestamoAprobado IS NULL)
-                AND (pre.PersonalId = @0 or perrel.GrupoActividadId IN(${GrupoActividadIdList.join(',')}))`,
+                AND pre.FormaPrestamoId=7 AND (pre.PersonalId = @0 or perrel.GrupoActividadId IN(${GrupoActividadIdList.join(',')}))`,
         [personalId, Ano, Mes])
 
       this.jsonRes(adelantos, res);
@@ -194,6 +204,11 @@ export class AdelantosController extends BaseController {
       if (presPend.length>0)
         throw new ClientException(`Ya se encuentra generado, aprobado y pendiente de acreditar en cuenta.  No se puede solicitar nuevo adelanto`)
 
+
+      const FormaPrestamo = await queryRunner.query(`SELECT fp.FormaPrestamoDescripcion FROM FormaPrestamo fp WHERE fp.FormaPrestamoId = @0`, [FormaPrestamoId])
+      const FormaPrestamoDescripcion = FormaPrestamo[0]?.FormaPrestamoDescripcion
+      if (!FormaPrestamoDescripcion)
+        throw new ClientException(`Formato de la ayuda no reconocido ${FormaPrestamoId}`)
 
       const adelantoExistente = await queryRunner.query(
         `DELETE From PersonalPrestamo 
@@ -275,6 +290,8 @@ export class AdelantosController extends BaseController {
         personalId, //PersonalId
         PersonalPrestamoMonto: monto, //PersonalPrestamoMonto
         PersonalPrestamoDia: today, //PersonalPrestamoDia
+        FormaPrestamoId: FormaPrestamoId,
+        FormaPrestamoDescripcion: FormaPrestamoDescripcion
       }, res, "Ayuda Asistencial añadido.");
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
@@ -334,7 +351,8 @@ export class AdelantosController extends BaseController {
         g.GrupoActividadId, g.GrupoActividadNumero, g.GrupoActividadDetalle,
         pre.PersonalPrestamoId, pre.PersonalPrestamoMonto, pre.PersonalPrestamoAprobado, pre.PersonalPrestamoFechaAprobacion, pre.PersonalPrestamoCantidadCuotas, pre.PersonalPrestamoAplicaEl, pre.PersonalPrestamoLiquidoFinanzas, pre.PersonalPrestamoUltimaLiquidacion, pre.PersonalPrestamoCuotaUltNro,
         -- pre.PersonalPrestamoJerarquicoId, pre.PersonalPrestamoPuesto, pre.PersonalPrestamoUsuarioId,
-        pre.PersonalPrestamoDia, pre.PersonalPrestamoTiempo
+        pre.PersonalPrestamoDia, pre.PersonalPrestamoTiempo,
+        pre.FormaPrestamoId, fp.FormaPrestamoDescripcion
       
         FROM Personal per
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
@@ -345,8 +363,10 @@ export class AdelantosController extends BaseController {
         LEFT JOIN PersonalPrestamo pre ON pre.PersonalId = per.PersonalId
                -- AND DATEPART(YEAR,pre.PersonalPrestamoDia) = @1 AND DATEPART(MONTH,pre.PersonalPrestamoDia) = @2
                -- pre.PersonalPrestamoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1)
-        AND (pre.PersonalPrestamoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) OR (pre.PersonalPrestamoAplicaEl IS NULL AND pre.PersonalPrestamoAprobado IS NULL)) 
-        WHERE (1=1) 
+               AND (pre.PersonalPrestamoAplicaEl= CONCAT(FORMAT(CONVERT(INT, @2), '00'),'/',@1) OR (pre.PersonalPrestamoAplicaEl IS NULL AND pre.PersonalPrestamoAprobado IS NULL)) 
+        LEFT JOIN FormaPrestamo fp ON fp.FormaPrestamoId = pre.FormaPrestamoId
+
+        WHERE (1=1)
        -- AND perrel.PersonalCategoriaPersonalId=@0
        AND (${filterSql}) 
        ${orderBy}`,

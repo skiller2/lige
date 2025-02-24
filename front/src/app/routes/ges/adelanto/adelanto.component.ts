@@ -133,8 +133,11 @@ export class AdelantoComponent {
         } else if (item.PersonalPrestamoMonto > 0) {
           const res: any = await firstValueFrom(this.apiService
             .addAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto, anio: this.selectedPeriod.year, mes: this.selectedPeriod.month }))
-
-          item.PersonalPrestamoDia = res.data.PersonalPrestamoDia
+          
+          const resObj = res?.data
+          if (resObj)
+            item = {  ...item,...resObj }
+                  
         }
       } catch (err) {
         editCommand.undo()
