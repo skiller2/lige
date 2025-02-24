@@ -87,16 +87,6 @@ const columnsAyudaAsistencial: any[] = [
       sortable: true,
       searchHidden: false
     },
-    // {
-    //   id: "sitRevDescripcion",
-    //   name: "SituacionRevistaDescripcion",
-    //   field: "sitRevDescripcion",
-    //   type: "string",
-    //   fieldName: "sit.SituacionRevistaDescripcion",
-    //   sortable: true,
-    //   hidden: true,
-    //   searchHidden: false
-    // },
     {
       id: "PersonalPrestamoDia",
       name: "Fecha Solicitud",
@@ -151,6 +141,17 @@ const columnsAyudaAsistencial: any[] = [
       sortable: true,
       searchHidden: false,
       hidden: false,
+    },
+    {
+      id: "PersonalPrestamoMotivo",
+      name: "Motivo",
+      field: "PersonalPrestamoMotivo",
+      type: "string",
+      fieldName: "pres.PersonalPrestamoMotivo",
+      searchType: "string",
+      sortable: true,
+      hidden: false,
+      searchHidden: true
     },
     {
       id: "PersonalPrestamoUltimaLiquidacion",
@@ -310,7 +311,7 @@ export class AyudaAsistencialController extends BaseController {
 SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
       CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, cuit.PersonalCUITCUILCUIT, pres.PersonalId, pres.PersonalPrestamoMonto,
       pres.PersonalPrestamoDia, IIF(pres.PersonalPrestamoAprobado='S', pres.PersonalPrestamoFechaAprobacion,null) PersonalPrestamoFechaAprobacion, pres.PersonalPrestamoCantidadCuotas,
-      pres.PersonalPrestamoUltimaLiquidacion, pres.PersonalPrestamoAplicaEl,
+      pres.PersonalPrestamoUltimaLiquidacion, pres.PersonalPrestamoAplicaEl, pres.PersonalPrestamoMotivo,
       form.FormaPrestamoId, form.FormaPrestamoDescripcion, IIF(pres.PersonalPrestamoLiquidoFinanzas=1,'1','0') PersonalPrestamoLiquidoFinanzas,
       pres.PersonalPrestamoAprobado,
       sit.SituacionRevistaDescripcion,
@@ -703,19 +704,22 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
     const mes = new Date(req.body.aplicaEl).getMonth()+1
     const importe = req.body.importe
     const cantCuotas = req.body.cantCuotas
+    const motivo:string = req.body.motivo
     const ip = req.socket.remoteAddress
-    let errors:string[] = []
+    let campos_vacios: any[] = []
     try {
       await queryRunner.startTransaction()
 
-      if (!personalId) errors.push("Falta cargar la Persona.");
-      if (!formaId) errors.push("Falta cargar el Tipo.");
-      if (!req.body.aplicaEl) errors.push("Falta cargar Aplica El.");
-      if (!cantCuotas) errors.push("Falta cargar la Cant. de Cuotas.");
-      if (!importe) errors.push("Falta cargar el Importe.");
+      if (!personalId) campos_vacios.push("- Persona-.");
+      if (!formaId) campos_vacios.push("- Tipo.");
+      if (!req.body.aplicaEl) campos_vacios.push("- Aplica El.");
+      if (!cantCuotas) campos_vacios.push("- Cant. de Cuotas.");
+      if (!importe) campos_vacios.push("- Importe.");
+      if (!motivo.trim().length) campos_vacios.push("- Motivo.");
 
-      if (errors.length) {
-        throw new ClientException(errors.join(`\n`))
+      if (campos_vacios.length) {
+        campos_vacios.unshift('Debe completar los siguientes campos: ')
+        throw new ClientException(campos_vacios)
       }
 
       const forma = optionsSelect.find((obj: any) =>  obj.value == formaId )
@@ -765,10 +769,10 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
           PersonalPrestamoAprobado, PersonalPrestamoFechaAprobacion, PersonalPrestamoCantidadCuotas, PersonalPrestamoAplicaEl, 
           PersonalPrestamoLiquidoFinanzas, PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCuotaUltNro, PersonalPrestamoMontoAutorizado, 
           -- PersonalPrestamoJerarquicoId, PersonalPrestamoPuesto, PersonalPrestamoUsuarioId,
-          PersonalPrestamoDia, PersonalPrestamoTiempo)
+          PersonalPrestamoDia, PersonalPrestamoTiempo, PersonalPrestamoMotivo)
           VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11,
           -- @12, @13, @14,
-          @15, @16)`,
+          @15, @16, @17)`,
           [
             prestamoId, //PersonalPrestamoId
             personalId, //PersonalId
@@ -790,7 +794,8 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
             null, //PersonalPrestamoUsuarioId
 
             today, //PersonalPrestamoDia
-            hora, //PersonalPrestamoTiempo  
+            hora, //PersonalPrestamoTiempo 
+            motivo, //PersonalPrestamoMotivo
 
           ]
         );
