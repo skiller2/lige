@@ -6,8 +6,9 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="6">Tipo de documento</nz-form-label>
         <nz-form-control [nzSpan]="15">
-          <nz-select formControlName="tipoDocumentoId" nzPlaceHolder="Tipo" nzAllowClear
-          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
+          <nz-select formControlName="doctipo_id" nzPlaceHolder="Tipo" nzAllowClear
+          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch
+          (ngModelChange)="selectLabel($event)">
             <ng-container *ngFor="let option of $optionsTipos | async" >
               <nz-option [nzValue]="option.value" [nzLabel]="option.label" ></nz-option>
             </ng-container>
@@ -16,37 +17,42 @@
       </nz-form-item>
 
       <nz-form-item >
-        <nz-form-label [nzSpan]="8">Denominación de documento</nz-form-label>
-        <nz-form-control [nzSpan]="13">
-          <input nz-input formControlName="denominacion"/>
+        <nz-form-label [nzSpan]="7">{{ label() }}</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <input nz-input formControlName="den_documento"/>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Persona</nz-form-label>
         <nz-form-control [nzSpan]="16">
-          <app-personal-search formControlName="PersonalId" [anio]="periodo().anio" [mes]="periodo().mes"></app-personal-search>
+          <app-personal-search formControlName="persona_id" [anio]="periodo().anio" [mes]="periodo().mes"></app-personal-search>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Cliente</nz-form-label>
         <nz-form-control [nzXs]="16">
-          <app-cliente-search formControlName="ClienteId" />
+          <app-cliente-search formControlName="cliente_id" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
         <nz-form-control [nzXs]="16">
-          <app-objetivo-search formControlName="ObjetivoId"></app-objetivo-search>
+          <app-objetivo-search formControlName="objetivo_id"></app-objetivo-search>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="5">Periodo</nz-form-label>
-        <nz-form-control>
-          <nz-date-picker nzMode="month" nzFormat="MM/yyyy" formControlName="periodo"></nz-date-picker>
+        <nz-form-label [nzSpan]="5">Desde</nz-form-label>
+        <nz-form-control [nzXs]="7">
+          <nz-date-picker nzMode="month" nzFormat="MM/yyyy" formControlName="fecha"></nz-date-picker>
+        </nz-form-control>
+
+        <nz-form-label [nzSpan]="3">Hasta</nz-form-label>
+        <nz-form-control [nzXs]="7">
+          <nz-date-picker nzMode="month" nzFormat="MM/yyyy" formControlName="fec_doc_ven"></nz-date-picker>
         </nz-form-control>
       </nz-form-item>
 
@@ -61,6 +67,9 @@
         <nz-form-control style="display: flex; justify-content: center; align-items: center;">
           <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formTipoDocumento.pristine">
             {{ 'app.btn.save' | i18n }}
+          </button>
+          <button *ngIf="doc_id()" nzType="primary" nz-button (click)="resetForm()">
+            {{ 'app.btn.clear.form' | i18n }}
           </button>
         </nz-form-control>
       </nz-form-item>

@@ -30,6 +30,8 @@ export class TipoDocumentoAltaDrawerComponent {
   isLoading = signal(false);
   periodo = signal<any>({anio:0, mes:0})
   placement: NzDrawerPlacement = 'left';
+  optionsLabels = signal<any[]>([]);
+  label = signal<string>('. . .');
 
   constructor(
     private searchService: SearchService,
@@ -38,15 +40,25 @@ export class TipoDocumentoAltaDrawerComponent {
 
   fb = inject(FormBuilder)
   formTipoDocumento = this.fb.group({
-      tipoDocumentoId:'', denominacion:null, PersonalId:0, ClienteId:0, ObjetivoId:0,
-      periodo:null, archivo:[],
+    doc_id:0, doctipo_id:'', den_documento:null, persona_id:0, cliente_id:0,
+    objetivo_id:0, fecha:null, fec_doc_ven:null, archivo:[],
   })
 
   $optionsTipos = this.searchService.getTiposDocumentoOptions();
 
-  ngOnInit() {
+  doc_id():number {
+    const value = this.formTipoDocumento.get("doc_id")?.value
+    if (value) 
+      return value
+    return 0
+  }
+
+  async ngOnInit() {
     let now = new Date()
     this.periodo.set({anio:now.getFullYear(), mes:now.getMonth()+1})
+
+    const res = await firstValueFrom(this.searchService.getTiposDocumentoOptions())
+    this.optionsLabels.set(res)
   }
 
   async save() {
@@ -55,7 +67,13 @@ export class TipoDocumentoAltaDrawerComponent {
     console.log(values);
     
     try {
-      await firstValueFrom(this.apiService.addTipoDocumento(values))
+      if (this.doc_id()) {
+        await firstValueFrom(this.apiService.updateTipoDocumento(values))
+      }else{
+        const res = await firstValueFrom(this.apiService.addTipoDocumento(values))
+        if (res.data.doc_id)
+          this.formTipoDocumento.controls.doc_id.setValue(res.data.doc_id)
+      }
       let ref = this.refresh()
       this.refresh.set(++ref)
       this.formTipoDocumento.markAsUntouched()
@@ -64,5 +82,21 @@ export class TipoDocumentoAltaDrawerComponent {
         
     }
     this.isLoading.set(false)
-}
+  }
+
+  resetForm(){
+    this.formTipoDocumento.reset()
+  }
+
+  selectLabel(val: any){
+    const tipoDoc = val
+    const find = this.optionsLabels().find((obj:any)=> { return tipoDoc == obj.value})
+    if (find && find.des_den_documento) {
+      this.label.set(`${find.des_den_documento}`)
+    } else if (find) {
+      this.label.set(`Denominacion de ${find.label}`)
+    } else
+      this.label.set('. . .')
+  }
+
 }
