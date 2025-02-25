@@ -588,8 +588,9 @@ export class CargaLicenciaController extends BaseController {
 
     } = req.body
 
-    let usuario = res.locals.userName;
-    let ip = this.getRemoteAddress(req);
+    const usuario = res.locals.userName;
+    const ip = this.getRemoteAddress(req);
+    let PersonalSituacionRevistaHastaNuevo:Date = null
     const queryRunner = dataSource.createQueryRunner();
     try {
 
@@ -656,7 +657,6 @@ export class CargaLicenciaController extends BaseController {
       const tipoIns = await queryRunner.query(`SELECT TipoInasistenciaDescripcion FROM TipoInasistencia WHERE TipoInasistenciaId = @0`
         , [TipoInasistenciaId])
       const TipoInasistenciaDescripcion = tipoIns[0].TipoInasistenciaDescripcion.trim()
-
 
       if (PersonalLicenciaId) {  //UPDATE
 
@@ -774,13 +774,26 @@ export class CargaLicenciaController extends BaseController {
           FROM PersonalSituacionRevista
           WHERE PersonalId = @0 
           ORDER BY PersonalSituacionRevistaDesde DESC, ISNULL(PersonalSituacionRevistaHasta,'9999-12-31') DESC
-      `, [PersonalId])
+      `, [PersonalId,PersonalLicenciaDesde])
 
         const { PersonalSituacionRevistaId, PersonalSituacionRevistaSituacionId, PersonalSituacionRevistaMotivo, PersonalSituacionRevistaHasta, PersonalSituacionRevistaDesde } = sitrev[0]
 
-        if (PersonalLicenciaDesde < PersonalSituacionRevistaDesde)
-          throw new ClientException('La fecha desde no puede ser menor al desde de la última situación revista')
-        else if (PersonalLicenciaDesde.getTime() == PersonalSituacionRevistaDesde.getTime() && PersonalSituacionRevistaSituacionId != 10) {
+
+
+
+        if (PersonalLicenciaDesde < PersonalSituacionRevistaDesde) {
+          const sitrevpartir = await queryRunner.query(`
+            SELECT PersonalSituacionRevistaId,PersonalSituacionRevistaMotivo,PersonalSituacionRevistaSituacionId,PersonalSituacionRevistaDesde,PersonalSituacionRevistaHasta
+            FROM PersonalSituacionRevista
+            WHERE PersonalId = @0 AND PersonalSituacionRevistaDesde <= @1 AND ISNULL(PersonalSituacionRevistaHasta,'9999-12-31') >= @1
+        `, [PersonalId,PersonalLicenciaDesde])
+          if (sitrevpartir.length == 1 && sitrevpartir[0].PersonalSituacionRevistaSituacionId != 10 && sitrevpartir[0].PersonalSituacionRevistaHasta >= PersonalLicenciaHasta && PersonalLicenciaHasta) {
+            PersonalSituacionRevistaHastaNuevo=sitrevpartir[0].PersonalSituacionRevistaHasta
+          } else
+
+
+          throw new ClientException('La fecha desde no puede ser menor al desde de la última situación revista o la fecha desde y hasta deben pertenecer a una situación de revista activa')
+        } else if (PersonalLicenciaDesde.getTime() == PersonalSituacionRevistaDesde.getTime() && PersonalSituacionRevistaSituacionId != 10) {
 
           await queryRunner.query(`DELETE FROM PersonalSituacionRevista
             WHERE PersonalId = @0 AND PersonalSituacionRevistaId= @1`, [PersonalId, PersonalSituacionRevistaId])
@@ -841,23 +854,34 @@ export class CargaLicenciaController extends BaseController {
             PersonalSituacionRevistaSituacionIdNot10])
 
         await this.UpdateDiagnosticoMedico(PersonalLicenciaDiagnosticoMedicoDiagnostico, PersonalId, PersonalLicenciaUltNro, PersonalLicenciaDesde, queryRunner)
-
+/*
         if (PersonalSituacionRevistaId) {
           await queryRunner.query(`UPDATE PersonalSituacionRevista
           SET PersonalSituacionRevistaHasta = @2
           WHERE PersonalId = @0 AND PersonalSituacionRevistaId= @1`, [PersonalId, PersonalSituacionRevistaId, this.addDays(PersonalLicenciaDesde, -1)])
         }
-
+*/
+        
+        const sr = await queryRunner.query(`SELECT PersonalSituacionRevistaId FROM PersonalSituacionRevista
+          WHERE PersonalId = @0 AND PersonalSituacionRevistaDesde = @1 AND PersonalSituacionRevistaHasta = @2`, [PersonalId, PersonalLicenciaDesde, PersonalLicenciaHasta])
+        if (sr.length == 1) {
+          await queryRunner.query(`DELETE FROM PersonalSituacionRevista
+            WHERE PersonalId = @0 AND PersonalSituacionRevistaDesde = @1 AND PersonalSituacionRevistaHasta = @2`, [PersonalId, PersonalLicenciaDesde, PersonalLicenciaHasta])
+        } else {
+          await queryRunner.query(`UPDATE PersonalSituacionRevista
+            SET PersonalSituacionRevistaHasta = @2
+            WHERE PersonalId = @0 AND PersonalSituacionRevistaDesde < @1 AND ISNULL(PersonalSituacionRevistaHasta,'9999-12-31') > @1`, [PersonalId, PersonalLicenciaDesde, this.addDays(PersonalLicenciaDesde, -1)])
+        }
 
         PersonalSituacionRevistaUltNro++
         await this.addSituacionRevista(queryRunner, PersonalId, PersonalSituacionRevistaUltNro, PersonalLicenciaDesde, PersonalLicenciaHasta, TipoInasistenciaDescripcion, 10)
 
-        if (PersonalLicenciaHasta != null) {
+        if ((PersonalLicenciaHasta != null && PersonalSituacionRevistaHastaNuevo == null) || (PersonalSituacionRevistaHastaNuevo  && this.addDays(PersonalLicenciaHasta, 1) <= PersonalSituacionRevistaHastaNuevo)) {
           PersonalSituacionRevistaUltNro++
-          await this.addSituacionRevista(queryRunner, PersonalId, PersonalSituacionRevistaUltNro, this.addDays(PersonalLicenciaHasta, 1), null, '', PersonalSituacionRevistaSituacionId)
+          await this.addSituacionRevista(queryRunner, PersonalId, PersonalSituacionRevistaUltNro, this.addDays(PersonalLicenciaHasta, 1), PersonalSituacionRevistaHastaNuevo, '', PersonalSituacionRevistaSituacionId)
         }
       }
-
+//      throw new ClientException(`DEBUG ${PersonalSituacionRevistaHastaNuevo}`)
       await queryRunner.query(`UPDATE Personal SET PersonalLicenciaUltNro = @1,PersonalSituacionRevistaUltNro = @2 where PersonalId = @0 `, [PersonalId, PersonalLicenciaUltNro, PersonalSituacionRevistaUltNro])
 
       if(req.body.files?.length > 0){
