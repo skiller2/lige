@@ -35,3 +35,7 @@ tipoDocumentoRouter.post('/list-no-download', [authMiddleware.verifyToken, authM
 tipoDocumentoRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gSistemas'])], (req, res, next) => {
   tipoDocumentoController.addTipoDocumento(req, res, next)
 })
+
+tipoDocumentoRouter.post('/update', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gSistemas'])], (req, res, next) => {
+  tipoDocumentoController.updateTipoDocumento(req, res, next)
+})

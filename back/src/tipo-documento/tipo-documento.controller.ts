@@ -253,7 +253,7 @@ export class TipoDocumentoController extends BaseController {
 
   private async getTiposDocumentoQuery(queryRunner: any) {
       return await queryRunner.query(`
-          SELECT tipo.doctipo_id value, TRIM(tipo.detalle) label
+          SELECT tipo.doctipo_id value, TRIM(tipo.detalle) label, des_den_documento
           FROM lige.dbo.doctipo tipo`)
     }
   
@@ -269,61 +269,59 @@ export class TipoDocumentoController extends BaseController {
   }
 
   async addTipoDocumento(req: any, res: Response, next: NextFunction) {
-    const tipoDocumentoId:string = req.body.tipoDocumentoId
-    const denominacion:number = req.body.denominacion
-    const PersonalId:number = req.body.PersonalId
-    const ClienteId:number = req.body.ClienteId
-    const ObjetivoId:number = req.body.ObjetivoId
-    const periodo:Date = req.body.periodo? new Date(req.body.periodo) : req.body.periodo
+    const doctipo_id:string = req.body.doctipo_id
+    const den_documento:number = req.body.den_documento
+    const persona_id:number = req.body.persona_id
+    const cliente_id:number = req.body.cliente_id
+    const objetivo_id:number = req.body.objetivo_id
+    const fecha:Date = req.body.fecha? new Date(req.body.fecha) : req.body.fecha
+    const fec_doc_ven:Date = req.body.fec_doc_ven? new Date(req.body.fec_doc_ven) : req.body.fec_doc_ven
     const archivo:any[] = req.body.archivo
     const queryRunner = dataSource.createQueryRunner();
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
+    const now = new Date()
     try {
       await queryRunner.startTransaction()
-      let campos_vacios: any[] = []
-
-      if (!tipoDocumentoId) campos_vacios.push(`- Tipo de documento`)
-      if (!tipoDocumentoId) campos_vacios.push(`- Denominación de documento`)
-      if ((tipoDocumentoId == 'LIC' || tipoDocumentoId == 'REC' ) && !Number.isInteger(PersonalId)) campos_vacios.push(`- Persona`)
-      if (tipoDocumentoId == 'CLI' && !Number.isInteger(ClienteId)) campos_vacios.push(`- Cliente`)
-      if (tipoDocumentoId == 'OBJ' && !Number.isInteger(ObjetivoId)) campos_vacios.push(`- Objetivo`)
-      // if (tipoDocumentoId == 'ACT' && ) campos_vacios.push(``)
-      //if (tipoDocumentoId == 'OBJ' && ) campos_vacios.push(``)
-      if (!periodo) campos_vacios.push(`- Periodo`)
-
-      if (campos_vacios.length) {
-        campos_vacios.unshift('Debe completar los siguientes campos: ')
-        throw new ClientException(campos_vacios)
-      }
+      const valsTipoDocumento = this.valsTipoDocumento(req.body)
+      if (valsTipoDocumento instanceof ClientException)
+        throw valsTipoDocumento
 
       const doc_id = await this.getProxNumero(queryRunner, `docgeneral`, usuario, ip)
-      const anio = periodo.getFullYear()
-      const mes = periodo.getMonth() + 1
-      const liqmaperiodo = await queryRunner.query(`
+      const anio = fecha.getFullYear()
+      const mes = fecha.getMonth() + 1
+      let liqmaperiodo = await queryRunner.query(`
         SELECT per.periodo_id, per.anio, per.mes
         FROM lige.dbo.liqmaperiodo per
         WHERE per.anio = @0 AND per.mes = @1
       `, [anio, mes])
       if (!liqmaperiodo.length) {
-        throw new ClientException(`Periodo Invalido.`)
+        liqmaperiodo = await queryRunner.query(`
+          INSERT INTO lige.dbo.liqmaperiodo (anio, mes, version, aud_usuario_ins, aud_ip_ins, aud_fecha_ins,
+          aud_usuario_mod, aud_ip_mod, aud_fecha_mod, ind_recibos_generados)
+          VALUES (@0, @1, 0, @2, @3, @4, @2, @3, @4, 0)
+
+          SELECT per.periodo_id, per.anio, per.mes
+          FROM lige.dbo.liqmaperiodo per
+          WHERE per.anio = @0 AND per.mes = @1
+        `, [anio, mes, usuario, ip, now])
       }
       // const periodo_id = liqmaperiodo[0].periodo_id
-      let now = new Date()
       let path = ''
       let newFieldname = ''
+      let detalle_documento = ''
       if (archivo.length) {
         const type = archivo[0].mimetype.split('/')[1]
         const fieldname = archivo[0].fieldname
         const doctipo = await queryRunner.query(`
           SELECT path_origen FROM lige.dbo.doctipo WHERE doctipo_id = @0
-        `, [tipoDocumentoId])
+        `, [doctipo_id])
         
         const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
         const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
         path = `${anio}/${doctipo[0].path_origen}`
-        newFieldname = `${tipoDocumentoId}-${doc_id}-${denominacion}.${type}`
-        
+        newFieldname = `${doctipo_id}-${doc_id}-${den_documento}.${type}`
+
         let newFilePath = `${pathArchivos}/${path}`
         
         if (!existsSync(newFilePath)) {
@@ -335,15 +333,16 @@ export class TipoDocumentoController extends BaseController {
       }
 
       await queryRunner.query(`
-        INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "persona_id",
-        "path", "nombre_archivo", "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins",
-        "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod", "doctipo_id", "objetivo_id", "den_documento", "cliente_id")
-        VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)
-      `, [ doc_id, liqmaperiodo[0].periodo_id, now, PersonalId, ObjetivoId, path, newFieldname,
-      usuario, ip, now, usuario, ip, now, tipoDocumentoId, denominacion, ClienteId])
+        INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "path", "nombre_archivo", 
+        "doctipo_id", "persona_id", "objetivo_id", "den_documento", "cliente_id", "fec_doc_ven"
+        "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod",
+        "detalle_documento")
+        VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @11, @12, @13, @14)
+      `, [ doc_id, liqmaperiodo[0].periodo_id, fecha, path, newFieldname, doctipo_id, persona_id, objetivo_id,
+      den_documento, cliente_id, fec_doc_ven, usuario, ip, now, detalle_documento])
       // throw new ClientException('DEBUG')
       await queryRunner.commitTransaction()
-      this.jsonRes({}, res);
+      this.jsonRes({ doc_id:doc_id }, res);
     } catch (error) {
       this.rollbackTransaction(queryRunner)
       return next(error)
@@ -435,6 +434,115 @@ export class TipoDocumentoController extends BaseController {
 
   async getGridNoDownloadCols(req, res) {
     this.jsonRes(this.listaPersonalNoDescarga, res);
+  }
+
+  async updateTipoDocumento(req: any, res: Response, next: NextFunction) {
+    const doc_id = req.body.doc_id
+    const doctipo_id:string = req.body.doctipo_id
+    const den_documento:number = req.body.den_documento
+    const persona_id:number = req.body.persona_id
+    const cliente_id:number = req.body.cliente_id
+    const objetivo_id:number = req.body.objetivo_id
+    const fecha:Date = req.body.fecha? new Date(req.body.fecha) : req.body.fecha
+    const fec_doc_ven:Date = req.body.fec_doc_ven? new Date(req.body.fec_doc_ven) : req.body.fec_doc_ven
+    const archivo:any[] = req.body.archivo
+    const queryRunner = dataSource.createQueryRunner();
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+    const now = new Date()
+    try {
+      await queryRunner.startTransaction()
+
+      const valsTipoDocumento = this.valsTipoDocumento(req.body)
+      if (valsTipoDocumento instanceof ClientException)
+        throw valsTipoDocumento
+
+      const anio = fecha.getFullYear()
+      const mes = fecha.getMonth() + 1
+      let liqmaperiodo = await queryRunner.query(`
+        SELECT per.periodo_id, per.anio, per.mes
+        FROM lige.dbo.liqmaperiodo per
+        WHERE per.anio = @0 AND per.mes = @1
+      `, [anio, mes])
+      if (!liqmaperiodo.length) {
+        liqmaperiodo = await queryRunner.query(`
+          INSERT INTO lige.dbo.liqmaperiodo (anio, mes, version, aud_usuario_ins, aud_ip_ins, aud_fecha_ins,
+          aud_usuario_mod, aud_ip_mod, aud_fecha_mod, ind_recibos_generados)
+          VALUES (@0, @1, 0, @2, @3, @4, @2, @3, @4, 0)
+
+          SELECT per.periodo_id, per.anio, per.mes
+          FROM lige.dbo.liqmaperiodo per
+          WHERE per.anio = @0 AND per.mes = @1
+        `, [anio, mes, usuario, ip, now])
+      }
+
+      let path = ''
+      let newFieldname = ''
+      let detalle_documento = ''
+      if (archivo.length) {
+        const type = archivo[0].mimetype.split('/')[1]
+        const fieldname = archivo[0].fieldname
+        const doctipo = await queryRunner.query(`
+          SELECT path_origen FROM lige.dbo.doctipo WHERE doctipo_id = @0
+        `, [doctipo_id])
+        
+        const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
+        const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
+        path = `${anio}/${doctipo[0].path_origen}`
+        newFieldname = `${doctipo_id}-${doc_id}-${den_documento}.${type}`
+
+        let newFilePath = `${pathArchivos}/${path}`
+        
+        if (!existsSync(newFilePath)) {
+          mkdirSync(newFilePath, { recursive: true })
+        }
+        newFilePath += `/${newFieldname}`
+        
+        renameSync(dirFile, newFilePath);
+      }
+
+      await queryRunner.query(`
+        UPDATE lige.dbo.docgeneral
+        SET periodo = @1 fecha = @2, path = @3, nombre_archivo = @4, 
+        doctipo_id = @5, persona_id = @6, objetivo_id = @7, den_documento = @8, cliente_id = @9, fec_doc_ven = @10
+        aud_usuario_mod = @11, aud_ip_mod = @12, aud_fecha_mod = @13, detalle_documento = @14
+        WHERE doc_id IN (@0)
+      `, [ doc_id, liqmaperiodo[0].periodo_id, fecha, path, newFieldname, doctipo_id, persona_id, objetivo_id,
+      den_documento, cliente_id, fec_doc_ven, usuario, ip, now, detalle_documento])
+      // throw new ClientException('DEBUG')
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res);
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  private valsTipoDocumento(tipoDocumento:any) {
+    const doctipo_id:string = tipoDocumento.doctipo_id
+    const den_documento:number = tipoDocumento.den_documento
+    const persona_id:number = tipoDocumento.persona_id
+    const cliente_id:number = tipoDocumento.cliente_id
+    const objetivo_id:number = tipoDocumento.objetivo_id
+    const fecha:Date = tipoDocumento.fecha? new Date(tipoDocumento.fecha) : tipoDocumento.fecha
+    const fec_doc_ven:Date = tipoDocumento.fec_doc_ven? new Date(tipoDocumento.fec_doc_ven) : tipoDocumento.fec_doc_ven
+
+    let campos_vacios: any[] = []
+
+    if (!doctipo_id) campos_vacios.push(`- Tipo de documento`)
+    if (!den_documento) campos_vacios.push(`- Denominación de documento`)
+    if ((doctipo_id == 'LIC' || doctipo_id == 'REC' ) && !Number.isInteger(persona_id)) campos_vacios.push(`- Persona`)
+    if (doctipo_id == 'CLI' && !Number.isInteger(cliente_id)) campos_vacios.push(`- Cliente`)
+    if (doctipo_id == 'OBJ' && !Number.isInteger(objetivo_id)) campos_vacios.push(`- Objetivo`)
+    if (!fecha) campos_vacios.push(`- Desde`)
+    if (!fec_doc_ven) campos_vacios.push(`- Hasta`)
+
+    if (campos_vacios.length) {
+      campos_vacios.unshift('Debe completar los siguientes campos: ')
+      return new ClientException(campos_vacios)
+    }
   }
 
 }
