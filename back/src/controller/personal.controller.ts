@@ -547,7 +547,6 @@ cuit.PersonalCUITCUILCUIT,
     Nombre = Nombre.toUpperCase()
     Apellido = Apellido.toUpperCase()
     const fullname: string = Apellido + ', ' + Nombre
-
     const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (CUIT ${CUIT} - Leg.:${NroLegajo})`
     let newId = await queryRunner.query(`
       INSERT INTO Personal (
@@ -669,7 +668,7 @@ cuit.PersonalCUITCUILCUIT,
     const SucursalId: number = req.body.SucursalId
     const Email = req.body.Email
     let FechaIngreso: Date = req.body.FechaIngreso ? new Date(req.body.FechaIngreso) : null
-    let FechaNacimiento: Date = req.body.FechaIngreso ? new Date(req.body.FechaNacimiento) : null
+    let FechaNacimiento: Date = req.body.FechaNacimiento ? new Date(req.body.FechaNacimiento) : null
     const foto = req.body.Foto
     const NacionalidadId: number = req.body.NacionalidadId
     const LeyNro: number = req.body.LeyNro
@@ -716,9 +715,11 @@ cuit.PersonalCUITCUILCUIT,
       if (errors.length)
         throw new ClientException(errors)
 
+
       const PersonalId = await this.addPersonalQuery(
         queryRunner, NroLegajo, Apellido, Nombre, now, FechaIngreso, FechaNacimiento, NacionalidadId, SucursalId, CUIT, LeyNro
       )
+
       if (Number.isNaN(PersonalId)) {
         throw new ClientException('No se pudo generar un identificador.')
       }
@@ -728,8 +729,7 @@ cuit.PersonalCUITCUILCUIT,
       const DNI = parseInt(CUIT.toString().slice(2, -1))
       await this.addPersonalDocumentoQuery(queryRunner, PersonalId, DNI)
 
-      if (req.body.Calle || req.body.Nro || req.body.Piso || req.body.Dpto || req.body.CodigoPostal || req.body.PaisId)
-        await this.addPersonalDomicilio(queryRunner, req.body, PersonalId)
+      await this.updatePersonalDomicilio(queryRunner, PersonalId, req.body)
 
       await this.updatePersonalEmail(queryRunner, PersonalId, Email)
 
@@ -844,55 +844,6 @@ cuit.PersonalCUITCUILCUIT,
     if (docTitulo) {
       await this.setImagenEstudio(queryRunner, personalId, docTitulo)
     }
-  }
-
-  async addPersonalDomicilio(queryRunner: any, domicilio: any, personalId: any) {
-    const calle = domicilio.Calle
-    const numero = domicilio.Nro
-    const piso = domicilio.Piso
-    const departamento = domicilio.Dpto
-    const codPostal = domicilio.CodigoPostal
-    const paisId = domicilio.PaisId ? domicilio.PaisId : null
-    const provinciaId = domicilio.ProvinciaId ? domicilio.ProvinciaId : null
-    const localidadId = domicilio.LocalidadId ? domicilio.LocalidadId : null
-    const barrioId = domicilio.BarrioId ? domicilio.BarrioId : null
-
-    const ultnro = await queryRunner.query(`SELECT PersonalDomicilioUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
-    const PersonalDomicilioId = (ultnro[0]?.PersonalDomicilioUltNro)?ultnro[0]?.PersonalDomicilioUltNro+1:1
-
-
-    await queryRunner.query(`
-      INSERT INTO PersonalDomicilio (
-      PersonalId,
-      PersonalDomicilioId,
-      PersonalDomicilioDomCalle,
-      PersonalDomicilioDomNro,
-      PersonalDomicilioDomPiso,
-      PersonalDomicilioDomDpto,
-      PersonalDomicilioCodigoPostal,
-      PersonalDomicilioActual,
-      PersonalDomicilioPaisId,
-      PersonalDomicilioProvinciaId,
-      PersonalDomicilioLocalidadId,
-      PersonalDomicilioBarrioId
-      )
-      VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)`, [
-      personalId,
-      PersonalDomicilioId,
-      calle,
-      numero,
-      piso,
-      departamento,
-      codPostal,
-      1,
-      paisId,
-      provinciaId,
-      localidadId,
-      barrioId,
-    ])
-    await queryRunner.query(`
-      UPDATE Personal SET PersonalDomicilioUltNro = @1 WHERE PersonalId = @0
-      `, [personalId,PersonalDomicilioId])
   }
 
   async addPersonalFamilia(queryRunner: any, PersonalId: any, familiar: any) {
@@ -1134,7 +1085,7 @@ cuit.PersonalCUITCUILCUIT,
     let personalRes = await queryRunner.query(`
       SELECT PersonalNroLegajo NroLegajo, TRIM(PersonalApellido) Apellido, TRIM(PersonalNombre) Nombre,
       PersonalFechaIngreso FechaIngreso, PersonalFechaNacimiento FechaNacimiento,
-      PersonalNacionalidadId NacionalidadId, PersonalSuActualSucursalPrincipalId SucursalId
+      PersonalNacionalidadId NacionalidadId, PersonalSuActualSucursalPrincipalId SucursalId, PersonalLeyNro LeyNro  
       FROM Personal
       WHERE PersonalId = @0
       `, [PersonalId])
@@ -1183,6 +1134,12 @@ cuit.PersonalCUITCUILCUIT,
   }
 
   private async updatePersonalDomicilio(queryRunner: any, PersonalId: number, infoDomicilio: any) {
+console.log('infoDomicilio',infoDomicilio)
+
+    if (!infoDomicilio.Calle && !infoDomicilio.Nro && !infoDomicilio.Piso && !infoDomicilio.Dpto && !infoDomicilio.CodigoPostal && !infoDomicilio.PaisId)
+      return;
+
+
     let cambio: boolean = false
     const domicilioRes = await queryRunner.query(`
       SELECT TRIM(PersonalDomicilioDomCalle) Calle, TRIM(PersonalDomicilioDomNro) Nro, TRIM(PersonalDomicilioDomPiso) Piso,
@@ -1192,7 +1149,7 @@ cuit.PersonalCUITCUILCUIT,
       WHERE PersonalId = @0 AND PersonalDomicilioId = @1
       `, [PersonalId, infoDomicilio.PersonalDomicilioId])
     const domicilio = domicilioRes[0] ? domicilioRes[0] : {}
-        
+  
     if (domicilioRes.length == 0)
       cambio=true
 
@@ -1206,7 +1163,44 @@ cuit.PersonalCUITCUILCUIT,
     if (cambio) {
       await queryRunner.query(`
       UPDATE PersonalDomicilio SET PersonalDomicilioActual=0 WHERE PersonalId =@0`, [PersonalId])
-      await this.addPersonalDomicilio(queryRunner, infoDomicilio, PersonalId)
+
+      const ultnro = await queryRunner.query(`SELECT PersonalDomicilioUltNro FROM Personal WHERE PersonalId = @0 `, [PersonalId])
+      const PersonalDomicilioId = (ultnro[0]?.PersonalDomicilioUltNro)?ultnro[0]?.PersonalDomicilioUltNro+1:1
+  
+      await queryRunner.query(`
+        INSERT INTO PersonalDomicilio (
+        PersonalId,
+        PersonalDomicilioId,
+        PersonalDomicilioDomCalle,
+        PersonalDomicilioDomNro,
+        PersonalDomicilioDomPiso,
+        PersonalDomicilioDomDpto,
+        PersonalDomicilioCodigoPostal,
+        PersonalDomicilioActual,
+        PersonalDomicilioPaisId,
+        PersonalDomicilioProvinciaId,
+        PersonalDomicilioLocalidadId,
+        PersonalDomicilioBarrioId
+        )
+        VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)`, [
+        PersonalId,
+        PersonalDomicilioId,
+        infoDomicilio.Calle,
+        infoDomicilio.Nro,
+        infoDomicilio.Piso,
+        infoDomicilio.Dpto,
+        infoDomicilio.CodigoPostal,
+        1,
+        infoDomicilio.PaisId,
+        infoDomicilio.ProvinciaId,
+        infoDomicilio.LocalidadId,
+        infoDomicilio.BarrioId,
+      ])
+      await queryRunner.query(`
+        UPDATE Personal SET PersonalDomicilioUltNro = @1 WHERE PersonalId = @0
+        `, [PersonalId,PersonalDomicilioId])
+ 
+
     }
   }
 
@@ -1407,6 +1401,8 @@ cuit.PersonalCUITCUILCUIT,
     const SucursalId = req.body.SucursalId
     const actas = req.body.actas
     const habilitacion = req.body.habilitacion
+    const LeyNro = req.body.LeyNro
+    
     let now = new Date()
     now.setHours(0, 0, 0, 0)
 
