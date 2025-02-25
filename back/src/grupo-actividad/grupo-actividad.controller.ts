@@ -1065,7 +1065,7 @@ export class GrupoActividadController extends BaseController {
             //     //throw new ClientException(`test`)
                 const validarGrupoActividadVigente = (registro) => {
 
-                    if (registro?.GrupoActividadId == params.GrupoActividadDetalle.id &&
+                    if (registro?.GrupoActividadPersonalPersonalId == params.ApellidoNombrePersona.id &&
                         (!registro?.GrupoActividadPersonalHasta || new Date(registro.GrupoActividadPersonalHasta) >= fechaActual)
                     ) {
                         throw new ClientException(`Ya se encuentra vigente el grupo actividad con el personal`)
@@ -1087,12 +1087,11 @@ export class GrupoActividadController extends BaseController {
                     if (registro && (!registro.GrupoActividadPersonalHasta || registro.GrupoActividadPersonalHasta < GrupoActividadPersonalHasta)) {
                         await queryRunner.query(
                             `UPDATE GrupoActividadPersonal 
-                             SET GrupoActividadPersonalHasta = @2 
+                             SET GrupoActividadPersonalHasta = @1 
                              WHERE GrupoActividadId = @0 
-                             AND GrupoActividadPersonalId = @1
-                             AND GrupoActividadPersonalPersonaId = @3`,
+                             AND GrupoActividadPersonalPersonalId = @2`,
 
-                            [registro.GrupoActividadId, registro.GrupoActividadPersonalId, formattedDate, registro.GrupoActividadPersonalPersonaId]
+                            [registro.GrupoActividadId, formattedDate, registro.GrupoActividadPersonalPersonalId]
                         )
                     }
                 }
@@ -1102,8 +1101,8 @@ export class GrupoActividadController extends BaseController {
                     ActualizarGrupoActividadPersonalHasta(ultimoRegistroQuery)
                 }
 
-                let GrupoActividadPersonalId = await queryRunner.query(` SELECT GrupoActividadPersonaloUltNro FROM GrupoActividad WHERE GrupoActividadId =  @0`, [params.GrupoActividadDetalle.id])
-                GrupoActividadPersonalId = GrupoActividadPersonalId[0].GrupoActividadPersonaloUltNro + 1
+                let GrupoActividadPersonalId = await queryRunner.query(` SELECT GrupoActividadPersonalUltNro FROM GrupoActividad WHERE GrupoActividadId =  @0`, [params.GrupoActividadDetalle.id])
+                GrupoActividadPersonalId = GrupoActividadPersonalId[0].GrupoActividadPersonalUltNro + 1
 
                 await queryRunner.query(`INSERT INTO "GrupoActividadPersonal" (
                    		GrupoActividadPersonalId,
@@ -1119,8 +1118,7 @@ export class GrupoActividadController extends BaseController {
                         GrupoActividadPersonalPuesto,
                         GrupoActividadPersonalUsuarioId,
                         GrupoActividadPersonalDia,
-                        GrupoActividadPersonalTiempo,
-                ) VALUES ( @0,@1,@2, @3,@4, @5,@6, @7,@8,@9,@10,@11 );
+                        GrupoActividadPersonalTiempo) VALUES ( @0,@1,@2, @3,@4, @5,@6, @7,@8,@9,@10,@11 );
                 `, [GrupoActividadPersonalId, 
                     params.GrupoActividadDetalle.id,
                      params.ApellidoNombrePersona.id,
@@ -1136,7 +1134,7 @@ export class GrupoActividadController extends BaseController {
 
 
                 await queryRunner.query(`UPDATE GrupoActividad
-                    SET GrupoActividadPersonaloUltNro = @0
+                    SET GrupoActividadPersonalUltNro = @0
                     WHERE GrupoActividadId =  @1`, [GrupoActividadPersonalId, params.GrupoActividadDetalle.id])
 
                 dataResultado = { action: 'I', GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadPersonalPersonalId: params.ApellidoNombrePersona.id, PreviousDate: GrupoActividadPersonalHasta }
