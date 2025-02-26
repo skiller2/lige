@@ -467,7 +467,7 @@ export class GrupoActividadController extends BaseController {
 
                     obj.ObjetivoId,
                     obj.ObjetivoDescripcion,
-
+                    gaobj.GrupoActividadObjetivoId,
                     gaobj.GrupoActividadObjetivoObjetivoId,
                     gaobj.GrupoActividadObjetivoDesde,
                     gaobj.GrupoActividadObjetivoHasta
@@ -862,10 +862,15 @@ export class GrupoActividadController extends BaseController {
             let time = fechaActual.toTimeString().split(' ')[0]
 
             let dataResultado = {}
+
+          
             let GrupoActividadObjetivoHasta
 
             if (params.GrupoActividadId > 0) { //Entro en update
                 //Validar si cambio el código
+    
+               GrupoActividadObjetivoHasta = new Date(`${params.GrupoActividadObjetivoHasta }T00:00:00`)
+               GrupoActividadObjetivoHasta.setHours(0, 0, 0, 0)
 
                 await this.validateFormObjetivos(params, queryRunner)
 
@@ -874,16 +879,17 @@ export class GrupoActividadController extends BaseController {
                     SET GrupoActividadObjetivoDesde = @2,GrupoActividadObjetivoHasta = @3,
                         GrupoActividadObjetivoPuesto = @4,GrupoActividadObjetivoUsuarioId = @5,
                         GrupoActividadObjetivoDia = @6,GrupoActividadObjetivoTiempo = @7
-                    WHERE GrupoActividadObjetivoObjetivoId = @0 AND GrupoActividadId = @1
+                    WHERE GrupoActividadObjetivoObjetivoId = @0 AND GrupoActividadId = @1 AND GrupoActividadObjetivoId = @8
                 `, [
                     params.GrupoActividadObjetivoObjetivoId,
                     params.GrupoActividadDetalle.id,
                     params.GrupoActividadObjetivoDesde,
-                    params.GrupoActividadObjetivoHasta,
+                    GrupoActividadObjetivoHasta,
                     ip,
                     usuarioId,
                     fechaActual,
-                    time
+                    time,
+                    params.GrupoActividadObjetivoId
                 ])
 
 
@@ -927,11 +933,11 @@ export class GrupoActividadController extends BaseController {
                         throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(fecha)} `)
                     }
 
-                    if (registro?.GrupoActividadId == params.GrupoActividadDetalle.id &&
-                        (!registro?.GrupoActividadObjetivoHasta || new Date(registro.GrupoActividadObjetivoHasta) >= fechaActual)
-                    ) {
-                        throw new ClientException(`Ya se encuentra vigente el grupo actividad con el objetivo`)
-                    }
+                    // if (registro?.GrupoActividadId == params.GrupoActividadDetalle.id &&
+                    //     (!registro?.GrupoActividadObjetivoHasta || new Date(registro.GrupoActividadObjetivoHasta) >= fechaActual)
+                    // ) {
+                    //     throw new ClientException(`Ya se encuentra vigente el grupo actividad con el objetivo`)
+                    // }
 
                    
                 };
@@ -1067,11 +1073,11 @@ export class GrupoActividadController extends BaseController {
             //     //throw new ClientException(`test`)
                 const validarGrupoActividadVigente = (registro) => {
 
-                    if (registro?.GrupoActividadPersonalPersonalId == params.ApellidoNombrePersona.id &&
-                        (!registro?.GrupoActividadPersonalHasta || new Date(registro.GrupoActividadPersonalHasta) >= fechaActual)
-                    ) {
-                        throw new ClientException(`Ya se encuentra vigente el grupo actividad con el personal`)
-                    }
+                    // if (registro?.GrupoActividadPersonalPersonalId == params.ApellidoNombrePersona.id &&
+                    //     (!registro?.GrupoActividadPersonalHasta || new Date(registro.GrupoActividadPersonalHasta) >= fechaActual)
+                    // ) {
+                    //     throw new ClientException(`Ya se encuentra vigente el grupo actividad con el personal`)
+                    // }
 
                     if (
                         registro?.GrupoActividadPersonalHasta
@@ -1274,7 +1280,17 @@ export class GrupoActividadController extends BaseController {
 
         if (params.GrupoActividadJerarquicoHasta && params.GrupoActividadJerarquicoDesde > params.GrupoActividadJerarquicoHasta) {
 
-            throw new ClientException(`La fecha Hasta ${this.dateOutputFormat(new Date(params.GrupoActividadJerarquicoHasta))} tiene que ser mayor a ${this.dateOutputFormat(new Date(params.GrupoActividadJerarquicoDesde))}.`);
+            let GrupoActividadJerarquicoDesde = new Date(`${params.GrupoActividadJerarquicoDesde }T00:00:00`)
+            GrupoActividadJerarquicoDesde.setHours(0, 0, 0, 0)
+
+            let GrupoActividadJerarquicoHasta = new Date(`${params.GrupoActividadJerarquicoHasta }T00:00:00`)
+            GrupoActividadJerarquicoHasta.setHours(0, 0, 0, 0)
+
+            if(GrupoActividadJerarquicoDesde > GrupoActividadJerarquicoHasta){
+                throw new ClientException(`La fecha Hasta ${this.dateOutputFormat(new Date(params.GrupoActividadJerarquicoHasta))} tiene que ser mayor a ${this.dateOutputFormat(new Date(params.GrupoActividadJerarquicoDesde))}.`);
+            }
+
+          
         }
 
         
@@ -1291,9 +1307,20 @@ export class GrupoActividadController extends BaseController {
             throw new ClientException(`Debe completar el campo Apellido Nombre.`)
         }
 
+        
         if (params.GrupoActividadPersonalHasta && params.GrupoActividadPersonalDesde > params.GrupoActividadPersonalHasta) {
 
-            throw new ClientException(`La fecha Hasta ${this.dateOutputFormat(new Date(params.GrupoActividadPersonalHasta))} tiene que ser mayor a ${this.dateOutputFormat(new Date(params.GrupoActividadJerarquicoDesde))}.`);
+            let GrupoActividadPersonalDesde = new Date(`${params.GrupoActividadPersonalDesde }T00:00:00`)
+            GrupoActividadPersonalDesde.setHours(0, 0, 0, 0)
+
+            let GrupoActividadPersonalHasta = new Date(`${params.GrupoActividadPersonalHasta }T00:00:00`)
+            GrupoActividadPersonalHasta.setHours(0, 0, 0, 0)
+
+            if(GrupoActividadPersonalDesde > GrupoActividadPersonalHasta){
+                throw new ClientException(`La fecha Hasta ${this.dateOutputFormat(new Date(params.GrupoActividadPersonalHasta))} tiene que ser mayor a ${this.dateOutputFormat(new Date(params.GrupoActividadPersonalDesde))}.`);
+            }
+
+          
         }
 
     }

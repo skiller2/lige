@@ -10,7 +10,7 @@ import { SearchService } from '../../services/search.service';
 import { FiltroBuilderComponent } from '../../shared/filtro-builder/filtro-builder.component';
 import { columnTotal, totalRecords } from "../custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject } from '@angular/core'
 import { GrupoActividadSearchComponent } from '../grupo-actividad-search/grupo-actividad-search.component';
 import { EditorPersonaComponent } from '../../shared/editor-persona/editor-persona.component';
 
@@ -285,13 +285,13 @@ export class TableGrupoActividadPersonalComponent {
 
     if (item.GrupoActividadId == 0)
       return true
-  
-    if (item.GrupoActividadObjetivoHasta && new Date(item.GrupoActividadPersonalHasta) < new Date()) {
-      return false;
-    }
 
-    if (column.id == 'GrupoActividadPersonalDesde' || column.id == 'GrupoActividadPersonalHasta')
-      return true
+    // if (item.GrupoActividadObjetivoHasta && new Date(item.GrupoActividadPersonalHasta) < new Date(new Date().setHours(0, 0, 0, 0))) {
+    //   return false;
+    // }
+
+    // if (column.id == 'GrupoActividadPersonalDesde' || column.id == 'GrupoActividadPersonalHasta')
+    //   return true
 
     e.stopImmediatePropagation();
     return false;
