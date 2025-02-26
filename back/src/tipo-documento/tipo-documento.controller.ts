@@ -8,16 +8,16 @@ import {
   orderToSQL,
 } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
-import { mkdirSync, existsSync, renameSync } from "fs";
+import { mkdirSync, existsSync, renameSync, copyFileSync, unlinkSync } from "fs";
+import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
+import { TextItem } from "pdfjs-dist/types/src/display/api";
 
 export class TipoDocumentoController extends BaseController {
 
   listaTipoDocumento: any[] = [
     {
-      id: "id",
-      name: "ID",
-      field: "id",
-      fieldName: "id",
+      id: "id", name: "ID", field: "id",
+      fieldName: "docg.doc_id",
       type: "number",
       sortable: true,
       hidden: false,
@@ -40,7 +40,7 @@ export class TipoDocumentoController extends BaseController {
       searchComponent: "inpurForTipoDocumentoSearch",
       searchType: "string",
       hidden: false,
-      searchHidden:false,
+      searchHidden: false,
       maxWidth: 250,
     },
     {
@@ -79,8 +79,17 @@ export class TipoDocumentoController extends BaseController {
       fieldName: "periodo",
       sortable: true,
       hidden: false,
-      searchHidden:false,
+      searchHidden: false,
       maxWidth: 150,
+    },
+    {
+      id: "detalle_documento", name: "Detalle Documento", field: "detalle_documento",
+      fieldName: "docg.detalle_documento",
+      type: "string",
+      searchType: "string",
+      sortable: true,
+      hidden: true,
+      searchHidden: false,
     },
   ];
 
@@ -197,19 +206,19 @@ export class TipoDocumentoController extends BaseController {
   async getdocgenralListlist(filterSql: any, orderBy: any, anio:number, mes:number) {
 
     const result = await dataSource.query(`
-      SELECT doc_id AS id, 
+      SELECT docg.doc_id AS id, 
       tipo.detalle AS tipo, 
-      fecha, 
+      docg.fecha, 
       CONCAT(TRIM(pers.PersonalApellido), ', ', TRIM(pers.PersonalNombre)) ApellidoNombre,
       obj.ObjetivoId, TRIM(obj.ObjetivoDescripcion) ObjetivoDescripcion,  
       CONCAT(RTRIM(per.mes), '-', RTRIM(per.anio)) AS periodo,
       cli.ClienteId, cli.ClienteDenominacion
-      FROM lige.dbo.docgeneral AS docgeneral 
-      LEFT JOIN lige.dbo.doctipo AS tipo ON docgeneral.doctipo_id = tipo.doctipo_id
-      LEFT JOIN Personal AS pers ON docgeneral.persona_id = pers.PersonalId 
-      LEFT JOIN Objetivo AS obj ON docgeneral.objetivo_id = obj.ObjetivoId 
-      LEFT JOIN lige.dbo.liqmaperiodo AS per ON docgeneral.periodo = per.periodo_id
-      LEFT JOIN lige.dbo.Cliente AS cli ON docgeneral.cliente_id = cli.ClienteId
+      FROM lige.dbo.docgeneral AS docg 
+      LEFT JOIN lige.dbo.doctipo AS tipo ON docg.doctipo_id = tipo.doctipo_id
+      LEFT JOIN Personal AS pers ON docg.persona_id = pers.PersonalId 
+      LEFT JOIN Objetivo AS obj ON docg.objetivo_id = obj.ObjetivoId 
+      LEFT JOIN lige.dbo.liqmaperiodo AS per ON docg.periodo = per.periodo_id
+      LEFT JOIN lige.dbo.Cliente AS cli ON docg.cliente_id = cli.ClienteId
       WHERE per.anio = @0 AND per.mes = @1
       AND ${filterSql}
       ${orderBy}
@@ -323,15 +332,28 @@ export class TipoDocumentoController extends BaseController {
         newFieldname = `${doctipo_id}-${doc_id}-${den_documento}.${type}`
 
         let newFilePath = `${pathArchivos}/${path}`
+
+        if (type == 'pdf') {
+          const loadingTask = getDocument(dirFile);
+          const document = await loadingTask.promise;
+          for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
+            const page = await document.getPage(pagenum);
+            const textContent = await page.getTextContent();
+            textContent.items.forEach((item: TextItem) => {
+              detalle_documento+=item.str + ((item.hasEOL)?'\n':'')
+            });
+          }
+        }
         
         if (!existsSync(newFilePath)) {
           mkdirSync(newFilePath, { recursive: true })
         }
         newFilePath += `/${newFieldname}`
         
-        renameSync(dirFile, newFilePath);
+        copyFileSync(dirFile, newFilePath)
+        unlinkSync(dirFile);
       }
-
+      // throw new ClientException('DEBUG')
       await queryRunner.query(`
         INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "path", "nombre_archivo", 
         "doctipo_id", "persona_id", "objetivo_id", "den_documento", "cliente_id", "fec_doc_ven"
@@ -340,7 +362,7 @@ export class TipoDocumentoController extends BaseController {
         VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @11, @12, @13, @14)
       `, [ doc_id, liqmaperiodo[0].periodo_id, fecha, path, newFieldname, doctipo_id, persona_id, objetivo_id,
       den_documento, cliente_id, fec_doc_ven, usuario, ip, now, detalle_documento])
-      // throw new ClientException('DEBUG')
+      
       await queryRunner.commitTransaction()
       this.jsonRes({ doc_id:doc_id }, res);
     } catch (error) {
@@ -492,13 +514,26 @@ export class TipoDocumentoController extends BaseController {
         newFieldname = `${doctipo_id}-${doc_id}-${den_documento}.${type}`
 
         let newFilePath = `${pathArchivos}/${path}`
+
+        if (type == 'pdf') {
+          const loadingTask = getDocument(dirFile);
+          const document = await loadingTask.promise;
+          for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
+            const page = await document.getPage(pagenum);
+            const textContent = await page.getTextContent();
+            textContent.items.forEach((item: TextItem) => {
+              detalle_documento+=item.str + ((item.hasEOL)?'\n':'')
+            });
+          }
+        }
         
         if (!existsSync(newFilePath)) {
           mkdirSync(newFilePath, { recursive: true })
         }
         newFilePath += `/${newFieldname}`
         
-        renameSync(dirFile, newFilePath);
+        copyFileSync(dirFile, newFilePath)
+        unlinkSync(dirFile);
       }
 
       await queryRunner.query(`
