@@ -1096,34 +1096,23 @@ export class ObjetivosController extends BaseController {
     }
 
     async ObjetivoRubro(queryRunner: any, rubros: any, Objetivo: any, ClienteId: any, ClienteElementoDependienteId: any) {
+        if (!ClienteElementoDependienteId)
+            throw new ClientException('No se puede cambiar el Rubro de un cliente')
 
-        let res
         const RubroIds = rubros.map((row: { ClienteElementoDependienteRubroId: any; }) => row.ClienteElementoDependienteRubroId).filter((id) => id !== null && id !== undefined);
         if (RubroIds.length > 0)
             await queryRunner.query(`DELETE FROM ClienteEleDepRubro WHERE ClienteId = @0 AND ClienteElementoDependienteId =@1 AND ClienteElementoDependienteRubroId NOT IN (${RubroIds.join(',')})`, [ClienteId, ClienteElementoDependienteId])
 
-
-        if (ClienteElementoDependienteId)
-            res = await queryRunner.query(`SELECT ClienteElementoDependienteRubroUltNro as RubroUltNro FROM ClienteElementoDependiente WHERE ClienteId=@0 AND ClienteElementoDependienteId=@1 `, [ClienteId, ClienteElementoDependienteId])
-        else
-            res = await queryRunner.query(`SELECT ClienteRubroUltNro as RubroUltNro FROM Cliente WHERE ClienteId=@0`, [ClienteId])
-
-        let RubroUltNro = (res[0]?.RubroUltNro) ? res[0]?.RubroUltNro : 0
+        const resUltNro = await queryRunner.query(`SELECT ClienteElementoDependienteRubroUltNro as RubroUltNro FROM ClienteElementoDependiente WHERE ClienteId=@0 AND ClienteElementoDependienteId=@1 `, [ClienteId, ClienteElementoDependienteId])
+        let RubroUltNro = (resUltNro[0]?.RubroUltNro) ? resUltNro[0]?.RubroUltNro : 0
 
 
         for (const [idx, rubro] of rubros.filter(rubro => rubro.RubroId !== null && rubro.RubroId !== '' && rubro.RubroId !== 0).entries()) {
-            //for (const [idx, rubro] of rubros.entries()) {
-            //if(rubro.ClienteElementoDependienteRubroId && rubro.RubroId){
-
             if (rubro.ClienteElementoDependienteRubroId) {
-
                 await queryRunner.query(` UPDATE ClienteEleDepRubro SET ClienteElementoDependienteRubroClienteId = @1 WHERE ClienteId = @0 AND  ClienteElementoDependienteRubroId = @2`,
                     [ClienteId, ClienteElementoDependienteId, rubro.RubroId])
-
             } else {
-
                 RubroUltNro++
-
                 await queryRunner.query(`INSERT INTO ClienteEleDepRubro (ClienteElementoDependienteRubroId,ClienteId,ClienteElementoDependienteId, ClienteElementoDependienteRubroClienteId )
                         VALUES (@0, @1,@2,@3); `, [RubroUltNro, ClienteId, ClienteElementoDependienteId, rubro.RubroId])
 
@@ -1136,14 +1125,10 @@ export class ObjetivosController extends BaseController {
                     await queryRunner.query(`UPDATE Cliente SET  ClienteRubroUltNro = @1 WHERE ClienteId = @0`, [ClienteId, RubroUltNro])
 
                 }
-
-                rubros[idx].ClienteDomicilioId = RubroUltNro
+                rubros[idx].ClienteElementoDependienteRubroId = RubroUltNro
             }
-            // }
         }
-
         return rubros
-
     }
 
     async updateClienteElementoDependienteTable(
