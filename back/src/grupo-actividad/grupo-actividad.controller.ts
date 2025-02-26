@@ -918,12 +918,6 @@ export class GrupoActividadController extends BaseController {
                 //throw new ClientException(`test`)
                 const validarGrupoActividadVigente = (registro) => {
 
-                    if (registro?.GrupoActividadId == params.GrupoActividadDetalle.id &&
-                        (!registro?.GrupoActividadObjetivoHasta || new Date(registro.GrupoActividadObjetivoHasta) >= fechaActual)
-                    ) {
-                        throw new ClientException(`Ya se encuentra vigente el grupo actividad con el objetivo`)
-                    }
-
                     if (
                         registro?.GrupoActividadObjetivoHasta
                             ? new Date(params?.GrupoActividadObjetivoDesde) <= new Date(registro?.GrupoActividadObjetivoHasta)
@@ -932,12 +926,20 @@ export class GrupoActividadController extends BaseController {
                         const fecha = registro.GrupoActividadObjetivoHasta ? registro.GrupoActividadObjetivoHasta : registro.GrupoActividadObjetivoDesde
                         throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(fecha)} `)
                     }
+
+                    if (registro?.GrupoActividadId == params.GrupoActividadDetalle.id &&
+                        (!registro?.GrupoActividadObjetivoHasta || new Date(registro.GrupoActividadObjetivoHasta) >= fechaActual)
+                    ) {
+                        throw new ClientException(`Ya se encuentra vigente el grupo actividad con el objetivo`)
+                    }
+
+                   
                 };
 
                 const actualizarGrupoActividadHasta = async (registro) => {
 
 
-                    if (registro && (!registro.GrupoActividadObjetivoHasta || registro.GrupoActividadObjetivoHasta < GrupoActividadObjetivoHasta)) {
+                    if (registro && (!registro.GrupoActividadObjetivoHasta)) {
                         await queryRunner.query(
                             `UPDATE GrupoActividadObjetivo 
                              SET GrupoActividadObjetivoHasta = @2 
@@ -1084,7 +1086,7 @@ export class GrupoActividadController extends BaseController {
                 const ActualizarGrupoActividadPersonalHasta = async (registro) => {
 
 
-                    if (registro && (!registro.GrupoActividadPersonalHasta || registro.GrupoActividadPersonalHasta < GrupoActividadPersonalHasta)) {
+                    if (registro && (!registro.GrupoActividadPersonalHasta)) {
                         await queryRunner.query(
                             `UPDATE GrupoActividadPersonal 
                              SET GrupoActividadPersonalHasta = @1 
