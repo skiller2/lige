@@ -25,8 +25,8 @@
     <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters"
       (optionsChange)="listOptionsChange($event)" />
 
-    <div class="gridContainer2 container-fluid">
-      <angular-slickgrid gridId="gridEdit" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptionsEdit"
+    <div class="gridContainerGAG container-fluid">
+      <angular-slickgrid gridId="gridEditGAG" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptionsEdit"
         [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReadyEdit($event)"
         (onSelectedRowsChanged)="handleSelectedRowsChanged($event)" (onCellChange)="onCellChanged($event)" (onBeforeEditCell)="handleOnBeforeEditCell($event)">
         <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->

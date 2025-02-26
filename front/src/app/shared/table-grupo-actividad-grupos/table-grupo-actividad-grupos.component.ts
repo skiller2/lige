@@ -1,21 +1,17 @@
-
 import { CommonModule } from '@angular/common';
-//import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, OnChanges, SimpleChanges, input, ElementRef } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, SlickGrid, OnEventArgs, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, FieldType, GridOption, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../app/services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { CustomInputEditor } from '../../shared/custom-grid-editor/custom-grid-editor.component';
 import { RowDetailViewComponent } from '../../../app/shared/row-detail-view/row-detail-view.component';
-import { BehaviorSubject, catchError, debounceTime, firstValueFrom, map, of, switchMap, tap, timer } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, timer } from 'rxjs';
 import { SearchService } from '../../../app/services/search.service';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { columnTotal, totalRecords } from "../../shared/custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../shared/select-search/select-search.component"
-import { Component, model, signal, inject } from '@angular/core';
-import { EditorPersonaComponent } from '../../shared/editor-persona/editor-persona.component';
-
+import { Component, signal, inject } from '@angular/core';
 
 @Component({
   selector: 'app-table-grupo-actividad-grupos',
@@ -119,7 +115,7 @@ export class TableGrupoActividadGruposComponent {
 
   async ngOnInit() {
 
-    this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer2', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainerGAG', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
 
     this.gridOptionsEdit.enableRowDetailView = this.apiService.isMobile()
     this.gridOptionsEdit.showFooterRow = true

@@ -18,8 +18,8 @@
   <div nz-tab *ngIf="(columnsPersonal$|async) as columnas">
     <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"  />
 
-    <div class="gridContainer5 container-fluid">
-      <angular-slickgrid gridId="gridEdit2" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptionsEdit"
+    <div class="gridContainerGAP container-fluid">
+      <angular-slickgrid gridId="gridEditGAP" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptionsEdit"
         [dataset]="(gridDataPersonal$ | async) || []" (onAngularGridCreated)="angularGridReadyEdit($event)"
         (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"  (onBeforeEditCell)="handleOnBeforeEditCell($event)">
         <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->

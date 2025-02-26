@@ -113,7 +113,7 @@ export class TableGrupoActividadObjetivosComponent {
 
   async ngOnInit() {
 
-    this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer4', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainerGAO', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
 
     this.gridOptionsEdit.enableRowDetailView = this.apiService.isMobile()
     this.gridOptionsEdit.editable = true

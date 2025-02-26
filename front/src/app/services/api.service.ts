@@ -329,37 +329,30 @@ export class ApiService {
             col.editor = { model: Editors['date'] }
             col.cssClass = 'text-right'
             //col.params.parseDateAsUtc = true
-          } else 
-            
-          if (col.type == 'date') {
+          } else if (col.type == 'date') {
             col.formatter = Formatters['dateEuro']
             col.editor = { model: Editors['date'] }
             col.cssClass = 'text-right'
-          } else 
-
-          if (String(col.type) == 'currency' || String(col.type) == 'money') {
+            col.maxWidth = 100
+            col.minWidth = 100
+            col.width = 100
+          } else if (String(col.type) == 'currency' || String(col.type) == 'money') {
             col.formatter = Formatters['multiple']
             col.params = { formatters: [Formatters['currency']], thousandSeparator: '.', decimalSeparator: ',' }
             col.type = 'float'
             col.cssClass = 'text-right'
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
             
-          } else
-
-          if (String(col.type) == 'float' || String(col.type) == 'decimal') {
+          } else if (String(col.type) == 'float' || String(col.type) == 'decimal') {
             col.formatter = Formatters['multiple']
             col.params = { formatters: [Formatters['decimal']], thousandSeparator: '.', decimalSeparator: ',' }
             col.type = 'float'
             col.cssClass = 'text-right'
-          } else
-
-          if (col.type == 'number') {
+          } else if (col.type == 'number') {
             col.formatter = Formatters['multiple']
             col.params = { formatters: [] }
             col.cssClass = 'text-right'
-          } else
-
-          if (col.type == 'object')
+          } else if (col.type == 'object')
             col.type = FieldType.object
 
           return col

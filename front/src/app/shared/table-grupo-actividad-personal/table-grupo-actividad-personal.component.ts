@@ -1,24 +1,18 @@
-
 import { CommonModule } from '@angular/common';
-//import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, OnChanges, SimpleChanges, input, ElementRef } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, SlickGrid, OnEventArgs, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, GridOption, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { CustomInputEditor } from '../custom-grid-editor/custom-grid-editor.component';
 import { RowDetailViewComponent } from '../row-detail-view/row-detail-view.component';
-import { BehaviorSubject, catchError, debounceTime, firstValueFrom, map, of, switchMap, tap, timer } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, timer } from 'rxjs';
 import { SearchService } from '../../services/search.service';
-import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
+import { FiltroBuilderComponent } from '../../shared/filtro-builder/filtro-builder.component';
 import { columnTotal, totalRecords } from "../custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { SelectSearchComponent } from "../select-search/select-search.component"
-import { Component, model, signal, inject } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { GrupoActividadSearchComponent } from '../grupo-actividad-search/grupo-actividad-search.component';
-import { ObjetivoSearchComponent } from '../objetivo-search/objetivo-search.component'
 import { EditorPersonaComponent } from '../../shared/editor-persona/editor-persona.component';
-
-
 
 @Component({
   selector: 'app-table-grupo-actividad-personal',
@@ -113,7 +107,7 @@ export class TableGrupoActividadPersonalComponent {
 
   async ngOnInit() {
 
-    this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainer5', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptionsEdit = this.apiService.getDefaultGridOptions('.gridContainerGAP', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
 
     this.gridOptionsEdit.enableRowDetailView = this.apiService.isMobile()
     this.gridOptionsEdit.editable = true
