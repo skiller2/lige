@@ -270,6 +270,7 @@ export class ObjetivosFormComponent {
           this.formCli.patchValue({
             infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
             infoRubro: result.data.infoRubro,
+            infoActividad: result.data.infoActividad,
             codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
             clienteOld: result.data.ClienteId,
             DomicilioId: result.data.DomicilioId
@@ -288,8 +289,13 @@ export class ObjetivosFormComponent {
           this.ClienteId.set(result.data.ClienteId)
           this.ClienteElementoDependienteId.set(result.data.NewClienteElementoDependienteId)
           this.formCli.patchValue({
-            codigo: `${result.data.ClienteId}/${result.data.NewClienteElementoDependienteId}`,
-          })
+            infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
+            infoRubro: result.data.infoRubro,
+            infoActividad: result.data.infoActividad,
+            codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
+            clienteOld: result.data.ClienteId,
+            DomicilioId: result.data.DomicilioId
+          });
           //this.addNew.set(true)
           
         }
