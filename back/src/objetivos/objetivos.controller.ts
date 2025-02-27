@@ -877,12 +877,11 @@ export class ObjetivosController extends BaseController {
         const GrupoActividadObjetivoTiempo = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
         const Usuario = await queryRunner.query(`SELECT UsuarioId FROM Usuario WHERE UsuarioNombre = @0`, [GrupoActividadObjetivoUsuarioId])
         const UsuarioId = Usuario[0].UsuarioId;
-        const ValidatePeriodoAndDay = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
-        const FechaCierre = new Date(ValidatePeriodoAndDay[0].FechaCierre);
+        const cierre = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
+        const FechaCierre = new Date(cierre[0].FechaCierre);
 
 
         let GrupoActividadObjetivoDesde = new Date(infoActividad[0].GrupoActividadObjetivoDesde)
-        console.log("GrupoActividadObjetivoDesde ", GrupoActividadObjetivoDesde)
         GrupoActividadObjetivoDesde.setHours(0, 0, 0, 0)
 
         //        throw new ClientException('Fecha GrupoActividadObjetivoDesde',GrupoActividadObjetivoDesde)
@@ -1241,7 +1240,6 @@ export class ObjetivosController extends BaseController {
     async deleteObjetivo(req: Request, res: Response, next: NextFunction) {
 
         let { ClienteId, ObjetivoId, ClienteElementoDependienteId, DomicilioId, ContratoId } = req.query
-        //console.log("req.query ", req.query)
         const queryRunner = dataSource.createQueryRunner();
 
         try {
@@ -1346,10 +1344,8 @@ export class ObjetivosController extends BaseController {
 
 
             let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT ClienteElementoDependienteUltNro AS ClienteElementoDependienteUltNro FROM Cliente WHERE ClienteId = @0`, [Number(Obj.ClienteId)])
-            console.log("infoMaxClienteElementoDependiente ", infoMaxClienteElementoDependiente)
             let { ClienteElementoDependienteUltNro } = infoMaxClienteElementoDependiente[0]
             ClienteElementoDependienteUltNro = ClienteElementoDependienteUltNro == null ? 1 : ClienteElementoDependienteUltNro + 1
-            console.log("ClienteElementoDependienteUltNro ", ClienteElementoDependienteUltNro)
 
             //Agrego los valores al objeto original para retornar
             ObjObjetivoNew.NewClienteElementoDependienteId = ClienteElementoDependienteUltNro
@@ -1602,8 +1598,6 @@ export class ObjetivosController extends BaseController {
                     AND bar.BarrioId = dom.ClienteElementoDependienteDomicilioBarrioId
                     AND bar.PaisId = 1
                 WHERE  ClienteElementoDependienteId = @1 AND ClienteId = @0;`, [ClienteId, ClienteElementoDependienteId])
-
-            console.log("domicilio....")
 
             this.jsonRes(
                 {
