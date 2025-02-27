@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, effect, Injector } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef} from '@angular/core';
 import { FormBuilder, FormArray } from '@angular/forms';
 import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
@@ -37,7 +37,6 @@ export class TipoDocumentoAltaDrawerComponent {
   label = signal<string>('. . .');
   fileName = signal("")
   drawerWidth = signal("600px")
-  public src = signal<Blob>(new Blob())
 
   constructor(
     private searchService: SearchService,

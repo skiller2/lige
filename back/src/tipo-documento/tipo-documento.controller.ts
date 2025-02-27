@@ -11,6 +11,7 @@ import { Options } from "../schemas/filtro";
 import { mkdirSync, existsSync, renameSync, copyFileSync, unlinkSync } from "fs";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
+import * as path from 'path';
 
 export class TipoDocumentoController extends BaseController {
 
@@ -316,7 +317,7 @@ export class TipoDocumentoController extends BaseController {
         `, [anio, mes, usuario, ip, now])
       }
       // const periodo_id = liqmaperiodo[0].periodo_id
-      let path = ''
+      let pathFile = ''
       let newFieldname = ''
       let detalle_documento = ''
       if (archivo.length) {
@@ -326,12 +327,15 @@ export class TipoDocumentoController extends BaseController {
           SELECT path_origen FROM lige.dbo.doctipo WHERE doctipo_id = @0
         `, [doctipo_id])
         
+        const pathDocuments  = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'
+        const tempFolderPath = path.join(pathDocuments, 'temp');
+        const dirFile = path.join(tempFolderPath, `${fieldname}.${type}`);
+
         const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
-        const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
-        path = `${anio}/${doctipo[0].path_origen}`
+        pathFile = `${anio}/${doctipo[0].path_origen}`
         newFieldname = `${doctipo_id}-${doc_id}-${den_documento}.${type}`
 
-        let newFilePath = `${pathArchivos}/${path}`
+        let newFilePath = `${pathArchivos}/${pathFile}`
 
         if (type == 'pdf') {
           const loadingTask = getDocument(dirFile);
@@ -353,16 +357,16 @@ export class TipoDocumentoController extends BaseController {
         copyFileSync(dirFile, newFilePath)
         unlinkSync(dirFile);
       }
-      // throw new ClientException('DEBUG')
+      
       await queryRunner.query(`
         INSERT INTO lige.dbo.docgeneral ("doc_id", "periodo", "fecha", "path", "nombre_archivo", 
-        "doctipo_id", "persona_id", "objetivo_id", "den_documento", "cliente_id", "fec_doc_ven"
+        "doctipo_id", "persona_id", "objetivo_id", "den_documento", "cliente_id", "fec_doc_ven",
         "aud_usuario_ins", "aud_ip_ins", "aud_fecha_ins", "aud_usuario_mod", "aud_ip_mod", "aud_fecha_mod",
         "detalle_documento")
         VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @11, @12, @13, @14)
-      `, [ doc_id, liqmaperiodo[0].periodo_id, fecha, path, newFieldname, doctipo_id, persona_id, objetivo_id,
+      `, [ doc_id, liqmaperiodo[0].periodo_id, fecha, pathFile, newFieldname, doctipo_id, persona_id, objetivo_id,
       den_documento, cliente_id, fec_doc_ven, usuario, ip, now, detalle_documento])
-      
+      // throw new ClientException('DEBUG')
       await queryRunner.commitTransaction()
       this.jsonRes({ doc_id:doc_id }, res);
     } catch (error) {
@@ -498,7 +502,7 @@ export class TipoDocumentoController extends BaseController {
         `, [anio, mes, usuario, ip, now])
       }
 
-      let path = ''
+      let pathFile = ''
       let newFieldname = ''
       let detalle_documento = ''
       if (archivo.length) {
@@ -508,12 +512,15 @@ export class TipoDocumentoController extends BaseController {
           SELECT path_origen FROM lige.dbo.doctipo WHERE doctipo_id = @0
         `, [doctipo_id])
         
+        const pathDocuments  = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'
+        const tempFolderPath = path.join(pathDocuments, 'temp');
+        const dirFile = path.join(tempFolderPath, `${fieldname}.${type}`);
+
         const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
-        const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
-        path = `${anio}/${doctipo[0].path_origen}`
+        pathFile = `${anio}/${doctipo[0].path_origen}`
         newFieldname = `${doctipo_id}-${doc_id}-${den_documento}.${type}`
 
-        let newFilePath = `${pathArchivos}/${path}`
+        let newFilePath = `${pathArchivos}/${pathFile}`
 
         if (type == 'pdf') {
           const loadingTask = getDocument(dirFile);
@@ -539,10 +546,10 @@ export class TipoDocumentoController extends BaseController {
       await queryRunner.query(`
         UPDATE lige.dbo.docgeneral
         SET periodo = @1 fecha = @2, path = @3, nombre_archivo = @4, 
-        doctipo_id = @5, persona_id = @6, objetivo_id = @7, den_documento = @8, cliente_id = @9, fec_doc_ven = @10
+        doctipo_id = @5, persona_id = @6, objetivo_id = @7, den_documento = @8, cliente_id = @9, fec_doc_ven = @10,
         aud_usuario_mod = @11, aud_ip_mod = @12, aud_fecha_mod = @13, detalle_documento = @14
         WHERE doc_id IN (@0)
-      `, [ doc_id, liqmaperiodo[0].periodo_id, fecha, path, newFieldname, doctipo_id, persona_id, objetivo_id,
+      `, [ doc_id, liqmaperiodo[0].periodo_id, fecha, pathFile, newFieldname, doctipo_id, persona_id, objetivo_id,
       den_documento, cliente_id, fec_doc_ven, usuario, ip, now, detalle_documento])
       // throw new ClientException('DEBUG')
       await queryRunner.commitTransaction()
@@ -572,7 +579,7 @@ export class TipoDocumentoController extends BaseController {
     if (doctipo_id == 'CLI' && !Number.isInteger(cliente_id)) campos_vacios.push(`- Cliente`)
     if (doctipo_id == 'OBJ' && !Number.isInteger(objetivo_id)) campos_vacios.push(`- Objetivo`)
     if (!fecha) campos_vacios.push(`- Desde`)
-    if (!fec_doc_ven) campos_vacios.push(`- Hasta`)
+    // if (!fec_doc_ven) campos_vacios.push(`- Hasta`)
 
     if (campos_vacios.length) {
       campos_vacios.unshift('Debe completar los siguientes campos: ')

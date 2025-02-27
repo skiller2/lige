@@ -67,7 +67,7 @@
         </form>
       </div>
       <div nz-col nzFlex="350px" class="app-foto-container" *ngIf="archivo_mimetype() == 'image'">
-        <img nz-image class="image-content" [nzSrc]="archivo_fileUrl()" alt=""/>
+        <img nz-image class="image-content" [nzSrc]="archivo_fileUrl()" alt="" width="350px"/>
       </div>
       <div nz-col nzFlex="350px" class="app-foto-container" *ngIf="archivo_mimetype() == 'pdf'">
         <ngx-extended-pdf-viewer [src]="archivo_fileUrl()" [height]="'auto'" [textLayer]="true" [showHandToolButton]="false"
