@@ -1,24 +1,19 @@
 
 import { CommonModule } from '@angular/common';
-//import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, OnChanges, SimpleChanges, input, ElementRef } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, Formatters, FieldType, Editors, FileType, GridOption, SlickGrid, OnEventArgs, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { CustomInputEditor } from '../custom-grid-editor/custom-grid-editor.component';
 import { RowDetailViewComponent } from '../row-detail-view/row-detail-view.component';
-import { BehaviorSubject, catchError, debounceTime, firstValueFrom, map, of, switchMap, tap, timer } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, map, of, switchMap, tap, timer } from 'rxjs';
 import { SearchService } from '../../services/search.service';
 import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
 import { columnTotal, totalRecords } from "../custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { SelectSearchComponent } from "../select-search/select-search.component"
 import { Component, model, signal, inject } from '@angular/core';
 import { GrupoActividadSearchComponent } from '../grupo-actividad-search/grupo-actividad-search.component';
-import { ObjetivoSearchComponent } from '../objetivo-search/objetivo-search.component'
 import { EditorObjetivoComponent } from '../../shared/editor-objetivo/editor-objetivo.component';
-
-
 
 @Component({
   selector: 'app-table-grupo-actividad-objetivos',
@@ -67,7 +62,7 @@ export class TableGrupoActividadObjetivosComponent {
 
   columnsObjetivos$ = this.apiService.getCols('/api/grupo-actividad/colsobjetivos').pipe(
     switchMap(async (cols) => {return { cols }}),
-    map((data) => {
+    map((data:any) => {
       let mapped = data.cols.map((col: Column) => {
         switch (col.id) {
           case 'GrupoActividadDetalle':
@@ -149,7 +144,7 @@ export class TableGrupoActividadObjetivosComponent {
         if (!row.dbid)
           this.rowLocked = true
 
-        const response = await firstValueFrom(this.apiService.onchangecellGrupoActividadObjetivos(row))
+        const response:any = await firstValueFrom(this.apiService.onchangecellGrupoActividadObjetivos(row))
         row.GrupoActividadId = response.data.GrupoActividadId
         this.angularGridEditObjetivos.gridService.updateItemById(row.id, row)
 

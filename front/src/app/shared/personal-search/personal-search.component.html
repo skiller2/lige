@@ -24,9 +24,9 @@
 </ng-template>
 
 @if (anio()>0 && mes()>0){
-<nz-input-number-group [nzAddOnAfter]="suffixReloadTpl" style="width: 100%;">
+<nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="width: 100%;">
   <ng-container [ngTemplateOutlet]="selectTpl"></ng-container>
-</nz-input-number-group>
+</nz-input-group>
 <app-detalle-persona [anio]="anio()" [mes]="mes()" [SucursalId]="sucursalId()" [PersonalId]="selectedIdNum"
   [visible]="visibleDrawer()" (onClose)="closeDrawer()"></app-detalle-persona>
 

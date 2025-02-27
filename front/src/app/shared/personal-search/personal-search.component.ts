@@ -15,7 +15,8 @@ import { doOnSubscribe } from 'src/app/services/api.service'
 import { NzSelectComponent } from 'ng-zorro-antd/select'
 import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
-import { DetallePersonaComponent } from "../../routes/ges/detalle-persona/detalle-persona.component";
+import { DetallePersonaComponent } from "../../routes/ges/detalle-persona/detalle-persona.component"
+import { NzInputGroupComponent } from 'ng-zorro-antd/input'
 
 @Component({
   selector: 'app-personal-search',
@@ -29,7 +30,7 @@ import { DetallePersonaComponent } from "../../routes/ges/detalle-persona/detall
     },
   ],
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, DetallePersonaComponent],
+  imports: [...SHARED_IMPORTS, CommonModule, DetallePersonaComponent,NzInputGroupComponent],
 
 })
 
