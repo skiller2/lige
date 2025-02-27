@@ -2,8 +2,97 @@ import { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/baseController";
 import { dataSource } from "../data-source";
 import { QueryRunner } from "typeorm";
+import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
+
+
+
+const listaColumnas: any[] = [
+  {
+    id: "id",
+    name: "id",
+    field: "id",
+    fieldName: "id",
+    type: "number",
+    sortable: false,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    name: "Apellido Nombre",
+    type: "string",
+    id: "PersonalApellidoNombre",
+    field: "PersonalApellidoNombre",
+    fieldName: "PersonalApellidoNombre",
+    sortable: true,
+    searchHidden: true
+  },
+  {
+    name: "Nombre",
+    type: "string",
+    id: "PersonalId",
+    field: "PersonalId",
+    fieldName: "per.PersonalId",
+    searchComponent: "inpurForPersonalSearch",
+    sortable: false,
+    hidden: true,
+    searchHidden: false
+  },
+  {
+    name: "Tipo seguro",
+    type: "string",
+    id: "nom_tip_seguro",
+    field: "nom_tip_seguro",
+    fieldName: "tipseg.nom_tip_seguro",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    name: "Motivo adhesión",
+    type: "string",
+    id: "mot_adh_seguro",
+    field: "mot_adh_seguro",
+    fieldName: "seg.mot_adh_seguro",
+    sortable: true,
+    searchHidden: true
+  },
+  {
+    name: "Motivo baja",
+    type: "string",
+    id: "mot_baj_seguro",
+    field: "mot_baj_seguro",
+    fieldName: "seg.mot_baj_seguro",
+    sortable: true,
+    searchHidden: true
+  },
+  {
+    name: "Fecha de adhesión",
+    type: "date",
+    id: "fecdesde",
+    field: "fecdesde",
+    fieldName: "seg.fec_desde",
+    searchComponent: "inpurForFechaSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    name: "Fecha de baja",
+    type: "date",
+    id: "fechasta",
+    field: "fechasta",
+    fieldName: "seg.fec_hasta",
+    searchComponent: "inpurForFechaSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  }
+];
+
 
 export class SegurosController extends BaseController {
+
+
   private async getPersonalBySitRev(queryRunner: any, anio: number, mes: number) {
     return queryRunner.query(`SELECT psr.*, persr.PersonalSituacionRevistaDesde, persr.PersonalSituacionRevistaSituacionId SituacionRevistaId, DATEDIFF(month,persr.PersonalSituacionRevistaDesde,EOMONTH(DATEFROMPARTS(@1,@2,1))) month_diff FROM (
 
@@ -168,13 +257,13 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
 
 
       for (const row of personalEnSeguroCoto) {
-        if (!personalCoto.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId!=10) {
+        if (!personalCoto.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APC', 'No esta mas en COTO')
         }
       }
 
       for (const row of personalEnSeguroEdesur) {
-        if (!personalEdesur.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId!=10) {
+        if (!personalEdesur.find(r => r.PersonalId == row.PersonalId) && row.SituacionRevistaId != 10) {
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APE', 'No esta mas en Edesur')
         }
       }
@@ -184,14 +273,14 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
 
 
       for (const row of personalSitRev) {
-        if (personalEnSeguroCoto2.find(r => r.PersonalId == row.PersonalId) || personalEnSeguroEdesur2.find(r => r.PersonalId == row.PersonalId)) { 
+        if (personalEnSeguroCoto2.find(r => r.PersonalId == row.PersonalId) || personalEnSeguroEdesur2.find(r => r.PersonalId == row.PersonalId)) {
           continue
         }
         const rowEnSeguro = personalEnSeguroGeneral.find(r => r.PersonalId == row.PersonalId)
         if (rowEnSeguro) {
           await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.fec_desde, 'APG', row.detalle)
         } else {
-          if ([7,8,29,36,30,31].includes(row.SituacionRevistaId) && row.month_diff > 3) 
+          if ([7, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId) && row.month_diff > 3)
             continue
           await this.queryAddSeguros(queryRunner, row.PersonalId, fec_desde, 'APG', row.detalle)
         }
@@ -204,23 +293,23 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       for (const row of personalEnSeguroGeneral) {
         if (personalEnSeguroCoto2.find(r => r.PersonalId == row.PersonalId))
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'Paso a Coto')
-        
+
         if (personalEnSeguroEdesur2.find(r => r.PersonalId == row.PersonalId))
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'Paso a Edesur')
 
-        const rowEnSitRev = personalSitRev.find(r => r.PersonalId == row.PersonalId) 
+        const rowEnSitRev = personalSitRev.find(r => r.PersonalId == row.PersonalId)
 
         if (!personalSitRev.find(r => r.PersonalId == row.PersonalId)) {
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', 'No tiene situación revista (2,10,11,20,12,8,29,36,30,31,7)')
         } else {
-          if ([7,8,29,36,30,31].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3)
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', rowEnSitRev.detalle + ' mayor a 3 meses')
+          if ([7, 8, 29, 36, 30, 31].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3)
+            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'APG', rowEnSitRev.detalle + ' mayor a 3 meses')
         }
       }
 
-//Vida Colectivo
+      //Vida Colectivo
       for (const row of personalSitRev) {
-        if ([7,8,29,36,30,31].includes(row.SituacionRevistaId) && row.month_diff > 3) 
+        if ([7, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId) && row.month_diff > 3)
           continue
         const rowEnSeguro = personalEnSeguroVidCol.find(r => r.PersonalId == row.PersonalId)
         if (rowEnSeguro) {
@@ -231,12 +320,12 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       }
 
       for (const row of personalEnSeguroVidCol) {
-        const rowEnSitRev = personalSitRev.find(r => r.PersonalId == row.PersonalId) 
+        const rowEnSitRev = personalSitRev.find(r => r.PersonalId == row.PersonalId)
         if (!personalSitRev.find(r => r.PersonalId == row.PersonalId)) {
           await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'VC', 'No tiene situación revista (2,10,11,20,12,8,29,36,30,31,7)')
         } else {
-          if ([7,8,29,36,30,31].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3)
-          await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'VC', rowEnSitRev.detalle + ' mayor a 3 meses')
+          if ([7, 8, 29, 36, 30, 31].includes(rowEnSitRev.SituacionRevistaId) && rowEnSitRev.month_diff > 3)
+            await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'VC', rowEnSitRev.detalle + ' mayor a 3 meses')
         }
       }
 
@@ -278,6 +367,57 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       VALUES  (@0,@1, @2, @3,@4, @5, @6, @7, @8, @9, @10, @11)
     `, [PersonalId, cod_tip_seguro, fec_desde, null, mot_adh_seguro, null, stm_now, usuario, ip, stm_now, usuario, ip])
   }
+
+
+  async getGridCols(req, res) {
+    this.jsonRes(listaColumnas, res);
+  }
+
+
+  async getSegurosList(
+    req: any,
+    res: Response, next: NextFunction
+  ) {
+
+    console.log("req.body.options.filtros ", req.body.options.filtros)
+    console.log("listaColumnas ", listaColumnas)
+    const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
+    const orderBy = orderToSQL(req.body.options.sort)
+    const anio:number = req.body.anio
+    const mes:number = req.body.mes
+    try {
+      const result = await dataSource.query(`
+        SELECT 
+            ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
+            per.PersonalId,
+            per.PersonalApellidoNombre,
+            seg.cod_tip_seguro,
+            tipseg.nom_tip_seguro,
+            seg.mot_adh_seguro,
+            seg.mot_baj_seguro,
+            seg.fec_desde,
+            seg.fec_hasta
+        FROM Personal per
+        JOIN lige.dbo.seg_personal_seguro seg ON per.PersonalId = seg.PersonalId
+        JOIN lige.dbo.seg_tipo_seguro tipseg ON seg.cod_tip_seguro = tipseg.cod_tip_seguro
+        AND ${filterSql}
+        ${orderBy}
+      `)
+      this.jsonRes(
+        {
+          total: result.length,
+          list: result,
+        },
+        res
+      );
+
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+
+
 
 }
 

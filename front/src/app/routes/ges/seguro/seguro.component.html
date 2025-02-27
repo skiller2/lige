@@ -1,0 +1,27 @@
+<nz-card class="small-margin">
+
+    <div nz-row class="contentStyle">
+        <div nz-col nzSpan="13" class="listStyle">
+          <ul nz-menu nzMode="horizontal" style="display: flex;">
+            <li nz-menu-item nzMatchRouter>
+              <span nz-icon nzType=""></span>
+              <a [routerLink]="['/', 'ges', 'seguro', 'listado']">{{ 'app.segurosList' | i18n }}</a>
+            </li>
+          </ul>
+        </div>
+      
+      </div>
+
+
+    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+        <nz-tab>
+            <a nz-tab-link routerLink="/ges/seguro/listado">Listado</a>
+            <ng-template nz-tab >
+          <div class="gridContainer container-fluid">
+             <app-table-seguros-list></app-table-seguros-list>
+          </div>
+        </ng-template>
+        </nz-tab>
+    </nz-tabset>
+
+</nz-card>
