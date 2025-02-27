@@ -286,12 +286,12 @@ export class TableGrupoActividadPersonalComponent {
     if (item.GrupoActividadId == 0)
       return true
 
-    // if (item.GrupoActividadObjetivoHasta && new Date(item.GrupoActividadPersonalHasta) < new Date(new Date().setHours(0, 0, 0, 0))) {
-    //   return false;
-    // }
+    if (item.GrupoActividadObjetivoHasta) {
+      return false;
+    }
 
-    // if (column.id == 'GrupoActividadPersonalDesde' || column.id == 'GrupoActividadPersonalHasta')
-    //   return true
+    if (column.id == 'GrupoActividadPersonalDesde' || column.id == 'GrupoActividadPersonalHasta')
+      return true
 
     e.stopImmediatePropagation();
     return false;

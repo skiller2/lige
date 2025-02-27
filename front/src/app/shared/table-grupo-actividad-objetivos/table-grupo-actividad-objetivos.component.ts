@@ -293,11 +293,11 @@ export class TableGrupoActividadObjetivosComponent {
     if (item.GrupoActividadId == 0)
       return true
 
-    // if (item.GrupoActividadObjetivoHasta && new Date(item.GrupoActividadObjetivoHasta) < new Date(new Date().setHours(0, 0, 0, 0)))
-    //   return false
+    if (item.GrupoActividadObjetivoHasta)
+      return false
 
-    // if (column.id == 'GrupoActividadObjetivoDesde' || column.id == 'GrupoActividadObjetivoHasta')
-    //   return true
+    if (column.id == 'GrupoActividadObjetivoDesde' || column.id == 'GrupoActividadObjetivoHasta')
+      return true
 
     e.stopImmediatePropagation();
     return false;
