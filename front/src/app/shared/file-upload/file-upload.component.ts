@@ -157,7 +157,7 @@ export class FileUploadComponent implements ControlValueAccessor {
         let cant = this.cantFilesAnteriores()
         this.cantFilesAnteriores.set(--cant)
       }
-
+      this.propagateChange(this.files())
 
     } catch (error) {
 
