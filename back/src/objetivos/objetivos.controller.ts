@@ -1317,8 +1317,6 @@ export class ObjetivosController extends BaseController {
         const Obj = { ...req.body };
         const infoActividad = { ...Obj.infoActividad }
         let ObjObjetivoNew = { ClienteId: 0, ObjetivoNewId: 0, NewClienteElementoDependienteId: 0, infoRubro: {}, infoCoordinadorCuenta: {}, infoActividad:[] }
-        //throw new ClientException(`test`)
-        let newObj = []
         try {
 
             const usuario = res.locals.userName
@@ -1376,12 +1374,12 @@ export class ObjetivosController extends BaseController {
 
             if (infoActividad[0].GrupoActividadId) {
                 await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoId, ip, usuario)
-
-                const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, Obj.ClienteId, ClienteElementoDependienteUltNro)
-                ObjObjetivoNew.infoActividad[0] = grupoactividad[0]
-                ObjObjetivoNew.infoActividad[0].GrupoActividadOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadId
-                ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesdeOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesde
             }
+
+            const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, Obj.ClienteId, ClienteElementoDependienteUltNro)
+            ObjObjetivoNew.infoActividad[0] = grupoactividad[0]
+            ObjObjetivoNew.infoActividad[0].GrupoActividadOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadId
+            ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesdeOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesde
 
             if (Obj.files?.length > 0) {
                 await FileUploadController.handlePDFUpload(ObjetivoId, 'Objetivo', 'OBJ', 'objetivo_id', Obj.files, usuario, ip)
