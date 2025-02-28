@@ -1,0 +1,15 @@
+<nz-select #seg [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }" 
+  (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Tipo Seguro"
+  nzShowSearch nzServerSearch (nzOnSearch)="search($event)" >
+  <ng-container *ngFor="let option of $optionsArray | async">
+    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.SeguroId"
+      nzLabel="{{ option.SeguroDescripcion }} ({{option.SeguroId}})" />
+  </ng-container>
+  <nz-option *ngIf="extendedOption.SeguroId != ''" [nzValue]="extendedOption.SeguroId"
+    [nzLabel]="extendedOption.SeguroDescripcion" />
+  <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
+    <span nz-icon nzType="loading" class="loading-icon"></span>
+    Cargando datos...
+  </nz-option>
+</nz-select>
+

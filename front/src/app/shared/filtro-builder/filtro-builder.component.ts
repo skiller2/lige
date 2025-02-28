@@ -24,6 +24,7 @@ import { GrupoActividadSearchComponent } from '../grupo-actividad-search/grupo-a
 import { RequirenteSearchComponent } from '../requirente-search/requirente-search.component';
 import { DescripcionProductoSearchComponent } from "../../shared/descripcion-producto-search/descripcion-producto-search.component"
 import { AdministradorSearchComponent } from "../../shared/administrador-search/administrador-search.component"
+import { SeguroSearchComponent } from "../../shared/seguro-search/seguro-search.component"
 
 
 type listOptionsT = {
@@ -44,7 +45,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
     selector: 'shared-filtro-builder',
     imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
         ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent,
-        RequirenteSearchComponent, AdministradorSearchComponent
+        RequirenteSearchComponent, AdministradorSearchComponent,SeguroSearchComponent
     ],
     templateUrl: './filtro-builder.component.html',
     styles: [],

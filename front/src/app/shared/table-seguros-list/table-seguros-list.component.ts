@@ -84,18 +84,17 @@ export class TableSeguroListComponent {
   startFilters: any[] = []
 
   listOptionsChange(options: any) {
+    this.listOptions = options
     this.formChange$.next('')
   }
 
   gridData$ = this.formChange$.pipe(
     debounceTime(250),
     switchMap(() => {
-      this.listOptions.filtros = this.startFilters
       return this.apiService
         .getListSeguros({ options: this.listOptions } )
         .pipe(
           map(data => {
-            console.log("data.list ", data.list)
             this.dataAngularGrid = data.list
             return data.list
           }),

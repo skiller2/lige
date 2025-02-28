@@ -44,7 +44,17 @@ const listaColumnas: any[] = [
     field: "nom_tip_seguro",
     fieldName: "tipseg.nom_tip_seguro",
     sortable: true,
-    hidden: false,
+    searchHidden: true
+  },
+  {
+    name: "Tipo seguro ",
+    type: "string",
+    id: "cod_tip_seguro",
+    field: "cod_tip_seguro",
+    fieldName: "tipseg.cod_tip_seguro",
+    searchComponent: "inpurForTipoSeguroSearch",
+    sortable: false,
+    hidden: true,
     searchHidden: false
   },
   {
@@ -378,9 +388,6 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
     req: any,
     res: Response, next: NextFunction
   ) {
-
-    console.log("req.body.options.filtros ", req.body.options.filtros)
-    console.log("listaColumnas ", listaColumnas)
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
     const anio:number = req.body.anio
@@ -417,6 +424,43 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
   }
 
 
+  search(req: any, res: Response, next: NextFunction) {
+
+    const { fieldName, value } = req.body;
+    let buscar = false;
+    let query: string = `SELECT cod_tip_seguro as SeguroId ,nom_tip_seguro as SeguroDescripcion from lige.dbo.seg_tipo_seguro WHERE 1=1 AND `;
+    switch (fieldName) {
+      case "SeguroDescripcion":
+        const valueArray: Array<string> = value.split(/[\s,.]+/);
+        valueArray.forEach((element, index) => {
+          if (element.trim().length >= 1) {
+            query += ` nom_tip_seguro LIKE '%${element.trim()}%' AND `;
+            buscar = true;
+          }
+        });
+        break;
+      case "SeguroId":
+        if (value > 0) {
+          query += ` cod_tip_seguro = '${value}' AND `;
+          buscar = true;
+        }
+        break;
+      default:
+        break;
+    }
+
+
+
+    dataSource
+      .query((query += " 1=1"))
+      .then((records) => {
+        this.jsonRes({ recordsArray: records }, res);
+      })
+      .catch((error) => {
+        return next(error)
+      });
+
+    }
 
 
 }
