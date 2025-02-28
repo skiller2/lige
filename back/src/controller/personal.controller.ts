@@ -158,15 +158,17 @@ export class PersonalController extends BaseController {
 
     try {
       const result = await dataSource.query(
-        `SELECT DISTINCT
+        `SELECT
         per.PersonalId PersonalId, cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
         com.PersonalComprobantePagoAFIPAno,com.PersonalComprobantePagoAFIPMes,com.PersonalComprobantePagoAFIPImporte,
-        ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
+        ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle, gap.GrupoActividadPersonalDesde,
         1
         FROM Personal per
         JOIN PersonalComprobantePagoAFIP com ON com.PersonalId=per.PersonalId AND com.PersonalComprobantePagoAFIPAno = @1 AND com.PersonalComprobantePagoAFIPMes = @2
         LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-        LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+        LEFT JOIN (
+		  		SELECT TOP 1 gap.GrupoActividadId, gap.GrupoActividadPersonalPersonalId PersonalId, gap.GrupoActividadPersonalDesde FROM GrupoActividadPersonal gap WHERE gap.GrupoActividadPersonalPersonalId = @0 AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31') ORDER BY gap.GrupoActividadPersonalDesde DESC
+		    ) gap ON gap.PersonalId = per.PersonalId
         LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
         WHERE per.PersonalId = @0`,
         [personalId, anio, mes]
