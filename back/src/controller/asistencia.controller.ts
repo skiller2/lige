@@ -39,7 +39,8 @@ const columnasPersonalxResponsable: any[] = [
     fieldName: "cuit.PersonalCUITCUILCUIT",
     type: "number",
     sortable: true,
-
+    minWidth:100,
+    maxWidth:100
   },
   {
     name: "PersonalId",
@@ -76,6 +77,8 @@ const columnasPersonalxResponsable: any[] = [
     field: "ingresos_horas",
     fieldName: "ingresos_horas",
     sortable: true,
+    minWidth:50,
+    maxWidth:50
   },
   {
     name: "Descuentos",
@@ -103,7 +106,22 @@ const columnasPersonalxResponsable: any[] = [
     fieldName: "det_status_bot",
     sortable: true,
   },
-
+  {
+    name: "Situación Revista",
+    type: "string",
+    id: "SituacionRevistaDescripcion",
+    field: "SituacionRevistaDescripcion",
+    fieldName: "SituacionRevistaDescripcion",
+    sortable: true,
+  },
+  {
+    name: "Desde",
+    type: "date",
+    id: "PersonalSituacionRevistaDesde",
+    field: "PersonalSituacionRevistaDesde",
+    fieldName: "PersonalSituacionRevistaDesde",
+    sortable: true,
+  },
 ];
 
 const columnasPersonalxResponsableDesc: any[] = [
@@ -1452,13 +1470,23 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
         0 as ingresos_horas,
         0 as egresosG_importe,
         0 as egresosC_importe,
+        sitrev.SituacionRevistaDescripcion,sitrev.PersonalSituacionRevistaDesde,
         1
         FROM Personal per
-        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+        LEFT JOIN (
+          SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde
+          FROM PersonalSituacionRevista p
+          JOIN SituacionRevista s
+          ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= GETDATE() AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= GETDATE()
+			 ) sitrev ON sitrev.PersonalId = per.PersonalId
+
+
+        
         WHERE per.PersonalId IN (
           SELECT gap.GrupoActividadPersonalPersonalId
           FROM GrupoActividadJerarquico gaj 
-          JOIN GrupoActividadPersonal gap ON gap.GrupoActividadId=gaJ.GrupoActividadId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31') 
+          JOIN GrupoActividadPersonal gap ON gap.GrupoActividadId=gaJ.GrupoActividadId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
           WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > gaj.GrupoActividadJerarquicoDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gaj.GrupoActividadJerarquicoHasta , '9999-12-31') AND gaj.GrupoActividadJerarquicoPersonalId = @0
           UNION
           
