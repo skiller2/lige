@@ -7,14 +7,13 @@ import { TableHorasLicenciaComponent } from '../../../shared/table-horas-licenci
 
 
 import {
-  BehaviorSubject,
+  BehaviorSubject, firstValueFrom,
 } from 'rxjs';
 import { NgForm } from '@angular/forms';
 import { LicenciaDrawerComponent } from '../../../shared/licencia-drawer/licencia-drawer.component'
 import { LicenciaHistorialDrawerComponent } from '../../../shared/licencia-historial-drawer/licencia-historial-drawer.component'
 import { AngularGridInstance } from 'angular-slickgrid';
-
-
+import { ApiService } from '../../../services/api.service';
 
 @Component({
     selector: 'app-carga-licencias',
@@ -27,12 +26,16 @@ export class CargaLicenciasComponent {
   periodo = model(new Date())
   visibleDrawer: boolean = false
   visibleHistorial = model<boolean>(false)
-  PersonalId = model(0)
+  PersonalId = signal<number>(0)
   PersonalLicenciaId = 0
   tituloDrawer = ""
   openDrawerForConsult = false
   inputForConsult = true
   RefreshLicencia = false;
+
+  constructor(
+    private apiService : ApiService
+  ) { }
 
   selectedPeriod = computed(() => {
     const per = this.periodo()
@@ -59,9 +62,6 @@ export class CargaLicenciasComponent {
 
     this.periodo.set(new Date(anio, mes - 1, 1))
   }
-
- 
-
 
   actualizarValorDrawer(event: any) {
     this.PersonalId.set(event[0].PersonalId)
@@ -108,6 +108,14 @@ export class CargaLicenciasComponent {
 
   inputConsult(value:boolean){
     this.inputForConsult = value
+  }
+
+  async deletelicencia() {
+    if (this.PersonalId() && this.PersonalLicenciaId) {
+      await firstValueFrom(this.apiService.deleteLicencia({ PersonalId:this.PersonalId(), PersonalLicenciaId: this.PersonalLicenciaId }))
+      this.visibleDrawer = false
+      this.RefreshLicencia = true
+    }
   }
   
 }

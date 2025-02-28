@@ -101,7 +101,7 @@
     @if(this.ngForm().enabled) {
       <nz-form-item class="btnCenter">
           <button nz-button nzType="primary" [disabled]="!ngForm().dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
-          @if (this.ngForm().value.PersonalLicenciaId>0) {
+          <!-- @if (this.ngForm().value.PersonalLicenciaId>0) {
           
           <button [disabled]="ngForm().dirty"
           nz-popconfirm
@@ -111,7 +111,7 @@
           nz-button 
           nzType="primary"
           nzDanger>Eliminar</button>
-        }
+        } -->
       </nz-form-item>
     }
 

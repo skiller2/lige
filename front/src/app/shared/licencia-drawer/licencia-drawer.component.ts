@@ -34,7 +34,7 @@ export interface Option {
 
 export class LicenciaDrawerComponent {
   ngForm = viewChild.required(NgForm);
-  PersonalId = model(0)
+  PersonalId = model<number>(0)
   visibleHistorial = model<boolean>(false)
   PersonalLicenciaId = input.required<number>()
   selectedPeriod = input.required<any>()
