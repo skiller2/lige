@@ -76,10 +76,22 @@ const listaColumnas: any[] = [
     searchHidden: true
   },
   {
+    id: "SituacionRevistaId",
+    name: "Situacion Revista",
+    field: "SituacionRevistaId",
+    type: "number",
+    fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
+    searchComponent: "inpurForSituacionRevistaSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
+  },
+  {
     name: "Fecha de adhesión",
     type: "date",
-    id: "fecdesde",
-    field: "fecdesde",
+    id: "fec_desde",
+    field: "fec_desde",
     fieldName: "seg.fec_desde",
     searchComponent: "inpurForFechaSearch",
     sortable: true,
@@ -89,8 +101,8 @@ const listaColumnas: any[] = [
   {
     name: "Fecha de baja",
     type: "date",
-    id: "fechasta",
-    field: "fechasta",
+    id: "fec_hasta",
+    field: "fec_hasta",
     fieldName: "seg.fec_hasta",
     searchComponent: "inpurForFechaSearch",
     sortable: true,
@@ -394,7 +406,7 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
     const mes:number = req.body.mes
     try {
       const result = await dataSource.query(`
-        SELECT 
+        SELECT
             ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             per.PersonalId,
             per.PersonalApellidoNombre,
@@ -403,10 +415,24 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
             seg.mot_adh_seguro,
             seg.mot_baj_seguro,
             seg.fec_desde,
-            seg.fec_hasta
+            seg.fec_hasta,
+            sitrev.PersonalSituacionRevistaSituacionId,
+            sitrev.SituacionRevistaDescripcion,
+            sitrev.PersonalSituacionRevistaDesde
         FROM Personal per
-        JOIN lige.dbo.seg_personal_seguro seg ON per.PersonalId = seg.PersonalId
+        JOIN lige.dbo.seg_personal_seguro seg ON per.PersonalId = seg.PersonalId     
         JOIN lige.dbo.seg_tipo_seguro tipseg ON seg.cod_tip_seguro = tipseg.cod_tip_seguro
+        JOIN (
+            SELECT 
+                p.PersonalId, 
+                p.PersonalSituacionRevistaSituacionId, 
+                s.SituacionRevistaDescripcion, 
+                p.PersonalSituacionRevistaDesde
+            FROM PersonalSituacionRevista p
+            JOIN SituacionRevista s ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId
+            WHERE p.PersonalSituacionRevistaDesde <= GETDATE() 
+            AND ISNULL(p.PersonalSituacionRevistaHasta, '9999-12-31') >= GETDATE()
+        ) sitrev ON sitrev.PersonalId = per.PersonalId
         AND ${filterSql}
         ${orderBy}
       `)
