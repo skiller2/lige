@@ -2,17 +2,13 @@ import { DBServer, WebServer } from "./server";
 import { makeRoutes } from "./routes/routes.module"
 import { dataSource } from "./data-source";
 import { scheduleJob } from "node-schedule"
-import { Response } from "express"
 import { CategoriasController } from "./categorias-cambio/categorias-cambio.controller";
-import { ObjetivoController } from "./controller/objetivo.controller";
 import { CargaLicenciaController } from "./carga-licencia/carga-licencia.controller";
-import { FileUploadController } from "./controller/file-upload.controller"
-//import packageConfig from "./../package.json" with { type: 'json' }; 
 import dotenv from "dotenv"
 import { GrupoActividadController } from "./grupo-actividad/grupo-actividad.controller";
 import { AsistenciaController } from "./controller/asistencia.controller";
 import { SegurosController } from "./seguros/seguros.controller";
-
+import { Temporal } from "@js-temporal/polyfill";
 //import * as pdfWorker from "pdfjs-dist/build/pdf.worker.mjs";
 //import { GlobalWorkerOptions } from "pdfjs-dist";
 
@@ -35,7 +31,7 @@ scheduleJob('1 0 * * *', async function (fireDate) {
   const mes = actual.getMonth() + 1
 
   const segurosController = new SegurosController()
-  segurosController.updateSeguros(anio,mes)
+  //segurosController.updateSeguros(anio,mes)
 });
 
 
@@ -90,8 +86,16 @@ dbServer.init()
   .then((res) => {
     console.info(`${res.res}`)
 
+//    const now = Temporal.Now.instant();
+//    const newDate = now.subtract("months") 
+//console.log('newDate',newDate.toString(),now.toString())
+
 //    const segurosController = new SegurosController()
+//    segurosController.updateSeguros(2024,10)
+//    segurosController.updateSeguros(2024,11)
+//    segurosController.updateSeguros(2024,12)
 //    segurosController.updateSeguros(2025,1)
+//    segurosController.updateSeguros(2025,2)
 
 
   })
