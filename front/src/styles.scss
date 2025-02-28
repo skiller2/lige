@@ -99,3 +99,16 @@ $slick-icon-width:                                          18px !default;
 //  .detail-view-toggle {
 //    display: none !important;
 //  }
+
+
+
+.slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
+  display: var(--slick-grid-footer-display, block);
+  align-items: var(--slick-grid-footer-align-items, center);
+  justify-content: var(--slick-grid-footer-justify-content, normal);
+  font-size: var(--slick-grid-footer-font-size, 13px);
+  font-style: var(--slick-grid-footer-font-style, normal);
+  font-weight: var(--slick-grid-footer-font-weight, bold);
+  padding: var(--slick-grid-footer-cell-padding, 5px 3px);
+  border-left: var(--slick-grid-footer-cell-border-left, 1px transparent);
+}
