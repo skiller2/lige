@@ -134,6 +134,7 @@ export class ApiService {
       autoCommitEdit: false,
       //    presets: { columns: [{ columnId: '', width: 0 }]},
       autoResize: {
+        autoHeight:false,
         container,
         rightPadding: 1,    // defaults to 0
         bottomPadding: 45,  // defaults to 20
@@ -141,7 +142,7 @@ export class ApiService {
         //minWidth: 250,      // defaults to 300
         //sidePadding: 10,
         //bottomPadding: 10
-        resizeDetection: 'container',
+        resizeDetection: 'window',
       },
       // gridAutosizeColsMode: GridAutosizeColsMode.fitColsToViewport,
 
