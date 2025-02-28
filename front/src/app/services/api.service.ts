@@ -575,6 +575,16 @@ export class ApiService {
 
   }
 
+  getListSeguros(filters: any) {
+    const parameter = filters 
+    return this.http.post<ResponseJSON<any>>('/api/seguros/list', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
+  }
+
+
   getListCargaLicenciaHistory(filters: any, anio: any, mes: any, personalId:any) {
     console.log("personalId ", personalId)
     const parameter = { filters, anio, mes, personalId }

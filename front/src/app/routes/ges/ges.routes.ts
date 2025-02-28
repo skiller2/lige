@@ -121,5 +121,12 @@ export const GesRoutes: Routes = [
   {
     path: 'grupo-actividad/:tab',
     loadComponent: () => import('./grupo-actividad/grupo-actividad.component').then(c => c.GrupoActividadComponent),
-  }
+  },
+  {
+    path: 'seguro', redirectTo: 'seguro/listado'
+  },
+  {
+    path: 'seguro/:tab',
+    loadComponent: () => import('./seguro/seguro.component').then(c => c.SeguroComponent),
+  },
 ];

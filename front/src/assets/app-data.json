@@ -71,6 +71,11 @@
               "text": "Acceso BOT",
               "icon": "anticon-profile",
               "link": "/ges/acceso-bot"
+            },
+            {
+              "text": "Seguro",
+              "icon": "anticon-profile",
+              "link": "/ges/seguro"
             }
           ]
         },

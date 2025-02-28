@@ -11,3 +11,18 @@ segurosRouter.get('/tipo/options', authMiddleware.verifyToken, (req, res, next) 
 //  segurosController.getTipoTelefono(req, res, next)
 });
 
+
+segurosRouter.get("/cols",  [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    segurosController.getGridCols(req, res);
+})
+
+segurosRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    segurosController.getSegurosList(req, res, next);
+})
+
+
+
+
+
+
+
