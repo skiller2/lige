@@ -112,3 +112,7 @@ $slick-icon-width:                                          18px !default;
   padding: var(--slick-grid-footer-cell-padding, 5px 3px);
   border-left: var(--slick-grid-footer-cell-border-left, 1px transparent);
 }
+
+.ant-input-group-addon {
+  padding:0;
+}

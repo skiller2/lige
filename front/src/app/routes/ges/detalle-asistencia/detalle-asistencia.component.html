@@ -288,13 +288,13 @@
 
 
         <nz-form-item>
-          <nz-form-label [nzSpan]="5">Monotributo</nz-form-label>
+          <nz-form-label [nzSpan]="5">Documntos</nz-form-label>
           <nz-form-control>
             <nz-list nzBordered nzSize="small">
               <nz-list-item *ngFor="let monotributo of $personaMonotributo | async">
                 <a app-down-file
                   httpUrl="api/impuestos_afip/{{monotributo.PersonalComprobantePagoAFIPAno}}/{{monotributo.PersonalComprobantePagoAFIPMes}}/0/{{monotributo.PersonalId}}"><span
-                    nz-icon nzType="download"></span>Comprobante
+                    nz-icon nzType="download"></span>Monotributo
                   {{monotributo.PersonalComprobantePagoAFIPAno}}/{{monotributo.PersonalComprobantePagoAFIPMes}}</a></nz-list-item>
             </nz-list>
             <nz-list nzBordered nzSize="small">

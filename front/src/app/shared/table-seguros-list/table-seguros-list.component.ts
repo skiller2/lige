@@ -112,8 +112,8 @@ export class TableSeguroListComponent {
 
     const dateToday = new Date();
     this.startFilters = [
-     {field:'fecdesde', condition:'AND', operator:'<=', value: dateToday, forced:false},
-     {field:'fechasta', condition:'AND', operator:'>=', value: dateToday, forced:false}]
+     {field:'fec_desde', condition:'AND', operator:'<=', value: dateToday, forced:false},
+     {field:'fec_hasta', condition:'AND', operator:'>=', value: dateToday, forced:false}]
 
  
   }
