@@ -8,7 +8,7 @@ import {
   orderToSQL,
 } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
-import { mkdirSync, existsSync, renameSync, copyFileSync, unlinkSync } from "fs";
+import { mkdirSync, existsSync, renameSync, copyFileSync, unlinkSync, constants } from "fs";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { TextItem } from "pdfjs-dist/types/src/display/api";
 import * as path from 'path';
@@ -22,7 +22,7 @@ export class TipoDocumentoController extends BaseController {
       type: "number",
       sortable: true,
       hidden: false,
-      maxWidth: 100,
+      maxWidth: 150,
     },
     {
       id: "ApellidoNombre", name: "Personal", field: "ApellidoNombre",
@@ -73,15 +73,24 @@ export class TipoDocumentoController extends BaseController {
       searchHidden: false
     },
     {
-      name: "Periodo",
-      type: "periodo",
-      id: "periodo",
-      field: "periodo",
-      fieldName: "periodo",
+      id: "fecha", name: "Desde", field: "fecha",
+      type: "date",
+      fieldName: "docg.fecha",
+      searchComponent: "inpurForFechaSearch",
+      searchType: "date",
       sortable: true,
-      hidden: false,
       searchHidden: false,
-      maxWidth: 150,
+      hidden: false,
+    },
+    {
+      id: "fec_doc_ven", name: "Hasta", field: "fec_doc_ven",
+      type: "date",
+      fieldName: "docg.fec_doc_ven",
+      searchComponent: "inpurForFechaSearch",
+      searchType: "date",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
     },
     {
       id: "detalle_documento", name: "Detalle Documento", field: "detalle_documento",
@@ -204,15 +213,14 @@ export class TipoDocumentoController extends BaseController {
   }
 
 
-  async getdocgenralListlist(filterSql: any, orderBy: any, anio:number, mes:number) {
+  async getdocgenralListlist(filterSql: any, orderBy: any) {
 
     const result = await dataSource.query(`
       SELECT docg.doc_id AS id, 
       tipo.detalle AS tipo, 
-      docg.fecha, 
+      docg.fecha, docg.fec_doc_ven,
       CONCAT(TRIM(pers.PersonalApellido), ', ', TRIM(pers.PersonalNombre)) ApellidoNombre,
-      obj.ObjetivoId, TRIM(obj.ObjetivoDescripcion) ObjetivoDescripcion,  
-      CONCAT(RTRIM(per.mes), '-', RTRIM(per.anio)) AS periodo,
+      obj.ObjetivoId, TRIM(obj.ObjetivoDescripcion) ObjetivoDescripcion,
       cli.ClienteId, cli.ClienteDenominacion
       FROM lige.dbo.docgeneral AS docg 
       LEFT JOIN lige.dbo.doctipo AS tipo ON docg.doctipo_id = tipo.doctipo_id
@@ -220,10 +228,9 @@ export class TipoDocumentoController extends BaseController {
       LEFT JOIN Objetivo AS obj ON docg.objetivo_id = obj.ObjetivoId 
       LEFT JOIN lige.dbo.liqmaperiodo AS per ON docg.periodo = per.periodo_id
       LEFT JOIN lige.dbo.Cliente AS cli ON docg.cliente_id = cli.ClienteId
-      WHERE per.anio = @0 AND per.mes = @1
-      AND ${filterSql}
+      WHERE ${filterSql}
       ${orderBy}
-    `, [anio, mes])
+    `,)
 
     let list = result.map((obj: any) => {
       obj.cliente = { id: obj.ClienteId, fullname: obj.ClienteDenominacion }
@@ -233,7 +240,7 @@ export class TipoDocumentoController extends BaseController {
       delete obj.ObjetivoId
       delete obj.ObjetivoDescripcion
       return obj
-  })
+    })
     return list
   }
 
@@ -243,10 +250,8 @@ export class TipoDocumentoController extends BaseController {
   ) {
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaTipoDocumento);
     const orderBy = orderToSQL(req.body.options.sort)
-    const anio:number = req.body.anio
-    const mes:number = req.body.mes
     try {
-      const TipoDocumentos = await this.getdocgenralListlist(filterSql, orderBy, anio, mes)
+      const TipoDocumentos = await this.getdocgenralListlist(filterSql, orderBy)
       // console.log("movimientosPendientes " +  TipoDocumentos.length)
       this.jsonRes(
         {
@@ -320,7 +325,7 @@ export class TipoDocumentoController extends BaseController {
       let pathFile = ''
       let newFieldname = ''
       let detalle_documento = ''
-      if (archivo.length) {
+      if (archivo && archivo.length) {
         const type = archivo[0].mimetype.split('/')[1]
         const fieldname = archivo[0].fieldname
         const doctipo = await queryRunner.query(`
@@ -505,7 +510,7 @@ export class TipoDocumentoController extends BaseController {
       let pathFile = ''
       let newFieldname = ''
       let detalle_documento = ''
-      if (archivo.length) {
+      if (archivo && archivo.length) {
         const type = archivo[0].mimetype.split('/')[1]
         const fieldname = archivo[0].fieldname
         const doctipo = await queryRunner.query(`
@@ -539,13 +544,13 @@ export class TipoDocumentoController extends BaseController {
         }
         newFilePath += `/${newFieldname}`
         
-        copyFileSync(dirFile, newFilePath)
+        copyFileSync(dirFile, newFilePath, constants.COPYFILE_FICLONE_FORCE)
         unlinkSync(dirFile);
       }
 
       await queryRunner.query(`
         UPDATE lige.dbo.docgeneral
-        SET periodo = @1 fecha = @2, path = @3, nombre_archivo = @4, 
+        SET periodo = @1, fecha = @2, path = @3, nombre_archivo = @4, 
         doctipo_id = @5, persona_id = @6, objetivo_id = @7, den_documento = @8, cliente_id = @9, fec_doc_ven = @10,
         aud_usuario_mod = @11, aud_ip_mod = @12, aud_fecha_mod = @13, detalle_documento = @14
         WHERE doc_id IN (@0)

@@ -48,8 +48,6 @@ export class CustomDescargaComprobanteComponent {
     providers: [AngularUtilService]
 })
 export class TipoDocumentoComponent {
-  @ViewChild('objpendForm', { static: true }) objpendForm: NgForm =
-    new NgForm([], []);
   @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
 
   constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService:SearchService) { }
@@ -70,7 +68,7 @@ export class TipoDocumentoComponent {
   detailViewRowCount = 9
   gridOptions!: GridOption
   gridDataLen = 0
-  periodo = signal({anio:0, mes:0})
+  // periodo = signal({anio:0, mes:0})
   docId = signal<number>(0)
   visibleAlta = model<boolean>(false)
   refresh = signal(0)
@@ -108,7 +106,7 @@ export class TipoDocumentoComponent {
     switchMap(() => {
       return this.apiService
         .getTipoDocumentos(
-          this.periodo().anio, this.periodo().mes, this.listOptions
+          this.listOptions
         )
         .pipe(
           map(data => {
@@ -141,7 +139,7 @@ export class TipoDocumentoComponent {
     ]
    
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
-    this.gridOptions.enableRowDetailView = this.apiService.isMobile()
+    this.gridOptions.enableRowDetailView = false
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
 
@@ -158,29 +156,8 @@ export class TipoDocumentoComponent {
         Number(localStorage.getItem('mes')) > 0
           ? localStorage.getItem('mes')
           : now.getMonth() + 1;
-      this.objpendForm.form
-        .get('periodo')
-        ?.setValue(new Date(Number(anio), Number(mes) - 1, 1));
-
     }, 1);
   }
-  onChange(result: Date): void {
-    if (result) {
-      this.anio = result.getFullYear();
-      this.mes = result.getMonth() + 1;
-      this.periodo.set({anio: result.getFullYear(), mes:result.getMonth() + 1})
-
-      localStorage.setItem('mes', String(this.mes));
-      localStorage.setItem('anio', String(this.anio));
-    } else {
-      this.anio = 0;
-      this.mes = 0;
-    }
-
-    this.listOptionsChange(this.listOptions)
-  }
-
-
 
   formChanged(_event: any) {
     this.listOptionsChange(this.listOptions)
@@ -194,14 +171,13 @@ export class TipoDocumentoComponent {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
 
-    if (this.apiService.isMobile())
-      // this.angularGrid.gridService.hideColumnByIds(['SucurladId'])
-
-    
-
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGrid)
-    })    
+    })
+
+    if (this.apiService.isMobile())
+      this.angularGrid.gridService.hideColumnByIds([])
+ 
   }
 
   exportGrid() {
