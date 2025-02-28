@@ -19,19 +19,17 @@ import { DetallePersonaComponent } from "../../routes/ges/detalle-persona/detall
 import { NzInputGroupComponent } from 'ng-zorro-antd/input'
 
 @Component({
-  selector: 'app-personal-search',
-  templateUrl: './personal-search.component.html',
-  styleUrls: ['./personal-search.component.less'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => PersonalSearchComponent),
-      multi: true,
-    },
-  ],
-  standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, DetallePersonaComponent,NzInputGroupComponent],
-
+    selector: 'app-personal-search',
+    templateUrl: './personal-search.component.html',
+    styleUrls: ['./personal-search.component.less'],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => PersonalSearchComponent),
+            multi: true,
+        },
+    ],
+    imports: [...SHARED_IMPORTS, CommonModule, DetallePersonaComponent, NzInputGroupComponent]
 })
 
 export class PersonalSearchComponent implements ControlValueAccessor {

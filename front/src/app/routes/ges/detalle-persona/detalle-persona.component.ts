@@ -9,7 +9,6 @@ import { AGEPipe } from "../../../shared/utils/age-pipe";
 
 @Component({
     selector: 'app-detalle-persona',
-    standalone: true,
     templateUrl: './detalle-persona.component.html',
     styleUrl: './detalle-persona.component.less',
     imports: [...SHARED_IMPORTS, CommonModule, ViewResponsableComponent, AGEPipe]

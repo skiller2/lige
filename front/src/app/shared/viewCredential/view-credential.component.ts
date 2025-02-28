@@ -14,11 +14,10 @@ import { NzQRCodeModule } from 'ng-zorro-antd/qr-code';
             provide: NG_VALUE_ACCESSOR,
             useExisting: forwardRef(() => ViewCredentialComponent),
             multi: true
-        }],
+        }
+    ],
     //    encapsulation: ViewEncapsulation.ShadowDom
-    imports: [ ...SHARED_IMPORTS,CommonModule,NzQRCodeModule],
-    standalone:true,
-
+    imports: [...SHARED_IMPORTS, CommonModule, NzQRCodeModule]
 })
 export class ViewCredentialComponent implements ControlValueAccessor {
     personal = signal<PersonaObj[]>([]);

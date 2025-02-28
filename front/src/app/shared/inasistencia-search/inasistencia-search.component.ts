@@ -17,19 +17,17 @@ import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
 
 @Component({
-  selector: 'app-inasistencia-search',
-  templateUrl: './inasistencia-search.component.html',
-  styleUrls: ['./inasistencia-search.component.less'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => InasistenciaSearchComponent),
-      multi: true,
-    },
-  ],
-  standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule],
-
+    selector: 'app-inasistencia-search',
+    templateUrl: './inasistencia-search.component.html',
+    styleUrls: ['./inasistencia-search.component.less'],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => InasistenciaSearchComponent),
+            multi: true,
+        },
+    ],
+    imports: [...SHARED_IMPORTS, CommonModule]
 })
 
 export class InasistenciaSearchComponent implements ControlValueAccessor {

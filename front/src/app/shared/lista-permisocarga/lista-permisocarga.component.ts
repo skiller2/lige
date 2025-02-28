@@ -36,16 +36,15 @@ type listOptionsT = {
 }
 
 @Component({
-  selector: 'app-lista-permisocarga',
-  standalone: true,
-  imports: [SHARED_IMPORTS,
-    CommonModule,
-    NzAffixModule,
-    FiltroBuilderComponent, 
-],
-providers: [AngularUtilService],
-  templateUrl: './lista-permisocarga.component.html',
-  styleUrl: './lista-permisocarga.component.less'
+    selector: 'app-lista-permisocarga',
+    imports: [SHARED_IMPORTS,
+        CommonModule,
+        NzAffixModule,
+        FiltroBuilderComponent,
+    ],
+    providers: [AngularUtilService],
+    templateUrl: './lista-permisocarga.component.html',
+    styleUrl: './lista-permisocarga.component.less'
 })
 export class ListaPermisocargaComponent {
 

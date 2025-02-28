@@ -14,13 +14,12 @@ import { runInInjectionContext } from '@angular/core';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 
 @Component({
-  selector: 'app-personal-grupo',
-  standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, PersonalSearchComponent],
-  templateUrl: './personal-grupo.component.html',
-  providers: [AngularUtilService, ExcelExportService],
-  styleUrl: './personal-grupo.component.less',
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-personal-grupo',
+    imports: [...SHARED_IMPORTS, CommonModule, PersonalSearchComponent],
+    templateUrl: './personal-grupo.component.html',
+    providers: [AngularUtilService, ExcelExportService],
+    styleUrl: './personal-grupo.component.less',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 export class PersonalGrupoComponent {

@@ -49,25 +49,22 @@ import { SearchService } from 'src/app/services/search.service';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 
 @Component({
-  selector: 'app-liquidaciones',
-  templateUrl: './liquidaciones.component.html',
-  styleUrls: ['./liquidaciones.component.less'],
-  standalone: true,
-  imports: [
-    NzSelectModule,
-    NzModalModule,
-    CommonModule,
-    SHARED_IMPORTS,
-    NzAffixModule,
-    FiltroBuilderComponent,
-    RowPreloadDetailComponent,
-    RowDetailViewComponent,
-    NzUploadModule,
-    ObjetivoSearchComponent,
-    ClienteSearchComponent,
-    PersonalSearchComponent
-  ],
-  providers: [AngularUtilService]
+    selector: 'app-liquidaciones',
+    templateUrl: './liquidaciones.component.html',
+    styleUrls: ['./liquidaciones.component.less'],
+    imports: [
+        NzSelectModule,
+        NzModalModule,
+        CommonModule,
+        SHARED_IMPORTS,
+        NzAffixModule,
+        FiltroBuilderComponent,
+        NzUploadModule,
+        ObjetivoSearchComponent,
+        ClienteSearchComponent,
+        PersonalSearchComponent
+    ],
+    providers: [AngularUtilService]
 })
 
 export class LiquidacionesComponent {

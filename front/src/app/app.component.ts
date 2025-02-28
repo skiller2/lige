@@ -13,8 +13,8 @@ import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 
 @Component({
-  selector: 'app-root',
-  template: `
+    selector: 'app-root',
+    template: `
 
    <ng-template #tplpwa>
     <div class="w-100 position-absolute top-0" *ngIf="modalVersion">
@@ -41,9 +41,8 @@ import { SHARED_IMPORTS } from '@shared';
 
 
 `,
-standalone: true,
-imports: [RouterOutlet,CommonModule,AppComponent,...SHARED_IMPORTS,
-]
+    imports: [RouterOutlet, CommonModule, ...SHARED_IMPORTS,
+    ]
 })
 export class AppComponent implements OnInit {
 

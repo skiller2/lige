@@ -21,11 +21,10 @@ export interface Option {
   
 @Component({
     selector: 'app-ayuda-asistencial-drawer',
-    standalone: true,
     imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, PersonalSearchComponent, CommonModule],
     templateUrl: './ayuda-asistencial-drawer.component.html',
     styleUrl: './ayuda-asistencial-drawer.component.less',
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 export class AyudaAsistencialDrawerComponent {

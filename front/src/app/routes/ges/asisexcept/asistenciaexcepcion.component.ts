@@ -24,7 +24,6 @@ enum Busqueda {
     selector: 'app-ges-asistenciaexcepcion',
     templateUrl: './asistenciaexcepcion.component.html',
     styleUrls: ['./asistenciaexcepcion.component.less'],
-    standalone: true,
     imports: [...SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent]
 })
 export class ExcepcionAsistenciaComponent {

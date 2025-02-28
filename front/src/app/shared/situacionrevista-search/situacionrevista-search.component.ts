@@ -18,19 +18,17 @@ import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
 
 @Component({
-  selector: 'app-situacionrevista-search',
-  templateUrl: './situacionrevista-search.component.html',
-  styleUrls: ['./situacionrevista-search.component.less'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => SituacionRevistaSearchComponent ),
-      multi: true,
-    },
-  ],
-  standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule],
-
+    selector: 'app-situacionrevista-search',
+    templateUrl: './situacionrevista-search.component.html',
+    styleUrls: ['./situacionrevista-search.component.less'],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => SituacionRevistaSearchComponent),
+            multi: true,
+        },
+    ],
+    imports: [...SHARED_IMPORTS, CommonModule]
 })
 
 export class SituacionRevistaSearchComponent  implements ControlValueAccessor {

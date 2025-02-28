@@ -17,11 +17,10 @@ import { AngularGridInstance } from 'angular-slickgrid';
 
 
 @Component({
-  selector: 'app-carga-licencias',
-  standalone: true,
-  imports: [SHARED_IMPORTS, CommonModule, TableHorasLicenciaComponent,TableAbmLicenciaComponent, LicenciaDrawerComponent,LicenciaHistorialDrawerComponent],
-  templateUrl: './carga-licencias.component.html',
-  styleUrl: './carga-licencias.component.less'
+    selector: 'app-carga-licencias',
+    imports: [SHARED_IMPORTS, CommonModule, TableHorasLicenciaComponent, TableAbmLicenciaComponent, LicenciaDrawerComponent, LicenciaHistorialDrawerComponent],
+    templateUrl: './carga-licencias.component.html',
+    styleUrl: './carga-licencias.component.less'
 })
 export class CargaLicenciasComponent {
   tabIndex = 0

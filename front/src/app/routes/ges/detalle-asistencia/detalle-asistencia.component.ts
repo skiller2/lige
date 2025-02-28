@@ -39,11 +39,10 @@ enum Busqueda {
 }
 
 @Component({
-  selector: 'app-detalle-asistencia',
-  standalone: true,
-  templateUrl: './detalle-asistencia.component.html',
-  styleUrls: ['./detalle-asistencia.component.less'],
-  imports: [...SHARED_IMPORTS, NzResizableModule, FiltroBuilderComponent, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent, DetallePersonaComponent, DescuentosComponent,PersonalGrupoComponent]
+    selector: 'app-detalle-asistencia',
+    templateUrl: './detalle-asistencia.component.html',
+    styleUrls: ['./detalle-asistencia.component.less'],
+    imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent, DescuentosComponent, PersonalGrupoComponent]
 })
 export class DetalleAsistenciaComponent {
   @ViewChild('asistencia', { static: true }) asistencia: NgForm = new NgForm(

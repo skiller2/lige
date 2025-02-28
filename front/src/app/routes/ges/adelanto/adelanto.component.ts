@@ -19,12 +19,11 @@ import { ViewResponsableComponent } from "../../../shared/view-responsable/view-
 
 
 @Component({
-  selector: 'app-adelanto',
-  templateUrl: './adelanto.component.html',
-  styleUrls: ['./adelanto.component.less'],
-  standalone: true,
-  providers: [AngularUtilService, ExcelExportService],
-  imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ViewResponsableComponent]
+    selector: 'app-adelanto',
+    templateUrl: './adelanto.component.html',
+    styleUrls: ['./adelanto.component.less'],
+    providers: [AngularUtilService, ExcelExportService],
+    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ViewResponsableComponent]
 })
 export class AdelantoComponent {
   constructor(private settingService: SettingsService, public router: Router, private angularUtilService: AngularUtilService, private excelExportService: ExcelExportService) { }

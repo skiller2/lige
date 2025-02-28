@@ -27,16 +27,15 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
     selector: 'app-personal',
     templateUrl: './personal.component.html',
     styleUrl: './personal.component.less',
-    standalone: true,
     // encapsulation: ViewEncapsulation.None,
     imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, NzIconModule,
-      PersonalSearchComponent, PersonalFormComponent, LicenciaHistorialDrawerComponent,
-      PersonalObjetivoDrawerComponent, PersonalCustodiasDrawerComponent, PersonalDomicilioDrawerComponent,
-      PersonalSituacionRevistaDrawerComponent, PersonalResponsableDrawerComponent, PersonalDocumentosDrawerComponent,
-      DetallePersonaComponent, PersonalCategoriaDrawerComponent, PersonalBancoDrawerComponent
+        PersonalFormComponent, LicenciaHistorialDrawerComponent,
+        PersonalObjetivoDrawerComponent, PersonalCustodiasDrawerComponent, PersonalDomicilioDrawerComponent,
+        PersonalSituacionRevistaDrawerComponent, PersonalResponsableDrawerComponent, PersonalDocumentosDrawerComponent,
+        DetallePersonaComponent, PersonalCategoriaDrawerComponent, PersonalBancoDrawerComponent
     ],
     providers: [AngularUtilService, ExcelExportService],
-    changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
   
 export class PersonalComponent {

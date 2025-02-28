@@ -8,16 +8,14 @@ import { Injector, inject } from '@angular/core';
 
 
 @Component({
-  selector: 'app-tipocuenta',
-  templateUrl: './editor-tipocuenta.component.html',
-  styleUrls: ['./editor-tipocuenta.component.less'],
-  standalone: true,
-  imports: [
-    ...SHARED_IMPORTS,
-    CommonModule,
-    //    PersonalSearchComponent
-  ],
-
+    selector: 'app-tipocuenta',
+    templateUrl: './editor-tipocuenta.component.html',
+    styleUrls: ['./editor-tipocuenta.component.less'],
+    imports: [
+        ...SHARED_IMPORTS,
+        CommonModule,
+        //    PersonalSearchComponent
+    ]
 })
 export class EditorTipoCuentaComponent {
   @ViewChild("eto") eto!: NzSelectComponent

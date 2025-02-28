@@ -31,11 +31,10 @@ type listOptionsT = {
 }
 
 @Component({
-  standalone: true,
-  imports: [
-    SHARED_IMPORTS,
-  ],
-  template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
+    imports: [
+        SHARED_IMPORTS,
+    ],
+    template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
     httpUrl="api/impuestos_afip/{{anio}}/{{mes}}/0/{{item.PersonalId}}"
            ><span class="pl-xs" nz-icon nzType="download"></span></a>`
 })
@@ -47,18 +46,17 @@ export class CustomDescargaComprobanteComponent {
 
 
 @Component({
-  selector: 'categorias-cambio',
-  templateUrl: './categorias-cambio.component.html',
-  standalone: true,
-  imports: [
-    SHARED_IMPORTS,
-    NzAffixModule,
-    FiltroBuilderComponent,
-    CommonModule,
-    PersonalSearchComponent
-  ],
-  styleUrls: ['./categorias-cambio.component.less'],
-  providers: [AngularUtilService,ContainerService]
+    selector: 'categorias-cambio',
+    templateUrl: './categorias-cambio.component.html',
+    imports: [
+        SHARED_IMPORTS,
+        NzAffixModule,
+        FiltroBuilderComponent,
+        CommonModule,
+        PersonalSearchComponent
+    ],
+    styleUrls: ['./categorias-cambio.component.less'],
+    providers: [AngularUtilService, ContainerService]
 })
 export class CategoriasCambioComponent {
   @ViewChild('cambiocatForm', { static: true }) cambiocatForm: NgForm =

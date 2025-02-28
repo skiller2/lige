@@ -5,8 +5,8 @@ import { NzI18nService } from 'ng-zorro-antd/i18n';
 import { NzMessageService } from 'ng-zorro-antd/message';
 
 @Component({
-  selector: 'header-notify',
-  template: `
+    selector: 'header-notify',
+    template: `
     <notice-icon
       [data]="data"
       [count]="count"
@@ -18,9 +18,8 @@ import { NzMessageService } from 'ng-zorro-antd/message';
       (popoverVisibleChange)="loadData()"
     />
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [NoticeIconModule]
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [NoticeIconModule]
 })
 export class HeaderNotifyComponent {
   private readonly msg = inject(NzMessageService);

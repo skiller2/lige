@@ -8,11 +8,11 @@
 /*$cell-odd-background-color: lightyellow;*/
 //$slick-input-focus-box-shadow: 0 0 0 0.25rem #0d6efd40;
 
-@import "./variables";
+@use "./variables";
 /* make sure to add the @import the SlickGrid Bootstrap Theme AFTER the variables changes */
 
 
-//@import '@slickgrid-universal/common/dist/styles/sass/slickgrid-theme-bootstrap';
+@use '@slickgrid-universal/common/dist/styles/sass/slickgrid-theme-bootstrap';
 
 
 //@import '@slickgrid-universal/common/dist/styles/sass/sass-utilities';

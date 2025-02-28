@@ -10,8 +10,7 @@ import { FormComponent } from '../form/form.component';
     selector: 'app-image-content',
     templateUrl: './image-content.component.html',
     styleUrls: ['./image-content.component.css'],
-    imports: [ ...SHARED_IMPORTS,CommonModule,ImageCropperModule,FormComponent],
-    standalone:true,    
+    imports: [...SHARED_IMPORTS, CommonModule, ImageCropperModule, FormComponent]
 })
 export class ImageContentComponent {
 //    @Input() personalImage = ''

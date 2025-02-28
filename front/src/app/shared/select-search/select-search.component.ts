@@ -7,16 +7,14 @@ import { Injector, inject } from '@angular/core';
 import { SearchService } from '../../services/search.service';
 
 @Component({
-  selector: 'app-select-search',
-  templateUrl: './select-search.component.html',
-  styleUrls: ['./select-search.component.less'],
-  standalone: true,
-  imports: [
-    ...SHARED_IMPORTS,
-    CommonModule,
-    //    SelectSearchComponent
-  ],
-
+    selector: 'app-select-search',
+    templateUrl: './select-search.component.html',
+    styleUrls: ['./select-search.component.less'],
+    imports: [
+        ...SHARED_IMPORTS,
+        CommonModule,
+        //    SelectSearchComponent
+    ]
 })
 export class SelectSearchComponent {
   @ViewChild("sss") sss!: NzSelectComponent

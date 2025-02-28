@@ -19,12 +19,11 @@ export interface Option {
 }
 
 @Component({
-  selector: 'app-producto-historial-drawer',
-  standalone: true,
-  imports: [SHARED_IMPORTS,NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, CommonModule,TableHistorialProductoComponent],
-  templateUrl: './producto-historial-drawer.component.html',
-  styleUrl: './producto-historial-drawer.component.less',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-producto-historial-drawer',
+    imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, CommonModule, TableHistorialProductoComponent],
+    templateUrl: './producto-historial-drawer.component.html',
+    styleUrl: './producto-historial-drawer.component.less',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 

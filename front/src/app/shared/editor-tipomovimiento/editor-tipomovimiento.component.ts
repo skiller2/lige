@@ -8,16 +8,14 @@ import { Injector, inject } from '@angular/core';
 
 
 @Component({
-  selector: 'app-tipomovimiento-persona',
-  templateUrl: './editor-tipomovimiento.component.html',
-  styleUrls: ['./editor-tipomovimiento.component.less'],
-  standalone: true,
-  imports: [
-    ...SHARED_IMPORTS,
-    CommonModule,
-    //    PersonalSearchComponent
-  ],
-
+    selector: 'app-tipomovimiento-persona',
+    templateUrl: './editor-tipomovimiento.component.html',
+    styleUrls: ['./editor-tipomovimiento.component.less'],
+    imports: [
+        ...SHARED_IMPORTS,
+        CommonModule,
+        //    PersonalSearchComponent
+    ]
 })
 export class EditorTipoMovimientoComponent {
   @ViewChild("eto") eto!: NzSelectComponent

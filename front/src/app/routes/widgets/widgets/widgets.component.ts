@@ -9,13 +9,11 @@ import { NzCarouselModule } from 'ng-zorro-antd/carousel';
 import { NzMessageService } from 'ng-zorro-antd/message';
 
 @Component({
-  selector: 'app-widgets',
-  templateUrl: './widgets.component.html',
-  styleUrls: ['./widgets.component.less'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule,G2MiniBarModule,G2MiniAreaModule,NzCarouselModule],
-
+    selector: 'app-widgets',
+    templateUrl: './widgets.component.html',
+    styleUrls: ['./widgets.component.less'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [...SHARED_IMPORTS, CommonModule, G2MiniBarModule, G2MiniAreaModule, NzCarouselModule]
 })
 export class WidgetsComponent implements OnInit {
   data: G2MiniBarData[] = [];

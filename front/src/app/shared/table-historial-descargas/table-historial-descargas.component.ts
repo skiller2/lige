@@ -19,9 +19,7 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
     selector: 'app-table-historial-descargas',
     templateUrl: './table-historial-descargas.component.html',
     styleUrl: './table-historial-descargas.component.less',
-    standalone: true,
-    imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule,
-        PersonalSearchComponent, CommonModule, FiltroBuilderComponent, NzAffixModule],
+    imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, CommonModule, FiltroBuilderComponent, NzAffixModule]
 })
 
 export class TableHistorialDescargasComponent {

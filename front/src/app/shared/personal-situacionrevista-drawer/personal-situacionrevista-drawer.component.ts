@@ -15,10 +15,8 @@ import { FormBuilder, FormArray } from '@angular/forms';
     selector: 'app-personal-situacionrevista-drawer',
     templateUrl: './personal-situacionrevista-drawer.component.html',
     styleUrl: './personal-situacionrevista-drawer.component.less',
-    standalone: true,
     imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule],
-    providers: [AngularUtilService],
-    // changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [AngularUtilService]
 })
   
 export class PersonalSituacionRevistaDrawerComponent {

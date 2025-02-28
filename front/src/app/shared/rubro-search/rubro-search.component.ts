@@ -17,19 +17,17 @@ import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
 
 @Component({
-  selector: 'app-rubro-search',
-  templateUrl: './rubro-search.component.html',
-  styleUrls: ['./rubro-search.component.less'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => RubroSearchComponent),
-      multi: true,
-    },
-  ],
-  standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule],
-
+    selector: 'app-rubro-search',
+    templateUrl: './rubro-search.component.html',
+    styleUrls: ['./rubro-search.component.less'],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => RubroSearchComponent),
+            multi: true,
+        },
+    ],
+    imports: [...SHARED_IMPORTS, CommonModule]
 })
 
 export class RubroSearchComponent implements ControlValueAccessor {

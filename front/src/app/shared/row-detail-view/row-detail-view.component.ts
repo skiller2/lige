@@ -4,13 +4,9 @@ import { SHARED_IMPORTS } from '@shared';
 import { AngularGridInstance, Column, SlickDataView, SlickGrid } from 'angular-slickgrid';
 
 @Component({
-//  selector: 'app-row-detail-view',
-  templateUrl: './row-detail-view.component.html',
-//  styleUrls: ['./row-detail-view.component.less']
-  standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule],
-
-
+    //  selector: 'app-row-detail-view',
+    templateUrl: './row-detail-view.component.html',
+    imports: [...SHARED_IMPORTS, CommonModule]
 })
 export class RowDetailViewComponent implements OnInit {
 

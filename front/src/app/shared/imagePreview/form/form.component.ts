@@ -6,12 +6,10 @@ import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-form',
-  templateUrl: './form.component.html',
-  styleUrls: ['./form.component.css'],
-  standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule],
-
+    selector: 'app-form',
+    templateUrl: './form.component.html',
+    styleUrls: ['./form.component.css'],
+    imports: [...SHARED_IMPORTS, CommonModule]
 })
 export class FormComponent {
   constructor(private fileService: FileImageService) {}

@@ -53,16 +53,15 @@ interface PersonalLicenciaHoras {
 
 
 @Component({
-  selector: 'app-table-horas-licencia',
-  standalone: true,
-  imports: [SHARED_IMPORTS,
-    CommonModule,
-    NzAffixModule,
-    FiltroBuilderComponent,
-  ],
-  providers: [AngularUtilService],
-  templateUrl: './table-horas-licencia.component.html',
-  styleUrl: './table-horas-licencia.component.less'
+    selector: 'app-table-horas-licencia',
+    imports: [SHARED_IMPORTS,
+        CommonModule,
+        NzAffixModule,
+        FiltroBuilderComponent,
+    ],
+    providers: [AngularUtilService],
+    templateUrl: './table-horas-licencia.component.html',
+    styleUrl: './table-horas-licencia.component.less'
 })
 export class TableHorasLicenciaComponent {
 

@@ -22,15 +22,13 @@ import { CustodiasPersonalDetalleComponent } from "../../../shared/custodias-per
     selector: 'app-custodias',
     templateUrl: './custodias.component.html',
     styleUrls: ['./custodias.component.less'],
-    standalone: true,
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent,
-        DetallePersonaComponent, FiltroBuilderComponent, CustodiaFormComponent,
+    imports: [SHARED_IMPORTS, CommonModule,
+        FiltroBuilderComponent, CustodiaFormComponent,
         CustodiasPersonalDetalleComponent
     ],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CustodiaComponent {
     public router = inject(Router);

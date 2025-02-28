@@ -9,11 +9,10 @@ import { LoadingService } from '@delon/abc/loading';
 import { ViewCredentialComponent } from 'src/app/shared/viewCredential/view-credential.component';
 
 @Component({
-  selector: 'app-credencial-lista',
-  standalone: true,
-  imports: [...SHARED_IMPORTS,CommonModule,ViewCredentialComponent],
-  templateUrl: './credencial-lista.component.html',
-  styleUrls: ['./credencial-lista.component.less'],
+    selector: 'app-credencial-lista',
+    imports: [...SHARED_IMPORTS, CommonModule, ViewCredentialComponent],
+    templateUrl: './credencial-lista.component.html',
+    styleUrls: ['./credencial-lista.component.less']
 })
 export class CredencialListaComponent {
   @ViewChild('credcards', { static: false }) credcards!: ElementRef;

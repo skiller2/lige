@@ -38,16 +38,14 @@ type listOptionsT = {
 }
 
 @Component({
-  selector: 'app-table-historial-licencia',
-  standalone: true,
-  imports: [SHARED_IMPORTS,
-    CommonModule,
-    NzAffixModule,
-    FiltroBuilderComponent, 
-],
-providers: [AngularUtilService],
-  templateUrl: './table-historial-licencia.component.html',
-  styleUrl: './table-historial-licencia.component.less'
+    selector: 'app-table-historial-licencia',
+    imports: [SHARED_IMPORTS,
+        CommonModule,
+        NzAffixModule,
+    ],
+    providers: [AngularUtilService],
+    templateUrl: './table-historial-licencia.component.html',
+    styleUrl: './table-historial-licencia.component.less'
 })
 export class TableHistorialLicenciaComponent {
 

@@ -36,11 +36,10 @@ type listOptionsT = {
 }
 
 @Component({
-  standalone: true,
-  imports: [
-    SHARED_IMPORTS,
-  ],
-  template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
+    imports: [
+        SHARED_IMPORTS,
+    ],
+    template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
     httpUrl="api/impuestos_afip/{{anio}}/{{mes}}/0/{{item.PersonalId}}"
            ><span class="pl-xs" nz-icon nzType="download"></span></a>`
 })
@@ -52,17 +51,16 @@ export class CustomDescargaComprobanteComponent {
 
 
 @Component({
-  selector: 'objetivos-pendasis',
-  templateUrl: './objetivos-pendasis.component.html',
-  standalone: true,
-  imports: [
-    SHARED_IMPORTS,
-    CommonModule,
-    NzAffixModule,
-    FiltroBuilderComponent,
-  ],
-  styleUrls: ['./objetivos-pendasis.component.less'],
-  providers: [AngularUtilService]
+    selector: 'objetivos-pendasis',
+    templateUrl: './objetivos-pendasis.component.html',
+    imports: [
+        SHARED_IMPORTS,
+        CommonModule,
+        NzAffixModule,
+        FiltroBuilderComponent,
+    ],
+    styleUrls: ['./objetivos-pendasis.component.less'],
+    providers: [AngularUtilService]
 })
 export class ObjetivosPendAsisComponent {
   @ViewChild('objpendForm', { static: true }) objpendForm: NgForm =

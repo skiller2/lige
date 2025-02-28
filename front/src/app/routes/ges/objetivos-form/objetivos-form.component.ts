@@ -23,25 +23,23 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 
 @Component({
-  selector: 'app-objetivos-form',
-  templateUrl: './objetivos-form.component.html',
-  styleUrl: './objetivos-form.component.less',
-  standalone: true,
-  encapsulation: ViewEncapsulation.None,
-  providers: [AngularUtilService],
-  imports: [
-    SHARED_IMPORTS,
-    CommonModule,
-    PersonalSearchComponent,
-    RubroSearchComponent,
-    ClienteSearchComponent,
-    NzAutocompleteModule,
-    NzSelectModule,
-    FileUploadComponent,
-    GrupoActividadSearchComponent
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  
+    selector: 'app-objetivos-form',
+    templateUrl: './objetivos-form.component.html',
+    styleUrl: './objetivos-form.component.less',
+    encapsulation: ViewEncapsulation.None,
+    providers: [AngularUtilService],
+    imports: [
+        SHARED_IMPORTS,
+        CommonModule,
+        PersonalSearchComponent,
+        RubroSearchComponent,
+        ClienteSearchComponent,
+        NzAutocompleteModule,
+        NzSelectModule,
+        FileUploadComponent,
+        GrupoActividadSearchComponent
+    ],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 

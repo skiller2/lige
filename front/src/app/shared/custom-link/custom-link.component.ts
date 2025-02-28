@@ -3,9 +3,8 @@ import { RouterLink } from "@angular/router"
 import { SHARED_IMPORTS } from "@shared"
 
 @Component({
-  standalone: true,
-  imports: [ ...SHARED_IMPORTS, RouterLink],
-  template: `<a [routerLink]="[link,params]" > {{detail}} </a>`
+    imports: [...SHARED_IMPORTS, RouterLink],
+    template: `<a [routerLink]="[link,params]" > {{detail}} </a>`
 })
 
 export class CustomLinkComponent {

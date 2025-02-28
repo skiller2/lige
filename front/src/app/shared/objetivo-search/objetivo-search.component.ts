@@ -17,19 +17,17 @@ import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
 
 @Component({
-  selector: 'app-objetivo-search',
-  templateUrl: './objetivo-search.component.html',
-  styleUrls: ['./objetivo-search.component.less'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => ObjetivoSearchComponent),
-      multi: true,
-    },
-  ],
-  standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule],
-
+    selector: 'app-objetivo-search',
+    templateUrl: './objetivo-search.component.html',
+    styleUrls: ['./objetivo-search.component.less'],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => ObjetivoSearchComponent),
+            multi: true,
+        },
+    ],
+    imports: [...SHARED_IMPORTS, CommonModule]
 })
 
 export class ObjetivoSearchComponent implements ControlValueAccessor {

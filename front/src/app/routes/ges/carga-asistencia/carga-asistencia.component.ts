@@ -35,10 +35,9 @@ enum Busqueda {
     selector: 'app-carga-asistencia',
     templateUrl: './carga-asistencia.component.html',
     styleUrls: ['./carga-asistencia.component.less'],
-    standalone: true,
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, DetallePersonaComponent, ViewResponsableComponent]
+    imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, DetallePersonaComponent, ViewResponsableComponent]
 })
 export class CargaAsistenciaComponent {
     @ViewChild('carasistForm', { static: true }) carasistForm: NgForm =

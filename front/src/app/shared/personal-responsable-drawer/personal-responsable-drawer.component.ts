@@ -15,9 +15,8 @@ import { FormBuilder, FormArray } from '@angular/forms';
     selector: 'app-personal-responsable-drawer',
     templateUrl: './personal-responsable-drawer.component.html',
     styleUrl: './personal-responsable-drawer.component.less',
-    standalone: true,
     imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule],
-    providers: [AngularUtilService],
+    providers: [AngularUtilService]
 })
   
 export class PersonalResponsableDrawerComponent {

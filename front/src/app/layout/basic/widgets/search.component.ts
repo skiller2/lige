@@ -20,8 +20,8 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, tap } from 'rxjs';
 
 @Component({
-  selector: 'header-search',
-  template: `
+    selector: 'header-search',
+    template: `
     <nz-input-group [nzPrefix]="iconTpl" [nzSuffix]="loadingTpl">
       <ng-template #iconTpl>
         <i nz-icon [nzType]="focus ? 'arrow-down' : 'search'"></i>
@@ -49,9 +49,8 @@ import { BehaviorSubject, debounceTime, distinctUntilChanged, tap } from 'rxjs';
       }
     </nz-autocomplete>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [FormsModule, I18nPipe, NgTemplateOutlet, NzInputModule, NzIconModule, NzAutocompleteModule]
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [FormsModule, I18nPipe, NzInputModule, NzIconModule, NzAutocompleteModule]
 })
 export class HeaderSearchComponent implements AfterViewInit, OnDestroy {
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;

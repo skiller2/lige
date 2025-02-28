@@ -4,12 +4,10 @@ import { SHARED_IMPORTS } from '@shared';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 
 @Component({
-  selector: 'app-upload-file',
-  templateUrl: './upload-file.component.html',
-  styleUrls: ['./upload-file.component.less'],
-  standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule],
-
+    selector: 'app-upload-file',
+    templateUrl: './upload-file.component.html',
+    styleUrls: ['./upload-file.component.less'],
+    imports: [...SHARED_IMPORTS, CommonModule]
 })
 export class UploadFileComponent {
   @Input() accept: string = '*';

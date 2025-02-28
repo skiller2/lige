@@ -38,16 +38,14 @@ type listOptionsT = {
 }
 
 @Component({
-  selector: 'app-table-historial-producto',
-  standalone: true,
-  imports: [SHARED_IMPORTS,
-    CommonModule,
-    NzAffixModule,
-    FiltroBuilderComponent, 
-],
-providers: [AngularUtilService],
-  templateUrl: './table-historial-producto.component.html',
-  styleUrl: './table-historial-producto.component.less'
+    selector: 'app-table-historial-producto',
+    imports: [SHARED_IMPORTS,
+        CommonModule,
+        NzAffixModule,
+    ],
+    providers: [AngularUtilService],
+    templateUrl: './table-historial-producto.component.html',
+    styleUrl: './table-historial-producto.component.less'
 })
 export class TableHistorialProductoComponent {
 

@@ -7,23 +7,21 @@ import { SearchService } from 'src/app/services/search.service';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
 
 @Component({
-  selector: 'app-categoria-persona',
-  templateUrl: './editor-categoria.component.html',
-  styleUrls: ['./editor-categoria.component.less'],
-  standalone: true,
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => EditorCategoriaComponent),
-      multi: true,
-    },
-  ],
-  imports: [
-    ...SHARED_IMPORTS,
-    CommonModule,
-    //    PersonalSearchComponent
-  ],
-
+    selector: 'app-categoria-persona',
+    templateUrl: './editor-categoria.component.html',
+    styleUrls: ['./editor-categoria.component.less'],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => EditorCategoriaComponent),
+            multi: true,
+        },
+    ],
+    imports: [
+        ...SHARED_IMPORTS,
+        CommonModule,
+        //    PersonalSearchComponent
+    ]
 })
 export class EditorCategoriaComponent {
   @ViewChild("eto") eto!: NzSelectComponent

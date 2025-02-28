@@ -14,21 +14,20 @@ import { TableGrupoActividadPersonalComponent } from '../../../shared/table-grup
 
 
 @Component({
-  selector: 'app-grupo-actividad',
-  standalone: true,
-  imports: [
-    SHARED_IMPORTS, 
-    CommonModule, 
-    TableGrupoActividadGruposComponent, 
-    TableGrupoActividadResponsablesComponent,
-    TableGrupoActividadObjetivosComponent,
-    TableGrupoActividadPersonalComponent
-  ],
-  encapsulation: ViewEncapsulation.None,
-  providers: [AngularUtilService],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './grupo-actividad.component.html',
-  styleUrl: './grupo-actividad.component.less'
+    selector: 'app-grupo-actividad',
+    imports: [
+        SHARED_IMPORTS,
+        CommonModule,
+        TableGrupoActividadGruposComponent,
+        TableGrupoActividadResponsablesComponent,
+        TableGrupoActividadObjetivosComponent,
+        TableGrupoActividadPersonalComponent
+    ],
+    encapsulation: ViewEncapsulation.None,
+    providers: [AngularUtilService],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    templateUrl: './grupo-actividad.component.html',
+    styleUrl: './grupo-actividad.component.less'
 })
 export class GrupoActividadComponent {
 

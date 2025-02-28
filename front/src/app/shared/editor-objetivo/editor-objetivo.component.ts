@@ -10,12 +10,10 @@ import { ObjetivoSearchComponent } from '../objetivo-search/objetivo-search.comp
 
 
 @Component({
-  selector: 'app-editor-objetivo',
-  templateUrl: './editor-objetivo.component.html',
-  styleUrls: ['./editor-objetivo.component.less'],
-  standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent,],
-
+    selector: 'app-editor-objetivo',
+    templateUrl: './editor-objetivo.component.html',
+    styleUrls: ['./editor-objetivo.component.less'],
+    imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent,]
 })
 export class EditorObjetivoComponent {
   selectedId = '';

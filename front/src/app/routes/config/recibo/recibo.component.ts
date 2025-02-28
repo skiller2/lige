@@ -8,16 +8,15 @@ import { ApiService } from 'src/app/services/api.service';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
-  selector: 'app-recibo',
-  standalone: true,
-  imports: [
-    NzInputModule,
-    NzDatePickerModule,
-    SHARED_IMPORTS, PersonalSearchComponent],
-  templateUrl: './recibo.component.html',
-  styleUrl: './recibo.component.less',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-
+    selector: 'app-recibo',
+    imports: [
+        NzInputModule,
+        NzDatePickerModule,
+        SHARED_IMPORTS, PersonalSearchComponent
+    ],
+    templateUrl: './recibo.component.html',
+    styleUrl: './recibo.component.less',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ReciboComponent {
   ngForm = viewChild.required(NgForm);

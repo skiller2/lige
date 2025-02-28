@@ -20,10 +20,9 @@ import { AyudaAsistencialDrawerComponent } from "../../../shared/ayuda-asistenci
     selector: 'app-ayuda-asistencial',
     templateUrl: './ayuda-asistencial.component.html',
     styleUrls: ['./ayuda-asistencial.component.less'],
-    standalone: true,
     providers: [AngularUtilService, ExcelExportService],
-    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent,
-        ViewResponsableComponent, AyudaAsistencialDrawerComponent
+    imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule,
+        AyudaAsistencialDrawerComponent
     ]
 })
 export class AyudaAsistencialComponent {

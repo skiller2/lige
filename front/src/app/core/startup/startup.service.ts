@@ -1,5 +1,5 @@
 import { HttpClient, HttpContext } from '@angular/common/http';
-import { APP_INITIALIZER, Injectable, Provider, inject } from '@angular/core';
+import { EnvironmentProviders, Injectable, Provider, inject, provideAppInitializer } from '@angular/core';
 import { Router } from '@angular/router';
 import { ACLService } from '@delon/acl';
 import { ALLOW_ANONYMOUS, DA_SERVICE_TOKEN, ITokenService, JWTTokenModel, TokenService } from '@delon/auth';
@@ -17,15 +17,16 @@ import { I18NService } from '../i18n/i18n.service';
  * Generally used to get the basic data of the application, like: Menu Data, User Data, etc.
  */
 
-export function provideStartup(): Provider[] {
+export function provideStartup(): Array<Provider | EnvironmentProviders> {
   return [
     StartupService,
-    {
-      provide: APP_INITIALIZER,
-      useFactory: (startupService: StartupService) => () => startupService.load(),
-      deps: [StartupService],
-      multi: true
-    }
+    provideAppInitializer(() => {
+      const initializerFn = (
+        (startupService: StartupService) => () =>
+          startupService.load()
+      )(inject(StartupService));
+      return initializerFn();
+    })
   ];
 }
 

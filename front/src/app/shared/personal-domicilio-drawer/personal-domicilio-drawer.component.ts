@@ -15,9 +15,8 @@ import { NgForm, FormArray, FormBuilder } from '@angular/forms';
     selector: 'app-personal-domicilio-drawer',
     templateUrl: './personal-domicilio-drawer.component.html',
     styleUrl: './personal-domicilio-drawer.component.less',
-    standalone: true,
     imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule],
-    providers: [AngularUtilService],
+    providers: [AngularUtilService]
 })
   
 export class PersonalDomicilioDrawerComponent {

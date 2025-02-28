@@ -10,11 +10,10 @@ import { ImageContentComponent } from 'src/app/shared/imagePreview/image-content
 import { ViewCredentialComponent } from 'src/app/shared/viewCredential/view-credential.component';
 
 @Component({
-  selector: 'app-credencial-personal',
-  standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, ImageContentComponent, ViewCredentialComponent],
-  templateUrl: './credencial-personal.component.html',
-  styleUrls: ['./credencial-personal.component.less'],
+    selector: 'app-credencial-personal',
+    imports: [...SHARED_IMPORTS, CommonModule, ImageContentComponent, ViewCredentialComponent],
+    templateUrl: './credencial-personal.component.html',
+    styleUrls: ['./credencial-personal.component.less']
 })
 export class CredencialPersonalComponent {
   constructor(private searchService: SearchService) { }

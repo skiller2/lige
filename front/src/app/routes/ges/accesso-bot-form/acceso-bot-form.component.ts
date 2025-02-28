@@ -19,13 +19,13 @@ import { HttpClient } from '@angular/common/http';
 import { log } from '@delon/util';
 
 @Component({
-  selector: 'app-acceso-bot-form',
-  standalone: true,
-  imports: [
-    SHARED_IMPORTS,
-    CommonModule,PersonalSearchComponent,NzFlexModule,NzUploadModule,FileUploadComponent ],
-  templateUrl: './acceso-bot-form.component.html',
-  styleUrl: './acceso-bot-form.component.less'
+    selector: 'app-acceso-bot-form',
+    imports: [
+        SHARED_IMPORTS,
+        CommonModule, PersonalSearchComponent, NzFlexModule, NzUploadModule, FileUploadComponent
+    ],
+    templateUrl: './acceso-bot-form.component.html',
+    styleUrl: './acceso-bot-form.component.less'
 })
 
 export class AccesoBotFormComponent {

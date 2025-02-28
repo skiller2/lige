@@ -16,17 +16,15 @@ import { GrupoActividadSearchComponent } from '../grupo-actividad-search/grupo-a
 import { EditorObjetivoComponent } from '../../shared/editor-objetivo/editor-objetivo.component';
 
 @Component({
-  selector: 'app-table-grupo-actividad-objetivos',
-  standalone: true,
-  providers: [AngularUtilService],
-  imports: [
-    ...SHARED_IMPORTS,
-    CommonModule,
-    FiltroBuilderComponent
-
-  ],
-  templateUrl: './table-grupo-actividad-objetivos.component.html',
-  styleUrl: './table-grupo-actividad-objetivos.component.less'
+    selector: 'app-table-grupo-actividad-objetivos',
+    providers: [AngularUtilService],
+    imports: [
+        ...SHARED_IMPORTS,
+        CommonModule,
+        FiltroBuilderComponent
+    ],
+    templateUrl: './table-grupo-actividad-objetivos.component.html',
+    styleUrl: './table-grupo-actividad-objetivos.component.less'
 })
 export class TableGrupoActividadObjetivosComponent {
 

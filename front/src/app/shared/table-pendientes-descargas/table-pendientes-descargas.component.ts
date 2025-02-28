@@ -19,9 +19,8 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
     selector: 'app-table-pendientes-descargas',
     templateUrl: './table-pendientes-descargas.component.html',
     styleUrl: './table-pendientes-descargas.component.less',
-    standalone: true,
     imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule,
-        PersonalSearchComponent, CommonModule, FiltroBuilderComponent, NzAffixModule],
+        CommonModule, FiltroBuilderComponent, NzAffixModule]
 })
 
 export class TablePendientesDescargasComponent {

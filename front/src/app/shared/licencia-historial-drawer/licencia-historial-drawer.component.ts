@@ -19,12 +19,11 @@ export interface Option {
 }
 
 @Component({
-  selector: 'app-licencia-historial-drawer',
-  standalone: true,
-  imports: [SHARED_IMPORTS,NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, CommonModule,TableHistorialLicenciaComponent],
-  templateUrl: './licencia-historial-drawer.component.html',
-  styleUrl: './licencia-historial-drawer.component.less',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-licencia-historial-drawer',
+    imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, CommonModule, TableHistorialLicenciaComponent],
+    templateUrl: './licencia-historial-drawer.component.html',
+    styleUrl: './licencia-historial-drawer.component.less',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 

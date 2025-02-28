@@ -23,12 +23,11 @@ export interface Option {
 }
 
 @Component({
-  selector: 'app-licencia-drawer',
-  standalone: true,
-  imports: [SHARED_IMPORTS,NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, EditorCategoriaComponent, InasistenciaSearchComponent, PersonalSearchComponent, CommonModule,FileUploadComponent,SituacionRevistaSearchComponent],
-  templateUrl: './licencia-drawer.component.html',
-  styleUrl: './licencia-drawer.component.less',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-licencia-drawer',
+    imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, EditorCategoriaComponent, InasistenciaSearchComponent, PersonalSearchComponent, CommonModule, FileUploadComponent, SituacionRevistaSearchComponent],
+    templateUrl: './licencia-drawer.component.html',
+    styleUrl: './licencia-drawer.component.less',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 

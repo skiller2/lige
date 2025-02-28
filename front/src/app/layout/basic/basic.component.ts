@@ -23,8 +23,8 @@ import { HeaderTitleComponent } from './widgets/title.component';
 
 
 @Component({
-  selector: 'layout-basic',
-  template: `
+    selector: 'layout-basic',
+    template: `
     <header-title class="alain-default__title"></header-title>
 
     <layout-default [options]="options" [content]="contentTpl" [customError]="null" >
@@ -102,29 +102,25 @@ import { HeaderTitleComponent } from './widgets/title.component';
     <!-- <setting-drawer *ngIf="showSettingDrawer"></setting-drawer> -->
     <theme-btn></theme-btn>
   `,
-  standalone: true,
-  imports: [
-    RouterOutlet,
-    RouterLink,
-    I18nPipe,
-    LayoutDefaultModule,
-    NzIconModule,
-    NzMenuModule,
-    NzDropDownModule,
-    NzAvatarModule,
-    SettingDrawerModule,
-    ThemeBtnComponent,
-    HeaderSearchComponent,
-    HeaderNotifyComponent,
-    HeaderTaskComponent,
-    HeaderIconComponent,
-    HeaderRTLComponent,
-    HeaderI18nComponent,
-    HeaderClearStorageComponent,
-    HeaderFullScreenComponent,
-    HeaderUserComponent,
-    HeaderTitleComponent
-  ]
+    imports: [
+        RouterOutlet,
+        RouterLink,
+        I18nPipe,
+        LayoutDefaultModule,
+        NzIconModule,
+        NzMenuModule,
+        NzDropDownModule,
+        NzAvatarModule,
+        SettingDrawerModule,
+        ThemeBtnComponent,
+        HeaderNotifyComponent,
+        HeaderIconComponent,
+        HeaderI18nComponent,
+        HeaderClearStorageComponent,
+        HeaderFullScreenComponent,
+        HeaderUserComponent,
+        HeaderTitleComponent
+    ]
 })
 export class LayoutBasicComponent {
   private readonly settings = inject(SettingsService);

@@ -10,12 +10,11 @@ import { FileUploadComponent } from "../../../shared/file-upload/file-upload.com
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 
 @Component({
-  selector: 'app-personal-form',
-  templateUrl: './personal-form.component.html',
-  styleUrl: './personal-form.component.less',
-  standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, NzUploadModule, FileUploadComponent, NzCheckboxModule],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-personal-form',
+    templateUrl: './personal-form.component.html',
+    styleUrl: './personal-form.component.less',
+    imports: [...SHARED_IMPORTS, CommonModule, NzUploadModule, FileUploadComponent, NzCheckboxModule],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
   
 export class PersonalFormComponent {

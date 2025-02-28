@@ -29,21 +29,18 @@ import { LoadingService } from '@delon/abc/loading';
 import { FileUploadComponent } from 'src/app/shared/file-upload/file-upload.component';
 
 @Component({
-  selector: 'app-liquidaciones',
-  templateUrl: './liquidaciones-banco.component.html',
-  styleUrls: ['./liquidaciones-banco.component.less'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    SHARED_IMPORTS,
-    NzAffixModule,
-    FiltroBuilderComponent,
-    RowPreloadDetailComponent,
-    RowDetailViewComponent,
-    MovimientosPendientes,
-    FileUploadComponent
-  ],
-  providers: [AngularUtilService]
+    selector: 'app-liquidaciones',
+    templateUrl: './liquidaciones-banco.component.html',
+    styleUrls: ['./liquidaciones-banco.component.less'],
+    imports: [
+        CommonModule,
+        SHARED_IMPORTS,
+        NzAffixModule,
+        FiltroBuilderComponent,
+        MovimientosPendientes,
+        FileUploadComponent
+    ],
+    providers: [AngularUtilService]
 })
 export class LiquidacionesBancoComponent {
   @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =

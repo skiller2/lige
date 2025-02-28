@@ -41,16 +41,14 @@ type listOptionsT = {
 }
 
 @Component({
-  selector: 'app-table-historial-contrato',
-  standalone: true,
-  imports: [SHARED_IMPORTS,
-    CommonModule,
-    NzAffixModule,
-    FiltroBuilderComponent, 
-],
-providers: [AngularUtilService],
-  templateUrl: './table-historial-contrato.component.html',
-  styleUrl: './table-historial-contrato.component.less'
+    selector: 'app-table-historial-contrato',
+    imports: [SHARED_IMPORTS,
+        CommonModule,
+        NzAffixModule
+    ],
+    providers: [AngularUtilService],
+    templateUrl: './table-historial-contrato.component.html',
+    styleUrl: './table-historial-contrato.component.less'
 })
 export class TableHistorialContratoComponent {
 

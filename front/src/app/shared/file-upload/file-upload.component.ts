@@ -13,18 +13,17 @@ import { NzImageModule } from 'ng-zorro-antd/image';
 
 
 @Component({
-  selector: 'app-file-upload',
-  standalone: true,
-  imports: [SHARED_IMPORTS, NzUploadModule, CommonModule, NgxExtendedPdfViewerModule, NzImageModule],
-  templateUrl: './file-upload.component.html',
-  styleUrl: './file-upload.component.less',
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => FileUploadComponent),
-      multi: true
-    },
-  ],
+    selector: 'app-file-upload',
+    imports: [SHARED_IMPORTS, NzUploadModule, CommonModule, NgxExtendedPdfViewerModule, NzImageModule],
+    templateUrl: './file-upload.component.html',
+    styleUrl: './file-upload.component.less',
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => FileUploadComponent),
+            multi: true
+        },
+    ]
 })
 export class FileUploadComponent implements ControlValueAccessor {
   public src = signal<Blob>(new Blob())

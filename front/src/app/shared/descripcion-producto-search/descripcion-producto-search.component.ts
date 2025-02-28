@@ -8,16 +8,14 @@ import { Injector, inject } from '@angular/core';
 import { SearchService } from '../../services/search.service';
 
 @Component({
-  selector: 'app-descripcion-producto-search',
-  templateUrl: './descripcion-producto-search.component.html',
-  styleUrls: ['./descripcion-producto-search.component.less'],
-  standalone: true,
-  imports: [
-    ...SHARED_IMPORTS,
-    CommonModule,
-    //    PersonalSearchComponent
-  ],
-
+    selector: 'app-descripcion-producto-search',
+    templateUrl: './descripcion-producto-search.component.html',
+    styleUrls: ['./descripcion-producto-search.component.less'],
+    imports: [
+        ...SHARED_IMPORTS,
+        CommonModule,
+        //    PersonalSearchComponent
+    ]
 })
 export class DescripcionProductoSearchComponent {
   @ViewChild("eto") eto!: NzSelectComponent

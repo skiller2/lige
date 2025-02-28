@@ -18,20 +18,18 @@ import { SHARED_IMPORTS } from '@shared'
 import { CommonModule, DatePipe } from '@angular/common'
 
 @Component({
-  selector: 'app-fecha-search',
-  templateUrl: './fecha-search.component.html',
-  styleUrls: ['./fecha-search.component.less'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => FechaSearchComponent),
-      multi: true,
-    },
-    DatePipe
-  ],
-  standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule],
-  
+    selector: 'app-fecha-search',
+    templateUrl: './fecha-search.component.html',
+    styleUrls: ['./fecha-search.component.less'],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => FechaSearchComponent),
+            multi: true,
+        },
+        DatePipe
+    ],
+    imports: [...SHARED_IMPORTS, CommonModule]
 })
 
 export class FechaSearchComponent implements ControlValueAccessor {

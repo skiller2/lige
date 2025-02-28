@@ -12,27 +12,25 @@ import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } fr
 import { SearchService } from 'src/app/services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
-import { SettingsService } from '@delon/theme';
+import { I18nPipe, SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { ClientesFormComponent } from "../clientes-form/clientes-form.component"
 
 
 @Component({
-  selector: 'app-clientes',
-  standalone: true,
-  templateUrl: './clientes.component.html',
-  styleUrl: './clientes.component.less',
-  encapsulation: ViewEncapsulation.None,
-  providers: [AngularUtilService],
-  imports: [
-    SHARED_IMPORTS, 
-    CommonModule, 
-    PersonalSearchComponent, 
-    ClienteSearchComponent,
-    DetallePersonaComponent,
-    FiltroBuilderComponent,
-    ClientesFormComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-clientes',
+    templateUrl: './clientes.component.html',
+    styleUrl: './clientes.component.less',
+    encapsulation: ViewEncapsulation.None,
+    providers: [AngularUtilService],
+    imports: [
+        SHARED_IMPORTS,
+        CommonModule,
+      FiltroBuilderComponent,
+      ClientesFormComponent,
+        I18nPipe
+    ],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ClientesComponent {
 
@@ -101,7 +99,6 @@ export class ClientesComponent {
 
   onPristineChange(isPristine: boolean) {
     this.childIsPristine.set(isPristine)
-
   }
 
     async angularGridReady(angularGrid: any) {

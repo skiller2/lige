@@ -35,13 +35,12 @@ import { G2TimelineModule } from '@delon/chart/timeline';
 import { G2CustomModule } from '@delon/chart/custom';
 
 @Component({
-  selector: 'app-init-v1',
-  templateUrl: './v1.component.html',
-  styleUrl: './v1.component.less',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, G2TimelineModule, G2BarModule, G2MiniBarModule, G2PieModule, G2CustomModule],
-  encapsulation: ViewEncapsulation.None
+    selector: 'app-init-v1',
+    templateUrl: './v1.component.html',
+    styleUrl: './v1.component.less',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [...SHARED_IMPORTS, CommonModule, G2TimelineModule, G2BarModule, G2MiniBarModule, G2PieModule, G2CustomModule],
+    encapsulation: ViewEncapsulation.None
 })
 export class InitV1Component implements OnInit {
   private readonly ngZone = inject(NgZone);

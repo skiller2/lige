@@ -37,16 +37,15 @@ export class CustomDescargaComprobanteComponent {
 
 
 @Component({
-  selector: 'tipo-documento',
-  templateUrl: './tipo-documento.component.html',
-  standalone: true,
-  imports: [
-    SHARED_IMPORTS, CommonModule, NzAffixModule,
-    FiltroBuilderComponent, TipoDocumentoAltaDrawerComponent,
-    TablePendientesDescargasComponent, TableHistorialDescargasComponent
-  ],
-  styleUrls: ['./tipo-documento.component.less'],
-  providers: [AngularUtilService]
+    selector: 'tipo-documento',
+    templateUrl: './tipo-documento.component.html',
+    imports: [
+        SHARED_IMPORTS, CommonModule, NzAffixModule,
+        FiltroBuilderComponent, TipoDocumentoAltaDrawerComponent,
+        TablePendientesDescargasComponent, TableHistorialDescargasComponent
+    ],
+    styleUrls: ['./tipo-documento.component.less'],
+    providers: [AngularUtilService]
 })
 export class TipoDocumentoComponent {
   @ViewChild('objpendForm', { static: true }) objpendForm: NgForm =

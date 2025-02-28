@@ -15,10 +15,8 @@ import { FormBuilder, FormArray } from '@angular/forms';
     selector: 'app-personal-categoria-drawer',
     templateUrl: './personal-categoria-drawer.component.html',
     styleUrl: './personal-categoria-drawer.component.less',
-    standalone: true,
     imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule],
-    providers: [AngularUtilService],
-    // changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [AngularUtilService]
 })
   
 export class PersonalCategoriaDrawerComponent {

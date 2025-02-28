@@ -51,16 +51,15 @@ interface PersonalLicencia {
 }
 
 @Component({
-  selector: 'app-table-abm-licencia',
-  standalone: true,
-  imports: [SHARED_IMPORTS,
-    CommonModule,
-    NzAffixModule,
-    FiltroBuilderComponent, 
-],
-providers: [AngularUtilService],
-  templateUrl: './table-abm-licencia.component.html',
-  styleUrl: './table-abm-licencia.component.less'
+    selector: 'app-table-abm-licencia',
+    imports: [SHARED_IMPORTS,
+        CommonModule,
+        NzAffixModule,
+        FiltroBuilderComponent,
+    ],
+    providers: [AngularUtilService],
+    templateUrl: './table-abm-licencia.component.html',
+    styleUrl: './table-abm-licencia.component.less'
 })
 export class TableAbmLicenciaComponent {
 

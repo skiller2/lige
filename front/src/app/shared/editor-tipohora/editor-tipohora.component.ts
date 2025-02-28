@@ -6,16 +6,14 @@ import { NzSelectComponent } from 'ng-zorro-antd/select';
 import { SearchService } from 'src/app/services/search.service';
 
 @Component({
-  selector: 'app-tipohora-persona',
-  templateUrl: './editor-tipohora.component.html',
-  styleUrls: ['./editor-tipohora.component.less'],
-  standalone: true,
-  imports: [
-    ...SHARED_IMPORTS,
-    CommonModule,
-    //    PersonalSearchComponent
-  ],
-
+    selector: 'app-tipohora-persona',
+    templateUrl: './editor-tipohora.component.html',
+    styleUrls: ['./editor-tipohora.component.less'],
+    imports: [
+        ...SHARED_IMPORTS,
+        CommonModule,
+        //    PersonalSearchComponent
+    ]
 })
 export class EditorTipoHoraComponent {
   @ViewChild("eto") eto!: NzSelectComponent

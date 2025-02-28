@@ -3,12 +3,11 @@ import { Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angu
 import { SHARED_IMPORTS } from '@shared';
 
 @Component({
-  selector: 'app-view-responsable',
-  standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule],
-  templateUrl: './view-responsable.component.html',
-  styleUrl: './view-responsable.component.less',
-  encapsulation:ViewEncapsulation.None
+    selector: 'app-view-responsable',
+    imports: [...SHARED_IMPORTS, CommonModule],
+    templateUrl: './view-responsable.component.html',
+    styleUrl: './view-responsable.component.less',
+    encapsulation: ViewEncapsulation.None
 })
   
 export class ViewResponsableComponent {

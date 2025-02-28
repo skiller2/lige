@@ -19,23 +19,19 @@ import { ObjetivoHistorialDrawerComponent } from '../../../shared/objetivo-histo
 
 
 @Component({
-  selector: 'app-objetivos',
-  standalone: true,
-  templateUrl: './objetivos.component.html',
-  styleUrl: './objetivos.component.less',
-  encapsulation: ViewEncapsulation.None,
-  providers: [AngularUtilService],
-  imports: [
-    SHARED_IMPORTS, 
-    CommonModule, 
-    PersonalSearchComponent, 
-    ClienteSearchComponent,
-    ObjetivosFormComponent,
-    DetallePersonaComponent,
-    FiltroBuilderComponent,
-    ObjetivoHistorialDrawerComponent
+    selector: 'app-objetivos',
+    templateUrl: './objetivos.component.html',
+    styleUrl: './objetivos.component.less',
+    encapsulation: ViewEncapsulation.None,
+    providers: [AngularUtilService],
+    imports: [
+        SHARED_IMPORTS,
+        CommonModule,
+        ObjetivosFormComponent,
+        FiltroBuilderComponent,
+        ObjetivoHistorialDrawerComponent
     ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ObjetivosComponent {
 

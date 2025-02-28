@@ -19,19 +19,17 @@ import { CommonModule } from '@angular/common'
 import { Injector, inject } from '@angular/core';
 
 @Component({
-  selector: 'app-grupo-actividad-search',
-  templateUrl: './grupo-actividad-search.component.html',
-  styleUrls: ['./grupo-actividad-search.component.less'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => GrupoActividadSearchComponent),
-      multi: true,
-    },
-  ],
-  standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule],
-
+    selector: 'app-grupo-actividad-search',
+    templateUrl: './grupo-actividad-search.component.html',
+    styleUrls: ['./grupo-actividad-search.component.less'],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => GrupoActividadSearchComponent),
+            multi: true,
+        },
+    ],
+    imports: [...SHARED_IMPORTS, CommonModule]
 })
 
 export class GrupoActividadSearchComponent implements ControlValueAccessor {

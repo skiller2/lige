@@ -15,11 +15,10 @@ import { NzAlertModule } from 'ng-zorro-antd/alert';
 
 
 @Component({
-  selector: 'app-ident',
-  standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, ZXingScannerModule, NzResultModule, NzCollapseModule,NzAlertModule],
-  templateUrl: './ident.component.html',
-  styleUrl: './ident.component.less'
+    selector: 'app-ident',
+    imports: [...SHARED_IMPORTS, CommonModule, ZXingScannerModule, NzResultModule, NzCollapseModule, NzAlertModule],
+    templateUrl: './ident.component.html',
+    styleUrl: './ident.component.less'
 })
 export class IdentComponent {
   allowedBarCodeFormats = [BarcodeFormat.PDF_417]

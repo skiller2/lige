@@ -17,17 +17,16 @@ import { Component, model, signal, inject } from '@angular/core';
 
 
 @Component({
-  selector: 'app-precios-productos',
-  standalone: true,
-  providers: [AngularUtilService],
-  imports: [
-    ...SHARED_IMPORTS,
-    CommonModule,
-    FiltroBuilderComponent,
-    ProductoHistorialDrawerComponent
-  ],
-  templateUrl: './precios-productos.component.html',
-  styleUrl: './precios-productos.component.less'
+    selector: 'app-precios-productos',
+    providers: [AngularUtilService],
+    imports: [
+        ...SHARED_IMPORTS,
+        CommonModule,
+        FiltroBuilderComponent,
+        ProductoHistorialDrawerComponent
+    ],
+    templateUrl: './precios-productos.component.html',
+    styleUrl: './precios-productos.component.less'
 })
 export class PreciosProductosComponent {
 

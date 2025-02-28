@@ -17,19 +17,17 @@ import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
 
 @Component({
-  selector: 'app-tipo-movimiento-search',
-  templateUrl: './tipo-movimiento-search.component.html',
-  styleUrls: ['./tipo-movimiento-search.component.less'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => TipoMovimientoSearchComponent),
-      multi: true,
-    },
-  ],
-  standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule],
-
+    selector: 'app-tipo-movimiento-search',
+    templateUrl: './tipo-movimiento-search.component.html',
+    styleUrls: ['./tipo-movimiento-search.component.less'],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => TipoMovimientoSearchComponent),
+            multi: true,
+        },
+    ],
+    imports: [...SHARED_IMPORTS, CommonModule]
 })
 
 export class TipoMovimientoSearchComponent implements ControlValueAccessor {

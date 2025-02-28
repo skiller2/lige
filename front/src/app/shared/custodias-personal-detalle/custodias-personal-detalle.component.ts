@@ -19,11 +19,10 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 
 @Component({
     selector: 'app-custodias-personal-detalle',
-    standalone: true,
     imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule,
         CommonModule, FiltroBuilderComponent, NzAffixModule],
     templateUrl: './custodias-personal-detalle.component.html',
-    styleUrl: './custodias-personal-detalle.component.less',
+    styleUrl: './custodias-personal-detalle.component.less'
 })
 
 export class CustodiasPersonalDetalleComponent {

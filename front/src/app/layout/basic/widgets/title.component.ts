@@ -21,8 +21,8 @@ interface PageHeaderPath {
 }
 
 @Component({
-  selector: 'header-title',
-  template: `
+    selector: 'header-title',
+    template: `
     <ng-container *ngIf="!breadcrumb; else breadcrumb!" >
           <nz-breadcrumb *ngIf="paths && paths.length > 0" >
             <nz-breadcrumb-item *ngFor="let i of paths" >
@@ -34,12 +34,10 @@ interface PageHeaderPath {
           </nz-breadcrumb>
         </ng-container>
   `,
-  styles: [`
+    styles: [`
   `],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [CommonModule, NzBreadCrumbModule, RouterModule]
-  
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [CommonModule, NzBreadCrumbModule, RouterModule]
 })
   
 export class HeaderTitleComponent implements AfterViewInit, OnDestroy {

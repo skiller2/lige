@@ -17,11 +17,9 @@ import { NzTypographyModule } from 'ng-zorro-antd/typography';
     selector: 'app-custodias-form',
     templateUrl: './custodias-form.component.html',
     styleUrls: ['./custodias-form.component.less'],
-    standalone: true,
     encapsulation: ViewEncapsulation.None,
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, DetallePersonaComponent, NzAutocompleteModule,NzTypographyModule],
-    changeDetection: ChangeDetectionStrategy.OnPush,
-
+    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, NzAutocompleteModule, NzTypographyModule],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CustodiaFormComponent {
 

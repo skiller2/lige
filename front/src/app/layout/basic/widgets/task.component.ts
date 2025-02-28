@@ -9,8 +9,8 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
-  selector: 'header-task',
-  template: `
+    selector: 'header-task',
+    template: `
     <div
       class="alain-default__nav-item"
       nz-dropdown
@@ -83,9 +83,8 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
       </div>
     </nz-dropdown-menu>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [NgTemplateOutlet, NzDropDownModule, NzBadgeModule, NzIconModule, NzSpinModule, NzGridModule, NzAvatarModule, NzCardModule]
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [NzDropDownModule, NzBadgeModule, NzIconModule, NzSpinModule, NzGridModule, NzAvatarModule, NzCardModule]
 })
 export class HeaderTaskComponent {
   private readonly cdr = inject(ChangeDetectorRef);

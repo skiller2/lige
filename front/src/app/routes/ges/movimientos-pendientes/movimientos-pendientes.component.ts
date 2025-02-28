@@ -30,20 +30,16 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { LoadingService } from '@delon/abc/loading';
 
 @Component({
-  selector: 'movimientos-pendientes',
-  templateUrl: './movimientos-pendientes.component.html',
-  styleUrls: ['./movimientos-pendientes.component.less'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    SHARED_IMPORTS,
-    NzAffixModule,
-    FiltroBuilderComponent,
-    RowPreloadDetailComponent,
-    RowDetailViewComponent,
-  ],
-  providers: [AngularUtilService,CurrencyPipe]
-
+    selector: 'movimientos-pendientes',
+    templateUrl: './movimientos-pendientes.component.html',
+    styleUrls: ['./movimientos-pendientes.component.less'],
+    imports: [
+        CommonModule,
+        SHARED_IMPORTS,
+        NzAffixModule,
+        FiltroBuilderComponent
+    ],
+    providers: [AngularUtilService, CurrencyPipe]
 })
 
 export class MovimientosPendientes {

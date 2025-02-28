@@ -13,9 +13,8 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
     selector: 'app-personal-custodias-drawer',
     templateUrl: './personal-custodias-drawer.component.html',
     styleUrl: './personal-custodias-drawer.component.less',
-    standalone: true,
     imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule],
-    providers: [AngularUtilService],
+    providers: [AngularUtilService]
 })
   
 export class PersonalCustodiasDrawerComponent {

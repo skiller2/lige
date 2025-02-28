@@ -18,15 +18,12 @@ import { I18NService } from '@core';
 /** config ng-zorro-antd i18n **/
 
 @Component({
-  selector: 'test',
-  templateUrl: './test.component.html',
-  styleUrls: ['./test.component.less'],
-  standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, PersonalSearchComponent, DescuentosComponent],
-  providers: [],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-
-
+    selector: 'test',
+    templateUrl: './test.component.html',
+    styleUrls: ['./test.component.less'],
+    imports: [...SHARED_IMPORTS, CommonModule],
+    providers: [],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 export class TestComponent {

@@ -3,9 +3,10 @@ import { BehaviorSubject } from 'rxjs';
 import { DownloadService } from 'src/app/services/download.service';
 
 @Component({
-  selector: 'app-download',
-  templateUrl: './download.component.html',
-  styleUrls: ['./download.component.less']
+    selector: 'app-download',
+    templateUrl: './download.component.html',
+    styleUrls: ['./download.component.less'],
+    standalone: false
 })
 export class DownloadComponent {
 

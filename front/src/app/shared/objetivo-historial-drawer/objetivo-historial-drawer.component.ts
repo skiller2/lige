@@ -19,12 +19,11 @@ export interface Option {
 }
 
 @Component({
-  selector: 'app-objetivo-historial-drawer',
-  standalone: true,
-  imports: [SHARED_IMPORTS,NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, CommonModule,TableHistorialContratoComponent],
-  templateUrl: './objetivo-historial-drawer.component.html',
-  styleUrl: './objetivo-historial-drawer.component.less',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-objetivo-historial-drawer',
+    imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, CommonModule, TableHistorialContratoComponent],
+    templateUrl: './objetivo-historial-drawer.component.html',
+    styleUrl: './objetivo-historial-drawer.component.less',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 

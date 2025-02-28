@@ -15,17 +15,15 @@ import { GrupoActividadSearchComponent } from '../grupo-actividad-search/grupo-a
 import { EditorPersonaComponent } from '../../shared/editor-persona/editor-persona.component';
 
 @Component({
-  selector: 'app-table-grupo-actividad-personal',
-  standalone: true,
-  providers: [AngularUtilService],
-  imports: [
-    ...SHARED_IMPORTS,
-    CommonModule,
-    FiltroBuilderComponent
-
-  ],
-  templateUrl: './table-grupo-actividad-personal.component.html',
-  styleUrl: './table-grupo-actividad-personal.component.less'
+    selector: 'app-table-grupo-actividad-personal',
+    providers: [AngularUtilService],
+    imports: [
+        ...SHARED_IMPORTS,
+        CommonModule,
+        FiltroBuilderComponent
+    ],
+    templateUrl: './table-grupo-actividad-personal.component.html',
+    styleUrl: './table-grupo-actividad-personal.component.less'
 })
 export class TableGrupoActividadPersonalComponent {
 

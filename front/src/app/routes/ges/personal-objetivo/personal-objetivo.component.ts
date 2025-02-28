@@ -19,22 +19,20 @@ import { ListaPermisocargaComponent } from '../../../shared/lista-permisocarga/l
 
 
 @Component({
-  selector: 'app-personal-objetivo',
-  standalone: true,
-  imports: [
-    NzInputModule,
-    NzDatePickerModule,
-    SHARED_IMPORTS, 
-    PersonalSearchComponent,
-    ObjetivoSearchComponent,
-    ViewResponsableComponent,
-    CommonModule,
-    DetallePersonaComponent,
-    ListaPermisocargaComponent],
-  templateUrl: './personal-objetivo.component.html',
-  styleUrl: './personal-objetivo.component.less',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-
+    selector: 'app-personal-objetivo',
+    imports: [
+        NzInputModule,
+        NzDatePickerModule,
+        SHARED_IMPORTS,
+        PersonalSearchComponent,
+        ObjetivoSearchComponent,
+        ViewResponsableComponent,
+        CommonModule,
+        ListaPermisocargaComponent
+    ],
+    templateUrl: './personal-objetivo.component.html',
+    styleUrl: './personal-objetivo.component.less',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PersonalObjetivoComponnet {
   //formChange$ = new BehaviorSubject('');

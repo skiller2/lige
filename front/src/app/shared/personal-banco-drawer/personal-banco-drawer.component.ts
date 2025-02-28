@@ -15,10 +15,8 @@ import { FormBuilder, FormArray } from '@angular/forms';
     selector: 'app-personal-banco-drawer',
     templateUrl: './personal-banco-drawer.component.html',
     styleUrl: './personal-banco-drawer.component.less',
-    standalone: true,
     imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule],
-    providers: [AngularUtilService],
-    // changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [AngularUtilService]
 })
   
 export class PersonalBancoDrawerComponent {

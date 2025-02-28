@@ -36,25 +36,20 @@ interface Barrio {
 
 
 @Component({
-  selector: 'app-clientes-form',
-  templateUrl: './clientes-form.component.html',
-  styleUrl: './clientes-form.component.less',
-  standalone: true,
-  encapsulation: ViewEncapsulation.None,
-  providers: [AngularUtilService],
-  imports: [
-    SHARED_IMPORTS,
-    CommonModule,
-    PersonalSearchComponent,
-    ClienteSearchComponent,
-    AdministradorSearchComponent,
-    DetallePersonaComponent,
-    FiltroBuilderComponent,
-    NzAutocompleteModule,
-    NzSelectModule,
-    FileUploadComponent
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-clientes-form',
+    templateUrl: './clientes-form.component.html',
+    styleUrl: './clientes-form.component.less',
+    encapsulation: ViewEncapsulation.None,
+    providers: [AngularUtilService],
+    imports: [
+        SHARED_IMPORTS,
+        CommonModule,
+        AdministradorSearchComponent,
+        NzAutocompleteModule,
+        NzSelectModule,
+        FileUploadComponent
+    ],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 

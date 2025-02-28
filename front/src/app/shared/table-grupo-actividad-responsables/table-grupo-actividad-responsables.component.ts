@@ -19,17 +19,15 @@ import { GrupoActividadSearchComponent } from '../grupo-actividad-search/grupo-a
 
 
 @Component({
-  selector: 'app-table-grupo-actividad-responsables',
-  standalone: true,
-  providers: [AngularUtilService],
-  imports: [
-    ...SHARED_IMPORTS,
-    CommonModule,
-    FiltroBuilderComponent
-
-  ],
-  templateUrl: './table-grupo-actividad-responsables.component.html',
-  styleUrl: './table-grupo-actividad-responsables.component.less'
+    selector: 'app-table-grupo-actividad-responsables',
+    providers: [AngularUtilService],
+    imports: [
+        ...SHARED_IMPORTS,
+        CommonModule,
+        FiltroBuilderComponent
+    ],
+    templateUrl: './table-grupo-actividad-responsables.component.html',
+    styleUrl: './table-grupo-actividad-responsables.component.less'
 })
 export class TableGrupoActividadResponsablesComponent {
 

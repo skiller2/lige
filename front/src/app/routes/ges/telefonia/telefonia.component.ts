@@ -16,20 +16,17 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 
 
 @Component({
-  selector: 'app-telefonia',
-  templateUrl: './telefonia.component.html',
-  styleUrls: ['./telefonia.component.less'],
-  standalone: true,
-  imports: [
-    CommonModule,
-    SHARED_IMPORTS,
-    NzAffixModule,
-    FiltroBuilderComponent,
-    RowPreloadDetailComponent,
-    RowDetailViewComponent,
-    NzUploadModule
-  ],
-  providers: [AngularUtilService]
+    selector: 'app-telefonia',
+    templateUrl: './telefonia.component.html',
+    styleUrls: ['./telefonia.component.less'],
+    imports: [
+        CommonModule,
+        SHARED_IMPORTS,
+        NzAffixModule,
+        FiltroBuilderComponent,
+        NzUploadModule
+    ],
+    providers: [AngularUtilService]
 })
 export class TelefoniaComponent {
   @ViewChild('telefonoForm', { static: true }) telefonoForm: NgForm = new NgForm([], []);

@@ -17,19 +17,17 @@ import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
 
 @Component({
-  selector: 'app-administrador-search',
-  templateUrl: './administrador-search.component.html',
-  styleUrls: ['./administrador-search.component.less'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => AdministradorSearchComponent),
-      multi: true,
-    },
-  ],
-  standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule],
-
+    selector: 'app-administrador-search',
+    templateUrl: './administrador-search.component.html',
+    styleUrls: ['./administrador-search.component.less'],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => AdministradorSearchComponent),
+            multi: true,
+        },
+    ],
+    imports: [...SHARED_IMPORTS, CommonModule]
 })
 
 export class AdministradorSearchComponent implements ControlValueAccessor {

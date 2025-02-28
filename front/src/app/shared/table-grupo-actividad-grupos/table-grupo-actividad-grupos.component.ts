@@ -14,17 +14,15 @@ import { SelectSearchComponent } from "../../shared/select-search/select-search.
 import { Component, signal, inject } from '@angular/core';
 
 @Component({
-  selector: 'app-table-grupo-actividad-grupos',
-  standalone: true,
-  providers: [AngularUtilService],
-  imports: [
-    ...SHARED_IMPORTS,
-    CommonModule,
-    FiltroBuilderComponent
-    
-  ],
-  templateUrl: './table-grupo-actividad-grupos.component.html',
-  styleUrl: './table-grupo-actividad-grupos.component.less'
+    selector: 'app-table-grupo-actividad-grupos',
+    providers: [AngularUtilService],
+    imports: [
+        ...SHARED_IMPORTS,
+        CommonModule,
+        FiltroBuilderComponent
+    ],
+    templateUrl: './table-grupo-actividad-grupos.component.html',
+    styleUrl: './table-grupo-actividad-grupos.component.less'
 })
 export class TableGrupoActividadGruposComponent {
 

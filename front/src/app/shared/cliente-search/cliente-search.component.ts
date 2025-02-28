@@ -18,19 +18,17 @@ import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-cliente-search',
-  templateUrl: './cliente-search.component.html',
-  styleUrls: ['./cliente-search.component.less'],
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => ClienteSearchComponent),
-      multi: true,
-    },
-  ],
-  standalone: true,
-  imports: [ ...SHARED_IMPORTS,CommonModule],
-
+    selector: 'app-cliente-search',
+    templateUrl: './cliente-search.component.html',
+    styleUrls: ['./cliente-search.component.less'],
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => ClienteSearchComponent),
+            multi: true,
+        },
+    ],
+    imports: [...SHARED_IMPORTS, CommonModule]
 })
 
 export class ClienteSearchComponent implements ControlValueAccessor {

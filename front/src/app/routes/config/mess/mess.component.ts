@@ -11,19 +11,15 @@ import { RowDetailViewComponent } from 'src/app/shared/row-detail-view/row-detai
 import { RowPreloadDetailComponent } from 'src/app/shared/row-preload-detail/row-preload-detail.component';
 
 @Component({
-  selector: 'app-mess',
-  standalone: true,
-  imports: [NzModalModule,
-    CommonModule,
-    SHARED_IMPORTS,
-    NzAffixModule,
-    FiltroBuilderComponent,
-    RowPreloadDetailComponent,
-    RowDetailViewComponent,
-    NzUploadModule
-  ],
-  templateUrl: './mess.component.html',
-  styleUrl: './mess.component.less'
+    selector: 'app-mess',
+    imports: [NzModalModule,
+        CommonModule,
+        SHARED_IMPORTS,
+        NzAffixModule,
+        NzUploadModule
+    ],
+    templateUrl: './mess.component.html',
+    styleUrl: './mess.component.less'
 })
 export class MessComponent {
   messInfo = signal({'msg':'descansando'})

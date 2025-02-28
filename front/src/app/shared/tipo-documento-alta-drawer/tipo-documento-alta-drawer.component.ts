@@ -16,14 +16,13 @@ import { NzImageModule } from 'ng-zorro-antd/image';
 import { NgxExtendedPdfViewerModule } from 'ngx-extended-pdf-viewer';
 
 @Component({
-  selector: 'app-tipo-documento-alta-drawer',
-  templateUrl: './tipo-documento-alta-drawer.component.html',
-  styleUrl: './tipo-documento-alta-drawer.component.less',
-  standalone: true,
-  imports: [SHARED_IMPORTS, ReactiveFormsModule, PersonalSearchComponent,
-    CommonModule, FileUploadComponent, ClienteSearchComponent, ObjetivoSearchComponent,
-    NgxExtendedPdfViewerModule, NzImageModule],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-tipo-documento-alta-drawer',
+    templateUrl: './tipo-documento-alta-drawer.component.html',
+    styleUrl: './tipo-documento-alta-drawer.component.less',
+    imports: [SHARED_IMPORTS, ReactiveFormsModule, PersonalSearchComponent,
+        CommonModule, FileUploadComponent, ClienteSearchComponent, ObjetivoSearchComponent,
+        NgxExtendedPdfViewerModule, NzImageModule],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 export class TipoDocumentoAltaDrawerComponent {

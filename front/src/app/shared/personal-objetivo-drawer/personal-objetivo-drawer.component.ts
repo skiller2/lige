@@ -14,10 +14,8 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
     selector: 'app-personal-objetivo-drawer',
     templateUrl: './personal-objetivo-drawer.component.html',
     styleUrl: './personal-objetivo-drawer.component.less',
-    standalone: true,
     imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule],
-    providers: [AngularUtilService],
-    // changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [AngularUtilService]
 })
   
 export class PersonalObjetivoDrawerComponent {

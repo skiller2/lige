@@ -37,13 +37,10 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { SettingsService } from '@delon/theme';
 
 @Component({
-  standalone: true,
-  imports: [
-    SHARED_IMPORTS,
-
-  ],
-
-  template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
+    imports: [
+        SHARED_IMPORTS,
+    ],
+    template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
     httpUrl="api/impuestos_afip/{{anio}}/{{mes}}/0/{{item.PersonalId}}"
            style="float:right;padding-right: 5px;"><span class="pl-xs" nz-icon nzType="download"></span></a>`
 })
@@ -56,20 +53,17 @@ export class CustomDescargaComprobanteComponent {
 
 
 @Component({
-  selector: 'app-impuesto-afip',
-  templateUrl: './impuesto-afip.component.html',
-  standalone: true,
-  imports: [
-    CommonModule,
-    SHARED_IMPORTS,
-    NzAffixModule,
-    FiltroBuilderComponent,
-    RowPreloadDetailComponent,
-    RowDetailViewComponent,
-    NzUploadModule
-  ],
-  styleUrls: ['./impuesto-afip.component.less'],
-  providers: [AngularUtilService]
+    selector: 'app-impuesto-afip',
+    templateUrl: './impuesto-afip.component.html',
+    imports: [
+        CommonModule,
+        SHARED_IMPORTS,
+        NzAffixModule,
+        FiltroBuilderComponent,
+        NzUploadModule
+    ],
+    styleUrls: ['./impuesto-afip.component.less'],
+    providers: [AngularUtilService]
 })
 export class ImpuestoAfipComponent {
   @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm =

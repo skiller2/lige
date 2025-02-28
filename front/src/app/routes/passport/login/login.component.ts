@@ -36,13 +36,12 @@ import {
 } from 'rxjs';
 
 @Component({
-  selector: 'passport-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.less'],
-  providers: [SocialService],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [...SHARED_IMPORTS,CommonModule]
+    selector: 'passport-login',
+    templateUrl: './login.component.html',
+    styleUrls: ['./login.component.less'],
+    providers: [SocialService],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [...SHARED_IMPORTS, CommonModule]
 })
 export class UserLoginComponent implements OnDestroy {
   private readonly router = inject(Router);

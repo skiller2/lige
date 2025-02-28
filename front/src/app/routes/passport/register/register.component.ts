@@ -17,24 +17,23 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { finalize } from 'rxjs';
 
 @Component({
-  selector: 'passport-register',
-  templateUrl: './register.component.html',
-  styleUrls: ['./register.component.less'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    I18nPipe,
-    RouterLink,
-    NzAlertModule,
-    NzFormModule,
-    NzInputModule,
-    NzPopoverModule,
-    NzProgressModule,
-    NzSelectModule,
-    NzGridModule,
-    NzButtonModule
-  ]
+    selector: 'passport-register',
+    templateUrl: './register.component.html',
+    styleUrls: ['./register.component.less'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        ReactiveFormsModule,
+        I18nPipe,
+        RouterLink,
+        NzAlertModule,
+        NzFormModule,
+        NzInputModule,
+        NzPopoverModule,
+        NzProgressModule,
+        NzSelectModule,
+        NzGridModule,
+        NzButtonModule
+    ]
 })
 export class UserRegisterComponent implements OnDestroy {
   constructor(

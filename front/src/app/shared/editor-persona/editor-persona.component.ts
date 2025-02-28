@@ -5,16 +5,14 @@ import { PersonalSearchComponent } from '../personal-search/personal-search.comp
 import { SHARED_IMPORTS } from '@shared';
 
 @Component({
-  selector: 'app-editor-persona',
-  templateUrl: './editor-persona.component.html',
-  styleUrls: ['./editor-persona.component.less'],
-  standalone: true,
-  imports: [
-    ...SHARED_IMPORTS,
-    CommonModule,
-    PersonalSearchComponent
-  ],
-
+    selector: 'app-editor-persona',
+    templateUrl: './editor-persona.component.html',
+    styleUrls: ['./editor-persona.component.less'],
+    imports: [
+        ...SHARED_IMPORTS,
+        CommonModule,
+        PersonalSearchComponent
+    ]
 })
 export class EditorPersonaComponent {
   

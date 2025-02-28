@@ -19,20 +19,18 @@ import { AccesoBotFormComponent } from "../accesso-bot-form/acceso-bot-form.comp
 
 
 @Component({
-  selector: 'app-acceso-bot',
-  standalone: true,
-  templateUrl: './acceso-bot.component.html',
-  styleUrl: './acceso-bot.component.less',
-  encapsulation: ViewEncapsulation.None,
-  providers: [AngularUtilService],
-  imports: [
-    SHARED_IMPORTS, 
-    CommonModule, 
-    PersonalSearchComponent, 
-    DetallePersonaComponent,
-    FiltroBuilderComponent,
-    AccesoBotFormComponent ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-acceso-bot',
+    templateUrl: './acceso-bot.component.html',
+    styleUrl: './acceso-bot.component.less',
+    encapsulation: ViewEncapsulation.None,
+    providers: [AngularUtilService],
+    imports: [
+        SHARED_IMPORTS,
+        CommonModule,
+        FiltroBuilderComponent,
+        AccesoBotFormComponent
+    ],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AccesoBotComponent {
 

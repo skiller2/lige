@@ -15,9 +15,8 @@ import { NgForm, FormArray, FormBuilder } from '@angular/forms';
     selector: 'app-personal-documentos-drawer',
     templateUrl: './personal-documentos-drawer.component.html',
     styleUrl: './personal-documentos-drawer.component.less',
-    standalone: true,
     imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule],
-    providers: [AngularUtilService],
+    providers: [AngularUtilService]
 })
   
 export class PersonalDocumentosDrawerComponent {
