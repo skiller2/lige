@@ -1,7 +1,10 @@
-import { Component} from '@angular/core';
-import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { NzIconModule } from 'ng-zorro-antd/icon';
+import { Component, inject, input, signal} from '@angular/core'
+import { SHARED_IMPORTS, listOptionsT } from '@shared'
+import { NzIconModule } from 'ng-zorro-antd/icon'
+import { firstValueFrom } from 'rxjs'
 import {TableSeguroListComponent} from 'src/app/shared/table-seguros-list/table-seguros-list.component'
+import { ApiService, doOnSubscribe } from 'src/app/services/api.service'
+import { NzNotificationService } from 'ng-zorro-antd/notification'
 
 @Component({
   selector: 'app-seguro',
@@ -12,5 +15,39 @@ import {TableSeguroListComponent} from 'src/app/shared/table-seguros-list/table-
 })
 export class SeguroComponent {
 
+private readonly notification = inject(NzNotificationService);
+
+ periodo = signal(new Date())
+ calendarView = signal(false)
+ selectedPeriod = { year: 0, month: 0 }
+
+public apiService = inject(ApiService)
+
+ async processInsurrance(){
+  this.calendarView.set(true) 
+ }
+
+ async processInsurranceClose(){
+  this.calendarView.set(false) 
+ }
+
+ async send(){
+  this.calendarView.set(false) 
+  this.selectedPeriod.year = (this.periodo() as Date).getFullYear()
+  this.selectedPeriod.month = (this.periodo() as Date).getMonth() + 1
+  const res = await firstValueFrom(this.apiService.processInsurance(this.selectedPeriod.year, this.selectedPeriod.month))
+
+  if(res.data)
+    this.notification.success('Respuesta', `Ejecución de Proceso Exitosa `)
+  else
+    this.notification.error('Respuesta', `Fallo Ejecución de Proceso `)
+
+ }
+
+
+ ngOnInit(): void {
+   const fechaActual = new Date();
+   this.periodo.set(new Date(fechaActual.getFullYear(), fechaActual.getMonth() - 1, 1))
+ }
 
 }
