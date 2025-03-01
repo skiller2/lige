@@ -244,14 +244,29 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.startTransaction();
+
+      const fec_desde = new Date(anio, mes - 1, 1)
+      const fec_hasta = new Date(anio, mes - 1, 0)
+
+      await queryRunner.query(`UPDATE lige.dbo.seg_personal_seguro SET mot_baj_seguro=NULL, fec_hasta= NULL WHERE fec_hasta = @0`,
+        [fec_hasta])
+  
+      await queryRunner.query(`DELETE lige.dbo.seg_personal_seguro WHERE fec_desde = @0`,
+        [fec_desde])
+
+
       const personalCoto = await this.getPersonalHorasByClientId(queryRunner, 1, anio, mes)
       const personalEdesur = await this.getPersonalHorasByClientId(queryRunner, 798, anio, mes)
       const personalSitRev = await this.getPersonalBySitRev(queryRunner, anio, mes)
+
+      
       const personalEnSeguroCoto = await this.getPersonalEnSeguro(queryRunner, 'APC', anio, mes)
       const personalEnSeguroEdesur = await this.getPersonalEnSeguro(queryRunner, 'APE', anio, mes)
       const personalEnSeguroVidCol = await this.getPersonalEnSeguro(queryRunner, 'VC', anio, mes)
-      const fec_desde = new Date(anio, mes - 1, 1)
-      const fec_hasta = new Date(anio, mes - 1, 0)
+
+
+      //console.log('fec_hasta',fec_hasta)
+//throw new ClientException('debug')
 
       for (const row of personalCoto) {
         const rowEnSeguro = personalEnSeguroCoto.find(r => r.PersonalId == row.PersonalId)
@@ -263,7 +278,7 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
         await this.queryUpdSegurosFin(queryRunner, row.PersonalId, fec_hasta, 'AP', 'En COTO ' + row.detalle)
       }
 
-      console.log('loop edesur',)
+//      console.log('loop edesur',)
 
       for (const row of personalEdesur) {
         const rowEnSeguro = personalEnSeguroEdesur.find(r => r.PersonalId == row.PersonalId)
@@ -294,17 +309,19 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       const personalEnSeguroCoto2 = await this.getPersonalEnSeguro(queryRunner, 'APC', anio, mes)
       const personalEnSeguroEdesur2 = await this.getPersonalEnSeguro(queryRunner, 'APE', anio, mes)
 
-
+//console.log('commienzo APG')
       for (const row of personalSitRev) {
         if (personalEnSeguroCoto2.find(r => r.PersonalId == row.PersonalId) || personalEnSeguroEdesur2.find(r => r.PersonalId == row.PersonalId)) {
           continue
         }
         const rowEnSeguro = personalEnSeguroGeneral.find(r => r.PersonalId == row.PersonalId)
+//console.log('rowEnSeguro',rowEnSeguro)        
         if (rowEnSeguro) {
           await this.queryUpdSeguros(queryRunner, row.PersonalId, rowEnSeguro.fec_desde, 'APG', row.detalle)
         } else {
           if ([7, 8, 29, 36, 30, 31].includes(row.SituacionRevistaId) && row.month_diff > 3)
             continue
+          console.log('add',row.PersonalId)
           await this.queryAddSeguros(queryRunner, row.PersonalId, fec_desde, 'APG', row.detalle)
         }
       }
@@ -377,7 +394,7 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
     const ip = '127.0.0.1'
 
     return queryRunner.query(`UPDATE lige.dbo.seg_personal_seguro SET mot_baj_seguro=@2, fec_hasta=@3, aud_fecha_mod=@4, aud_usuario_mod=@5, aud_ip_mod=@6 
-      WHERE PersonalId=@0 AND cod_tip_seguro = @1
+      WHERE PersonalId=@0 AND cod_tip_seguro = @1 AND fec_desde <= @3 AND fec_hasta IS NULL
     `, [PersonalId, cod_tip_seguro, mot_baj_seguro, fec_hasta, stm_now, usuario, ip])
   }
 

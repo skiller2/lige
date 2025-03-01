@@ -1,13 +1,12 @@
 import express, { json, Application, Router, NextFunction, Request, Response } from "express";
 import { version, author, name, description } from "./version.json";
 import { DataSource, QueryFailedError } from "typeorm";
-import { existsSync, mkdir, mkdirSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { createServer } from "http";
 import { ClientException } from "./controller/baseController";
 
 import dotenv from "dotenv"
-import { exit } from "process";
 
 dotenv.config()
 export const tmpName = (dir: string) => {

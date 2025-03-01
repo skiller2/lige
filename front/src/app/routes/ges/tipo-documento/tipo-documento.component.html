@@ -1,72 +1,72 @@
 <nz-card class="small-margin">
-  <form nz-form #objpendForm="ngForm">
-    <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
-      <div nz-row nzSpan="12">
-        <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
-        <nz-form-control [nzSpan]="14">
-          <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
-        </nz-form-control>
-      </div>
-      
-      <ul nz-menu nzMode="horizontal" style="display: flex;">
-        <li nz-menu-item nzSelected (click)="selectedTabIndex = 0">
-          <a [routerLink]="['/', 'ges', 'tipo_documento', 'list']">
-            Documentos
-          </a>
-        </li>
-        <li nz-submenu nzTitle="Acciones" *ngIf="selectedTabIndex == 0">
-          <ul>
-            <li nz-menu-item (click)="exportGrid()">
-              <span nz-icon nzType="download"></span>XLS
-            </li>
-          </ul>
-        </li>
-        <li nz-menu-item [nzDisabled]="docId()? false : true">
-          <a [routerLink]="['/', 'ges', 'tipo_documento', 'descargas']">Historial Descargas</a>
-        </li>
-        <li nz-menu-item [nzDisabled]="docId()? false : true">
-          <a [routerLink]="['/', 'ges', 'tipo_documento', 'pendientes']">Pendientes</a>
-        </li>
-      </ul>
-
-      <nz-button-group>
-        <button nz-button nzType="default" (click)="openDrawerforAlta()" nz-tooltip
-        nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus"
-          nzTheme="outline"></span></button>
-      </nz-button-group>
+  
+  <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
+    <div nz-row nzSpan="12">
+      <!-- <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
+      <nz-form-control [nzSpan]="14">
+        <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
+      </nz-form-control> -->
     </div>
-      
-    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="selectedTabIndex" (nzSelectChange)="onTabsetChange($event)">
-      <nz-tab [nzForceRender]="false">
-        <a nz-tab-link routerLink="/ges/tipo_documento/list">Documentos</a>
-        @if (conditional()|async) {}
-        <ng-template nz-tab>
-          <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
+    
+    <ul nz-menu nzMode="horizontal" style="display: flex;">
+      <li nz-menu-item nzSelected (click)="selectedTabIndex = 0">
+        <a [routerLink]="['/', 'ges', 'tipo_documento', 'list']">
+          Documentos
+        </a>
+      </li>
+      <li nz-submenu nzTitle="Acciones" *ngIf="selectedTabIndex == 0">
+        <ul>
+          <li nz-menu-item (click)="exportGrid()">
+            <span nz-icon nzType="download"></span>XLS
+          </li>
+        </ul>
+      </li>
+      <li nz-menu-item [nzDisabled]="docId()? false : true">
+        <a [routerLink]="['/', 'ges', 'tipo_documento', 'descargas']">Historial Descargas</a>
+      </li>
+      <li nz-menu-item [nzDisabled]="docId()? false : true">
+        <a [routerLink]="['/', 'ges', 'tipo_documento', 'pendientes']">Pendientes</a>
+      </li>
+    </ul>
 
-          <div class="gridContainer container-fluid" *ngIf="(columns$|async) as columnas">
-            <angular-slickgrid gridId="gridOPA" class="" [columnDefinitions]="columnas | colsFilter"
-              [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
-              (onAngularGridCreated)="angularGridReady($event)" (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
-            </angular-slickgrid>
-          </div>
-        </ng-template>
-      </nz-tab>
+    <nz-button-group>
+      <button nz-button nzType="default" (click)="openDrawerforAlta()" nz-tooltip
+      nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus"
+        nzTheme="outline"></span></button>
+    </nz-button-group>
+  </div>
+    
+  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="selectedTabIndex" (nzSelectChange)="onTabsetChange($event)">
+    <nz-tab [nzForceRender]="false">
+      <a nz-tab-link routerLink="/ges/tipo_documento/list">Documentos</a>
+      @if (conditional()|async) {}
+      <ng-template nz-tab>
+        <shared-filtro-builder #sfb [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
 
-      <nz-tab>
-        <a nz-tab-link routerLink="/ges/tipo_documento/descargas">Historial Descargas</a>
-        <ng-template nz-tab>
-          <app-table-historial-descargas #historialDescargas [docId]=docId()></app-table-historial-descargas>
-        </ng-template>
-      </nz-tab>
+        <div class="gridContainer container-fluid" *ngIf="(columns$|async) as columnas">
+          <angular-slickgrid gridId="gridOPA" class="" [columnDefinitions]="columnas | colsFilter"
+            [gridOptions]="gridOptions" [dataset]="(gridData$ | async) || []"
+            (onAngularGridCreated)="angularGridReady($event)" (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+          </angular-slickgrid>
+        </div>
+      </ng-template>
+    </nz-tab>
 
-      <nz-tab>
-        <a nz-tab-link routerLink="/ges/tipo_documento/pendientes">Pendientes</a>
-        <ng-template nz-tab>
-          <app-table-pendientes-descargas #listPendientes [docId]=docId()></app-table-pendientes-descargas>
-        </ng-template>
-      </nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/tipo_documento/descargas">Historial Descargas</a>
+      <ng-template nz-tab>
+        <app-table-historial-descargas #historialDescargas [docId]=docId()></app-table-historial-descargas>
+      </ng-template>
+    </nz-tab>
 
-    </nz-tabset>
-  </form>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/tipo_documento/pendientes">Pendientes</a>
+      <ng-template nz-tab>
+        <app-table-pendientes-descargas #listPendientes [docId]=docId()></app-table-pendientes-descargas>
+      </ng-template>
+    </nz-tab>
+
+  </nz-tabset>
+
 </nz-card>
 <app-tipo-documento-alta-drawer [(visible)]="visibleAlta" [(refresh)]="refresh"></app-tipo-documento-alta-drawer>

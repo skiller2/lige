@@ -1,42 +1,21 @@
-import {
-  Component, Injector, Input, ViewChild, signal
-} from '@angular/core';
+import { Component, Input, ViewChild, signal } from '@angular/core';
 import { SettingsService, _HttpClient } from '@delon/theme';
-import {
-  BehaviorSubject,
-  Subject,
-  catchError,
-  debounceTime,
-  elementAt,
-  filter,
-  map,
-  of,
-  switchMap,
-  takeUntil,
-  tap,
-} from 'rxjs';
+import { BehaviorSubject, Subject, debounceTime, switchMap, tap} from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { NgForm } from '@angular/forms';
-import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
-import { SHARED_IMPORTS, listOptionsT } from '@shared';
+import { SHARED_IMPORTS } from '@shared';
 import { CurrencyPipeModule } from '@delon/util';
 import { NzResizableModule } from 'ng-zorro-antd/resizable';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { FiltroBuilderComponent } from 'src/app/shared/filtro-builder/filtro-builder.component';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
-import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { DescuentosComponent } from '../descuentos/descuentos.component';
 import { PersonalGrupoComponent } from '../personal-grupo/personal-grupo.component';
 
-enum Busqueda {
-  Sucursal,
-  Objetivo,
-  Personal
-}
+enum Busqueda { Sucursal, Objetivo, Personal }
 
 @Component({
     selector: 'app-detalle-asistencia',

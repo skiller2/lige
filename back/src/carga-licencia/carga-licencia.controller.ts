@@ -934,7 +934,6 @@ export class CargaLicenciaController extends BaseController {
   async deleteLincencia(req: Request, res: Response, next: NextFunction) {
 
     const {
-      SucursalId,
       PersonalLicenciaId,
       PersonalId
     } = req.query

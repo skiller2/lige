@@ -663,8 +663,8 @@ export class ApiService {
     )
   }
 
-  getTipoDocumentos(anio:number, mes:number, options: any) {
-    const parameter = {options, anio, mes}
+  getTipoDocumentos(options: any) {
+    const parameter = {options}
     return this.http.post<ResponseJSON<any>>('/api/tipo-documento/list', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
