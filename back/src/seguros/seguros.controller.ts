@@ -254,7 +254,6 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       if (fec_desde_max > fec_desde || fec_hasta_max > fec_hasta) {
         throw new ClientException("El período seleccionado es menor al ya procesado", fec_desde_max,fec_hasta_max)
       }
-throw new ClientException("DEBUG ",anio,mes)
       await queryRunner.query(`UPDATE lige.dbo.seg_personal_seguro SET mot_baj_seguro=NULL, fec_hasta= NULL WHERE fec_hasta >= @0`,
         [fec_hasta])
   
