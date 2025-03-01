@@ -90,12 +90,12 @@ dbServer.init()
 //    const newDate = now.subtract("months") 
 //console.log('newDate',newDate.toString(),now.toString())
 
-    const segurosController = new SegurosController()
+//    const segurosController = new SegurosController()
 //    segurosController.updateSeguros(2024,10)
 //    segurosController.updateSeguros(2024,11)
 //    segurosController.updateSeguros(2024,12)
 //    segurosController.updateSeguros(2025,1)
-    segurosController.updateSeguros(2025,2)
+//    segurosController.updateSeguros(2025,2)
 
 
   })
