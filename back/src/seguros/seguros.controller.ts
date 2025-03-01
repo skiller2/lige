@@ -239,7 +239,8 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
 
 
 
-  async updateSeguros(anio: number, mes: number) {
+  async updateSeguros(res:any, anio: number, mes: number) {
+  
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.startTransaction();
@@ -358,7 +359,7 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
     }
 
     console.log('fin')
-    return true
+    return this.jsonRes(true, res)
   }
   queryUpdSeguros(queryRunner: QueryRunner, PersonalId: any, fec_desde: Date, cod_tip_seguro: string, mot_adh_seguro: string) {
     const stm_now = new Date()
@@ -420,9 +421,9 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
             sitrev.SituacionRevistaDescripcion,
             sitrev.PersonalSituacionRevistaDesde
         FROM Personal per
-        JOIN lige.dbo.seg_personal_seguro seg ON per.PersonalId = seg.PersonalId     
-        JOIN lige.dbo.seg_tipo_seguro tipseg ON seg.cod_tip_seguro = tipseg.cod_tip_seguro
-        JOIN (
+        LEFT JOIN lige.dbo.seg_personal_seguro seg ON per.PersonalId = seg.PersonalId     
+         LEFT JOIN lige.dbo.seg_tipo_seguro tipseg ON seg.cod_tip_seguro = tipseg.cod_tip_seguro
+        LEFT JOIN (
             SELECT 
                 p.PersonalId, 
                 p.PersonalSituacionRevistaSituacionId, 
@@ -433,7 +434,8 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
             WHERE p.PersonalSituacionRevistaDesde <= GETDATE() 
             AND ISNULL(p.PersonalSituacionRevistaHasta, '9999-12-31') >= GETDATE()
         ) sitrev ON sitrev.PersonalId = per.PersonalId
-        AND ${filterSql}
+           WHERE (1=1)
+         AND ${filterSql}
         ${orderBy}
       `)
       this.jsonRes(

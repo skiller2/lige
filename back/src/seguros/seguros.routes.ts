@@ -23,7 +23,13 @@ segurosRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup
 segurosRouter.post(`/search`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     segurosController.search(req, res, next);
   }
-);
+)
+
+segurosRouter.post('/updateSeguros', authMiddleware.verifyToken, (req, res, next) => {
+    segurosController.updateSeguros( res,req.body.anio,req.body.mes)
+  }
+)
+
 
 
 

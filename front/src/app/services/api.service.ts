@@ -35,6 +35,16 @@ export class ApiService {
     )
   }
 
+  processInsurance(anio: number, mes: number) {
+    return this.http.post<ResponseJSON<any>>('api/seguros/updateSeguros', { anio, mes }).pipe(
+      map((res: any) => { return res }),
+      catchError((err, caught) => {
+        console.log('Something went wrong!', err);
+        return of([]);
+      })
+    )
+  }
+  
 
   getTipoMovimientoById(TipoMovimiento: string) {
     return this.http.get(`/api/liquidaciones/tipo_movimiento_by_id/${TipoMovimiento}`).pipe(
