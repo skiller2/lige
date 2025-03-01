@@ -4,7 +4,6 @@ import { NzIconModule } from 'ng-zorro-antd/icon'
 import { firstValueFrom } from 'rxjs'
 import {TableSeguroListComponent} from 'src/app/shared/table-seguros-list/table-seguros-list.component'
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service'
-import { NzNotificationService } from 'ng-zorro-antd/notification'
 
 @Component({
   selector: 'app-seguro',
@@ -15,7 +14,6 @@ import { NzNotificationService } from 'ng-zorro-antd/notification'
 })
 export class SeguroComponent {
 
-private readonly notification = inject(NzNotificationService);
 
  periodo = signal(new Date())
  calendarView = signal(false)
@@ -36,12 +34,6 @@ public apiService = inject(ApiService)
   this.selectedPeriod.year = (this.periodo() as Date).getFullYear()
   this.selectedPeriod.month = (this.periodo() as Date).getMonth() + 1
   const res = await firstValueFrom(this.apiService.processInsurance(this.selectedPeriod.year, this.selectedPeriod.month))
-
-  if(res.data)
-    this.notification.success('Respuesta', `Ejecución de Proceso Exitosa `)
-  else
-    this.notification.error('Respuesta', `Fallo Ejecución de Proceso `)
-
  }
 
 
