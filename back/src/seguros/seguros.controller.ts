@@ -237,12 +237,10 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
 
 
 
-  async updateSeguros(res:any, anio: number, mes: number) {
-
+  async updateSeguros(req:any,res:any, anio: number, mes: number,next:NextFunction) {
     const stm_now = new Date()
-    const usuario = 'server'
-    const ip = '127.0.0.1'
-
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
   
     const queryRunner = dataSource.createQueryRunner();
     try {
@@ -256,7 +254,7 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       if (fec_desde_max > fec_desde || fec_hasta_max > fec_hasta) {
         throw new ClientException("El período seleccionado es menor al ya procesado", fec_desde_max,fec_hasta_max)
       }
-
+throw new ClientException("DEBUG ",anio,mes)
       await queryRunner.query(`UPDATE lige.dbo.seg_personal_seguro SET mot_baj_seguro=NULL, fec_hasta= NULL WHERE fec_hasta >= @0`,
         [fec_hasta])
   
@@ -368,7 +366,7 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       await queryRunner.commitTransaction()
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
-      throw error
+      return next(error)
     }
 
     return this.jsonRes(true, res)
