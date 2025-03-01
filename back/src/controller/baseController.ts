@@ -34,9 +34,12 @@ export class BaseController {
   }
 
   getRemoteAddress(req: any) {
-    return req.headers['x-origin-ip'] ??
+    if (req?.headers) 
+      return req.headers['x-origin-ip'] ??
       (req.headers['x-forwarded-for'] as string)?.split(',')[0] ??
       req.socket.remoteAddress
+    else
+      return '127.0.0.1'
   }
 
 

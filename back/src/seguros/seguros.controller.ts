@@ -239,7 +239,7 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
 
   async updateSeguros(req:any,res:any, anio: number, mes: number,next:NextFunction) {
     const stm_now = new Date()
-    const usuario = res.locals.userName
+    const usuario = res?.locals.userName || 'server'
     const ip = this.getRemoteAddress(req)
   
     const queryRunner = dataSource.createQueryRunner();
@@ -367,8 +367,7 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       await this.rollbackTransaction(queryRunner)
       return next(error)
     }
-
-    return this.jsonRes(true, res)
+    return (res)? this.jsonRes(true, res): true
   }
 
   queryUpdSeguros(queryRunner: QueryRunner, PersonalId: any, fec_desde: Date, cod_tip_seguro: string, mot_adh_seguro: string,stm_now:Date, usuario:string, ip:string) {

@@ -26,12 +26,13 @@ const cargaLicenciaController = new CargaLicenciaController()
 const asistenciaController = new AsistenciaController()
 
 scheduleJob('1 0 * * *', async function (fireDate) {
-  const actual = new Date()
-  const anio = actual.getFullYear()
-  const mes = actual.getMonth() + 1
-
+  const currentDate = new Date();
+  currentDate.setMonth(currentDate.getMonth() - 1);
+  const anio = currentDate.getFullYear();
+  const mes = currentDate.getMonth() + 1
+  
   const segurosController = new SegurosController()
-  //segurosController.updateSeguros(anio,mes)
+  segurosController.updateSeguros(null,null,anio,mes,(ret: any) => ret)
 });
 
 
@@ -86,17 +87,15 @@ dbServer.init()
   .then((res) => {
     console.info(`${res.res}`)
 
-//    const now = Temporal.Now.instant();
-//    const newDate = now.subtract("months") 
-//console.log('newDate',newDate.toString(),now.toString())
 
+    const currentDate = new Date();
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    const anio = currentDate.getFullYear();
+    const mes = currentDate.getMonth() + 1
+    
 //    const segurosController = new SegurosController()
-//    segurosController.updateSeguros(2024,10)
-//    segurosController.updateSeguros(2024,11)
-//    segurosController.updateSeguros(2024,12)
-//    segurosController.updateSeguros(2025,1)
-//    segurosController.updateSeguros(2025,2)
-
+//    segurosController.updateSeguros(null,null,anio,mes,(ret: any) => ret)
+  
 
   })
   .catch((error) => {
