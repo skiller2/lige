@@ -80,6 +80,12 @@ fechaAyer.setHours(0, 0, 0, 0)
 console.log('actual', fechaActual, 'ayer', fechaAyer)
 
 
+const currentDateTime = Temporal.Now.zonedDateTimeISO()
+const newDateTime = currentDateTime.subtract({ months: 1 });
+
+console.log('newDateTime',newDateTime.toString())
+
+
 dbServer.init()
   .then((res) => {
     console.info(`${res.res}`)

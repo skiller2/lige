@@ -339,7 +339,7 @@ export class PersonalController extends BaseController {
         personaData.FechaHasta = FechaHasta;
 
         personaData.mails = mails;
-        personaData.estudios = (estudios[0]) ? `${estudios[0].TipoEstudioDescripcion.trim()} ${estudios[0].PersonalEstudioTitulo.trim()}` : 'Sin registro'
+        personaData.estudios = (estudios[0]) ? `${String(estudios[0].TipoEstudioDescripcion).trim()} ${String(estudios[0].PersonalEstudioTitulo).trim()}` : 'Sin registro'
         this.jsonRes(personaData, res);
       })
       .catch((error) => {
