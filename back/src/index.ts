@@ -35,9 +35,6 @@ scheduleJob('1 0 * * *', async function (fireDate) {
   segurosController.updateSeguros(null,null,anio,mes,(ret: any) => ret)
 });
 
-
-
-
 scheduleJob('1 0 * * *', async function (fireDate) {
   //TODO Se debería instanciar Response correctamente
 
