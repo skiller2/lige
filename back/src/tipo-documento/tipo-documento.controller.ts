@@ -388,8 +388,7 @@ export class TipoDocumentoController extends BaseController {
       per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
       cuit.PersonalCUITCUILCUIT
       FROM lige.dbo.doc_descaga_log AS des 
-      LEFT JOIN lige.dbo.regtelefonopersonal tel ON des.telefono = tel.telefono
-      LEFT JOIN Personal per ON tel.personal_id = per.PersonalId
+      LEFT JOIN Personal per ON des.personal_id = per.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId
       WHERE des.doc_id IN (@0)
       AND ${filterSql}
