@@ -692,13 +692,27 @@ console.log('validateRecibo', cuit, recibo)
 
     static getBotStatus(anio: number, mes: number, queryRunner: QueryRunner, personalIdList: number[]) {
         return queryRunner
-        .query(`SELECT per.PersonalId, IIF(tel.personal_id IS NOT NULL AND tel.codigo IS NULL,'OK','Registro pendiente') AS registro, 
-            dl.fecha_descarga, doc.doc_id, @1 AS anio, @2 AS mes, IIF(doc.doc_id IS NOT NULL,CONCAT('Recibo visto ',pr.mes,'/',pr.anio),CONCAT('Recibo ',@2,'/',@1,' pendiente')) AS descarga
-            FROM lige.dbo.Personal per 
-            LEFT JOIN lige.dbo.regtelefonopersonal tel ON tel.personal_id = per.PersonalId
-            LEFT JOIN lige.dbo.liqmaperiodo pr ON pr.anio =@1 AND pr.mes=@2
-            LEFT JOIN lige.dbo.docgeneral doc ON doc.persona_id = per.PersonalId AND doc.doctipo_id = 'REC' AND doc.periodo = pr.periodo_id
-			LEFT JOIN lige.dbo.doc_descaga_log dl ON dl.telefono = tel.telefono AND dl.doc_id= doc.doc_id
+        .query(`SELECT per.PersonalId, IIF(botreg.PersonalId IS NOT NULL,'Registrado','Registro pendiente') AS registro, 
+		 bot.fecha_descarga, bot.doc_id, @1 AS anio, @2 AS mes, IIF(bot.doc_id IS NOT NULL,CONCAT('Recibo visto ',bot.mes,'/',bot.anio),CONCAT('Recibo ',@2,'/',@1,' pendiente')) AS descarga,
+		 1
+    FROM lige.dbo.Personal per 
+
+            LEFT JOIN (
+            SELECT tel.personal_id PersonalId, IIF(tel.personal_id IS NOT NULL AND tel.codigo IS NULL,'Registrado','Registro pendiente') AS registro
+				FROM lige.dbo.regtelefonopersonal tel 
+				WHERE tel.codigo IS NULL
+			) botreg ON botreg.PersonalId = per.PersonalId
+            
+         LEFT JOIN (
+            SELECT dl.personal_id PersonalId, 
+				doc.doc_id, @1 AS anio, @2 AS mes, IIF(doc.doc_id IS NOT NULL,CONCAT('Recibo visto ',pr.mes,'/',pr.anio),CONCAT('Recibo ',@2,'/',@1,' pendiente')) AS descarga,
+				MAX(dl.fecha_descarga) fecha_descarga
+ 				FROM lige.dbo.doc_descaga_log dl 
+            JOIN lige.dbo.liqmaperiodo pr ON pr.anio =@1 AND pr.mes=@2
+            JOIN lige.dbo.docgeneral doc ON doc.doc_id=dl.doc_id AND doc.persona_id = dl.personal_id AND doc.doctipo_id = 'REC' AND doc.periodo = pr.periodo_id
+            GROUP BY dl.personal_id, doc.doc_id, pr.mes, pr.anio
+			) bot ON bot.PersonalId = per.PersonalId
+
             WHERE 
             per.PersonalId IN (${personalIdList.join(',')})`, [,anio, mes]) 
         
