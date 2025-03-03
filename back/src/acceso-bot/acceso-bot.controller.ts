@@ -692,7 +692,7 @@ console.log('validateRecibo', cuit, recibo)
 
     static getBotStatus(anio: number, mes: number, queryRunner: QueryRunner, personalIdList: number[]) {
         return queryRunner
-        .query(`SELECT per.PersonalId, IIF(botreg.PersonalId IS NOT NULL,'Registrado','Registro pendiente') AS registro, 
+        .query(`SELECT per.PersonalId, IIF(botreg.PersonalId IS NOT NULL,'OK','Registro pendiente') AS registro, 
 		 bot.fecha_descarga, bot.doc_id, @1 AS anio, @2 AS mes, IIF(bot.doc_id IS NOT NULL,CONCAT('Recibo visto ',bot.mes,'/',bot.anio),CONCAT('Recibo ',@2,'/',@1,' pendiente')) AS descarga,
 		 1
     FROM lige.dbo.Personal per 
