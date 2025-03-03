@@ -429,7 +429,7 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
             FROM PersonalSituacionRevista p
             JOIN SituacionRevista s ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId
             WHERE p.PersonalSituacionRevistaDesde <= GETDATE() 
-            AND ISNULL(p.PersonalSituacionRevistaHasta, '9999-12-31') >= GETDATE()
+            AND ISNULL(p.PersonalSituacionRevistaHasta, '9999-12-31') >= CAST(GETDATE() AS DATE)
         ) sitrev ON sitrev.PersonalId = per.PersonalId
            WHERE (1=1)
          AND ${filterSql}
