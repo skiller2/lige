@@ -26,7 +26,7 @@ export async function getConnection(): Promise<QueryRunner> {
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
   console.log('creo queryRunner')
-  //return ds.createQueryRunner();
-  return null
+  return ds.createQueryRunner();
+  //return null
   }
 
