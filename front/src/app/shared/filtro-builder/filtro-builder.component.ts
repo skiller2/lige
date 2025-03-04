@@ -388,7 +388,15 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       label = person[0].fullName
     }
 
-
+    if (fieldObj.searchComponent == 'inpurForSituacionRevistaSearch') {
+      let valueSplit = value.split(";")
+      let result = ''
+       for (const value of valueSplit) {
+        const situacion = await firstValueFrom(this.searchService.getSituacionRevistaSearch('SituacionRevistaId', value))
+        result += `${situacion[0].SituacionRevistaDescripcion };`
+      }
+      label = result
+    }
 
     this.selections = { field: fieldObj, condition, operator, value, label, forced }
     this.handleInputConfirm()

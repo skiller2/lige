@@ -106,6 +106,26 @@ const listaColumnas: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: false
+  },
+  {
+    name: "Última situación de Revista",
+    type: "string",
+    id: "SituacionRevistaDescripcion",
+    field: "SituacionRevistaDescripcion",
+    fieldName: " sitrev.SituacionRevistaDescripcion ",
+    sortable: true,
+    searchHidden: true
+  },
+  {
+    name: "Desde",
+    type: "date",
+    id: "PersonalSituacionRevistaDesde",
+    field: "PersonalSituacionRevistaDesde",
+    fieldName: "sitrev.PersonalSituacionRevistaDesde",
+    searchComponent: "inpurForFechaSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
   }
 ];
 
@@ -398,13 +418,14 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
     req: any,
     res: Response, next: NextFunction
   ) {
+    console.log("req.body.options.filtros ", req.body.options.filtros)
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
     const anio:number = req.body.anio
     const mes:number = req.body.mes
     try {
       const result = await dataSource.query(`
-        SELECT
+       SELECT
             ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             per.PersonalId,
             per.PersonalApellidoNombre,
@@ -420,17 +441,14 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
         FROM Personal per
         LEFT JOIN lige.dbo.seg_personal_seguro seg ON per.PersonalId = seg.PersonalId     
          LEFT JOIN lige.dbo.seg_tipo_seguro tipseg ON seg.cod_tip_seguro = tipseg.cod_tip_seguro
+       
         LEFT JOIN (
-            SELECT 
-                p.PersonalId, 
-                p.PersonalSituacionRevistaSituacionId, 
-                s.SituacionRevistaDescripcion, 
-                p.PersonalSituacionRevistaDesde
-            FROM PersonalSituacionRevista p
-            JOIN SituacionRevista s ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId
-            WHERE p.PersonalSituacionRevistaDesde <= GETDATE() 
-            AND ISNULL(p.PersonalSituacionRevistaHasta, '9999-12-31') >= CAST(GETDATE() AS DATE)
-        ) sitrev ON sitrev.PersonalId = per.PersonalId
+				SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde
+				FROM PersonalSituacionRevista p
+				JOIN SituacionRevista s
+				ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId 
+			    AND ISNULL(p.PersonalSituacionRevistaHasta, '9999-12-31') >= GETDATE()
+				) sitrev ON sitrev.PersonalId = per.PersonalId	
            WHERE (1=1)
          AND ${filterSql}
         ${orderBy}

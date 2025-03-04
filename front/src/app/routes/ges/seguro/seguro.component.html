@@ -1,52 +1,52 @@
-
 <nz-card class="small-margin">
 
+  <div nz-row class="contentStyle">
+    <div nz-col  class="listStyle">
+      <ul nz-menu nzMode="horizontal" style="display: flex;">
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'seguro', 'listado']">{{ 'app.segurosList' | i18n }}</a>
+        </li>
+        <li>
+          
+
+
+        </li>
+      </ul>
+    </div>
+
+    <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse; margin-bottom: 10px;">
+      <nz-button-group style="text-align: right;">
   
-  <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse; margin-bottom: 10px;">
-    <nz-button-group style="text-align: right;">
-      <a nz-tooltip nzTooltipTitle="{{ 'app.seguros.update' | i18n }}">
-        @if(calendarView()){
-          <button nz-button nzType="default" nzDanger><span nz-icon nzType="close" (click)="processInsurranceClose()" nzTheme="outline"></span></button>
-        }@else{
-          <button nz-button nzType="default"><span nz-icon nzType="plus" (click)="processInsurrance()" nzTheme="outline"></span></button>
-        }
+        <ng-template #confirmReciboTpl>
+          <span>Generar Proceso Seguros </span>
+          <nz-date-picker [(ngModel)]="fechaseguro" [ngModelOptions]="{standalone: true}" />
+          <span>?</span>
+        </ng-template>
+        <li class="ant-btn ant-btn-default ant-btn-icon-only" nz-button nz-popconfirm
+          [nzPopconfirmTitle]="confirmReciboTpl" [nzBeforeConfirm]="" [nzPopconfirmShowArrow]="false"
+          (nzOnConfirm)="send()">
+          <span class="anticon anticon-setting" style="margin-top: 0.3rem" nz-icon nzType="setting"
+            nzTheme="outline"></span>
+        </li>
         
-      </a>
-
-      @if(calendarView()){
-        <nz-form-control >
-          <nz-date-picker nzMode="month" [ngModel]="periodo()" />
-        </nz-form-control>
-        <button nz-button nzType="default"><span nz-icon nzType="check" (click)="send()"  nzTheme="outline"></span></button>
-      }
-   
-
-    </nz-button-group>
+  
+      </nz-button-group>
+  
+    </div>
 
   </div>
 
-    <div nz-row class="contentStyle">
-        <div nz-col nzSpan="13" class="listStyle">
-          <ul nz-menu nzMode="horizontal" style="display: flex;">
-            <li nz-menu-item nzMatchRouter>
-              <span nz-icon nzType=""></span>
-              <a [routerLink]="['/', 'ges', 'seguro', 'listado']">{{ 'app.segurosList' | i18n }}</a>
-            </li>
-          </ul>
+
+  <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/seguro/listado">Listado</a>
+      <ng-template nz-tab>
+        <div class="gridContainer container-fluid">
+          <app-table-seguros-list></app-table-seguros-list>
         </div>
-      
-      </div>
-
-
-    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
-        <nz-tab>
-            <a nz-tab-link routerLink="/ges/seguro/listado">Listado</a>
-            <ng-template nz-tab >
-          <div class="gridContainer container-fluid">
-             <app-table-seguros-list></app-table-seguros-list>
-          </div>
-        </ng-template>
-        </nz-tab>
-    </nz-tabset>
+      </ng-template>
+    </nz-tab>
+  </nz-tabset>
 
 </nz-card>
