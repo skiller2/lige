@@ -1,4 +1,4 @@
-import { DataSource } from "typeorm";
+import { DataSource, QueryRunner } from "typeorm";
 
 export const dataSource = new DataSource({
   type: "mssql",
@@ -18,3 +18,15 @@ export const dataSource = new DataSource({
   },
   pool:{max:1000}
 });
+
+export async function getConnection(): Promise<QueryRunner> {
+  const ds = dataSource
+  while (!ds.isInitialized) {
+    console.log('esparando inicialización')
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+  console.log('creo queryRunner')
+  //return ds.createQueryRunner();
+  return null
+  }
+

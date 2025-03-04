@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { BaseController, ClientException } from "./baseController";
-import { dataSource } from "../data-source";
+import { getConnection } from "../data-source";
 import { CategoriasController } from "../categorias-cambio/categorias-cambio.controller";
 import { objetivosPendasisController } from "./controller.module";
 import { ObjetivosPendasisController } from "src/objetivos-pendasis/objetivos-pendasis.controller";
@@ -31,7 +31,6 @@ export class InitController extends BaseController {
 
 
   async getObjetivosSinAsistencia(req: Request, res: Response, next: NextFunction) {
-    const con = dataSource;
     const anio = req.params.anio
     const mes = req.params.mes
 
@@ -73,12 +72,11 @@ export class InitController extends BaseController {
   }
 
   async getCustodiasPendientes(req: Request, res: Response, next: NextFunction) {
-    const con = dataSource;
     const anio = Number(req.params.anio)
     const mes = Number(req.params.mes)
 
     try {
-      const result = await CustodiaController.listCustodiasPendientesLiqui(anio,mes,3)
+      const result = await CustodiaController.listCustodiasPendientesLiqui(anio, mes, 3)
 
       let porGrupo: { ResponsableDetalle: string; CantidadCustodias: number; }[] = []
       let data: { x: string; y: any; }[] = []
@@ -107,8 +105,8 @@ export class InitController extends BaseController {
     }
   }
 
-  getObjetivosSinGrupo(req: Request, res: Response, next: NextFunction) {
-    const con = dataSource;
+  async getObjetivosSinGrupo(req: Request, res: Response, next: NextFunction) {
+    const con = await getConnection()
     const stmactual = new Date()
     con
       .query(
@@ -166,37 +164,38 @@ AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.Cliente
   }
 
 
-  getAdelantosPendientes(req: Request, res: Response, next: NextFunction) {
-    const con = dataSource;
+  async getAdelantosPendientes(req: Request, res: Response, next: NextFunction) {
+    const con = await getConnection()
     const stmactual = new Date()
-    con
-      .query(
-        `SELECT COUNT(pre.PersonalPrestamoId) as totalpersonas, SUM(pre.PersonalPrestamoMonto) as totalimporte 
+    try {
+      const records = await con
+        .query(
+          `SELECT COUNT(pre.PersonalPrestamoId) as totalpersonas, SUM(pre.PersonalPrestamoMonto) as totalimporte 
         FROM PersonalPrestamo pre
         WHERE pre.PersonalPrestamoAprobado IS NULL AND ISNULL(pre.PersonalPrestamoLiquidoFinanzas,0) <> 1
         `,
-        [stmactual]
-      )
-      .then((records: Array<any>) => {
-        let data: { x: string; y: any; }[] = []
-        let total = 0
-        //      if (records.length ==0) throw new ClientException('Data not found')
-        records.forEach(rec => {
+          [stmactual]
+        )
 
-          data.push({ x: rec.totalpersonas, y: rec.PersonalPrestamoMonto })
-          total += rec.totalpersonas
-        })
+      let data: { x: string; y: any; }[] = []
+      let total = 0
+      //      if (records.length ==0) throw new ClientException('Data not found')
+      records.forEach(rec => {
+
+        data.push({ x: rec.totalpersonas, y: rec.PersonalPrestamoMonto })
+        total += rec.totalpersonas
 
         this.jsonRes({ adelantos: data, adelantosTotal: total }, res);
 
       })
-      .catch((error) => {
-        return next(error);
-      });
+    } catch (error) {
+      return next(error);
+
+    }
   }
 
-  getExcepcionesPendientes(req: Request, res: Response, next: NextFunction) {
-    const con = dataSource;
+  async getExcepcionesPendientes(req: Request, res: Response, next: NextFunction) {
+    const con = await getConnection()
     const stmactual = new Date()
     con
       .query(
@@ -236,8 +235,8 @@ AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.Cliente
 
 
 
-  getObjetivosActivos(req: Request, res: Response, next: NextFunction) {
-    const con = dataSource;
+  async getObjetivosActivos(req: Request, res: Response, next: NextFunction) {
+    const con = await getConnection()
     const stmactual = new Date()
     con
       .query(
@@ -294,8 +293,8 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
   }
 
 
-  getClientesActivos(req: Request, res: Response, next: NextFunction) {
-    const con = dataSource;
+  async getClientesActivos(req: Request, res: Response, next: NextFunction) {
+    const con = await getConnection()
     const stmactual = new Date()
     con
       .query(
@@ -353,16 +352,18 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
   async getLicenciasInconsistentes(req: Request, res: Response, next: NextFunction) {
     const anio = Number(req.params.anio)
     const mes = Number(req.params.mes)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection()
 
-    const licencias = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [],null,false,false)
-    const licerror =  licencias.filter((r:any)=>r.PersonalLicenciaSePaga ==null || (r.PersonalLicenciaSePaga =='S' && Number(r.PersonalLicenciaAplicaPeriodoHorasMensuales) ==0) || (r.PersonalLicenciaSePaga =='N' && Number(r.PersonalLicenciaAplicaPeriodoHorasMensuales) >0))
-    this.jsonRes({ total: licerror.length, anio,mes }, res);
+
+    const licencias = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [], null, false, false)
+    const licerror = licencias.filter((r: any) => r.PersonalLicenciaSePaga == null || (r.PersonalLicenciaSePaga == 'S' && Number(r.PersonalLicenciaAplicaPeriodoHorasMensuales) == 0) || (r.PersonalLicenciaSePaga == 'N' && Number(r.PersonalLicenciaAplicaPeriodoHorasMensuales) > 0))
+    this.jsonRes({ total: licerror.length, anio, mes }, res);
   }
 
 
-  getHorasTrabajadas(req: Request, res: Response, next: NextFunction) {
-    const con = dataSource;
+  async getHorasTrabajadas(req: Request, res: Response, next: NextFunction) {
+    const con = await getConnection()
+
     const anio = Number(req.params.anio)
 
     con
@@ -442,27 +443,27 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         let horasTrabajadas: any[] = []
 
         if (records.length > 0) {
-          const lastrecord = records.slice(-1)[0]  
+          const lastrecord = records.slice(-1)[0]
           const lastmonth = lastrecord.ObjetivoAsistenciaAnoMesMes
           const lastyear = lastrecord.ObjetivoAsistenciaAnoAno
 
 
           records.forEach(rec => {
             if (rec.ObjetivoAsistenciaAnoAno == lastyear || (rec.ObjetivoAsistenciaAnoAno < lastyear && rec.ObjetivoAsistenciaAnoMesMes >= lastmonth)) {
-              let color='#f80'
+              let color = '#f80'
               switch (rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras) {
                 case 'C':
-                  color='#f50'
+                  color = '#f50'
                   break;
                 case 'N':
-                  color='#e30'
+                  color = '#e30'
                   break;
                 case 'R':
-                  color='#d10'
+                  color = '#d10'
                   break;
                 default:
                   break;
-              } 
+              }
               horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoAno + '-' + rec.ObjetivoAsistenciaAnoMesMes, y: rec.totalhorascalc, type: rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras, color: color, })
             }
           })
@@ -476,7 +477,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       });
   }
 
-  search(
+  async search(
     req: any,
     res: Response,
     next: NextFunction
@@ -502,8 +503,9 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
         break;
     }
 
+    const queryRunner = await getConnection()
 
-    dataSource
+    queryRunner
       .query((query += " 1=1"))
       .then((records) => {
         this.jsonRes({ recordsArray: records }, res);

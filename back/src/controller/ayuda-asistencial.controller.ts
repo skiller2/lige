@@ -1,6 +1,6 @@
 import { NextFunction, Response } from "express";
 import { BaseController, ClientException } from "./baseController";
-import { dataSource } from "../data-source";
+import { dataSource, getConnection } from "../data-source";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
 
@@ -407,7 +407,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
     // }
     const filterSql = filtrosToSql(options.filtros, columnsAyudaAsistencial);
     const orderBy = orderToSQL(options.sort)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.startTransaction()
 
