@@ -475,7 +475,8 @@ export class GrupoActividadController extends BaseController {
                     FROM GrupoActividadObjetivo gaobj
                     INNER JOIN GrupoActividad ga ON gaobj.GrupoActividadId = ga.GrupoActividadId
                     INNER JOIN Objetivo obj ON obj.ObjetivoId = gaobj.GrupoActividadObjetivoObjetivoId
-                WHERE ${filterSql}`
+                    
+                WHERE ${filterSql} ORDER BY obj.ObjetivoDescripcion`
             );
 
             const formattedData = GrupoActividadObjetivos.map((item: any) => ({
@@ -966,6 +967,15 @@ export class GrupoActividadController extends BaseController {
                 let GrupoActividadObjetivoId = await queryRunner.query(` SELECT GrupoActividadObjetivoUltNro FROM GrupoActividad WHERE GrupoActividadId =  @0`, [params.GrupoActividadDetalle.id])
                 GrupoActividadObjetivoId = GrupoActividadObjetivoId[0].GrupoActividadObjetivoUltNro + 1
 
+
+                let GrupoActividadObjetivoDesdeInsert = new Date(params.GrupoActividadObjetivoDesde)
+                GrupoActividadObjetivoDesdeInsert.toISOString().split('T')[0] + "T00:00:00.000Z"
+
+                let GrupoActividadObjetivoHastaInsert = params.GrupoActividadObjetivoHasta 
+                ? new Date(params.GrupoActividadObjetivoHasta).toISOString().split('T')[0] + "T00:00:00.000Z"
+                : null
+
+
                 await queryRunner.query(`INSERT INTO "GrupoActividadObjetivo" (
                     "GrupoActividadObjetivoId",
                     "GrupoActividadId",
@@ -978,7 +988,7 @@ export class GrupoActividadController extends BaseController {
                     "GrupoActividadObjetivoTiempo"
                 ) VALUES ( @0,@1,@2, @3,@4, @5,@6, @7,@8 );
                 `, [GrupoActividadObjetivoId, params.GrupoActividadDetalle.id, params.GrupoObjetivoDetalle.id,
-                    params.GrupoActividadObjetivoDesde, params.GrupoActividadObjetivoHasta, ip, usuarioId, fechaActual, time])
+                    GrupoActividadObjetivoDesdeInsert, GrupoActividadObjetivoHastaInsert, ip, usuarioId, fechaActual, time])
 
 
                 await queryRunner.query(`UPDATE GrupoActividad
