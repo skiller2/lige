@@ -7,7 +7,7 @@ import { SearchService } from 'src/app/services/search.service';
 import { FormArray, FormBuilder } from '@angular/forms';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component";
-import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { NzCheckboxGroupComponent, NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 
 @Component({
     selector: 'app-personal-form',
@@ -145,7 +145,7 @@ export class PersonalFormComponent {
     let optionsEstudioEstado = await firstValueFrom(this.searchService.getEstadoEstudioOptions())
     let optionsEstudioTipo = await firstValueFrom(this.searchService.getTipoEstudioOptions())
     let optionsParentesco = await firstValueFrom(this.searchService.getTipoParentescoOptions())
-    let optionsLugarHabilitacion = await firstValueFrom(this.searchService.getLugarHabilitacionOptions())
+    const optionsLugarHabilitacion = await firstValueFrom(this.searchService.getLugarHabilitacionOptions())
     
     this.optionsTelefonoTipo.set(optionsTelefonoTipo)
     this.optionsEstudioEstado.set(optionsEstudioEstado)

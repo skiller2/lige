@@ -346,10 +346,10 @@
   </div>
 
   <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" >Lugar</nz-form-label>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" >Habilitaciones</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
       <div class="custom-checkbox-group">
-        <nz-checkbox-group formControlName="habilitacion" [ngModel]="optionsLugarHabilitacion()">
+        <nz-checkbox-group formControlName="habilitacion" [nzOptions]="optionsLugarHabilitacion()">
         </nz-checkbox-group>
       </div>
     </nz-form-control>
