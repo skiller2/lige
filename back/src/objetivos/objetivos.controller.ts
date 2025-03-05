@@ -473,7 +473,8 @@ export class ObjetivosController extends BaseController {
 
         return await queryRunner.query(`
         SELECT GrupoActividadObjetivoId, GrupoActividadId, GrupoActividadId AS GrupoActividadOriginal,
-        GrupoActividadObjetivoDesde, GrupoActividadObjetivoDesde AS GrupoActividadObjetivoDesdeOriginal
+        GrupoActividadObjetivoDesde, GrupoActividadObjetivoDesde AS GrupoActividadObjetivoDesdeOriginal,
+        GrupoActividadObjetivoHasta
         FROM GrupoActividadObjetivo 
         WHERE GrupoActividadObjetivoObjetivoId = @0 ORDER BY ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') DESC, GrupoActividadObjetivodesde DESC, GrupoActividadObjetivoTiempo DESC;`
             , [ObjetivoId])
@@ -983,6 +984,7 @@ export class ObjetivosController extends BaseController {
                 await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoId, ip, usuario)
             }
 
+
             await this.validateDateAndCreateContrato(queryRunner, Obj.ContratoFechaDesde, Obj.ContratoFechaDesdeOLD, Obj.ContratoFechaHasta, Obj.ContratoFechaHastaOLD, Obj.FechaModificada, Obj.ClienteId, Obj.ClienteElementoDependienteId, ObjetivoId, Obj.ContratoId, ip, usuario)
             //update
 //throw new ClientException('debug2')
@@ -990,7 +992,11 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.infoActividad[0] = grupoactividad[0]
             ObjObjetivoNew.infoActividad[0].GrupoActividadOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadId
             ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesdeOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesde
-
+            
+            if ((!Obj.ContratoFechaHasta && ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoHasta) || (Obj.ContratoFechaHasta > ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoHasta)) {
+                await queryRunner.query(`UPDATE GrupoActividadObjetivo SET GrupoActividadObjetivoHasta = @2  WHERE GrupoActividadObjetivoId=@0 AND GrupoActividadId=@1`, [ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoId, ObjObjetivoNew.infoActividad[0].GrupoActividadId, Obj.ContratoFechaHasta])
+            } 
+//            throw new ClientException('debug')
 
             if (Obj.ClienteElementoDependienteId != null && Obj.ClienteElementoDependienteId != "null") {
                 //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
