@@ -89,7 +89,7 @@ export class DireccionSearchComponent implements ControlValueAccessor {
   ngAfterViewInit() {
     setTimeout(() => {
       this.dsc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-      this.dsc.focus()  //Al hacer click en el componente hace foco
+      //this.dsc.focus()  //Al hacer click en el componente hace foco
       this.dsc.setDisabledState(this.isDisabled)
 
     }, 1);
@@ -105,6 +105,7 @@ export class DireccionSearchComponent implements ControlValueAccessor {
   }
 
   set selectedId(val: string) {
+    console.log('set selectedId', val)
     this.dsc?.focus()
     val = (val === null || val === undefined) ? '' : val
 
