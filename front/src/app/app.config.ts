@@ -72,14 +72,15 @@ const providers: Array<Provider | EnvironmentProviders> = [
   ),
 
   { provide: DEFAULT_CURRENCY_CODE, useValue: '$' },
-  { provide: DATE_PIPE_DEFAULT_OPTIONS, useValue: { dateFormat: 'dd/MM/yyyy' },},
+  { provide: DATE_PIPE_DEFAULT_OPTIONS, useFactory: (i18n: I18NService) => ({ dateFormat: i18n.getDateFormat() }), deps: [I18NService] },
   {
-    provide: NZ_CONFIG, useValue: {
-      
+    provide: NZ_CONFIG, 
+    useFactory: (i18n: I18NService) => ({
       datePicker: {
-        nzFormat: 'dd-yyyy-MM', // Set the global default format here
+        nzFormat: i18n.getDateFormat(), // Set the global default format here
       },
-    },
+    }),
+    deps: [I18NService]
   },
  
   ...(environment.providers || [])

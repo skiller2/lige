@@ -18,13 +18,13 @@ import {
   ResponseBySearch,
   Search,
 } from 'src/app/shared/schemas/personal.schemas';
-import {SearchGrup,ResponseBySearchGrup } from 'src/app/shared/schemas/grupoActividad.shemas';
-import { ResponseBySearchCliente,SearchClient } from 'src/app/shared/schemas/cliente.schemas';
-import { ResponseBySearchAdministrador,SearchAdmind } from 'src/app/shared/schemas/administrador.schemas';
-import { ResponseBySearchRubro,SearchRubro } from 'src/app/shared/schemas/rubro.schemas';
-import { ResponseBySearchSeguro,SearchSeguro } from 'src/app/shared/schemas/seguro.schemas';
-import { ResponseBySearchInasistencia,SearchInasistencia } from 'src/app/shared/schemas/inasistencia.schemas';
-import { ResponseBySearchSituacionRevista,SearchSituacionRevista } from 'src/app/shared/schemas/situacionrevista.shemas';
+import { SearchGrup, ResponseBySearchGrup } from 'src/app/shared/schemas/grupoActividad.shemas';
+import { ResponseBySearchCliente, SearchClient } from 'src/app/shared/schemas/cliente.schemas';
+import { ResponseBySearchAdministrador, SearchAdmind } from 'src/app/shared/schemas/administrador.schemas';
+import { ResponseBySearchRubro, SearchRubro } from 'src/app/shared/schemas/rubro.schemas';
+import { ResponseBySearchSeguro, SearchSeguro } from 'src/app/shared/schemas/seguro.schemas';
+import { ResponseBySearchInasistencia, SearchInasistencia } from 'src/app/shared/schemas/inasistencia.schemas';
+import { ResponseBySearchSituacionRevista, SearchSituacionRevista } from 'src/app/shared/schemas/situacionrevista.shemas';
 import {
   Objetivo,
   ObjetivoInfo,
@@ -57,7 +57,7 @@ export class SearchService {
         catchError(() => of([]))
       );
   }
-  constructor(private http: _HttpClient) {}
+  constructor(private http: _HttpClient) { }
 
   getCUITfromPersonalId(personalId: string): Observable<null | number> {
     return this.http
@@ -72,14 +72,14 @@ export class SearchService {
     return this.http
       .get<ResponseJSON<ObjetivoInfo>>(`api/objetivos/name/${objetivoId}`)
       .pipe(
-        map(res => { res.data.fullName = `${res.data.clienteId}/${Number(res.data.elementoDependienteId)} ${res.data.descripcion}`;  return res.data }),
+        map(res => { res.data.fullName = `${res.data.clienteId}/${Number(res.data.elementoDependienteId)} ${res.data.descripcion}`; return res.data }),
         catchError(() =>
           of({
             objetivoId: 0,
             clienteId: 0,
             elementoDependienteId: 0,
             descripcion: '',
-            fullName:''
+            fullName: ''
           })
         )
       );
@@ -104,14 +104,14 @@ export class SearchService {
       );
   }
 
-  getObjetivoContratos(objetivoId: number, anio: number, mes: number) { 
-  if (!objetivoId) {
+  getObjetivoContratos(objetivoId: number, anio: number, mes: number) {
+    if (!objetivoId) {
       return of([]);
     }
     return this.http
       .get<ResponseJSON<any>>(`api/objetivos/contratos/${anio}/${mes}/${objetivoId}`)
       .pipe(
-        map(res => res.data ),
+        map(res => res.data),
         catchError((err, caught) => {
           console.log('Something went wrong!');
           return of([]);
@@ -207,11 +207,11 @@ export class SearchService {
   }
 
   getRubroSearch(fieldName: string, values: string): Observable<SearchRubro[]> {
-/*
-    if (!values || values == '') {
-      return of([]);
-    }
-*/
+    /*
+        if (!values || values == '') {
+          return of([]);
+        }
+    */
     return this.http
       .post<ResponseJSON<ResponseBySearchRubro>>('api/rubro/search', {
         fieldName: fieldName,
@@ -234,7 +234,7 @@ export class SearchService {
 
     if (!values || values == '') {
       return of([]);
-    } 
+    }
     return this.http
       .post<ResponseJSON<ResponseBySearchSeguro>>('api/seguros/search', {
         fieldName: fieldName,
@@ -253,7 +253,7 @@ export class SearchService {
 
 
   }
-    
+
 
 
   getPersonFromName(fieldName: string, values: string): Observable<Search[]> {
@@ -303,10 +303,10 @@ export class SearchService {
       );
   }
 
-  
+
   getGrupoActividad(fieldName: string, values: string): Observable<SearchGrup[]> {
 
-    
+
     if (!values || values == '') {
       return of([]);
     }
@@ -315,11 +315,11 @@ export class SearchService {
         fieldName: fieldName,
         value: values,
       })
-      
+
       .pipe(
         map(res => {
           if (res.data.recordsArray)
-           return res.data.recordsArray;
+            return res.data.recordsArray;
           else return [];
         }),
         catchError((err, caught) => {
@@ -329,7 +329,32 @@ export class SearchService {
       );
   }
 
-  
+  getDireccion(direccion: string): Observable<any[]> {
+    if (!direccion || direccion == '') {
+      return of([]);
+    }
+    const params = new URLSearchParams({
+      text: direccion,
+      apiKey: 'f5cdd3892a38432fbcd0edc786268446',
+      limit: '5'
+    });
+
+    return new Observable<any[]>(observer => {
+      fetch('https://api.geoapify.com/v1/geocode/autocomplete?' + params.toString())
+        .then(res => res.json())
+        .then(data => {
+          observer.next(data?.features || []);
+          observer.complete();
+        })
+        .catch(error => {
+          console.error('Error fetching geocoding data:', error);
+          observer.next([]);
+          observer.complete();
+        });
+    });
+  }
+
+
   getClientFromName(fieldName: string, values: string): Observable<SearchClient[]> {
     if (!values || values == '') {
       return of([]);
@@ -449,22 +474,23 @@ export class SearchService {
       PersonalNombre: '',
       PersonalCUITCUILCUIT: '',
       DocumentoImagenFotoBlobNombreArchivo: '',
-      PersonalFotoId:0,
+      PersonalFotoId: 0,
       image: '',
       NRO_EMPRESA: '',
       DNI: '',
       CategoriaPersonalDescripcion: '',
       FechaDesde: new Date(),
       FechaHasta: new Date(),
-      Faltantes:true
+      Faltantes: true
     };
     if (!id || id == '')
       return new BehaviorSubject<PersonaObj>(dummy).asObservable();
     else
       return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/${id}`).pipe(
         map(res => {
-          
-          return res.data}),
+
+          return res.data
+        }),
         catchError((err, caught) => {
           console.log('Something went wrong!');
           return of(dummy);
@@ -740,60 +766,60 @@ export class SearchService {
   }
 
   getPersonalById(id: number): Observable<any> {
-    if (!id) return of([]);    
+    if (!id) return of([]);
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/${id}`).pipe(
-        map(res => res.data),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
   }
 
   getProductoById(codigoHistory: any): Observable<any> {
-    if (!codigoHistory) return of([]);    
+    if (!codigoHistory) return of([]);
     return this.http.get<ResponseJSON<PersonaObj>>(`api/precios-productos/${codigoHistory}`).pipe(
-        map(res => res.data),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
   }
 
   getObjetivoById(id: number): Observable<any> {
-    if (!id) return of([]);    
+    if (!id) return of([]);
     return this.http.get<ResponseJSON<PersonaObj>>(`api/objetivos/${id}`).pipe(
-        map(res => res.data),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
   }
-  
+
   getTelefonosPersona(id: number): Observable<any> {
-    if (!id) return of([]);    
+    if (!id) return of([]);
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/telefonos/${id}`).pipe(
-        map(res => res.data),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
   }
-  
+
   getCuentasBancoPersona(id: number): Observable<any> {
-    if (!id) return of([]);    
+    if (!id) return of([]);
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/banco/${id}`).pipe(
-        map(res => res.data),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
   }
-  
+
   getLicenciasPersona(
     personalId: number,
     anio: number,
@@ -824,7 +850,7 @@ export class SearchService {
         catchError(() => of([]))
       );
   }
-  
+
   getListaAsistenciaControAcceso(ObjetivoId: number, anio: number, mes: number) {
     if (!ObjetivoId)
       return of([])
@@ -840,7 +866,7 @@ export class SearchService {
     return this.http
       .get<ResponseJSON<any>>(`api/asistencia/tiposhora`)
       .pipe(
-        
+
         map((res: ResponseJSON<any>) =>
           res && res.data ? res.data : []
         ),
@@ -848,17 +874,17 @@ export class SearchService {
       )
   }
 
-  getListaPersonalCustodia(options: any, periodo:Date){
+  getListaPersonalCustodia(options: any, periodo: Date) {
     if (!periodo) return of([]);
     return this.http
-      .post<ResponseJSON<any>>(`api/custodia/personallist`, {options, periodo})
+      .post<ResponseJSON<any>>(`api/custodia/personallist`, { options, periodo })
       .pipe(
         map(res => res.data),
         catchError(() => of([]))
       );
   }
 
-  getListaClientes(filters: any){
+  getListaClientes(filters: any) {
     return this.http
       .post<ResponseJSON<any>>(`api/clientes/list`, filters)
       .pipe(
@@ -867,7 +893,7 @@ export class SearchService {
       );
   }
 
-  getListaPrecioProductos(filters: any){
+  getListaPrecioProductos(filters: any) {
     return this.http
       .post<ResponseJSON<any>>(`api/precios-productos/list`, filters)
       .pipe(
@@ -877,46 +903,46 @@ export class SearchService {
   }
 
   getListGrupoActividadGrupos(filters: any) {
-    const parameter =  filters 
+    const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/listGrupos', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
 
-    
+
   }
 
   getListGrupoActividadResponsables(filters: any) {
-    const parameter =  filters 
+    const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/listResponsables', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
 
-    
+
   }
 
   getListGrupoActividadObjetivos(filters: any) {
-    const parameter =  filters 
+    const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/listObjetivos', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
 
-    
+
   }
 
-  getListGrupoActividadPersonal (filters: any) {
-    const parameter =  filters 
+  getListGrupoActividadPersonal(filters: any) {
+    const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/listPersonal', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
 
-    
+
   }
 
-  getListAccessBot(filters: any){
+  getListAccessBot(filters: any) {
     return this.http
       .post<ResponseJSON<any>>(`api/acceso-bot/list`, filters)
       .pipe(
@@ -925,7 +951,7 @@ export class SearchService {
       );
   }
 
-  getListObjetivos(filters: any){
+  getListObjetivos(filters: any) {
     return this.http
       .post<ResponseJSON<any>>(`api/objetivos/list`, filters)
       .pipe(
@@ -935,7 +961,7 @@ export class SearchService {
   }
 
 
-  getInfoObjCustodia(objCustodiaId: number){
+  getInfoObjCustodia(objCustodiaId: number) {
     return this.http
       .get<ResponseJSON<any>>(`api/custodia/obj/${objCustodiaId}`)
       .pipe(
@@ -944,8 +970,8 @@ export class SearchService {
       );
   }
 
-  
-  getInfoObj(objetivo: number,ClienteId:any,ClienteElementoDependienteId:any){
+
+  getInfoObj(objetivo: number, ClienteId: any, ClienteElementoDependienteId: any) {
     return this.http
       .get<ResponseJSON<any>>(`api/objetivos/infObjetivo/${objetivo}/${ClienteId}/${ClienteElementoDependienteId}`)
       .pipe(
@@ -954,7 +980,7 @@ export class SearchService {
       );
   }
 
-  getInfoObjCliente(objClienteId: number){
+  getInfoObjCliente(objClienteId: number) {
     return this.http
       .get<ResponseJSON<any>>(`api/clientes/infoCliente/${objClienteId}`)
       .pipe(
@@ -996,7 +1022,7 @@ export class SearchService {
 
   getDescuento(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/objetivos/getDescuento`).pipe(
-      map(res =>  res.data),
+      map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -1006,7 +1032,7 @@ export class SearchService {
 
   getProvincia(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getProvincia`).pipe(
-      map(res =>  res.data),
+      map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -1016,7 +1042,7 @@ export class SearchService {
 
   getTipoTelefono(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getTipoTelefono`).pipe(
-      map(res =>  res.data),
+      map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -1026,7 +1052,7 @@ export class SearchService {
 
   getLocalidad(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getLocalidad`).pipe(
-      map(res =>  res.data),
+      map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -1036,7 +1062,7 @@ export class SearchService {
 
   getBarrio(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getBarrio`).pipe(
-      map(res =>  res.data),
+      map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
         return of([]);
@@ -1048,7 +1074,7 @@ export class SearchService {
     if (!patente || patente == '') {
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/custodia/lastdueno`, {patente}).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/custodia/lastdueno`, { patente }).pipe(
       map(res => {
         return (res && res.data) ? res.data[0] : null
       }),
@@ -1063,7 +1089,7 @@ export class SearchService {
     if (!clienteId) {
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/custodia/requirente`, {clienteId}).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/custodia/requirente`, { clienteId }).pipe(
       map(res => {
         return res.data
       }),
@@ -1106,14 +1132,14 @@ export class SearchService {
     );
   }
 
-  getProxAplicaEl(parameter: any){
+  getProxAplicaEl(parameter: any) {
     return this.http.post<ResponseJSON<any>>('/api/ayuda-asistencial/proxfecha', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of({}))
     );
   }
 
-  getPersonalList(filters: any){
+  getPersonalList(filters: any) {
     return this.http
       .post<ResponseJSON<any>>(`api/personal/list`, filters)
       .pipe(
@@ -1122,7 +1148,7 @@ export class SearchService {
       );
   }
 
-  getPersonal(){
+  getPersonal() {
     return this.http
       .post<ResponseJSON<any>>(`api/personal/listfull`)
       .pipe(
@@ -1142,7 +1168,7 @@ export class SearchService {
     );
   }
 
-  getDatosFacturacionByCliente(listClientes: any){
+  getDatosFacturacionByCliente(listClientes: any) {
     return this.http.post<ResponseJSON<any>>('/api/cliente/facturacion', listClientes).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of({}))
@@ -1159,7 +1185,7 @@ export class SearchService {
     );
   }
 
-  getPersonalInfoById(id:number): Observable<any> {
+  getPersonalInfoById(id: number): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/personal/info/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -1179,11 +1205,11 @@ export class SearchService {
     );
   }
 
-  getProvinciasByPais(paisId:number): Observable<any> {
+  getProvinciasByPais(paisId: number): Observable<any> {
     if (!paisId) {
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/residencia/provincias`, {paisId}).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/residencia/provincias`, { paisId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -1192,11 +1218,11 @@ export class SearchService {
     );
   }
 
-  getLocalidadesByProvincia(paisId:number, provinciaId:number): Observable<any> {
+  getLocalidadesByProvincia(paisId: number, provinciaId: number): Observable<any> {
     if (!paisId || !provinciaId) {
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/residencia/localidades`, {paisId, provinciaId}).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/residencia/localidades`, { paisId, provinciaId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -1205,11 +1231,11 @@ export class SearchService {
     );
   }
 
-  getBarriosByLocalidad(paisId:number, provinciaId:number, localidadId:number): Observable<any> {
+  getBarriosByLocalidad(paisId: number, provinciaId: number, localidadId: number): Observable<any> {
     if (!paisId || !provinciaId || !localidadId) {
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/residencia/barrios`, {paisId, provinciaId, localidadId}).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/residencia/barrios`, { paisId, provinciaId, localidadId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -1219,14 +1245,14 @@ export class SearchService {
   }
 
   getDomicilioByPersonal(id: number): Observable<any> {
-    if (!id) return of([]);    
+    if (!id) return of([]);
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/domicilio/${id}`).pipe(
-        map(res => res.data),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
   }
 
   getLugarTelefonoOptions(): Observable<any> {
@@ -1301,14 +1327,14 @@ export class SearchService {
   }
 
   getDocumentosByPersonal(id: number): Observable<any> {
-    if (!id) return of([]);    
+    if (!id) return of([]);
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/documentos/${id}`).pipe(
-        map(res => res.data),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
   }
 
   getHistoriaCategoriaPersona(id: number): Observable<any> {
@@ -1322,11 +1348,11 @@ export class SearchService {
     );
   }
 
-  getCategoriasByTipoAsociado(tipoAsociadoId:number): Observable<any> {
+  getCategoriasByTipoAsociado(tipoAsociadoId: number): Observable<any> {
     if (!tipoAsociadoId) {
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/personal/categorias`, {tipoAsociadoId}).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/personal/categorias`, { tipoAsociadoId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -1396,20 +1422,20 @@ export class SearchService {
     );
   }
 
-  getTipoDocumentoDownloadList(doc_id:number, options: any){
+  getTipoDocumentoDownloadList(doc_id: number, options: any) {
     if (!doc_id) return of([]);
     return this.http
-      .post<ResponseJSON<any>>(`api/tipo-documento/list-download`, {doc_id, options})
+      .post<ResponseJSON<any>>(`api/tipo-documento/list-download`, { doc_id, options })
       .pipe(
         map(res => res.data),
         catchError(() => of([]))
       );
   }
 
-  getTipoDocumentoNoDownloadList(doc_id:number, options: any){
+  getTipoDocumentoNoDownloadList(doc_id: number, options: any) {
     if (!doc_id) return of([]);
     return this.http
-      .post<ResponseJSON<any>>(`api/tipo-documento/list-no-download`, {doc_id, options})
+      .post<ResponseJSON<any>>(`api/tipo-documento/list-no-download`, { doc_id, options })
       .pipe(
         map(res => res.data),
         catchError(() => of([]))

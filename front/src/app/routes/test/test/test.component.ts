@@ -1,5 +1,5 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, inject, model, viewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormControl, FormGroup, NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import { NzModalService } from 'ng-zorro-antd/modal';
@@ -9,6 +9,7 @@ import { GeocoderAutocomplete } from '@geoapify/geocoder-autocomplete';
 import { ApiService } from 'src/app/services/api.service';
 import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
 import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
+import { DireccionSearchComponent } from 'src/app/shared/direccion-search/direccion-search.component';
 
 import { Directionality } from '@angular/cdk/bidi';
 import { DescuentosComponent } from '../../ges/descuentos/descuentos.component';
@@ -21,7 +22,7 @@ import { I18NService } from '@core';
     selector: 'test',
     templateUrl: './test.component.html',
     styleUrls: ['./test.component.less'],
-    imports: [...SHARED_IMPORTS, CommonModule],
+    imports: [...SHARED_IMPORTS, CommonModule, DireccionSearchComponent],
     providers: [],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -39,7 +40,7 @@ export class TestComponent {
   private document = inject(DOCUMENT)
   nacimiento: Date = new Date('1973-05-24')
   allowedBarCodeFormats = [BarcodeFormat.PDF_417, BarcodeFormat.QR_CODE]
-
+  direccion = model({})
   i18NService = inject(I18NService)
 
    periodo1 = { year: 2024, month: 3 }

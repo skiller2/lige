@@ -45,7 +45,7 @@
     "@delon/mock": "^19.0.1",
     "@delon/theme": "^19.0.1",
     "@delon/util": "^19.0.1",
-    "@geoapify/geocoder-autocomplete": "^2.0.1",
+    "@geoapify/geocoder-autocomplete": "^2.1.0",
     "@slickgrid-universal/common": "^5.12.2",
     "@slickgrid-universal/event-pub-sub": "^5.12.2",
     "@slickgrid-universal/excel-export": "^5.12.2",
