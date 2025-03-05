@@ -44,6 +44,7 @@ import { PreciosProductosController } from "../precios-productos/precios-product
 import { DescripcionProductoController } from "./descripcion-producto.controller"
 import { GrupoActividadController } from "../grupo-actividad/grupo-actividad.controller"
 import { SegurosController } from "../seguros/seguros.controller"
+import { ReportesController } from "../reportes/reportes.controller"
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -91,3 +92,4 @@ export const preciosProductosController = new PreciosProductosController();
 export const descripcionProductoController = new DescripcionProductoController();
 export const grupoActividadController = new GrupoActividadController();
 export const segurosController = new SegurosController();
+export const reportesController = new ReportesController();

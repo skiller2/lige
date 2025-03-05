@@ -37,6 +37,7 @@ import { preciosProductosRouter } from "../precios-productos/precios-productos.r
 import { descripcionProductoControllerRouter } from "./descripcion-producto.routes";
 import { grupoActividadRouter } from "../grupo-actividad/grupo-actividad.routes";
 import { segurosRouter } from "../seguros/seguros.routes";
+import { reportesRouter } from "../reportes/reportes.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -77,4 +78,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/descripcion-productos",descripcionProductoControllerRouter)
   server.setRoute("/api/grupo-actividad",grupoActividadRouter)
   server.setRoute("/api/seguros",segurosRouter)
+  server.setRoute("/api/reportes",reportesRouter)
 }
