@@ -1219,20 +1219,16 @@ console.log('infoDomicilio',infoDomicilio)
 
     const lugarTelefonoId = infoTelefono.LugarTelefonoId
     const tipoTelefonoId = infoTelefono.TipoTelefonoId
-    const codigoPais = infoTelefono.CodigoPais
-    const codigoArea = infoTelefono.CodigoArea
     const telefonoNum = infoTelefono.TelefonoNro
     await queryRunner.query(`
       UPDATE PersonalTelefono SET
       LugarTelefonoId = @2,
       TipoTelefonoId = @3,
-      PersonalTelefonoCodigoPais = @4,
-      PersonalTelefonoCodigoArea = @5,
-      PersonalTelefonoNro = @6,
+      PersonalTelefonoNro = @4,
       PersonalTelefonoInactivo = null
       WHERE PersonalId IN (@0) AND PersonalTelefonoId IN (@1)
       `, [
-      PersonalId, PersonalTelefonoId, lugarTelefonoId, tipoTelefonoId, codigoPais, codigoArea, telefonoNum
+      PersonalId, PersonalTelefonoId, lugarTelefonoId, tipoTelefonoId, telefonoNum
     ])
   }
 
