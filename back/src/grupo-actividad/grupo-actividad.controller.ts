@@ -1122,7 +1122,7 @@ export class GrupoActividadController extends BaseController {
                 let GrupoActividadPersonalId = await queryRunner.query(` SELECT GrupoActividadPersonalUltNro FROM GrupoActividad WHERE GrupoActividadId =  @0`, [params.GrupoActividadDetalle.id])
                 GrupoActividadPersonalId = GrupoActividadPersonalId[0].GrupoActividadPersonalUltNro + 1
 
-                await queryRunner.query(`INSERT INTO "GrupoActividadPersonal" (
+                await queryRunner.query(`INSERT INTO GrupoActividadPersonal (
                    		GrupoActividadPersonalId,
                         GrupoActividadId,
                         GrupoActividadPersonalPersonalId,
@@ -1131,19 +1131,17 @@ export class GrupoActividadController extends BaseController {
 
                         GrupoActividadPersonalReasignado,
                         GrupoActividadPersonalEsReten,
-                        GrupoActividadPersonalHorarioUltNro,
 
                         GrupoActividadPersonalPuesto,
                         GrupoActividadPersonalUsuarioId,
                         GrupoActividadPersonalDia,
-                        GrupoActividadPersonalTiempo) VALUES ( @0,@1,@2, @3,@4, @5,@6, @7,@8,@9,@10,@11 );
+                        GrupoActividadPersonalTiempo) VALUES ( @0,@1,@2, @3,@4, @5,@6, @7,@8,@9,@10);
                 `, [GrupoActividadPersonalId, 
                     params.GrupoActividadDetalle.id,
                      params.ApellidoNombrePersona.id,
                     params.GrupoActividadPersonalDesde, 
                     params.GrupoActividadPersonalHasta, 
                     false,
-                    null,
                     null,
                     ip, 
                     usuarioId, 
