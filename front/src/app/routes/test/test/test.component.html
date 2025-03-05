@@ -37,8 +37,9 @@
 </nz-card>
 
 <nz-card>
+  <app-direccion-search [(ngModel)]="direccion"></app-direccion-search>
 
-
+  <p>Direccion: {{  direccion() | json}}</p>
 </nz-card>
 
 <nz-card>
