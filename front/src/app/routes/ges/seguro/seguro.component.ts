@@ -1,4 +1,4 @@
-import { Component, inject, input, signal,model} from '@angular/core'
+import { Component, inject, input, signal,model, ViewChild, viewChild} from '@angular/core'
 import { SHARED_IMPORTS, listOptionsT } from '@shared'
 import { NzIconModule } from 'ng-zorro-antd/icon'
 import { firstValueFrom } from 'rxjs'
@@ -26,8 +26,11 @@ export class SeguroComponent {
  fechaseguro = model(new Date())
  calendarView = signal(false)
  selectedPeriod = { year: 0, month: 0 }
- isVisible = false
- selectedOption = model("APG");
+ selectedOption = model("APG")
+ reportTitle = signal("")
+ isVisible = model(false)
+
+ReportsBuilder = viewChild.required<ReportesComponent>('AccessReport');
 
 public apiService = inject(ApiService)
 constructor(private nzMessageService: NzMessageService) {}
@@ -47,8 +50,10 @@ constructor(private nzMessageService: NzMessageService) {}
 
  }
 
- showModal(): void {
-  this.isVisible = true;
+ async showModal(reportTitle:string) {
+  this.isVisible.set(true)
+  this.reportTitle.set(reportTitle)
+  this.ReportsBuilder().searchReportParameters(this.reportTitle())
 }
 
  ngOnInit(): void {

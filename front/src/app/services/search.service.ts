@@ -980,6 +980,15 @@ export class SearchService {
       );
   }
 
+   getInfoFilterReport(title:string) {
+    return this.http
+      .get<ResponseJSON<any>>(`api/reportes/filterReport/${title}`)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
   getInfoObjCliente(objClienteId: number) {
     return this.http
       .get<ResponseJSON<any>>(`api/clientes/infoCliente/${objClienteId}`)

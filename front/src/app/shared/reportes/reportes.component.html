@@ -1,18 +1,16 @@
-<!-- <p>reportes works!</p> -->
-
-
-<!-- 
-<nz-modal [(nzVisible)]="isVisible" (nzOnCancel)="isVisible=false" nzTitle="Descarga Recibos">
+<nz-modal [(nzVisible)]="isVisible" (nzOnCancel)="isVisible.set(false)" [nzTitle]="reportTitle()">
+  
   <div *nzModalContent>
-      <nz-select [(ngModel)]="selectedOption" nzPlaceHolder="Selecciona una opción" [nzDropdownMatchSelectWidth]="false">
+    <p>reportes works!</p>
+      <!-- <nz-select [(ngModel)]="selectedOption" nzPlaceHolder="Selecciona una opción" [nzDropdownMatchSelectWidth]="false">
         <nz-option [nzLabel]="'Todos'" nzValue="APG"></nz-option>
         <nz-option [nzLabel]="'Objetivo'" nzValue="APE"></nz-option>
         <nz-option [nzLabel]="'Cliente'" nzValue="APC"></nz-option>
-      </nz-select>
+      </nz-select> -->
   </div>
-  <div *nzModalFooter style="text-align: right;">
+ <!--  <div *nzModalFooter style="text-align: right;">
     <a nz-button nzType="primary" app-down-file [httpMethod]="'POST'"
       [httpBody]="{'Anio':selectedPeriod.year }"
       httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado" (click)="isVisible=false">Aceptar</a>
-  </div>
-</nz-modal> -->
+  </div> -->
+</nz-modal>
