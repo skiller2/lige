@@ -22,7 +22,7 @@ import { I18NService } from '@core';
     selector: 'test',
     templateUrl: './test.component.html',
     styleUrls: ['./test.component.less'],
-    imports: [...SHARED_IMPORTS, CommonModule, DireccionSearchComponent],
+    imports: [...SHARED_IMPORTS, CommonModule, DireccionSearchComponent,PersonalSearchComponent],
     providers: [],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -42,6 +42,7 @@ export class TestComponent {
   allowedBarCodeFormats = [BarcodeFormat.PDF_417, BarcodeFormat.QR_CODE]
   direccion = model({})
   i18NService = inject(I18NService)
+  responsable = model(0)
 
    periodo1 = { year: 2024, month: 3 }
   onChange(evt: any) {

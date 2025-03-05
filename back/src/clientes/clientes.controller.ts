@@ -241,7 +241,7 @@ ${orderBy}`, [fechaActual])
             cc.ContactoEmailUltNro,
             cc.ContactoTelefonoUltNro,
             cct.TipoTelefonoId,
-            cct.ContactoTelefonoCodigoArea,
+
             cct.ContactoTelefonoId,
             TRIM(cce.ContactoEmailEmail) AS correo ,
             TRIM(cct.ContactoTelefonoNro) AS telefono,
@@ -505,8 +505,8 @@ ${orderBy}`, [fechaActual])
                 @0,@1,@2,@3)`, [++ContactoEmailUltNro, ContactoId, contacto.correo, false])
 
             if (contacto.telefono)
-                await queryRunner.query(`INSERT INTO ContactoTelefono (ContactoTelefonoId,ContactoId,TipoTelefonoId,ContactoTelefonoCodigoArea,ContactoTelefonoNro) 
-                  VALUES (@0,@1,@2,@3,@4)`, [++ContactoTelefonoUltNro, contacto.ContactoId, contacto.TipoTelefonoId, contacto.ContactoTelefonoCodigoArea, contacto.telefono])
+                await queryRunner.query(`INSERT INTO ContactoTelefono (ContactoTelefonoId,ContactoId,TipoTelefonoId,ContactoTelefonoNro) 
+                  VALUES (@0,@1,@2,@3,@4)`, [++ContactoTelefonoUltNro, contacto.ContactoId, contacto.TipoTelefonoId, contacto.telefono])
             await queryRunner.query(`UPDATE Contacto SET ContactoTelefonoUltNro=@1,ContactoEmailUltNro=@2  WHERE ContactoId=@0 `,
                 [contacto.ContactoId, ContactoTelefonoUltNro, ContactoEmailUltNro])
             contactos[idx].ContactoEmailUltNro = ContactoEmailUltNro

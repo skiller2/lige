@@ -76,7 +76,6 @@ export class ClientesFormComponent {
     ContactoApellido: "",
     area: "",
     TipoTelefonoId: null,
-    ContactoTelefonoCodigoArea: "",
     telefono: "",
     correo: "",
     ContactoEmailId: 0,

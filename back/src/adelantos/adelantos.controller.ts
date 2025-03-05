@@ -4,6 +4,7 @@ import { dataSource } from "../data-source";
 import { QueryFailedError } from "typeorm";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
+import { AccesoBotController } from "src/acceso-bot/acceso-bot.controller";
 
 export class AdelantosController extends BaseController {
 
@@ -204,6 +205,12 @@ export class AdelantosController extends BaseController {
       if (presPend.length>0)
         throw new ClientException(`Ya se encuentra generado, aprobado y pendiente de acreditar en cuenta.  No se puede solicitar nuevo adelanto`)
 
+      const perUltRecibo = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
+
+      const bot = await AccesoBotController.getBotStatus(perUltRecibo[0].anio, perUltRecibo[0].mes, queryRunner, [personalId])
+
+      if (bot[0].visto!=1 && bot[0].doc_id!=0)
+        throw new ClientException(`No se puede solicitar adelanto, el recibo del mes ${perUltRecibo[0].mes}/${perUltRecibo[0].anio} no ha sido visto por el usuario`)
 
       const FormaPrestamo = await queryRunner.query(`SELECT fp.FormaPrestamoDescripcion FROM FormaPrestamo fp WHERE fp.FormaPrestamoId = @0`, [FormaPrestamoId])
       const FormaPrestamoDescripcion = FormaPrestamo[0]?.FormaPrestamoDescripcion

@@ -1051,7 +1051,7 @@ cuit.PersonalCUITCUILCUIT,
         DocumentoImagenEstudioBlobTipoArchivo,
         DocumentoImagenParametroId,
         DocumentoImagenParametroDirectorioId
-        )a
+        )
         VALUES(@0,@1,@2,@3)
       `, [personalId, type, 14, 1])
       estudio = await queryRunner.query(`
