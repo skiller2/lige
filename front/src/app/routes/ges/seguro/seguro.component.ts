@@ -6,6 +6,7 @@ import {TableSeguroListComponent} from 'src/app/shared/table-seguros-list/table-
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service'
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm'
 import { NzMenuModule } from 'ng-zorro-antd/menu'
+import { ReportesComponent } from 'src/app/shared/reportes/reportes.component'
 
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzMessageService } from 'ng-zorro-antd/message'
@@ -13,7 +14,7 @@ import { NzMessageService } from 'ng-zorro-antd/message'
 @Component({
   selector: 'app-seguro',
   standalone: true,
-  imports: [...SHARED_IMPORTS, NzIconModule ,TableSeguroListComponent,NzPopconfirmModule,NzMenuModule,NzButtonModule
+  imports: [...SHARED_IMPORTS, NzIconModule ,TableSeguroListComponent,NzPopconfirmModule,NzMenuModule,NzButtonModule,ReportesComponent
   ],
   templateUrl: './seguro.component.html',
   styleUrl: './seguro.component.less'
@@ -21,10 +22,12 @@ import { NzMessageService } from 'ng-zorro-antd/message'
 export class SeguroComponent {
 
 
- periodo = signal(new Date())
+ fechaActual = signal(new Date())
  fechaseguro = model(new Date())
  calendarView = signal(false)
  selectedPeriod = { year: 0, month: 0 }
+ isVisible = false
+ selectedOption = model("APG");
 
 public apiService = inject(ApiService)
 constructor(private nzMessageService: NzMessageService) {}
@@ -37,16 +40,20 @@ constructor(private nzMessageService: NzMessageService) {}
   this.calendarView.set(false) 
  }
 
- send(): void {
+ async send() {
   this.selectedPeriod.year = (this.fechaseguro() as Date).getFullYear()
   this.selectedPeriod.month = (this.fechaseguro() as Date).getMonth() + 1
-  // const res = await firstValueFrom(this.apiService.processInsurance(this.selectedPeriod.year, this.selectedPeriod.month))
+  const res = await firstValueFrom(this.apiService.processInsurance(this.selectedPeriod.year, this.selectedPeriod.month))
+
  }
 
+ showModal(): void {
+  this.isVisible = true;
+}
 
  ngOnInit(): void {
-   const fechaActual = new Date();
-   this.fechaseguro.set(new Date(fechaActual.getFullYear(), fechaActual.getMonth() - 1, 1))
+  
+   this.fechaseguro.set(new Date(this.fechaActual().getFullYear(), this.fechaActual().getMonth() - 1, 1))
  }
 
 }
