@@ -154,15 +154,7 @@ export class ObjetivosPendasisController extends BaseController {
       
       objasissub.sumtotalhorascalc AS AsistenciaHoras,
       
---      eledepcon.ClienteElementoDependienteContratoFechaDesde,  eledepcon.ClienteElementoDependienteContratoFechaHasta, eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,
---      clicon.ClienteContratoFechaDesde, clicon.ClienteContratoFechaHasta, clicon.ClienteContratoFechaFinalizacion,
-      
       objm.ObjetivoAsistenciaAnoMesHasta,
-      
---      ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) as ContratoFechaDesde ,  
---	    ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,clicon.ClienteContratoFechaHasta) as  ContratoFechaHasta ,
-	  
-      
       
       1
       
@@ -257,14 +249,12 @@ AS gas ON gas.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
       AND EOMONTH(DATEFROMPARTS(@1,@2,1)) >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
         
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
-      LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL 
-      AND EOMONTH(DATEFROMPARTS(@1,@2,1)) >= clicon.ClienteContratoFechaDesde AND ISNuLL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND ISNuLL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
         
       LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
        
       WHERE 
       ${filterPendientes}
-      ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) IS NOT NULL
+      eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
 
      AND (${filterSql})
       `,

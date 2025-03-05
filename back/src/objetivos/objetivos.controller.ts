@@ -323,36 +323,14 @@ export class ObjetivosController extends BaseController {
                 adm.AdministradorId,
                 suc.SucursalDescripcion,
                
-                ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde, clicon.ClienteContratoFechaDesde) AS ContratoFechaDesde,
-                ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta, clicon.ClienteContratoFechaHasta) AS ContratoFechaHasta,
+                eledepcon.ClienteElementoDependienteContratoFechaDesde AS ContratoFechaDesde,
+                eledepcon.ClienteElementoDependienteContratoFechaHasta AS ContratoFechaHasta,
  1
                 FROM Objetivo obj 
                 LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
                 LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
 					 
-					 
-
-					LEFT JOIN (SELECT cc.ClienteId, MAX(cc.ClienteContratoId) ClienteContratoId FROM  ClienteContrato cc WHERE EOMONTH(DATEFROMPARTS(@0,@1,1)) >= cc.ClienteContratoFechaDesde 
-                 --   AND ISNULL(cc.ClienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
-                  --  AND ISNULL(cc.ClienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
-					GROUP BY cc.ClienteId) clicon2 ON clicon2.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS null
-
-				--LEFT JOIN  ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId AND clicon.ClienteContratoId = clicon2.ClienteContratoId
-
-                		LEFT JOIN (
-				    SELECT 
-				        cc.ClienteId, 
-				        cc.ClienteContratoId, 
-				        cc.ClienteContratoFechaDesde, 
-				        cc.ClienteContratoFechaHasta,
-				        ROW_NUMBER() OVER (PARTITION BY cc.ClienteId ORDER BY cc.ClienteContratoFechaDesde DESC) AS RowNum
-				    FROM ClienteContrato cc
-				    WHERE EOMONTH(DATEFROMPARTS(@0,@1,1)) >= cc.ClienteContratoFechaDesde
-				) clicon ON clicon.ClienteId = cli.ClienteId 
-				    AND clicon.RowNum = 1   
-					 
-					 
-					LEFT JOIN (SELECT ec.ClienteId, ec.ClienteElementoDependienteId, MAX(ec.ClienteElementoDependienteContratoId) ClienteElementoDependienteContratoId FROM ClienteElementoDependienteContrato ec WHERE  EOMONTH(DATEFROMPARTS(@0,@1,1)) >= ec.ClienteElementoDependienteContratoFechaDesde 
+                LEFT JOIN (SELECT ec.ClienteId, ec.ClienteElementoDependienteId, MAX(ec.ClienteElementoDependienteContratoId) ClienteElementoDependienteContratoId FROM ClienteElementoDependienteContrato ec WHERE  EOMONTH(DATEFROMPARTS(@0,@1,1)) >= ec.ClienteElementoDependienteContratoFechaDesde 
                  --   AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
                  --   AND ISNULL(ec.ClienteElementoDependienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
                 GROUP BY ec.ClienteId, ec.ClienteElementoDependienteId
@@ -564,8 +542,8 @@ export class ObjetivosController extends BaseController {
                 ,ISNULL(TRIM(eledep.ClienteElementoDependienteDescripcion), TRIM(cli.ClienteApellidoNombre)) AS Descripcion
                 ,suc.SucursalDescripcion
                 ,suc.SucursalId
-                ,ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde, clicon.ClienteContratoFechaDesde) AS ContratoFechaDesde
-                ,ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta, clicon.ClienteContratoFechaHasta) AS ContratoFechaHasta
+                ,eledepcon.ClienteElementoDependienteContratoFechaDesde AS ContratoFechaDesde
+                ,eledepcon.ClienteElementoDependienteContratoFechaHasta AS ContratoFechaHasta
                 ,eledepcon.ClienteElementoDependienteContratoId AS ContratoId
                 ,eledep.ClienteElementoDependienteDomicilioUltNro
                 ,eledep.ClienteElementoDependienteContratoUltNro
@@ -574,16 +552,6 @@ export class ObjetivosController extends BaseController {
             LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
             LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId
                 AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-            LEFT JOIN (
-                SELECT cc.ClienteId
-                    ,MAX(cc.ClienteContratoId) AS ClienteContratoId
-                FROM ClienteContrato cc
-                WHERE 
-                EOMONTH(DATEFROMPARTS(@3, @4, 1)) >= cc.ClienteContratoFechaDesde
-        
-                GROUP BY cc.ClienteId
-                ) clicon2 ON clicon2.ClienteId = cli.ClienteId
-                AND obj.ClienteElementoDependienteId IS NULL
             LEFT JOIN (
                 SELECT ec.ClienteId
                     ,ec.ClienteElementoDependienteId
@@ -598,8 +566,6 @@ export class ObjetivosController extends BaseController {
             LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId
                 AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
                 AND eledepcon.ClienteElementoDependienteContratoId = eledepcon2.ClienteElementoDependienteContratoId
-            LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId
-                AND clicon.ClienteContratoId = clicon2.ClienteContratoId
             LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId, cli.ClienteSucursalId)
            
             WHERE obj.ObjetivoId = @0;`,
@@ -614,27 +580,11 @@ export class ObjetivosController extends BaseController {
                 ,cli.ClienteRubroUltNro as RubroUltNro
                 ,cli.ClienteAdministradorUltNro
                 ,cli.ClienteSucursalId AS SucursalId
-                ,cli.ClienteContratoUltNro as ClienteContratoUltNro
-                ,clicon.ClienteContratoFechaDesde AS ContratoFechaDesde
-	            ,clicon.ClienteContratoFechaHasta AS ContratoFechaHasta
-                ,clicon.ClienteContratoId AS ContratoId
                 ,TRIM(adm.AdministradorNombre) AS AdministradorNombre
                 ,TRIM(adm.AdministradorApellido) AS AdministradorApellido
                 ,adm.AdministradorId
             FROM Cliente cli
-    
-            LEFT JOIN (
-                SELECT cc.ClienteId
-                    ,MAX(cc.ClienteContratoId) AS ClienteContratoId
-                FROM ClienteContrato cc
-                WHERE EOMONTH(DATEFROMPARTS(@1, @2, 1)) >= cc.ClienteContratoFechaDesde
-                    AND ISNULL(cc.ClienteContratoFechaHasta, '9999-12-31') >= DATEFROMPARTS(@1, @2, 1)
-                    AND ISNULL(cc.ClienteContratoFechaFinalizacion, '9999-12-31') >= DATEFROMPARTS(@1, @2, 1)
-                GROUP BY cc.ClienteId
-                ) clicon2 ON clicon2.ClienteId = cli.ClienteId
                 
-            LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId
-                AND clicon.ClienteContratoId = clicon2.ClienteContratoId     
             LEFT JOIN (
                 SELECT TOP 1 ca.ClienteId
                     ,ca.ClienteAdministradorAdministradorId AS AdministradorId
@@ -767,20 +717,6 @@ export class ObjetivosController extends BaseController {
                     [ClienteId, ClienteElementoDependienteId, ClienteElementoDependienteContratoId])
             }
 
-        } else {
-            if (ContratoId && !createNewContrato) {
-
-                await queryRunner.query(`UPDATE ClienteContrato SET ClienteContratoFechaDesde = @2, ClienteContratoFechaHasta @3 WHERE ClienteId = @0 AND ClienteContratoId = @1`,
-                    [ClienteId, ContratoId, ContratoFechaDesde, ContratoFechaHasta])
-            } else {
-                const resUltNro = await queryRunner.query(`SELECT ClienteContratoUltNro FROM Cliente WHERE ClienteId = @0 `, [ClienteId])
-                const ClienteContratoId = (resUltNro[0]?.ClienteContratoUltNro) ? resUltNro[0].ClienteContratoUltNro + 1 : 1
-                await queryRunner.query(`INSERT INTO ClienteContrato (ClienteContratoId,ClienteId, ClienteContratoFechaDesde, ClienteContratoFechaHasta ) VALUES (@0,@1,@2,@3)`,
-                    [ClienteContratoId, ClienteId, ContratoFechaDesde, ContratoFechaHasta])
-                await queryRunner.query(`UPDATE Cliente SET ClienteContratoUltNro = @1 WHERE ClienteId = @0`,
-                    [ClienteId, ClienteContratoId])
-
-            }
         }
 
         const gao = await queryRunner.query(`SELECT TOP 1 GrupoActividadObjetivoId, GrupoActividadId, GrupoActividadObjetivoDesde, GrupoActividadObjetivoHasta FROM GrupoActividadObjetivo WHERE GrupoActividadObjetivoObjetivoId = @0 ORDER BY GrupoActividadObjetivoDesde DESC`,
@@ -1542,14 +1478,6 @@ export class ObjetivosController extends BaseController {
                 FROM  ClienteElementoDependienteContrato as clie
                 WHERE ClienteElementoDependienteId = @1 AND ClienteId = @0`, [ClienteId, ClienteElementoDependienteId])
 
-            // else
-            //     //ClienteContrato
-            //     listCargaContratoHistory = await queryRunner.query(`SELECT 
-            //         ClienteContratoFechaDesde as desde,
-            //         ClienteContratoFechaHasta as hasta,
-            //         ClienteContratoHorasMensuales as horas
-            //         FROM  ClienteContrato
-            //         WHERE  ClienteId = @0`,[ClienteId])
 
             this.jsonRes(
                 {

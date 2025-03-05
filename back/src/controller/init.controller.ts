@@ -119,7 +119,6 @@ export class InitController extends BaseController {
     gru.GrupoActividadObjetivoId,
     gru.GrupoActividadId,
         
---        ISNULL(clicon.ClienteContratoFechaHasta,eledepcon.ClienteElementoDependienteContratoFechaHasta) fechaHasta,
         gru.GrupoActividadObjetivoHasta,
         1
         
@@ -132,15 +131,13 @@ export class InitController extends BaseController {
     AND @0 >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0
     
     LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
-    LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL 
-    AND @0 >= clicon.ClienteContratoFechaDesde AND ISNuLL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNuLL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= @0
 
         
         
     WHERE 
   
 gru.GrupoActividadObjetivoId IS null
-AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) IS NOT NULL
+AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
 `,
         [stmactual]
       )
@@ -248,9 +245,6 @@ AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.Cliente
         
 --	CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)) as codObjetivo,
 
---        eledepcon.ClienteElementoDependienteContratoFechaDesde, eledepcon.ClienteElementoDependienteContratoFechaHasta, eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,
---        clicon.ClienteContratoFechaDesde, clicon.ClienteContratoFechaHasta, clicon.ClienteContratoFechaFinalizacion,
-        
         1
         
         
@@ -261,14 +255,12 @@ AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.Cliente
           AND @0 >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0
             
         LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
-        LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL 
-          AND @0 >= clicon.ClienteContratoFechaDesde AND ISNuLL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNuLL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= @0
     
         LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
         
 
         WHERE 
-        ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) IS NOT NULL
+        eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
 
 GROUP BY suc.SucursalId, suc.SucursalDescripcion
         `,
@@ -307,7 +299,6 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
 --	CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)) as codObjetivo,
 
 --        eledepcon.ClienteElementoDependienteContratoFechaDesde, eledepcon.ClienteElementoDependienteContratoFechaHasta, eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,
---        clicon.ClienteContratoFechaDesde, clicon.ClienteContratoFechaHasta, clicon.ClienteContratoFechaFinalizacion,
         
         1
         
@@ -319,14 +310,12 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
           AND @0 >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0
             
         LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
-        LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL 
-          AND @0 >= clicon.ClienteContratoFechaDesde AND ISNuLL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNuLL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= @0
 
         LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
 
         WHERE 
 
-          ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) IS NOT NULL
+          eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
         
 GROUP BY suc.SucursalId, suc.SucursalDescripcion
         `,

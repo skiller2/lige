@@ -1382,7 +1382,7 @@ export class GrupoActividadController extends BaseController {
 
             const catactual = await queryRunner.query(
                 `UPDATE gru
-               SET 		  gru.GrupoActividadObjetivoHasta=ISNULL(clicon.ClienteContratoFechaHasta,eledepcon.ClienteElementoDependienteContratoFechaHasta)
+               SET 		  gru.GrupoActividadObjetivoHasta=eledepcon.ClienteElementoDependienteContratoFechaHasta
                            
                                   
                            
@@ -1394,12 +1394,11 @@ export class GrupoActividadController extends BaseController {
                        LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledepcon.ClienteElementoDependienteContratoId = eledep.ClienteElementoDependienteContratoUltNro
                        
                        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
-                       LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = obj.ClienteId AND clicon.ClienteContratoId = cli.ClienteContratoUltNro AND obj.ClienteElementoDependienteId IS NULL 
                
                            
                            
-                       WHERE ISNULL(ISNULL(clicon.ClienteContratoFechaHasta,eledepcon.ClienteElementoDependienteContratoFechaHasta),'9999-12-31') < ISNULL(gru.GrupoActividadObjetivoHasta,'9999-12-31') AND 
-                       ISNULL(ISNULL(clicon.ClienteContratoFechaHasta,eledepcon.ClienteElementoDependienteContratoFechaHasta),'9999-12-31') < @0`,
+                       WHERE ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') < ISNULL(gru.GrupoActividadObjetivoHasta,'9999-12-31') AND 
+                       ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') < @0`,
                 [fechaActual]
             )
 
