@@ -133,7 +133,6 @@ export class PersonalGrupoComponent {
   )
 
   selectedValueChange(event: number): void {
-    console.log('cambio', event)
     this.$selectedResponsablePersonalIdChange.next(event);
     this.$isResponsableDataLoading.next(true);
   }

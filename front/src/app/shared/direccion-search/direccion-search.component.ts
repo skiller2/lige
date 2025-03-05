@@ -17,7 +17,7 @@ import { NzSelectComponent } from 'ng-zorro-antd/select'
 import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
 import { Injector, inject } from '@angular/core';
-
+import { toSignal} from '@angular/core/rxjs-interop';
 @Component({
     selector: 'app-direccion-search',
     templateUrl: './direccion-search.component.html',
@@ -35,7 +35,7 @@ import { Injector, inject } from '@angular/core';
 export class DireccionSearchComponent implements ControlValueAccessor {
 
 
-  tmpInputVal: any
+//  tmpInputVal: any
   constructor(private searchService: SearchService) { }
 
   @Input() valueExtended: any
@@ -122,30 +122,33 @@ export class DireccionSearchComponent implements ControlValueAccessor {
         this.propagateChange(this._selectedId)
         return
       }
-      this.searchService
-      .getDireccion(this._selectedId)
-        .pipe(tap(res => {
-            this.extendedOption = { id: res[0].properties.place_id, fullName: res[0].properties.formatted,  fullObj: res[0] }
-            this.selectedItem = this.extendedOption
-            this._selected.set(this._selectedId)
-            this.valueExtendedEmitter.emit(this.extendedOption)
-            if (this.tmpInputVal != this._selected) {
-              this.propagateChange(this._selectedId)
-            }
-          }))
+      console.log('mando búsqueda', this._selectedId, this.optionsArray2())
+
+      const res = this.optionsArray2()?.find((x: any) => x.properties.place_id == this._selectedId)
+      console.log('Encontre', res)
+
+      this.extendedOption = { id: res.properties.place_id, fullName: res.properties.formatted,  fullObj: res }
+      this.selectedItem = this.extendedOption
+      this._selected.set(this._selectedId)
+      this.valueExtendedEmitter.emit(this.extendedOption)
+      this.propagateChange(this._selectedId)
+
+
+
       
 
     }
   }
 
   writeValue(value: any) {
-    this.tmpInputVal = value
+//    this.tmpInputVal = value
     if (value !== this._selectedId) {
       this.selectedId = value
     }
   }
-
-    $optionsArray: Observable<any[]> = this.$searchChange.pipe(
+  
+  optionsArray2 = toSignal(
+     this.$searchChange.pipe(
       debounceTime(500),
       switchMap(value =>
         this.searchService
@@ -155,9 +158,11 @@ export class DireccionSearchComponent implements ControlValueAccessor {
             tap({ complete: () => this.$isOptionsLoading.next(false) })
           )
       )
-    )
+    ), { requireSync: false }) 
+
 
   modelChange(val: string) {
+    console.log('modelChange',val)
     if (val == '') val = '0'
     this.selectedId = val
 }

@@ -1,8 +1,8 @@
 <nz-select #dsc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Direccion"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
-  <ng-container *ngFor="let option of $optionsArray | async">
-    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.place_id"  [nzLabel]="option.properties.formatted" />
+  <ng-container *ngFor="let option of optionsArray2()">
+    <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.properties.place_id"  [nzLabel]="option.properties.formatted" />
   </ng-container>
   <nz-option *ngIf="extendedOption.id !='' " [nzValue]="extendedOption.id"
     [nzLabel]="extendedOption.fullName" />

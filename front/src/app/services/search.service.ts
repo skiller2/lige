@@ -333,13 +333,15 @@ export class SearchService {
     if (!direccion || direccion == '') {
       return of([]);
     }
+
     const params = new URLSearchParams({
       text: direccion,
       apiKey: 'f5cdd3892a38432fbcd0edc786268446',
       limit: '5'
     });
-
+    console.log('getDireccion',direccion)
     return new Observable<any[]>(observer => {
+      console.log('fetch','https://api.geoapify.com/v1/geocode/autocomplete?' + params.toString())
       fetch('https://api.geoapify.com/v1/geocode/autocomplete?' + params.toString())
         .then(res => res.json())
         .then(data => {
