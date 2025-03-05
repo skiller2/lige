@@ -31,10 +31,10 @@ export class ObjetivoController extends BaseController {
         `SELECT  DISTINCT obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
      obj.ObjetivoDescripcion,
     ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId,
-  ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) ContratoFechaDesde,
-  ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,clicon.ClienteContratoFechaHasta) ContratoFechaHasta,
-  ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) desde,
-  ISNULL(ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,clicon.ClienteContratoFechaHasta),'9999-12-31') hasta,
+  eledepcon.ClienteElementoDependienteContratoFechaDesde ContratoFechaDesde,
+  eledepcon.ClienteElementoDependienteContratoFechaHasta ContratoFechaHasta,
+  eledepcon.ClienteElementoDependienteContratoFechaDesde desde,
+  ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') hasta,
   
     1
     
@@ -47,11 +47,9 @@ export class ObjetivoController extends BaseController {
     
     LEFT JOIN ClienteElementoDependienteDomicilio domdep ON domdep.ClienteId = eledep.ClienteId AND domdep.ClienteElementoDependienteId  = eledep.ClienteElementoDependienteId
     LEFT JOIN ClienteDomicilio domcli ON domcli.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL
-    LEFT JOIN ClienteContrato clicon ON clicon.ClienteId = cli.ClienteId AND obj.ClienteElementoDependienteId IS NULL 
-    AND EOMONTH(DATEFROMPARTS(@1,@2,1)) >= clicon.ClienteContratoFechaDesde AND ISNuLL(clicon.ClienteContratoFechaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND ISNuLL(clicon.ClienteContratoFechaFinalizacion,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
     
   WHERE 
-     ISNULL(eledepcon.ClienteElementoDependienteContratoFechaDesde,clicon.ClienteContratoFechaDesde) IS NOT NULL
+     eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
     ${buscaObjetivo}`,
         [objetivoId, anio, mes]
       )

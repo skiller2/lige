@@ -54,3 +54,9 @@
   <nz-date-picker [(ngModel)]="nacimiento" />
   <p>{{nacimiento|date}} {{ nacimiento|AGE }}</p>
 </nz-card>
+
+<nz-card>
+  <app-personal-search 
+  (ngModelChange)="onChange($event)" [(ngModel)]="responsable" [ngModelOptions]="{ standalone: true }" />
+  <p>Responsable: {{responsable()}}</p>
+</nz-card>

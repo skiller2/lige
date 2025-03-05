@@ -99,7 +99,7 @@ export class ImpuestosAfipController extends BaseController {
 
       //Realizar la conversion al PDF modificado.
       
-
+console.log('envio comprobante comprobante',filename)
       res.download(downloadPath, filename,async (error) => {
         if (error) {
           console.error('Error al descargar el archivo:', error);
