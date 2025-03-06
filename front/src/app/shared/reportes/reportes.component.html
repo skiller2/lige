@@ -1,16 +1,58 @@
 <nz-modal [(nzVisible)]="isVisible" (nzOnCancel)="isVisible.set(false)" [nzTitle]="reportTitle()">
   
   <div *nzModalContent>
-    <p>reportes works!</p>
-      <!-- <nz-select [(ngModel)]="selectedOption" nzPlaceHolder="Selecciona una opción" [nzDropdownMatchSelectWidth]="false">
-        <nz-option [nzLabel]="'Todos'" nzValue="APG"></nz-option>
-        <nz-option [nzLabel]="'Objetivo'" nzValue="APE"></nz-option>
-        <nz-option [nzLabel]="'Cliente'" nzValue="APC"></nz-option>
-      </nz-select> -->
+
+    <div *ngFor="let param of arrayResult()">
+      <label>{{ param?.Prompt }}</label>
+      <nz-input-group [nzSize]="'large'">
+        <!-- Si es String y tiene valores válidos, mostrar un nz-select -->
+        <nz-select 
+          *ngIf="param.ParameterType === 'String' && param.ValidValues?.length"
+          nzPlaceHolder="Seleccione una opción"
+          [nzDropdownMatchSelectWidth]="false"
+          nzShowSearch
+          [(ngModel)]="nzvalue" 
+          (ngModelChange)="onParamChange(param.Name,param.ParameterType, $event)">
+          <nz-option *ngFor="let option of param.ValidValues" 
+            [nzValue]="option.Value" 
+            [nzLabel]="option.Label">
+          </nz-option>
+        </nz-select>
+      
+        <!-- Si es String y NO tiene valores válidos, mostrar un input de texto -->
+        <input 
+          nz-input 
+          *ngIf="param.ParameterType === 'String' && (!param.ValidValues || param.ValidValues.length === 0)"
+          type="text"
+          [(ngModel)]="param.Prompt" 
+          (ngModelChange)="onParamChange(param.Name,param.ParameterType, $event)" />
+      
+        <!-- Si es DateTime, mostrar un input con calendario -->
+        <nz-date-picker 
+          *ngIf="param.ParameterType === 'DateTime'"
+          [ngModel]="fecha()"
+          (ngModelChange)="onParamChange(param.Name,param.ParameterType, $event)">
+        </nz-date-picker>
+      </nz-input-group>
+      
+    </div>
+    
   </div>
- <!--  <div *nzModalFooter style="text-align: right;">
-    <a nz-button nzType="primary" app-down-file [httpMethod]="'POST'"
-      [httpBody]="{'Anio':selectedPeriod.year }"
-      httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado" (click)="isVisible=false">Aceptar</a>
-  </div> -->
+  <div *nzModalFooter style="text-align: right;">
+
+    <button app-down-file 
+    [httpMethod]="'POST'" 
+    [httpBody]="{'Reporte':reportTitle(),'Formato':'EXCEL', 'Filtros': filterArray()[0]}"
+    httpUrl="api/reportes/descarga" 
+    notificationMsg="Generando Informe Seguro"
+    nz-button
+    nzType="primary">
+    <span nz-icon nzType="download"></span> Generar Reporte
+  </button>
+<!-- <li  app-down-file [httpMethod]="'POST'"
+              [httpBody]="{'Reporte':reportTitle(),'Formato':'EXCEL', 'Filtros': {'Date':fechaActual()}}"
+              httpUrl="api/reportes/descarga" notificationMsg="Generando Informe Seguro">
+              <span nz-icon nzType="download"></span><span style="white-space: normal;">Reporte Seguro Accidentes Personales</span>
+            </li>   -->
+  </div>
 </nz-modal>
