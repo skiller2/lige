@@ -48,7 +48,7 @@ export class DireccionSearchComponent implements ControlValueAccessor {
 
   private _selectedId: string = ''
   _selected = signal('')
-  extendedOption = { id: '', fullName: "", fullObj: {} }
+  extendedOption = model({ id: '', fullName: "", fullObj: {} })
   selectedItem: any;
 
   private propagateTouched: () => void = noop
@@ -113,24 +113,26 @@ export class DireccionSearchComponent implements ControlValueAccessor {
       this._selectedId = val
 
       if (this._selectedId == '' || this._selectedId == '0') {
-        this.extendedOption = { id: '', fullName: "", fullObj: {} }
-        this.selectedItem = this.extendedOption
+        this.extendedOption.set( { id: '', fullName: "", fullObj: {} })
+        this.selectedItem = this.extendedOption()
 
-        this.valueExtendedEmitter.emit(this.extendedOption)
+        this.valueExtendedEmitter.emit(this.extendedOption())
         if (this._selected() != '')
           this._selected.set('')
         this.propagateChange(this._selectedId)
         return
       }
-      console.log('mando búsqueda', this._selectedId, this.optionsArray2())
 
       const res = this.optionsArray2()?.find((x: any) => x.properties.place_id == this._selectedId)
       console.log('Encontre', res)
 
-      this.extendedOption = { id: res.properties.place_id, fullName: res.properties.formatted,  fullObj: res }
-      this.selectedItem = this.extendedOption
+      this.extendedOption.set({ id: res.properties.place_id, fullName: res.properties.formatted,  fullObj: res })
+      this.selectedItem = this.extendedOption()
+
+console.log('this.extendedOption()',this.extendedOption())
+
       this._selected.set(this._selectedId)
-      this.valueExtendedEmitter.emit(this.extendedOption)
+      this.valueExtendedEmitter.emit(this.extendedOption())
       this.propagateChange(this._selectedId)
 
 
@@ -168,7 +170,7 @@ export class DireccionSearchComponent implements ControlValueAccessor {
 }
 
   search(value: string): void {
-    this.extendedOption = { id: '', fullName: "", fullObj: {} }
+    this.extendedOption.set({ id: '', fullName: "", fullObj: {} })
     this.$searchChange.next(value)
   }
 
