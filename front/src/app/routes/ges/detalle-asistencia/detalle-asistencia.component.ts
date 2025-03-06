@@ -1,16 +1,16 @@
-import { Component, Input, ViewChild, signal } from '@angular/core';
+import { Component, Input, ViewChild, inject, signal } from '@angular/core';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { BehaviorSubject, Subject, debounceTime, switchMap, tap} from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { NgForm } from '@angular/forms';
-import { ApiService, doOnSubscribe } from 'src/app/services/api.service';
+import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { SHARED_IMPORTS } from '@shared';
 import { CurrencyPipeModule } from '@delon/util';
 import { NzResizableModule } from 'ng-zorro-antd/resizable';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ObjetivoSearchComponent } from 'src/app/shared/objetivo-search/objetivo-search.component';
-import { PersonalSearchComponent } from 'src/app/shared/personal-search/personal-search.component';
+import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
+import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 import { DescuentosComponent } from '../descuentos/descuentos.component';
 import { PersonalGrupoComponent } from '../personal-grupo/personal-grupo.component';
@@ -41,13 +41,11 @@ export class DetalleAsistenciaComponent {
     return Busqueda;
   }
 
-  constructor(
-    private searchService: SearchService,
-    private apiService: ApiService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private settingService: SettingsService,
-  ) { }
+  private searchService=inject(SearchService)
+  private apiService=inject(ApiService)
+  private router=inject(Router)
+  private route=inject(ActivatedRoute)
+  private settingService=inject(SettingsService)
 
   private destroy$ = new Subject();
 

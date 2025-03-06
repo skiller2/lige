@@ -311,15 +311,18 @@ export class TipoDocumentoController extends BaseController {
         WHERE per.anio = @0 AND per.mes = @1
       `, [anio, mes])
       if (!liqmaperiodo.length) {
+        const periodomax = await queryRunner.query(`SELECT MAX(per.periodo_id) max_periodo_id FROM lige.dbo.liqmaperiodo per`)
+        let periodo_id = (periodomax[0].max_periodo_id != undefined) ? periodomax[0].max_periodo_id : 0
+        periodo_id++
         liqmaperiodo = await queryRunner.query(`
-          INSERT INTO lige.dbo.liqmaperiodo (anio, mes, version, aud_usuario_ins, aud_ip_ins, aud_fecha_ins,
+          INSERT INTO lige.dbo.liqmaperiodo (periodo_id, anio, mes, version, aud_usuario_ins, aud_ip_ins, aud_fecha_ins,
           aud_usuario_mod, aud_ip_mod, aud_fecha_mod, ind_recibos_generados)
-          VALUES (@0, @1, 0, @2, @3, @4, @2, @3, @4, 0)
+          VALUES (@0, @1, @2, 0, @3, @4, @5, @3, @4, @5, 0)
 
           SELECT per.periodo_id, per.anio, per.mes
           FROM lige.dbo.liqmaperiodo per
-          WHERE per.anio = @0 AND per.mes = @1
-        `, [anio, mes, usuario, ip, now])
+          WHERE per.anio = @1 AND per.mes = @2
+        `, [periodo_id, anio, mes, usuario, ip, now])
       }
       // const periodo_id = liqmaperiodo[0].periodo_id
       let pathFile = ''
@@ -495,15 +498,18 @@ export class TipoDocumentoController extends BaseController {
         WHERE per.anio = @0 AND per.mes = @1
       `, [anio, mes])
       if (!liqmaperiodo.length) {
+        const periodomax = await queryRunner.query(`SELECT MAX(per.periodo_id) max_periodo_id FROM lige.dbo.liqmaperiodo per`)
+        let periodo_id = (periodomax[0].max_periodo_id != undefined) ? periodomax[0].max_periodo_id : 0
+        periodo_id++
         liqmaperiodo = await queryRunner.query(`
-          INSERT INTO lige.dbo.liqmaperiodo (anio, mes, version, aud_usuario_ins, aud_ip_ins, aud_fecha_ins,
+          INSERT INTO lige.dbo.liqmaperiodo (periodo_id, anio, mes, version, aud_usuario_ins, aud_ip_ins, aud_fecha_ins,
           aud_usuario_mod, aud_ip_mod, aud_fecha_mod, ind_recibos_generados)
-          VALUES (@0, @1, 0, @2, @3, @4, @2, @3, @4, 0)
+          VALUES (@0, @1, @2, 0, @3, @4, @5, @3, @4, @5, 0)
 
           SELECT per.periodo_id, per.anio, per.mes
           FROM lige.dbo.liqmaperiodo per
-          WHERE per.anio = @0 AND per.mes = @1
-        `, [anio, mes, usuario, ip, now])
+          WHERE per.anio = @1 AND per.mes = @2
+        `, [periodo_id, anio, mes, usuario, ip, now])
       }
 
       let pathFile = ''

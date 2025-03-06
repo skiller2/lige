@@ -1,0 +1,13 @@
+<nz-card class="small-margin">
+
+    <div nz-tab *ngIf="(columns$|async) as columnas">
+      <shared-filtro-builder #sfb [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"  />
+  
+      <div class="gridDescPersonal container-fluid">
+        <angular-slickgrid gridId="gridDescPersonal" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptions"
+          [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)" >
+        </angular-slickgrid>
+      </div>
+    </div>
+  
+  </nz-card>

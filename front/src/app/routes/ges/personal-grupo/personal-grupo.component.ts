@@ -38,7 +38,6 @@ export class PersonalGrupoComponent {
 
   periodo = input({year:0,month:0});
   responsable = model(0)
-  responsable2 = model(0)
   #injector = inject(Injector);
   personalIdlist = model<number[]>([])
 
@@ -134,7 +133,6 @@ export class PersonalGrupoComponent {
   )
 
   selectedValueChange(event: number): void {
-    console.log('cambio', event)
     this.$selectedResponsablePersonalIdChange.next(event);
     this.$isResponsableDataLoading.next(true);
   }
