@@ -693,26 +693,31 @@ console.log('validateRecibo', cuit, recibo)
     static getBotStatus(anio: number, mes: number, queryRunner: QueryRunner, personalIdList: number[]) {
         return queryRunner
         .query(`SELECT per.PersonalId, IIF(botreg.PersonalId IS NOT NULL,'OK','Registro pendiente') AS registro, 
-		 bot.fecha_descarga, bot.doc_id, @1 AS anio, @2 AS mes, IIF(bot.doc_id IS NOT NULL,CONCAT('Recibo visto ',bot.mes,'/',bot.anio),CONCAT('Recibo ',@2,'/',@1,' pendiente')) AS descarga,
+		 recibo.fecha_descarga, recibo.doc_id, @1 AS anio, @2 AS mes, 
+		 IIF(recibo.visto=1,CONCAT('Recibo visto ',recibo.mes,'/',recibo.anio),CONCAT('Recibo ',@2,'/',@1,' pendiente')) AS descarga,
+         ISNULL(recibo.visto,0) visto,
+         ISNULL(botreg.registrado,0) registrado,
 		 1
     FROM lige.dbo.Personal per 
 
-            LEFT JOIN (
-            SELECT tel.personal_id PersonalId, IIF(tel.personal_id IS NOT NULL AND tel.codigo IS NULL,'Registrado','Registro pendiente') AS registro
+      	LEFT JOIN (
+            SELECT tel.personal_id PersonalId, 
+            IIF(tel.personal_id IS NOT NULL AND tel.codigo IS NULL,1,0) registrado
 				FROM lige.dbo.regtelefonopersonal tel 
 				WHERE tel.codigo IS NULL
 			) botreg ON botreg.PersonalId = per.PersonalId
             
          LEFT JOIN (
-            SELECT dl.personal_id PersonalId, 
-				doc.doc_id, @1 AS anio, @2 AS mes, IIF(doc.doc_id IS NOT NULL,CONCAT('Recibo visto ',pr.mes,'/',pr.anio),CONCAT('Recibo ',@2,'/',@1,' pendiente')) AS descarga,
-				MAX(dl.fecha_descarga) fecha_descarga
- 				FROM lige.dbo.doc_descaga_log dl 
-            JOIN lige.dbo.liqmaperiodo pr ON pr.anio =@1 AND pr.mes=@2
-            JOIN lige.dbo.docgeneral doc ON doc.doc_id=dl.doc_id AND doc.persona_id = dl.personal_id AND doc.doctipo_id = 'REC' AND doc.periodo = pr.periodo_id
-            GROUP BY dl.personal_id, doc.doc_id, pr.mes, pr.anio
-			) bot ON bot.PersonalId = per.PersonalId
-
+                SELECT dl.personal_id PersonalId, 
+                doc.doc_id, @1 AS anio, @2 AS mes, 
+					 -- IIF(dl.doc_id IS NOT NULL,CONCAT('Recibo visto ',pr.mes,'/',pr.anio),CONCAT('Recibo ',@2,'/',@1,' pendiente')) AS descarga,
+                MAX(dl.fecha_descarga) fecha_descarga, IIF(dl.doc_id IS NOT NULL,1,0) AS visto
+                FROM lige.dbo.docgeneral doc
+                JOIN lige.dbo.liqmaperiodo pr ON pr.anio =@1 AND pr.mes=@2
+                LEFT JOIN lige.dbo.doc_descaga_log dl ON doc.doc_id=dl.doc_id AND doc.persona_id = dl.personal_id 
+                WHERE doc.doctipo_id = 'REC' AND doc.periodo = pr.periodo_id
+                GROUP BY dl.personal_id, doc.doc_id, pr.mes, pr.anio,dl.doc_id
+			) recibo ON recibo.PersonalId = per.PersonalId
             WHERE 
             per.PersonalId IN (${personalIdList.join(',')})`, [,anio, mes]) 
         

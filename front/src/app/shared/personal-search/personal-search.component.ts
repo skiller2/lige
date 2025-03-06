@@ -33,7 +33,7 @@ import { NzInputGroupComponent } from 'ng-zorro-antd/input'
 })
 
 export class PersonalSearchComponent implements ControlValueAccessor {
-  tmpInputVal: any
+  //tmpInputVal: any
   constructor(private searchService: SearchService) { }
 
   @Input() valueExtended: any
@@ -130,9 +130,11 @@ export class PersonalSearchComponent implements ControlValueAccessor {
             if (res[0]?.PersonalId) this.extendedOption = res[0]
             this._selected.set(this._selectedId)
             this.valueExtendedEmitter.emit(this.extendedOption)
-            if (this.tmpInputVal != this._selected()) {
+
+//            if (this.tmpInputVal != this._selected()) {
+//              this.tmpInputVal = this._selected()
               this.propagateChange(this._selectedId)
-            }
+//            }
             
           }))
       )
@@ -141,7 +143,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
 
   writeValue(value: any) {
-    this.tmpInputVal = value
+    console.log('writeValue',value)
     if (value !== this._selectedId) {
       this.selectedId = value
     }

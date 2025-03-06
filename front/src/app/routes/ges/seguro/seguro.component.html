@@ -7,10 +7,25 @@
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'ges', 'seguro', 'listado']">{{ 'app.segurosList' | i18n }}</a>
         </li>
-        <li>
-          
-
-
+        <li nz-submenu nzTitle="Informes">
+          <ul style="width: auto !important">
+            <!-- <li nz-menu-item app-down-file [httpMethod]="'POST'"
+              [httpBody]="{'Reporte':'Reporte Seguro Accidentes Personales','Formato':'EXCEL', 'Filtros': {'Fecha':fechaActual(),'OBJETIVO':'APG'}}"
+              httpUrl="api/informes/descarga" notificationMsg="Generando Informe Seguro">
+              <span nz-icon nzType="download"></span><span style="white-space: normal;">Reporte Seguro Accidentes Personales</span>
+            </li>
+   -->
+            <li nz-menu-item (click)="showModal('Reporte Seguro Accidentes Personales')" >
+              <span nz-icon nzType="download"></span><span style="white-space: normal;">Reporte Seguro Diario FP</span>
+            </li>
+            <li nz-menu-item (click)="showModal('Reporte Seguro Diario FP')" >
+              <span nz-icon nzType="download"></span><span style="white-space: normal;">Reporte Seguro Diario FP</span>
+            </li>
+            <li nz-menu-item (click)="showModal('Reporte Seguro Vida Colectiva')">
+              <span nz-icon nzType="download"></span><span style="white-space: normal;">Reporte Seguro Vida Colectiva</span>
+            </li>
+          </ul>
+  
         </li>
       </ul>
     </div>
@@ -50,3 +65,5 @@
   </nz-tabset>
 
 </nz-card>
+
+<app-reportes #AccessReport [(isVisible)]="isVisible" [reportTitle]="reportTitle()"></app-reportes>

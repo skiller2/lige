@@ -4,13 +4,14 @@
       <nz-form-label [nzSpan]="5">Responsable</nz-form-label>
       <nz-form-control nzHasFeedback>
         <app-personal-search name="persona_id_responsable"
-          (ngModelChange)="selectedValueChange($event)" [(ngModel)]="responsable" />
+          (ngModelChange)="selectedValueChange($event)" [(ngModel)]="responsable" [ngModelOptions]="{ standalone: true }"  />
       </nz-form-control>
     </nz-form-item>
     <!-- <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" /> -->
- 
-  </form>
+   </form>
 
+
+  
 
   <div class="gridContainer container-fluid">
     <angular-slickgrid gridId="gridPersonalGrupo" class="" [columnDefinitions]="columnas | colsFilter"
