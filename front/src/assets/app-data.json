@@ -32,6 +32,11 @@
           ]
         },
         {
+          "text": "Descuentos",
+          "link": "/dte/descuentos",
+          "icon": "anticon-profile"
+        },
+        {
           "text": "Documentos",
           "link": "/ges/tipo_documento",
           "icon": "anticon-profile"

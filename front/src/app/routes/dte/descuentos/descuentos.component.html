@@ -1,0 +1,68 @@
+<nz-card class="small-margin">
+
+    <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
+      <div nz-row nzSpan="12">
+        <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzFormat="MM/yyyy" style="width: 100%;"/>
+        </nz-form-control>
+      </div>
+  
+      <ul nz-menu nzMode="horizontal">
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'dte', 'descuentos', 'personal']">Personal</a>
+        </li>
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'dte', 'descuentos', 'objetivos']">Objetivos</a>
+        </li>
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'dte', 'descuentos', 'stock']" >Stock</a>
+        </li>
+        <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <a [routerLink]="['/', 'dte', 'descuentos', 'prepaga']" >Prepaga</a>
+          </li>
+      </ul>
+      
+      <nz-button-group>
+        <!-- <button nz-button nzType="default" nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+            <span nz-icon nzType="plus" nzTheme="outline"></span>
+        </button> -->
+      </nz-button-group>
+    </div>
+  
+    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+  
+      <nz-tab>
+        <a nz-tab-link routerLink="/dte/descuentos/personal">Personal</a>
+        <ng-template nz-tab>
+            <app-table-descuentos-personal [anio]="anio()" [mes]="mes()" ></app-table-descuentos-personal>
+        </ng-template>
+      </nz-tab>
+  
+      <nz-tab>
+        <a nz-tab-link routerLink="/dte/descuentos/objetivos">Objetivos</a>
+        <ng-template nz-tab>
+
+        </ng-template>
+      </nz-tab>
+  
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/descuentos/stock">Stock</a>
+        <ng-template nz-tab>
+
+        </ng-template>
+      </nz-tab>
+  
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/descuentos/prepaga">Prepaga</a>
+        <ng-template nz-tab>
+
+        </ng-template>
+      </nz-tab>
+  
+    </nz-tabset>
+  </nz-card>
