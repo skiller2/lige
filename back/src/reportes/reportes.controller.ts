@@ -24,7 +24,7 @@ export class ReportesController extends BaseController {
       if (!user)
         throw new ClientException(`Usuario no identificado`)
 
-      const resp = await fetch(this.ssrsURLAPI + "/CatalogItems", { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from('pedrob'+ ":" + 'Pebe1536').toString('base64') } })
+      const resp = await fetch(this.ssrsURLAPI + "/CatalogItems", { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from((this.ssrsUser + ":" + this.ssrsPass)).toString('base64') } })
       if (resp.status != 200)
         throw new ClientException(`Error accediendo al sistema de reportes status ${resp.status}`)
 
@@ -34,7 +34,7 @@ export class ReportesController extends BaseController {
         throw new ClientException(`Reporte ${titleReport} no encontrado`)
 
 
-      const para = await fetch(this.ssrsURLAPI + `/Reports(${rep.Id})/ParameterDefinitions`, { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from('pedrob'+ ":" + 'Pebe1536').toString('base64') } })
+      const para = await fetch(this.ssrsURLAPI + `/Reports(${rep.Id})/ParameterDefinitions`, { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from((this.ssrsUser + ":" + this.ssrsPass)).toString('base64') } })
       if (para.status != 200)
         throw new ClientException(`Error accediendo al sistema de reportes status ${para.status}`)
 
@@ -63,7 +63,7 @@ export class ReportesController extends BaseController {
           throw new ClientException(`Usuario no identificado`)
   
 
-        const resp = await fetch(this.ssrsURLAPI + "/CatalogItems", { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from('pedrob'+ ":" + 'Pebe1536').toString('base64') } })
+        const resp = await fetch(this.ssrsURLAPI + "/CatalogItems", { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from((this.ssrsUser + ":" + this.ssrsPass)).toString('base64') } })
         if (resp.status != 200)
           throw new ClientException(`Error accediendo al sistema de reportes status ${resp.status}`)
   
@@ -73,7 +73,7 @@ export class ReportesController extends BaseController {
           throw new ClientException(`Reporte ${Reporte} no encontrado`)
   
   
-        const para = await fetch(this.ssrsURLAPI + `/Reports(${rep.Id})/ParameterDefinitions`, { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from('pedrob'+ ":" + 'Pebe1536').toString('base64') } })
+        const para = await fetch(this.ssrsURLAPI + `/Reports(${rep.Id})/ParameterDefinitions`, { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from(this.ssrsUser + ":" + this.ssrsPass).toString('base64') } })
         if (para.status != 200)
           throw new ClientException(`Error accediendo al sistema de reportes status ${para.status}`)
   
@@ -87,7 +87,7 @@ export class ReportesController extends BaseController {
             filtrosOk[param.Name] = filtro[1]
         }
   
-        const report = await fetch(this.ssrsURLAccess + rep.Path + "&" + new URLSearchParams(filtrosOk) + "&rs:Format=" + Formato, { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from('pedrob'+ ":" + 'Pebe1536').toString('base64') } })
+        const report = await fetch(this.ssrsURLAccess + rep.Path + "&" + new URLSearchParams(filtrosOk) + "&rs:Format=" + Formato, { method: 'GET', headers: { 'Authorization': 'Basic ' + Buffer.from(this.ssrsUser + ":" + this.ssrsPass).toString('base64') } })
         if (report.status != 200)
           throw new ClientException(`Error accediendo al sistema de reportes status ${report.status}`)
   
