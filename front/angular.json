@@ -129,7 +129,13 @@
             "tsConfig": "tsconfig.spec.json",
             "scripts": [],
             "styles": [],
+            
             "assets": [
+              {
+                "glob": "**/*",
+                "input": "./node_modules/@ant-design/icons-angular/src/inline-svg/",
+                "output": "/assets/"
+              },              
               "src/assets",
               "src/manifest.webmanifest"
             ]
