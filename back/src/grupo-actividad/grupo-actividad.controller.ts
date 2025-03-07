@@ -1069,8 +1069,8 @@ export class GrupoActividadController extends BaseController {
 
                 let resultQuery = await queryRunner.query(`
                 SELECT TOP 1 * FROM GrupoActividadPersonal 
-                WHERE GrupoActividadId = @0
-                ORDER BY GrupoActividadPersonalDesde DESC, GrupoActividadPersonalHasta DESC`, [params.GrupoActividadDetalle.id])
+                WHERE GrupoActividadPersonalPersonalId = @0
+                ORDER BY GrupoActividadPersonalDesde DESC, GrupoActividadPersonalHasta DESC`, [params.ApellidoNombrePersona.id])
 
                 
                  const ultimoRegistroQuery = resultQuery[0]
@@ -1080,7 +1080,7 @@ export class GrupoActividadController extends BaseController {
                  GrupoActividadPersonalHasta.setDate(GrupoActividadPersonalHasta.getDate() - 1)
                 const formattedDate = GrupoActividadPersonalHasta.toISOString().split('T')[0] + "T00:00:00.000Z"
 
-            //     //throw new ClientException(`test`)
+                //throw new ClientException(`test`)
                 const validarGrupoActividadVigente = (registro) => {
 
                     // if (registro?.GrupoActividadPersonalPersonalId == params.ApellidoNombrePersona.id &&
@@ -1106,10 +1106,10 @@ export class GrupoActividadController extends BaseController {
                         await queryRunner.query(
                             `UPDATE GrupoActividadPersonal 
                              SET GrupoActividadPersonalHasta = @1 
-                             WHERE GrupoActividadId = @0 
+                             WHERE GrupoActividadPersonalId = @0 
                              AND GrupoActividadPersonalPersonalId = @2`,
 
-                            [registro.GrupoActividadId, formattedDate, registro.GrupoActividadPersonalPersonalId]
+                            [registro.GrupoActividadPersonalId, formattedDate, registro.GrupoActividadPersonalPersonalId]
                         )
                     }
                 }
