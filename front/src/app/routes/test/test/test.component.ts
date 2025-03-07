@@ -16,13 +16,16 @@ import { DescuentosComponent } from '../../ges/descuentos/descuentos.component';
 import { BarcodeFormat } from '@zxing/library';
 import { I18NService } from '@core';
 
+import { NzIconModule } from 'ng-zorro-antd/icon';
+
+
 /** config ng-zorro-antd i18n **/
 
 @Component({
     selector: 'test',
     templateUrl: './test.component.html',
     styleUrls: ['./test.component.less'],
-    imports: [...SHARED_IMPORTS, CommonModule, DireccionSearchComponent,PersonalSearchComponent],
+    imports: [...SHARED_IMPORTS, CommonModule, DireccionSearchComponent,PersonalSearchComponent, NzIconModule],
     providers: [],
     changeDetection: ChangeDetectionStrategy.OnPush
 })

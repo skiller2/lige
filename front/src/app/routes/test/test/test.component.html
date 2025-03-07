@@ -2,10 +2,10 @@
   <p>Hola prueba {{ 4044.3 | currency }}</p>
 
   <div id="autocomplete" class="autocomplete-container"></div>
-  
 
 
-<!--
+
+  <!--
 
   <form nz-form  ngForm  [formGroup]="personaf().form">
     <nz-form-item>
@@ -39,7 +39,7 @@
 <nz-card>
   <app-direccion-search [(ngModel)]="direccion" [ngModelOptions]="{ standalone: true }"></app-direccion-search>
 
-  <p>Direccion: {{  direccion() | json}}</p>
+  <p>Direccion: {{ direccion() | json}}</p>
 </nz-card>
 
 <nz-card>
@@ -56,7 +56,25 @@
 </nz-card>
 
 <nz-card>
-  <app-personal-search 
-  (ngModelChange)="onChange($event)" [(ngModel)]="responsable" [ngModelOptions]="{ standalone: true }" />
+  <app-personal-search (ngModelChange)="onChange($event)" [(ngModel)]="responsable"
+    [ngModelOptions]="{ standalone: true }" />
   <p>Responsable: {{responsable()}}</p>
+</nz-card>
+
+<nz-card>
+  <nz-button-group>
+    <!-- btn  add -->
+    <button nz-button nzType="default"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+    <button nz-button nzType="default"><span nz-icon nzType="tag" nzTheme="outline"></span></button>
+    <button nz-button nzType="default"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+    <button nz-button nzType="default"><span nz-icon nzType="clock-circle" nzTheme="outline"></span></button>
+    <button nz-button nzType="default"><span nz-icon nzType="bank" nzTheme="outline"></span></button>
+
+    <button nz-button nzType="default"><span nz-icon nzType="car" nzTheme="outline"></span></button>
+    <button nz-button nzType="default"><span nz-icon nzType="environment" nzTheme="outline"></span></button>
+
+
+
+  </nz-button-group>
+  
 </nz-card>
