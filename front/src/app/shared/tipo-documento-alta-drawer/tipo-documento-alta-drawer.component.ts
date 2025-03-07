@@ -44,7 +44,7 @@ export class TipoDocumentoAltaDrawerComponent {
 
   fb = inject(FormBuilder)
   formTipoDocumento = this.fb.group({
-    doc_id:5, doctipo_id:'', den_documento:null, persona_id:0, cliente_id:0,
+    doc_id:0, doctipo_id:'', den_documento:null, persona_id:0, cliente_id:0,
     objetivo_id:0, fecha:null, fec_doc_ven:null, archivo:[],
   })
 
