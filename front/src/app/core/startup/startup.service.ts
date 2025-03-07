@@ -5,18 +5,13 @@ import { ACLService } from '@delon/acl';
 import { ALLOW_ANONYMOUS, DA_SERVICE_TOKEN, ITokenService, JWTTokenModel, TokenService } from '@delon/auth';
 import { ALAIN_I18N_TOKEN, MenuService, SettingsService, TitleService } from '@delon/theme';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
-import { NzIconService } from 'ng-zorro-antd/icon';
 import { Observable, zip, catchError, map, of, mergeMap } from 'rxjs';
-
-import { ICONS } from '../../../style-icons';
-import { ICONS_AUTO } from '../../../style-icons-auto';
 import { I18NService } from '../i18n/i18n.service';
 
 /**
  * Used for application startup
  * Generally used to get the basic data of the application, like: Menu Data, User Data, etc.
  */
-
 export function provideStartup(): Array<Provider | EnvironmentProviders> {
   return [
     StartupService,
@@ -29,7 +24,6 @@ export function provideStartup(): Array<Provider | EnvironmentProviders> {
     })
   ];
 }
-
 
 
 @Injectable()

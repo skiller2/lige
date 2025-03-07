@@ -506,7 +506,7 @@ ${orderBy}`, [fechaActual])
 
             if (contacto.telefono)
                 await queryRunner.query(`INSERT INTO ContactoTelefono (ContactoTelefonoId,ContactoId,TipoTelefonoId,ContactoTelefonoNro) 
-                  VALUES (@0,@1,@2,@3,@4)`, [++ContactoTelefonoUltNro, contacto.ContactoId, contacto.TipoTelefonoId, contacto.telefono])
+                  VALUES (@0,@1,@2,@3)`, [++ContactoTelefonoUltNro, contacto.ContactoId, contacto.TipoTelefonoId, contacto.telefono])
             await queryRunner.query(`UPDATE Contacto SET ContactoTelefonoUltNro=@1,ContactoEmailUltNro=@2  WHERE ContactoId=@0 `,
                 [contacto.ContactoId, ContactoTelefonoUltNro, ContactoEmailUltNro])
             contactos[idx].ContactoEmailUltNro = ContactoEmailUltNro

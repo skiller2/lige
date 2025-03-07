@@ -16,14 +16,18 @@ import { DescuentosComponent } from '../../ges/descuentos/descuentos.component';
 import { BarcodeFormat } from '@zxing/library';
 import { I18NService } from '@core';
 
+import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
+import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline} from '@ant-design/icons-angular/icons';
+
+
 /** config ng-zorro-antd i18n **/
 
 @Component({
     selector: 'test',
     templateUrl: './test.component.html',
     styleUrls: ['./test.component.less'],
-    imports: [...SHARED_IMPORTS, CommonModule, DireccionSearchComponent,PersonalSearchComponent],
-    providers: [],
+    imports: [...SHARED_IMPORTS, CommonModule, DireccionSearchComponent,NzIconModule],
+    providers: [provideNzIconsPatch([TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline])],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 

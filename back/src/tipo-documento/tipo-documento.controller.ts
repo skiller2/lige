@@ -337,7 +337,7 @@ export class TipoDocumentoController extends BaseController {
         
         const pathDocuments  = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'
         const tempFolderPath = path.join(pathDocuments, 'temp');
-        const dirFile = path.join(tempFolderPath, `${fieldname}.${type}`);
+        const tempFilePath = path.join(tempFolderPath, `${fieldname}.${type}`);
 
         const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
         pathFile = `${anio}/${doctipo[0].path_origen}`
@@ -346,7 +346,7 @@ export class TipoDocumentoController extends BaseController {
         let newFilePath = `${pathArchivos}/${pathFile}`
 
         if (type == 'pdf') {
-          const loadingTask = getDocument(dirFile);
+          const loadingTask = getDocument(tempFilePath);
           const document = await loadingTask.promise;
           for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
             const page = await document.getPage(pagenum);
@@ -362,8 +362,8 @@ export class TipoDocumentoController extends BaseController {
         }
         newFilePath += `/${newFieldname}`
         
-        copyFileSync(dirFile, newFilePath)
-        unlinkSync(dirFile);
+        copyFileSync(tempFilePath, newFilePath)
+        unlinkSync(tempFilePath);
       }
       
       await queryRunner.query(`
@@ -485,7 +485,7 @@ export class TipoDocumentoController extends BaseController {
     const now = new Date()
     try {
       await queryRunner.startTransaction()
-
+      
       const valsTipoDocumento = this.valsTipoDocumento(req.body)
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
@@ -524,7 +524,7 @@ export class TipoDocumentoController extends BaseController {
         
         const pathDocuments  = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'
         const tempFolderPath = path.join(pathDocuments, 'temp');
-        const dirFile = path.join(tempFolderPath, `${fieldname}.${type}`);
+        const tempFilePath = path.join(tempFolderPath, `${fieldname}.${type}`);
 
         const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
         pathFile = `${anio}/${doctipo[0].path_origen}`
@@ -533,7 +533,7 @@ export class TipoDocumentoController extends BaseController {
         let newFilePath = `${pathArchivos}/${pathFile}`
 
         if (type == 'pdf') {
-          const loadingTask = getDocument(dirFile);
+          const loadingTask = getDocument(tempFilePath);
           const document = await loadingTask.promise;
           for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
             const page = await document.getPage(pagenum);
@@ -548,9 +548,12 @@ export class TipoDocumentoController extends BaseController {
           mkdirSync(newFilePath, { recursive: true })
         }
         newFilePath += `/${newFieldname}`
-        
-        copyFileSync(dirFile, newFilePath, constants.COPYFILE_FICLONE_FORCE)
-        unlinkSync(dirFile);
+
+        if (existsSync(newFilePath))
+          unlinkSync(newFilePath);
+
+        copyFileSync(tempFilePath, newFilePath)
+        unlinkSync(tempFilePath);
       }
 
       await queryRunner.query(`
