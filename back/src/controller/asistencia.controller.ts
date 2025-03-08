@@ -1153,8 +1153,8 @@ export class AsistenciaController extends BaseController {
 
   static async getDescuentos(anio: number, mes: number, personalId: number[]) {
     const listPersonaId = (personalId.length == 0) ? '' : 'AND per.PersonalId IN (' + personalId.join(',') + ')'
-
-    let descuentos = await dataSource.query(
+//TODO: cuando Pablo agregue el indicador de dto telefono debería filtrar por ese dato
+    const descuentos = await dataSource.query(
       `      
       SELECT CONCAT('cuo',cuo.PersonalOtroDescuentoCuotaId,'-',cuo.PersonalOtroDescuentoId,'-',cuo.PersonalId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @1 AS anio, @2 AS mes, det.DescuentoDescripcion AS tipomov,
@@ -1303,9 +1303,15 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = asi.TelefonoConsumoFacturarAObjetivoId
       
-      JOIN Personal per ON per.PersonalId = asi.TelefonoConsumoFacturarAPersonalId
-      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+      LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = obj.ObjetivoId 
+		AND coo.ObjetivoPersonalJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1))
+		AND ISNULL(coo.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+		AND coo.ObjetivoPersonalJerarquicoDescuentos = 1  AND coo.ObjetivoPersonalJerarquicoPersonalId IN (3530,1278,3032)
+      
+      
+		JOIN Personal per ON  (obj.ObjetivoId IS NULL AND per.PersonalId = asi.TelefonoConsumoFacturarAPersonalId) OR (obj.ObjetivoId IS NOT NULL AND per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId)
+      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) >= gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,28) <= ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+		LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       
       WHERE anio.ConsumoTelefoniaAnoAno = @1 AND mes.ConsumoTelefoniaAnoMesMes = @2 ${listPersonaId}
 
