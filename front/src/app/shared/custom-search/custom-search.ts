@@ -49,8 +49,8 @@ export function totalRecords(angularGrid: AngularGridInstance, colid:string='') 
         const items = angularGrid.slickGrid.getData().getItems().filter(row => row[colid] != '')
         cantData = items.length
     }
-    if (cantData)
-    columnFooter.innerHTML = `Registros:  ${cantData}`
+    
+    columnFooter.innerHTML = (cantData)? `Registros:  ${cantData}`:''
 
 }
 
