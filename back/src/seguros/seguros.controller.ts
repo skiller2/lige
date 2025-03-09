@@ -174,6 +174,16 @@ WHERE  persr.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AN
     `, [cod_tip_seguro, anio, mes])
   }
 
+  private async getPersonalResponableByClientId(queryRunner: any, ClientId: number, anio: number, mes: number) {
+    return queryRunner.query(`SELECT DISTINCT gaj.GrupoActividadJerarquicoPersonalId PersonalId, 'Responsable' detalle  
+      FROM Objetivo obj 
+        JOIN GrupoActividadObjetivo gao ON gao.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND gao.GrupoActividadObjetivoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(gao.GrupoActividadObjetivoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+        JOIN ClienteElementoDependienteContrato con ON con.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND con.ClienteId = obj.ClienteId AND con.ClienteElementoDependienteContratoFechaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+        JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = gao.GrupoActividadId AND  gaj.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gaj.GrupoActividadJerarquicoComo='J'
+      WHERE obj.ClienteId = @0 
+    `,[ClientId, anio, mes])
+  }
+
 
   private async getPersonalHorasByClientId(queryRunner: any, ClientId: number, anio: number, mes: number) {
     return queryRunner.query(`
@@ -281,8 +291,10 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
         [fec_desde])
 
   
-      const personalCoto = await this.getPersonalHorasByClientId(queryRunner, 1, anio, mes)
-      const personalEdesur = await this.getPersonalHorasByClientId(queryRunner, 798, anio, mes)
+      const personalCoto = [...await this.getPersonalHorasByClientId(queryRunner, 1, anio, mes),...await this.getPersonalResponableByClientId(queryRunner, 1, anio, mes)]
+
+      const personalEdesur = [...await this.getPersonalHorasByClientId(queryRunner, 798, anio, mes),...await this.getPersonalResponableByClientId(queryRunner, 798, anio, mes)]
+
       const personalSitRev = await this.getPersonalBySitRev(queryRunner, anio, mes)
 
       
