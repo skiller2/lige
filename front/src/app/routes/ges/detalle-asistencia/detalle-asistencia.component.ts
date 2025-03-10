@@ -1,6 +1,6 @@
 import { Component, Input, ViewChild, inject, signal } from '@angular/core';
 import { SettingsService, _HttpClient } from '@delon/theme';
-import { BehaviorSubject, Subject, debounceTime, switchMap, tap} from 'rxjs';
+import { BehaviorSubject, Subject, debounceTime, switchMap, tap } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { NgForm } from '@angular/forms';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
@@ -18,10 +18,10 @@ import { PersonalGrupoComponent } from '../personal-grupo/personal-grupo.compone
 enum Busqueda { Sucursal, Objetivo, Personal }
 
 @Component({
-    selector: 'app-detalle-asistencia',
-    templateUrl: './detalle-asistencia.component.html',
-    styleUrls: ['./detalle-asistencia.component.less'],
-    imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent, DescuentosComponent, PersonalGrupoComponent]
+  selector: 'app-detalle-asistencia',
+  templateUrl: './detalle-asistencia.component.html',
+  styleUrls: ['./detalle-asistencia.component.less'],
+  imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent, DescuentosComponent, PersonalGrupoComponent]
 })
 export class DetalleAsistenciaComponent {
   @ViewChild('asistencia', { static: true }) asistencia: NgForm = new NgForm(
@@ -41,11 +41,11 @@ export class DetalleAsistenciaComponent {
     return Busqueda;
   }
 
-  private searchService=inject(SearchService)
-  private apiService=inject(ApiService)
-  private router=inject(Router)
-  private route=inject(ActivatedRoute)
-  private settingService=inject(SettingsService)
+  private searchService = inject(SearchService)
+  private apiService = inject(ApiService)
+  private router = inject(Router)
+  private route = inject(ActivatedRoute)
+  private settingService = inject(SettingsService)
 
   private destroy$ = new Subject();
 
@@ -78,8 +78,8 @@ export class DetalleAsistenciaComponent {
   objetivoIdSelected = 0;
 
   personalIdlist = signal([])
-  
-  
+
+
   $isSucursalOptionsLoading = new BehaviorSubject(false);
 
   $selectedObjetivoIdChange = new BehaviorSubject('');
@@ -235,6 +235,20 @@ export class DetalleAsistenciaComponent {
         )))
 
 
+  $listaDescuentosCoord = this.$selectedPersonalIdChange.pipe(
+    debounceTime(500),
+    switchMap(PersonalId =>
+      this.searchService
+        .getDescuentosPersonaCoord(
+          Number(PersonalId),
+          this.selectedPeriod().year,
+          this.selectedPeriod().month
+        )
+        .pipe
+        //          doOnSubscribe(() => this.tableLoading$.next(true)),
+        (tap(data => { this.listaDescuentosPerTotalC = data.totalC })
+  )))
+
   $listaDescuentosPer = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
     switchMap(PersonalId =>
@@ -246,10 +260,10 @@ export class DetalleAsistenciaComponent {
         )
         .pipe
         //          doOnSubscribe(() => this.tableLoading$.next(true)),
-        (tap(data => { this.listaDescuentosPerTotalG = data.totalG; this.listaDescuentosPerTotalC = data.totalC })
+        (tap(data => { this.listaDescuentosPerTotalG = data.totalG })
+  )))
 
 
-        )))
 
   $listaCategoriasPer = this.$selectedPersonalIdChange.pipe(
     debounceTime(500),
@@ -415,7 +429,7 @@ export class DetalleAsistenciaComponent {
   }
 
   dateChange(result: Date): void {
-    this.selectedPeriod.set({year:result.getFullYear(),month:result.getMonth() + 1}) 
+    this.selectedPeriod.set({ year: result.getFullYear(), month: result.getMonth() + 1 })
 
     localStorage.setItem('anio', String(this.selectedPeriod().year));
     localStorage.setItem('mes', String(this.selectedPeriod().month));

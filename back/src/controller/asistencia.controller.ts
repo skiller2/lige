@@ -1315,7 +1315,7 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
       
       WHERE anio.ConsumoTelefoniaAnoAno = @1 AND mes.ConsumoTelefoniaAnoMesMes = @2 ${listPersonaId}
 
-      ORDER BY ApellidoNombre
+      ORDER BY ApellidoNombre,tipomov,desmovimiento2
       `,
       //      [personalId.join(','), anio,mes]
       ['', anio, mes]
@@ -1415,21 +1415,36 @@ AND des.ObjetivoDescuentoDescontarCoordinador = 'S'
 
       const result = await AsistenciaController.getDescuentos(anio, mes, [personalId])
 
-      let totalG = 0
-      let totalC = 0
+      const resultG = result.filter(row=>row.tipocuenta_id == 'G' )
+      let totalG: number = resultG.reduce((totalG, row) => totalG + row.importe, 0)
 
-      for (const row of result) {
-        if (row.tipocuenta_id == 'G')
-          totalG += row.importe
-        if (row.tipocuenta_id == 'C')
-          totalC += row.importe
-      }
-
-      this.jsonRes({ descuentos: result, totalG, totalC }, res);
+      this.jsonRes({ descuentos: resultG, totalG }, res);
     } catch (error) {
       return next(error)
     }
   }
+
+  async getDescuentosPorPersonaCoord(req: any, res: Response, next: NextFunction) {
+    try {
+      const personalId = req.params.personalId;
+      const anio = req.params.anio;
+      const mes = req.params.mes;
+      
+      const queryRunner = dataSource.createQueryRunner();
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
+        throw new ClientException(`No tiene permiso para obtener información de descuentos`)
+
+      const result = await AsistenciaController.getDescuentos(anio, mes, [personalId])
+
+      const resultC = result.filter(row=>row.tipocuenta_id == 'C' )
+      let totalC: number = resultC.reduce((totalC, row) => totalC + row.importe, 0)
+
+      this.jsonRes({ descuentos: resultC, totalC }, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
 
   async getPersonalxResponsableCols(req: any, res: Response, next: NextFunction) {
     this.jsonRes(columnasPersonalxResponsable, res);

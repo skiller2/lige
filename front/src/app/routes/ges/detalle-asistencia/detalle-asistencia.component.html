@@ -531,7 +531,7 @@
 
 
         <nz-form-item>
-          <nz-form-label [nzSpan]="5">Descuentos</nz-form-label>
+          <nz-form-label [nzSpan]="5">Descuentos General</nz-form-label>
           <nz-form-control *ngIf="$listaDescuentosPer | async as listaDescuentosPer ">
             <nz-table #descPer [nzData]="listaDescuentosPer.descuentos" nzSize="small" [nzPageSize]="100000000"
               [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
@@ -545,7 +545,7 @@
               </thead>
               <tbody>
                 <tr *ngFor="let data of descPer.data" class="">
-                  <td><span *ngIf="data.tipocuenta_id=='C'">Coordinador </span>{{ data.tipomov }}</td>
+                  <td>{{ data.tipomov }}</td>
                   <td>{{ data.desmovimiento }}</td>
                   <td>
                     <div *ngIf="data.cantcuotas>1">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
@@ -557,6 +557,36 @@
             </nz-table>
           </nz-form-control>
         </nz-form-item>
+
+
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Descuentos Coordinador</nz-form-label>
+          <nz-form-control *ngIf="$listaDescuentosCoord | async as listaDescuentosPer ">
+            <nz-table #descPer [nzData]="listaDescuentosPer.descuentos" nzSize="small" [nzPageSize]="100000000"
+              [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+              <thead>
+                <tr>
+                  <th>Tipo Movimiento</th>
+                  <th>Detalle</th>
+                  <th>Cuota</th>
+                  <th>Importe</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let data of descPer.data" class="">
+                  <td>{{ data.tipomov }}</td>
+                  <td>{{ data.desmovimiento }}</td>
+                  <td>
+                    <div *ngIf="data.cantcuotas>1">{{ data.cuotanro }}/{{ data.cantcuotas}} Total {{data.importetotal
+                      | currency }}</div>
+                  </td>
+                  <td>{{ data.importe | currency }}</td>
+                </tr>
+              </tbody>
+            </nz-table>
+          </nz-form-control>
+        </nz-form-item>
+
 
       </form>
     </nz-tab>
