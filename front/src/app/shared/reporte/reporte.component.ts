@@ -15,6 +15,7 @@ interface Parameter {
   ParameterType: string;
   Prompt: string;
   ValidValues: { Value: string; Label: string }[];
+  DefaultValues:string
 }
 
 
@@ -37,13 +38,14 @@ export class ReporteComponent {
   private searchService = inject(SearchService)
   public apiService = inject(ApiService)
   filterArray = signal<{ [key: string]: string }[]>([])
-
+  isLoading = signal(false)
   fecha = signal("")
   nzvalue = null
   fechaActual = signal(new Date())
 
   async searchReportParameters(title: string) {
     this.fecha.set("")
+    this.isLoading.set(true)
     try {
       const res = await firstValueFrom(this.searchService.getInfoFilterReport(title))
       this.filtrosReporte.set(res.value)
@@ -54,9 +56,16 @@ export class ReporteComponent {
           return acc
         }, {})
       ])
-    } catch (error){}
+
+      this.isLoading.set(false)
+    } catch (error){
+
+      this.isVisible.set(false)
+      this.isLoading.set(false)
+    }
 
   }
+
 
   async onParamChange(paramName: string, ParameterType: string, value: any) {
     //console.log(`El parámetro ${paramName} cambió a:`, value);

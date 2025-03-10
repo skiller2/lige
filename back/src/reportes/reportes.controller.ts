@@ -30,7 +30,7 @@ export class ReportesController extends BaseController {
 
       const data:any = await resp.json()
       const rep = data.value.find(x => x.Name.localeCompare(titleReport) === 0)
-      if (!rep.Path)
+      if (!rep?.Path)
         throw new ClientException(`Reporte ${titleReport} no encontrado`)
 
 
