@@ -34,33 +34,33 @@
       </nz-button-group>
     </div>
   
-    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+    <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
   
       <nz-tab>
         <a nz-tab-link routerLink="/dte/descuentos/personal">Personal</a>
         <ng-template nz-tab>
-            <app-table-descuentos-personal [anio]="anio()" [mes]="mes()" ></app-table-descuentos-personal>
+          <app-table-descuentos-personal [anio]="anio()" [mes]="mes()" ></app-table-descuentos-personal>
         </ng-template>
       </nz-tab>
   
       <nz-tab>
         <a nz-tab-link routerLink="/dte/descuentos/objetivos">Objetivos</a>
         <ng-template nz-tab>
-
+          <app-table-descuentos-objetivos #descObjetivos [anio]="anio()" [mes]="mes()" ></app-table-descuentos-objetivos>
         </ng-template>
       </nz-tab>
   
       <nz-tab>
-        <a nz-tab-link routerLink="/ges/descuentos/stock">Stock</a>
+        <a nz-tab-link routerLink="/dte/descuentos/stock">Stock</a>
         <ng-template nz-tab>
 
         </ng-template>
       </nz-tab>
   
       <nz-tab>
-        <a nz-tab-link routerLink="/ges/descuentos/prepaga">Prepaga</a>
+        <a nz-tab-link routerLink="/dte/descuentos/prepaga">Prepaga</a>
         <ng-template nz-tab>
-
+          <app-table-descuentos-prepaga [anio]="anio()" [mes]="mes()" ></app-table-descuentos-prepaga>
         </ng-template>
       </nz-tab>
   
