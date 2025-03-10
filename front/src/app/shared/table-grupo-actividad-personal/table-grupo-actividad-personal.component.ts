@@ -284,9 +284,10 @@ export class TableGrupoActividadPersonalComponent {
     if (item.GrupoActividadId == 0)
       return true
 
-    if (item.GrupoActividadObjetivoHasta) {
+   
+    if (item.GrupoActividadPersonalHasta && new Date(item.GrupoActividadPersonalHasta) < new Date()) 
       return false;
-    }
+    
 
     if (column.id == 'GrupoActividadPersonalDesde' || column.id == 'GrupoActividadPersonalHasta')
       return true
