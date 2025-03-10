@@ -44,15 +44,17 @@ export class ReporteComponent {
 
   async searchReportParameters(title: string) {
     this.fecha.set("")
-    let res = await firstValueFrom(this.searchService.getInfoFilterReport(title))
-    this.filtrosReporte.set(res.value)
+    try {
+      const res = await firstValueFrom(this.searchService.getInfoFilterReport(title))
+      this.filtrosReporte.set(res.value)
 
-    this.filterArray.set([
-      this.filtrosReporte().reduce((acc: { [key: string]: string }, item) => {
-        acc[item.Name] = ''
-        return acc
-      }, {})
-    ])
+      this.filterArray.set([
+        this.filtrosReporte().reduce((acc: { [key: string]: string }, item) => {
+          acc[item.Name] = ''
+          return acc
+        }, {})
+      ])
+    } catch (error){}
 
   }
 
@@ -68,8 +70,9 @@ export class ReporteComponent {
     })
   }
 
-  onClick(evt: any) { 
-    this.searchReportParameters(this.reportTitle())
+  onClick(evt: any) {
+    if (this.filtrosReporte()) 
+      this.searchReportParameters(this.reportTitle())
     this.isVisible.set(true)
   }
 

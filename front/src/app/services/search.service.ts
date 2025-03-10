@@ -986,8 +986,7 @@ export class SearchService {
     return this.http
       .get<ResponseJSON<any>>(`api/reportes/filterReport/${title}`)
       .pipe(
-        map(res => res.data),
-        catchError(() => of([]))
+        map(res => res.data)
       );
   }
 
