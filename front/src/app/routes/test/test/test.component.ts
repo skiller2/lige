@@ -18,6 +18,7 @@ import { I18NService } from '@core';
 
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
 import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline} from '@ant-design/icons-angular/icons';
+import { ReporteComponent } from 'src/app/shared/reporte/reporte.component';
 
 
 /** config ng-zorro-antd i18n **/
@@ -26,7 +27,7 @@ import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOut
     selector: 'test',
     templateUrl: './test.component.html',
     styleUrls: ['./test.component.less'],
-    imports: [...SHARED_IMPORTS, CommonModule, DireccionSearchComponent,NzIconModule],
+    imports: [...SHARED_IMPORTS, CommonModule, DireccionSearchComponent,NzIconModule, ReporteComponent],
     providers: [provideNzIconsPatch([TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline])],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
