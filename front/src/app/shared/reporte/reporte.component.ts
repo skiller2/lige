@@ -15,7 +15,7 @@ interface Parameter {
   ParameterType: string;
   Prompt: string;
   ValidValues: { Value: string; Label: string }[];
-  DefaultValues:string
+  DefaultValues: Date
 }
 
 
@@ -77,6 +77,12 @@ export class ReporteComponent {
         return obj
       })
     })
+  }
+
+   getFormattedDate(param:any) {
+    return param.DefaultValues instanceof Date 
+      ? param.DefaultValues 
+      : this.fecha()
   }
 
   onClick(evt: any) {

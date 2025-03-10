@@ -37,10 +37,11 @@
 
         <!-- Si es DateTime, mostrar un input con calendario -->
         <nz-date-picker 
-          *ngIf="param.ParameterType === 'DateTime'" 
-          [ngModel]="param.DefaultValues ? (param.DefaultValues | date:'yyyy-MM-dd') : fecha()"
-          (ngModelChange)="onParamChange(param.Name, param.ParameterType, $event)">
-        </nz-date-picker>
+        *ngIf="param.ParameterType === 'DateTime'" 
+        [ngModel]="getFormattedDate(param) | date:'yyyy-MM-dd'"
+        (ngModelChange)="onParamChange(param.Name, param.ParameterType, $event)">
+      </nz-date-picker>
+
       </nz-input-group>
 
     </div>
