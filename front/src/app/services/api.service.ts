@@ -1316,6 +1316,24 @@ export class ApiService {
       );
   }
 
+  getDescuentosObjetivos(options: any, anio:number, mes:number){
+    if (!anio && !mes) return of([]);
+    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/objetivos`, {options, anio, mes})
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
+  getDescuentosPrepaga(options: any, anio:number, mes:number){
+    if (!anio && !mes) return of([]);
+    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/prepaga`, {options, anio, mes})
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

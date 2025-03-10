@@ -3,8 +3,8 @@
   <div nz-tab *ngIf="(columns$|async) as columnas">
     <shared-filtro-builder [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"  />
 
-    <div class="gridDescPersonal container-fluid">
-      <angular-slickgrid gridId="gridDescPersonal" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptions"
+    <div class="gridDescObjetivos container-fluid">
+      <angular-slickgrid gridId="gridDescObjetivos" [columnDefinitions]="columnas  | colsFilter" [gridOptions]="gridOptions"
         [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)" >
       </angular-slickgrid>
     </div>

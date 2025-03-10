@@ -4,8 +4,16 @@ import { gestionDescuentosController } from "../controller/controller.module";
 
 export const gestionDescuentosRouter = Router();
 
-gestionDescuentosRouter.get("/cols", [authMiddleware.verifyToken], (req, res, next) => {
-    gestionDescuentosController.getGridColumns(req, res, next);
+gestionDescuentosRouter.get("/cols/personal", [authMiddleware.verifyToken], (req, res, next) => {
+    gestionDescuentosController.getPersonalGridColumns(req, res, next);
+});
+
+gestionDescuentosRouter.get("/cols/objetivos", [authMiddleware.verifyToken], (req, res, next) => {
+    gestionDescuentosController.getObjetivosGridColumns(req, res, next);
+});
+
+gestionDescuentosRouter.get("/cols/prepaga", [authMiddleware.verifyToken], (req, res, next) => {
+    gestionDescuentosController.getPrepagaGridColumns(req, res, next);
 });
 
 gestionDescuentosRouter.post('/list/personal', [authMiddleware.verifyToken], (req, res, next) => {

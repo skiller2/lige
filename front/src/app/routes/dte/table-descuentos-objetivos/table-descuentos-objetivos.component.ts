@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed, input, Injector, } from '@angular/core';
+import { Component, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed, input,Injector } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption, Column} from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
@@ -11,15 +11,15 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 @Component({
-    selector: 'app-table-descuentos-personal',
-    templateUrl: './table-descuentos-personal.component.html',
-    styleUrls: ['./table-descuentos-personal.component.less'],
+    selector: 'app-table-descuentos-objetivos',
+    templateUrl: './table-descuentos-objetivos.component.html',
+    styleUrls: ['./table-descuentos-objetivos.component.less'],
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
     imports: [ SHARED_IMPORTS, CommonModule, FiltroBuilderComponent ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TableDescuentosPersonalComponent {
+export class TableDescuentosObjetivosComponent {
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
     gridData: any;
@@ -43,18 +43,18 @@ export class TableDescuentosPersonalComponent {
         private injector : Injector,
     ) {}
 
-    columns$ = this.apiService.getCols('/api/gestion-descuentos/cols/personal')
+    columns$ = this.apiService.getCols('/api/gestion-descuentos/cols/objetivos')
 
     gridData$ = this.listDescuento$.pipe(
         debounceTime(500),
         switchMap(() => {
-            return this.apiService.getDescuentosPersonal(this.listOptions, this.anio(), this.mes())
+            return this.apiService.getDescuentosObjetivos(this.listOptions, this.anio(), this.mes())
                 .pipe(map(data => { return data }))
         })
     )
 
     async ngOnInit() {
-        this.gridOptions = this.apiService.getDefaultGridOptions('.gridDescPersonal', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+        this.gridOptions = this.apiService.getDefaultGridOptions('.gridDescObjetivos', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptions.enableRowDetailView = false
         this.gridOptions.enableAutoSizeColumns = true
         this.gridOptions.fullWidthRows = true
