@@ -515,9 +515,7 @@ export class ObjetivosController extends BaseController {
                 ObjetivoPersonalJerarquicoHasta,
                 ObjetivoPersonalJerarquicoDescuentos FROM ObjetivoPersonalJerarquico
 
-                WHERE
-                ObjetivoPersonalJerarquicoComo = 'C'
-                AND ObjetivoId = @0 AND ObjetivoPersonalJerarquicoDesde <= @1 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @1`,
+                WHERE ObjetivoId = @0 AND ObjetivoPersonalJerarquicoDesde <= @1 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @1`,
             [ObjetivoId, new Date()])
     }
 
@@ -1003,16 +1001,16 @@ export class ObjetivosController extends BaseController {
             const nuevo = Coordinadores.find((r: any) => (r.PersonaId == old.PersonaId))
             if (nuevo?.ObjetivoPersonalJerarquicoComision != old.ObjetivoPersonalJerarquicoComision || nuevo?.ObjetivoPersonalJerarquicoDescuentos != old.ObjetivoPersonalJerarquicoDescuentos) {
                 await queryRunner.query(`UPDATE ObjetivoPersonalJerarquico SET ObjetivoPersonalJerarquicoHasta = @2
-                WHERE  ObjetivoPersonalJerarquicoComo = 'C' AND ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @3`,
+                WHERE ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @3`,
                     [old.PersonaId, ObjetivoId, fechaAyer, Fecha])
-                await queryRunner.query(`DELETE ObjetivoPersonalJerarquico WHERE  ObjetivoPersonalJerarquicoComo = 'C' AND ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1  AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') < ObjetivoPersonalJerarquicoDesde`,
+                await queryRunner.query(`DELETE ObjetivoPersonalJerarquico WHERE ObjetivoPersonalJerarquicoPersonalId = @0 AND ObjetivoId = @1  AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') < ObjetivoPersonalJerarquicoDesde`,
                     [old.PersonaId, ObjetivoId])
 
                 if (nuevo?.PersonaId) {
                     await queryRunner.query(`INSERT INTO ObjetivoPersonalJerarquico (ObjetivoId,ObjetivoPersonalJerarquicoPersonalId,
-                        ObjetivoPersonalJerarquicoDesde,ObjetivoPersonalJerarquicoHasta,ObjetivoPersonalJerarquicoComo,ObjetivoPersonalJerarquicoComision,
-                        ObjetivoPersonalJerarquicoDescuentos) VALUES (@0, @1,@2,@3,@4,@5,@6); `,
-                        [ObjetivoId, nuevo.PersonaId, Fecha, null, 'C', nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos])
+                        ObjetivoPersonalJerarquicoDesde,ObjetivoPersonalJerarquicoHasta,ObjetivoPersonalJerarquicoComision,
+                        ObjetivoPersonalJerarquicoDescuentos) VALUES (@0, @1,@2,@3,@4,@5); `,
+                        [ObjetivoId, nuevo.PersonaId, Fecha, null, nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos])
                 }
             }
         }
@@ -1022,9 +1020,9 @@ export class ObjetivosController extends BaseController {
         for (const nuevo of nuevos) {
             if (!nuevo.PersonaId) continue
             await queryRunner.query(` INSERT INTO ObjetivoPersonalJerarquico (ObjetivoId,ObjetivoPersonalJerarquicoPersonalId,
-                ObjetivoPersonalJerarquicoDesde,ObjetivoPersonalJerarquicoHasta,ObjetivoPersonalJerarquicoComo,ObjetivoPersonalJerarquicoComision,
-                ObjetivoPersonalJerarquicoDescuentos) VALUES (@0, @1,@2,@3,@4,@5,@6); `,
-                [ObjetivoId, nuevo.PersonaId, Fecha, null, 'C', nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos])
+                ObjetivoPersonalJerarquicoDesde,ObjetivoPersonalJerarquicoHasta,ObjetivoPersonalJerarquicoComision,
+                ObjetivoPersonalJerarquicoDescuentos) VALUES (@0, @1,@2,@3,@4,@5); `,
+                [ObjetivoId, nuevo.PersonaId, Fecha, null, nuevo.ObjetivoPersonalJerarquicoComision, nuevo.ObjetivoPersonalJerarquicoDescuentos])
         }
         return await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
     }
@@ -1247,11 +1245,7 @@ export class ObjetivosController extends BaseController {
     }
 
     async deletePersonalJerarquicoQuery(queryRunner: any, ObjetivoId: number) {
-
-        return await queryRunner.query(`DELETE FROM ObjetivoPersonalJerarquico WHERE 
-             ObjetivoId = @0
-             AND ObjetivoPersonalJerarquicoComo='C';`,
-            [ObjetivoId])
+        return await queryRunner.query(`DELETE FROM ObjetivoPersonalJerarquico WHERE ObjetivoId = @0`, [ObjetivoId])
     }
 
     async addObjetivo(req: any, res: Response, next: NextFunction) {

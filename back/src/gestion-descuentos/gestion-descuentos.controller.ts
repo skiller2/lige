@@ -748,7 +748,7 @@ export class GestionDescuentosController extends BaseController {
       obj.ObjetivoDescripcion
       FROM ObjetivoDescuentoCuota cuo 
       JOIN ObjetivoDescuento des ON cuo.ObjetivoDescuentoId = des.ObjetivoDescuentoId AND cuo.ObjetivoId = des.ObjetivoId
-      LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@0,@1,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@0,@1,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoComo = 'C' AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
+      LEFT JOIN ObjetivoPersonalJerarquico coo ON coo.ObjetivoId = des.ObjetivoId AND DATEFROMPARTS(@0,@1,28) > coo.ObjetivoPersonalJerarquicoDesde AND DATEFROMPARTS(@0,@1,28) < ISNULL(coo.ObjetivoPersonalJerarquicoHasta, '9999-12-31') AND coo.ObjetivoPersonalJerarquicoDescuentos = 1
       JOIN Descuento det ON det.DescuentoId = des.ObjetivoDescuentoDescuentoId
       JOIN Objetivo obj ON obj.ObjetivoId = des.ObjetivoId
       JOIN Personal per ON per.PersonalId = coo.ObjetivoPersonalJerarquicoPersonalId

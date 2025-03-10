@@ -74,7 +74,7 @@ export class ObjetivoController extends BaseController {
           
           FROM Objetivo obj 
           JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND 
-        EOMONTh(DATEFROMPARTS(@1,@2,1)) >   opj.ObjetivoPersonalJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') AND opj.ObjetivoPersonalJerarquicoComo='C'
+        EOMONTh(DATEFROMPARTS(@1,@2,1)) >   opj.ObjetivoPersonalJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') 
           JOIN Personal per ON per.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
         WHERE  obj.ObjetivoId = @0
     UNION
@@ -153,7 +153,7 @@ export class ObjetivoController extends BaseController {
         
         FROM Objetivo obj 
         
-  LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  <= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @0 AND opj.ObjetivoPersonalJerarquicoComo = 'C'
+  LEFT JOIN ObjetivoPersonalJerarquico opj ON opj.ObjetivoId = obj.ObjetivoId AND  opj.ObjetivoPersonalJerarquicoDesde  <= @0 AND ISNULL(opj.ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @0
   LEFT JOIN Personal per ON per.PersonalId = opj.ObjetivoPersonalJerarquicoPersonalId
   
   LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND  gap.GrupoActividadObjetivoDesde  <= @0 AND ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31') >= @0
