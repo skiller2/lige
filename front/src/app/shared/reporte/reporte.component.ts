@@ -1,8 +1,8 @@
-import { Component, inject, input, signal, model, ViewChild, viewChild } from '@angular/core'
+import { Component, inject, input, signal, model, ViewChild, viewChild, computed } from '@angular/core'
 import { SHARED_IMPORTS } from '@shared'
 import { NzButtonModule } from 'ng-zorro-antd/button'
 import { NzModalModule } from 'ng-zorro-antd/modal'
-import { firstValueFrom } from 'rxjs'
+import { firstValueFrom, map } from 'rxjs'
 import { SearchService } from 'src/app/services/search.service'
 import { ApiService, doOnSubscribe } from 'src/app/services/api.service'
 import { CommonModule } from '@angular/common'
@@ -15,7 +15,8 @@ interface Parameter {
   ParameterType: string;
   Prompt: string;
   ValidValues: { Value: string; Label: string }[];
-  DefaultValues: Date
+  DefaultValues: any
+  Value: null
 }
 
 
@@ -37,28 +38,22 @@ export class ReporteComponent {
   filtrosReporte = signal<Parameter[]>([])
   private searchService = inject(SearchService)
   public apiService = inject(ApiService)
-  filterArray = signal<{ [key: string]: string }[]>([])
   isLoading = signal(false)
-  fecha = signal("")
-  nzvalue = null
-  fechaActual = signal(new Date())
+
+  getFiltros() {
+    return this.filtrosReporte().map((f:any) => { return { [f.Name]: f.Value } })
+  }
 
   async searchReportParameters(title: string) {
-    this.fecha.set("")
     this.isLoading.set(true)
     try {
-      const res = await firstValueFrom(this.searchService.getInfoFilterReport(title))
+      const res:any = await firstValueFrom(this.searchService.getInfoFilterReport(title).pipe(map((res: any) => res.value)))
 
-      console.log('filtros', res.value)
-      this.filtrosReporte.set(res.value)
+//TODO: Tomar valores por omision dentro del forEach
+      res.forEach((obj:any): void => { obj.Value = null });
 
-      this.filterArray.set([
-        this.filtrosReporte().reduce((acc: { [key: string]: string }, item) => {
-          acc[item.Name] = ''
-          return acc
-        }, {})
-      ])
-      console.log('filtros2', this.filterArray())
+      this.filtrosReporte.set(res)
+
       this.isLoading.set(false)
     } catch (error){
 
@@ -66,25 +61,6 @@ export class ReporteComponent {
       this.isLoading.set(false)
     }
 
-  }
-
-
-  async onParamChange(paramName: string, ParameterType: string, value: any) {
-    //console.log(`El parámetro ${paramName} cambió a:`, value);
-    this.filterArray.update(arr => {
-      return arr.map(obj => {
-        if (obj.hasOwnProperty(paramName)) {
-          return { ...obj, [paramName]: value }
-        }
-        return obj
-      })
-    })
-  }
-
-   getFormattedDate(param:any) {
-    return param.DefaultValues instanceof Date 
-      ? param.DefaultValues 
-      : this.fecha()
   }
 
   onClick(evt: any) {

@@ -1,5 +1,6 @@
-<span>{{reportTitle()}} </span>
+<span> {{reportTitle()}}</span>
 <ng-content />
+
 <nz-modal [(nzVisible)]="isVisible" (nzOnCancel)="isVisible.set(false)" [nzTitle]="reportTitle()">
 
   <div *nzModalContent>
@@ -11,15 +12,15 @@
 
 
     <div *ngFor="let param of filtrosReporte()">
-      <label>{{ param?.Prompt }}</label>
+      <label>{{ param.Prompt }}</label>
       <nz-input-group [nzSize]="'large'">
         <!-- Si es String y tiene valores válidos, mostrar un nz-select -->
 
         <nz-select 
         *ngIf="param.ParameterType === 'String' && param.ValidValues?.length"
         nzPlaceHolder="Seleccione una opción" 
-        [nzDropdownMatchSelectWidth]="false" nzShowSearch [ngModel]="param.DefaultValues ? param.DefaultValues : null"
-        (ngModelChange)="onParamChange(param.Name, param.ParameterType, $event)">
+        [nzDropdownMatchSelectWidth]="false" nzShowSearch [(ngModel)]="param.Value"
+        >
         
         <nz-option 
           *ngFor="let option of param.ValidValues" 
@@ -33,13 +34,13 @@
         <!-- Si es String y NO tiene valores válidos, mostrar un input de texto -->
         <input nz-input
           *ngIf="param.ParameterType === 'String' && (!param.ValidValues || param.ValidValues.length === 0)" type="text"
-          [(ngModel)]="param.Prompt" (ngModelChange)="onParamChange(param.Name,param.ParameterType, $event)" />
+          [(ngModel)]="param.Value"  />
 
         <!-- Si es DateTime, mostrar un input con calendario -->
         <nz-date-picker 
         *ngIf="param.ParameterType === 'DateTime'" 
-        [ngModel]="getFormattedDate(param) | date:'yyyy-MM-dd'"
-        (ngModelChange)="onParamChange(param.Name, param.ParameterType, $event)">
+        [(ngModel)]="param.Value"
+        >
       </nz-date-picker>
 
       </nz-input-group>
@@ -51,7 +52,7 @@
   <div *nzModalFooter style="text-align: right;">
 
     <button [disabled]="isLoading()" app-down-file [httpMethod]="'POST'"
-      [httpBody]="{'Reporte':reportTitle(),'Formato':'EXCEL', 'Filtros': filterArray()[0]}"
+      [httpBody]="{'Reporte':reportTitle(),'Formato':'EXCEL', 'Filtros': getFiltros()}"
       httpUrl="api/reportes/descarga" notificationMsg="Generando Informe Seguro" nz-button nzType="primary">
       <span nz-icon nzType="download"></span> Generar Reporte
     </button>
