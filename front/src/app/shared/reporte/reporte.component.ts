@@ -34,7 +34,7 @@ export class ReporteComponent {
 
   isVisible = signal(false)
   reportTitle = input('',{alias: 'app-reporte'})
-
+  isfilterLoad = signal(false)
   filtrosReporte = signal<Parameter[]>([])
   private searchService = inject(SearchService)
   public apiService = inject(ApiService)
@@ -53,18 +53,20 @@ export class ReporteComponent {
       res.forEach((obj:any): void => { obj.Value = null });
 
       this.filtrosReporte.set(res)
+      this.isfilterLoad.set(true)
 
-      this.isLoading.set(false)
     } catch (error){
 
       this.isVisible.set(false)
-      this.isLoading.set(false)
+     
     }
+    this.isLoading.set(false)
 
   }
 
   onClick(evt: any) {
-    if (this.filtrosReporte()) 
+
+    if (!this.isfilterLoad()) 
       this.searchReportParameters(this.reportTitle())
     this.isVisible.set(true)
   }

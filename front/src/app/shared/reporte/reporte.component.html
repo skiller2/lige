@@ -5,12 +5,12 @@
 
   <div *nzModalContent>
 
-    <nz-spin *ngIf="isLoading()" nzTip="Cargando filtros..."></nz-spin>
-
-
-    <div *ngIf="!isLoading()">
-
-
+    @if (isLoading()) {
+      <nz-spin nzTip="Cargando filtros..."></nz-spin>
+    }
+    
+    @if (!isLoading()) {
+      
     <div *ngFor="let param of filtrosReporte()">
       <label>{{ param.Prompt }}</label>
       <nz-input-group [nzSize]="'large'">
@@ -36,6 +36,32 @@
           *ngIf="param.ParameterType === 'String' && (!param.ValidValues || param.ValidValues.length === 0)" type="text"
           [(ngModel)]="param.Value"  />
 
+        <!-- Si es Integer, mostrar un input numérico entero -->
+        <nz-input-number
+          *ngIf="param.ParameterType === 'Integer'"
+          [nzMin]="-999999"
+          [nzMax]="999999"
+          [nzStep]="1"
+          [(ngModel)]="param.Value"
+          style="width: 50%">
+        </nz-input-number>
+
+        <!-- Si es Float, mostrar un input numérico decimal -->
+        <nz-input-number
+          *ngIf="param.ParameterType === 'Float'"
+          [nzMin]="-999999"
+          [nzMax]="999999"
+          [nzStep]="0.01"
+          [(ngModel)]="param.Value"
+          style="width: 50%">
+        </nz-input-number>
+
+        <!-- Si es Boolean, mostrar un checkbox -->
+        <label nz-checkbox
+          *ngIf="param.ParameterType === 'Boolean'"
+          [(ngModel)]="param.Value">
+        </label>
+
         <!-- Si es DateTime, mostrar un input con calendario -->
         <nz-date-picker 
         *ngIf="param.ParameterType === 'DateTime'" 
@@ -47,7 +73,7 @@
 
     </div>
 
-  </div>
+  }
 </div>
   <div *nzModalFooter style="text-align: right;">
 
