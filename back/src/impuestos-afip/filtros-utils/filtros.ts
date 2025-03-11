@@ -93,7 +93,7 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
           break;
         case "=":
           if (type == 'number' || type=='float' || type=='currency') {
-            if (valorBusqueda == '' || valorBusqueda == null || valorBusqueda == 'null')
+            if (valorBusqueda === '' || valorBusqueda === null || valorBusqueda === 'null')
               filterString.push(`${fieldName} IS NULL`)
             else {
               if (String(valorBusqueda).indexOf(';') == 0)
