@@ -21,6 +21,14 @@ export class TipoDocumentoController extends BaseController {
       fieldName: "docg.doc_id",
       type: "number",
       sortable: true,
+      hidden: true,
+      maxWidth: 150,
+    },
+    {
+      id: "den_documento", name: "Denominacion", field: "den_documento",
+      fieldName: "docg.den_documento",
+      type: "number",
+      sortable: true,
       hidden: false,
       maxWidth: 150,
     },
@@ -216,7 +224,8 @@ export class TipoDocumentoController extends BaseController {
   async getdocgenralListlist(filterSql: any, orderBy: any) {
 
     const result = await dataSource.query(`
-      SELECT docg.doc_id AS id, 
+      SELECT docg.doc_id AS id,
+      docg.den_documento,
       tipo.detalle AS tipo, 
       docg.fecha, docg.fec_doc_ven,
       CONCAT(TRIM(pers.PersonalApellido), ', ', TRIM(pers.PersonalNombre)) ApellidoNombre,
@@ -376,7 +385,7 @@ export class TipoDocumentoController extends BaseController {
       den_documento, cliente_id, fec_doc_ven, usuario, ip, now, detalle_documento])
       // throw new ClientException('DEBUG')
       await queryRunner.commitTransaction()
-      this.jsonRes({ doc_id:doc_id }, res);
+      this.jsonRes({ doc_id:doc_id }, res, 'Carga Exitosa');
     } catch (error) {
       this.rollbackTransaction(queryRunner)
       return next(error)
@@ -566,7 +575,7 @@ export class TipoDocumentoController extends BaseController {
       den_documento, cliente_id, fec_doc_ven, usuario, ip, now, detalle_documento])
       // throw new ClientException('DEBUG')
       await queryRunner.commitTransaction()
-      this.jsonRes({}, res);
+      this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
       this.rollbackTransaction(queryRunner)
       return next(error)
