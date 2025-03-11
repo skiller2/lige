@@ -48,6 +48,8 @@ export class ReporteComponent {
     this.isLoading.set(true)
     try {
       const res = await firstValueFrom(this.searchService.getInfoFilterReport(title))
+
+      console.log('filtros', res.value)
       this.filtrosReporte.set(res.value)
 
       this.filterArray.set([
@@ -56,7 +58,7 @@ export class ReporteComponent {
           return acc
         }, {})
       ])
-
+      console.log('filtros2', this.filterArray())
       this.isLoading.set(false)
     } catch (error){
 
