@@ -341,6 +341,7 @@ export class ApiService {
             col.cssClass = 'text-right'
             //col.params.parseDateAsUtc = true
           } else if (col.type == 'date') {
+            col.saveOutputType = 'dateUtc'
             col.formatter = Formatters['dateEuro']
             col.editor = { model: Editors['date'] }
             col.cssClass = 'text-right'

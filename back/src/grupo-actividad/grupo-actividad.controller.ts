@@ -694,7 +694,6 @@ export class GrupoActividadController extends BaseController {
         const usuarioIdquery = await queryRunner.query(`SELECT * FROM Usuario WHERE UsuarioId = @0`, [res.locals.PersonalId])
         const usuarioId = usuarioIdquery > 0 ? usuarioIdquery : null
 
-        const fechaActual = new Date()
         let message = ""
         const params = req.body
 
@@ -706,14 +705,24 @@ export class GrupoActividadController extends BaseController {
 
 
             const codigoExist = await queryRunner.query(`SELECT * FROM GrupoActividadJerarquico WHERE GrupoActividadJerarquicoId = @0`, [params.GrupoActividadJerarquicoId])
+
             let dataResultado = {}
             let GrupoActividadJerarquicoHasta
 
-            if (codigoExist.length > 0) { //Entro en update
+            if (codigoExist.length) { //Entro en update
                 //Validar si cambio el código
-
+                const orig = codigoExist[0]
                 await this.validateFormResponsables(params, queryRunner)
 
+                const desdeOrig = new Date(orig.GrupoActividadJerarquicoDesde)
+                const desdeNew = new Date(params.GrupoActividadJerarquicoDesde)
+
+                if (desdeOrig.toLocaleDateString() != desdeNew.toLocaleDateString()) {
+                    const cierre = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
+                    const FechaCierre = new Date(cierre[0].FechaCierre);
+                    if (desdeOrig < FechaCierre)
+                        throw new ClientException(`No se puede modificar la fecha desde, es menor a la fecha del último periodo cerrado ${this.dateOutputFormat(FechaCierre)}`)
+                }
                 if (params.GrupoActividadJerarquicoComo == 'J' && params.GrupoActividadDetalle.id != params.GrupoActividadDetalleOld.id) {
 
                     const result = await queryRunner.query(` SELECT * FROM GrupoActividadJerarquico  
