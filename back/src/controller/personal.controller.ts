@@ -826,6 +826,22 @@ cuit.PersonalCUITCUILCUIT,
     const docTitulo = (estudio.DocTitulo)?estudio.DocTitulo[0]:null
     const ultnro = await queryRunner.query(`SELECT PersonalEstudioUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
     const PersonalEstudioId = (ultnro[0]?.PersonalEstudioUltNro)?ultnro[0]?.PersonalEstudioUltNro+1:1
+
+    let DocumentoImagenEstudioId = null
+    if (docTitulo) {
+      const DocumentoImagenEstudio = await queryRunner.query(`
+        INSERT INTO DocumentoImagenEstudio (
+        PersonalId,
+        DocumentoImagenParametroId,
+        DocumentoImagenParametroDirectorioId
+        )
+        VALUES(@0,@1,@2)
+
+        SELECT MAX(DocumentoImagenEstudioId) as DocumentoImagenEstudioId FROM DocumentoImagenEstudio WHERE PersonalId IN (@0)
+      `, [personalId, 14, 1])
+      DocumentoImagenEstudioId = DocumentoImagenEstudio[0].DocumentoImagenEstudioId
+    }
+
     await queryRunner.query(`
       INSERT INTO PersonalEstudio (
       PersonalId,
@@ -833,17 +849,18 @@ cuit.PersonalCUITCUILCUIT,
       TipoEstudioId,
       EstadoEstudioId,
       PersonalEstudioTitulo,
-      PersonalEstudioAno
+      PersonalEstudioAno,
+      PersonalEstudioPagina1Id
       )
-      VALUES (@0,@1,@2,@3,@4,@5)`, [
-      personalId, PersonalEstudioId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAnio
+      VALUES (@0,@1,@2,@3,@4,@5,@6)`, [
+      personalId, PersonalEstudioId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAnio, DocumentoImagenEstudioId
     ])
 
     await queryRunner.query(`
       UPDATE Personal SET PersonalEstudioUltNro = @1 WHERE PersonalId = @0`, [personalId, PersonalEstudioId])
 
     if (docTitulo) {
-      await this.setImagenEstudio(queryRunner, personalId, docTitulo)
+      await this.setImagenEstudio(queryRunner, personalId, docTitulo, DocumentoImagenEstudioId)
     }
   }
 
@@ -1033,7 +1050,7 @@ cuit.PersonalCUITCUILCUIT,
     
   }
 
-  async setImagenEstudio(queryRunner: any, personalId: any, file: any) {
+  async setImagenEstudio(queryRunner: any, personalId: any, file: any, DocumentoImagenEstudioId:number) {
     const type = file.mimetype.split('/')[1]
     const fieldname = file.fieldname
     let estudio = await queryRunner.query(`
@@ -1041,28 +1058,10 @@ cuit.PersonalCUITCUILCUIT,
       FROM DocumentoImagenEstudio est 
       JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = est.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  est.DocumentoImagenParametroId
       JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = est.DocumentoImagenParametroId
-      WHERE est.PersonalId IN (@0)
-      `, [personalId])
-    if (!estudio.length) {
-      await queryRunner.query(`
-        INSERT INTO DocumentoImagenEstudio (
-        PersonalId,
-        DocumentoImagenEstudioBlobTipoArchivo,
-        DocumentoImagenParametroId,
-        DocumentoImagenParametroDirectorioId
-        )
-        VALUES(@0,@1,@2,@3)
-      `, [personalId, type, 14, 1])
-      estudio = await queryRunner.query(`
-        SELECT est.DocumentoImagenEstudioId estudioId, dir.DocumentoImagenParametroDirectorioPath
-        FROM DocumentoImagenEstudio est 
-        JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = est.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  est.DocumentoImagenParametroId
-        JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = est.DocumentoImagenParametroId
-        WHERE est.PersonalId IN (@0)
-      `, [personalId])
-    }
+      WHERE est.PersonalId IN (@0) AND est.DocumentoImagenEstudioId IN (@1)
+      `, [personalId, DocumentoImagenEstudioId])
 
-    const estudioId = estudio[0].estudioId
+    const estudioId = DocumentoImagenEstudioId
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
     const newFieldname = `${personalId}-${estudioId}-CERESTPAG1.${type}`
@@ -1074,11 +1073,8 @@ cuit.PersonalCUITCUILCUIT,
       DocumentoImagenEstudioBlobTipoArchivo = @2,
       DocumentoImagenParametroId = @3,
       DocumentoImagenParametroDirectorioId = @4
-      WHERE PersonalId IN (@0)`,
-      [personalId, newFieldname, type, 14, 1]
-    )
-    await queryRunner.query(`UPDATE PersonalEstudio SET PersonalEstudioPagina1Id = @0 WHERE PersonalId IN (@1)`,
-      [estudioId, personalId]
+      WHERE PersonalId IN (@0) AND DocumentoImagenEstudioId IN (@5)`,
+      [personalId, newFieldname, type, 14, 1, DocumentoImagenEstudioId]
     )
   }
 
@@ -1245,10 +1241,23 @@ console.log('infoDomicilio',infoDomicilio)
       if (infoEstudio.EstudioTitulo) {
         if (infoEstudio.PersonalEstudioId) {
           let find = oldStudies.find((study:any) => {return (study.PersonalEstudioId == infoEstudio.PersonalEstudioId)})
-          const Pagina1Id = find.PersonalEstudioPagina1Id
-          const Pagina2Id = find.PersonalEstudioPagina2Id
-          const Pagina3Id = find.PersonalEstudioPagina3Id
-          const Pagina4Id = find.PersonalEstudioPagina4Id
+          let Pagina1Id = find.PersonalEstudioPagina1Id
+          // const Pagina2Id = find.PersonalEstudioPagina2Id
+          // const Pagina3Id = find.PersonalEstudioPagina3Id
+          // const Pagina4Id = find.PersonalEstudioPagina4Id
+          if (!Pagina1Id && infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
+            const DocumentoImagenEstudio = await queryRunner.query(`
+              INSERT INTO DocumentoImagenEstudio (
+              PersonalId,
+              DocumentoImagenParametroId,
+              DocumentoImagenParametroDirectorioId
+              )
+              VALUES(@0,@1,@2)
+        
+              SELECT MAX(DocumentoImagenEstudioId) as DocumentoImagenEstudioId FROM DocumentoImagenEstudio WHERE PersonalId IN (@0)
+            `, [PersonalId, 14, 1])
+            Pagina1Id = DocumentoImagenEstudio[0].DocumentoImagenEstudioId
+          }
           await queryRunner.query(`
             INSERT INTO PersonalEstudio (
             PersonalId,
@@ -1257,17 +1266,19 @@ console.log('infoDomicilio',infoDomicilio)
             EstadoEstudioId,
             PersonalEstudioTitulo,
             PersonalEstudioAno,
-            PersonalEstudioPagina1Id, PersonalEstudioPagina2Id, PersonalEstudioPagina3Id, PersonalEstudioPagina4Id
+            PersonalEstudioPagina1Id
+            --PersonalEstudioPagina2Id, PersonalEstudioPagina3Id, PersonalEstudioPagina4Id
             )
-            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, [
+            VALUES (@0,@1,@2,@3,@4,@5,@6)`, [
             PersonalId, infoEstudio.PersonalEstudioId, infoEstudio.TipoEstudioId,
             infoEstudio.EstadoEstudioId, infoEstudio.EstudioTitulo, infoEstudio.EstudioAno,
-            Pagina1Id, Pagina2Id, Pagina3Id, Pagina4Id
+            Pagina1Id, 
+            //Pagina2Id, Pagina3Id, Pagina4Id
           ])
 
           if (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
             const docTitulo = infoEstudio.DocTitulo[0]
-            await this.setImagenEstudio(queryRunner, PersonalId, docTitulo)
+            await this.setImagenEstudio(queryRunner, PersonalId, docTitulo, Pagina1Id)
           }
 
         }else{
