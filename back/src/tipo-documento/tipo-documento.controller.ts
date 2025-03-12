@@ -21,7 +21,7 @@ export class TipoDocumentoController extends BaseController {
       fieldName: "docg.doc_id",
       type: "number",
       sortable: true,
-      hidden: true,
+      hidden: false,
       maxWidth: 150,
     },
     {
