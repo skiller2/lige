@@ -16,6 +16,14 @@ gestionDescuentosRouter.get("/cols/prepaga", [authMiddleware.verifyToken], (req,
     gestionDescuentosController.getPrepagaGridColumns(req, res, next);
 });
 
+gestionDescuentosRouter.get("/cols/stock", [authMiddleware.verifyToken], (req, res, next) => {
+    gestionDescuentosController.getStockGridColumns(req, res, next);
+});
+
+gestionDescuentosRouter.get("/tipo/options", [authMiddleware.verifyToken], (req, res, next) => {
+    gestionDescuentosController.getTiposDescuentos(req, res, next);
+});
+
 gestionDescuentosRouter.post('/list/personal', [authMiddleware.verifyToken], (req, res, next) => {
     gestionDescuentosController.getDescuentosPersonal(req, res, next)
 });

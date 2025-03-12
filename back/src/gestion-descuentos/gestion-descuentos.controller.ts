@@ -27,31 +27,8 @@ const columnsPersonalDescuentos:any[] = [
   //   // maxWidth: 50,
   //   // minWidth: 10,
   // },
-  // {
-  //   id:'ObjetivoId', name:'ObjetivoId', field:'ObjetivoId',
-  //   fieldName: "",
-  //   searchComponent: 'inpurForObjetivoSearch',
-  //   type:'number',
-  //   searchType: "number",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: false
-  //   // maxWidth: 50,
-  //   // minWidth: 10,
-  // },
-  // {
-  //   id:'ObjetivoDescripcion', name:'Objetivo', field:'ObjetivoDescripcion',
-  //   fieldName: 'obj.ObjetivoDescripcion',
-  //   type:'string',
-  //   searchType: "string",
-  //   sortable: true,
-  //   hidden: false,
-  //   searchHidden: true
-  //   // maxWidth: 50,
-  //   // minWidth: 10,
-  // },
   {
-    id:'PersonalId', name:'PersonalId', field:'PersonalId',
+    id:'PersonalId', name:'Personal', field:'PersonalId',
     fieldName: 'per.PersonalId',
     searchComponent: 'inpurForPersonalSearch',
     type:'number',
@@ -114,7 +91,7 @@ const columnsPersonalDescuentos:any[] = [
     searchType: "number",
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
     // maxWidth: 50,
     // minWidth: 10,
   },
@@ -125,7 +102,7 @@ const columnsPersonalDescuentos:any[] = [
     searchType: "number",
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
     // maxWidth: 50,
     // minWidth: 10,
   },
@@ -164,23 +141,23 @@ const columnsPersonalDescuentos:any[] = [
   },
   {
     id:'cuotanro', name:'Num.Cuota', field:'cuotanro',
-    fieldName: "",
+    fieldName: "cuo.PersonalOtroDescuentoCuotaCuota",
     type:'number',
     searchType: "number",
     sortable: true,
     hidden: false,
-    searchHidden: true
+    searchHidden: false
     // maxWidth: 50,
     // minWidth: 10,
   },
   {
     id:'cantcuotas', name:'Cant.Cuotas', field:'cantcuotas',
-    fieldName: "",
+    fieldName: "des.PersonalOtroDescuentoCantidadCuotas",
     type:'number',
     searchType: "number",
     sortable: true,
     hidden: false,
-    searchHidden: true
+    searchHidden: false
     // maxWidth: 50,
     // minWidth: 10,
   },
@@ -220,31 +197,8 @@ const columnsObjetivosDescuentos:any[] = [
   //   // minWidth: 50,
   //   // minWidth: 10,
   // },
-  // {
-  //   id:'ObjetivoId', name:'ObjetivoId', field:'ObjetivoId',
-  //   fieldName: 'obj.ObjetivoId',
-  //   searchComponent: 'inpurForObjetivoSearch',
-  //   type:'number',
-  //   searchType: "number",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: false
-  //   // maxWidth: 50,
-  //   // minWidth: 10,
-  // },
-  // {
-  //   id:'ObjetivoDescripcion', name:'Objetivo', field:'ObjetivoDescripcion',
-  //   fieldName: 'obj.ObjetivoDescripcion',
-  //   type:'string',
-  //   searchType: "string",
-  //   sortable: true,
-  //   hidden: false,
-  //   searchHidden: true
-  //   // maxWidth: 50,
-  //   // minWidth: 10,
-  // },
   {
-    id:'PersonalId', name:'PersonalId', field:'PersonalId',
+    id:'PersonalId', name:'Personal', field:'PersonalId',
     fieldName: "per.PersonalId",
     searchComponent: "inpurForPersonalSearch",
     type:'number',
@@ -308,7 +262,7 @@ const columnsObjetivosDescuentos:any[] = [
     searchType: "number",
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
     // maxWidth: 50,
     // minWidth: 10,
   },
@@ -319,13 +273,13 @@ const columnsObjetivosDescuentos:any[] = [
     searchType: "number",
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
     // maxWidth: 50,
     // minWidth: 10,
   },
   {
     id:'PersonalOtroDescuentoDetalle', name:'Desmovimiento', field:'PersonalOtroDescuentoDetalle',
-    fieldName: "desmovimiento",
+    fieldName: "",
     type:'string',
     searchType: "string",
     sortable: true,
@@ -414,31 +368,8 @@ const columnsPrepagaDescuentos:any[] = [
   //   // minWidth: 50,
   //   // minWidth: 10,
   // },
-  // {
-  //   id:'ObjetivoId', name:'ObjetivoId', field:'ObjetivoId',
-  //   fieldName: 'obj.ObjetivoId',
-  //   searchComponent: 'inpurForObjetivoSearch',
-  //   type:'number',
-  //   searchType: "number",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: false,
-  //   maxWidth: 50,
-  //   minWidth: 10,
-  // },
-  // {
-  //   id:'ObjetivoDescripcion', name:'Objetivo', field:'ObjetivoDescripcion',
-  //   fieldName: 'obj.ObjetivoDescripcion',
-  //   type:'string',
-  //   searchType: "string",
-  //   sortable: true,
-  //   hidden: false,
-  //   searchHidden: true,
-  //   maxWidth: 120,
-  //   minWidth: 10,
-  // },
   {
-    id:'PersonalId', name:'PersonalId', field:'PersonalId',
+    id:'PersonalId', name:'Personal', field:'PersonalId',
     fieldName: "per.PersonalId",
     searchComponent: "inpurForPersonalSearch",
     type:'number',
@@ -502,7 +433,7 @@ const columnsPrepagaDescuentos:any[] = [
     searchType: "number",
     sortable: true,
     hidden: false,
-    searchHidden: false,
+    searchHidden: true,
     // maxWidth: 50,
     // minWidth: 10,
   },
@@ -513,13 +444,13 @@ const columnsPrepagaDescuentos:any[] = [
     searchType: "number",
     sortable: true,
     hidden: false,
-    searchHidden: false,
+    searchHidden: true,
     // maxWidth: 50,
     // minWidth: 10,
   },
   {
     id:'PersonalOtroDescuentoDetalle', name:'Desmovimiento', field:'PersonalOtroDescuentoDetalle',
-    fieldName: "desmovimiento",
+    fieldName: "",
     type:'string',
     searchType: "string",
     sortable: true,
@@ -585,6 +516,176 @@ const columnsPrepagaDescuentos:any[] = [
   // },
 ]
 
+const columnsStockDescuentos:any[] = [
+  {
+    id:'id', name:'Id', field:'id',
+    fieldName: "",
+    type:'number',
+    searchType: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: true,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  // {
+  //   id:'GrupoActividadId', name:'GrupoActividadId', field:'GrupoActividadId',
+  //   fieldName: "gap.GrupoActividadId",
+  //   type:'number',
+  //   searchType: "number",
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: false
+  //   // maxWidth: 50,
+  //   // minWidth: 10,
+  // },
+  {
+    id:'PersonalId', name:'Personal', field:'PersonalId',
+    fieldName: 'per.PersonalId',
+    searchComponent: 'inpurForPersonalSearch',
+    type:'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id:'tipocuenta_id', name:'Tipo de Cuenta', field:'tipocuenta_id',
+    fieldName: "tipocuenta_id",
+    type:'string',
+    searchType: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id:'CUIT', name:'CUIT', field:'CUIT',
+    fieldName: "cuit.PersonalCUITCUILCUIT",
+    type:'number',
+    searchType: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id:'ApellidoNombre', name:'Apellido Nombre', field:'ApellidoNombre',
+    fieldName: '',
+    type:'number',
+    searchType: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id:'tipomov', name:'Tipo Movimiento', field:'tipomov',
+    fieldName: "",
+    // searchComponent: "",
+    type:'number',
+    searchType: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id:'mes', name:'Mes', field:'mes',
+    fieldName: "",
+    type:'number',
+    searchType: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id:'anio', name:'Año', field:'anio',
+    fieldName: "",
+    type:'number',
+    searchType: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id:'PersonalOtroDescuentoDetalle', name:'Desmovimiento', field:'PersonalOtroDescuentoDetalle',
+    fieldName: "efe.EfectoDescripcion",
+    type:'string',
+    searchType: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id:'tipoint', name:'Tipo', field:'tipoint',
+    fieldName: "tipoint",
+    type:'string',
+    searchType: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id:'importe', name:'Importe', field:'importe',
+    fieldName: "",
+    type:'float',
+    searchType: "float",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id:'cuotanro', name:'Num.Cuota', field:'cuotanro',
+    fieldName: "cuo.PersonalDescuentoCuotaCuota",
+    type:'number',
+    searchType: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id:'cantcuotas', name:'Cant.Cuotas', field:'cantcuotas',
+    fieldName: "des.PersonalDescuentoCuotas",
+    type:'number',
+    searchType: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+  {
+    id:'importetotal', name:'Importe Total', field:'importetotal',
+    fieldName: "",
+    type:'float',
+    searchType: "float",
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+    // maxWidth: 50,
+    // minWidth: 10,
+  },
+]
+
 export class GestionDescuentosController extends BaseController {
 
   async getPersonalGridColumns(req: any, res: Response, next: NextFunction) {
@@ -599,13 +700,16 @@ export class GestionDescuentosController extends BaseController {
     return this.jsonRes(columnsPrepagaDescuentos, res)
   }
 
+  async getStockGridColumns(req: any, res: Response, next: NextFunction) {
+    return this.jsonRes(columnsStockDescuentos, res)
+  }
+
   private async getDescuentosPersonalQuery(queryRunner:any, filterSql:any, orderBy:any, anio:number, mes:number) {
     return await queryRunner.query(`
-      SELECT CONCAT('cuo',cuo.PersonalOtroDescuentoCuotaId,'-',cuo.PersonalOtroDescuentoId,'-',cuo.PersonalId,'-',gap.GrupoActividadId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id,
+      SELECT CONCAT('cuo',cuo.PersonalOtroDescuentoCuotaId,'-',cuo.PersonalOtroDescuentoId,'-',cuo.PersonalId,'-',gap.GrupoActividadId) id, gap.GrupoActividadId, per.PersonalId, 'G' as tipocuenta_id,
       cuit.PersonalCUITCUILCUIT CUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @0 AS anio, @1 AS mes, det.DescuentoDescripcion AS tipomov,
-      des.PersonalOtroDescuentoDetalle AS desmovimiento, 
-      -- des.PersonalOtroDescuentoDetalle AS desmovimiento2, 
+      des.PersonalOtroDescuentoDetalle AS desmovimiento,
       'OTRO' tipoint,
       cuo.PersonalOtroDescuentoCuotaImporte AS importe, cuo.PersonalOtroDescuentoCuotaCuota AS cuotanro,
       des.PersonalOtroDescuentoCantidadCuotas AS cantcuotas, des.PersonalOtroDescuentoImporteVariable * des.PersonalOtroDescuentoCantidad AS importetotal
@@ -648,11 +752,10 @@ export class GestionDescuentosController extends BaseController {
 
   private async getDescuentosStockQuery(queryRunner:any, filterSql:any, orderBy:any, anio:number, mes:number) {
     return await queryRunner.query(`
-      SELECT CONCAT('efe',cuo.PersonalDescuentoCuotaId,'-',cuo.PersonalDescuentoId,'-',cuo.PersonalDescuentoPersonalId,'-',gap.GrupoActividadId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id,
+      SELECT CONCAT('efe',cuo.PersonalDescuentoCuotaId,'-',cuo.PersonalDescuentoId,'-',cuo.PersonalDescuentoPersonalId,'-',gap.GrupoActividadId) id, gap.GrupoActividadId, per.PersonalId, 'G' as tipocuenta_id,
       cuit.PersonalCUITCUILCUIT CUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @0 AS anio, @1 AS mes, 'Efecto' AS tipomov, 
       efe.EfectoDescripcion AS desmovimiento,
-      -- efe.EfectoDescripcion AS desmovimiento2,
       'DESC' tipoint,
       cuo.PersonalDescuentoCuotaImporte * des.PersonalDescuentoCantidadEfectos AS importe, cuo.PersonalDescuentoCuotaCuota AS cuotanro,
       des.PersonalDescuentoCuotas AS cantcuotas, des.PersonalDescuentoImporte - (des.PersonalDescuentoImporte * des.PersonalDescuentoPorcentajeDescuento /100) AS importetotal
@@ -676,13 +779,13 @@ export class GestionDescuentosController extends BaseController {
       await queryRunner.startTransaction()
 
       const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
-      // const filterSql = filtrosToSql(options.filtros, columnsStockDescuentos);
+      const filterSql = filtrosToSql(options.filtros, columnsStockDescuentos);
       const orderBy = orderToSQL(options.sort)
 
-      // const lista: any[] = await this.getDescuentosStockQuery(queryRunner, filterSql, orderBy, anio, mes)
+      const lista: any[] = await this.getDescuentosStockQuery(queryRunner, filterSql, orderBy, anio, mes)
 
       await queryRunner.commitTransaction()
-      // this.jsonRes(lista, res);
+      this.jsonRes(lista, res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -693,11 +796,10 @@ export class GestionDescuentosController extends BaseController {
 
   private async getDescuentosPrepagaQuery(queryRunner:any, filterSql:any, orderBy:any, anio:number, mes:number) {
     return await queryRunner.query(`
-      SELECT CONCAT('pre',dis.PersonalPrepagaDescuentoDiscriminadoId,'-',dis.PersonalPrepagaDescuentoId,'-',dis.PersonalId,'-',gap.GrupoActividadId) id, gap.GrupoActividadId, 0 as ObjetivoId, per.PersonalId, 'G' as tipocuenta_id,
+      SELECT CONCAT('pre',dis.PersonalPrepagaDescuentoDiscriminadoId,'-',dis.PersonalPrepagaDescuentoId,'-',dis.PersonalId,'-',gap.GrupoActividadId) id, gap.GrupoActividadId, per.PersonalId, 'G' as tipocuenta_id,
       cuit.PersonalCUITCUILCUIT CUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @0 AS anio, @1 AS mes, 'Prepaga' AS tipomov, 
       CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento, 
-      -- CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento2, 
       'PREP' tipoint,
       IIF(dis.PersonalPrepagaDescuentoDiscriminadoTipo='C',(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)*-1,(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)) AS importe,  1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
       FROM PersonalPrepagaDescuento des
@@ -741,8 +843,7 @@ export class GestionDescuentosController extends BaseController {
       SELECT CONCAT('otr2',cuo.ObjetivoDescuentoCuotaId,'-',cuo.ObjetivoDescuentoId,'-',cuo.ObjetivoId) id, gap.GrupoActividadId, des.ObjetivoId, per.PersonalId, IIF(des.ObjetivoId>0,'C','G') tipocuenta_id,
       cuit.PersonalCUITCUILCUIT CUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, 
       @0 AS anio, @1 AS mes, det.DescuentoDescripcion AS tipomov, 
-      CONCAT(des.ObjetivoDescuentoDetalle, ' ', CONCAT(' ', obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0), ' ', obj.ObjetivoDescripcion)) AS desmovimiento, 
-      -- '' AS desmovimiento2,
+      CONCAT(des.ObjetivoDescuentoDetalle, ' ', CONCAT(' ', obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0), ' ', obj.ObjetivoDescripcion)) AS desmovimiento,
       'OTRO' tipoint,
       cuo.ObjetivoDescuentoCuotaImporte AS importe, cuo.ObjetivoDescuentoCuotaCuota AS cuotanro, des.ObjetivoDescuentoCantidadCuotas  AS cantcuotas, (des.ObjetivoDescuentoImporteVariable * des.ObjetivoDescuentoCantidad) AS importetotal,
       obj.ObjetivoDescripcion
@@ -785,4 +886,22 @@ export class GestionDescuentosController extends BaseController {
       await queryRunner.release()
     }
   }
+
+  private async getTiposDescuentosQuery(queryRunner: any) {
+      return await queryRunner.query(`
+          SELECT DescuentoId value, TRIM(DescuentoDescripcion) label
+          FROM Descuento`)
+    }
+  
+  async getTiposDescuentos(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await this.getTiposDescuentosQuery(queryRunner)
+
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
 }
