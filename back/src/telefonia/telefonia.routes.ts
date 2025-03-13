@@ -69,12 +69,6 @@ telefoniaRouter.get('/tipo/options', authMiddleware.verifyToken, (req, res, next
   telefoniaController.getTipoTelefono(req, res, next)
 });
 
-/*
-telefoniaRouter.post('', authMiddleware.verifyToken, (req, res, next) => {
-    telefoniaController.setAdelanto(req.body.PersonalId, req.body.monto, req.socket.remoteAddress, res, next)
-})
-*/
-
 telefoniaRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
     telefoniaController.getTelefonosCols(req, res);
 });

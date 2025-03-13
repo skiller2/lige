@@ -179,7 +179,9 @@ export class AdelantosController extends BaseController {
     }
   }
 
-  async setAdelanto(anio:number, mes:number, personalId: number, monto: number, ip, res: Response, next: NextFunction) {
+  async setAdelanto(anio: number, mes: number, personalId: number, monto: number, req:any, res: Response, next: NextFunction) {
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
     const queryRunner = dataSource.createQueryRunner();
     const FormaPrestamoId = 7 //Adelanto
     try {
@@ -209,8 +211,10 @@ export class AdelantosController extends BaseController {
 
       const bot = await AccesoBotController.getBotStatus(perUltRecibo[0].anio, perUltRecibo[0].mes, queryRunner, [personalId])
 
-      if (bot[0].visto!=1 && bot[0].doc_id!=0)
+      if (bot[0].visto != 1 && bot[0].doc_id >0) {
+        await AccesoBotController.enqueBotMsg(personalId,`Recuerde descargar el recibo del mes ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}`,`RECIBO${bot[0].doc_id}`,usuario,ip)
         throw new ClientException(`No se puede solicitar adelanto, el recibo del mes ${perUltRecibo[0].mes}/${perUltRecibo[0].anio} no ha sido visto por el usuario`)
+      }
 
       const FormaPrestamo = await queryRunner.query(`SELECT fp.FormaPrestamoDescripcion FROM FormaPrestamo fp WHERE fp.FormaPrestamoId = @0`, [FormaPrestamoId])
       const FormaPrestamoDescripcion = FormaPrestamo[0]?.FormaPrestamoDescripcion

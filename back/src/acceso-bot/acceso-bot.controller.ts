@@ -329,7 +329,7 @@ export class AccesoBotController extends BaseController {
         try {
 
             const result = await queryRunner.query(`SELECT * FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
-            if(result?.length < 1)
+            if (result?.length < 1)
                 throw new ClientException(`El CUIT seleccionado no se encuentra registrado`)
 
             this.jsonRes(existCuit, res)
@@ -346,7 +346,7 @@ export class AccesoBotController extends BaseController {
         const usuario = res.locals.userName
         const ip = this.getRemoteAddress(req)
         const queryRunner = dataSource.createQueryRunner();
-console.log('validateRecibo', cuit, recibo)
+        console.log('validateRecibo', cuit, recibo)
         try {
 
             let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
@@ -357,10 +357,10 @@ console.log('validateRecibo', cuit, recibo)
                 WHERE rec.persona_id = @0 AND rec.doctipo_id='REC'
                 ORDER BY rec.fecha DESC
             `, [personalId])
-            if(result.length < 1)
+            if (result.length < 1)
                 throw new ClientException(`El número de recibo es incorrecto para el CUIT ${cuit} `)
 
-            if(result[0].idrecibo != recibo && result[1].idrecibo != recibo)
+            if (result[0].idrecibo != recibo && result[1].idrecibo != recibo)
                 throw new ClientException(`El número de recibo es incorrecto para el CUIT ${cuit} `)
 
             this.jsonRes("OK", res)
@@ -396,10 +396,10 @@ console.log('validateRecibo', cuit, recibo)
                 WHERE cue.PersonalId = @0 
                 AND cue.PersonalBancoDesde <= @1 AND  @1 <= ISNUlL(cue.PersonalBancoHasta,'9999-12-31' )
                 ORDER BY cue.PersonalBancoHasta DESC;
-            `, [personalId,fecha])
-                
-                   
-                
+            `, [personalId, fecha])
+
+
+
             if (result.length == 0 || result[0].PersonalBancoCBU.slice(-6) != cbu)
                 throw new ClientException(`El número proporcionado es incorrecto para el CUIT ${cuit}`);
 
@@ -411,8 +411,8 @@ console.log('validateRecibo', cuit, recibo)
 
             const headers = {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json', 
-                };
+                'Accept': 'application/json',
+            };
 
             const response = await fetch(url, { method: 'GET', headers: headers })
 
@@ -443,8 +443,8 @@ console.log('validateRecibo', cuit, recibo)
             let url = `${base_url}/api/personal/decode?encTelNro=${encTelNro}`;
             const headers = {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json', 
-                };
+                'Accept': 'application/json',
+            };
 
             const response = await fetch(url, { method: 'GET', headers: headers })
 
@@ -690,9 +690,27 @@ console.log('validateRecibo', cuit, recibo)
         }
     }
 
+    static async enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string) {
+        const queryRunner = dataSource.createQueryRunner()  
+        const fechaActual = new Date()
+        try {
+            const existsTel = await queryRunner.query(`SELECT * FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0`, [personal_id]) 
+            if (!existsTel) throw new ClientException(`El personal no tiene un telefono registrado.`)
+    
+            await queryRunner
+                .query(`INSERT INTO lige.dbo.bot_cola_mensajes (fecha_ingreso, personal_id, clase_mensaje, texto_mensaje, fecha_proceso, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_fecha_mod, aud_ip_mod) 
+            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10)`, [fechaActual, personal_id, clase_mensaje, texto_mensaje, null, usuario, ip, fechaActual, usuario, fechaActual, ip])
+            return true
+
+        } catch (error) { 
+            return false
+        }
+    }
+
+
     static getBotStatus(anio: number, mes: number, queryRunner: QueryRunner, personalIdList: number[]) {
         return queryRunner
-        .query(`SELECT per.PersonalId, IIF(botreg.PersonalId IS NOT NULL,'OK','Registro pendiente') AS registro, 
+            .query(`SELECT per.PersonalId, IIF(botreg.PersonalId IS NOT NULL,'OK','Registro pendiente') AS registro, 
 		 recibo.fecha_descarga, recibo.doc_id, @1 AS anio, @2 AS mes, 
 		 IIF(recibo.visto=1,CONCAT('Recibo visto ',recibo.mes,'/',recibo.anio),CONCAT('Recibo ',@2,'/',@1,' pendiente')) AS descarga,
          ISNULL(recibo.visto,0) visto,
@@ -708,19 +726,18 @@ console.log('validateRecibo', cuit, recibo)
 			) botreg ON botreg.PersonalId = per.PersonalId
             
          LEFT JOIN (
-                SELECT dl.personal_id PersonalId, 
+                SELECT doc.persona_id PersonalId, 
                 doc.doc_id, @1 AS anio, @2 AS mes, 
-					 -- IIF(dl.doc_id IS NOT NULL,CONCAT('Recibo visto ',pr.mes,'/',pr.anio),CONCAT('Recibo ',@2,'/',@1,' pendiente')) AS descarga,
-                MAX(dl.fecha_descarga) fecha_descarga, IIF(dl.doc_id IS NOT NULL,1,0) AS visto
+					 MAX(dl.fecha_descarga) fecha_descarga, IIF(dl.doc_id IS NOT NULL,1,0) AS visto
                 FROM lige.dbo.docgeneral doc
                 JOIN lige.dbo.liqmaperiodo pr ON pr.anio =@1 AND pr.mes=@2
-                LEFT JOIN lige.dbo.doc_descaga_log dl ON doc.doc_id=dl.doc_id AND doc.persona_id = dl.personal_id 
+                LEFT JOIN lige.dbo.doc_descaga_log dl ON dl.doc_id=doc.doc_id AND dl.personal_id = doc.persona_id 
                 WHERE doc.doctipo_id = 'REC' AND doc.periodo = pr.periodo_id
-                GROUP BY dl.personal_id, doc.doc_id, pr.mes, pr.anio,dl.doc_id
+                GROUP BY doc.persona_id, doc.doc_id, pr.mes, pr.anio,dl.doc_id
 			) recibo ON recibo.PersonalId = per.PersonalId
             WHERE 
-            per.PersonalId IN (${personalIdList.join(',')})`, [,anio, mes]) 
-        
-}
-  
+            per.PersonalId IN (${personalIdList.join(',')})`, [, anio, mes])
+
+    }
+
 }
