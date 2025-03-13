@@ -6,3 +6,12 @@ export const estudioRouter = Router()
 
 estudioRouter.get('/tipo/options', [authMiddleware.verifyToken, ], (req, res, next) => { estudioController.getTiposEstudio(req, res, next) } )
 estudioRouter.get('/estado/options', [authMiddleware.verifyToken, ], (req, res, next) => { estudioController.geEstadosEstudio(req, res, next) } )
+
+estudioRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
+    estudioController.getGridCols(req, res);
+  });
+
+estudioRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
+    estudioController.list(req, res, next)
+  })
+  

@@ -81,6 +81,11 @@
               "text": "Seguro",
               "icon": "anticon-profile",
               "link": "/ges/seguro"
+            },
+            {
+              "text": "Estudios",
+              "link": "/ges/estudios",
+              "icon": "anticon-profile"
             }
           ]
         },

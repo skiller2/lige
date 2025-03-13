@@ -1,0 +1,105 @@
+<nz-drawer [nzClosable]="false" [nzVisible]="visible()" [nzPlacement]="placement" [nzWidth]="640"
+  [nzTitle]="tituloDrawer()" (nzOnClose)="visible.set(false)">
+  <ng-container *nzDrawerContent>
+    @if (cambios()|async) {}
+    <form nz-form ngForm>
+      <nz-form-item style="display:none">
+        <nz-form-label [nzSpan]="3">SucursalId</nz-form-label>
+        <nz-form-control [nzSpan]="19">
+          <input nz-input name="SucursalId" ngModel />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item style="display:none">
+        <nz-form-label [nzSpan]="3">PersonalEstudioId</nz-form-label>
+        <nz-form-control [nzSpan]="19">
+          <input nz-input name="PersonalEstudioId" ngModel />
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Persona</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <nz-input-group>
+            <app-personal-search name="PersonalId" ngModel (valueExtendedChange)="ngForm().form.patchValue({SucursalId:$event.SucursalId})" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-personal-search>
+            <p> </p>
+          </nz-input-group>
+        </nz-form-control>
+        <nz-form-control [nzSpan]="1">
+          <nz-input-group>
+            <button nz-button nzType="default" [disabled]="PersonalId() == 0 && this.ngForm().value.PersonalId == 0" (click)="openDrawerforConsultHistory()" nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}">
+              <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
+            </button>
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Tipo de Estudio</nz-form-label>
+        <nz-form-control>
+          <!-- <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Seleccione tipo" name="TipoEstudioId" ngModel (ngModelChange)="onTipoEstudioChange($event)">
+           <nz-option *ngFor="let option of tipoEstudioOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+          </nz-select> -->
+        </nz-form-control>
+      </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Título del Certificado</nz-form-label>
+          <nz-form-control>
+            <input nz-input name="TituloCertificado" ngModel />
+          </nz-form-control>
+        </nz-form-item>
+      
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Curso</nz-form-label>
+          <nz-form-control>
+              <!-- <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Seleccione curso" name="CursoId" ngModel>
+                <nz-option *ngFor="let curso of cursosOptions" [nzLabel]="curso.Codigo + ' - ' + curso.CursoHabilitacionDescripcion" [nzValue]="curso.CursoId"></nz-option>
+              </nz-select> -->
+          </nz-form-control>
+        </nz-form-item>
+
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Fecha Otorgado</nz-form-label>
+        <nz-form-control>
+          <nz-date-picker name="FechaOtorgado" ngModel></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Fecha Hasta</nz-form-label>
+        <nz-form-control>
+          <nz-date-picker name="FechaHasta" ngModel></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Estado</nz-form-label>
+        <nz-form-control>
+          <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Seleccione estado" name="EstadoEstudioId" ngModel>
+            <nz-option *ngFor="let option of estadoEstudioOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Observación</nz-form-label>
+        <nz-form-control>
+          <input nz-input name="Observacion" ngModel />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-control>
+        <app-file-upload ngModel name="files" [idForSearh]="this.ngForm().value.PersonalId ?? 0"
+          [textForSearch]="'EST'" [columnForSearch]="'persona_id'" [tableForSearch]="'docgeneral'"></app-file-upload>
+      </nz-form-control>
+
+      @if(this.ngForm().enabled) {
+        <nz-form-item class="btnCenter">
+          <button nz-button nzType="primary" [disabled]="!ngForm().dirty" (click)="save()" [nzLoading]="isSaving()">
+            {{ 'app.btn.save' | i18n }}
+          </button>
+        </nz-form-item>
+      }
+    </form>
+  </ng-container>
+</nz-drawer> 

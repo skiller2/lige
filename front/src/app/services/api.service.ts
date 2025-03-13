@@ -1344,6 +1344,15 @@ export class ApiService {
       );
   }
 
+  getListEstudios(filters: any) {
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>('/api/estudio/list', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+  }
+
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {
