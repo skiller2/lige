@@ -4,6 +4,7 @@ import { makeRoutes } from "./routes/routes.module"
 import { dataSource } from "./data-source";
 import { scheduleJob } from "node-schedule"
 import dotenv from "dotenv"
+import { ChatBotController } from "./controller/chatbot.controller";
 dotenv.config()
 
 // Init App
@@ -13,10 +14,24 @@ export const botServer = new BotServer()
 //const categoriasController = new CategoriasController()
 //const objetivoController = new ObjetivoController()
 
+function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 scheduleJob('*/1 * * * *', async function (fireDate) {
-  //  const ret = await categoriasController.procesaCambios(null, res, (ret: any) => ret)
-  //  console.log(`job run at ${fireDate}, response: ${ret}`, ret);
+  const status = botServer.status().bot_online
+  if (status != 'ONLINE') return
+  const listmsg = await ChatBotController.getColaMsg()
+
+  for (const msg of listmsg) {
+
+    console.log('sendMsg', BotServer.getSaludo(), msg.telefono, msg.texto_mensaje)
+    //await botServer.sendMsg(msg.telefono, msg.texto_mensaje)
+    await delay(1000)
+    //await botServer.sendMsg(msg.telefono, msg.texto_mensaje)
+    await ChatBotController.updColaMsg(msg.fecha_ingreso, msg.personal_id)
+    await delay(2000)
+  }
 });
 
 

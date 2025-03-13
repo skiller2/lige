@@ -54,4 +54,23 @@ export class ChatBotController extends BaseController {
       [doc_id, fechaActual, telefono, personal_id, 'bot', '127.0.0.1', fechaActual])
   }
 
+  static async getColaMsg() {
+    const queryRunner = dataSource.createQueryRunner();
+    const fechaActual = new Date()
+    return queryRunner.query(`
+      SELECT col.fecha_ingreso, col.personal_id, tel.telefono, col.texto_mensaje,
+      1 
+      FROM lige.dbo.bot_cola_mensajes col 
+      JOIN lige.dbo.regtelefonopersonal tel ON tel.personal_id = col.personal_id
+      WHERE col.fecha_proceso IS NULL`, [])
+  }
+
+  static async updColaMsg(fecha_ingreso: Date, personal_id: number) {
+    const queryRunner = dataSource.createQueryRunner();
+    const fechaActual = new Date()
+    return queryRunner.query(`UPDATE lige.dbo.bot_cola_mensajes SET fecha_proceso = @0, aud_usuario_mod=@3, aud_fecha_mod=@0, aud_ip_mod=@4 WHERE fecha_ingreso = @1 AND personal_id = @2`, [fechaActual, fecha_ingreso, personal_id,'bot','127.0.0.1'])
+  }
+
+
+
 }

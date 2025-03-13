@@ -61,6 +61,10 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
         const telefono = ctx.from
         await flowDynamic(`Bienvenido al área de consultas de la Cooperativa Lince Seguridad`, { delay: delay })
         const res = await personalController.getPersonalfromTelefonoQuery(telefono)
+
+        //force
+        res.push({cuit: '20300000001', codigo: '', PersonalSituacionRevistaSituacionId: 2, personalId: 699, name: 'Prueba probador'})
+
         if (res.length) {
             if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
                 await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${res[0].PersonalSituacionRevistaSituacionId}`, { delay: delay })
@@ -76,7 +80,6 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
             const ahora = new Date();
             const horas = ahora.getHours();
             let mensaje = "";
-            console.log('horas',horas)
         
             if (horas >= 5 && horas < 12) {
                 mensaje = "Buen día";

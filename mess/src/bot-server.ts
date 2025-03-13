@@ -15,6 +15,7 @@ import flowMonotributo from "./flow/flowMonotributo";
 import flowMenu from "./flow/flowMenu";
 import flowRemoveTel from "./flow/flowRemoveTel";
 import { idleFlow } from "./flow/flowIdle";
+import flowInformacionPersonal from "./flow/flowInformacionPersonal";
 
 dotenv.config()
 export const tmpName = (dir: string) => {
@@ -27,7 +28,7 @@ export const tmpName = (dir: string) => {
 export class BotServer {
   private adapterProvider: Provider
   private botHandle: any
-  private statusMsg: number
+  private statusMsg: string
   public globalTimeOutMs: number
   public sendMsg(telNro: string, message: string) {
     return this.adapterProvider.sendMessage(telNro, message, {})
@@ -47,10 +48,24 @@ export class BotServer {
     return { bot_online: this.statusMsg }
   }
 
+  static getSaludo() {
+    const ahora = new Date();
+    const horas = ahora.getHours();
+    let mensaje = "";
+
+    if (horas >= 5 && horas < 12) {
+      mensaje = "Buen día";
+    } else if (horas >= 12 && horas < 20) {
+      mensaje = "Buenas tardes";
+    } else {
+      mensaje = "Buenas noches";
+    }
+    return mensaje
+  }
 
   public async init() {
 
-    const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo, flowRemoveTel,idleFlow])
+    const adapterFlow = createFlow([flowLogin, flowMenu, flowValidateCode, flowRecibo, flowMonotributo, flowRemoveTel,idleFlow,flowInformacionPersonal])
     this.adapterProvider = createProvider(Provider)
     const adapterDB = new Database()
     this.globalTimeOutMs = 60000 * 5
@@ -62,17 +77,17 @@ export class BotServer {
     })
 
     this.adapterProvider.on('ready', () => {
-      this.statusMsg = 3
+      this.statusMsg = 'ONLINE'
       console.log('ready')
     })
 
     this.adapterProvider.on('require_action', (e) => {
-      this.statusMsg = 1
+      this.statusMsg = 'REQ_ACTION'
       console.log('event require_action', e)
     })
 
     this.adapterProvider.on('auth_failure', () => {
-      this.statusMsg = 2
+      this.statusMsg = 'AUTH_FAIL'
       console.log('event auth_failure')
     })
 

@@ -7,6 +7,7 @@ import { dataSource } from "../data-source";
 import { NextFunction, Request, Response } from "express";
 import * as CryptoJS from 'crypto-js';
 import { botServer } from "src";
+import { QueryRunner } from "typeorm";
 
 export class PersonalController extends BaseController {
 
@@ -291,5 +292,59 @@ export class PersonalController extends BaseController {
       await this.rollbackTransaction(queryRunner)
       return next(error)
     }
-  }  
+  }
+  
+  static async getPersonalSitRevista(personalId:number, anio:number,mes:number) {
+      const responsables = await dataSource.query(
+        `SELECT DISTINCT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.*, ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') hastafull
+        FROM Personal per
+        JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND ((DATEPART(YEAR,sitrev.PersonalSituacionRevistaDesde)=@1 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaDesde)=@2) OR (DATEPART(YEAR,sitrev.PersonalSituacionRevistaHasta)=@1 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaHasta)=@2) OR (sitrev.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)))
+        LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+        WHERE per.PersonalId=@0
+        ORDER BY sitrev.PersonalSituacionRevistaDesde, hastafull`, [personalId, anio, mes])
+
+      return responsables
+  }
+
+
+  static async getCategoriasPorPersonaQuery(anio: number, mes: number, personalId: number, SucursalId: number) {
+    return dataSource.query(
+      `SELECT cat.TipoAsociadoId, catrel.PersonalCategoriaCategoriaPersonalId, catrel.PersonalCategoriaPersonalId, CONCAT(cat.TipoAsociadoId, '-',catrel.PersonalCategoriaCategoriaPersonalId) AS id, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta,
+        TRIM(tip.TipoAsociadoDescripcion) as TipoAsociadoDescripcion ,TRIM(cat.CategoriaPersonalDescripcion) as CategoriaPersonalDescripcion ,
+        TRIM(cat.CategoriaPersonalDescripcion) as fullName,
+        val.ValorLiquidacionHoraNormal, val.ValorLiquidacionHorasTrabajoHoraNormal, val.ValorLiquidacionSucursalId
+                  FROM PersonalCategoria catrel
+                    JOIN CategoriaPersonal cat ON cat.TipoAsociadoId = catrel.PersonalCategoriaTipoAsociadoId AND cat.CategoriaPersonalId = catrel.PersonalCategoriaCategoriaPersonalId
+                   JOIN TipoAsociado tip ON tip.TipoAsociadoId = cat.TipoAsociadoId
+                   LEFT JOIN ValorLiquidacion val ON val.ValorLiquidacionTipoAsociadoId = cat.TipoAsociadoId AND val.ValorLiquidacionCategoriaPersonalId = cat.CategoriaPersonalId AND val.ValorLiquidacionSucursalId = @3
+                   AND val.ValorLiquidacionDesde <= DATEFROMPARTS(@1,@2,1) AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31')>=DATEFROMPARTS(@1,@2,1)
+                WHERE ((DATEPART(YEAR,catrel.PersonalCategoriaDesde)=@1 AND  DATEPART(MONTH, catrel.PersonalCategoriaDesde)=@2) OR (DATEPART(YEAR,catrel.PersonalCategoriaHasta)=@1 AND  DATEPART(MONTH, catrel.PersonalCategoriaHasta)=@2) OR (catrel.PersonalCategoriaDesde <= DATEFROMPARTS(@1,@2,28) AND ISNULL(catrel.PersonalCategoriaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,28))
+                ) AND catrel.PersonalCategoriaPersonalId=@0`, [personalId, anio, mes, SucursalId])
+
+  }
+
+
+  static async getResponsablesListByPersonal(personalId:number) {
+      return await dataSource.query(`
+        SELECT ga.GrupoActividadId, ga.GrupoActividadNumero Numero, ga.GrupoActividadDetalle Detalle,
+        gap.GrupoActividadPersonalDesde Desde, gap.GrupoActividadPersonalHasta Hasta,
+        gaj.GrupoActividadJerarquicoPersonalId PersonalId,
+        CONCAT(TRIM(PersonalApellido),', ',TRIM(PersonalNombre)) Supervisor
+        FROM GrupoActividadPersonal gap
+        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
+        LEFT JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = ga.GrupoActividadId AND gaj.GrupoActividadJerarquicoComo = 'J' AND gaj.GrupoActividadJerarquicoHasta IS NULL
+        LEFT JOIN Personal per ON per.PersonalId = gaj.GrupoActividadJerarquicoPersonalId
+        WHERE gap.GrupoActividadPersonalPersonalId IN (@0)
+        ORDER BY gap.GrupoActividadPersonalDesde DESC
+      `, [personalId]
+      );
+
+  }
+
+  static async getTelefono(personalId:number) {
+    return await dataSource.query(`SELECT tel.telefono FROM lige.dbo.regtelefonopersonal tel WHERE tel.personal_id IN (@0)`, [personalId] )
+  }
+
+
+
 }

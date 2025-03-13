@@ -4,88 +4,52 @@ import flowMenu from './flowMenu'
 import { chatBotController } from "../controller/controller.module";
 import { botServer } from "../index";
 import { reset } from "./flowIdle";
+import { PersonalController } from "src/controller/personal.controller";
 
 const delay = chatBotController.getDelay()
-
+const personalController = new PersonalController()
 const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
-    .addAction(async (_, { flowDynamic, state ,gotoFlow }) => {
-        await flowDynamic([{ body:`⏱️ Buscando información`, delay }])
+    .addAction(async (_, { flowDynamic, state, gotoFlow }) => {
+        await flowDynamic([{ body: `⏱️ Buscando información ...`, delay:delay*2 }])
         const myState = state.getMyState()
         const personalId = myState.personalId
-                
+        const fechaActual = new Date()
+        const anio = fechaActual.getFullYear()
+        const mes = fechaActual.getMonth() + 1
 
+        const coordinadorgeneralrec: any[] = await PersonalController.getResponsablesListByPersonal(personalId)
 
-        const periodosArray : any[] = await impuestosAfipController.getLastPeriodosOfComprobantes(personalId, 3).then(array =>{return array})
-        // console.log('periodos', periodosArray);
-        let resPeriodos = ''
-        if (periodosArray.length) {
-            periodosArray.forEach((obj: any, index: number) => {
-                const today = new Date(obj.anio,obj.mes-1,1);
-                const month = today.toLocaleString('default', { month: 'short' });
-                resPeriodos += `${index+1}- *${month.toUpperCase()}/${obj.anio}*\n`
-            })
+        const coordinador = (coordinadorgeneralrec[0]) ? coordinadorgeneralrec[0].Supervisor.trim() + ' desde ' + personalController.dateOutputFormat(coordinadorgeneralrec[0].Desde) : 'No asignado aún'
+
+        await flowDynamic([{ body: `Coordinador general: ${coordinador}`, delay }])
+
+        if (coordinadorgeneralrec[0].PersonalId) {
+            const telrec = await PersonalController.getTelefono(coordinadorgeneralrec[0].PersonalId)
+            if (telrec[0])
+                await flowDynamic([{ body: `Teléfono contacto: ${telrec[0].telefono}`, delay }])
+        }
+
+        const sitrevs: any[] = await PersonalController.getPersonalSitRevista(personalId, anio, mes)
+        if (sitrevs.length > 0) {
+            const sitrev = sitrevs[sitrevs.length - 1]
+            await flowDynamic([{ body: `Situación de revista: ${sitrev.SituacionRevistaDescripcion.trim()} desde ${personalController.dateOutputFormat(sitrev.PersonalSituacionRevistaDesde)}`, delay }])
         } else {
-            await flowDynamic([{ body:`No hay comprobantes`, delay }])
-            return gotoFlow(flowMenu)
+            await flowDynamic([{ body: `No posee situación de revista aún`, delay }])
         }
-        
-        await state.update({recibo:{ periodosArray, periodosString: resPeriodos }}) 
-    })
-    .addAction(async (_, { flowDynamic, state }) => {
-        const myState = state.getMyState()
-        const resPeriodos = myState.recibo.periodosString
-        await flowDynamic([{ body: resPeriodos }])
-        await flowDynamic([{ body: 'Ingrese el número correspondiente al período listado 📝'}])
 
-    })
-    .addAction({ capture: true, delay },
-        async (ctx, { flowDynamic, state, fallBack, gotoFlow }) => {
-        reset(ctx,gotoFlow,botServer.globalTimeOutMs)
-
-        const myState = state.getMyState()
-        const periodosArray : any[] = myState.recibo.periodosArray
-        const msj = ctx.body
-        if (parseInt(msj)<1 || Number.isNaN(parseInt(msj)) || parseInt(msj) > periodosArray.length ) {
-            return fallBack('El numero ingresado no aparece en la lista  📝\nIngrese otro')
+        const categs: any[] = await PersonalController.getCategoriasPorPersonaQuery(anio, mes, personalId, 1)
+        for (const cat of categs) {
+            await flowDynamic([{ body: `Categoría: ${cat.fullName.trim()} desde ${personalController.dateOutputFormat(cat.PersonalCategoriaDesde)}`, delay }])
         }
-        const mes = periodosArray[parseInt(msj)-1]?.mes
-        const anio = periodosArray[parseInt(msj)-1]?.anio
-        const personalId = myState.personalId
-        // await flowDynamic([{ body:`⏱️ Dame un momento`, delay: delay }])
-        const urlDoc = await impuestosAfipController.getURLDocComprobante(personalId, anio, mes)
 
-            if (urlDoc instanceof Error)
-                await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
-            else {
-                //TODO:  Ver tema nueva tabla PersonalComprobantePagoAFIPId, com.PersonalId,
-                try {
-                    await chatBotController.addToDocLog(urlDoc.doc_id,ctx.from)
-                } catch (error) {
-                    console.log('Error',error)
-                }
-                console.log('URL Recibo',urlDoc.URL)
-                await flowDynamic([{ body: `Recibo`, media: urlDoc.URL, delay }])
-            }
-    
-    })
-    .addAnswer([
-        '¿Desea consultar algo mas?', 
-        'Responda "Si" o "No"'
-    ], { capture: true, delay },  
-        async (ctx, { gotoFlow, fallBack, state }) => {
-        reset(ctx,gotoFlow,botServer.globalTimeOutMs)
+        await flowDynamic([{ body: `-------------------------------`, delay:delay*2 }])
 
-        let myState = state.getMyState()
-        delete myState.recibo
-        await state.update(myState)
-        console.log('state.getMyState()', state.getMyState());
-        
-        const respuesta = ctx.body
-        if (respuesta == 'Si' || respuesta == 'si' || respuesta == 'SI') {
-            return gotoFlow(flowMenu)
-        } else if (respuesta != 'no' && respuesta != 'No') {
-            return fallBack()
-        }
-    }, [])
+
+        return gotoFlow(flowMenu)
+        //return gotoEnd()
+    }
+
+
+    )
 
 export default flowInformacionPersonal

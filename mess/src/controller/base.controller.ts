@@ -2,7 +2,7 @@ import { NextFunction, Response } from "express";
 import { DataSource, QueryRunner } from "typeorm";
 
 export class ClientException extends Error {
-  messageArr:string[]
+  messageArr: string[]
   constructor(message: string | string[], public extended: any = '', public code: number = 0) {
     if (message instanceof Array) {
       super(message.join(', '))
@@ -13,7 +13,7 @@ export class ClientException extends Error {
     }
     this.name = "ClientException";
     if (extended)
-      this.stack += "\nExtra: "+extended  
+      this.stack += "\nExtra: " + extended
   }
 }
 
@@ -26,20 +26,38 @@ export class BaseController {
    */
   jsonRes(recordset: any, res: Response, msg = "ok") {
     res.locals.stopTime = performance.now()
-    res.status(200).json({ msg: msg, data: recordset, stamp: new Date(), ms: res.locals.stopTime-res.locals.startTime});
+    res.status(200).json({ msg: msg, data: recordset, stamp: new Date(), ms: res.locals.stopTime - res.locals.startTime });
   }
 
   jsonResDirect(data: any, res: Response, msg = "ok") {
     res.status(200).json(data);
   }
 
-  getRemoteAddress(req:any) { 
-    return req.headers['x-origin-ip'] ??
-			(req.headers['x-forwarded-for'] as string)?.split(',')[0] ??
-			req.socket.remoteAddress
+  getRemoteAddress(req: any) {
+    if (req?.headers) 
+      return req.headers['x-origin-ip'] ??
+      (req.headers['x-forwarded-for'] as string)?.split(',')[0] ??
+      req.socket.remoteAddress
+    else
+      return '127.0.0.1'
   }
 
-  async hasGroup(req:any,group:string) { 
+
+  currencyPipe = Intl.NumberFormat("de-DE", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  dateFormatter = new Intl.DateTimeFormat('es-AR', { year: 'numeric', month: 'numeric', day: 'numeric' });
+
+  dateOutputFormat(date: Date, defaultText = 'sin fecha') {
+    if (!date || date.getFullYear()==9999) return defaultText
+    return this.dateFormatter.format(date)
+  }
+
+
+
+  async hasGroup(req: any, group: string) {
     let inGroup = false
     if (req?.groups) {
       for (const rowgroup of req?.groups) {
@@ -47,21 +65,32 @@ export class BaseController {
           inGroup = true
       }
     }
-    return (inGroup) ? true:false 
+    return (inGroup) ? true : false
   }
 
+
+  async getUsuarioId(res: any, queryRunner: QueryRunner) {
+    if (res.locals.PersonalId == 0) {
+      const usuario = await queryRunner.query(`SELECT UsuarioId FROM Usuario WHERE UsuarioPersonalId=@0`, [res.locals.PersonalId])
+      if (usuario.length > 0)
+        return usuario[0].UsuarioId
+    }
+    return null
+  }
+
+
   async hasAuthPersona(res: any, anio: number, mes: number, PersonalId_auth: number, queryRunner: QueryRunner) {
-    
+
     let fechaHastaAuth = new Date(anio, mes, 1);
     fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1);
     const PersonalId = res.locals.PersonalId
     if (PersonalId == PersonalId_auth)
       return true
-    if (PersonalId < 1) { 
+    if (PersonalId < 1) {
       return false
     }
 
-    const grupos = await this.getGruposActividad(queryRunner, res.locals.PersonalId,anio,mes)
+    const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
     let listGrupos = []
     for (const row of grupos)
       listGrupos.push(row.GrupoActividadId)
@@ -76,7 +105,7 @@ export class BaseController {
       ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${listGrupos.join(',')})
       AND gap.GrupoActividadJerarquicoComo = 'J'
       `,
-        [PersonalId_auth, anio,mes])
+        [PersonalId_auth, anio, mes])
       if (resPers.length > 0)
         return true
     }
@@ -142,14 +171,18 @@ export class BaseController {
                 `,
         [PersonalId_auth, anio, mes]
       )
-      if (resultPers.length > 0) { 
+      if (resultPers.length > 0) {
         //Encontré la persona.  Tengo permiso
         return true
       }
- 
+
     }
 
     return false;
+  }
+
+  getTimeString(stm: Date) {
+    return (stm) ? `${stm.getHours().toString().padStart(2, '0')}:${stm.getMinutes().toString().padStart(2, '0')}:${stm.getSeconds().toString().padStart(2, '0')}`:null
   }
 
   async hasAuthObjetivo(anio: number, mes: number, res: any, ObjetivoId: number, queryRunner: DataSource | QueryRunner) {
@@ -161,13 +194,13 @@ export class BaseController {
 
     if (PersonalId == "") return false
 
-    const grupos = await this.getGruposActividad(queryRunner, res.locals.PersonalId, anio,mes)
+    const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
     let listGrupos = []
     for (const row of grupos)
       listGrupos.push(row.GrupoActividadId)
-    
-    
-    if (listGrupos.length > 0) { 
+
+
+    if (listGrupos.length > 0) {
       let resultAuth = await queryRunner.query(
         `SELECT suc.SucursalId,
            
@@ -186,7 +219,7 @@ export class BaseController {
       
   
       WHERE obj.ObjetivoId=@0 AND gao.GrupoActividadId IN (${listGrupos})`,
-        [ObjetivoId, anio, mes, fechaHastaAuth ]
+        [ObjetivoId, anio, mes, fechaHastaAuth]
       );
 
 
@@ -195,40 +228,57 @@ export class BaseController {
     }
 
 
-   /*
+    /*
+ 
+     res.locals.groups.forEach(group => {
+       switch (SucursalId) {
+         case 0: //Sin sucursal
+           authSucursal = true;
+           break;
+         case 1:  //Central
+           if (group.indexOf("CENTRAL")!=-1)
+             authSucursal = true;
+           break;
+         case 2: //Formosa
+           if (group.indexOf("FORMOSA")!=-1)
+             authSucursal = true;
+           break;
+         case 3: //MDQ
+           if (group.indexOf("MDQ")!=-1)
+             authSucursal = true;
+           break;
+ 
+         default:
+           break;
+       }
+       if (group.indexOf("Administrativo")!=-1)
+         authAdministrativo = true;
+     })
+ 
+     authSucursal = true;
+     if (!authSucursal)
+       throw new ClientException(`No tiene permisos para realizar operación en la sucursal ${SucursalId}`)
+ */
 
-    res.locals.groups.forEach(group => {
-      switch (SucursalId) {
-        case 0: //Sin sucursal
-          authSucursal = true;
-          break;
-        case 1:  //Central
-          if (group.indexOf("CENTRAL")!=-1)
-            authSucursal = true;
-          break;
-        case 2: //Formosa
-          if (group.indexOf("FORMOSA")!=-1)
-            authSucursal = true;
-          break;
-        case 3: //MDQ
-          if (group.indexOf("MDQ")!=-1)
-            authSucursal = true;
-          break;
-
-        default:
-          break;
-      }
-      if (group.indexOf("Administrativo")!=-1)
-        authAdministrativo = true;
-    })
-
-    authSucursal = true;
-    if (!authSucursal)
-      throw new ClientException(`No tiene permisos para realizar operación en la sucursal ${SucursalId}`)
-*/
-    
     if (authAdministrativo) return true  //Si es administrativo no analizo el CUIT    
-    
+
+    return false
+  }
+  async hasAuthCargaDirecta(anio: number, mes: number, res: any, ObjetivoId: number, queryRunner: DataSource | QueryRunner) {
+
+    const PersonalId = res.locals.PersonalId
+
+    if (PersonalId == "") return false
+
+    let resultAuth = await queryRunner.query(
+      `SELECT aut.* FROM lige.dbo.percargadirecta aut 
+        WHERE aut.persona_id = @0 AND aut.objetivo_id = @1`,
+      [PersonalId,ObjetivoId]
+    );
+
+    if (resultAuth.length > 0)
+      return true
+
     return false
   }
 
@@ -248,13 +298,13 @@ export class BaseController {
     return den_numero
   }
 
-  async getGruposActividad(queryRunner: any, PersonalId:number, anio:number, mes:number) { 
+  static async getGruposActividad(queryRunner: any, PersonalId: number, anio: number, mes: number) {
     return await queryRunner.query(
       `SELECT DISTINCT gaj.GrupoActividadId, gaj.GrupoActividadJerarquicoComo, 1
       FroM GrupoActividadJerarquico gaj 
       WHERE gaj.GrupoActividadJerarquicoPersonalId = @0
       AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >   gaj.GrupoActividadJerarquicoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gaj.GrupoActividadJerarquicoHasta,'9999-12-31')`,
-      [PersonalId, anio,mes])
+      [PersonalId, anio, mes])
   }
 
   async rollbackTransaction(queryRunner: QueryRunner) {
@@ -264,5 +314,10 @@ export class BaseController {
     } catch (error2) {
       return Promise.resolve()
     }
-}
+  }
+
+  static isEmpty(value: any) {
+    return (value == null || (typeof value === "string" && value.trim().length === 0));
+  }
+
 }
