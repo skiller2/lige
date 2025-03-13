@@ -623,9 +623,11 @@ export class AsistenciaController extends BaseController {
 
 
   async setExcepcion(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
     let ConceptoId: number | null = null
+    const queryRunner = dataSource.createQueryRunner();
+
     try {
+      const usuarioId = await this.getUsuarioId(res,queryRunner)
       let {
         SucursalId,
         anio,
@@ -971,7 +973,7 @@ export class AsistenciaController extends BaseController {
           ConceptoId,
           ObjetivoId,
           null,
-          null,
+          usuarioId,
         ]
       );
 

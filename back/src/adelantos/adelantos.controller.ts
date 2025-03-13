@@ -225,7 +225,7 @@ export class AdelantosController extends BaseController {
         [personalId,FormaPrestamoId]
       );
       const now = new Date()
-      const hora = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
+      const hora = this.getTimeString(now)
       let today = now
       today.setHours(0, 0, 0, 0)
 
@@ -240,7 +240,7 @@ export class AdelantosController extends BaseController {
             )
           )[0].max) + 1;
 
-
+        const usuarioId = await this.getUsuarioId(res,queryRunner)
 
         const result = await queryRunner.query(
           `INSERT INTO PersonalPrestamo(
@@ -274,7 +274,7 @@ export class AdelantosController extends BaseController {
 
             null, //PersonalPrestamoJerarquicoId
             ip, //PersonalPrestamoPuesto
-            null, //PersonalPrestamoUsuarioId
+            usuarioId, //PersonalPrestamoUsuarioId
 
             today, //PersonalPrestamoDia
             hora, //PersonalPrestamoTiempo  

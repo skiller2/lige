@@ -768,12 +768,10 @@ cuit.PersonalCUITCUILCUIT,
 
       await this.setSituacionRevistaQuerys(queryRunner, PersonalId, req.body.SituacionId, now, req.body.Motivo)
       //Habilitacion necesaria
-      const Usuario = await queryRunner.query(`
-        SELECT UsuarioId FROM Usuario WHERE UsuarioPersonalId IN (@0)`, [res.locals.PersonalId]
-      )
-      const UsuarioId = (Usuario.length && Usuario[0].UsuarioId)? Usuario[0].UsuarioId : null
+      const usuarioId = await this.getUsuarioId(res,queryRunner)
+
       const ip = this.getRemoteAddress(req)
-      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, UsuarioId, ip)
+      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuarioId, ip)
 
       //Actas
       const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
@@ -1416,6 +1414,8 @@ console.log('infoDomicilio',infoDomicilio)
 
     try {
       await queryRunner.startTransaction()
+      const usuarioId = await this.getUsuarioId(res,queryRunner)
+      const ip = this.getRemoteAddress(req)
 
       const valForm = this.valPersonalForm(req.body,'U')
       if (valForm instanceof ClientException)
@@ -1456,12 +1456,8 @@ console.log('infoDomicilio',infoDomicilio)
         throw updatePersonalFamilia
 
       //Habilitacion Necesaria
-      const Usuario = await queryRunner.query(`
-        SELECT UsuarioId FROM Usuario WHERE UsuarioPersonalId IN (@0)`, [res.locals.PersonalId]
-      )
-      const UsuarioId = (Usuario.length && Usuario[0].UsuarioId)? Usuario[0].UsuarioId : null
-      const ip = this.getRemoteAddress(req)
-      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, UsuarioId, ip)
+
+      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuarioId, ip)
 
       //Actas
       const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
@@ -2175,9 +2171,8 @@ console.log('infoDomicilio',infoDomicilio)
     let yesterday: Date = new Date(Desde.getFullYear(), Desde.getMonth(), Desde.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
     let now:Date = new Date()
-    let time:string = now.getHours()+':'+now.getMinutes()+':'+now.getSeconds()
+    const time = this.getTimeString(now)
     now.setHours(0, 0, 0, 0)
-    const UsuarioId = usuarioId? usuarioId : null
     let GrupoActividadPersonalReasignado = 0
     
     //Obtengo el ultimo Grupo Actividad Personal
@@ -2232,7 +2227,7 @@ console.log('infoDomicilio',infoDomicilio)
         GrupoActividadPersonalId, GrupoActividadId, GrupoActividadPersonalPersonalId, GrupoActividadPersonalDesde, GrupoActividadPersonalReasignado,
         GrupoActividadPersonalPuesto, GrupoActividadPersonalUsuarioId, GrupoActividadPersonalDia, GrupoActividadPersonalTiempo
         ) VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8)
-        `, [GrupoActividadPersonalId, GrupoActividadId, PersonalId, Desde, GrupoActividadPersonalReasignado, ip, UsuarioId, now, time]
+        `, [GrupoActividadPersonalId, GrupoActividadId, PersonalId, Desde, GrupoActividadPersonalReasignado, ip, usuarioId, now, time]
       )
       
     }
@@ -2259,12 +2254,10 @@ console.log('infoDomicilio',infoDomicilio)
         campos_vacios.unshift('Debe completar los siguientes campos:')
         throw new ClientException(campos_vacios);
       }
-      const Usuario = await queryRunner.query(`
-        SELECT UsuarioId FROM Usuario WHERE UsuarioPersonalId IN (@0)`, [PersonaId]
-      )
-      const UsuarioId = (Usuario.length && Usuario[0].UsuarioId)? Usuario[0].UsuarioId : 0
 
-      await this.setGrupoActividadPersonalQuerys(queryRunner, PersonalId, GrupoActividadId, new Date(Desde), UsuarioId, ip)
+      const usuarioId = await this.getUsuarioId(res,queryRunner)
+
+      await this.setGrupoActividadPersonalQuerys(queryRunner, PersonalId, GrupoActividadId, new Date(Desde), usuarioId, ip)
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
@@ -2447,7 +2440,7 @@ console.log('infoDomicilio',infoDomicilio)
     }
   }
 
-  private async setPersonalHabilitacionNecesaria(queryRunner: any, personalId: number, habilitaciones:any[], usuarioId:any, ip:string) {
+  private async setPersonalHabilitacionNecesaria(queryRunner: any, personalId: number, habilitaciones:any[], usuarioId:number, ip:string) {
     //Compruebo si hubo cambios
     let cambios:boolean = false
     const lugaresOld = await this.getFormHabilitacionByPersonalIdQuery(queryRunner, personalId)
@@ -2462,9 +2455,8 @@ console.log('infoDomicilio',infoDomicilio)
     console.log('----------------------------------------');
     //Actualizo
     const now = new Date()
-    const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
-    console.log('time', time);
-    
+    const time = this.getTimeString(now)
+
     let PersonalHabilitacionNecesariaId:number = 0
     now.setHours(0,0,0,0)
     await queryRunner.query(`

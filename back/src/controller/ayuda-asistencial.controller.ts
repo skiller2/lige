@@ -706,6 +706,8 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
     const cantCuotas = req.body.cantCuotas
     const motivo:string = req.body.motivo
     const ip = req.socket.remoteAddress
+    const usuarioId = await this.getUsuarioId(res,queryRunner)
+
     let campos_vacios: any[] = []
     try {
       await queryRunner.startTransaction()
@@ -753,7 +755,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
         [personalId, formaId]
       );
       const now = new Date()
-      const hora = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
+      const hora = this.getTimeString(now)
       let today = now
       today.setHours(0, 0, 0, 0)
 
@@ -791,7 +793,7 @@ SELECT  CONCAT(pres.PersonalPrestamoId,'-', per.PersonalId) id,
 
             null, //PersonalPrestamoJerarquicoId
             ip, //PersonalPrestamoPuesto
-            null, //PersonalPrestamoUsuarioId
+            usuarioId, //PersonalPrestamoUsuarioId
 
             today, //PersonalPrestamoDia
             hora, //PersonalPrestamoTiempo 

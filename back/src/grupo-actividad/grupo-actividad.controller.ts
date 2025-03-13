@@ -584,9 +584,7 @@ export class GrupoActividadController extends BaseController {
 
         const ip = this.getRemoteAddress(req)
         const queryRunner = dataSource.createQueryRunner();
-
-        const usuarioIdquery = await queryRunner.query(`SELECT * FROM Usuario WHERE UsuarioId = @0`, [res.locals.PersonalId])
-        const usuarioId = usuarioIdquery > 0 ? usuarioIdquery : null
+        const usuarioId = await this.getUsuarioId(res,queryRunner)
 
         const fechaActual = new Date()
         let message = ""
@@ -637,12 +635,12 @@ export class GrupoActividadController extends BaseController {
 
                 let GrupoActividadPersonalUltNro = 0
                 let GrupoActividadJerarquicoUltNro = 0
-                let GrupoActividadUsuarioId = usuarioId
+                
                 let GrupoActividadObjetivoUltNro = 0
 
                 let day = new Date()
+                const time = this.getTimeString(day)
                 day.setHours(0, 0, 0, 0)
-                let time = day.toTimeString().split(' ')[0]
 
 
                 await queryRunner.query(`
@@ -668,7 +666,7 @@ export class GrupoActividadController extends BaseController {
                         ip,
                         day,
                         time,
-                        GrupoActividadUsuarioId,
+                        usuarioId,
                     params.GrupoActividadSucursalId,
                         GrupoActividadObjetivoUltNro
                     ]
@@ -691,10 +689,8 @@ export class GrupoActividadController extends BaseController {
 
         const ip = this.getRemoteAddress(req)
         const queryRunner = dataSource.createQueryRunner();
-
-        const usuarioIdquery = await queryRunner.query(`SELECT * FROM Usuario WHERE UsuarioId = @0`, [res.locals.PersonalId])
-        const usuarioId = usuarioIdquery > 0 ? usuarioIdquery : null
-
+        const usuarioId = await this.getUsuarioId(res, queryRunner)
+        
         let message = ""
         const params = req.body
 
@@ -807,8 +803,8 @@ export class GrupoActividadController extends BaseController {
 
 
                 let day = new Date()
+                const time = this.getTimeString(day)
                 day.setHours(0, 0, 0, 0)
-                let time = day.toTimeString().split(' ')[0]
 
 
                 let GrupoActividadJerarquicoUltNro = await queryRunner.query(` SELECT GrupoActividadJerarquicoUltNro FROM GrupoActividad WHERE GrupoActividadId =  @0`, [params.GrupoActividadDetalle.id])
@@ -884,11 +880,10 @@ export class GrupoActividadController extends BaseController {
 
         const ip = this.getRemoteAddress(req)
         const queryRunner = dataSource.createQueryRunner();
-
-        const usuarioIdquery = await queryRunner.query(`SELECT * FROM Usuario WHERE UsuarioId = @0`, [res.locals.PersonalId])
-        const usuarioId = usuarioIdquery > 0 ? usuarioIdquery : null
+        const usuarioId = await this.getUsuarioId(res,queryRunner)
 
         const fechaActual = new Date()
+        const time = this.getTimeString(fechaActual)
         let message = ""
         const params = req.body
 
@@ -897,7 +892,7 @@ export class GrupoActividadController extends BaseController {
             await queryRunner.startTransaction();
 
             fechaActual.setHours(0, 0, 0, 0)
-            let time = fechaActual.toTimeString().split(' ')[0]
+            
 
             let dataResultado = {}
 
@@ -1062,11 +1057,10 @@ export class GrupoActividadController extends BaseController {
 
         const ip = this.getRemoteAddress(req)
         const queryRunner = dataSource.createQueryRunner();
-
-        const usuarioIdquery = await queryRunner.query(`SELECT * FROM Usuario WHERE UsuarioId = @0`, [res.locals.PersonalId])
-        const usuarioId = usuarioIdquery > 0 ? usuarioIdquery : null
+        const usuarioId = await this.getUsuarioId(res,queryRunner)
 
         const fechaActual = new Date()
+        const time = this.getTimeString(fechaActual)
         let message = ""
         const params = req.body
 
@@ -1077,7 +1071,6 @@ export class GrupoActividadController extends BaseController {
             await queryRunner.startTransaction();
 
             fechaActual.setHours(0, 0, 0, 0)
-            let time = fechaActual.toTimeString().split(' ')[0]
 
             let dataResultado = {}
             let GrupoActividadPersonalHasta
