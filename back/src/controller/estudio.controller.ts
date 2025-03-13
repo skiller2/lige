@@ -186,4 +186,45 @@ export class EstudioController extends BaseController {
     }
 
   }
+
+  search(req: any, res: Response, next: NextFunction) {
+    const { fieldName, value } = req.body
+
+    let buscar = false;
+    let query: string = `SELECT * FROM TipoEstudio tipest
+    WHERE`;
+    switch (fieldName) {
+      case "TipoEstudioDescripcion":
+        const valueArray: Array<string> = value.split(/[\s,.]+/);
+        valueArray.forEach((element, index) => {
+          if (element.trim().length > 1) {
+            query += `(tipest.TipoEstudioDescripcion LIKE '%${element.trim()}%') AND  `;
+            buscar = true;
+          }
+        });
+        break;
+      case "TipoEstudioId":
+        if (value > 0) {
+          query += ` tipest.TipoEstudioId = '${value}' AND `;
+          buscar = true;
+        }
+        break;
+      default:
+        break;
+    }
+
+    if (buscar == false) {
+      this.jsonRes({ recordsArray: [] }, res);
+      return;
+    }
+
+    dataSource
+      .query((query += " 1=1"))
+      .then((records) => {
+        this.jsonRes({ recordsArray: records }, res);
+      })
+      .catch((error) => {
+        return next(error)
+      });
+  }
 }

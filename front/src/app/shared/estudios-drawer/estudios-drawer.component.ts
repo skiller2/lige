@@ -7,11 +7,14 @@ import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, debounceTime, switchMap } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
 import { ReactiveFormsModule } from '@angular/forms';
-import { PersonalSearchComponent } from '../personal-search/personal-search.component';
+import { PersonalSearchComponent } from '../personal-search/personal-search.component'
+import { EstudioSearchComponent } from '../estudio-search/estudio-search.component';
 import { CommonModule } from '@angular/common';
 import { SearchService } from '../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { FileUploadComponent } from "../../shared/file-upload/file-upload.component";
+import { CursoSearchComponent } from '../curso-search/curso-search.component';
+
 
 export interface Option {
   label: string;
@@ -20,7 +23,7 @@ export interface Option {
 
 @Component({
   selector: 'app-estudios-drawer',
-  imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, PersonalSearchComponent, CommonModule, FileUploadComponent],
+  imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, PersonalSearchComponent, CommonModule, FileUploadComponent, EstudioSearchComponent, CursoSearchComponent],
   templateUrl: './estudios-drawer.component.html',
   styleUrl: './estudios-drawer.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -28,9 +31,9 @@ export interface Option {
 export class EstudiosDrawerComponent {
   ngForm = viewChild.required(NgForm);
   PersonalId = model<number>(0)
+  EstudioId = model<number>(0)
   visibleHistorial = model<boolean>(false)
-  PersonalEstudioId = input.required<number>()
-  selectedPeriod = input.required<any>()
+  PersonalEstudioId = input.required<number>() 
   tituloDrawer = input.required<string>()
   openDrawerForConsult = input<boolean>(false)
   RefreshEstudio = model<boolean>(false)
@@ -44,7 +47,9 @@ export class EstudiosDrawerComponent {
   isSaving = model<boolean>(false)
   nivelEstudioOptions: Option[] = [];
   estadoEstudioOptions: Option[] = [];
-
+  currentDate = new Date()
+  anio = signal(this.currentDate.getFullYear())
+  mes = signal(this.currentDate.getMonth() + 1)
 
 
   placement: NzDrawerPlacement = 'left';
@@ -66,7 +71,7 @@ export class EstudiosDrawerComponent {
     const visible = this.visible()
     this.ngForm().form.reset()
     if (visible) {
-      const per = this.selectedPeriod()
+      //const per = this.selectedPeriod()
       if (this.PersonalEstudioId() > 0) {
        // let vals = await firstValueFrom(this.apiService.getEstudio(per.year, per.month, this.PersonalId(), this.PersonalEstudioId()));
         //this.PersonalIdForEdit = vals.PersonalId
@@ -89,10 +94,10 @@ export class EstudiosDrawerComponent {
   async save() {
     this.isSaving.set(true)
     try {
-      const periodo = this.selectedPeriod()
+      //const periodo = this.selectedPeriod()
       let vals = this.ngForm().value
-      vals.anioRequest = periodo.year
-      vals.mesRequest = periodo.month
+      //vals.anioRequest = periodo.year
+      //vals.mesRequest = periodo.month
       vals.Archivos = this.files
       vals.PersonalIdForEdit = this.PersonalIdForEdit
       //const res = await firstValueFrom(this.apiService.setEstudio(vals))

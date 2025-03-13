@@ -1,24 +1,54 @@
 <nz-card class="small-margin">
-  <div nz-row>
-   
-    <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse;">
-      <nz-button-group style="text-align: right;">
-        <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalId()>0)" nz-tooltip
-          nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
-        <button nz-button nzType="default" (click)="openDrawerforConsult()" nz-tooltip
-          nzTooltipTitle="{{ 'app.icon.consult' | i18n }}"><span nz-icon nzType="info-circle"
-            nzTheme="outline"></span></button>
-        <button nz-button nzType="default" (click)="openDrawerforNew()" nz-tooltip
-          nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-      </nz-button-group>
-    </div>
-  </div>
-  <app-estudios-drawer [(RefreshEstudio)]="RefreshEstudio" [(visibleHistorial)]="visibleHistorial"
-  [selectedPeriod]="selectedPeriod()" [openDrawerForConsult]="openDrawerForConsult" [tituloDrawer]="tituloDrawer"
-  [(visible)]="visibleDrawer" [PersonalId]="PersonalId()"
-  [PersonalEstudioId]="PersonalEstudioId"></app-estudios-drawer>
 
-  <app-table-estudios gridId="gridEdit1" [RefreshEstudio]="RefreshEstudio"></app-table-estudios>
+
+    <div nz-row class="contentStyle">
+        <div nz-col  class="listStyle">
+          <ul nz-menu nzMode="horizontal" style="display: flex;">
+            <li nz-menu-item nzMatchRouter>
+              <span nz-icon nzType=""></span>
+              <a [routerLink]="['/', 'ges', 'estudios', 'listado']">{{ 'app.segurosList' | i18n }}</a>
+            </li>
+          </ul>
+        </div>
+    
+        <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse; margin-bottom: 10px;">
+          <nz-button-group style="text-align: right;">
+      
+         
+                <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalId()>0)" nz-tooltip
+                  nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
+                <button nz-button nzType="default" (click)="openDrawerforConsult()" nz-tooltip
+                  nzTooltipTitle="{{ 'app.icon.consult' | i18n }}"><span nz-icon nzType="info-circle"
+                    nzTheme="outline"></span></button>
+                <button nz-button nzType="default" (click)="openDrawerforNew()" nz-tooltip
+                  nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+              </nz-button-group>
+      
+         
+      
+        </div>
+    
+      </div>
+    
+    
+      <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+        <nz-tab>
+          <a nz-tab-link routerLink="/ges/estudios/listado">Listado</a>
+          <ng-template nz-tab>
+            <div class="gridContainer container-fluid">
+              
+                <app-table-estudios gridId="gridEdit1" [RefreshEstudio]="RefreshEstudio"></app-table-estudios> 
+              
+            </div>
+          </ng-template>
+        </nz-tab>
+      </nz-tabset>
+
+
+      <app-estudios-drawer [(RefreshEstudio)]="RefreshEstudio" [(visibleHistorial)]="visibleHistorial"
+       [openDrawerForConsult]="openDrawerForConsult" [tituloDrawer]="tituloDrawer"
+      [(visible)]="visibleDrawer" [PersonalId]="PersonalId()"
+      [PersonalEstudioId]="PersonalEstudioId"></app-estudios-drawer>
 
 </nz-card>
 

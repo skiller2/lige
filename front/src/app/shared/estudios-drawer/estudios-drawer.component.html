@@ -19,27 +19,21 @@
         <nz-form-label [nzSpan]="5">Persona</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-            <app-personal-search name="PersonalId" ngModel (valueExtendedChange)="ngForm().form.patchValue({SucursalId:$event.SucursalId})" [anio]="selectedPeriod().year" [mes]="selectedPeriod().month"></app-personal-search>
+            <app-personal-search name="PersonalId" ngModel [anio]="anio()" [mes]="mes()"></app-personal-search>
             <p> </p>
-          </nz-input-group>
-        </nz-form-control>
-        <nz-form-control [nzSpan]="1">
-          <nz-input-group>
-            <button nz-button nzType="default" [disabled]="PersonalId() == 0 && this.ngForm().value.PersonalId == 0" (click)="openDrawerforConsultHistory()" nz-tooltip nzTooltipTitle="{{ 'app.icon.history' | i18n }}">
-              <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
-            </button>
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="5">Tipo de Estudio</nz-form-label>
+        <nz-form-label [nzSpan]="5">Nivel de Estudio</nz-form-label>
+      
         <nz-form-control>
-          <!-- <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Seleccione tipo" name="TipoEstudioId" ngModel (ngModelChange)="onTipoEstudioChange($event)">
-           <nz-option *ngFor="let option of tipoEstudioOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
-          </nz-select> -->
+          <app-estudio-search name="EstudioId" ngModel></app-estudio-search>
         </nz-form-control>
       </nz-form-item>
+
+      @if(this.ngForm().value.EstudioId && this.ngForm().value.EstudioId != 8){
 
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Título del Certificado</nz-form-label>
@@ -47,44 +41,22 @@
             <input nz-input name="TituloCertificado" ngModel />
           </nz-form-control>
         </nz-form-item>
-      
-        <nz-form-item>
-          <nz-form-label [nzSpan]="5">Curso</nz-form-label>
-          <nz-form-control>
-              <!-- <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Seleccione curso" name="CursoId" ngModel>
-                <nz-option *ngFor="let curso of cursosOptions" [nzLabel]="curso.Codigo + ' - ' + curso.CursoHabilitacionDescripcion" [nzValue]="curso.CursoId"></nz-option>
-              </nz-select> -->
-          </nz-form-control>
-        </nz-form-item>
+      }
+        @if(this.ngForm().value.EstudioId == 8){
+          <nz-form-item>
+            <nz-form-label [nzSpan]="5">Curso</nz-form-label>
+            <nz-form-control>
+              <app-curso-search name="CursoId" ngModel></app-curso-search>
+            </nz-form-control>
+          </nz-form-item>
+        }
+       
 
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Fecha Otorgado</nz-form-label>
         <nz-form-control>
           <nz-date-picker name="FechaOtorgado" ngModel></nz-date-picker>
-        </nz-form-control>
-      </nz-form-item>
-
-      <nz-form-item>
-        <nz-form-label [nzSpan]="5">Fecha Hasta</nz-form-label>
-        <nz-form-control>
-          <nz-date-picker name="FechaHasta" ngModel></nz-date-picker>
-        </nz-form-control>
-      </nz-form-item>
-
-      <nz-form-item>
-        <nz-form-label [nzSpan]="5">Estado</nz-form-label>
-        <nz-form-control>
-          <nz-select nzShowSearch nzAllowClear nzPlaceHolder="Seleccione estado" name="EstadoEstudioId" ngModel>
-            <nz-option *ngFor="let option of estadoEstudioOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
-
-      <nz-form-item>
-        <nz-form-label [nzSpan]="5">Observación</nz-form-label>
-        <nz-form-control>
-          <input nz-input name="Observacion" ngModel />
         </nz-form-control>
       </nz-form-item>
 

@@ -39,6 +39,7 @@ import { grupoActividadRouter } from "../grupo-actividad/grupo-actividad.routes"
 import { segurosRouter } from "../seguros/seguros.routes";
 import { reportesRouter } from "../reportes/reportes.routes";
 import { gestionDescuentosRouter } from "../gestion-descuentos/gestion-descuentos.routes";
+import { cursoRouter } from "../routes/curso.routes";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -81,4 +82,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/seguros",segurosRouter)
   server.setRoute("/api/reportes",reportesRouter)
   server.setRoute("/api/gestion-descuentos",gestionDescuentosRouter)
+  server.setRoute("/api/curso",cursoRouter)
 }

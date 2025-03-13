@@ -14,4 +14,8 @@ estudioRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(
 estudioRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
     estudioController.list(req, res, next)
   })
+
+estudioRouter.post('/search', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
+    estudioController.search(req, res, next)
+  })
   

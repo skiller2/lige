@@ -6,17 +6,18 @@ import { SettingsService } from '@delon/theme';
 import { TableEstudiosComponent } from '../../../shared/table-estudios/table-estudios.component'
 import { EstudiosDrawerComponent } from '../../../shared/estudios-drawer/estudios-drawer.component';
 
+
 @Component({
   selector: 'app-estudios',
   templateUrl: './estudios.component.html',
   styleUrls: ['./estudios.component.less'],
   standalone: true,
-  imports: [...SHARED_IMPORTS, CommonModule,TableEstudiosComponent, EstudiosDrawerComponent]
+  imports: [...SHARED_IMPORTS, CommonModule,TableEstudiosComponent, EstudiosDrawerComponent,]
 })
 export class EstudiosComponent {
 
   @ViewChild('estudiosForm', { static: true }) estudiosForm: NgForm = new NgForm([], []);
-  
+
   periodo: any;
   PersonalId = signal(0);
   PersonalEstudioId = 0;
@@ -31,17 +32,17 @@ export class EstudiosComponent {
   constructor(private settingsService: SettingsService) {}
 
   ngOnInit() {
-    const now = new Date();
-    setTimeout(() => {
-      const anio = Number(localStorage.getItem('anio')) > 0 
-        ? Number(localStorage.getItem('anio')) 
-        : now.getFullYear();
-      const mes = Number(localStorage.getItem('mes')) > 0
-        ? Number(localStorage.getItem('mes'))
-        : now.getMonth() + 1;
+   // const now = new Date();
+    //setTimeout(() => {
+        ///const anio = Number(localStorage.getItem('anio')) > 0 
+      //  ? Number(localStorage.getItem('anio')) 
+      //  : now.getFullYear();
+      //const mes = Number(localStorage.getItem('mes')) > 0
+      //  ? Number(localStorage.getItem('mes'))
+      //  : now.getMonth() + 1;
 
-      this.estudiosForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
-    }, 1);
+      //this.estudiosForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
+    //}, 1);
     this.settingsService.setLayout('collapsed', true);
   }
 
@@ -51,6 +52,8 @@ export class EstudiosComponent {
       this.PersonalEstudioId = event[0].PersonalEstudioId;
     }
   }
+
+ 
 
   openDrawerforEdit() {
     this.tituloDrawer = 'Editar Estudio';

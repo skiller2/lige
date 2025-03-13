@@ -46,6 +46,7 @@ import { GrupoActividadController } from "../grupo-actividad/grupo-actividad.con
 import { SegurosController } from "../seguros/seguros.controller"
 import { ReportesController } from "../reportes/reportes.controller"
 import { GestionDescuentosController } from "../gestion-descuentos/gestion-descuentos.controller"
+import { CursoController } from "../controller/curso.controller"
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -95,3 +96,4 @@ export const grupoActividadController = new GrupoActividadController();
 export const segurosController = new SegurosController();
 export const reportesController = new ReportesController();
 export const gestionDescuentosController = new GestionDescuentosController();
+export const cursoController = new CursoController();

@@ -6,14 +6,26 @@ input::-webkit-inner-spin-button {
 
 @media (min-width: 768px) {
   .listStyle {
-    margin-top: -2rem;
     justify-content: center;
     display: flex;
   }
 }
 
-.contentStyle {
-  display: flex;
-  justify-content: center;
+.contentStyle{
+  display: grid;
+  grid-template-columns: 90% 10%; /* Dos columnas */
+  justify-content: center; 
   align-items: center;
+}
+
+
+.btnProcessSeguro{
+border: 1px solid transparent;
 } 
+
+
+[nz-menu-item] span {
+display: block;
+width: 100%;
+cursor: pointer;
+}
