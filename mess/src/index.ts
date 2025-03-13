@@ -26,9 +26,9 @@ scheduleJob('*/1 * * * *', async function (fireDate) {
   for (const msg of listmsg) {
 
     console.log('sendMsg', BotServer.getSaludo(), msg.telefono, msg.texto_mensaje)
-    //await botServer.sendMsg(msg.telefono, msg.texto_mensaje)
+    await botServer.sendMsg(msg.telefono, BotServer.getSaludo())
     await delay(1000)
-    //await botServer.sendMsg(msg.telefono, msg.texto_mensaje)
+    await botServer.sendMsg(msg.telefono, msg.texto_mensaje)
     await ChatBotController.updColaMsg(msg.fecha_ingreso, msg.personal_id)
     await delay(2000)
   }

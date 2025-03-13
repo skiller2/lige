@@ -63,7 +63,8 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
         const res = await personalController.getPersonalfromTelefonoQuery(telefono)
 
         //force
-        res.push({cuit: '20300000001', codigo: '', PersonalSituacionRevistaSituacionId: 2, personalId: 699, name: 'Prueba probador'})
+        if (process.env.PESONALID_TEST)
+          res.push({cuit: '20300000001', codigo: '', PersonalSituacionRevistaSituacionId: 2, personalId: process.env.PESONALID_TEST, name: 'Prueba probador'})
 
         if (res.length) {
             if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
