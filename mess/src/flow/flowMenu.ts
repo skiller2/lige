@@ -5,6 +5,7 @@ import flowRemoveTel from './flowRemoveTel'
 import { chatBotController } from "../controller/controller.module";
 import { reset, stop } from "./flowIdle";
 import { botServer } from "src";
+import flowInformacionPersonal from "./flowInformacionPersonal";
 
 const delay = chatBotController.getDelay()
 
@@ -13,6 +14,7 @@ const flowMenu = addKeyword(EVENTS.ACTION)
         'Ingrese el número del tema a consultar',
         '1- *Monotributo*',
         '2- *Recibo de Retiro*',
+        '3- *Información Personal*',
         '9- *Desvincular teléfono*',
         // '3- *Pedido de Licencia*',
         // '4- *Envío de Constancia médica*'
@@ -30,6 +32,9 @@ const flowMenu = addKeyword(EVENTS.ACTION)
                     break;
                 case 2:
                     return gotoFlow(flowRecibo)
+                    break;
+                case 3:
+                    return gotoFlow(flowInformacionPersonal)
                     break;
                 case 9:
                     return gotoFlow(flowRemoveTel)
