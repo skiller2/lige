@@ -21,16 +21,22 @@ function delay(ms: number) {
 scheduleJob('*/1 * * * *', async function (fireDate) {
   const status = botServer.status().bot_online
   if (status != 'ONLINE') return
-  const listmsg = await ChatBotController.getColaMsg()
 
-  for (const msg of listmsg) {
+  const ahora = new Date();
+  const horas = ahora.getHours();
 
-    console.log('sendMsg', BotServer.getSaludo(), msg.telefono, msg.texto_mensaje)
-    await botServer.sendMsg(msg.telefono, BotServer.getSaludo())
-    await delay(1000)
-    await botServer.sendMsg(msg.telefono, msg.texto_mensaje)
-    await ChatBotController.updColaMsg(msg.fecha_ingreso, msg.personal_id)
-    await delay(2000)
+  if (horas >= 8 && horas <= 22) { 
+    const listmsg = await ChatBotController.getColaMsg()
+
+    for (const msg of listmsg) {
+  
+      console.log('sendMsg', BotServer.getSaludo(), msg.telefono, msg.texto_mensaje)
+      await botServer.sendMsg(msg.telefono, BotServer.getSaludo())
+      await delay(1000)
+      await botServer.sendMsg(msg.telefono, msg.texto_mensaje)
+      await ChatBotController.updColaMsg(msg.fecha_ingreso, msg.personal_id)
+      await delay(2000)
+    }
   }
 });
 
