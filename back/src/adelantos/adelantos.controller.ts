@@ -212,7 +212,7 @@ export class AdelantosController extends BaseController {
       const bot = await AccesoBotController.getBotStatus(perUltRecibo[0].anio, perUltRecibo[0].mes, queryRunner, [personalId])
 
       if (bot[0].visto != 1 && bot[0].doc_id >0) {
-        await AccesoBotController.enqueBotMsg(personalId,`Recuerde descargar el recibo del mes ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}`,`RECIBO${bot[0].doc_id}`,usuario,ip)
+        await AccesoBotController.enqueBotMsg(personalId,`Recuerde descargar el recibo ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}, se encuentra disponible`,`RECIBO${bot[0].doc_id}`,usuario,ip)
         throw new ClientException(`No se puede solicitar adelanto, el recibo del mes ${perUltRecibo[0].mes}/${perUltRecibo[0].anio} no ha sido visto por el usuario`)
       }
 
