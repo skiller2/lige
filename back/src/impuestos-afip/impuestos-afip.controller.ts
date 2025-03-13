@@ -411,9 +411,16 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
     importeMonto:number,
     file,
     pagenum,
-    forzado:boolean
+    forzado: boolean,
+    ip:string,
+    usuarioId:number
   ) {
-    let updateFile=false
+    let updateFile = false
+  
+    const actual = new Date()
+    const time = this.getTimeString(actual)
+    actual.setHours(0, 0, 0, 0)
+
     const [personalIDQuery] = await queryRunner.query(
       `SELECT cuit.PersonalId, per.PersonalOtroDescuentoUltNro, per.PersonalComprobantePagoAFIPUltNro, CONCAT(per.PersonalApellido,', ',per.PersonalNombre) ApellidoNombre, excep.PersonalExencionCUIT 
       FROM PersonalCUITCUIL cuit 
@@ -484,10 +491,10 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
             null,
             "",
             `${mesRequest}/${anioRequest}`, //detalle
-            null,
-            null,
-            null,
-            null
+            ip,
+            usuarioId,
+            actual,
+            time
           ]
         );
       }
@@ -577,6 +584,9 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
         //Call to writefile
         await queryRunner.startTransaction()
+        const usuarioId = await this.getUsuarioId(res,queryRunner)
+        const ip = this.getRemoteAddress(req)
+   
         await this.insertPDF(
           queryRunner,
           CUIT,
@@ -585,7 +595,9 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           importeMonto,
           file,
           null,
-          forzado
+          forzado,
+          ip,
+          usuarioId
         );
         await queryRunner.commitTransaction()
 
@@ -659,6 +671,9 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 
           try {
             await queryRunner.startTransaction()
+            const usuarioId = await this.getUsuarioId(res,queryRunner)
+            const ip = this.getRemoteAddress(req)
+        
             await this.insertPDF(
               queryRunner,
               CUIT,
@@ -667,7 +682,8 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
               importeMonto,
               file,
               pagenum,
-              forzado
+              forzado,
+              ip,usuarioId
             );
             await queryRunner.commitTransaction()
           } catch (err: any) {

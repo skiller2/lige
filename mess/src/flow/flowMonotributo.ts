@@ -78,7 +78,7 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
     
     })
     .addAnswer([
-        '¿Desea consulta algo mas?', 
+        '¿Desea consultar algo mas?', 
         'Responda "Si" o "No"'
     ], { capture: true, delay },  
         async (ctx, { gotoFlow, fallBack, state }) => {

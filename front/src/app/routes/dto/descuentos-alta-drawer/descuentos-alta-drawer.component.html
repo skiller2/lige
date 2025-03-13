@@ -1,0 +1,81 @@
+<nz-drawer [nzClosable]="false" [nzVisible]="visibleAltaDesc()" [nzPlacement]="placement" [nzWidth]="700"
+[nzTitle]="'Alta Descuentos'" (nzOnClose)="visibleAltaDesc.set(false)">
+  <ng-container *nzDrawerContent>
+
+    <nz-card nzType="inner" nzTitle="Agregar Nuevo Descuento" >
+      <form [formGroup]="formAltaDesc">
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Tipo</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <nz-select formControlName="DescuentoId" nzPlaceHolder="tipo" nzAllowClear
+            [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+            <ng-container *ngFor="let option of $optionsDescuento | async">
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+            </ng-container>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Personal</nz-form-label>
+        <nz-form-control [nzMd]="18">
+            <app-personal-search formControlName="PersonalId" [anio]="anio()" [mes]="mes()"/>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Aplica El</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <nz-date-picker ngMode="month" formControlName="AplicaEl" ></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Cant. de Cuotas</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <input nz-input placeholder="" formControlName="Cuotas" type="number" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="5">Importe</nz-form-label>
+        <nz-form-control [nzMd]="18">
+          <input nz-input placeholder="" formControlName="Importe" type="number" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formAltaDesc.pristine">
+            {{ 'app.btn.save' | i18n }}
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+
+    </form>
+    </nz-card>
+
+    <!-- <nz-form-control *ngIf="$listaBancoPer | async as listaBancoPer ">
+      <nz-table #personalBanco [nzData]="listaBancoPer" nzSize="small" [nzPageSize]="100000000"
+        [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+        <thead>
+          <tr>
+            <th nzWidth="230px">Banco</th>
+            <th>CBU</th>
+            <th nzWidth="110px">Desde</th>
+            <th nzWidth="110px">Hasta</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let data of personalBanco.data" class="">
+            <td>{{ data.Descripcion }}</td>
+            <td>{{ data.CBU }}</td>
+            <td>{{ data.Desde }}</td>
+            <td>{{ data.Hasta }}</td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </nz-form-control> -->
+
+  </ng-container>
+</nz-drawer>

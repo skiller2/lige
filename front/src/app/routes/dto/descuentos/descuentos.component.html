@@ -28,9 +28,9 @@
       </ul>
       
       <nz-button-group>
-        <!-- <button nz-button nzType="default" nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+        <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" (click)="openDrawerforAltaDescuentos()">
             <span nz-icon nzType="plus" nzTheme="outline"></span>
-        </button> -->
+        </button>
       </nz-button-group>
     </div>
   
@@ -46,14 +46,14 @@
       <nz-tab>
         <a nz-tab-link routerLink="/dto/descuentos/objetivos">Objetivos</a>
         <ng-template nz-tab>
-          <app-table-descuentos-objetivos #descObjetivos [anio]="anio()" [mes]="mes()" ></app-table-descuentos-objetivos>
+          <app-table-descuentos-objetivos [anio]="anio()" [mes]="mes()" ></app-table-descuentos-objetivos>
         </ng-template>
       </nz-tab>
   
       <nz-tab>
         <a nz-tab-link routerLink="/dto/descuentos/stock">Stock</a>
         <ng-template nz-tab>
-
+          <app-table-descuentos-stock [anio]="anio()" [mes]="mes()" ></app-table-descuentos-stock>
         </ng-template>
       </nz-tab>
   
@@ -65,4 +65,5 @@
       </nz-tab>
   
     </nz-tabset>
-  </nz-card>
+</nz-card>
+<app-descuentos-alta-drawer #altaDrawer [(visibleAltaDesc)]="visibleAltaDesc" ></app-descuentos-alta-drawer>

@@ -50,7 +50,11 @@ export class ReporteComponent {
       const res:any = await firstValueFrom(this.searchService.getInfoFilterReport(title).pipe(map((res: any) => res.value)))
 
 //TODO: Tomar valores por omision dentro del forEach
-      res.forEach((obj:any): void => { obj.Value = null });
+      res.forEach((obj: any): void => {
+        if (obj.DefaultValues.length > 0) {
+          obj.Value = obj.DefaultValues[0]
+        }
+      });
 
       this.filtrosReporte.set(res)
       this.isfilterLoad.set(true)

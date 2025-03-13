@@ -39,9 +39,17 @@ class SqlServerAdapter extends MemoryDB {
     if (ctx.keyword)
       this.listHistory[ctx.from] = ctx
     
-      const options_json = ctx.options ? JSON.stringify(ctx.options):null
-      await dataSource.query(`INSERT INTO lige.dbo.bot_log (stm, ref, keyword, answer, refSerialize, from_msg, options)
+    const options_json = ctx.options ? JSON.stringify(ctx.options) : null
+    let finished=false
+    while (!finished) {
+      try {
+        await dataSource.query(`INSERT INTO lige.dbo.bot_log (stm, ref, keyword, answer, refSerialize, from_msg, options)
         VALUES (@0,@1,@2,@3,@4,@5,@6)`, [new Date(), ctx.ref, ctx.keyword, ctx.answer, ctx.refSerialize, ctx.from, options_json])
+        finished=true
+      } catch (error) { 
+        finished=false
+      }
+    }
   }
 
 }

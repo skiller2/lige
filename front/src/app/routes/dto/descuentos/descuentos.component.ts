@@ -9,7 +9,8 @@ import { ApiService } from '../../../services/api.service';
 import { TableDescuentosPersonalComponent } from '../table-descuentos-personal/table-descuentos-personal.component';
 import { TableDescuentosObjetivosComponent } from '../table-descuentos-objetivos/table-descuentos-objetivos.component';
 import { TableDescuentosPrepagaComponent } from '../table-descuentos-prepaga/table-descuentos-prepaga.component';
-
+import { TableDescuentosStockComponent } from '../table-descuentos-stock/table-descuentos-stock.component';
+import { DescuentosAltaDrawerComponent } from '../descuentos-alta-drawer/descuentos-alta-drawer.component';
 
 @Component({
     selector: 'app-descuentos',
@@ -17,17 +18,19 @@ import { TableDescuentosPrepagaComponent } from '../table-descuentos-prepaga/tab
     styleUrls: ['./descuentos.component.less'],
     providers: [AngularUtilService],
     imports: [SHARED_IMPORTS, CommonModule, TableDescuentosPersonalComponent,
-        TableDescuentosObjetivosComponent, TableDescuentosPrepagaComponent],
-    changeDetection: ChangeDetectionStrategy.OnPush
+        TableDescuentosObjetivosComponent, TableDescuentosPrepagaComponent,
+        TableDescuentosStockComponent, DescuentosAltaDrawerComponent],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DescuentosComponent {
     periodo = signal(new Date())
     anio = computed(() => this.periodo()?.getFullYear())
     mes = computed(() => this.periodo()?.getMonth()+1)
+    visibleAltaDesc = model<boolean>(false)
 
-    childTablePersonal = viewChild.required<TableDescuentosPersonalComponent>('descPersonal')
-    childTableObjetivo = viewChild.required<TableDescuentosObjetivosComponent>('descObjetivos')
-    childTablePrepaga = viewChild.required<TableDescuentosPrepagaComponent>('descPrepaga')
+    openDrawerforAltaDescuentos(){
+      this.visibleAltaDesc.set(true)
+    }
 
     onTabsetChange(_event: any) {
         console.log('_event: ', _event);

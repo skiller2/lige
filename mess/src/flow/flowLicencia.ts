@@ -7,7 +7,7 @@ const delay = chatBotController.getDelay()
 
 const flowLicencia = addKeyword(['3','licencia'])
     .addAnswer([
-        '¿Desea consulta algo mas?', 
+        '¿Desea consultar algo mas?', 
         'Responda "Si" o "No"'
     ], { capture: true, delay },  
     async (ctx , { gotoFlow, fallBack }) => {

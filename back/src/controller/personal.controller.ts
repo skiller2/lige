@@ -768,12 +768,10 @@ cuit.PersonalCUITCUILCUIT,
 
       await this.setSituacionRevistaQuerys(queryRunner, PersonalId, req.body.SituacionId, now, req.body.Motivo)
       //Habilitacion necesaria
-      const Usuario = await queryRunner.query(`
-        SELECT UsuarioId FROM Usuario WHERE UsuarioPersonalId IN (@0)`, [res.locals.PersonalId]
-      )
-      const UsuarioId = (Usuario.length && Usuario[0].UsuarioId)? Usuario[0].UsuarioId : null
+      const usuarioId = await this.getUsuarioId(res,queryRunner)
+
       const ip = this.getRemoteAddress(req)
-      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, UsuarioId, ip)
+      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuarioId, ip)
 
       //Actas
       const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
@@ -826,6 +824,22 @@ cuit.PersonalCUITCUILCUIT,
     const docTitulo = (estudio.DocTitulo)?estudio.DocTitulo[0]:null
     const ultnro = await queryRunner.query(`SELECT PersonalEstudioUltNro FROM Personal WHERE PersonalId = @0 `, [personalId])
     const PersonalEstudioId = (ultnro[0]?.PersonalEstudioUltNro)?ultnro[0]?.PersonalEstudioUltNro+1:1
+
+    let DocumentoImagenEstudioId = null
+    if (docTitulo) {
+      const DocumentoImagenEstudio = await queryRunner.query(`
+        INSERT INTO DocumentoImagenEstudio (
+        PersonalId,
+        DocumentoImagenParametroId,
+        DocumentoImagenParametroDirectorioId
+        )
+        VALUES(@0,@1,@2)
+
+        SELECT MAX(DocumentoImagenEstudioId) as DocumentoImagenEstudioId FROM DocumentoImagenEstudio WHERE PersonalId IN (@0)
+      `, [personalId, 14, 1])
+      DocumentoImagenEstudioId = DocumentoImagenEstudio[0].DocumentoImagenEstudioId
+    }
+
     await queryRunner.query(`
       INSERT INTO PersonalEstudio (
       PersonalId,
@@ -833,17 +847,18 @@ cuit.PersonalCUITCUILCUIT,
       TipoEstudioId,
       EstadoEstudioId,
       PersonalEstudioTitulo,
-      PersonalEstudioAno
+      PersonalEstudioAno,
+      PersonalEstudioPagina1Id
       )
-      VALUES (@0,@1,@2,@3,@4,@5)`, [
-      personalId, PersonalEstudioId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAnio
+      VALUES (@0,@1,@2,@3,@4,@5,@6)`, [
+      personalId, PersonalEstudioId, tipoEstudioId, estadoEstudioId, estudioTitulo, estudioAnio, DocumentoImagenEstudioId
     ])
 
     await queryRunner.query(`
       UPDATE Personal SET PersonalEstudioUltNro = @1 WHERE PersonalId = @0`, [personalId, PersonalEstudioId])
 
     if (docTitulo) {
-      await this.setImagenEstudio(queryRunner, personalId, docTitulo)
+      await this.setImagenEstudio(queryRunner, personalId, docTitulo, DocumentoImagenEstudioId)
     }
   }
 
@@ -1033,7 +1048,7 @@ cuit.PersonalCUITCUILCUIT,
     
   }
 
-  async setImagenEstudio(queryRunner: any, personalId: any, file: any) {
+  async setImagenEstudio(queryRunner: any, personalId: any, file: any, DocumentoImagenEstudioId:number) {
     const type = file.mimetype.split('/')[1]
     const fieldname = file.fieldname
     let estudio = await queryRunner.query(`
@@ -1041,28 +1056,10 @@ cuit.PersonalCUITCUILCUIT,
       FROM DocumentoImagenEstudio est 
       JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = est.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  est.DocumentoImagenParametroId
       JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = est.DocumentoImagenParametroId
-      WHERE est.PersonalId IN (@0)
-      `, [personalId])
-    if (!estudio.length) {
-      await queryRunner.query(`
-        INSERT INTO DocumentoImagenEstudio (
-        PersonalId,
-        DocumentoImagenEstudioBlobTipoArchivo,
-        DocumentoImagenParametroId,
-        DocumentoImagenParametroDirectorioId
-        )
-        VALUES(@0,@1,@2,@3)
-      `, [personalId, type, 14, 1])
-      estudio = await queryRunner.query(`
-        SELECT est.DocumentoImagenEstudioId estudioId, dir.DocumentoImagenParametroDirectorioPath
-        FROM DocumentoImagenEstudio est 
-        JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = est.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId =  est.DocumentoImagenParametroId
-        JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = est.DocumentoImagenParametroId
-        WHERE est.PersonalId IN (@0)
-      `, [personalId])
-    }
+      WHERE est.PersonalId IN (@0) AND est.DocumentoImagenEstudioId IN (@1)
+      `, [personalId, DocumentoImagenEstudioId])
 
-    const estudioId = estudio[0].estudioId
+    const estudioId = DocumentoImagenEstudioId
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}.${type}`;
     const newFieldname = `${personalId}-${estudioId}-CERESTPAG1.${type}`
@@ -1074,11 +1071,8 @@ cuit.PersonalCUITCUILCUIT,
       DocumentoImagenEstudioBlobTipoArchivo = @2,
       DocumentoImagenParametroId = @3,
       DocumentoImagenParametroDirectorioId = @4
-      WHERE PersonalId IN (@0)`,
-      [personalId, newFieldname, type, 14, 1]
-    )
-    await queryRunner.query(`UPDATE PersonalEstudio SET PersonalEstudioPagina1Id = @0 WHERE PersonalId IN (@1)`,
-      [estudioId, personalId]
+      WHERE PersonalId IN (@0) AND DocumentoImagenEstudioId IN (@5)`,
+      [personalId, newFieldname, type, 14, 1, DocumentoImagenEstudioId]
     )
   }
 
@@ -1245,10 +1239,23 @@ console.log('infoDomicilio',infoDomicilio)
       if (infoEstudio.EstudioTitulo) {
         if (infoEstudio.PersonalEstudioId) {
           let find = oldStudies.find((study:any) => {return (study.PersonalEstudioId == infoEstudio.PersonalEstudioId)})
-          const Pagina1Id = find.PersonalEstudioPagina1Id
-          const Pagina2Id = find.PersonalEstudioPagina2Id
-          const Pagina3Id = find.PersonalEstudioPagina3Id
-          const Pagina4Id = find.PersonalEstudioPagina4Id
+          let Pagina1Id = find.PersonalEstudioPagina1Id
+          // const Pagina2Id = find.PersonalEstudioPagina2Id
+          // const Pagina3Id = find.PersonalEstudioPagina3Id
+          // const Pagina4Id = find.PersonalEstudioPagina4Id
+          if (!Pagina1Id && infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
+            const DocumentoImagenEstudio = await queryRunner.query(`
+              INSERT INTO DocumentoImagenEstudio (
+              PersonalId,
+              DocumentoImagenParametroId,
+              DocumentoImagenParametroDirectorioId
+              )
+              VALUES(@0,@1,@2)
+        
+              SELECT MAX(DocumentoImagenEstudioId) as DocumentoImagenEstudioId FROM DocumentoImagenEstudio WHERE PersonalId IN (@0)
+            `, [PersonalId, 14, 1])
+            Pagina1Id = DocumentoImagenEstudio[0].DocumentoImagenEstudioId
+          }
           await queryRunner.query(`
             INSERT INTO PersonalEstudio (
             PersonalId,
@@ -1257,17 +1264,19 @@ console.log('infoDomicilio',infoDomicilio)
             EstadoEstudioId,
             PersonalEstudioTitulo,
             PersonalEstudioAno,
-            PersonalEstudioPagina1Id, PersonalEstudioPagina2Id, PersonalEstudioPagina3Id, PersonalEstudioPagina4Id
+            PersonalEstudioPagina1Id
+            --PersonalEstudioPagina2Id, PersonalEstudioPagina3Id, PersonalEstudioPagina4Id
             )
-            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, [
+            VALUES (@0,@1,@2,@3,@4,@5,@6)`, [
             PersonalId, infoEstudio.PersonalEstudioId, infoEstudio.TipoEstudioId,
             infoEstudio.EstadoEstudioId, infoEstudio.EstudioTitulo, infoEstudio.EstudioAno,
-            Pagina1Id, Pagina2Id, Pagina3Id, Pagina4Id
+            Pagina1Id, 
+            //Pagina2Id, Pagina3Id, Pagina4Id
           ])
 
           if (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
             const docTitulo = infoEstudio.DocTitulo[0]
-            await this.setImagenEstudio(queryRunner, PersonalId, docTitulo)
+            await this.setImagenEstudio(queryRunner, PersonalId, docTitulo, Pagina1Id)
           }
 
         }else{
@@ -1405,6 +1414,8 @@ console.log('infoDomicilio',infoDomicilio)
 
     try {
       await queryRunner.startTransaction()
+      const usuarioId = await this.getUsuarioId(res,queryRunner)
+      const ip = this.getRemoteAddress(req)
 
       const valForm = this.valPersonalForm(req.body,'U')
       if (valForm instanceof ClientException)
@@ -1445,12 +1456,8 @@ console.log('infoDomicilio',infoDomicilio)
         throw updatePersonalFamilia
 
       //Habilitacion Necesaria
-      const Usuario = await queryRunner.query(`
-        SELECT UsuarioId FROM Usuario WHERE UsuarioPersonalId IN (@0)`, [res.locals.PersonalId]
-      )
-      const UsuarioId = (Usuario.length && Usuario[0].UsuarioId)? Usuario[0].UsuarioId : null
-      const ip = this.getRemoteAddress(req)
-      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, UsuarioId, ip)
+
+      await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuarioId, ip)
 
       //Actas
       const valActas = await this.setActasQuerys(queryRunner, PersonalId, actas)
@@ -2164,9 +2171,8 @@ console.log('infoDomicilio',infoDomicilio)
     let yesterday: Date = new Date(Desde.getFullYear(), Desde.getMonth(), Desde.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
     let now:Date = new Date()
-    let time:string = now.getHours()+':'+now.getMinutes()+':'+now.getSeconds()
+    const time = this.getTimeString(now)
     now.setHours(0, 0, 0, 0)
-    const UsuarioId = usuarioId? usuarioId : null
     let GrupoActividadPersonalReasignado = 0
     
     //Obtengo el ultimo Grupo Actividad Personal
@@ -2221,7 +2227,7 @@ console.log('infoDomicilio',infoDomicilio)
         GrupoActividadPersonalId, GrupoActividadId, GrupoActividadPersonalPersonalId, GrupoActividadPersonalDesde, GrupoActividadPersonalReasignado,
         GrupoActividadPersonalPuesto, GrupoActividadPersonalUsuarioId, GrupoActividadPersonalDia, GrupoActividadPersonalTiempo
         ) VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8)
-        `, [GrupoActividadPersonalId, GrupoActividadId, PersonalId, Desde, GrupoActividadPersonalReasignado, ip, UsuarioId, now, time]
+        `, [GrupoActividadPersonalId, GrupoActividadId, PersonalId, Desde, GrupoActividadPersonalReasignado, ip, usuarioId, now, time]
       )
       
     }
@@ -2248,12 +2254,10 @@ console.log('infoDomicilio',infoDomicilio)
         campos_vacios.unshift('Debe completar los siguientes campos:')
         throw new ClientException(campos_vacios);
       }
-      const Usuario = await queryRunner.query(`
-        SELECT UsuarioId FROM Usuario WHERE UsuarioPersonalId IN (@0)`, [PersonaId]
-      )
-      const UsuarioId = (Usuario.length && Usuario[0].UsuarioId)? Usuario[0].UsuarioId : 0
 
-      await this.setGrupoActividadPersonalQuerys(queryRunner, PersonalId, GrupoActividadId, new Date(Desde), UsuarioId, ip)
+      const usuarioId = await this.getUsuarioId(res,queryRunner)
+
+      await this.setGrupoActividadPersonalQuerys(queryRunner, PersonalId, GrupoActividadId, new Date(Desde), usuarioId, ip)
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
@@ -2436,7 +2440,7 @@ console.log('infoDomicilio',infoDomicilio)
     }
   }
 
-  private async setPersonalHabilitacionNecesaria(queryRunner: any, personalId: number, habilitaciones:any[], usuarioId:any, ip:string) {
+  private async setPersonalHabilitacionNecesaria(queryRunner: any, personalId: number, habilitaciones:any[], usuarioId:number, ip:string) {
     //Compruebo si hubo cambios
     let cambios:boolean = false
     const lugaresOld = await this.getFormHabilitacionByPersonalIdQuery(queryRunner, personalId)
@@ -2451,9 +2455,8 @@ console.log('infoDomicilio',infoDomicilio)
     console.log('----------------------------------------');
     //Actualizo
     const now = new Date()
-    const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
-    console.log('time', time);
-    
+    const time = this.getTimeString(now)
+
     let PersonalHabilitacionNecesariaId:number = 0
     now.setHours(0,0,0,0)
     await queryRunner.query(`

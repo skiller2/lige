@@ -341,6 +341,7 @@ export class ApiService {
             col.cssClass = 'text-right'
             //col.params.parseDateAsUtc = true
           } else if (col.type == 'date') {
+            col.saveOutputType = 'dateUtc'
             col.formatter = Formatters['dateEuro']
             col.editor = { model: Editors['date'] }
             col.cssClass = 'text-right'
@@ -1326,6 +1327,15 @@ export class ApiService {
   }
 
   getDescuentosPrepaga(options: any, anio:number, mes:number){
+    if (!anio && !mes) return of([]);
+    return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/prepaga`, {options, anio, mes})
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
+  getDescuentosStock(options: any, anio:number, mes:number){
     if (!anio && !mes) return of([]);
     return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/list/prepaga`, {options, anio, mes})
       .pipe(

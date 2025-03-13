@@ -68,6 +68,17 @@ export class BaseController {
     return (inGroup) ? true : false
   }
 
+
+  async getUsuarioId(res: any, queryRunner: QueryRunner) {
+    if (res.locals.PersonalId == 0) {
+      const usuario = await queryRunner.query(`SELECT UsuarioId FROM Usuario WHERE UsuarioPersonalId=@0`, [res.locals.PersonalId])
+      if (usuario.length > 0)
+        return usuario[0].UsuarioId
+    }
+    return null
+  }
+
+
   async hasAuthPersona(res: any, anio: number, mes: number, PersonalId_auth: number, queryRunner: QueryRunner) {
 
     let fechaHastaAuth = new Date(anio, mes, 1);
@@ -168,6 +179,10 @@ export class BaseController {
     }
 
     return false;
+  }
+
+  getTimeString(stm: Date) {
+    return (stm) ? `${stm.getHours().toString().padStart(2, '0')}:${stm.getMinutes().toString().padStart(2, '0')}:${stm.getSeconds().toString().padStart(2, '0')}`:null
   }
 
   async hasAuthObjetivo(anio: number, mes: number, res: any, ObjetivoId: number, queryRunner: DataSource | QueryRunner) {

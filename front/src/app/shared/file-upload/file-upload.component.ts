@@ -153,8 +153,6 @@ export class FileUploadComponent implements ControlValueAccessor {
           await firstValueFrom(this.apiService.deleteArchivosImagen(this.ArchivoIdForDelete, this.tableForSearch()))
         }
         this.formChange$.next('');
-        let cant = this.cantFilesAnteriores()
-        this.cantFilesAnteriores.set(--cant)
       }
       this.propagateChange(this.files())
 
