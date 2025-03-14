@@ -48,6 +48,14 @@
         [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForPersonalSearch'"
         (keydown.enter)="handleInputConfirm()" />
 
+      <app-estudio-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+        [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForNivelEstudioSearch'"
+        (keydown.enter)="handleInputConfirm()" />
+
+        <app-curso-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+        [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForCursoSearch'"
+        (keydown.enter)="handleInputConfirm()" />
+
       <app-seguro-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
         [(valueExtended)]="valueExtended" *ngIf="selections.field.searchComponent=='inpurForTipoSeguroSearch'"
         (keydown.enter)="handleInputConfirm()" />

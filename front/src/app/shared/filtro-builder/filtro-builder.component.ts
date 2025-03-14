@@ -25,7 +25,8 @@ import { RequirenteSearchComponent } from '../requirente-search/requirente-searc
 import { DescripcionProductoSearchComponent } from "../../shared/descripcion-producto-search/descripcion-producto-search.component"
 import { AdministradorSearchComponent } from "../../shared/administrador-search/administrador-search.component"
 import { SeguroSearchComponent } from "../../shared/seguro-search/seguro-search.component"
-
+import { EstudioSearchComponent } from '../estudio-search/estudio-search.component';
+import { CursoSearchComponent } from '../curso-search/curso-search.component';
 
 type listOptionsT = {
   filtros: any[],
@@ -45,7 +46,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
     selector: 'shared-filtro-builder',
     imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
         ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent,
-        RequirenteSearchComponent, AdministradorSearchComponent,SeguroSearchComponent
+        RequirenteSearchComponent, AdministradorSearchComponent,SeguroSearchComponent, EstudioSearchComponent, CursoSearchComponent
     ],
     templateUrl: './filtro-builder.component.html',
     styles: [],
@@ -174,6 +175,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   }
 
   handleInputConfirm() {
+ 
     if (this.verifySelections()) {
       let value:any
 
@@ -379,6 +381,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   async addFilter(field: string, condition: string, operator: string, value: any, forced: boolean) {
     const fieldObj: any = this.fieldsToSelect().filter(x => x.field === field)[0]
+
     if (!fieldObj)
       return
     let label = ''
@@ -397,6 +400,17 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       }
       label = result
     }
+
+    if (fieldObj.searchComponent == 'inpurForNivelEstudioSearch') {
+      const nivelEstudio = await firstValueFrom(this.searchService.getEstudioFromName('TipoEstudioId', value))
+      label = nivelEstudio[0].TipoEstudioDescripcion
+    }
+
+    if (fieldObj.searchComponent == 'inpurForCursoSearch') {
+      const curso = await firstValueFrom(this.searchService.getCursoFromName('CursoHabilitacionId', value))
+      label = curso[0].CursoHabilitacionDescripcion
+    }
+    
 
     this.selections = { field: fieldObj, condition, operator, value, label, forced }
     this.handleInputConfirm()

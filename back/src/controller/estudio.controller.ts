@@ -37,6 +37,17 @@ const listaColumnas: any[] = [
     searchHidden: true
   },
   {
+    name: "Apellido Nombre ",
+    type: "number",
+    id: "PersonalId",
+    field: "PersonalId",
+    fieldName: "perest.PersonalId",
+    searchComponent: "inpurForPersonalSearch",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
+  },
+  {
     name: "Tipo",
     type: "string",
     id: "TipoEstudioDescripcion",
@@ -45,6 +56,17 @@ const listaColumnas: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true
+  },
+  {
+    name: "Tipo De Estudio",
+    type: "number",
+    id: "TipoEstudioId",
+    field: "TipoEstudioId",
+    fieldName: "perest.TipoEstudioId",
+    searchComponent: "inpurForNivelEstudioSearch",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,  
   },
   {
     name: "Título",
@@ -67,14 +89,26 @@ const listaColumnas: any[] = [
     searchHidden: true
   },
   {
+    name: "Curso ",
+    type: "string",
+    id: "CursoHabilitacionId",
+    field: "CursoHabilitacionId",
+    fieldName: "cur.CursoHabilitacionId",
+    searchComponent: "inpurForCursoSearch",
+    sortable: true,
+    searchHidden: false,
+    hidden: true, 
+  },
+  {
     name: "Fecha Otorgado",
     type: "date",
     id: "PersonalEstudioOtorgado",
     field: "PersonalEstudioOtorgado",
     fieldName: "perest.PersonalEstudioOtorgado",
+    searchComponent: "inpurForFechaSearch",
     sortable: true,
+    searchHidden: false,
     hidden: false,
-    searchHidden: true
   },
   {
     name: "Hasta",
@@ -82,9 +116,10 @@ const listaColumnas: any[] = [
     id: "PersonalEstudioHasta",
     field: "PersonalEstudioHasta",
     fieldName: "perest.PersonalEstudioHasta",
+    searchComponent: "inpurForFechaSearch",
     sortable: true,
+    searchHidden: false,
     hidden: false,
-    searchHidden: true
   }
 ];
 
@@ -151,11 +186,13 @@ export class EstudioController extends BaseController {
           ,cuit.PersonalCUITCUILCUIT
           ,perest.PersonalEstudioId
           ,perest.PersonalId
+          ,perest.TipoEstudioId
           ,perest.PersonalEstudioTitulo
           ,perest.PersonalEstudioOtorgado
           ,perest.PersonalEstudioHasta
           ,tipest.TipoEstudioDescripcion
           ,cur.CursoHabilitacionDescripcion
+          ,cur.CursoHabilitacionId
 
         FROM PersonalEstudio perest
 

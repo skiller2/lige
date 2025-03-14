@@ -3,7 +3,7 @@
   nzServerSearch (nzOnSearch)="search($event)">
   <ng-container *ngFor="let option of $optionsArray | async">
     <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.CursoHabilitacionId"
-      [nzLabel]="option.CursoHabilitacionDescripcion +' '+option.CursoHabilitacionCodigo" />
+      [nzLabel]="option.CursoHabilitacionDescripcion + (option.CursoHabilitacionCodigo ? ' ' + option.CursoHabilitacionCodigo : '')" />
   </ng-container>
   <nz-option *ngIf="extendedOption.CursoId >0 " [nzValue]="extendedOption.CursoId"
     [nzLabel]="extendedOption.TipoCursoDescripcion" />

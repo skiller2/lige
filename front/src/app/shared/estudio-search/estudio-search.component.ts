@@ -1,4 +1,4 @@
-import { Component, EventEmitter, ViewChild, forwardRef, input, model, signal } from '@angular/core'
+import { Component, EventEmitter, Input, Output, ViewChild, forwardRef, input, model, signal } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
@@ -33,8 +33,8 @@ import { CommonModule } from '@angular/common'
 export class EstudioSearchComponent implements ControlValueAccessor {
   constructor(private searchService: SearchService) { }
 
-  valueExtended = input<any>()
-  valueExtendedChange = model<any>()
+  @Input() valueExtended: any
+  @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("esc") esc!: NzSelectComponent
   
   private isDisabled = false
@@ -94,7 +94,7 @@ export class EstudioSearchComponent implements ControlValueAccessor {
       this._selectedId.set(val)
 
       if (val === '' || val === '0') {
-        this.valueExtendedChange.set({})
+        this.valueExtendedEmitter.emit({})
         if (this._selected() !== '') {
           this._selected.set('')
         }
@@ -112,7 +112,7 @@ export class EstudioSearchComponent implements ControlValueAccessor {
               TipoEstudioDescripcion: res[0]?.TipoEstudioDescripcion 
             })
             this._selected.set(val)
-            this.valueExtendedChange.set(this.extendedOption())
+            this.valueExtendedEmitter.emit(this.extendedOption())
             this.propagateChange(val)
           }))
       )
