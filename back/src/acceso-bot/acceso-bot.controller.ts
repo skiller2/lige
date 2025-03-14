@@ -695,7 +695,7 @@ export class AccesoBotController extends BaseController {
         const fechaActual = new Date()
         try {
             const existsTel = await queryRunner.query(`SELECT * FROM lige.dbo.regtelefonopersonal WHERE personal_id = @0`, [personal_id]) 
-            if (!existsTel) throw new ClientException(`El personal no tiene un telefono registrado.`)
+            if (existsTel.length==0) throw new ClientException(`El personal no tiene un telefono registrado.`)
     
             await queryRunner
                 .query(`INSERT INTO lige.dbo.bot_cola_mensajes (fecha_ingreso, personal_id, clase_mensaje, texto_mensaje, fecha_proceso, aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_fecha_mod, aud_ip_mod) 
