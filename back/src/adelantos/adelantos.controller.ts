@@ -211,9 +211,19 @@ export class AdelantosController extends BaseController {
 
       const bot = await AccesoBotController.getBotStatus(perUltRecibo[0].anio, perUltRecibo[0].mes, queryRunner, [personalId])
 
-      if (bot[0].visto != 1 && bot[0].doc_id >0) {
-        await AccesoBotController.enqueBotMsg(personalId,`Recuerde descargar el recibo ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}, se encuentra disponible`,`RECIBO${bot[0].doc_id}`,usuario,ip)
-        throw new ClientException(`No se puede solicitar adelanto, el recibo del mes ${perUltRecibo[0].mes}/${perUltRecibo[0].anio} no ha sido visto por el usuario`)
+      if (bot[0].visto != 1 && bot[0].doc_id > 0) {
+        let errormsg: string[] = []
+
+        if (bot[0].registrado == 0) {
+          errormsg.push(`No se puede solicitar adelanto, la persona no se encuentra registrada en el Bot`)
+        } else {
+
+          errormsg.push(`No se puede solicitar adelanto, el recibo del mes ${perUltRecibo[0].mes}/${perUltRecibo[0].anio} no ha sido visto por la persona`)
+
+          const sendit = await AccesoBotController.enqueBotMsg(personalId, `Recuerde descargar el recibo ${perUltRecibo[0].mes}/${perUltRecibo[0].anio}, se encuentra disponible`, `RECIBO${bot[0].doc_id}`, usuario, ip)
+          if (sendit) errormsg.push('Se envió notificación a la persona recordando que descargue el recibo')
+        }
+        throw new ClientException(errormsg)
       }
 
       const FormaPrestamo = await queryRunner.query(`SELECT fp.FormaPrestamoDescripcion FROM FormaPrestamo fp WHERE fp.FormaPrestamoId = @0`, [FormaPrestamoId])
