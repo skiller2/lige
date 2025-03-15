@@ -5,6 +5,7 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import { Options } from "../schemas/filtro";
 import { QueryRunner } from "typeorm";
 
+
 const listaColumnas: any[] = [
   {
     id: "id",
@@ -264,4 +265,131 @@ export class EstudioController extends BaseController {
         return next(error)
       });
   }
+
+  async setEstudio(req: any, res: Response, next: NextFunction) {
+    let { 
+     PersonalId,
+     TipoEstudioId, // Primario secundario, terciario, universitario, curso
+     PersonalEstudioCursoId, // tipo de curso
+     PersonalEstudioTitulo, //titulo otorgado
+     PersonalEstudioOtorgado, // fecha desde
+     } = req.body
+
+    console.log("req.body", req.body)
+    
+    const queryRunner = dataSource.createQueryRunner()
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+
+      await this.validateFormObjetivos(req.body)
+
+      const EstadoEstudioId = 2
+      let PersonalEstudioHasta = null
+      PersonalEstudioOtorgado = new Date(new Date(PersonalEstudioOtorgado).setHours(0, 0, 0, 0))
+
+      // Calculo de fecha hasta para curso de habilitacion
+      if (TipoEstudioId == 8) {
+
+        const CursoHabilitacionQuery = await queryRunner.query(`
+          SELECT * FROM CursoHabilitacion
+          WHERE CursoHabilitacionId = ${PersonalEstudioCursoId}
+        `)
+        const CursoHabilitacionVigencia = CursoHabilitacionQuery[0].CursoHabilitacionVigencia
+
+        if(CursoHabilitacionVigencia){
+          let fechaTemp = new Date(new Date(PersonalEstudioOtorgado).getTime() + (CursoHabilitacionVigencia * 24 * 60 * 60 * 1000))
+          PersonalEstudioHasta = new Date(fechaTemp.getFullYear(), fechaTemp.getMonth(), fechaTemp.getDate(), 0, 0, 0, 0)
+        }
+
+      }
+    
+      let PersonalEstudioId = await queryRunner.query(`SELECT MAX(pe.PersonalEstudioId) as PersonalEstudioId FROM  PersonalEstudio pe WHERE PersonalId = @0`, [PersonalId])
+
+      if(PersonalEstudioId[0].PersonalEstudioId)
+        PersonalEstudioId = PersonalEstudioId[0].PersonalEstudioId + 1
+      else
+        PersonalEstudioId = 1
+
+      console.log("fechaHasta", PersonalEstudioHasta)
+      console.log("PersonalEstudioId", PersonalEstudioId)
+
+      //throw new ClientException(`test.`)
+
+      await queryRunner.query(`
+        INSERT INTO PersonalEstudio (
+          PersonalId,
+          PersonalEstudioId,
+          TipoEstudioId,
+          EstadoEstudioId,
+          PersonalEstudioTitulo,
+          PersonalEstudioCursoId,
+          PersonalEstudioOtorgado,
+          PersonalEstudioHasta
+        ) VALUES (
+        @0,@1, @2,@3,@4, @5, @6,@7
+        )`,[
+          PersonalId,
+          PersonalEstudioId,
+          TipoEstudioId,
+          EstadoEstudioId,
+          PersonalEstudioTitulo,
+          PersonalEstudioCursoId,
+          PersonalEstudioOtorgado,
+          PersonalEstudioHasta]);
+
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res, 'Carga Exitosa')
+    } catch (error) {
+      await queryRunner.rollbackTransaction()
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+
+  }
+
+  async validateFormObjetivos(params: any) {
+
+    if (!params.PersonalId) {
+        throw new ClientException(`Debe completar el campo Persona.`)
+    }
+    if (!params.TipoEstudioId) {
+        throw new ClientException(`Debe completar el campo Nivel de Estudio.`)
+    }
+    if (!params.PersonalEstudioOtorgado) {
+        throw new ClientException(`Debe completar el campo Fecha Otorgado.`)
+    }
+
+
+    if (params.TipoEstudioId == 8) {
+      if (!params.PersonalEstudioCursoId) {
+        throw new ClientException(`Debe completar el campo Curso.`)
+      }
+    }else{
+      if (!params.PersonalEstudioTitulo) {
+        throw new ClientException(`Debe completar el campo Título del Certificado.`)
+      }
+    }
+  }
+
+  async getEstudio(req: any, res: Response, next: NextFunction) {
+
+    const { PersonalId, PersonalEstudioId } = req.params
+    const queryRunner = dataSource.createQueryRunner()
+    
+    try {
+
+      let result = await queryRunner.query(`
+        SELECT * FROM PersonalEstudio
+        WHERE PersonalId = @0 AND PersonalEstudioId = @1
+      `, [PersonalId, PersonalEstudioId])
+      this.jsonRes(result[0], res);
+    } catch (error) {
+      return next(error)
+    }
+
+  }
+
 }

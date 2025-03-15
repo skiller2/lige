@@ -984,6 +984,16 @@ export class ApiService {
 
   }
 
+  getEstudio(PersonalId: number, PersonalEstudioId: number) {
+
+    return this.http.get<ResponseJSON<any>>(`/api/estudio/${PersonalId}/${PersonalEstudioId}`).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([])),
+
+    )
+
+  }
+
   getAccesoBot(PersonalId: number) {
 
     return this.http.get<ResponseJSON<any>>(`/api/acceso-bot/${PersonalId}`).pipe(
@@ -1031,6 +1041,12 @@ export class ApiService {
       tap((res: ResponseJSON<any>) => this.response(res))
     )
 
+  }
+
+  deleteEstudio(vals: any) {
+    return this.http.delete<ResponseJSON<any>>(`/api/estudio`,  vals ).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    )
   }
 
   deleteCliente(vals: any) {
@@ -1089,6 +1105,15 @@ export class ApiService {
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
+  }
+
+  deleteArchivosEstudios(deleteId: any) {
+    const parameter = [deleteId]
+    this.notification.success('Respuesta', `Inicio Borrado `);
+
+    return this.http.delete<ResponseJSON<any>>('/api/estudio/deleteArchivo', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),                
+    )
   }
 
   deleteArchivosImagen(deleteId: number, tableSearch:string) {
@@ -1349,6 +1374,12 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>('/api/estudio/list', parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
+    );
+  }
+
+  setEstudio( values:any){
+    return this.http.post<ResponseJSON<any>>(`/api/estudio/setestudio`, values).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }
 

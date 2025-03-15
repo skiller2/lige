@@ -3,60 +3,43 @@
   <ng-container *nzDrawerContent>
     @if (cambios()|async) {}
     <form nz-form ngForm>
-      <nz-form-item style="display:none">
-        <nz-form-label [nzSpan]="3">SucursalId</nz-form-label>
-        <nz-form-control [nzSpan]="19">
-          <input nz-input name="SucursalId" ngModel />
-        </nz-form-control>
-      </nz-form-item>
-      <nz-form-item style="display:none">
-        <nz-form-label [nzSpan]="3">PersonalEstudioId</nz-form-label>
-        <nz-form-control [nzSpan]="19">
-          <input nz-input name="PersonalEstudioId" ngModel />
-        </nz-form-control>
-      </nz-form-item>
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Persona</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
             <app-personal-search name="PersonalId" ngModel [anio]="anio()" [mes]="mes()"></app-personal-search>
-            <p> </p>
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Nivel de Estudio</nz-form-label>
-      
         <nz-form-control>
-          <app-estudio-search name="EstudioId" ngModel></app-estudio-search>
+          <app-estudio-search name="TipoEstudioId" ngModel></app-estudio-search>
         </nz-form-control>
       </nz-form-item>
 
-      @if(this.ngForm().value.EstudioId && this.ngForm().value.EstudioId != 8){
-
+      @if(this.ngForm().value.TipoEstudioId && this.ngForm().value.TipoEstudioId != 8){
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Título del Certificado</nz-form-label>
           <nz-form-control>
-            <input nz-input name="TituloCertificado" ngModel />
+            <input nz-input name="PersonalEstudioTitulo" ngModel />
           </nz-form-control>
         </nz-form-item>
       }
-        @if(this.ngForm().value.EstudioId == 8){
-          <nz-form-item>
-            <nz-form-label [nzSpan]="5">Curso</nz-form-label>
-            <nz-form-control>
-              <app-curso-search name="CursoId" ngModel></app-curso-search>
-            </nz-form-control>
-          </nz-form-item>
-        }
-       
-
+      @if(this.ngForm().value.TipoEstudioId == 8){
+        <nz-form-item>
+          <nz-form-label [nzSpan]="5">Curso</nz-form-label>
+          <nz-form-control>
+            <app-curso-search name="PersonalEstudioCursoId" ngModel></app-curso-search>
+          </nz-form-control>
+        </nz-form-item>
+      }
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Fecha Otorgado</nz-form-label>
         <nz-form-control>
-          <nz-date-picker name="FechaOtorgado" ngModel></nz-date-picker>
+          <nz-date-picker name="PersonalEstudioOtorgado" ngModel></nz-date-picker>
         </nz-form-control>
       </nz-form-item>
 

@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject, signal } from '@angular/core';
+import { Component, ViewChild, computed, inject, model, signal } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
@@ -25,11 +25,12 @@ export class EstudiosComponent {
   visibleHistorial = false;
   openDrawerForConsult = false;
   tituloDrawer = '';
-  RefreshEstudio = false;
+  RefreshEstudio = false
 
   selectedPeriod = signal({ year: 0, month: 0 });
 
   constructor(private settingsService: SettingsService) {}
+
 
   ngOnInit() {
    // const now = new Date();
@@ -47,6 +48,7 @@ export class EstudiosComponent {
   }
 
   actualizarValorDrawer(event: any) {
+    console.log('event', event)
     if (event.length > 0) {
       this.PersonalId.set(event[0].PersonalId);
       this.PersonalEstudioId = event[0].PersonalEstudioId;

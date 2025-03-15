@@ -18,4 +18,12 @@ estudioRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup
 estudioRouter.post('/search', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
     estudioController.search(req, res, next)
   })
+
+estudioRouter.post('/setestudio', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
+    estudioController.setEstudio(req, res, next)
+  })
+
+estudioRouter.get('/:PersonalId/:PersonalEstudioId', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
+    estudioController.getEstudio(req, res, next)
+  })
   

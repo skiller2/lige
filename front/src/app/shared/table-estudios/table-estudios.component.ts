@@ -1,18 +1,17 @@
-import { Component,Inject,LOCALE_ID,model,Output,EventEmitter } from '@angular/core';
+import { Component, Inject, LOCALE_ID, model, Output, EventEmitter, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
-import { BehaviorSubject,debounceTime,map,switchMap,tap } from 'rxjs';
-import { ApiService, doOnSubscribe } from '../../services/api.service';
+import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { FiltroBuilderComponent } from '../../shared/filtro-builder/filtro-builder.component';
 import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import { CommonModule } from '@angular/common';
+import { ApiService, doOnSubscribe } from '../../services/api.service';
 import { SearchService } from '../../services/search.service';
-import { RowDetailViewComponent } from '../../shared/row-detail-view/row-detail-view.component';
-import { SettingsService } from '@delon/theme';
-import { totalRecords } from '../../shared/custom-search/custom-search';
+import { FiltroBuilderComponent } from '../filtro-builder/filtro-builder.component';
+import { RowDetailViewComponent } from '../row-detail-view/row-detail-view.component';
+import { totalRecords } from '../custom-search/custom-search';
 
-type ListOptions = {
+interface ListOptions {
   filtros: any[];
   extra: any;
   sort: any;
@@ -45,26 +44,18 @@ export class TableEstudiosComponent {
   @Output() valueGridEvent = new EventEmitter<PersonalEstudio[]>();
   RefreshEstudio = model<boolean>(false);
 
-  constructor(
-    private settingService: SettingsService,
-    public apiService: ApiService,
-    private angularUtilService: AngularUtilService,
-    @Inject(LOCALE_ID) public locale: string,
-    public searchService: SearchService
-  ) { }
 
-  private formChange$ = new BehaviorSubject('');
-  tableLoading$ = new BehaviorSubject(false);
-
+  private formChange$ = new BehaviorSubject<string>('');
+  tableLoading$ = new BehaviorSubject<boolean>(false);
   columns$ = this.apiService.getCols('/api/estudio/cols');
 
-  private excelExportService = new ExcelExportService();
   private angularGridEdit!: AngularGridInstance;
   private gridObj!: SlickGrid;
-  private detailViewRowCount = 9;
+  private readonly detailViewRowCount = 9;
   gridOptions!: GridOption;
-  private dataAngularGrid: any;
+  private dataAngularGrid: PersonalEstudio[] = [];
   private personalEstudios: PersonalEstudio[] = [];
+  private excelExportService = new ExcelExportService();
 
   private listOptions: ListOptions = {
     filtros: [],
@@ -72,28 +63,37 @@ export class TableEstudiosComponent {
     extra: null,
   };
 
-  listOptionsChange(options: any) {
-    this.listOptions = options;
-    this.formChange$.next('');
-  }
+  constructor(
+    private apiService: ApiService,
+    private angularUtilService: AngularUtilService,
+    @Inject(LOCALE_ID) public locale: string,
+    public searchService: SearchService
+  ) { }
+
+  cambios = computed(async () => {
+    if (this.RefreshEstudio()) {
+      this.formChange$.next('');
+    }
+  });
 
   gridData$ = this.formChange$.pipe(
     debounceTime(250),
-    switchMap(() => {
-      return this.apiService
-        .getListEstudios({ options: this.listOptions })
-        .pipe(
-          map(data => {
-            this.dataAngularGrid = data.list;
-            return data.list;
-          }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
-        );
-    })
+    switchMap(() => this.apiService.getListEstudios({ options: this.listOptions }).pipe(
+      map(data => {
+        this.dataAngularGrid = data.list;
+        return data.list;
+      }),
+      doOnSubscribe(() => this.tableLoading$.next(true)),
+      tap({ complete: () => this.tableLoading$.next(false) })
+    ))
   );
 
-  ngOnInit() {
+  ngOnInit(): void {
+    this.initializeGridOptions();
+    this.RefreshEstudio.set(false);
+  }
+
+  private initializeGridOptions(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions(
       '.gridContainer1',
       this.detailViewRowCount,
@@ -107,7 +107,12 @@ export class TableEstudiosComponent {
     this.gridOptions.createFooterRow = true;
   }
 
-  angularGridReady(angularGrid: any) {
+  listOptionsChange(options: any): void {
+    this.listOptions = options;
+    this.formChange$.next('');
+  }
+
+  angularGridReady(angularGrid: any): void {
     this.angularGridEdit = angularGrid.detail;
     this.gridObj = angularGrid.detail.slickGrid;
 
@@ -115,13 +120,13 @@ export class TableEstudiosComponent {
       totalRecords(this.angularGridEdit);
     });
 
-    this.angularGridEdit.slickGrid.onClick.subscribe((_e: any, args: any) => {
+    this.angularGridEdit.slickGrid.onClick.subscribe((_e: any, args: { row: number }) => {
       this.personalEstudios = [this.dataAngularGrid[args.row]];
       this.valueGridEvent.emit(this.personalEstudios);
     });
   }
 
-  exportGrid() {
+  exportGrid(): void {
     this.excelExportService.exportToExcel({
       filename: 'lista-estudios',
       format: 'xlsx'

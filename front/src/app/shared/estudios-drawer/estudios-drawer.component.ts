@@ -43,6 +43,7 @@ export class EstudiosDrawerComponent {
   PersonalIdForEdit = 0
   SucursalId = 0
   ArchivoIdForDelete = 0;
+  ArchivosLicenciasAdd: any[] = [];
   files = model([]);
   isSaving = model<boolean>(false)
   nivelEstudioOptions: Option[] = [];
@@ -66,51 +67,55 @@ export class EstudiosDrawerComponent {
    //// this.nivelEstudioOptions = await firstValueFrom(this.apiService.getNivelEstudioOptions())
     ////this.estadoEstudioOptions = await firstValueFrom(this.apiService.getEstadoEstudioOptions())
   }
+  
 
-  cambios = computed(async () => {
-    const visible = this.visible()
-    this.ngForm().form.reset()
-    if (visible) {
-      //const per = this.selectedPeriod()
-      if (this.PersonalEstudioId() > 0) {
-       // let vals = await firstValueFrom(this.apiService.getEstudio(per.year, per.month, this.PersonalId(), this.PersonalEstudioId()));
-        //this.PersonalIdForEdit = vals.PersonalId
-        //this.SucursalId = vals.SucursalId
-
-       // this.ngForm().form.patchValue(vals)
-        this.ngForm().form.markAsUntouched()
-        this.ngForm().form.markAsPristine()
-
-        if (this.openDrawerForConsult()) {
-          this.ngForm().form.disable()
-        } else {
-          this.ngForm().form.enable()
+    cambios = computed(async () => {
+      const visible = this.visible()
+      this.ngForm().form.reset()
+      this.ArchivosLicenciasAdd = []
+      if (visible) {
+        if (this.PersonalEstudioId() > 0) {
+          let vals = await firstValueFrom(this.apiService.getEstudio(this.PersonalId(), this.PersonalEstudioId()));
+          console.log("vals ", vals)
+  
+          //this.ngForm().form.patchValue(vals)
+          this.ngForm().form.markAsUntouched()
+          this.ngForm().form.markAsPristine()
+  
+          if (this.openDrawerForConsult()) {
+            this.ngForm().form.disable()
+          } else {
+            this.ngForm().form.enable()
+  
+          }
+      
+          
         }
       }
-    }
-    return true
-  })
+      return true
+    })
+  
 
   async save() {
     this.isSaving.set(true)
     try {
-      //const periodo = this.selectedPeriod()
+  
       let vals = this.ngForm().value
-      //vals.anioRequest = periodo.year
-      //vals.mesRequest = periodo.month
       vals.Archivos = this.files
       vals.PersonalIdForEdit = this.PersonalIdForEdit
-      //const res = await firstValueFrom(this.apiService.setEstudio(vals))
+      const res:any = await firstValueFrom(this.apiService.setEstudio(vals))
 
       this.ngForm().form.markAsUntouched()
       this.ngForm().form.markAsPristine()
       this.RefreshEstudio.set(true)
       this.formChange$.next("")
     } catch (error) {
-      this.notification.error('Error', 'Error al guardar el estudio');
+      //this.notification.error('Error', 'Error al guardar el estudio');
     }
     this.isSaving.set(false)
   }
+
+  
 
   openDrawerforConsultHistory() {
     this.PersonalId.set(this.ngForm().value.PersonalId)
@@ -121,7 +126,7 @@ export class EstudiosDrawerComponent {
     try {
       this.ArchivoIdForDelete = parseInt(id);
       if (!tipoDocumentDelete) {
-        //await firstValueFrom(this.apiService.deleteArchivosEstudios(this.ArchivoIdForDelete))
+        await firstValueFrom(this.apiService.deleteArchivosEstudios(this.ArchivoIdForDelete))
         this.notification.success('Respuesta', `Archivo borrado con éxito`);
       }
       this.formChange$.next('');

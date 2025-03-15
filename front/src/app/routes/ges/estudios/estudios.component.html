@@ -17,7 +17,7 @@
          
                 <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalId()>0)" nz-tooltip
                   nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
-                <button nz-button nzType="default" (click)="openDrawerforConsult()" nz-tooltip
+                <button nz-button nzType="default" (click)="openDrawerforConsult()" [disabled]="!(PersonalId()>0)" nz-tooltip
                   nzTooltipTitle="{{ 'app.icon.consult' | i18n }}"><span nz-icon nzType="info-circle"
                     nzTheme="outline"></span></button>
                 <button nz-button nzType="default" (click)="openDrawerforNew()" nz-tooltip
@@ -33,11 +33,11 @@
     
       <nz-tabset nzCentered nzLinkRouter class="hide-ant-tabs-nav">
         <nz-tab>
-          <a nz-tab-link routerLink="/ges/estudios/listado">Listado</a>
+          <a nz-tab-link routerLink="/ges/estudios/listado">Listado </a>
           <ng-template nz-tab>
             <div class="gridContainer container-fluid">
               
-                <app-table-estudios gridId="gridEdit1" [RefreshEstudio]="RefreshEstudio"></app-table-estudios> 
+                <app-table-estudios gridId="gridEdit1" [(RefreshEstudio)]="RefreshEstudio" (valueGridEvent)="actualizarValorDrawer($event)"></app-table-estudios> 
               
             </div>
           </ng-template>
