@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, Output, ViewChild, forwardRef, input, model, signal } from '@angular/core'
+
+import { Component, EventEmitter, Input, Output, SimpleChanges, ViewChild, forwardRef, model } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
@@ -16,7 +17,6 @@ import { NzSelectComponent } from 'ng-zorro-antd/select'
 import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
 
-
 @Component({
     selector: 'app-curso-search',
     templateUrl: './curso-search.component.html',
@@ -32,23 +32,25 @@ import { CommonModule } from '@angular/common'
 })
 
 export class CursoSearchComponent implements ControlValueAccessor {
+  tmpInputVal: any
   constructor(private searchService: SearchService) { }
 
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
-  @ViewChild("csc") csc!: NzSelectComponent
-  private isDisabled = false
+  @ViewChild("cur") cur!: NzSelectComponent
+
   $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
 
   private _selectedId: string = ''
-  _selected = signal('')
-  extendedOption = { CursoId: 0, TipoCursoDescripcion: "" }
+  _selected = ''
+  extendedOption = { CursoHabilitacionId: 0, CursoHabilitacionDescripcion: '' }
   
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
 
   registerOnChange(fn: any) {
+
     this.propagateChange = fn
   }
 
@@ -57,10 +59,12 @@ export class CursoSearchComponent implements ControlValueAccessor {
   }
 
   onChange() {
-  
+//    this.isc?.focus()
+
   }
 
   onRemove() {
+    //  console.log('onRemove')
   }
 
   registerOnTouched(fn: any) {
@@ -68,33 +72,35 @@ export class CursoSearchComponent implements ControlValueAccessor {
   }
 
   ngOnDestroy() { 
-    this.csc?.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
+    this.cur?.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
   }
 
   onKeydown(event: KeyboardEvent) {
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+//    this._lastInputEvent = event;
+//    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+    if ( event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
       event.stopImmediatePropagation()
     }
   }
 
+
+
   ngAfterViewInit() {
     setTimeout(() => {
-      this.csc?.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-      this.csc?.focus()
-      this.csc?.setDisabledState(this.isDisabled)
+      this.cur?.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
+      this.cur?.focus()  //Al hacer click en el componente hace foco
+     
     }, 1);
   }
+
 
   get selectedId() {
     return this._selectedId
   }
 
-  get selectedIdNum():number {
-    return parseInt(this._selectedId)
-  }
-
   set selectedId(val: string) {
-    this.csc?.focus()
+
+    this.cur?.focus()
     val = (val === null || val === undefined) ? '' : val
 
     if (val !== this._selectedId) {
@@ -102,25 +108,37 @@ export class CursoSearchComponent implements ControlValueAccessor {
 
       if (this._selectedId == '' || this._selectedId == '0') {
         this.valueExtendedEmitter.emit({})
-        if (this._selected()!='')
-          this._selected.set('')
+        this._selected = ''
         this.propagateChange(this._selectedId)
         return
       }
   
+/*
+
+      if (!this._selectedId && this._selectedId !== null) {
+        this.valueExtendedEmitter.emit({})
+        this.propagateChange(this._selectedId)
+        return
+      }
+*/
       firstValueFrom(
         this.searchService
-          .getCursoFromName('CursoId', this._selectedId)
+          .getCursoFromName('CursoHabilitacionId', this._selectedId)
           .pipe(tap(res => {
-            this._selected.set(this._selectedId)
+            if (res[0]?.CursoHabilitacionId)
+            this.extendedOption = res[0]
+            this._selected = this._selectedId
             this.valueExtendedEmitter.emit(this.extendedOption)
-            this.propagateChange(this._selectedId)
+            if (this.tmpInputVal!=this._selectedId)
+              this.propagateChange(this._selectedId)
           }))
       )
+
     }
   }
 
   writeValue(value: any) {
+    this.tmpInputVal = value
     if (value !== this._selectedId) {
       this.selectedId = value
     }
@@ -129,7 +147,7 @@ export class CursoSearchComponent implements ControlValueAccessor {
   $optionsArray: Observable<SearchCurso[]> = this.$searchChange.pipe(
     debounceTime(500),
     switchMap(value =>
-      this.searchService.getCursoFromName(Number(value) ? 'CursoHabilitacionId' : 'CursoHabilitacionDescripcion', value)
+      this.searchService.getCursoSearch(Number(value) ? 'CursoHabilitacionId' : 'CursoHabilitacionDescripcion', value)
         .pipe(
           doOnSubscribe(() => this.$isOptionsLoading.next(true)),
           tap({ complete: () => this.$isOptionsLoading.next(false) })
@@ -137,16 +155,26 @@ export class CursoSearchComponent implements ControlValueAccessor {
     )
   )
 
+  
+
   modelChange(val: string) {
     this.selectedId = val
   }
-
+  
   search(value: string): void {
-    this.extendedOption = { CursoId: 0, TipoCursoDescripcion: "" }
+    this.extendedOption = { CursoHabilitacionId: 0, CursoHabilitacionDescripcion: '' }
     this.$searchChange.next(value)
   }
 
   focus() { 
     console.log('focus')
+
   }
-} 
+
+
+  setDisabledState(isDisabled: boolean): void {
+    this.cur?.setDisabledState(isDisabled)
+  } 
+
+}
+

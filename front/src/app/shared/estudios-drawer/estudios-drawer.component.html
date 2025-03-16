@@ -15,23 +15,23 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Nivel de Estudio</nz-form-label>
         <nz-form-control>
-          <app-estudio-search name="TipoEstudioId" ngModel></app-estudio-search>
+          <app-estudio-search name="TipoEstudioId" ngModel></app-estudio-search> 
         </nz-form-control>
       </nz-form-item>
 
-      @if(this.ngForm().value.TipoEstudioId && this.ngForm().value.TipoEstudioId != 8){
+       @if( this.ngForm().value.TipoEstudioId != 8){
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Título del Certificado</nz-form-label>
           <nz-form-control>
             <input nz-input name="PersonalEstudioTitulo" ngModel />
           </nz-form-control>
         </nz-form-item>
-      }
+       } 
       @if(this.ngForm().value.TipoEstudioId == 8){
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Curso</nz-form-label>
           <nz-form-control>
-            <app-curso-search name="PersonalEstudioCursoId" ngModel></app-curso-search>
+            <app-curso-search name="CursoHabilitacionId"  ngModel></app-curso-search> 
           </nz-form-control>
         </nz-form-item>
       }
@@ -43,7 +43,7 @@
         </nz-form-control>
       </nz-form-item>
 
-      <nz-form-control>
+      <!-- <nz-form-control>
         <app-file-upload ngModel name="files" [idForSearh]="this.ngForm().value.PersonalId ?? 0"
           [textForSearch]="'EST'" [columnForSearch]="'persona_id'" [tableForSearch]="'docgeneral'"></app-file-upload>
       </nz-form-control>
@@ -54,7 +54,7 @@
             {{ 'app.btn.save' | i18n }}
           </button>
         </nz-form-item>
-      }
+      } -->
     </form>
   </ng-container>
 </nz-drawer> 
