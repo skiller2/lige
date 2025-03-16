@@ -21,18 +21,21 @@ const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
 
         const coordinador = (coordinadorgeneralrec[0]) ? coordinadorgeneralrec[0].Supervisor.trim() + ' desde ' + personalController.dateOutputFormat(coordinadorgeneralrec[0].Desde) : 'No asignado aún'
 
-        await flowDynamic([{ body: `Coordinador general: ${coordinador}`, delay }])
+        await flowDynamic([{ body: `Su coordinador de zona es ${coordinador}`, delay }])
 
         if (coordinadorgeneralrec[0].PersonalId) {
             const telrec = await PersonalController.getTelefono(coordinadorgeneralrec[0].PersonalId)
             if (telrec[0])
-                await flowDynamic([{ body: `Teléfono contacto: ${telrec[0].telefono}`, delay }])
+                await flowDynamic([{ body: `Teléfono contacto ${telrec[0].telefono}`, delay }])
         }
+
+
+        //TODO Agregar fecha de ingreso y nro de asociado.
 
         const sitrevs: any[] = await PersonalController.getPersonalSitRevista(personalId, anio, mes)
         if (sitrevs.length > 0) {
             const sitrev = sitrevs[sitrevs.length - 1]
-            await flowDynamic([{ body: `Situación de revista: ${sitrev.SituacionRevistaDescripcion.trim()} desde ${personalController.dateOutputFormat(sitrev.PersonalSituacionRevistaDesde)}`, delay }])
+            await flowDynamic([{ body: `Su situación de revista: ${sitrev.SituacionRevistaDescripcion.trim()} desde ${personalController.dateOutputFormat(sitrev.PersonalSituacionRevistaDesde)}`, delay }])
         } else {
             await flowDynamic([{ body: `No posee situación de revista aún`, delay }])
         }
