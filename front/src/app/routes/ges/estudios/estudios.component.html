@@ -45,8 +45,8 @@
 
 
       <app-estudios-drawer 
-      [(RefreshEstudio)]="RefreshEstudio" 
-      [readonly]="readonly()" 
+      (OnRefreshEstudio)="handleAddOrUpdate()" 
+      [disabled]="disabled()" 
       [tituloDrawer]="tituloDrawer()"
       [(visible)]="visibleDrawer" 
       [PersonalId]="PersonalId()"

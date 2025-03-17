@@ -24,7 +24,7 @@ export class EstudiosComponent {
   PersonalId = signal<number>(0);
   PersonalEstudioId = signal<number>(0);
   visibleDrawer = signal<boolean>(false);
-  readonly = signal<boolean>(false);
+  disabled = signal<boolean>(false);
   tituloDrawer = signal<string>(''); 
   RefreshEstudio = signal<boolean>(false);
 
@@ -37,7 +37,7 @@ export class EstudiosComponent {
     this.settingsService.setLayout('collapsed', true);
   }
 
- 
+
 
   actualizarValorDrawer(event: any) {
     console.log('event', event)
@@ -50,24 +50,24 @@ export class EstudiosComponent {
 
   openDrawerforEdit() {
     this.tituloDrawer.set('Editar Estudio');
-    this.readonly.set(false);
+    this.disabled.set(false);
     this.visibleDrawer.set(true);
   }
 
   openDrawerforConsult() {
     this.tituloDrawer.set('Consultar Estudio');
-    this.readonly.set(true);
+    this.disabled.set(true);
     this.visibleDrawer.set(true);
   }
 
   async handleAddOrUpdate(){
    console.log('aca')
-    this.ListEstudios$.next('')
+   this.RefreshEstudio.set(true)
   }
 
   openDrawerforNew() {
     this.tituloDrawer.set('Nuevo Estudio');
-    this.readonly.set(false);
+    this.disabled.set(false);
     this.PersonalEstudioId.set(0);
     this.visibleDrawer.set(true);
   }

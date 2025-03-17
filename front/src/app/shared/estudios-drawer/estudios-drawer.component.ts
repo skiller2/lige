@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef,  } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, Output, EventEmitter,  } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { FormControl, NgForm } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -37,9 +37,9 @@ export class EstudiosDrawerComponent {
   //visibleHistorial = model<boolean>(false)
 
   //selectedPeriod = input.required<any>()
-  ArchivosLicenciasAdd: any[] = [];
+  ArchivosEstudioAdd: any[] = [];
   tituloDrawer = input.required<string>()
-  readonly =  input<boolean>(false)
+  disabled =  input<boolean>(false)
   RefreshEstudio =  model<boolean>(false)
   private apiService = inject(ApiService)
   formChange$ = new BehaviorSubject('');
@@ -61,20 +61,11 @@ export class EstudiosDrawerComponent {
   mes = signal(this.currentDate.getMonth() + 1)
   
   isSaving= model<boolean>(false)
-  // $ArchivosLicencias = this.formChange$.pipe(
-  //   debounceTime(500),
-  //   switchMap(() => {
-  //     const periodo = this.selectedPeriod()
-  //     return this.apiService
-  //       .getLicenciasArchivosAnteriores(
-  //         periodo.year, periodo.month, this.PersonalId(), this.PersonalLicenciaId()
-  //       )
-  //   })
-  // )
-
   placement: NzDrawerPlacement = 'left';
   visible = model<boolean>(false)
-  
+
+  @Output() OnRefreshEstudio = new EventEmitter();
+
   uploading$ = new BehaviorSubject({loading:false,event:null});
   uploadFileModel = viewChild.required(NgForm);
   constructor(
@@ -83,15 +74,14 @@ export class EstudiosDrawerComponent {
 
   async ngOnInit(): Promise<void> {
 
-    this.ArchivosLicenciasAdd = []
+    this.ArchivosEstudioAdd = []
     this.PersonalIdForEdit.set(0)
-    //this.options = await firstValueFrom(this.apiService.getOptionsForLicenciaDrawer())
   }
 
   cambios = computed(async () => {
     const visible = this.visible()
     //this.ngForm().form.reset()
-    this.ArchivosLicenciasAdd = []
+    this.ArchivosEstudioAdd = []
     if (visible) {
       //const per = this.selectedPeriod()
       if (this.PersonalEstudioId() > 0) {
@@ -104,12 +94,12 @@ export class EstudiosDrawerComponent {
         vals.PersonalEstudioTitulo = vals.PersonalEstudioTitulo,
         vals.CursoHabilitacionId = vals.PersonalEstudioCursoId,
         vals.PersonalEstudioOtorgado = vals.PersonalEstudioOtorgado
-      console.log("vals ", vals)
+     
         this.ngForm().form.patchValue(vals)
         this.ngForm().form.markAsUntouched()
         this.ngForm().form.markAsPristine()
 
-        if (this.readonly()) {
+        if (this.disabled()) {
           this.ngForm().form.disable()
         } else {
           this.ngForm().form.enable()
@@ -140,7 +130,7 @@ export class EstudiosDrawerComponent {
       this.ngForm().form.markAsUntouched()
       this.ngForm().form.markAsPristine()
       //this.fileUploaded = false
-      this.RefreshEstudio.set(true)
+      this.OnRefreshEstudio.emit()
       this.formChange$.next("")
     } catch (error) {
 
@@ -152,17 +142,17 @@ export class EstudiosDrawerComponent {
     let vals = this.ngForm().value
     let res = await firstValueFrom(this.apiService.deleteEstudio(vals))
     this.visible.set(false)
-    this.RefreshEstudio.set(true)
+    this.OnRefreshEstudio.emit()
   }
 
  async confirmDeleteArchivo( id: string, tipoDocumentDelete : boolean) {
     try {
       this.ArchivoIdForDelete = parseInt(id);
       if( tipoDocumentDelete){
-        console.log("fieldname ", this.ArchivosLicenciasAdd)
+        console.log("fieldname ", this.ArchivosEstudioAdd)
         console.log("ArchivoIdForDelete ", this.ArchivoIdForDelete)
-        const ArchivoFilter = this.ArchivosLicenciasAdd.filter((item) => item.fieldname === this.ArchivoIdForDelete)
-        this.ArchivosLicenciasAdd = ArchivoFilter
+        const ArchivoFilter = this.ArchivosEstudioAdd.filter((item) => item.fieldname === this.ArchivoIdForDelete)
+        this.ArchivosEstudioAdd = ArchivoFilter
          
        this.notification.success('Respuesta', `Archivo borrado con exito `);
 
