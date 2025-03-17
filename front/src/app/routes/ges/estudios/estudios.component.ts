@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { SettingsService } from '@delon/theme';
 import { TableEstudiosComponent } from '../../../shared/table-estudios/table-estudios.component'
 import { EstudiosDrawerComponent } from '../../../shared/estudios-drawer/estudios-drawer.component';
+import { BehaviorSubject } from 'rxjs';
 
 
 @Component({
@@ -17,6 +18,7 @@ import { EstudiosDrawerComponent } from '../../../shared/estudios-drawer/estudio
 export class EstudiosComponent {
 
   @ViewChild('estudiosForm', { static: true }) estudiosForm: NgForm = new NgForm([], []);
+  
 
   
   PersonalId = signal<number>(0);
@@ -26,12 +28,16 @@ export class EstudiosComponent {
   tituloDrawer = signal<string>(''); 
   RefreshEstudio = signal<boolean>(false);
 
+  ListEstudios$ = new BehaviorSubject('')
+
   constructor(private settingsService: SettingsService) {}
 
   ngOnInit() {
   
     this.settingsService.setLayout('collapsed', true);
   }
+
+ 
 
   actualizarValorDrawer(event: any) {
     console.log('event', event)
@@ -52,6 +58,11 @@ export class EstudiosComponent {
     this.tituloDrawer.set('Consultar Estudio');
     this.readonly.set(true);
     this.visibleDrawer.set(true);
+  }
+
+  async handleAddOrUpdate(){
+   console.log('aca')
+    this.ListEstudios$.next('')
   }
 
   openDrawerforNew() {

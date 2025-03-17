@@ -270,13 +270,15 @@ export class EstudioController extends BaseController {
     let { 
      PersonalId,
      TipoEstudioId, // Primario secundario, terciario, universitario, curso
-     PersonalEstudioCursoId, // tipo de curso
+     CursoHabilitacionId, // tipo de curso
      PersonalEstudioTitulo, //titulo otorgado
      PersonalEstudioOtorgado, // fecha desde
+     PersonalIdForEdit,
+     personalEstudioId
      } = req.body
 
     console.log("req.body", req.body)
-    
+    //throw new ClientException(`test.`)
     const queryRunner = dataSource.createQueryRunner()
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -294,7 +296,7 @@ export class EstudioController extends BaseController {
 
         const CursoHabilitacionQuery = await queryRunner.query(`
           SELECT * FROM CursoHabilitacion
-          WHERE CursoHabilitacionId = ${PersonalEstudioCursoId}
+          WHERE CursoHabilitacionId = ${CursoHabilitacionId}
         `)
         const CursoHabilitacionVigencia = CursoHabilitacionQuery[0].CursoHabilitacionVigencia
 
@@ -304,7 +306,29 @@ export class EstudioController extends BaseController {
         }
 
       }
-    
+      let PersonalEstudioCursoId = CursoHabilitacionId == '' ? null : CursoHabilitacionId
+      if(PersonalIdForEdit > 0){
+        // is edit
+        await queryRunner.query(`
+          UPDATE PersonalEstudio SET
+            TipoEstudioId = @2,
+            PersonalEstudioTitulo = @3,
+            PersonalEstudioCursoId = @4,
+            PersonalEstudioOtorgado = @5,
+            PersonalEstudioHasta = @6
+          WHERE PersonalId = @0 AND PersonalEstudioId = @1
+          `,[
+            PersonalId,
+            personalEstudioId,
+            TipoEstudioId,
+            PersonalEstudioTitulo,
+            PersonalEstudioCursoId,
+            PersonalEstudioOtorgado,
+            PersonalEstudioHasta]);
+
+      }else{
+        // is new
+     
       let PersonalEstudioId = await queryRunner.query(`SELECT MAX(pe.PersonalEstudioId) as PersonalEstudioId FROM  PersonalEstudio pe WHERE PersonalId = @0`, [PersonalId])
 
       if(PersonalEstudioId[0].PersonalEstudioId)
@@ -316,7 +340,7 @@ export class EstudioController extends BaseController {
       console.log("PersonalEstudioId", PersonalEstudioId)
 
       //throw new ClientException(`test.`)
-
+    
       await queryRunner.query(`
         INSERT INTO PersonalEstudio (
           PersonalId,
@@ -338,6 +362,10 @@ export class EstudioController extends BaseController {
           PersonalEstudioCursoId,
           PersonalEstudioOtorgado,
           PersonalEstudioHasta]);
+
+      }
+
+      
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa')
@@ -364,7 +392,7 @@ export class EstudioController extends BaseController {
 
 
     if (params.TipoEstudioId == 8) {
-      if (!params.PersonalEstudioCursoId) {
+      if (!params.CursoHabilitacionId) {
         throw new ClientException(`Debe completar el campo Curso.`)
       }
     }else{
@@ -390,6 +418,28 @@ export class EstudioController extends BaseController {
       return next(error)
     }
 
+  }
+
+  async deleteEstudio(req: any, res: Response, next: NextFunction) {
+    const { PersonalId, personalEstudioId } = req.query
+    console.log("req.params", req.query)
+    const queryRunner = dataSource.createQueryRunner()
+
+
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      await queryRunner.query(`DELETE FROM PersonalEstudio  WHERE PersonalId = @0 AND PersonalEstudioId = @1`, [PersonalId,personalEstudioId])
+
+      await queryRunner.commitTransaction();
+      this.jsonRes({}, res, 'Borrado Exitoso')
+  } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+  }
+
+    
   }
 
 }

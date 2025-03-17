@@ -1,12 +1,11 @@
 <nz-card class="small-margin">
 
-
     <div nz-row class="contentStyle">
         <div nz-col  class="listStyle">
           <ul nz-menu nzMode="horizontal" style="display: flex;">
             <li nz-menu-item nzMatchRouter>
               <span nz-icon nzType=""></span>
-              <a [routerLink]="['/', 'ges', 'estudios', 'listado']">{{ 'app.segurosList' | i18n }} - {{visibleDrawer()}}</a>
+              <a [routerLink]="['/', 'ges', 'estudios', 'listado']">{{ 'app.segurosList' | i18n }}</a>
             </li>
           </ul>
         </div>
@@ -37,7 +36,7 @@
           <ng-template nz-tab>
             <div class="gridContainer container-fluid">
               
-                <app-table-estudios gridId="gridEdit1" [RefreshEstudio]="RefreshEstudio()" (valueGridEvent)="actualizarValorDrawer($event)"></app-table-estudios> 
+                <app-table-estudios gridId="gridEdit1"  [RefreshEstudio]="RefreshEstudio()"  (valueGridEvent)="actualizarValorDrawer($event)"></app-table-estudios> 
               
             </div>
           </ng-template>
@@ -45,12 +44,12 @@
       </nz-tabset>
 
 
-      <app-estudios-drawer
-      [RefreshEstudio]="RefreshEstudio()"
+      <app-estudios-drawer 
+      [(RefreshEstudio)]="RefreshEstudio" 
       [readonly]="readonly()" 
-      [visible]="visibleDrawer()" 
       [tituloDrawer]="tituloDrawer()"
-      [PersonalId]="PersonalId()" 
+      [(visible)]="visibleDrawer" 
+      [PersonalId]="PersonalId()"
       [PersonalEstudioId]="PersonalEstudioId()"></app-estudios-drawer>
 
 </nz-card>

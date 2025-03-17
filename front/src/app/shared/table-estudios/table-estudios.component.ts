@@ -1,4 +1,4 @@
-import { Component, Inject, LOCALE_ID, model, Output, EventEmitter, computed } from '@angular/core';
+import { Component, Inject, LOCALE_ID, model, Output, EventEmitter, computed, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
@@ -42,13 +42,13 @@ interface PersonalEstudio {
 })
 export class TableEstudiosComponent {
   @Output() valueGridEvent = new EventEmitter<PersonalEstudio[]>();
-  RefreshEstudio = model<boolean>(false);
+
 
 
   private formChange$ = new BehaviorSubject<string>('');
   tableLoading$ = new BehaviorSubject<boolean>(false);
   columns$ = this.apiService.getCols('/api/estudio/cols');
-
+  RefreshEstudio = input<boolean>(false);
   private angularGridEdit!: AngularGridInstance;
   private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
@@ -70,11 +70,7 @@ export class TableEstudiosComponent {
     public searchService: SearchService
   ) { }
 
-  cambios = computed(async () => {
-    if (this.RefreshEstudio()) {
-      this.formChange$.next('');
-    }
-  });
+
 
   gridData$ = this.formChange$.pipe(
     debounceTime(250),
@@ -90,8 +86,14 @@ export class TableEstudiosComponent {
 
   ngOnInit(): void {
     this.initializeGridOptions();
-    this.RefreshEstudio.set(false);
   }
+
+  cambios = computed(async () => {
+    if (this.RefreshEstudio()) {
+      this.formChange$.next('');
+    }
+  });
+
 
   private initializeGridOptions(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions(

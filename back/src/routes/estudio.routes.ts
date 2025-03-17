@@ -1,6 +1,6 @@
 import { Router } from "express"
 import { authMiddleware } from "../middlewares/middleware.module"
-import { estudioController } from "../controller/controller.module"
+import { cargaLicenciaController, estudioController } from "../controller/controller.module"
 
 export const estudioRouter = Router()
 
@@ -26,4 +26,10 @@ estudioRouter.post('/setestudio', [authMiddleware.verifyToken, authMiddleware.ha
 estudioRouter.get('/:PersonalId/:PersonalEstudioId', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { 
     estudioController.getEstudio(req, res, next)
   })
+
+
+estudioRouter.delete("/", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    estudioController.deleteEstudio(req, res, next);
+  });
+  
   
