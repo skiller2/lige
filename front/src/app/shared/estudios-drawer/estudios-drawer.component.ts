@@ -29,60 +29,70 @@ export interface Option {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EstudiosDrawerComponent {
-  ngForm = viewChild.required(NgForm);
-  PersonalId = model<number>(0)
+
+
+
+  RefreshEstudio = model<boolean>(false)
+  readonly = input<boolean>(false)
+  tituloDrawer = input.required<string>()
+  PersonalId = input.required<number>()
+  PersonalEstudioId = input.required<number>() 
+
+
   EstudioId = model<number>(0)
   visibleHistorial = model<boolean>(false)
-  PersonalEstudioId = input.required<number>() 
-  tituloDrawer = input.required<string>()
-  openDrawerForConsult = input<boolean>(false)
-  RefreshEstudio = model<boolean>(false)
-  private apiService = inject(ApiService)
-  formChange$ = new BehaviorSubject('');
-  private notification = inject(NzNotificationService);
-  PersonalIdForEdit = 0
-  SucursalId = 0
-  ArchivoIdForDelete = 0;
+  PersonalIdForEdit = input<number>(0)
+
+  ArchivoIdForDelete = signal<number>(0)
   ArchivosLicenciasAdd: any[] = [];
   files = model([]);
   isSaving = model<boolean>(false)
-  nivelEstudioOptions: Option[] = [];
-  estadoEstudioOptions: Option[] = [];
+
+
   currentDate = new Date()
   anio = signal(this.currentDate.getFullYear())
   mes = signal(this.currentDate.getMonth() + 1)
-
-
-  placement: NzDrawerPlacement = 'left';
+ 
   visible = model<boolean>(false)
-  
-  uploading$ = new BehaviorSubject({loading:false,event:null});
   uploadFileModel = viewChild.required(NgForm);
+  ngForm = viewChild.required(NgForm);
+  placement: NzDrawerPlacement = 'left';
+  private apiService = inject(ApiService)
+  private notification = inject(NzNotificationService);
+  formChange$ = new BehaviorSubject('');
+  //uploading$ = new BehaviorSubject({loading:false,event:null});
 
   constructor(
     private searchService: SearchService
   ) { }
 
   async ngOnInit(): Promise<void> {
-   //// this.nivelEstudioOptions = await firstValueFrom(this.apiService.getNivelEstudioOptions())
-    ////this.estadoEstudioOptions = await firstValueFrom(this.apiService.getEstadoEstudioOptions())
+
   }
   
 
     cambios = computed(async () => {
-      const visible = this.visible()
-      this.ngForm().form.reset()
-      this.ArchivosLicenciasAdd = []
-      if (visible) {
+     
+      if (this.visible()) {
         if (this.PersonalEstudioId() > 0) {
           let vals = await firstValueFrom(this.apiService.getEstudio(this.PersonalId(), this.PersonalEstudioId()));
+    
           console.log("vals ", vals)
-  
-          //this.ngForm().form.patchValue(vals)
+         
+    
+          this.ngForm().form.patchValue({ 
+            PersonalId: vals.PersonalId,
+            TipoEstudioId:vals.TipoEstudioId,
+            PersonalEstudioTitulo:vals.PersonalEstudioTitulo,
+            CursoHabilitacionId:vals.PersonalEstudioCursoId,
+            PersonalEstudioOtorgado:vals.PersonalEstudioOtorgado
+          })
+
+          console.log("ngForm().form ", this.ngForm().form.value)
           this.ngForm().form.markAsUntouched()
           this.ngForm().form.markAsPristine()
   
-          if (this.openDrawerForConsult()) {
+          if (this.readonly()) {
             this.ngForm().form.disable()
           } else {
             this.ngForm().form.enable()
@@ -104,7 +114,6 @@ export class EstudiosDrawerComponent {
       vals.Archivos = this.files
       vals.PersonalIdForEdit = this.PersonalIdForEdit
       const res:any = await firstValueFrom(this.apiService.setEstudio(vals))
-
       this.ngForm().form.markAsUntouched()
       this.ngForm().form.markAsPristine()
       this.RefreshEstudio.set(true)
@@ -115,18 +124,12 @@ export class EstudiosDrawerComponent {
     this.isSaving.set(false)
   }
 
-  
-
-  openDrawerforConsultHistory() {
-    this.PersonalId.set(this.ngForm().value.PersonalId)
-    this.visibleHistorial.set(true)
-  }
 
   async confirmDeleteArchivo(id: string, tipoDocumentDelete: boolean) {
     try {
-      this.ArchivoIdForDelete = parseInt(id);
+      this.ArchivoIdForDelete.set(parseInt(id));
       if (!tipoDocumentDelete) {
-        await firstValueFrom(this.apiService.deleteArchivosEstudios(this.ArchivoIdForDelete))
+        await firstValueFrom(this.apiService.deleteArchivosEstudios(this.ArchivoIdForDelete()))
         this.notification.success('Respuesta', `Archivo borrado con éxito`);
       }
       this.formChange$.next('');

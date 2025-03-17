@@ -1,18 +1,16 @@
-
-
-  <nz-select #esc [ngModel]="_selected()" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
-  (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Tipo Estudio" nzShowSearch
-  nzServerSearch (nzOnSearch)="search($event)">
+<nz-select #isc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }" 
+  (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Estudio"
+  nzShowSearch nzServerSearch (nzOnSearch)="search($event)" >
   <ng-container *ngFor="let option of $optionsArray | async">
     <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.TipoEstudioId"
-      [nzLabel]="option.TipoEstudioDescripcion +' '+option.TipoEstudioId" />
+      nzLabel="{{ option.TipoEstudioDescripcion }} ({{option.TipoEstudioId}})" />
   </ng-container>
-  <nz-option *ngIf="extendedOption().EstudioId >0 " [nzValue]="extendedOption().EstudioId"
-    [nzLabel]="extendedOption().TipoEstudioDescripcion" />
-
+  <nz-option *ngIf="extendedOption.TipoEstudioId > 0" [nzValue]="extendedOption.TipoEstudioId"
+    [nzLabel]="extendedOption.TipoEstudioDescripcion" />
   <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
     <span nz-icon nzType="loading" class="loading-icon"></span>
     Cargando datos...
   </nz-option>
 </nz-select>
+
 

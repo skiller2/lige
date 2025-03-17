@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, Output, ViewChild, forwardRef, input, model, signal } from '@angular/core'
+
+import { Component, EventEmitter, Input, Output, SimpleChanges, ViewChild, forwardRef, model } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
@@ -8,19 +9,18 @@ import {
   switchMap,
   tap,
 } from 'rxjs'
-import { SearchEstudio } from '../schemas/estudios.schemas'
 import { SearchService } from 'src/app/services/search.service'
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
 import { doOnSubscribe } from 'src/app/services/api.service'
 import { NzSelectComponent } from 'ng-zorro-antd/select'
 import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
+import { SearchEstudio } from '../schemas/estudios.schemas'
 
 @Component({
     selector: 'app-estudio-search',
     templateUrl: './estudio-search.component.html',
     styleUrls: ['./estudio-search.component.less'],
-    standalone: true,
     providers: [
         {
             provide: NG_VALUE_ACCESSOR,
@@ -30,25 +30,27 @@ import { CommonModule } from '@angular/common'
     ],
     imports: [...SHARED_IMPORTS, CommonModule]
 })
+
 export class EstudioSearchComponent implements ControlValueAccessor {
+  tmpInputVal: any
   constructor(private searchService: SearchService) { }
 
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
-  @ViewChild("esc") esc!: NzSelectComponent
-  
-  private isDisabled = false
+  @ViewChild("isc") isc!: NzSelectComponent
+
   $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
 
-  private _selectedId = signal('')
-  _selected = signal('')
-  extendedOption = signal({ EstudioId: 0, TipoEstudioDescripcion: "" })
+  private _selectedId: string = ''
+  _selected = ''
+  extendedOption = {  TipoEstudioId: 0, TipoEstudioDescripcion: "" }
   
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
 
   registerOnChange(fn: any) {
+
     this.propagateChange = fn
   }
 
@@ -56,71 +58,88 @@ export class EstudioSearchComponent implements ControlValueAccessor {
     this.propagateTouched()
   }
 
+  onChange() {
+//    this.isc?.focus()
+
+  }
+
+  onRemove() {
+    //  console.log('onRemove')
+  }
+
   registerOnTouched(fn: any) {
     this.propagateTouched = fn
   }
 
   ngOnDestroy() { 
-    this.esc?.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
+    this.isc?.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
   }
 
   onKeydown(event: KeyboardEvent) {
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+//    this._lastInputEvent = event;
+//    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+    if ( event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
       event.stopImmediatePropagation()
     }
   }
 
+
+
   ngAfterViewInit() {
     setTimeout(() => {
-      this.esc?.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-      this.esc?.focus()
-      this.esc?.setDisabledState(this.isDisabled)
+      this.isc?.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
+      this.isc?.focus()  //Al hacer click en el componente hace foco
+     
     }, 1);
   }
 
-  get selectedId() {
-    return this._selectedId()
-  }
 
-  get selectedIdNum(): number {
-    return parseInt(this._selectedId())
+  get selectedId() {
+    return this._selectedId
   }
 
   set selectedId(val: string) {
-    this.esc?.focus()
+
+    this.isc?.focus()
     val = (val === null || val === undefined) ? '' : val
 
-    if (val !== this._selectedId()) {
-      this._selectedId.set(val)
+    if (val !== this._selectedId) {
+      this._selectedId = val
 
-      if (val === '' || val === '0') {
+      if (this._selectedId == '' || this._selectedId == '0') {
         this.valueExtendedEmitter.emit({})
-        if (this._selected() !== '') {
-          this._selected.set('')
-        }
-        this.propagateChange(val)
+        this._selected = ''
+        this.propagateChange(this._selectedId)
         return
       }
   
+/*
+
+      if (!this._selectedId && this._selectedId !== null) {
+        this.valueExtendedEmitter.emit({})
+        this.propagateChange(this._selectedId)
+        return
+      }
+*/
       firstValueFrom(
         this.searchService
-          .getEstudioFromName('EstudioId', val)
+        .getEstudioFromName('TipoEstudioId', val)
           .pipe(tap(res => {
-            console.log(res)
-            this.extendedOption.set({ 
-              EstudioId: res[0]?.TipoEstudioId, 
-              TipoEstudioDescripcion: res[0]?.TipoEstudioDescripcion 
-            })
-            this._selected.set(val)
-            this.valueExtendedEmitter.emit(this.extendedOption())
-            this.propagateChange(val)
+            if (res[0]?.TipoEstudioId)
+            this.extendedOption = res[0]
+            this._selected = this._selectedId
+            this.valueExtendedEmitter.emit(this.extendedOption)
+            if (this.tmpInputVal!=this._selectedId)
+              this.propagateChange(this._selectedId)
           }))
       )
+
     }
   }
 
   writeValue(value: any) {
-    if (value !== this._selectedId()) {
+    this.tmpInputVal = value
+    if (value !== this._selectedId) {
       this.selectedId = value
     }
   }
@@ -136,16 +155,26 @@ export class EstudioSearchComponent implements ControlValueAccessor {
     )
   )
 
+  
+
   modelChange(val: string) {
     this.selectedId = val
   }
-
+  
   search(value: string): void {
-    this.extendedOption.set({ EstudioId: 0, TipoEstudioDescripcion: "" })
+    this.extendedOption = { TipoEstudioId: 0, TipoEstudioDescripcion: "" }
     this.$searchChange.next(value)
   }
 
   focus() { 
     console.log('focus')
+
   }
-} 
+
+
+  setDisabledState(isDisabled: boolean): void {
+    this.isc?.setDisabledState(isDisabled)
+  } 
+
+}
+

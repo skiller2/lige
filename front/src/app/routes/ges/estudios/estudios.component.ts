@@ -18,69 +18,48 @@ export class EstudiosComponent {
 
   @ViewChild('estudiosForm', { static: true }) estudiosForm: NgForm = new NgForm([], []);
 
-  periodo: any;
-  PersonalId = signal(0);
-  PersonalEstudioId = 0;
-  visibleDrawer = false;
-  visibleHistorial = false;
-  openDrawerForConsult = false;
-  tituloDrawer = '';
-  RefreshEstudio = false
-
-  selectedPeriod = signal({ year: 0, month: 0 });
+  
+  PersonalId = signal<number>(0);
+  PersonalEstudioId = signal<number>(0);
+  visibleDrawer = signal<boolean>(false);
+  readonly = signal<boolean>(false);
+  tituloDrawer = signal<string>(''); 
+  RefreshEstudio = signal<boolean>(false);
 
   constructor(private settingsService: SettingsService) {}
 
-
   ngOnInit() {
-   // const now = new Date();
-    //setTimeout(() => {
-        ///const anio = Number(localStorage.getItem('anio')) > 0 
-      //  ? Number(localStorage.getItem('anio')) 
-      //  : now.getFullYear();
-      //const mes = Number(localStorage.getItem('mes')) > 0
-      //  ? Number(localStorage.getItem('mes'))
-      //  : now.getMonth() + 1;
-
-      //this.estudiosForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
-    //}, 1);
+  
     this.settingsService.setLayout('collapsed', true);
   }
 
   actualizarValorDrawer(event: any) {
     console.log('event', event)
+    this.visibleDrawer.set(false);
     if (event.length > 0) {
       this.PersonalId.set(event[0].PersonalId);
-      this.PersonalEstudioId = event[0].PersonalEstudioId;
+      this.PersonalEstudioId.set(event[0].PersonalEstudioId);
     }
   }
 
- 
-
   openDrawerforEdit() {
-    this.tituloDrawer = 'Editar Estudio';
-    this.openDrawerForConsult = false;
-    this.visibleDrawer = true;
+    this.tituloDrawer.set('Editar Estudio');
+    this.readonly.set(false);
+    this.visibleDrawer.set(true);
   }
 
   openDrawerforConsult() {
-    this.tituloDrawer = 'Consultar Estudio';
-    this.openDrawerForConsult = true;
-    this.visibleDrawer = true;
+    this.tituloDrawer.set('Consultar Estudio');
+    this.readonly.set(true);
+    this.visibleDrawer.set(true);
   }
 
   openDrawerforNew() {
-    this.tituloDrawer = 'Nuevo Estudio';
-    this.openDrawerForConsult = false;
-    this.PersonalEstudioId = 0;
-    this.visibleDrawer = true;
+    this.tituloDrawer.set('Nuevo Estudio');
+    this.readonly.set(false);
+    this.PersonalEstudioId.set(0);
+    this.visibleDrawer.set(true);
   }
 
-  openDrawerforConsultHistory() {
-    this.visibleHistorial = true;
-  }
 
-  deleteEstudio() {
-    // Implementar lógica de borrado
-  }
 } 

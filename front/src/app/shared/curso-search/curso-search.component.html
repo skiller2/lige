@@ -1,15 +1,15 @@
-<nz-select #csc [ngModel]="_selected()" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
-  (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Tipo Curso" nzShowSearch
-  nzServerSearch (nzOnSearch)="search($event)">
+
+<nz-select #cur [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }" 
+  (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Curso"
+  nzShowSearch nzServerSearch (nzOnSearch)="search($event)" >
   <ng-container *ngFor="let option of $optionsArray | async">
     <nz-option *ngIf="($isOptionsLoading | async) == false" [nzValue]="option.CursoHabilitacionId"
-      [nzLabel]="option.CursoHabilitacionDescripcion + (option.CursoHabilitacionCodigo ? ' ' + option.CursoHabilitacionCodigo : '')" />
+      nzLabel="{{ option.CursoHabilitacionDescripcion }}{{option.CursoHabilitacionCodigo ? ' (' + option.CursoHabilitacionCodigo + ')' : ''}}" />
   </ng-container>
-  <nz-option *ngIf="extendedOption.CursoId >0 " [nzValue]="extendedOption.CursoId"
-    [nzLabel]="extendedOption.TipoCursoDescripcion" />
-
+  <nz-option *ngIf="extendedOption.CursoHabilitacionId > 0" [nzValue]="extendedOption.CursoHabilitacionId"
+    [nzLabel]="extendedOption.CursoHabilitacionDescripcion" />
   <nz-option *ngIf="$isOptionsLoading | async" nzDisabled nzCustomContent>
     <span nz-icon nzType="loading" class="loading-icon"></span>
     Cargando datos...
   </nz-option>
-</nz-select> 
+</nz-select>

@@ -197,6 +197,16 @@ export class SearchService {
     return this.getInasistenciaSearch(fieldName, values)
   }
 
+  getCursoFromName(fieldName: string, values: string): Observable<SearchCurso[]> {
+    return this.getCursoSearch(fieldName, values)
+  }
+
+
+  getEstudioFromName(fieldName: string, values: string): Observable<SearchEstudio[]> {
+    return this.getEstudioSearch(fieldName, values)
+  }
+
+
   getSituacionRevistaFromName(fieldName: string, values: string): Observable<SearchSituacionRevista[]> {
     return this.getSituacionRevistaSearch(fieldName, values)
   }
@@ -234,7 +244,7 @@ export class SearchService {
   // estudios
 
   
-  getEstudioFromName(fieldName: string, values: string): Observable<SearchEstudio[]> {
+  getEstudioSearch(fieldName: string, values: string): Observable<SearchEstudio[]> {
     if (!values || values == '') {
       return of([]);
     }
@@ -1513,7 +1523,7 @@ export class SearchService {
   }
 
   // cursos
-  getCursoFromName(fieldName: string, values: string): Observable<SearchCurso[]> {
+  getCursoSearch(fieldName: string, values: string): Observable<SearchCurso[]> {
     if (!values || values == '') {
       return of([]);
     }
