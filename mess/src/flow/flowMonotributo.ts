@@ -68,12 +68,14 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
             else {
                 //TODO:  Ver tema nueva tabla PersonalComprobantePagoAFIPId, com.PersonalId,
                 try {
+                    
+                    await flowDynamic([{ body: `Monotributo`, media: urlDoc.URL, delay }])
                     await chatBotController.addToDocLog(urlDoc.doc_id,ctx.from)
                 } catch (error) {
-                    console.log('Error',error)
+                    console.log('Error', error)
+                    await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
                 }
-                console.log('URL Recibo',urlDoc.URL)
-                await flowDynamic([{ body: `Recibo`, media: urlDoc.URL, delay }])
+
             }
     
     })

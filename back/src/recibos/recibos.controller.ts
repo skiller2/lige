@@ -15,7 +15,6 @@ import {
 } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.utils";
 
 import { QueryRunner } from "typeorm";
-import { Readable } from "typeorm/platform/PlatformTools.js";
 import { CustodiaController } from "src/controller/custodia.controller";
 import { AsistenciaController } from "src/controller/asistencia.controller";
 import { FileUploadController } from "src/controller/file-upload.controller";
@@ -23,7 +22,7 @@ import { FileUploadController } from "src/controller/file-upload.controller";
 
 
 export class RecibosController extends BaseController {
-  directoryRecibo  = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' + '/recibo'
+  directoryRecibo  = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' + '/recibos'
   PathReciboTemplate = {
     header: `${this.directoryRecibo}/config/recibo-header.html`,
     body: `${this.directoryRecibo}/config/recibo-body.html`,
@@ -156,7 +155,7 @@ export class RecibosController extends BaseController {
       }
       const movimientosPendientes = await this.getUsuariosLiquidacion(queryRunner, periodo_id, periodo.year, periodo.month, personalId, fechaRecibo)
 
-      var directorPath = String(periodo.year) + String(periodo.month).padStart(2, '0') + '/' + periodo_id
+      var directorPath = String(periodo.year) + String(periodo.month).padStart(2, '0')
       if (!existsSync(this.directoryRecibo + '/' + directorPath)) {
         mkdirSync(this.directoryRecibo + '/' + directorPath, { recursive: true });
       }

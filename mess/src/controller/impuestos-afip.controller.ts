@@ -30,13 +30,12 @@ export class ImpuestosAfipController extends BaseController {
 
         const filename = `${anio}-${mes.toString().padStart(2, '0')}-${gettmpfilename[0].CUIT}-${gettmpfilename[0].PersonalId}.pdf`
         const downloadPath = `${this.directory}/${anio}/${filename}`;
-        console.log('Descarga monotributo downloadPath',downloadPath)
         if (!existsSync(downloadPath))
           throw new ClientException(`El documento no se encuentra disponible.`,downloadPath);
   
 
 
-        tmpURL = `${this.apiPath}/impuestos_afip/download/${PersonalId}/${anio}/${mes}`;
+        tmpURL = `${this.apiPath}/impuestos_afip/download/${PersonalId}/${anio}/${mes}/${anio}${mes}-${PersonalId}`;
       } else {
         throw new ClientException(`Recibo no generado`)
       }

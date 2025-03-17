@@ -63,9 +63,11 @@ export const flowLogin = addKeyword(EVENTS.WELCOME)
         const res = await personalController.getPersonalfromTelefonoQuery(telefono)
 
         //force
-        if (process.env.PESONALID_TEST)
-          res.push({cuit: '20300000001', codigo: '', PersonalSituacionRevistaSituacionId: 2, personalId: process.env.PESONALID_TEST, name: 'Prueba probador'})
-
+        if (process.env.PERSONALID_TEST) {
+            res.length = 0
+            res.push({ cuit: '20300000001', codigo: '', PersonalSituacionRevistaSituacionId: 2, personalId: process.env.PERSONALID_TEST, name: 'Prueba probador' })
+        }
+        console.log('res',res)
         if (res.length) {
             if (![2,9,23,12,10,16,28,18,26,11,20,22].includes(res[0].PersonalSituacionRevistaSituacionId)) { 
                 await flowDynamic(`No se encuentra dentro de una situación de revista habilitada para realizar operaciones por este medio ${res[0].PersonalSituacionRevistaSituacionId}`, { delay: delay })

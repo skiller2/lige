@@ -12,6 +12,7 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
     .addAction(async (_, { flowDynamic, state, gotoFlow }) => {
         await flowDynamic([{ body: `⏱️ Buscando recibos`, delay }])
         const myState = state.getMyState()
+        console.log('myState',myState)
         const personalId = myState.personalId
         const periodosArray: any[] = await recibosController.getLastPeriodoOfComprobantes(personalId, 3).then(array => { return array })
         let resPeriodos = ''
@@ -52,9 +53,16 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
             if (urlDocRecibo instanceof Error)
                 await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
             else {
-                await chatBotController.addToDocLog(urlDocRecibo.doc_id, ctx.from)
-                await flowDynamic([{ body: `Recibo`, media: urlDocRecibo.URL, delay }])
-                //TODO Escribir en la base la descarga del recibo
+                try {
+                    console.log('empieza')
+                    await flowDynamic([{ body: `Recibo`, media: urlDocRecibo.URL, delay }])
+                    console.log('llegó aca')
+                    await chatBotController.addToDocLog(urlDocRecibo.doc_id, ctx.from)
+                } catch (error) {
+                    console.log('Error descargando Recibo',error)
+                    await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
+                }
+
             }
             
         })
