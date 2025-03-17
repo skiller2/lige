@@ -61,7 +61,7 @@ export class PersonalFormComponent {
       destruccion: this.fb.group({...this.objActa})
     }),
     LeyNro:null,
-    habilitacion: this.optionsLugarHabilitacion(),
+    habilitacion: [],
   }
   
   formPer = this.fb.group({ ...this.inputs })
@@ -202,7 +202,7 @@ export class PersonalFormComponent {
   async save() {
     this.isLoading.set(true)
     const values:any = this.formPer.value
-    // console.log('values',values);
+    console.log('values',values);
     try {
       if (this.personalId()) {
         await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))
@@ -294,7 +294,6 @@ export class PersonalFormComponent {
       this.telefonos().clear()
       this.estudios().clear()
       this.familiares().clear()
-      this.formPer.get("habilitacion")?.setValue(this.optionsLugarHabilitacion())
 
       if (this.telefonos().length == 0)
         this.telefonos().push(this.fb.group({...this.objTelefono}))

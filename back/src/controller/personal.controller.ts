@@ -6,7 +6,7 @@ import { NextFunction } from "express";
 import { mkdirSync, renameSync, existsSync } from "fs";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
-import { promisify } from 'util';
+import { isObject, promisify } from 'util';
 import * as fs from 'fs';
 
 const stat = promisify(fs.stat);
@@ -1559,12 +1559,17 @@ console.log('infoDomicilio',infoDomicilio)
   }
 
   private async getFormHabilitacionByPersonalIdQuery(queryRunner: any, personalId: any) {
-    const lugaresPersona = await queryRunner.query(`
-        SELECT PersonalHabilitacionNecesariaLugarHabilitacionId LugarHabilitacionId
+    const habs = []
+    const habilitacionPers = await queryRunner.query(`
+        SELECT PersonalHabilitacionNecesariaLugarHabilitacionId
         FROM PersonalHabilitacionNecesaria
         WHERE PersonalId IN (@0)
       `, [personalId]
     )
+    for (const hab of habilitacionPers)
+      habs.push(hab.PersonalHabilitacionNecesariaLugarHabilitacionId)
+    return habs
+    /*
     const lugares = await this.getLugarHabilitacionQuery(queryRunner)
     for (const lugar of lugares) {
       const find = lugaresPersona.find((obj:any)=> {return obj.LugarHabilitacionId == lugar.value})
@@ -1572,6 +1577,7 @@ console.log('infoDomicilio',infoDomicilio)
       else lugar.checked = false
     }
     return lugares
+    */
   }
 
   async getFormDataById(req: any, res: Response, next: NextFunction) {
@@ -2443,16 +2449,19 @@ console.log('infoDomicilio',infoDomicilio)
   private async setPersonalHabilitacionNecesaria(queryRunner: any, personalId: number, habilitaciones:any[], usuarioId:number, ip:string) {
     //Compruebo si hubo cambios
     let cambios:boolean = false
-    const lugaresOld = await this.getFormHabilitacionByPersonalIdQuery(queryRunner, personalId)
-    lugaresOld.forEach((lugar:any, index:number) => {
-      if (lugar.checked != habilitaciones[index].checked) {
-        cambios = true
-      }
-    });
-    if (lugaresOld.length && !cambios) return
-    console.log('----------------------------------------');
-    console.log('Hubo cambios de HabilitacionNecesaria.');
-    console.log('----------------------------------------');
+    const habilitacionesOld = await this.getFormHabilitacionByPersonalIdQuery(queryRunner, personalId)
+
+    if (habilitaciones.length != habilitacionesOld.length)
+      cambios = true
+    else
+      habilitacionesOld.forEach((hab: any, index: number) => {
+        if (habilitaciones.find(h=>hab!=h)) {
+          cambios = true
+        }
+      });
+    if (!cambios) return
+
+
     //Actualizo
     const now = new Date()
     const time = this.getTimeString(now)
@@ -2463,9 +2472,7 @@ console.log('infoDomicilio',infoDomicilio)
       DELETE FROM PersonalHabilitacionNecesaria
       WHERE PersonalId IN (@0)
       `, [personalId])
-    for (const habilitacion of habilitaciones) {
-      if (habilitacion.checked) {
-        const habilitacionId = habilitacion.value
+    for (const habilitacionId of habilitaciones) {
         PersonalHabilitacionNecesariaId++
         await queryRunner.query(`
           INSERT INTO PersonalHabilitacionNecesaria (
@@ -2474,8 +2481,6 @@ console.log('infoDomicilio',infoDomicilio)
           PersonalHabilitacionNecesariaDia, PersonalHabilitacionNecesariaTiempo)
           VALUES(@0,@1,@2,@3,@4,@5,@3,@6)
           `, [personalId, PersonalHabilitacionNecesariaId, habilitacionId, now, ip, usuarioId, time])
-      }
-      
     }
     await queryRunner.query(`
       UPDATE Personal SET
