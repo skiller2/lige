@@ -69,8 +69,7 @@ export class PersonalFormComponent {
   $optionsSucursal = this.searchService.getSucursales();
   $optionsNacionalidad = this.searchService.getNacionalidadOptions();
   $optionsSitRevista = this.searchService.getSitRevistaOptions();
-  // $optionsLugarHabilitacion = this.searchService.getTipoParentescoOptions();
-
+  
   fotoId():number {
     const value = this.formPer.value.FotoId
     if (value) {
@@ -141,10 +140,11 @@ export class PersonalFormComponent {
   async ngOnInit(){
     let now : Date = new Date()
     this.periodo.set({anio: now.getFullYear(), mes: now.getMonth()+1})
-    let optionsTelefonoTipo = await firstValueFrom(this.searchService.getTipoTelefonoOptions())
-    let optionsEstudioEstado = await firstValueFrom(this.searchService.getEstadoEstudioOptions())
-    let optionsEstudioTipo = await firstValueFrom(this.searchService.getTipoEstudioOptions())
-    let optionsParentesco = await firstValueFrom(this.searchService.getTipoParentescoOptions())
+    
+    const optionsTelefonoTipo = await firstValueFrom(this.searchService.getTipoTelefonoOptions())
+    const optionsEstudioEstado = await firstValueFrom(this.searchService.getEstadoEstudioOptions())
+    const optionsEstudioTipo = await firstValueFrom(this.searchService.getTipoEstudioOptions())
+    const optionsParentesco = await firstValueFrom(this.searchService.getTipoParentescoOptions())
     const optionsLugarHabilitacion = await firstValueFrom(this.searchService.getLugarHabilitacionOptions())
     
     this.optionsTelefonoTipo.set(optionsTelefonoTipo)
@@ -202,7 +202,6 @@ export class PersonalFormComponent {
   async save() {
     this.isLoading.set(true)
     const values:any = this.formPer.value
-    console.log('values',values);
     try {
       if (this.personalId()) {
         await firstValueFrom( this.apiService.updatePersonal(this.personalId(), values))
