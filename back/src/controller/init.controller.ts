@@ -105,6 +105,8 @@ export class InitController extends BaseController {
     }
   }
 
+
+
   async getObjetivosSinGrupo(req: Request, res: Response, next: NextFunction) {
     const con = await getConnection()
     const stmactual = new Date()
@@ -158,6 +160,28 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
       .catch((error) => {
         return next(error);
       });
+  }
+
+
+  async getRecibosPendDescarga(req: Request, res: Response, next: NextFunction){
+    try {
+      const con = await getConnection()
+      const rec = await con.query(
+          `SELECT TOP 1 COUNT(DISTINCT dc.doc_id) total, COUNT(DISTINCT lg.doc_id) descargados, pe.anio, pe.mes 
+          FROM lige.dbo.docgeneral dc
+          JOIN lige.dbo.liqmaperiodo pe ON pe.periodo_id = dc.periodo
+          LEFT JOIN lige.dbo.doc_descaga_log lg ON lg.doc_id = dc.doc_id
+          WHERE dc.doctipo_id='REC' -- AND pe.anio = @1 AND pe.mes = @2
+          GROUP BY pe.anio, pe.mes
+          ORDER BY pe.anio desc, pe.mes desc
+          `)
+      this.jsonRes({ total: rec[0].total, descargados: rec[0].descargados, anio:rec[0].anio, mes:rec[0].mes }, res);
+
+    } catch (error){ 
+      return next(error);
+
+    }
+
   }
 
 

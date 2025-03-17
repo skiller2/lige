@@ -104,12 +104,14 @@ export class InitV1Component implements OnInit {
     .get('/api/init/stats/objetivosactivos')
     .pipe(share());
   cambioCategoriaPendientes$ = this.http
-    .get('/api/init/stats/cambioscategoria')
-    .pipe(share());
+    .get('/api/init/stats/cambioscategoria').pipe(share());
 
   objetivosSinGrupo$ = this.http
-    .get('/api/init/stats/objetivossingrupo')
-    .pipe(share());
+    .get('/api/init/stats/objetivossingrupo').pipe(share());
+  
+  
+  statsRecibosPendientes$ = this.http.get( `/api/init/stats/recibos` ).pipe(share());
+  
 
   horasTrabajadas$ = this.statshorastrabajadas();
   objetivosSinAsistencia$ = this.statssinAsistencia();
@@ -197,6 +199,7 @@ export class InitV1Component implements OnInit {
     const anio = stmactual.getFullYear();
     return this.http.get( `/api/init/stats/custodiaspendientes/${anio}/${mes}` );
   }
+
 
 
   ngOnInit(): void {
