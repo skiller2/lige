@@ -16,13 +16,8 @@ import multer, { FileFilterCallback } from "multer";
 import { existsSync, mkdirSync } from "fs";
 import { tmpName } from "../server";
 import { ClientException } from "../controller/baseController";
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { ok } from "assert";
-
 
 type DestinationCallback = (error: Error | null, destination: string) => void;
-
 
 const dirtmp = `${process.env.PATH_TELEFONIA}/temp`;
 if (!existsSync(dirtmp)) {
@@ -114,11 +109,11 @@ liquidacionesRouter.post('/movimientoAcreditacionEnCuenta', [authMiddleware.veri
   await movimientoAcreditacionEnCuentaController.procesaCambios(req, res, next)
 })
 
-liquidacionesRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res) => {
+liquidacionesRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res) => {
   liquidacionesController.getLiquidacionesCols(req, res);
 });
 
-liquidacionesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+liquidacionesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res, next) => {
   liquidacionesController.getByLiquidaciones(req, res, next)
 });
 
@@ -131,15 +126,15 @@ liquidacionesRouter.post('/delete', [authMiddleware.verifyToken, authMiddleware.
 });
 
 
-liquidacionesRouter.get('/tipo_movimiento/:TipoMovimiento', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+liquidacionesRouter.get('/tipo_movimiento/:TipoMovimiento', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res, next) => {
   liquidacionesController.getTipoMovimiento(req, res, next)
 });
 
-liquidacionesRouter.get('/tipo_movimiento_by_id/:TipoMovimiento', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+liquidacionesRouter.get('/tipo_movimiento_by_id/:TipoMovimiento', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res, next) => {
   liquidacionesController.getTipoMovimientoById(req, res, next)
 });
 
-liquidacionesRouter.get('/tipo_cuenta', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+liquidacionesRouter.get('/tipo_cuenta', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res, next) => {
   liquidacionesController.getTipoCuenta(req, res, next)
 });
 
@@ -148,23 +143,23 @@ liquidacionesRouter.get('/importaciones_anteriores/:anio/:mes', [authMiddleware.
 });
 
 // seccion de banco
-liquidacionesRouter.get("/banco/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res) => {
+liquidacionesRouter.get("/banco/cols", [authMiddleware.verifyToken], (req, res) => {
   liquidacionesBancoController.getLiquidacionesBancoCols(req, res);
 });
 
-liquidacionesRouter.get("/banco/movimientospendientes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res) => {
+liquidacionesRouter.get("/banco/movimientospendientes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res) => {
   liquidacionesBancoController.getLiquidacionesBancoMovimientosPendientesCols(req, res);
 });
 
-liquidacionesRouter.get("/banco/ayuda/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res) => {
+liquidacionesRouter.get("/banco/ayuda/cols", [authMiddleware.verifyToken], (req, res) => {
   liquidacionesBancoController.getLiquidacionesBancoColsAyuda(req, res);
 });
 
-liquidacionesRouter.post('/banco/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+liquidacionesRouter.post('/banco/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res, next) => {
   liquidacionesBancoController.getByLiquidacionesBanco(req, res, next)
 });
 
-liquidacionesRouter.post('/banco/listMovimientos', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+liquidacionesRouter.post('/banco/listMovimientos', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res, next) => {
   liquidacionesBancoController.getByMovimientos(req, res, next)
 });
 
@@ -186,7 +181,7 @@ liquidacionesRouter.post('/deleteMovimiento', [authMiddleware.verifyToken, authM
 
 // ayuda asistencial
 
-liquidacionesRouter.post('/banco/listAyudaAsistencial', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+liquidacionesRouter.post('/banco/listAyudaAsistencial', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res, next) => {
   liquidacionesBancoController.getByLiquidacionesBancoAyudaAsistencial(req, res, next)
 });
 
