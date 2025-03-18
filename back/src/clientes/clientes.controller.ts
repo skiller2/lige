@@ -272,9 +272,6 @@ ${orderBy}`, [fechaActual])
             ,TRIM(adm.AdministradorNombre) AS AdministradorNombre
             ,TRIM(adm.AdministradorApellido) AS AdministradorApellido
             ,adm.AdministradorId
-            ,cli.ClienteContactoUltNro
-            ,cli.ClienteTelefonoUltNro
-            ,cli.ClienteEmailUltNro
             ,cli.ClienteDomicilioUltNro
         FROM Cliente cli
         LEFT JOIN ClienteFacturacion fac 
