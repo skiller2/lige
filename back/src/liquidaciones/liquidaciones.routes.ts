@@ -109,11 +109,11 @@ liquidacionesRouter.post('/movimientoAcreditacionEnCuenta', [authMiddleware.veri
   await movimientoAcreditacionEnCuentaController.procesaCambios(req, res, next)
 })
 
-liquidacionesRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res) => {
+liquidacionesRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas'])], (req, res) => {
   liquidacionesController.getLiquidacionesCols(req, res);
 });
 
-liquidacionesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res, next) => {
+liquidacionesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas'])], (req, res, next) => {
   liquidacionesController.getByLiquidaciones(req, res, next)
 });
 
@@ -126,15 +126,15 @@ liquidacionesRouter.post('/delete', [authMiddleware.verifyToken, authMiddleware.
 });
 
 
-liquidacionesRouter.get('/tipo_movimiento/:TipoMovimiento', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res, next) => {
+liquidacionesRouter.get('/tipo_movimiento/:TipoMovimiento', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas'])], (req, res, next) => {
   liquidacionesController.getTipoMovimiento(req, res, next)
 });
 
-liquidacionesRouter.get('/tipo_movimiento_by_id/:TipoMovimiento', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res, next) => {
+liquidacionesRouter.get('/tipo_movimiento_by_id/:TipoMovimiento', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas'])], (req, res, next) => {
   liquidacionesController.getTipoMovimientoById(req, res, next)
 });
 
-liquidacionesRouter.get('/tipo_cuenta', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res, next) => {
+liquidacionesRouter.get('/tipo_cuenta', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas'])], (req, res, next) => {
   liquidacionesController.getTipoCuenta(req, res, next)
 });
 
@@ -147,7 +147,7 @@ liquidacionesRouter.get("/banco/cols", [authMiddleware.verifyToken], (req, res) 
   liquidacionesBancoController.getLiquidacionesBancoCols(req, res);
 });
 
-liquidacionesRouter.get("/banco/movimientospendientes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res) => {
+liquidacionesRouter.get("/banco/movimientospendientes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas'])], (req, res) => {
   liquidacionesBancoController.getLiquidacionesBancoMovimientosPendientesCols(req, res);
 });
 
