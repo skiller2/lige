@@ -4,6 +4,7 @@ import { dataSource } from "../data-source";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros";
 import { Options } from "../schemas/filtro";
 import { QueryRunner } from "typeorm";
+import { FileUploadController } from "../controller/file-upload.controller"
 
 
 const listaColumnas: any[] = [
@@ -278,6 +279,11 @@ export class EstudioController extends BaseController {
      } = req.body
 
     console.log("req.body", req.body)
+
+    const usuario = res.locals.userName;
+    const ip = this.getRemoteAddress(req);
+
+   
     //throw new ClientException(`test.`)
     const queryRunner = dataSource.createQueryRunner()
     await queryRunner.connect();
@@ -366,9 +372,14 @@ export class EstudioController extends BaseController {
       }
 
       
+      if (req.body.files?.length > 0) {
+        await FileUploadController.handlePDFUpload(PersonalId, 'CURSO', '', 'personalId', req.body.files, usuario, ip, "DocumentoImagenEstudio")
+      }
+  
 
-      await queryRunner.commitTransaction()
-      this.jsonRes({}, res, 'Carga Exitosa')
+
+      await queryRunner.commitTransaction();
+      this.jsonRes({ list: [] }, res, (PersonalIdForEdit > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
     } catch (error) {
       await queryRunner.rollbackTransaction()
       return next(error)

@@ -203,16 +203,21 @@ export class FileUploadController extends BaseController {
     keyfield: string,
     Archivo: any,
     usuario: any,
-    ip: any
+    ip: any,
+    tipoUpload?: string
   ) {
     const queryRunner = dataSource.createQueryRunner();
     let fechaActual = new Date();
     const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, fechaActual.getFullYear(), fechaActual.getMonth(), usuario, ip);
 
     const dirtmpNew = `${process.env.PATH_DOCUMENTS}/${folder}/${keyid}`;
+
+
     for (const file of Archivo) {
-      let docgeneral = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
-      const newFilePath = `${dirtmpNew}/${docgeneral}-${keyid}.pdf`;
+      let docgeneral = 0
+      let newFilePath = ''
+
+
       this.moveFile(`${file.fieldname}.pdf`, newFilePath, dirtmpNew);
 
       //let tipoCodigo = tipoUpload === "Cliente" ? "CLI" : tipoUpload === "Objetivo" ? "OBJ" : "";
@@ -220,24 +225,40 @@ export class FileUploadController extends BaseController {
       if (!folder)
         throw new ClientException(`Error subiendo archivo`)
 
-      await this.setArchivos(
-        queryRunner,
-        Number(docgeneral),
-        periodo_id,
-        fechaActual,
-        keyfield,
-        keyid,
-        file.originalname,
-        newFilePath,
-        usuario,
-        ip,
-        fechaActual,
-        doctipo_id,
-        null
-      );
+      switch (tipoUpload) {
+        case "DocumentoImagenEstudio":
 
+        const DocumentoImagenParametroId = 20 // CURSO
+        const DocumentoImagenParametroDirectorioId = 1 // TEMP
 
-
+          await this.setArchivosDocumentoImagenEstudio(
+            queryRunner,
+            Number(docgeneral),
+            keyid,
+            file.originalname.split('.')[1],
+            file.originalname,
+            DocumentoImagenParametroId,
+            DocumentoImagenParametroDirectorioId
+          )
+          break;
+        default:
+          await this.setArchivos(
+            queryRunner,
+            Number(docgeneral),
+            periodo_id,
+            fechaActual,
+            keyfield,
+            keyid,
+            file.originalname,
+            newFilePath,
+            usuario,
+            ip,
+            fechaActual,
+            doctipo_id,
+            null
+          );
+          break;
+      }
     }
   }
 
@@ -257,6 +278,37 @@ export class FileUploadController extends BaseController {
 
   }
 
+  static async setArchivosDocumentoImagenEstudio(
+    queryRunner: any,
+    DocumentoImagenEstudioId: number,
+    PersonalId: number,
+    DocumentoImagenEstudioBlobTipoArchivo: string,
+    DocumentoImagenEstudioBlobNombreArchivo: string,
+    DocumentoImagenParametroId: number,
+    DocumentoImagenParametroDirectorioId: number,
+   
+  ) { 
+    return queryRunner.query(
+      `INSERT INTO DocumentoImagenEstudio (
+        "PersonalId",
+        "DocumentoImagenEstudioBlobTipoArchivo",
+        "DocumentoImagenEstudioBlobNombreArchivo",
+        "DocumentoImagenParametroId",
+        "DocumentoImagenParametroDirectorioId"
+      ) VALUES (
+        @0, @1, @2, @3, @4
+      );`,
+      [
+        PersonalId,
+        DocumentoImagenEstudioBlobTipoArchivo,
+        DocumentoImagenEstudioBlobNombreArchivo,
+        DocumentoImagenParametroId,
+        DocumentoImagenParametroDirectorioId
+      ]
+    );
+  }
+  
+
   static async setArchivos(
     queryRunner: any,
     doc_id: number,
@@ -273,7 +325,7 @@ export class FileUploadController extends BaseController {
     den_documento: number,
   ) {
 
-    let persona_id = 0, objetivo_id = 0, cliente_id = 0
+    let persona_id = 0, objetivo_id = 0, cliente_id = 0, personalId = 0
     switch (keyfield) {
       case "objetivo_id":
         objetivo_id = keyid
@@ -284,7 +336,9 @@ export class FileUploadController extends BaseController {
       case "cliente_id":
         cliente_id = keyid
         break;
-
+      case "personalId":
+        personalId = keyid
+        break;
       default:
         break;
     }
@@ -324,6 +378,18 @@ export class FileUploadController extends BaseController {
     }
     return den_numero
   }
+
+  static async getProxNumeroImagenEstudio(queryRunner: any, usuario: string, ip: string) {
+
+    const den_numero = await queryRunner.query('SELECT MAX(DocumentoImagenEstudioId) AS DocumentoImagenEstudioId FROM DocumentoImagenEstudio')
+
+    if(den_numero.length == 0){
+      return 1
+    }else{
+      return den_numero[0]['DocumentoImagenEstudioId'] + 1
+    }
+  }
+
 
   async deleleTemporalFiles(req, res, next) {
     try {
