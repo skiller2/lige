@@ -25,7 +25,6 @@ export class EstudiosComponent {
   PersonalEstudioId = signal<number>(0);
   visibleDrawer = signal<boolean>(false);
   disabled = signal<boolean>(false);
-  tituloDrawer = signal<string>(''); 
   RefreshEstudio = signal<boolean>(false);
 
   ListEstudios$ = new BehaviorSubject('')
@@ -49,13 +48,13 @@ export class EstudiosComponent {
   }
 
   openDrawerforEdit() {
-    this.tituloDrawer.set('Editar Estudio');
+   
     this.disabled.set(false);
     this.visibleDrawer.set(true);
   }
 
   openDrawerforConsult() {
-    this.tituloDrawer.set('Consultar Estudio');
+   
     this.disabled.set(true);
     this.visibleDrawer.set(true);
   }
@@ -66,7 +65,7 @@ export class EstudiosComponent {
   }
 
   openDrawerforNew() {
-    this.tituloDrawer.set('Nuevo Estudio');
+   
     this.disabled.set(false);
     this.PersonalEstudioId.set(0);
     this.visibleDrawer.set(true);

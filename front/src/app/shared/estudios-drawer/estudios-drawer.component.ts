@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, Output, EventEmitter,  } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, EventEmitter, output,  } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { FormControl, NgForm } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -38,7 +38,7 @@ export class EstudiosDrawerComponent {
 
   //selectedPeriod = input.required<any>()
   ArchivosEstudioAdd: any[] = [];
-  tituloDrawer = input.required<string>()
+  tituloDrawer = signal<string>("Nuevo Estudio")
   disabled =  input<boolean>(false)
   RefreshEstudio =  model<boolean>(false)
   private apiService = inject(ApiService)
@@ -64,7 +64,9 @@ export class EstudiosDrawerComponent {
   placement: NzDrawerPlacement = 'left';
   visible = model<boolean>(false)
 
-  @Output() OnRefreshEstudio = new EventEmitter();
+  //@Output() OnRefreshEstudio = new EventEmitter();
+  OnRefreshEstudio = output<void>();
+
 
   uploading$ = new BehaviorSubject({loading:false,event:null});
   uploadFileModel = viewChild.required(NgForm);
@@ -76,6 +78,8 @@ export class EstudiosDrawerComponent {
 
     this.ArchivosEstudioAdd = []
     this.PersonalIdForEdit.set(0)
+
+    
   }
 
   cambios = computed(async () => {
@@ -100,13 +104,13 @@ export class EstudiosDrawerComponent {
         this.ngForm().form.markAsPristine()
 
         if (this.disabled()) {
+          this.tituloDrawer.set(' Consultar Estudio ');
           this.ngForm().form.disable()
         } else {
+          this.tituloDrawer.set('Editar Estudio');
           this.ngForm().form.enable()
 
         }
-    
-        //this.ngForm().form.get('PersonalLicenciaSituacionRevistaId')?.disable();
       }
     }
     return true
