@@ -34,19 +34,21 @@ export class TipoDocumentoAltaDrawerComponent {
   placement: NzDrawerPlacement = 'left';
   optionsLabels = signal<any[]>([]);
   label = signal<string>('. . .');
-  fileName = signal("")
-  drawerWidth = signal("600px")
+  drawerWidth = signal("600px");
+  docId = model<number>(0);
+  disabled = model<boolean>(false);
+  archivoOriginalname = signal<string>('');
+  archivoMimetype = signal<string>('');
 
   constructor(
     private searchService: SearchService,
     private apiService: ApiService,
   ) { }
 
+  inputs = { doc_id:0, doctipo_id:'', den_documento:null, persona_id:0, cliente_id:0,
+    objetivo_id:0, fecha:null, fec_doc_ven:null, archivo:[], }
   fb = inject(FormBuilder)
-  formTipoDocumento = this.fb.group({
-    doc_id:0, doctipo_id:'', den_documento:null, persona_id:0, cliente_id:0,
-    objetivo_id:0, fecha:null, fec_doc_ven:null, archivo:[],
-  })
+  formTipoDocumento = this.fb.group({ ...this.inputs })
 
   $optionsTipos = this.searchService.getTiposDocumentoOptions();
 
@@ -57,7 +59,18 @@ export class TipoDocumentoAltaDrawerComponent {
     return 0
   }
 
+  doctipo_id():string {
+    const value = this.formTipoDocumento.get("doctipo_id")?.value
+    if (value) 
+      return value
+    return ''
+  }
+
   archivo_mimetype():string {
+    if (this.docId()) {
+      if (this.archivoMimetype() == 'jpeg' || this.archivoMimetype() == 'jpg' || this.archivoMimetype() == 'png') return 'image'
+      else if (this.archivoMimetype() == 'pdf') return 'pdf'
+    }
     const value:any = this.formTipoDocumento.get("archivo")?.value
     if (value && value.length && value[0].mimetype){
       if (value[0].mimetype.includes('image')) return 'image'
@@ -67,12 +80,23 @@ export class TipoDocumentoAltaDrawerComponent {
   }
 
   archivo_fileUrl():string {
+    if (this.docId()) {
+      if (this.archivoMimetype() == 'jpeg' || this.archivoMimetype() == 'jpg' || this.archivoMimetype() == 'png')
+        return `api/file-upload/downloadFile/${this.docId()}/docgeneral/original`
+      else if (this.archivoMimetype() == 'pdf')
+        return `api/file-upload/downloadFile/${this.docId()}/docgeneral/thumb`
+      else
+        return ''
+    }
     const value:any = this.formTipoDocumento.get("archivo")?.value
     if (value && value.length && value[0].fileUrl) return value[0].fileUrl
     return ''
   }
 
   archivo_originalname():string {
+    if (this.docId()) {
+      return this.archivoOriginalname()
+    }
     const value:any = this.formTipoDocumento.get("archivo")?.value
     if (value && value.length && value[0].originalname) return value[0].originalname
     return ''
@@ -111,6 +135,24 @@ export class TipoDocumentoAltaDrawerComponent {
         
     }
     this.isLoading.set(false)
+  }
+
+  async load() {
+    if (this.docId()) {
+      let infoDoc = await firstValueFrom(this.searchService.getTipoDocumentoById(this.docId()))
+      infoDoc = infoDoc[0]
+      
+      infoDoc.nombre_archivo? this.archivoOriginalname.set(infoDoc.nombre_archivo) : this.archivoOriginalname.set('')
+      infoDoc.extension? this.archivoMimetype.set(infoDoc.extension) : this.archivoMimetype.set('')
+      
+      let values:any = {...this.inputs}
+      for (const key in values) {
+        values[key] = infoDoc[key]
+      }
+      this.formTipoDocumento.reset(values)
+    }
+    if (this.disabled()) this.formTipoDocumento.disable()
+    else this.formTipoDocumento.enable()
   }
 
   resetForm(){

@@ -76,7 +76,7 @@
       </div>
     </div>
 
-    <nz-form-item>
+    <nz-form-item *ngIf="!docId()">
       <nz-form-control style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
         <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()" [disabled]="formTipoDocumento.pristine">
           {{ 'app.btn.save' | i18n }}

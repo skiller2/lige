@@ -221,7 +221,7 @@ export class TipoDocumentoController extends BaseController {
   }
 
 
-  async getdocgenralListlist(filterSql: any, orderBy: any) {
+  async getdocgenralListQuery(filterSql: any, orderBy: any) {
 
     const result = await dataSource.query(`
       SELECT docg.doc_id AS id,
@@ -260,7 +260,7 @@ export class TipoDocumentoController extends BaseController {
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaTipoDocumento);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
-      const TipoDocumentos = await this.getdocgenralListlist(filterSql, orderBy)
+      const TipoDocumentos = await this.getdocgenralListQuery(filterSql, orderBy)
       // console.log("movimientosPendientes " +  TipoDocumentos.length)
       this.jsonRes(
         {
@@ -606,6 +606,28 @@ export class TipoDocumentoController extends BaseController {
     if (campos_vacios.length) {
       campos_vacios.unshift('Debe completar los siguientes campos: ')
       return new ClientException(campos_vacios)
+    }
+  }
+
+  async getTipoDocumentoById(req: any, res: Response, next: NextFunction) {
+    const id:number = req.params.id;
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction()
+      const doc = await queryRunner.query(`
+        SELECT doc_id, periodo, fecha, fec_doc_ven, doctipo_id, persona_id, objetivo_id, den_documento, cliente_id,
+        RIGHT(nombre_archivo, CHARINDEX('.', REVERSE(nombre_archivo)) - 1) AS extension,
+        nombre_archivo
+        FROM lige.dbo.docgeneral
+        WHERE doc_id IN (@0)
+      `, [id])
+      await queryRunner.commitTransaction()
+      this.jsonRes(doc, res, 'Carga Exitosa');
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 

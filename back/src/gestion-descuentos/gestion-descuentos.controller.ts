@@ -904,4 +904,57 @@ export class GestionDescuentosController extends BaseController {
     }
   }
 
+  async getDescuentosByPersonalId(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    const PersonalId: number = Number(req.params.id)
+    const anio: number = Number(req.body.anio)
+    const mes: number = Number(req.bosy.mes)
+    try {
+      const descuentos = await queryRunner.query(`
+      SELECT per.PersonalId, 'G' as tipocuenta_id, 
+      @0 AS anio, @1 AS mes, det.DescuentoDescripcion AS tipomov,
+      des.PersonalOtroDescuentoDetalle AS desmovimiento,
+      'OTRO' tipoint,
+      cuo.PersonalOtroDescuentoCuotaImporte AS importe, cuo.PersonalOtroDescuentoCuotaCuota AS cuotanro,
+      des.PersonalOtroDescuentoCantidadCuotas AS cantcuotas, des.PersonalOtroDescuentoImporteVariable * des.PersonalOtroDescuentoCantidad AS importetotal
+      FROM PersonalOtroDescuentoCuota cuo
+      JOIN PersonalOtroDescuento des ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId
+      JOIN Descuento det ON det.DescuentoId = des.PersonalOtroDescuentoDescuentoId
+      JOIN Personal per ON per.PersonalId = des.PersonalId
+      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@0,@1,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@0,@1,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+      WHERE cuo.PersonalOtroDescuentoCuotaAno = @0 AND cuo.PersonalOtroDescuentoCuotaMes = @1 AND per.PersonalId = @2
+      UNION ALL
+      SELECT per.PersonalId, 'G' as tipocuenta_id,
+      @0 AS anio, @1 AS mes, 'Prepaga' AS tipomov, 
+      CONCAT(TRIM(pre.PrepagaDescripcion), ' ', TRIM(pla.PrepagaPlanDescripcion), ' ' ,dis.PersonalPrepagaDescuentoDiscriminadoCUITCUIL, ' ',dis.PersonalPrepagaDescuentoDiscriminadoTipo) AS desmovimiento, 
+      'PREP' tipoint,
+      IIF(dis.PersonalPrepagaDescuentoDiscriminadoTipo='C',(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)*-1,(dis.PersonalPrepagaDescuentoDiscriminadoExento+dis.PersonalPrepagaDescuentoDiscriminadoGravado)) AS importe,  1 AS cuotanro, 1 AS cantcuotas, 0 AS importetotal
+      FROM PersonalPrepagaDescuento des
+      JOIN Prepaga pre ON pre.PrepagaId = des.PrepagaId
+      JOIN PrepagaPlan pla ON pla.PrepagaPlanId = des.PrepagaPlanId AND pla.PrepagaId = des.PrepagaId
+      JOIN PersonalPrepagaDescuentoDiscriminado dis ON dis.PersonalId = des.PersonalId AND dis.PersonalPrepagaDescuentoId = des.PersonalPrepagaDescuentoId
+      JOIN Personal per ON per.PersonalId = des.PersonalId
+      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@0,@1,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@0,@1,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+      WHERE des.PersonalPrepagaDescuentoPeriodo = CONCAT(FORMAT(CONVERT(INT, @1), '00'),'/',@0) AND per.PersonalId = @2
+      UNION ALL
+      SELECT per.PersonalId, 'G' as tipocuenta_id,
+      @0 AS anio, @1 AS mes, det.DescuentoDescripcion AS tipomov,
+      des.PersonalOtroDescuentoDetalle AS desmovimiento,
+      'OTRO' tipoint,
+      cuo.PersonalOtroDescuentoCuotaImporte AS importe, cuo.PersonalOtroDescuentoCuotaCuota AS cuotanro,
+      des.PersonalOtroDescuentoCantidadCuotas AS cantcuotas, des.PersonalOtroDescuentoImporteVariable * des.PersonalOtroDescuentoCantidad AS importetotal
+      FROM PersonalOtroDescuentoCuota cuo
+      JOIN PersonalOtroDescuento des ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId
+      JOIN Descuento det ON det.DescuentoId = des.PersonalOtroDescuentoDescuentoId
+      JOIN Personal per ON per.PersonalId = des.PersonalId
+      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@0,@1,28) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@0,@1,28) < ISNULL(gap.GrupoActividadPersonalHasta , '9999-12-31')
+      WHERE cuo.PersonalOtroDescuentoCuotaAno = @0 AND cuo.PersonalOtroDescuentoCuotaMes = @1 AND per.PersonalId = @2
+      `, [anio, mes, PersonalId])
+
+      this.jsonRes(descuentos, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
 }

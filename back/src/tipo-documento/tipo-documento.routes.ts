@@ -4,6 +4,10 @@ import { tipoDocumentoController } from "../controller/controller.module";
 
 export const tipoDocumentoRouter = Router();
 
+tipoDocumentoRouter.get("/get/:id", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  tipoDocumentoController.getTipoDocumentoById(req, res, next);
+});
+
 tipoDocumentoRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res) => {
   tipoDocumentoController.getGridCols(req, res);
 });
@@ -16,7 +20,7 @@ tipoDocumentoRouter.get("/cols-no-download", [authMiddleware.verifyToken, authMi
   tipoDocumentoController.getGridNoDownloadCols(req, res);
 });
 
-tipoDocumentoRouter.get("/tipos", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+tipoDocumentoRouter.get("/tipos/options", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   tipoDocumentoController.getTipos(req, res, next);
 });
 

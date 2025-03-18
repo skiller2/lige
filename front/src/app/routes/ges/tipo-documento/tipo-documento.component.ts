@@ -50,9 +50,14 @@ export class CustomDescargaComprobanteComponent {
 export class TipoDocumentoComponent {
   @ViewChild('sfb', { static: false }) sharedFiltroBuilder!: FiltroBuilderComponent;
 
-  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, @Inject(LOCALE_ID) public locale: string, public searchService:SearchService) { }
-  anio = 0
-  mes = 0
+  constructor(
+    private settingService: SettingsService,
+    public apiService: ApiService,
+    private angularUtilService: AngularUtilService,
+    // @Inject(LOCALE_ID) public locale: string,
+    public searchService:SearchService
+  ) { }
+  
   selectedTabIndex = 0;
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
@@ -71,6 +76,7 @@ export class TipoDocumentoComponent {
   // periodo = signal({anio:0, mes:0})
   docId = signal<number>(0)
   visibleAlta = model<boolean>(false)
+  visibleDetalle = model<boolean>(false)
   refresh = signal(0)
   
   listOptions: listOptionsT = {
@@ -81,6 +87,7 @@ export class TipoDocumentoComponent {
 
   childHistorialDescargas = viewChild.required<TableHistorialDescargasComponent>('historialDescargas')
   childListaPendientes = viewChild.required<TablePendientesDescargasComponent>('listPendientes')
+  childDetalle = viewChild.required<TipoDocumentoAltaDrawerComponent>('detalle')
 
   conditional = computed(async () => {
     if (this.refresh()) {
@@ -193,12 +200,17 @@ export class TipoDocumentoComponent {
       const docId = this.angularGrid.dataView.getItemByIdx(rowNum)?.id
       this.docId.set(docId)
     } else {
-      this.docId.set(0)      
+      this.docId.set(0)
     }
   }
 
   openDrawerforAlta(): void{
     this.visibleAlta.set(true) 
+  }
+
+  openDrawerforDetalle(): void{
+    this.childDetalle().load()
+    this.visibleDetalle.set(true)
   }
 
   onTabsetChange(_event: any) {

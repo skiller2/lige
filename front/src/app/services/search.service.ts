@@ -1483,7 +1483,7 @@ export class SearchService {
   }
 
   getTiposDocumentoOptions(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`api/tipo-documento/tipos`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/tipo-documento/tipos/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -1542,6 +1542,28 @@ export class SearchService {
           return of([]);
         })
       );
+  }
+
+  getTipoDocumentoById(docId:number){
+    if (!docId) return of([]);
+    return this.http.get<ResponseJSON<any>>(`api/tipo-documento/get/${docId}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getDescuentosByPersonalId(PersonalId: number, anio: number, mes: number): Observable<any> {
+    if (!PersonalId && anio && mes) return of([]);
+    return this.http.get<ResponseJSON<PersonaObj>>(`/api/gestion-descuentos/personal`, {PersonalId, anio, mes}).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
   }
 
 }

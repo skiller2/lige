@@ -32,6 +32,10 @@ gestionDescuentosRouter.get("/tipo/options", [authMiddleware.verifyToken,authMid
     gestionDescuentosController.getTiposDescuentos(req, res, next);
 });
 
+gestionDescuentosRouter.post("/personal/:id", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.getDescuentosByPersonalId(req, res, next);
+});
+
 gestionDescuentosRouter.post('/list/personal', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     gestionDescuentosController.getDescuentosPersonal(req, res, next)
 });
