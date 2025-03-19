@@ -1383,6 +1383,14 @@ export class ApiService {
     );
   }
 
+  setListCursos( filters:any){
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>('/api/curso/list', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+  }
+
 
 }
 
