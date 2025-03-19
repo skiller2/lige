@@ -399,7 +399,7 @@ GROUP BY objd.ObjetivoAsistenciaMesPersonalId
       await this.rollbackTransaction(queryRunner)
       return next(error)
     }
-    return (res)? this.jsonRes(true, res): true
+    return (res)? this.jsonRes(true, res, "Procesado correctamente"): true
   }
 
   queryUpdSeguros(queryRunner: QueryRunner, PersonalId: any, fec_desde: Date, cod_tip_seguro: string, mot_adh_seguro: string,stm_now:Date, usuario:string, ip:string) {

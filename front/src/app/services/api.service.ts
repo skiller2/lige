@@ -37,11 +37,7 @@ export class ApiService {
 
   processInsurance(anio: number, mes: number) {
     return this.http.post<ResponseJSON<any>>('api/seguros/updateSeguros', { anio, mes }).pipe(
-      map((res: any) => { return res }),
-      catchError((err, caught) => {
-        console.log('Something went wrong!', err);
-        return of([]);
-      })
+      tap((res: ResponseJSON<any>) => this.response(res))
     )
   }
   
