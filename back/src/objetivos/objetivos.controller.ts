@@ -1620,9 +1620,9 @@ export class ObjetivosController extends BaseController {
             await queryRunner.query(`
               INSERT INTO ObjetivoHabilitacionNecesaria (
               ObjetivoHabilitacionNecesariaId, ObjetivoId, ObjetivoHabilitacionNecesariaPuesto, ObjetivoHabilitacionNecesariaUsuarioId,
-              ObjetivoHabilitacionNecesariaDia, ObjetivoHabilitacionNecesariaTiempo, ObjetivoHabilitacionNecesariaLugarHabilitacionId,
+              ObjetivoHabilitacionNecesariaDia, ObjetivoHabilitacionNecesariaTiempo, ObjetivoHabilitacionNecesariaLugarHabilitacionId
               )
-              VALUES(@0,@1,@2,@3,@4,@5,@3,@6)
+              VALUES(@0,@1,@2,@3,@4,@5,@6)
               `, [ObjetivoHabilitacionNecesariaLugarHabilitacionId, ObjetivoId, ip, usuarioId, now, time,habilitacionId])
         }
         await queryRunner.query(`
