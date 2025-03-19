@@ -2,12 +2,12 @@
   [nzTitle]="tituloDrawer() " (nzOnClose)="visible.set(false)">
   <ng-container *nzDrawerContent>
     @if (cambios()|async) {}
-    <form nz-form ngForm>
+    <form [formGroup]="formCli">
       <nz-form-item [hidden]="true">
         <nz-form-label [nzSpan]="5">Personal Estudio Id</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-           <input nz-input name="personalEstudioId" ngModel />
+           <input nz-input formControlName="personalEstudioId" ngModel />
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -15,7 +15,7 @@
         <nz-form-label [nzSpan]="5">Persona</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
-            <app-personal-search name="PersonalId" ngModel [anio]="anio()" [mes]="mes()"></app-personal-search>
+            <app-personal-search formControlName="PersonalId"  [anio]="anio()" [mes]="mes()"></app-personal-search>
           </nz-input-group>
         </nz-form-control>
       </nz-form-item>
@@ -23,42 +23,42 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Nivel de Estudio</nz-form-label>
         <nz-form-control>
-          <app-estudio-search name="TipoEstudioId" ngModel></app-estudio-search> 
+          <app-estudio-search formControlName="TipoEstudioId" ></app-estudio-search> 
         </nz-form-control>
       </nz-form-item>
 
-       @if( this.ngForm().value.TipoEstudioId != 8){
+       @if( this.formCli.value.TipoEstudioId != 8){
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Título del Certificado</nz-form-label>
           <nz-form-control>
-            <input nz-input name="PersonalEstudioTitulo" ngModel />
+            <input nz-input formControlName="PersonalEstudioTitulo" type="string" />
           </nz-form-control>
         </nz-form-item>
        }
-       <!-- @else {-->
+        @else {
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Curso</nz-form-label>
           <nz-form-control>
-         <app-curso-search name="CursoHabilitacionId"  ngModel></app-curso-search>  
+         <app-curso-search formControlName="CursoHabilitacionId" ></app-curso-search>  
           </nz-form-control>
         </nz-form-item>
-       <!--} -->
+       } 
 
       <nz-form-item>
         <nz-form-label [nzSpan]="5">Fecha Otorgado</nz-form-label>
         <nz-form-control>
-          <nz-date-picker name="PersonalEstudioOtorgado" ngModel></nz-date-picker>
+          <nz-date-picker formControlName="PersonalEstudioOtorgado" ></nz-date-picker>
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-control>
-        <app-file-upload ngModel name="files" [idForSearh]="this.ngForm().value.PersonalId ?? 0" [cantMaxFiles]="1"
+        <app-file-upload  formControlName="files" [idForSearh]="formCli.value.PersonalId ?? 0" [cantMaxFiles]="1"
           [textForSearch]="'ESTUDIO'" [columnForSearch]="'personalId'" [tableForSearch]="'DocumentoImagenEstudio'"></app-file-upload>
       </nz-form-control>
 
-      @if(this.ngForm().enabled) {
+      @if(this.formCli.enabled) {
         <nz-form-item class="btnCenter">
-            <button nz-button nzType="primary" [disabled]="!ngForm().dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
+            <button nz-button nzType="primary" [disabled]="!formCli.dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
 
             @if (this.PersonalIdForEdit() > 0) {
             
@@ -77,6 +77,6 @@
     </form>
 
     
-     <p>Debug Valores: {{ngForm().value | json }}</p> 
+     <!-- <p>Debug Valores: {{formCli.value | json }}</p>  -->
   </ng-container>
 </nz-drawer>

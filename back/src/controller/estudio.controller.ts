@@ -283,7 +283,7 @@ export class EstudioController extends BaseController {
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
 
-   console.log("req.body.files", req.body.files[0].tableForSearch)
+   //console.log("req.body.files", req.body.files[0].tableForSearch)
     //throw new ClientException(`test.`)
     const queryRunner = dataSource.createQueryRunner()
     await queryRunner.connect();

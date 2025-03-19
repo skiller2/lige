@@ -2,7 +2,7 @@ import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
 import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, EventEmitter, output,  } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
-import { FormControl, NgForm } from '@angular/forms';
+import { FormBuilder, FormControl, NgForm } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
 import { ApiService } from 'src/app/services/api.service';
@@ -15,6 +15,8 @@ import { SearchService } from '../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import  { FileUploadComponent } from "../../shared/file-upload/file-upload.component"
 import { log } from '@delon/util';
+import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
+
 import { TableEstudiosComponent } from '../../shared/table-estudios/table-estudios.component'
 
 export interface Option {
@@ -24,7 +26,15 @@ export interface Option {
 
 @Component({
     selector: 'app-estudios-drawer',
-    imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, TableEstudiosComponent, EstudioSearchComponent, CursoSearchComponent, PersonalSearchComponent, CommonModule, FileUploadComponent],
+    imports: [SHARED_IMPORTS, 
+      NzUploadModule, 
+      NzAutocompleteModule,
+      TableEstudiosComponent,
+      EstudioSearchComponent,
+      CursoSearchComponent, 
+      PersonalSearchComponent,
+      CommonModule, 
+      FileUploadComponent],
     templateUrl: './estudios-drawer.component.html',
     styleUrl: './estudios-drawer.component.less',
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -33,7 +43,7 @@ export interface Option {
 
 
 export class EstudiosDrawerComponent {
-  ngForm = viewChild.required(NgForm);
+  //ngForm = viewChild.required(NgForm);
   //visibleHistorial = model<boolean>(false)
 
   //selectedPeriod = input.required<any>()
@@ -42,7 +52,7 @@ export class EstudiosDrawerComponent {
   disabled =  input<boolean>(false)
   RefreshEstudio =  model<boolean>(false)
   private apiService = inject(ApiService)
-  formChange$ = new BehaviorSubject('');
+  //formChange$ = new BehaviorSubject('');
   private notification = inject(NzNotificationService)
 
   PersonalId = input.required<number>()
@@ -69,7 +79,21 @@ export class EstudiosDrawerComponent {
 
 
   uploading$ = new BehaviorSubject({loading:false,event:null});
-  uploadFileModel = viewChild.required(NgForm);
+  //uploadFileModel = viewChild.required(NgForm);
+
+
+  fb = inject(FormBuilder)
+  formCli = this.fb.group({
+    personalEstudioId: 0,
+    PersonalId: 0,
+    TipoEstudioId: 0,
+    PersonalEstudioTitulo: "",
+    CursoHabilitacionId: 0,
+    PersonalEstudioOtorgado: "",
+    PersonalIdForEdit: 0,
+    files: []
+  })
+
   constructor(
     private searchService: SearchService
   ) { }
@@ -99,16 +123,16 @@ export class EstudiosDrawerComponent {
         vals.CursoHabilitacionId = vals.PersonalEstudioCursoId,
         vals.PersonalEstudioOtorgado = vals.PersonalEstudioOtorgado
      
-        this.ngForm().form.patchValue(vals)
-        this.ngForm().form.markAsUntouched()
-        this.ngForm().form.markAsPristine()
+        this.formCli.patchValue(vals)
+        this.formCli.markAsUntouched()
+        this.formCli.markAsPristine()
 
         if (this.disabled()) {
           this.tituloDrawer.set(' Consultar Estudio ');
-          this.ngForm().form.disable()
+          this.formCli.disable()
         } else {
           this.tituloDrawer.set('Editar Estudio');
-          this.ngForm().form.enable()
+          this.formCli.enable()
 
         }
       }
@@ -119,23 +143,17 @@ export class EstudiosDrawerComponent {
   async save() {
 
     this.isSaving.set(true)
-    let vals = this.ngForm().value
+    let vals = this.formCli.value
     try {
-     // const periodo = this.selectedPeriod()
 
-      let vals = this.ngForm().value
-      
-      //vals.anioRequest = periodo.year
-      //vals.mesRequest = periodo.month
-      //vals.Archivos = this.files
       vals.PersonalIdForEdit = this.PersonalIdForEdit()
-      const res =  await firstValueFrom(this.apiService.setEstudio(vals))
 
-      this.ngForm().form.markAsUntouched()
-      this.ngForm().form.markAsPristine()
+      const res =  await firstValueFrom(this.apiService.setEstudio(vals))
+      this.formCli.markAsUntouched()
+      this.formCli.markAsPristine()
       //this.fileUploaded = false
       this.onRefreshEstudio.emit()
-      this.formChange$.next("")
+      //this.formCli$.next("")
     } catch (error) {
 
     }
@@ -143,7 +161,7 @@ export class EstudiosDrawerComponent {
   }
 
   async deleteEstudio() {
-    let vals = this.ngForm().value
+     let vals = this.formCli.value
     let res = await firstValueFrom(this.apiService.deleteEstudio(vals))
     this.visible.set(false)
     this.onRefreshEstudio.emit()
@@ -164,7 +182,7 @@ export class EstudiosDrawerComponent {
         await firstValueFrom( this.apiService.deleteArchivosLicencias(this.ArchivoIdForDelete))
       }
 
-      this.formChange$.next('');
+      //this.formChange$.next('');
     } catch (error) {
       
     }

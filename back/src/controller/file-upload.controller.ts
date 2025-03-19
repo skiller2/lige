@@ -229,19 +229,22 @@ export class FileUploadController extends BaseController {
         const DocumentoImagenParametroId = 20 // CURSO
         const DocumentoImagenParametroDirectorioId = 1 // TEMP
 
+        const DocumentoImagenEstudioId = await  queryRunner.query('SELECT MAX(DocumentoImagenEstudioId) AS DocumentoImagenEstudioId FROM DocumentoImagenEstudio')
+        const den_numero = DocumentoImagenEstudioId[0]['DocumentoImagenEstudioId'] + 1
+        let nameFile = `${keyid}-${den_numero}-CERTEST.${file.originalname.split('.')[1]}`
+        newFilePath = `${dirtmpNew}/${nameFile}`;
+        this.moveFile(`${file.fieldname}.pdf`, newFilePath, dirtmpNew);
+
           await this.setArchivosDocumentoImagenEstudio(
             queryRunner,
             keyid,
             file.originalname.split('.')[1],
-            file.originalname,
+            nameFile,
             DocumentoImagenParametroId,
             DocumentoImagenParametroDirectorioId
           )
 
-          const DocumentoImagenEstudioId = await  queryRunner.query('SELECT MAX(DocumentoImagenEstudioId) AS DocumentoImagenEstudioId FROM DocumentoImagenEstudio')
-          const den_numero = DocumentoImagenEstudioId[0]['DocumentoImagenEstudioId']
-          newFilePath = `${dirtmpNew}/${den_numero}-${keyid}.pdf`;
-          this.moveFile(`${file.fieldname}.pdf`, newFilePath, dirtmpNew);
+        
           break;
         default:
 
