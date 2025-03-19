@@ -41,10 +41,14 @@ export class AuthMiddleware {
       if (res.locals?.skipMiddleware) return next()
 
       let inGroup = false
+      console.log('req?.groups',req?.groups)
+
       if (req?.groups) {
         for (const rowgroup of req?.groups) {
+          const myGrp:string = rowgroup.match(/CN=([^,]+)/)![1]
           for (const grp of group) {
-            if (rowgroup.toLowerCase().indexOf(grp.toLowerCase()) != -1)
+            console.log(`grupo: ${grp} contra ${myGrp}`)
+            if (myGrp.toLowerCase() == grp.toLowerCase())
               return next()
           }
         }
