@@ -679,7 +679,7 @@ cuit.PersonalCUITCUILCUIT,
     const estudios = req.body.estudios
     const familiares = req.body.familiares
     const actas = req.body.actas
-    const habilitacion: number[]= req.body.habilitacion
+    const habilitacion: number[]= (req.body.habilitacion)?req.body.habilitacion:[] 
     let errors: string[] = []
     let now = new Date()
     now.setHours(0, 0, 0, 0)
