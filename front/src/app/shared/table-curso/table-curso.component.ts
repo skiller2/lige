@@ -97,7 +97,7 @@ export class TableCursoComponent {
 
   private initializeGridOptions(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions(
-      '.gridContainer1',
+      '.gridContainer2',
       this.detailViewRowCount,
       this.excelExportService,
       this.angularUtilService,
@@ -130,7 +130,7 @@ export class TableCursoComponent {
 
   exportGrid(): void {
     this.excelExportService.exportToExcel({
-      filename: 'lista-estudios',
+      filename: 'lista-cursos',
       format: 'xlsx'
     });
   }

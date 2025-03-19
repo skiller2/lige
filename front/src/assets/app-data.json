@@ -86,11 +86,6 @@
               "text": "Estudios",
               "link": "/ges/estudios",
               "icon": "anticon-profile"
-            },
-            {
-              "text": "Cursos",
-              "link": "/ges/cursos",
-              "icon": "anticon-profile"
             }
           ]
         },

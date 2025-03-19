@@ -61,8 +61,8 @@ const columnsCursos:any[] = [
   {
     id: 'Modalidad', 
     name: 'Modalidad', 
-    field: 'ModalidadCursoCodigo',
-    fieldName: 'cur.ModalidadCursoCodigo',
+    field: 'ModalidadCursoModalidad',
+    fieldName: 'modcur.ModalidadCursoModalidad',
     type: 'string',
     searchType: 'string',
     sortable: true,
