@@ -37,11 +37,7 @@ export class ApiService {
 
   processInsurance(anio: number, mes: number) {
     return this.http.post<ResponseJSON<any>>('api/seguros/updateSeguros', { anio, mes }).pipe(
-      map((res: any) => { return res }),
-      catchError((err, caught) => {
-        console.log('Something went wrong!', err);
-        return of([]);
-      })
+      tap((res: ResponseJSON<any>) => this.response(res))
     )
   }
   
@@ -1380,6 +1376,14 @@ export class ApiService {
   setEstudio( values:any){
     return this.http.post<ResponseJSON<any>>(`/api/estudio/setestudio`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
+  setListCursos( filters:any){
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>('/api/curso/list', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
     );
   }
 
