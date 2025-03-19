@@ -110,6 +110,16 @@ export class AdelantosController extends BaseController {
       sortable: true,
       searchHidden: false
     },
+    {
+      name: "Estado del BOT",
+      type: "string",
+      id: "det_status_bot",
+      field: "det_status_bot",
+      fieldName: "",
+      searchType: "string",
+      sortable: true,
+      searchHidden: true
+    },
 
   ];
 
@@ -327,8 +337,12 @@ export class AdelantosController extends BaseController {
   }
 
   async getAdelantoPersonaList(req: Request, res: Response, next: NextFunction) {
-    const anio = String(req.body.anio);
-    const mes = String(req.body.mes);
+    const anio = Number(req.body.anio);
+    const mes = Number(req.body.mes);
+    const mesPrev = (mes - 1 == 0) ? 12 : mes - 1
+    const anioPrev = (mes - 1 == 0) ? anio-1 : anio
+    
+    const queryRunner = dataSource.createQueryRunner();
 
     const options: Options = isOptions(req.body.options)
       ? req.body.options
@@ -366,7 +380,7 @@ export class AdelantosController extends BaseController {
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
-      const adelantos = await dataSource.query(
+      const adelantos = await queryRunner.query(
         `SELECT DISTINCT CONCAT(per.PersonalId,'-',pre.PersonalPrestamoId,'-',g.GrupoActividadId) id,
         per.PersonalId, cuit.PersonalCUITCUILCUIT CUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
         g.GrupoActividadId, g.GrupoActividadNumero, g.GrupoActividadDetalle,
@@ -393,6 +407,16 @@ export class AdelantosController extends BaseController {
        ${orderBy}`,
         [0, anio, mes])
 
+      const personal = adelantos.map(p => p.PersonalId)
+      const resBot = await AccesoBotController.getBotStatus(anioPrev, mesPrev, queryRunner, personal)
+      for (const row of resBot) {
+        const key = adelantos.findIndex(i => i.PersonalId == row.PersonalId)
+        if (key >= 0) {
+          adelantos[key].det_status_bot= (row.registro=='OK') ? row.descarga :row.registro
+        }
+      }
+
+      
       this.jsonRes({ list: adelantos }, res);
     } catch (error) {
       return next(error)

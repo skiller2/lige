@@ -116,7 +116,7 @@ export class AdelantoComponent {
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
     this.gridOptions.editable = true
-    this.gridOptions.autoEdit = false
+    this.gridOptions.autoEdit = true
 
     
 
