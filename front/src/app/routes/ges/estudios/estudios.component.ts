@@ -59,10 +59,10 @@ export class EstudiosComponent {
     this.visibleDrawer.set(true);
   }
 
-  async handleAddOrUpdate(){
-   console.log('aca')
-   this.RefreshEstudio.set(true)
-  }
+  //async handleAddOrUpdate(){
+   //console.log('aca')
+   //this.RefreshEstudio.set(true)
+  //}
 
   openDrawerforNew() {
    

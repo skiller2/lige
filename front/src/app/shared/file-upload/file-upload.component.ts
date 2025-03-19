@@ -121,7 +121,7 @@ export class FileUploadComponent implements ControlValueAccessor {
 
         let src = await this.LoadArchivoPreview(`${Response.data[0].fieldname}.${Response.data[0].mimetype.split("/")[1]}`, 'temp')
         this.blobUrl = URL.createObjectURL(src)
-
+        Response.data[0].tableForSearch = this.tableForSearch()
         Response.data[0].fileUrl = this.blobUrl
         this.files.set([...this.files(), Response.data[0]])
         this.uploading$.next({ loading: false, event })

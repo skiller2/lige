@@ -283,7 +283,7 @@ export class EstudioController extends BaseController {
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
 
-   
+   console.log("req.body.files", req.body.files[0].tableForSearch)
     //throw new ClientException(`test.`)
     const queryRunner = dataSource.createQueryRunner()
     await queryRunner.connect();
@@ -373,7 +373,7 @@ export class EstudioController extends BaseController {
 
       
       if (req.body.files?.length > 0) {
-        await FileUploadController.handlePDFUpload(PersonalId, 'CURSO', '', 'personalId', req.body.files, usuario, ip, "DocumentoImagenEstudio")
+        await FileUploadController.handlePDFUpload(PersonalId, 'ESTUDIO', '', 'personalId', req.body.files, usuario, ip)
       }
   
 

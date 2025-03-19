@@ -65,7 +65,7 @@ export class EstudiosDrawerComponent {
   visible = model<boolean>(false)
 
   //@Output() OnRefreshEstudio = new EventEmitter();
-  OnRefreshEstudio = output<void>();
+  onRefreshEstudio = output<void>();
 
 
   uploading$ = new BehaviorSubject({loading:false,event:null});
@@ -134,7 +134,7 @@ export class EstudiosDrawerComponent {
       this.ngForm().form.markAsUntouched()
       this.ngForm().form.markAsPristine()
       //this.fileUploaded = false
-      this.OnRefreshEstudio.emit()
+      this.onRefreshEstudio.emit()
       this.formChange$.next("")
     } catch (error) {
 
@@ -146,7 +146,7 @@ export class EstudiosDrawerComponent {
     let vals = this.ngForm().value
     let res = await firstValueFrom(this.apiService.deleteEstudio(vals))
     this.visible.set(false)
-    this.OnRefreshEstudio.emit()
+    this.onRefreshEstudio.emit()
   }
 
  async confirmDeleteArchivo( id: string, tipoDocumentDelete : boolean) {

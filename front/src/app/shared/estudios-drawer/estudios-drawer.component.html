@@ -52,8 +52,8 @@
       </nz-form-item>
 
       <nz-form-control>
-        <app-file-upload ngModel name="files" [idForSearh]="this.ngForm().value.PersonalId ?? 0"
-          [textForSearch]="'CURSO'" [columnForSearch]="'personalId'" [tableForSearch]="'DocumentoImagenEstudio'"></app-file-upload>
+        <app-file-upload ngModel name="files" [idForSearh]="this.ngForm().value.PersonalId ?? 0" [cantMaxFiles]="1"
+          [textForSearch]="'ESTUDIO'" [columnForSearch]="'personalId'" [tableForSearch]="'DocumentoImagenEstudio'"></app-file-upload>
       </nz-form-control>
 
       @if(this.ngForm().enabled) {

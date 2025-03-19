@@ -204,7 +204,6 @@ export class FileUploadController extends BaseController {
     Archivo: any,
     usuario: any,
     ip: any,
-    tipoUpload?: string
   ) {
     const queryRunner = dataSource.createQueryRunner();
     let fechaActual = new Date();
@@ -214,34 +213,41 @@ export class FileUploadController extends BaseController {
 
 
     for (const file of Archivo) {
-      let docgeneral = 0
+
       let newFilePath = ''
-
-
-      this.moveFile(`${file.fieldname}.pdf`, newFilePath, dirtmpNew);
-
       //let tipoCodigo = tipoUpload === "Cliente" ? "CLI" : tipoUpload === "Objetivo" ? "OBJ" : "";
 
       if (!folder)
         throw new ClientException(`Error subiendo archivo`)
 
-      switch (tipoUpload) {
+      console.log("file.tableForSearch", file.tableForSearch)
+      switch (file.tableForSearch) {
         case "DocumentoImagenEstudio":
+
+       
 
         const DocumentoImagenParametroId = 20 // CURSO
         const DocumentoImagenParametroDirectorioId = 1 // TEMP
 
           await this.setArchivosDocumentoImagenEstudio(
             queryRunner,
-            Number(docgeneral),
             keyid,
             file.originalname.split('.')[1],
             file.originalname,
             DocumentoImagenParametroId,
             DocumentoImagenParametroDirectorioId
           )
+
+          const DocumentoImagenEstudioId = await  queryRunner.query('SELECT MAX(DocumentoImagenEstudioId) AS DocumentoImagenEstudioId FROM DocumentoImagenEstudio')
+          const den_numero = DocumentoImagenEstudioId[0]['DocumentoImagenEstudioId']
+          newFilePath = `${dirtmpNew}/${den_numero}-${keyid}.pdf`;
+          this.moveFile(`${file.fieldname}.pdf`, newFilePath, dirtmpNew);
           break;
         default:
+
+        let docgeneral = await this.getProxNumero(queryRunner, 'docgeneral', usuario, ip);
+         newFilePath = `${dirtmpNew}/${docgeneral}-${keyid}.pdf`;
+
           await this.setArchivos(
             queryRunner,
             Number(docgeneral),
@@ -280,7 +286,6 @@ export class FileUploadController extends BaseController {
 
   static async setArchivosDocumentoImagenEstudio(
     queryRunner: any,
-    DocumentoImagenEstudioId: number,
     PersonalId: number,
     DocumentoImagenEstudioBlobTipoArchivo: string,
     DocumentoImagenEstudioBlobNombreArchivo: string,
@@ -377,17 +382,6 @@ export class FileUploadController extends BaseController {
         [den_numerador, den_numero, usuario, ip, fechaActual])
     }
     return den_numero
-  }
-
-  static async getProxNumeroImagenEstudio(queryRunner: any, usuario: string, ip: string) {
-
-    const den_numero = await queryRunner.query('SELECT MAX(DocumentoImagenEstudioId) AS DocumentoImagenEstudioId FROM DocumentoImagenEstudio')
-
-    if(den_numero.length == 0){
-      return 1
-    }else{
-      return den_numero[0]['DocumentoImagenEstudioId'] + 1
-    }
   }
 
 
