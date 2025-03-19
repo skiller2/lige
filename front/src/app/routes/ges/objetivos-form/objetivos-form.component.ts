@@ -17,10 +17,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
-
-
-
+import { NzCheckboxGroupComponent, NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 
 @Component({
     selector: 'app-objetivos-form',
@@ -37,7 +34,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
         NzAutocompleteModule,
         NzSelectModule,
         FileUploadComponent,
-        GrupoActividadSearchComponent
+        GrupoActividadSearchComponent,
+        NzCheckboxModule
     ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -76,7 +74,7 @@ export class ObjetivosFormComponent {
   onAddorUpdate = output()
   files = []
   pristineChange = output<boolean>()
-  
+  optionsLugarHabilitacion = signal<any[]>([])
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
@@ -112,7 +110,8 @@ export class ObjetivosFormComponent {
     FechaModificada: false,
     ContratoFechaDesdeOLD:"",
     ContratoFechaHastaOLD:"",
-    GrupoActividadId:0
+    GrupoActividadId:0,
+    habilitacion: [],
   })
 
  
@@ -131,8 +130,10 @@ export class ObjetivosFormComponent {
     }
   }
 
-  ngOnInit() {
-  
+  async ngOnInit() {
+    const optionsLugarHabilitacion = await firstValueFrom(this.searchService.getLugarHabilitacionOptions())
+    this.optionsLugarHabilitacion.set(optionsLugarHabilitacion)
+
     this.formCli.statusChanges.subscribe(() => {
       this.checkPristine();
    });

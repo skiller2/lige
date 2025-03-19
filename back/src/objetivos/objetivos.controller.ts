@@ -403,6 +403,7 @@ export class ObjetivosController extends BaseController {
             const domiclio = await this.getDomicilio(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
             const facturacion = await this.getFacturacion(queryRunner, ClienteId, ClienteElementoDependienteId)
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
+            const habilitacion = await this.getFormHabilitacionByObjetivoIdQuery(queryRunner, ObjetivoId)
 
             if (!facturacion) {
                 infObjetivo = { ...infObjetivo[0], ...domiclio[0] };
@@ -413,6 +414,7 @@ export class ObjetivosController extends BaseController {
             infObjetivo.infoCoordinadorCuenta = infoCoordinadorCuenta
             infObjetivo.infoRubro = infoRubro
             infObjetivo.infoActividad = [grupoactividad[0]]
+            infObjetivo.habilitacion = habilitacion
             await queryRunner.commitTransaction()
             return this.jsonRes(infObjetivo, res)
         } catch (error) {
@@ -961,6 +963,8 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoId)
             ObjObjetivoNew.infoRubro = await this.ObjetivoRubro(queryRunner, Obj.infoRubro, ObjetivoId, Obj.ClienteId, Obj.ClienteElementoDependienteId)
 
+            await this.setObjetivoHabilitacionNecesaria(queryRunner, ObjetivoId, Obj.habilitacion, usuarioId, ip)
+
             if (Obj.files?.length > 0) {
                 await FileUploadController.handlePDFUpload(ObjetivoId, 'Objetivo', 'OBJ', 'objetivo_id', Obj.files, usuarioId, ip)
             }
@@ -1170,6 +1174,11 @@ export class ObjetivosController extends BaseController {
             }
         }
 
+        //Habilitacion nesesaria
+        if (!form.habilitacion.length) {
+            throw new ClientException(`Debe selecionar al menos una Habilitación.`)
+        }
+
 
     }
 
@@ -1313,6 +1322,8 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.infoActividad[0] = grupoactividad[0]
             ObjObjetivoNew.infoActividad[0].GrupoActividadOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadId
             ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesdeOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesde
+
+            await this.setObjetivoHabilitacionNecesaria(queryRunner, ObjetivoId, Obj.habilitacion, usuarioId, ip)
 
             if (Obj.files?.length > 0) {
                 await FileUploadController.handlePDFUpload(ObjetivoId, 'Objetivo', 'OBJ', 'objetivo_id', Obj.files, usuarioId, ip)
@@ -1578,6 +1589,60 @@ export class ObjetivosController extends BaseController {
         }
     }
 
+    private async setObjetivoHabilitacionNecesaria(queryRunner: any, ObjetivoId: number, habilitaciones:any[], usuarioId:number, ip:string) {
+        //Compruebo si hubo cambios
+        let cambios:boolean = false
+        const habilitacionesOld = await this.getFormHabilitacionByObjetivoIdQuery(queryRunner, ObjetivoId)
+    
+        if (habilitaciones.length != habilitacionesOld.length)
+          cambios = true
+        else
+          habilitacionesOld.forEach((hab: any, index: number) => {
+            if (habilitaciones.find(h=>hab!=h)) {
+              cambios = true
+            }
+          });
+        if (!cambios) return
+    
+    
+        //Actualizo
+        const now = new Date()
+        const time = this.getTimeString(now)
+    
+        let ObjetivoHabilitacionNecesariaLugarHabilitacionId:number = 0
+        now.setHours(0,0,0,0)
+        await queryRunner.query(`
+          DELETE FROM ObjetivoHabilitacionNecesaria
+          WHERE ObjetivoId IN (@0)
+          `, [ObjetivoId])
+        for (const habilitacionId of habilitaciones) {
+            ObjetivoHabilitacionNecesariaLugarHabilitacionId++
+            await queryRunner.query(`
+              INSERT INTO ObjetivoHabilitacionNecesaria (
+              ObjetivoHabilitacionNecesariaId, ObjetivoId, ObjetivoHabilitacionNecesariaPuesto, ObjetivoHabilitacionNecesariaUsuarioId,
+              ObjetivoHabilitacionNecesariaDia, ObjetivoHabilitacionNecesariaTiempo, ObjetivoHabilitacionNecesariaLugarHabilitacionId,
+              )
+              VALUES(@0,@1,@2,@3,@4,@5,@3,@6)
+              `, [ObjetivoHabilitacionNecesariaLugarHabilitacionId, ObjetivoId, ip, usuarioId, now, time,habilitacionId])
+        }
+        await queryRunner.query(`
+          UPDATE Objetivo SET
+          ObjetivoHabilitacionNecesariaUltNro = @1
+          WHERE ObjetivoId IN (@0)
+          `, [ObjetivoId, ObjetivoHabilitacionNecesariaLugarHabilitacionId])
+    }
 
+    private async getFormHabilitacionByObjetivoIdQuery(queryRunner: any, ObjetivoId: any) {
+        const habs = []
+        const habilitacionPers = await queryRunner.query(`
+            SELECT ObjetivoHabilitacionNecesariaLugarHabilitacionId
+            FROM ObjetivoHabilitacionNecesaria
+            WHERE ObjetivoId IN (@0)
+          `, [ObjetivoId]
+        )
+        for (const hab of habilitacionPers)
+          habs.push(hab.ObjetivoHabilitacionNecesariaLugarHabilitacionId)
+        return habs
+    }
 
 }
