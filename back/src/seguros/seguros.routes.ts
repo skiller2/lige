@@ -25,7 +25,7 @@ segurosRouter.post(`/search`, [authMiddleware.verifyToken, authMiddleware.hasGro
 }
 )
 
-segurosRouter.post('/updateSeguros', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal','Liquidaciones'])], (req, res, next) => {
+segurosRouter.post('/updateSeguros', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   segurosController.updateSeguros(req, res, req.body.anio, req.body.mes, next)
 }
 )
