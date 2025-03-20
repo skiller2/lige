@@ -286,8 +286,8 @@ export class TableGrupoActividadObjetivosComponent {
     if (item.GrupoActividadId == 0)
       return true
 
-    if (item.GrupoActividadObjetivoHasta)
-      return false
+    if (item.GrupoActividadObjetivoHasta && new Date(item.GrupoActividadObjetivoHasta) < new Date()) 
+      return false;
 
     if (column.id == 'GrupoActividadObjetivoDesde' || column.id == 'GrupoActividadObjetivoHasta')
       return true

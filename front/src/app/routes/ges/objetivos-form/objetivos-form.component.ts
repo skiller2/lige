@@ -53,6 +53,7 @@ export class ObjetivosFormComponent {
     ObjetivoPersonalJerarquicoId:0,
     ObjetivoPersonalJerarquicoComision: 0, 
     ObjetivoPersonalJerarquicoDescuentos:false,
+    ObjetivoPersonalJerarquicoSeDescuentaTelefono:false,
   }
   objRubro = {
     ClienteElementoDependienteRubroId:0,

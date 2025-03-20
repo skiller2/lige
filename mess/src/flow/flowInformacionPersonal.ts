@@ -26,7 +26,7 @@ const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
         if (coordinadorgeneralrec[0].PersonalId) {
             const telrec = await PersonalController.getTelefono(coordinadorgeneralrec[0].PersonalId)
             if (telrec[0])
-                await flowDynamic([{ body: `Teléfono contacto ${telrec[0].telefono}`, delay }])
+                await flowDynamic([{ body: `contacto del coordinador ${telrec[0].telefono}`, delay }])
         }
 
 
@@ -42,7 +42,8 @@ const flowInformacionPersonal = addKeyword(EVENTS.ACTION)
 
         const categs: any[] = await PersonalController.getCategoriasPorPersonaQuery(anio, mes, personalId, 1)
         for (const cat of categs) {
-            await flowDynamic([{ body: `Categoría: ${cat.fullName.trim()} desde ${personalController.dateOutputFormat(cat.PersonalCategoriaDesde)}`, delay }])
+//            await flowDynamic([{ body: `Categoría: ${cat.fullName.trim()} desde ${personalController.dateOutputFormat(cat.PersonalCategoriaDesde)}`, delay }])
+            await flowDynamic([{ body: `Su categoría: ${cat.fullName.trim()}`, delay }])
         }
 
         await flowDynamic([{ body: `-------------------------------`, delay:delay*2 }])

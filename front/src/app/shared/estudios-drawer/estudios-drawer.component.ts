@@ -1,12 +1,10 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
 import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, EventEmitter, output,  } from '@angular/core';
-import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
-import { FormBuilder, FormControl, NgForm } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, debounceTime,switchMap } from 'rxjs';
-import { ApiService } from 'src/app/services/api.service';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ApiService } from '../../services/api.service';
 import { EstudioSearchComponent } from '../estudio-search/estudio-search.component';
 import { CursoSearchComponent } from '../curso-search/curso-search.component';
 import { PersonalSearchComponent } from '../personal-search/personal-search.component';
@@ -14,7 +12,6 @@ import { CommonModule } from '@angular/common';
 import { SearchService } from '../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import  { FileUploadComponent } from "../../shared/file-upload/file-upload.component"
-import { log } from '@delon/util';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 
 
