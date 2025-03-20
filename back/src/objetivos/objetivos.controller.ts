@@ -1177,8 +1177,8 @@ export class ObjetivosController extends BaseController {
         }
 
         //Habilitacion nesesaria
-        if (!form.habilitacion.length) {
-            throw new ClientException(`Debe selecionar al menos una Habilitación.`)
+        if (!form.habilitacion || !form.habilitacion.length) {
+            throw new ClientException(`Debe selecionar al menos un lugar de habilitación.`)
         }
 
 
@@ -1593,7 +1593,11 @@ export class ObjetivosController extends BaseController {
 
     private async setObjetivoHabilitacionNecesaria(queryRunner: any, ObjetivoId: number, habilitaciones:any[], usuarioId:number, ip:string) {
         //Compruebo si hubo cambios
-        let cambios:boolean = false
+        let cambios: boolean = false
+        if (!habilitaciones || !habilitaciones.length) {
+            throw new ClientException('Al menos debe seleccionar un lugar de habilitación para el objetivo')
+        } 
+
         const habilitacionesOld = await this.getFormHabilitacionByObjetivoIdQuery(queryRunner, ObjetivoId)
     
         if (habilitaciones.length != habilitacionesOld.length)
