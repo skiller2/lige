@@ -316,7 +316,7 @@ if (this.angularGridEditActividad.slickGrid.getEditorLock().isActive()) {
       }
 
       if (
-        item.GrupoActividadNumero == 0 ||
+        !item || item.GrupoActividadNumero == 0 ||
         item.GrupoActividadDetalle === "" ||
         item.GrupoActividadInactivo === "" ||
         item.SucursalId === "" ||
